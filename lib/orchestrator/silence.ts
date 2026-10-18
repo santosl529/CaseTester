@@ -24,6 +24,8 @@
 // can't predate the last turn, and once checked in, it can't predate the
 // silence start recorded then (the check-in is itself a turn).
 
+import { PHRASE_POOLS } from './phrasing';
+
 export const SILENCE_CHECK_IN_MS = 60_000;
 export const SILENCE_PAUSE_MS = 180_000;
 export const SILENCE_PAUSE_MAX_MS = 5 * 60_000;
@@ -109,7 +111,11 @@ export function checkInText(lastInterviewerText: string | null, storedQuestion?:
 // imperative's, a name's or an acronym's ("COGS", "Hollis Bay"); "is" joins
 // only one sentence that opens with a question word, anything else follows a colon.
 const QUESTION_WORD = /^(?:what|which|how|why|where|who|whose|when|whether|is|are|was|were|do|does|did|can|could|would|should|will|has|have)\b/i;
-const withoutLeadIn = (q: string) => q.trim().replace(/^(?:take your time\.\s*)?the question on the table(?: is|:)\s*/i, '').trim();
+// Any version of the stall lead (phrasing.ts stall_lead) before it, too.
+const STALL_LEADS = PHRASE_POOLS.stall_lead.map(v => v.split('{x}')[0].trim()).filter(Boolean)
+  .map(l => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ +/g, '\\s+'));
+const LEAD_IN = new RegExp(`^(?:(?:${STALL_LEADS.join('|')})\\s*)?the question on the table(?: is|:)\\s*`, 'i');
+const withoutLeadIn = (q: string) => q.trim().replace(LEAD_IN, '').trim();
 const lowerQuestionWord = (q: string) => (QUESTION_WORD.test(q) ? q.charAt(0).toLowerCase() + q.slice(1) : q);
 export function restateOnTable(stored: string): string {
   const q = withoutLeadIn(stored);

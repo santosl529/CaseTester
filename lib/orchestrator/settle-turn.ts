@@ -20,19 +20,18 @@ import { classifyMathTalk } from './math-talk';
 import { checkTimeframes } from './timeframe-check';
 import { checkHintDelivered } from './hint-check';
 
-import { probeIntents, pickFallbackQuestion, reaskProbe, narrowProbe, refersToFigures, CODE_PROBES, CODE_STRUCTURE_ASKS, EARLY_PHASES, WAIVER_LEAD, type PressureTestState } from './pressure-test';
+import { probeIntents, pickFallbackQuestion, reaskProbe, narrowProbe, refersToFigures, codeProbe, EARLY_PHASES, waiverLead, type PressureTestState } from './pressure-test';
 import { requestSentences } from './request-signal';
 import { isUnderTimePressure } from './pacing';
 import { rungName, classifyRungDelivery, revertUndeliveredRung } from './stall';
 import { logEvent } from '@/lib/analytics';
 import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
-import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts';
-import { phrase, recordPhraseUses, type PhraseUses } from './phrasing';
-import { BLOCKED_CLOSE_PROBES, LATE_RECOMMENDATION_ASKS, asksForConclusion, analysisAskLine } from './spoken-close';
+import { line, phrase, recordPhraseUses, type PhraseUses } from './phrasing';
+import { asksForConclusion, analysisAskLine } from './spoken-close';
 import { updateStages, stageQuestions, type StageKey, type StageRecord } from './stage-evidence';
 import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
-import { brainstormAsks, asksOwnBrainstorm } from './brainstorm';
+import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
 import { turnData, pressureTestOutcomeNow } from './turn-data';
@@ -233,7 +232,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // your time. The question on the table: …" after "Take your time.") drops
   // that opening; the model's words are vetted above (vetoReason).
   let question = codeWritten ? dropAckOpening(turn.question, ctx.acknowledged) : keep(turn.question, 'question');
-  if (kind === 'rec_ask') question = pickScript([...(state.recAskLate ? LATE_RECOMMENDATION_ASKS : BLOCKED_CLOSE_PROBES.recommendation)], seed);
+  if (kind === 'rec_ask') question = line(state.recAskLate ? 'late_rec_ask' : 'rec_ask', phraseUses, seed);
   // The model's own words in the question, as the turn goes on — emptied
   // wherever code replaces the question, kept when code only appends. The
   // pressure test is asked by the model's words or code's own probe, never by
@@ -262,10 +261,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       const about = mathWithheld.map(w => challengeVerdict(w.sentence, challengeCtx)).find(v => v && !('explainKey' in v) && v.figure !== undefined
         && statedAsResult(candidateText, v.figure)) as { figure?: number } | undefined;
       const figureText = about?.figure !== undefined ? figureAsWritten(candidateText, about.figure) : null;
-      const explain = figureText ? `How did you get to ${figureText}?` : null;
+      const explain = figureText ? phrase('got_to', figureText, phraseUses, seed) : null;
       const verdict = explain ? challengeVerdict(explain, challengeCtx) : null;
       const allowed = explain !== null && (verdict === null || 'explainKey' in verdict);
-      question = allowed && explain ? explain : pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+      question = allowed && explain ? explain : pickFallbackQuestion({ uses: phraseUses, figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
       modelQuestion = '';
       challengeReplacement = question;
     }
@@ -284,7 +283,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal' || w.reason === 'close_cue'
       // A withheld growth probe (growth-probe.ts) leaves an ask when "Walk me through it." stays.
       || ((w.reason === 'growth_probe_on_ratio' || w.reason === 'growth_probe_unchecked') && !/\b(?:walk|talk) me through\b|\btell me\b/i.test(question))))) {
-    const fallback = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+    const fallback = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
     modelQuestion = question;
     question = question ? `${question} ${fallback}` : fallback;
   }
@@ -306,7 +305,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       return false;
     });
     if (kept.length !== sentencesOf(question).length) {
-      question = kept.some(x => x.endsWith('?')) ? kept.join(' ') : pickFallbackQuestion({ figuresDelivered: false, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+      question = kept.some(x => x.endsWith('?')) ? kept.join(' ') : pickFallbackQuestion({ uses: phraseUses, figuresDelivered: false, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
       modelQuestion = kept.some(x => x.endsWith('?')) && modelQuestion ? question : '';
     }
   }
@@ -314,7 +313,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   if (!codeWritten && kind !== 'rec_ask' && !figuresOut && refersToFigures(question)
     && (heldThisTurn || Object.keys(revealedValues(ledger)).length === 0)) {
     withheld.push({ sentence: question, reason: 'undelivered_figures', field: 'question' });
-    question = pickFallbackQuestion({ figuresDelivered: false, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+    question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: false, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
     modelQuestion = '';
   }
 
@@ -331,7 +330,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const early = EARLY_PHASES.includes(currentPhase);
   const isProbe = (q: string) => probeIntents(q).length > 0 && (early || turn.move === 'pressure_test');
   // A waiver: the probe went unanswered, whatever the reply was.
-  const waiverQuestion = (lead: string) => `${lead} ${pickFallbackQuestion({ figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null, lastAnswered: false, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) })}`;
+  const waiverQuestion = (lead: string) => `${lead} ${pickFallbackQuestion({ uses: phraseUses, figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null, lastAnswered: false, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) })}`;
   // Every reply while the probe is open counts, code-written turns included
   // (stall rung 1, the recommendation ask, the time warning); only a model
   // turn can carry a ladder step or the waiver (pressureTestOutcomeNow).
@@ -341,26 +340,26 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   if (!codeWritten && kind !== 'rec_ask') {
     if (ptPrev.state === 'awaiting' && !satisfiedNow) {
       if (waiving) {
-        question = waiverQuestion(WAIVER_LEAD.awaiting); modelQuestion = '';
+        question = waiverQuestion(waiverLead('awaiting', phraseUses, seed)); modelQuestion = '';
         ptAction = 'waived';
       } else if (pt.awaitingReplies === 1) {
-        question = reaskProbe(ptPrev.intents, decisions.gatedIds.length > 0, lastAnswered); modelQuestion = '';
+        question = reaskProbe(ptPrev.intents, decisions.gatedIds.length > 0, lastAnswered, phraseUses, seed); modelQuestion = '';
         pt.reasks += 1;
         pt.followUps = [...(ptPrev.followUps ?? []), question];
         ptAction = 'reask';
       } else {
-        question = narrowProbe(ptPrev.intents); modelQuestion = '';
+        question = narrowProbe(ptPrev.intents, phraseUses, seed); modelQuestion = '';
         pt.followUps = [...(ptPrev.followUps ?? []), question];
         ptAction = 'narrowed';
       }
     } else if (ptPrev.state !== 'not_asked' && isProbe(modelQuestion) && (satisfiedNow || ptPrev.state === 'waived')) {
-      question = pickFallbackQuestion({ figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+      question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
       modelQuestion = '';
       ptAction = 'replaced_duplicate';
     } else if (ptPrev.state === 'not_asked') {
       pt.gatedTurns = decisions.gatedIds.length > 0 ? ptPrev.gatedTurns + 1 : 0;
       if (waiving) {
-        question = waiverQuestion(WAIVER_LEAD.not_asked); modelQuestion = '';
+        question = waiverQuestion(waiverLead('not_asked', phraseUses, seed)); modelQuestion = '';
         ptAction = 'waived';
       } else if (!isProbe(modelQuestion) && pt.gatedTurns >= 2) {
         // The probe tests a structure; with none on the table, ask for it first (once).
@@ -371,11 +370,11 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
         if (!pt.structureGiven && verdict === null) {
           ptAction = 'structure_unknown';
         } else if (pt.structureGiven && !pt.codeAsked) {
-          question = pickScript([...CODE_PROBES], seed); modelQuestion = '';
+          question = codeProbe(phraseUses, seed); modelQuestion = '';
           pt.codeAsked = true;
           ptAction = 'code_asked';
         } else if (!pt.structureGiven && !pt.structureAsked) {
-          question = pickScript([...CODE_STRUCTURE_ASKS], seed); modelQuestion = '';
+          question = line('structure_ask', phraseUses, seed); modelQuestion = '';
           pt.structureAsked = true;
           ptAction = 'code_asked_structure';
         }
@@ -416,8 +415,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const gateClosedNow = satisfiedNow || waiving || ptPrev.state === 'waived';
   if (!codeWritten && kind === 'model' && requiredOwed && gateClosedNow && asksForConclusion(question)) {
     withheld.push({ sentence: question, reason: 'recommendation_held_for_stage', field: 'question' });
-    if (decisions.exhibit) question = pickScript(STAGE_EXHIBIT_QUESTIONS, seed);
-    else { heldForExhibit = requiredOwed; question = `${phrase('exhibit', requiredOwed.title, phraseUses, seed)} ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`; }
+    if (decisions.exhibit) question = line('stage_exhibit_q', phraseUses, seed);
+    else { heldForExhibit = requiredOwed; question = `${phrase('exhibit', requiredOwed.title, phraseUses, seed)} ${line('stage_exhibit_q', phraseUses, seed)}`; }
     modelQuestion = '';
     stageAsked = 'exhibit';
   } else if (!codeWritten && kind === 'model' && state.analysisOwed && caseData.analysisCore && asksForConclusion(question)) {
@@ -428,13 +427,13 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   } else if (!codeWritten && kind === 'model' && state.owedStage && state.ptClosed && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) && asksForConclusion(question)) {
     const asked = question;
     if (state.owedStage === 'brainstorm') {
-      question = pickScript(brainstormAsks(caseData), seed);
+      question = brainstormAskLine(caseData, phraseUses, seed);
       modelQuestion = '';
       stageAsked = 'brainstorm';
     } else if (!decisions.exhibit) {
       heldForExhibit = nextReadyExhibit(caseData.exhibits, state.shownExhibitIds, ledger, state.stagesOut);
       if (heldForExhibit) {
-        question = `${phrase('exhibit', heldForExhibit.title, phraseUses, seed)} ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`;
+        question = `${phrase('exhibit', heldForExhibit.title, phraseUses, seed)} ${line('stage_exhibit_q', phraseUses, seed)}`;
         modelQuestion = '';
         stageAsked = 'exhibit';
       }
@@ -453,10 +452,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const next = decisions.exhibit ? undefined : nextReadyExhibit(caseData.exhibits, state.shownExhibitIds, ledger, state.stagesOut);
     if (next) {
       heldForExhibit = next;
-      question = `${phrase('exhibit', next.title, phraseUses, seed)} ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`;
+      question = `${phrase('exhibit', next.title, phraseUses, seed)} ${line('stage_exhibit_q', phraseUses, seed)}`;
       stageAsked = 'exhibit';
     } else {
-      question = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
+      question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
     }
     modelQuestion = '';
   }
@@ -467,7 +466,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const core = caseData.analysisCore;
     const out = new Set([...Object.keys(revealedValues(ledger)), ...decisions.releases.map(r => r.id), ...(decisions.exhibit?.covers ?? [])]);
     if (core.items.filter(id => out.has(id)).length >= (core.minItems ?? core.items.length)) {
-      question = pickFallbackQuestion({ figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
+      question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
       modelQuestion = '';
     }
   }
@@ -485,7 +484,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // brainstorm, not yet administered, comes next turn.
   let stageWaited = false;
   if (kind === 'stage_brainstorm' && (decisions.releases.length > 0 || decisions.exhibit !== null)) {
-    question = pickFallbackQuestion({ figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
+    question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
     stageAsked = undefined;
     stageWaited = true;
   }
@@ -543,7 +542,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     });
     if (pending.changes.length > 0) {
       const before = question;
-      question = pending.question ?? pickFallbackQuestion({ figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+      question = pending.question ?? pickFallbackQuestion({ uses: phraseUses, figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
       // A rewrite keeps the model's words (less the pending-data clause); a replacement is code's.
       modelQuestion = pending.question && modelQuestion ? pending.question : '';
       for (const c of pending.changes) if (c.to === null) withheld.push({ sentence: c.from, reason: 'pending_data', field: 'question' });
@@ -563,7 +562,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const looping = askTags.filter(t => !a.given && !b.given && a.tags.includes(t) && b.tags.includes(t));
     if (looping.length > 0) {
       withheld.push({ sentence: question, reason: 'loop', field: 'question' });
-      question = advanceLine(looping);
+      question = advanceLine(looping, phraseUses, seed);
       modelQuestion = '';
       askTags = askIntents(question);
     }

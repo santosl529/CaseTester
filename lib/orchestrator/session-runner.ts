@@ -14,7 +14,7 @@ import { logEvent, inDraftScope } from '@/lib/analytics';
 import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
-import { SILENCE_PAUSE_EXPIRED, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, STAGE_EXHIBIT_QUESTIONS, closeLine, pickScript } from '@/lib/agent/prompts/scripts';
+import { SILENCE_PAUSE_EXPIRED, closeLine } from '@/lib/agent/prompts/scripts';
 import { planTurn, scriptedOffer, scriptedOfferFor, terminationPlanFor, type ModelPlan, type TurnReads } from './plan-turn';
 import { conductEnds } from './stream-turn';
 import type { ConductModelVerdict } from './conduct-model';
@@ -23,14 +23,14 @@ import { promptContextFor } from './prompt-context';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
 import { revealedValues } from './data-ledger';
 import { nextReadyExhibit } from './data-decisions';
-import { brainstormAsks } from './brainstorm';
+import { brainstormAskLine } from './brainstorm';
 import { analysisAskLine } from './spoken-close';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { recMathLine } from './recompute';
 import { MATH_CHECKER_CATEGORY, type CheckerJob, type CheckerJobResult } from './math-checker-live';
-import { phrase, type PhraseUses } from './phrasing';
+import { line, phrase, PHRASE_POOLS, type PhraseUses } from './phrasing';
 import {
   isUsefulSegment, isCancelledTurn, TurnCancelled,
   type ConductFlags, type HeardReport, type ScriptedPlan, type SegmentSink, type TurnCtx, type TurnResult,
@@ -437,12 +437,12 @@ async function runTurnBody(
 
 const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_revision', 'rec_math_probe', 'close_wait']);
 // After code corrects a misquote in the recommendation: one chance to revise it.
-const REC_REVISION_QUESTIONS = ['With that corrected, does your recommendation change?', 'Given the corrected figure, would you change your recommendation?'] as const;
+export const REC_REVISION_QUESTIONS = PHRASE_POOLS.rec_revision;
 // After code corrects the candidate's own math in the recommendation (Rule 14
 // past its probe): the correction is theirs, so no "corrected figure" talk.
-const REC_MATH_REVISION_QUESTIONS = ['Does that change your recommendation?', 'Would that change your recommendation at all?'] as const;
+export const REC_MATH_REVISION_QUESTIONS = PHRASE_POOLS.rec_math_revision;
 // …and with no recommendation received yet, nothing about "your recommendation" (batch 29 Jordan ea27d1f6 t13).
-const ANALYSIS_REVISION_QUESTIONS = ['Does that change your analysis?', 'How does that change your numbers?'] as const;
+export const ANALYSIS_REVISION_QUESTIONS = PHRASE_POOLS.analysis_revision;
 
 
 // A code-written turn as a turn of the interviewer's shape: the message's data
@@ -461,17 +461,18 @@ export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[]
   const requests = (detected ?? [])
     .filter(r => r.explicit) // a code-written turn answers asks, it doesn't offer
     .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));
-  const question = state.kind === 'close' ? closeLine(state.closeReason, seed)
-    : state.kind === 'grace_ask' ? pickScript(GRACE_ASK_SCRIPTS, seed)
-      : state.kind === 'time_warning' ? pickScript(TIME_WARNING_SCRIPTS, seed)
-        : state.kind === 'stage_brainstorm' ? pickScript(brainstormAsks(state.caseData), seed)
-          : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
+  const uses = ctx.flags.phraseUses as PhraseUses | undefined;
+  const question = state.kind === 'close' ? closeLine(state.closeReason, seed, uses)
+    : state.kind === 'grace_ask' ? line('grace_ask', uses, seed)
+      : state.kind === 'time_warning' ? line('time_warning', uses, seed)
+        : state.kind === 'stage_brainstorm' ? brainstormAskLine(state.caseData, uses, seed)
+          : state.kind === 'stage_exhibit' ? line('stage_exhibit_q', uses, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? analysisAskLine(state.caseData.analysisCore.ask, state.recommendationInPlay)
-            : state.kind === 'rec_revision' ? pickScript([...(state.recommendationReceived ? REC_REVISION_QUESTIONS : ANALYSIS_REVISION_QUESTIONS)], seed)
-              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed)
-              : recMath?.action === 'correct' ? pickScript([...(state.recommendationReceived ? REC_MATH_REVISION_QUESTIONS : ANALYSIS_REVISION_QUESTIONS)], seed)
+            : state.kind === 'rec_revision' ? line(state.recommendationReceived ? 'rec_revision' : 'analysis_revision', uses, seed)
+              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed, uses)
+              : recMath?.action === 'correct' ? line(state.recommendationReceived ? 'rec_math_revision' : 'analysis_revision', uses, seed)
               : recMath ? recLine('probe')
-            : `Take your time. ${restateOnTable(state.lastQuestion ?? '')}`;
+            : phrase('stall_lead', restateOnTable(state.lastQuestion ?? ''), uses, seed);
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
   const exhibit = state.kind === 'stage_exhibit' ? state.requiredExhibit ?? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger, state.stagesOut)?.id ?? null : null;
   // Rule 14 past its probe: the figure, flat, before the revision question.

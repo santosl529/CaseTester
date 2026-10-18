@@ -1,12 +1,14 @@
 // Code's connecting words vary (Lorenzo's brief, 17 Oct, item 4a): no variant
 // again within its pool's last 3 uses in a session; the content verbatim.
 import { describe, it, expect } from 'vitest';
-import { PHRASE_POOLS, PHRASE_MEMORY, phrase, variantIndex, recordPhraseUses, poolPattern, anyVariant, type PhrasePool, type PhraseUses } from '@/lib/orchestrator/phrasing';
+import { PHRASE_POOLS, PHRASE_MEMORY, SEEDED_FIRST, phrase, variantIndex, recordPhraseUses, poolPattern, anyVariant, type PhrasePool, type PhraseUses } from '@/lib/orchestrator/phrasing';
 import { hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { isClosingTurn, asksRecommendationAsk } from '@/lib/orchestrator/spoken-close';
 import { renderDataLines } from '@/lib/orchestrator/data-decisions';
 
-const POOLS = Object.keys(PHRASE_POOLS) as PhrasePool[];
+// The data-line pools of item 4a (17 Oct); every pool joins them with brief B (18 Oct).
+const POOLS = ['defer', 'refuse', 'exhibit', 'restate', 'earlier', 'correct_one', 'correct_two', 'wrap_up'] as PhrasePool[];
+const ALL = Object.keys(PHRASE_POOLS) as PhrasePool[];
 
 describe('the pools', () => {
   it.each(POOLS)('%s: at least 4 variants, so the last-3 rule always leaves one; {x} once (or not at all for a bare lead-in); no figures', pool => {
@@ -32,8 +34,8 @@ describe('the pools', () => {
 });
 
 describe('choosing a variant', () => {
-  it('the first use in a session is the original line', () => {
-    for (const pool of POOLS) expect(variantIndex(pool, undefined, 's1:4')).toBe(0);
+  it('the first use in a session is the original line, except where a pool rotated by seed before', () => {
+    for (const pool of ALL) if (!SEEDED_FIRST.has(pool)) expect(variantIndex(pool, undefined, 's1:4')).toBe(0);
     expect(phrase('defer', 'the store count', {}, 's1:4')).toBe("I'll come back to the store count shortly.");
   });
   it('never one of the pool\'s last 3 uses — over 40 uses, in every session', () => {
@@ -101,4 +103,18 @@ describe('the model saying a variant of code\'s line is still data talk', () => 
   ])('%s', s => expect(vetoReason(s, g)).toBe('data_talk'));
   it.each(["Here's an exhibit.", 'Take a look at this exhibit.', 'Have a look at this exhibit.', "I'll put up an exhibit."])('a handover in the question: %s', s => expect(isHandoverAnnouncement(s)).toBe(true));
   it.each(['Let me get to the point.', 'You repeated the 16 points.', 'Got it, a cost-first view.'])('not data talk: %s', s => expect(vetoReason(s, g)).not.toBe('data_talk'));
+});
+
+// Brief B (18 Oct): every code-written line without case facts lives in one registry.
+import { pickScript } from '@/lib/agent/prompts/scripts';
+describe('the registry keeps the old choices', () => {
+  it('a pool that rotated by seed picks, on its first use, what pickScript picked', () => {
+    for (const pool of ALL) if (SEEDED_FIRST.has(pool)) for (const seed of ['s1:4', 'abc:12', 'x:0', '9ccf0836:31']) {
+      expect(phrase(pool, '', undefined, seed)).toBe(pickScript(PHRASE_POOLS[pool], seed));
+    }
+  });
+  it('no line is in two pools (each heard line is recorded once)', () => {
+    const seen = new Map<string, string>();
+    for (const pool of ALL) for (const v of PHRASE_POOLS[pool]) { expect(seen.get(v), `${pool}: ${v}`).toBeUndefined(); seen.set(v, pool); }
+  });
 });

@@ -12,7 +12,7 @@ import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import type { RequestResponse } from './data-requests';
 import { canReveal, type DataLedger } from './data-ledger';
-import { phrase, type PhraseUses } from './phrasing';
+import { line, phrase, PHRASE_POOLS, type PhraseUses } from './phrasing';
 import { isOrderStage } from '@/lib/cases/schema';
 
 export const RELEASE_CAP = 3;
@@ -23,7 +23,7 @@ export const RELEASE_CAP = 3;
 // open. v4.10 (KF-4): it promises nothing — the ask may name data the case
 // doesn't have; it is put to the interviewer again once the structure is
 // settled (plan-turn.ts unmappedToResolve), to map or decline then.
-export const UNMAPPED_DEFER_LINE = "Let's settle your structure before we get into the data.";
+export const UNMAPPED_DEFER_LINE = PHRASE_POOLS.unmapped_defer[0];
 
 // Resolves a declared id to a canonical one. Exact only — an id or a
 // label / title, ignoring case and punctuation: a partial match could release
@@ -452,9 +452,9 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or'), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });
-  if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: `I'll share ${joinWhat(d.gateDefers, 'and')} once we've settled your structure.` });
-  if (d.unmappedDefer) parts.push({ kind: 'defers', ids: [], text: UNMAPPED_DEFER_LINE });
-  if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: `I can share ${joinWhat(d.offers, 'and')} if you'd like.` });
+  if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and'), uses, seed) });
+  if (d.unmappedDefer) parts.push({ kind: 'defers', ids: [], text: line('unmapped_defer', uses, seed) });
+  if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and'), uses, seed) });
   return parts;
 }
 

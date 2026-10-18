@@ -41,7 +41,7 @@ export function claimError(c: CheckerClaim): number {
 export function holdRank(n: number, from: number | null, error: number): number {
   return (n === from ? 1e6 : 0) + Math.min(error, 1e5);
 }
-import { pickScript } from '@/lib/agent/prompts/scripts';
+import { line, type PhraseUses } from './phrasing';
 import type { StageRecord } from './stage-evidence';
 
 export type CloseHoldMemory = {
@@ -103,11 +103,8 @@ export function pendingFinalChecks(p: {
 // The stage's natural follow-up: after the risk, how they'd guard against it;
 // otherwise the first step. No recommendation or risk ask in its words — it
 // must not reopen a stage.
-const AFTER_RISK = ['How would you guard against that?', 'What would you put in place to guard against that?'] as const;
-const FIRST_STEP = ['What would you have the client do first?', "What's the first step you'd want the client to take?"] as const;
-const MEASURE = ['How would you know, six months in, that it was working?'] as const;
-export function closeWaitLine(lastQuestion: string, seed: string): string {
-  if (asksRiskQuestion(lastQuestion, true) && !/\b(?:mitigat\w*|guard against|protect against|de-?risk)\b/i.test(lastQuestion)) return pickScript([...AFTER_RISK], seed);
-  if (!/\bfirst\b/i.test(lastQuestion)) return pickScript([...FIRST_STEP], seed);
-  return pickScript([...MEASURE], seed);
+export function closeWaitLine(lastQuestion: string, seed: string, uses?: PhraseUses): string {
+  if (asksRiskQuestion(lastQuestion, true) && !/\b(?:mitigat\w*|guard against|protect against|de-?risk)\b/i.test(lastQuestion)) return line('after_risk', uses, seed);
+  if (!/\bfirst\b/i.test(lastQuestion)) return line('first_step', uses, seed);
+  return line('measure', uses, seed);
 }
