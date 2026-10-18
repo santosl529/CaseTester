@@ -208,7 +208,9 @@ npx tsx --env-file=.env.local scripts/voice-export.ts <sessionId>
 This writes `Case Interview Runs/voice-live/<date>/<sessionId>.jsonl` (the
 per-turn records, as before), `<sessionId>.md` (the transcript) and
 `<sessionId>-db-dump.json` (the shape the replay tools read). It's free and
-only reads.
+only reads. The transcript marks a filler that was picked but didn't play as
+`~~Hmm…~~ *(filler skipped: fillers_off)*` — the saved line still opens with
+it, so the db dump and the scorer's transcript show it as said.
 
 ## Getting club-beta-2 and this work onto main
 
