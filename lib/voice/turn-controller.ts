@@ -16,6 +16,7 @@ import { classifierWaits, type TurnRecord } from './records';
 import { DEFAULT_FILLER_RATE, FILLER_DELAY_MS, ackKind, fillerAllowed, isThinkingFiller, pickAck, shouldAcknowledge, type FillerRate } from './acknowledge';
 import { connectorWordCount, pickConnector, spokenWithConnector } from './connector';
 import { speechTextFor, WordFolder } from './pronounce';
+import { PHRASE_POOLS, variantIndex } from '@/lib/orchestrator/phrasing';
 
 // How long heard() waits for the browser to confirm an exhibit it was sent.
 export const EXHIBIT_CONFIRM_MS = 1500;
@@ -60,6 +61,11 @@ export type ControllerDeps = {
   fillerRate?: FillerRate;
   // Optional: the turn-taking decisions as they happen (session recording).
   trace?: (type: string, data?: Record<string, unknown>) => void;
+  // The silence check-in (Lorenzo, 18 Oct): one soft line after this much
+  // silence (VOICE_CHECKIN_MS); unset or 0 = off.
+  checkInMs?: number;
+  // A line for the session's records outside a turn's own (the check-in).
+  note?: (line: Record<string, unknown>) => void;
 };
 
 type Entry = {
@@ -103,6 +109,9 @@ export class VoiceTurnController {
   private connectors: string[] = [];   // the connector chosen on each of the last two filler turns
   private capHit = false;              // a segment was refused for the TTS allowance
   private closing = false;             // the cap's closing line is under way
+  // The silence check-in: armed while listening, from `since`; once a silence
+  // (`done` until the candidate speaks); `uses` = the pool versions said.
+  private checkIn: { cancel: (() => void) | null; since: number; done: boolean; uses: number[] } = { cancel: null, since: 0, done: false, uses: [] };
 
   constructor(private d: ControllerDeps) {}
 
@@ -167,6 +176,7 @@ export class VoiceTurnController {
       return;
     }
     if (this.state === 'waiting') return;
+    if (e.kind === 'speech' || e.kind === 'final') this.candidateSpoke();
     if (e.kind === 'speech') {
       if (e.transcript) this.d.send({ type: 'caption', who: 'candidate', turnSeq: this.seq + 1, text: e.transcript, final: false });
       this.maybeBargeIn(e.words);
@@ -502,6 +512,54 @@ export class VoiceTurnController {
     if (this.state === 'ended') return;
     this.state = state;
     this.d.send({ type: 'state', state, turnSeq });
+    this.armCheckIn();
+  }
+
+  // The silence check-in (Lorenzo's brief, 18 Oct, item 5): after checkInMs
+  // listening with no candidate speech (STT words or a voiced mic frame) and
+  // nothing playing, one soft line from the voice_check_in pool — once a
+  // silence, again only after the candidate speaks; never while the
+  // interviewer thinks or speaks; interruptible; no clock pause, no session
+  // end. Not a turn: logged as its own line (note), not booked.
+  private armCheckIn(from = this.d.now()): void {
+    this.checkIn.cancel?.();
+    this.checkIn.cancel = null;
+    const ms = this.d.checkInMs ?? 0;
+    if (ms <= 0 || this.checkIn.done || this.state !== 'listening') return;
+    this.checkIn.since = from;
+    this.checkIn.cancel = this.d.clock.at(from + ms, () => this.fireCheckIn());
+  }
+
+  private candidateSpoke(): void {
+    this.checkIn.done = false;
+    this.armCheckIn();
+  }
+
+  private fireCheckIn(): void {
+    this.checkIn.cancel = null;
+    if (this.state !== 'listening' || this.blocked || this.closing || this.capHit || this.d.playout.busy()) return;
+    const voiced = this.d.speechEndAt();
+    if (voiced !== null && voiced > this.checkIn.since) { this.armCheckIn(voiced); return; }   // a sound since: count from it
+    if (!this.d.canStartTurn()) return;
+    this.checkIn.done = true;
+    const v = variantIndex('voice_check_in', { voice_check_in: this.checkIn.uses }, `${this.d.sessionSeed}:check_in:${this.checkIn.uses.length}`);
+    this.checkIn.uses.push(v);
+    const text = PHRASE_POOLS.voice_check_in[v];
+    const silentMs = this.d.now() - this.checkIn.since;
+    const afterTurnSeq = this.live?.seq ?? this.seq;
+    const c = this.newLive('', this.d.now(), true);
+    this.d.trace?.('check_in', { seq: c.seq, text, silentMs });
+    this.setState('thinking', c.seq);
+    void (async () => {
+      await this.accept(c, { kind: 'say', text, revealIds: [] }).catch(() => {});
+      await this.d.playout.whenIdle();
+      if (c.cutAt === null) await new Promise<void>(r => this.d.clock.at(this.d.now() + HEARD_MARGIN_MS, r));
+      const e = c.entries[0];
+      const out: Outcome = e ? (c.cutOutcome?.get(e.id) ?? this.d.playout.classify(e.id)) : { playback: 'unplayed', heardChars: 0 };
+      this.d.send({ type: 'caption', who: 'interviewer', turnSeq: c.seq, text: this.captionText(c), final: true });
+      this.d.note?.({ turnSeq: c.seq, afterTurnSeq, at: new Date(this.d.now()).toISOString(), checkIn: { line: text, silentMs, playback: out.playback, heardChars: out.heardChars } });
+      if (this.live === c && c.cutAt === null) this.setState('listening', c.seq);
+    })();
   }
 
   private writeRecord(t: Live, r: TurnResult | null, cancelled: boolean): void {

@@ -679,3 +679,101 @@ describe('the TTS allowance runs out (voice deploy, 18 Oct): never silence', () 
   });
 });
 
+
+import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
+
+// Lorenzo's brief, 18 Oct, item 5: after VOICE_CHECKIN_MS with no candidate
+// speech and nothing playing, one soft line from a 5-version pool — once per
+// silence, again only after the candidate speaks; never while the interviewer
+// speaks; no clock pause, no session end. Logged per turn.
+describe('the voice silence check-in', () => {
+  const CHECK = 90_000;
+  const setup = (script: Parameters<typeof harness>[0] = [], o: Partial<ControllerDeps> = {}) => {
+    let lastVoiced: number | null = null;
+    const notes: Record<string, unknown>[] = [];
+    const h = harness(script, { checkInMs: CHECK, speechEndAt: () => lastVoiced, note: l => notes.push(l), ...o });
+    return { ...h, notes, voiced: (at: number) => { lastVoiced = at; } };
+  };
+  const checkIns = (h: ReturnType<typeof setup>) => h.captions('interviewer').filter(m => m.final && (PHRASE_POOLS.voice_check_in as readonly string[]).includes(m.text));
+
+  it('says one line from the pool after the silence, and only once until the candidate speaks', async () => {
+    const h = setup();
+    await h.c.ready('Your client is a coffee chain. How would you approach this?');
+    await h.advance(CHECK - 1000);
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(5000);
+    expect(checkIns(h).map(m => m.text)).toEqual([PHRASE_POOLS.voice_check_in[0]]);
+    await h.advance(3 * CHECK);                                         // still silent: no second line
+    expect(checkIns(h)).toHaveLength(1);
+    expect(h.sent.some(m => m.type === 'ended')).toBe(false);           // no session end
+  });
+
+  it('resets when the candidate speaks: the silence counts from their last words', async () => {
+    const h = setup([[seg('tail', 'Which bucket first?')]]);
+    await h.c.ready('');
+    await h.advance(60_000);
+    h.c.onStt(speech('so I think'));                                    // words, no end of turn yet
+    await h.advance(60_000);                                            // 120s in, 60s since they spoke
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(35_000);
+    expect(checkIns(h)).toHaveLength(1);
+    h.c.onStt(final('Costs first.'));                                   // a turn, then a new silence
+    await h.advance(5000);
+    await h.advance(CHECK + 5000);
+    expect(checkIns(h)).toHaveLength(2);
+    expect(checkIns(h)[1].text).not.toBe(checkIns(h)[0].text);         // the next version, not a repeat
+  });
+
+  it('a voiced mic frame defers it, though no words were transcribed', async () => {
+    const h = setup();
+    await h.c.ready('');
+    await h.advance(80_000);
+    h.voiced(h.clock.now());                                            // a mumble the STT didn't turn into words
+    await h.advance(20_000);
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(CHECK);
+    expect(checkIns(h)).toHaveLength(1);
+  });
+
+  it('never while the interviewer is thinking or speaking: the silence starts when the reply has played', async () => {
+    const h = setup([{ segs: [seg('tail', 'Walk me through it.')], delayMs: 100_000 }]);
+    await h.c.ready('');
+    h.c.onStt(final('Let me think about the structure.'));
+    await h.advance(100_000 + 2000);                                    // the model took 100s; the reply plays
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(CHECK - 5000);
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(10_000);
+    expect(checkIns(h)).toHaveLength(1);
+  });
+
+  it('is interruptible: the candidate talking over it cuts it, and their turn runs', async () => {
+    const h = setup([[seg('tail', 'Go on.')]], { tts: new FakeTTS(80, 0) });
+    await h.c.ready('');
+    await h.advance(CHECK + 500);                                       // the line has started
+    h.c.onStt(speech('sorry I was'));
+    h.c.onStt(final('Sorry, I was working it out. Costs first.'));
+    await h.advance(5000);
+    expect(h.texts).toEqual(['Sorry, I was working it out. Costs first.']);
+    expect(h.notes[0]).toMatchObject({ checkIn: { playback: 'partial' } });
+  });
+
+  it('is logged per turn: the line, the silence before it, what was heard', async () => {
+    const h = setup([[seg('tail', 'Which bucket first?')]]);
+    await h.c.ready('');
+    h.c.onStt(final('Revenue and costs.'));
+    await h.advance(5000);
+    await h.advance(CHECK + 10_000);
+    expect(h.notes).toHaveLength(1);
+    const line = PHRASE_POOLS.voice_check_in[0];
+    expect(h.notes[0]).toMatchObject({ turnSeq: 2, afterTurnSeq: 1, checkIn: { line, playback: 'played', heardChars: line.length } });
+    expect((h.notes[0] as { checkIn: { silentMs: number } }).checkIn.silentMs).toBeGreaterThanOrEqual(CHECK);
+  });
+
+  it('is off without checkInMs', async () => {
+    const h = setup([], { checkInMs: undefined });
+    await h.c.ready('');
+    await h.advance(5 * CHECK);
+    expect(checkIns(h)).toHaveLength(0);
+  });
+});

@@ -50,6 +50,7 @@ const WHEN: Record<PhrasePool, string> = {
   probe_calc: 'The checker\'s neutral probe of a calculation with no figure of theirs to name.',
   probe_there: 'The checker\'s neutral probe of a claim with no figures.',
   check_in: 'Text mode: the check-in after a minute of silence (once a silence), before the question on the table.',
+  voice_check_in: 'Voice: the soft check-in after VOICE_CHECKIN_MS (90s) with no candidate speech and nothing playing — once a silence, again after the candidate speaks; interruptible; no clock pause, no session end.',
   pause: 'Text mode: the technical pause after three minutes (again on a later silence while pause budget is left). {x} = the limit, e.g. "5 minutes".',
   stage_exhibit_q: 'After code hands over an exhibit: the stage question.',
   brainstorm_generic: 'The brainstorm stage, for a case without its own brainstorm question.',

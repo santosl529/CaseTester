@@ -161,6 +161,9 @@ export default defineAgent({
       ttsAllow, ttsAllowClosing, canStartTurn: () => fake || (ledger.canStartTurn() && run!.left >= TURN_TTS_RESERVE + closingReserve),
       // Ended for the cap as the End button ends it: completed with a report when assessable.
       endEarly: async () => ({ scoringSuppressed: !(await endByCandidate(session.id, session.userId, 'voice_tts_cap')).report }),
+      // The silence check-in (Lorenzo, 18 Oct): 90s by default; 0 = off.
+      checkInMs: num('VOICE_CHECKIN_MS', 90_000),
+      note: l => { lines.add(l); console.log('[voice] check-in', JSON.stringify(l)); },
       bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS), fillerRate,
       trace: rec ? (type, data) => rec.event(type, data) : undefined,
     });

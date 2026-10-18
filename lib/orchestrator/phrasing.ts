@@ -432,6 +432,15 @@ export const PHRASE_POOLS = {
     'Just checking — are you still there? Take your time.',
     'Still there? Take whatever time you need.',
   ],
+  // turn-controller.ts (voice): the soft check-in after VOICE_CHECKIN_MS of
+  // silence (Lorenzo, 18 Oct: once a silence; no clock pause, no session end).
+  voice_check_in: [
+    'Take your time — feel free to think out loud.',
+    'No rush. If it helps, talk me through what you\'re thinking.',
+    'Take whatever time you need — thinking out loud is fine.',
+    'No hurry. Feel free to share your thinking as you go.',
+    'Take your time. You\'re welcome to think out loud.',
+  ],
   // …the technical pause, again on a later silence while pause budget is left. {x} = the limit ("5 minutes").
   pause: [
     'Looks like we may have lost you — I\'ve paused the clock. If you\'re not back within {x}, we\'ll end the session here.',

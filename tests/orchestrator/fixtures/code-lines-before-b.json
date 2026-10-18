@@ -239,5 +239,8 @@
  ],
  "pause": [
   "Looks like we may have lost you — I've paused the clock. If you're not back within {x}, we'll end the session here."
+ ],
+ "voice_check_in": [
+  "Take your time — feel free to think out loud."
  ]
 }

@@ -570,6 +570,16 @@ Text mode: the check-in after a minute of silence (once a silence), before the q
 4. Just checking — are you still there? Take your time.
 5. Still there? Take whatever time you need.
 
+### voice_check_in
+
+Voice: the soft check-in after VOICE_CHECKIN_MS (90s) with no candidate speech and nothing playing — once a silence, again after the candidate speaks; interruptible; no clock pause, no session end.
+
+1. Take your time — feel free to think out loud.
+2. No rush. If it helps, talk me through what you're thinking.
+3. Take whatever time you need — thinking out loud is fine.
+4. No hurry. Feel free to share your thinking as you go.
+5. Take your time. You're welcome to think out loud.
+
 ### pause
 
 Text mode: the technical pause after three minutes (again on a later silence while pause budget is left). {x} = the limit, e.g. "5 minutes".

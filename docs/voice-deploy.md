@@ -84,6 +84,7 @@ Optional (the defaults are in code):
 | `VOICE_TTS_CHAR_CAP` | `90000` — the monthly cap, shared through the table |
 | `VOICE_MAX_SESSION_MIN` | `25` |
 | `VOICE_BARGE_MIN_WORDS` | `2` |
+| `VOICE_CHECKIN_MS` | `90000` (the silence check-in; `0` = off) |
 | `VOICE_FILLER_LONG_WORDS`, `VOICE_FILLER_MAX_RUN`, `VOICE_FILLER_DELAY_MS`, `VOICE_FILLER_GAP_MS`, `VOICE_FILLER_TAIL_MS` | the tuned values |
 | `MATH_CHECKER_CONFIG`, `INTERVIEWER_PROVIDER` | production defaults |
 

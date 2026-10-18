@@ -184,6 +184,12 @@ export class Playout {
     return this.segs.some(s => !s.interruptible && !s.cut && (s.endAt === null || s.endAt > now));
   }
 
+  // Anything queued or still playing (the check-in waits for nothing to play).
+  busy(): boolean {
+    const now = this.clock.now();
+    return this.segs.some(s => !s.cut && (s.endAt === null || s.endAt > now));
+  }
+
   whenIdle(): Promise<void> {
     return new Promise(r => { this.idleWaiters.push(r); this.checkIdle(); });
   }
