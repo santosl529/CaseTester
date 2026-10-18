@@ -1,0 +1,14 @@
+# A whitelist: the build context (and what `lk agent create` uploads) is only
+# what the Dockerfile copies. Keeps .env*, Case Interview Runs/, .voice-cache/
+# and the worktrees out.
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!lib/
+!db/
+!cases/
+!assets/
+!scripts/voice-agent.ts
+**/*.test.ts
+**/.env*
