@@ -663,6 +663,13 @@ Matt lifted the D6 hold ("build D6"). Answers: reports location "not sure yet"; 
 - Report loaders: 11 parallel queries stalled the pooler earlier; still sequential.
 
 
-## PRD brought in line with the build (2026-10-18, not committed)
+## PRD brought in line with the build (2026-10-18, committed d8855b8)
 
 - `docs/prd-drills.md` audited section by section against the code (Matt asked). Updated: header and revision log; "Built since v2" table; glossary (plan source, questionnaire, quick check); scope; self-directed table and home (no rubric trend on the home, no extra workout, no 30-day diagnostic rule); item input types (ordering not built); grading (gate run by hand, not CI; disputes built; monthly audit not built; HY-2 family and data-request calls); lessons not similarity-checked; pool table with live counts; v2 content done; `drill_item_stats` unused in the pilot; Vercel Cron not set up; content admin = files, scripts and local-dev pages; endpoints (removed unbuilt suggested-next, progress/summary, lessons GET, defend GET, `part`; added diagnostic, next-case, review/lessons, internal grading; real `POST /sets` body); cost (~$0.0045 per answer, ~$0.91 a month, caching only on Sonnet); NFR (320 px reflow, security, observability); phases D3–D5 done, D6 in progress; DoD items checked where met; open questions updated.
+
+## Matt's decisions; extra workout and diagnostic re-offer (2026-10-18)
+
+- Decisions (committed d8855b8): PRD update committed; drill descriptions approved (`status: approved`); monthly 100-answer audit dropped (agreement measured by the gates plus labeled disputes); 200-item answer-key QA later (after the pilot); Defend 25% and 60/45 s kept; transfer delay 2 days kept; $1.25 budget confirmed; free users get limits, which limits still open.
+- Built (#9): **extra workout**: once today's workout is done, the plan home shows "Want more today?", sets from `extraWorkout()` (lib/drills/program/store.ts), built by the workout rules but not saved (workouts are one row per day), started as Pick-exactly sets (`browse`), so they count toward skills, not weekly targets. **Diagnostic re-offer**: `diagnosticReoffer()`: for 7 days after a switch from Practice on my own to a plan, if no diagnostic was completed in the last 30 days, the home shows "Update your starting point?" linking to `/drills/diagnostic?retake=1`, which starts a new diagnostic. PRD updated (Practice on my own, What the home serves). Plan smoke covers both; audit 47 pages, all pass.
+- Checks: typecheck, 1608 tests, lint, all ten smokes and the build pass. The tracks smoke once hung for 15 minutes on a database read and failed; rerun alone it passed in 26 s (another pooler stall, not the code).
+

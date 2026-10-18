@@ -204,7 +204,7 @@ Students who don't want a plan choose **Practice on my own** at onboarding or in
   - **Browse drills** as the main entry point, plus a link to the case library (case product).
 - **Weekly summary:** every Monday, in the student's time zone, the home shows a short recap: sets and cases done, skills that moved up, and the current weakest skill.
 - **Interview date** still works: if it is 14 or fewer days away, the home offers the Sprint plan but doesn't switch automatically.
-- **Switching to a plan** keeps all skill states and the plan source, and week 1 starts that day. (A 30-day rule for re-offering the diagnostic is not built.)
+- **Switching to a plan** keeps all skill states and the plan source, and week 1 starts that day. If the student hasn't completed the diagnostic in the last 30 days, the plan home offers it again ("Update your starting point?") for 7 days after the switch. It is optional; a retake starts a new diagnostic, which re-places only skills not yet practiced.
 
 ### Onboarding and diagnostic
 
@@ -340,7 +340,7 @@ Students on Practice on my own see the self-directed home instead (see Training 
 3. An unfinished drill set from the last 24 hours (resume).
 4. The rest of today's workout, if it was started.
 5. A new workout built by the workout rules (see Training program).
-6. If today's workout is done: "Workout done", and the Next case card if the plan has a case left this week. (An optional extra workout is not built; Browse drills is always available.)
+6. If today's workout is done: "Workout done", the Next case card if the plan has a case left this week, and an optional extra workout ("Want more today?"): sets built by the same rules from the student's progress now, not saved as a workout, so they count toward skills and not toward the weekly target.
 
 For self-directed students, steps 4–6 are replaced by the Suggested next card.
 

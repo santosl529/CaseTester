@@ -294,6 +294,9 @@ async function main() {
       await changeProgram(student, { track: 'self_directed' });
       await scan(page, 'Your starting point (practice on my own)', '/drills/plan');
       await scan(page, 'Training home (practice on my own)', '/drills');
+      // Back to a plan with no diagnostic: the home offers it again.
+      await changeProgram(student, { track: 'standard' });
+      await scan(page, 'Training home (diagnostic offered again after a switch)', '/drills', p => p.getByText('Update your starting point?').waitFor({ timeout: 10_000 }));
     }
   } finally {
     await browser.close();

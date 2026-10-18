@@ -20,7 +20,7 @@ On each page:
 - **Keyboard:** Tab from the top until focus wraps around. Every stop must show a visible focus indicator.
 - **Reflow (WCAG 1.4.10):** at 320 CSS px wide, the page must not scroll sideways.
 
-Pages (46): onboarding; the training home with no plan yet (Get your plan), with "Your plan is ready", with a check-in, with the feedback dialog open, and for Practice on my own; the questionnaire; Your plan and Your starting point; diagnostic, browse drills (drill cards by interview stage), Learn library, the intro lesson, a full lesson (MECE), your skills, settings; the pilot reports (local development only; also with feedback data) and the review queue; a set intro (worked example, timer choice); "Report a problem" open on an item and on results; one set of each of the 18 live drills; an untimed set (EX-1); an item with a hidden timer showing its 10-second warning; HY-2's second stage; a CL-3 follow-up step; and results for PS-1 (with the usefulness check-in) and CL-3. Each page is also saved as a phone-width screenshot.
+Pages (47): onboarding; the training home with no plan yet (Get your plan), with "Your plan is ready", with a check-in, with the feedback dialog open, for Practice on my own, and with the diagnostic offered again after a switch; the questionnaire; Your plan and Your starting point; diagnostic, browse drills (drill cards by interview stage), Learn library, the intro lesson, a full lesson (MECE), your skills, settings; the pilot reports (local development only; also with feedback data) and the review queue; a set intro (worked example, timer choice); "Report a problem" open on an item and on results; one set of each of the 18 live drills; an untimed set (EX-1); an item with a hidden timer showing its 10-second warning; HY-2's second stage; a CL-3 follow-up step; and results for PS-1 (with the usefulness check-in) and CL-3. Each page is also saved as a phone-width screenshot.
 
 Automated checks find roughly a third of WCAG problems. They can't judge whether names make sense, whether announcements are timely, or how a screen reader reads a page.
 
@@ -28,9 +28,9 @@ Automated checks find roughly a third of WCAG problems. They can't judge whether
 
 | Check | Result |
 | --- | --- |
-| axe WCAG 2.1 A/AA rules | 0 violations on all 46 pages |
-| Visible focus on every Tab stop | Pass on all 46 pages |
-| Reflow at 320 px | Pass on all 46 pages, after one fix (below) |
+| axe WCAG 2.1 A/AA rules | 0 violations on all 47 pages |
+| Visible focus on every Tab stop | Pass on all 47 pages |
+| Reflow at 320 px | Pass on all 47 pages, after one fix (below) |
 
 **Fixed:** EX-3's data table was wider than a 320 px screen and made the whole page scroll sideways. Data tables now scroll inside their own box, which WCAG allows for tables. The box is focusable and labeled, so it can be scrolled with the keyboard (`components/drills/chart.tsx`).
 

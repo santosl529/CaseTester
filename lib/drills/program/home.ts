@@ -22,6 +22,7 @@ import { isLiveDrill } from '../live';
 import {
   activeProgram, latestEvidence, nextCaseFor, noteWeekRollover, programView, studentToday, todayWorkout, weekStatus,
   workoutWithStatus,
+  diagnosticReoffer, extraWorkout,
 } from './store';
 
 const DAY = 86_400_000;
@@ -77,6 +78,11 @@ export async function homeView(studentId: string, now = new Date()) {
   const caseLeft = status ? status.cases.done < status.cases.target : (view!.day?.cases ?? 0) > 0;
   const nextCase = caseLeft || allPracticed ? await nextCaseFor(studentId) : null;
   if (nextCase) await logDrillEvent(studentId, 'next_case_card_shown', { recommended_case_id: nextCase.case_id, retake: nextCase.retake });
+  // Today's workout done: optional extra sets (not counted toward the week).
+  const done = workout !== null && workout.blocks.length > 0 && (workout.status === 'completed' || workout.blocks.every(b => b.status === 'done'));
+  const extra = done ? await extraWorkout(studentId, now) : [];
+  // Just switched from Practice on my own, no recent diagnostic: offer it again.
+  const rediagnose = await diagnosticReoffer(studentId, now);
   await logDrillEvent(studentId, 'drills_home_viewed', {
     track: program.track, week: week?.week ?? null, sprint_day: view!.day?.day ?? null, open_prescriptions: rx.length, interview_days_out: view!.interview_days_out,
   });
@@ -86,6 +92,7 @@ export async function homeView(studentId: string, now = new Date()) {
     estimated_minutes: workout ? Math.round(workout.blocks.reduce((s, b) => s + b.minutes, 0)) : null,
     diagnose_today: !workout && ((view!.plan.kind === 'weeks' && week?.week === 0) || (view!.plan.kind === 'days' && view!.day?.day === 1)),
     next_case: nextCase,
+    extra, rediagnose,
   };
 }
 

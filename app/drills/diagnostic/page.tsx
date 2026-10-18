@@ -20,7 +20,7 @@ const STATUS = { todo: '', in_progress: 'In progress', grading: 'Grading…', do
 // The diagnostic (docs/prd-drills.md "Onboarding and diagnostic"): about 15
 // minutes, one flow of short parts, no feedback until the end, placement from
 // whatever parts are finished.
-export default async function DiagnosticPage() {
+export default async function DiagnosticPage({ searchParams }: { searchParams: Promise<{ retake?: string }> }) {
   const studentId = await studentOrRedirect();
   // A part whose set finished unrecorded is recorded now, finishing the diagnostic.
   await healDiagnostic(studentId);
@@ -30,13 +30,14 @@ export default async function DiagnosticPage() {
   const running = view && (view.status === 'in_progress' || (view.status === 'skipped' && view.done < parts));
   const nav = <nav className="text-sm"><Link href="/drills" className="text-muted-foreground underline-offset-4 hover:underline">← Training home</Link></nav>;
 
-  // Not started yet.
-  if (!view || (view.status === 'skipped' && view.done === 0)) {
+  // Not started yet, or a retake of a finished one (offered after a switch to a plan).
+  const retake = (await searchParams).retake === '1' && view?.status === 'completed';
+  if (!view || (view.status === 'skipped' && view.done === 0) || retake) {
     return (
       <main className="mx-auto w-full max-w-xl space-y-6 p-4 sm:p-6">
         {nav}
         <header className="space-y-2">
-          <h1 className="text-xl font-semibold">Find your starting point</h1>
+          <h1 className="text-xl font-semibold">{retake ? 'Take the diagnostic again' : 'Find your starting point'}</h1>
           <p className="text-sm">A 15-minute check across structuring, hypotheses, math, charts, recommendations and next steps: {parts} short parts, one after another.</p>
           <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
             <li>No feedback until the end; answer and move on.</li>

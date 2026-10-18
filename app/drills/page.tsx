@@ -221,6 +221,30 @@ export default async function DrillsHomePage() {
         </section>
       )}
 
+      {home.extra.length > 0 && (
+        <section aria-labelledby="extra" className="space-y-3 rounded-lg border p-4">
+          <h2 id="extra" className="font-medium">Want more today?</h2>
+          <p className="text-sm text-muted-foreground">An optional extra workout from your weak spots. It counts toward your skills, not toward this week&apos;s workout target.</p>
+          <ul className="space-y-2">
+            {home.extra.map((b, i) => (
+              <li key={i} className="flex flex-wrap items-center justify-between gap-2 text-sm">
+                <span><span className="font-medium">{getDrill(b.drill_id).name}</span> <span className="text-muted-foreground">· {b.reason} · {Math.max(1, Math.round(b.minutes))} min</span></span>
+                <StartSetButton size="sm" variant="outline" label={`Start ${getDrill(b.drill_id).name}`}
+                  body={b.check ? { skill_id: b.skill_id, quick_start: true, placement_check: true, browse: true } : { drill_id: b.drill_id, skill_id: b.skill_id, tier: b.tier, browse: true }} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {home.rediagnose && (
+        <section aria-labelledby="rediagnose" className="space-y-2 rounded-lg border p-4">
+          <h2 id="rediagnose" className="font-medium">Update your starting point?</h2>
+          <p className="text-sm">You&apos;ve switched to a plan. {home.rediagnose.last_days_ago === null ? "You haven't taken the diagnostic yet" : `Your last diagnostic was ${home.rediagnose.last_days_ago} days ago`}: a fresh one (about 15 minutes) updates where each skill you haven&apos;t practiced starts. Optional.</p>
+          <Link href="/drills/diagnostic?retake=1" className={buttonVariants({ variant: 'outline' })}>Take the diagnostic</Link>
+        </section>
+      )}
+
       {ws && (
         <section aria-labelledby="week" className="space-y-2">
           <h2 id="week" className="font-medium">This week</h2>

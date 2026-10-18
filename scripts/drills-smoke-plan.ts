@@ -9,7 +9,7 @@
 import './smoke-log';
 import { checkSmokeEvents } from './smoke-events';
 import { randomUUID } from 'crypto';
-import { eq, inArray } from 'drizzle-orm';
+import { count, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
 import {
   analyticsEvents, drillAttempts, drillCheckins, drillFeedback, drillItemReports, drillQuestionnaires, drillSets, drillTiers, gradingJobs,
@@ -18,7 +18,7 @@ import {
 import { planOf, resolveItem } from '@/lib/drills/grading/jobs';
 import type { Tier } from '@/lib/drills/item-schema';
 import { completeSet, fetchItem, pauseTimer, setResults, setTimer, setView, startSet, submitAttempt } from '@/lib/drills/sets/service';
-import { onboard, programView, todayWorkout } from '@/lib/drills/program/store';
+import { changeProgram, diagnosticReoffer, extraWorkout, onboard, programView, todayWorkout } from '@/lib/drills/program/store';
 import { homeView } from '@/lib/drills/program/home';
 import { pendingChecks, recordPlanSource, submitQuestionnaire } from '@/lib/drills/program/plan-source';
 import type { WorkoutBlock } from '@/lib/drills/program/workout';
@@ -120,6 +120,21 @@ async function main() {
     await submitQuestionnaire(c, { interview_date: null, cases_done: '1-5', ratings: { structuring: 2, math: 4, charts: 4, recommendations: 4 }, hardest: null });
     const home = await homeView(c);
     check(home.kind === 'self_directed' && home.suggested?.check === true, `self-directed suggestion: ${home.kind === 'self_directed' ? JSON.stringify(home.suggested) : home.kind}`);
+
+    // Switching to a plan with no recent diagnostic: the home offers it again.
+    await changeProgram(c, { track: 'standard' });
+    const offer = await diagnosticReoffer(c);
+    check(offer !== null && offer.last_days_ago === null, `diagnostic re-offer: ${JSON.stringify(offer)}`);
+    const homeC = await homeView(c);
+    check(homeC.kind === 'plan' && homeC.rediagnose !== null, 'the plan home should offer the diagnostic after the switch');
+    check(await diagnosticReoffer(a) === null, 'no re-offer for a student who never switched');
+
+    // The optional extra workout: built by the same rules, not saved.
+    const extra = await extraWorkout(c);
+    const [rowsBefore] = await db.select({ n: count() }).from(workouts).where(eq(workouts.studentId, c));
+    check(extra.length > 0, 'extra workout: no sets');
+    const [rowsAfter] = await db.select({ n: count() }).from(workouts).where(eq(workouts.studentId, c));
+    check(rowsBefore.n === rowsAfter.n, 'the extra workout must not be saved as a workout');
     console.log('plan: questionnaire, quick checks, source priority; timer options and pauses; self-directed checks');
   } finally {
     for (const s of students) {

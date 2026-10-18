@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { and, desc, eq, gte, inArray, isNotNull } from 'drizzle-orm';
 import { db } from '@/db/client';
 import {
-  caseResults, drillSets, prescriptions, sessions, skillStateEvents, studentDrillSettings, studentProfiles, studentPrograms,
+  caseResults, diagnostics, drillSets, prescriptions, sessions, skillStateEvents, studentDrillSettings, studentProfiles, studentPrograms,
   workouts,
 } from '@/db/schema';
 import { loadCases } from '@/lib/cases/loader';
@@ -252,6 +252,47 @@ export async function todayWorkout(studentId: string, now = new Date()): Promise
   });
   return built.row;
 }
+
+// An optional extra workout once today's is done (PRD "What the home
+// serves"): built by the same rules from the student's progress now, but not
+// saved as a workout, so its sets count toward skills and not toward the
+// weekly target (like Browse drills). Started block by block.
+export async function extraWorkout(studentId: string, now = new Date()): Promise<WorkoutBlock[]> {
+  const program = await activeProgram(db, studentId);
+  if (!program || program.track === 'self_directed' || !program.planSource) return [];
+  const { today } = await studentToday(studentId, now);
+  const plan = planOf(program);
+  const week = currentWeek(plan, today);
+  const day = currentDay(plan, today);
+  const [settings] = await db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId));
+  const workout = buildWorkout({
+    track: program.track as Exclude<Track, 'self_directed'>, week, sprint_day: day,
+    interview_days_out: program.interviewDate ? daysBetween(today, program.interviewDate) : null,
+    progress: await loadProgress(db, studentId), tiers: await loadTiers(db, studentId), prescriptions: await openRx(db, studentId),
+    missed_milestone_skills: plan.kind === 'weeks' ? missedMilestoneSkills(week, plan.weeks, await loadProgress(db, studentId)) : [],
+    time_multiplier: settings?.m ?? 1, ctx: await progressContext(db, studentId, now), checks: await pendingChecks(studentId),
+  });
+  return workout.blocks;
+}
+
+// "Switching to a plan keeps all skill states. If the student took the
+// diagnostic in the last 30 days, the plan uses it; otherwise the diagnostic
+// is offered again" (PRD "Practice on my own"): for 7 days after a switch
+// from Practice on my own to a plan, when the last completed diagnostic is
+// older than 30 days or there is none. Returns its age in days (null: never).
+export async function diagnosticReoffer(studentId: string, now = new Date()): Promise<{ last_days_ago: number | null } | null> {
+  const rows = await db.select().from(studentPrograms).where(eq(studentPrograms.studentId, studentId)).orderBy(desc(studentPrograms.startedAt));
+  const [active, previous] = rows;
+  if (!active || active.status !== 'active' || active.track === 'self_directed' || previous?.track !== 'self_directed') return null;
+  if (now.getTime() - active.startedAt.getTime() > 7 * DAY_MS) return null;
+  const [last] = await db.select({ at: diagnostics.completedAt }).from(diagnostics)
+    .where(and(eq(diagnostics.studentId, studentId), eq(diagnostics.status, 'completed'))).orderBy(desc(diagnostics.completedAt)).limit(1);
+  const [running] = await db.select({ id: diagnostics.id }).from(diagnostics).where(and(eq(diagnostics.studentId, studentId), eq(diagnostics.status, 'in_progress')));
+  if (running) return null;
+  const days = last?.at ? Math.floor((now.getTime() - last.at.getTime()) / DAY_MS) : null;
+  return days !== null && days <= 30 ? null : { last_days_ago: days };
+}
+const DAY_MS = 86_400_000;
 
 // Called when a set finishes (lib/drills/grading/jobs.ts finalizeSet): marks
 // the workout complete once every block's set is done.
