@@ -2,9 +2,7 @@
 
 D6 gate: "WCAG 2.1 AA audit passed" (docs/prd-drills.md, "Accessibility" and "Phases").
 
-**Status (2026-10-17): automated checks pass; not yet passed overall.** Two things remain before the gate can be signed off:
-1. A decision on timed items (WCAG 2.2.1, below).
-2. A person runs the manual checklist at the end and records the result here.
+**Status (2026-10-17): automated checks pass; not yet passed overall.** Timed items (WCAG 2.2.1) are resolved with "No time limit" (below). One thing remains before the gate can be signed off: a person runs the manual checklist at the end and records the result here.
 
 ## How to rerun
 
@@ -22,7 +20,7 @@ On each page:
 - **Keyboard:** Tab from the top until focus wraps around. Every stop must show a visible focus indicator.
 - **Reflow (WCAG 1.4.10):** at 320 CSS px wide, the page must not scroll sideways.
 
-Pages (32): onboarding, training home, diagnostic, browse drills, Learn library, the intro lesson, a full lesson (MECE), your skills, settings, a set intro with a worked example, one set of each of the 18 live drills, HY-2's second stage (new fact revealed), a CL-3 follow-up (Defend) step, and results pages for an auto-checked set (PS-1) and an AI-graded one (CL-3).
+Pages (34): onboarding, training home, diagnostic, browse drills, Learn library, the intro lesson, a full lesson (MECE), your skills, settings, the pilot reports (local development only), a set intro with a worked example, one set of each of the 18 live drills, an untimed set (EX-1), HY-2's second stage (new fact revealed), a CL-3 follow-up (Defend) step, and results pages for an auto-checked set (PS-1) and an AI-graded one (CL-3).
 
 Automated checks find roughly a third of WCAG problems. They can't judge whether names make sense, whether announcements are timely, or how a screen reader reads a page.
 
@@ -30,9 +28,9 @@ Automated checks find roughly a third of WCAG problems. They can't judge whether
 
 | Check | Result |
 | --- | --- |
-| axe WCAG 2.1 A/AA rules | 0 violations on all 32 pages |
-| Visible focus on every Tab stop | Pass on all 32 pages |
-| Reflow at 320 px | Pass on all 32 pages, after one fix (below) |
+| axe WCAG 2.1 A/AA rules | 0 violations on all 34 pages |
+| Visible focus on every Tab stop | Pass on all 34 pages |
+| Reflow at 320 px | Pass on all 34 pages, after one fix (below) |
 
 **Fixed:** EX-3's data table was wider than a 320 px screen and made the whole page scroll sideways. Data tables now scroll inside their own box, which WCAG allows for tables. The box is focusable and labeled, so it can be scrolled with the keyboard (`components/drills/chart.tsx`).
 
@@ -42,20 +40,19 @@ Automated checks find roughly a third of WCAG problems. They can't judge whether
 | --- | --- |
 | Full keyboard operation, including ordering inputs | Every live input is a native control (radio, checkbox, text, textarea, number), so it works with the keyboard; the Tab walk reached every one. No live drill uses an ordering input; the P1 drill that needs one must be checked when it ships. |
 | Every chart has an accessible data table | Yes: charts have a "Show data table" disclosure; table exhibits are tables, with a caption and header cells. |
-| Time accommodation, 1.5× or 2× | Yes, in Settings. Mastery uses the adjusted limits. |
+| Time accommodation, 1.5× or 2× | Yes, in Settings, now with No time limit (below). Mastery uses the adjusted limits. |
 | Timers announce remaining time at 50%, 25% and 10 seconds | Yes: a polite live region announces each mark once, then "Time is up" (`components/drills/timer.tsx`). |
 
-## Open: timed items (WCAG 2.2.1 Timing Adjustable, Level A)
+## Resolved: timed items (WCAG 2.2.1 Timing Adjustable, Level A)
 
-Drill items have time limits, and an item auto-submits when time runs out. For each time limit, WCAG 2.2.1 requires at least one of:
-- the student can turn it off;
-- the student can extend it to at least 10× the default before starting;
-- the student is warned before time expires and can extend it with a simple action, at least 10 times;
-- or the time limit is essential (removing it would change the activity).
+WCAG 2.2.1 requires that a time limit can be turned off, extended at least 10×, or extended on a warning, unless it is essential. The 1.5× and 2× setting alone didn't meet it.
 
-The 1.5× and 2× setting doesn't reach 10×, and there is no extend option. Choices for Matt:
-1. **Add "No time limit" to the time setting** (recommended). This needs a rule for how untimed sets count toward mastery, for example: untimed sets count toward Practiced but not Mastered.
-2. **Treat the limit as essential**, since speed under pressure is part of what the drills train. This is a weaker claim, because a student can practice the same skill untimed, and a university reviewer may not accept it.
+Matt's decision (2026-10-17): Settings → Time per item now offers **No time limit**.
+- There is no timer and nothing times out; the server accepts the answer whenever it arrives.
+- Untimed sets count fully toward every skill state, including Mastered, so students who need extra time aren't blocked from mastery.
+- Results show the real time taken against the timed (1×) target, so students can work on pace.
+- Each set records the setting when it starts (`drill_sets.untimed`), so changing it mid-set has no effect.
+- Checked by `npm run drills:smoke` (answers 10 minutes late still count) and scanned by the audit (the untimed EX-1 set).
 
 ## Out of scope here
 

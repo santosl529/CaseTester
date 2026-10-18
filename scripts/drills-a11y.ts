@@ -27,7 +27,7 @@ import { DRILLS_CONFIG } from '@/lib/drills/config';
 import { enqueueGrading, planOf, resolveItem, runGradingJob } from '@/lib/drills/grading/jobs';
 import type { CallModel } from '@/lib/drills/grading/grader';
 import type { Tier } from '@/lib/drills/item-schema';
-import { completeSet, fetchItem, inProgressSet, startSet, submitAttempt } from '@/lib/drills/sets/service';
+import { completeSet, fetchItem, inProgressSet, startSet, submitAttempt, updateSettings } from '@/lib/drills/sets/service';
 import { onboard } from '@/lib/drills/program/store';
 
 const BASE = process.env.A11Y_BASE_URL ?? 'http://localhost:3000';
@@ -175,6 +175,7 @@ async function main() {
     await scan(page, 'Lesson: MECE (full)', '/drills/learn/PS.mece');
     await scan(page, 'Your skills', '/drills/profile');
     await scan(page, 'Settings', '/drills/settings');
+    await scan(page, 'Pilot reports (local dev)', '/drills/reports');
 
     const expire = async (setId: string) => {
       await db.update(drillSets).set({ startedAt: new Date(Date.now() - 25 * 3_600_000) }).where(eq(drillSets.id, setId));
@@ -185,6 +186,15 @@ async function main() {
       if (i === 0) await scan(page, `Set intro: ${drill.id} (with worked example)`, `/drills/sets/${set_id}`, introReady);
       await scan(page, `Set: ${drill.id} ${drill.name}`, `/drills/sets/${set_id}`, setReady);
       await expire(set_id);
+    }
+
+    // "No time limit": the intro and an item without a timer.
+    {
+      await updateSettings(student, { untimed: true });
+      const { set_id } = await startSet(student, { drill_id: 'EX-1' });
+      await scan(page, 'Set: EX-1 untimed', `/drills/sets/${set_id}`, setReady);
+      await expire(set_id);
+      await updateSettings(student, { untimed: false });
     }
 
     // HY-2 stage 2: the new fact revealed, after stage 1.

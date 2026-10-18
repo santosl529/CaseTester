@@ -6,7 +6,7 @@
 // (minutes_actual before a workout is done). Extra properties are allowed.
 export const DRILL_EVENT_PROPS = {
   drills_home_viewed: ['track', 'week', 'open_prescriptions', 'interview_days_out'],
-  drill_set_started: ['set_id', 'drill_id', 'level', 'stage', 'tier', 'source', 'prescription_id', 'focus_tag', 'slot', 'suggested'],
+  drill_set_started: ['set_id', 'drill_id', 'level', 'stage', 'tier', 'source', 'prescription_id', 'focus_tag', 'slot', 'suggested', 'untimed'],
   drill_example_viewed: ['drill_id'],
   drill_example_skipped: ['drill_id'],
   drill_item_served: ['set_id', 'position', 'item_ref'],
@@ -42,12 +42,12 @@ export const DRILL_EVENT_PROPS = {
   weekly_summary_viewed: ['week'],
   // D5: Repair drills and Defend.
   defend_submitted: ['attempt_id', 'type', 'decision', 'score'],
-  // Not in the PRD table: a Repair set had to reuse items seen in the last 14 days.
+  // A Repair set had to use items derived from ones seen in the last 14 days.
   repair_pool_exhausted: ['drill_id', 'available'],
 } as const satisfies Record<string, readonly string[]>;
 
 // Logged by code but not (yet) in the PRD table.
-export const EVENTS_NOT_IN_PRD = ['repair_pool_exhausted'] as const;
+export const EVENTS_NOT_IN_PRD: readonly string[] = [];
 
 export type DrillEvent = keyof typeof DRILL_EVENT_PROPS;
 export type EventProps<E extends DrillEvent> = { [K in (typeof DRILL_EVENT_PROPS)[E][number]]: unknown } & Record<string, unknown>;

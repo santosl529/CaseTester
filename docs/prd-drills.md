@@ -326,7 +326,7 @@ For self-directed students, steps 3–5 are replaced by the Suggested next card.
 - **Skip** is allowed; it scores 0 and logs `M.skipped`. Skips are excluded from mistake analysis.
 - Leaving mid-set saves progress. An unfinished set expires after 24 hours; completed attempts are kept.
 - Coming back to a set mid-way (reload, new tab) shows the intro with a **Resume** button. The item's timer keeps running on the server in the meantime.
-- An answer that reaches the server more than 2 seconds after the time limit counts as a timeout: it scores 0 and logs `M.timeout`, even if it is correct. Without this, the server-side timer could be bypassed.
+- An answer that reaches the server more than 2 seconds after the time limit counts as a timeout: it scores 0 and logs `M.timeout`, even if it is correct. Without this, the server-side timer could be bypassed. An untimed set (No time limit, see Accessibility) has no timeouts.
 
 ### Defend step screen
 
@@ -378,7 +378,11 @@ For self-directed students, steps 3–5 are replaced by the Suggested next card.
 
 - Full keyboard operation, including ordering inputs.
 - Every chart has an accessible data-table alternative.
-- A time-accommodation setting multiplies all time limits by 1.5× or 2×. Mastery uses the adjusted limits.
+- A time setting in Settings: Standard, 1.5×, 2× or **No time limit** (WCAG 2.2.1 Timing Adjustable). The multipliers scale every time limit, and mastery uses the adjusted limits.
+  - With No time limit there is no timer and nothing times out. Untimed sets count fully toward every skill state, including Mastered: students who need extra time aren't blocked from mastery.
+  - Results still show the time taken against the timed (1×) target, so students can work on pace.
+  - The setting applies to sets started after it changes; each set records it (`drill_sets.untimed`).
+- Audit: `npm run drills:a11y` (axe WCAG 2.1 A/AA, keyboard focus and 320 px reflow on every drills page) plus a manual screen-reader checklist; results in `docs/drills-a11y-audit.md`.
 - Timers announce remaining time to screen readers at 50%, 25% and 10 seconds.
 
 ### Failure states
@@ -1268,6 +1272,7 @@ v2 adds about 110 Repair items, 150 Defend follow-ups and 22 lessons to review b
 
 - After 50 attempts, each item's correct rate, average time and option distribution are checked daily.
 - Items with a correct rate below 15%, or where one distractor is picked more often than the correct answer, are automatically pulled to review.
+- **Pilot:** no daily job. Items are flagged at 20+ attempts at the top of the reports page, and Matt pulls them to review by hand. An item's attempts can't exceed the number of students (no repeats within 60 days), so 50 is out of reach in the pilot; below 20, one student moves the rate by 5+ points. The daily job at 50 attempts is revisited after the pilot.
 - Items above 95% correct are flagged as too easy.
 - Authored items are re-tiered from observed correct rates: T1 if 70% or higher, T2 if 40–69%, T3 if below 40%.
 
@@ -1289,10 +1294,10 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | Table | Key fields | Notes |
 | --- | --- | --- |
 | `student_profiles` | user\_id, org\_id (nullable), timezone, created\_at | The student record. The app has no users table, so drills adds this one. `timezone` is the browser's IANA time zone, stored at signup |
-| `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), skipped\_examples\[\] | Extends `student_profiles`. `interview_date` moves to `student_programs` |
+| `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), untimed, skipped\_examples\[\] | Extends `student_profiles`. `interview_date` moves to `student_programs` |
 | `drill_items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), is\_example, stage, industry, tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
 | `drill_item_stats` | item\_id, version, attempts, correct\_rate, avg\_time\_ms, option\_counts (JSON), computed\_at | Refreshed daily |
-| `drill_sets` | set\_id, student\_id, drill\_id, level, stage, tier, size, source (prescription, continue, specific, review, diagnostic, plan), prescription\_id, workout\_id, slot (weak, review, unfamiliar), is\_transfer\_check, focus\_skill, focus\_tag, item\_plan (JSON), status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, pending\_step (JSON), set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). `item_plan` fixes the set's items at start. `pending_step` holds a multi-step item's finished steps, so a step can't change after its feedback is shown. One in-progress set per student, enforced by a unique index. Browse drills sets use `specific` |
+| `drill_sets` | set\_id, student\_id, drill\_id, level, stage, tier, size, untimed, source (prescription, continue, specific, review, diagnostic, plan), prescription\_id, workout\_id, slot (weak, review, unfamiliar), is\_transfer\_check, focus\_skill, focus\_tag, item\_plan (JSON), status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, pending\_step (JSON), set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). `item_plan` fixes the set's items at start. `pending_step` holds a multi-step item's finished steps, so a step can't change after its feedback is shown. One in-progress set per student, enforced by a unique index. Browse drills sets use `specific` |
 | `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], defend\_response (JSON: decision, text), defend\_time\_ms, defend\_score, defend\_check\_results (JSON), grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered; the Defend step is part of the same row. Never deleted |
 | `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | Tracks AI grading for a set |
 | `drill_tiers` | student\_id, drill\_id, current\_tier, updated\_at | Current tier per student per drill |
@@ -1387,7 +1392,7 @@ The case library list (`GET /cases`, with filters and the Suggested mark) belong
 ### Integrity rules
 
 - Answer keys stay on the server until an item is submitted, and Defend follow-ups until the main answer is submitted.
-- Time limits are enforced on the server from `served_at` (recorded on the drill set when the item is fetched) to submission, with a 2-second grace for network delay. Later submissions are marked `timed_out` and score as timeouts (0, `M.timeout`).
+- Time limits are enforced on the server from `served_at` (recorded on the drill set when the item is fetched) to submission, with a 2-second grace for network delay. Later submissions are marked `timed_out` and score as timeouts (0, `M.timeout`). An untimed set has no limit to enforce; it records the 1× limit as the pace target.
 - Attempt submission is idempotent: a repeated idempotency key returns the original result.
 - An item can only be fetched in order, and only once its previous item has been submitted.
 - Each student can have one set in progress at a time.
@@ -1410,7 +1415,7 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | Event | Fired when | Key properties |
 | --- | --- | --- |
 | `drills_home_viewed` | Training home loads | track, week, open\_prescriptions, interview\_days\_out |
-| `drill_set_started` | A set is created | set\_id, drill\_id, level, stage, tier, source, prescription\_id, focus\_tag, slot, suggested |
+| `drill_set_started` | A set is created | set\_id, drill\_id, level, stage, tier, source, prescription\_id, focus\_tag, slot, suggested, untimed |
 | `drill_example_viewed` / `drill_example_skipped` | Intro example shown or skipped | drill\_id |
 | `drill_item_served` | An item is fetched | set\_id, position, item ref (id + version, or template + seed) |
 | `drill_attempt_submitted` | An answer is submitted | attempt\_id, score, time\_ms, timed\_out, skipped, mistake\_tags |
@@ -1434,25 +1439,28 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | `transfer_pool_exhausted` | No unseen item qualifies | skill\_id, drill\_id |
 | `suggestion_shown` / `_started` | Suggested next card (self-directed) | drill\_id, reason, source |
 | `drill_catalog_viewed` | Browse drills opens | — |
-| `weekly_summary_viewed` | Monday recap shown | week |
+| `weekly_summary_viewed` | Monday recap shown | week (the Monday's date) |
+| `repair_pool_exhausted` | A Repair set had to use items derived from ones seen in the last 14 days | drill\_id, available |
 | `grade_dispute_submitted` (P1) | Student disputes a grade | attempt\_id |
 
 ### MVP reports
 
-| Report | What it shows |
-| --- | --- |
-| Loop funnel | Case taken → prescription created → set started → skill Practiced → Mastered → next case taken, with drop-off at each step |
-| Program funnel | Onboarding → diagnostic → each plan week → last week, by track, with drop-off |
-| Drill effectiveness | For each skill: rate of that skill's mistake tags per case before vs after Mastered. Compared against students who dismissed the same prescription, as a natural comparison group |
-| Transfer | First-attempt transfer pass rate per skill; skills where students pass practice but fail transfer |
-| Lessons | Next-set score for students who read the lesson vs those who skipped it |
-| Defend | Defend scores by drill and type; Hold/Update accuracy on valid vs invalid challenges |
-| Workout mix | Actual minutes per slot vs the 50/25/25 target |
-| Stuck rule | How often it fires per skill, and whether the stuck skill passes after the prerequisite |
-| Plan vs self-directed | Practice volume, skills reaching Mastered, transfer pass rates and case rubric gains between the two groups |
-| Engagement | Sets per active student per week, share of students returning within 7 days, average session length |
-| Item health | Correct rate, average time and distractor pull per item; items auto-pulled to review |
-| Grading quality and cost | Agreement with human labels per check, retry and failure rates, cost per graded answer and per active student |
+| Report | What it shows | How it's computed |
+| --- | --- | --- |
+| Loop funnel | Case taken → prescription created → set started → skill Practiced → Mastered → next case taken, with drop-off at each step | Each prescription created from a case, followed through: a set started on it, its skill reaching Practiced and Mastered after it was created, and a case taken after Mastered. All time |
+| Program funnel | Onboarding → diagnostic → each plan week → last week, by track, with drop-off | Students by the track of their first program. A week counts as reached when its rollover was logged (`program_week_started`) or the program shows it as current. Sprint and Practice on my own have no weeks |
+| Drill effectiveness | For each skill: rate of that skill's mistake tags per case before vs after Mastered. Compared against students who dismissed the same prescription, as a natural comparison group | That skill's mistake tags per case, before and after a student first reached Mastered, for students with a case on each side. The comparison group is split at the dismissal |
+| Transfer | First-attempt transfer pass rate per skill; skills where students pass practice but fail transfer | First attempts of `transfer_check_completed`. A check comes only after Practiced, so each failure passed practice but failed transfer |
+| Lessons | Next-set score for students who read the lesson vs those who skipped it | A student's first view or skip of each skill lesson, and the score of their next completed set on that skill. The intro lesson isn't counted |
+| Defend | Defend scores by drill and type; Hold/Update accuracy on valid vs invalid challenges | Graded follow-up replies: average score by drill and type; for Challenges, how often Hold/Update was right, split by whether the challenge was valid (Update is right) or not (Hold is right) |
+| Workout mix | Actual minutes per slot vs the 50/25/25 target | Workouts dated in the period. Planned: the minutes the builder gave each slot. Actual: start to finish of each block's completed set |
+| Stuck rule | How often it fires per skill, and whether the stuck skill passes after the prerequisite | Each `prerequisite_prescribed`, and whether the student later passed a set on the stuck skill |
+| Plan vs self-directed | Practice volume, skills reaching Mastered, transfer pass rates and case rubric gains between the two groups | Students grouped by their latest program. Sets per week cover the period; Mastered and transfer cover all time. Rubric gain: average rating (needs work 0, meets bar 1, strong 2) on the last case minus the first, for students with two or more cases |
+| Engagement | Sets per active student per week, share of students returning within 7 days, average session length | Students with a set started in the period. Returning: another set on a later day within 7 days of their first set in the period. A session is a run of sets less than 30 minutes apart |
+| Item health | Correct rate, average time and distractor pull per item; items flagged for review | Authored items, answered (not skipped) attempts; correct means a full score. Flags follow the Item health rules; in the pilot they need 20+ attempts and items are pulled by hand |
+| Grading quality and cost | Agreement with human labels per check, retry and failure rates, cost per graded answer and per active student | Grading jobs created in the period. Cost per workout counts workouts with a graded set; cost per active student per month scales the period to 30 days. Agreement comes from the golden-set gate (`npm run drills:golden`); the monthly human sample is not built yet |
+
+The reports page is `/drills/reports`, local development only, filterable by club and period (7, 28 or 90 days); `npm run drills:reports` prints the same in the terminal. Flagged items and the cost alert are at the top. An event-health section lists events with missing key properties or no rows yet.
 
 All reports must be filterable by `org_id` so that career center and club dashboards can be built on the same data later.
 
@@ -1471,7 +1479,7 @@ Running cost is held down by design: AI is used only to grade free-text answers,
 - **Cheapest passing model.** Use the lowest-cost model tier that meets the 90% agreement gate. Re-test cheaper tiers when they become available.
 - **Prompt caching.** Cache the fixed grading instructions where the model provider supports it. Today they are too short to be cached.
 - **Usage cap.** 150 AI-graded answers per student per day. Auto-checked drills are unlimited.
-- **Monitoring.** A dashboard of cost per graded answer, per workout and per active student, with an alert if the 7-day average exceeds budget by 25%.
+- **Monitoring.** A dashboard of cost per graded answer, per workout and per active student, with an alert if the 7-day average exceeds budget by 25%. Pilot: a banner at the top of the reports page (last 7 days, per active student scaled to a month).
 
 ### Cost estimate
 
@@ -1494,7 +1502,7 @@ Drill grading is about a fifth of the total; full cases remain the main cost. Th
 | Performance | Item load < 500 ms p95. Auto-checked feedback < 300 ms p95. AI-graded results < 10 s p95 after the last item |
 | Availability | 99.5% during the pilot. Auto-checked drills keep working if the model provider is down; AI grading queues and completes later |
 | Devices | Desktop-first for the pilot: latest 2 versions of Chrome, Safari, Edge and Firefox. Full support down to 360 px wide ships in P1 |
-| Accessibility | WCAG 2.1 AA, including keyboard operation, chart data tables, screen-reader timer announcements and the time-accommodation setting |
+| Accessibility | WCAG 2.1 AA, including keyboard operation, chart data tables, screen-reader timer announcements and the time setting (with No time limit) |
 | Security | Answer keys and Defend follow-ups never sent before they should be. Content admin restricted by role. All endpoints authenticated |
 | Privacy | Text only, so no voice or biometric data is collected. Student answers are deleted when the account is deleted. Data from university partners may count as education records; confirm handling with legal before institutional launch |
 | Configurability | Thresholds, weights, time limits, set sizes and maps live in config files and change without code changes (a deploy is still needed) |
@@ -1528,7 +1536,7 @@ Until D5 ships, Construct sets have no Defend step (so PS-3, HY-2 and CL-3 keep 
 - [ ] Scripted Foundations, Standard and Sprint students get the plans, workouts and milestones defined in this PRD.
 - [ ] All 22 P0 lessons are reviewed and live.
 - [ ] Drill grading cost per active pilot student is within budget.
-- [ ] WCAG 2.1 AA audit passed.
+- [ ] WCAG 2.1 AA audit passed (`docs/drills-a11y-audit.md`: automated checks pass; the manual checklist remains).
 - [ ] All events in Analytics fire with complete properties.
 
 ### Open questions

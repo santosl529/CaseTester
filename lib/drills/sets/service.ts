@@ -58,7 +58,7 @@ export { previewDrafts };
 
 async function settingsFor(studentId: string) {
   const [row] = await db.select().from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId));
-  return { timeMultiplier: row?.timeMultiplier ?? 1, skippedExamples: row?.skippedExamples ?? [] };
+  return { timeMultiplier: row?.timeMultiplier ?? 1, untimed: row?.untimed ?? false, skippedExamples: row?.skippedExamples ?? [] };
 }
 
 async function loadSet(studentId: string, setId: string): Promise<SetRow> {
@@ -236,7 +236,8 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
   if (existing) throw new DrillError('set_in_progress', 409, 'Finish or leave your current set first', { set_id: existing.id });
 
   const setId = randomUUID();
-  // Fixed for the whole set: whether it runs the Defend follow-up.
+  // Fixed for the whole set: "No time limit", and whether it runs the Defend follow-up.
+  const { untimed } = await settingsFor(studentId);
   const defend = defendRuns(drill, tier, choice.source);
   const size = choice.size ?? setSizeFor(drill, kind, tier, defend);
   const fresh = kind === 'transfer' ? 'transfer' : choice.slot === 'unfamiliar' ? 'unfamiliar' : null;
@@ -258,7 +259,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
 
   try {
     await db.insert(drillSets).values({
-      id: setId, studentId, drillId: drill.id, level: drill.level, stage, tier, size: plan.length,
+      id: setId, studentId, drillId: drill.id, level: drill.level, stage, tier, size: plan.length, untimed,
       source: choice.source, prescriptionId: choice.prescriptionId, isTransferCheck: kind === 'transfer',
       focusSkill: choice.focusSkill, focusTag: choice.focusTag, itemPlan: plan, taxonomyVersion: TAXONOMY_VERSION,
       workoutId: choice.workoutId ?? null, slot: choice.slot ?? null,
@@ -275,7 +276,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
     set_id: setId, drill_id: drill.id, level: drill.level, stage, tier, source: choice.source,
     prescription_id: choice.prescriptionId, focus_tag: choice.focusTag, transfer_check: kind === 'transfer',
     slot: choice.slot ?? null, workout_id: choice.workoutId ?? null, quick_start: input.quick_start ?? false,
-    defend: plan.some(r => r.kind === 'authored' && r.defend),
+    defend: plan.some(r => r.kind === 'authored' && r.defend), untimed,
     browse: input.browse ?? false, suggested: input.browse ? await hasOpenPrescription(studentId, choice.focusSkill) : null,
   });
   if (input.suggestion) {
@@ -414,14 +415,16 @@ export async function setView(studentId: string, setId: string) {
   const showExample = set.currentPosition === 0 && set.currentServedAt === null && !settings.skippedExamples.includes(drill.id);
   const example = showExample ? await workedExample(drill) : null;
   if (example) await logDrillEvent(studentId, 'drill_example_viewed', { drill_id: drill.id });
-  const limits = drillLimitsMs(drill, set.tier as Tier, settings.timeMultiplier);
+  // An untimed set shows the timed limits (at 1×) only as a pace target.
+  const mult = set.untimed ? 1 : settings.timeMultiplier;
+  const limits = drillLimitsMs(drill, set.tier as Tier, mult);
   const diagnostic = set.source === 'diagnostic' ? await diagnosticPartOf(studentId, set.id) : null;
   // "Read the short lesson" on the intro: the set's skill, or the drill's first
   // primary skill that has a lesson.
   const withLesson = diagnostic ? new Set<string>() : await lessonSkills();
   const lessonSkill = [set.focusSkill, ...drill.primary_skills].find(id => id && withLesson.has(id)) ?? null;
   const defend = drill.defend && planOf(set).some(r => r.kind === 'authored' && r.defend)
-    ? { type: drill.defend.type, seconds: Math.round(defendSeconds(set.tier) * settings.timeMultiplier), max_words: rules.defend.max_words } : null;
+    ? { type: drill.defend.type, seconds: Math.round(defendSeconds(set.tier) * mult), max_words: rules.defend.max_words } : null;
   return {
     // PRD "Drill intro screen": how much a Repair set tells the student.
     repair_hint: drill.stage === 'repair' ? REPAIR_INTRO[Math.min(set.tier, 3) as 1 | 2 | 3] : null,
@@ -432,6 +435,7 @@ export async function setView(studentId: string, setId: string) {
     drill: { id: drill.id, name: drill.name, level: drill.level },
     skills: skills.map(s => ({ id: s.id, name: s.name })),
     focus_skill: set.focusSkill ? skills.find(s => s.id === set.focusSkill)?.name ?? null : null,
+    untimed: set.untimed,
     time_limit_ms: limits[0],
     stage_limits_ms: limits,
     ai_graded: isAiGraded(drill),
@@ -483,9 +487,9 @@ export async function fetchItem(studentId: string, setId: string, position: numb
   const item = await resolveItem(planOf(set)[position], set.tier as Tier);
   const pending = set.pendingStep as PendingStep | null;
   const step = pending?.steps.length ?? 0;
-  const timing = stepTiming(drill, item, set.tier as Tier, row.timeMultiplier ?? 1, step, servedAt, pending?.stage_started_at);
+  const timing = stepTiming(drill, item, set.tier as Tier, set.untimed ? 1 : row.timeMultiplier ?? 1, step, servedAt, pending?.stage_started_at);
   return {
-    position, size: set.size, ai_graded: isAiGraded(drill),
+    position, size: set.size, ai_graded: isAiGraded(drill), untimed: set.untimed,
     item: toPublicItem(item, set.tier) satisfies PublicItem,
     ...timing,
     completed_steps: (pending?.steps ?? []).map((s, i) => stepFeedback(item, i, s, pending!.steps.slice(0, i))),
@@ -543,7 +547,8 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
   const servedAt = set.currentServedAt;
   const item = await resolveItem(planOf(set)[position], set.tier as Tier);
   const drill = getDrill(set.drillId);
-  const mult = row.timeMultiplier ?? 1;
+  // An untimed set records the 1× limits as a pace target; nothing times out.
+  const mult = set.untimed ? 1 : row.timeMultiplier ?? 1;
 
   const pending = (set.pendingStep as PendingStep | null) ?? { steps: [], keys: [] };
   const steps = itemSteps(item);
@@ -561,8 +566,8 @@ export async function submitAttempt(studentId: string, setId: string, body: z.in
   const stepElapsed = Date.now() - stepStartedAt(item, index, servedAt, pending.stage_started_at).getTime();
   const elapsed = Date.now() - servedAt.getTime();
   // Past the limit plus the network grace, the answer doesn't count.
-  const late = stepElapsed > limit + rules.timing.grace_ms;
-  const timedOut = body.timed_out || stepElapsed > limit;
+  const late = !set.untimed && stepElapsed > limit + rules.timing.grace_ms;
+  const timedOut = !set.untimed && (body.timed_out || stepElapsed > limit);
   const retry = () => {
     if (retried) throw new DrillError('conflict', 409, 'This item changed; reload it', { position });
     return submitAttempt(studentId, setId, body, true);
@@ -714,7 +719,9 @@ export async function setResults(studentId: string, setId: string) {
     ai_graded: isAiGraded(drill),
     focus_skill: set.focusSkill,
     score, passed: set.passed ?? passed(drill, score), pass_bar: drill.pass_bar,
-    time_ms: attempts.reduce((s, a) => s + Math.min(a.timeMs, a.timeLimitMs), 0),
+    // Untimed: the real time taken, against the timed target, to work on pace.
+    untimed: set.untimed,
+    time_ms: attempts.reduce((s, a) => s + (set.untimed ? a.timeMs : Math.min(a.timeMs, a.timeLimitMs)), 0),
     target_ms: attempts.reduce((s, a) => s + a.timeLimitMs, 0),
     mistakes: mistakeSummary(results),
     tier: { before: set.tier, after: nextTier(set.tier as Tier, score) },
@@ -767,6 +774,8 @@ async function skillChanges(studentId: string, setId: string) {
 
 export const SettingsSchema = z.object({
   time_multiplier: z.union([z.literal(1), z.literal(1.5), z.literal(2)]).optional(),
+  // "No time limit" (WCAG 2.2.1); applies to sets started afterwards.
+  untimed: z.boolean().optional(),
   skip_example_for: z.string().optional(),
 });
 
@@ -775,11 +784,11 @@ export async function updateSettings(studentId: string, body: z.infer<typeof Set
   if (body.skip_example_for) getDrill(body.skip_example_for);
   const skipped = body.skip_example_for && !current.skippedExamples.includes(body.skip_example_for)
     ? [...current.skippedExamples, body.skip_example_for] : current.skippedExamples;
-  const values = { timeMultiplier: body.time_multiplier ?? current.timeMultiplier, skippedExamples: skipped, updatedAt: new Date() };
+  const values = { timeMultiplier: body.time_multiplier ?? current.timeMultiplier, untimed: body.untimed ?? current.untimed, skippedExamples: skipped, updatedAt: new Date() };
   await db.insert(studentDrillSettings).values({ studentId, ...values })
     .onConflictDoUpdate({ target: studentDrillSettings.studentId, set: values });
   if (body.skip_example_for) await logDrillEvent(studentId, 'drill_example_skipped', { drill_id: body.skip_example_for });
-  return { time_multiplier: values.timeMultiplier, skipped_examples: skipped };
+  return { time_multiplier: values.timeMultiplier, untimed: values.untimed, skipped_examples: skipped };
 }
 
 export { settingsFor, formatNumericAnswer };

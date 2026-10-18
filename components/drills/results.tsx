@@ -28,7 +28,9 @@ export function SetResults({ results }: { results: Results }) {
         <p className="text-sm">
           <span className={results.passed ? 'font-medium' : 'font-medium text-destructive'}>{results.passed ? 'Passed' : 'Not passed yet'}</span>
           {' '}— the bar is {Math.round(results.pass_bar * 100)}%.
-          {' '}Time: {seconds(results.time_ms)} of a {seconds(results.target_ms)} target.
+          {results.untimed
+            ? <>{' '}Time: {seconds(results.time_ms)}, untimed (the timed target is {seconds(results.target_ms)}).</>
+            : <>{' '}Time: {seconds(results.time_ms)} of a {seconds(results.target_ms)} target.</>}
         </p>
         {results.mistakes && <p className="text-sm">{results.mistakes.text}</p>}
         {results.lesson_skill && (
@@ -67,7 +69,9 @@ export function SetResults({ results }: { results: Results }) {
         <ol className="space-y-4">
           {results.items.map(item => (
             <li key={item.position} className="space-y-3 rounded-lg border p-4">
-              <p className="text-sm text-muted-foreground">Item {item.position + 1} · {seconds(Math.min(item.time_ms, item.time_limit_ms))} of {seconds(item.time_limit_ms)}</p>
+              <p className="text-sm text-muted-foreground">Item {item.position + 1} · {results.untimed
+                ? `${seconds(item.time_ms)} (timed target ${seconds(item.time_limit_ms)})`
+                : `${seconds(Math.min(item.time_ms, item.time_limit_ms))} of ${seconds(item.time_limit_ms)}`}</p>
               <p className="whitespace-pre-line text-sm font-medium">{item.prompt}</p>
               {item.exhibit && <DrillChart spec={item.exhibit} />}
               <ItemFeedbackPanel feedback={item.feedback} />

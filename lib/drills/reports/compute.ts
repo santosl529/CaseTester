@@ -312,7 +312,11 @@ export function engagement(data: ReportData) {
 
 // ------------------------------------------------------------- item health
 
-export const ITEM_HEALTH = { min_attempts: 50, pull_below: 0.15, too_easy_above: 0.95, tiers: { t1_from: 0.7, t2_from: 0.4 } };
+// Pilot: flags start at 20 attempts and Matt pulls items by hand (2026-10-17).
+// An item's attempts are at most the number of students (no repeats within
+// 60 days), so the PRD's 50 is out of reach in the pilot; below 20, one student
+// moves the rate by 5+ points. The PRD's 50 returns with a daily job.
+export const ITEM_HEALTH = { min_attempts: 20, pull_below: 0.15, too_easy_above: 0.95, tiers: { t1_from: 0.7, t2_from: 0.4 } };
 
 export function itemHealth(data: ReportData) {
   const byItem = new Map<string, ReportData['attempts']>();
@@ -342,7 +346,7 @@ export function itemHealth(data: ReportData) {
     };
   });
   return {
-    how: `Authored items, all answered (not skipped) attempts. Correct means a full score. Flags need ${ITEM_HEALTH.min_attempts}+ attempts: pull to review under 15% correct or when a distractor beats the answer (choice items only), too easy over 95%, and a re-tier from the observed rate (T1 ≥70%, T2 40–69%, T3 <40%).`,
+    how: `Authored items, all answered (not skipped) attempts. Correct means a full score. Flags need ${ITEM_HEALTH.min_attempts}+ attempts: pull to review under 15% correct or when a distractor beats the answer (choice items only), too easy over 95%, and a re-tier from the observed rate (T1 ≥70%, T2 40–69%, T3 <40%). Pulling is by hand during the pilot.`,
     items: rows.sort((a, b) => b.flags.length - a.flags.length || b.attempts - a.attempts),
   };
 }
@@ -360,8 +364,12 @@ export function gradingCost(data: ReportData) {
   const cost = jobs.reduce((n, j) => n + (j.costUsd ?? 0), 0);
   const active = new Set(data.sets.filter(s => inRange(s.startedAt, data)).map(s => s.studentId)).size;
   const days = Math.max(1, (data.to.getTime() - data.from.getTime()) / DAY);
+  // Per workout: grading cost of workout sets over the workouts they belong to.
+  const workoutOf = new Map(data.sets.filter(s => s.workoutId).map(s => [s.id, s.workoutId!]));
+  const workoutJobs = jobs.filter(j => workoutOf.has(j.setId));
+  const workoutsGraded = new Set(workoutJobs.map(j => workoutOf.get(j.setId)!)).size;
   return {
-    how: 'Grading jobs created in the range. Cost per active student per month scales the range to 30 days. Agreement with human labels comes from the golden-set gate (npm run drills:golden); the monthly human sample of graded answers is not built yet.',
+    how: 'Grading jobs created in the range. Cost per workout counts workouts with at least one graded set. Cost per active student per month scales the range to 30 days. Agreement with human labels comes from the golden-set gate (npm run drills:golden); the monthly human sample of graded answers is not built yet.',
     jobs: jobs.length,
     failed: jobs.filter(j => j.status === 'failed').length,
     failure_rate: rate(jobs.filter(j => j.status === 'failed').length, jobs.length),
@@ -369,6 +377,7 @@ export function gradingCost(data: ReportData) {
     cost_usd: cost,
     graded_answers: graded,
     cost_per_graded_answer: rate(cost, graded),
+    cost_per_workout: rate(workoutJobs.reduce((n, j) => n + (j.costUsd ?? 0), 0), workoutsGraded),
     active_students: active,
     cost_per_active_student_month: active ? (cost / active) * (30 / days) : null,
   };

@@ -9,6 +9,7 @@ import {
 import { loadEventRows, loadReportData, type ReportFilter } from './data';
 
 export type { ReportFilter } from './data';
+export { listOrgs } from './data';
 
 export async function buildReports(filter: ReportFilter) {
   const data = await loadReportData(filter);

@@ -31,6 +31,8 @@ export interface RunnerView {
   repair_hint: string | null;
   // The set runs the Defend follow-up after each answer.
   defend: { type: 'justify' | 'challenge'; seconds: number; max_words: number } | null;
+  // "No time limit": no timer; the limits are only a pace target.
+  untimed: boolean;
 }
 
 interface LoadedItem {
@@ -238,7 +240,12 @@ export function DrillRunner({ view }: { view: RunnerView }) {
         </div>
         <ul className={`grid gap-3 text-sm ${view.diagnostic ? 'grid-cols-2' : 'grid-cols-3'}`}>
           <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Items</span><span className="font-medium">{view.size}</span></li>
-          <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Time per item</span><span className="font-medium">{time}</span></li>
+          <li className="rounded-lg border p-3">
+            <span className="block text-muted-foreground">Time per item</span>
+            {view.untimed
+              ? <><span className="font-medium">No time limit</span><span className="block text-xs text-muted-foreground">Timed target: {time}</span></>
+              : <span className="font-medium">{time}</span>}
+          </li>
           {!view.diagnostic && <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Pass bar</span><span className="font-medium">{Math.round(view.pass_bar * 100)}%</span></li>}
         </ul>
         {view.diagnostic && <p className="text-sm text-muted-foreground">No feedback during the diagnostic: answer and move on. You&apos;ll see where you start at the end.</p>}
@@ -249,7 +256,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
         {view.defend && (
           <p className="text-sm">
             After each answer, the interviewer asks one follow-up{view.defend.type === 'challenge' ? ' that pushes back on your recommendation: hold it or update it, then say why' : ' about it'}.
-            You get {view.defend.seconds} s and up to {view.defend.max_words} words.
+            {view.untimed ? `Write up to ${view.defend.max_words} words.` : `You get ${view.defend.seconds} s and up to ${view.defend.max_words} words.`}
           </p>
         )}
         {!view.diagnostic && view.ai_graded && (
@@ -303,7 +310,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
       <h1 ref={headingRef} tabIndex={-1} className="whitespace-pre-line text-base font-medium leading-relaxed outline-none">{item.prompt}</h1>
       {item.exhibit && <DrillChart spec={item.exhibit} />}
 
-      {phase === 'item' && (
+      {phase === 'item' && !view.untimed && (
         <Timer key={deadline} deadline={deadline} totalMs={limitMs} onExpire={() => submit({ timedOut: true })} />
       )}
 

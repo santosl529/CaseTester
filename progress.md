@@ -2,7 +2,7 @@
 
 ## Start here (updated 2026-10-17)
 
-**Status.** Phases D0–D5 are done and pushed to `drills`. D6 (pilot launch) is in progress (Matt lifted the hold 2026-10-17): events, the accessibility audit and the reports are built and not yet committed; see "D6: events, accessibility audit, reports" below.
+**Status.** Phases D0–D5 are done and pushed to `drills`. D6 (pilot launch) is in progress (Matt lifted the hold 2026-10-17): events, the accessibility audit, the reports page and "No time limit" are built, committed and pushed; what's left is the manual accessibility check and the pilot itself (see the two D6 entries below).
 - **Drills:** all 15 MVP drills are live, plus D5's Repair drills (PS-4, HY-3, SY-3; 110 items), and the follow-up is on for PS-3, HY-2, SY-2 and CL-3 (`defend.live` true, pinned by a config test).
 - **Training program (D4):** complete. The gate's last item, the lesson review, is done.
 - **Lessons:** all 23 are live in v2 (Matt approved 2026-10-17), plus "How a case interview works", a static page at `/drills/learn/intro` read from `lessons/intro/`.
@@ -13,11 +13,10 @@
 - **Database:** the shared CaseTester Supabase project, in sync with `/drill-items` and `/lessons`.
 
 **Next steps** (in this order):
-1. **D6, Matt's decisions:** where the reports live (local-dev page, production admin page, or the command line as now); timed items under WCAG 2.2.1 (add "No time limit", or treat the limit as essential); whether item health's pull-to-review runs as a daily job or by hand from the report; go-ahead for the PRD updates listed in the D6 entry; whether to commit.
-2. **D6, before the pilot:** a person runs the manual accessibility checklist (`docs/drills-a11y-audit.md`); the landing page's placeholder-only labels are fixed on `main`; the club code is in `CLUB_CODES` on Vercel; `CRON_SECRET` and a Vercel Cron for `/api/internal/drills/grading`. Then the pilot itself (gate: students finish Week 0 and Week 1 and complete the full loop).
-3. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0017. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
-4. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
-5. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
+1. **D6, before the pilot:** a person runs the manual accessibility checklist (`docs/drills-a11y-audit.md`); the landing page's placeholder-only labels are fixed on `main`; the club code is in `CLUB_CODES` on Vercel; `CRON_SECRET` and a Vercel Cron for `/api/internal/drills/grading`. Then the pilot itself (gate: students finish Week 0 and Week 1 and complete the full loop).
+2. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0018. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
+3. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
+4. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
 
 **Standing rules:** all schema changes stay additive (new tables, enum values, columns). Lessons and their examples must not reuse a drill item's scenario with the same question (`lessonScenarioOverlaps`); the same client alone is fine.
 
@@ -609,7 +608,7 @@
 - The 40 CL-3 drafts (new specific-requests wording) published: status live, reviewed by Matt 2026-10-17. `db:seed-drill-items`: 40 inserted, 40 older versions retired, 0 conflicts. Students are now graded on the new rule.
 - Tests pass; D5 smoke passes on the live items.
 
-## D6: events, accessibility audit, reports (2026-10-17, not committed)
+## D6: events, accessibility audit, reports (2026-10-17, committed b686f2a)
 
 Matt lifted the D6 hold ("build D6"). Answers: reports location "not sure yet"; Playwright + axe-core approved; cost alert as a banner on the reports.
 
@@ -622,5 +621,14 @@ Matt lifted the D6 hold ("build D6"). Answers: reports location "not sure yet"; 
 - **Reports.** `lib/drills/reports/` (`data.ts` loads one club's rows, or all students minus the test orgs; `compute.ts` is one pure function per PRD report, each with its definition in `how`; `index.ts` builds them all). `npm run drills:reports [-- --org <id> --days N --json]` prints them. Includes the cost alert (last 7 days, per active student scaled to a month, alert above $1.25 + 25%) and event health. 12 fixture tests; the events smoke checks the reports on real rows. No real students yet, so every report reads zero.
   - Not built: item health's automatic pull to review (the report flags items; needs Matt's call), the monthly human sample for grading agreement, a reports page (location undecided).
 - **PRD updates to flag (not edited):** Events table: add `repair_pool_exhausted` (drill_id, available); `weekly_summary_viewed.week` is the Monday's date. MVP reports: the definitions in `compute.ts`. Accessibility: the audit doc and the 2.2.1 decision.
+- Checks: typecheck, 1595 tests, lint, all eight smokes and the production build pass.
+
+## D6: Matt's decisions applied (2026-10-17)
+
+- **Reports page:** `/drills/reports`, local development only (`reportsPageEnabled`), club and period (7/28/90 days) filters. Top: the cost banner (alert when the last 7 days run over $1.25 + 25% per active student per month), then the flagged items with attempt counts and how to pull one by hand (set `"status": "in_review"` in the item's JSON, then `npm run db:seed-drill-items`; the importer leaves a reviewed item with unchanged content alone, so the pull survives re-imports). Then every report with its formula. Grading cost now includes cost per workout (the PRD's Monitoring line).
+- **Flag minimum:** 20 attempts (`ITEM_HEALTH.min_attempts`), Matt pulls by hand during the pilot. Reason: an item's attempts can't exceed the number of students (no repeats within 60 days), so the PRD's 50 is out of reach; below 20, one student moves the rate 5+ points. The daily job at 50 is revisited after the pilot.
+- **No time limit (WCAG 2.2.1):** migration 0018 (additive: `untimed boolean not null default false` on `student_drill_settings` and `drill_sets`), applied to the shared project. Settings → Time per item: Standard, 1.5×, 2×, No time limit. An untimed set has no timer, never times out (server ignores lateness and `timed_out`), records the 1× limits as the pace target, and counts fully toward every skill state, Mastered included (Matt). Results show real time against the timed target. `drill_set_started` logs `untimed`. The D1 smoke checks an untimed set (answers 10 minutes late still score 100%); the audit scans an untimed set.
+- **PRD updated (Matt's go-ahead):** time setting and No time limit (Accessibility, timeouts, integrity rules, data model, NFR row); events table (`repair_pool_exhausted`, `weekly_summary_viewed.week` is the Monday's date, `drill_set_started.untimed`); MVP reports with a "How it's computed" column and the reports page; item health's pilot rule; Monitoring's pilot banner; DoD links the audit. `EVENTS_NOT_IN_PRD` is now empty.
+- **Audit:** 34 pages, 0 axe violations, focus shown on every stop, no sideways scrolling at 320 px. 2.2.1 marked resolved in `docs/drills-a11y-audit.md`; the manual checklist remains.
 - Checks: typecheck, 1595 tests, lint, all eight smokes and the production build pass.
 

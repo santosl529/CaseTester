@@ -67,7 +67,7 @@ function print(r: Reports) {
 
   h('Grading quality and cost', r.grading_cost.how);
   const g = r.grading_cost;
-  console.log(`  ${g.jobs} jobs, ${pct(g.failure_rate)} failed, ${pct(g.retry_rate)} retried; ${usd(g.cost_usd)} for ${g.graded_answers} graded answers (${g.cost_per_graded_answer === null ? '–' : `$${g.cost_per_graded_answer.toFixed(4)}`} each); ${usd(g.cost_per_active_student_month)} per active student per month`);
+  console.log(`  ${g.jobs} jobs, ${pct(g.failure_rate)} failed, ${pct(g.retry_rate)} retried; ${usd(g.cost_usd)} for ${g.graded_answers} graded answers  (${g.cost_per_graded_answer === null ? '–' : `$${g.cost_per_graded_answer.toFixed(4)}`} each, ${usd(g.cost_per_workout)} per workout); ${usd(g.cost_per_active_student_month)} per active student per month`);
 
   h('Event health', r.event_health.how);
   console.log(`  ${Object.values(r.event_health.seen).reduce((a, b) => a + b, 0)} rows, ${r.event_health.incomplete_count} missing a key property`);

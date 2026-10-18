@@ -127,6 +127,39 @@ async function runDrill(drillId: string, skillId: string, level: 1 | 2) {
   console.log(`${drillId}: ${view.size} items, score ${Math.round(results.score * 100)}%, ${results.mistakes?.text ?? 'no misses'}`);
 }
 
+// "No time limit": an answer long past the limit still counts, nothing times
+// out, and results show the real time against the timed target.
+async function untimedSet() {
+  await updateSettings(student, { untimed: true });
+  const { set_id } = await startSet(student, { drill_id: 'PS-1' });
+  const view = await setView(student, set_id);
+  check(view.untimed === true, 'untimed: set view not marked untimed');
+  const fetched = await fetchItem(student, set_id, 0);
+  check(fetched.untimed === true, 'untimed: item not marked untimed');
+  // Served ten minutes ago: far past PS-1's limit and the grace period.
+  await db.update(drillSets).set({ currentServedAt: new Date(Date.now() - 10 * 60_000) }).where(eq(drillSets.id, set_id));
+  const [set] = await db.select().from(drillSets).where(eq(drillSets.id, set_id));
+  for (let p = 0; p < set.size; p++) {
+    if (p > 0) await fetchItem(student, set_id, p);
+    const item = await itemFor(set_id, p);
+    const right = item.options.find(o => o.correct)!;
+    const steps = item.input.steps?.length ?? 1;
+    for (let i = 0; i < steps; i++) {
+      const type = item.input.steps?.[i].type ?? item.input.type;
+      const response = type === 'numeric' ? { type: 'numeric' as const, value: String(item.numeric!.answer) } : { type: 'choice' as const, option_id: right.id };
+      await submitAttempt(student, set_id, { position: p, idempotency_key: `untimed-${p}-${i}`, step: i, response, skip: false, timed_out: p === 1, });
+    }
+  }
+  await completeSet(student, set_id);
+  const results = await setResults(student, set_id);
+  if (results.status !== 'completed') { failures.push('untimed: set not completed'); return; }
+  check(results.untimed === true, 'untimed: results not marked untimed');
+  check(results.score === 1, `untimed: late or "timed out" answers did not count (score ${results.score})`);
+  check(results.time_ms > results.target_ms, 'untimed: results cap the time at the target');
+  await updateSettings(student, { untimed: false });
+  console.log(`untimed PS-1: ${Math.round(results.score * 100)}%, ${Math.round(results.time_ms / 1000)} s against a ${Math.round(results.target_ms / 1000)} s target`);
+}
+
 async function main() {
   try {
     await updateSettings(student, { time_multiplier: 1.5 });
@@ -134,6 +167,7 @@ async function main() {
     // drills have their own smokes.
     const live = DRILLS_CONFIG.drills.drills.filter(d => d.live && d.scoring === 'auto' && !D2_DRILLS.includes(d.id));
     for (const drill of live) await runDrill(drill.id, drill.skills[0], drill.level);
+    await untimedSet();
     // CR.volume is trained only by CR-1 (P1), which isn't live yet.
     await expectError('no_live_drill', () => startSet(student, { skill_id: 'CR.volume' }), 'skill with no live drill');
   } finally {

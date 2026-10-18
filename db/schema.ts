@@ -174,6 +174,9 @@ export const studentProfiles = pgTable('student_profiles', {
 export const studentDrillSettings = pgTable('student_drill_settings', {
   studentId: uuid('student_id').primaryKey(),
   timeMultiplier: doublePrecision('time_multiplier').notNull().default(1),
+  // "No time limit" (D6, WCAG 2.2.1): no timer, nothing times out. The
+  // multiplier still sizes workout estimates.
+  untimed: boolean('untimed').notNull().default(false),
   interviewDate: date('interview_date'),
   skippedExamples: text('skipped_examples').array().notNull().default(sql`'{}'::text[]`),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -239,6 +242,8 @@ export const drillSets = pgTable('drill_sets', {
   stage: text('stage'),                       // recognize | repair | construct
   tier: integer('tier').notNull(),
   size: integer('size').notNull(),
+  // The student's "No time limit" setting when the set started, fixed for the set.
+  untimed: boolean('untimed').notNull().default(false),
   source: drillSetSourceEnum('source').notNull(),
   // A transfer check (PRD "Transfer check"): unseen items, new case types.
   isTransferCheck: boolean('is_transfer_check').notNull().default(false),

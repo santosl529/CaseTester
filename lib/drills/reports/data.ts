@@ -112,3 +112,9 @@ export async function loadEventRows(filter: ReportFilter, studentIds: string[]) 
   return db.select({ id: analyticsEvents.id, eventType: analyticsEvents.eventType, payload: analyticsEvents.payloadJsonb }).from(analyticsEvents)
     .where(and(inArray(analyticsEvents.userId, studentIds), gte(analyticsEvents.createdAt, filter.from), lt(analyticsEvents.createdAt, filter.to)));
 }
+
+// Clubs with drills students, for the reports' club filter.
+export async function listOrgs(): Promise<string[]> {
+  const rows = await db.selectDistinct({ orgId: studentProfiles.orgId }).from(studentProfiles);
+  return rows.flatMap(r => (r.orgId && !TEST_ORGS.includes(r.orgId) ? [r.orgId] : [])).sort();
+}

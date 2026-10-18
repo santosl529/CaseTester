@@ -127,6 +127,13 @@
       "when": 1791770893659,
       "tag": "0017_drills_d5_defend",
       "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1792280801415,
+      "tag": "0018_drills_d6_untimed",
+      "breakpoints": true
     }
   ]
 }

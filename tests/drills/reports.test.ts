@@ -180,19 +180,19 @@ describe('pilot reports (PRD "MVP reports")', () => {
     expect(r.avg_session_minutes).toBeCloseTo(15);
   });
 
-  it('item health flags only with 50+ attempts', () => {
+  it('item health flags only with 20+ attempts', () => {
     const items = new Map([[itemKey('ps1-0001', 1), { drillId: 'PS-1', tier: 1, options: [{ id: 'a', correct: true }, { id: 'b', correct: false }], defendType: null, challengeValid: null }]]);
-    const many = Array.from({ length: 50 }, (_, i) => attempt({ optionId: i < 5 ? 'a' : 'b', score: i < 5 ? 1 : 0 }));
+    const many = Array.from({ length: 20 }, (_, i) => attempt({ optionId: i < 2 ? 'a' : 'b', score: i < 2 ? 1 : 0 }));
     const r = itemHealth(data({ items, attempts: many }));
     expect(r.items[0].correct_rate).toBe(0.1);
     expect(r.items[0].flags).toEqual(['pull: correct rate under 15%', 'pull: distractor b picked more than the answer', 're-tier: T1 → T3']);
-    expect(itemHealth(data({ items, attempts: many.slice(0, 49) })).items[0].flags).toEqual([]);
+    expect(itemHealth(data({ items, attempts: many.slice(0, 19) })).items[0].flags).toEqual([]);
   });
 
   it('grading cost per graded answer and per active student, and the alert', () => {
     const d = data({
       from: at(21), to: at(28),
-      sets: [set({ startedAt: at(22) })],
+      sets: [set({ startedAt: at(22), workoutId: 'w' })],
       jobs: [
         { setId: 'x', status: 'succeeded', retries: 0, costUsd: 0.5, createdAt: at(22) },
         { setId: 'x', status: 'failed', retries: 1, costUsd: null, createdAt: at(23) },
@@ -202,6 +202,7 @@ describe('pilot reports (PRD "MVP reports")', () => {
     const c = gradingCost(d);
     expect(c.cost_per_graded_answer).toBe(0.25);
     expect(c.failure_rate).toBe(0.5);
+    expect(c.cost_per_workout).toBe(0.5);
     expect(c.cost_per_active_student_month).toBeCloseTo(0.5 * 30 / 7);
     // $2.14 a month is over $1.25 + 25%.
     expect(costAlert(d).alert).toBe(true);

@@ -15,14 +15,16 @@ const TRACKS: { id: Track; label: string; hint: string }[] = [
 // Settings (docs/prd-drills.md "Interview date", "Tracks"): switching track
 // or changing the interview date or time per week rebuilds the plan from
 // today; skill states are kept.
-export function ProgramSettings({ track, interviewDate, availabilityId, availability, today, timeMultiplier }: {
-  track: Track; interviewDate: string | null; availabilityId: string; availability: AvailabilityOption[]; today: string; timeMultiplier: number;
+export function ProgramSettings({ track, interviewDate, availabilityId, availability, today, timeMultiplier, untimed }: {
+  track: Track; interviewDate: string | null; availabilityId: string; availability: AvailabilityOption[]; today: string; timeMultiplier: number; untimed: boolean;
 }) {
   const router = useRouter();
   const [t, setT] = useState(track);
   const [date, setDate] = useState(interviewDate ?? '');
   const [hours, setHours] = useState(availabilityId);
-  const [mult, setMult] = useState(timeMultiplier);
+  // One choice: a time multiplier, or no time limit (WCAG 2.2.1).
+  const savedTime = untimed ? 'untimed' : String(timeMultiplier);
+  const [time, setTime] = useState(savedTime);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
 
@@ -36,7 +38,10 @@ export function ProgramSettings({ track, interviewDate, availabilityId, availabi
     if (hours !== availabilityId) changes.availability = hours;
     const calls: Promise<Response>[] = [];
     if (Object.keys(changes).length) calls.push(fetch('/api/drills/program', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(changes) }));
-    if (mult !== timeMultiplier) calls.push(fetch('/api/me/drill-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ time_multiplier: mult }) }));
+    if (time !== savedTime) {
+      const body = time === 'untimed' ? { untimed: true } : { time_multiplier: Number(time), untimed: false };
+      calls.push(fetch('/api/me/drill-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }));
+    }
     const results = await Promise.all(calls);
     setBusy(false);
     const failed = results.find(r => !r.ok);
@@ -76,15 +81,16 @@ export function ProgramSettings({ track, interviewDate, availabilityId, availabi
         </fieldset>
       )}
       <fieldset className="space-y-2">
-        <legend className="mb-2 font-medium">Extra time on every item</legend>
+        <legend className="mb-2 font-medium">Time per item</legend>
         <div className="flex flex-wrap gap-2">
-          {[1, 1.5, 2].map(m => (
-            <label key={m} className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm has-[:checked]:border-foreground">
-              <input type="radio" name="mult" checked={mult === m} onChange={() => setMult(m)} />
-              {m === 1 ? 'Standard' : `${m}×`}
+          {[['1', 'Standard'], ['1.5', '1.5×'], ['2', '2×'], ['untimed', 'No time limit']].map(([value, label]) => (
+            <label key={value} className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm has-[:checked]:border-foreground">
+              <input type="radio" name="time" checked={time === value} onChange={() => setTime(value)} />
+              {label}
             </label>
           ))}
         </div>
+        <p className="text-sm text-muted-foreground">No time limit hides the timer. Your results still show how long you took against the timed target, so you can work on pace.</p>
       </fieldset>
       <p className="text-sm text-muted-foreground">Changes rebuild your plan from today. Your skill progress is kept.</p>
       {msg && <p role="alert" className="text-sm text-destructive">{msg}</p>}
