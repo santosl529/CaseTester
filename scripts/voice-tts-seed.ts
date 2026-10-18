@@ -1,4 +1,4 @@
-// One-off, after migration 0009 (voice deploy, 18 Oct): carry the month's count
+// One-off, after migration 0021 (voice deploy, 18 Oct): carry the month's count
 // from the old on-disk ledger (.voice-cache/tts-chars-YYYY-MM.json) into the
 // voice_tts_usage row, keeping the larger of the two — the cap counts what was
 // spent before the move. Free (one database write).

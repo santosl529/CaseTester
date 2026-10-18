@@ -1,0 +1,1 @@
+ALTER TABLE "student_programs" ADD COLUMN "current_week" integer DEFAULT 0 NOT NULL;

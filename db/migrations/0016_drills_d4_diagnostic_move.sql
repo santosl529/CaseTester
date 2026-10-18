@@ -1,0 +1,1 @@
+ALTER TABLE "diagnostics" ADD COLUMN "moved_to_track" "program_track";

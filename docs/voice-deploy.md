@@ -35,8 +35,16 @@ its own Node process (~150–300 MB, my estimate, not measured).
 
 ## Before the first deploy (in this order)
 
-1. **Migration 0009** (`voice_tts_usage`, `voice_session_lines`). Needs your
-   go. From the main checkout: `npm run db:migrate`.
+1. **Migration 0021** (`voice_tts_usage`, `voice_session_lines`). Needs your
+   go. From the main checkout, once this branch is merged: `npm run db:migrate`.
+   It sits on top of Matthew's drills migrations 0009–0020 (origin/drills
+   f7e7873; all already applied to our database), which this branch carries
+   as files, unchanged — `db/` only, none of his feature code. drizzle's
+   migrator runs only migrations whose journal time is later than the last
+   one applied (it never fills gaps), so a newer drills migration generated
+   before this one lands would be skipped silently: whoever merges second
+   regenerates their migration on top (`drizzle-kit generate`), never
+   renumbers by hand.
 2. **Carry October's TTS count into the table** (free, one write):
    `npx tsx --env-file=.env.local scripts/voice-tts-seed.ts --dry`, then
    without `--dry`.
