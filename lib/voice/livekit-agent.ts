@@ -22,6 +22,7 @@ import { requireRunBudget } from '@/lib/llm-budget';
 import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
+import { keytermsFor } from './keyterms';
 import { CartesiaTTS, defaultVoiceId } from './cartesia';
 import { FakeTTS } from './fake-tts';
 import { FILLER_DELAY_MS, FILLER_GAP_MS, FILLER_TAIL_MS } from './acknowledge';
@@ -66,7 +67,7 @@ export default defineAgent({
     // slow: the browser's track can be subscribed while the rest is set up,
     // and a missed TrackSubscribed meant nothing was ever transcribed (smoke, 8 Oct).
     const vad = new SpeechEndTracker();
-    const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5 }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
+    const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5, keyterms: keytermsFor(caseData) }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
     let onStt: (s: SttEvent) => void = () => {};   // the controller, once it exists
     stt.onSignal(sig => {
       rec?.event('stt', sig.kind === 'resumed' ? { kind: sig.kind } : { kind: sig.kind, transcript: sig.transcript, ...(sig.kind === 'speech' ? { words: sig.words } : {}) });

@@ -1,6 +1,7 @@
 {
   "id": "prof-001",
   "title": "Brew & Bean Profitability",
+  "sttKeyterms": ["Brew & Bean", "green coffee", "dairy"],
   "firmStyle": "mckinsey",
   "difficulty": "medium",
   "prompt": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?",

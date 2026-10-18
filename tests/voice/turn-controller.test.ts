@@ -134,6 +134,29 @@ describe('the connector after a filler (Lorenzo, 17 Oct)', () => {
     expect(h.reports[0].segments[0].text).toBe(DATA);
   });
 
+  it('"COGS" is said "cogs" — in the TTS text only; captions and the heard report keep "COGS" (pronounce.ts)', async () => {
+    const LINE = 'COGS rose 16 points. Is that split MECE?';
+    const tts = new RecordingTTS(10, 0);
+    const h = harness([[seg('tail', LINE)]], { tts, sessionSeed: seedFor(ANSWER, LINE, 'So,') });
+    await h.c.ready(''); h.c.onStt(final(ANSWER));
+    await h.advance(5000);
+    expect(tts.pushed).toEqual(['So, cogs rose 16 points. Is that split mee-see?']);
+    expect(h.reports[0].segments[0]).toMatchObject({ text: LINE, playback: 'played', heardChars: LINE.length });
+    expect(h.captions('interviewer').at(-1)).toMatchObject({ final: true, text: LINE });
+  });
+
+  it('a cut mid-line: the heard cursor counts the written line\'s characters', async () => {
+    const LINE = 'COGS rose 16 points.';   // spoken "So, cogs rose 16 points." — 5 words, 200ms each at 40ms/char
+    const tts = new RecordingTTS(40, 0);
+    const h = harness([[seg('tail', LINE)]], { tts, sessionSeed: seedFor(ANSWER, LINE, 'So,') });
+    await h.c.ready(''); h.c.onStt(final(ANSWER));
+    await h.advance(1000);
+    h.c.onStt(speech('wait sorry'));
+    await h.advance(2000);
+    const heard = h.reports[0].segments[0].heardChars;
+    expect(LINE.slice(0, heard)).toMatch(/^COGS(?: rose)?(?: 16)?$/);
+  });
+
   it('a correction keeps its exact wording after the connector', async () => {
     const LINE = "From today's 6% margin, a 10% price rise lifts margin about 8.5 points, not 5.";
     const tts = new RecordingTTS(10, 0);

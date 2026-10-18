@@ -23,7 +23,7 @@ export function fluxSignal(msg: FluxMessage, atMs: number): Signal | null {
   return null;
 }
 
-export type FluxOptions = { eotThreshold?: number; eagerEotThreshold?: number; eotTimeoutMs?: number };
+export type FluxOptions = { eotThreshold?: number; eagerEotThreshold?: number; eotTimeoutMs?: number; keyterms?: string[] };
 
 export class DeepgramFluxSTT implements STTProvider {
   get name(): string {
@@ -41,6 +41,8 @@ export class DeepgramFluxSTT implements STTProvider {
       ...(this.opts.eotThreshold !== undefined ? { eot_threshold: this.opts.eotThreshold } : {}),
       ...(this.opts.eagerEotThreshold !== undefined ? { eager_eot_threshold: this.opts.eagerEotThreshold } : {}),
       ...(this.opts.eotTimeoutMs !== undefined ? { eot_timeout_ms: this.opts.eotTimeoutMs } : {}),
+      // Keyterm prompting (keyterms.ts): the terms the case's checks read.
+      ...(this.opts.keyterms?.length ? { keyterm: this.opts.keyterms } : {}),
     });
     let cb: (s: Signal) => void = () => {};
     conn.on('message', (m: unknown) => {

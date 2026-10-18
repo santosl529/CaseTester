@@ -1,6 +1,7 @@
 {
   "id": "prof-002",
   "title": "Larkspur Air Route Profitability",
+  "sttKeyterms": ["Larkspur", "Larkspur Air", "Lakeport", "Port Avery", "Ashford", "Brookhaven", "Cedar Bluff", "Granite Falls", "Millbrook", "Westhaven", "load factor", "FY2023", "FY2025"],
   "firmStyle": "mckinsey",
   "difficulty": "easy",
   "prompt": "Our client is Larkspur Air, a US regional airline. Larkspur flies from its hub airport to six mid-sized cities, using a fleet of identical 80-seat regional jets. It sells tickets mainly through its own website. Two years ago, in FY2023, Larkspur earned an operating profit of $20 million on $200 million of revenue. In FY2025, revenue was $176 million and the airline posted an operating loss of $4 million — even though its planes are about as full as they were before. Larkspur's CEO has asked us to figure out what caused the swing from profit to loss, and how the airline can get back to an operating profit within the next 12 months.",

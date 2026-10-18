@@ -15,6 +15,7 @@ import type { ServerMessage, VoiceState } from './protocol';
 import { classifierWaits, type TurnRecord } from './records';
 import { FILLER_DELAY_MS, ackKind, isThinkingFiller, pickAck, shouldAcknowledge } from './acknowledge';
 import { connectorWordCount, pickConnector, spokenWithConnector } from './connector';
+import { speechTextFor, WordFolder } from './pronounce';
 
 // How long heard() waits for the browser to confirm an exhibit it was sent.
 export const EXHIBIT_CONFIRM_MS = 1500;
@@ -293,14 +294,16 @@ export class VoiceTurnController {
     // ("So, …"), in the TTS text only: the segment, captions and heard checks
     // keep the line as written (connector.ts).
     if (t.ackState === 'pending') this.skipAck(t, 'reply_ready');   // the reply came first: no filler before it
-    let spoken = text;
+    // Terms said as words ("COGS" → "cogs"), in the TTS text only (pronounce.ts).
+    const speech = speechTextFor(text);
+    let spoken = speech.text;
     let skipWords = 0;
     if (text && !t.connectorDecided) {
       t.connectorDecided = true;
       if (t.ackState === 'played' && isThinkingFiller(t.ack)) {
         const c = pickConnector({ seed: `${this.d.sessionSeed}:${t.seq}:connector`, filler: t.ack!, segmentText: text, recent: this.connectors });
         this.connectors = [...this.connectors, c].slice(-2);
-        spoken = spokenWithConnector(c, text);
+        spoken = spokenWithConnector(c, speech.text);
         skipWords = connectorWordCount(c);
         this.d.trace?.('connector', { seq: t.seq, connector: c });
       }
@@ -334,11 +337,12 @@ export class VoiceTurnController {
         e.cancel = () => { cancelled = true; void utt.cancel().catch(() => {}); };
         if (cancelled) { await utt.cancel().catch(() => {}); return; }
         utt.onAudio((pcm, at) => { t.ttsFirstAudioAt ??= at; this.d.playout.push(e.id, pcm); });
+        // The connector's words are not the segment's: skipped, keeping the times;
+        // a term said in more words than written folds back onto its written token.
+        const folder = new WordFolder(speech.counts, skipWords);
         utt.onWords?.(ws => {
-          // The connector's words are not the segment's: skip them, keeping the times.
-          const n = Math.min(skipWords, ws.length);
-          skipWords -= n;
-          if (ws.length > n) this.d.playout.words(e.id, ws.slice(n));
+          const mine = folder.push(ws);
+          if (mine.length > 0) this.d.playout.words(e.id, mine);
         });
         await utt.push(spoken);
         await utt.end();
