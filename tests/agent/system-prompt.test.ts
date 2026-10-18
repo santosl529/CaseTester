@@ -24,6 +24,14 @@ describe('buildSystemPrompt stages and pacing', () => {
     expect(prompt).toContain('STRUCTURE: the candidate presents their framework');
   });
 
+  // Lorenzo's go on 4b (18 Oct): 16% of batch 27–30 questions opened "With those figures", 16% "You said…".
+  it('asks for varied question openings, "You said …" at most once every few turns', () => {
+    const prompt = buildSystemPrompt(ctx());
+    expect(prompt).toContain("Don't open two questions in a row the same way.");
+    expect(prompt).toMatch(/"You said …" at most once every few turns/);
+    expect(prompt).toMatch(/"With those figures, …", "Given that, …", or simply ask about them/);
+  });
+
   it('forbids announcing stage changes', () => {
     expect(buildSystemPrompt(ctx())).toContain('never announce them');
   });
