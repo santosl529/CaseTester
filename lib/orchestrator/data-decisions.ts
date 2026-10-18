@@ -12,13 +12,12 @@ import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import type { RequestResponse } from './data-requests';
 import { canReveal, type DataLedger } from './data-ledger';
-import { pickScript, STALE_RELEASE_LEADINS } from '@/lib/agent/prompts/scripts';
+import { phrase, type PhraseUses } from './phrasing';
 import { isOrderStage } from '@/lib/cases/schema';
 
 export const RELEASE_CAP = 3;
 
 // The lead-in for data said again on an explicit re-ask.
-export const RESTATE_LEADIN = 'As I mentioned:';
 
 // Spec 2026-10-07 §4's line for asks code can't map while the structure is
 // open. v4.10 (KF-4): it promises nothing — the ask may name data the case
@@ -441,25 +440,26 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
 // (spec 2026-10-08-voice-phase-b §5.3).
 export type DataLinePart = { kind: 'correction' | 'leadin' | 'release' | 'restate' | 'exhibit' | 'refusals' | 'defers' | 'offers'; ids: string[]; text: string };
 
-export function renderDataLineParts(d: DataDecisions, seed: string): DataLinePart[] {
+// `uses`: the session's recent connecting words (phrasing.ts) — the content is verbatim.
+export function renderDataLineParts(d: DataDecisions, seed: string, uses?: PhraseUses): DataLinePart[] {
   const parts: DataLinePart[] = [];
   if (d.correction) parts.push({ kind: 'correction', ids: [], text: d.correction.text });
   const earlier = d.releases.filter(r => r.earlier);
-  if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: pickScript(STALE_RELEASE_LEADINS, seed) });
+  if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: phrase('earlier', '', uses, seed) });
   for (const r of d.releases) parts.push({ kind: 'release', ids: [r.id], text: r.value });
   // Restated values carry no ids: nothing is booked as a new reveal.
-  d.restates.forEach((r, i) => parts.push({ kind: 'restate', ids: [], text: i === 0 ? `${RESTATE_LEADIN} ${r.value}` : r.value }));
-  if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: `Here's an exhibit: ${d.exhibit.title}.` });
-  if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: `I don't have ${joinWhat(d.refusals, 'or')}.` });
-  if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: `I'll come back to ${joinWhat(d.defers, 'and')} shortly.` });
+  d.restates.forEach((r, i) => parts.push({ kind: 'restate', ids: [], text: i === 0 ? phrase('restate', r.value, uses, seed) : r.value }));
+  if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
+  if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or'), uses, seed) });
+  if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });
   if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: `I'll share ${joinWhat(d.gateDefers, 'and')} once we've settled your structure.` });
   if (d.unmappedDefer) parts.push({ kind: 'defers', ids: [], text: UNMAPPED_DEFER_LINE });
   if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: `I can share ${joinWhat(d.offers, 'and')} if you'd like.` });
   return parts;
 }
 
-export function renderDataLines(d: DataDecisions, seed: string): string[] {
-  return renderDataLineParts(d, seed).map(p => p.text);
+export function renderDataLines(d: DataDecisions, seed: string, uses?: PhraseUses): string[] {
+  return renderDataLineParts(d, seed, uses).map(p => p.text);
 }
 
 // The turn's data_request rows (scoring reads these shapes; spec §9).

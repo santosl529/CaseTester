@@ -30,6 +30,7 @@ import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type Model
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { recMathLine } from './recompute';
 import { MATH_CHECKER_CATEGORY, type CheckerJob, type CheckerJobResult } from './math-checker-live';
+import { phrase, type PhraseUses } from './phrasing';
 import {
   isUsefulSegment, isCancelledTurn, TurnCancelled,
   type ConductFlags, type HeardReport, type ScriptedPlan, type SegmentSink, type TurnCtx, type TurnResult,
@@ -451,10 +452,12 @@ export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[]
   const seed = `${ctx.sessionId}:${ctx.nextTurnIndex}`;
   const recMath = state.kind === 'rec_math_probe' ? state.recMathProbe : null;
   // The math checker's flag in place of the close: its vetted line, said by code.
+  // The wrap-up lead's connecting words vary (phrasing.ts); the probe's own words don't.
+  const wrapUp = (x: string) => phrase('wrap_up', x, ctx.flags.phraseUses as PhraseUses | undefined, seed);
   const recLine = (action: 'probe' | 'correct') => !recMath ? ''
-    : 'checker' in recMath ? (action === 'probe' ? `Before we wrap up — ${lowerFirst(recMath.checker.line)}` : recMath.checker.line)
-      : 'closed' in recMath ? (action === 'probe' || !recMath.closed.correction ? `Before we wrap up — walk me through how you got to ${recMath.closed.said}.` : recMath.closed.correction)
-        : recMathLine(recMath.flag, action);
+    : 'checker' in recMath ? (action === 'probe' ? wrapUp(lowerFirst(recMath.checker.line)) : recMath.checker.line)
+      : 'closed' in recMath ? (action === 'probe' || !recMath.closed.correction ? wrapUp(`walk me through how you got to ${recMath.closed.said}.`) : recMath.closed.correction)
+        : recMathLine(recMath.flag, action, wrapUp);
   const requests = (detected ?? [])
     .filter(r => r.explicit) // a code-written turn answers asks, it doesn't offer
     .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));

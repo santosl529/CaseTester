@@ -11,6 +11,7 @@
 import { describe, it, expect, vi } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checker';
+import { anyVariant } from '@/lib/orchestrator/phrasing';
 
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
@@ -180,7 +181,7 @@ describe.each(SCRIPTS.flatMap(s => (['correct', 'error'] as const).map(v => ({ .
         ? await at(min++, s.brainstormBefore === id ? 'Sampling in stores, a trial-size bag, recipe ideas on the pack.' : 'I have enough to recommend now.', REC)
         : await at(min++, `Could I see ${what}?`, M({ move: 'exhibit', requests: [ask(what, [id])], question: 'What does it tell you?' }));
       expect(shown().at(-1)).toBe(id);
-      expect(r.interviewerText).toContain(`Here's an exhibit: ${title(id)}.`);
+      expect(r.interviewerText).toMatch(anyVariant('exhibit', title(id)));
       if (last) expect(r.interviewerText).not.toMatch(/recommendation/i);
       expect(r.exhibit?.notes ?? null).toBe(c.exhibits.find(e => e.id === id)!.notes ?? null);
     }

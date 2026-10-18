@@ -35,6 +35,7 @@ import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-che
 import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { theirFigure } from './own-quantity';
 import { normalizeAsrTerms } from './asr-terms';
+import { phrase, type PhraseUses } from './phrasing';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
 import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, claimError, relativeError, holdRank, type CloseHoldMemory } from './close-hold';
@@ -559,7 +560,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const capped = perItem.filter(m => recReplyAt(m.n) || timesCorrected(m.item) < MISQUOTE_CORRECTIONS_PER_ITEM).slice(0, 2);
   const misquoteOf = (list: typeof perItem) => list.length > 0 ? {
     ...list[0], label: labelOf(list[0].item), items: list.map(m => m.item), all: list,
-    text: correctionLines(list.map(m => wordingOf(m.item)!)),
+    text: correctionLines(list.map(m => wordingOf(m.item)!), {
+      one: x => phrase('correct_one', x, flags.phraseUses as PhraseUses | undefined, `${ctx.sessionId}:${ctx.nextTurnIndex}`),
+      two: x => phrase('correct_two', x, flags.phraseUses as PhraseUses | undefined, `${ctx.sessionId}:${ctx.nextTurnIndex}`),
+    }),
   } : null;
   // Let: the close lifts the cap too (decided below) — no misquote is left standing at the goodbye.
   let correcting = capped;

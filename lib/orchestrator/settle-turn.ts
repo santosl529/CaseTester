@@ -28,6 +28,7 @@ import { logEvent } from '@/lib/analytics';
 import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { pickScript, STAGE_EXHIBIT_QUESTIONS } from '@/lib/agent/prompts/scripts';
+import { phrase, recordPhraseUses, type PhraseUses } from './phrasing';
 import { BLOCKED_CLOSE_PROBES, LATE_RECOMMENDATION_ASKS, asksForConclusion, analysisAskLine } from './spoken-close';
 import { updateStages, stageQuestions, type StageKey, type StageRecord } from './stage-evidence';
 import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
@@ -186,7 +187,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // verdict for this turn first — the gate depends on it).
   const { satisfied: satisfiedNow, waiving } = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
   const decisions = turnData(plan, turn);
-  const dataParts = renderDataLineParts(decisions, seed);
+  const phraseUses = flags.phraseUses as PhraseUses | undefined;
+  const dataParts = renderDataLineParts(decisions, seed, phraseUses);
   const dataLines = dataParts.map(p => p.text);
   const gBase = gateContext(plan, decisions.releases.map(r => r.value), [...decisions.releases.map(r => r.id), ...(decisions.exhibit?.covers ?? []), ...decisions.restates.map(r => r.id)]);
   // What this turn's data line hands over, for the question's delivery claims.
@@ -415,7 +417,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   if (!codeWritten && kind === 'model' && requiredOwed && gateClosedNow && asksForConclusion(question)) {
     withheld.push({ sentence: question, reason: 'recommendation_held_for_stage', field: 'question' });
     if (decisions.exhibit) question = pickScript(STAGE_EXHIBIT_QUESTIONS, seed);
-    else { heldForExhibit = requiredOwed; question = `Here's an exhibit: ${requiredOwed.title}. ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`; }
+    else { heldForExhibit = requiredOwed; question = `${phrase('exhibit', requiredOwed.title, phraseUses, seed)} ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`; }
     modelQuestion = '';
     stageAsked = 'exhibit';
   } else if (!codeWritten && kind === 'model' && state.analysisOwed && caseData.analysisCore && asksForConclusion(question)) {
@@ -432,7 +434,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     } else if (!decisions.exhibit) {
       heldForExhibit = nextReadyExhibit(caseData.exhibits, state.shownExhibitIds, ledger, state.stagesOut);
       if (heldForExhibit) {
-        question = `Here's an exhibit: ${heldForExhibit.title}. ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`;
+        question = `${phrase('exhibit', heldForExhibit.title, phraseUses, seed)} ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`;
         modelQuestion = '';
         stageAsked = 'exhibit';
       }
@@ -451,7 +453,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const next = decisions.exhibit ? undefined : nextReadyExhibit(caseData.exhibits, state.shownExhibitIds, ledger, state.stagesOut);
     if (next) {
       heldForExhibit = next;
-      question = `Here's an exhibit: ${next.title}. ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`;
+      question = `${phrase('exhibit', next.title, phraseUses, seed)} ${pickScript(STAGE_EXHIBIT_QUESTIONS, seed)}`;
       stageAsked = 'exhibit';
     } else {
       question = pickFallbackQuestion({ figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
@@ -475,7 +477,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   if (pressureEx && !ended && !decisions.exhibit && !heldForExhibit
     && (ASKS_RECOMMENDATION.has(kind) || (kind === 'model' && asksForConclusion(question)))) {
     heldForExhibit = pressureEx;
-    question = `Here's an exhibit: ${pressureEx.title}. ${question}`;
+    question = `${phrase('exhibit', pressureEx.title, phraseUses, seed)} ${question}`;
   }
   // Code's brainstorm line on a turn whose own data line hands over data
   // (batch 21 D8, Fiona t14: the decisive other-input figure, then "What other
@@ -872,6 +874,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             heldCloseHold: Boolean(flags.heldCloseHold) || (kind === 'rec_math_probe' && state.heldCloseHold && qHeard),
             ...(Object.keys(closeHoldSaved).length ? { closeHold: closeHoldSaved } : {}),
             recomputeAttempts,
+            // The connecting words heard this turn (phrasing.ts): no variant again within its pool's last 3.
+            phraseUses: recordPhraseUses(savedLine, phraseUses),
             lastVerified: verifiedNow,
             flaggedFigures: state.flaggedFigures,
             explainProbed: [...explainProbedBefore, ...probeSaved.explainProbed],

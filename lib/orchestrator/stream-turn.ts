@@ -11,6 +11,7 @@ import { growthProbeOnRatio, growthProbeUnchecked } from './growth-probe';
 import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
 import { normalizeNumberWords } from '@/lib/number-words';
+import type { PhraseUses } from './phrasing';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
 import { NEUTRAL_TURN } from '@/lib/agent/models/turn-events';
 import type { ModelPlan } from './plan-turn';
@@ -322,7 +323,8 @@ export async function streamTurnSegments(
     // pressure test's verdict for this turn is in (the gate depends on it).
     await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
     const d = turnData(plan, fields);
-    const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`);
+    // The same connecting words Settle renders: the same seed and the session's recent uses (phrasing.ts).
+    const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`, plan.ctx.flags.phraseUses as PhraseUses | undefined);
     if (lines.length > 0 || d.exhibit) {
       await send('data', lines.join(' '), d.releases.map(r => r.id), d.exhibit?.id);
       mark('data_line_delivered');

@@ -13,6 +13,7 @@
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
 import path from 'node:path';
 import { readTurnFile } from './turn-file';
+import { poolPattern } from '@/lib/orchestrator/phrasing';
 
 export type SegmentKind = 'say' | 'data' | 'question' | 'scripted' | 'text';
 export type CorpusSegment = { kind: SegmentKind; author: 'model' | 'code' | 'unknown'; text: string; ids?: string[] };
@@ -86,8 +87,8 @@ export function splitByLedger(heard: string, ledger: LedgerLike): CorpusSegment[
       from = end;
     }
   }
-  // Code's lead-ins for data lines.
-  for (const m of text.matchAll(/(?:On what you asked for|Coming back to what you asked for earlier|You asked about this earlier|To correct one figure)\s*:\s*/g)) spans.push({ start: m.index!, end: m.index! + m[0].length });
+  // Code's lead-ins for data lines: the older records' "On what you asked for:", and every variant of today's (phrasing.ts).
+  for (const m of text.matchAll(new RegExp(`(?:On what you asked for|${poolPattern('earlier', 'correct_one', 'correct_two').source})\\s*:?\\s*`, 'g'))) spans.push({ start: m.index!, end: m.index! + m[0].length });
   spans.sort((a, b) => a.start - b.start);
   const segs: CorpusSegment[] = [];
   let pos = 0;
