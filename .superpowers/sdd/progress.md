@@ -1,6 +1,7 @@
 # SDD Progress Ledger — Voice AI Mock Case Interview Text Product
 
 ## Now
+- **Next session: start with `.superpowers/sdd/handoff-2026-10-18.md`** — the state, Lorenzo's A (cloud deploy of the voice agent) and B (5-version phrase variation) brief verbatim, facts gathered, tools and gotchas.
 - **`club-beta-2` (18 Oct) on `fact-guards`: `voice-feel` merged (Lorenzo's go after batch 31). Local tag, not pushed, not deployed — Lorenzo does that.** The previous deploy tag was `club-beta` (f69545c). `voice-feel` (worktree `.claude/worktrees/voice-feel`) is merged; `larkspur-fixes` is stale (= c33a58a).
 - **Tests:** 3254 pass in the main checkout (2 skipped); `npx tsc --noEmit` clean outside the untracked `Case Interview Runs/` scripts; `npx eslint lib app components tests scripts db` clean (a bare `eslint .` in the main checkout also sweeps other worktrees' build output).
 - **Live per case:** prof-001 — step flags live (`stepFlagsLive`), ledger lookup report-only, 20 min, exhibit required. prof-002 Larkspur — step flags and ledger lookup report-only, 25 min. entry-001, pricing-001, launch-001 — report-only, 20 min. The math checker runs on every case; code's corrections and probes wait for its flag (the gate); "not X" only on code's own quantity (conversions otherwise); the pointer passes the probes' leads check (strict); scoring waits ≤ 30s for a verdict still running.
