@@ -8,12 +8,14 @@ const h = vi.hoisted(() => ({
   listDispatch: vi.fn(async (): Promise<{ agentName: string }[]> => []),
   createDispatch: vi.fn(async () => ({ id: 'AD_1' })),
   grants: [] as unknown[],
+  rooms: [] as { name: string; numParticipants: number; creationTime: bigint }[],
 }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: h.user } }) } }) }));
 vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => h.session } } } }));
 vi.mock('livekit-server-sdk', () => ({
   AccessToken: class { constructor(public key: string, public secret: string, public opts: unknown) {} addGrant(g: unknown) { h.grants.push(g); } async toJwt() { return 'jwt-for-test'; } },
   AgentDispatchClient: class { constructor(public url: string) { (h as Record<string, unknown>).dispatchUrl = url; } listDispatch = h.listDispatch; createDispatch = h.createDispatch; },
+  RoomServiceClient: class { constructor(public url: string) { (h as Record<string, unknown>).roomsUrl = url; } listRooms = async () => h.rooms; },
 }));
 
 const { POST } = await import('@/app/api/voice/[sessionId]/token/route');
@@ -25,6 +27,8 @@ beforeEach(() => {
   h.listDispatch.mockReset().mockResolvedValue([]);
   h.createDispatch.mockClear();
   h.grants.length = 0;
+  h.rooms = [];
+  delete process.env.VOICE_MAX_CONCURRENT;
   process.env.LIVEKIT_URL = 'wss://example.livekit.cloud';
   process.env.LIVEKIT_API_KEY = 'key';
   process.env.LIVEKIT_API_SECRET = 'secret';
@@ -64,5 +68,33 @@ describe('voice token route', () => {
     const body = JSON.stringify(await (await call()).json());
     expect(body).not.toContain('secret');
     expect(body).not.toContain('"key"');
+  });
+
+  describe('the concurrency cap (VOICE_MAX_CONCURRENT, voice deploy)', () => {
+    const now = () => BigInt(Math.floor(Date.now() / 1000));
+    it('refuses a new session while another voice room is live (default 1), before any dispatch', async () => {
+      h.rooms = [{ name: 'case-other', numParticipants: 2, creationTime: now() - BigInt(600) }];
+      const res = await call();
+      expect(res.status).toBe(429);
+      expect(await res.json()).toEqual({ error: 'busy' });
+      expect(h.createDispatch).not.toHaveBeenCalled();
+      expect(h.grants).toEqual([]);
+      expect((h as Record<string, unknown>).roomsUrl).toBe('https://example.livekit.cloud');
+    });
+    it('lets the session back into its own room (a reload), and counts only live voice rooms', async () => {
+      h.rooms = [
+        { name: 'case-s1', numParticipants: 1, creationTime: now() - BigInt(60) },
+        { name: 'case-closing', numParticipants: 0, creationTime: now() - BigInt(600) },
+        { name: 'playground', numParticipants: 3, creationTime: now() - BigInt(60) },
+      ];
+      expect((await call()).status).toBe(200);
+    });
+    it('takes a higher cap', async () => {
+      process.env.VOICE_MAX_CONCURRENT = '2';
+      h.rooms = [{ name: 'case-other', numParticipants: 2, creationTime: now() - BigInt(600) }];
+      expect((await call()).status).toBe(200);
+      h.rooms.push({ name: 'case-third', numParticipants: 0, creationTime: now() - BigInt(2) });
+      expect((await call()).status).toBe(429);
+    });
   });
 });

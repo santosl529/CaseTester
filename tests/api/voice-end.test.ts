@@ -55,4 +55,14 @@ describe('voice end route', () => {
     expect(await (await call()).json()).toEqual({ status: 'completed', report: true, partial: false });
     expect(h.updates).toEqual([]);
   });
+
+  it('the TTS cap ends the session the same way, under its own reason and event (voice deploy)', async () => {
+    const { endByCandidate } = await import('@/lib/orchestrator/session-end');
+    h.session = { ...h.session, flagsJsonb: { pressureTest: { state: 'satisfied', structureGiven: true } } };
+    expect(await endByCandidate('s1', 'u1', 'voice_tts_cap')).toEqual({ status: 'completed', report: true, partial: true });
+    expect(h.updates[0]).toMatchObject({ status: 'completed', flagsJsonb: { endReason: 'voice_tts_cap', partial: true } });
+    expect(h.rows[0]).toMatchObject({ category: 'intervention', subtype: 'voice_tts_cap', payloadJsonb: { via: 'voice_tts_cap', report: true } });
+    expect(h.events[0]).toMatchObject(['case_complete', { reason: 'voice_tts_cap' }, { sessionId: 's1' }]);
+  });
 });
+

@@ -5,7 +5,6 @@
 // leaves, the time limit hits, or a budget refuses. Haiku 5.5 interviews here
 // (INTERVIEWER_PROVIDER, set by `npm run voice:agent`); background checks are
 // the production mix.
-import { appendFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { defineAgent, type JobContext } from '@livekit/agents';
 import {
@@ -18,7 +17,6 @@ import { sessions, sessionTurns } from '@/db/schema';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import { getCaseById } from '@/lib/cases/loader';
-import { requireRunBudget } from '@/lib/llm-budget';
 import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
@@ -29,10 +27,15 @@ import { FILLER_DELAY_MS, fillerRateFrom, FILLER_GAP_MS, FILLER_TAIL_MS } from '
 import { loadAcks } from './ack-audio';
 import { Playout } from './playout';
 import { SpeechEndTracker } from './pcm';
-import { TtsCharBudget, RunCharCap, monthlyLedgerFile, ttsRunCap } from './tts-budget';
-import { VoiceTurnController } from './turn-controller';
+import { RunCharCap, ttsRunCap, TURN_TTS_RESERVE } from './tts-budget';
+import { installSessionBudget } from './session-budget';
+import { openTtsLedger } from './tts-ledger-store';
+import { TTS_CAP_CLOSING, VoiceTurnController } from './turn-controller';
+import { endByCandidate } from '@/lib/orchestrator/session-end';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
 import { summarize, type TurnRecord } from './records';
+import { SessionLines } from './session-lines';
+import { dbLineWriter } from './session-lines-db';
 import { LiveKitSink } from './livekit-media';
 import { SessionRecorder } from './recorder';
 import { findCandidateTrack, pickCandidateTrack, realClock } from './room-rules';
@@ -51,8 +54,9 @@ export default defineAgent({
       ctx.shutdown('no active session');
       return;
     }
-    // Budgets first: nothing paid starts without them (spec §9).
-    requireRunBudget('voice-agent');
+    // Budgets first: nothing paid starts without them (spec §9). The LLM cap is
+    // this session's (LLM_BUDGET_USD, default $1.00; session-budget.ts).
+    installSessionBudget();
     const runCap = ttsRunCap(process.env);
     const fake = runCap === null;
     const caseData = getCaseById(session.caseId);
@@ -115,18 +119,26 @@ export default defineAgent({
     const voice = fake ? 'tone' : await defaultVoiceId();
     const tts: TTSProvider = fake ? new FakeTTS() : new CartesiaTTS(voice);
     if (tts instanceof CartesiaTTS) await tts.connect();
-    const ledger = new TtsCharBudget(monthlyLedgerFile(), num('VOICE_TTS_CHAR_CAP', 90_000));
+    const ledger = await openTtsLedger();   // the month's row in voice_tts_usage, shared by every job
     const run = runCap === null ? null : new RunCharCap(runCap);
-    const ttsAllow = (n: number) => fake || (run!.take(n) && ledger.take(n));
-    const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS) });
+    // The session's cap keeps the closing line's characters back: when it runs
+    // out the interviewer says so (TTS_CAP_CLOSING) instead of going silent.
+    const closingReserve = TTS_CAP_CLOSING.length;
+    const ttsAllow = (n: number) => fake || (run!.left - n >= closingReserve && run!.take(n) && ledger.take(n));
+    const ttsAllowClosing = (n: number) => fake || (run!.take(n) && ledger.take(n));
+    // Shipped clips first; the hosted worker synthesizes none (VOICE_ACK_SYNTH=0).
+    const missingClips: string[] = [];
+    const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS),
+      synthesize: process.env.VOICE_ACK_SYNTH !== '0', onMissing: t => missingClips.push(t) });
+    if (missingClips.length) console.warn(`[voice-agent] ${missingClips.length} acknowledgment clip(s) not shipped for ${tts.name} ${voice}, left out: ${missingClips.join(' | ')} — render with scripts/voice-render-acks.ts`);
 
-    // Timing records (spec §7).
-    const recFile = path.join('Case Interview Runs/voice-live', new Date().toISOString().slice(0, 10), `${session.id}.jsonl`);
-    mkdirSync(path.dirname(recFile), { recursive: true });
+    // Timing records (spec §7): voice_session_lines, and the local jsonl when
+    // VOICE_RECORDS_DIR is set (scripts/voice-export.ts rebuilds it from the rows).
+    const lines = new SessionLines(dbLineWriter(session.id), { sessionId: session.id, dir: process.env.VOICE_RECORDS_DIR || null });
     const records: TurnRecord[] = [];
     const record = (r: TurnRecord) => {
       records.push(r);
-      appendFileSync(recFile, JSON.stringify(r) + '\n');
+      lines.add(r);
       console.log(`[voice] t${r.turnSeq} firstSound=${r.firstSoundMs}ms firstUseful=${r.firstUsefulMs}ms endpoint=${r.endpointMs}ms queue=${r.queueWaitMs}ms waits=${JSON.stringify(r.waits)}${r.interrupted ? ' CUT' : ''}${r.cancelled ? ' CANCELLED' : ''}`);
     };
 
@@ -146,7 +158,9 @@ export default defineAgent({
       ackPcm: ack => acks.get(ack) ?? null,
       exhibitById: id => exhibits.get(id) ?? null,
       send, record, speechEndAt: () => vad.lastVoicedAt,
-      ttsAllow, canStartTurn: () => fake || ledger.canStartTurn(),
+      ttsAllow, ttsAllowClosing, canStartTurn: () => fake || (ledger.canStartTurn() && run!.left >= TURN_TTS_RESERVE + closingReserve),
+      // Ended for the cap as the End button ends it: completed with a report when assessable.
+      endEarly: async () => ({ scoringSuppressed: !(await endByCandidate(session.id, session.userId, 'voice_tts_cap')).report }),
       bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS), fillerRate,
       trace: rec ? (type, data) => rec.event(type, data) : undefined,
     });
@@ -168,7 +182,7 @@ export default defineAgent({
       else if (m.type === 'timing') {
         const r = records.find(x => x.turnSeq === m.turnSeq);
         if (r) r.clientFirstSoundMs = m.clientFirstSoundMs;
-        appendFileSync(recFile, JSON.stringify({ turnSeq: m.turnSeq, clientFirstSoundMs: m.clientFirstSoundMs }) + '\n');
+        lines.add({ turnSeq: m.turnSeq, clientFirstSoundMs: m.clientFirstSoundMs });
       }
     });
 
@@ -183,8 +197,12 @@ export default defineAgent({
       await controller.idle().catch(() => {});
       await Promise.allSettled(background);
       if (tts instanceof CartesiaTTS) tts.close();
-      const summary = { why, ...summarize(records), ttsCharsThisRun: run?.used ?? 0, ttsCharsThisMonth: ledger.used };
-      appendFileSync(recFile, JSON.stringify({ summary }) + '\n');
+      await ledger.flush();
+      await lines.flush();
+      const summary = { why, ...summarize(records), ttsCharsThisRun: run?.used ?? 0, ttsCharsThisMonth: ledger.used, ...(ledger.writeErrors ? { ttsLedgerWriteErrors: ledger.writeErrors } : {}),
+        ...(lines.writeErrors ? { recordWriteErrors: lines.writeErrors } : {}) };
+      lines.add({ summary });
+      await lines.flush();
       if (rec) {
         const dir = path.join('.voice-cache/recordings', `${session.id}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`);
         rec.flush(dir);
