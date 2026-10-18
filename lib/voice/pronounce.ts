@@ -1,15 +1,17 @@
 // How the voice says a term (Lorenzo's brief, 17 Oct): "COGS" as "cogs", not
-// spelled out; "MECE" as "mee-see". In the TTS text only, like the "So,"
+// spelled out; "MECE" as "mee cee" — two words (Lorenzo, 17 Oct: "mee-see" came
+// out as one syllable, "meece"). In the TTS text only, like the "So,"
 // connector (connector.ts): the saved text, captions, transcripts and heard
 // checks keep the line as written. The TTS's word timestamps come back for the
 // spoken words; they are folded back onto the written tokens (WordFolder), so
 // the heard cursor (heardChars) still counts characters of the written line.
 import type { Word } from './types';
 
-// Whole written tokens only, case-sensitive: "COGS" and "COGS'", not "cogs".
+// Whole written tokens only: "COGS" and "COGS'" case-sensitive (not "cogs");
+// MECE in any case — it is no other word.
 export const PRONUNCIATIONS: readonly { term: RegExp; say: string }[] = [
   { term: /\bCOGS\b/g, say: 'cogs' },
-  { term: /\bMECE\b/g, say: 'mee-see' },
+  { term: /\bMECE\b/gi, say: 'mee cee' },
 ];
 
 export type SpeechText = {
