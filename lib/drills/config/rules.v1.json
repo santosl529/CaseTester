@@ -95,6 +95,13 @@
   "serving": {
     "authored_repeat_days": 60
   },
+  "grading_limits": {
+    "ai_answers_per_day": 40,
+    "ai_answers_per_month": 400,
+    "requests_per_call": 3,
+    "daily_spend_limit_usd": 5,
+    "spend_day_time_zone": "America/New_York"
+  },
   "item_health": {
     "min_attempts": 50,
     "pull_below_correct_rate": 0.15,

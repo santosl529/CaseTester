@@ -20,6 +20,7 @@ function print(r: Reports) {
   console.log(r.cost_alert.alert
     ? `\n!! COST ALERT: ${usd(r.cost_alert.per_student_month)} per active student per month (last 7 days), budget ${usd(r.cost_alert.budget)}`
     : `\nCost (last 7 days): ${usd(r.cost_alert.per_student_month)} per active student per month, budget ${usd(r.cost_alert.budget)}`);
+  console.log(`Today (US Eastern): ${usd(r.spend_today.cost_usd)} of the ${usd(r.spend_today.limit_usd)} daily limit${r.spend_today.paused ? ` — new written sets PAUSED (${r.spend_today.paused})` : ''}`);
 
   h('Loop funnel', r.loop_funnel.how);
   console.log(`cases taken: ${r.loop_funnel.cases_taken}`);
@@ -67,7 +68,7 @@ function print(r: Reports) {
 
   h('Grading quality and cost', r.grading_cost.how);
   const g = r.grading_cost;
-  console.log(`  ${g.jobs} jobs, ${pct(g.failure_rate)} failed, ${pct(g.retry_rate)} retried; ${usd(g.cost_usd)} for ${g.graded_answers} graded answers  (${g.cost_per_graded_answer === null ? '–' : `$${g.cost_per_graded_answer.toFixed(4)}`} each, ${usd(g.cost_per_workout)} per workout); ${usd(g.cost_per_active_student_month)} per active student per month`);
+  console.log(`  ${g.jobs} jobs, ${pct(g.failure_rate)} failed, ${pct(g.retry_rate)} retried; ${g.requests} requests (${g.failed_requests} failed); ${g.ungraded_answers} answers not graded; ${usd(g.cost_usd)} for ${g.graded_answers} graded answers  (${g.cost_per_graded_answer === null ? '–' : `$${g.cost_per_graded_answer.toFixed(4)}`} each, ${usd(g.cost_per_workout)} per workout); ${usd(g.cost_per_active_student_month)} per active student per month`);
 
   h('Event health', r.event_health.how);
   console.log(`  ${Object.values(r.event_health.seen).reduce((a, b) => a + b, 0)} rows, ${r.event_health.incomplete_count} missing a key property`);

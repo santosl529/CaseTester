@@ -90,6 +90,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
         {r.cost_alert.alert ? 'Cost alert: ' : 'Grading cost, last 7 days: '}
         {usd(r.cost_alert.per_student_month)} per active student per month, against a {usd(r.cost_alert.budget)} budget.
         {r.cost_alert.alert && ' That is more than 25% over budget.'}
+        {' '}Today: {usd(r.spend_today.cost_usd)} of the {usd(r.spend_today.limit_usd)} daily limit (US Eastern day).
+        {r.spend_today.paused === 'spend' && ' New written sets are paused for the rest of the day.'}
+        {r.spend_today.paused === 'billing' && ' A spend-limit or billing error came back today: grading is stopped and new written sets are paused for the rest of the day.'}
       </p>
 
       <Section id="flagged" title={`Items to review (${flagged.length} flagged, ${fb.reported.length} reported)`} how={r.item_health.how}>
@@ -202,8 +205,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       </Section>
 
       <Section id="grading" title="Grading quality and cost" how={r.grading_cost.how}>
-        <Table caption="Grading quality and cost" head={['Jobs', 'Failed', 'Retried', 'Cost', 'Graded answers', 'Per answer', 'Per workout', 'Per active student per month']}
-          rows={[[r.grading_cost.jobs, pct(r.grading_cost.failure_rate), pct(r.grading_cost.retry_rate), usd(r.grading_cost.cost_usd), r.grading_cost.graded_answers,
+        <Table caption="Grading quality and cost" head={['Jobs', 'Failed', 'Retried', 'Requests (failed)', 'Cost', 'Graded answers', 'Not graded', 'Per answer', 'Per workout', 'Per active student per month']}
+          rows={[[r.grading_cost.jobs, pct(r.grading_cost.failure_rate), pct(r.grading_cost.retry_rate), `${r.grading_cost.requests} (${r.grading_cost.failed_requests})`, usd(r.grading_cost.cost_usd), r.grading_cost.graded_answers, r.grading_cost.ungraded_answers,
             r.grading_cost.cost_per_graded_answer === null ? '–' : `$${r.grading_cost.cost_per_graded_answer.toFixed(4)}`, usd(r.grading_cost.cost_per_workout), usd(r.grading_cost.cost_per_active_student_month)]]} />
       </Section>
 

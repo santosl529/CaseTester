@@ -9,7 +9,7 @@ import 'server-only';
 import { randomUUID } from 'crypto';
 import { and, asc, desc, eq, inArray, isNull, lt, max, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { drillAttempts, drillItems, drillSets, drillTiers, prescriptions, skillStateEvents, skillStates, studentDrillSettings, workouts } from '@/db/schema';
+import { drillAttempts, drillItems, drillSets, drillTiers, prescriptions, skillStateEvents, skillStates, studentDrillSettings, studentProfiles, workouts } from '@/db/schema';
 import { DRILLS_CONFIG, TAXONOMY_VERSION, getDrill, getSkill, type Drill } from '../config';
 import { ItemSchema, type Item, type Tier } from '../item-schema';
 import { toPublicItem, type PublicItem } from '../public-item';
@@ -20,9 +20,11 @@ import { mistakeSummary, nextTier, passed, setScore } from './summary';
 import { drillLimitsMs, itemLimitsMs, startsStage, stepLimitMs, stepStartedAt } from './timing';
 import { formatNumericAnswer, itemFeedback, stepFeedback, type ItemFeedback, type StepFeedback } from './feedback';
 import {
-  aiAnswersToday, enqueueGrading, finalizeSet, kickGrading, planOf, resolveItem, resultOf, runAfterResponse,
+  enqueueGrading, finalizeSet, kickGrading, planOf, resolveItem, resultOf, runAfterResponse,
 } from '../grading/jobs';
 import type { CheckResults } from '../grading/apply';
+import { breakerMessage, capBlock } from '../grading/limits';
+import { aiAnswersUsed, gradingBreaker } from '../grading/spend';
 import { logDrillEvent } from '../events';
 import { isLive, previewDrafts } from '../live';
 import { lowerName, newProgress, nextSetFor, stageOfDrill, type SetKind } from '../progress/engine';
@@ -49,8 +51,6 @@ interface PendingStep { steps: StepResult[]; keys: string[]; stage_started_at?: 
 
 const rules = DRILLS_CONFIG.rules;
 const isAiGraded = (drill: Drill) => drill.scoring !== 'auto';
-// PRD "Cost controls": a per-student limit of AI-graded answers per day.
-const AI_ANSWERS_PER_DAY = 150;
 
 export { previewDrafts };
 
@@ -233,6 +233,21 @@ export function drillForSkill(skillId: string, level?: 1 | 2): Drill | null {
   return l2 ?? l1;
 }
 
+// PRD "Cost controls": a set with AI-graded answers starts only under the
+// student's daily and monthly caps (rules.grading_limits, in their time zone)
+// and while the spend circuit breaker is closed. The messages say that
+// auto-checked drills stay open and when written drills reopen.
+async function checkGradingLimits(studentId: string, needed: number, now = new Date()) {
+  if (needed === 0) return;
+  const [p] = await db.select({ timezone: studentProfiles.timezone }).from(studentProfiles).where(eq(studentProfiles.userId, studentId));
+  const tz = p?.timezone ?? null;
+  const breaker = await gradingBreaker(now);
+  if (breaker.open) throw new DrillError('grading_paused', 429, breakerMessage(breaker, now, tz), { reopens_at: breaker.reopens_at.toISOString() });
+  const aiDrills = DRILLS_CONFIG.drills.drills.filter(isAiGraded).map(d => d.id);
+  const block = capBlock(await aiAnswersUsed(studentId, aiDrills, tz, now), needed, tz, now);
+  if (block) throw new DrillError(block.code, 429, block.message, { reopens_at: block.reopens_at });
+}
+
 export async function startSet(studentId: string, input: z.infer<typeof StartSetSchema>): Promise<{ set_id: string }> {
   const choice = await chooseSet(studentId, input);
   const { drill, tier, kind } = choice;
@@ -255,12 +270,7 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
     plan = await planAuthoredSet(studentId, setId, drill, size, tier, fresh && choice.focusSkill ? { mode: fresh, skill: choice.focusSkill } : null, defend);
     if (plan.length === 0) throw new DrillError('no_items', 404, 'No items are live for this drill yet');
   }
-  if (isAiGraded(drill)) {
-    const aiDrills = DRILLS_CONFIG.drills.drills.filter(isAiGraded).map(d => d.id);
-    if (await aiAnswersToday(studentId, aiDrills) + aiAnswersInPlan(plan) > AI_ANSWERS_PER_DAY) {
-      throw new DrillError('daily_limit', 429, `This set would go over today's limit of ${AI_ANSWERS_PER_DAY} written answers. Auto-checked drills are unlimited.`);
-    }
-  }
+  if (isAiGraded(drill)) await checkGradingLimits(studentId, aiAnswersInPlan(plan));
   const stage = choice.focusSkill ? stageOfDrill(drill.id, choice.focusSkill) : drill.stage;
 
   try {
@@ -719,12 +729,14 @@ export async function setResults(studentId: string, setId: string) {
   const attempts = await db.select().from(drillAttempts).where(eq(drillAttempts.setId, set.id)).orderBy(asc(drillAttempts.position));
   const items = await Promise.all(planOf(set).map(ref => resolveItem(ref, set.tier as Tier)));
   const results = attempts.map(resultOf);
-  const score = set.setScore ?? setScore(results);
+  // Answers left ungraded ("Grading delayed") count toward nothing.
+  const counted = results.filter(r => !r.ungraded);
+  const score = set.setScore ?? (counted.length ? setScore(counted) : null);
   return {
     skill_changes: await skillChanges(studentId, set.id),
     from_workout: set.workoutId !== null,
     // A set below 50% offers the skill's lesson (PRD "Lessons").
-    lesson_skill: await lowScoreLesson(set, set.setScore ?? setScore(results)),
+    lesson_skill: score === null ? null : await lowScoreLesson(set, score),
     // "Defending your answer" after the student's first follow-up reply.
     defend_lesson: attempts.some(a => answeredFollowUp(a.defendResponse)) ? await defendLessonFor(studentId) : null,
     set_id: set.id,
@@ -732,13 +744,15 @@ export async function setResults(studentId: string, setId: string) {
     drill: { id: drill.id, name: drill.name, level: drill.level },
     ai_graded: isAiGraded(drill),
     focus_skill: set.focusSkill,
-    score, passed: set.passed ?? passed(drill, score), pass_bar: drill.pass_bar,
+    // Null when no answer could be graded.
+    score, passed: score === null ? null : set.passed ?? passed(drill, score), pass_bar: drill.pass_bar,
+    ungraded: results.filter(r => r.ungraded).length,
     // Untimed: the real time taken, against the timed target, to work on pace.
     untimed: set.untimed,
     time_ms: attempts.reduce((s, a) => s + (set.untimed ? a.timeMs : Math.min(a.timeMs, a.timeLimitMs)), 0),
     target_ms: attempts.reduce((s, a) => s + a.timeLimitMs, 0),
-    mistakes: mistakeSummary(results),
-    tier: { before: set.tier, after: nextTier(set.tier as Tier, score) },
+    mistakes: mistakeSummary(counted),
+    tier: { before: set.tier, after: score === null ? set.tier : nextTier(set.tier as Tier, score) },
     skill_scores: (set.skillScores as Record<string, { score: number; count: number }> | null) ?? {},
     items: attempts.map((a, i) => {
       const item = items[a.position];

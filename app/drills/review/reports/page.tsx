@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation';
 import { studentOrRedirect } from '@/lib/drills/session';
 import { reportsPageEnabled } from '@/lib/drills/review';
 import { reportQueue } from '@/lib/drills/feedback';
-import { planOf, resolveItem } from '@/lib/drills/grading/jobs';
+import { planOf, resolveItem, ungradedAnswers } from '@/lib/drills/grading/jobs';
 import { answerText, type StepResponse } from '@/lib/drills/sets/scoring';
 import type { CheckResults } from '@/lib/drills/grading/apply';
 import type { Item, Tier } from '@/lib/drills/item-schema';
@@ -13,6 +13,11 @@ import { ReportReview } from '@/components/drills/report-review';
 // report with the item, the student's answer and the grade. Disputed AI
 // grades are labeled check by check here; `npm run drills:export-disputes`
 // then writes the labeled ones to /drill-golden.
+// Why an answer wasn't graded (drill_attempts.grading_issue).
+const ISSUE: Record<string, string> = {
+  refused: 'The grader declined it (review)', request_cap: 'Reached the request cap', billing: 'Spend-limit or billing error',
+  over_word_limit: 'Over the word limits', error: 'Request error', failed_runs: 'Grading runs kept failing',
+};
 const REASON = { answer_key_wrong: 'Answer key is wrong', question_confusing: 'Question is confusing', grade_unfair: 'My grade seems unfair', other: 'Other' } as const;
 
 function choiceText(item: Item, r: StepResponse) {
@@ -25,6 +30,12 @@ export default async function ReportQueuePage() {
   if (!reportsPageEnabled()) notFound();
   await studentOrRedirect();
   const rows = await reportQueue();
+  const ungraded = await Promise.all((await ungradedAnswers()).map(async ({ attempt, drillId, tier, plan }) => {
+    const ref = (plan as ReturnType<typeof planOf>)[attempt.position];
+    const item = ref ? await resolveItem(ref, tier as Tier).catch(() => null) : null;
+    return { attempt, drillId, item, steps: ((attempt.response as { steps?: StepResponse[] } | null)?.steps ?? []) };
+  }));
+  const refused = ungraded.filter(u => u.attempt.gradingIssue === 'refused').length;
   const open = rows.filter(r => r.report.status === 'open').length;
   const reports = await Promise.all(rows.map(async ({ report, attempt, drillId, tier, plan }) => {
     const ref = (plan as ReturnType<typeof planOf>)[report.position];
@@ -69,6 +80,24 @@ export default async function ReportQueuePage() {
           </li>
         ))}
       </ol>
+
+      <section aria-labelledby="ungraded" className="space-y-3">
+        <h2 id="ungraded" className="text-base font-semibold">Answers not graded ({ungraded.length}, {refused} refused)</h2>
+        <p className="text-sm text-muted-foreground">Answers grading gave up on: the student saw &ldquo;Grading delayed&rdquo; and the answer counts toward nothing. Refused ones come first, for your review.</p>
+        {ungraded.length === 0 && <p className="text-sm">None.</p>}
+        <ol className="space-y-4">
+          {ungraded.map(({ attempt, drillId, item, steps }) => (
+            <li key={attempt.id} className="space-y-2 rounded-lg border p-4 text-sm">
+              <div className="flex flex-wrap items-baseline justify-between gap-2">
+                <span className={attempt.gradingIssue === 'refused' ? 'font-medium text-destructive' : 'font-medium'}>{ISSUE[attempt.gradingIssue ?? ''] ?? attempt.gradingIssue ?? 'Not graded'}</span>
+                <span className="text-muted-foreground">{drillId} · {attempt.itemId ? `${attempt.itemId}@${attempt.itemVersion}` : attempt.templateId} · item {attempt.position + 1} · {attempt.submittedAt.toISOString().slice(0, 10)} · attempt {attempt.id.slice(0, 8)}</span>
+              </div>
+              {item && <p className="whitespace-pre-line">{item.prompt}</p>}
+              {steps.map((s, i) => <p key={i} className="whitespace-pre-line text-muted-foreground">{steps.length > 1 ? `Step ${i + 1}: ` : ''}{item ? choiceText(item, s) : answerText(s)}</p>)}
+            </li>
+          ))}
+        </ol>
+      </section>
     </main>
   );
 }

@@ -49,6 +49,9 @@ export interface ItemResult {
   timed_out: boolean;
   // True until AI grading finishes; score is 0 until then.
   pending?: boolean;
+  // AI grading gave up on it ("Grading delayed"; cost controls): it counts
+  // toward no set score, skill or tier, either way.
+  ungraded?: boolean;
   // AI-graded items: how each check counts toward each skill.
   contributions?: { skills: string[]; score: number; weight: number }[];
 }
@@ -91,6 +94,24 @@ function validateWritten(item: Item, step: ItemStep, response: StepResponse) {
     return;
   }
   throw new ScoringError('unsupported_input', `This step takes a written answer`);
+}
+
+// The grader's backstop (cost controls): the first written answer in
+// `steps` over its drill's limits, as validateWritten would reject it at
+// submit; null when all are within them. Checked before any grading call.
+export function writtenLimitProblem(item: Item, steps: StepResult[]): string | null {
+  const spec = itemSteps(item);
+  for (const [i, step] of steps.entries()) {
+    const r = step.response;
+    if (!spec[i] || (r.type !== 'text' && r.type !== 'buckets')) continue;
+    try {
+      validateWritten(item, spec[i], r);
+    } catch (e) {
+      if (e instanceof ScoringError) return `step ${i + 1}: ${e.message}`;
+      throw e;
+    }
+  }
+  return null;
 }
 
 function stepSkills(item: Item, i: number): string[] {

@@ -479,6 +479,20 @@ export function ItemFeedbackPanel({ feedback }: { feedback: ItemFeedback }) {
       </div>
     );
   }
+  if (feedback.ungraded) {
+    return (
+      <div role="status" className="space-y-2 rounded-lg border p-4 text-sm">
+        <p className="font-medium">Grading delayed</p>
+        <p className="text-muted-foreground">We couldn&apos;t grade this answer, so it doesn&apos;t count toward your score or progress, either way. If something looks wrong, use Report a problem.</p>
+        {feedback.model_answer && (
+          <div className="space-y-1">
+            <p className="font-medium">A strong answer</p>
+            <p className="whitespace-pre-line text-muted-foreground">{feedback.model_answer}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
   const verdict = feedback.skipped ? 'Skipped' : feedback.correct ? 'Correct' : feedback.score > 0 ? 'Partly correct' : feedback.timed_out ? 'Time ran out' : 'Not quite';
   if (feedback.grading) return <GradedPanel feedback={feedback} verdict={verdict} />;
   return (

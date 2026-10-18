@@ -185,6 +185,17 @@ export const RulesSchema = z.object({
     focus_item_share: Share,
   }),
   serving: z.object({ authored_repeat_days: z.number().int().positive() }),
+  // PRD "Cost controls": per-student caps on AI-graded answers (the day and
+  // the calendar month in the student's time zone), the most requests one
+  // grading call may make, and the daily spend that pauses new written sets
+  // (the day starting at midnight in spend_day_time_zone).
+  grading_limits: z.object({
+    ai_answers_per_day: z.number().int().positive(),
+    ai_answers_per_month: z.number().int().positive(),
+    requests_per_call: z.number().int().positive(),
+    daily_spend_limit_usd: z.number().positive(),
+    spend_day_time_zone: z.string().min(1),
+  }),
   item_health: z.object({
     min_attempts: z.number().int().positive(),
     pull_below_correct_rate: Share,

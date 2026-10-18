@@ -3,7 +3,8 @@
 // set of each D2 drill as a throwaway student, checks no key leaks before
 // submission, that written answers are graded after the set and shown with
 // evidence, that QN-5 is scored by code, and that a failed grading run leaves
-// the set "delayed" and a later run finishes it. Deletes everything it wrote.
+// the set "delayed" until the results page's poll re-runs it. Deletes
+// everything it wrote. (drills:smoke:cost covers the request caps.)
 //
 //   npm run drills:smoke:d2      (makes a few Haiku calls, about $0.02)
 import './smoke-log';
@@ -114,21 +115,22 @@ async function main() {
         check(evidenced > 0, `${drillId}: no passing check carries quoted evidence`);
       }
       const missed = fb.grading?.checks.filter(c => !c.pass).map(c => c.check_id) ?? [];
-      console.log(`${drillId}: ${Math.round(results.score * 100)}%${missed.length ? ` (missed: ${missed.join(', ')})` : ''}${fb.grading ? `, ${fb.grading.checks.filter(c => c.pass).length}/${fb.grading.checks.length} checks passed` : ''}${fb.grading?.decision ? `, decision ${fb.grading.decision.right ? 'right' : 'wrong'}` : ''}`);
+      console.log(`${drillId}: ${Math.round((results.score ?? 0) * 100)}%${missed.length ? ` (missed: ${missed.join(', ')})` : ''}${fb.grading ? `, ${fb.grading.checks.filter(c => c.pass).length}/${fb.grading.checks.length} checks passed` : ''}${fb.grading?.decision ? `, decision ${fb.grading.decision.right ? 'right' : 'wrong'}` : ''}`);
       if (drillId === 'QN-5') check(results.score === 1, `QN-5: right answer scored ${results.score}`);
     }
 
-    // A failed grading run: the set waits, "delayed"; a later run finishes it.
+    // A run that failed outright (outside the grading calls): the set waits,
+    // "delayed", and the results page's poll re-runs it (inline here).
     const { set_id } = await startSet(student, { drill_id: 'SY-2' });
     await answerSet(set_id, 'SY-2', 'retry');
     const jobId = await enqueueGrading(set_id);
-    const broken: CallModel = async () => { throw new Error('simulated outage'); };
-    check(await runGradingJob(jobId, broken) === 'failed', 'failed run not reported as failed');
+    await db.update(gradingJobs).set({ status: 'failed', retries: 1, error: 'simulated crash', startedAt: new Date(Date.now() - 60_000) }).where(eq(gradingJobs.id, jobId));
+    await db.update(drillAttempts).set({ gradingStatus: 'delayed' }).where(eq(drillAttempts.setId, set_id));
     const waiting = await setResults(student, set_id);
     check(waiting.status === 'grading' && waiting.delayed, 'set not shown as grading delayed after a failed run');
-    check(await runGradingJob(jobId) === 'succeeded', 'retry run did not succeed');
-    check((await setResults(student, set_id)).status === 'completed', 'set not completed after the retry');
-    console.log('failure path: delayed, then graded on retry');
+    check((await setResults(student, set_id)).status === 'completed', 'set not completed after the poll re-ran grading');
+    console.log('failure path: delayed, then graded when the results page polled');
+    const broken: CallModel = async () => { throw new Error('simulated outage'); };
 
     // A grading run with nothing to grade fails loudly (grading/run-checks.ts).
     const { set_id: unfinished } = await startSet(student, { drill_id: 'PS-3' });

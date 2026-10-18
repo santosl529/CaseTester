@@ -50,6 +50,8 @@ export interface ItemFeedback {
   explanation: string;
   // AI-graded items: true until the set is graded.
   pending?: boolean;
+  // AI grading gave up on it ("Grading delayed"): no score, counted nowhere.
+  ungraded?: boolean;
   // AI-graded items with no grade (skipped): the model answer to learn from.
   model_answer?: string | null;
   grading?: {
@@ -161,6 +163,12 @@ export function stepFeedback(item: Item, i: number, step: StepResult | null, pre
 export function itemFeedback(item: Item, result: ItemResult, checkResults: CheckResults | null = null): ItemFeedback {
   const spec = itemSteps(item);
   const aiGraded = getDrill(item.drill_id).scoring !== 'auto';
+  if (result.ungraded) {
+    return {
+      done: true, correct: false, score: 0, skipped: result.skipped, timed_out: result.timed_out, steps: [], mistakes: [],
+      explanation: item.explanation, model_answer: item.model_answer, ungraded: true,
+    };
+  }
   const feedback: ItemFeedback = {
     done: true, correct: !result.pending && result.score >= 1 - 1e-9, score: result.score,
     skipped: result.skipped, timed_out: result.timed_out,

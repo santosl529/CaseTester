@@ -54,7 +54,9 @@ interface PageResult {
 const results: PageResult[] = [];
 
 // Every check fails, nothing flagged: enough to render a graded results page.
+// An answer marked REFUSE-ME is refused, so it shows "Grading delayed".
 const stubGrader: CallModel = async (_system, user) => {
+  if (user.includes('REFUSE-ME')) return { output: null, refused: true, usage: { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
   const key = /<item key="([^"]+)"/.exec(user)?.[1] ?? 'a1';
   const checks = [...user.matchAll(/check_id "([^"]+)"/g)].map(m => ({ check_id: m[1], pass: false, evidence: '' }));
   const red_flags = [...user.matchAll(/- id "([^"]+)"/g)].map(m => ({ id: m[1], present: false, evidence: '' }));
@@ -283,10 +285,10 @@ async function main() {
       const { set_id } = await startSet(student, { drill_id: 'CL-3' });
       for (let p = 0; ; p++) {
         try { await fetchItem(student, set_id, p); } catch { break; }
-        await submitAttempt(student, set_id, { position: p, idempotency_key: `a11y-cl3r-${p}`, step: 0, skip: false, timed_out: false, response: { type: 'text', value: 'I would look at revenue and costs, starting with costs.' } });
+        await submitAttempt(student, set_id, { position: p, idempotency_key: `a11y-cl3r-${p}`, step: 0, skip: false, timed_out: false, response: { type: 'text', value: `I would look at revenue and costs, starting with costs.${p === 1 ? ' REFUSE-ME' : ''}` } });
       }
       await runGradingJob(await enqueueGrading(set_id), stubGrader);
-      await scan(page, 'Results: CL-3 (graded)', `/drills/sets/${set_id}/results`);
+      await scan(page, 'Results: CL-3 (graded, item 2 Grading delayed)', `/drills/sets/${set_id}/results`);
       await reportProblem(student, set_id, { position: 0, reason: 'grade_unfair', comment: 'I asked for costs by month.', screen: 'results' });
       await scan(page, 'Review queue (local dev)', '/drills/review/reports');
       await scan(page, 'Pilot reports with feedback (the audit club)', '/drills/reports?org=a11y-test');

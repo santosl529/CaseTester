@@ -1,6 +1,6 @@
 # Drills branch progress
 
-## Start here (updated 2026-10-17)
+## Start here (updated 2026-10-18)
 
 **Status.** Phases D0–D5 are done and pushed to `drills`. D6 (pilot launch) is in progress (Matt lifted the hold 2026-10-17): events, the accessibility audit, the reports page and "No time limit" are built, committed and pushed; what's left is the manual accessibility check and the pilot itself (see the two D6 entries below).
 - **Drills:** all 15 MVP drills are live, plus D5's Repair drills (PS-4, HY-3, SY-3; 110 items), and the follow-up is on for PS-3, HY-2, SY-2 and CL-3 (`defend.live` true, pinned by a config test).
@@ -10,13 +10,24 @@
   - "Defending your answer" shows on the results of a student's first follow-up reply.
   - PRD updated to match.
 - **Grader:** `drills-grader-v34`. Haiku 4.5 grades every check except the HY-2 follow-up's, which Sonnet 5.5 grades. Every check in all 11 gates is ≥90%.
-- **Database:** the shared CaseTester Supabase project, in sync with `/drill-items` and `/lessons`.
+- **Database:** the shared CaseTester Supabase project, in sync with `/drill-items` and `/lessons`. Migrations through 0022 are applied (0021 is voice's, taken from `main`'s `db/` only).
+- **Cost safeguards:** built, committed and pushed 2026-10-18 (see the last entry). Grading still uses `ANTHROPIC_API_KEY` (Matt dropped the separate drills key, 2026-10-18).
 
 **Next steps** (in this order):
-1. **D6, before the pilot:** a person runs the manual accessibility checklist (`docs/drills-a11y-audit.md`); the landing page's placeholder-only labels are fixed on `main`; the club code is in `CLUB_CODES` on Vercel; `CRON_SECRET` and a Vercel Cron for `/api/internal/drills/grading`. Then the pilot itself (gate: students finish Week 0 and Week 1 and complete the full loop).
-2. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0020. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
-3. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
-4. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
+1. **Cost safeguards:** done and pushed. Not built: an email to Matt when the breaker trips (wasn't in the agreed plan; needs an email provider).
+2. **D6, before the pilot:** a person runs the manual accessibility checklist (`docs/drills-a11y-audit.md`); the landing page's placeholder-only labels are fixed on `main`; the club code is in `CLUB_CODES` on Vercel; `CRON_SECRET` and a Vercel Cron for `/api/internal/drills/grading`. Then the pilot itself (gate: students finish Week 0 and Week 1 and complete the full loop).
+3. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0020 and 0022; 0021 is voice's (see Database notes), so the next drills one is 0023. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
+   - [ ] **Resolve the 8 merge conflicts with `main`.** Owner: Matt, agreeing the plan with Lorenzo; Claude resolves once it's agreed. Status: not started, waiting on that agreement (added 2026-10-18; don't resolve before). Trial merge of `main` into `drills` (2026-10-18), and whose changes to keep:
+     - `CLAUDE.md`: both. Keep every line of both: drills' PRD path line, the drills-PRD line and its progress.md rules, and main's PRD path (`docs/…`), `.superpowers/sdd/progress.md` rules and "update the PRD sections" rule; say which progress file applies to which workstream.
+     - `lib/models.ts`: both. Drills' grader section (allowlist, `assertDrillGraderModel`, `isProductionDeploy`) and main's Cerebras, background-classifier and math-checker sections.
+     - `package.json`: both. Drills' `db:seed-*` and `drills:*` scripts and main's `voice:agent*` scripts; dependencies from both (main's voice packages and `tsx`, drills' `server-only` and `playwright`).
+     - `package-lock.json`: neither by hand. Regenerate with `npm install` after `package.json` is merged.
+     - `.env.example`: both. Main's voice variables and empty `CLUB_CODES`; drills' `CRON_SECRET` and `DRILL_GRADER_MODEL` lines.
+     - `.gitignore`: both. Drills' review page, screenshots and `logs/`; main's worktrees, `.voice-cache/`, voice demo audio and `*.turns.jsonl.gz`.
+     - `db/schema.ts`: drills. Main's side is empty in both hunks; drills adds `grading_issue` and the two cost tables next to main's voice tables (already identical on both).
+     - `db/migrations/meta/_journal.json`: drills. Main ends at 0021; drills has the same 0021 entry plus 0022.
+4. **Watch:** SY-2's reasons check is at 91% (3 misses in 34), and CL-3 specific requests is at 90% (28/31); flag either if it drops below 90% once real student answers arrive.
+5. **Later (P1):** EX-5, PS-2 Clarifying questions, CL-2 Hold or fold, and the BJ, CR and CM drills; each skill's lesson ships with its drill. PS-2 would give Clarifying questions its lesson, the only intro skill without one.
 
 **Standing rules:** all schema changes stay additive (new tables, enum values, columns). Lessons and their examples must not reuse a drill item's scenario with the same question (`lessonScenarioOverlaps`); the same client alone is fine.
 
@@ -59,6 +70,12 @@
 **How Matt likes to work:** plain, short explanations; reviews content as CSVs in Numbers (`docs/drills-content/`) and sends decisions by item ID; wants judgment calls flagged, not made silently; commit and push to `drills` only when asked.
 
 ## Database notes
+
+**2026-10-18 — migration 0021 belongs to voice (Matt)**
+
+- Matt is adding `0021_voice_deploy` (two voice tables) on top of drills' 0020 and applying it to the shared DB on 2026-10-18.
+- **Before the next `npm run db:generate` on `drills`, pull `voice-deploy` (or `main` once it's merged)** so the next drills migration comes out as 0022 and is dated after 0021. Drizzle silently skips a migration dated earlier than the last one applied, so a drills migration generated without 0021 in the journal would never run.
+- Done 2026-10-18: `voice-deploy` only exists merged into `main`, and a full merge of `main` conflicts in eight files (CLAUDE.md included), so `drills` took `main`'s `db/` changes only (0021's SQL, snapshot, journal entry and the two voice tables in `schema.ts`, byte for byte), the mirror of what Lorenzo did in 49ea977. Then `0022_drills_cost_safeguards` (additive: two tables, one column), applied to the shared DB.
 
 **2026-10-07 — migrations on the shared CaseTester Supabase project (Matt's decision)**
 
@@ -673,3 +690,22 @@ Matt lifted the D6 hold ("build D6"). Answers: reports location "not sure yet"; 
 - Built (#9): **extra workout**: once today's workout is done, the plan home shows "Want more today?", sets from `extraWorkout()` (lib/drills/program/store.ts), built by the workout rules but not saved (workouts are one row per day), started as Pick-exactly sets (`browse`), so they count toward skills, not weekly targets. **Diagnostic re-offer**: `diagnosticReoffer()`: for 7 days after a switch from Practice on my own to a plan, if no diagnostic was completed in the last 30 days, the home shows "Update your starting point?" linking to `/drills/diagnostic?retake=1`, which starts a new diagnostic. PRD updated (Practice on my own, What the home serves). Plan smoke covers both; audit 47 pages, all pass.
 - Checks: typecheck, 1608 tests, lint, all ten smokes and the build pass. The tracks smoke once hung for 15 minutes on a database read and failed; rerun alone it passed in 26 s (another pooler stall, not the code).
 
+
+## Cost safeguards: current behavior checked, proposal sent to Matt (2026-10-18)
+
+- Found: up to 3 `ask()` attempts per grading call (any error or bad output, refusals included) + 1 quote re-ask, each with the SDK's 2 automatic retries (429/5xx/connection); up to 6 counted failed runs per job (30 s apart, re-run by results-page polls and the cron); runs that die mid-way are re-run every 2 min with no limit; one failed answer fails the whole run, so the next run re-pays for every answer. Worst case per answer, counted runs only: 72 requests (one call), 252 (HY-2 with follow-up). After 6 failed runs the set stays "grading" forever.
+- Daily cap was a code constant (150, rolling 24 h); no monthly cap; no spend circuit breaker; `grading_jobs.cost_usd` was written only on success. `DRILL_GRADER_MODEL` could force any of three models; Sonnet calls used `fallbacks: "default"`, which retries cyber/frontier_llm declines on Claude Sonnet 5. Word caps were already enforced at submit. Every Anthropic client used `ANTHROPIC_API_KEY`.
+
+## Cost safeguards built (2026-10-18, committed)
+
+Matt's decisions: 3 requests per call (12 for HY-2 with a follow-up), HY-2's calls stay split; SDK retries off; save each answer as graded; at the cap the set completes with "Grading delayed", which counts toward no progress and keeps Report a problem; caps 40/day and 400/calendar month (student's time zone) in `rules.v1.json`; $5/day breaker from midnight US Eastern, spend recorded after every request and used by the reports banner; approved models hard-coded, `DRILL_GRADER_MODEL` outside production only, no fallback; backstop word check before each call; spend-limit/billing errors and refusals not retried (breaker trips on billing; refusals listed for review); `DRILLS_ANTHROPIC_API_KEY` with no fallback. No grading prompt changed (still v34), so no golden rerun.
+
+- **Where:** `lib/drills/grading/grader.ts` (`gradeAnswers`: per-call loop with `GradingLedger`, `classifyGradingError`, halt on billing, backstop; `gradeSet` still throws for the scripts), `jobs.ts` (`dbLedger`, per-answer save, `markUngraded`, `giveUp` after 6 runs, `ungradedAnswers`), `limits.ts` (pure: time zones, caps, messages, breaker) and `spend.ts` (queries), `lib/drills/anthropic-key.ts`, `lib/models.ts` (`DRILL_GRADER_APPROVED`, `assertDrillGraderModel`, `isProductionDeploy`: `VERCEL_ENV`, else `NODE_ENV`).
+- **Schema (0022):** `drill_grading_calls` (attempt, call, requests; a conditional upsert reserves each request), `drill_grading_spend` (one row per request, any outcome; cascades with sets/attempts), `drill_attempts.grading_issue`. Ungraded answers use the existing `failed` grading status.
+- **Progress:** `finalizeSet` leaves ungraded answers out of the set score, skill scores, tier, progress and diagnostic placement; a set with nothing graded gets a null score and changes nothing (the workout still moves on).
+- **UI:** results show "Grading delayed" per item (model answer, Report a problem) and a header line; the review page lists answers not graded, refused first; the reports banner adds today's spend against $5 and the paused state; the grading table adds requests (failed) and not-graded counts.
+- **One choice I made:** the daily cap is now the calendar day in the student's time zone (was a rolling 24 h), to match the month and give a clear "reopen tomorrow". Easy to change.
+- **Tests:** `tests/drills/cost-safeguards.test.ts` (17); new free smoke `npm run drills:smoke:cost` (stub grader; run alone, it opens the global breaker for a few seconds). The D2 smoke's failure path now checks the poll-driven re-run.
+- **Separate drills key dropped (Matt, 2026-10-18, "forget this for now"):** `DRILLS_ANTHROPIC_API_KEY`, `lib/drills/anthropic-key.ts` and the `no_api_key` issue are removed; grading and the drills scripts use `ANTHROPIC_API_KEY` as before (the grader with `maxRetries: 0`).
+- **Checks:** typecheck, lint, 1625 tests and the build pass. All eleven smokes pass (cost, the D1 smoke, d2, d3, d4, d5, diagnostic, tracks, events, feedback, plan); d2, d5 and the diagnostic graded with the real API. The D5 smoke's student now moves its earlier sets to yesterday before each Defend set, since one run writes more than the daily 40. The a11y audit passes 47 pages; it now has a refused CL-3 answer, so the results and review screens show "Grading delayed".
+- **0022 vs `main`:** additive only (2 new tables, 1 new nullable column, their FKs, indexes and RLS; no drop, rename or changed column). Nothing on `main` reads drill tables. No branch on `origin` has a 0022. Lorenzo hasn't been told that 0022 is taken.

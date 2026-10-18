@@ -15,6 +15,7 @@ Oct 18, 2026 · @Matt · Updated to match the build on the `drills` branch (D0�
 > - 2026-10-12 to 10-16: D3, D4 and D5 built. Grader rules rewritten check by check against the golden sets; the grader is Haiku 4.5, with Sonnet 5.5 for the HY-2 follow-up (model comparison 2026-10-16). Repair drills and Defend follow-ups shipped before the pilot rather than during it.
 > - 2026-10-17: Lessons v2 (nine sections, 600 words, summary card outside Foundations), the intro lesson and the Defending-your-answer trigger; the lesson-vs-item scenario rule; the CL-3 specific-requests rule; the daily cap counts answers (150); D6 events, accessibility audit, reports, No time limit, and pilot feedback (feedback button, Report a problem with grade disputes, check-ins).
 > - 2026-10-18: Getting a plan (case, diagnostic or questionnaire; quick checks; Your plan screen), timer choice and Hide timer, timer pauses, drill cards with descriptions on Browse, drills listed on Learn, and the diagnostic lost-update fix. This revision also brings every section in line with what was built: endpoints, components, pool sizes, cost, phases and the definition of done.
+> - 2026-10-18: Cost safeguards (Matt's decisions): at most 3 requests per grading call, counted across runs, with no SDK retries; answers saved as they are graded; an answer grading gives up on shows "Grading delayed" and counts toward nothing; caps of 40 AI-graded answers a day and 400 a calendar month (student's time zone) in config; a $5 daily spend circuit breaker (midnight US Eastern); the approved grading models hard-coded, with no refusal fallback; a word-limit backstop before every call; spend-limit and billing errors and refusals never retried. Two new tables (`drill_grading_calls`, `drill_grading_spend`) and `drill_attempts.grading_issue` (migration 0022).
 
 ## What's new in v2
 
@@ -75,7 +76,7 @@ Drills are a parallel workstream to the case interview build (technical PRD §11
 | Students who drill, then take another case | ≥ 50% within 14 days | Case start after a drill set completion |
 | Improvement on the drilled dimension | ≥ 60% of students who reach Mastered score higher on that dimension in their next comparable case | Rubric dimension score, same difficulty tier |
 | Transfer check first-attempt pass rate | 60–85% (lower: drills don't transfer; higher: checks are too easy) | `transfer_check_completed` |
-| Drill grading cost per active student | ≤ $1.25 per month (pilot budget, confirmed 2026-10-18) | `grading_jobs.cost_usd` / monthly active students |
+| Drill grading cost per active student | ≤ $1.25 per month (pilot budget, confirmed 2026-10-18) | `drill_grading_spend.cost_usd` (every request, failed ones included) / monthly active students |
 | AI checklist agreement with human reviewers | ≥ 90% per check | The golden-set gates, with disputed answers Matt labels added to them |
 | Auto-checked feedback latency | < 300 ms p95 | Server timing |
 | AI-graded set results latency | < 10 s p95 after the last answer | Server timing |
@@ -380,7 +381,7 @@ For self-directed students, steps 4–6 are replaced by the Suggested next card.
 
 - Set score, pass or fail against the bar, and time against target.
 - A mistake summary in plain words ("2 of your 3 misses were unit errors").
-- Per-item breakdown. For AI-graded items: each check passed or failed, the quoted evidence from the student's answer, any red flag, and the model answer. For Defend steps: the follow-up, the student's reply, each check with evidence and the model reply.
+- Per-item breakdown. For AI-graded items: each check passed or failed, the quoted evidence from the student's answer, any red flag, and the model answer. For Defend steps: the follow-up, the student's reply, each check with evidence and the model reply. An item grading gave up on shows "Grading delayed" with the model answer and Report a problem; the header says it doesn't count toward the score or progress, and a set with nothing graded shows "grading delayed" instead of a score.
 - Skill state change, if any ("Breakeven: now Practiced. Transfer check unlocks Thursday.").
 - One primary next action (Continue workout) and two secondary ones (Retry this set, Take a case).
 
@@ -426,7 +427,9 @@ For self-directed students, steps 4–6 are replaced by the Suggested next card.
 
 ### Failure states
 
-- If AI grading fails, retry automatically twice. If it still fails, show the auto-checked results, mark AI-graded items "Grading delayed" and complete grading in the background within 10 minutes. Never block the student.
+- Each written answer is saved as soon as it is graded, so one failure never re-bills the others.
+- A grading call (an answer's main call, HY-2's family call or a follow-up call) makes at most 3 requests, counted in the database across retries, the quote re-ask and every run of the job (see Cost controls). When an answer's call reaches the cap, is refused, or hits a spend-limit or billing error, or the answer is over its word limits, the answer is not graded: the set completes and that item shows "Grading delayed" with the model answer. It counts toward no set score, skill, tier or placement, either way, and Report a problem still works on it. A set with nothing graded has no score and changes nothing.
+- A run that fails outright (an error outside the grading calls) leaves the set on the grading screen, "Grading delayed"; it is re-run when the results page polls (after 30 seconds) or by the scheduled endpoint. After 6 failed runs, what is left is marked "Grading delayed" and the set completes. Never block the student.
 
 ## Skill taxonomy
 
@@ -1011,7 +1014,7 @@ Example output for one item:
 ### Deterministic backstops on AI output
 
 - **Quote verification:** Code confirms every `evidence` string is an exact substring of the student's answer (after whitespace normalization). A `pass: true` with a missing or non-matching quote is re-requested once for that item; if it fails again, the check is scored as failed and the item is flagged for QA review.
-- **Schema validation:** Any malformed response is retried up to 2 times, then follows the failure state in User experience.
+- **Schema validation:** A malformed or incomplete response is retried within the call's 3-request cap (the quote re-ask counts too), then follows the failure state in User experience.
 - **Code pre-checks run first:** word caps, bucket counts, empty fields, unchanged Repair answers and number presence (SY-2) are checked by code. If a pre-check settles a check or red flag, it is not sent to the AI.
 
 ### Grading quality
@@ -1336,8 +1339,10 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `drill_items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), is\_example, stage, industry, tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
 | `drill_item_stats` | item\_id, version, attempts, correct\_rate, avg\_time\_ms, option\_counts (JSON), computed\_at | Refreshed daily (not used in the pilot: the reports compute item health from `drill_attempts`) |
 | `drill_sets` | set\_id, student\_id, drill\_id, level, stage, tier, size, untimed, timer\_hidden, paused\_at, paused\_ms, is\_placement\_check, source (prescription, continue, specific, review, diagnostic, plan), prescription\_id, workout\_id, slot (weak, review, unfamiliar), is\_transfer\_check, focus\_skill, focus\_tag, item\_plan (JSON), status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, pending\_step (JSON), set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). `item_plan` fixes the set's items at start. `pending_step` holds a multi-step item's finished steps, so a step can't change after its feedback is shown. One in-progress set per student, enforced by a unique index. Browse drills sets use `specific` |
-| `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], defend\_response (JSON: decision, text), defend\_time\_ms, defend\_score, defend\_check\_results (JSON), grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered; the Defend step is part of the same row. Never deleted |
-| `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | Tracks AI grading for a set |
+| `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], defend\_response (JSON: decision, text), defend\_time\_ms, defend\_score, defend\_check\_results (JSON), grading\_status (not\_needed, pending, delayed, graded, failed), grading\_issue (why a failed answer wasn't graded: request\_cap, refused, billing, over\_word\_limit, error, failed\_runs), grader\_prompt\_version, model\_id, submitted\_at | One row per item answered; the Defend step is part of the same row. Never deleted |
+| `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | Tracks AI grading for a set. Tokens and cost are the sum of the job's requests in `drill_grading_spend`, every run included |
+| `drill_grading_calls` (cost safeguards) | attempt\_id, call (main, family, followup, followup\_data), requests, updated\_at | Requests each grading call of an answer has made, across runs. A request is reserved here before it is sent; the reservation fails at the cap (3) |
+| `drill_grading_spend` (cost safeguards) | id, set\_id, job\_id, attempt\_id, call, model\_id, outcome (ok, invalid\_output, refused, billing, error), input\_tokens, output\_tokens, cache\_write\_tokens, cache\_read\_tokens, cost\_usd, error, created\_at | One row per grading request, written after every request. Read by the circuit breaker and the reports' cost figures |
 | `drill_tiers` | student\_id, drill\_id, current\_tier, updated\_at | Current tier per student per drill |
 | `skill_states` | student\_id, skill\_id, state (adds practiced), stage, l1\_passing\_streak, l2\_passing\_streak, last\_skill\_score, last\_practiced\_at, practiced\_at, transfer\_due\_at, next\_review\_at, low\_streak, repair\_sets, paused\_for\_prereq, prereq\_sets, next\_focus\_tag, updated\_at | Current state per student per skill. `low_streak`: sets in a row below 50% (stuck rule); `repair_sets`: Repair sets since entering Repair; `prereq_sets`: prerequisite sets since the stuck rule paused this skill; `next_focus_tag`: the tag the skill's next set focuses on |
 | `skill_state_events` | student\_id, skill\_id, from\_state, to\_state, reason, source\_type (set, case, review), source\_id, created\_at | Full history, for the profile and analytics |
@@ -1372,7 +1377,7 @@ The drills system is seven logical components behind one student-facing API; AI 
 The components below are modules in the existing Next.js app (`lib/drills/*`), not separate services:
 
 - Student-facing endpoints are Next.js route handlers and server actions.
-- The grading queue is a Postgres table (`grading_jobs`). A job is started right after set completion (`after()`); the results page retries while it polls, and `GET /api/internal/drills/grading` (Bearer `CRON_SECRET`) retries the rest for a Vercel Cron. The cron schedule is not set up yet.
+- The grading queue is a Postgres table (`grading_jobs`). A job is started right after set completion (`after()`); the results page retries while it polls, and `GET /api/internal/drills/grading` (Bearer `CRON_SECRET`) retries the rest for a Vercel Cron. The cron schedule is not set up yet. Request caps and spend live in `drill_grading_calls` and `drill_grading_spend` (Cost controls).
 - Case results reach the progress engine as an in-process function call from the scoring code, not an HTTP endpoint.
 - Workouts are built on request (the first home load of the day), not by a scheduled job.
 
@@ -1405,7 +1410,7 @@ Route handlers live under `/api`. Each endpoint is marked with the phase that bu
 | `GET` / `POST /api/drills/diagnostic`, `POST /api/drills/diagnostic/skip` (D4) | The diagnostic's parts and placement; start or resume; stop for now | Diagnostic view |
 | `GET /api/drills/next-case?case=` (D4) | Logs the Next case click and goes to the case product | Redirect |
 | `POST /api/drills/lessons/{lesson_id}/views` (D4) | Log a view or skip | — |
-| `POST /api/drills/sets` | Start a set. Body: `skill_id` (with `quick_start`, or an optional `level`), `drill_id` (Retry this set, or Pick exactly with `tier`; the server rejects a tier more than one above the student's current tier), `prescription_id`, `workout_id` + `block`, `diagnostic_part`; flags `browse`, `suggestion` (the card's reason and slot) and `placement_check`. Refused when it would pass 150 AI-graded answers in 24 hours | `set_id` |
+| `POST /api/drills/sets` | Start a set. Body: `skill_id` (with `quick_start`, or an optional `level`), `drill_id` (Retry this set, or Pick exactly with `tier`; the server rejects a tier more than one above the student's current tier), `prescription_id`, `workout_id` + `block`, `diagnostic_part`; flags `browse`, `suggestion` (the card's reason and slot) and `placement_check`. A set with AI-graded answers is refused (429) when it would pass the student's daily or monthly cap (`daily_limit`, `monthly_limit`) or while the circuit breaker is open (`grading_paused`); the message says auto-checked drills are still open and when written drills reopen | `set_id` |
 | `GET /api/drills/sets/{id}` | Resume a set | Status, current position, intro info (drill, skills, size, time per item, pass bar, worked example on first view) |
 | `GET /api/drills/sets/{id}/items/{position}` | Fetch an item. Records `served_at` server-side | Item content and input spec, time limit and time remaining, finished steps of a multi-step item. **Never the answer key** |
 | `POST /api/drills/sets/{id}/attempts` | Submit an answer, or one step of a multi-step item. Body: position, step, response, skip, timed\_out, idempotency key. The Defend follow-up is the item's last steps: its question arrives in the reply to the main answer's last step | Auto-checked: score, correct answer, feedback (or the step's feedback mid-item). AI-graded: accepted |
@@ -1446,7 +1451,7 @@ The case library list (`GET /cases`, with filters and the Suggested mark) belong
 
 ### Event flow after a set completes
 
-1. Auto-checked set: the Scoring service finalizes the set score immediately. AI-graded set: the Grading worker grades every answer (one call each, in parallel), then the Scoring service computes scores.
+1. Auto-checked set: the Scoring service finalizes the set score immediately. AI-graded set: the Grading worker grades every answer (one call each, in parallel), saving each as it is graded, then the Scoring service computes scores from the graded answers (answers left "Grading delayed" count toward nothing).
 2. The Progress engine updates skill scores, stage, tier, skill states, transfer dates and review dates, and applies the stuck rule.
 3. The Progress engine refreshes prescriptions; the Program engine updates weekly targets and milestones and the rest of today's workout.
 4. The results screen shows everything in one response.
@@ -1548,8 +1553,13 @@ Running cost is held down by design: AI is used only to grade free-text answers,
 - **Capped answers and outputs.** Word caps on every free-text input; a tight output token limit on every call.
 - **Cheapest passing model.** Use the lowest-cost model tier that meets the 90% agreement gate. Re-test cheaper tiers when they become available.
 - **Prompt caching.** The HY-2 follow-up's grading rules sit in Sonnet 5.5's cached system prompt. Haiku 4.5's prompts are below its 4,096-token caching minimum, so they aren't cached.
-- **Usage cap.** 150 AI-graded answers per student per day. Auto-checked drills are unlimited.
-- **Monitoring.** A dashboard of cost per graded answer, per workout and per active student, with an alert if the 7-day average exceeds budget by 25%. Pilot: a banner at the top of the reports page (last 7 days, per active student scaled to a month).
+- **Usage caps.** 40 AI-graded answers per student per day and 400 per calendar month, in the student's time zone (`rules.grading_limits`); a follow-up reply counts as an answer. A set is checked when it starts, whole: one that would pass a cap doesn't start. The message says auto-checked drills are still open (they are unlimited) and when written drills reopen ("tomorrow", "on November 1").
+- **Request cap per call.** At most 3 requests per grading call (`requests_per_call`), so at most 3 per normal answer and 12 for an HY-2 answer with a follow-up (main, family and its two follow-up calls). Counted in `drill_grading_calls` across retries, the quote re-ask and every run, including runs that die. The SDK's own retries are off. Rate-limit, overload, server and connection errors are retried within the cap (after the API's retry-after, at most 20 seconds); any other 4xx is not retried.
+- **Spend-limit and billing errors, and refusals.** Never retried. A spend-limit or billing error (HTTP 402, or a 400 about credit, usage or spend limits) stops the job's remaining calls, and trips the circuit breaker for the day. Every answer it hits, and every refused answer, shows "Grading delayed"; refused answers are listed for Matt's review on the review page.
+- **Daily circuit breaker.** Spend is recorded after every request, failed ones included (`drill_grading_spend`). Once the day's total reaches $5 (`daily_spend_limit_usd`; the day starts at midnight US Eastern), or after a spend-limit or billing error that day, no new set with AI-graded answers starts: "Written-answer drills are paused for today. Auto-checked drills are still open, and written drills reopen at …", in the student's time zone. Sets already started finish grading, except after a billing error, when nothing more is sent that day.
+- **Approved models only.** Hard-coded in `lib/models.ts`: Haiku 4.5 for every call except the HY-2 follow-up's two, which Sonnet 5.5 grades. Any other model fails before a request is sent. `DRILL_GRADER_MODEL` (forcing one model for testing) works only outside production. No server-side refusal fallback: it would re-run some declined requests on a model that isn't approved.
+- **Word-limit backstop.** Submit rejects an over-limit answer (422) before it is saved; code checks again before an answer's grading calls and sends nothing for one over its limits.
+- **Monitoring.** A dashboard of cost per graded answer, per workout and per active student, with an alert if the 7-day average exceeds budget by 25%. Pilot: a banner at the top of the reports page (last 7 days, per active student scaled to a month, from the per-request spend ledger, so failed runs count), with today's spend against the $5 daily limit and whether new written sets are paused.
 
 ### Cost estimate
 

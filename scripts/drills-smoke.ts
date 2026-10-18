@@ -122,9 +122,9 @@ async function runDrill(drillId: string, skillId: string, level: 1 | 2) {
   await completeSet(student, set_id);
   const results = await setResults(student, set_id);
   if (results.status !== 'completed') throw new Error(`${drillId}: set still ${results.status}`);
-  check(Math.abs(results.score - expected / view.size) < 1e-6, `${drillId}: set score ${results.score}, expected ${expected / view.size}`);
+  check(Math.abs((results.score ?? NaN) - expected / view.size) < 1e-6, `${drillId}: set score ${results.score}, expected ${expected / view.size}`);
   check(results.items.length === view.size, `${drillId}: results list ${results.items.length} items`);
-  console.log(`${drillId}: ${view.size} items, score ${Math.round(results.score * 100)}%, ${results.mistakes?.text ?? 'no misses'}`);
+  console.log(`${drillId}: ${view.size} items, score ${Math.round((results.score ?? 0) * 100)}%, ${results.mistakes?.text ?? 'no misses'}`);
 }
 
 // "No time limit": an answer long past the limit still counts, nothing times
@@ -157,7 +157,7 @@ async function untimedSet() {
   check(results.score === 1, `untimed: late or "timed out" answers did not count (score ${results.score})`);
   check(results.time_ms > results.target_ms, 'untimed: results cap the time at the target');
   await updateSettings(student, { untimed: false });
-  console.log(`untimed PS-1: ${Math.round(results.score * 100)}%, ${Math.round(results.time_ms / 1000)} s against a ${Math.round(results.target_ms / 1000)} s target`);
+  console.log(`untimed PS-1: ${Math.round((results.score ?? 0) * 100)}%, ${Math.round(results.time_ms / 1000)} s against a ${Math.round(results.target_ms / 1000)} s target`);
 }
 
 async function main() {

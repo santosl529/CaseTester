@@ -323,6 +323,10 @@ export const drillAttempts = pgTable('drill_attempts', {
   defendScore: doublePrecision('defend_score'),
   defendCheckResults: jsonb('defend_check_results'),
   gradingStatus: attemptGradingStatusEnum('grading_status').notNull().default('not_needed'),
+  // Why an answer ended 'failed' ("Grading delayed"; it counts toward nothing):
+  // 'request_cap', 'refused' (for review), 'billing', 'over_word_limit',
+  // 'error' or 'failed_runs'.
+  gradingIssue: text('grading_issue'),
   graderPromptVersion: text('grader_prompt_version'),
   modelId: text('model_id'),
   submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
@@ -357,6 +361,40 @@ export const gradingJobs = pgTable('grading_jobs', {
   startedAt: timestamp('started_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
 }, t => [index('grading_jobs_status_idx').on(t.status, t.createdAt)]).enableRLS();
+
+// Cost controls (PRD "Cost controls"): the requests each grading call of an
+// answer has made, across retries, quote re-asks and every run of the job,
+// so no call passes rules.grading_limits.requests_per_call. A request is
+// reserved here before it is sent. call: 'main', 'family', 'followup' or
+// 'followup_data'. Server-only.
+export const drillGradingCalls = pgTable('drill_grading_calls', {
+  attemptId: uuid('attempt_id').notNull().references(() => drillAttempts.id, { onDelete: 'cascade' }),
+  call: text('call').notNull(),
+  requests: integer('requests').notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [primaryKey({ columns: [t.attemptId, t.call] })]).enableRLS();
+
+// One row per grading request, written after every request whatever its
+// outcome ('ok', 'invalid_output', 'refused', 'billing', 'error'): the spend
+// the daily circuit breaker and the reports' cost figures read. A 'billing'
+// row (a spend-limit or billing error) also trips the breaker for the day.
+// Server-only.
+export const drillGradingSpend = pgTable('drill_grading_spend', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  setId: uuid('set_id').notNull().references(() => drillSets.id, { onDelete: 'cascade' }),
+  jobId: uuid('job_id').references(() => gradingJobs.id, { onDelete: 'cascade' }),
+  attemptId: uuid('attempt_id').references(() => drillAttempts.id, { onDelete: 'cascade' }),
+  call: text('call').notNull(),
+  modelId: text('model_id').notNull(),
+  outcome: text('outcome').notNull(),
+  inputTokens: integer('input_tokens').notNull().default(0),
+  outputTokens: integer('output_tokens').notNull().default(0),
+  cacheWriteTokens: integer('cache_write_tokens').notNull().default(0),
+  cacheReadTokens: integer('cache_read_tokens').notNull().default(0),
+  costUsd: doublePrecision('cost_usd').notNull().default(0),
+  error: text('error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [index('drill_grading_spend_created_idx').on(t.createdAt), index('drill_grading_spend_set_idx').on(t.setId)]).enableRLS();
 
 export const drillTiers = pgTable('drill_tiers', {
   studentId: uuid('student_id').notNull(),
@@ -600,3 +638,25 @@ export const drillQuestionnaires = pgTable('drill_questionnaires', {
   hardest: text('hardest'),                     // one of those areas, or null ("not sure")
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, t => [index('drill_questionnaires_student_idx').on(t.studentId, t.createdAt)]).enableRLS();
+
+// The monthly Cartesia character ledger (voice deploy, 18 Oct): one row per
+// calendar month (UTC, 'YYYY-MM'), shared by every agent job on every worker
+// and the local voice scripts. Incremented in one statement
+// (lib/voice/tts-ledger-store.ts), so concurrent jobs share one cap.
+// Server-only: RLS on, no policies.
+export const voiceTtsUsage = pgTable('voice_tts_usage', {
+  month: text('month').primaryKey(),
+  used: integer('used').notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}).enableRLS();
+
+// A voice session's per-turn records (lib/voice/records.ts), one row per line
+// the agent used to append to Case Interview Runs/voice-live/<date>/<id>.jsonl:
+// turn records, client timing lines, the closing summary. In insert order;
+// scripts/voice-export.ts writes them back out as that file. Server-only.
+export const voiceSessionLines = pgTable('voice_session_lines', {
+  id: bigint('id', { mode: 'number' }).primaryKey().generatedAlwaysAsIdentity(),
+  sessionId: uuid('session_id').notNull().references(() => sessions.id),
+  line: jsonb('line').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [index('voice_session_lines_session_idx').on(t.sessionId)]).enableRLS();

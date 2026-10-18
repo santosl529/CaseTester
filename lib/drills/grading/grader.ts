@@ -8,12 +8,12 @@ import 'server-only';
 import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
-import { DRILL_GRADER_MODELS, FALLBACK_BETA, FALLBACKS, drillGraderModel, type GraderModel } from '@/lib/models';
-import { getDrill, getMistakeTag } from '../config';
+import { DRILL_GRADER_MODELS, assertDrillGraderModel, drillGraderModel, type GraderModel } from '@/lib/models';
+import { DRILLS_CONFIG, getDrill, getMistakeTag } from '../config';
 import type { Item, RepairExtras } from '../item-schema';
 import { REPAIR_DRILLS, defendGradingRules, type RepairDrillId } from '../checklists';
 import { defendParts } from '../defend';
-import { answerText, itemSteps, type StepResult } from '../sets/scoring';
+import { answerText, itemSteps, writtenLimitProblem, type StepResult } from '../sets/scoring';
 import type { ItemGrade } from './apply';
 
 // Bump on any change to the prompt or output schema; stored on every grade.
@@ -111,7 +111,7 @@ export type CallKind = 'standard' | 'repair' | 'reasoned';
 // part: grade only the main answer or only the Defend reply (golden runs);
 // both by default.
 export interface GradingEntry { key: string; item: Item; steps: StepResult[]; part?: 'main' | 'defend' }
-export interface GradingUsage { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; calls: number; refusals: number; fallbacks: number }
+export interface GradingUsage { input_tokens: number; output_tokens: number; cache_creation_input_tokens: number; cache_read_input_tokens: number; calls: number; refusals: number }
 // cost_usd_no_cache: the same calls with no cache hits (every input token at
 // the full input price), the planning figure at pilot scale.
 export interface SetGrade { grades: Map<string, ItemGrade>; usage: GradingUsage; cost_usd: number; cost_usd_no_cache: number; model_id: string; prompt_version: string }
@@ -281,19 +281,23 @@ function missing(e: GradingEntry, out: OutputItem | undefined, inPart: (step: nu
   ];
 }
 
-// refused: the model declined (stop_reason "refusal"); fellBack: a fallback
-// model served the call (Sonnet 5.5's server-side fallback).
-export type CallModel = (system: string, user: string, kind?: CallKind, model?: GraderModel) => Promise<{ output: CallOutput | null; usage: Omit<GradingUsage, 'calls' | 'refusals' | 'fallbacks'>; refused?: boolean; fellBack?: boolean }>;
+// refused: the model declined (stop_reason "refusal").
+export type CallModel = (system: string, user: string, kind?: CallKind, model?: GraderModel) => Promise<{ output: CallOutput | null; usage: RequestUsage; refused?: boolean }>;
+type RequestUsage = Omit<GradingUsage, 'calls' | 'refusals'>;
 
-export function anthropicCaller(client = new Anthropic()): CallModel {
+// The real caller, with no SDK retries: every request is counted against its
+// call's cap (cost safeguards). The client is made at the first request.
+export function anthropicCaller(client?: Anthropic): CallModel {
+  let c = client;
   return async (system, user, kind = 'standard', model = drillGraderModel()) => {
+    assertDrillGraderModel(model);
+    c ??= new Anthropic({ maxRetries: 0 });
     const cfg = DRILL_GRADER_MODELS[model];
-    const response = await client.beta.messages.stream({
+    const response = await c.beta.messages.stream({
       model,
       max_tokens: 8000,
       ...(cfg.temperature !== undefined && { temperature: cfg.temperature }),
       ...(cfg.thinking && { thinking: cfg.thinking }),
-      ...(cfg.fallbacks && { betas: [FALLBACK_BETA], fallbacks: FALLBACKS }),
       // The instructions and the drill's grading rules (see splitRules) form
       // the cached prefix: Sonnet 5.5 and Haiku 5.5 cache from 512 tokens;
       // Haiku 4.5 only from 4,096, which this prefix doesn't reach.
@@ -301,9 +305,8 @@ export function anthropicCaller(client = new Anthropic()): CallModel {
       messages: [{ role: 'user', content: user }],
       output_config: { format: kind === 'repair' ? REPAIR_OUTPUT_FORMAT : kind === 'reasoned' ? REASONED_OUTPUT_FORMAT : OUTPUT_FORMAT },
     }).finalMessage();
-    const fellBack = ((response.usage as { iterations?: { type: string }[] }).iterations ?? []).some(i => i.type === 'fallback_message');
     return {
-      refused: response.stop_reason === 'refusal', fellBack,
+      refused: response.stop_reason === 'refusal',
       output: response.stop_reason === 'refusal' ? null : response.parsed_output ?? null,
       usage: {
         input_tokens: response.usage.input_tokens,
@@ -315,6 +318,29 @@ export function anthropicCaller(client = new Anthropic()): CallModel {
   };
 }
 
+// What a failed request means (cost safeguards): a spend-limit or billing
+// error (HTTP 402, or a 400 about credit, usage or spend limits) stops all
+// grading; a rate limit, overload, server or connection error may be retried
+// within the call's cap; any other 4xx is our request's fault, so retrying
+// can't help.
+export function classifyGradingError(err: unknown): 'billing' | 'retryable' | 'fatal' {
+  const e = err as { status?: unknown; message?: unknown; error?: { error?: { type?: unknown } } } | null;
+  const status = typeof e?.status === 'number' ? e.status : undefined;
+  const message = typeof e?.message === 'string' ? e.message : '';
+  if (status === 402 || e?.error?.error?.type === 'billing_error') return 'billing';
+  if (status === 400 && /credit balance|usage limit|spend(ing)? limit|billing/i.test(message)) return 'billing';
+  if (status === undefined || status === 408 || status === 409 || status === 429 || status >= 500) return 'retryable';
+  return 'fatal';
+}
+
+// Before retrying a retryable error: the API's retry-after (at most 20 s),
+// else 1 s, 2 s. Nothing for errors that aren't from the API.
+function retryDelayMs(err: unknown, attempt: number): number {
+  const e = err as { status?: unknown; headers?: { get?: (k: string) => string | null } } | null;
+  if (typeof e?.status !== 'number') return 0;
+  const after = Number(e.headers?.get?.('retry-after'));
+  return Number.isFinite(after) && after > 0 ? Math.min(after * 1000, 20_000) : 1000 * 2 ** Math.min(attempt, 1);
+}
 // The grader sometimes echoes a family with its description ("Lower prices:
 // discounts cut revenue"); map it back to the family's name so the update
 // decision is scored against the right family.
@@ -325,8 +351,6 @@ export function familyName(item: Item, raw: string | null): string | null {
   const hit = families.find(f => t === f.family.toLowerCase() || t.startsWith(`${f.family.toLowerCase()}:`));
   return hit ? hit.family : raw.trim();
 }
-
-export class GradingError extends Error {}
 
 // The drill's grading rules go into the cached system prompt, after the
 // instructions, so every answer to the same drill shares one prefix; the
@@ -341,35 +365,135 @@ export function splitRules(system: string, block: string): { system: string; use
 // Grades a set's written answers, each in its own call (PRD "Checklist
 // grading call"): a student's score must never depend on their other
 // answers, and the grader's verdicts shifted with whatever shared its call.
-// The calls run in parallel. Malformed or incomplete output is retried up to
-// twice (PRD "Schema validation"); an answer with unverified quotes is
-// re-asked once, then those checks count as failed and are flagged for QA.
+// The calls run in parallel.
+//
+// Cost safeguards (Matt 2026-10-18): each call of an answer (main, family,
+// follow-up, follow-up data request) makes at most
+// rules.grading_limits.requests_per_call requests, counted by the ledger
+// across retries, the quote re-ask and every run of the job. Malformed or
+// incomplete output is retried within that cap (PRD "Schema validation"); an
+// answer with unverified quotes is re-asked once, then those checks count as
+// failed and are flagged for QA. A refusal, a spend-limit or billing error,
+// or an answer over its word limits is never retried: the answer is left
+// ungraded ("Grading delayed"), and a billing error stops every call left.
 const ANSWER_KEY = 'answer';
 
-export async function gradeSet(entries: GradingEntry[], call: CallModel = anthropicCaller()): Promise<SetGrade> {
-  const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0, refusals: 0, fallbacks: 0 };
-  // Each call priced at its own model's rates; the models used, for the record.
+export type CallSlot = 'main' | 'family' | 'followup' | 'followup_data';
+export type RequestOutcome = 'ok' | 'invalid_output' | 'refused' | 'billing' | 'error';
+export type UngradedReason = 'request_cap' | 'refused' | 'billing' | 'over_word_limit' | 'error';
+export interface RequestRecord { key: string; call: CallSlot; model: GraderModel; outcome: RequestOutcome; usage: RequestUsage; cost_usd: number; error?: string }
+
+// Where the request counts and the spend go: the database for real jobs
+// (jobs.ts), memory for the golden and comparison scripts and tests.
+export interface GradingLedger {
+  // Reserves one request for an answer's call; false once the call is at its cap.
+  reserve(key: string, call: CallSlot): Promise<boolean>;
+  // After every request, whatever came back.
+  record(r: RequestRecord): Promise<void>;
+}
+
+export function memoryLedger(cap = DRILLS_CONFIG.rules.grading_limits.requests_per_call): GradingLedger & { records: RequestRecord[] } {
+  const used = new Map<string, number>();
+  const records: RequestRecord[] = [];
+  return {
+    records,
+    async reserve(key, call) {
+      const n = used.get(`${key}/${call}`) ?? 0;
+      if (n >= cap) return false;
+      used.set(`${key}/${call}`, n + 1);
+      return true;
+    },
+    async record(r) { records.push(r); },
+  };
+}
+
+export class GradingError extends Error {}
+// One call gave up: the answer can't be graded this time.
+class CallFailed extends Error {
+  constructor(public reason: UngradedReason, message: string) { super(message); }
+}
+// The reason an answer reports when several of its calls failed.
+const REASON_RANK: UngradedReason[] = ['billing', 'refused', 'over_word_limit', 'request_cap', 'error'];
+
+export interface Ungraded { reason: UngradedReason; error: string }
+// model_id: the models this answer's calls used ('+'-joined).
+export type AnswerOutcome = { graded: ItemGrade; model_id: string } | { ungraded: Ungraded };
+export interface AnswersGrade extends Omit<SetGrade, 'grades'> { grades: Map<string, ItemGrade>; ungraded: Map<string, Ungraded> }
+
+export interface GradeOptions {
+  ledger?: GradingLedger;
+  // Called as each answer finishes, so it can be saved at once.
+  onAnswer?: (key: string, outcome: AnswerOutcome) => Promise<void>;
+}
+
+export async function gradeAnswers(entries: GradingEntry[], call: CallModel = anthropicCaller(), opts: GradeOptions = {}): Promise<AnswersGrade> {
+  const ledger = opts.ledger ?? memoryLedger();
+  const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0, refusals: 0 };
+  // Each request priced at its own model's rates; the models used, for the record.
   let cost = 0, noCache = 0;
   const models = new Set<GraderModel>();
+  const answerModels = new Map<string, Set<GraderModel>>();
+  // Set by a spend-limit or billing error: no further request is sent.
+  let halted: string | null = null;
+  const price = (u: RequestUsage, model: GraderModel) => {
+    const p = DRILL_GRADER_MODELS[model].price;
+    return (u.input_tokens * p.input + u.output_tokens * p.output + u.cache_creation_input_tokens * p.cache_write + u.cache_read_input_tokens * p.cache_read) / 1_000_000;
+  };
   const tally = (res: Awaited<ReturnType<CallModel>>, model: GraderModel) => {
     const p = DRILL_GRADER_MODELS[model].price, u = res.usage;
-    cost += (u.input_tokens * p.input + u.output_tokens * p.output + u.cache_creation_input_tokens * p.cache_write + u.cache_read_input_tokens * p.cache_read) / 1_000_000;
+    const c = price(u, model);
+    cost += c;
     noCache += ((u.input_tokens + u.cache_creation_input_tokens + u.cache_read_input_tokens) * p.input + u.output_tokens * p.output) / 1_000_000;
     models.add(model);
     usage.calls++;
     if (res.refused) usage.refusals++;
-    if (res.fellBack) usage.fallbacks++;
     for (const k of Object.keys(res.usage) as (keyof typeof res.usage)[]) usage[k] += res.usage[k];
+    return c;
+  };
+  const NO_USAGE: RequestUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 };
+
+  // One request for an answer's call, if its cap allows. 'capped' once the
+  // call has used its requests; 'retry' after an error worth retrying. A
+  // refusal, a billing error or a request the API rejects throws CallFailed.
+  type Sent = { kind: 'capped' } | { kind: 'retry'; error: string } | { kind: 'response'; res: Awaited<ReturnType<CallModel>>; cost: number };
+  const send = async (e: GradingEntry, slot: CallSlot, model: GraderModel, system: string, user: string, kind: CallKind, attempt: number): Promise<Sent> => {
+    if (halted) throw new CallFailed('billing', halted);
+    assertDrillGraderModel(model);
+    if (!(await ledger.reserve(e.key, slot))) return { kind: 'capped' };
+    if (halted) throw new CallFailed('billing', halted);
+    let res: Awaited<ReturnType<CallModel>>;
+    try {
+      res = await call(system, user, kind, model);
+    } catch (err) {
+      const message = (err instanceof Error ? err.message : String(err)).slice(0, 500);
+      const kindOf = classifyGradingError(err);
+      await ledger.record({ key: e.key, call: slot, model, outcome: kindOf === 'billing' ? 'billing' : 'error', usage: NO_USAGE, cost_usd: 0, error: message });
+      if (kindOf === 'billing') {
+        halted = `spend limit or billing error: ${message}`;
+        throw new CallFailed('billing', halted);
+      }
+      if (kindOf === 'fatal') throw new CallFailed('error', message);
+      const wait = retryDelayMs(err, attempt);
+      if (wait) await new Promise(r => setTimeout(r, wait));
+      return { kind: 'retry', error: message };
+    }
+    const c = tally(res, model);
+    answerModels.set(e.key, (answerModels.get(e.key) ?? new Set<GraderModel>()).add(model));
+    if (res.refused) {
+      await ledger.record({ key: e.key, call: slot, model, outcome: 'refused', usage: res.usage, cost_usd: c });
+      throw new CallFailed('refused', 'the grader declined to grade this answer');
+    }
+    return { kind: 'response', res, cost: c };
   };
 
   // One call: the main answer, or (PRD "Defend step") the follow-up reply.
   // inPart: the steps whose red flags the call answers; owns: its checks.
-  interface Part { system: string; block: (e: GradingEntry) => string; kind: CallKind; inPart: (step: number) => boolean; owns: (c: { step: number; check_id: string }) => boolean; model: GraderModel }
+  interface Part { slot: CallSlot; system: string; block: (e: GradingEntry) => string; kind: CallKind; inPart: (step: number) => boolean; owns: (c: { step: number; check_id: string }) => boolean; model: GraderModel }
   const partsOf = (e: GradingEntry): { main: Part | null; defend: Part[] } => {
     const d = defendParts(e.item);
     const repair = getDrill(e.item.drill_id).stage === 'repair';
     const main: Part = {
-      system: repair ? SYSTEM + REPAIR_SYSTEM : SYSTEM, block: buildItemBlock, kind: repair ? 'repair' : 'standard',
+      slot: 'main', system: repair ? SYSTEM + REPAIR_SYSTEM : SYSTEM, block: buildItemBlock, kind: repair ? 'repair' : 'standard',
       inPart: step => !d || step < d.start, owns: c => !d || c.step < d.start, model: drillGraderModel(),
     };
     const replied = d && answerText(e.steps[d.reply]?.response ?? { type: 'empty' });
@@ -377,84 +501,99 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
     // HY-2: the data request in a call of its own that sees only the reply;
     // the drop result and consistency in a call that sees the hypothesis.
     const defend: Part[] = !replied ? [] : e.item.drill_id === 'HY-2' ? [
-      { system: SYSTEM + DEFEND_DATA_SYSTEM + REASONED_SYSTEM, block: buildDefendDataBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id === HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
-      { system: SYSTEM + DEFEND_SYSTEM + REASONED_SYSTEM, block: buildDefendBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id !== HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
-    ] : [{ system: SYSTEM + DEFEND_SYSTEM, block: buildDefendBlock, kind: 'standard', inPart: inDefend, owns: c => inDefend(c.step), model: drillGraderModel() }];
+      { slot: 'followup_data', system: SYSTEM + DEFEND_DATA_SYSTEM + REASONED_SYSTEM, block: buildDefendDataBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id === HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
+      { slot: 'followup', system: SYSTEM + DEFEND_SYSTEM + REASONED_SYSTEM, block: buildDefendBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id !== HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
+    ] : [{ slot: 'followup', system: SYSTEM + DEFEND_SYSTEM, block: buildDefendBlock, kind: 'standard', inPart: inDefend, owns: c => inDefend(c.step), model: drillGraderModel() }];
     return { main: e.part === 'defend' ? null : main, defend: e.part === 'main' ? [] : defend };
   };
 
-  const ask = async (e: GradingEntry, part: Part, attempts: number, note = ''): Promise<OutputItem> => {
-    let last: unknown;
-    for (let i = 0; i < attempts; i++) {
-      try {
-        // The same label in every call, so nothing about the answer's place in
-        // the set (or its id) can reach the grader.
-        const block = part.block({ ...e, key: ANSWER_KEY });
-        const { system, user } = DRILL_GRADER_MODELS[part.model].rulesInSystem ? splitRules(part.system, block) : { system: part.system, user: block };
-        const res = await call(system, `<items>\n${user}\n</items>${note}`, part.kind, part.model);
-        tally(res, part.model);
-        const out = res.output && (part.kind === 'repair' ? RepairOutputSchema : part.kind === 'reasoned' ? ReasonedOutputSchema : OutputSchema).safeParse(res.output);
-        if (!out?.success) { last = new Error('grader returned no valid structured output'); continue; }
-        const items = out.data.items as OutputItem[];
-        for (const o of items) {
-          o.item_key = cleanId(o.item_key);
-          for (const c of o.checks) c.check_id = cleanId(c.check_id);
-          for (const f of o.red_flags) f.id = cleanId(f.id);
-        }
-        // One item per call: take it even if the key came back altered.
-        const item = items.find(o => o.item_key === ANSWER_KEY) ?? (items.length === 1 ? items[0] : undefined);
-        const gaps = missing(e, item, part.inPart, part.owns);
-        if (item && gaps.length === 0) {
-          // Keep only what this call was asked about.
-          item.checks = item.checks.filter(c => e.item.checks.some(x => x.check_id === c.check_id && part.owns(x)));
-          return item;
-        }
-        last = new Error(`grader output left out: ${gaps.join(', ')} (returned keys: ${items.map(o => o.item_key).join(', ')})`);
-      } catch (err) {
-        last = err;
-      }
+  // The call's output for this answer, or what was wrong with it.
+  const parse = (e: GradingEntry, part: Part, output: CallOutput | null): OutputItem | string => {
+    const out = output && (part.kind === 'repair' ? RepairOutputSchema : part.kind === 'reasoned' ? ReasonedOutputSchema : OutputSchema).safeParse(output);
+    if (!out?.success) return 'grader returned no valid structured output';
+    const items = out.data.items as OutputItem[];
+    for (const o of items) {
+      o.item_key = cleanId(o.item_key);
+      for (const c of o.checks) c.check_id = cleanId(c.check_id);
+      for (const f of o.red_flags) f.id = cleanId(f.id);
     }
-    throw new GradingError(last instanceof Error ? last.message : String(last));
+    // One item per call: take it even if the key came back altered.
+    const item = items.find(o => o.item_key === ANSWER_KEY) ?? (items.length === 1 ? items[0] : undefined);
+    const gaps = missing(e, item, part.inPart, part.owns);
+    if (!item || gaps.length) return `grader output left out: ${gaps.join(', ')} (returned keys: ${items.map(o => o.item_key).join(', ')})`;
+    // Keep only what this call was asked about.
+    item.checks = item.checks.filter(c => e.item.checks.some(x => x.check_id === c.check_id && part.owns(x)));
+    return item;
   };
 
-  // Asks, then re-asks once if any quote wasn't found. Returns the answer and
-  // the ids whose quotes still didn't check out.
+  // Asks until the output is complete, then re-asks once if any quote wasn't
+  // found, all within the call's cap. Returns the answer and the ids whose
+  // quotes still didn't check out.
   const askVerified = async (e: GradingEntry, part: Part) => {
-    let out = await ask(e, part, 3);
-    const firstBad = badQuotes(e, out);
-    if (firstBad.length) {
+    // The same label in every call, so nothing about the answer's place in
+    // the set (or its id) can reach the grader.
+    const block = part.block({ ...e, key: ANSWER_KEY });
+    const { system, user } = DRILL_GRADER_MODELS[part.model].rulesInSystem ? splitRules(part.system, block) : { system: part.system, user: block };
+    let first: { out: OutputItem; bad: Set<string> } | null = null;
+    let note = '', last = 'no request made';
+    for (let attempt = 0; ; attempt++) {
+      const sent = await send(e, part.slot, part.model, system, `<items>\n${user}\n</items>${note}`, part.kind, attempt);
+      if (sent.kind === 'capped') {
+        // The re-ask never came back complete: keep the first grade, its
+        // unverified quotes failed and flagged.
+        if (first) return first;
+        throw new CallFailed('request_cap', `reached ${DRILLS_CONFIG.rules.grading_limits.requests_per_call} requests for the ${part.slot} call; last: ${last}`);
+      }
+      if (sent.kind === 'retry') { last = sent.error; continue; }
+      const out = parse(e, part, sent.res.output);
+      await ledger.record({ key: e.key, call: part.slot, model: part.model, outcome: typeof out === 'string' ? 'invalid_output' : 'ok', usage: sent.res.usage, cost_usd: sent.cost, ...(typeof out === 'string' && { error: out }) });
+      if (typeof out === 'string') { last = out; continue; }
+      const bad = badQuotes(e, out);
+      if (!bad.length || first) return { out, bad: new Set(bad) };
+      first = { out, bad: new Set(bad) };
       // The same request at temperature 0 would get the same quotes back, so
       // say which ones weren't found.
       const quotes = new Map([...out.checks.map(c => [c.check_id, c.evidence] as const), ...out.red_flags.map(f => [f.id, f.evidence] as const)]);
-      const notFound = firstBad.map(id => `- "${id}": ${quotes.get(id) ? `"${fence(quotes.get(id)!)}"` : 'no quote given'}`);
-      const note = `\n\nIn your last grading, these quotes were not found word for word in the student's answer:\n${notFound.join('\n')}\nGrade again. Copy every quote exactly; put " … " between parts from different places.`;
-      out = (await ask(e, part, 1, note).catch(() => null)) ?? out;
+      const notFound = bad.map(id => `- "${id}": ${quotes.get(id) ? `"${fence(quotes.get(id)!)}"` : 'no quote given'}`);
+      note = `\n\nIn your last grading, these quotes were not found word for word in the student's answer:\n${notFound.join('\n')}\nGrade again. Copy every quote exactly; put " … " between parts from different places.`;
     }
-    return { out, bad: new Set(badQuotes(e, out)) };
   };
 
   // HY-2: the family comes from a call that sees only stage 1 (see
   // buildFamilyBlock). If it fails twice, the main call's family is used.
   const classify = async (e: GradingEntry) => {
-    for (let i = 0; i < 2; i++) {
-      const model = drillGraderModel();
-      const { system, user } = DRILL_GRADER_MODELS[model].rulesInSystem ? splitRules(SYSTEM, buildFamilyBlock(e)) : { system: SYSTEM, user: buildFamilyBlock(e) };
-      const res = await call(system, `<items>\n${user}\n</items>`, 'standard', model);
-      tally(res, model);
-      const out = res.output && OutputSchema.safeParse(res.output);
+    const model = drillGraderModel();
+    const { system, user } = DRILL_GRADER_MODELS[model].rulesInSystem ? splitRules(SYSTEM, buildFamilyBlock(e)) : { system: SYSTEM, user: buildFamilyBlock(e) };
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const sent = await send(e, 'family', model, system, `<items>\n${user}\n</items>`, 'standard', attempt);
+      if (sent.kind === 'capped') break;
+      if (sent.kind === 'retry') continue;
+      const out = sent.res.output && OutputSchema.safeParse(sent.res.output);
       const item = out?.success ? out.data.items[0] : undefined;
+      await ledger.record({ key: e.key, call: 'family', model, outcome: item?.hypothesis_family ? 'ok' : 'invalid_output', usage: sent.res.usage, cost_usd: sent.cost });
       if (item?.hypothesis_family) return item;
     }
     throw new GradingError('family classification failed');
   };
 
   const gradeOne = async (e: GradingEntry): Promise<ItemGrade> => {
+    // Backstop: submit already rejects an answer over its limits.
+    const over = writtenLimitProblem(e.item, e.steps);
+    if (over) throw new CallFailed('over_word_limit', `over the word limits, not sent: ${over}`);
     const parts = partsOf(e);
-    const [main, defend, families] = await Promise.all([
+    const family = e.item.extras.families && parts.main ? classify(e).catch(() => null) : Promise.resolve(null);
+    const settled = await Promise.allSettled([
       parts.main ? askVerified(e, parts.main) : null,
-      Promise.all(parts.defend.map(p => askVerified(e, p))),
-      e.item.extras.families && parts.main ? classify(e).catch(() => null) : null,
+      ...parts.defend.map(p => askVerified(e, p)),
     ]);
+    const families = await family;
+    const failed = settled.flatMap(r => (r.status === 'rejected' ? [r.reason] : []));
+    if (failed.length) {
+      const calls = failed.filter((f): f is CallFailed => f instanceof CallFailed);
+      if (calls.length < failed.length) throw failed.find(f => !(f instanceof CallFailed));
+      throw calls.sort((a, b) => REASON_RANK.indexOf(a.reason) - REASON_RANK.indexOf(b.reason))[0];
+    }
+    const [main, ...defend] = settled.map(r => (r as PromiseFulfilledResult<{ out: OutputItem; bad: Set<string> } | null>).value);
     const done = [main, ...defend].filter((x): x is NonNullable<typeof x> => x !== null);
     const verdicts = (pick: (o: OutputItem) => { id: string; pass: boolean; evidence: string }[]) =>
       Object.fromEntries(done.flatMap(({ out, bad }) => pick(out).map(c => [c.id, { pass: c.pass && !bad.has(c.id), evidence: c.evidence }] as const)));
@@ -470,6 +609,31 @@ export async function gradeSet(entries: GradingEntry[], call: CallModel = anthro
     };
   };
 
-  const grades = new Map(await Promise.all(entries.map(async e => [e.key, await gradeOne(e)] as const)));
-  return { grades, usage, cost_usd: Number(cost.toFixed(6)), cost_usd_no_cache: Number(noCache.toFixed(6)), model_id: [...models].sort().join('+') || drillGraderModel(), prompt_version: GRADER_PROMPT_VERSION };
+  const grades = new Map<string, ItemGrade>();
+  const ungraded = new Map<string, Ungraded>();
+  await Promise.all(entries.map(async e => {
+    let outcome: AnswerOutcome;
+    try {
+      const graded = await gradeOne(e);
+      outcome = { graded, model_id: [...(answerModels.get(e.key) ?? [])].sort().join('+') || drillGraderModel() };
+      grades.set(e.key, graded);
+    } catch (err) {
+      if (!(err instanceof CallFailed)) throw err;
+      outcome = { ungraded: { reason: err.reason, error: err.message } };
+      ungraded.set(e.key, outcome.ungraded);
+    }
+    await opts.onAnswer?.(e.key, outcome);
+  }));
+  return {
+    grades, ungraded, usage, cost_usd: Number(cost.toFixed(6)), cost_usd_no_cache: Number(noCache.toFixed(6)),
+    model_id: [...models].sort().join('+') || drillGraderModel(), prompt_version: GRADER_PROMPT_VERSION,
+  };
+}
+
+// Every answer graded, or GradingError (the golden and comparison scripts).
+export async function gradeSet(entries: GradingEntry[], call: CallModel = anthropicCaller(), opts: GradeOptions = {}): Promise<SetGrade> {
+  const r = await gradeAnswers(entries, call, opts);
+  const [first] = r.ungraded.values();
+  if (first) throw new GradingError(first.error);
+  return r;
 }

@@ -8,9 +8,9 @@
 //
 //   npm run drills:industry            (new items only, about $0.007 each)
 //   npm run drills:industry -- --all
+import Anthropic from '@anthropic-ai/sdk';
 import fs from 'fs';
 import path from 'path';
-import Anthropic from '@anthropic-ai/sdk';
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
 import { FALLBACK_BETA, FALLBACKS } from '@/lib/models';

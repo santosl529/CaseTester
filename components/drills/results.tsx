@@ -21,15 +21,24 @@ const STATE_LABEL = {
 // bar, time against target, the mistake summary, the per-item breakdown and
 // next actions, and any skill state change. Workouts arrive in D4.
 export function SetResults({ results, checkin }: { results: Results; checkin?: Checkin | null }) {
-  const pct = Math.round(results.score * 100);
   const tierMoved = results.tier.after !== results.tier.before;
   return (
     <div className="space-y-6">
       <header className="space-y-1">
-        <h1 className="text-xl font-semibold">{results.drill.name}: {pct}%</h1>
+        <h1 className="text-xl font-semibold">{results.drill.name}: {results.score === null ? 'grading delayed' : `${Math.round(results.score * 100)}%`}</h1>
+        {results.ungraded > 0 && (
+          <p className="text-sm">
+            {results.score === null
+              ? 'We couldn\'t grade your written answers this time, so this set doesn\'t count toward your progress.'
+              : `We couldn't grade ${results.ungraded === 1 ? 'one of your answers' : `${results.ungraded} of your answers`}, so ${results.ungraded === 1 ? 'it doesn\'t' : 'they don\'t'} count toward your score or progress.`}
+            {' '}You can still compare with the strong answer below, or report a problem.
+          </p>
+        )}
         <p className="text-sm">
-          <span className={results.passed ? 'font-medium' : 'font-medium text-destructive'}>{results.passed ? 'Passed' : 'Not passed yet'}</span>
-          {' '}— the bar is {Math.round(results.pass_bar * 100)}%.
+          {results.score !== null && <>
+            <span className={results.passed ? 'font-medium' : 'font-medium text-destructive'}>{results.passed ? 'Passed' : 'Not passed yet'}</span>
+            {' '}— the bar is {Math.round(results.pass_bar * 100)}%.
+          </>}
           {results.untimed
             ? <>{' '}Time: {seconds(results.time_ms)}, untimed (the timed target is {seconds(results.target_ms)}).</>
             : <>{' '}Time: {seconds(results.time_ms)} of a {seconds(results.target_ms)} target.</>}

@@ -22,35 +22,59 @@ export const FALLBACK_BETA = 'server-side-fallback-2026-07-01' as const;
 export const FALLBACKS = 'default' as const;
 
 // Drills checklist grader (docs/prd-drills.md "Checklist grading call"): the
-// cheapest model that meets the 90% agreement gate on the golden sets. Haiku
-// 4.5 is the first candidate; re-test cheaper models when they ship.
+// cheapest model that meets the 90% agreement gate on the golden sets.
 export const DRILL_GRADER_MODEL_ID = 'claude-haiku-4-5';
-// Per million tokens, for grading_jobs.cost_usd.
+// Per million tokens, for the grading spend ledger.
 export const DRILL_GRADER_PRICE = { input: 1, output: 5, cache_write: 1.25, cache_read: 0.1 };
 
 // Candidate graders for the model comparison (2026-10-16; scripts pick one
-// with DRILL_GRADER_MODEL). Prices per million tokens, cache writes at the
-// 5-minute rate. Thinking is off on all three, as on Haiku 4.5 today: Sonnet
-// 5.5 rejects {type: "disabled"} and takes "between_tools"; neither newer
-// model accepts a non-default temperature, so only Haiku 4.5 keeps 0.
+// with DRILL_GRADER_MODEL outside production). Prices per million tokens,
+// cache writes at the 5-minute rate. Thinking is off on all three, as on Haiku
+// 4.5 today: Sonnet 5.5 rejects {type: "disabled"} and takes "between_tools";
+// neither newer model accepts a non-default temperature, so only Haiku 4.5
+// keeps 0. No server-side refusal fallback on any of them: it re-runs some
+// declined requests on a model that isn't approved for grading (cost
+// safeguards, Matt 2026-10-18).
 export type GraderModel = 'claude-haiku-4-5' | 'claude-sonnet-5-5' | 'claude-haiku-5-5';
 // rulesInSystem: the drill's grading rules go into the cached system prompt.
 // Only for models that can cache a prompt this short (512 tokens); on Haiku
 // 4.5 (4,096) moving them gained nothing and cost four checks in the gate.
-export const DRILL_GRADER_MODELS: Record<GraderModel, { price: typeof DRILL_GRADER_PRICE; temperature?: number; thinking?: { type: 'disabled' | 'between_tools' }; fallbacks?: boolean; rulesInSystem?: boolean }> = {
+export const DRILL_GRADER_MODELS: Record<GraderModel, { price: typeof DRILL_GRADER_PRICE; temperature?: number; thinking?: { type: 'disabled' | 'between_tools' }; rulesInSystem?: boolean }> = {
   'claude-haiku-4-5': { price: DRILL_GRADER_PRICE, temperature: 0 },
-  'claude-sonnet-5-5': { price: { input: 2, output: 10, cache_write: 2.5, cache_read: 0.2 }, thinking: { type: 'between_tools' }, fallbacks: true, rulesInSystem: true },
+  'claude-sonnet-5-5': { price: { input: 2, output: 10, cache_write: 2.5, cache_read: 0.2 }, thinking: { type: 'between_tools' }, rulesInSystem: true },
   'claude-haiku-5-5': { price: { input: 0.1, output: 0.5, cache_write: 0.125, cache_read: 0.01 }, thinking: { type: 'disabled' }, rulesInSystem: true },
 };
 
-// Which model grades which call (Matt, 2026-10-16, after the comparison):
-// Haiku 4.5 everywhere except the HY-2 follow-up's two calls (data request;
-// drop result and consistency), which Sonnet 5.5 grades. DRILL_GRADER_MODEL
-// forces one model for every call, for testing a candidate with one gate run.
-export const DRILL_GRADER_HY2_FOLLOWUP_MODEL: GraderModel = 'claude-sonnet-5-5';
-export function drillGraderModel(call: 'default' | 'hy2_followup' = 'default'): GraderModel {
+// The approved model for each grading call, hard-coded (Matt, 2026-10-16,
+// after the comparison; made the allowlist 2026-10-18): Haiku 4.5 everywhere
+// except the HY-2 follow-up's two calls (data request; drop result and
+// consistency), which Sonnet 5.5 grades. In production no other model may
+// grade, and DRILL_GRADER_MODEL is ignored; elsewhere it forces one model for
+// every call, for testing a candidate with one gate run.
+export type GraderCall = 'default' | 'hy2_followup';
+export const DRILL_GRADER_APPROVED: Record<GraderCall, GraderModel> = { default: DRILL_GRADER_MODEL_ID, hy2_followup: 'claude-sonnet-5-5' };
+export const DRILL_GRADER_HY2_FOLLOWUP_MODEL: GraderModel = DRILL_GRADER_APPROVED.hy2_followup;
+
+// The production deployment: Vercel's production environment (previews and
+// local builds aren't), or NODE_ENV=production off Vercel.
+export function isProductionDeploy(): boolean {
+  return process.env.VERCEL_ENV ? process.env.VERCEL_ENV === 'production' : process.env.NODE_ENV === 'production';
+}
+
+export function drillGraderModel(call: GraderCall = 'default'): GraderModel {
   const m = process.env.DRILL_GRADER_MODEL;
-  if (!m) return call === 'hy2_followup' ? DRILL_GRADER_HY2_FOLLOWUP_MODEL : DRILL_GRADER_MODEL_ID;
+  if (!m) return DRILL_GRADER_APPROVED[call];
+  if (isProductionDeploy()) {
+    console.warn(`drills: DRILL_GRADER_MODEL=${m} is ignored in production`);
+    return DRILL_GRADER_APPROVED[call];
+  }
   if (!(m in DRILL_GRADER_MODELS)) throw new Error(`DRILL_GRADER_MODEL ${m} isn't one of ${Object.keys(DRILL_GRADER_MODELS).join(', ')}`);
   return m as GraderModel;
+}
+
+// Checked before every grading request: in production only the approved
+// models, elsewhere any listed candidate. Anything else throws, unsent.
+export function assertDrillGraderModel(model: string): asserts model is GraderModel {
+  const allowed: string[] = isProductionDeploy() ? Object.values(DRILL_GRADER_APPROVED) : Object.keys(DRILL_GRADER_MODELS);
+  if (!allowed.includes(model)) throw new Error(`drills: ${model} isn't an approved grading model (${allowed.join(', ')})`);
 }

@@ -47,7 +47,7 @@ async function main() {
   const disagreements: string[] = [];
   let cost = 0, calls = 0, noCache = 0;
   const models = new Set<string>();
-  const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0, refusals: 0, fallbacks: 0 };
+  const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0, refusals: 0 };
   const verdicts: Record<string, Record<string, boolean | string | null>> = {};
   const errored: string[] = [];
   const count = (drill: string, id: string, agree: boolean, detail: string) => {
@@ -130,7 +130,7 @@ async function main() {
   const answers = golden.length;
   console.log(`model ${model}: ${answers} graded answers; input ${allInput} tokens (${usage.cache_read_input_tokens} read from cache, ${usage.cache_creation_input_tokens} written), output ${usage.output_tokens}`);
   console.log(`cost with caching $${cost.toFixed(4)} ($${(cost / answers).toFixed(5)} per answer); without caching $${noCache.toFixed(4)} ($${(noCache / answers).toFixed(5)} per answer)`);
-  console.log(`refusals ${usage.refusals} (fallback model served ${usage.fallbacks}); answers not graded ${errored.length}${errored.length ? `:\n- ${errored.join('\n- ')}` : ''}`);
+  console.log(`refusals ${usage.refusals}; answers not graded ${errored.length}${errored.length ? `:\n- ${errored.join('\n- ')}` : ''}`);
   if (save) fs.writeFileSync(save, JSON.stringify({ model, tally: Object.fromEntries(tally), usage, cost, no_cache_cost: noCache, answers, errored, verdicts }, null, 1));
   if (failed) process.exitCode = 1;
 }

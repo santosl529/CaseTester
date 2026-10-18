@@ -111,6 +111,9 @@ async function fourteenDayRule() {
 // Tier 2 runs Defend. The plan is set to three items with follow-ups so the
 // run doesn't depend on which items the planner happens to pick.
 async function defendSet(drillId: string) {
+  // One student writes more than a day's 40 graded answers here: earlier sets
+  // move to yesterday so the daily cap (cost controls) doesn't stop the run.
+  await db.update(drillSets).set({ startedAt: new Date(Date.now() - 86_400_000) }).where(eq(drillSets.studentId, student));
   const { set_id } = await startSet(student, { drill_id: drillId, tier: 2 });
   // Live since D5 shipped (2026-10-16); drafts carried the follow-ups before.
   const rows = await db.select().from(drillItems).where(and(eq(drillItems.drillId, drillId), eq(drillItems.status, 'live')));

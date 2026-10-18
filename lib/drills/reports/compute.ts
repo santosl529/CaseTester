@@ -22,8 +22,12 @@ export interface ReportData {
     setId: string; studentId: string; itemId: string | null; itemVersion: number | null; optionId: string | null;
     score: number | null; timeMs: number; skipped: boolean; defendScore: number | null; defendRight: boolean | null;
     graded: boolean; submittedAt: Date;
+    // AI grading gave up on it ("Grading delayed").
+    ungraded?: boolean;
   }[];
   jobs: { setId: string; status: string; retries: number; costUsd: number | null; createdAt: Date }[];
+  // One row per grading request, failed ones included (drill_grading_spend).
+  spend: { setId: string; costUsd: number; outcome: string; createdAt: Date }[];
   skillEvents: { studentId: string; skillId: string; toState: SkillState; createdAt: Date }[];
   prescriptions: { id: string; studentId: string; skillId: string; sourceType: string; status: string; createdAt: Date; closedAt: Date | null }[];
   cases: { studentId: string; completedAt: Date; rubric: Partial<Record<string, Rating>>; tags: string[] }[];
@@ -399,23 +403,28 @@ export const ALERT_OVER_BUDGET = 0.25;
 export function gradingCost(data: ReportData) {
   const jobs = data.jobs.filter(j => inRange(j.createdAt, data));
   const graded = data.attempts.filter(a => a.graded && inRange(a.submittedAt, data)).length;
-  const cost = jobs.reduce((n, j) => n + (j.costUsd ?? 0), 0);
+  // Spend comes from the per-request ledger, so failed runs count too.
+  const spend = data.spend.filter(r => inRange(r.createdAt, data));
+  const cost = spend.reduce((n, r) => n + r.costUsd, 0);
   const active = new Set(data.sets.filter(s => inRange(s.startedAt, data)).map(s => s.studentId)).size;
   const days = Math.max(1, (data.to.getTime() - data.from.getTime()) / DAY);
   // Per workout: grading cost of workout sets over the workouts they belong to.
   const workoutOf = new Map(data.sets.filter(s => s.workoutId).map(s => [s.id, s.workoutId!]));
-  const workoutJobs = jobs.filter(j => workoutOf.has(j.setId));
-  const workoutsGraded = new Set(workoutJobs.map(j => workoutOf.get(j.setId)!)).size;
+  const workoutSpend = spend.filter(r => workoutOf.has(r.setId));
+  const workoutsGraded = new Set(workoutSpend.map(r => workoutOf.get(r.setId)!)).size;
   return {
-    how: 'Grading jobs created in the range. Cost per workout counts workouts with at least one graded set. Cost per active student per month scales the range to 30 days. Agreement with human labels comes from the golden-set gate (npm run drills:golden); the monthly human sample of graded answers is not built yet.',
+    how: 'Jobs: grading jobs created in the range. Cost: every grading request sent in the range, failed ones included (the spend ledger). Not graded: answers grading gave up on ("Grading delayed"). Cost per workout counts workouts with at least one graded set. Cost per active student per month scales the range to 30 days. Agreement with human labels comes from the golden-set gate (npm run drills:golden); the monthly human sample of graded answers is not built yet.',
     jobs: jobs.length,
     failed: jobs.filter(j => j.status === 'failed').length,
     failure_rate: rate(jobs.filter(j => j.status === 'failed').length, jobs.length),
     retry_rate: rate(jobs.filter(j => j.retries > 0).length, jobs.length),
     cost_usd: cost,
+    requests: spend.length,
+    failed_requests: spend.filter(r => r.outcome !== 'ok').length,
     graded_answers: graded,
+    ungraded_answers: data.attempts.filter(a => a.ungraded && inRange(a.submittedAt, data)).length,
     cost_per_graded_answer: rate(cost, graded),
-    cost_per_workout: rate(workoutJobs.reduce((n, j) => n + (j.costUsd ?? 0), 0), workoutsGraded),
+    cost_per_workout: rate(workoutSpend.reduce((n, r) => n + r.costUsd, 0), workoutsGraded),
     active_students: active,
     cost_per_active_student_month: active ? (cost / active) * (30 / days) : null,
   };

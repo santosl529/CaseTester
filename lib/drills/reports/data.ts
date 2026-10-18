@@ -6,7 +6,7 @@ import 'server-only';
 import { and, eq, gte, inArray, lt } from 'drizzle-orm';
 import { db } from '@/db/client';
 import {
-  analyticsEvents, caseResults, diagnostics, drillAttempts, drillItems, drillSets, gradingJobs, lessonViews, lessons as lessonsTable,
+  analyticsEvents, caseResults, diagnostics, drillAttempts, drillGradingSpend, drillItems, drillSets, gradingJobs, lessonViews, lessons as lessonsTable,
   prescriptions, skillStateEvents, studentPrograms, studentProfiles, workouts,
 } from '@/db/schema';
 import { DRILL_EVENT_PROPS } from '../event-props';
@@ -29,7 +29,7 @@ export async function loadReportData(filter: ReportFilter): Promise<ReportData> 
   const students = filter.orgId ? profiles : profiles.filter(p => !TEST_ORGS.includes(p.orgId ?? ''));
   const ids = students.map(s => s.id);
   const empty: ReportData = {
-    from: filter.from, to: filter.to, students, programs: [], sets: [], attempts: [], jobs: [], skillEvents: [], prescriptions: [], cases: [],
+    from: filter.from, to: filter.to, students, programs: [], sets: [], attempts: [], jobs: [], spend: [], skillEvents: [], prescriptions: [], cases: [],
     lessonViews: [], workouts: [], diagnosticsCompleted: [], events: [], items: new Map(),
   };
   if (ids.length === 0) return empty;
@@ -57,6 +57,10 @@ export async function loadReportData(filter: ReportFilter): Promise<ReportData> 
   const jobs = setIds.length
     ? await db.select({ setId: gradingJobs.setId, status: gradingJobs.status, retries: gradingJobs.retries, costUsd: gradingJobs.costUsd, createdAt: gradingJobs.createdAt })
       .from(gradingJobs).where(inArray(gradingJobs.setId, setIds))
+    : [];
+  const spend = setIds.length
+    ? await db.select({ setId: drillGradingSpend.setId, costUsd: drillGradingSpend.costUsd, outcome: drillGradingSpend.outcome, createdAt: drillGradingSpend.createdAt })
+      .from(drillGradingSpend).where(inArray(drillGradingSpend.setId, setIds))
     : [];
 
   // Authored item versions with attempts: their options, tier and Defend type.
@@ -88,10 +92,11 @@ export async function loadReportData(filter: ReportFilter): Promise<ReportData> 
       return {
         setId: a.setId, studentId: a.studentId, itemId: a.itemId, itemVersion: a.itemVersion, optionId: first?.type === 'choice' ? first.option_id ?? null : null,
         score: a.score, timeMs: a.timeMs, skipped: a.skipped, defendScore: a.defendScore, defendRight: decision ? decision.right : null,
-        graded: a.gradingStatus === 'graded' && a.modelId !== null, submittedAt: a.submittedAt,
+        graded: a.gradingStatus === 'graded' && a.modelId !== null, ungraded: a.gradingStatus === 'failed', submittedAt: a.submittedAt,
       };
     }),
     jobs,
+    spend,
     skillEvents: skillEvents.map(e => ({ studentId: e.studentId, skillId: e.skillId, toState: e.toState as SkillState, createdAt: e.createdAt })),
     prescriptions: rx.map(p => ({ id: p.id, studentId: p.studentId, skillId: p.skillId, sourceType: p.sourceType, status: p.status, createdAt: p.createdAt, closedAt: p.closedAt })),
     cases: cases.map(c => ({

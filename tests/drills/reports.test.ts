@@ -11,7 +11,7 @@ const at = (days: number, minutes = 0) => new Date(T0.getTime() + days * DAY + m
 function data(over: Partial<ReportData> = {}): ReportData {
   return {
     from: at(0), to: at(28), students: [{ id: 's1', orgId: 'club' }, { id: 's2', orgId: 'club' }],
-    programs: [], sets: [], attempts: [], jobs: [], skillEvents: [], prescriptions: [], cases: [], lessonViews: [], workouts: [],
+    programs: [], sets: [], attempts: [], jobs: [], spend: [], skillEvents: [], prescriptions: [], cases: [], lessonViews: [], workouts: [],
     diagnosticsCompleted: [], events: [], items: new Map(), ...over,
   };
 }
@@ -194,15 +194,24 @@ describe('pilot reports (PRD "MVP reports")', () => {
       from: at(21), to: at(28),
       sets: [set({ startedAt: at(22), workoutId: 'w' })],
       jobs: [
-        { setId: 'x', status: 'succeeded', retries: 0, costUsd: 0.5, createdAt: at(22) },
-        { setId: 'x', status: 'failed', retries: 1, costUsd: null, createdAt: at(23) },
+        { setId: 'x', status: 'succeeded', retries: 0, costUsd: 0.45, createdAt: at(22) },
+        { setId: 'x', status: 'failed', retries: 1, costUsd: 0.05, createdAt: at(23) },
+      ],
+      // The failed run's spend counts: cost comes from the request ledger.
+      spend: [
+        { setId: 'x', costUsd: 0.05, outcome: 'invalid_output', createdAt: at(22) },
+        { setId: 'x', costUsd: 0.4, outcome: 'ok', createdAt: at(22) },
+        { setId: 'x', costUsd: 0.05, outcome: 'ok', createdAt: at(23) },
+        { setId: 'x', costUsd: 9, outcome: 'ok', createdAt: at(10) },
       ],
       attempts: [attempt({ graded: true, submittedAt: at(22) }), attempt({ graded: true, submittedAt: at(22) })],
     });
     const c = gradingCost(d);
-    expect(c.cost_per_graded_answer).toBe(0.25);
+    expect(c.cost_per_graded_answer).toBeCloseTo(0.25);
+    expect(c.requests).toBe(3);
+    expect(c.failed_requests).toBe(1);
     expect(c.failure_rate).toBe(0.5);
-    expect(c.cost_per_workout).toBe(0.5);
+    expect(c.cost_per_workout).toBeCloseTo(0.5);
     expect(c.cost_per_active_student_month).toBeCloseTo(0.5 * 30 / 7);
     // $2.14 a month is over $1.25 + 25%.
     expect(costAlert(d).alert).toBe(true);
