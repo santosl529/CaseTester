@@ -1,6 +1,6 @@
 # AI Casing — Drills PRD
 
-Oct 11, 2026 · @Matt
+Oct 18, 2026 · @Matt · Updated to match the build on the `drills` branch (D0–D5 done, D6 in progress)
 
 > Revision log
 > - 2026-10-05: Saved to the repo. Applied the review fixes (test-out tier, skills with no Level 2 drill, review set size, `case_type` and next-case fallback, desktop-first, QN-3 trap precedence, scope wording, `org_id`, grading model, chart renderer). Drill specs moved into catalog order; their content is unchanged.
@@ -12,6 +12,9 @@ Oct 11, 2026 · @Matt
 > - 2026-10-11: D4 decisions: retakes can't validate a skill; industry tags (Matt's list and rules); the approved case-type map; the diagnostic as 10 resumable parts with placement, prescriptions and the move to Foundations; lessons as markdown files with a review page; weekly case targets count completed case sessions; new `diagnostics` table and `student_programs.current_week`.
 > - 2026-10-11: D3 decisions: primary skills per drill (only they change state), cross-skill prescriptions weighted as in a case, the supersede rule when a new case arrives, the extra `skill_states` columns, and where the case-type list lives.
 > - 2026-10-11: **v2 merged.** Adds the training program (diagnostic, tracks, plans, workouts, Practice on my own, lessons), the skill tree, drill chains with Repair drills, the Defend step, the Practiced state and transfer checks. Kept from v1: the PS-3, HY-2, SY-2 and CL-3 sections as built (Defend added), the content-review tags, and the build details from the revisions above. Matt's decisions applied: test-out at tier 2 (with Defend once it ships); grading stays at set completion; pilot with the current Level 1 pools; student time zone stored at signup; Browse cases belongs to the case product; set size by tier; taxonomy stays `v1`; skill tree approved.
+> - 2026-10-12 to 10-16: D3, D4 and D5 built. Grader rules rewritten check by check against the golden sets; the grader is Haiku 4.5, with Sonnet 5.5 for the HY-2 follow-up (model comparison 2026-10-16). Repair drills and Defend follow-ups shipped before the pilot rather than during it.
+> - 2026-10-17: Lessons v2 (nine sections, 600 words, summary card outside Foundations), the intro lesson and the Defending-your-answer trigger; the lesson-vs-item scenario rule; the CL-3 specific-requests rule; the daily cap counts answers (150); D6 events, accessibility audit, reports, No time limit, and pilot feedback (feedback button, Report a problem with grade disputes, check-ins).
+> - 2026-10-18: Getting a plan (case, diagnostic or questionnaire; quick checks; Your plan screen), timer choice and Hide timer, timer pauses, drill cards with descriptions on Browse, drills listed on Learn, and the diagnostic lost-update fix. This revision also brings every section in line with what was built: endpoints, components, pool sizes, cost, phases and the definition of done.
 
 ## What's new in v2
 
@@ -31,6 +34,16 @@ v2 turns drills into a structured training program: a diagnostic, three tracks w
 | Alignment fixes | One AI call per answer; at most 2 of 3 case prescriptions from one skill area; the grader can override default severity | Scoring, Prescription engine, Skill taxonomy | — |
 
 Considered and not in this release: hints inside drills, an "unsure" grading flag, case replay, a separate AI coach, voice and gamification.
+
+### Built since v2 (D5–D6)
+
+| Change | What it means for students | Where in this PRD |
+| --- | --- | --- |
+| Three ways to get a plan | A plan comes from a full case, the diagnostic or a 2–3 minute questionnaire, whichever is first; week 1 starts that day | Training program: Getting a plan |
+| Timer options | Timed or No timer at the start of a set, Hide timer at any time; No time limit in Settings (WCAG 2.2.1) | User experience, Accessibility |
+| Pilot feedback | A feedback button on every page, Report a problem on items and results (grade disputes), and short check-ins | Pilot feedback |
+| Clearer Browse and Learn | Drill cards by interview stage, each with what you do and how it helps; lessons list their drills | Browse drills, Lessons |
+| Reports | Local pilot reports page: funnels, effectiveness, cost alert, flagged and reported items, feedback, pauses | Analytics: MVP reports |
 
 ## Overview
 
@@ -62,14 +75,14 @@ Drills are a parallel workstream to the case interview build (technical PRD §11
 | Students who drill, then take another case | ≥ 50% within 14 days | Case start after a drill set completion |
 | Improvement on the drilled dimension | ≥ 60% of students who reach Mastered score higher on that dimension in their next comparable case | Rubric dimension score, same difficulty tier |
 | Transfer check first-attempt pass rate | 60–85% (lower: drills don't transfer; higher: checks are too easy) | `transfer_check_completed` |
-| Drill grading cost per active student | ≤ $1.25 per month (pilot budget, to confirm) | `grading_jobs.cost_usd` / monthly active students |
-| AI checklist agreement with human reviewers | ≥ 90% per check | Monthly sample of 100 graded answers |
+| Drill grading cost per active student | ≤ $1.25 per month (pilot budget, confirmed 2026-10-18) | `grading_jobs.cost_usd` / monthly active students |
+| AI checklist agreement with human reviewers | ≥ 90% per check | The golden-set gates, with disputed answers Matt labels added to them |
 | Auto-checked feedback latency | < 300 ms p95 | Server timing |
 | AI-graded set results latency | < 10 s p95 after the last answer | Server timing |
 
 ## Scope
 
-The MVP ships 18 priority-0 drills (the original 15, live for the pilot, plus 3 Repair drills added during it) and the training program (diagnostic, tracks, plans, workouts, skill tree, transfer checks and lessons for P0 skills), plus the infrastructure every later drill plugs into.
+The MVP ships 18 priority-0 drills (the original 15 plus the 3 Repair drills; all 18 are live) and the training program (diagnostic, tracks, plans, workouts, skill tree, transfer checks and lessons for P0 skills), plus the infrastructure every later drill plugs into.
 
 ### Priority definitions
 
@@ -137,7 +150,10 @@ Every part of the system uses these terms with exactly these meanings; the API, 
 | Lesson | A short static page per skill: the idea, the pattern, worked examples, tricky cases, the common mistakes and a quick check. | "Building a case-specific framework" |
 | Track | The program a student follows: Foundations, Standard or Sprint. | Standard |
 | Program plan | A track's schedule: weekly focus skill areas, workout and case targets, and milestones. | Week 2: Hypotheses and exhibits |
-| Diagnostic | A 15-minute mixed set at signup that places each skill and suggests a track. | — |
+| Diagnostic | A 15-minute mixed set that places each skill; one of the three plan sources. | — |
+| Plan source | What a student's plan was built from: a full case, the diagnostic or the questionnaire (in that order of reliability). | `questionnaire` |
+| Questionnaire | A 2–3 minute alternative to the diagnostic: the onboarding answers plus a 1–5 self-rating for four areas and the hardest one. | — |
+| Quick check | A half-size set at the start of a workout that confirms a questionnaire placement and re-places the skill. | "Quick check: confirms where you start in MECE structure" |
 | Attempt | One student's response to one item. | — |
 | Skill state | Where a student stands on a skill: Not started, Learning, Recognizes, Practiced, Mastered, Validated. | `QN.setup`: Practiced |
 | Prescription | A recommended drill set for a skill, created from mistake tags, the diagnostic or the plan, with a reason shown to the student. | "You set up the margin calculation incorrectly twice in your last case." |
@@ -169,7 +185,7 @@ Students who don't want a plan choose **Practice on my own** at onboarding or in
 
 |  | Plan tracks | Practice on my own |
 | --- | --- | --- |
-| Diagnostic | Offered at onboarding | Offered at onboarding |
+| Getting a plan (case, diagnostic or questionnaire) | Makes the plan | Makes the starting point and suggestions |
 | Weekly targets, milestones, week themes | Yes | No |
 | Plan prescriptions | Yes | No |
 | Case and drill prescriptions (weaknesses) | Yes | Yes, shown as suggestions |
@@ -183,12 +199,12 @@ Students who don't want a plan choose **Practice on my own** at onboarding or in
 - **Home for self-directed students:**
   - **Suggested next:** one recommended set with its reason and time, chosen by the same rules as a workout's slots (top weakness first, then a due transfer check or review). One tap starts it; it is never required. At most one suggestion card on the home screen.
   - **Your weaknesses:** the top 3 weak skills with evidence (how often their mistakes appeared and the latest quote from a case or drill).
-  - **Your progress:** skills that moved up in the last 7 days, counts of skills at Practiced and Mastered, and the case rubric trend.
+  - **Your progress:** skills that moved up in the last 7 days, and counts of skills at Practiced and Mastered. (The case rubric trend is on Your skills.)
   - **Due now:** reviews and transfer checks that are due, each startable in one tap.
   - **Browse drills** as the main entry point, plus a link to the case library (case product).
 - **Weekly summary:** every Monday, in the student's time zone, the home shows a short recap: sets and cases done, skills that moved up, and the current weakest skill.
 - **Interview date** still works: if it is 14 or fewer days away, the home offers the Sprint plan but doesn't switch automatically.
-- **Switching to a plan** keeps all skill states. If the student took the diagnostic in the last 30 days, the plan uses it; otherwise the diagnostic is offered again.
+- **Switching to a plan** keeps all skill states and the plan source, and week 1 starts that day. (A 30-day rule for re-offering the diagnostic is not built.)
 
 ### Onboarding and diagnostic
 
@@ -312,19 +328,21 @@ Students should rarely have to choose what to do: the training home leads with t
 - This week's targets: workouts and cases done against planned ("3 of 4 workouts, 1 of 2 cases") and the week's milestone skills with their current state.
 - Weakest skill right now, with the evidence behind it: how often its mistake tags appeared recently and the latest quote.
 - A **Next case** card appears when the plan has a case left this week, or when every open prescription is at Practiced or above. It is a suggestion, not a lock.
-- Secondary links: **Browse drills** opens the drill library; **Learn** opens the lesson library; a link to the case library (case product).
+- Secondary links: **Your plan**, **Browse drills**, **Learn**, **Your skills**, **Settings**, and a link to the case library (case product).
+- Before a plan exists the home leads with **Get your plan** (three options); a new plan not yet opened leads with **Your plan is ready**. Foundations students see the intro lesson card first; check-ins appear at the top when due. The feedback button is in the corner of every drills page.
 
 Students on Practice on my own see the self-directed home instead (see Training program): Suggested next, weaknesses, progress, due items, and Browse drills.
 
 ### What the home serves (in order)
 
-1. No onboarding yet: the onboarding questions and diagnostic (see Training program).
-2. An unfinished drill set from the last 24 hours (resume).
-3. The rest of today's workout, if it was started.
-4. A new workout built by the workout rules (see Training program).
-5. If today's workout is done: the Next case card if the plan has a case left this week, otherwise an optional extra workout.
+1. No onboarding yet: the onboarding questions.
+2. No plan yet: Get your plan (the questionnaire, the diagnostic or a case). No workouts are built until one is done.
+3. An unfinished drill set from the last 24 hours (resume).
+4. The rest of today's workout, if it was started.
+5. A new workout built by the workout rules (see Training program).
+6. If today's workout is done: "Workout done", and the Next case card if the plan has a case left this week. (An optional extra workout is not built; Browse drills is always available.)
 
-For self-directed students, steps 3–5 are replaced by the Suggested next card.
+For self-directed students, steps 4–6 are replaced by the Suggested next card.
 
 ### Drill intro screen
 
@@ -338,7 +356,7 @@ For self-directed students, steps 3–5 are replaced by the Suggested next card.
 
 - Prompt, any exhibit (chart or table), the input and a visible countdown timer, with **Hide timer** / **Show timer** at any time (hidden: "Less than 10 seconds left" appears near the end).
 - **Pauses (D6 round 2):** while Report a problem or the feedback box is open, the item's clock is paused; time spent in them doesn't count toward the item's time. Each pause is logged and shown in the reports. Check-ins appear only outside items, so they never run against a clock.
-- Input types: single choice, multi-select, ordering (drag or keyboard), numeric entry and free text with a live word counter that blocks typing past the cap.
+- Input types: single choice, multi-select (QN-5 driver cards), numeric entry, number sets, structured buckets (PS-3, PS-4) and free text with a live word counter that blocks typing past the cap. Ordering (drag or keyboard) is specified for P1 drills and not built.
 - Numeric entry accepts common formats and parses them: `2.5M`, `2,500,000`, `2.5 million`, `$2.5m`, `25%`, `0.25` (where the item expects a percent, both `25` and `0.25` are accepted if the item allows it).
 - When time runs out, the item auto-submits whatever is entered. Empty answers score 0 and log `M.timeout`.
 - **Skip** is allowed; it scores 0 and logs `M.skipped`. Skips are excluded from mistake analysis.
@@ -377,6 +395,7 @@ For self-directed students, steps 3–5 are replaced by the Suggested next card.
 ### Browse drills (practice something specific)
 
 - Available to every student, on a plan or not. **Drill cards** (D6 round 2) are grouped by the interview stage they train (Clarify, Structure, Analyze, Recommend, from the intro lesson's stage-to-skill mapping). Each card shows two short lines (what you do; how it helps in the interview), the stage(s), the skills, the number of items, the time at the student's tier, and a tier to start at. The lines live in `lib/drills/config/drill-descriptions.json`.
+- The two lines were approved by Matt on 2026-10-18.
 - Below the cards, **Practice a skill** lists skills by area with their state, a **Suggested** badge if the skill has an open prescription, the short lesson and **Quick start**.
 - **Quick start:** pick a skill; the system picks the drill, stage and tier from the student's skill state.
 - **Pick exactly:** choose a specific drill and stage. The tier can be any level up to one above the student's current tier on that drill (first time: tier 1 or 2), so nobody starts at the hardest level cold.
@@ -964,7 +983,7 @@ Set score = the average item score. Feedback text for every tag and check comes 
 
 ### Checklist grading call
 
-One call per written answer, made after the last item of the set; a set's calls run in parallel. Each Repair answer, Construct answer and Defend reply is graded in its own call, so a student's score never depends on their other answers: when answers shared a call, the grader's verdicts shifted with whatever else was in it (the same answer could lose 15–40 points depending on its neighbors). Calls are never batched. Grading moves to "as soon as each answer is submitted" only if results p95 goes over 10 s.
+One call per written answer, made after the last item of the set; a set's calls run in parallel. (HY-2 adds a short stage-1 call to classify the hypothesis family, and its follow-up's data request is graded in its own call that sees only the reply.) Each Repair answer, Construct answer and Defend reply is graded in its own call, so a student's score never depends on their other answers: when answers shared a call, the grader's verdicts shifted with whatever else was in it (the same answer could lose 15–40 points depending on its neighbors). Calls are never batched. Grading moves to "as soon as each answer is submitted" only if results p95 goes over 10 s.
 
 - **Model:** The cheapest model tier that meets the 90% agreement target on the golden set (see below), chosen per check. Structured JSON output enforced by schema.
 - **Grader per check (2026-10-16):** Claude Haiku 4.5 (temperature 0) grades every check except the HY-2 follow-up's (data request, drop result, consistency), which Claude Sonnet 5.5 grades (thinking off, grading rules in its cached system prompt). Chosen from a two-run comparison of Haiku 4.5, Sonnet 5.5 and Haiku 5.5 on every golden set: only this mix cleared 90% on every check with fewer than 3% of verdicts changing between runs. About $0.0045 per graded answer without caching (about $0.91 per student per month at 200 answers).
@@ -998,11 +1017,10 @@ Example output for one item:
 ### Grading quality
 
 - **Golden set:** each AI-graded drill and each Defend follow-up type has at least 30 human-graded answers, including edge cases (very short answers, off-topic answers, injection attempts, borderline passes).
-- **Release gate:** any change to a grading prompt, model or checklist must reach at least 90% agreement with human labels on every check before it ships. This runs automatically in CI.
+- **Release gate:** any change to a grading prompt, model or checklist must reach at least 90% agreement with human labels on every check before it ships. It is run by hand (`npm run drills:golden`; it costs a few dollars, so not in CI), along with `npm run drills:models` (every model answer scores 100%, unchanged across 3 runs). Today every check in all 11 gates is at 90% or above (grader `drills-grader-v34`).
 - **Labels follow the written rules, never grader output.** Each label cites the rule in `docs/drills-grading-guide.md` that decides it. A disagreement found in a gate run is reported and may lead to a proposed rule change; labels are never changed to match the grader. When a rule changes, every label in every affected golden set is rechecked against it, and each change is listed with its before and after.
 - **Versioning:** every grade stores `grader_prompt_version` and `model_id`.
-- **Monthly audit:** 100 randomly sampled graded answers are reviewed by a human; agreement is reported per check, including Defend checks.
-- **Disputes (P1):** a "Disagree with this grade?" link on the results screen logs the item for QA review. Disputes don't change the score automatically.
+- **Disputes (built for the pilot, see Pilot feedback):** "Report a problem" → "My grade seems unfair" on the item or results screen. Disputes don't change the score; Matt labels each disputed check in the review queue and `npm run drills:export-disputes` adds the labeled answers to the golden sets.
 
 ## Mastery and adaptive progression
 
@@ -1241,7 +1259,7 @@ New in v2:
 ### Lessons
 
 - Format: `lesson_id`, `skill_id`, `version`, `status` (draft, in\_review, live, retired), `body` (markdown, 600 words or fewer, title included), `worked_example`, `mistakes` (list of {tag, one-line explanation}), `authorship`.
-- Same workflow as authored items: AI-drafted from a lesson prompt and this PRD, reviewed by a human who becomes author of record, similarity-checked, versioned.
+- Same workflow as authored items: AI-drafted from a lesson prompt and this PRD, reviewed by a human who becomes author of record, versioned. Lessons are checked against drill-item scenarios (below); they have not been through the web similarity check.
 - The reviewer confirms the pattern matches how the drill's answer keys grade, so lessons never teach something the checklists penalize.
 - Authoring: one markdown file per lesson in `/lessons`. Each file has front matter, then nine sections: The idea, Why interviewers care, Why it works, The pattern, Worked example, Another example, Tricky cases, Common mistakes, and Quick check (a question, then a line starting "**Answer:**"). Validation checks:
   - the 600-word limit;
@@ -1258,28 +1276,28 @@ New in v2:
 
 ### Launch pool sizes (P0)
 
-| Drill | Authored items at launch | Reason |
-| --- | --- | --- |
-| PS-1 Spot the gap | 80 | 10 sets before repeats |
-| PS-3 Framework builder | 40, each with a Defend follow-up | 10+ sets before repeats; also feeds transfer checks |
-| PS-4 Fix the framework | 40 (derived from PS-1) | 8 sets before repeats |
-| HY-1 Pick the best hypothesis | 80 | 10 sets before repeats |
-| HY-2 Initial hypothesis | 40, each with a Defend follow-up | 10+ sets before repeats |
-| HY-3 Fix the hypothesis | 40 (derived from HY-1) | 6–7 sets before repeats |
-| QN-5 Market sizing | 30 | 10 sets before repeats |
-| EX-1 Chart read | 80 | 10 sets before repeats |
-| SY-1 Pick the best summary | 80 | 10 sets before repeats |
-| SY-2 60-second recommendation | 30, each with a Challenge follow-up | 10 sets before repeats |
-| SY-3 Fix the recommendation | 30 (derived from SY-1) | 6 sets before repeats |
-| CL-1 What's next? | 80 | 10 sets before repeats |
-| CL-3 What do you need to know? | 40, each with a Defend follow-up | 10+ sets before repeats |
-| Lessons | 23, plus the intro | One per skill trained by a P0 drill, plus Defending your answer (`CL.pushback`) and How a case interview works |
+| Drill | Authored items at launch | Reason | Live now (2026-10-18) |
+| --- | --- | --- | --- |
+| PS-1 Spot the gap | 80 | 10 sets before repeats | 50 |
+| PS-3 Framework builder | 40, each with a Defend follow-up | 10+ sets before repeats; also feeds transfer checks | 40, all with follow-ups |
+| PS-4 Fix the framework | 40 (derived from PS-1) | 8 sets before repeats | 40 |
+| HY-1 Pick the best hypothesis | 80 | 10 sets before repeats | 45 |
+| HY-2 Initial hypothesis | 40, each with a Defend follow-up | 10+ sets before repeats | 40, all with follow-ups |
+| HY-3 Fix the hypothesis | 40 (derived from HY-1) | 6–7 sets before repeats | 40 |
+| QN-5 Market sizing | 30 | 10 sets before repeats | 30 |
+| EX-1 Chart read | 80 | 10 sets before repeats | 45 |
+| SY-1 Pick the best summary | 80 | 10 sets before repeats | 40 |
+| SY-2 60-second recommendation | 30, each with a Challenge follow-up | 10 sets before repeats | 30, all with follow-ups |
+| SY-3 Fix the recommendation | 30 (derived from SY-1) | 6 sets before repeats | 30 |
+| CL-1 What's next? | 80 | 10 sets before repeats | 40 |
+| CL-3 What do you need to know? | 40, each with a Defend follow-up | 10+ sets before repeats | 40, all with follow-ups |
+| Lessons | 23, plus the intro | One per skill trained by a P0 drill, plus Defending your answer (`CL.pushback`) and How a case interview works | 23 plus the intro |
 
 QN-1, QN-3, QN-4, EX-2 and EX-3 are fully generated and need no authored pool.
 
 **Pilot exception:** the pilot runs with the current Level 1 pools (40–50 items per drill: PS-1 50, HY-1 45, EX-1 45, SY-1 40, CL-1 40). They grow to 80 before wider launch, guided by item-health data from the pilot.
 
-v2 adds about 110 Repair items, 150 Defend follow-ups and 22 lessons to review before launch: roughly 280 pieces on top of the existing items. Repair items reuse existing scenarios, so most of the work is writing and checking the repair key.
+v2 added 110 Repair items, 150 Defend follow-ups and 23 lessons plus the intro, all reviewed and live (2026-10-16 and 10-17). The Level 1 pools still need to grow to 80 before wider launch.
 
 ### Serving rules
 
@@ -1316,7 +1334,7 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `student_profiles` | user\_id, org\_id (nullable), timezone, created\_at | The student record. The app has no users table, so drills adds this one. `timezone` is the browser's IANA time zone, stored at signup |
 | `student_drill_settings` | student\_id, time\_multiplier (1, 1.5, 2), untimed, hide\_timer, skipped\_examples\[\] | Extends `student_profiles`. `interview_date` moves to `student_programs` |
 | `drill_items` | item\_id, version, drill\_id, status (draft, in\_review, live, retired), is\_example, stage, industry, tier, skills\[\], payload (JSON, per Content system), authorship (JSON), created\_at | Authored items only; generated items are rebuilt from seeds |
-| `drill_item_stats` | item\_id, version, attempts, correct\_rate, avg\_time\_ms, option\_counts (JSON), computed\_at | Refreshed daily |
+| `drill_item_stats` | item\_id, version, attempts, correct\_rate, avg\_time\_ms, option\_counts (JSON), computed\_at | Refreshed daily (not used in the pilot: the reports compute item health from `drill_attempts`) |
 | `drill_sets` | set\_id, student\_id, drill\_id, level, stage, tier, size, untimed, timer\_hidden, paused\_at, paused\_ms, is\_placement\_check, source (prescription, continue, specific, review, diagnostic, plan), prescription\_id, workout\_id, slot (weak, review, unfamiliar), is\_transfer\_check, focus\_skill, focus\_tag, item\_plan (JSON), status (in\_progress, grading, completed, expired), current\_position, current\_served\_at, pending\_step (JSON), set\_score, passed, skill\_scores (JSON), taxonomy\_version, started\_at, completed\_at | One row per set. Items are served in order, so the timer for the item in play lives here (`current_served_at`). `item_plan` fixes the set's items at start. `pending_step` holds a multi-step item's finished steps, so a step can't change after its feedback is shown. One in-progress set per student, enforced by a unique index. Browse drills sets use `specific` |
 | `drill_attempts` | attempt\_id, set\_id, student\_id, position, idempotency\_key, item\_id + item\_version **or** template\_id + template\_version + seed (enforced by a check constraint), response (JSON), served\_at, time\_ms, time\_limit\_ms, timed\_out, skipped, score, step\_scores (JSON), mistake\_tags\[\], check\_results (JSON: check\_id, pass, evidence), red\_flags\[\], defend\_response (JSON: decision, text), defend\_time\_ms, defend\_score, defend\_check\_results (JSON), grading\_status, grader\_prompt\_version, model\_id, submitted\_at | One row per item answered; the Defend step is part of the same row. Never deleted |
 | `grading_jobs` | job\_id, set\_id, status, retries, input\_tokens, output\_tokens, cost\_usd, latency\_ms, error, created\_at | Tracks AI grading for a set |
@@ -1354,7 +1372,7 @@ The drills system is seven logical components behind one student-facing API; AI 
 The components below are modules in the existing Next.js app (`lib/drills/*`), not separate services:
 
 - Student-facing endpoints are Next.js route handlers and server actions.
-- The grading queue is a Postgres table (`grading_jobs`). A job is started right after set completion (`after()`), and a Vercel cron retries failed jobs and finishes delayed grading within the 10-minute window.
+- The grading queue is a Postgres table (`grading_jobs`). A job is started right after set completion (`after()`); the results page retries while it polls, and `GET /api/internal/drills/grading` (Bearer `CRON_SECRET`) retries the rest for a Vercel Cron. The cron schedule is not set up yet.
 - Case results reach the progress engine as an in-process function call from the scoring code, not an HTTP endpoint.
 - Workouts are built on request (the first home load of the day), not by a scheduled job.
 
@@ -1368,7 +1386,7 @@ The components below are modules in the existing Next.js app (`lib/drills/*`), n
 | Grading worker | Consumes grading jobs from the queue, calls the model (one call per answer), validates output and quotes, writes results |
 | Progress engine | Updates skill states, stages and tiers, runs transfer checks, the prescription rules and the stuck rule, schedules spaced reviews. Triggered by set completion and by case results |
 | Program engine | Assigns tracks, builds and compresses plans, tracks weekly targets and milestones, creates plan prescriptions and builds each day's workout. No AI |
-| Content admin (internal) | Authoring, review workflow, preview, publish and retire for authored items and lessons; item health dashboard |
+| Content admin (internal) | Built as files and scripts, not an app: content is authored as CSVs (`docs/drills-content/`) and markdown (`/lessons`), imported (`npm run drills:import`), checked by tests and seeding scripts, and published with `npm run db:seed-drill-items` / `db:seed-lessons`. Local-development pages: lesson review (`/drills/review/lessons`), pilot reports (`/drills/reports`, item health included) and the report review queue (`/drills/review/reports`) |
 
 The shared chart renderer is a frontend component.
 
@@ -1384,15 +1402,13 @@ Route handlers live under `/api`. Each endpoint is marked with the phase that bu
 | `PUT /api/drills/program` (D4) | Switch track, change interview date or availability | Rebuilt plan |
 | `GET /api/drills/workouts/today` (D4) | Builds today's workout if none exists | Blocks with slot, reason and estimated minutes |
 | `GET /api/drills/catalog` (D4) | Browse drills | Skill areas, skills with state and stage, drills by stage, allowed tiers, Suggested badges |
-| `GET /api/drills/suggested-next` (D4) | Suggested next set for self-directed students (also used for the home card) | Drill, stage, tier, reason, estimated minutes |
-| `GET /api/drills/progress/summary` (D4) | Weaknesses, recent progress, due reviews and transfer checks, weekly summary | Top 3 weak skills with evidence, skills moved up, due items |
-| `GET /api/drills/lessons/{skill_id}` (D4) | Lesson for a skill | Lesson content |
+| `GET` / `POST /api/drills/diagnostic`, `POST /api/drills/diagnostic/skip` (D4) | The diagnostic's parts and placement; start or resume; stop for now | Diagnostic view |
+| `GET /api/drills/next-case?case=` (D4) | Logs the Next case click and goes to the case product | Redirect |
 | `POST /api/drills/lessons/{lesson_id}/views` (D4) | Log a view or skip | — |
-| `POST /api/drills/sets` | Start a set. Body: `skill_id` with an optional `level` (Practice something specific), or `drill_id` (Retry this set). Later phases add `source` (prescription, workout, diagnostic), `prescription_id`, and `drill_id` + `stage` + `tier` for Pick exactly; the server rejects a tier more than one above the student's current tier | `set_id` |
+| `POST /api/drills/sets` | Start a set. Body: `skill_id` (with `quick_start`, or an optional `level`), `drill_id` (Retry this set, or Pick exactly with `tier`; the server rejects a tier more than one above the student's current tier), `prescription_id`, `workout_id` + `block`, `diagnostic_part`; flags `browse`, `suggestion` (the card's reason and slot) and `placement_check`. Refused when it would pass 150 AI-graded answers in 24 hours | `set_id` |
 | `GET /api/drills/sets/{id}` | Resume a set | Status, current position, intro info (drill, skills, size, time per item, pass bar, worked example on first view) |
 | `GET /api/drills/sets/{id}/items/{position}` | Fetch an item. Records `served_at` server-side | Item content and input spec, time limit and time remaining, finished steps of a multi-step item. **Never the answer key** |
-| `GET /api/drills/sets/{id}/items/{position}/defend` (D5) | Defend follow-up; only after the main answer is submitted | Follow-up type and text |
-| `POST /api/drills/sets/{id}/attempts` | Submit an answer, or one step of a multi-step item. Body: position, step, response, skip, timed\_out, idempotency key; D5 adds `part` (main or defend) | Auto-checked: score, correct answer, feedback (or the step's feedback mid-item). AI-graded: accepted |
+| `POST /api/drills/sets/{id}/attempts` | Submit an answer, or one step of a multi-step item. Body: position, step, response, skip, timed\_out, idempotency key. The Defend follow-up is the item's last steps: its question arrives in the reply to the main answer's last step | Auto-checked: score, correct answer, feedback (or the step's feedback mid-item). AI-graded: accepted |
 | `POST /api/drills/sets/{id}/complete` | Finish the set; queues AI grading if needed | Status (`completed` or `grading`) |
 | `GET /api/drills/sets/{id}/results` | Results screen data. Clients poll every 2 s while status is `grading` | Set score, pass, mistake summary, time against target, tier change, per-item results, skill state changes (D3), next action |
 | `GET /api/skills/profile` (D3) | Skill profile | States, progress, program progress, top mistakes, rubric trends, history |
@@ -1405,6 +1421,8 @@ Route handlers live under `/api`. Each endpoint is marked with the phase that bu
 | `PUT /api/drills/sets/{id}/timer` (D6) | Timed / No timer (before the first item), Hide timer (any time) | The set's timer settings |
 | `POST /api/drills/sets/{id}/pause` (D6) | Pause or resume the item's clock (reason: feedback, report) | On resume, the time limit and time remaining |
 | `PUT /api/drills/review/reports/{id}` (D6, local development only) | Label or close a report in the review queue | `{ ok }` |
+| `POST /api/drills/review/lessons` (local development only) | Approve or request changes on a lesson (writes the lesson file) | `{ ok }` |
+| `GET /api/internal/drills/grading` (internal, Bearer `CRON_SECRET`) | Retry grading for sets still grading | Sets checked |
 
 The club-code check has its own route, `POST /api/club`, called at the club step. It records `org_id` and gates drills; case start still checks the code too.
 
@@ -1416,7 +1434,7 @@ The case library list (`GET /cases`, with filters and the Suggested mark) belong
 | --- | --- |
 | Case results ingestion (in-process function) | Receives the case grader payload. Validates tags against the taxonomy, stores it, updates skill states and regenerates prescriptions. Idempotent on `case_attempt_id` |
 | Taxonomy config | The case grader imports the same taxonomy loader as drills |
-| Content admin API | Item and lesson CRUD, review state changes, generator preview by seed, item stats |
+| Content admin | Scripts rather than an API (see Components); `npm run drills:review` renders previews of items, generated ones by seed |
 
 ### Integrity rules
 
@@ -1518,32 +1536,32 @@ All reports must be filterable by `org_id` so that career center and club dashbo
 
 ## Cost controls and non-functional requirements
 
-Running cost is held down by design: AI is used only to grade free-text answers, and drill grading should stay within $1.25 per active student per month (pilot budget, to confirm), a small share next to the cost of full cases.
+Running cost is held down by design: AI is used only to grade free-text answers, and drill grading should stay within $1.25 per active student per month (pilot budget, confirmed 2026-10-18), a small share next to the cost of full cases.
 
 ### Cost controls
 
 - **No AI at runtime except grading.** Items, lessons, plans and workouts are written ahead of time or built by fixed rules.
-- **One small call per answer.** Each Repair answer, Construct answer and Defend reply is graded in its own call at temperature 0, after the last item of the set. HY-2 adds one short family call per answer.
+- **One small call per answer.** Each Repair answer, Construct answer and Defend reply is graded in its own call, after the last item of the set (Haiku 4.5 at temperature 0; the HY-2 follow-up's calls on Sonnet 5.5 with thinking off). HY-2 adds one short family call per answer.
 - **Code first.** Empty answers, unchanged Repair answers, word caps, bucket counts and number presence are settled by code, with no AI call.
 - **Defend only where it counts.** Tiers 2–3 only; never at tier 1 or in the diagnostic. Sets with Defend are one item shorter.
 - **Small inputs.** A call carries only the prompt, the answer, check questions and red-flag definitions (Defend adds the student's main answer). Model answers and feedback text stay on the server.
 - **Capped answers and outputs.** Word caps on every free-text input; a tight output token limit on every call.
 - **Cheapest passing model.** Use the lowest-cost model tier that meets the 90% agreement gate. Re-test cheaper tiers when they become available.
-- **Prompt caching.** Cache the fixed grading instructions where the model provider supports it. Today they are too short to be cached.
+- **Prompt caching.** The HY-2 follow-up's grading rules sit in Sonnet 5.5's cached system prompt. Haiku 4.5's prompts are below its 4,096-token caching minimum, so they aren't cached.
 - **Usage cap.** 150 AI-graded answers per student per day. Auto-checked drills are unlimited.
 - **Monitoring.** A dashboard of cost per graded answer, per workout and per active student, with an alert if the 7-day average exceeds budget by 25%. Pilot: a banner at the top of the reports page (last 7 days, per active student scaled to a month).
 
 ### Cost estimate
 
-Estimate per active student per month on the Standard plan (4 workouts a week, up to 2 cases a week). It assumes a cheap grading model at about $1 per million input tokens and $5 per million output tokens (about $0.003–0.005 per graded answer) and about $0.50 per full text case; replace these with real prices before launch.
+Estimate per active student per month on the Standard plan (4 workouts a week, up to 2 cases a week). Measured on the golden sets with the chosen graders (2026-10-16): about $0.0045 per graded answer without caching, $0.0040 with. Full text cases are assumed at about $0.50 each.
 
 | Item | Volume per month | Estimated cost |
 | --- | --- | --- |
-| Workout grading (Repair, Construct, Defend) | \~17 workouts × \~12 graded answers ≈ 200 | $0.60–1.00 |
+| Workout grading (Repair, Construct, Defend) | \~17 workouts × \~12 graded answers ≈ 200 | \~$0.91 |
 | Diagnostic | 2 graded answers, once | < $0.01 |
 | Lessons, plans, workouts, auto-checked items | — | $0 |
 | Full cases (not part of drills) | \~6 | \~$3.00 |
-| **Total** |  | **\~$3.60–4.00** |
+| **Total** |  | **\~$3.90** |
 
 Drill grading is about a fifth of the total; full cases remain the main cost. The v1 target of "75% of attempts cost nothing" is replaced by the per-student budget.
 
@@ -1553,18 +1571,16 @@ Drill grading is about a fifth of the total; full cases remain the main cost. Th
 | --- | --- |
 | Performance | Item load < 500 ms p95. Auto-checked feedback < 300 ms p95. AI-graded results < 10 s p95 after the last item |
 | Availability | 99.5% during the pilot. Auto-checked drills keep working if the model provider is down; AI grading queues and completes later |
-| Devices | Desktop-first for the pilot: latest 2 versions of Chrome, Safari, Edge and Firefox. Full support down to 360 px wide ships in P1 |
+| Devices | Desktop-first for the pilot: latest 2 versions of Chrome, Safari, Edge and Firefox. Every drills page passes the audit's 320 px reflow check; full mobile design support ships in P1 |
 | Accessibility | WCAG 2.1 AA, including keyboard operation, chart data tables, screen-reader timer announcements and the time setting (with No time limit) |
-| Security | Answer keys and Defend follow-ups never sent before they should be. Content admin restricted by role. All endpoints authenticated |
+| Security | Answer keys and Defend follow-ups never sent before they should be (the smokes check every served item for key fields). Review and reports pages run in local development only. All student endpoints authenticated; the grading-retry route needs `CRON_SECRET` |
 | Privacy | Text only, so no voice or biometric data is collected. Student answers are deleted when the account is deleted. Data from university partners may count as education records; confirm handling with legal before institutional launch |
 | Configurability | Thresholds, weights, time limits, set sizes and maps live in config files and change without code changes (a deploy is still needed) |
-| Observability | Structured logs and alerts for grading failures, retry rates, queue depth and quote-verification failures |
+| Observability | Structured logs and alerts for grading failures, retry rates, queue depth and quote-verification failures. Pilot: grading failures and retries are logged as events and shown in the reports with event health; no alerting service yet |
 
 ## Build phases, acceptance criteria and open questions
 
-The build runs in seven phases, D0 to D6. Auto-checked drills ship before AI-graded ones, and the loop ships before the program built on it, so each risky piece sits on proven foundations; each phase has a hard exit gate. D0–D2 are done. The pilot launches after D3 and D4 (D6); D5 ships during the pilot.
-
-Until D5 ships, Construct sets have no Defend step (so PS-3, HY-2 and CL-3 keep 4 items at every tier) and skills skip the Repair stage, as for skills with no Repair drill.
+The build runs in seven phases, D0 to D6. Auto-checked drills ship before AI-graded ones, and the loop ships before the program built on it, so each risky piece sits on proven foundations; each phase has a hard exit gate. D0–D5 are done (D5 shipped before the pilot rather than during it). D6 is built except for the manual accessibility check and the pilot itself.
 
 ### Phases
 
@@ -1573,23 +1589,23 @@ Until D5 ships, Construct sets have no Defend step (so PS-3, HY-2 and CL-3 keep 
 | D0 Foundations (done) | Taxonomy v1 and config files, data model, numeric parser, generator framework, chart renderer, case grader payload contract | Config, schema, parser and generator tests pass. The grader gate (case grader emits valid payloads on 30 sample transcripts, with a human agreeing with at least 85% of its tags) is deferred until the grader is updated |
 | D1 Auto-checked drills (done) | QN-1, QN-3, QN-4, EX-2, EX-3 (generated) and PS-1, HY-1, EX-1, SY-1, CL-1 (authored); item, feedback and results screens; Practice something specific | All generator tests pass; zero key errors in 1,000 sampled generated items; authored pools reviewed (pilot pool sizes, see Launch pool sizes) |
 | D2 AI-graded drills (done) | PS-3, HY-2, SY-2, CL-3, plus QN-5; grading worker (one call per answer), golden sets, quote verification, failure handling | At least 90% agreement per check on every golden set; results < 10 s p95; cost per answer within budget |
-| D3 The loop | Taxonomy prerequisites and Defend tags; progress engine (states including Practiced, stages, tiers, reviews, transfer checks, stuck rule), prescription engine, case results ingestion, skill profile | Scripted scenarios produce the exact state changes and prescriptions defined in this PRD |
-| D4 Training program | Onboarding (with time zone), diagnostic, tracks and plans, Practice on my own, Browse drills, Program engine, workouts with the 50/25/25 mix, training home, Learn library, 22 P0 lessons | Scripted Foundations, Standard and Sprint students get the plans, workouts and milestone results defined in this PRD; lessons reviewed |
-| D6 Pilot launch (after D3 and D4) | Analytics events and reports, WCAG 2.1 AA audit, pilot feedback (feedback button, Report a problem with grade disputes, check-ins), pilot with the university club | Audit passed; all events firing; pilot students finish Week 0 and Week 1 of a plan and complete the full loop |
-| D5 Chains and Defend (during the pilot) | Repair drills PS-4, HY-3, SY-3; Defend step on PS-3, HY-2, SY-2, CL-3; follow-ups written for existing items | At least 90% agreement per check on every new golden set; pools at launch size |
+| D3 The loop (done) | Taxonomy prerequisites and Defend tags; progress engine (states including Practiced, stages, tiers, reviews, transfer checks, stuck rule), prescription engine, case results ingestion, skill profile | Scripted scenarios produce the exact state changes and prescriptions defined in this PRD |
+| D4 Training program (done) | Onboarding (with time zone), diagnostic, tracks and plans, Practice on my own, Browse drills, Program engine, workouts with the 50/25/25 mix, training home, Learn library, 23 lessons and the intro | Scripted Foundations, Standard and Sprint students get the plans, workouts and milestone results defined in this PRD; lessons reviewed |
+| D6 Pilot launch (in progress) | Analytics events and reports, WCAG 2.1 AA audit, pilot feedback (feedback button, Report a problem with grade disputes, check-ins), getting a plan (case, diagnostic or questionnaire), timer options and pauses, pilot with the university club. Built: everything but the manual accessibility check and the pilot | Audit passed; all events firing; pilot students finish Week 0 and Week 1 of a plan and complete the full loop |
+| D5 Chains and Defend (done, before the pilot) | Repair drills PS-4, HY-3, SY-3; Defend step on PS-3, HY-2, SY-2, CL-3; follow-ups written for existing items | At least 90% agreement per check on every new golden set; pools at launch size |
 | P1 Fast follow | PS-2, QN-2, BJ-1, BJ-2, CR-1, CL-2, EX-4, EX-5, CL-4, QN-5 Defend, drawn skill-tree view, P1 lessons, 360 px support | Same gates as D1, D2 and D5 for the new drills |
 
 ### Definition of done for MVP
 
-- [ ] Zero answer-key errors in a 200-item human QA sample of authored items across all P0 drills, including Repair items and Defend follow-ups.
-- [ ] Answer keys and Defend follow-ups never reach the client before they should (verified by security test).
-- [ ] AI grading agreement is at least 90% on every check of every AI-graded drill and Defend type.
-- [ ] A test student can complete the full loop: onboarding → diagnostic → plan → workouts → case → prescriptions → Practiced → transfer check → Mastered → next case → Validated.
-- [ ] Scripted Foundations, Standard and Sprint students get the plans, workouts and milestones defined in this PRD.
-- [ ] All 22 P0 lessons are reviewed and live.
-- [ ] Drill grading cost per active pilot student is within budget.
+- [ ] Zero answer-key errors in a 200-item human QA sample of authored items across all P0 drills, including Repair items and Defend follow-ups. (Later: after the pilot, Matt 2026-10-18.)
+- [x] Answer keys and Defend follow-ups never reach the client before they should (the smokes check every served item and step for key fields).
+- [x] AI grading agreement is at least 90% on every check of every AI-graded drill and Defend type (all 11 gates, grader `drills-grader-v34`).
+- [ ] A test student can complete the full loop: onboarding → diagnostic → plan → workouts → case → prescriptions → Practiced → transfer check → Mastered → next case → Validated. (Each step is covered by a smoke test against the real database; no single run covers the whole chain.)
+- [x] Scripted Foundations, Standard and Sprint students get the plans, workouts and milestones defined in this PRD (`drills:smoke:d4`, `drills:smoke:tracks`).
+- [x] All 23 lessons and the intro are reviewed and live.
+- [ ] Drill grading cost per active pilot student is within budget. (Estimated at about $0.91 a month; the reports page measures it during the pilot.)
 - [ ] WCAG 2.1 AA audit passed (`docs/drills-a11y-audit.md`: automated checks pass; the manual checklist remains).
-- [ ] All events in Analytics fire with complete properties.
+- [x] All events in Analytics fire with complete properties: the type checker requires each event's properties, a test keeps them in step with the Events table, and the smokes fire most events and fail on any missing property. (The rest are route-only clicks or rare edge cases, enforced by type.)
 
 ### Open questions
 
@@ -1597,15 +1613,15 @@ Until D5 ships, Construct sets have no Defend step (so PS-3, HY-2 and CL-3 keep 
 - [ ] **Grader changes:** How much work is it for the transcript-grading agent to emit skill tags, severity, `skills_observed` and exact evidence quotes? (Deferred: the grader will be updated later.)
 - [x] **Tag severity:** Decided 2026-10-11: 35 major, 30 minor, set as defaults in `taxonomy.v1.json` (reasons in `docs/drills-tag-severity.md`). The case grader may adjust them per finding (see "What the case grader must send"). The two Defend tags default to minor.
 - [x] **Mastery bar:** 80% on two consecutive sets for Practiced, and 80% on the transfer check, for the pilot (Matt, 2026-10-11). Tune from pilot data in config.
-- [x] **First-time users:** Resolved in v2: the diagnostic moves to P0 and runs at onboarding; a full case is no longer required before drills.
-- [x] **Pilot scope:** Decided 2026-10-11: the pilot launches with D3 and D4; D5 ships during the pilot.
+- [x] **First-time users:** Resolved: a plan comes from a full case, the diagnostic or the questionnaire, whichever is first (2026-10-18).
+- [x] **Pilot scope:** Decided 2026-10-11: the pilot launches with D3 and D4; D5 ships during the pilot. In the event D5 shipped first, so the pilot has it.
 - [x] **Skill tree sign-off:** Approved as written (Matt, 2026-10-11).
 - [ ] **Plan content:** Confirm the six-week themes, milestones and case counts, and the Sprint day plan, with a club coach or recent hires.
-- [ ] **Defend weight and timing:** Is 25% of the item right, and are 60 / 45 s enough to type 40 words?
-- [ ] **Transfer delay:** Is a 2-day wait after Practiced right, or should it be longer for retention?
-- [ ] **Cost budget:** Confirm the $1.25 per active student per month drill-grading budget once real model prices are known.
-- [ ] **Free vs paid:** Are drills and tracks limited for free users, and if so, how?
-- [ ] **Content review capacity:** About 280 new pieces (110 Repair items, 150 Defend follow-ups, 22 lessons) plus the Level 1 pools' growth to 80 before wider launch. @Matt reviews drill content.
+- [x] **Defend weight and timing:** Decided 2026-10-18: 25% of the item, and 60 / 45 s, stay as they are.
+- [x] **Transfer delay:** Decided 2026-10-18: 2 days after Practiced.
+- [x] **Cost budget:** Confirmed 2026-10-18: $1.25 per active student per month for drill grading (about $0.91 estimated).
+- [ ] **Free vs paid:** Decided 2026-10-18 that free users get limits on drills and tracks; which limits is still open.
+- [ ] **Content review capacity:** The v2 pieces are done (110 Repair items, 150 Defend follow-ups, 23 lessons and the intro). Left: growing the Level 1 pools to 80 before wider launch. @Matt reviews drill content.
 - [ ] **University data handling:** Confirm with legal how student data from partner schools must be handled.
 - [ ] **Firm-style toggles:** When should items start carrying `firm_style`?
 - [x] **Case types:** Confirmed 2026-10-11: the 14 case types are `profitability`, `growth_strategy`, `market_entry`, `market_sizing`, `pricing`, `cost_reduction`, `operations`, `new_product_launch`, `m_and_a`, `investment_decision`, `competitive_response`, `turnaround`, `public_sector`, `industry_analysis`, the same list as the case product. It lives in `lib/case-types.ts`, shared by case files (`caseType`, optional until every case file has one) and drill items; the item schema enforces it; the case-type-to-skill-area map (each type's main skill) still needs writing.

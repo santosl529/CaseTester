@@ -662,3 +662,7 @@ Matt lifted the D6 hold ("build D6"). Answers: reports location "not sure yet"; 
 - Checks: typecheck, 1608 tests, lint, all ten smokes and the build pass.
 - Report loaders: 11 parallel queries stalled the pooler earlier; still sequential.
 
+
+## PRD brought in line with the build (2026-10-18, not committed)
+
+- `docs/prd-drills.md` audited section by section against the code (Matt asked). Updated: header and revision log; "Built since v2" table; glossary (plan source, questionnaire, quick check); scope; self-directed table and home (no rubric trend on the home, no extra workout, no 30-day diagnostic rule); item input types (ordering not built); grading (gate run by hand, not CI; disputes built; monthly audit not built; HY-2 family and data-request calls); lessons not similarity-checked; pool table with live counts; v2 content done; `drill_item_stats` unused in the pilot; Vercel Cron not set up; content admin = files, scripts and local-dev pages; endpoints (removed unbuilt suggested-next, progress/summary, lessons GET, defend GET, `part`; added diagnostic, next-case, review/lessons, internal grading; real `POST /sets` body); cost (~$0.0045 per answer, ~$0.91 a month, caching only on Sonnet); NFR (320 px reflow, security, observability); phases D3–D5 done, D6 in progress; DoD items checked where met; open questions updated.

@@ -1,6 +1,6 @@
 {
-  "status": "draft",
-  "note": "Two lines per drill for Browse drills and Learn (D6 round 2): what you do, and how it helps in the interview. Drafts for Matt's review (docs/drills-content/drill-descriptions.csv).",
+  "status": "approved",
+  "note": "Two lines per drill for Browse drills and Learn: what you do, and how it helps in the interview. Approved by Matt 2026-10-18 (review sheet: docs/drills-content/drill-descriptions.csv).",
   "drills": {
     "PS-1": {
       "what": "Find the one flaw in a candidate's framework: an overlap, a gap, or a bucket that doesn't belong.",
