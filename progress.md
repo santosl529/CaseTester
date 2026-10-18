@@ -15,6 +15,8 @@
 
 **Next steps** (in this order):
 1. **Cost safeguards:** done and pushed. Not built: an email to Matt when the breaker trips (wasn't in the agreed plan; needs an email provider).
+   - Paid smokes: one run of d2 + d5 + diagnostic is estimated at about $0.30 (from answer counts × ~$0.0045 per Haiku answer, ~$0.01 per Sonnet follow-up call); not measured, since the smokes delete their spend rows.
+   - Per-answer grading times ("feedback-timing request"): asked Matt where the request is; no real timings exist yet (2 jobs in the DB, nothing sent to the model).
 2. **D6, before the pilot:** a person runs the manual accessibility checklist (`docs/drills-a11y-audit.md`); the landing page's placeholder-only labels are fixed on `main`; the club code is in `CLUB_CODES` on Vercel; `CRON_SECRET` and a Vercel Cron for `/api/internal/drills/grading`. Then the pilot itself (gate: students finish Week 0 and Week 1 and complete the full loop).
 3. **Merging `drills` into `main`:** agree migration numbering with the teammate first (see Database notes). Drills migrations are 0009–0020 and 0022; 0021 is voice's (see Database notes), so the next drills one is 0023. Matt was given a note for the teammate about the `next.config.ts` change (traces `lessons/intro/**` into the drills routes).
    - [ ] **Resolve the 8 merge conflicts with `main`.** Owner: Matt, agreeing the plan with Lorenzo; Claude resolves once it's agreed. Status: not started, waiting on that agreement (added 2026-10-18; don't resolve before). Trial merge of `main` into `drills` (2026-10-18), and whose changes to keep:
