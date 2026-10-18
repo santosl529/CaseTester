@@ -13,7 +13,9 @@ import { HEARD_MARGIN_MS, type Clock, type Outcome, type Playout } from './playo
 import type { PcmFormat, SttEvent, TTSProvider } from './types';
 import type { ServerMessage, VoiceState } from './protocol';
 import { classifierWaits, type TurnRecord } from './records';
-import { ackKind, pickAck, shouldAcknowledge } from './acknowledge';
+import { DEFAULT_FILLER_RATE, FILLER_DELAY_MS, ackKind, fillerAllowed, isThinkingFiller, pickAck, shouldAcknowledge, type FillerRate } from './acknowledge';
+import { connectorWordCount, pickConnector, spokenWithConnector } from './connector';
+import { speechTextFor, WordFolder } from './pronounce';
 
 // How long heard() waits for the browser to confirm an exhibit it was sent.
 export const EXHIBIT_CONFIRM_MS = 1500;
@@ -42,6 +44,10 @@ export type ControllerDeps = {
   canStartTurn: () => boolean;                   // the ledger's reserve
   bargeMinWords: number;
   sessionSeed: string;
+  // How long after end of turn the acknowledgment waits (FILLER_DELAY_MS); 0 plays it at once.
+  fillerDelayMs?: number;
+  // How often a thinking filler plays (acknowledge.ts fillerAllowed); default DEFAULT_FILLER_RATE.
+  fillerRate?: FillerRate;
   // Optional: the turn-taking decisions as they happen (session recording).
   trace?: (type: string, data?: Record<string, unknown>) => void;
 };
@@ -55,6 +61,10 @@ type CutKind = 'barge' | 'blocked' | 'end';
 type Live = {
   seq: number; text: string; carried: boolean; replaces: number | null; opening: boolean;
   ack: string | null; prevAck: string | null;
+  fillers: boolean;            // the filler toggle as it stood when the turn began (item 3)
+  connectorDecided: boolean;   // the first spoken segment has been given its connector (or none)
+  ackState: 'none' | 'pending' | 'played' | 'skipped';
+  ackSkipped: string | null;   // why a planned acknowledgment didn't play
   finalAt: number; speechEndAt: number | null; startedAt: number | null;
   entries: Entry[];
   cutAt: number | null; cutKind: CutKind | null; cutOutcome: Map<string, Outcome> | null;
@@ -75,12 +85,25 @@ export class VoiceTurnController {
   private carry: { text: string; seq: number } | null = null;   // barge-in before anything was heard
   private pending: string | null = null;                        // audio blocked before anything was heard
   private lastAck: string | null = null;
+  // The thinking sounds and the "So," connector (Lorenzo's brief, 17 Oct, item 3):
+  // the interview screen's toggle, on by default; a turn keeps the setting it began with.
+  private fillers = true;
+  // Turns in a row, ending with the last, on which a thinking filler played (the rate's memory).
+  private fillerRun = 0;
+  private connectors: string[] = [];   // the connector chosen on each of the last two filler turns
 
   constructor(private d: ControllerDeps) {}
 
   // The browser can play audio (§5.1). The first time, the opening (already
   // persisted) is replayed, interruptible and unbooked; after audio_blocked,
   // a turn nobody heard runs again.
+  // The browser's toggle: from the next turn (the live turn keeps its own).
+  setFillers(on: boolean): void {
+    if (this.fillers === on) return;
+    this.fillers = on;
+    this.d.trace?.('fillers', { on });
+  }
+
   async ready(opening: string): Promise<void> {
     if (this.state === 'ended') return;
     if (this.blocked) {
@@ -193,7 +216,7 @@ export class VoiceTurnController {
 
   private newLive(text: string, finalAt: number, opening: boolean): Live {
     const t: Live = {
-      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck,
+      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck, fillers: this.fillers, connectorDecided: false, ackState: 'none', ackSkipped: null,
       finalAt, speechEndAt: null, startedAt: null, entries: [],
       cutAt: null, cutKind: null, cutOutcome: null, finalizing: false, report: null, waiters: [],
       firstSoundAt: null, firstUsefulAt: null, firstAcceptedAt: null, ttsFirstAudioAt: null,
@@ -205,17 +228,58 @@ export class VoiceTurnController {
     return t;
   }
 
+  // The acknowledgment, FILLER_DELAY_MS after end of turn (Lorenzo, 17 Oct:
+  // in session 9ccf0836 Flux ended 7 of 28 turns at mid-calculation pauses and
+  // the filler played over his thinking). By then, if he has spoken again (a
+  // voiced mic frame after the one that ended the turn, or a cut), or the
+  // reply has started, nothing plays — logged.
   private playAck(t: Live): void {
-    if (!shouldAcknowledge(t.text)) return;
+    if (!shouldAcknowledge(t.text)) { this.fillerRun = 0; return; }
     const ack = pickAck(`${this.d.sessionSeed}:${t.seq}`, this.lastAck, ackKind(t.text));
+    // Toggled off: no thinking sound (the comfort line "Take your time." is words, and stays).
+    if (!t.fillers && isThinkingFiller(ack)) {
+      t.ack = ack;
+      this.skipAck(t, 'fillers_off');
+      return;
+    }
+    // The rate (4c): after a short reply, not while the last turns had one.
+    if (isThinkingFiller(ack) && !fillerAllowed(t.text, this.fillerRun, this.d.fillerRate ?? DEFAULT_FILLER_RATE)) {
+      t.ack = ack;
+      this.skipAck(t, 'rate');
+      return;
+    }
     const pcm = this.d.ackPcm(ack);
     if (!pcm) return;
     this.lastAck = ack;
     t.ack = ack;
-    const id = `${t.seq}:ack`;
-    this.d.playout.open(id, { text: ack, interruptible: true, onStart: at => { t.firstSoundAt ??= at; this.d.trace?.('ack_start', { seq: t.seq, ack, at }); } });
-    this.d.playout.push(id, pcm);
-    this.d.playout.finish(id);
+    const play = () => {
+      t.ackState = 'played';
+      this.fillerRun = isThinkingFiller(ack) ? this.fillerRun + 1 : 0;
+      const id = `${t.seq}:ack`;
+      this.d.playout.open(id, { text: ack, interruptible: true, onStart: at => { t.firstSoundAt ??= at; this.d.trace?.('ack_start', { seq: t.seq, ack, at }); } });
+      this.d.playout.push(id, pcm);
+      this.d.playout.finish(id);
+    };
+    const delay = this.d.fillerDelayMs ?? FILLER_DELAY_MS;
+    if (delay <= 0) { play(); return; }
+    t.ackState = 'pending';
+    this.d.clock.at(this.d.now() + delay, () => {
+      if (t.ackState !== 'pending') return;
+      const lastVoiced = this.d.speechEndAt();
+      const why = this.state === 'ended' || t.cutAt !== null ? 'cut'
+        : lastVoiced !== null && t.speechEndAt !== null && lastVoiced > t.speechEndAt ? 'speech_resumed'
+          : t.entries.length > 0 ? 'reply_ready' : null;
+      if (why) this.skipAck(t, why);
+      else play();
+    });
+  }
+
+  private skipAck(t: Live, why: string): void {
+    t.ackState = 'skipped';
+    this.fillerRun = 0;   // no filler on this turn: the rate's run starts again
+    t.ackSkipped = why;
+    if (this.lastAck === t.ack) this.lastAck = t.prevAck;   // an unheard ack doesn't count (§5.5)
+    this.d.trace?.('ack_skipped', { seq: t.seq, ack: t.ack, why });
   }
 
   private async execute(t: Live): Promise<void> {
@@ -255,7 +319,25 @@ export class VoiceTurnController {
     if (t.cutAt !== null && seg.kind !== 'scripted') throw new Error('cut');
     const text = seg.text.trim();
     if (!text && !seg.exhibitId) return;
-    if (text && !this.d.ttsAllow(text.length)) throw new Error('tts cap');
+    // After a thinking filler, the first spoken segment opens with a connector
+    // ("So, …"), in the TTS text only: the segment, captions and heard checks
+    // keep the line as written (connector.ts).
+    if (t.ackState === 'pending') this.skipAck(t, 'reply_ready');   // the reply came first: no filler before it
+    // Terms said as words ("COGS" → "cogs"), in the TTS text only (pronounce.ts).
+    const speech = speechTextFor(text);
+    let spoken = speech.text;
+    let skipWords = 0;
+    if (text && !t.connectorDecided) {
+      t.connectorDecided = true;
+      if (t.fillers && t.ackState === 'played' && isThinkingFiller(t.ack)) {
+        const c = pickConnector({ seed: `${this.d.sessionSeed}:${t.seq}:connector`, filler: t.ack!, segmentText: text, recent: this.connectors });
+        this.connectors = [...this.connectors, c].slice(-2);
+        spoken = spokenWithConnector(c, speech.text);
+        skipWords = connectorWordCount(c);
+        this.d.trace?.('connector', { seq: t.seq, connector: c });
+      }
+    }
+    if (text && !this.d.ttsAllow(spoken.length)) throw new Error('tts cap');
     const e: Entry = { id: `${t.seq}:${t.entries.length}`, seg, heardChars: 0, shownFull: false, exhibitSentAt: null, exhibitConfirmed: false, cancel: () => {} };
     t.entries.push(e);
     t.firstAcceptedAt ??= this.d.now();
@@ -284,8 +366,14 @@ export class VoiceTurnController {
         e.cancel = () => { cancelled = true; void utt.cancel().catch(() => {}); };
         if (cancelled) { await utt.cancel().catch(() => {}); return; }
         utt.onAudio((pcm, at) => { t.ttsFirstAudioAt ??= at; this.d.playout.push(e.id, pcm); });
-        utt.onWords?.(ws => this.d.playout.words(e.id, ws));
-        await utt.push(text);
+        // The connector's words are not the segment's: skipped, keeping the times;
+        // a term said in more words than written folds back onto its written token.
+        const folder = new WordFolder(speech.counts, skipWords);
+        utt.onWords?.(ws => {
+          const mine = folder.push(ws);
+          if (mine.length > 0) this.d.playout.words(e.id, mine);
+        });
+        await utt.push(spoken);
         await utt.end();
         this.d.playout.finish(e.id);
       } catch {
@@ -384,7 +472,9 @@ export class VoiceTurnController {
     const from = t.speechEndAt;
     const rel = (x: number | null) => (x !== null && from !== null ? x - from : null);
     const rec: TurnRecord = {
-      turnSeq: t.seq, at: new Date(this.d.now()).toISOString(), candidateText: t.text, carried: t.carried, ack: t.ack,
+      turnSeq: t.seq, at: new Date(this.d.now()).toISOString(), candidateText: t.text, carried: t.carried,
+      ack: t.ackState === 'skipped' ? null : t.ack, ackSkipped: t.ackSkipped ? { ack: t.ack!, why: t.ackSkipped } : null, fillers: t.fillers,
+      cutMs: t.cutAt !== null ? t.cutAt - t.finalAt : null,
       phase: r?.phase ?? null, ended: r?.ended ?? false,
       speechEndAt: from, finalAt: t.finalAt, endpointMs: from !== null ? t.finalAt - from : null,
       queueWaitMs: t.startedAt !== null ? t.startedAt - t.finalAt : 0,

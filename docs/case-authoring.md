@@ -243,6 +243,20 @@ prior), and the check runs only once that item is revealed — the candidate
 can't convert with a base they don't have. Without `shareBases` a case has no
 nested-percentage check (and no keyword fallback: the v4.6 detector is gone).
 
+## `sttKeyterms` — names the voice's speech-to-text should expect (17 Oct)
+
+Deepgram Flux is opened with keyterms (`lib/voice/keyterms.ts`): the generic
+case-interview terms (COGS, MECE, EBITDA, P&L, SG&A, SKU, CAGR, break-even,
+percentage points) and the case's own names. List the client, products,
+places and any coined term a candidate will say — written as the checks read
+them ("Brew & Bean", "Kelvexa", "Corlan's disease", "Hub–Lakeport" cities).
+At most 40; Deepgram advises 20–50 terms in all. Session 9ccf0836 heard
+"COGS share" as "Cogshare", which no check reads as COGS.
+
+```json
+"sttKeyterms": ["Brew & Bean", "green coffee", "dairy"]
+```
+
 ## `quoteAnchors` — the misquote check's item names (v4.11)
 
 When a candidate misstates a figure they were given ("COGS went from 42% to

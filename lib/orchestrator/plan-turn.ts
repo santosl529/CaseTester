@@ -32,7 +32,10 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
+import { theirFigure } from './own-quantity';
+import { normalizeAsrTerms } from './asr-terms';
+import { phrase, type PhraseUses } from './phrasing';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
 import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, claimError, relativeError, holdRank, type CloseHoldMemory } from './close-hold';
@@ -64,6 +67,7 @@ export type PlanDeps = {
   later: TurnCtx['later'];
   background?: TurnCtx['background'];
   acknowledged?: string;   // voice: a backchannel already spoken at end-of-turn
+  voice?: boolean;         // the turn is spoken (the say rule applies on every voice turn)
   // false: no distress classifier call — a re-plan only to compare decisions
   // (speculative-turn.ts), whose verdict nobody reads.
   classify?: boolean;
@@ -81,7 +85,8 @@ export type CheckerLinePlan = {
   undo: { attempt: number | undefined; step: string | null; mathChecker: CheckerMemory };
 };
 // flags.mathChecker. held: a line a due stage question held back (Settle), until it is raised or decided.
-export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string };
+// convertedFigures: the figures a conversion closed (own-quantity.ts) — a case figure too ("10 points of COGS"), which no key keeps.
+export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[] };
 // A stage the model's question may ask, and whether it is due (Lorenzo, 15 Oct): a due one wins over a checker probe.
 export type StagesDue = { brainstorm: boolean; recommendation: boolean; risk: boolean };
 export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { checker: CheckerSelection; action: 'probe' | 'correct' } | { closed: ClosedRestatement; action: 'probe' | 'correct' };
@@ -90,8 +95,11 @@ export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { 
 export const MISQUOTE_CORRECTIONS_PER_ITEM = 2;
 export type TurnPlan = ScriptedPlan | ModelPlan;
 
-export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps): TurnPlan {
-  const { session, turnRows } = reads;
+export function planTurn(reads: TurnReads, heardText: string, deps: PlanDeps): TurnPlan {
+  const { session } = reads;
+  // The checks read speech-to-text spellings of case terms as the terms (asr-terms.ts): this message and the history.
+  const candidateText = normalizeAsrTerms(heardText);
+  const turnRows = reads.turnRows.map(t => (t.role === 'candidate' ? { ...t, text: normalizeAsrTerms(t.text) } : t));
   const { sessionId, now } = deps;
   if (!session) throw new Error(`Session not found: ${sessionId}`);
 
@@ -100,9 +108,9 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   const conduct = (flags.conduct as ConductFlags | undefined) ?? {};
   const nextTurnIndex = turnRows.length;
   const ctx: TurnCtx = {
-    sessionId, userId: session.userId, candidateText, now, turnStartMs: deps.turnStartMs,
+    sessionId, userId: session.userId, candidateText, ...(heardText !== candidateText ? { heardText } : {}), now, turnStartMs: deps.turnStartMs,
     nextTurnIndex, currentPhase, flags, conduct, checks: new CheckLog(), events: [], later: deps.later,
-    background: deps.background, acknowledged: deps.acknowledged,
+    background: deps.background, acknowledged: deps.acknowledged, voice: deps.voice,
   };
   const later = deps.later;
 
@@ -220,10 +228,10 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   // assessment.action === 'ignore' (none / C1): proceed with the normal case turn.
 
   // ── The candidate stops (Rule 18A) — after conduct, before any case rule ──
-  const exitPlanned = planExit(ctx, reads, deps);
+  const exitPlanned = planExit(ctx, { ...reads, turnRows }, deps);
   if (exitPlanned) return exitPlanned;
 
-  return modelPlan(ctx, reads, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state, classify: deps.classify !== false, regexC5AfterDecline, conductConfirm });
+  return modelPlan(ctx, { ...reads, turnRows }, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state, classify: deps.classify !== false, regexC5AfterDecline, conductConfirm });
 }
 
 // Exit state, persisted in flags.exit (Rule 18A).
@@ -461,7 +469,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // twice says nothing, and its figure licenses no doubt. Unit lines are code's restatements, not probes.
   const stepProbes: Record<string, number> = { ...((flags.stepProbes as Record<string, number> | undefined) ?? {}) };
   const wouldProbe = (f: RecomputeFlag) => f.kind !== 'unit' && recomputeAction(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) === 'probe';
-  const cappedFlags = recomputeFlags.filter(f => wouldProbe(f) && (stepProbes[f.stepId] ?? 0) >= STEP_PROBE_CAP);
+  // A step a conversion closed (own-quantity.ts; Lorenzo, 17 Oct) takes no more of code's probes either.
+  const convertedSteps = new Set(((flags.mathChecker as Partial<CheckerMemory> | undefined)?.closed ?? []).filter(k => k.startsWith(CONVERTED)).map(k => k.slice(CONVERTED.length)));
+  const cappedFlags = recomputeFlags.filter(f => wouldProbe(f) && ((stepProbes[f.stepId] ?? 0) >= STEP_PROBE_CAP || convertedSteps.has(f.stepId)));
   const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f));
   checks.record('step_probe_cap', cappedFlags.length > 0, 'two probes on the step already — no probe', {
     capped: cappedFlags.map(f => ({ step: f.stepId, value: f.candidateValue, span: f.span })),
@@ -550,7 +560,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const capped = perItem.filter(m => recReplyAt(m.n) || timesCorrected(m.item) < MISQUOTE_CORRECTIONS_PER_ITEM).slice(0, 2);
   const misquoteOf = (list: typeof perItem) => list.length > 0 ? {
     ...list[0], label: labelOf(list[0].item), items: list.map(m => m.item), all: list,
-    text: correctionLines(list.map(m => wordingOf(m.item)!)),
+    text: correctionLines(list.map(m => wordingOf(m.item)!), {
+      one: x => phrase('correct_one', x, flags.phraseUses as PhraseUses | undefined, `${ctx.sessionId}:${ctx.nextTurnIndex}`),
+      two: x => phrase('correct_two', x, flags.phraseUses as PhraseUses | undefined, `${ctx.sessionId}:${ctx.nextTurnIndex}`),
+    }),
   } : null;
   // Let: the close lifts the cap too (decided below) — no misquote is left standing at the goodbye.
   let correcting = capped;
@@ -624,13 +637,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
     candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer, rank,
+    convertedFigures: checkerMemory.convertedFigures,
   };
   let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
   // its figures may not be probed again — the case moves on (Lorenzo, 13 Oct;
   // Jordan 099f33e9, seven probes on one "40 points").
   const closedKeys = [...new Set([...(checkerMemory.closed ?? []), ...checkerPlan.closedNow])];
-  const closedFigures = closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []);
+  const closedFigures = [...closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []), ...(checkerMemory.convertedFigures ?? [])];
   // Deterministic first: a stamp the checker found wrong no longer protects
   // the figure; a landed flag's figure may be doubted (Rule 14).
   if (checkerPlan.droppedStamps.length > 0) {
@@ -915,7 +929,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     if (kind === 'model') recomputeHint = [recomputeHint, formatCheckerHint(checkerUsed)].filter(Boolean).join('\n\n');
   }
   // The correction is said once: its flag closes after this turn.
-  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key] : [])])];
+  // A conversion closes its whole step (Lorenzo, 17 Oct).
+  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key, ...(checkerUsed.converted ? [convertedMarker(checkerUsed.key)] : [])] : [])])];
   const leftForReport = checkerDecisions.filter(d => d.outcome === 'unresolved' && closedKeys.includes(d.key));
   if (kind === 'model' && leftForReport.length > 0) {
     recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${leftForReport.map(d => `"${d.candidateValue}"`).join(', ')} has been probed twice and goes in the written report. Don't ask about it again — move the case on.`].filter(Boolean).join('\n\n');
@@ -932,8 +947,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerKeys = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raised.has(k) && e.figures.length > 0));
   const keysChanged = JSON.stringify(checkerKeys) !== JSON.stringify(checkerMemory.keys ?? {});
   const heldAfter = heldLine && !checkerHandledNow.includes(heldLine) ? heldLine : undefined;
-  if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held) {
-    flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}), ...(heldAfter ? { held: heldAfter } : {}) };
+  const convertedFigure = checkerUsed?.converted ? theirFigure(checkerUsed.claim) : undefined;
+  const convertedAfter = [...(checkerMemory.convertedFigures ?? []), ...(convertedFigure !== undefined ? [convertedFigure] : [])];
+  const convertedKept = checkerMemory.convertedFigures?.length ? { convertedFigures: checkerMemory.convertedFigures } : {};
+  if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held || convertedFigure !== undefined) {
+    flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}), ...(heldAfter ? { held: heldAfter } : {}), ...(convertedAfter.length ? { convertedFigures: convertedAfter } : {}) };
   }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.
@@ -960,7 +978,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line, ...(checkerUsed.id === heldLine ? { wasHeld: true } : {}),
       undo: {
         attempt: attemptBeforeChecker, step: checkerStepOwn,
-        mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}), ...(heldLine ? { held: heldLine } : {}) },
+        mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}), ...(heldLine ? { held: heldLine } : {}), ...convertedKept },
       },
     };
   }
@@ -1055,7 +1073,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, recMathProbe, checkerLine, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, convertedFigures: convertedAfter, recMathProbe, checkerLine, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

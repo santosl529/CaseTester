@@ -69,12 +69,23 @@ export const OPENING_INVITATIONS = [
   "How would you like to approach this? Feel free to take a moment to gather your thoughts first.",
 ];
 
+// After a prompt that ends in its own question: time to think, no second ask.
+export const OPENING_INVITATIONS_AFTER_QUESTION = [
+  'Take a moment, then walk me through your thinking.',
+  'Take a minute if you need it, then lay out your structure.',
+  'Feel free to take a moment to gather your thoughts first.',
+];
+
 // The opening message the candidate sees. The case prompt is included VERBATIM
 // (not model-generated) so the candidate always sees the exact scenario and
 // numbers — a live run showed the model's opening omitting the prompt entirely,
 // leaving the candidate structuring blind.
 export function buildOpeningMessage(casePrompt: string, seed: string): string {
-  return `${casePrompt}\n\n${pickScript(OPENING_INVITATIONS, seed)}`;
+  // A prompt that already asks ("How would you approach this problem?") gets a
+  // hand-off that doesn't ask again (Lorenzo's brief, 17 Oct: "…approach this
+  // problem? Take a moment, then walk me through how you'd approach this.").
+  const pool = /\?\s*$/.test(casePrompt) ? OPENING_INVITATIONS_AFTER_QUESTION : OPENING_INVITATIONS;
+  return `${casePrompt}\n\n${pickScript(pool, seed)}`;
 }
 
 // Conduct-track scripts (docs/interviewer-behavior.md Rules 17–18). These are

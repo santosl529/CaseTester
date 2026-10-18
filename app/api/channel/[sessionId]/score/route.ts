@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { scoreSession } from '@/lib/scoring/score-session';
+import { finalizeCheckerVerdicts } from '@/lib/scoring/checker-wait-db';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -30,6 +31,10 @@ export async function POST(
   });
   if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+  // A checker verdict still running (the closing message's, as a rule) reaches
+  // the report: wait for it, up to the checker's 30s timeout (Lorenzo, 18 Oct).
+  // The client calls …/finalize first to show the wait; this is the guarantee.
+  await finalizeCheckerVerdicts(sessionId, user.id);
   const { status } = await scoreSession({ sessionId, userId: user.id });
   if (status === 'not_completed') {
     return NextResponse.json({ error: 'Session is not completed' }, { status: 409 });

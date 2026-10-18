@@ -10,6 +10,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checker';
+import { anyVariant } from '@/lib/orchestrator/phrasing';
 
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
@@ -348,7 +349,8 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     at(17.9);
     // The redo holds nothing; t17's other flag gets its own one probe; then the close.
     const r23 = await runTurn('s1', 'It is still forty points, I think.');
-    expect(r23.interviewerText).toBe('Before we wrap up — walk me through that calculation.');
+    // The session's second wrap-up probe: its lead varies (phrasing.ts), the probe doesn't.
+    expect(r23.interviewerText).toMatch(new RegExp(`^(?:${anyVariant('wrap_up', 'walk me through that calculation.').source})$`));
     expect((flags().closeHold as Row).probed).toHaveLength(2);
     at(18.6);
     const r25 = await runTurn('s1', 'Sixteen plus two is the eighteen.');

@@ -1,6 +1,7 @@
 {
   "id": "pricing-001",
   "title": "Quillpath SaaS Starter Plan Pricing",
+  "sttKeyterms": ["Quillpath", "Starter", "Pro", "LTV", "CAC", "churn"],
   "firmStyle": "mckinsey",
   "difficulty": "hard",
   "prompt": "Our client is Quillpath, a US software company. It sells cloud software that small home-services businesses — plumbers, landscapers, cleaners — use to schedule jobs, send quotes and get paid. Customers pay monthly and can cancel at any time. For years Quillpath sold one plan, Pro, at $100 a month. In January 2025 it launched a cheaper Starter plan at $40 a month, with fewer features and a single user. New customers per month nearly tripled. Quillpath's board has a rule: each type of customer should be worth at least three times what it costs to acquire. The CFO says Starter fails that test and wants to shut it down; the head of growth wants to keep it. The CEO has asked us what Quillpath should do with the Starter plan.",

@@ -4,7 +4,11 @@
 export type ClassifierWaits = { distress: number; ptJudge: number; structureJudge: number; hintCheck: number; codeWrittenChecks: number };
 
 export type TurnRecord = {
-  turnSeq: number; at: string; candidateText: string; carried: boolean; ack: string | null;
+  turnSeq: number; at: string; candidateText: string; carried: boolean;
+  ack: string | null;                                   // the acknowledgment that played
+  ackSkipped?: { ack: string; why: string } | null;     // picked, then not played (17 Oct): cut, speech_resumed, reply_ready, fillers_off, rate (18 Oct)
+  fillers?: boolean;                                    // the filler toggle for this turn (thinking sounds + "So,"; item 3, 17 Oct)
+  cutMs?: number | null;                                // end of turn → the cut, for a cut or cancelled turn
   phase: string | null; ended: boolean;
   speechEndAt: number | null; finalAt: number; endpointMs: number | null; queueWaitMs: number;
   firstSoundMs: number | null; firstUsefulMs: number | null;

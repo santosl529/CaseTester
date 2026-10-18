@@ -5,8 +5,7 @@
 // leaves, the time limit hits, or a budget refuses. Haiku 5.5 interviews here
 // (INTERVIEWER_PROVIDER, set by `npm run voice:agent`); background checks are
 // the production mix.
-import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { appendFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { defineAgent, type JobContext } from '@livekit/agents';
 import {
@@ -23,11 +22,13 @@ import { requireRunBudget } from '@/lib/llm-budget';
 import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
+import { keytermsIfEnabled } from './keyterms';
 import { CartesiaTTS, defaultVoiceId } from './cartesia';
 import { FakeTTS } from './fake-tts';
-import { ALL_ACKS } from './acknowledge';
+import { FILLER_DELAY_MS, fillerRateFrom, FILLER_GAP_MS, FILLER_TAIL_MS } from './acknowledge';
+import { loadAcks } from './ack-audio';
 import { Playout } from './playout';
-import { SpeechEndTracker, trimSilence } from './pcm';
+import { SpeechEndTracker } from './pcm';
 import { TtsCharBudget, RunCharCap, monthlyLedgerFile, ttsRunCap } from './tts-budget';
 import { VoiceTurnController } from './turn-controller';
 import { DATA_TOPIC, parseClientMessage, type ServerMessage } from './protocol';
@@ -40,28 +41,6 @@ import type { SttEvent, TTSProvider } from './types';
 const OUT_RATE = 24000;   // Cartesia out
 const IN_RATE = 16000;    // Flux in
 const num = (k: string, d: number) => Number(process.env[k] ?? d);
-
-// The acknowledgments, synthesized once per TTS + voice and cached on disk.
-async function loadAcks(tts: TTSProvider, voice: string, take: (n: number) => boolean): Promise<Map<string, Uint8Array>> {
-  const acks = new Map<string, Uint8Array>();
-  for (const ack of ALL_ACKS) {
-    const file = path.join('.voice-cache/acks', `${tts.name}-${voice}-${createHash('sha1').update(ack).digest('hex').slice(0, 10)}.pcm`);
-    // Trimmed at both ends as loaded: the TTS pads ~0.1–0.2s of silence each side,
-    // which delays the first sound and lengthens the gap after the ack.
-    if (existsSync(file)) { acks.set(ack, trimSilence(new Uint8Array(readFileSync(file)), OUT_RATE)); continue; }
-    if (!take(ack.length)) break;
-    const utt = await tts.open({ encoding: 'pcm_s16le', sampleRate: OUT_RATE });
-    const parts: Uint8Array[] = [];
-    utt.onAudio(p => parts.push(p));
-    await utt.push(ack);
-    await utt.end();
-    const pcm = Buffer.concat(parts);
-    mkdirSync(path.dirname(file), { recursive: true });
-    writeFileSync(file, pcm);
-    acks.set(ack, trimSilence(new Uint8Array(pcm), OUT_RATE));
-  }
-  return acks;
-}
 
 export default defineAgent({
   entry: async (ctx: JobContext) => {
@@ -88,7 +67,12 @@ export default defineAgent({
     // slow: the browser's track can be subscribed while the rest is set up,
     // and a missed TrackSubscribed meant nothing was ever transcribed (smoke, 8 Oct).
     const vad = new SpeechEndTracker();
-    const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5 }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
+    // How often a thinking filler plays (acknowledge.ts; tuned by ear with VOICE_FILLER_LONG_WORDS / VOICE_FILLER_MAX_RUN).
+    const fillerRate = fillerRateFrom(process.env);
+    console.log(`[voice-agent] filler rate: always after ${fillerRate.longWords}+ words or a data ask; short replies while under ${fillerRate.maxRun} in a row`);
+    const keyterms = keytermsIfEnabled(caseData);
+    console.log(`[voice-agent] stt keyterms: ${keyterms ? `on (${keyterms.length})` : 'off'}`);
+    const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5, keyterms }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
     let onStt: (s: SttEvent) => void = () => {};   // the controller, once it exists
     stt.onSignal(sig => {
       rec?.event('stt', sig.kind === 'resumed' ? { kind: sig.kind } : { kind: sig.kind, transcript: sig.transcript, ...(sig.kind === 'speech' ? { words: sig.words } : {}) });
@@ -134,7 +118,7 @@ export default defineAgent({
     const ledger = new TtsCharBudget(monthlyLedgerFile(), num('VOICE_TTS_CHAR_CAP', 90_000));
     const run = runCap === null ? null : new RunCharCap(runCap);
     const ttsAllow = (n: number) => fake || (run!.take(n) && ledger.take(n));
-    const acks = await loadAcks(tts, voice, ttsAllow);
+    const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS) });
 
     // Timing records (spec §7).
     const recFile = path.join('Case Interview Runs/voice-live', new Date().toISOString().slice(0, 10), `${session.id}.jsonl`);
@@ -153,7 +137,7 @@ export default defineAgent({
       [e.id, { id: e.id, title: e.title, chartType: e.chartType, data: e.data as Record<string, unknown>[], ...(e.notes ? { notes: e.notes } : {}) }]));
     const controller = new VoiceTurnController({
       now: () => Date.now(), clock: realClock, playout, tts, format: { encoding: 'pcm_s16le', sampleRate: OUT_RATE },
-      runTurn: (text, o) => runTurn(session.id, text, { ...o, defer: task => { background.push(task().catch(() => {})); } }),
+      runTurn: (text, o) => runTurn(session.id, text, { ...o, voice: true, defer: task => { background.push(task().catch(() => {})); } }),
       afterTurn: result => {
         const before = phase;
         phase = result.phase;
@@ -163,7 +147,7 @@ export default defineAgent({
       exhibitById: id => exhibits.get(id) ?? null,
       send, record, speechEndAt: () => vad.lastVoicedAt,
       ttsAllow, canStartTurn: () => fake || ledger.canStartTurn(),
-      bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id,
+      bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS), fillerRate,
       trace: rec ? (type, data) => rec.event(type, data) : undefined,
     });
 
@@ -180,6 +164,7 @@ export default defineAgent({
       if (m.type === 'ready') void controller.ready(opening);
       else if (m.type === 'audio_blocked') controller.audioBlocked();
       else if (m.type === 'exhibit_shown') controller.exhibitShown(m.turnSeq, m.exhibitId);
+      else if (m.type === 'fillers') controller.setFillers(m.on);
       else if (m.type === 'timing') {
         const r = records.find(x => x.turnSeq === m.turnSeq);
         if (r) r.clientFirstSoundMs = m.clientFirstSoundMs;

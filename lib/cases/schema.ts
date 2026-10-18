@@ -202,6 +202,10 @@ export const CaseSchema = z.object({
     minItems: z.number().int().min(1).optional(),
     ask: z.string().min(1),
   }).optional(),
+  // Voice (lib/voice/keyterms.ts; Lorenzo's brief, 17 Oct): the case's own
+  // names and terms Flux is told to expect — the client, products, places —
+  // beside the generic ones ("COGS", "MECE"). 9ccf0836 heard "Cogshare".
+  sttKeyterms: z.array(z.string().min(2)).max(40).default([]),
   // Rule 2/14 unit check (lib/orchestrator/unit-check.ts): cost lines whose
   // shares candidates convert into points of revenue, and the ledger item that
   // gives that line's own share of revenue (its timeframes give the values).

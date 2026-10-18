@@ -34,7 +34,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
     { role: 'interviewer', text: initialMessage },
   ]);
   const [input, setInput] = useState('');
-  const [status, setStatus] = useState<'idle' | 'waiting' | 'evaluating' | 'closed'>('idle');
+  const [status, setStatus] = useState<'idle' | 'waiting' | 'finalizing' | 'evaluating' | 'closed'>('idle');
   const bottomRef = useRef<HTMLDivElement>(null);
   const busy = status !== 'idle';
 
@@ -43,6 +43,9 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
   }, [messages, status]);
 
   async function scoreAndRedirect() {
+    // A math check still running on the last message reaches the report (…/finalize waits for it, ≤30s).
+    setStatus('finalizing');
+    await fetch(`/api/channel/${sessionId}/finalize`, { method: 'POST' }).catch(() => null);
     setStatus('evaluating');
     // The score endpoint is idempotent, so one retry on failure is safe
     for (let attempt = 0; attempt < 2; attempt++) {
@@ -136,6 +139,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
           </div>
         ))}
         {status === 'waiting' && <TypingIndicator />}
+        {status === 'finalizing' && <TypingIndicator label="Finalizing your report…" />}
         {status === 'evaluating' && <TypingIndicator label="Case ended, now evaluating…" />}
         <div ref={bottomRef} />
       </div>

@@ -465,10 +465,24 @@ describe('the pointer probe', () => {
     probe: 'You said the whole 18 points sits in COGS. Walk me through that.',
     pointer: 'How does that fit with overhead going from 12% to 14% of revenue?',
   });
-  it('kept when code computes nothing and it names a revealed figure', () => {
-    const [v] = vetCheckerClaims([whole], ctx());
+  // Lorenzo, 18 Oct (batch 31 Owen t16): a pointer passes the probes' leads check against the claim's span.
+  it('kept when code computes nothing and it names a revealed figure the claim allows (the prompt\'s)', () => {
+    const [v] = vetCheckerClaims([claim({ ...whole, pointer: 'How does that fit with margin falling from 24% to 6%?' })], ctx());
     expect(v.correctionLine).toBeNull();
-    expect(v.pointerLine).toBe(whole.pointer);
+    expect(v.pointerLine).toBe('How does that fit with margin falling from 24% to 6%?');
+  });
+  it('withheld when it names a line or figure the claim doesn\'t (it leads)', () => {
+    const [v] = vetCheckerClaims([whole], ctx());
+    expect(v.pointerLine).toBeNull();
+    expect(v.vetNotes.join(' ')).toMatch(/pointer withheld \(leads: names overhead/);
+  });
+  it('batch 31 Owen t16: an assumption stated as an exhibit fact is withheld', () => {
+    const owen = claim({
+      span: 'a volume drop of about 10 percent as the break point', candidateValue: 'about 10%', correctValue: 60,
+      pointer: 'How does that threshold fit with the cost structure in Exhibit A, where COGS is 58% of revenue and labor and overhead are largely fixed?',
+    });
+    const [v] = vetCheckerClaims([owen], ctx({ candidateTexts: ['To get COGS back to the mid-40s takes 25 to 30 percent, and a volume drop of about 10 percent as the break point.'] }));
+    expect(v.pointerLine).toBeNull();
   });
   it('dropped when it carries an unrevealed figure', () => {
     const [v] = vetCheckerClaims([claim({ ...whole, pointer: 'How does that fit with $480M of revenue?' })], ctx());

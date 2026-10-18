@@ -51,6 +51,7 @@ export type TurnCtx = {
   sessionId: string;
   userId: string;
   candidateText: string;
+  heardText?: string;      // the message as transcribed, when the checks read a normalized one (asr-terms.ts): what is saved
   now: number;
   turnStartMs: number;
   nextTurnIndex: number;
@@ -66,6 +67,8 @@ export type TurnCtx = {
   // Voice: a backchannel the voice layer already spoke when the candidate's
   // turn ended. The model is told; the saved interviewer line starts with it.
   acknowledged?: string;
+  // Voice: the turn is spoken, acknowledged or not.
+  voice?: boolean;
 };
 
 // A turn with no model call (conduct, distress, inactive session): the text

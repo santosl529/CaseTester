@@ -10,6 +10,8 @@
 import { growthProbeOnRatio, growthProbeUnchecked } from './growth-probe';
 import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
+import { normalizeNumberWords } from '@/lib/number-words';
+import { poolPattern, type PhraseUses } from './phrasing';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
 import { NEUTRAL_TURN } from '@/lib/agent/models/turn-events';
 import type { ModelPlan } from './plan-turn';
@@ -33,6 +35,7 @@ import { turnData, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
 import { findFalseFacts, findEchoes, findFalseRefusals, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
 import { isGradingSentence } from './grading';
+import { sayAfterAckReason, sayFiguresOf } from './say-after-ack';
 
 export type GateContext = {
   allowedTexts: string[];
@@ -41,16 +44,44 @@ export type GateContext = {
   flaggedThisTurn: boolean;
   flagged?: number[];              // figures a check flagged wrong this turn
   closed?: number[];               // figures of a checker flag past Rule 14: not asked about again
+  converted?: number[];            // figures a conversion closed (own-quantity.ts): never negated ("not 38")
   candidateFigures?: number[];     // the figures the candidate derived (math-talk.ts)
   openItems: OpenRequestItem[];
   phase: Phase;
   acknowledged?: boolean;  // voice already spoke a backchannel this turn
+  ackText?: string;        // …and its words: the model saying them again doubles them (repeatsAck)
+  voice?: boolean;         // the turn is spoken, acknowledged or not
   metaAsked?: boolean;     // the candidate asked how they're assessed (a report hand-off may answer it)
   candidateMessage?: string; // the message this turn answers (the growth probe reads its claim)
+  checkerLine?: string;    // this turn's checker line, if the model is to say it (never dropped after an ack)
+  sayFigures?: number[];   // the case's and the candidate's figures: a "say" sentence with one is never dropped (say-after-ack.ts)
   // The truth check (fact-check.ts F1): the case's facts, what has been
   // revealed (ids), and the figures of misquotes still standing.
   facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext };
 };
+
+// A short sentence whose every word is in the filler just said ("Take your
+// time." after "Take your time."; "Take a moment." after "Sure, take a moment.").
+export function repeatsAck(sentence: string, ack: string): boolean {
+  const words = (t: string) => t.toLowerCase().replace(/[‘’]/g, "'").match(/[a-z']+/g) ?? [];
+  const mine = words(sentence);
+  const theirs = new Set(words(ack));
+  return mine.length > 0 && mine.length <= 5 && !sentence.trim().endsWith('?') && mine.every(w => theirs.has(w));
+}
+
+// "not 38", "isn't 38%", "rather than 38", "instead of about 38" — a figure negated.
+const NEGATED_FIGURE = /\b(?:not|isn't|is not|aren't|are not|wasn't|was not|rather than|instead of)\s+(?:about\s+|roughly\s+|around\s+|~\s*)?(?:the\s+|your\s+)?\$?(\d+(?:\.\d+)?)/gi;
+export function negatesFigure(sentence: string, figures: readonly number[]): boolean {
+  if (figures.length === 0) return false;
+  return [...normalizeNumberWords(sentence).matchAll(NEGATED_FIGURE)].some(m => figures.some(f => Math.abs(parseFloat(m[1]) - f) < 1e-9));
+}
+
+// A code-written question's opening sentence that repeats the filler ("Take
+// your time. The question on the table: …" after "Take your time."): dropped.
+export function dropAckOpening(question: string, ack: string | undefined): string {
+  const [first, ...rest] = question.trim().split(/(?<=[.!?])\s+/);
+  return ack && rest.length > 0 && repeatsAck(first, ack) ? rest.join(' ') : question;
+}
 
 // A say sentence that is nothing but an acknowledgment ("Understood.") —
 // doubled when the voice layer already said "Got it." (spike, Tyler t4).
@@ -77,11 +108,19 @@ const REFUSAL_TALK = /\b(?:i don'?t have|we don'?t have|(?:isn'?t|aren'?t|is not
 // pricing aren't something I have in this case." then code's own "I don't have …").
 export const DATA_TALK = /\b(i don'?t have|we don'?t have|that'?s not in the information|(?:isn'?t|aren'?t|is not|are not|not) (?:something|anything|data|information) (?:i|we) (?:have|hold)|(?:isn'?t|aren'?t|is not|are not) (?:available|part of (?:this|the) case|in (?:this|the) case)|i'?ll come back to|come back to (that|it)|(is|are) available|i'?ll (give|share|show) you|let me (give|share|show|pull)|being sent|on (its|their) way|(come|came|coming) through|in front of you|i'?ve (sent|shared)|(sending|pasting) (them|those|it|that)|here (they|it|that|those) (are|is)|(let me|i'?ll) (repeat|restate|re-?share)|(in|on) my (last|previous|earlier) message|(they'?re|they are|it'?s|it is) on the table)\b/i;
 
+// Code's own data lines in any of their variants (phrasing.ts; Lorenzo, 18 Oct):
+// the model hears them in the transcript and may say one in its "say" — data
+// talk, as the original wording is. The lead-ins and deferrals by their fixed words.
+const CODE_LINE_TALK = new RegExp([
+  String.raw`\b(?:we'?ll|i'?ll) (?:get|come back) to\b[^.?!]{0,80}\b(?:shortly|in a bit|a little later|in a moment|later)\b`,
+  poolPattern('restate', 'earlier').source,
+].join('|'), 'i');
+
 // A statement in the question that hands something over ("Here's the cost
 // structure over time.", "Take a look at this exhibit.") — code already
 // announced the exhibit or data (batch 13: Daniel t10, Jordan t14, Fiona t8).
 // Withheld only when another sentence of the question is left (Settle).
-const HANDOVER_OPENER = /^(here'?s|here is|take a look|let me (show|bring|put|pull))\b/i;
+const HANDOVER_OPENER = /^(here'?s|here is|take a look|have a look|i'?ll put up|let me (show|bring|put|pull))\b/i;
 // A claim that something is being handed over now (v4.10): only true when the
 // turn delivers it.
 const DELIVERY_CLAIM = /\b(?:here (?:they|it|that|those|these) (?:are|is)|being sent|on (?:its|their) way|i'?ve (?:sent|shared|put)|(?:sending|pasting|sharing) (?:them|those|it|that|the)|(?:let me|i'?ll) (?:repeat|restate|re-?share|resend))\b/i;
@@ -99,6 +138,9 @@ export function isHandoverAnnouncement(sentence: string): boolean {
 // `inQuestion`: the sentence is (part of) the question field — a question
 // there is expected; in "say" it is not.
 export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?: boolean; previous?: string } = {}): string | null {
+  // The filler the voice just said, again in the model's words — in "say" or
+  // the question (session 9ccf0836 T30: "Take your time. Take your time. …").
+  if (g.ackText && (g.acknowledged || g.voice) && repeatsAck(sentence, g.ackText)) return 'double_ack';
   if (stripFabricatedTurn(sentence).fabricated !== null) return 'fabricated_turn';
   if (stripMetaLeak(sentence).strippedSentences.length > 0) return 'meta_leak';
   if (rewriteSystemLanguage(sentence).rewrites.length > 0) return 'system_language';
@@ -116,6 +158,10 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // exhibit" before any was shown, "with those figures" when none were given.
   // Settle only — it knows this turn's data line.
   if (opts.inQuestion && g.facts?.delivery && findUndeliveredClaims(sentence, g.facts.fb, g.facts.delivery).length > 0) return 'undelivered_claim';
+  // A figure a conversion closed, negated in the model's words — "…20.5% price
+  // rise, not 38%." beside code's conversion line (Lorenzo, 17 Oct, gap 2): the
+  // "not X" code withheld, said by the model. Code then says its line itself.
+  if (negatesFigure(sentence, g.converted ?? [])) return 'negates_converted';
   // Doubt on the candidate's math only with a flag behind it (probe-guard.ts):
   // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
   const challenge = challengeVerdict(sentence, {
@@ -133,13 +179,15 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // Data lines come between "say" and the question, so only "say" can double
   // them; a probe question about data ("what would be available to test
   // that?") is the interviewer's job.
-  if (!opts.inQuestion && (DATA_TALK.test(sentence) || handoffSentences(sentence).length > 0 || promisesExhibit(sentence))) return 'data_talk';
+  if (!opts.inQuestion && (DATA_TALK.test(sentence) || CODE_LINE_TALK.test(sentence) || handoffSentences(sentence).length > 0 || promisesExhibit(sentence))) return 'data_talk';
   // …and a refusal statement in the question doubles code's own refusal on a
   // turn whose data line refuses (Settle only — it knows the data line).
   if (opts.inQuestion && g.facts?.delivery?.refusedNow && !sentence.trim().endsWith('?') && REFUSAL_TALK.test(sentence)) return 'data_talk';
   if (['BRAINSTORM', 'RECOMMENDATION', 'WRAP'].includes(g.phase) && suppliesRecommendation(sentence)) return 'synthesis';
   if (!opts.inQuestion && sentence.trim().endsWith('?')) return 'question_in_say';
-  if (!opts.inQuestion && g.acknowledged && isBareAcknowledgment(sentence)) return 'double_ack';
+  // On a voice turn (acknowledged or not): no acknowledgment and no echo of
+  // their point without a figure (say-after-ack.ts; Lorenzo's voice test, 17 Oct).
+  if (!opts.inQuestion && (g.acknowledged || g.voice)) return sayAfterAckReason(sentence, { candidateMessage: g.candidateMessage, checkerLine: g.checkerLine, figures: g.sayFigures });
   return null;
 }
 
@@ -162,13 +210,18 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     flaggedThisTurn: state.recomputeFlags.length > 0,
     flagged: state.flaggedFigures,
     closed: state.closedFigures,
+    converted: state.convertedFigures,
     candidateFigures: state.candidateFigures,
     openItems: state.openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })),
     phase: ctx.currentPhase,
     acknowledged: Boolean(ctx.acknowledged),
+    ...(ctx.acknowledged ? { ackText: ctx.acknowledged } : {}),
+    voice: Boolean(ctx.voice),
     // Only on a turn the case continues past (model turns are never the close).
     metaAsked: state.kind === 'model' && asksAboutAssessment(ctx.candidateText),
     candidateMessage: ctx.candidateText,
+    ...(state.checkerLine ? { checkerLine: state.checkerLine.line } : {}),
+    sayFigures: sayFiguresOf([state.caseData.prompt, ...revealed, ...state.derivedValueTexts], state.candidateFigures),
     facts: {
       fb: state.factBase, revealed: revealedIds, echoes: state.factEchoes,
       // The figures of the items code corrects this turn: unsayable, probe or not.
@@ -266,9 +319,10 @@ export async function streamTurnSegments(
       // With "say" written before the declarations, the model sometimes
       // answers the requests there ("I don't have X, Y or Z"); the data line
       // says it properly, so that sentence alone is dropped (Settle drops it
-      // too) and streaming goes on — so does a verdict on their work, and a
-      // doubled acknowledgment. Any other veto stops delivery.
-      if (reason === 'data_talk' || reason === 'double_ack' || reason === 'grading') return;
+      // too) and streaming goes on — so does a verdict on their work, a
+      // doubled acknowledgment and an echo after the voice's acknowledgment.
+      // Any other veto stops delivery.
+      if (reason === 'data_talk' || reason === 'double_ack' || reason === 'echo_after_ack' || reason === 'grading') return;
       if (reason) { bufferSwitch = reason; return; }
       await send('say', p.text, []);
       return;
@@ -277,7 +331,8 @@ export async function streamTurnSegments(
     // pressure test's verdict for this turn is in (the gate depends on it).
     await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
     const d = turnData(plan, fields);
-    const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`);
+    // The same connecting words Settle renders: the same seed and the session's recent uses (phrasing.ts).
+    const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`, plan.ctx.flags.phraseUses as PhraseUses | undefined);
     if (lines.length > 0 || d.exhibit) {
       await send('data', lines.join(' '), d.releases.map(r => r.id), d.exhibit?.id);
       mark('data_line_delivered');

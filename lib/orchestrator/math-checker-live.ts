@@ -24,6 +24,7 @@ import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts
 import { checkPricingClaims, pricingAnswers, pricingValues } from './pricing-check';
 import { changeFigures } from './numeric-provenance';
 import { classifyMathTalk } from './math-talk';
+import { frameOfClaim, framedCorrection, claimWindow, readingsOf, rightOnSome, theirFigure } from './own-quantity';
 
 export const MATH_CHECKER_CATEGORY = 'math_checker';
 // Lorenzo, 13 Oct (approved): 30 s — the slowest call in the evaluation took
@@ -121,6 +122,9 @@ const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.ab
 // code's probes, the checker's probe, pointer and hint.
 export const STEP_PROBE_CAP = 2;
 export const stepOfKey = (key: string) => (key.includes('@') ? key.slice(0, key.lastIndexOf('@')) : key);
+// A step a conversion closed, kept with the closed keys (Lorenzo, 17 Oct): "converted:<step>".
+export const CONVERTED = 'converted:';
+export const convertedMarker = (key: string) => `${CONVERTED}${stepOfKey(key)}`;
 
 // A word quantity is a figure for telling restatements apart: "roughly half",
 // "about half of the damage", "half" are one claim (they carry no number, or
@@ -301,7 +305,7 @@ export function probesOf(figs: number[], interviewerTexts: string[], candidateFi
 
 export type CheckerRow = { category?: string; subtype: string; turnIndex: number | null; payloadJsonb: unknown };
 
-export type CheckerOutcome = 'probe' | 'correct' | 'pointer' | 'hint' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close' | 'undelivered';
+export type CheckerOutcome = 'probe' | 'correct' | 'converted' | 'pointer' | 'hint' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close' | 'undelivered';
 
 // Whether the delivered text holds the checker's line (Lorenzo, 15 Oct): case,
 // quotes, dashes and spacing aside — a paraphrase is not the vetted line.
@@ -322,6 +326,10 @@ export type CheckerSelection = {
   id: string; candidateTurnIndex: number; key: string; attempt: number;
   action: 'probe' | 'correct' | 'pointer' | 'hint'; line: string; derived: string[];
   claim: VettedClaim;
+  // A correction said as a conversion — the figure right on the candidate's own
+  // quantity, or no quantity stated (own-quantity.ts): no "not X", and its step closes.
+  converted?: boolean;
+  framing?: string;   // how the candidate framed the figure, for the log
 };
 export type CheckerPlanInput = {
   rows: CheckerRow[];                 // the session's math_checker events
@@ -340,6 +348,7 @@ export type CheckerPlanInput = {
   finalAnswer?: (candidateTurnIndex: number) => boolean;
   // Among the final answers' flags, which first (close-hold.ts holdRank): the recommendation reply's, then the largest error.
   rank?: (candidateTurnIndex: number, c: VettedClaim) => number;
+  convertedFigures?: number[];        // the figures conversions closed (plan-turn's checker memory)
   underTimePressure: boolean;
   candidateFigures: number[];
   caseData: CheckerCase; revealedIds: string[];
@@ -379,7 +388,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // on message m and spoken on m + 1): what the next candidate message answers.
   const delivered = p.rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag')
     .map(r => ({ at: r.turnIndex, d: r.payloadJsonb as CheckerDecision }))
-    .filter(x => ['probe', 'pointer', 'hint', 'correct'].includes(x.d.outcome));
+    .filter(x => ['probe', 'pointer', 'hint', 'correct', 'converted'].includes(x.d.outcome));
   const laterMessages = (n: number) => [...p.turnRows.filter(t => t.role === 'candidate' && t.turnIndex > n).map(t => ({ text: t.text, index: t.turnIndex })), { text: p.candidateText, index: p.candidateTurnIndex }];
   // Did the interviewer line just before message m question this claim — code's checker line on it, or the model asking about its own figures?
   const questionedBefore = (id: string, c: CheckerClaim, m: number) => {
@@ -399,6 +408,23 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const idFigsOf = (c: CheckerClaim) => { const f = ownFigures(c, caseNumbers); return [...f, ...wordFigures(c.candidateValue).filter(w => !f.some(x => same(x, w)))]; };
   const vetCtx: VetContext = { caseData: p.caseData, revealedIds: p.revealedIds, shownExhibitIds: [], candidateTexts: laterMessages(-1).map(x => x.text) };
   const reopened: { id: string; n: number; c: VettedClaim; key: string; figs: number[] }[] = [];
+  // Lorenzo, 17 Oct (session 9ccf0836, batch 30 Noor): "not X" only on code's
+  // own quantity — read from the claim's sentence and the next two messages.
+  const frameOf = (c: VettedClaim, n: number) => frameOfClaim(c, claimWindow(c.span, messageOf(n), laterMessages(n).map(x => x.text)), vetCtx);
+  const correction = (id: string, n: number, c: VettedClaim, key: string, attempt: number): CheckerSelection | null => {
+    const framed = framedCorrection(c, frameOf(c, n), vetCtx);
+    return framed ? { id, candidateTurnIndex: n, key, attempt, action: 'correct', line: framed.line, derived: framed.derived, claim: c, framing: framed.note, ...(framed.converted ? { converted: true } : {}) } : null;
+  };
+  // Steps a conversion closed: a later flag on one is left for the report —
+  // unless it is a new figure, wrong on every reading code computes (Lorenzo,
+  // 17 Oct, ruling d): then it reopens, the probe first. A restated right figure stays closed.
+  const convertedSteps = new Set([...closed].filter(k => k.startsWith(CONVERTED)).map(k => k.slice(CONVERTED.length)));
+  const reopens = (c: VettedClaim) => {
+    const f = theirFigure(c);
+    if (f === undefined || (p.convertedFigures ?? []).some(x => same(f, x))) return false;
+    const readings = readingsOf(c, vetCtx);
+    return readings.length > 0 && rightOnSome(f, readings) === null;
+  };
   for (const v of verdicts) {
     for (const f of v.codeFlags.filter(x => x.key.startsWith('misquote:'))) {
       const m = misreads.find(x => x.key === f.key);
@@ -433,6 +459,11 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       if (c.flag) flaggedSoFar.push({ id, n: v.candidateTurnIndex, c });
       if (handled.has(id)) return;
       const figs = claimFigures(c, caseNumbers);
+      if (c.flag && convertedSteps.has(stepOfKey(checkerKey(c))) && !reopens(c)) {
+        decisions.push(decision(id, v.candidateTurnIndex, c, 'unresolved', `its step was closed by a conversion (${stepOfKey(checkerKey(c))}); the figure is a restatement or right on a reading code computes`));
+        handled.add(id);
+        return;
+      }
       const codeFlag = v.codeFlags.find(f => f.key === checkerKey(c) || figs.some(x => same(x, f.value)));
       if (!c.flag) {
         // A code flag the checker rates correct: code's line on it is dropped (the gate, gateCodeFindings).
@@ -539,14 +570,16 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (action === 'shed') { decisions.push(decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key)); handled.add(id); continue; }
     // Two probes on the step already: a correction code can write is said (it is no probe); else the report.
     if ((p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
-      if (c.correctionLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'correct', line: c.correctionLine, derived: c.correctionFigure ? [c.correctionFigure] : [], claim: c }; continue; }
+      const corrected = correction(id, n, c, key, attempt);
+      if (corrected) { selected = corrected; continue; }
       decisions.push(decision(id, n, c, 'unresolved', `two probes on this step already (${stepOfKey(key)}) — left for the report`, undefined, key));
       handled.add(id);
       closedNow.push(key);
       continue;
     }
     if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', line: c.probeLine, derived: [], claim: c }; continue; }
-    if (c.correctionLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'correct', line: c.correctionLine, derived: c.correctionFigure ? [c.correctionFigure] : [], claim: c }; continue; }
+    const corrected = correction(id, n, c, key, attempt);
+    if (corrected) { selected = corrected; continue; }
     // Code can't compute it: the pointer probe is the second attempt.
     if (c.pointerLine && (attempt === 2 || p.underTimePressure)) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'pointer', line: c.pointerLine, derived: [], claim: c }; continue; }
     // Else the hint (Lorenzo, 13 Oct, Step-4 rulings): a component they raised
@@ -557,7 +590,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     handled.add(id);
     closedNow.push(key);
   }
-  if (selected) decisions.push(decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.action, `attempt ${selected.attempt}`, selected.line, selected.key));
+  if (selected) decisions.push(decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
+    `attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}`, selected.line, selected.key));
   return {
     selected, waiting: waiting.map(w => ({ id: w.id, candidateTurnIndex: w.n, claim: w.c })), decisions, flaggedFigures: [...new Set(flaggedFigures)], droppedStamps,
     handledNow: [...handled].filter(id => !p.handled.includes(id)), keys, closedNow,
@@ -700,6 +734,8 @@ export function closedErrorRestated(text: string, closed: string[], keys: Record
     // Said back whole: "38-point" (from "a 38-point cost shock") is "38 points" (Jordan 78c89dba t16).
     .map(m => ({ value: parseFloat(m[2]), unit: m[3] ? '%' : m[4] ? 'points' : m[1] || m[5] ? 'money' : '', text: m[4] ? `${m[2]} ${Number(m[2]) === 1 ? 'point' : 'points'}` : m[0].trim() }));
   for (const key of closed) {
+    // A conversion closed it: the candidate was right on their own quantity, or stated none — no error to raise again.
+    if (key.startsWith(CONVERTED) || flagRows.some(d => d.key === key && d.outcome === 'converted')) continue;
     const figures = keys[key]?.figures ?? [];
     // In a unit the claim was said in — never a bare number (Larkspur: "two separate effects" matched "$2M").
     const flags = flagRows.filter(d => d.key === key);

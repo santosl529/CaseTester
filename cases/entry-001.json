@@ -1,6 +1,7 @@
 {
   "id": "entry-001",
   "title": "Aldermoor Pharma US Market Entry",
+  "sttKeyterms": ["Aldermoor", "Aldermoor Pharma", "Kelvexa", "Corlan's disease", "Nimbrel"],
   "firmStyle": "mckinsey",
   "difficulty": "easy",
   "prompt": "Our client is Aldermoor Pharma, a mid-sized European drug company. Since 2022, Aldermoor has sold Kelvexa in Europe — a once-daily pill for Corlan's disease, a lifelong autoimmune condition that causes painful inflammation of the joints and skin. Earlier this year, US regulators approved Kelvexa. Aldermoor has no US operations today. The board will approve a US launch only if Kelvexa can reach at least $300 million in peak annual US net sales. The CEO has asked us to determine whether the US market is attractive enough to enter, and if so, how Aldermoor should enter it.",

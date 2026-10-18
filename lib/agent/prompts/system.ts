@@ -67,7 +67,7 @@ const TURN_FORMAT = `YOUR TURN — reply with one JSON object, fields in this or
   Empty array when they asked for nothing.
 - "exhibit": an exhibit id to hand over unasked this turn, or null.
 - "rescue_item": only when a STALL INTERVENTION Level 3 note says so — the one data item that moves the case forward; otherwise null.
-- "question": the one question that ends your turn. It is spoken after the data, so it may build on data you marked "release" on a direct ask (explicit true). By the time it plays the candidate has already heard that data (and any exhibit handed over): write it as heard ("With those figures, …"), never as still to come ("once you have…", "before those come in…", "on their way", "coming up").
+- "question": the one question that ends your turn. It is spoken after the data, so it may build on data you marked "release" on a direct ask (explicit true). By the time it plays the candidate has already heard that data (and any exhibit handed over): write it as heard ("With those figures, …", "Given that, …", or simply ask about them), never as still to come ("once you have…", "before those come in…", "on their way", "coming up"). Don't open two questions in a row the same way. To come back to something they said, name the point itself ("On the 38% —", "Your bean figure:") or just ask; open with "You said …" at most once every few turns.
 
 The candidate hears, in order: your "say"; the released values, exhibit handover and any "I don't have …" or "I'll come back to …" lines, all spoken by the system; then your "question". Values are always spoken by the system, never by you.`;
 

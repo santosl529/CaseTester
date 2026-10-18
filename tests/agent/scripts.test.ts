@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, OPENING_INVITATIONS, GRACE_ASK_SCRIPTS, pickScript, buildOpeningMessage,
+  TIME_WARNING_SCRIPTS, CLOSE_SCRIPTS, OPENING_INVITATIONS, OPENING_INVITATIONS_AFTER_QUESTION, GRACE_ASK_SCRIPTS, pickScript, buildOpeningMessage,
   hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { asksRecommendationAsk } from '@/lib/orchestrator/spoken-close';
 
@@ -43,10 +43,20 @@ describe('buildOpeningMessage', () => {
     expect(opening).toContain('15%');
   });
 
-  it('appends an invitation from the pool', () => {
-    const opening = buildOpeningMessage(PROMPT, 'session-1');
-    const invitation = OPENING_INVITATIONS.find(i => opening.endsWith(i));
-    expect(invitation).toBeDefined();
+  // Lorenzo's brief, 17 Oct (9ccf0836: "How would you approach this problem? Take a moment, then walk me through how you'd approach this.").
+  it('after a prompt that asks its own question: a hand-off that asks nothing again', () => {
+    for (const seed of ['session-1', 'session-2', 'session-3', 'sX', 'sY']) {
+      const opening = buildOpeningMessage(PROMPT, seed);
+      const invitation = OPENING_INVITATIONS_AFTER_QUESTION.find(i => opening.endsWith(i));
+      expect(invitation).toBeDefined();
+      expect(invitation).not.toMatch(/\?|approach/i);
+    }
+  });
+  it('after a prompt with no question: an invitation that asks', () => {
+    const asks = 'Our client is Hollis Bay. The CEO has asked us whether Hollis Bay should launch.';
+    const opening = buildOpeningMessage(asks, 'session-1');
+    expect(OPENING_INVITATIONS.find(i => opening.endsWith(i))).toBeDefined();
+    expect(OPENING_INVITATIONS.every(i => /approach|structure/i.test(i))).toBe(true);
   });
 
   it('is deterministic for a given session id', () => {

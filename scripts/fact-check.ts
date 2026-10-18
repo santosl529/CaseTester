@@ -24,6 +24,7 @@ import { asksRecommendationAsk } from '@/lib/orchestrator/spoken-close';
 import { checkDataTurn } from '@/lib/eval/data-check';
 import { checkMathTurn } from '@/lib/eval/math-check';
 import { checkFlowRun } from '@/lib/eval/flow-check';
+import { poolPattern } from '@/lib/orchestrator/phrasing';
 
 export type Flag = {
   rule: 'F1' | 'F2-next' | 'F2-rec' | 'F3' | 'F4' | 'D1' | 'D3' | 'D6' | 'D7' | 'D9' | 'STAGE' | 'CLOSE' | 'LOOP';
@@ -57,7 +58,7 @@ function corrects(t: CorpusTurn, fb: FactBase, items: string[], wrong: number | 
   const all = t.segments.map(s => s.text).join(' ');
   if (wrong !== null && new RegExp(`(?<![\\d.])${String(wrong).replace('.', '\\.')}(?![\\d])`).test(all.replace(/\bnot\s+\$?\d+(?:\.\d+)?/gi, ''))) return false;
   for (const seg of t.segments) {
-    if (/To correct one figure/i.test(seg.text) && (seg.ids?.some(i => items.includes(i)) || nameHits(seg.text, fb).some(h => h.quantities.some(q => items.includes(q.id))))) return true;
+    if (poolPattern('correct_one', 'correct_two').test(seg.text) && (seg.ids?.some(i => items.includes(i)) || nameHits(seg.text, fb).some(h => h.quantities.some(q => items.includes(q.id))))) return true;
     for (const s of sentencesOf(seg.text)) {
       for (const h of nameHits(s, fb)) {
         const qs = h.quantities.filter(q => items.includes(q.id));
@@ -88,10 +89,10 @@ export function checkRun(run: CorpusRun): Flag[] {
       revealed, exhibitShown: t.shownBefore.length > 0 || !!t.exhibitNow,
       // A correction line delivers the item's figure too ("Given the corrected figure, …").
       // A correction or a restatement ("As I mentioned: …") delivers its figures too.
-      deliveredNow: t.releasedNow.length > 0 || !!t.exhibitNow || t.segments.some(s => /\bTo correct (?:one|two) figures?\b/.test(s.text))
-        || t.segments.some(s => s.kind === 'data' && /\b(?:As I mentioned|You asked about this earlier|Coming back to what you asked for)\b/.test(s.text)),
+      deliveredNow: t.releasedNow.length > 0 || !!t.exhibitNow || t.segments.some(s => poolPattern('correct_one', 'correct_two').test(s.text))
+        || t.segments.some(s => s.kind === 'data' && poolPattern('earlier', 'restate').test(s.text)),
       deliveredPrev: false, refusedNow: t.segments.some(s => /\bI don't have\b/i.test(s.text)),
-      deferredNow: t.segments.some(s => s.kind === 'data' && /\b(?:I'll come back to|I'll share .* once we've settled|I can share .* if you'd like|Let's settle your structure before)\b/.test(s.text)),
+      deferredNow: t.segments.some(s => s.kind === 'data' && (/\b(?:I'll share .* once we've settled|I can share .* if you'd like|Let's settle your structure before)\b/.test(s.text) || poolPattern('defer').test(s.text))),
     };
     // F2 on the message this turn answers.
     const c = t.candidateText;

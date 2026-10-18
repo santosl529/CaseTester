@@ -184,15 +184,17 @@ export function findMisquotes(text: string, c: MisquoteContext): Misquote[] {
 // One or two corrections in one data line: "To correct two figures: COGS is
 // 58% of revenue today, up from 42% two years ago. And revenue grew 15% over
 // the past two years."
-export function correctionLines(values: string[]): string {
-  if (values.length <= 1) return correctionLine(values[0] ?? '');
+// `lead`: the connecting words around the ledger's (phrasing.ts correct_one / correct_two); by default the original.
+export function correctionLines(values: string[], lead: { one: (x: string) => string; two: (x: string) => string } = DEFAULT_LEAD): string {
+  if (values.length <= 1) return correctionLine(values[0] ?? '', lead.one);
   const lower = (v: string) => { const first = v.split(/\s+/)[0] ?? ''; return first === first.toUpperCase() && /[A-Z]/.test(first) ? v : v.charAt(0).toLowerCase() + v.slice(1); };
-  return `To correct two figures: ${lower(values[0].trim())} And ${lower(values[1].trim())}`;
+  return lead.two(`${lower(values[0].trim())} And ${lower(values[1].trim())}`);
 }
+const DEFAULT_LEAD = { one: (x: string) => `To correct one figure: ${x}`, two: (x: string) => `To correct two figures: ${x}` };
 
-export function correctionLine(value: string): string {
+export function correctionLine(value: string, lead: (x: string) => string = DEFAULT_LEAD.one): string {
   const v = value.trim();
   const first = v.split(/\s+/)[0] ?? '';
   const keepCase = first === first.toUpperCase() && /[A-Z]/.test(first);
-  return `To correct one figure: ${keepCase ? v : v.charAt(0).toLowerCase() + v.slice(1)}`;
+  return lead(keepCase ? v : v.charAt(0).toLowerCase() + v.slice(1));
 }

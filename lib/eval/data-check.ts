@@ -18,13 +18,15 @@ import { addressedAskSentences } from '@/lib/orchestrator/request-signal';
 import { PENDING_DATA } from '@/lib/orchestrator/pending-data';
 import { mentionStatesNeed } from '@/lib/orchestrator/data-decisions';
 import type { Phase } from '@/lib/orchestrator/state-machine';
+import { poolPattern } from '@/lib/orchestrator/phrasing';
 
 export type DataFlag = { rule: 'D1' | 'D3' | 'D9'; sub: string; items: string[]; text: string };
 
-const DEFER = /\b(?:I'll come back to|I'll share|once we've settled|shortly)\b/i;
+// Code's lines in any of their variants (phrasing.ts, 17 Oct).
+const DEFER = new RegExp(`\\b(?:I'll come back to|I'll share|once we've settled|shortly)\\b|${poolPattern('defer').source}`, 'i');
 const REFUSE = /\b(?:I don't have|isn't something I have|not something (?:I|we) have|we don't have|that's not in the case)\b/i;
 const OFFER = /\bI can share (.+?) if you'd like\b/i;
-const EARLIER = /\b(?:Coming back to what you asked for earlier|On what you asked for|You asked about this earlier|As I mentioned)\b/i;
+const EARLIER = new RegExp(`\\bOn what you asked for\\b|${poolPattern('earlier', 'restate').source}`, 'i');
 
 // Items a text names (prompt facts aside; "as a percent of revenue" names no revenue ask).
 const idsNamed = (text: string, fb: FactBase) => new Set(nameHits(text, fb, { groups: true })

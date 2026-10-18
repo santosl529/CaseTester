@@ -3,32 +3,85 @@
 // so the candidate hears the interviewer within ~endpoint time while the
 // model's turn is still being written. Neutral only — never grading ("Right."
 // is left out: after an answer it can sound like "you're right").
+// Since 17 Oct (Lorenzo's ruling, v2) answers and questions get thinking
+// sounds only — no confirming words ("Got it, thanks.", "I see",
+// "Understood" confirmed, which is unnatural) — each beat synthesized alone
+// with trailing intonation and joined in code with silence (ackBeats,
+// joinBeats). The reply's first segment then opens with a connector
+// (connector.ts).
 import { classifyConduct } from '@/lib/orchestrator/conduct';
 import { pickScript } from '@/lib/agent/prompts/scripts';
 import { explicitRequestCues } from '@/lib/orchestrator/request-signal';
 
-// Two-beat acknowledgments (~0.7–0.9s spoken) cover more of the model's wait
-// than a single word (7 Oct demo: the pause after "Mm-hm." read as too long).
-export const ACKS = ['Okay, got it.', 'Mm-hm, I see.', 'Understood, okay.', 'Okay, I follow.', 'Got it, thanks.'] as const;
+// Thinking sounds (Lorenzo, 17 Oct): one beat after a short message, two
+// (joined with FILLER_GAP_MS between them) after an answer of
+// LONG_ANSWER_WORDS or more — by length only, no latency prediction.
+export const ONE_BEAT = ['Hmm…', 'Mhm…', 'Okay…', 'Alright…'] as const;
+export const TWO_BEATS = ['Hmm… okay…', 'Hmm… alright…', 'Mhm… okay…', 'Mhm… alright…'] as const;
+// A data ask: the thinking sounds or "Let me see…" — never a promise of data
+// (code may still refuse or defer the ask).
+export const LET_ME_SEE = 'Let me see…';
+// Every thinking filler: its reply opens with a connector (connector.ts).
+export const ACKS = [...ONE_BEAT, ...TWO_BEATS, LET_ME_SEE] as const;
+export const LONG_ANSWER_WORDS = 40;
 
 // One pool per kind of message (9 Oct): "Got it, thanks." after "Sorry. Hold
-// on." or a question read as not listening. A data ask gets "let me check",
-// never a promise — code may still refuse or defer it.
+// on." or a question read as not listening. Since 17 Oct only the stuck pool
+// has words; the rest are thinking sounds.
 export const ACK_POOLS = {
-  answer: ACKS,
+  answer: ONE_BEAT,
+  long: TWO_BEATS,
   stuck: ['Take your time.', 'Sure, take a moment.'],
-  question: ['Okay, sure.', 'Mm-hm, sure.'],
-  data_request: ['Okay, let me check.', 'Sure, one second.'],
+  question: ONE_BEAT,
+  data_request: [...ONE_BEAT, LET_ME_SEE],
 } as const;
 export type AckKind = keyof typeof ACK_POOLS;
 export type Ack = (typeof ACK_POOLS)[AckKind][number];
 // Every phrase, for synthesizing the audio once at startup.
-export const ALL_ACKS: readonly Ack[] = Object.values(ACK_POOLS).flat();
+export const ALL_ACKS: readonly Ack[] = [...new Set(Object.values(ACK_POOLS).flat())];
+
+// The text sent to the TTS: an ellipsis spelled out, which the TTS reads with
+// trailing, unfinished intonation (17 Oct).
+export function ackSpeechText(ack: string): string {
+  return ack.replace(/…/g, '...');
+}
+
+// A thinking filler (every pool but stuck): its reply opens with a connector.
+export function isThinkingFiller(ack: string | null): boolean {
+  return ack !== null && (ACKS as readonly string[]).includes(ack);
+}
+
+// A filler's beats, each synthesized as its own clip ("Hmm… okay…" → "Hmm…",
+// "Okay…"); any other acknowledgment is one clip, as written.
+export function ackBeats(ack: string): string[] {
+  if (!isThinkingFiller(ack)) return [ack];
+  return ack.split(/(?<=…)\s+/).map(b => b.charAt(0).toUpperCase() + b.slice(1));
+}
+
+// Silence between a filler's beats and after its last (Lorenzo, 17 Oct: "try
+// about 400ms between beats and 300ms after the last"); the agent can override
+// them with VOICE_FILLER_GAP_MS / VOICE_FILLER_TAIL_MS.
+export const FILLER_GAP_MS = 400;
+export const FILLER_TAIL_MS = 300;
+// The filler starts this long after end of turn (Lorenzo, 17 Oct): a pause
+// Flux took for the end of the turn is often the candidate thinking, and a
+// filler over it sounds like talking over them (VOICE_FILLER_DELAY_MS).
+export const FILLER_DELAY_MS = 500;
+
+// The beats' clips (trimmed) joined: gap between them, tail after the last.
+export function joinBeats(clips: Uint8Array[], sampleRate: number, gapMs = FILLER_GAP_MS, tailMs = FILLER_TAIL_MS): Uint8Array {
+  const pause = (ms: number) => new Uint8Array(Math.round((sampleRate * ms) / 1000) * 2);
+  const parts = clips.flatMap((c, i) => (i < clips.length - 1 ? [c, pause(gapMs)] : [c, pause(tailMs)]));
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  let o = 0;
+  for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+}
 
 // Only short messages get a kind: a long answer that opens with "let me take a
 // second" or asks a rhetorical question is still an answer (on the 9 Oct
-// check, cues anywhere in long persona answers misfired more than random).
-const MAX_KIND_WORDS = 40;
+// check, cues anywhere in long persona answers misfired more than random) —
+// 'long', two beats, from LONG_ANSWER_WORDS on.
 const STUCK = [
   /\b(i'?m|i\s+am)\s+(stuck|lost|confused|blanking|not\s+sure)\b/i,
   /\bi\s+(really\s+)?(don'?t|do\s+not)\s+(really\s+)?know\b/i,
@@ -43,11 +96,32 @@ const QUESTION = [/\?/, /^\s*(sorry[.,—–-]?\s*)?(quick\s+question|can\s+i\s+
 // not an answer. STT may drop a "?", so a question opener counts too.
 export function ackKind(candidateText: string): AckKind {
   const t = candidateText.trim();
-  if (t.split(/\s+/).length > MAX_KIND_WORDS) return 'answer';
+  if (t.split(/\s+/).length >= LONG_ANSWER_WORDS) return 'long';
   if (STUCK.some(re => re.test(t))) return 'stuck';
   if (explicitRequestCues(t).length) return 'data_request';
   if (QUESTION.some(re => re.test(t))) return 'question';
   return 'answer';
+}
+
+// How often a thinking filler plays (Lorenzo's go on 4c, 18 Oct; session
+// 9ccf0836 had one on 21 of 21 turns, the model's first audio a median 2.76s
+// out): always after an answer of `longWords`+ words and on a data ask; after
+// a shorter reply only while fewer than `maxRun` turns in a row have had one
+// (1: never two running). By ear: VOICE_FILLER_LONG_WORDS, VOICE_FILLER_MAX_RUN
+// (0: none after short replies; a large number: one on every turn, as before).
+// The comfort line "Take your time." is words, not a thinking sound: not rationed.
+export type FillerRate = { longWords: number; maxRun: number };
+export const DEFAULT_FILLER_RATE: FillerRate = { longWords: 40, maxRun: 1 };
+export function fillerRateFrom(env: Record<string, string | undefined>): FillerRate {
+  const n = (k: string, d: number) => { const v = Number(env[k]); return env[k] !== undefined && env[k] !== '' && Number.isFinite(v) && v >= 0 ? v : d; };
+  return { longWords: n('VOICE_FILLER_LONG_WORDS', DEFAULT_FILLER_RATE.longWords), maxRun: n('VOICE_FILLER_MAX_RUN', DEFAULT_FILLER_RATE.maxRun) };
+}
+// `run`: how many turns in a row, just before this one, had a thinking filler play.
+export function fillerAllowed(candidateText: string, run: number, rate: FillerRate = DEFAULT_FILLER_RATE): boolean {
+  const kind = ackKind(candidateText);
+  if (kind === 'stuck' || kind === 'data_request') return true;
+  if (candidateText.trim().split(/\s+/).length >= rate.longWords) return true;
+  return run < rate.maxRun;
 }
 
 // A seeded pick from the kind's pool that never repeats the previous acknowledgment.

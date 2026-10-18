@@ -1,0 +1,182 @@
+{
+ "session": "314295e0-0170-4a80-9f44-1bdc3788a666",
+ "note": "Per-turn interviewer segments as heard, from the DB (session_turns split by voice_heard heardChars); the ack text is in the .jsonl record. t11 was cut by End and not saved: its text is unknown.",
+ "turns": [
+  {
+   "turnSeq": 2,
+   "segments": [
+    {
+     "kind": "say",
+     "text": "A cost-first view, with revenue as a second branch.",
+     "heardChars": 51,
+     "playback": "played"
+    },
+    {
+     "kind": "tail",
+     "text": "Is that structure MECE, and which branch would you prioritize first, and why?",
+     "heardChars": 77,
+     "playback": "played"
+    }
+   ]
+  },
+  {
+   "turnSeq": 3,
+   "segments": [
+    {
+     "kind": "say",
+     "text": "MECE means mutually exclusive, collectively exhaustive.",
+     "heardChars": 55,
+     "playback": "played"
+    },
+    {
+     "kind": "tail",
+     "text": "Coming back to your structure: what might be missing from your structure?",
+     "heardChars": 73,
+     "playback": "played"
+    }
+   ]
+  },
+  {
+   "turnSeq": 4,
+   "segments": [
+    {
+     "kind": "data",
+     "text": "I'll come back to COGS as a percent of revenue shortly.",
+     "heardChars": 55,
+     "playback": "played"
+    },
+    {
+     "kind": "tail",
+     "text": "Let me make it concrete: of the areas you've named, which one would you check first, and why?",
+     "heardChars": 93,
+     "playback": "played"
+    }
+   ]
+  },
+  {
+   "turnSeq": 5,
+   "segments": [
+    {
+     "kind": "data",
+     "text": "Coming back to what you asked for earlier: COGS is 58% of revenue today, up from 42% two years ago.",
+     "heardChars": 99,
+     "playback": "played"
+    },
+    {
+     "kind": "tail",
+     "text": "With that in hand, what does it tell you, and what would you want to look at",
+     "heardChars": 76,
+     "playback": "partial"
+    }
+   ]
+  },
+  {
+   "turnSeq": 6,
+   "segments": [
+    {
+     "kind": "say",
+     "text": "A sixteen-point rise, and a relative increase on top.",
+     "heardChars": 53,
+     "playback": "played"
+    },
+    {
+     "kind": "data",
+     "text": "Coffee beans were 25% of COGS two years ago.",
+     "heardChars": 44,
+     "playback": "played"
+    },
+    {
+     "kind": "tail",
+     "text": "Taking what you now have on the COGS composition, what do you conclude about what's driving the increase, and what would you check next?",
+     "heardChars": 136,
+     "playback": "played"
+    }
+   ]
+  },
+  {
+   "turnSeq": 7,
+   "segments": [
+    {
+     "kind": "data",
+     "text": "I don't have coffee beans' share of COGS today.",
+     "heardChars": 47,
+     "playback": "played"
+    },
+    {
+     "kind": "tail",
+     "text": "What else would you pull to work out what is driving the COGS increase, and why?",
+     "heardChars": 80,
+     "playback": "played"
+    }
+   ]
+  },
+  {
+   "turnSeq": 8,
+   "segments": [
+    {
+     "kind": "data",
+     "text": "Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. Overhead and rent are 14% of revenue, up slightly from 12%.",
+     "heardChars": 146,
+     "playback": "played"
+    },
+    {
+     "kind": "tail",
+     "text": "With those figures, what do they tell you about where the margin decline is coming from, and how would you test it further?",
+     "heardChars": 123,
+     "playback": "played"
+    }
+   ]
+  },
+  {
+   "turnSeq": 9,
+   "segments": [
+    {
+     "kind": "data",
+     "text": "Menu prices have not changed in two years.",
+     "heardChars": 42,
+     "playback": "played"
+    },
+    {
+     "kind": "tail",
+     "text": "With that pricing information, what does it tell you about the revenue branch, and how does it change where you'd look next?",
+     "heardChars": 124,
+     "playback": "played"
+    }
+   ]
+  },
+  {
+   "turnSeq": 10,
+   "segments": [
+    {
+     "kind": "say",
+     "text": "A volume check.",
+     "heardChars": 15,
+     "playback": "played"
+    },
+    {
+     "kind": "data",
+     "text": "200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed. The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.",
+     "heardChars": 225,
+     "playback": "played"
+    },
+    {
+     "kind": "tail",
+     "text": "With those figures, what do they tell you about how the revenue growth came about, and does that change where you'd focus?",
+     "heardChars": 122,
+     "playback": "played"
+    }
+   ]
+  },
+  {
+   "turnSeq": 11,
+   "segments": [
+    {
+     "kind": "tail",
+     "text": null,
+     "heardChars": 332,
+     "playback": "partial"
+    }
+   ]
+  }
+ ]
+}

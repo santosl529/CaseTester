@@ -26,7 +26,8 @@ function flaggedClaims(rows: CheckerEventRow[]): Flagged[] {
     .map(r => r.payloadJsonb as VerdictPayload)
     .sort((a, b) => a.candidateTurnIndex - b.candidateTurnIndex)
     .flatMap(v => v.claims.map((claim, i) => ({ id: `${v.candidateTurnIndex}:${i}`, turn: v.candidateTurnIndex, claim, outcomes: decisions.filter(d => d.id === `${v.candidateTurnIndex}:${i}`) })))
-    .filter(f => f.claim.flag && !f.outcomes.some(d => d.outcome === 'dedupe' || d.outcome === 'disagrees_with_code'));
+    // A conversion: the figure was right on a reading code computes (own-quantity.ts) — no error of theirs.
+    .filter(f => f.claim.flag && !f.outcomes.some(d => d.outcome === 'dedupe' || d.outcome === 'disagrees_with_code' || d.outcome === 'converted'));
 }
 
 // The candidate figures the checker flagged, by candidate turn (a word
