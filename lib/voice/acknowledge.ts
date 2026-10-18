@@ -103,6 +103,27 @@ export function ackKind(candidateText: string): AckKind {
   return 'answer';
 }
 
+// How often a thinking filler plays (Lorenzo's go on 4c, 18 Oct; session
+// 9ccf0836 had one on 21 of 21 turns, the model's first audio a median 2.76s
+// out): always after an answer of `longWords`+ words and on a data ask; after
+// a shorter reply only while fewer than `maxRun` turns in a row have had one
+// (1: never two running). By ear: VOICE_FILLER_LONG_WORDS, VOICE_FILLER_MAX_RUN
+// (0: none after short replies; a large number: one on every turn, as before).
+// The comfort line "Take your time." is words, not a thinking sound: not rationed.
+export type FillerRate = { longWords: number; maxRun: number };
+export const DEFAULT_FILLER_RATE: FillerRate = { longWords: 40, maxRun: 1 };
+export function fillerRateFrom(env: Record<string, string | undefined>): FillerRate {
+  const n = (k: string, d: number) => { const v = Number(env[k]); return env[k] !== undefined && env[k] !== '' && Number.isFinite(v) && v >= 0 ? v : d; };
+  return { longWords: n('VOICE_FILLER_LONG_WORDS', DEFAULT_FILLER_RATE.longWords), maxRun: n('VOICE_FILLER_MAX_RUN', DEFAULT_FILLER_RATE.maxRun) };
+}
+// `run`: how many turns in a row, just before this one, had a thinking filler play.
+export function fillerAllowed(candidateText: string, run: number, rate: FillerRate = DEFAULT_FILLER_RATE): boolean {
+  const kind = ackKind(candidateText);
+  if (kind === 'stuck' || kind === 'data_request') return true;
+  if (candidateText.trim().split(/\s+/).length >= rate.longWords) return true;
+  return run < rate.maxRun;
+}
+
 // A seeded pick from the kind's pool that never repeats the previous acknowledgment.
 export function pickAck(seed: string, last: string | null, kind: AckKind = 'answer'): Ack {
   const pool: readonly Ack[] = ACK_POOLS[kind];

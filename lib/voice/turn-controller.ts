@@ -13,7 +13,7 @@ import { HEARD_MARGIN_MS, type Clock, type Outcome, type Playout } from './playo
 import type { PcmFormat, SttEvent, TTSProvider } from './types';
 import type { ServerMessage, VoiceState } from './protocol';
 import { classifierWaits, type TurnRecord } from './records';
-import { FILLER_DELAY_MS, ackKind, isThinkingFiller, pickAck, shouldAcknowledge } from './acknowledge';
+import { DEFAULT_FILLER_RATE, FILLER_DELAY_MS, ackKind, fillerAllowed, isThinkingFiller, pickAck, shouldAcknowledge, type FillerRate } from './acknowledge';
 import { connectorWordCount, pickConnector, spokenWithConnector } from './connector';
 import { speechTextFor, WordFolder } from './pronounce';
 
@@ -46,6 +46,8 @@ export type ControllerDeps = {
   sessionSeed: string;
   // How long after end of turn the acknowledgment waits (FILLER_DELAY_MS); 0 plays it at once.
   fillerDelayMs?: number;
+  // How often a thinking filler plays (acknowledge.ts fillerAllowed); default DEFAULT_FILLER_RATE.
+  fillerRate?: FillerRate;
   // Optional: the turn-taking decisions as they happen (session recording).
   trace?: (type: string, data?: Record<string, unknown>) => void;
 };
@@ -86,6 +88,8 @@ export class VoiceTurnController {
   // The thinking sounds and the "So," connector (Lorenzo's brief, 17 Oct, item 3):
   // the interview screen's toggle, on by default; a turn keeps the setting it began with.
   private fillers = true;
+  // Turns in a row, ending with the last, on which a thinking filler played (the rate's memory).
+  private fillerRun = 0;
   private connectors: string[] = [];   // the connector chosen on each of the last two filler turns
 
   constructor(private d: ControllerDeps) {}
@@ -230,12 +234,18 @@ export class VoiceTurnController {
   // voiced mic frame after the one that ended the turn, or a cut), or the
   // reply has started, nothing plays — logged.
   private playAck(t: Live): void {
-    if (!shouldAcknowledge(t.text)) return;
+    if (!shouldAcknowledge(t.text)) { this.fillerRun = 0; return; }
     const ack = pickAck(`${this.d.sessionSeed}:${t.seq}`, this.lastAck, ackKind(t.text));
     // Toggled off: no thinking sound (the comfort line "Take your time." is words, and stays).
     if (!t.fillers && isThinkingFiller(ack)) {
       t.ack = ack;
       this.skipAck(t, 'fillers_off');
+      return;
+    }
+    // The rate (4c): after a short reply, not while the last turns had one.
+    if (isThinkingFiller(ack) && !fillerAllowed(t.text, this.fillerRun, this.d.fillerRate ?? DEFAULT_FILLER_RATE)) {
+      t.ack = ack;
+      this.skipAck(t, 'rate');
       return;
     }
     const pcm = this.d.ackPcm(ack);
@@ -244,6 +254,7 @@ export class VoiceTurnController {
     t.ack = ack;
     const play = () => {
       t.ackState = 'played';
+      this.fillerRun = isThinkingFiller(ack) ? this.fillerRun + 1 : 0;
       const id = `${t.seq}:ack`;
       this.d.playout.open(id, { text: ack, interruptible: true, onStart: at => { t.firstSoundAt ??= at; this.d.trace?.('ack_start', { seq: t.seq, ack, at }); } });
       this.d.playout.push(id, pcm);
@@ -265,6 +276,7 @@ export class VoiceTurnController {
 
   private skipAck(t: Live, why: string): void {
     t.ackState = 'skipped';
+    this.fillerRun = 0;   // no filler on this turn: the rate's run starts again
     t.ackSkipped = why;
     if (this.lastAck === t.ack) this.lastAck = t.prevAck;   // an unheard ack doesn't count (§5.5)
     this.d.trace?.('ack_skipped', { seq: t.seq, ack: t.ack, why });

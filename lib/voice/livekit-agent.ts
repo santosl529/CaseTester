@@ -25,7 +25,7 @@ import { DeepgramFluxSTT } from './deepgram';
 import { keytermsIfEnabled } from './keyterms';
 import { CartesiaTTS, defaultVoiceId } from './cartesia';
 import { FakeTTS } from './fake-tts';
-import { FILLER_DELAY_MS, FILLER_GAP_MS, FILLER_TAIL_MS } from './acknowledge';
+import { FILLER_DELAY_MS, fillerRateFrom, FILLER_GAP_MS, FILLER_TAIL_MS } from './acknowledge';
 import { loadAcks } from './ack-audio';
 import { Playout } from './playout';
 import { SpeechEndTracker } from './pcm';
@@ -67,6 +67,9 @@ export default defineAgent({
     // slow: the browser's track can be subscribed while the rest is set up,
     // and a missed TrackSubscribed meant nothing was ever transcribed (smoke, 8 Oct).
     const vad = new SpeechEndTracker();
+    // How often a thinking filler plays (acknowledge.ts; tuned by ear with VOICE_FILLER_LONG_WORDS / VOICE_FILLER_MAX_RUN).
+    const fillerRate = fillerRateFrom(process.env);
+    console.log(`[voice-agent] filler rate: always after ${fillerRate.longWords}+ words or a data ask; short replies while under ${fillerRate.maxRun} in a row`);
     const keyterms = keytermsIfEnabled(caseData);
     console.log(`[voice-agent] stt keyterms: ${keyterms ? `on (${keyterms.length})` : 'off'}`);
     const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5, keyterms }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
@@ -144,7 +147,7 @@ export default defineAgent({
       exhibitById: id => exhibits.get(id) ?? null,
       send, record, speechEndAt: () => vad.lastVoicedAt,
       ttsAllow, canStartTurn: () => fake || ledger.canStartTurn(),
-      bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS),
+      bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS), fillerRate,
       trace: rec ? (type, data) => rec.event(type, data) : undefined,
     });
 

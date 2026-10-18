@@ -179,7 +179,8 @@ describe('the connector after a filler (Lorenzo, 17 Oct)', () => {
   it('never the same connector three turns running', async () => {
     const tts = new RecordingTTS(10, 0);
     const turns = Array.from({ length: 12 }, () => [seg('tail', 'Where would you start?')]);
-    const h = harness(turns, { tts });
+    // A filler on every turn (the rate set to "always"), to test the connector's own rule.
+    const h = harness(turns, { tts, fillerRate: { longWords: 40, maxRun: 99 } });
     await h.c.ready('');
     for (let i = 0; i < 12; i++) { h.c.onStt(final(`${ANSWER} Number ${i}.`)); await h.advance(3000); }
     const opens = tts.pushed.map(p => (p.startsWith('So, ') ? 'So,' : ''));
@@ -604,3 +605,30 @@ describe('the filler toggle', () => {
   });
 });
 
+
+// 4c (Lorenzo's go, 18 Oct): how often a thinking filler plays, by config.
+describe('the filler rate', () => {
+  const SHORT = 'I would look at costs first.';
+  const LONG = Array.from({ length: 45 }, (_, i) => `word${i}`).join(' ') + '.';
+  it('a short reply right after a turn with a filler gets none — logged "rate"; the next one does', async () => {
+    const h = harness([[seg('tail', 'Go on.')], [seg('tail', 'Go on.')], [seg('tail', 'Go on.')]]);
+    await h.c.ready('');
+    for (const text of [SHORT, `${SHORT} Then labor.`, `${SHORT} Then rent.`]) { h.c.onStt(final(text)); await h.advance(3000); }
+    const recs = h.records as { ack: string | null; ackSkipped: { why: string } | null }[];
+    expect(recs[0].ack).not.toBeNull();
+    expect(recs[1]).toMatchObject({ ack: null, ackSkipped: { why: 'rate' } });
+    expect(recs[2].ack).not.toBeNull();
+  });
+  it('a long answer or a data ask always gets one', async () => {
+    const h = harness([[seg('tail', 'Go on.')], [seg('tail', 'Go on.')], [seg('tail', 'Go on.')]]);
+    await h.c.ready('');
+    for (const text of [SHORT, LONG, 'Could I see the cost breakdown?']) { h.c.onStt(final(text)); await h.advance(3000); }
+    expect((h.records as { ack: string | null }[]).map(r => r.ack !== null)).toEqual([true, true, true]);
+  });
+  it('maxRun 0: none after short replies; still after long ones', async () => {
+    const h = harness([[seg('tail', 'Go on.')], [seg('tail', 'Go on.')]], { fillerRate: { longWords: 40, maxRun: 0 } });
+    await h.c.ready('');
+    for (const text of [SHORT, LONG]) { h.c.onStt(final(text)); await h.advance(3000); }
+    expect((h.records as { ack: string | null; ackSkipped: { why: string } | null }[]).map(r => r.ackSkipped?.why ?? 'played')).toEqual(['rate', 'played']);
+  });
+});
