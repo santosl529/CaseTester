@@ -10,6 +10,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checker';
+import { poolPattern } from '@/lib/orchestrator/phrasing';
 
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
@@ -253,6 +254,6 @@ describe("Blake 4755c03a, checker on, on his real clock: the risk is asked befor
     at(19.9);
     const r27 = await runTurn('s1', 'Dairy contracts first — they are the fastest to move.');
     expect(r27.ended).toBe(true);
-    expect(r27.interviewerText).toMatch(/covered everything|covers what I wanted/);
+    expect(poolPattern('close_complete').test(r27.interviewerText)).toBe(true);
   });
 });

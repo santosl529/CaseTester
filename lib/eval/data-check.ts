@@ -18,15 +18,14 @@ import { addressedAskSentences } from '@/lib/orchestrator/request-signal';
 import { PENDING_DATA } from '@/lib/orchestrator/pending-data';
 import { mentionStatesNeed } from '@/lib/orchestrator/data-decisions';
 import type { Phase } from '@/lib/orchestrator/state-machine';
-import { poolPattern } from '@/lib/orchestrator/phrasing';
+import { poolPattern, slotOf } from '@/lib/orchestrator/phrasing';
 
 export type DataFlag = { rule: 'D1' | 'D3' | 'D9'; sub: string; items: string[]; text: string };
 
 // Code's lines in any of their variants (phrasing.ts, 17 Oct).
-const DEFER = new RegExp(`\\b(?:I'll come back to|I'll share|once we've settled|shortly)\\b|${poolPattern('defer').source}`, 'i');
-const REFUSE = /\b(?:I don't have|isn't something I have|not something (?:I|we) have|we don't have|that's not in the case)\b/i;
-const OFFER = /\bI can share (.+?) if you'd like\b/i;
-const EARLIER = new RegExp(`\\bOn what you asked for\\b|${poolPattern('earlier', 'restate').source}`, 'i');
+export const DEFER = new RegExp(`\\b(?:I'll come back to|I'll share|once we've settled|shortly)\\b|${poolPattern('defer', 'gate_defer', 'offer', 'unmapped_defer').source}`, 'i');
+const REFUSE = new RegExp(`\\b(?:I don't have|isn't something I have|not something (?:I|we) have|we don't have|that's not in the case)\\b|${poolPattern('refuse').source}`, 'i');
+export const EARLIER = new RegExp(`\\bOn what you asked for\\b|${poolPattern('earlier', 'restate').source}`, 'i');
 
 // Items a text names (prompt facts aside; "as a percent of revenue" names no revenue ask).
 const idsNamed = (text: string, fb: FactBase) => new Set(nameHits(text, fb, { groups: true })
@@ -48,7 +47,7 @@ export function checkDataTurn(t: CorpusTurn, fb: FactBase, opts: { openBefore?: 
   const dataText = data.map(s => s.text).join(' ');
   const delivered = new Set(t.releasedNow);
   // A restatement ("As I mentioned: …") or a correction hands data over too.
-  const deliveredAny = delivered.size > 0 || !!t.exhibitNow || data.some(s => EARLIER.test(s.text) || /\bTo correct (?:one|two) figures?\b/.test(s.text));
+  const deliveredAny = delivered.size > 0 || !!t.exhibitNow || data.some(s => EARLIER.test(s.text) || poolPattern('correct_one', 'correct_two').test(s.text));
   const known = new Set([...t.revealedBefore, ...t.releasedNow]);
 
   // D1: pending wording about data the candidate already has.
@@ -78,11 +77,11 @@ export function checkDataTurn(t: CorpusTurn, fb: FactBase, opts: { openBefore?: 
       out.push({ rule: 'D3', sub: 'release', items: [id], text: dataText.slice(0, 200) });
     }
   }
-  const offer = OFFER.exec(dataText);
+  const offer = slotOf('offer', dataText);
   // An offer stands on a need the candidate stated for one of the items it names.
-  const offered = offer ? [...idsNamed(offer[1], fb)] : [];
+  const offered = offer !== null ? [...idsNamed(offer, fb)] : [];
   const labelOf = (id: string) => fb.ledger.find(i => i.id === id) as { label?: string } | undefined;
-  if (offer && !offered.some(id => mentionStatesNeed(t.candidateText, labelOf(id)?.label ?? id))) out.push({ rule: 'D3', sub: 'offer', items: offered, text: offer[0] });
+  if (offer !== null && !offered.some(id => mentionStatesNeed(t.candidateText, labelOf(id)?.label ?? id))) out.push({ rule: 'D3', sub: 'offer', items: offered, text: dataText.slice(0, 200) });
 
   // D9: each addressed ask answered.
   const asks = addressedAskSentences(t.candidateText, (t.phase || 'ANALYSIS') as Phase, { closing: t.kind === 'close' });

@@ -103,8 +103,11 @@ export function pendingFinalChecks(p: {
 // The stage's natural follow-up: after the risk, how they'd guard against it;
 // otherwise the first step. No recommendation or risk ask in its words — it
 // must not reopen a stage.
+// Read off the last question: already asked how to guard against it; already asked what comes first.
+export const CLOSE_WAIT_MITIGATED = /\b(?:mitigat\w*|guard against|protect against|de-?risk)\b/i;
+export const CLOSE_WAIT_FIRST = /\bfirst\b/i;
 export function closeWaitLine(lastQuestion: string, seed: string, uses?: PhraseUses): string {
-  if (asksRiskQuestion(lastQuestion, true) && !/\b(?:mitigat\w*|guard against|protect against|de-?risk)\b/i.test(lastQuestion)) return line('after_risk', uses, seed);
-  if (!/\bfirst\b/i.test(lastQuestion)) return line('first_step', uses, seed);
+  if (asksRiskQuestion(lastQuestion, true) && !CLOSE_WAIT_MITIGATED.test(lastQuestion)) return line('after_risk', uses, seed);
+  if (!CLOSE_WAIT_FIRST.test(lastQuestion)) return line('first_step', uses, seed);
   return line('measure', uses, seed);
 }

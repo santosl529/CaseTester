@@ -15,6 +15,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { readsFixture } from './fixtures/turn-reads';
 import stalls from './fixtures/pressure-test-stalls.json';
+import { anyVariant } from '@/lib/orchestrator/phrasing';
 
 // ---- in-memory store (as in pressure-test-runner.test.ts) ----
 type Row = Record<string, unknown>;
@@ -163,7 +164,7 @@ describe('pending requests stay recorded and their deferral is explained', () =>
   it('Maya t24, t26: each repeated ask for the held cost lines is answered out loud, with the reason', async () => {
     seed(maya);
     const heard = [await step(at(maya, 24)), await step(at(maya, 26))];
-    for (const h of heard) expect(h).toMatch(/I'll share the cost breakdown once we've settled your structure\./);
+    for (const h of heard) expect(h).toMatch(anyVariant('gate_defer', 'the cost breakdown'));
     const defers = store.events.filter(e => e.category === 'data_request' && e.subtype === 'defer');
     expect(defers.length).toBeGreaterThanOrEqual(2);
     for (const d of defers) expect((d.payloadJsonb as Row).ledgerItemIds).toEqual(expect.arrayContaining(COST));

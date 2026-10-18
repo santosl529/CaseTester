@@ -7,6 +7,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim } from '@/lib/orchestrator/math-checker';
 import { checkerClaim, landed } from './helpers/checker-claim';
+import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
@@ -277,7 +278,7 @@ describe('code-written lines (step 4, batch 19)', () => {
   it('a replacement question fits the phase: mid-analysis, not "Where would you like to start the analysis?"', async () => {
     seed({ phase: 'ANALYSIS', flags: SATISFIED });
     const r = await say('I think it is mostly costs.', T({ say: 'Mm-hm.', question: 'Which of these cost lines moved the most?' }));
-    expect(r.interviewerText).toMatch(/^Mm-hm\. (What would you look at next, and why\?|Where does that leave your analysis\?|What's your next step from here\?)$/);
+    expect(PHRASE_POOLS.analysis_q).toContain(r.interviewerText.replace(/^Mm-hm\. /, ''));
   });
 
   it('an exhibit that shows the held data gets no deferral line beside it (Camila t6)', async () => {

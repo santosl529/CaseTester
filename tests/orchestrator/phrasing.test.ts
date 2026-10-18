@@ -1,7 +1,7 @@
 // Code's connecting words vary (Lorenzo's brief, 17 Oct, item 4a): no variant
 // again within its pool's last 3 uses in a session; the content verbatim.
 import { describe, it, expect } from 'vitest';
-import { PHRASE_POOLS, PHRASE_MEMORY, SEEDED_FIRST, phrase, variantIndex, recordPhraseUses, poolPattern, anyVariant, type PhrasePool, type PhraseUses } from '@/lib/orchestrator/phrasing';
+import { PHRASE_POOLS, PHRASE_MEMORY, SEEDED_FIRST, fill, phrase, variantIndex, recordPhraseUses, poolPattern, anyVariant, type PhrasePool, type PhraseUses } from '@/lib/orchestrator/phrasing';
 import { hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { isClosingTurn, asksRecommendationAsk } from '@/lib/orchestrator/spoken-close';
 import { renderDataLines } from '@/lib/orchestrator/data-decisions';
@@ -16,7 +16,7 @@ describe('the pools', () => {
     expect(vs.length).toBeGreaterThanOrEqual(PHRASE_MEMORY + 1);
     expect(new Set(vs).size).toBe(vs.length);
     for (const v of vs) {
-      expect(v.split('{x}').length - 1).toBe(pool === 'earlier' ? 0 : 1);
+      expect(v.split(/\{[xX]\}/).length - 1).toBe(pool === 'earlier' ? 0 : 1);
       expect(v).not.toMatch(/\d/);
     }
   });
@@ -60,9 +60,10 @@ describe('recording what was said', () => {
   it('each pool\'s variant heard, newest last, at most 3 kept; the longest variant wins', () => {
     let uses = recordPhraseUses("I'll come back to the store count shortly. I don't have competitor pricing.", {});
     expect(uses).toEqual({ defer: [0], refuse: [0] });
-    uses = recordPhraseUses('One more thing before we wrap up — walk me through that calculation.', uses);
+    uses = recordPhraseUses('Let me ask one more thing as we wrap up — walk me through that calculation.', uses);
     expect(uses.wrap_up).toEqual([1]);
-    uses = recordPhraseUses("We'll get to the ticket in a bit.", recordPhraseUses("I'll get to the ticket a little later.", recordPhraseUses("We'll come back to the ticket in a moment.", uses)));
+    const said = (i: number) => fill(PHRASE_POOLS.defer[i], 'the ticket');
+    uses = recordPhraseUses(said(1), recordPhraseUses(said(2), recordPhraseUses(said(3), uses)));
     expect(uses.defer).toEqual([3, 2, 1]);
   });
   it('a line not said (cut off) is not recorded: Settle reads the heard text', () => {
@@ -77,8 +78,8 @@ describe('the data lines', () => {
     const later = renderDataLines(d, 's:9', { exhibit: [0], refuse: [0], defer: [0] });
     expect(later[0]).not.toBe("Here's an exhibit: Cost Structure Over Time.");
     expect(later[0]).toMatch(anyVariant('exhibit', 'Cost Structure Over Time'));
-    expect(later[1]).toMatch(/competitor pricing/);
-    expect(later[2]).toMatch(/the ticket/);
+    expect(later[1]).toMatch(/competitor pricing/i);
+    expect(later[2]).toMatch(/the ticket/i);
   });
 });
 
@@ -96,12 +97,13 @@ import { vetoReason, isHandoverAnnouncement, type GateContext } from '@/lib/orch
 describe('the model saying a variant of code\'s line is still data talk', () => {
   const g: GateContext = { allowedTexts: ['The cost structure over time.'], verified: [], alreadyProbed: new Set(), flaggedThisTurn: false, openItems: [], phase: 'ANALYSIS' };
   it.each([
-    ...PHRASE_POOLS.defer.map(v => v.replace('{x}', 'the cost structure')),
-    ...PHRASE_POOLS.refuse.map(v => v.replace('{x}', 'competitor pricing')),
+    ...PHRASE_POOLS.defer.map(v => fill(v, 'the cost structure')),
+    ...PHRASE_POOLS.refuse.map(v => fill(v, 'competitor pricing')),
     ...PHRASE_POOLS.restate.map(v => v.replace('{x}', 'menu prices have not changed in two years.')),
     ...PHRASE_POOLS.earlier.map(v => `${v} menu prices have not changed in two years.`),
   ])('%s', s => expect(vetoReason(s, g)).toBe('data_talk'));
   it.each(["Here's an exhibit.", 'Take a look at this exhibit.', 'Have a look at this exhibit.', "I'll put up an exhibit."])('a handover in the question: %s', s => expect(isHandoverAnnouncement(s)).toBe(true));
+  it.each([...PHRASE_POOLS.gate_defer, ...PHRASE_POOLS.offer, ...PHRASE_POOLS.unmapped_defer].map(v => fill(v, 'the cost breakdown')))('%s', s => expect(vetoReason(s, g)).toBe('data_talk'));
   it.each(['Let me get to the point.', 'You repeated the 16 points.', 'Got it, a cost-first view.'])('not data talk: %s', s => expect(vetoReason(s, g)).not.toBe('data_talk'));
 });
 

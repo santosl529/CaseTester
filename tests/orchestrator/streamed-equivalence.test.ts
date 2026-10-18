@@ -119,7 +119,7 @@ describe('settleTurn composition', () => {
 
   it('on a rec_ask turn the question is the scripted recommendation ask', async () => {
     const s = await settle(T({ say: 'Okay.', question: '' }), 'rec_ask');
-    expect(s.spokenText).toMatch(/^Okay\. .*(recommendation|tell the CEO)/i);
+    expect(s.spokenText).toMatch(/^Okay\. .*(recommend|tell the CEO)/i);
   });
 
   it('a close turn ends the case with its scripted line, answering the final ask first', async () => {

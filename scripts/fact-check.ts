@@ -91,8 +91,8 @@ export function checkRun(run: CorpusRun): Flag[] {
       // A correction or a restatement ("As I mentioned: …") delivers its figures too.
       deliveredNow: t.releasedNow.length > 0 || !!t.exhibitNow || t.segments.some(s => poolPattern('correct_one', 'correct_two').test(s.text))
         || t.segments.some(s => s.kind === 'data' && poolPattern('earlier', 'restate').test(s.text)),
-      deliveredPrev: false, refusedNow: t.segments.some(s => /\bI don't have\b/i.test(s.text)),
-      deferredNow: t.segments.some(s => s.kind === 'data' && (/\b(?:I'll share .* once we've settled|I can share .* if you'd like|Let's settle your structure before)\b/.test(s.text) || poolPattern('defer').test(s.text))),
+      deliveredPrev: false, refusedNow: t.segments.some(s => /\bI don't have\b/i.test(s.text) || poolPattern('refuse').test(s.text)),
+      deferredNow: t.segments.some(s => s.kind === 'data' && (/\b(?:I'll share .* once we've settled|I can share .* if you'd like|Let's settle your structure before)\b/.test(s.text) || poolPattern('defer', 'gate_defer', 'offer', 'unmapped_defer').test(s.text))),
     };
     // F2 on the message this turn answers.
     const c = t.candidateText;

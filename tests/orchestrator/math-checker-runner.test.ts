@@ -6,6 +6,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { INITIAL_STAGES } from '@/lib/orchestrator/stage-evidence';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checker';
+import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
@@ -227,7 +228,7 @@ describe('a final answer not yet checked: the stage\'s follow-up, not the close'
     atTheClose();
     const r9 = await runTurn('s1', RISK);
     expect(r9.ended).toBe(false);
-    expect(r9.interviewerText).toMatch(/^(How would you guard against that\?|What would you put in place to guard against that\?)$/);
+    expect(PHRASE_POOLS.after_risk).toContain(r9.interviewerText);
     expect((store.session.flagsJsonb as Row).closeHold).toEqual({ waits: [9] });
     calls.at(-1)!.resolve({ claims: [flaggedClaim], model: 'claude-sonnet-5-5', latencyMs: 8000, stopReason: 'end_turn' });
     await flush(); await flush();

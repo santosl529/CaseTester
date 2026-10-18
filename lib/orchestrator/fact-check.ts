@@ -651,6 +651,10 @@ const REFUSAL = [
   /\b(?:that|this|it)(?:'s| is)\s+not\s+(?:something|data)\s+(?:that\s+)?(?:I|we)\s+have(?:\s+(?:on|for)\s+(.+))?/i,
   /\bthere(?:'s| is)\s+no\s+(.+?)\s+(?:data|figure|breakdown|information)\b/i,
   /\b(.+?)\s+(?:isn't|is not|aren't|are not)\s+(?:available|in the case|part of the case|something the case (?:has|gives))/i,
+  // Code's refusal variants (phrasing.ts refuse, 18 Oct): "As for X, that's not something
+  // I have.", "X — I'm afraid that's not something I have."
+  /\bas for\s+(.+?),\s+(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
+  /^(.+?)\s+[—–]\s+(?:I'm afraid\s+)?(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
   // "I have the cost breakdown for today, but not for two years ago."
   /\bI have\s+(.+?),?\s+but not\s+((?:for|from)\s+(?:two|2) years ago|(?:for|from)\s+(?:today|now|this year|the current year)|(?:for|from)\s+(?:both|either) years?)/i,
 ];

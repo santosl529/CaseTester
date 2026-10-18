@@ -205,7 +205,7 @@ export function refersToFigures(question: string): boolean {
 // of your four levers do you prioritize…?" answered, then the fallback "What
 // would you look at first, and why?"): no where-to-start ask again; when the
 // whole pool is one, a question on what they expect to find (no stage, no probe).
-const WHERE_TO_START = /\b(?:first|start|prioriti[sz]e|matters most|most important)\b/i;
+export const WHERE_TO_START = /\b(?:first|start|prioriti[sz]e|matters most|most important)\b/i;
 export const HYPOTHESIS_QUESTIONS = PHRASE_POOLS.hypothesis_q;
 
 export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: string; last: string | null; phase?: Phase; timePressure?: boolean; lastAnswered?: boolean; uses?: PhraseUses }): string {

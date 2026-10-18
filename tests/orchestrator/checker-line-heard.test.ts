@@ -17,6 +17,7 @@ import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerLinePlan } from '@/lib/orchestrator/plan-turn';
 import { modelPlanFixture } from './fixtures/model-plan';
+import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 
 const T = (over: Partial<ModelTurn> = {}): ModelTurn => ({ move: 'analysis', requests: [], exhibit: null, rescueItem: null, say: '', question: 'What drove it?', ...over });
 const usage = { model: '', actualModels: [] as string[], inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
@@ -113,7 +114,8 @@ describe('another of code\'s lines takes the question: the flag stays pending', 
     plan.state.requiredExhibit = 'exhibit-a';
     plan.state.shownExhibitIds = new Set();
     const s = await settleTurn(plan, outcome(JASMINE_T31));
-    expect(s.spokenText).toBe("Right. Here's an exhibit: Brew & Bean Cost Structure Over Time. What do you take from this exhibit?");
+    expect(s.spokenText).toMatch(/^Right\. Here's an exhibit: Brew & Bean Cost Structure Over Time\. /);
+    expect(PHRASE_POOLS.stage_exhibit_q).toContain(s.spokenText.replace(/^.*Over Time\. /, ''));
     expect(plan.ctx.flags.mathChecker).toEqual({ handled: [] });
     expect(checkOf(plan)).toMatchObject({ detail: { heard: false } });
   });

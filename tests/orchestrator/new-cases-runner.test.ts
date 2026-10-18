@@ -146,7 +146,7 @@ describe('the recommendation ask does not force out data still waiting on the or
         exhibit: { delivered: true, outcome: 'answered' }, brainstorm: { delivered: true, outcome: 'answered' }, recommendation: { delivered: false }, risk: { delivered: false }, pending: null } } });
     store.events.push({ category: 'data_request', subtype: 'defer', turnIndex: 1, payloadJsonb: { what: 'the new-route plan', ledgerItemIds: ['new_routes_plan'], interviewerTurnIndex: 2, revealedByNow: false, explicit: true } });
     const r = await say('So the fare cut explains it.', T());
-    expect(r.interviewerText).toMatch(/recommendation|tell the CEO/i);
+    expect(r.interviewerText).toMatch(/recommend|tell the CEO/i);
     expect(r.interviewerText).toMatch(/Here's an exhibit: Hub–Lakeport/);
     expect(store.revealed.map(x => x.ledgerItemId)).not.toContain('new_routes_plan');
     expect(r.interviewerText).not.toMatch(/come back to/);
@@ -270,7 +270,7 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
   it('under time pressure there is no hold: the next required exhibit goes out with the recommendation ask', async () => {
     seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 23.7, shown: ['exhibit-1'], revealed: CORE, flags: PT_SATISFIED });
     const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
-    expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. .*recommendation.*biggest risk to it\?$/);   // the time warning is the ask here (with the risk since 15 Oct)
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. .*recommend.*biggest risk to it\?$/);   // the time warning is the ask here (with the risk since 15 Oct)
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
   });
 
@@ -347,7 +347,7 @@ describe('Hollis Bay: the sampling exhibit after the brainstorm', () => {
     seed({ ...BEFORE, elapsedMin: 18.7, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
     const r = await say('So it breaks even.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
-    expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposal — In-store sampling program.*recommendation.*biggest risk to it\?$/);
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposal — In-store sampling program.*recommend.*biggest risk to it\?$/);
   });
 });
 
