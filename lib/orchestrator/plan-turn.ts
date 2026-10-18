@@ -34,6 +34,7 @@ import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
 import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { theirFigure } from './own-quantity';
+import { normalizeAsrTerms } from './asr-terms';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
 import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, claimError, relativeError, holdRank, type CloseHoldMemory } from './close-hold';
@@ -93,8 +94,11 @@ export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { 
 export const MISQUOTE_CORRECTIONS_PER_ITEM = 2;
 export type TurnPlan = ScriptedPlan | ModelPlan;
 
-export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps): TurnPlan {
-  const { session, turnRows } = reads;
+export function planTurn(reads: TurnReads, heardText: string, deps: PlanDeps): TurnPlan {
+  const { session } = reads;
+  // The checks read speech-to-text spellings of case terms as the terms (asr-terms.ts): this message and the history.
+  const candidateText = normalizeAsrTerms(heardText);
+  const turnRows = reads.turnRows.map(t => (t.role === 'candidate' ? { ...t, text: normalizeAsrTerms(t.text) } : t));
   const { sessionId, now } = deps;
   if (!session) throw new Error(`Session not found: ${sessionId}`);
 
@@ -103,7 +107,7 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   const conduct = (flags.conduct as ConductFlags | undefined) ?? {};
   const nextTurnIndex = turnRows.length;
   const ctx: TurnCtx = {
-    sessionId, userId: session.userId, candidateText, now, turnStartMs: deps.turnStartMs,
+    sessionId, userId: session.userId, candidateText, ...(heardText !== candidateText ? { heardText } : {}), now, turnStartMs: deps.turnStartMs,
     nextTurnIndex, currentPhase, flags, conduct, checks: new CheckLog(), events: [], later: deps.later,
     background: deps.background, acknowledged: deps.acknowledged, voice: deps.voice,
   };
@@ -223,10 +227,10 @@ export function planTurn(reads: TurnReads, candidateText: string, deps: PlanDeps
   // assessment.action === 'ignore' (none / C1): proceed with the normal case turn.
 
   // ── The candidate stops (Rule 18A) — after conduct, before any case rule ──
-  const exitPlanned = planExit(ctx, reads, deps);
+  const exitPlanned = planExit(ctx, { ...reads, turnRows }, deps);
   if (exitPlanned) return exitPlanned;
 
-  return modelPlan(ctx, reads, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state, classify: deps.classify !== false, regexC5AfterDecline, conductConfirm });
+  return modelPlan(ctx, { ...reads, turnRows }, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state, classify: deps.classify !== false, regexC5AfterDecline, conductConfirm });
 }
 
 // Exit state, persisted in flags.exit (Rule 18A).

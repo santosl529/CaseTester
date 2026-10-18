@@ -11,7 +11,7 @@ vi.mock('@deepgram/sdk', () => ({
   },
 }));
 
-const { keytermsFor, GENERIC_KEYTERMS, MAX_KEYTERMS } = await import('@/lib/voice/keyterms');
+const { keytermsFor, keytermsIfEnabled, GENERIC_KEYTERMS, MAX_KEYTERMS } = await import('@/lib/voice/keyterms');
 const { DeepgramFluxSTT } = await import('@/lib/voice/deepgram');
 const { getCaseById } = await import('@/lib/cases/loader');
 
@@ -27,6 +27,12 @@ describe('the keyterms', () => {
   it.each(['prof-001', 'prof-002', 'entry-001', 'pricing-001', 'launch-001'])('%s has its own names', id => {
     expect(getCaseById(id).sttKeyterms.length).toBeGreaterThan(0);
   });
+});
+
+describe('off by default (Lorenzo, 17 Oct): on only with VOICE_STT_KEYTERMS=1', () => {
+  const prof = () => getCaseById('prof-001');
+  it.each([[{}], [{ VOICE_STT_KEYTERMS: '0' }], [{ VOICE_STT_KEYTERMS: 'true' }]])('%j → none', env => expect(keytermsIfEnabled(prof(), env)).toBeUndefined());
+  it('=1 → the list', () => expect(keytermsIfEnabled(prof(), { VOICE_STT_KEYTERMS: '1' })).toEqual(keytermsFor(prof())));
 });
 
 describe('Flux is opened with them', () => {

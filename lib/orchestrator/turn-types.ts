@@ -51,6 +51,7 @@ export type TurnCtx = {
   sessionId: string;
   userId: string;
   candidateText: string;
+  heardText?: string;      // the message as transcribed, when the checks read a normalized one (asr-terms.ts): what is saved
   now: number;
   turnStartMs: number;
   nextTurnIndex: number;

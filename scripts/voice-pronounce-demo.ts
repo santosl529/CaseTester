@@ -23,7 +23,7 @@ const CAP = Number(flag('cap') ?? 0);
 const DRY = process.argv.includes('--dry');
 
 // Lines in the interviewer's own wording (batches 27–30, 9ccf0836), one per term.
-export const LINES: { id: string; text: string; listen: string }[] = [
+export const LINES: { id: string; text: string; listen: string; newOnly?: boolean }[] = [
   { id: '01-cogs', text: 'COGS went from 42% to 58% of revenue.', listen: 'COGS' },
   { id: '02-mece', text: 'Is that split MECE, and which branch would you test first?', listen: 'MECE' },
   { id: '03-cogs-share', text: 'Coffee beans were 25% of COGS two years ago.', listen: 'COGS mid-sentence' },
@@ -35,6 +35,10 @@ export const LINES: { id: string; text: string; listen: string }[] = [
   { id: '09-fy-yoy', text: 'Revenue grew 15% YoY, from FY2023 to FY2025.', listen: 'YoY, FY2023' },
   { id: '10-route', text: 'On the Hub–Lakeport route, fares fell vs. last year.', listen: '"Hub–Lakeport", "vs."' },
   { id: '11-points', text: "That's about 4.2 percentage points, roughly ~4 points of revenue.", listen: '"4.2", "~4"' },
+  // Item 1's conversion lines (own-quantity.ts), to hear their wording — as they play now only.
+  { id: '12-conversion', text: "In revenue terms, that's about 4.2 points.", listen: 'the conversion line (9ccf0836 T24)', newOnly: true },
+  { id: '13-conversion-pricing', text: "From today's 6% margin, recovering 16 points of margin takes about a 20.5% price rise.", listen: 'the conversion line (batch 30 Noor t16)', newOnly: true },
+  { id: '14-own-base', text: "In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 15.", listen: 'a correction on their own base', newOnly: true },
 ];
 
 function wav(pcm: Uint8Array): Buffer {
@@ -62,6 +66,7 @@ async function render(tts: CartesiaTTS, text: string): Promise<{ pcm: Uint8Array
 async function main() {
   const jobs = LINES.flatMap(l => {
     const now = speechTextFor(l.text).text;
+    if (l.newOnly) return [{ file: `${l.id}.wav`, text: now, line: l }];
     return [{ file: `${l.id}-today.wav`, text: l.text, line: l }, ...(now !== l.text ? [{ file: `${l.id}-new.wav`, text: now, line: l }] : [])];
   });
   const chars = jobs.reduce((n, j) => n + j.text.length, 0);

@@ -96,7 +96,7 @@ export async function commitScripted(plan: ScriptedPlan, heard: HeardReport | nu
   if (!live) return { ...plan.result, interviewerText: '', ended: true, scoringSuppressed: true };
   const saved = heardText(ctx, spoken);
   await db.insert(sessionTurns).values([
-    { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex, role: 'candidate', text: ctx.candidateText, timestampMs: ctx.now },
+    { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex, role: 'candidate', text: ctx.heardText ?? ctx.candidateText, timestampMs: ctx.now },
     ...(saved ? [{ sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex + 1, role: 'interviewer' as const, text: saved, timestampMs: Date.now() }] : []),
   ]);
   const checkRows = toCheckEventRows(ctx.checks, { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex, phase: ctx.currentPhase });
@@ -815,7 +815,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const unmappedToResolveSaved = heldUnmapped.length > 0 ? heldUnmapped : [];
     await Promise.all([
       db.insert(sessionTurns).values([
-        { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: candidateText, timestampMs: now },
+        { sessionId, turnIndex: nextTurnIndex, role: 'candidate', text: ctx.heardText ?? candidateText, timestampMs: now },
         { sessionId, turnIndex: nextTurnIndex + 1, role: 'interviewer', text: savedLine, timestampMs: Date.now(), latencyMs: modelLatencyMs },
       ]),
       (async () => {

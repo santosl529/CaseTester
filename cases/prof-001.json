@@ -456,6 +456,8 @@
       "item": "cogs_pct",
       "names": [
         "cogs",
+        "cogs share",
+        "cogs shares",
         "cost of goods sold",
         "cost of goods"
       ],

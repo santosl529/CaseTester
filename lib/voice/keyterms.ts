@@ -11,3 +11,10 @@ export const MAX_KEYTERMS = 50;
 export function keytermsFor(caseData: { sttKeyterms?: string[] }): string[] {
   return [...new Set([...GENERIC_KEYTERMS, ...(caseData.sttKeyterms ?? [])])].slice(0, MAX_KEYTERMS);
 }
+
+// Off by default until an A/B on recorded speech shows their effect (Lorenzo,
+// 17 Oct: they change every transcript; a "COGS" boost might turn "costs" into
+// "COGS"). VOICE_STT_KEYTERMS=1 turns them on; scripts/keyterm-ab.ts compares.
+export function keytermsIfEnabled(caseData: { sttKeyterms?: string[] }, env: Record<string, string | undefined> = process.env): string[] | undefined {
+  return env.VOICE_STT_KEYTERMS === '1' ? keytermsFor(caseData) : undefined;
+}
