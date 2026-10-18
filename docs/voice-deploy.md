@@ -31,24 +31,18 @@ Yes, with what this branch adds. What it needed:
 
 Unverified: per-instance CPU/memory and the plan's concurrent-session and
 agent-minute quotas (not in the docs pages I could reach). Each interview is
-its own Node process (~150–300 MB, my estimate, not measured).
+its own Node process: about 225 MB RSS once the agent module is loaded, and 0.6–0.8s to load it (measured 18 Oct in the local arm64 image, before any network call; pre-warmed processes pay this before a job arrives). Not measured: RSS during a live session.
 
 ## Before the first deploy (in this order)
 
-1. **Migration 0021** (`voice_tts_usage`, `voice_session_lines`). Needs your
-   go. From the main checkout, once this branch is merged: `npm run db:migrate`.
-   It sits on top of Matthew's drills migrations 0009–0020 (origin/drills
-   f7e7873; all already applied to our database), which this branch carries
-   as files, unchanged — `db/` only, none of his feature code. drizzle's
-   migrator runs only migrations whose journal time is later than the last
-   one applied (it never fills gaps), so a newer drills migration generated
-   before this one lands would be skipped silently: whoever merges second
-   regenerates their migration on top (`drizzle-kit generate`), never
-   renumbers by hand.
-2. **Carry October's TTS count into the table** (free, one write):
+1. **Done 18 Oct: migration 0021** (`voice_tts_usage`, `voice_session_lines`),
+   applied as row 24, the latest. It sits on top of Matthew's drills
+   migrations 0009–0020 (all applied earlier), which this branch carries
+   unchanged as files. See "Migrations" below.
+2. **Done 18 Oct (15,847).** Carry October's TTS count into the table (free, one write):
    `npx tsx --env-file=.env.local scripts/voice-tts-seed.ts --dry`, then
    without `--dry`.
-3. **Render the acknowledgment clips** (paid: 7 clips, 77 Cartesia
+3. **Done 18 Oct (`cce400c`).** Render the acknowledgment clips (paid: 7 clips, 77 Cartesia
    characters for voice 533b2990 on sonic-3.6):
    `npx tsx --env-file=.env.local scripts/voice-render-acks.ts --dry`, then
    `--cap=100`. Commit `assets/voice/acks/*.pcm`. Without them the hosted
@@ -141,6 +135,29 @@ Why:
 
 Pick the LiveKit agent region closest to the Supabase project's region: every
 turn makes several database round trips.
+
+## Migrations
+
+This repo shares one database and one migration sequence with the drills
+branch (Matthew's). drizzle's migrator (drizzle-orm 0.45.2,
+`pg-core/dialect.js`) reads only the latest row of `drizzle.__drizzle_migrations`.
+It then runs only migrations whose journal `when` is later than that row. It
+checks no gaps, numbers or hashes. Three rules follow:
+
+1. **Pull before `db:generate`.** Run `git fetch` first, and bring in any
+   migration on another branch (main, drills) that isn't in yours yet. Then
+   generate. Your new migration then gets the next number and a later date.
+2. **Whoever merges second regenerates.** If two branches each added a
+   migration with the same number, the branch merged second deletes its own,
+   takes the other branch's `db/migrations` (files, snapshots, journal) as they
+   are, and runs `drizzle-kit generate` again. Never renumber a file or edit
+   the journal or snapshots by hand.
+3. **Never apply a migration dated earlier than the latest applied one.** It
+   will be skipped silently and its tables will never be created. Before
+   `db:migrate`, check the latest applied row (read-only:
+   `select id, created_at from drizzle.__drizzle_migrations order by created_at desc limit 1`).
+   Compare it with the `when` of every migration you expect to run. If one is
+   older, regenerate it on top (rule 2) before migrating.
 
 ## LiveKit Cloud commands
 
