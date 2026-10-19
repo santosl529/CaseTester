@@ -73,6 +73,7 @@ export type ControllerDeps = {
 
 type Entry = {
   id: string; seg: Segment; heardChars: number; shownFull: boolean;
+  index: number; captionSent: boolean; captionTimed: boolean;   // the whole-sentence caption (item 7)
   exhibitSentAt: number | null; exhibitConfirmed: boolean;
   cancel: () => void;
 };
@@ -372,7 +373,7 @@ export class VoiceTurnController {
       }
     }
     if (text && !allow(spoken.length)) { if (!closingLine) this.capHit = true; throw new Error('tts cap'); }
-    const e: Entry = { id: `${t.seq}:${t.entries.length}`, seg, heardChars: 0, shownFull: false, exhibitSentAt: null, exhibitConfirmed: false, cancel: () => {} };
+    const e: Entry = { id: `${t.seq}:${t.entries.length}`, seg, heardChars: 0, shownFull: false, index: t.entries.length, captionSent: false, captionTimed: false, exhibitSentAt: null, exhibitConfirmed: false, cancel: () => {} };
     t.entries.push(e);
     t.firstAcceptedAt ??= this.d.now();
     const useful = !t.opening && isUsefulSegment(seg);
@@ -384,12 +385,20 @@ export class VoiceTurnController {
         t.firstSoundAt ??= at;
         if (useful) t.firstUsefulAt ??= at;
         if (this.live === t && this.state === 'thinking') this.setState('speaking', t.seq);
-        // A scripted line carries no case figures: shown in full when it starts.
-        if (scripted) { e.shownFull = true; this.sendCaption(t); }
+        // A scripted line carries no case figures: its final caption is the whole line.
+        if (scripted) e.shownFull = true;
+        // The whole sentence, its words brightened by the browser as spoken (item 7).
+        if (text) {
+          const words = this.d.playout.captionWords(e.id);
+          e.captionSent = true;
+          e.captionTimed = words.every(w => w.startMs !== null);
+          this.d.send({ type: 'caption_segment', turnSeq: t.seq, index: e.index, text: seg.text, words });
+        }
         const ex = seg.exhibitId ? this.d.exhibitById(seg.exhibitId) : null;
         if (ex) { e.exhibitSentAt = at; this.d.send({ type: 'exhibit', turnSeq: t.seq, exhibit: ex }); }
       },
-      onHeard: chars => { e.heardChars = chars; this.sendCaption(t); },
+      // What counts as heard (unchanged); the display no longer follows it (item 7).
+      onHeard: chars => { e.heardChars = chars; },
     });
     if (!text) { this.d.playout.finish(e.id); return; }
     let cancelled = false;
@@ -410,6 +419,11 @@ export class VoiceTurnController {
         await utt.push(spoken);
         await utt.end();
         this.d.playout.finish(e.id);
+        // Word starts that came after the audio started: the rest, once.
+        if (e.captionSent && !e.captionTimed && !cancelled) {
+          e.captionTimed = true;
+          this.d.send({ type: 'caption_words', turnSeq: t.seq, index: e.index, words: this.d.playout.captionWords(e.id) });
+        }
       } catch {
         this.d.playout.fail(e.id);
         if (!cancelled) this.d.send({ type: 'error', message: 'audio failed' });
@@ -471,6 +485,9 @@ export class VoiceTurnController {
     t.cutAt = at;
     t.cutKind = kind;
     t.cutOutcome = this.d.playout.interrupt(at);
+    // The sentence shown whole gives way to what was heard, at once (item 7).
+    for (const e of t.entries) e.heardChars = t.cutOutcome.get(e.id)?.heardChars ?? e.heardChars;
+    if (t.entries.some(e => e.captionSent)) this.sendCaption(t);
     this.d.trace?.('cut', { seq: t.seq, kind, at, heard: t.entries.map(e => ({ kind: e.seg.kind, ...t.cutOutcome!.get(e.id) })) });
     for (const e of t.entries) e.cancel();
     const nothing = t.entries.every(e => (t.cutOutcome!.get(e.id)?.heardChars ?? 0) === 0 && e.exhibitSentAt === null);

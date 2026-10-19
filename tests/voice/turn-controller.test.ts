@@ -461,7 +461,8 @@ describe('scripted lines: barge-in proof (§5.6)', () => {
     const h = harness([[seg('scripted', LINE)]], noAck);
     await h.c.ready(''); h.c.onStt(final('I cannot do this'));
     await h.advance(20);
-    expect(h.captions('interviewer').at(-1)?.text).toBe(LINE);
+    // Every segment is shown whole at its start now (item 7, 18 Oct).
+    expect(h.sent.find(m => m.type === 'caption_segment')).toMatchObject({ text: LINE });
   });
 });
 
@@ -841,5 +842,72 @@ describe('an acknowledgment that did not play', () => {
     await h.advance(4000);
     expect((h.records[0] as { ack: string | null }).ack).toBeTruthy();
     expect(cap.seen[0].report?.ackHeard).toBe(true);
+  });
+});
+
+// Lorenzo, 18 Oct (item 7): the interviewer's caption is the whole sentence at
+// its audio start, with Cartesia's word starts for the browser to brighten;
+// no caption message per word. A cut replaces it with what was heard, at once.
+// What counts as heard is unchanged.
+describe('interviewer captions shown whole', () => {
+  type SegMsg = Extract<ServerMessage, { type: 'caption_segment' }>;
+  const segMsgs = (h: ReturnType<typeof harness>) => h.sent.filter((m): m is SegMsg => m.type === 'caption_segment');
+
+  it('one message per segment at its audio start: the full text and its word starts; no per-word captions', async () => {
+    const h = harness([[seg('data', 'There are 120 stores.'), seg('tail', 'Where would you start?')]], { ...noAck, tts: new FakeTTS(40, 0) });
+    await h.c.ready(''); h.c.onStt(final('How many stores?'));
+    await h.advance(200);
+    expect(segMsgs(h)).toHaveLength(1);                                  // the first segment has started; the second hasn't
+    const first = segMsgs(h)[0];
+    expect(first).toMatchObject({ turnSeq: 1, index: 0, text: 'There are 120 stores.' });
+    expect(first.words.map(w => w.startMs)).toEqual([0, 210, 420, 630]);
+    await h.advance(3000);
+    expect(segMsgs(h).map(m => m.text)).toEqual(['There are 120 stores.', 'Where would you start?']);
+    expect(h.captions('interviewer').filter(m => !m.final)).toEqual([]);  // no per-word messages
+    expect(h.captions('interviewer').at(-1)).toMatchObject({ final: true, text: 'There are 120 stores. Where would you start?' });
+    expect(h.sent.some(m => m.type === 'caption_words')).toBe(false);    // every word timed at the start
+  });
+
+  it('word starts that arrive after the audio started follow in one message', async () => {
+    // A TTS whose timestamps come after its first audio (Cartesia streams them with the audio).
+    const late: TTSProvider = {
+      name: 'late',
+      async open() {
+        let onAudio: (pcm: Uint8Array, at: number) => void = () => {};
+        let onWords: (w: { word: string; startMs: number; endMs: number }[]) => void = () => {};
+        return {
+          push: async (text: string) => {
+            const ws = text.trim().split(/\s+/);
+            onAudio(new Uint8Array((RATE * 0.1) * 2 * ws.length).fill(40), Date.now());
+            await new Promise(r => setTimeout(r, 0));
+            onWords(ws.map((word, i) => ({ word, startMs: i * 100, endMs: (i + 1) * 100 })));
+          },
+          end: async () => {}, cancel: async () => {},
+          onAudio: (cb: typeof onAudio) => { onAudio = cb; }, onWords: (cb: typeof onWords) => { onWords = cb; },
+        };
+      },
+    } as never;
+    const h = harness([[seg('tail', 'Where would you start?')]], { ...noAck, tts: late });
+    await h.c.ready(''); h.c.onStt(final('Costs.'));
+    await h.advance(2000);
+    const [start] = segMsgs(h);
+    expect(start.words.every(w => w.startMs === null)).toBe(true);
+    const more = h.sent.filter((m): m is Extract<ServerMessage, { type: 'caption_words' }> => m.type === 'caption_words');
+    expect(more).toHaveLength(1);
+    expect(more[0]).toMatchObject({ turnSeq: 1, index: 0 });
+    expect(more[0].words.map(w => w.startMs)).toEqual([0, 100, 200, 300]);
+  });
+
+  it('a barge-in replaces the sentence with the heard text at once', async () => {
+    const LINE = 'Walk me through your structure, step by step please.';
+    const h = harness([[seg('tail', LINE)]], { ...noAck, tts: new FakeTTS(40, 0) });
+    await h.c.ready(''); h.c.onStt(final('Okay.'));
+    await h.advance(1000);
+    h.c.onStt(speech('sorry wait'));
+    const atCut = h.captions('interviewer');
+    expect(atCut).toHaveLength(1);
+    expect(LINE.startsWith(atCut[0].text)).toBe(true);
+    expect(atCut[0].text.length).toBeGreaterThan(0);
+    expect(atCut[0].text.length).toBeLessThan(LINE.length);
   });
 });

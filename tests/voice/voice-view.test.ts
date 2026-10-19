@@ -61,3 +61,42 @@ describe('voice view', () => {
     expect(v).toMatchObject({ phase: 'thinking', latency: { turnSeq: 2, firstSoundMs: 900, firstUsefulMs: 2100 }, error: 'audio failed' });
   });
 });
+
+// Item 7 (18 Oct): an interviewer segment is shown whole when its audio starts,
+// timed from the message's arrival; a later heard caption (a cut, the turn's
+// end) replaces the sentences with what was heard.
+describe('interviewer captions shown whole', () => {
+  const words = (starts: (number | null)[], text: string) => [...text.matchAll(/\S+/g)].map((m, i) => ({ end: m.index! + m[0].length, startMs: starts[i], endMs: null }));
+  const S1 = 'There are 120 stores.';
+  const S2 = 'Where would you start?';
+
+  it('keeps each segment with its words and arrival time, in order, and takes late word starts', () => {
+    const v = run([
+      { type: 'caption_segment', turnSeq: 2, index: 0, text: S1, words: words([0, 200, 400, 600], S1), receivedAt: 1000 } as ServerMessage,
+      { type: 'caption_segment', turnSeq: 2, index: 1, text: S2, words: words([0, null, null, null], S2), receivedAt: 2000 } as ServerMessage,
+      { type: 'caption_words', turnSeq: 2, index: 1, words: words([0, 150, 300, 450], S2) },
+    ]);
+    const c = v.captions.find(x => x.who === 'interviewer')!;
+    expect(c.segments?.map(s => [s.text, s.at])).toEqual([[S1, 1000], [S2, 2000]]);
+    expect(c.segments?.[1].words.map(w => w.startMs)).toEqual([0, 150, 300, 450]);
+    expect(c.text).toBe(`${S1} ${S2}`);
+  });
+
+  it('a heard caption replaces the whole sentences (a cut shows only what was heard)', () => {
+    const v = run([
+      { type: 'caption_segment', turnSeq: 2, index: 0, text: S1, words: words([0, 200, 400, 600], S1), receivedAt: 1000 } as ServerMessage,
+      { type: 'caption', who: 'interviewer', turnSeq: 2, text: 'There are', final: false },
+    ]);
+    const c = v.captions.find(x => x.who === 'interviewer')!;
+    expect(c.segments).toBeUndefined();
+    expect(c.text).toBe('There are');
+  });
+
+  it('ignores a segment of an older turn', () => {
+    const v = run([
+      { type: 'caption', who: 'interviewer', turnSeq: 3, text: 'Go on.', final: true },
+      { type: 'caption_segment', turnSeq: 2, index: 0, text: S1, words: words([0], S1), receivedAt: 1 } as ServerMessage,
+    ]);
+    expect(v.captions.filter(c => c.who === 'interviewer').map(c => c.text)).toEqual(['Go on.']);
+  });
+});

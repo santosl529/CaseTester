@@ -10,6 +10,7 @@ import { Room, RoomEvent, Track, type RemoteTrack } from 'livekit-client';
 import { Button } from '@/components/ui/button';
 import { fillerPrefStore } from '@/lib/voice/filler-pref';
 import { ExhibitTable } from '@/components/exhibit-table';
+import { LiveCaption } from '@/components/live-caption';
 import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
 import { agentAudioWatchdog, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
@@ -125,7 +126,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
         if (room.canPlaybackAudio) sendReady();
         else { setNeedsClick(true); watchdog.current?.stop(); }
       }
-      dispatch(m);
+      dispatch({ ...m, receivedAt: performance.now() });   // the caption's words are timed from arrival
     });
     room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
       if (track.kind !== Track.Kind.Audio) return;
@@ -232,7 +233,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       <div className="flex-1 min-h-0 overflow-y-auto space-y-2">
         {view.captions.map(c => (
           <div key={`${c.who}:${c.turnSeq}`} className={c.who === 'interviewer' ? 'text-sm text-neutral-900' : 'text-sm text-neutral-500 text-right'}>
-            <span className={c.final ? '' : 'opacity-70'}>{c.text}</span>
+            {c.segments ? <LiveCaption segments={c.segments} /> : <span className={c.final ? '' : 'opacity-70'}>{c.text}</span>}
           </div>
         ))}
         {view.exhibits.map(e => <ExhibitTable key={e.id} exhibit={e} />)}
