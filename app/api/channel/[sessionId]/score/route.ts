@@ -8,7 +8,8 @@ import { and, eq } from 'drizzle-orm';
 
 // Scores a completed session. Split out of the turn route so the client can
 // show an "evaluating" state during the ~30s judge run — and so a failed
-// scoring pass can be retried (idempotent: returns early if a score exists).
+// scoring pass can be retried (idempotent: returns early if a score exists;
+// one pass at a time per session, lib/scoring/scoring-claim.ts).
 // The pipeline itself lives in lib/scoring/score-session.ts.
 //
 // Scoring runs three Opus 5.5 passes with thinking (judge, verifier,
@@ -40,6 +41,9 @@ export async function POST(
     return NextResponse.json({ error: 'Session is not completed' }, { status: 409 });
   }
   if (status === 'not_found') return NextResponse.json({ error: 'Not found' }, { status: 404 });
+  // Another pass (a second tab, a double click) outlived this call's wait: no
+  // second pass is started; the client's retry finds the score.
+  if (status === 'in_progress') return NextResponse.json({ error: 'Scoring in progress' }, { status: 409 });
 
   return NextResponse.json({ scored: true });
 }

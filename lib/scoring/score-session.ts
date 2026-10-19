@@ -26,12 +26,15 @@ import { applyCaveatFloor } from './caveat-floor';
 import { applyAnswerKeyPass } from './answer-key-pass';
 import { applyStrongGate } from './strong-gate';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
+import { scoreOnce } from './scoring-claim';
 
-export type ScoreSessionStatus = 'scored' | 'already_scored' | 'not_completed' | 'not_found';
+export type ScoreSessionStatus = 'scored' | 'already_scored' | 'in_progress' | 'not_completed' | 'not_found';
 
 // Score a completed session. Shared by POST /api/channel/[sessionId]/score
 // (which checks ownership first) and scripts/live-run.ts. Idempotent: returns
-// early if a score already exists, so a failed scoring pass can be retried.
+// early if a score already exists, so a failed scoring pass can be retried;
+// one pass at a time per session — a second call waits for the running pass's
+// score (scoring-claim.ts).
 // A not-assessed dimension (Rule 9, v4.3) has no rating: NULL column.
 function ratingColumn(d: { rating: RubricScores['structure']['rating']; notAssessed?: boolean }) {
   return d.notAssessed ? null : d.rating;
@@ -42,11 +45,10 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
   if (!session) return { status: 'not_found' };
   if (session.status !== 'completed') return { status: 'not_completed' };
 
-  const existing = await db.query.scores.findFirst({
-    where: eq(scores.sessionId, sessionId),
-  });
-  if (existing) return { status: 'already_scored' };
+  return { status: await scoreOnce(sessionId, () => scoreAndStore(sessionId, userId)) };
+}
 
+async function scoreAndStore(sessionId: string, userId: string): Promise<void> {
   const computed = await computeScore({ sessionId, userId });
   const { rubric, report, mathResults, qa } = computed;
 
@@ -75,8 +77,6 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
   // Scoring-QA metrics (docs/scoring-qa.md): one event per scoring run, zeros
   // included, so rates have a denominator.
   await logEvent('scoring_qa', qa, { sessionId, userId });
-
-  return { status: 'scored' };
 }
 
 // The scoring pipeline without persisting a score (round-3: lets
