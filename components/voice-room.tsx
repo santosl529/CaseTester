@@ -15,6 +15,8 @@ import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
 import { agentAudioWatchdog, CONNECTING_MESSAGE, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
 import { HealthMeter } from '@/lib/voice/health';
+import { ReadyGate } from '@/lib/voice/ready-gate';
+import { SetupTimings } from '@/lib/voice/setup-timing';
 
 const STATE_LABEL: Record<string, string> = {
   idle: 'Not started', connecting: 'Connecting…', waiting: 'Waiting for audio', listening: 'Listening',
@@ -70,6 +72,11 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   // The page's health, reported at the end of each interviewer turn (19 Oct, d).
   const health = useRef<{ meter: HealthMeter; raf: number | null; observer: PerformanceObserver | null } | null>(null);
 
+  // `ready` waits for the end of setup, the agent's hello and playable audio (b406165f, 19 Oct; lib/voice/ready-gate.ts).
+  const gate = useRef<ReadyGate | null>(null);
+  // How long each setup step took, sent once (lib/voice/setup-timing.ts).
+  const setupTimes = useRef<SetupTimings | null>(null);
+
   // No interviewer audio within 15s of connecting (or of the audio-unlock
   // click): the agent never came — capacity — so say so and leave (lib/voice/capacity.ts).
   const watchdog = useRef<ReturnType<typeof agentAudioWatchdog> | null>(null);
@@ -81,9 +88,18 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   };
 
   // `ready`, with the filler toggle first: an agent that (re)joins learns it before its first turn.
+  // Only the gate calls it.
   const sendReady = () => {
     send({ type: 'fillers', on: fillerPref.get() });
     send({ type: 'ready' });
+    setupTimes.current?.mark('ready');
+    sendSetup();
+  };
+
+  // The setup line, once ready has gone out and the agent's track is attached (the agent is in the room).
+  const sendSetup = () => {
+    const line = setupTimes.current?.take();
+    if (line) send({ type: 'setup', ...line });
   };
 
   // An exhibit counts as shown once it has rendered (spec §5.3): confirm after commit.
@@ -123,6 +139,8 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   }, []);
 
   async function start() {
+    const times = new SetupTimings(() => performance.now());
+    setupTimes.current = times;
     setLocal('connecting');
     setProblem(null);
     const res = await fetch(`/api/voice/${sessionId}/token`, { method: 'POST' });
@@ -134,38 +152,47 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     const { url, token } = await res.json() as { url: string; token: string };
     const room = new Room({ adaptiveStream: false });
     roomRef.current = room;
+    const readyGate = new ReadyGate({ canPlay: () => room.canPlaybackAudio, sendReady });
+    gate.current = readyGate;
     const dec = new TextDecoder();
     room.on(RoomEvent.DataReceived, (payload, _p, _k, topic) => {
       if (topic !== DATA_TOPIC) return;
       let m: ServerMessage;
       try { m = JSON.parse(dec.decode(payload)) as ServerMessage; } catch { return; }
       // The agent may join after us: its hello is when our `ready` can arrive.
+      // During setup it waits for setup's end (the opener would start mid-join).
       if (m.type === 'hello') {
-        if (room.canPlaybackAudio) sendReady();
-        else { setNeedsClick(true); watchdog.current?.stop(); }
+        times.mark('hello');
+        readyGate.hello();
+        if (readyGate.isSetupDone && !room.canPlaybackAudio) { setNeedsClick(true); watchdog.current?.stop(); }
       }
       dispatch({ ...m, receivedAt: performance.now() });   // the caption's words are timed from arrival
     });
     room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
       if (track.kind !== Track.Kind.Audio) return;
-      audioBox.current?.appendChild(track.attach());
-      const t = timing.current;
-      if (t.ctx) t.remote = levelMeter(t.ctx, track.mediaStreamTrack);
+      times.span('firstTrack', () => {
+        audioBox.current?.appendChild(track.attach());
+        const t = timing.current;
+        if (t.ctx) t.remote = levelMeter(t.ctx, track.mediaStreamTrack);
+      });
+      sendSetup();
     });
     room.on(RoomEvent.AudioPlaybackStatusChanged, () => {
       if (room.canPlaybackAudio) return;
       send({ type: 'audio_blocked' });
+      readyGate.audioBlocked();
       setNeedsClick(true);
       watchdog.current?.stop();
     });
     room.on(RoomEvent.Disconnected, () => setLocal(l => (l === 'live' ? 'ended' : l)));
     try {
-      timing.current.ctx = new AudioContext();
-      await room.connect(url, token);
-      await room.startAudio();
-      const pub = await room.localParticipant.setMicrophoneEnabled(true, { echoCancellation: true, noiseSuppression: true, autoGainControl: true });
+      timing.current.ctx = times.span('audioContext', () => new AudioContext());
+      await times.spanAsync('connect', () => room.connect(url, token));
+      await times.spanAsync('startAudio', () => room.startAudio());
+      const pub = await times.spanAsync('mic', () => room.localParticipant.setMicrophoneEnabled(true, { echoCancellation: true, noiseSuppression: true, autoGainControl: true }));
       const micTrack = pub?.track?.mediaStreamTrack;
-      if (micTrack && timing.current.ctx) timing.current.mic = levelMeter(timing.current.ctx, micTrack);
+      const ctx = timing.current.ctx;
+      if (micTrack && ctx) timing.current.mic = times.span('micMeter', () => levelMeter(ctx, micTrack));
     } catch (e) {
       setProblem(e instanceof Error && e.name === 'NotAllowedError' ? 'Microphone permission was denied.' : 'Could not connect the audio.');
       room.disconnect();
@@ -192,7 +219,10 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       room.disconnect();
       setLocal('idle');
     } });
-    if (room.canPlaybackAudio) { sendReady(); watchdog.current.arm(); setConnecting(true); }
+    // Setup is done: a hello that came during it is answered now, once.
+    times.mark('setupDone');
+    readyGate.setupComplete();
+    if (room.canPlaybackAudio) { watchdog.current.arm(); setConnecting(true); }
     else setNeedsClick(true);
   }
 
@@ -216,7 +246,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     await room.startAudio();
     if (room.canPlaybackAudio) {
       setNeedsClick(false);
-      sendReady();
+      gate.current?.audioUnlocked();
       watchdog.current?.arm();
       if (!watchdog.current?.wasHeard) setConnecting(true);
     }

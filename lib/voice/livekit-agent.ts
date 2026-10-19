@@ -183,7 +183,7 @@ export default defineAgent({
 
     onStt = sig => controller.onStt(sig);
 
-    // The browser's back-channel: ready / audio_blocked / exhibit_shown / timing.
+    // The browser's back-channel: ready / audio_blocked / exhibit_shown / timing / health / setup.
     const turnRows = await db.query.sessionTurns.findMany({ where: eq(sessionTurns.sessionId, session.id), orderBy: [asc(sessionTurns.turnIndex)] });
     const opening = turnRows.filter(r => r.role === 'interviewer').at(-1)?.text ?? '';
     const dec = new TextDecoder();
@@ -202,6 +202,9 @@ export default defineAgent({
       } else if (m.type === 'health') {
         // The page's health line (19 Oct, lib/voice/health.ts).
         lines.add({ turnSeq: m.turnSeq, health: { longestFrameGapMs: m.longestFrameGapMs, longTaskMs: m.longTaskMs, audioElements: m.audioElements, audioContextState: m.audioContextState } });
+      } else if (m.type === 'setup') {
+        // The page's setup timings, once (19 Oct, lib/voice/setup-timing.ts).
+        lines.add({ setup: { spans: m.spans, helloAtMs: m.helloAtMs, setupDoneAtMs: m.setupDoneAtMs, readyAtMs: m.readyAtMs } });
       }
     });
 
