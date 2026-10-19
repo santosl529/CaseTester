@@ -13,7 +13,8 @@ import {
 } from '@livekit/rtc-node';
 import { asc, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { sessions, sessionTurns } from '@/db/schema';
+import { sessionEvents, sessions, sessionTurns } from '@/db/schema';
+import { VOICE_CHECK_IN } from '@/lib/orchestrator/voice-check-in';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import { getCaseById } from '@/lib/cases/loader';
@@ -163,7 +164,18 @@ export default defineAgent({
       endEarly: async () => ({ scoringSuppressed: !(await endByCandidate(session.id, session.userId, 'voice_tts_cap')).report }),
       // The silence check-in (Lorenzo, 18 Oct): 90s by default; 0 = off.
       checkInMs: num('VOICE_CHECKIN_MS', 90_000),
-      note: l => { lines.add(l); console.log('[voice] check-in', JSON.stringify(l)); },
+      // The check-in heard goes to the model's history as no turn (voice-check-in.ts).
+      note: l => {
+        lines.add(l);
+        console.log('[voice] check-in', JSON.stringify(l));
+        const ci = (l as { checkIn?: { heardText?: string; startedAtMs?: number | null; silentMs?: number } }).checkIn;
+        if (ci?.heardText) {
+          void db.insert(sessionEvents).values({
+            sessionId: session.id, category: VOICE_CHECK_IN.category, subtype: VOICE_CHECK_IN.subtype, turnIndex: null, phase,
+            payloadJsonb: { text: ci.heardText, atMs: ci.startedAtMs ?? Date.now(), silentMs: ci.silentMs },
+          }).catch(e => console.error('[voice] check-in event not written', e));
+        }
+      },
       bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS), fillerRate,
       trace: rec ? (type, data) => rec.event(type, data) : undefined,
     });

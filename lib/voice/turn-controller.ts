@@ -563,7 +563,8 @@ export class VoiceTurnController {
       const e = c.entries[0];
       const out: Outcome = e ? (c.cutOutcome?.get(e.id) ?? this.d.playout.classify(e.id)) : { playback: 'unplayed', heardChars: 0 };
       this.d.send({ type: 'caption', who: 'interviewer', turnSeq: c.seq, text: this.captionText(c), final: true });
-      this.d.note?.({ turnSeq: c.seq, afterTurnSeq, at: new Date(this.d.now()).toISOString(), checkIn: { line: text, silentMs, playback: out.playback, heardChars: out.heardChars } });
+      const heardText = out.playback === 'played' ? text : text.slice(0, out.heardChars).trim();
+      this.d.note?.({ turnSeq: c.seq, afterTurnSeq, at: new Date(this.d.now()).toISOString(), checkIn: { line: text, silentMs, playback: out.playback, heardChars: out.heardChars, heardText, startedAtMs: c.firstSoundAt } });
       if (this.live === c && c.cutAt === null) this.setState('listening', c.seq);
     })();
   }

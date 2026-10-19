@@ -50,3 +50,24 @@ it('marks a skipped filler as skipped, matched to its turn by the candidate mess
   expect(md).toContain('**t6 Interviewer** (0:06): ~~Okay…~~ *(filler skipped: reply_ready)* Which costs?');
   expect(transcriptMd(s, turns)).toContain('**t4 Interviewer** (0:04): Hmm… Why that?');            // no records: as saved
 });
+
+// Lorenzo, 18 Oct (ruling 2): the voice check-in shows in the transcript where
+// it was said, marked as a check-in (it is not a turn).
+it('shows each check-in at its time, marked, with only what was heard', () => {
+  const s = { id: 's1', caseId: 'prof-001', status: 'completed', startedAt: '2026-10-18T09:00:00Z' };
+  const turns = [
+    { turnIndex: 0, role: 'interviewer', text: 'How would you approach this?', timestampMs: 0 },
+    { turnIndex: 1, role: 'candidate', text: 'Costs first.', timestampMs: 200_000 },
+    { turnIndex: 2, role: 'interviewer', text: 'Which costs?', timestampMs: 203_000 },
+  ];
+  const at = '2026-10-18T09:00:00Z';
+  const lines = [
+    { line: { turnSeq: 1, afterTurnSeq: 0, checkIn: { line: 'Take your time — feel free to think out loud.', playback: 'played', heardText: 'Take your time — feel free to think out loud.', startedAtMs: 180_000 } }, createdAt: at },
+    { line: { turnSeq: 4, afterTurnSeq: 3, checkIn: { line: 'No hurry. Feel free to share your thinking as you go.', playback: 'partial', heardText: 'No hurry.', startedAtMs: 300_000 } }, createdAt: at },
+    { line: { turnSeq: 5, afterTurnSeq: 4, checkIn: { line: 'Take your time.', playback: 'unplayed', heardText: '', startedAtMs: 400_000 } }, createdAt: at },
+  ];
+  const md = transcriptMd(s, turns, lines);
+  expect(md).toContain('**t0 Interviewer** (0:00): How would you approach this?\n\n**Interviewer — check-in** (3:00): Take your time — feel free to think out loud.\n\n**t1 Candidate** (3:20)');
+  expect(md).toContain('**t2 Interviewer** (3:23): Which costs?\n\n**Interviewer — check-in** (5:00): No hurry. *(cut off)*');
+  expect(md.match(/check-in/g)).toHaveLength(2);
+});

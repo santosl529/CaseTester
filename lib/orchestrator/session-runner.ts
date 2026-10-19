@@ -2,7 +2,7 @@ import { closeWaitLine } from './close-hold';
 import { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, or } from 'drizzle-orm';
 import { recordSilenceStall, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
   evaluateSilence, checkInText, pauseText, restateOnTable, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
@@ -30,6 +30,7 @@ import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type Model
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { recMathLine } from './recompute';
 import { MATH_CHECKER_CATEGORY, type CheckerJob, type CheckerJobResult } from './math-checker-live';
+import { VOICE_CHECK_IN } from './voice-check-in';
 import { line, phrase, recordPhraseUses, PHRASE_POOLS, type PhraseUses } from './phrasing';
 import {
   isUsefulSegment, isCancelledTurn, TurnCancelled,
@@ -129,15 +130,19 @@ async function readTurn(sessionId: string): Promise<TurnReads> {
     }),
     db.query.exhibitsShown.findMany({ where: eq(exhibitsShown.sessionId, sessionId) }),
     db.query.revealedData.findMany({ where: eq(revealedData.sessionId, sessionId) }),
-    // Rule 11's data-request rows and the math checker's verdicts.
+    // Rule 11's data-request rows, the math checker's verdicts and the voice check-ins.
     db.query.sessionEvents.findMany({
-      where: and(eq(sessionEvents.sessionId, sessionId), inArray(sessionEvents.category, ['data_request', MATH_CHECKER_CATEGORY])),
+      where: and(eq(sessionEvents.sessionId, sessionId), or(
+        inArray(sessionEvents.category, ['data_request', MATH_CHECKER_CATEGORY]),
+        and(eq(sessionEvents.category, VOICE_CHECK_IN.category), eq(sessionEvents.subtype, VOICE_CHECK_IN.subtype)),
+      )),
     }),
   ]);
   return {
     session, turnRows, exhibitRows, revealedRows,
     dataRequestEventRows: eventRows.filter(r => r.category === 'data_request'),
     checkerEventRows: eventRows.filter(r => r.category === MATH_CHECKER_CATEGORY),
+    checkInEventRows: eventRows.filter(r => r.category === VOICE_CHECK_IN.category && r.subtype === VOICE_CHECK_IN.subtype),
   };
 }
 

@@ -38,10 +38,19 @@ export function transcriptMd(s: { id: string; caseId: string; status: string; st
   const clock = (ms: number) => { const sec = Math.max(0, Math.round((ms - t0) / 1000)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
   const out = [`# Voice session ${s.id}`, '', `- Case \`${s.caseId}\` · status **${s.status}** · started ${new Date(s.startedAt).toISOString()}`, ''];
   const skipped = skippedAcks(sorted, lines);
+  // The voice check-ins (not turns; 18 Oct): placed at their time, what was heard.
+  const checkIns = lines.map(l => (l.line as { checkIn?: { heardText?: string; playback?: string; startedAtMs?: number | null } })?.checkIn)
+    .filter((c): c is { heardText: string; playback: string; startedAtMs: number } => Boolean(c?.heardText) && typeof c?.startedAtMs === 'number')
+    .sort((a, b) => a.startedAtMs - b.startedAtMs);
+  const checkInLine = (c: (typeof checkIns)[number]) =>
+    `**Interviewer — check-in** (${clock(c.startedAtMs)}): ${c.heardText}${c.playback === 'played' ? '' : ' *(cut off)*'}`;
+  let next = 0;
   for (const t of sorted) {
+    while (next < checkIns.length && checkIns[next].startedAtMs < t.timestampMs) out.push(checkInLine(checkIns[next++]), '');
     const sk = skipped.get(t.turnIndex);
     const text = sk ? `~~${sk.ack}~~ *(filler skipped: ${sk.why})* ${t.text.slice(sk.ack.length).trim()}` : t.text;
     out.push(`**t${t.turnIndex} ${t.role === 'interviewer' ? 'Interviewer' : 'Candidate'}** (${clock(t.timestampMs)}): ${text}`, '');
   }
+  while (next < checkIns.length) out.push(checkInLine(checkIns[next++]), '');
   return out.join('\n');
 }

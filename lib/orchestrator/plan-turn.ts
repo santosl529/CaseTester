@@ -14,6 +14,7 @@ import { changeFigures } from './numeric-provenance';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk, stageDeadlinesMs, timeWarningDue } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, INITIAL_STALL_STATE, type StallState } from './stall';
+import { historyWithCheckIns, checkInLinesOf } from './voice-check-in';
 import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf, type ConductAssessment } from './conduct';
 import { classifyDistress, type DistressVerdict } from './distress';
@@ -58,6 +59,8 @@ export type TurnReads = {
   dataRequestEventRows: (typeof sessionEvents.$inferSelect)[];
   // The math checker's rows (math-checker-live.ts): verdicts that have landed.
   checkerEventRows?: (typeof sessionEvents.$inferSelect)[];
+  // The voice check-ins said (voice-check-in.ts): in the history, as no turn.
+  checkInEventRows?: (typeof sessionEvents.$inferSelect)[];
 };
 
 export type PlanDeps = {
@@ -1022,12 +1025,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
 
   // The model sees no silence check-ins or pause lines (D7): they are scripted,
   // and it copied them into its own turns (batch 4).
-  const history = turnRows
-    .filter(t => !(t.role === 'interviewer' && isSilenceLine(t.text)))
-    .map(t => ({
-      role: (t.role === 'candidate' ? 'user' : 'assistant') as 'user' | 'assistant',
-      content: t.text,
-    }));
+  // The voice check-in, by contrast, is given to it (voice-check-in.ts).
+  const history = historyWithCheckIns(
+    turnRows.filter(t => !(t.role === 'interviewer' && isSilenceLine(t.text))),
+    checkInLinesOf(reads.checkInEventRows ?? []),
+  );
 
   // Rule 17-C5 model layer (v4.6): runs in parallel with the interviewer call;
   // a distress verdict discards the draft before anything is delivered (D1).
