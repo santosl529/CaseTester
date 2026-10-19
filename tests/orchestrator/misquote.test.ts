@@ -111,6 +111,7 @@ describe('the quote grammar: full stops, thousands, scale words, arithmetic clau
     ['Prevalence you gave is 1.5%, so 250 × 0.015 = 3.75 million.', 'funnel_rates', entry],
     ['Selling costs are $77 million.', 'option_a', entry],
     ['The ticket is $6.90.', 'avg_ticket', prof1],
+    ['Recipe development was $1,500,000.', 'recipe_cost', launch],
   ] as const)('flags: %s', (text, item, check) => expect(check(text)).toEqual([item]));
 
   it.each([
@@ -122,7 +123,14 @@ describe('the quote grammar: full stops, thousands, scale words, arithmetic clau
     ['The Lakeport cost per flight is $9,000.', larkspur],
     ['COGS is 58/110, about 53%.', prof1],
     ['The ticket is $6.80.', prof1],
+    // Written in full, read at the item's scale (Task 9 review).
+    ['Recipe development was $1,200,000.', launch],
+    ['Recipe development was about $1,000,000.', launch],
   ] as const)('does not flag: %s', (text, check) => expect(check(text)).toEqual([]));
+
+  it('a scale word before "points" is no figure, whatever its spelling (Task 9 review)', () => {
+    for (const w of ['thousand', 'bn', 'mn', 'million', 'k']) expect(items(`Labor is 5 ${w} points.`)).toEqual([]);
+  });
 
   it('chains still read through the periods', () => {
     expect(items('COGS went from 42% to 58% of revenue.')).toEqual([]);

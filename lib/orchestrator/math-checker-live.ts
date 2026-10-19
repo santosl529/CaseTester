@@ -396,6 +396,8 @@ export type CheckerPlanInput = {
   caseData: CheckerCase; revealedIds: string[];
   // The session's recent lines and the turn's seed: a neutral probe is said in one of its versions (phrasing.ts).
   phraseUses?: PhraseUses; seed?: string;
+  // The right figures code's line on a finding states (the gate's, plan-turn): a misquote the gate will hold dedupes nothing.
+  codeFigures?: (f: CodeFinding) => number[] | null;
 };
 export type CheckerPlan = {
   selected: CheckerSelection | null;  // at most one a turn
@@ -482,8 +484,17 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const readings = readingsOf(c, vetCtx);
     return readings.length > 0 && rightOnSome(f, readings) === null;
   };
+  // Would the gate hold code's misquote line (checker_disagrees: every matching checker flag's right figure is
+  // another quantity's)? Then code's line isn't said and the checker's claim stands (Lorenzo, 19 Oct; b28 Tyler
+  // 934653af t9: "12.6 points (from 30% of COGS)" was deduped for a "30%" flag the gate held — the 30% waited to t14).
+  const gateHolds = (f: CodeFlagRef, claims: VettedClaim[]) => {
+    const figures = f.finding && f.key.startsWith('misquote:') ? p.codeFigures?.(f.finding) ?? null : null;
+    if (figures === null) return false;
+    const flagged = claims.filter(c => c.flag && gateMatches(f, c));
+    return flagged.length > 0 && !flagged.some(c => rightAgrees(c, figures));
+  };
   for (const v of verdicts) {
-    for (const f of v.codeFlags.filter(x => x.key.startsWith('misquote:'))) {
+    for (const f of v.codeFlags.filter(x => x.key.startsWith('misquote:') && !gateHolds(x, v.claims))) {
       const m = misreads.find(x => x.key === f.key);
       if (m) m.figures.push(f.value); else misreads.push({ key: f.key, figures: [f.value] });
     }
@@ -559,7 +570,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       // flagged still brings the checker's agreed correction — unless code
       // corrected it as a misquote (an exact lookup). The checker's flag here is
       // what releases code's line (the gate): code's line is the one said.
-      if (codeFlag && (!c.correctionLine || codeFlag.key.startsWith('misquote:'))) {
+      if (codeFlag && (!c.correctionLine || codeFlag.key.startsWith('misquote:')) && !gateHolds(codeFlag, v.claims)) {
         decisions.push(decision(id, v.candidateTurnIndex, c, 'dedupe', `the deterministic check flagged it (${codeFlag.key})`));
         handled.add(id);
         return;
@@ -598,7 +609,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       if (!keys[key]) keys[key] = { figures: idFigs, since: v.candidateTurnIndex };
       else keys[key] = { ...keys[key], figures: [...keys[key].figures, ...idFigs.filter(f => !keys[key].figures.some(x => same(f, x)))] };
       flaggedFigures.push(...figs);
-      eligible.push({ id, n: v.candidateTurnIndex, c, key, figs, codeProbed: Boolean(codeFlag) });
+      eligible.push({ id, n: v.candidateTurnIndex, c, key, figs, codeProbed: codeFlag !== undefined && !gateHolds(codeFlag, v.claims) });
     });
   }
   // A claim built on another error's figure yields to it (rootOf): the probe

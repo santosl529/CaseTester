@@ -26,7 +26,8 @@ type LedgerItem = { id: string; value: string; timeframes?: Record<string, strin
 type Unit = 'percent' | 'dollar' | 'count' | 'plain';
 // `value` as said; `scale` the word after it ("$77 million": 77 × 10⁶; 1 when none).
 type Fig = { value: number; unit: Unit; text: string; scale: number };
-type Target = { value: number; unit: Unit; scale: number };
+// `decimals`: as the item states it ("1.2" million: 1), the precision a figure written in full is read to.
+type Target = { value: number; unit: Unit; scale: number; decimals?: number };
 export type Misquote = { item: string; cited: string; sentence: string };
 
 // One figure: "$6.90", "61%", "61 percent", "200 stores", "~58", "$1,200". A full stop
@@ -34,7 +35,7 @@ export type Misquote = { item: string; cited: string; sentence: string };
 // thousands commas are one figure, not "$1" (§15 c); a scale word is read with
 // it ("$77 million" against the item's "$80 million"; §15 p), never without it.
 export const SCALE = String.raw`million|mn|m|billion|bn|b|thousand|k`;
-const FIG = String.raw`(?:about|roughly|around|approximately|nearly|almost|~)?\s*(\$)?(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(?:\s?(${SCALE})\b)?(?!\d|[.,]\d|[a-wyz])(?!\s*(?:-|\s)?(?:points?|pts|pp|years?|x\b|×|m\b|million|b\b|billion|k\b|cents?|ways|things|reasons|levers|times|months))\s*(%|percent|stores|locations)?`;
+const FIG = String.raw`(?:about|roughly|around|approximately|nearly|almost|~)?\s*(\$)?(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(?:\s?(${SCALE})\b)?(?!\d|[.,]\d|[a-wyz])(?!\s*(?:-|\s)?(?:points?|pts|pp|years?|x\b|×|m\b|mn\b|million|b\b|bn\b|billion|k\b|thousand|cents?|ways|things|reasons|levers|times|months))\s*(%|percent|stores|locations)?`;
 // "you gave / you said" attributes the figure ("Prevalence you gave is 1.5%" — batch-32 Aldermoor Tyler t9; Lorenzo, 19 Oct).
 const LINK_LEVEL = String.raw`(?:\s*(?:you (?:gave|said|mentioned|quoted)(?: (?:me|us))?|is|was|were|are|'s|at|sits at|stood at|stands at|now|today|currently|then|came in at|:|—|–|-|it|has us at|of revenue|as a percent of revenue|as a share of revenue|(?:went|goes|going|moved|moves|rose|climbed|grew|fell|dropped|jumped|increased|starts|started|ends|ended|ran|runs|up|down)\s+(?:from|to|at)|from)\s*)*`;
 const LINK_CHANGE = String.raw`\s*(?:(?:are|were|is|was|have|has|went|gone|got|been|prices|costs?)\s+)*(?:up|rose|risen|increased|grew|climbed|jumped)\s+(?:by\s+)?`;
@@ -88,7 +89,15 @@ function allowed(f: Fig, targets: Target[]): boolean {
   // "about 44%" for 42% is not a rounding, it's a misquote.
   const roundness = f.value % 10 === 0 ? 5 : f.value % 5 === 0 ? 2.5 : rounding;
   return targets.some(t => unitsFit(f.unit, t.unit)
-    && Math.abs(f.scale === 1 ? f.value - t.value : f.value * f.scale - t.value * t.scale) <= (hedged ? Math.max(rounding, roundness) : rounding) * f.scale + 1e-9);
+    && (Math.abs(f.scale === 1 ? f.value - t.value : f.value * f.scale - t.value * t.scale) <= (hedged ? Math.max(rounding, roundness) : rounding) * f.scale + 1e-9
+      || (f.scale === 1 && t.scale > 1 && inFull(f.value / t.scale, t, hedged))));
+}
+// A figure written in full against an item stated at scale ("$1,200,000" for "$1.2 million"; Task 9 review):
+// read at the item's scale, to the item's precision — or, hedged, as a round figure there ("about $1,000,000").
+function inFull(v: number, t: Target, hedged: boolean): boolean {
+  const r = 0.5 * 10 ** -(t.decimals ?? 0);
+  const round = v % 10 === 0 ? 5 : v % 5 === 0 ? 2.5 : Number.isInteger(v) ? 0.5 : r;
+  return Math.abs(v - t.value) <= (hedged ? Math.max(r, round) : r) + 1e-9;
 }
 
 // The figures an item states (its timeframes, unit read from its value
@@ -100,7 +109,7 @@ function itemTargets(item: LedgerItem, exhibitCol: number[]): Target[] {
   const stated = Object.keys(tf).map(n => {
     const m = new RegExp(`(\\$)?${n.replace('.', '\\.')}(?:\\s?(${SCALE})\\b)?\\s*(%|percent|stores)?`, 'i').exec(item.value);
     const unit: Unit = m?.[1] ? 'dollar' : m?.[3] === 'stores' ? 'count' : m?.[3] ? 'percent' : 'plain';
-    return { value: num(n), unit, scale: scaleOf(m?.[2]) };
+    return { value: num(n), unit, scale: scaleOf(m?.[2]), decimals: n.split('.')[1]?.length ?? 0 };
   });
   const cur = Object.entries(tf).find(([, p]) => p === 'current')?.[0];
   const pri = Object.entries(tf).find(([, p]) => p === 'prior')?.[0];

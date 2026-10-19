@@ -181,6 +181,19 @@ describe('dedupe with the deterministic checks — one probe per claim', () => {
     const p = planCheckerFlags(input({ rows: [verdictRow(3, [tyler], { codeFlags: [{ key: 'misquote:revenue_growth', value: 19, span: 'Revenue grew about 19% over the period' }] })] }));
     expect(p.decisions[0].outcome).toBe('dedupe');
   });
+  // Task 9 review (b28 Tyler 934653af t9): the gate holds code's "30%" flag when the checker's right
+  // figure is the derived quantity's (10.5 points, not 25%) — so the checker's claim isn't deduped for it.
+  it('a misquote flag the gate will hold (checker_disagrees) dedupes nothing: the checker\'s probe stands', () => {
+    const beans = vetted({ span: 'Beans were 30% of COGS 2 years ago, so 0.30 × 42 = 12.6 points of revenue', candidateValue: '12.6 points (from 30% of COGS)', correctValue: 10.5, correctionLine: null, correctionFigure: null, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+    const ref = { key: 'misquote:bean_share_of_cogs', value: 30, span: 'were 30%', finding: { kind: 'misquote' as const, item: 'bean_share_of_cogs', cited: 'were 30%', sentence: 'Beans were 30% of COGS 2 years ago, so 0.30 × 42 = 12.6 points of revenue.' } };
+    const rows = [verdictRow(3, [beans], { codeFlags: [ref] })];
+    const held = planCheckerFlags(input({ rows, codeFigures: () => [25, 2] }));
+    expect(held.decisions.find(d => d.id === '3:0')?.outcome).not.toBe('dedupe');
+    expect(held.selected).toMatchObject({ id: '3:0', action: 'probe' });
+    // …and where the gate releases code's line (the checker's right figure is code's), it still dedupes.
+    expect(planCheckerFlags(input({ rows, codeFigures: () => [10.5, 25] })).decisions[0].outcome).toBe('dedupe');
+    expect(planCheckerFlags(input({ rows })).decisions[0].outcome).toBe('dedupe');
+  });
   it('matched by key when their figure is also a case figure ("about 40 points" — beans rose 40%)', () => {
     const forty = vetted({ span: 'about 40 points of margin erosion', candidateValue: 'about 40 points', correctValue: 16, correctionLine: null, correctionFigure: null, codeQuantity: { kind: 'step', stepId: 'cogs_dollar_impact', price: null, target: null } });
     const p = planCheckerFlags(input({ rows: [verdictRow(3, [forty], { codeFlags: [{ key: 'cogs_dollar_impact@40', value: 40, span: 'x' }] })] }));
