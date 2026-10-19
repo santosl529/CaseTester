@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0027-a",
+  "item_id": "cl3-0027",
+  "drill_id": "CL-3",
+  "answer_type": "off_topic",
+  "notes": "Recommends fixes instead of asking for information: off-topic (rule 8) and solution before diagnosis (rule 6).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The university should hire five more help-desk staff and buy a better ticketing system."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": false,
+    "driver_1": false,
+    "driver_2": false,
+    "driver_3": false,
+    "driver_4": false,
+    "states_where_to_start": false,
+    "reason_for_start": false,
+    "specific_requests": false
+  },
+  "red_flags": {
+    "solution_before_diagnosis": true,
+    "six_plus_unstructured_requests": false,
+    "off_topic": true
+  },
+  "family": null
+}

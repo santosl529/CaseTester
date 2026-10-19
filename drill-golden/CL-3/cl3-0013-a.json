@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0013-a",
+  "item_id": "cl3-0013",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Profit is ad revenue plus carrier fees minus programming costs, and ad revenue is price times slots sold. I'd start with average price per ad by daypart for three years, since viewers held, so advertisers likely pay less."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": true,
+    "driver_1": true,
+    "driver_2": true,
+    "driver_3": true,
+    "driver_4": true,
+    "states_where_to_start": true,
+    "reason_for_start": true,
+    "specific_requests": true
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

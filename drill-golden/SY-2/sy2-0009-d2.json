@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0009-d2",
+  "item_id": "sy2-0009",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Wrong call (code); sheet facts that support extending, recommendation restated (rules 12, 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Extend the shuttle to the stadium district. A survey says 40% of event visitors would ride it, cutting event-day parking demand by about 1,500 cars across 120 event days a year, and the stadium owner will pay $300,000 of the $800,000 yearly cost. The main risk is that survey intent overstates real ridership. The next step is a one-season pilot on event days that counts riders before committing."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "Hold. The stadium still pays $300,000 and 40% of visitors would ride. Extend the shuttle."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

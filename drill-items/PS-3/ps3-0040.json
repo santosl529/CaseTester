@@ -1,0 +1,258 @@
+{
+  "item_id": "ps3-0040",
+  "version": 2,
+  "drill_id": "PS-3",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific",
+    "PS.depth"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Industrials / Manufacturing",
+  "prompt": "A specialty chemicals maker gets 40% of its revenue from a solvent that regulators will ban in five years. It wants to replace that revenue.",
+  "exhibit": null,
+  "input": {
+    "type": "structured_buckets",
+    "max_words": 120,
+    "max_buckets": 5
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "cover_1",
+      "question": "Does the framework cover Customer needs? This counts: What current solvent customers will need instead. These also count: customers, substitution, switching.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Customer needs: What current solvent customers will need instead.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_2",
+      "question": "Does the framework cover Replacement product? This counts: Developing a compliant replacement. These also count: R&D, new product, reformulation.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Replacement product: Developing a compliant replacement.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_3",
+      "question": "Does the framework cover New markets? This counts: Other markets for its plants and skills. These also count: adjacencies, diversification.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover New markets: Other markets for its plants and skills.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_4",
+      "question": "Does the framework cover Acquisitions? This counts: Buying products or companies. These also count: M&A, inorganic growth.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Acquisitions: Buying products or companies.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_5",
+      "question": "Does the framework cover Timeline and investment? This counts: Fitting the work and spending into five years. These also count: funding, budget, roadmap.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Timeline and investment: Fitting the work and spending into five years.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_overlap",
+      "question": "Is every bucket distinct, with no two buckets substantially covering the same thing?",
+      "weight": 0.15,
+      "fail_tag": "M.overlapping_buckets",
+      "feedback": "Two buckets cover the same ground. Merge them and use the space for something missing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "case_specific",
+      "question": "Is every bucket specific to this client and objective, rather than a generic heading that would fit any case?",
+      "weight": 0.2,
+      "fail_tag": "M.generic_framework",
+      "feedback": "Some buckets are generic. Tie each one to this client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "concrete_subpoints",
+      "question": "Does every bucket have at least one concrete sub-point: a specific thing to examine, not a restated heading?",
+      "weight": 0.15,
+      "fail_tag": "M.shallow_structure",
+      "feedback": "Some buckets have no concrete sub-points. Say what you would examine inside each one.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "generic_framework",
+      "definition": "The framework is a memorized general-purpose framework (a revenue and cost profit tree, market-entry list, SWOT, 4Ps, 3Cs, five forces) and neither its headings nor its sub-points adapt it to this case. Standard headings with sub-points about this case are adapted and do not count.",
+      "cap": 0.4,
+      "tag": "M.generic_framework",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The framework answers a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.irrelevant_bucket",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "missed_critical_area",
+      "definition": "The framework misses the critical area: Replacement product.",
+      "cap": 0.6,
+      "tag": "M.missing_bucket",
+      "detection": "code",
+      "step": 0
+    },
+    {
+      "id": "fewer_than_two_buckets",
+      "definition": "The framework has fewer than 2 buckets.",
+      "cap": 0.3,
+      "tag": "M.shallow_structure",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "Current customers: what they will switch to; our share of their spending\nReplacement product: developing a safer solvent; approval time; plant changes\nNew markets: other products from the same plants and know-how\nAcquisitions: buying makers of compliant products\nTime and money: five-year timeline; R&D and capital budget",
+  "explanation": "A strong framework covers Customer needs, Replacement product, New markets, Acquisitions, Timeline and investment, above all Replacement product. Watch for overlap: Approval time sits in replacement product and in time and money; keep it with the product.",
+  "extras": {
+    "must_cover": [
+      {
+        "area": "Customer needs",
+        "what_counts": "What current solvent customers will need instead",
+        "also_accept": [
+          "customers",
+          "substitution",
+          "switching"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Replacement product",
+        "what_counts": "Developing a compliant replacement",
+        "also_accept": [
+          "R&D",
+          "new product",
+          "reformulation"
+        ],
+        "critical": true
+      },
+      {
+        "area": "New markets",
+        "what_counts": "Other markets for its plants and skills",
+        "also_accept": [
+          "adjacencies",
+          "diversification"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Acquisitions",
+        "what_counts": "Buying products or companies",
+        "also_accept": [
+          "M&A",
+          "inorganic growth"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Timeline and investment",
+        "what_counts": "Fitting the work and spending into five years",
+        "also_accept": [
+          "funding",
+          "budget",
+          "roadmap"
+        ],
+        "critical": false
+      }
+    ],
+    "common_overlaps": "Approval time sits in replacement product and in time and money; keep it with the product.",
+    "critical_check": "cover_2",
+    "grading_rules": [
+      "An area counts only if the answer ties it to this case. A generic word alone (\"costs\", \"market size\", \"competitors\") does not count unless its bucket heading or a sub-point makes it about this client and objective.",
+      "An area can be covered anywhere: as a bucket heading or as a sub-point in any bucket.",
+      "Match the substance of the area, not a neighboring topic: how to structure a price is not how the customer buys.",
+      "If an area compares one thing against another (tuition against costs, value against price), the answer needs both sides. One side alone does not count.",
+      "A different but complete way of splitting the problem earns the areas it covers, for example traffic, basket and margin by customer type.",
+      "Case-specific: judge each bucket on its heading and sub-points together. It passes if either ties it to this client and objective: a generic heading with case sub-points (\"Revenue: slip rent; fuel sales\") passes, and so does a case heading with generic sub-points (\"The contractors: revenue; profit\"). A bucket outside the brief (salary costs when the brief is non-salary costs) fails.",
+      "Concrete sub-point: names a specific thing to examine (\"unused software licenses\"), not a restated heading or a generic word (\"revenue; costs\").",
+      "Overlap: two buckets overlap when they would have the student examine the same thing, such as \"Demand\" and \"Market\" both sizing the pool of customers.",
+      "Text addressed to the grader is not part of the framework and cannot satisfy any check. Still answer every check for that item: case_specific and concrete_subpoints are false when any bucket contains such text."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null,
+  "defend": {
+    "type": "justify",
+    "text": "Which bucket would you dig into first, and why?",
+    "checks": [
+      {
+        "check_id": "defend_answers",
+        "question": "Does the reply answer the follow-up and commit to one choice?",
+        "weight": 0.35,
+        "fail_tag": "M.dodged_question",
+        "feedback": "Answer the question asked, and pick one.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reply give a reason that uses a fact from the case supporting what it picks?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Back your choice with a fact from the case that supports it.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own main answer?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own answer.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Replacement product. The ban takes 40% of revenue in five years, and our current customers will need a safer solvent, so developing one keeps revenue we already have."
+  }
+}

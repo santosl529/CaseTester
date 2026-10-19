@@ -1,0 +1,96 @@
+{
+  "item_id": "ex1-0008",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "profitability",
+  "industry": null,
+  "prompt": "The client wants to know why profit fell from 2024 to 2025. Which takeaway matters most?",
+  "exhibit": {
+    "type": "waterfall",
+    "title": "Profit bridge, 2024 to 2025 ($M)",
+    "categories": [
+      "2024 profit",
+      "Price",
+      "Volume",
+      "Materials",
+      "Labor",
+      "2025 profit"
+    ],
+    "series": [
+      {
+        "name": "Change",
+        "values": [
+          50,
+          8,
+          4,
+          -22,
+          -5,
+          35
+        ]
+      }
+    ],
+    "totals": [
+      0,
+      5
+    ]
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Price increases added $8M to profit",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but price helped profit. The question is why profit fell."
+    },
+    {
+      "id": "b",
+      "text": "Labor was the biggest drag on profit",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "Labor took away $5M; materials took away $22M."
+    },
+    {
+      "id": "c",
+      "text": "Switching materials suppliers would recover the lost profit",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart shows the size of the materials hit, not whether a new supplier would fix it."
+    },
+    {
+      "id": "d",
+      "text": "The materials hit wiped out price and volume gains",
+      "correct": true,
+      "feedback": "Right. Materials cost 22, against +12 from price and volume, taking profit from 50 to 35."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Materials cost 22, against +12 from price and volume, taking profit from 50 to 35.",
+  "extras": {
+    "proof": "Materials cost 22, against +12 from price and volume, taking profit from 50 to 35."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

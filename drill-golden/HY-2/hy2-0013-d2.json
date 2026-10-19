@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0013-d2",
+  "item_id": "hy2-0013",
+  "drill_id": "HY-2",
+  "answer_type": "borderline",
+  "notes": "The data request names a metric and a cut, but the result given would confirm it, not drop it (rule 8).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "More appointments but less revenue suggests the new appointments come from less serious shoppers, perhaps through easier booking. I'd compare sales rates by how each appointment was booked."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: sales rates fell mostly for free online bookings, at unchanged prices, which confirms the new appointments are less serious shoppers."
+    },
+    {
+      "type": "text",
+      "value": "I'd look at the sales rate for online bookings; if it's below 30%, that confirms it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

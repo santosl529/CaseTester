@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0029-d1",
+  "item_id": "cl3-0029",
+  "drill_id": "CL-3",
+  "answer_type": "short",
+  "notes": "A pick from the breakdown (equipment age), no reason.",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at outage causes, equipment age, maintenance spending, and peak demand. I'd start with outage minutes by cause and region for five years, since that shows whether storms, aging equipment or peak load drives the doubling."
+    },
+    {
+      "type": "text",
+      "value": "Equipment."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0026",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "cost_reduction",
+  "industry": "Logistics / Transportation",
+  "prompt": "A trucking company's fuel cost per mile rose 12%, while diesel prices rose 4%. Its fleet's average age went from 4 to 7 years. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Fuel cost per mile has likely risen faster than diesel prices.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Older trucks are likely burning more fuel per mile.",
+      "correct": true,
+      "feedback": "Right. Fuel cost per mile rose 8 points faster than prices, so efficiency fell, and the fleet aged three years. I'd compare miles per gallon by truck age."
+    },
+    {
+      "id": "c",
+      "text": "Diesel price rises probably explain all of the increase.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Diesel rose 4%, but cost per mile rose 12%."
+    },
+    {
+      "id": "d",
+      "text": "Drivers are likely taking longer routes to avoid tolls.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Longer routes add miles, but cost per mile would not rise because of them."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows fuel cost per mile up 12% against 4% for diesel, as the fleet aged from 4 to 7 years. Likely cause: older trucks burn more fuel. To test it, compare miles per gallon by truck age. If old and new trucks match, look at routes, loads or driving habits.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

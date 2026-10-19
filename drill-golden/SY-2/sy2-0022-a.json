@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0022-a",
+  "item_id": "sy2-0022",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Buy the kiln. Drying 10,000 thousand board feet a year adds about $1.2M of revenue at $120 more each, against $500,000 a year to run it, so the $3M kiln pays back in about 4 years and lasts 20. The risk is that the price premium for kiln-dried lumber narrows, so lock in contracts with two big buyers first."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

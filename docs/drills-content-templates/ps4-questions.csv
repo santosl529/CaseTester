@@ -1,0 +1,7 @@
+item_id,derived_from,tier,prompt,flawed_answer,right_parts,model_repair
+EXAMPLE-ps4-01,ps1-0011,1,A European e-bike maker is deciding whether to enter the US market.,"US demand for e-bikes: size of the market; growth by city
+Competitors: who sells e-bikes; their market shares
+Costs of entering: distribution; marketing; import duties","the demand, competitor and entry-cost buckets","US demand for e-bikes: size of the market; growth by city
+Competitors: who sells e-bikes; their market shares
+Can we win: our price and range against US rivals; brand awareness in the US
+Costs of entering: distribution; marketing; import duties"

@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0001-a",
+  "item_id": "sy2-0001",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Strong answer.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Buy the printer. At $250,000 with $70,000 a year of savings, it pays back in about 3.6 years, well inside its 7-year life, and it cuts crown turnaround from 10 days to 4. The risk is that the savings assume today's crown volume. Next, confirm next year's orders with our biggest dentists before signing."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

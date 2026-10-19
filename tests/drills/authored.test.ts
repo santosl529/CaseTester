@@ -1,0 +1,133 @@
+import { describe, it, expect } from 'vitest';
+import { contentCheckProblems, loadAuthoredItems, loadPaddingTypes, loadReviewedScenarioPairs, parseAuthoredItems } from '@/lib/drills/authored';
+import { RULE_PLAYER_MAX, lengthCueProblems, oddOneOutCues, phraseCues, rulePlayer, scenarioOverlaps } from '@/lib/drills/content-checks';
+import { getDrill } from '@/lib/drills/config';
+import fs from 'fs';
+import path from 'path';
+import { parseCsv } from '@/lib/drills/content-import';
+import { REVIEW_SHEET_COLUMNS, reviewSheetRows } from '@/lib/drills/review-sheet';
+
+describe('authored drill items (/drill-items)', () => {
+  const items = loadAuthoredItems();
+
+  it('all load and validate', () => {
+    expect(items.length).toBeGreaterThan(0);
+    for (const item of items) expect(getDrill(item.drill_id).item_source).not.toBe('generated');
+  });
+
+  it('never makes an unreviewed item live', () => {
+    for (const item of items.filter(i => !i.authorship?.reviewed_by)) expect(item.status, item.item_id).toBe('draft');
+  });
+
+  const sample = () => structuredClone(items.find(i => i.drill_id === 'PS-1')!);
+  const file = (drill: string, id: string) => `/x/drill-items/${drill}/${id}.json`;
+
+  it('rejects an item filed under the wrong drill', () => {
+    expect(() => parseAuthoredItems([{ file: file('HY-1', 'x'), raw: sample() }])).toThrow(/is filed under HY-1/);
+  });
+
+  it('rejects a duplicate item_id@version', () => {
+    const a = sample();
+    expect(() => parseAuthoredItems([{ file: file('PS-1', 'a'), raw: a }, { file: file('PS-1', 'b'), raw: a }])).toThrow(/Duplicate drill item/);
+  });
+
+  it('allows one reviewed worked example per drill', () => {
+    const reviewed = (id: string) => ({
+      ...sample(), item_id: id, is_example: true,
+      authorship: { ...sample().authorship!, reviewed_by: 'Reviewer', reviewed_at: '2026-10-06' },
+    });
+    expect(parseAuthoredItems([{ file: file('PS-1', 'e1'), raw: reviewed('e1') }])).toHaveLength(1);
+    expect(() => parseAuthoredItems([
+      { file: file('PS-1', 'e1'), raw: reviewed('e1') },
+      { file: file('PS-1', 'e2'), raw: reviewed('e2') },
+    ])).toThrow(/two worked examples/);
+  });
+
+  it('rejects an unreviewed worked example once it is live', () => {
+    const unreviewed = { ...sample(), is_example: true, authorship: { ...sample().authorship!, reviewed_by: null, reviewed_at: null } };
+    expect(parseAuthoredItems([{ file: file('PS-1', 'e'), raw: { ...unreviewed, status: 'draft' } }])).toHaveLength(1);
+    expect(() => parseAuthoredItems([{ file: file('PS-1', 'e'), raw: { ...unreviewed, status: 'live' } }])).toThrow(/must be a reviewed item/);
+  });
+
+  it('keeps an item off live until it passes the similarity check', () => {
+    const at = (similarity_check: string, status = 'live') => [{ file: file('PS-1', 'x'), raw: { ...sample(), status, authorship: { ...sample().authorship!, similarity_check } } }];
+    expect(parseAuthoredItems(at('passed'))).toHaveLength(1);
+    for (const s of ['pending', 'flagged', 'failed']) expect(() => parseAuthoredItems(at(s)), s).toThrow(/must pass the similarity check/);
+    expect(parseAuthoredItems(at('flagged', 'in_review'))).toHaveLength(1);
+    expect(() => parseAuthoredItems(at('not_applicable', 'draft'))).toThrow(/Authored items need a similarity check/);
+  });
+
+  it('gives no answer away through wording (length, phrases, rule player)', () => {
+    expect(contentCheckProblems(items, loadReviewedScenarioPairs(), loadPaddingTypes())).toEqual([]);
+  });
+
+  it('flags a pool where the right answer is usually the longest', () => {
+    const pool = items.filter(i => i.drill_id === 'PS-1').map(i => ({
+      ...i, options: i.options.map(o => (o.correct ? { ...o, text: `${o.text} — and this is the much longer, fully explained answer` } : o)),
+    }));
+    expect(lengthCueProblems(pool)).toEqual([expect.stringMatching(new RegExp(`^PS-1: the right answer is the longest option in ${pool.length} of ${pool.length} items`))]);
+  });
+});
+
+describe('wording checks', () => {
+  const pool = loadAuthoredItems().filter(i => i.drill_id === 'HY-1');
+  // Every right answer gets the same tell-tale word.
+  const marked = pool.map(i => ({ ...i, options: i.options.map(o => (o.correct ? { ...o, text: `Most likely, ${o.text}` } : o)) }));
+
+  it('flags a phrase that only right answers use', () => {
+    expect(phraseCues(marked)).toContainEqual(expect.objectContaining({ phrase: 'starts "most likely"', marks: 'right', right: pool.length }));
+  });
+
+  it('flags a phrase that only wrong answers use', () => {
+    const wrong = pool.map(i => ({ ...i, options: i.options.map(o => (o.correct ? o : { ...o, text: `Recommend that ${o.text}` })) }));
+    expect(phraseCues(wrong)).toContainEqual(expect.objectContaining({ phrase: 'starts "recommend that"', marks: 'wrong' }));
+  });
+
+  // Same words, different punctuation: the right answer alone gets a colon.
+  const colon = pool.map(i => ({ ...i, options: i.options.map(o => (o.correct ? { ...o, text: o.text.replace(' ', ': ') } : o)) }));
+
+  it('notices when only the right answer has a colon', () => {
+    expect(oddOneOutCues(colon)).toContainEqual(expect.objectContaining({ feature: 'has a colon', kind: 'only with', right: pool.length, wrong: 0 }));
+    expect(oddOneOutCues(pool)).toEqual([]);
+  });
+
+  it('counts punctuation in the rule player', () => {
+    expect(rulePlayer(colon)[0].score).toBeGreaterThan(0.9);
+  });
+
+  it('a solver that never reads the case beats a marked pool and not a clean one', () => {
+    expect(rulePlayer(marked)[0].score).toBe(1);
+    expect(rulePlayer(pool)[0].score).toBeLessThanOrEqual(RULE_PLAYER_MAX);
+  });
+});
+
+describe('one case, one drill', () => {
+  const items = loadAuthoredItems();
+  const hy = items.find(i => i.item_id === 'hy1-0036')!;
+  // A CL-1 item that reuses HY-1's brewery case and figures.
+  const copy = { ...items.find(i => i.drill_id === 'CL-1')!, item_id: 'cl1-copy',
+    prompt: "Objective: grow a brewery's sales. What you've learned: bar sales fell 10% and supermarket sales rose 25%. What is the best next step?" };
+
+  it('flags two drills sharing a client type and key figures', () => {
+    expect(scenarioOverlaps([...items, copy])).toContainEqual(expect.objectContaining({ a: 'cl1-copy', b: hy.item_id }));
+  });
+
+  it('stops flagging a pair once it is recorded as reviewed', () => {
+    const reviewed = [...loadReviewedScenarioPairs(), { items: ['cl1-copy', hy.item_id] as [string, string], reason: 'checked: different scenario' }];
+    expect(scenarioOverlaps([...items, copy], reviewed)).toEqual([]);
+  });
+});
+
+describe('the SY-1 drafts review sheet', () => {
+  it('matches the draft items (regenerate with npm run drills:review-sheet)', () => {
+    const file = path.join(process.cwd(), 'docs/drills-content/sy1-drafts-review.csv');
+    if (!fs.existsSync(file)) return;
+    const sheet = parseCsv(fs.readFileSync(file, 'utf-8'));
+    const rows = reviewSheetRows(loadAuthoredItems(), 'SY-1');
+    expect(sheet.map(r => r.item_id)).toEqual(rows.map(r => r.item_id));
+    for (const r of rows) {
+      const s = sheet.find(x => x.item_id === r.item_id)!;
+      for (const c of REVIEW_SHEET_COLUMNS.filter(c => c !== 'what_changed')) expect(`${r.item_id} ${c}: ${s[c] ?? ''}`).toBe(`${r.item_id} ${c}: ${r[c] ?? ''}`);
+    }
+  });
+});

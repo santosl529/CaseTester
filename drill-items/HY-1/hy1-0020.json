@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0020",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "m_and_a",
+  "industry": null,
+  "prompt": "A company bought a competitor two years ago, expecting $20M a year in cost savings. Savings so far are $8M a year, and the two IT systems still run separately. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The $20M target was likely unrealistic from the start.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Possible, but it ignores the concrete reason the prompt gives: the two IT systems still run separately."
+    },
+    {
+      "id": "b",
+      "text": "The two companies' cultures are probably clashing, slowing the merger.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing points to culture. The prompt points to IT."
+    },
+    {
+      "id": "c",
+      "text": "IT is the only problem, so the systems have to be merged at any cost.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states one cause as certain and commits to unlimited spending before any data."
+    },
+    {
+      "id": "d",
+      "text": "The separate IT systems are probably what's blocking the savings.",
+      "correct": true,
+      "feedback": "Right. Running two systems usually means duplicated processes and costs. I'd map the planned savings by source against what has been delivered."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows $8M of the expected $20M in savings, with the two IT systems still running separately. Likely cause: unmerged IT is blocking much of the savings. To test it, map planned savings by source against what has been delivered. If the IT-dependent savings are on track, the original estimate was probably too high.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

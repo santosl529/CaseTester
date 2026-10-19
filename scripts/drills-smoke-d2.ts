@@ -1,0 +1,172 @@
+// End-to-end check of the D2 drills against the real database and the real
+// grader, using live items plus the draft placeholders (DRILLS_PREVIEW_DRAFTS). Runs one
+// set of each D2 drill as a throwaway student, checks no key leaks before
+// submission, that written answers are graded after the set and shown with
+// evidence, that QN-5 is scored by code, and that a failed grading run leaves
+// the set "delayed" until the results page's poll re-runs it. Deletes
+// everything it wrote. (drills:smoke:cost covers the request caps.)
+//
+//   npm run drills:smoke:d2      (makes a few Haiku calls, about $0.02)
+import './smoke-log';
+import { checkSmokeEvents } from './smoke-events';
+import { printSmokeSpend } from './smoke-spend';
+import { randomUUID } from 'crypto';
+import { eq, inArray } from 'drizzle-orm';
+import { db } from '@/db/client';
+import { analyticsEvents, drillAttempts, drillSets, drillTiers, gradingJobs, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
+import { D2_DRILLS, modelAnswerSteps } from '@/lib/drills/model-answers';
+import { withDefend } from '@/lib/drills/defend';
+import { loadAuthoredItems } from '@/lib/drills/authored';
+import { enqueueGrading, runGradingJob } from '@/lib/drills/grading/jobs';
+import type { CallModel } from '@/lib/drills/grading/grader';
+import { completeSet, DrillError, fetchItem, setResults, startSet, submitAttempt, type StepReply } from '@/lib/drills/sets/service';
+import type { StepResponse } from '@/lib/drills/sets/scoring';
+
+const student = randomUUID();
+const failures: string[] = [];
+const check = (ok: boolean, what: string) => { if (!ok) failures.push(what); };
+const KEY_FIELDS = ['correct', 'tag', 'feedback', 'numeric', 'checks', 'red_flags', 'model_answer', 'explanation', 'extras', 'authorship', 'families', 'new_fact', 'ranges'];
+const keysDeep = (v: unknown, out = new Set<string>()): Set<string> => {
+  if (Array.isArray(v)) v.forEach(x => keysDeep(x, out));
+  else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) { out.add(k); keysDeep(x, out); }
+  return out;
+};
+
+const ANSWERS: Record<string, StepResponse[]> = {
+  'PS-3': [{ type: 'buckets', buckets: [
+    { title: 'Customer demand', points: ['How many members and non-members want at-home workouts', 'Willingness to pay per month'] },
+    { title: 'Economics', points: ['Content and app costs against subscription revenue', 'Subscribers needed to break even'] },
+    { title: 'Competition', points: ['Existing fitness apps and their prices'] },
+    { title: 'Effect on the gyms', points: ['Members who might cancel memberships for the cheaper plan'] },
+  ] }],
+  'HY-2': [
+    { type: 'text', value: 'Revenue per customer likely fell because customers are buying less per visit. I would check units and spend per customer by segment.' },
+    { type: 'choice', option_id: 'keep' },
+    { type: 'text', value: 'Units per customer fell 20% at flat prices, which supports it.' },
+  ],
+  'SY-2': [{ type: 'text', value: 'Open weekday mornings for school groups, starting with a pilot. Each park would host about 120 groups a year at $600, $72k against $40k of extra costs, and the parks are closed then anyway. The main risk is that schools pay museums only $450, so the next step is a 5-park pilot tracking bookings against the roughly 70 groups needed to break even.' }],
+  'CL-3': [{ type: 'text', value: "I'd split margin into price, mix, COGS and operating expenses. I'd start with COGS as a share of revenue by year for the last 3 years, since it is the biggest cost line, then check average price by product line and SG&A by year." }],
+  'QN-5': [
+    { type: 'choices', option_ids: ['1', '2', '3', '4'] },
+    { type: 'numbers', values: { 1: '130M', 2: '40%', 3: '4', 4: '60' } },
+    { type: 'numeric', value: '12.48B' },
+    { type: 'choice', option_id: 'reasonable' },
+  ],
+};
+
+// Each question is answered from its own key, so the run checks grading
+// rather than an answer written for a different question.
+const d2Items = loadAuthoredItems().filter(i => D2_DRILLS.includes(i.drill_id));
+// A set at tier 2 or 3 runs the Defend follow-up on items that have one, so
+// those items need the follow-up answered too (withDefend's model steps).
+function keyAnswers(drillId: string, prompt: string, withFollowup = false): StepResponse[] {
+  const item = d2Items.find(i => i.drill_id === drillId && i.prompt === prompt);
+  if (!item) return ANSWERS[drillId];
+  return modelAnswerSteps(withFollowup && item.defend ? withDefend(item) : item);
+}
+
+// Answers every item in the set (a live drill plans a full set; a draft-only
+// drill may have a single placeholder) and returns the last reply.
+async function answerSet(setId: string, drillId: string, key = 'k') {
+  let last;
+  for (let position = 0; ; position++) {
+    let fetched;
+    try {
+      fetched = await fetchItem(student, setId, position);
+    } catch (e) {
+      if (position > 0 && e instanceof DrillError) break;
+      throw e;
+    }
+    const leaked = KEY_FIELDS.filter(k => keysDeep(fetched.item).has(k));
+    check(leaked.length === 0, `${drillId}: item response leaks ${leaked.join(', ')}`);
+    const answers = keyAnswers(drillId, fetched.item.prompt, Boolean(fetched.item.input.steps?.some(st => st.defend)));
+    for (const [i, response] of answers.entries()) {
+      last = await submitAttempt(student, setId, { position, idempotency_key: `${key}-${drillId}-${position}-${i}`, step: i, response, skip: false, timed_out: false });
+      if (i < answers.length - 1) {
+        check(last.done === false, `${drillId}: step ${i} finished the item early`);
+        if (drillId === 'HY-2' && i === 0) check(Boolean((last as StepReply).step.reveal), 'HY-2: stage 1 did not reveal the new fact');
+      }
+    }
+  }
+  // Every item must be finished and saved, or later checks test an empty set.
+  const [set] = await db.select({ size: drillSets.size, position: drillSets.currentPosition }).from(drillSets).where(eq(drillSets.id, setId));
+  check(set.position === set.size, `${drillId}: only ${set.position} of ${set.size} items were finished`);
+  return last;
+}
+
+async function main() {
+  try {
+    for (const drillId of ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'QN-5']) {
+      const { set_id } = await startSet(student, { drill_id: drillId });
+      const final = await answerSet(set_id, drillId);
+      const aiGraded = drillId !== 'QN-5';
+      check(final?.done === true && Boolean(final.pending) === aiGraded, `${drillId}: final reply pending=${final && 'pending' in final ? final.pending : '?'}`);
+      const done = await completeSet(student, set_id);
+      // Outside a request the grading job runs inline, so the set is graded now.
+      const results = await setResults(student, set_id);
+      if (results.status !== 'completed') {
+        const jobs = await db.select().from(gradingJobs).where(eq(gradingJobs.setId, set_id));
+        failures.push(`${drillId}: set still ${results.status} after ${done.status}; grading jobs: ${JSON.stringify(jobs.map(j => ({ status: j.status, retries: j.retries, error: j.error })))}`);
+        continue;
+      }
+      const fb = results.items[0].feedback;
+      if (aiGraded) {
+        check(Boolean(fb.grading), `${drillId}: no graded checks on results`);
+        const evidenced = fb.grading?.checks.filter(c => c.pass && c.evidence).length ?? 0;
+        check(evidenced > 0, `${drillId}: no passing check carries quoted evidence`);
+      }
+      const missed = fb.grading?.checks.filter(c => !c.pass).map(c => c.check_id) ?? [];
+      console.log(`${drillId}: ${Math.round((results.score ?? 0) * 100)}%${missed.length ? ` (missed: ${missed.join(', ')})` : ''}${fb.grading ? `, ${fb.grading.checks.filter(c => c.pass).length}/${fb.grading.checks.length} checks passed` : ''}${fb.grading?.decision ? `, decision ${fb.grading.decision.right ? 'right' : 'wrong'}` : ''}`);
+      if (drillId === 'QN-5') check(results.score === 1, `QN-5: right answer scored ${results.score}`);
+    }
+
+    // A run that failed outright (outside the grading calls): the set waits,
+    // "delayed", and the results page's poll re-runs it (inline here).
+    const { set_id } = await startSet(student, { drill_id: 'SY-2' });
+    await answerSet(set_id, 'SY-2', 'retry');
+    const jobId = await enqueueGrading(set_id);
+    await db.update(gradingJobs).set({ status: 'failed', retries: 1, error: 'simulated crash', startedAt: new Date(Date.now() - 60_000) }).where(eq(gradingJobs.id, jobId));
+    await db.update(drillAttempts).set({ gradingStatus: 'delayed' }).where(eq(drillAttempts.setId, set_id));
+    const waiting = await setResults(student, set_id);
+    check(waiting.status === 'grading' && waiting.delayed, 'set not shown as grading delayed after a failed run');
+    check((await setResults(student, set_id)).status === 'completed', 'set not completed after the poll re-ran grading');
+    console.log('failure path: delayed, then graded when the results page polled');
+    const broken: CallModel = async () => { throw new Error('simulated outage'); };
+
+    // A grading run with nothing to grade fails loudly (grading/run-checks.ts).
+    const { set_id: unfinished } = await startSet(student, { drill_id: 'PS-3' });
+    const emptyJob = await enqueueGrading(unfinished);
+    check(await runGradingJob(emptyJob, broken) === 'failed', 'grading an unfinished set did not fail');
+    const [job] = await db.select().from(gradingJobs).where(eq(gradingJobs.id, emptyJob));
+    check(/unfinished set: 0 of \d+ items answered/.test(job.error ?? ''), `grading an unfinished set failed without saying why (${job.error})`);
+    console.log('empty grading run: failed, with the reason recorded');
+  } finally {
+    await printSmokeSpend([student]);
+    const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
+    const ids = sets.map(s => s.id);
+    if (ids.length) {
+      await db.delete(gradingJobs).where(inArray(gradingJobs.setId, ids));
+      await db.delete(drillAttempts).where(inArray(drillAttempts.setId, ids));
+      await db.delete(drillSets).where(inArray(drillSets.id, ids));
+    }
+    await db.delete(drillTiers).where(eq(drillTiers.studentId, student));
+    // Written by the progress engine when a set completes.
+    await db.delete(prescriptions).where(eq(prescriptions.studentId, student));
+    await db.delete(skillStateEvents).where(eq(skillStateEvents.studentId, student));
+    await db.delete(skillStates).where(eq(skillStates.studentId, student));
+    await db.delete(studentDrillSettings).where(eq(studentDrillSettings.studentId, student));
+    // Unawaited event writes (void logDrillEvent) land shortly after.
+    await new Promise(r => setTimeout(r, 1500));
+    await checkSmokeEvents([student], failures);
+    await db.delete(analyticsEvents).where(eq(analyticsEvents.userId, student));
+    console.log(`cleaned up test student ${student}`);
+  }
+  if (failures.length) {
+    console.error(`\n${failures.length} failure(s):\n- ${failures.join('\n- ')}`);
+    process.exit(1);
+  }
+  console.log('\nall checks passed');
+  process.exit(0);
+}
+
+main().catch(e => { console.error(e); process.exit(1); });

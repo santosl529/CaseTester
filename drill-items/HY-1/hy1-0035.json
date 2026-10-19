@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0035",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "market_sizing",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A client estimates the city's coffee shop market at $40M from industry data. Its three stores make $3M a year, and it believes it has 25% share because it owns 3 of the city's 12 coffee shops. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The $40M market estimate is likely inflated.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "The market figure comes from industry data. The 25% comes from counting stores, which ignores how much each store sells."
+    },
+    {
+      "id": "b",
+      "text": "Market size, share, store count and missing rivals may all be off here.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists every number as suspect without committing to one."
+    },
+    {
+      "id": "c",
+      "text": "The 25% likely counts outlets rather than sales; by sales it's 7.5%.",
+      "correct": true,
+      "feedback": "Right. $3M of $40M is 7.5%. Owning 3 of 12 shops says nothing about sales if rivals' shops are bigger. I'd compare sales per store with rivals."
+    },
+    {
+      "id": "d",
+      "text": "The client's stores probably earn more than $3M combined.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "The client knows its own sales: $3M."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows $3M of sales in a $40M market, which is 7.5%, not 25%. Likely cause: the 25% counts shops, not sales. To test it, compare sales per shop with rivals'. If rivals' shops sell about the same, recheck the $40M market figure instead.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

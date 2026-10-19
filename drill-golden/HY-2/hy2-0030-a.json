@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0030-a",
+  "item_id": "hy2-0030",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With attendance flat, longer waits likely mean less ride capacity, such as rides closed. I'd check each ride's operating hours this season."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Three of 12 major rides were closed most of the season, cutting capacity."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Fewer rides open"
+}

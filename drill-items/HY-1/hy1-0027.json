@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0027",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Consumer / CPG",
+  "prompt": "A children's clothing brand sells 70% of its products online. Online growth slowed from 30% to 5% a year, and new online customers fell by half, though ad spend was unchanged. Store sales grew 10%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The brand has probably cut back its online advertising.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Ad spend was unchanged."
+    },
+    {
+      "id": "b",
+      "text": "Existing online customers are likely buying less often than last year.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "The slowdown comes from new customers falling by half."
+    },
+    {
+      "id": "c",
+      "text": "The brand has probably run out of new parents to reach online.",
+      "correct": true,
+      "feedback": "Right. With ad spend flat, new customers halved, which suggests saturation. I'd compare new-customer growth and acquisition cost by channel over time."
+    },
+    {
+      "id": "d",
+      "text": "Online probably isn't working the way it used to.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "Too vague to test: it doesn't say what changed."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows new online customers halving with ad spend unchanged. Likely cause: the brand has reached most of the parents it can find online. To test it, track new customers and acquisition cost by channel over time. If only one channel dropped, the problem is that channel, not saturation.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

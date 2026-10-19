@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0034-d1",
+  "item_id": "hy2-0034",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Tests the hypothesis as it stands after the drop (console non-adoption).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Retention fell from 115% to 98% while new customers grew 40%, so existing customers likely cut budgets in a weaker economy. I'd compare spending changes by customer industry and size."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: customers who adopted the new console kept expanding. The fall is among the 70% who never adopted it."
+    },
+    {
+      "type": "text",
+      "value": "Spending change by customer, split by console adoption. If non-adopters' spending fell no more than adopters', I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

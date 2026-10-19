@@ -1,0 +1,74 @@
+{
+  "item_id": "sy1-0018",
+  "version": 3,
+  "drill_id": "SY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "competitive_response",
+  "industry": null,
+  "prompt": "The client asks: \"How should we respond to a new low-cost rival?\" Fact sheet: the rival prices 30% below us; it targets small customers, who are 20% of our revenue and 5% of our profit; our large customers rate our service 9 out of 10; the rival has no service team; the rival raised $50M from investors last year. Which is the best recommendation?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Cut prices 30% to match. Small customers are 20% of our revenue, too much to give away to a newcomer.",
+      "correct": false,
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the deciding fact: those customers are only 5% of profit, and a 30% cut would hit everyone."
+    },
+    {
+      "id": "b",
+      "text": "Don't cut prices across the board. The rival's small customers are only 5% of profit, and large ones rate us 9 of 10.",
+      "correct": true,
+      "feedback": "Right. It leads with the answer and backs it with where the profit is and why large customers stay."
+    },
+    {
+      "id": "c",
+      "text": "Cut prices for our large customers now. The rival raised $50M from investors last year and will go after them next.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "The rival's funding doesn't change whom it targets: small customers, who are 5% of our profit. Large customers rate our service 9 out of 10."
+    },
+    {
+      "id": "d",
+      "text": "We could match on price or lean harder on service. Both responses have merit as the rival grows.",
+      "correct": false,
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never commits."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Full answer: Don't cut prices across the board. The rival targets small customers, who are 20% of revenue but only 5% of profit, and our large customers rate our service 9 out of 10, which a rival with no service team can't match. The main risk is that the rival moves up to larger customers, so the next step is to watch churn among large accounts and prepare a lower-cost offer if it rises. What would change the answer: large accounts starting to leave.",
+  "extras": {
+    "answer_type": "recommendation",
+    "irrelevant_facts": [
+      "The rival raised $50M from investors last year."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

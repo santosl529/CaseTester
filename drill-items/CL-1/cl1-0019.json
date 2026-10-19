@@ -1,0 +1,66 @@
+{
+  "item_id": "cl1-0019",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "market_sizing",
+  "industry": "Consumer / CPG",
+  "prompt": "Objective: estimate the annual market for school uniforms in a country. What you've learned: there are 10 million school students. Latest finding: about 60% of students attend schools that require uniforms. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Check what share of the 10 million students go to private schools",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Not needed: the share of students who need uniforms is known."
+    },
+    {
+      "id": "b",
+      "text": "Estimate how many schools there are",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Counting schools adds nothing once students are counted."
+    },
+    {
+      "id": "c",
+      "text": "Estimate uniforms per student per year and their price",
+      "correct": true,
+      "feedback": "Right. Students needing uniforms are known; units per student and price complete the estimate."
+    },
+    {
+      "id": "d",
+      "text": "Compare uniform prices across regions",
+      "correct": false,
+      "tag": "M.low_priority_next_step",
+      "feedback": "A national average price is enough for this estimate."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "6 million students need uniforms. Units per student per year and price complete the estimate.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

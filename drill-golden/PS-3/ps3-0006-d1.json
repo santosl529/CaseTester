@@ -1,0 +1,62 @@
+{
+  "answer_id": "ps3-0006-d1",
+  "item_id": "ps3-0006",
+  "drill_id": "PS-3",
+  "answer_type": "short",
+  "notes": "Picks a bucket of its own framework, with no reason.",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "The cheese maker alone",
+          "points": [
+            "sales growth",
+            "margins",
+            "customer concentration"
+          ]
+        },
+        {
+          "title": "Fit with the co-op",
+          "points": [
+            "using surplus milk",
+            "savings on milk now sold at a loss"
+          ]
+        },
+        {
+          "title": "Price vs value",
+          "points": [
+            "cash flows plus synergies against $90M"
+          ]
+        },
+        {
+          "title": "Risks",
+          "points": [
+            "integrating plants",
+            "key staff",
+            "cheese price swings"
+          ]
+        },
+        {
+          "title": "Farmer-owners",
+          "points": [
+            "funding the deal",
+            "whether members support it"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "The first one."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

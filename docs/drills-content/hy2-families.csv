@@ -1,0 +1,126 @@
+item_id,family,description,correct_action_after_new_fact,reason
+hy2-0001,Longer repairs,Each repair takes more mechanic time,keep,Repairs take 65 minutes instead of 50 at the same pay
+hy2-0001,Higher parts costs,Parts cost more per repair,drop,Parts cost per repair is flat
+hy2-0001,Higher mechanic pay,Mechanics are paid more per hour,drop,Pay per hour is unchanged
+hy2-0002,Customers don't like it,Shoppers try it once and don't buy again,drop,Repeat buying matched other flavors where it was in stock
+hy2-0002,Stock-outs,Stores run out and don't restock,keep,40% of stores ran out and weren't restocked for a month
+hy2-0002,Price too high,The flavor is priced above what shoppers will pay again,drop,Shoppers who could find it rebought at the usual rate
+hy2-0002,Weak awareness,Too few shoppers know the flavor exists,revise,"Awareness may limit trial, but the monthly fall tracks the stock-outs"
+hy2-0003,More customers,Higher volume overwhelms the counter,revise,Rentals rose only 3%; the bigger change is time per customer
+hy2-0003,Fewer staff,Fewer agents are at the counter,drop,Staff numbers are unchanged
+hy2-0003,Slower service per customer,Each customer takes longer to serve,keep,Serving each customer now takes 9 minutes instead of 4
+hy2-0004,Price drove visitors away,The higher price cut visits more than it raised revenue per visit,revise,Hot-weekend visits rose at the new price; the losses are on rainy days
+hy2-0004,Bad weather,More rainy days cut visits,keep,"Twice as many rainy days, with visits on them down 40%"
+hy2-0004,New competitor,A rival attraction drew visitors away,drop,"Visits on the best days rose, which a rival would have hit first"
+hy2-0005,Weak student demand,Not enough students want lessons,revise,"Failed searches rose, so demand is there but unmet"
+hy2-0005,Timing mismatch,Tutors aren't free when students want lessons,keep,Failed searches are mostly for evenings; new tutors offer daytime
+hy2-0005,New tutors are weaker,Students avoid the new tutors on quality,revise,"Quality may matter, but failed searches point to timing"
+hy2-0006,More material per pack,Waste or scrap means more material per pack,keep,Waste rose from 2% to 9% of material used
+hy2-0006,Costlier pack formats,Sales shifted to packs that use more material,drop,The pack-size mix was unchanged
+hy2-0006,Supplier surcharges,The new supplier charges more than the price index,revise,"Prices rose only 3%; the new supplier matters through waste, not price"
+hy2-0007,Poor service,Unhappy customers stop coming back,drop|revise,Warranty visits held; the losses are in routine work where price matters
+hy2-0007,Cheaper rivals for routine work,Owners take oil changes and tires elsewhere,keep,Routine visits fell 35% after rivals 30% cheaper opened
+hy2-0007,Fewer cars to service,Fewer cars on the road need service,drop,Car sales held and warranty visits were flat
+hy2-0008,Members losing interest,Members use the centers less because they want to,drop,Daytime and weekend visits held steady
+hy2-0008,Shorter opening hours,Cut hours stop members from coming,keep,Evening visits fell 50% after evening hours were cut
+hy2-0008,Worn-out facilities,Old equipment and rooms put members off,revise,"Possible, but the drop is all in the cut evening hours"
+hy2-0009,Lower ticket prices,Discounts or cheaper shows lower ticket revenue,drop,The average ticket price is unchanged
+hy2-0009,Less spending per guest,Guests spend less on food and drink,keep,Spending per guest fell 30% after app-only ordering
+hy2-0009,Fewer premium tickets,More guests buy cheaper seats,drop,The average ticket price is unchanged
+hy2-0010,Machine breakdowns,Presses are down more often,drop,Press uptime is normal
+hy2-0010,Staff shortages,Too few staff to finish jobs on time,drop,Staffing is normal
+hy2-0010,Slow customer approvals,Jobs wait for customers to approve proofs,keep,Jobs wait two days for approval since the portal
+hy2-0010,"Bigger, harder jobs",Jobs take longer to produce,revise,"Possible, but the delay is in approvals, not production"
+hy2-0011,Local taste mismatch,The restaurants on the app don't suit local tastes,drop,Fast-delivery users reordered at home rates
+hy2-0011,Slow delivery,Long waits put users off,keep,"Delivery averages 55 minutes, and fast-delivery users reorder normally"
+hy2-0011,Prices too high,Fees and prices discourage a second order,drop,Users who got fast delivery paid the same and reordered
+hy2-0012,Shrinking snack category,The category itself is declining,drop,Sales held in stores with the brand's own team
+hy2-0012,Lost sales focus,The buyer's sales force neglects the brand,keep,Sales fell 20% where the buyer's team took over
+hy2-0012,Price rise after the deal,The buyer raised prices,drop,Prices are unchanged
+hy2-0013,Weaker selling,Staff close fewer sales,revise,"Sales rates fell mainly for online bookings, not across the board"
+hy2-0013,Less serious shoppers,Easy free booking brings in browsers,keep,The drop is concentrated in free online bookings
+hy2-0013,Discounting,Lower prices cut revenue,drop,The average dress price is unchanged
+hy2-0013,Online competitors,Shoppers buy online after trying on,revise,"Possible, but the drop tracks the booking channel"
+hy2-0014,More calls,Higher demand stretches the fleet,revise,Calls rose only 4%; the bigger change is time per call
+hy2-0014,Slower driving,Traffic makes trips longer,drop,Driving times are unchanged
+hy2-0014,Hospital handover delays,Ambulances wait at hospitals,keep,Handover waits rose from 15 to 40 minutes
+hy2-0014,Slow dispatch,Calls take longer to dispatch,drop,Call-to-dispatch time is unchanged
+hy2-0015,Hourly parkers left because of the price,Short-stay parkers are sensitive to the higher rate,keep|revise,They left as cheaper meters opened next door
+hy2-0015,Cheaper option next door,New city meters draw short-stay parkers,keep,Hourly parkers fell 30% as the meters opened
+hy2-0015,Less downtown traffic,Fewer people come downtown,drop,Daily and monthly revenue rose 18%
+hy2-0016,Discounting,Lower prices per lesson,drop,Prices are unchanged
+hy2-0016,Shift to cheaper lessons,More students take group lessons,keep,Group share rose from 40% to 75%
+hy2-0016,Fewer lessons per student,Students attend less often,drop,Attendance per student is unchanged
+hy2-0017,Poor service,False alarms or slow response drive customers away,revise,"Customers cite the cheaper alternative, not service"
+hy2-0017,Cheaper do-it-yourself systems,Low-cost DIY cameras replace monitored alarms,keep,60% switched to a $10 DIY system
+hy2-0017,People moving house,Customers cancel when they move,revise,"Possible, but most say they switched to DIY"
+hy2-0018,Weaker preparation,New students are less ready for college work,revise,"The rise is among program students, but the fact points to work hours"
+hy2-0018,Work and money pressure,Students working long hours drop out,keep,"Program students work 25 hours a week, and only they drop out more"
+hy2-0018,Worse teaching,Bigger classes or weaker teaching,drop,Dropout was flat for everyone else
+hy2-0019,Buyers don't refill,Customers prefer to buy a new lipstick,drop,"Where refills are stocked, sales match plan"
+hy2-0019,Refills hard to find,Most stores don't stock refills,keep,Only 20% of stores stock them
+hy2-0019,Refills priced too high,Refills cost too close to a new lipstick,drop,"Refills sell on plan where stocked, at the same price"
+hy2-0020,Slower crews,Crews fix fewer potholes per day,drop,Crews fix as many per day as last year
+hy2-0020,More reports,The app brings in far more reports,keep,Reports doubled after the app launched
+hy2-0020,Worse roads,A harsh winter created more potholes,revise,"Reports doubled with the app, so more reporting, not just more potholes"
+hy2-0021,More hours per building,Crews spend longer cleaning each building,drop,Hours inside each building are unchanged
+hy2-0021,More travel time,Crews spend more time between buildings,keep,Travel time doubled with the wider area
+hy2-0021,Higher supply costs,Cleaning supplies cost more,revise,"Possible, but the fact shows the change is in travel time"
+hy2-0022,Price too high,"Most households won't pay $3,000",drop,"30% of quotes turned into sales, above plan"
+hy2-0022,Market overestimated,Fewer homes can fit a sauna than assumed,keep,Most target homes have no room for one
+hy2-0022,Weak marketing,Too few people hear about it,revise,"Possible, but most homes on the list can't fit one"
+hy2-0023,Weaker productions,Less popular shows put audiences off,revise,Subscribers renewed as usual; the drop followed the schedule change
+hy2-0023,Weekday schedule,Weekday evenings are harder for audiences,keep,Single-ticket sales fell 50% after the move to weekdays
+hy2-0023,Higher prices,Ticket price rises,drop,Ticket prices are unchanged
+hy2-0024,LEDs underperform,The new lights save less than promised,drop,Lighting use fell 55% as planned
+hy2-0024,Wrong assumption about lighting's share,The plan overstated how much power lighting uses,keep,"Lighting is 20% of use, not the 55% assumed"
+hy2-0024,More power used elsewhere,New equipment raised other use,revise,"Possible, but the gap is explained by the lighting share"
+hy2-0025,Fewer people playing,Interest in piano is falling,drop,Children taking lessons is flat
+hy2-0025,Shift to digital pianos,Players buy digital instead of acoustic,keep,Digital sales doubled; 70% of beginners start on one
+hy2-0025,Used pianos,Buyers choose second-hand pianos,revise,"Possible, but the fact shows the shift is to digital"
+hy2-0026,Higher staff costs,Teacher and staff pay rose,drop,"Staff costs rose 3%, in line with plan"
+hy2-0026,More financial aid,Aid cuts the tuition actually collected,keep,Students on aid rose from 20% to 35%
+hy2-0026,Higher building costs,Maintenance and utilities rose,drop,"Building costs rose 3%, in line with plan"
+hy2-0027,Brand losing appeal,Shoppers prefer other brands,drop,Sales grew 9% in its long-time stores
+hy2-0027,Lost distribution,It lost shelf space at a retailer,keep,A 150-store chain dropped it
+hy2-0027,Price gap,Its price is too high against rivals,revise,"Possible, but core stores grew with the category"
+hy2-0028,Unhappy with the buyer,Clients dislike the buyer's prices or service,drop|revise,Clients whose broker stayed renewed at 92%
+hy2-0028,Brokers leaving,Departing brokers take their clients,keep,"12 of 30 brokers left, and their clients followed"
+hy2-0028,Market-wide churn,Clients switch more across the industry,drop,Clients with a remaining broker renewed at 92%
+hy2-0029,Fewer inspectors,Vacancies cut capacity,drop,Headcount is unchanged
+hy2-0029,More travel time,Inspectors spend more time driving,keep,Driving takes 30% of their days since offices closed
+hy2-0029,Longer inspections,Each inspection takes more time,drop,Time per inspection is unchanged
+hy2-0030,More visitors,Bigger crowds,drop,Attendance was flat
+hy2-0030,Fewer rides open,Closed rides cut capacity,keep,Three of 12 major rides were closed most of the season
+hy2-0030,Slower ride operations,Rides load fewer riders per hour,drop,Open rides ran at normal capacity
+hy2-0031,Disappointing reviews,Reviews of range or quality put buyers off,revise,"Cancellations track the wait, not the reviews"
+hy2-0031,Long delivery waits,Buyers give up after long waits,keep,Waits stretched to 9 months; quick deliveries canceled at 3%
+hy2-0031,Price too high,Buyers balk at the price,drop,Buyers who got trucks quickly almost never canceled
+hy2-0032,Lower prices elsewhere,Rivals undercut the wholesaler,drop,Prices are within 2%
+hy2-0032,Faster delivery elsewhere,Customers want next-day delivery,keep,The marketplace delivers next day against 3 days
+hy2-0032,Poor account service,Account managers neglect customers,revise,"Possible, but customers moved for speed"
+hy2-0033,Lower payments per test,Insurers pay less for each test,drop,Revenue per test is unchanged
+hy2-0033,Higher cost per test,Each test costs more to run,keep,Cost per test rose 15% from outside labs
+hy2-0033,Mix shift to cheaper tests,More low-priced tests,drop,Revenue per test is unchanged
+hy2-0034,Weaker economy,Customers cut budgets,drop,Customers on the new console kept expanding
+hy2-0034,Console change,The new admin console put customers off,keep,Spending fell among the 70% who never adopted it
+hy2-0034,Rivals winning accounts,Competitors take existing customers,revise,"Possible, but spending follows console adoption"
+hy2-0035,More ships,Higher traffic,revise,Arrivals rose only 5%; the yard is the constraint
+hy2-0035,Slower cranes,Unloading takes longer,drop,Cranes work at normal speed
+hy2-0035,Full yard,"Containers aren't picked up, so ships can't unload",keep,Containers sit 9 days instead of 4
+hy2-0036,No alternatives,Commuters can't switch modes or times,revise,"Self-paying drivers cut trips 15%, so many can adjust"
+hy2-0036,Employers pay the toll,Drivers don't feel the higher price,keep,Most peak drivers' tolls are paid by employers
+hy2-0036,Toll too small,The increase is too small to matter,drop,Self-paying drivers cut trips 15%
+hy2-0037,Prices too high,US shoppers find it expensive,drop,Prices match local bakeries
+hy2-0037,Low awareness,Most shoppers don't know what it sells,keep,Most shoppers outside Asian-American neighborhoods didn't know what it sells
+hy2-0037,Wrong locations,Cafés are in poor spots,revise,"Location matters, but through who knows the brand"
+hy2-0037,Product doesn't suit US tastes,Shoppers don't like the products,revise,Those who know the cafés buy at plan
+hy2-0038,Lost interest in road trips,Fewer people want to travel this way,drop,Campground bookings are flat
+hy2-0038,Flood of used motor homes,Boom buyers selling cut demand for new ones,keep,Used listings tripled and used prices fell 25%
+hy2-0038,Higher loan rates,Financing costs put buyers off,revise,"Possible, but cheap used supply explains the fall"
+hy2-0039,Train breakdowns,Aging trains fail more,drop,Delays from train faults are unchanged
+hy2-0039,Track condition,Worn track forces slower running,keep,70% of new delay minutes come from track speed limits
+hy2-0039,Staff shortages,Missing crews delay or cancel trains,revise,"Possible, but most new delay is track speed limits"
+hy2-0040,Weak demand,Fewer families want places,drop,"Demand matches plan, with waitlists"
+hy2-0040,Teacher shortages,Too few teachers cap enrollment,keep,15 centers run at 60% of capacity for lack of teachers
+hy2-0040,Higher costs at acquired centers,Bought centers cost more to run,revise,"The fact shows lost capacity, not higher costs"

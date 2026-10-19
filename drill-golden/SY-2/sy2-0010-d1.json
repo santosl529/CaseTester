@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0010-d1",
+  "item_id": "sy2-0010",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Right call; uses the numbers and says what changes.",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Buy the rival for $12M. Its $1.5M of yearly profit plus about $700,000 a year from combining routes in the same suburbs pays back the price in about 5.5 years, inside our 7-year limit. The main risk is that 30% of its revenue comes from one property manager whose contract renews next year. The next step is to talk to that client before signing and tie part of the price to the renewal."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. At $900,000 of normal profit plus $700,000 of savings, payback is 7.5 years, past our 7-year limit, so I'd offer about $11.2M."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

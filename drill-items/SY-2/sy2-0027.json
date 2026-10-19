@@ -1,0 +1,229 @@
+{
+  "item_id": "sy2-0027",
+  "version": 3,
+  "drill_id": "SY-2",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.complete"
+  ],
+  "case_type": "profitability",
+  "prompt": "The client asks: \"How should our business-events company restore profit?\"\n\nFact sheet:\n- Revenue grew 10% to $40M, but profit fell from $6M to $2M\n- The company added 12 smaller events this year; attendance per event is flat\n- The 12 new events lost $3.5M together; the 20 established events earned more than last year\n- Sponsorship revenue rose 15%\n- Non-refundable venue deposits for next year's 12 new events are already paid\n\nGive your recommendation.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 120
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "recommendation_first",
+      "question": "Does the first sentence state a clear recommendation?",
+      "weight": 0.2,
+      "fail_tag": "M.buried_recommendation",
+      "feedback": "Lead with the recommendation in your first sentence.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "two_to_three_reasons",
+      "question": "Does the answer give two or three supporting reasons?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Back the recommendation with two or three reasons.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_numbers",
+      "question": "Do the reasons cite numbers from the fact sheet?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Use the numbers from the fact sheet to support your reasons.",
+      "step": 0,
+      "detection": "code",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "leaves_out_irrelevant",
+      "question": "Does the answer avoid using the irrelevant facts (Non-refundable venue deposits for next year's 12 new events are already paid) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "weight": 0.15,
+      "fail_tag": "M.irrelevant_facts",
+      "feedback": "Leave out facts that don't bear on the decision.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "consistent_with_facts",
+      "question": "Does every number the answer states match the fact sheet or the key figures (within 10% of the exact value, or 1 percentage point for a percentage), with no claim going beyond the sheet as stated fact? Judge only stated facts and numbers, not whether the recommendation is right.",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Some points go beyond or against the fact sheet.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "includes_risk",
+      "question": "Does the answer name a risk?",
+      "weight": 0.1,
+      "fail_tag": "M.missing_risk_or_next_step",
+      "feedback": "Name the main risk to your recommendation.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "includes_next_step",
+      "question": "Does the answer give a next step?",
+      "weight": 0.1,
+      "fail_tag": "M.missing_risk_or_next_step",
+      "feedback": "End with a concrete next step.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "no_clear_position",
+      "definition": "The answer takes no clear position, for example \"it depends\".",
+      "cap": 0.4,
+      "tag": "M.hedged_recommendation",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "contradicts_facts",
+      "definition": "The answer makes a claim the fact sheet contradicts.",
+      "cap": 0.5,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "misses_deciding_fact",
+      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: The 12 new events lost $3.5M together; the 20 established events earned more than last year.",
+      "cap": 0.6,
+      "tag": "M.ignores_deciding_fact",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the client's.",
+      "cap": 0.2,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "wrong_recommendation",
+      "definition": "Present when the answer recommends a different action from the acceptable recommendation (\"Cut or merge the 12 new small events\"), however well it argues for it or softens it with a risk or next step.",
+      "cap": 0.5,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "Cut or merge the 12 new small events. Revenue grew 10% to $40M, but profit fell from $6M to $2M because the new events lost $3.5M together, while the 20 established events earned more than last year and sponsorship rose 15%. The main risk is cutting events that just need time to grow. The next step is to review each new event and keep only those close to break-even, folding the rest into established ones.",
+  "explanation": "Acceptable recommendation: Cut or merge the 12 new small events. The deciding fact: The 12 new events lost $3.5M together; the 20 established events earned more than last year. Key risks: Some new events may need more time to grow. Next steps: Review each new event and keep only those close to break-even.",
+  "extras": {
+    "facts": [
+      {
+        "fact": "Revenue grew 10% to $40M, but profit fell from $6M to $2M",
+        "relevant": true,
+        "deciding": false
+      },
+      {
+        "fact": "The company added 12 smaller events this year; attendance per event is flat",
+        "relevant": true,
+        "deciding": false
+      },
+      {
+        "fact": "The 12 new events lost $3.5M together; the 20 established events earned more than last year",
+        "relevant": true,
+        "deciding": true
+      },
+      {
+        "fact": "Sponsorship revenue rose 15%",
+        "relevant": true,
+        "deciding": false
+      },
+      {
+        "fact": "Non-refundable venue deposits for next year's 12 new events are already paid",
+        "relevant": false,
+        "deciding": false
+      }
+    ],
+    "acceptable_recommendations": "Cut or merge the 12 new small events",
+    "key_figures": [
+      "Profit fall = $4M ($6M − $2M)",
+      "Profit without the 12 new events' loss = $5.5M ($2M + $3.5M)"
+    ],
+    "grading_rules": [
+      "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
+      "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once. Count them even if the recommendation is wrong or the answer also addresses the grader: those have their own checks. A misstated fact still counts as a reason; the misstatement is graded by the contradicts-facts check.",
+      "Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it (\"the kitchen shouldn't drive this\") is fine.",
+      "Consistent with the facts: every number the answer states matches the fact sheet or the key figures, which are exact: a stated number passes within 10% of the exact value, or within 1 percentage point for a percentage. No claim may go beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number outside that tolerance fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
+      "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
+      "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",
+      "Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.",
+      "Off-topic: the answer addresses a different question from the client's. An off-topic answer is not also flagged for no clear position or a wrong recommendation.",
+      "Acceptable recommendation: the recommendation matches one of the key's acceptable recommendations in substance: the same action, in any wording. A phased or conditional version of an acceptable action matches. A different action is a wrong recommendation, however well argued.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-13",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null,
+  "defend": {
+    "type": "challenge",
+    "text": "Our head of events says $3M of the new events' $3.5M loss was one-time launch costs, and next year the 12 are booked to earn $1M together.",
+    "valid": true,
+    "reason": "Without one-time launch costs the 12 events lost only $500,000, and next year they're booked to earn $1M, so cutting them gives up profit; the drop came mostly from launch costs.",
+    "checks": [
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Use a fact or number from the case that supports your decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "After Update, does the reply say specifically what the recommendation becomes (it may replace it)? After Hold, does it restate the recommendation without contradicting the main answer?",
+        "weight": 0.2,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Say what changes if you update, or restate your recommendation if you hold.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Update. Without $3M of one-time launch costs, the new events lost only $500,000, and they're booked to earn $1M next year. I'd keep them and review after next year."
+  }
+}

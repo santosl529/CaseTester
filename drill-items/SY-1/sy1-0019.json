@@ -1,0 +1,74 @@
+{
+  "item_id": "sy1-0019",
+  "version": 3,
+  "drill_id": "SY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
+  "prompt": "The client asks: \"Should we launch the premium dog food line nationally?\" Fact sheet: the premium segment is worth $800M and growing 12% a year; the line reached 1% share in a test market; break-even requires a 2% share; the national launch costs $10M; a well-known veterinary nutritionist developed the line. Which is the best recommendation?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Launch nationally. The premium segment is $800M and growing 12% a year, so even 1% is $8M of sales.",
+      "correct": false,
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the deciding fact: break-even needs 2% share, and the test reached only 1%."
+    },
+    {
+      "id": "b",
+      "text": "Launch nationally. A well-known veterinary nutritionist developed the line, which will win buyers over.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "Who developed it didn't lift the test share above 1%, and break-even needs 2%."
+    },
+    {
+      "id": "c",
+      "text": "Hold off on the national launch. Break-even needs a 2% share, and the test market reached only 1%.",
+      "correct": true,
+      "feedback": "Right. It leads with the answer and backs it with the share gap."
+    },
+    {
+      "id": "d",
+      "text": "The test reached 1% share against the 2% needed to break even, even with the segment growing 12%. A national launch should wait.",
+      "correct": false,
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Full answer: Don't launch nationally yet. Break-even needs a 2% share, but the test market reached only 1%, even in an $800M segment growing 12% a year. The main risk is that a competitor takes the premium space while we wait, so the next step is to find out why the test underperformed and rerun it with changes. What would change the answer: a rerun test reaching 2% share.",
+  "extras": {
+    "answer_type": "recommendation",
+    "irrelevant_facts": [
+      "A well-known veterinary nutritionist developed the line."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

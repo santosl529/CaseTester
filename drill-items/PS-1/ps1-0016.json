@@ -1,0 +1,70 @@
+{
+  "item_id": "ps1-0016",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
+  "prompt": "A toothpaste maker is deciding whether to launch a subscription for refillable toothpaste tablets. The candidate's framework: (1) Consumer demand for refillable tablets; (2) Pricing compared with regular toothpaste; (3) Competitors already selling tablets. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 3 overlap: rival tablet sales show the demand",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Rival sales are one clue to demand, but how much consumers want tablets and who already sells them are separate questions."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 2 doesn't belong: subscribers care about convenience, not price",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Tablets compete with cheap regular toothpaste, so price compared with it is central to demand."
+    },
+    {
+      "id": "c",
+      "text": "It's a generic launch checklist that would fit any new toothpaste",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets are specific to refillable tablets sold against regular toothpaste. The flaw is that nobody checks whether the subscription makes money."
+    },
+    {
+      "id": "d",
+      "text": "Missing: what it costs to make, ship and win each subscriber",
+      "correct": true,
+      "feedback": "Right. Nothing covers production, packaging, shipping and customer acquisition costs, which decide whether a subscription pays."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Demand, pricing and competition are covered, but nothing tells us whether the subscription makes money after fulfillment and acquisition costs.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Demand; pricing; competition; economics (production, fulfillment, acquisition, churn)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

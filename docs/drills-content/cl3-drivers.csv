@@ -1,0 +1,160 @@
+item_id,driver,what_counts,critical
+cl3-0001,Ingredient cost per cup,"Yogurt, toppings and cups per cup sold",Y
+cl3-0001,Labor,Staff hours or wages,N
+cl3-0001,Rent and utilities,"Store rent, power and other occupancy costs",N
+cl3-0001,Price and mix,"Average spend per visit, discounts or cup sizes",N
+cl3-0002,Time from order to dispatch,Days from order to leaving the warehouse,Y
+cl3-0002,Carrier transit time,"Days the carrier takes, by region or carrier",N
+cl3-0002,Stock-outs,Orders waiting for out-of-stock items,N
+cl3-0002,Order volume,Orders per day against warehouse capacity,N
+cl3-0003,UK market size,Size and growth of UK frozen Mexican food,Y
+cl3-0003,Competitors,Brands already selling and their shares,N
+cl3-0003,Retail access,"Supermarket listings, fees or shelf space",N
+cl3-0003,Unit economics,Price and margin after import and distribution,N
+cl3-0004,Maintenance and repairs,Repair and service costs per car,Y
+cl3-0004,Fuel,Fuel cost per mile or per car,N
+cl3-0004,Insurance,Insurance or accident costs,N
+cl3-0004,Miles driven,Miles per car per year,N
+cl3-0005,Demand by day of the week,"Bookings, lead times or turned-away inquiries by day",Y
+cl3-0005,Competitor prices,Prices at comparable venues,N
+cl3-0005,Cost per event,"Staff, food or other costs per wedding",N
+cl3-0005,Couples' budgets,What couples spend or value,N
+cl3-0006,New customers,Traffic or conversion of first-time buyers,Y
+cl3-0006,Repeat purchases,How often customers come back,N
+cl3-0006,Order value,Spend per order,N
+cl3-0006,New products,New categories or ranges,N
+cl3-0007,Time in each review step,Weeks spent at each stage of review,Y
+cl3-0007,Correction rounds,Applications sent back for fixes,N
+cl3-0007,Application volume,Applications received per month,N
+cl3-0007,Reviewer capacity,Reviewers or reviews per reviewer,N
+cl3-0008,Where the lost sales are,Lost sales by product or price band,Y
+cl3-0008,Price gap,"Our prices against online brands, by product",N
+cl3-0008,Traffic and conversion,Store visits or the share that buy,N
+cl3-0008,In-store advantages,"Trying before buying, delivery or setup",N
+cl3-0009,Distribution,Number of stores carrying it,Y
+cl3-0009,Trial,Share of shoppers who buy it once,N
+cl3-0009,Repeat buying,Share who buy it again,N
+cl3-0009,Cannibalization,Sales taken from the regular version,N
+cl3-0010,Target's standalone profit,The rival's own profit or cash flow,Y
+cl3-0010,Route synergies,Savings from combining routes or depots,N
+cl3-0010,Customer contracts,"Contract length, renewals or concentration",N
+cl3-0010,Price against value,Whether $40M is justified,N
+cl3-0011,Time per student at each station,Serving or checkout time per student,Y
+cl3-0011,Arrival pattern,Students arriving at once or the lunch schedule,Y
+cl3-0011,Staff on the line,Servers or cashiers working,N
+cl3-0011,Payment,How students pay and how long it takes,N
+cl3-0012,Labor savings,Milking hours or wages saved,Y
+cl3-0012,Milk yield,Change in milk per cow,N
+cl3-0012,Full cost,"Purchase, maintenance or financing",N
+cl3-0012,Herd capacity,Cows the robot can milk,N
+cl3-0013,Ad prices,Price per ad or per viewer,Y
+cl3-0013,Ad slots sold,Share of ad time sold,N
+cl3-0013,Carrier fees,Fees from cable or streaming services,N
+cl3-0013,Programming costs,Cost of shows and news,N
+cl3-0014,Account losses,Accounts lost or why they leave,Y
+cl3-0014,New accounts,Accounts won per year,N
+cl3-0014,Revenue per account,Items or services per account,N
+cl3-0014,New services,Products beyond uniform rental,N
+cl3-0015,How visitors respond to price,Attendance changes after price changes,Y
+cl3-0015,Member mix,Members against day-ticket visitors,N
+cl3-0015,Spending per visit,"Food, gifts or rides per visitor",N
+cl3-0015,Alternatives,Prices at nearby attractions,N
+cl3-0016,Box size,Box sizes used or how full they are,Y
+cl3-0016,Carrier rates,Rates per package by carrier,N
+cl3-0016,Shipping speed,Share of express against standard,N
+cl3-0016,Split orders,Orders sent in more than one box,N
+cl3-0017,Repeat visits,Jobs needing a second visit,Y
+cl3-0017,Travel time,Time driving between jobs,Y
+cl3-0017,Time per repair,Hours spent on each repair,N
+cl3-0017,Scheduling gaps,Cancellations or empty slots,N
+cl3-0018,Mexican demand,"Scooter sales, buyers or growth in Mexico",Y
+cl3-0018,Competitors,Rival brands and prices,N
+cl3-0018,Dealers,Dealers or channels to sell through,N
+cl3-0018,Duties and rules,"Import duties, safety or licensing rules",N
+cl3-0019,Which deposits left,Lost deposits by segment or balance,Y
+cl3-0019,Rate gap,Our rates against the online bank's,N
+cl3-0019,Customer relationships,Loans or other products customers hold,N
+cl3-0019,Cost of matching,Interest cost of paying more,N
+cl3-0020,Why buyers don't come back,Satisfaction or reasons for not rebuying,Y
+cl3-0020,Price,Price against rival brands,N
+cl3-0020,Placement,Where it's sold or displayed,N
+cl3-0020,Pack sizes,Can or pack options,N
+cl3-0021,Operating capacity,"Operations per week, surgeons or theaters",Y
+cl3-0021,Referrals,Patients added to the list,N
+cl3-0021,Beds,Beds or discharge delays,N
+cl3-0021,Cancellations,Operations canceled,N
+cl3-0022,Enrollment trends,Students by school or grade over time,Y
+cl3-0022,Tuition and discounts,Fees charged or discounts given,N
+cl3-0022,Costs,"Teacher, building or other costs",N
+cl3-0022,Price against value,Whether $120M is justified,N
+cl3-0023,Results by restaurant,Profit or loss by location,Y
+cl3-0023,Traffic,Guests per restaurant,N
+cl3-0023,Average check,Spend per guest,N
+cl3-0023,Food and labor costs,Food or staff cost as a share of sales,N
+cl3-0024,Demand,Pet deaths or the share cremated,Y
+cl3-0024,Fragmentation,Number and size of competitors,N
+cl3-0024,Prices and margins,Price per cremation or margins,N
+cl3-0024,Vet referrals,How business comes through vets,N
+cl3-0025,Price gain from selling later,Price difference between harvest and later months,Y
+cl3-0025,Drying savings,Cost now paid to dry grain elsewhere,N
+cl3-0025,Facility costs,Building or running costs,N
+cl3-0025,Crop volume,Bushels harvested per year,N
+cl3-0026,Customer acquisition cost,Marketing spend per new student,Y
+cl3-0026,Content production,Cost of making courses,N
+cl3-0026,Instructor payouts,Share of revenue paid to instructors,N
+cl3-0026,Platform costs,Hosting or software costs,N
+cl3-0027,Handoffs between teams,Tickets passed on or waiting in queues,Y
+cl3-0027,Ticket volume,Tickets opened per week,N
+cl3-0027,Staff capacity,Staff or tickets per person,N
+cl3-0027,Ticket mix,Types of tickets,N
+cl3-0028,Airlines and routes,"Routes, airlines or seats offered",Y
+cl3-0028,Leakage,Local travelers using another airport,N
+cl3-0028,Fees and incentives,Landing fees or deals for airlines,N
+cl3-0028,Ground access,"Road, parking or rail links",N
+cl3-0029,Outage causes,Outage minutes by cause,Y
+cl3-0029,Equipment age,"Age of lines, transformers or substations",N
+cl3-0029,Maintenance spending,Money spent maintaining the grid,N
+cl3-0029,Peak demand,Demand peaks against capacity,N
+cl3-0030,Platform's profit per car,Gross profit or costs per car sold,Y
+cl3-0030,Growth,Traffic or cars sold over time,N
+cl3-0030,Synergies,"Shared inventory, financing or reconditioning",N
+cl3-0030,Price against value,Whether the price is justified,N
+cl3-0031,Freight rates,Price per container,Y
+cl3-0031,Volume,Containers carried,N
+cl3-0031,Fuel costs,Fuel cost per voyage or container,N
+cl3-0031,Ship costs,Charter or ownership costs,N
+cl3-0032,Demand from wireless carriers,Carrier leasing or network spending,Y
+cl3-0032,Lease terms,Lease length or price increases,N
+cl3-0032,Competition,Tower owners and consolidation,N
+cl3-0032,Technology risk,Satellites or other replacements,N
+cl3-0033,Share of EV buyers who install a charger,"Buyers who install, by housing type",Y
+cl3-0033,EV sales,Electric cars sold per year,N
+cl3-0033,Replacements,Chargers replaced or upgraded,N
+cl3-0034,Cost of other water sources,"Cost of conservation, reuse or imports",Y
+cl3-0034,Demand growth,Water demand forecasts,Y
+cl3-0034,Plant cost,Plant cost per cubic meter,N
+cl3-0034,Energy prices,Power costs to run the plant,N
+cl3-0035,Revenue at risk,Share or price expected to be lost,Y
+cl3-0035,Own generic,Launching an authorized generic,N
+cl3-0035,Pipeline,New drugs to replace the revenue,N
+cl3-0035,Payer and doctor loyalty,Insurer or prescriber behavior,N
+cl3-0036,Sales by product and market,Sales by product line or country,Y
+cl3-0036,Inventory and discounts,Leftover stock or end-of-season discounts,N
+cl3-0036,Factory costs,Factory utilization or fixed costs,N
+cl3-0036,New products,Products for other seasons,N
+cl3-0037,Parcels and returns,Parcel or returns volume and revenue,Y
+cl3-0037,Branch services,"Banking, ID or bill payment in branches",N
+cl3-0037,Branch traffic,Visits to branches,N
+cl3-0037,Partnerships,Partners using the branches,N
+cl3-0038,Failures by component,Downtime by component or failure type,Y
+cl3-0038,Repair time,Time to reach and repair turbines,N
+cl3-0038,Spare parts,Waiting for parts,N
+cl3-0038,Maintenance planning,Planned maintenance schedules,N
+cl3-0039,Competing fares and trip times,Airline fares or door-to-door times,Y
+cl3-0039,Willingness to pay,What business or leisure travelers will pay,N
+cl3-0039,Capacity and load,Seats or expected occupancy,N
+cl3-0039,Costs,Cost per train or per seat,N
+cl3-0040,Claims processing,Cost per claim or automation rate,Y
+cl3-0040,Customer service,Calls or service cost per member,N
+cl3-0040,IT systems,Technology costs,N
+cl3-0040,Sales commissions,Broker or sales costs,N

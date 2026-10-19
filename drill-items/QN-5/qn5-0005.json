@@ -1,0 +1,171 @@
+{
+  "item_id": "qn5-0005",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "live",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "Estimate how many pizza deliveries are made each year in a city of 2 million people.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Households in the city",
+      "correct": true,
+      "feedback": "A driver: Derived: 2M people at about 2.5 people per household"
+    },
+    {
+      "id": "2",
+      "text": "Share of households that order pizza delivery",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most households order delivery pizza at least occasionally"
+    },
+    {
+      "id": "3",
+      "text": "Pizza deliveries per ordering household per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: about once a month for a typical ordering household"
+    },
+    {
+      "id": "4",
+      "text": "City population",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same people the household count already counts"
+    },
+    {
+      "id": "5",
+      "text": "Number of pizzerias",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Where pizza is made, not how often it's ordered"
+    },
+    {
+      "id": "6",
+      "text": "Average price of a pizza",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "The question asks for the number of deliveries, not spending"
+    }
+  ],
+  "numeric": {
+    "answer": 7280000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "800k (households in the city) × 0.65 (share of households that order pizza delivery) × 12 (pizza deliveries per ordering household per year) ≈ 6.24M",
+  "explanation": "800k (households in the city) × 0.65 (share of households that order pizza delivery) × 12 (pizza deliveries per ordering household per year) ≈ 6.24M. A believable total is 3.1M–12M (Derived: the central driver values give about 6.24M; the range allows a factor of 2 either way for the least certain driver (pizza deliveries per ordering household per year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 700000,
+        "high": 900000,
+        "unit": "households",
+        "source": "Derived: 2M people at about 2.5 people per household"
+      },
+      "2": {
+        "low": 0.5,
+        "high": 0.8,
+        "unit": "share",
+        "source": "Reasoning: most households order delivery pizza at least occasionally"
+      },
+      "3": {
+        "low": 8,
+        "high": 20,
+        "unit": "deliveries",
+        "source": "Reasoning: about once a month for a typical ordering household"
+      }
+    },
+    "benchmark": {
+      "low": 3100000,
+      "high": 12000000,
+      "source": "Derived: the central driver values give about 6.24M; the range allows a factor of 2 either way for the least certain driver (pizza deliveries per ordering household per year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-11",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

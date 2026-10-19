@@ -1,0 +1,70 @@
+{
+  "item_id": "ps1-0008",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "operations",
+  "industry": "Healthcare Provider / Payor",
+  "prompt": "A hospital wants to cut emergency room waiting times. The candidate's framework: (1) Patient arrivals by hour; (2) Staffing levels during peak hours; (3) Doctor and nurse capacity by shift; (4) Triage and registration speed. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: how long patients wait to be registered",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Registration speed is in bucket 4, triage and registration."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 4 doesn't belong: triage is a clinical step, not a delay",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Every minute spent in triage and registration is part of the wait, so bucket 4 belongs."
+    },
+    {
+      "id": "c",
+      "text": "It's a generic operations checklist: it would fit any service business",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets follow a patient through the ER: arrivals, staffing and triage. The flaw is that bucket 2 repeats bucket 3."
+    },
+    {
+      "id": "d",
+      "text": "Buckets 2 and 3 overlap: peak staffing is part of capacity by shift",
+      "correct": true,
+      "feedback": "Right. Staffing at peak hours is a slice of doctor and nurse capacity by shift. Replace bucket 2 with how quickly patients move out: beds, admissions and discharges."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Peak staffing is part of capacity by shift. A process view: arrivals, triage, treatment capacity, and outflow (beds, admissions, discharges).",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Arrivals; triage and registration; treatment capacity; outflow (beds, admissions, discharges)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

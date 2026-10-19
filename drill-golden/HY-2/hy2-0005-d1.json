@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0005-d1",
+  "item_id": "hy2-0005",
+  "drill_id": "HY-2",
+  "answer_type": "short",
+  "notes": "Too vague to be a data request (rule 7) and gives no result; vague replies pass consistency (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With 30% more tutors but only 5% more lessons, the new tutors likely aren't available when students want lessons. I'd compare the time slots students search for with the slots tutors offer."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: failed searches rose to 25%, mostly for evenings, while new tutors teach in the daytime."
+    },
+    {
+      "type": "text",
+      "value": "Booking data."
+    }
+  ],
+  "labels": {
+    "defend_data_request": false,
+    "defend_drop_result": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

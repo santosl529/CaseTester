@@ -1,0 +1,64 @@
+{
+  "answer_id": "ps3-0008-a",
+  "item_id": "ps3-0008",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Strong answer: all five areas, including the critical one (crash patterns).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Crash data",
+          "points": [
+            "who dies (walkers, drivers, cyclists)",
+            "worst streets and hours"
+          ]
+        },
+        {
+          "title": "Street changes",
+          "points": [
+            "lower speed limits",
+            "safer crossings",
+            "protected bike lanes"
+          ]
+        },
+        {
+          "title": "Enforcement",
+          "points": [
+            "speed cameras",
+            "drunk-driving checks"
+          ]
+        },
+        {
+          "title": "Public campaigns",
+          "points": [
+            "speeding and phone-use ads"
+          ]
+        },
+        {
+          "title": "Budget and politics",
+          "points": [
+            "cost per fix",
+            "council and resident support"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": true,
+    "cover_5": true,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

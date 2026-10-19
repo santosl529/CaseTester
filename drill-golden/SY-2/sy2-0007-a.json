@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0007-a",
+  "item_id": "sy2-0007",
+  "drill_id": "SY-2",
+  "answer_type": "borderline",
+  "notes": "Picks the second studio, which isn't an acceptable recommendation: wrong-recommendation flag, capped at 50% (rule 9). It uses the waitlist (rule 7), and the other checks pass.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Open the second studio. A town 25 miles away has no pottery studio, and our evening classes have a 120-person waitlist, which shows demand. The risk is the $400,000 cost, so the next step is to find a lower-rent site."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": true
+  },
+  "family": null
+}

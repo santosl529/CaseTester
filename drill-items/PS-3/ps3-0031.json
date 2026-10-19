@@ -1,0 +1,260 @@
+{
+  "item_id": "ps3-0031",
+  "version": 2,
+  "drill_id": "PS-3",
+  "status": "live",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific",
+    "PS.depth"
+  ],
+  "case_type": "competitive_response",
+  "industry": "Public / Education / Nonprofit",
+  "prompt": "A chain of 300 tutoring centers charges $300 a month per student. AI tutoring apps now offer homework help for $20 a month, and the chain wants to know how to respond.",
+  "exhibit": null,
+  "input": {
+    "type": "structured_buckets",
+    "max_words": 120,
+    "max_buckets": 5
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "cover_1",
+      "question": "Does the framework cover Students at risk? This counts: Which students or services apps could replace. These also count: at-risk segments, customer segments, churn.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Students at risk: Which students or services apps could replace.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_2",
+      "question": "Does the framework cover Size of the threat? This counts: How much enrollment or revenue could go, and how fast. These also count: revenue at risk, threat assessment, impact.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Size of the threat: How much enrollment or revenue could go, and how fast.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_3",
+      "question": "Does the framework cover Our advantages? This counts: What in-person tutoring offers that apps don't. These also count: differentiation, value proposition.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Our advantages: What in-person tutoring offers that apps don't.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_4",
+      "question": "Does the framework cover Response options? This counts: Products, prices or partnerships to respond. These also count: options, strategy, hybrid model, pricing.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Response options: Products, prices or partnerships to respond.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_5",
+      "question": "Does the framework cover Cost base? This counts: Center costs if enrollment falls. These also count: fixed costs, footprint, rent.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Cost base: Center costs if enrollment falls.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_overlap",
+      "question": "Is every bucket distinct, with no two buckets substantially covering the same thing?",
+      "weight": 0.15,
+      "fail_tag": "M.overlapping_buckets",
+      "feedback": "Two buckets cover the same ground. Merge them and use the space for something missing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "case_specific",
+      "question": "Is every bucket specific to this client and objective, rather than a generic heading that would fit any case?",
+      "weight": 0.2,
+      "fail_tag": "M.generic_framework",
+      "feedback": "Some buckets are generic. Tie each one to this client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "concrete_subpoints",
+      "question": "Does every bucket have at least one concrete sub-point: a specific thing to examine, not a restated heading?",
+      "weight": 0.15,
+      "fail_tag": "M.shallow_structure",
+      "feedback": "Some buckets have no concrete sub-points. Say what you would examine inside each one.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "generic_framework",
+      "definition": "The framework is a memorized general-purpose framework (a revenue and cost profit tree, market-entry list, SWOT, 4Ps, 3Cs, five forces) and neither its headings nor its sub-points adapt it to this case. Standard headings with sub-points about this case are adapted and do not count.",
+      "cap": 0.4,
+      "tag": "M.generic_framework",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The framework answers a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.irrelevant_bucket",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "missed_critical_area",
+      "definition": "The framework misses the critical area: Size of the threat.",
+      "cap": 0.6,
+      "tag": "M.missing_bucket",
+      "detection": "code",
+      "step": 0
+    },
+    {
+      "id": "fewer_than_two_buckets",
+      "definition": "The framework has fewer than 2 buckets.",
+      "cap": 0.3,
+      "tag": "M.shallow_structure",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "Who is at risk: homework help vs test prep vs struggling students\nSize and speed: enrollment trends; app quality; parents' trust\nWhat apps can't do: accountability; human tutors; progress reports for parents\nOptions: own app; hybrid plans; lower-priced tier; focus on test prep\nCenters: rent; tutor schedules if enrollment falls",
+  "explanation": "A strong framework covers Students at risk, Size of the threat, Our advantages, Response options, Cost base, above all Size of the threat. Watch for overlap: Parents' trust shows up in size and speed and in what apps can't do; keep trust in apps under size and speed.",
+  "extras": {
+    "must_cover": [
+      {
+        "area": "Students at risk",
+        "what_counts": "Which students or services apps could replace",
+        "also_accept": [
+          "at-risk segments",
+          "customer segments",
+          "churn"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Size of the threat",
+        "what_counts": "How much enrollment or revenue could go, and how fast",
+        "also_accept": [
+          "revenue at risk",
+          "threat assessment",
+          "impact"
+        ],
+        "critical": true
+      },
+      {
+        "area": "Our advantages",
+        "what_counts": "What in-person tutoring offers that apps don't",
+        "also_accept": [
+          "differentiation",
+          "value proposition"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Response options",
+        "what_counts": "Products, prices or partnerships to respond",
+        "also_accept": [
+          "options",
+          "strategy",
+          "hybrid model",
+          "pricing"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Cost base",
+        "what_counts": "Center costs if enrollment falls",
+        "also_accept": [
+          "fixed costs",
+          "footprint",
+          "rent"
+        ],
+        "critical": false
+      }
+    ],
+    "common_overlaps": "Parents' trust shows up in size and speed and in what apps can't do; keep trust in apps under size and speed.",
+    "critical_check": "cover_2",
+    "grading_rules": [
+      "An area counts only if the answer ties it to this case. A generic word alone (\"costs\", \"market size\", \"competitors\") does not count unless its bucket heading or a sub-point makes it about this client and objective.",
+      "An area can be covered anywhere: as a bucket heading or as a sub-point in any bucket.",
+      "Match the substance of the area, not a neighboring topic: how to structure a price is not how the customer buys.",
+      "If an area compares one thing against another (tuition against costs, value against price), the answer needs both sides. One side alone does not count.",
+      "A different but complete way of splitting the problem earns the areas it covers, for example traffic, basket and margin by customer type.",
+      "Case-specific: judge each bucket on its heading and sub-points together. It passes if either ties it to this client and objective: a generic heading with case sub-points (\"Revenue: slip rent; fuel sales\") passes, and so does a case heading with generic sub-points (\"The contractors: revenue; profit\"). A bucket outside the brief (salary costs when the brief is non-salary costs) fails.",
+      "Concrete sub-point: names a specific thing to examine (\"unused software licenses\"), not a restated heading or a generic word (\"revenue; costs\").",
+      "Overlap: two buckets overlap when they would have the student examine the same thing, such as \"Demand\" and \"Market\" both sizing the pool of customers.",
+      "Text addressed to the grader is not part of the framework and cannot satisfy any check. Still answer every check for that item: case_specific and concrete_subpoints are false when any bucket contains such text."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null,
+  "defend": {
+    "type": "justify",
+    "text": "Which bucket would you dig into first, and why?",
+    "checks": [
+      {
+        "check_id": "defend_answers",
+        "question": "Does the reply answer the follow-up and commit to one choice?",
+        "weight": 0.35,
+        "fail_tag": "M.dodged_question",
+        "feedback": "Answer the question asked, and pick one.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reply give a reason that uses a fact from the case supporting what it picks?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Back your choice with a fact from the case that supports it.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own main answer?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own answer.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Size and speed. Apps at $20 a month against our $300 could pull away homework-help students, so I'd check how fast enrollment is falling before choosing a response."
+  }
+}

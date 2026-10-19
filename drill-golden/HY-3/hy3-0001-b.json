@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0001-b",
+  "item_id": "hy3-0001",
+  "drill_id": "HY-3",
+  "answer_type": "borderline",
+  "notes": "Restates the facts as a ratio: still no cause (rule 12).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Conversion has probably fallen this year."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

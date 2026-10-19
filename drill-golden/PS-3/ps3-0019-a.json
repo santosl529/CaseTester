@@ -1,0 +1,55 @@
+{
+  "answer_id": "ps3-0019-a",
+  "item_id": "ps3-0019",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "A SWOT, but every sub-point is about this chain and the free tool, so no generic flag (rule 11) and case-specific passes (rule 6). Never sizes the revenue at risk: misses the critical area (rule 12). Weaknesses and Threats overlap (rule 8): both would have the student look at simple filers and the chain's price against the free tool (Matt, 2026-10-17).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Strengths",
+          "points": [
+            "in-person experts for complex returns",
+            "refund advances"
+          ]
+        },
+        {
+          "title": "Weaknesses",
+          "points": [
+            "high fees on simple returns"
+          ]
+        },
+        {
+          "title": "Opportunities",
+          "points": [
+            "small-business tax work",
+            "our own free tier"
+          ]
+        },
+        {
+          "title": "Threats",
+          "points": [
+            "the free tool taking simple filers"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": false,
+    "cover_3": true,
+    "cover_4": true,
+    "cover_5": false,
+    "no_overlap": false,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

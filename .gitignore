@@ -52,3 +52,10 @@ Case Interview Runs/voice-demos/*.m4a
 
 # per-turn evaluation records (spec 2026-10-09 §2.1) — large; summaries are committed
 *.turns.jsonl.gz
+
+# generated drill review page (npm run drills:review)
+/drill-review.html
+/drill-screenshots/
+
+# drills smoke-test failure logs
+logs/

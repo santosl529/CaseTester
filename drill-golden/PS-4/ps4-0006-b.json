@@ -1,0 +1,49 @@
+{
+  "answer_id": "ps4-0006-b",
+  "item_id": "ps4-0006",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Ingredient bucket removed, but the new grocery-partners bucket repeats the shelf-space bucket: a new overlap (rule 3).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Shelf space",
+          "points": [
+            "more grocery shelf space in current regions",
+            "new grocery chains"
+          ]
+        },
+        {
+          "title": "New products",
+          "points": [
+            "new product lines",
+            "seasonal items"
+          ]
+        },
+        {
+          "title": "New regions",
+          "points": [
+            "neighboring regions",
+            "stores that would stock us"
+          ]
+        },
+        {
+          "title": "Grocery partners",
+          "points": [
+            "more space at current chains",
+            "new chains to sell to"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": false,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

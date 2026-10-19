@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0010-a",
+  "item_id": "sy2-0010",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Buy the rival for $12M. Its $1.5M of profit plus about $700,000 a year from combining routes pays back in about 5.5 years, inside our 7-year limit. The main risk is that 30% of its revenue comes from one property manager whose contract renews next year, so before signing, talk to that client and tie part of the price to the renewal."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0002",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
+  "prompt": "An online retailer's website traffic rose 30% this year, but orders were flat. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Traffic has likely grown faster than orders this year.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts. It doesn't say why the extra visitors aren't buying."
+    },
+    {
+      "id": "b",
+      "text": "The new traffic is probably less ready to buy than the old.",
+      "correct": true,
+      "feedback": "Right. More visits with flat orders means conversion fell. I'd compare conversion rates by traffic source to see whether the new traffic converts worse."
+    },
+    {
+      "id": "c",
+      "text": "Search is likely sending the site less traffic than before.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Traffic rose 30%, so people are finding the site. The gap is between visits and orders."
+    },
+    {
+      "id": "d",
+      "text": "Shoppers are probably buying less often since a rival opened.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Shoppers buying elsewhere would visit less, but traffic is up 30%. The visitors are there; they just aren't buying."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows 30% more visits but the same number of orders, so conversion fell. Likely cause: the new traffic is less ready to buy. To test it, compare conversion by traffic source. If returning visitors also convert less, the problem is the site or prices, not the new traffic.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0005-b",
+  "item_id": "hy3-0005",
+  "drill_id": "HY-3",
+  "answer_type": "borderline",
+  "notes": "Volume leads and the rest are minor, so one cause leads (rule 12).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Volume grew 25%, so drivers probably have too many stops; weather, routing and staffing may add a little."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

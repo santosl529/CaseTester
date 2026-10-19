@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0014-d2",
+  "item_id": "hy2-0014",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "'More research' names no data (rule 7); 'if nothing turns up' isn't a specific result (rule 8). Still about the student's hypothesis, so consistent (rule 9: vagueness fails only the data and result checks).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With calls up only 4%, slower responses more likely mean ambulances are busy longer on each call. I'd check how long each ambulance is tied up per call, step by step."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: handovers at hospitals now take 40 minutes instead of 15, so fewer ambulances are free."
+    },
+    {
+      "type": "text",
+      "value": "I'd do more research on hospitals and drop it if nothing turns up."
+    }
+  ],
+  "labels": {
+    "defend_data_request": false,
+    "defend_drop_result": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

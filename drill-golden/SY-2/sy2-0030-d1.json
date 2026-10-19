@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0030-d1",
+  "item_id": "sy2-0030",
+  "drill_id": "SY-2",
+  "answer_type": "off_topic",
+  "notes": "No fact (rule 12); after Hold it contradicts the recommendation instead of restating it (rule 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Expand, but put the new lockers in apartment buildings. Apartment lockers are 85% full while store lockers are 30% full, and at 80% full an $8,000 locker earns $2,500 a year, paying back in about 3 years. Building owners have offered 2,500 sites. The main risk is that lockers in newer buildings fill more slowly. The next step is to start with 500 apartment sites and track fill rates."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "Hold. We should start a parcel-delivery van service."
+    }
+  ],
+  "labels": {
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,52 @@
+{
+  "answer_id": "ps3-0009-a",
+  "item_id": "ps3-0009",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "Revenue and Costs are generic headings, but marina sub-points make them case-specific (rule 6) and keep them from being a memorized tree (rule 11). Demand counts from occupancy and fewer people buying boats (rule 2). Never tests the 8% return on $150M: misses the critical area (rule 12).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue",
+          "points": [
+            "slip rent per foot",
+            "occupancy",
+            "fuel sales"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "staff",
+            "repairs",
+            "insurance"
+          ]
+        },
+        {
+          "title": "Risks",
+          "points": [
+            "hurricanes",
+            "fewer people buying boats"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": false,
+    "cover_5": true,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

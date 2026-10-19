@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0005",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "market_entry",
+  "industry": "Consumer / CPG",
+  "prompt": "A US snack brand launched in the UK a year ago. Trial was strong: 20% of shoppers bought it once. But only a quarter of those buyers bought it again. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The product probably disappoints people once they try it.",
+      "correct": true,
+      "feedback": "Right. Strong trial with weak repeat means people found it and bought it, then didn't come back. I'd look at repeat rates by flavor and at consumer feedback."
+    },
+    {
+      "id": "b",
+      "text": "Awareness of the brand in the UK is likely still low.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "A fifth of shoppers bought it once, so they found it. The drop-off happens after the first purchase."
+    },
+    {
+      "id": "c",
+      "text": "UK shoppers clearly dislike the flavors, so the brand has to pull out.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain and jumps to a drastic action before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "UK shoppers likely find the price high for a snack they don't know.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Trial was strong, so price didn't stop the first purchase."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows shoppers found and tried the snack (20% trial), but only a quarter bought again. Likely cause: the product disappoints after the first try. To test it, look at repeat rates by flavor and at consumer feedback. If people liked it but still didn't rebuy, look at price or availability instead.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

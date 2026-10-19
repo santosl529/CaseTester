@@ -1,0 +1,44 @@
+{
+  "answer_id": "ps4-0010-b",
+  "item_id": "ps4-0010",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Stations and moving bikes covered as sub-points (rule 8).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Usage",
+          "points": [
+            "rides per bike per day",
+            "busy and quiet hours"
+          ]
+        },
+        {
+          "title": "Revenue per ride",
+          "points": [
+            "fares",
+            "memberships"
+          ]
+        },
+        {
+          "title": "Bike costs",
+          "points": [
+            "buying bikes",
+            "repairs",
+            "docking stations",
+            "trucks moving bikes around"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

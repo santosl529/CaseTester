@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0007-d1",
+  "item_id": "sy2-0007",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Add evening classes at the current studio first. They are fully booked with a 120-person waitlist, and two more kilns cost $30,000, against $400,000 for a second studio, while each class brings in $9,000 a year. The main risk is finding instructors fast enough to fill the new slots. The next step is to hire two instructors, add classes, and revisit a second studio if the waitlist stays long."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. If no more kilns fit, evening classes are out, so I'd open the second studio for the 120-person waitlist."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

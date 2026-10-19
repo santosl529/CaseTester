@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0010-a",
+  "item_id": "hy2-0010",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Four causes with no lead: three-plus-causes flag, and no family (rule 6). 'Check all of them' names no data (rule 3), and it never commits (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Could be broken presses, staff shortages, bigger jobs or slow customer approvals. I'd check all of them."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "Proofs now wait two days in the online portal, so it's approvals."
+    }
+  ],
+  "labels": {
+    "directional": false,
+    "evidence_based": false,
+    "testable": false,
+    "tentative": false,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": true,
+    "off_topic": false
+  },
+  "family": "other"
+}

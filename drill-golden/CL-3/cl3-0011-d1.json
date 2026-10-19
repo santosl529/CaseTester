@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0011-d1",
+  "item_id": "cl3-0011",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "Uses the 10 to 25 minutes (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The line depends on arrivals, time per student at each station, staff on the line, and payment. I'd start with seconds per student at each station this term against last, since the slowest station sets the pace, then students arriving per minute."
+    },
+    {
+      "type": "text",
+      "value": "Arrival pattern. If every station is as fast as last term, a line going from 10 to 25 minutes means more students arrive at once."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

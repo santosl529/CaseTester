@@ -1,0 +1,64 @@
+{
+  "answer_id": "ps3-0024-d1",
+  "item_id": "ps3-0024",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the threefold price (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Cost over each bus's life",
+          "points": [
+            "purchase price",
+            "fuel vs electricity",
+            "maintenance"
+          ]
+        },
+        {
+          "title": "Subsidies",
+          "points": [
+            "federal and state grants",
+            "utility programs"
+          ]
+        },
+        {
+          "title": "Charging",
+          "points": [
+            "depot chargers",
+            "grid upgrades",
+            "route range"
+          ]
+        },
+        {
+          "title": "Contracts",
+          "points": [
+            "what school districts want",
+            "contract length vs bus life"
+          ]
+        },
+        {
+          "title": "Risks",
+          "points": [
+            "battery life",
+            "resale value",
+            "cold-weather range"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Cost over each bus's life: electric buses cost about three times as much, so fuel and maintenance savings must make up the gap."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

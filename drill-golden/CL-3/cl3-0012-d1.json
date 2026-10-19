@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0012-d1",
+  "item_id": "cl3-0012",
+  "drill_id": "CL-3",
+  "answer_type": "borderline",
+  "notes": "The price doesn't support looking at cow health (rule 3), and health records aren't in the main answer, with no reason for adding them (rule 4).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at labor saved, any change in milk yield, the robot's full cost including upkeep and financing, and whether it can handle the herd. I'd start with hours spent milking per week and their cost, since labor is the main cost the robot replaces."
+    },
+    {
+      "type": "text",
+      "value": "Cow health records, since the robot costs $500,000."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,70 @@
+{
+  "item_id": "ps1-0006",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
+  "prompt": "A sportswear brand is deciding whether to launch a line of smart running shoes with built-in sensors. The candidate's framework: (1) Runner demand for sensor-equipped shoes; (2) Price runners would pay; (3) Manufacturing and sensor costs; (4) Customer interest in smart running gear. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: sensor costs for each pair",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Sensor costs are in bucket 3, manufacturing and sensor costs."
+    },
+    {
+      "id": "b",
+      "text": "Buckets 1 and 4 overlap: interest in smart gear is demand",
+      "correct": true,
+      "feedback": "Right. Customer interest in smart running gear is the same question as runner demand. Replace bucket 4 with competition from watches and fitness trackers."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 3 doesn't belong: sensor costs will fall quickly",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Even falling costs decide whether the shoes make money at launch, so bucket 3 belongs."
+    },
+    {
+      "id": "d",
+      "text": "It's a generic launch framework: it ignores what makes sensor shoes different",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The buckets are specific to sensor shoes: sensor costs and demand for sensor-equipped shoes. The flaw is that buckets 1 and 4 repeat each other."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Demand and customer interest are the same question. Better: demand, pricing, costs, competition from wearables, and the brand's ability to build electronics.",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Demand; pricing; costs; competition (watches, trackers); capabilities in electronics"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

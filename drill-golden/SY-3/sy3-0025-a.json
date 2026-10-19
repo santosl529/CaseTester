@@ -1,0 +1,21 @@
+{
+  "answer_id": "sy3-0025-a",
+  "item_id": "sy3-0025",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "Recommendation first, award removed (rules 14, 16).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Build the wing. Rooms run at 95% with a 6-week waitlist, and 8 new rooms at about $3M each repay $120M in 5 years, inside the 7-year hurdle."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

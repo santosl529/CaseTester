@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0001-d1",
+  "item_id": "sy2-0001",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Right call; uses the challenge and sheet numbers and says what changes (rules 12, 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Buy the printer. It costs $250,000 and saves about $70,000 a year in outsourced milling, so it pays back in about 3.6 years, well within its 7-year life. It also cuts crown turnaround from 10 days to 4, which helps win dentists' business. The main risk is that the savings assume today's crown volume, and two technicians lose three weeks to training. The next step is to confirm next year's crown orders with our largest dentists and price a service contract before signing."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. If 60% are zirconia, the printer saves about $28,000 a year, so it wouldn't pay back in its 7-year life. Keep outsourcing."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

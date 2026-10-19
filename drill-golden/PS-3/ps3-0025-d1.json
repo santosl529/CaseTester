@@ -1,0 +1,61 @@
+{
+  "answer_id": "ps3-0025-d1",
+  "item_id": "ps3-0025",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the $8-per-device pricing the switch replaces (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue effect",
+          "points": [
+            "customers with many vs few devices per employee",
+            "net change"
+          ]
+        },
+        {
+          "title": "Customer value",
+          "points": [
+            "what a breach costs a small business"
+          ]
+        },
+        {
+          "title": "Competitors",
+          "points": [
+            "how rivals charge",
+            "comparisons customers make"
+          ]
+        },
+        {
+          "title": "Customer reaction",
+          "points": [
+            "who would pay more",
+            "churn",
+            "moving existing customers"
+          ]
+        },
+        {
+          "title": "Ease of selling",
+          "points": [
+            "simpler quotes",
+            "billing changes"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Revenue effect, since some customers have many devices per employee and some few, so moving off $8 per device changes bills both ways."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

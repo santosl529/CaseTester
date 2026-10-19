@@ -1,0 +1,2 @@
+item_id,derived_from,tier,prompt,flawed_answer,right_parts,model_repair
+EXAMPLE-hy3-01,hy1-0015,1,A car wash's revenue fell 15% last year. The number of cars washed was flat.,Something about how the business makes money has probably changed.,it is framed as a likely cause to check,"Revenue per car fell about 15%, so customers are probably choosing the basic wash over premium. I'd test it with the mix of wash types by month."

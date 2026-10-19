@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0011-d1",
+  "item_id": "hy2-0011",
+  "drill_id": "HY-2",
+  "answer_type": "borderline",
+  "notes": "The survey says what it measures (their view of the food), so the data request counts (rule 7; Matt, 2026-10-15), with a drop result, but it tests the food cause the student dropped; after stage 2 the hypothesis is slow delivery (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Few users reorder, likely because the restaurant choice doesn't suit local tastes. I'd survey one-time users about why they didn't order again."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: users who got food in 30 minutes reordered like at home, so it's slow delivery, not the food."
+    },
+    {
+      "type": "text",
+      "value": "I'd survey one-time users on the food. If they liked it, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

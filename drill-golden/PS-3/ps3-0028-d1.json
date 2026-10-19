@@ -1,0 +1,62 @@
+{
+  "answer_id": "ps3-0028-d1",
+  "item_id": "ps3-0028",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "The claims share bears on claims savings, not on how many customers sign up (rule 3, a case fact that doesn't support the pick).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Customer uptake",
+          "points": [
+            "safe drivers wanting discounts",
+            "privacy worries"
+          ]
+        },
+        {
+          "title": "Claims savings",
+          "points": [
+            "whether app data predicts claims",
+            "discounts vs claims saved"
+          ]
+        },
+        {
+          "title": "Effect on current customers",
+          "points": [
+            "who switches",
+            "what is left on standard plans"
+          ]
+        },
+        {
+          "title": "Competitors",
+          "points": [
+            "rivals' app programs",
+            "their discounts"
+          ]
+        },
+        {
+          "title": "Rollout",
+          "points": [
+            "regulators",
+            "data security",
+            "app build"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Customer uptake, since claims take 75 cents of every premium dollar."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

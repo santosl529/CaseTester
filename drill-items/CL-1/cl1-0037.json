@@ -1,0 +1,67 @@
+{
+  "item_id": "cl1-0037",
+  "version": 2,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "cost_reduction",
+  "industry": "Financial Services",
+  "prompt": "Objective: cut an insurer's cost per claim. What you've learned: adjusters' pay is flat. Latest finding: average adjuster time per claim rose from 4 to 7 hours. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Find which claim types take longer, and by how much",
+      "correct": true,
+      "feedback": "Right. Longer claims drive cost, so find which claims take longer."
+    },
+    {
+      "id": "b",
+      "text": "Compare adjuster pay with other insurers",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Pay is flat. The finding is time per claim."
+    },
+    {
+      "id": "c",
+      "text": "Count claims per day month by month",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "The finding is about time per claim, not volume."
+    },
+    {
+      "id": "d",
+      "text": "Estimate savings from hiring cheaper adjusters",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a fix unrelated to the finding."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Adjuster time per claim rose from 4 to 7 hours. Find which claim types take longer.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

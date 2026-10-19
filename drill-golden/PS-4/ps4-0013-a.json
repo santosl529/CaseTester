@@ -1,0 +1,44 @@
+{
+  "answer_id": "ps4-0013-a",
+  "item_id": "ps4-0013",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "The two cost buckets are merged into one (rule 7); oven price, installation and financing all kept (rule 4).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Upfront cost",
+          "points": [
+            "oven price",
+            "installation",
+            "financing"
+          ]
+        },
+        {
+          "title": "Extra demand",
+          "points": [
+            "orders the line would serve",
+            "extra revenue"
+          ]
+        },
+        {
+          "title": "Running costs",
+          "points": [
+            "energy",
+            "labor",
+            "maintenance"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

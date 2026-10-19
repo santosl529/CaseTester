@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0018-a",
+  "item_id": "sy2-0018",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Invest in a pressing line. Vinyl sales grow 10% a year and plants have 6-month waitlists, so a $1.5M line pressing 1 million records at $1.20 each pays back in about 15 months. The risk is that three new plants added 15% to capacity, which could shorten the waitlists, so sign contracts with labels before buying."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

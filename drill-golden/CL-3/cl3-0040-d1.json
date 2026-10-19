@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0040-d1",
+  "item_id": "cl3-0040",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "Uses the per-member 30% gap (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split admin cost into claims processing, customer-service calls per member, IT systems, and sales commissions. I'd start with cost per claim and the share handled automatically over two years, against peers, since claims are usually the biggest admin cost and manual handling the usual gap."
+    },
+    {
+      "type": "text",
+      "value": "Customer service. If claims cost matches peers, a 30% gap per member points to costs that scale with members, like calls."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

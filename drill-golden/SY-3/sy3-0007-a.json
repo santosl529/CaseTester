@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0007-a",
+  "item_id": "sy3-0007",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "Uses the 9-month stay to decide (rule 17).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Offer the annual plan. The average monthly customer stays 9 months and pays $450, so $480 up front is more, and annual buyers stayed about as long in the test."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

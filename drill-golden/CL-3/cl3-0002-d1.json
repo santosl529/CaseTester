@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0002-d1",
+  "item_id": "cl3-0002",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "The 3 days come from the case (2 to 5) (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split delivery time into order-to-dispatch days, carrier transit, stock-outs, and order volume against capacity. I'd start with order-to-dispatch days by week, this quarter against last, since that's the part we control and shows whether the delay is ours."
+    },
+    {
+      "type": "text",
+      "value": "Carrier transit. If dispatch held, the extra 3 days happen after the parcel leaves us."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

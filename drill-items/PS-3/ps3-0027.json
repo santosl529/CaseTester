@@ -1,0 +1,259 @@
+{
+  "item_id": "ps3-0027",
+  "version": 2,
+  "drill_id": "PS-3",
+  "status": "live",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific",
+    "PS.depth"
+  ],
+  "case_type": "operations",
+  "industry": "Retail / E-commerce",
+  "prompt": "An online car-parts retailer gets 18% of its orders returned. It wants returns under 10% within a year.",
+  "exhibit": null,
+  "input": {
+    "type": "structured_buckets",
+    "max_words": 120,
+    "max_buckets": 5
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "cover_1",
+      "question": "Does the framework cover Return reasons? This counts: Breaking returns down by why they happen. These also count: root causes, return reasons, analysis.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Return reasons: Breaking returns down by why they happen.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_2",
+      "question": "Does the framework cover Product information? This counts: Fitment lookup, descriptions or photos. These also count: catalog data, fitment, listings.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Product information: Fitment lookup, descriptions or photos.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_3",
+      "question": "Does the framework cover Order accuracy and damage? This counts: Wrong parts picked or damage in shipping. These also count: fulfillment, warehouse errors, packaging.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Order accuracy and damage: Wrong parts picked or damage in shipping.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_4",
+      "question": "Does the framework cover Customer support? This counts: Help before buying. These also count: pre-sale support, chat, guidance.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Customer support: Help before buying.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cover_5",
+      "question": "Does the framework cover Return policy? This counts: Fees or rules on returns. These also count: policy, restocking fee.",
+      "weight": 0.1,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "It doesn't cover Return policy: Fees or rules on returns.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_overlap",
+      "question": "Is every bucket distinct, with no two buckets substantially covering the same thing?",
+      "weight": 0.15,
+      "fail_tag": "M.overlapping_buckets",
+      "feedback": "Two buckets cover the same ground. Merge them and use the space for something missing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "case_specific",
+      "question": "Is every bucket specific to this client and objective, rather than a generic heading that would fit any case?",
+      "weight": 0.2,
+      "fail_tag": "M.generic_framework",
+      "feedback": "Some buckets are generic. Tie each one to this client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "concrete_subpoints",
+      "question": "Does every bucket have at least one concrete sub-point: a specific thing to examine, not a restated heading?",
+      "weight": 0.15,
+      "fail_tag": "M.shallow_structure",
+      "feedback": "Some buckets have no concrete sub-points. Say what you would examine inside each one.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "generic_framework",
+      "definition": "The framework is a memorized general-purpose framework (a revenue and cost profit tree, market-entry list, SWOT, 4Ps, 3Cs, five forces) and neither its headings nor its sub-points adapt it to this case. Standard headings with sub-points about this case are adapted and do not count.",
+      "cap": 0.4,
+      "tag": "M.generic_framework",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The framework answers a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.irrelevant_bucket",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "missed_critical_area",
+      "definition": "The framework misses the critical area: Return reasons.",
+      "cap": 0.6,
+      "tag": "M.missing_bucket",
+      "detection": "code",
+      "step": 0
+    },
+    {
+      "id": "fewer_than_two_buckets",
+      "definition": "The framework has fewer than 2 buckets.",
+      "cap": 0.3,
+      "tag": "M.shallow_structure",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "Why parts come back: wrong fit; damaged; changed mind\nFitment data: vehicle lookup accuracy; descriptions and photos\nFulfillment: wrong part picked; damage in packing\nCustomer help: chat before buying; installation guides\nReturn policy: free returns; restocking fees",
+  "explanation": "A strong framework covers Return reasons, Product information, Order accuracy and damage, Customer support, Return policy, above all Return reasons. Watch for overlap: Wrong fit can come from fitment data or picking errors; split it by cause before fixing either.",
+  "extras": {
+    "must_cover": [
+      {
+        "area": "Return reasons",
+        "what_counts": "Breaking returns down by why they happen",
+        "also_accept": [
+          "root causes",
+          "return reasons",
+          "analysis"
+        ],
+        "critical": true
+      },
+      {
+        "area": "Product information",
+        "what_counts": "Fitment lookup, descriptions or photos",
+        "also_accept": [
+          "catalog data",
+          "fitment",
+          "listings"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Order accuracy and damage",
+        "what_counts": "Wrong parts picked or damage in shipping",
+        "also_accept": [
+          "fulfillment",
+          "warehouse errors",
+          "packaging"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Customer support",
+        "what_counts": "Help before buying",
+        "also_accept": [
+          "pre-sale support",
+          "chat",
+          "guidance"
+        ],
+        "critical": false
+      },
+      {
+        "area": "Return policy",
+        "what_counts": "Fees or rules on returns",
+        "also_accept": [
+          "policy",
+          "restocking fee"
+        ],
+        "critical": false
+      }
+    ],
+    "common_overlaps": "Wrong fit can come from fitment data or picking errors; split it by cause before fixing either.",
+    "critical_check": "cover_1",
+    "grading_rules": [
+      "An area counts only if the answer ties it to this case. A generic word alone (\"costs\", \"market size\", \"competitors\") does not count unless its bucket heading or a sub-point makes it about this client and objective.",
+      "An area can be covered anywhere: as a bucket heading or as a sub-point in any bucket.",
+      "Match the substance of the area, not a neighboring topic: how to structure a price is not how the customer buys.",
+      "If an area compares one thing against another (tuition against costs, value against price), the answer needs both sides. One side alone does not count.",
+      "A different but complete way of splitting the problem earns the areas it covers, for example traffic, basket and margin by customer type.",
+      "Case-specific: judge each bucket on its heading and sub-points together. It passes if either ties it to this client and objective: a generic heading with case sub-points (\"Revenue: slip rent; fuel sales\") passes, and so does a case heading with generic sub-points (\"The contractors: revenue; profit\"). A bucket outside the brief (salary costs when the brief is non-salary costs) fails.",
+      "Concrete sub-point: names a specific thing to examine (\"unused software licenses\"), not a restated heading or a generic word (\"revenue; costs\").",
+      "Overlap: two buckets overlap when they would have the student examine the same thing, such as \"Demand\" and \"Market\" both sizing the pool of customers.",
+      "Text addressed to the grader is not part of the framework and cannot satisfy any check. Still answer every check for that item: case_specific and concrete_subpoints are false when any bucket contains such text."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null,
+  "defend": {
+    "type": "justify",
+    "text": "Which bucket would you dig into first, and why?",
+    "checks": [
+      {
+        "check_id": "defend_answers",
+        "question": "Does the reply answer the follow-up and commit to one choice?",
+        "weight": 0.35,
+        "fail_tag": "M.dodged_question",
+        "feedback": "Answer the question asked, and pick one.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reply give a reason that uses a fact from the case supporting what it picks?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Back your choice with a fact from the case that supports it.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own main answer?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own answer.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Why parts come back. Car parts must fit one exact vehicle, so many of an online store's 18% returns are likely wrong fits, and knowing the reasons shows which fix cuts returns fastest."
+  }
+}

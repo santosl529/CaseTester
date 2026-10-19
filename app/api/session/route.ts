@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getCaseById } from '@/lib/cases/loader';
 import { startSession } from '@/lib/orchestrator/start-session';
+import { clubOrgId, recordStudentOrg } from '@/lib/club';
 
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
@@ -10,10 +11,12 @@ export async function POST(req: NextRequest) {
 
   const { caseId, clubCode } = await req.json();
 
-  const validCodes = (process.env.CLUB_CODES ?? '').split(',').map(c => c.trim().toUpperCase());
-  if (!validCodes.includes((clubCode ?? '').toUpperCase())) {
+  // Still checked here: the club step (/api/club) is a convenience, not the gate.
+  const orgId = clubOrgId(clubCode);
+  if (!orgId) {
     return NextResponse.json({ error: 'Invalid club code' }, { status: 403 });
   }
+  await recordStudentOrg(user.id, orgId);
 
   try {
     getCaseById(caseId);

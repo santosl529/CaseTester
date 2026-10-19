@@ -1,0 +1,64 @@
+{
+  "answer_id": "ps3-0020-d1",
+  "item_id": "ps3-0020",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the 90-day deadline and three years of losses (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Cash",
+          "points": [
+            "weeks of cash left",
+            "inventory to sell down",
+            "payment terms"
+          ]
+        },
+        {
+          "title": "Where it loses money",
+          "points": [
+            "products",
+            "channels",
+            "customers"
+          ]
+        },
+        {
+          "title": "Replacing lost sales",
+          "points": [
+            "other retailers",
+            "online",
+            "licensing deals"
+          ]
+        },
+        {
+          "title": "Cost base",
+          "points": [
+            "factories and warehouses sized for old volume",
+            "overhead"
+          ]
+        },
+        {
+          "title": "The bank",
+          "points": [
+            "loan terms",
+            "what it needs to see in 90 days"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Cash. The bank wants a plan in 90 days after three years of losses, so I'd first see how long the cash lasts."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

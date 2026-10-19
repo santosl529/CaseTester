@@ -1,0 +1,63 @@
+{
+  "answer_id": "ps3-0016-d1",
+  "item_id": "ps3-0016",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the two-year profit goal (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Demand",
+          "points": [
+            "occasional travelers",
+            "trip types",
+            "price per rental"
+          ]
+        },
+        {
+          "title": "Economics",
+          "points": [
+            "rental price vs two-way shipping, cleaning and repairs",
+            "suitcases needed"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "other rental services",
+            "buying a cheap suitcase"
+          ]
+        },
+        {
+          "title": "Operations",
+          "points": [
+            "delivery and pickup",
+            "cleaning",
+            "damage"
+          ]
+        },
+        {
+          "title": "Effect on sales",
+          "points": [
+            "renters who would have bought",
+            "rentals that lead to purchases"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Economics. It has to be profitable within two years, so the rental price must cover shipping both ways, cleaning and repairs."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

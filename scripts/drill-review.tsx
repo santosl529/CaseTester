@@ -1,0 +1,212 @@
+// Builds drill-review.html: every authored drill item in one readable page,
+// for human review (docs/prd-drills.md "Authored items"). Items appear as a
+// student sees them, with charts drawn by the app's own renderer, plus the
+// answer key a reviewer has to check: the right answer, each wrong option's
+// mistake tag and feedback, and the explanation.
+//
+//   npm run drills:review     then open drill-review.html
+//
+// Reads /drill-items directly (not lib/drills/authored.ts, which is
+// server-only), so it runs without the react-server condition.
+import fs from 'fs';
+import path from 'path';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { DrillChart } from '@/components/drills/chart';
+import { ItemSchema, type Item } from '@/lib/drills/item-schema';
+import { DRILLS_CONFIG, getDrill, getMistakeTag } from '@/lib/drills/config';
+import { LENGTH_CUE_MAX_SHARE, RULE_PLAYER_MAX, phraseCues, rulePlayer } from '@/lib/drills/content-checks';
+
+const ROOT = process.cwd();
+const DIR = path.join(ROOT, 'drill-items');
+const OUT = path.join(ROOT, 'drill-review.html');
+
+const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+// What the reviewer confirms, from the PRD, plus what each drill's distractors must be.
+const CHECKLIST = [
+  'The marked answer is correct.',
+  'Each wrong option is wrong for exactly the reason its tag names.',
+  'There is one defensible best answer.',
+  'Numbers and facts are plausible.',
+  'No third-party content is reused.',
+];
+const DRILL_NOTES: Record<string, string> = {
+  'PS-1': 'One planted flaw per framework. Wrong options allege a different flaw, worded like the right one.',
+  'HY-1': 'At Tier 2 and 3, at least two wrong options are well-formed hypotheses that ignore or contradict a fact in the prompt.',
+  'EX-1': 'Wrong takeaways include true, on-topic readings that aren\'t the most important one (the biggest level instead of the biggest change).',
+  'SY-1': 'Options reach different conclusions; at least two wrong ones are confident and numerical but ignore a deciding fact.',
+  'CL-1': 'At least two wrong next steps are sensible analyses that matter less right now than the right one.',
+};
+
+// The wording checks for one pool (lib/drills/content-checks.ts).
+function wordingBox(pool: Item[]): string {
+  const rp = rulePlayer(pool)[0];
+  if (!rp) return '';
+  const rank = (item: Item) => [...item.options].sort((a, b) => a.text.length - b.text.length);
+  const longest = pool.filter(i => rank(i).at(-1)!.correct).length;
+  const cues = phraseCues(pool);
+  const ok = rp.score <= RULE_PLAYER_MAX && longest / pool.length <= LENGTH_CUE_MAX_SHARE && cues.length === 0;
+  return `<div class="checks ${ok ? 'pass' : 'fail'}">
+    <b>Wording checks: ${ok ? 'pass' : 'fail'}.</b>
+    Rule player (picks by wording alone, never reads the case): <b>${Math.round(rp.score * 100)}%</b> (chance ${Math.round(rp.chance * 100)}%, max ${Math.round(RULE_PLAYER_MAX * 100)}%).
+    Right answer is the longest option in ${longest} of ${pool.length} items (max ${Math.round(LENGTH_CUE_MAX_SHARE * 100)}%).
+    ${cues.length ? `Phrases that give answers away: ${cues.map(c => `“${esc(c.phrase)}” (${c.marks} in ${c.marks === 'right' ? c.right : c.wrong} of ${c.right + c.wrong})`).join('; ')}.` : 'No phrase marks answers as right or wrong.'}
+  </div>`;
+}
+
+function load(): Item[] {
+  return fs.readdirSync(DIR, { withFileTypes: true }).filter(d => d.isDirectory()).flatMap(d =>
+    fs.readdirSync(path.join(DIR, d.name)).filter(f => f.endsWith('.json')).sort().map(f => {
+      const file = path.join(DIR, d.name, f);
+      const result = ItemSchema.safeParse(JSON.parse(fs.readFileSync(file, 'utf-8')));
+      if (!result.success) throw new Error(`${file}: ${result.error.message}`);
+      return result.data;
+    }));
+}
+
+function extras(item: Item): string {
+  const rows: string[] = [];
+  const e = item.extras as Record<string, unknown>;
+  if (typeof e.corrected_framework === 'string') rows.push(`<dt>Corrected framework</dt><dd>${esc(e.corrected_framework)}</dd>`);
+  if (typeof e.flaw_type === 'string') rows.push(`<dt>Planted flaw</dt><dd>${esc(e.flaw_type)}</dd>`);
+  if (Array.isArray(e.irrelevant_facts)) rows.push(`<dt>Irrelevant fact planted</dt><dd>${esc(e.irrelevant_facts.join('; '))}</dd>`);
+  return rows.length ? `<dl class="extras">${rows.join('')}</dl>` : '';
+}
+
+// Not live yet, in a drill that is: these are what the reviewer has to decide on.
+// (Drafts in drills that aren't live yet are placeholders, not review work.)
+const waiting = (item: Item) => item.status !== 'live' && getDrill(item.drill_id).live;
+
+function card(item: Item): string {
+  const file = path.relative(ROOT, path.join(DIR, item.drill_id, `${item.item_id}.json`));
+  const options = item.options.map(o => {
+    const tag = o.tag ? getMistakeTag(o.tag) : null;
+    return `<li class="${o.correct ? 'right' : 'wrong'}">
+      <div class="opt"><span class="letter">${esc(o.id)}</span><span>${esc(o.text)}</span>${o.correct ? '<span class="badge ok">Correct</span>' : ''}</div>
+      <div class="why">${o.correct ? '' : `<span class="badge tag" title="${esc(o.tag ?? '')}">${esc(tag?.label ?? o.tag ?? 'no tag')}</span> `}${esc(o.feedback)}</div>
+    </li>`;
+  }).join('');
+  const chart = item.exhibit ? `<div class="chart">${renderToStaticMarkup(createElement(DrillChart, { spec: item.exhibit }))}</div>` : '';
+  return `<article class="item" id="${esc(item.item_id)}" data-id="${esc(item.item_id)}"${waiting(item) ? ' data-waiting' : ''}>
+    <header>
+      <label class="done"><input type="checkbox" data-review="${esc(item.item_id)}"> Reviewed</label>
+      <strong>${esc(item.item_id)}</strong>
+      <span class="meta">Tier ${item.tier} · ${esc((item.case_type ?? 'no case type').replace(/_/g, ' '))} · ${esc(item.status)}${item.is_example ? ' · worked example' : ''} · similarity ${esc(item.authorship?.similarity_check ?? 'n/a')}</span>
+      <code class="file">${esc(file)}</code>
+    </header>
+    <p class="prompt">${esc(item.prompt)}</p>
+    ${chart}
+    <ol class="options">${options}</ol>
+    <p class="explanation"><b>Explanation shown after answering:</b> ${esc(item.explanation)}</p>
+    ${extras(item)}
+    ${item.authorship?.similarity_note ? `<p class="explanation"><b>Similarity check flagged:</b> ${esc(item.authorship.similarity_note)}</p>` : ''}
+  </article>`;
+}
+
+function main() {
+  const items = load();
+  // Catalog order (PS-1, HY-1, EX-1, ...), not alphabetical.
+  const present = new Set(items.map(i => i.drill_id));
+  const drills = DRILLS_CONFIG.drills.drills.map(d => d.id).filter(id => present.has(id));
+  const sections = drills.map(id => {
+    const drill = getDrill(id);
+    const pool = items.filter(i => i.drill_id === id);
+    const skills = DRILLS_CONFIG.taxonomy.skills.filter(s => drill.skills.includes(s.id)).map(s => s.name).join(', ');
+    const live = pool.filter(i => i.status === 'live').length;
+    return `<section id="drill-${id}">
+      <h2>${esc(id)} ${esc(drill.name)} <span class="count">${pool.length} items · ${live} live</span></h2>
+      <p class="sub">Skills: ${esc(skills)}. ${esc(DRILL_NOTES[id] ?? '')}</p>
+      ${wordingBox(pool)}
+      ${pool.map(card).join('')}
+    </section>`;
+  }).join('');
+  const pending = items.filter(waiting);
+  const pendingBox = pending.length ? `<div class="intro"><b>Waiting for your review (${pending.length}):</b>
+    ${drills.filter(id => pending.some(i => i.drill_id === id)).map(id => `<p>${esc(id)}: ${pending.filter(i => i.drill_id === id).map(i => `<a href="#${esc(i.item_id)}">${esc(i.item_id)}</a>`).join(', ')}</p>`).join('')}
+    <label><input type="checkbox" id="only-waiting"> Show only these</label>
+  </div>` : '';
+  const toc = drills.map(id => `<a href="#drill-${id}">${esc(id)} ${esc(getDrill(id).name)} (${items.filter(i => i.drill_id === id).length})</a>`).join('');
+
+  const html = `<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Drill item review</title>
+<style>
+  :root { --bg:#f7f7f5; --card:#fff; --fg:#1d1d1b; --muted:#6b6b66; --border:#e2e2dc; --ok:#1f7a4a; --ok-bg:#e8f4ec; --tag:#8a4b0f; --tag-bg:#fbf0e3;
+ }
+  @media (prefers-color-scheme: dark) { :root { --bg:#161615; --card:#1f1f1d; --fg:#ecebe6; --muted:#a3a29b; --border:#34342f; --ok:#6fcf97; --ok-bg:#1d3326; --tag:#f0b46b; --tag-bg:#3a2a17; } }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg); font:15px/1.55 -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 24px 16px 80px; }
+  h1 { font-size: 24px; margin: 0 0 4px; } h2 { font-size: 20px; margin: 40px 0 4px; } .count, .sub, .meta { color: var(--muted); font-weight: 400; } .count { font-size: 14px; }
+  .intro { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 16px 0; }
+  .intro ol, .intro ul { margin: 6px 0; padding-left: 20px; } .intro pre { background: var(--bg); padding: 8px 10px; border-radius: 6px; overflow-x: auto; font-size: 13px; }
+  nav { position: sticky; top: 0; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--border); padding: 8px 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 14px; }
+  nav a { color: inherit; } #progress { margin-left: auto; color: var(--muted); }
+  .item { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 16px 20px; margin: 14px 0; }
+  .item.reviewed { opacity: .55; }
+  .item header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; margin-bottom: 8px; }
+  .file { font-size: 12px; color: var(--muted); width: 100%; } .done { font-size: 13px; color: var(--muted); cursor: pointer; }
+  .prompt { font-size: 16px; margin: 6px 0 12px; }
+  .options { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+  .options li { border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; }
+  .options li.right { border-color: var(--ok); background: var(--ok-bg); }
+  .opt { display: flex; gap: 10px; align-items: baseline; } .letter { font-weight: 600; min-width: 1em; }
+  .why { color: var(--muted); font-size: 13.5px; margin: 4px 0 0 26px; }
+  .badge { display: inline-block; font-size: 12px; border-radius: 999px; padding: 1px 8px; white-space: nowrap; }
+  .badge.ok { background: var(--ok); color: #fff; margin-left: auto; } .badge.tag { background: var(--tag-bg); color: var(--tag); }
+  .explanation { font-size: 14px; margin: 12px 0 4px; }
+  .extras { display: grid; grid-template-columns: max-content 1fr; gap: 2px 12px; font-size: 13.5px; margin: 8px 0 0; color: var(--muted); }
+  .extras dt { font-weight: 600; } .extras dd { margin: 0; }
+  .chart { margin: 8px 0 14px; } .chart svg { width: 100%; height: auto; max-width: 640px; display: block; }
+  .chart figcaption span { display: block; color: var(--muted); font-size: 13px; }
+  .chart table { border-collapse: collapse; font-size: 13.5px; margin-top: 6px; } .chart th, .chart td { border: 1px solid var(--border); padding: 3px 8px; text-align: left; }
+  .chart p { color: var(--muted); font-size: 12.5px; margin: 4px 0 0; } .chart details { font-size: 13px; margin-top: 4px; }
+  .checks { border-radius: 8px; padding: 10px 14px; margin: 10px 0 4px; font-size: 14px; border: 1px solid var(--border); background: var(--card); }
+  .checks.pass { border-color: var(--ok); } .checks.fail { border-color: var(--tag); }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+</style></head>
+<body><div class="wrap">
+<h1>Drill item review</h1>
+<p class="sub">${items.length} authored items. Generated ${new Date().toLocaleDateString('en-CA')} from /drill-items. Regenerate with <code>npm run drills:review</code> after editing.</p>
+<div class="intro">
+  <b>For each item, check that:</b>
+  <ul>${CHECKLIST.map(c => `<li>${esc(c)}</li>`).join('')}</ul>
+  <b>To approve or ask for edits,</b> send decisions by item ID (for example “ps1-0011 approve”, “hy1-0003 edit: …”). The engineer updates each file's status and authorship, so nobody edits JSON by hand.<br>
+  Each drill's <b>worked example</b> is marked “worked example” and is shown only once approved. The “Reviewed” checkboxes here only track your progress in this browser; they don't change any files.
+</div>
+${pendingBox}
+<nav>${toc}<span id="progress"></span></nav>
+${sections}
+</div>
+<script>
+  // Progress checkboxes, saved in this browser only.
+  const KEY = 'drill-review-done';
+  let done = {};
+  try { done = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch {}
+  const boxes = [...document.querySelectorAll('[data-review]')];
+  const update = () => {
+    for (const b of boxes) b.closest('.item').classList.toggle('reviewed', b.checked);
+    document.getElementById('progress').textContent = boxes.filter(b => b.checked).length + ' of ' + boxes.length + ' reviewed';
+  };
+  for (const b of boxes) {
+    b.checked = Boolean(done[b.dataset.review]);
+    b.addEventListener('change', () => {
+      done[b.dataset.review] = b.checked;
+      try { localStorage.setItem(KEY, JSON.stringify(done)); } catch {}
+      update();
+    });
+  }
+  update();
+  // "Show only these": hide every item that isn't waiting for review.
+  const only = document.getElementById('only-waiting');
+  if (only) only.addEventListener('change', () => {
+    for (const el of document.querySelectorAll('.item')) el.hidden = only.checked && !el.hasAttribute('data-waiting');
+  });
+</script>
+</body></html>`;
+  fs.writeFileSync(OUT, html);
+  console.log(`Wrote ${path.relative(ROOT, OUT)}: ${items.length} items across ${drills.length} drills`);
+}
+
+main();

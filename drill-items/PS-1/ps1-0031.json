@@ -1,0 +1,71 @@
+{
+  "item_id": "ps1-0031",
+  "version": 2,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "market_entry",
+  "industry": "Financial Services",
+  "prompt": "A US pet insurance company is deciding whether to enter Germany. The candidate's framework: (1) Revenue: price and volume; (2) Fixed costs; (3) Variable costs. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 2 and 3 overlap: claims costs are both fixed and variable",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Claims are a variable cost; fixed and variable is a clean split. The issue is that a profit tree can't answer an entry question."
+    },
+    {
+      "id": "b",
+      "text": "Missing: the cost of marketing in Germany",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Adding a cost line doesn't fix a structure that never tests the market or the rivals."
+    },
+    {
+      "id": "c",
+      "text": "It's a generic profit tree with nothing about the German market or competition",
+      "correct": true,
+      "feedback": "Right. Revenue and costs alone can't answer an entry question. Use market, competition, entry economics and the ability to win."
+    },
+    {
+      "id": "d",
+      "text": "Bucket 2 doesn't belong: fixed costs are small for an insurer",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Licensing, systems and staff are real fixed costs. The issue is the generic structure, not one bucket."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "A profit tree fits a profitability problem, not an entry decision. Entry needs market attractiveness, competition, entry economics and the client's ability to win.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "German pet insurance market; competition; entry economics; ability to win (distribution, regulation, brand)"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,49 @@
+{
+  "answer_id": "ps3-0014-a",
+  "item_id": "ps3-0014",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "Generic headings, but sub-points tie each to the stadium, so case-specific passes (rule 6). Willingness to pay and seat tiers both come from sub-points under Prices (rule 2). Misses alternatives.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Demand",
+          "points": [
+            "how many fans come to each game",
+            "weekday vs weekend crowds"
+          ]
+        },
+        {
+          "title": "Prices",
+          "points": [
+            "premium vs regular seats",
+            "what fans would pay"
+          ]
+        },
+        {
+          "title": "Concessions",
+          "points": [
+            "food and parking per fan"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": true,
+    "cover_5": false,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

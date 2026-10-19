@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0029-a",
+  "item_id": "sy3-0029",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "Backed by fact-sheet numbers (rule 17).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Fund the program. Each $5,000 participant returns about $6,000 in extra tax over 10 years plus $4,000 in lower benefits."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0038-d1",
+  "item_id": "cl3-0038",
+  "drill_id": "CL-3",
+  "answer_type": "short",
+  "notes": "The 88% against 97% is the gap being explained; it doesn't support repair time over other causes (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split downtime into what fails, how long repairs take, waiting for vessels or weather, spare parts, and maintenance planning. I'd start with downtime hours by component for two years, since knowing what breaks most shows where to act."
+    },
+    {
+      "type": "text",
+      "value": "Repair time, 88% vs 97%."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

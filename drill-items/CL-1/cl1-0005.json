@@ -1,0 +1,67 @@
+{
+  "item_id": "cl1-0005",
+  "version": 2,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Tech / SaaS",
+  "prompt": "Objective: help a language-learning app double revenue. What you've learned: paying users are flat because new subscriptions equal cancellations. Latest finding: 60% of new subscribers cancel within their first month. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Work out why new subscribers cancel within a month",
+      "correct": true,
+      "feedback": "Right. Cancellations cancel out every new subscriber, so early churn comes before spending more on acquisition."
+    },
+    {
+      "id": "b",
+      "text": "Calculate the ad spend needed to double sign-ups",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "More sign-ups won't help while 60% of them leave within a month."
+    },
+    {
+      "id": "c",
+      "text": "Compare prices with rival language apps",
+      "correct": false,
+      "tag": "M.low_priority_next_step",
+      "feedback": "Price may turn out to be one reason people cancel, but start with why they cancel."
+    },
+    {
+      "id": "d",
+      "text": "Size the market for live tutoring add-ons",
+      "correct": false,
+      "tag": "M.low_priority_next_step",
+      "feedback": "A new product is a later lever. The finding is about churn."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "60% of new subscribers cancel within a month, so understanding early churn comes before growing acquisition.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,70 @@
+{
+  "item_id": "ps1-0014",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A boutique hotel group wants to grow profit by 30%. The candidate's framework: (1) Raise room rates; (2) Increase occupancy; (3) Cut operating costs. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 2 overlap: higher rates lower occupancy",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Rate and occupancy affect each other, but they are different drivers of room revenue, so they belong in separate buckets."
+    },
+    {
+      "id": "b",
+      "text": "Missing: revenue beyond rooms, such as food, bar and events",
+      "correct": true,
+      "feedback": "Right. Room rates and occupancy only cover room revenue. Food, bar and events are a large part of a boutique hotel's profit and are missing."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 1 doesn't belong: boutique hotels have no room to raise rates",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Nothing says rates are capped. Rate is usually a hotel's strongest profit lever."
+    },
+    {
+      "id": "d",
+      "text": "It's a generic revenue tree: it doesn't reflect boutique hotels",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "Rate and occupancy are the right hotel drivers. The flaw is that only room revenue is covered."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Profit grows from room revenue (rate, occupancy), revenue beyond rooms (food, bar, events) and costs. Rate and occupancy only cover rooms. Opening new hotels is another lever worth adding.",
+  "extras": {
+    "flaw_type": "missing",
+    "corrected_framework": "Room revenue (rate, occupancy); revenue beyond rooms (food, bar, events); new properties; cost efficiency"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

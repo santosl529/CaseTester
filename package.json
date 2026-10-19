@@ -13,7 +13,34 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx db/migrate.ts",
     "voice:agent:start": "node --import tsx scripts/voice-agent.ts start",
-    "voice:agent": "VOICE_RECORDS_DIR=\"${VOICE_RECORDS_DIR:-Case Interview Runs/voice-live}\" tsx --env-file=${VOICE_ENV_FILE:-.env.local} scripts/voice-agent.ts dev"
+    "voice:agent": "VOICE_RECORDS_DIR=\"${VOICE_RECORDS_DIR:-Case Interview Runs/voice-live}\" tsx --env-file=${VOICE_ENV_FILE:-.env.local} scripts/voice-agent.ts dev",
+    "db:seed-drill-items": "tsx --conditions=react-server --env-file=.env.local scripts/seed-drill-items.ts",
+    "db:seed-lessons": "tsx --conditions=react-server --env-file=.env.local scripts/seed-lessons.ts",
+    "drills:smoke": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts",
+    "drills:review": "tsx scripts/drill-review.tsx",
+    "drills:import": "tsx scripts/import-drill-content.ts",
+    "drills:golden": "tsx --conditions=react-server --env-file=.env.local scripts/drills-golden.ts",
+    "drills:smoke:d2": "DRILLS_PREVIEW_DRAFTS=1 tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-d2.ts",
+    "drills:smoke:d3": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-d3.ts",
+    "drills:smoke:d4": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-d4.ts",
+    "drills:smoke:diagnostic": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-diagnostic.ts",
+    "drills:smoke:d5": "DRILLS_PREVIEW_DRAFTS=1 tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-d5.ts",
+    "drills:smoke:tracks": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-tracks.ts",
+    "drills:smoke:events": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-events.ts",
+    "drills:smoke:feedback": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-feedback.ts",
+    "drills:smoke:plan": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-plan.ts",
+    "drills:smoke:cost": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-cost.ts",
+    "drills:smoke:feedback-timing": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-feedback-timing.ts",
+    "drills:smoke:dashboard": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke-dashboard.ts",
+    "drills:a11y": "tsx --conditions=react-server --env-file=.env.local scripts/drills-a11y.ts",
+    "drills:reports": "tsx --conditions=react-server --env-file=.env.local scripts/drills-reports.ts",
+    "drills:export-disputes": "tsx --conditions=react-server --env-file=.env.local scripts/drills-export-disputes.ts",
+    "drills:similarity": "tsx --env-file=.env.local scripts/drills-similarity.ts",
+    "drills:industry": "tsx --env-file=.env.local scripts/drills-industry.ts",
+    "drills:review-sheet": "tsx --conditions=react-server scripts/drills-review-sheet.ts",
+    "drills:lessons-doc": "tsx scripts/lessons-review-doc.ts",
+    "drills:models": "tsx --conditions=react-server --env-file=.env.local scripts/drills-models.ts",
+    "drills:timing": "tsx --conditions=react-server --env-file=.env.local scripts/drills-timing.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.131.0",
@@ -41,6 +68,7 @@
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "react-markdown": "^10.1.0",
+    "server-only": "^0.0.1",
     "shadcn": "^4.12.0",
     "tailwind-merge": "^3.6.0",
     "tsx": "^4.22.4",
@@ -48,6 +76,7 @@
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@axe-core/playwright": "4.13.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20.19.43",
     "@types/react": "^19",
@@ -58,8 +87,12 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.9",
     "eslint-plugin-boundaries": "^6.0.2",
+    "playwright": "1.63.0",
     "tailwindcss": "^4",
     "typescript": "^5",
     "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "playwright-core": "1.63.0"
   }
 }

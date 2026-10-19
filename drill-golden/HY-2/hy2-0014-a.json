@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0014-a",
+  "item_id": "hy2-0014",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With calls up only 4%, slower responses likely mean ambulances are tied up longer per call. I'd check time from arrival at hospital to handover."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Handover waits rose from 15 to 40 minutes, so fewer ambulances are free."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Hospital handover delays"
+}

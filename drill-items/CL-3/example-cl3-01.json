@@ -1,0 +1,192 @@
+{
+  "item_id": "example-cl3-01",
+  "version": 1,
+  "drill_id": "CL-3",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "CL.data_requests"
+  ],
+  "case_type": "profitability",
+  "industry": null,
+  "prompt": "The client's operating margin declined from 20% to 11% over 3 years.\n\nWhat information would you ask for, and where would you start?",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 60
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "breaks_into_drivers",
+      "question": "Does the answer break the metric into its drivers?",
+      "weight": 0.25,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Break the metric into its drivers before asking for data.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_1",
+      "question": "Does the answer cover Price (Average price or discounting by product)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Price.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_2",
+      "question": "Does the answer cover Cost of goods sold (Materials, production or input costs)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Cost of goods sold.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_3",
+      "question": "Does the answer cover Operating expenses (SG&A, overhead, labor outside production)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Operating expenses.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_4",
+      "question": "Does the answer cover Mix (Shift between higher- and lower-margin products or customers)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Mix.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "states_where_to_start",
+      "question": "Does the answer say where to start?",
+      "weight": 0.15,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Say where you would start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "reason_for_start",
+      "question": "Does the answer give a reason for starting there?",
+      "weight": 0.1,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Give a reason for where you start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "specific_requests",
+      "question": "Judge only the data the answer asks to see, not the drivers it lists to break the metric down (\"profit is revenue minus marketing and content costs\" is a breakdown, not a request). Does every data request name a metric plus a cut or a time period (\"marketing spend per new student by channel for two years\")?",
+      "weight": 0.25,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "Make requests specific, like: COGS as a share of revenue by year for the last 3 years; price per unit by product line.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "solution_before_diagnosis",
+      "definition": "The answer proposes solutions before diagnosing the problem.",
+      "cap": 0.5,
+      "tag": "M.premature_solution",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "six_plus_unstructured_requests",
+      "definition": "The answer lists six or more data requests with no structure.",
+      "cap": 0.5,
+      "tag": "M.laundry_list",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.vague_data_request",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "missed_critical_driver",
+      "definition": "The answer misses the critical driver: Cost of goods sold.",
+      "cap": 0.6,
+      "tag": "M.vague_data_request",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "I'd break the margin into price, volume mix and costs. I'd start with COGS as a share of revenue over the 3 years, since it's the biggest cost line, then check operating expenses and average price by product line.",
+  "explanation": "Drivers: Price, Cost of goods sold, Operating expenses, Mix. Start with Cost of goods sold: Margin fell 9 points; COGS is usually the largest cost line, so it most likely explains a drop this size. Specific: COGS as a share of revenue by year for the last 3 years; price per unit by product line. Vague: Information about costs; data on the market.",
+  "extras": {
+    "drivers": [
+      {
+        "driver": "Price",
+        "what_counts": "Average price or discounting by product",
+        "critical": false
+      },
+      {
+        "driver": "Cost of goods sold",
+        "what_counts": "Materials, production or input costs",
+        "critical": true
+      },
+      {
+        "driver": "Operating expenses",
+        "what_counts": "SG&A, overhead, labor outside production",
+        "critical": false
+      },
+      {
+        "driver": "Mix",
+        "what_counts": "Shift between higher- and lower-margin products or customers",
+        "critical": false
+      }
+    ],
+    "best_starting_point": "Cost of goods sold",
+    "critical_checks": [
+      "driver_2"
+    ],
+    "grading_rules": [
+      "Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.",
+      "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
+      "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
+      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). The reason can come before the starting point (\"The list grows when operations fall behind referrals, so I'd start with operations per week\"). \"Because it's important\" fails.",
+      "Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down (\"profit is revenue minus marketing and content costs\", \"I'd look at price, mix and costs\") are the breakdown, not requests. Every request must name a metric plus a cut or a time period (\"ingredient cost per cup by month for two years\"); one vague request (\"information about costs\") fails the check.",
+      "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
+      "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",
+      "Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

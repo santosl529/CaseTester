@@ -1,0 +1,62 @@
+{
+  "answer_id": "ps3-0012-d1",
+  "item_id": "ps3-0012",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the 40-store, five-year goal (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Demand in Portugal",
+          "points": [
+            "interest in açaí and healthy snacks",
+            "locals vs tourists",
+            "seasons"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "juice bars",
+            "smoothie and frozen-yogurt chains"
+          ]
+        },
+        {
+          "title": "Store economics",
+          "points": [
+            "sales per store",
+            "rent in Lisbon and Porto",
+            "payback per store"
+          ]
+        },
+        {
+          "title": "Supply and setup",
+          "points": [
+            "importing frozen açaí",
+            "franchise or own stores"
+          ]
+        },
+        {
+          "title": "Brand fit",
+          "points": [
+            "whether a Brazilian concept appeals beyond Brazilians"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Store economics: 40 stores in five years only works if each store pays back fast."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

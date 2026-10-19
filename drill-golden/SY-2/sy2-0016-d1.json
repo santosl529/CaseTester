@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0016-d1",
+  "item_id": "sy2-0016",
+  "drill_id": "SY-2",
+  "answer_type": "borderline",
+  "notes": "Uses the sheet's stock-record failures, which support keeping the warehouse (rule 12), but doesn't restate the recommendation (rule 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Keep the warehouse for now. Closing it saves a net $800,000 a year ($2.4M less $1.6M of store labor and packaging), but in the test 1 in 8 store-picked orders couldn't be filled. On 600,000 orders that is 75,000 unfilled, losing about $1.1M of profit a year, before the customers who never return. The main risk is that stock errors keep failing orders. The next step is to fix store stock counts and re-run the test."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "Hold. Wrong stock records are a real risk."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

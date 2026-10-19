@@ -1,0 +1,6 @@
+item_id,fact,relevant,deciding
+EXAMPLE-sy2-01,Each park would host about 120 school groups a year at $600 per group,Y,Y
+EXAMPLE-sy2-01,Opening weekday mornings would add about $40k a year per park in staff and utilities,Y,N
+EXAMPLE-sy2-01,The parks are currently closed until noon on weekdays,Y,N
+EXAMPLE-sy2-01,Schools in the region already book field trips to two science museums at $450 per group,Y,N
+EXAMPLE-sy2-01,The chain changed its uniform supplier last year,N,N

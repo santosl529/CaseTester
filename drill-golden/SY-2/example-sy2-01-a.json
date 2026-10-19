@@ -1,0 +1,30 @@
+{
+  "answer_id": "example-sy2-01-a",
+  "item_id": "example-sy2-01",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Recommendation comes last; leans on the uniform supplier; no risk named",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Each park could host about 120 school groups a year at $600, which is $72k against $40k of extra staff and utilities, and we're closed on weekday mornings anyway. We also changed our uniform supplier last year, so the team is ready for change. So I'd open for school groups, starting with a few parks."
+    }
+  ],
+  "labels": {
+    "recommendation_first": false,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": false,
+    "consistent_with_facts": true,
+    "includes_risk": false,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

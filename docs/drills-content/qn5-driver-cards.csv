@@ -1,0 +1,184 @@
+item_id,card,text,role,low,high,unit,source_or_reasoning
+qn5-0001,1,Movie tickets sold in the US per year,driver,600000000,1100000000,tickets,Reasoning: about 335M people going to the movies about 2.4 times a year on average ≈ 800M
+qn5-0001,2,Share of moviegoers who buy popcorn,driver,0.3,0.6,share,"Reasoning: popcorn is the most common snack, but many skip snacks"
+qn5-0001,3,Average price of a popcorn purchase,driver,6,10,dollars,Reasoning: theater popcorn typically costs $6 to $10
+qn5-0001,4,US population,double_count,,,,Counts the same audience the ticket count already counts
+qn5-0001,5,Number of movie theaters,not_a_driver,,,,"Where popcorn is sold, not how much is bought"
+qn5-0001,6,Average movie ticket price,not_a_driver,,,,"Ticket revenue, not popcorn spending"
+qn5-0002,1,US population,driver,320000000,350000000,people,Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way
+qn5-0002,2,Share of birthdays celebrated with a store-bought cake,driver,0.2,0.45,share,Reasoning: most children's birthdays and some adults' get a bought cake; many are homemade or skipped
+qn5-0002,3,Average price of a birthday cake,driver,20,40,dollars,"Reasoning: supermarket cakes run $20 to $30, bakery cakes more"
+qn5-0002,4,US households,double_count,,,,Counts the same people the population already counts
+qn5-0002,5,Number of bakeries,not_a_driver,,,,"Where cakes are bought, not how many"
+qn5-0002,6,Average number of guests at a birthday party,not_a_driver,,,,"Party size may change cake size, but the estimate counts cakes, not guests"
+qn5-0003,1,US population,driver,320000000,350000000,people,Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way
+qn5-0003,2,Share of people who use a manual toothbrush,driver,0.55,0.8,share,Reasoning: most people use manual brushes; a minority use electric ones
+qn5-0003,3,Manual toothbrushes bought per user per year,driver,2,4,toothbrushes,Reasoning: a new brush every 3 to 6 months
+qn5-0003,4,Share of people who use an electric toothbrush,double_count,,,,The other side of the manual share; using both counts the same people twice
+qn5-0003,5,Number of dentists,not_a_driver,,,,Doesn't change how many brushes are bought
+qn5-0003,6,Toothpaste tubes sold per year,not_a_driver,,,,"A related product, not toothbrushes"
+qn5-0004,1,K-12 students in the US,driver,50000000,58000000,students,"Reasoning: about 4M children per year of age × 13 grades ≈ 52M, plus or minus"
+qn5-0004,2,Share of students who get a new backpack each year,driver,0.4,0.8,share,Reasoning: many buy one each year; others reuse
+qn5-0004,3,Average backpack price,driver,20,50,dollars,Reasoning: school backpacks typically cost $20 to $50
+qn5-0004,4,US households with children,double_count,,,,Counts the same families the student count already counts
+qn5-0004,5,Number of schools,not_a_driver,,,,Doesn't change how many backpacks are bought
+qn5-0004,6,School days per year,not_a_driver,,,,Doesn't change how many backpacks are bought
+qn5-0005,1,Households in the city,driver,700000,900000,households,Derived: 2M people at about 2.5 people per household
+qn5-0005,2,Share of households that order pizza delivery,driver,0.5,0.8,share,Reasoning: most households order delivery pizza at least occasionally
+qn5-0005,3,Pizza deliveries per ordering household per year,driver,8,20,deliveries,Reasoning: about once a month for a typical ordering household
+qn5-0005,4,City population,double_count,,,,Counts the same people the household count already counts
+qn5-0005,5,Number of pizzerias,not_a_driver,,,,"Where pizza is made, not how often it's ordered"
+qn5-0005,6,Average price of a pizza,not_a_driver,,,,"The question asks for the number of deliveries, not spending"
+qn5-0006,1,Men and boys in the US,driver,160000000,170000000,people,Reasoning: about half of the roughly 335M people
+qn5-0006,2,Haircuts per person per year,driver,6,12,haircuts,Reasoning: every 4 to 8 weeks for most
+qn5-0006,3,Share of haircuts done at a barber or salon,driver,0.6,0.85,share,Reasoning: some cut hair at home
+qn5-0006,4,Average price of a haircut,driver,20,35,dollars,Reasoning: barbers typically charge $20 to $35
+qn5-0006,5,US population,double_count,,,,Already counted through men and boys
+qn5-0006,6,Number of barbershops,not_a_driver,,,,"Where haircuts happen, not how many"
+qn5-0007,1,US population,driver,320000000,350000000,people,Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way
+qn5-0007,2,Share of people who wear a costume,driver,0.3,0.5,share,Reasoning: most children and a sizable share of adults dress up
+qn5-0007,3,Average spending per costume wearer,driver,25,45,dollars,Reasoning: store costumes cost $20 to $60; many reuse or improvise
+qn5-0007,4,Number of trick-or-treaters,double_count,,,,A subset of the people the costume share already counts
+qn5-0007,5,Number of costume shops,not_a_driver,,,,"Where costumes are sold, not how many"
+qn5-0007,6,Pounds of Halloween candy sold,not_a_driver,,,,A different Halloween product
+qn5-0008,1,UK population,driver,65000000,70000000,people,Reasoning: the commonly quoted UK population is about 67M; the range allows a few million either way
+qn5-0008,2,Share of people who own an umbrella,driver,0.6,0.9,share,Reasoning: most adults own one in a rainy country
+qn5-0008,3,Umbrellas bought per owner per year,driver,0.4,0.9,umbrellas,Reasoning: umbrellas break or get lost every year or two
+qn5-0008,4,Rainy days per year,not_a_driver,,,,Explains why people own umbrellas but isn't a multiplier in the estimate
+qn5-0008,5,UK households,double_count,,,,Counts the same people the population already counts
+qn5-0008,6,Average umbrella price,not_a_driver,,,,"The question asks for umbrellas, not spending"
+qn5-0009,1,US households,driver,125000000,135000000,households,Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M
+qn5-0009,2,Share of households living in houses,driver,0.55,0.75,share,Reasoning: outside big cities most homes are houses; apartments are perhaps a third of homes
+qn5-0009,3,Share of house households that hire window cleaners,driver,0.05,0.15,share,Reasoning: most clean their own windows
+qn5-0009,4,Cleanings per hiring household per year,driver,1,3,cleanings,Reasoning: once or twice a year
+qn5-0009,5,Average price per cleaning,driver,150,350,dollars,Reasoning: a typical house costs $150 to $350
+qn5-0009,6,US population,double_count,,,,Counts the same homes the household count already counts
+qn5-0009,7,Number of window-cleaning companies,not_a_driver,,,,"Supply, not how much households spend"
+qn5-0010,1,Pet cats in the US,driver,55000000,90000000,cats,"Reasoning: roughly a third of 130M households have a cat, many have two, so about 60M to 90M cats"
+qn5-0010,2,Share of cats getting a professional dental cleaning each year,driver,0.05,0.15,share,"Reasoning: vets recommend it, but few owners do it yearly"
+qn5-0010,3,Average price of a cat dental cleaning,driver,300,700,dollars,Reasoning: cleanings under anesthesia typically cost $300 to $700
+qn5-0010,4,Cat-owning households,double_count,,,,Counts the same cats through their owners
+qn5-0010,5,Number of veterinary clinics,not_a_driver,,,,"Where cleanings happen, not how many"
+qn5-0010,6,Average price of a vet checkup,not_a_driver,,,,A different service from dental cleaning
+qn5-0011,1,US households,driver,125000000,135000000,households,Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M
+qn5-0011,2,Refrigerators per household,driver,1.1,1.4,refrigerators,Reasoning: every home has one; about a quarter have a second
+qn5-0011,3,Electricity per refrigerator per year,driver,400,700,kilowatt-hours,"Reasoning: newer models use about 400 kWh a year, older ones more"
+qn5-0011,4,US population,double_count,,,,Counts the same homes through the people in them
+qn5-0011,5,Number of appliance stores,not_a_driver,,,,Doesn't change electricity use
+qn5-0011,6,Price of electricity per kilowatt-hour,not_a_driver,,,,"The question asks for kilowatt-hours, not dollars"
+qn5-0012,1,First-year college applicants per year,driver,3000000,4500000,applicants,"Reasoning: roughly 3.8M high-school graduates a year, most applying; plus older applicants"
+qn5-0012,2,High-school graduates per year,driver,3500000,4000000,graduates,"Reasoning: about 4M people per year of age, and most finish high school"
+qn5-0012,3,Share of graduates who apply to college,driver,0.6,0.8,share,Reasoning: most graduates apply somewhere
+qn5-0012,4,Applications per applicant,driver,4,8,applications,Reasoning: students commonly apply to 4 to 8 colleges
+qn5-0012,5,Average application fee,driver,40,80,dollars,Reasoning: fees typically run $40 to $90; some are waived
+qn5-0012,6,Number of colleges,not_a_driver,,,,"Supply of places, not how many applications are filed"
+qn5-0012,7,College students enrolled,not_a_driver,,,,"Counts all students, not this year's applicants"
+qn5-0013,1,Smartphones in use in the US,driver,270000000,320000000,phones,Reasoning: most of the 335M people over age 10 have one
+qn5-0013,2,Share of phones that crack a screen each year,driver,0.1,0.25,share,Reasoning: a minority crack a screen in any year
+qn5-0013,3,Share of cracked screens repaired professionally,driver,0.4,0.7,share,Reasoning: many replace the phone or live with the crack
+qn5-0013,4,Average repair price,driver,100,250,dollars,Reasoning: screen repairs cost $100 to $300 depending on the model
+qn5-0013,5,US population,double_count,,,,Counts the same users the phone count already counts
+qn5-0013,6,Number of phone-repair shops,not_a_driver,,,,"Where repairs happen, not how many"
+qn5-0014,1,US households,driver,125000000,135000000,households,Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M
+qn5-0014,2,Share of households with a lawn,driver,0.6,0.75,share,Reasoning: most houses have a lawn; apartments mostly don't
+qn5-0014,3,Share of lawn households that hire lawn care,driver,0.2,0.4,share,Reasoning: many mow their own
+qn5-0014,4,Average yearly spend per hiring household,driver,500,1500,dollars,Reasoning: mowing and treatment through the season
+qn5-0014,5,Share of households living in houses,double_count,,,,The lawn share already reflects houses; using both counts it twice
+qn5-0014,6,Number of lawn-mower sales,not_a_driver,,,,"A do-it-yourself alternative, not a multiplier"
+qn5-0015,1,US population,driver,320000000,350000000,people,Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way
+qn5-0015,2,Bananas eaten per person per year,driver,25,100,bananas,"Reasoning: about one banana a week per person on average, about 40 a year"
+qn5-0015,3,Weight of an average banana,driver,0.25,0.4,pounds,Reasoning: a medium banana weighs about a third of a pound
+qn5-0015,4,US households,double_count,,,,Counts the same people the population already counts
+qn5-0015,5,Number of grocery stores,not_a_driver,,,,"Where bananas are sold, not how many are eaten"
+qn5-0015,6,Price per pound of bananas,not_a_driver,,,,"The question asks for pounds, not dollars"
+qn5-0016,1,US households,driver,125000000,135000000,households,Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M
+qn5-0016,2,Share of households that put up a Christmas tree,driver,0.7,0.9,share,Reasoning: most households celebrate with a tree
+qn5-0016,3,Share of tree households that buy a real tree,driver,0.15,0.3,share,Reasoning: most use artificial trees
+qn5-0016,4,Average price of a real tree,driver,50,110,dollars,Reasoning: lot prices typically run $50 to $110
+qn5-0016,5,Share of tree households with an artificial tree,double_count,,,,The other side of the real-tree share
+qn5-0016,6,Number of Christmas-tree farms,not_a_driver,,,,"Supply, not how many are bought"
+qn5-0017,1,US population,driver,320000000,350000000,people,Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way
+qn5-0017,2,Share of people who wear glasses or contacts,driver,0.5,0.7,share,Reasoning: a majority of adults and some children need vision correction
+qn5-0017,3,Eye exams per wearer per year,driver,0.5,1,exams,Reasoning: every one to two years
+qn5-0017,4,Number of optometrists,not_a_driver,,,,"Supply, not demand for exams"
+qn5-0017,5,Pairs of glasses sold per year,double_count,,,,Follows from the exams the wearer share already counts
+qn5-0017,6,Number of eyeglass stores,not_a_driver,,,,"Where glasses are sold, not how many exams are given"
+qn5-0018,1,US births per year,driver,3400000,3800000,births,"Reasoning: about 4M people per year of age, with slightly fewer births each year now"
+qn5-0018,2,Years a child wears diapers,driver,2,3,years,Reasoning: most children are toilet-trained between 2 and 3
+qn5-0018,3,Diapers per child per year,driver,1800,2900,diapers,Reasoning: about 5 to 8 a day
+qn5-0018,4,Average price per diaper,driver,0.2,0.35,dollars,Reasoning: bulk packs cost about 20 to 35 cents a diaper
+qn5-0018,5,US children under age 5,double_count,,,,Counts the same children that births times years in diapers already counts
+qn5-0018,6,Number of daycare centers,not_a_driver,,,,"Where some diapers are used, not how many"
+qn5-0019,1,Cars and light trucks on US roads,driver,270000000,300000000,vehicles,Reasoning: about 0.85 cars and light trucks per person × 335M people ≈ 285M
+qn5-0019,2,Replacement tires per vehicle per year,driver,0.7,1.3,tires,Derived: 4 tires replaced every 3 to 6 years
+qn5-0019,3,Licensed drivers,double_count,,,,"Counts the vehicles' users, not the vehicles"
+qn5-0019,4,US population,double_count,,,,"Counts people, not vehicles"
+qn5-0019,5,Number of tire shops,not_a_driver,,,,"Where tires are fitted, not how many"
+qn5-0019,6,Average tire price,not_a_driver,,,,"The question asks for tires, not dollars"
+qn5-0020,1,US high-school juniors and seniors,driver,7500000,8500000,students,"Reasoning: about 4M students per grade, two grades"
+qn5-0020,2,Share who attend prom,driver,0.4,0.7,share,Reasoning: many but not all juniors and seniors attend
+qn5-0020,3,Average spend per attendee,driver,200,600,dollars,"Reasoning: tickets, outfits, transport and photos"
+qn5-0020,4,Number of high schools,not_a_driver,,,,"Each school holds a prom, but spending depends on attendees"
+qn5-0020,5,All US high-school students,double_count,,,,"Includes the juniors and seniors already counted, plus younger students who don't attend"
+qn5-0020,6,Average cost of a prom ticket,double_count,,,,Already part of the average spend per attendee
+qn5-0021,1,US households,driver,125000000,135000000,households,Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M
+qn5-0021,2,Share of households with a printer,driver,0.5,0.7,share,Reasoning: many homes still have one; printing has declined
+qn5-0021,3,Cartridges bought per printer household per year,driver,2,5,cartridges,Reasoning: occasional home printing uses a few a year
+qn5-0021,4,Number of office-supply stores,not_a_driver,,,,"Where cartridges are sold, not how many"
+qn5-0021,5,Printers sold per year,not_a_driver,,,,"New printers, not the cartridges used in all printers"
+qn5-0021,6,US population,double_count,,,,Counts the same homes through the people in them
+qn5-0022,1,Commercial passenger aircraft in service worldwide,driver,22000,27000,aircraft,"Cirium, Oct 2024: about 26,100 aircraft with 30+ seats in service worldwide, including some freighters, so roughly 24,000 passenger aircraft. https://www.businesswire.com/news/home/20241022030312/en/"
+qn5-0022,2,Seats per aircraft,driver,150,200,seats,Reasoning: most of the fleet is single-aisle jets with 150 to 200 seats
+qn5-0022,3,Share of seats replaced each year,driver,0.08,0.15,share,Derived: seats replaced every 7 to 12 years in cabin refits
+qn5-0022,4,Average price per replacement seat,driver,3000,8000,dollars,Reasoning: economy seats cost a few thousand dollars; premium seats far more
+qn5-0022,5,Passengers flown per year,not_a_driver,,,,Drives seat wear but isn't a multiplier in the estimate
+qn5-0022,6,Number of airlines,not_a_driver,,,,"Buyers, not how many seats they buy"
+qn5-0022,7,New aircraft delivered per year,not_a_driver,,,,New aircraft come with seats; the question is replacements
+qn5-0023,1,Staffed hospital beds in the US,driver,880000,950000,beds,"Reasoning: about 6,000 hospitals × about 150 staffed beds on average ≈ 900,000"
+qn5-0023,2,Sanitizer dispensers per bed,driver,2,4,dispensers,"Reasoning: at the bedside, the door and in hallways"
+qn5-0023,3,Refills per dispenser per year,driver,12,40,refills,Reasoning: busy dispensers need refills every one to four weeks
+qn5-0023,4,Average price per refill,driver,8,20,dollars,Reasoning: hospital-grade refills cost about $8 to $20
+qn5-0023,5,Hospital admissions per year,double_count,,,,Patients are already reflected in how fast beds' dispensers empty
+qn5-0023,6,Number of hospitals,not_a_driver,,,,Bed count already sizes the hospitals
+qn5-0024,1,US households,driver,125000000,135000000,households,Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M
+qn5-0024,2,TVs per household,driver,1.8,2.6,TVs,Reasoning: most homes have two or more
+qn5-0024,3,Electricity per TV per year,driver,80,200,kilowatt-hours,Reasoning: about 100 watts for 3 to 5 hours a day
+qn5-0024,4,Price of electricity,driver,0.13,0.22,dollars per kilowatt-hour,"Reasoning: household electricity typically costs about 13 to 22 cents per kWh, depending on the state"
+qn5-0024,5,US population,double_count,,,,Counts the same homes through the people in them
+qn5-0024,6,TVs sold per year,not_a_driver,,,,"New TVs, not the electricity all TVs use"
+qn5-0025,1,Public-school students,driver,47000000,50000000,students,"Reasoning: about 4M per grade × 13 grades, with about 90% in public schools"
+qn5-0025,2,Share of students eating school lunch on a typical day,driver,0.45,0.65,share,Reasoning: about half eat the school lunch
+qn5-0025,3,School days per year,driver,175,185,days,Reasoning: a school year is about 36 weeks of 5 days
+qn5-0025,4,Average cost per lunch,driver,3,4.5,dollars,"Reasoning: food, staff and overhead for one school lunch come to roughly $3 to $4.50"
+qn5-0025,5,Number of public schools,not_a_driver,,,,Student count already sizes the schools
+qn5-0025,6,Share of students eligible for free lunch,not_a_driver,,,,"Decides who pays, not how many lunches are served"
+qn5-0026,1,US households,driver,125000000,135000000,households,Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M
+qn5-0026,2,Smoke alarms per household,driver,3,5,alarms,Reasoning: codes call for one per bedroom and per floor
+qn5-0026,3,Share of alarms with a replaceable battery changed each year,driver,0.4,0.8,share,Reasoning: many owners change batteries yearly; sealed 10-year alarms never need one
+qn5-0026,4,Share of alarms with sealed 10-year batteries,double_count,,,,Already reflected in the share changed each year
+qn5-0026,5,Number of fire stations,not_a_driver,,,,Doesn't change battery replacement
+qn5-0026,6,US population,double_count,,,,Counts the same homes through the people in them
+qn5-0027,1,Elevators in the US,driver,900000,1100000,elevators,"Reasoning: a rough estimate of about 1M, mostly in apartment and office buildings; the least certain base figure here"
+qn5-0027,2,Share of elevators under a maintenance contract,driver,0.7,0.95,share,"Reasoning: inspections are required, so most have a contract"
+qn5-0027,3,Average maintenance spend per contracted elevator per year,driver,2500,6000,dollars,Reasoning: monthly service plus repairs
+qn5-0027,4,Number of tall buildings,double_count,,,,Buildings are already counted through their elevators
+qn5-0027,5,Number of elevator manufacturers,not_a_driver,,,,"Suppliers, not how much maintenance is bought"
+qn5-0027,6,Average building height,not_a_driver,,,,"Taller buildings need more service, but spend per elevator already reflects that"
+qn5-0028,1,US households,driver,125000000,135000000,households,Reasoning: about 335M people ÷ about 2.5 people per household ≈ 130M
+qn5-0028,2,Share of households with their own water heater,driver,0.85,0.95,share,Reasoning: most homes; some apartments share a central system
+qn5-0028,3,Replacements per heater per year,driver,0.067,0.1,replacements,Derived: water heaters last 10 to 15 years
+qn5-0028,4,Average installed price,driver,1200,2500,dollars,"Reasoning: heater plus installation typically costs $1,200 to $2,500"
+qn5-0028,5,New homes built per year,not_a_driver,,,,New homes get new heaters; the question is replacements
+qn5-0028,6,Number of plumbers,not_a_driver,,,,"Installers, not how many heaters are replaced"
+qn5-0029,1,Horses in the US,driver,6000000,7200000,horses,"Reasoning: about 2% of 130M households keep horses, two or three each ≈ 6.5M"
+qn5-0029,2,Share of horses getting routine vet care each year,driver,0.7,0.95,share,Reasoning: vaccines and checkups are standard; some horses get little care
+qn5-0029,3,Average routine vet spend per horse per year,driver,300,800,dollars,"Reasoning: vaccines, dental work and checkups"
+qn5-0029,4,Horse-owning households,double_count,,,,Counts the same horses through their owners
+qn5-0029,5,Number of equine vets,not_a_driver,,,,"Supply, not how much care is bought"
+qn5-0029,6,Average price of a horse,not_a_driver,,,,"What horses cost to buy, not to care for"
+qn5-0030,1,Hospital admissions per year,driver,33000000,36000000,admissions,Reasoning: about one hospital admission per 10 people a year × 335M ≈ 34M
+qn5-0030,2,Share of admitted patients who get a transfusion,driver,0.08,0.15,share,"Reasoning: surgery, trauma and cancer patients most often"
+qn5-0030,3,Units transfused per transfused patient,driver,2,3,units,Reasoning: a typical transfusion is 2 to 3 units
+qn5-0030,4,Blood donations per year,double_count,,,,Supply that roughly matches transfusions; using both counts the same blood
+qn5-0030,5,Number of blood banks,not_a_driver,,,,"Supply, not how much is transfused"
+qn5-0030,6,Number of surgeons,not_a_driver,,,,"Supply of operations, not transfusions"

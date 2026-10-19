@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0010",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A coffee chain's morning sales are up 5%, but afternoon sales are down 20%. Two months ago, a bubble-tea chain opened next to most of its stores. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Afternoon sales have likely fallen while mornings held up.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "Afternoon buyers are likely trying the new bubble-tea shops.",
+      "correct": true,
+      "feedback": "Right. The decline is in the afternoon, when people buy treats, and a bubble-tea chain just opened next door. I'd compare afternoon sales in stores with and without a bubble-tea shop nearby."
+    },
+    {
+      "id": "c",
+      "text": "Remote work has likely emptied the offices around its stores.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Emptier offices would hurt mornings too, but morning sales rose 5%."
+    },
+    {
+      "id": "d",
+      "text": "Coffee prices have likely risen enough to drive customers away.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "A price effect would show in the mornings too, but morning sales rose."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows afternoon sales down 20% while mornings grew, just after bubble-tea shops opened next door. Likely cause: afternoon customers are trying the new shops. To test it, compare afternoon sales in stores with and without a bubble-tea shop nearby. If both fell alike, look for another afternoon-only cause.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

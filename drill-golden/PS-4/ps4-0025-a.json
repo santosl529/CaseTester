@@ -1,0 +1,34 @@
+{
+  "answer_id": "ps4-0025-a",
+  "item_id": "ps4-0025",
+  "drill_id": "PS-4",
+  "answer_type": "short",
+  "notes": "Covers how many owners pay for walks and how often (rule 8). Price per walk is dropped: keeps-right only (rules 3, 4).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Dog owners",
+          "points": [
+            "households with a dog"
+          ]
+        },
+        {
+          "title": "Walks",
+          "points": [
+            "owners paying a walker",
+            "walks per week"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

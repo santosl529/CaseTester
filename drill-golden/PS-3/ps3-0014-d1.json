@@ -1,0 +1,64 @@
+{
+  "answer_id": "ps3-0014-d1",
+  "item_id": "ps3-0014",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the 30% more seats (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "What fans would pay",
+          "points": [
+            "season-ticket holders",
+            "families",
+            "groups and businesses"
+          ]
+        },
+        {
+          "title": "Seat types",
+          "points": [
+            "premium boxes",
+            "field level",
+            "lawn seats"
+          ]
+        },
+        {
+          "title": "Filling the extra seats",
+          "points": [
+            "attendance by game",
+            "weekends vs weekdays"
+          ]
+        },
+        {
+          "title": "Spending per fan",
+          "points": [
+            "food and drink",
+            "parking",
+            "merchandise"
+          ]
+        },
+        {
+          "title": "Comparisons",
+          "points": [
+            "old stadium prices",
+            "other local entertainment"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "What fans would pay, since there are 30% more seats to fill."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0015-d1",
+  "item_id": "hy2-0015",
+  "drill_id": "HY-2",
+  "answer_type": "short",
+  "notes": "A comparison with no metric (rule 7) and no result; still about the meters (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Revenue rose only 2% on a 20% price rise, likely because hourly parkers are price-sensitive: the higher rate itself drove many of them away. I'd compare hourly parkers before and after the change."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: hourly parkers fell 30% when cheaper city meters opened next door, so the price gap with the meters drove them away."
+    },
+    {
+      "type": "text",
+      "value": "Garages near the meters vs far."
+    }
+  ],
+  "labels": {
+    "defend_data_request": false,
+    "defend_drop_result": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

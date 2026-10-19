@@ -1,0 +1,67 @@
+{
+  "item_id": "cl1-0032",
+  "version": 2,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
+  "prompt": "Objective: decide whether a shampoo maker should launch solid shampoo bars. What you've learned: the target market is $150M. Latest finding: consumer tests show strong interest but low willingness to pay a premium. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Size the market in other countries",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Off the finding."
+    },
+    {
+      "id": "b",
+      "text": "Ask the interviewer what price point the client prefers here",
+      "correct": false,
+      "tag": "M.waited_for_interviewer",
+      "feedback": "Drive the case: work out what price makes sense."
+    },
+    {
+      "id": "c",
+      "text": "Estimate revenue at a premium price",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "The finding says consumers won't pay a premium."
+    },
+    {
+      "id": "d",
+      "text": "Check profitability near the regular shampoo price",
+      "correct": true,
+      "feedback": "Right. Interest is high but premiums are not, so profitability at a standard price decides it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Interest is strong but willingness to pay a premium is low. Check profitability at a near-regular price.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

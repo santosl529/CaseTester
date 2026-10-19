@@ -1,0 +1,43 @@
+{
+  "answer_id": "ps3-0038-a",
+  "item_id": "ps3-0038",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "A textbook profit tree with generic sub-points: flagged even on a profitability case (rule 11). Generic words alone cover no area (rule 1), including the critical one, player costs. Only 2 buckets with sub-points, so no overlap fails (rule 13).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue",
+          "points": [
+            "price",
+            "volume"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "fixed costs",
+            "variable costs"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": false,
+    "cover_2": false,
+    "cover_3": false,
+    "cover_4": false,
+    "cover_5": false,
+    "no_overlap": false,
+    "case_specific": false,
+    "concrete_subpoints": false
+  },
+  "red_flags": {
+    "generic_framework": true,
+    "off_topic": false
+  },
+  "family": null
+}

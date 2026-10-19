@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0010-d1",
+  "item_id": "cl3-0010",
+  "drill_id": "CL-3",
+  "answer_type": "off_topic",
+  "notes": "A negotiating move, not what to look at next (rule 2); not in the main answer (rule 4).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split it into the rival's own profit, savings from combining routes, its customer contracts, and price against value. I'd start with its profit by contract for three years, since its own cash flow is the base of what it's worth; route savings come on top."
+    },
+    {
+      "type": "text",
+      "value": "They should negotiate the price down to $35M."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

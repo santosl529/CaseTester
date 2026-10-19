@@ -179,6 +179,9 @@ export const studentDrillSettings = pgTable('student_drill_settings', {
   untimed: boolean('untimed').notNull().default(false),
   // "Hide timer" (D6 round 2): the student's last choice, the default for new sets.
   hideTimer: boolean('hide_timer').notNull().default(false),
+  // Feedback timing: 'immediate' or 'end', the student's last choice and the
+  // default for new sets; null until they choose (Immediate).
+  feedbackMode: text('feedback_mode'),
   interviewDate: date('interview_date'),
   skippedExamples: text('skipped_examples').array().notNull().default(sql`'{}'::text[]`),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -254,6 +257,11 @@ export const drillSets = pgTable('drill_sets', {
   // paused_at while paused; paused_ms totals the set's pauses (for reports).
   pausedAt: timestamp('paused_at', { withTimezone: true }),
   pausedMs: integer('paused_ms').notNull().default(0),
+  // Feedback timing: 'immediate' (after each question; written answers graded
+  // as each is submitted) or 'end' (everything on the results screen), chosen
+  // on the intro and fixed once the first item is served. Null on diagnostic
+  // parts (no feedback) and on sets from before the choice existed.
+  feedbackMode: text('feedback_mode'),
   // A short check of a questionnaire placement; its score re-places the skill.
   isPlacementCheck: boolean('is_placement_check').notNull().default(false),
   source: drillSetSourceEnum('source').notNull(),
@@ -323,6 +331,10 @@ export const drillAttempts = pgTable('drill_attempts', {
   defendScore: doublePrecision('defend_score'),
   defendCheckResults: jsonb('defend_check_results'),
   gradingStatus: attemptGradingStatusEnum('grading_status').notNull().default('not_needed'),
+  // Why an answer ended 'failed' ("Grading delayed"; it counts toward nothing):
+  // 'request_cap', 'refused' (for review), 'billing', 'over_word_limit',
+  // 'error' or 'failed_runs'.
+  gradingIssue: text('grading_issue'),
   graderPromptVersion: text('grader_prompt_version'),
   modelId: text('model_id'),
   submittedAt: timestamp('submitted_at', { withTimezone: true }).notNull().defaultNow(),
@@ -345,6 +357,9 @@ export const drillAttempts = pgTable('drill_attempts', {
 export const gradingJobs = pgTable('grading_jobs', {
   id: uuid('id').primaryKey().defaultRandom(),
   setId: uuid('set_id').notNull().references(() => drillSets.id),
+  // Feedback timing: set on a job that grades one answer as it is submitted
+  // (Immediate feedback); null on the job that grades the set at the end.
+  attemptId: uuid('attempt_id').references(() => drillAttempts.id, { onDelete: 'cascade' }),
   status: gradingJobStatusEnum('status').notNull().default('queued'),
   retries: integer('retries').notNull().default(0),
   inputTokens: integer('input_tokens'),
@@ -357,6 +372,42 @@ export const gradingJobs = pgTable('grading_jobs', {
   startedAt: timestamp('started_at', { withTimezone: true }),
   completedAt: timestamp('completed_at', { withTimezone: true }),
 }, t => [index('grading_jobs_status_idx').on(t.status, t.createdAt)]).enableRLS();
+
+// Cost controls (PRD "Cost controls"): the requests each grading call of an
+// answer has made, across retries, quote re-asks and every run of the job,
+// so no call passes rules.grading_limits.requests_per_call. A request is
+// reserved here before it is sent. call: 'main', 'family', 'followup' or
+// 'followup_data'. Server-only.
+export const drillGradingCalls = pgTable('drill_grading_calls', {
+  attemptId: uuid('attempt_id').notNull().references(() => drillAttempts.id, { onDelete: 'cascade' }),
+  call: text('call').notNull(),
+  requests: integer('requests').notNull().default(0),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [primaryKey({ columns: [t.attemptId, t.call] })]).enableRLS();
+
+// One row per grading request, written after every request whatever its
+// outcome ('ok', 'invalid_output', 'refused', 'billing', 'error'): the spend
+// the daily circuit breaker and the reports' cost figures read. A 'billing'
+// row (a spend-limit or billing error) also trips the breaker for the day.
+// Server-only.
+export const drillGradingSpend = pgTable('drill_grading_spend', {
+  id: uuid('id').primaryKey().defaultRandom(),
+  setId: uuid('set_id').notNull().references(() => drillSets.id, { onDelete: 'cascade' }),
+  jobId: uuid('job_id').references(() => gradingJobs.id, { onDelete: 'cascade' }),
+  attemptId: uuid('attempt_id').references(() => drillAttempts.id, { onDelete: 'cascade' }),
+  call: text('call').notNull(),
+  modelId: text('model_id').notNull(),
+  outcome: text('outcome').notNull(),
+  inputTokens: integer('input_tokens').notNull().default(0),
+  outputTokens: integer('output_tokens').notNull().default(0),
+  cacheWriteTokens: integer('cache_write_tokens').notNull().default(0),
+  cacheReadTokens: integer('cache_read_tokens').notNull().default(0),
+  costUsd: doublePrecision('cost_usd').notNull().default(0),
+  // How long the request took, sent to answered (null on rows from before).
+  latencyMs: integer('latency_ms'),
+  error: text('error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}, t => [index('drill_grading_spend_created_idx').on(t.createdAt), index('drill_grading_spend_set_idx').on(t.setId)]).enableRLS();
 
 export const drillTiers = pgTable('drill_tiers', {
   studentId: uuid('student_id').notNull(),

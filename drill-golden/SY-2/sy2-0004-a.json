@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0004-a",
+  "item_id": "sy2-0004",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Mentions the kitchen only to dismiss it, which is fine (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Move to the smaller office when the lease ends. Only about 15 of 40 desks are used on a typical day, and the smaller space costs $320,000 against $600,000, so the $150,000 move pays back in about 6 months. Staff love the current kitchen, but that shouldn't drive a $280,000-a-year decision. The risk is crowding on busy days, so the next step is to check peak-day desk use and set up desk booking."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0015-d1",
+  "item_id": "sy2-0015",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Hold off on a full launch and pilot it first. Parents buy a new size every 4 months and a quarter of customers say they'd subscribe, but 35% of test subscribers canceled within 3 months, which would sink the economics once we pay $6 for each measuring kit. The main risk of waiting is that a rival launches first. The next step is a 3-month pilot that tests a better fit tool and tracks cancellations."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. Paying subscribers cancel at only 8%, so launch now without the free first pair."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

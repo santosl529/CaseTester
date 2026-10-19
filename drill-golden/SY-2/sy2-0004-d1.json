@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0004-d1",
+  "item_id": "sy2-0004",
+  "drill_id": "SY-2",
+  "answer_type": "borderline",
+  "notes": "Uses the challenge's 36 desks (rule 12), but 'think again about the move' doesn't say what the recommendation becomes (rule 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Move to the smaller office when the lease ends in 8 months. Badge data show only about 15 of 40 desks in use on a typical day, and an office half the size costs $320,000 a year against $600,000, saving $280,000 a year, so the $150,000 move pays back in about 6 months. The main risk is crowding on busy days. The next step is to check desk use on the busiest days and set up desk booking before signing."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. With 36 desks used midweek, a half-size office won't fit everyone, so we should think again about the move."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

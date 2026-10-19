@@ -1,0 +1,42 @@
+{
+  "answer_id": "ps4-0001-b",
+  "item_id": "ps4-0001",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Deleting bucket 2 removes the overlap, but the revenue share paid to the airport is gone: a dropped right part, judged by keeps-right only (rule 4).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Lease and operating costs",
+          "points": [
+            "airport lease",
+            "staff and supplies"
+          ]
+        },
+        {
+          "title": "Traveler demand and spending",
+          "points": [
+            "passengers per day",
+            "spend per traveler"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "existing airport food outlets",
+            "their prices"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,62 @@
+{
+  "answer_id": "ps3-0013-d1",
+  "item_id": "ps3-0013",
+  "drill_id": "PS-3",
+  "answer_type": "short",
+  "notes": "A single pick counts (rule 2); no reason (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Routes",
+          "points": [
+            "number of routes",
+            "stops per route",
+            "combining routes"
+          ]
+        },
+        {
+          "title": "School start times",
+          "points": [
+            "staggering bells so each bus runs more routes"
+          ]
+        },
+        {
+          "title": "Buses and fuel",
+          "points": [
+            "fleet size",
+            "maintenance",
+            "fuel per mile"
+          ]
+        },
+        {
+          "title": "Drivers",
+          "points": [
+            "pay and overtime",
+            "part-time vs full-time"
+          ]
+        },
+        {
+          "title": "Contractors",
+          "points": [
+            "outsourced routes",
+            "contractor rates"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Routes."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,70 @@
+{
+  "item_id": "ps1-0002",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "pricing",
+  "industry": "Tech / SaaS",
+  "prompt": "A software company wants to set the price for a new analytics add-on. The candidate's framework: (1) Engineering time needed to develop it; (2) Value the add-on creates for customers; (3) Prices of competing analytics tools; (4) Cost to build and support the add-on. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Missing: support costs after launch",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Support cost is already in bucket 4, which covers the cost to build and support the add-on. The flaw is that bucket 1 repeats part of bucket 4."
+    },
+    {
+      "id": "b",
+      "text": "Buckets 1 and 4 overlap: engineering time is a building cost",
+      "correct": true,
+      "feedback": "Right. Engineering time is the main cost of building the add-on, so bucket 1 is a slice of bucket 4. Use the slot for fit with the current price tiers."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 3 doesn't belong: the add-on has no exact equivalent",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Customers compare against the closest tools they could buy instead, so competing prices still anchor what they will pay."
+    },
+    {
+      "id": "d",
+      "text": "It's a generic cost-plus approach: it prices from cost, not value",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "The framework includes value to customers (bucket 2) and competitors' prices. It isn't cost-plus. The flaw is the repeated cost bucket."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Engineering time is a slice of the cost to build, so bucket 1 repeats bucket 4. Better: customer value, competing tools' prices, the cost floor, and fit with the current price tiers (will it pull customers down from a higher tier?).",
+  "extras": {
+    "flaw_type": "overlap",
+    "corrected_framework": "Customer value; competing tools' prices; cost floor; fit with existing tiers and cannibalization"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

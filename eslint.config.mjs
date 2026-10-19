@@ -24,6 +24,7 @@ const eslintConfig = defineConfig([
         { type: "agent", pattern: "lib/agent/**", mode: "file" },
         { type: "scoring", pattern: "lib/scoring/**", mode: "file" },
         { type: "voice", pattern: "lib/voice/**", mode: "file" },
+        { type: "drills", pattern: ["lib/drills/**", "components/drills/**"], mode: "file" },
       ],
     },
     rules: {
@@ -40,6 +41,15 @@ const eslintConfig = defineConfig([
               disallow: { to: { type: "voice" } },
               message:
                 "Voice libraries must not be imported by orchestrator, agent, or scoring.",
+            },
+            {
+              // docs/prd-drills.md: text only, and a separate workstream from
+              // the live interview — drills share config and the rubric, not
+              // the interviewer runtime.
+              from: { type: "drills" },
+              disallow: { to: { type: ["voice", "orchestrator", "agent"] } },
+              message:
+                "Drills must not import voice, orchestrator, or agent code.",
             },
           ],
         },

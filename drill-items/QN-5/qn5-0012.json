@@ -1,0 +1,194 @@
+{
+  "item_id": "qn5-0012",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "live",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "industry": "Public / Education / Nonprofit",
+  "prompt": "Estimate annual US spending on college application fees.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "First-year college applicants per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: roughly 3.8M high-school graduates a year, most applying; plus older applicants"
+    },
+    {
+      "id": "2",
+      "text": "High-school graduates per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: about 4M people per year of age, and most finish high school"
+    },
+    {
+      "id": "3",
+      "text": "Share of graduates who apply to college",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most graduates apply somewhere"
+    },
+    {
+      "id": "4",
+      "text": "Applications per applicant",
+      "correct": true,
+      "feedback": "A driver: Reasoning: students commonly apply to 4 to 8 colleges"
+    },
+    {
+      "id": "5",
+      "text": "Average application fee",
+      "correct": true,
+      "feedback": "A driver: Reasoning: fees typically run $40 to $90; some are waived"
+    },
+    {
+      "id": "6",
+      "text": "Number of colleges",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Supply of places, not how many applications are filed"
+    },
+    {
+      "id": "7",
+      "text": "College students enrolled",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Counts all students, not this year's applicants"
+    }
+  ],
+  "numeric": {
+    "answer": 1350000000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "3.8M (first-year college applicants per year) × 6 (applications per applicant) × 60 (average application fee) ≈ $1.37B",
+  "explanation": "3.8M (first-year college applicants per year) × 6 (applications per applicant) × 60 (average application fee) ≈ $1.37B. A believable total is 680M–2.7B (Derived: the central driver values give about $1.37B; the range allows a factor of 2 either way for the least certain driver (applications per applicant)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "4",
+        "5"
+      ],
+      [
+        "2",
+        "3",
+        "4",
+        "5"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 3000000,
+        "high": 4500000,
+        "unit": "applicants",
+        "source": "Reasoning: roughly 3.8M high-school graduates a year, most applying; plus older applicants"
+      },
+      "2": {
+        "low": 3500000,
+        "high": 4000000,
+        "unit": "graduates",
+        "source": "Reasoning: about 4M people per year of age, and most finish high school"
+      },
+      "3": {
+        "low": 0.6,
+        "high": 0.8,
+        "unit": "share",
+        "source": "Reasoning: most graduates apply somewhere"
+      },
+      "4": {
+        "low": 4,
+        "high": 8,
+        "unit": "applications",
+        "source": "Reasoning: students commonly apply to 4 to 8 colleges"
+      },
+      "5": {
+        "low": 40,
+        "high": 80,
+        "unit": "dollars",
+        "source": "Reasoning: fees typically run $40 to $90; some are waived"
+      }
+    },
+    "benchmark": {
+      "low": 680000000,
+      "high": 2700000000,
+      "source": "Derived: the central driver values give about $1.37B; the range allows a factor of 2 either way for the least certain driver (applications per applicant)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-11",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

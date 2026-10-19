@@ -1,0 +1,36 @@
+{
+  "answer_id": "ps4-0011-a",
+  "item_id": "ps4-0011",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Traffic folded into revenue, so no two buckets examine the same thing (rule 7).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue",
+          "points": [
+            "shoppers by store",
+            "spend per visit"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "cost of goods",
+            "labor",
+            "rent"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

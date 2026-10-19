@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0018",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
+  "prompt": "A meal-kit company acquires customers at $90 each. Half cancel within two months, and the average customer orders four boxes with $25 margin each. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Customers likely bring about $100 of margin against $90 to acquire.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This works out the average but explains nothing: the average hides that half of customers cancel within two months."
+    },
+    {
+      "id": "b",
+      "text": "The half who cancel early likely never pay back their $90.",
+      "correct": true,
+      "feedback": "Right. Four boxes at $25 is $100, just above $90, so early cancelers (who order fewer boxes) probably fall well short while loyal customers carry the business. I'd compare lifetime margin for early cancelers and the rest, by acquisition channel."
+    },
+    {
+      "id": "c",
+      "text": "Each box probably loses money once delivery is counted.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Each box earns $25 of margin."
+    },
+    {
+      "id": "d",
+      "text": "Most customers probably order well over four boxes, so churn barely matters.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "The average is four boxes, and half cancel within two months."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows the average customer bringing 4 × $25 = $100 against $90 to acquire, with half cancelling within two months. Likely cause: early cancelers never pay back their $90. To test it, compare lifetime margin for early cancelers and the rest, by acquisition channel. If early cancelers still pay back, the problem is elsewhere.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

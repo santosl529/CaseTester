@@ -1,0 +1,60 @@
+{
+  "answer_id": "ps3-0040-d1",
+  "item_id": "ps3-0040",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "Two buckets, no pick (rule 2); the 40% supports the options it weighs (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Current customers",
+          "points": [
+            "what they will switch to",
+            "our share of their spending"
+          ]
+        },
+        {
+          "title": "Replacement product",
+          "points": [
+            "developing a safer solvent",
+            "approval time",
+            "plant changes"
+          ]
+        },
+        {
+          "title": "New markets",
+          "points": [
+            "other products from the same plants and know-how"
+          ]
+        },
+        {
+          "title": "Acquisitions",
+          "points": [
+            "buying makers of compliant products"
+          ]
+        },
+        {
+          "title": "Time and money",
+          "points": [
+            "five-year timeline",
+            "R&D and capital budget"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Replacement product and acquisitions, because the solvent is 40% of revenue."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

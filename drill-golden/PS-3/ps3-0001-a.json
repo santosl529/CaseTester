@@ -1,0 +1,58 @@
+{
+  "answer_id": "ps3-0001-a",
+  "item_id": "ps3-0001",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "All four areas, each tied to the tire shops, including the critical one (revenue per car). Revenue and cost headings are expected on a profitability case and the sub-points are specific, so no generic-framework flag (rule 11).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue per car",
+          "points": [
+            "price changes",
+            "tire vs repair mix",
+            "fewer add-ons sold"
+          ]
+        },
+        {
+          "title": "Costs per job",
+          "points": [
+            "tire and parts costs",
+            "technician hours"
+          ]
+        },
+        {
+          "title": "Fixed costs",
+          "points": [
+            "rent",
+            "equipment leases",
+            "head office"
+          ]
+        },
+        {
+          "title": "Which shops",
+          "points": [
+            "drop by region or shop",
+            "new vs old shops"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": true,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

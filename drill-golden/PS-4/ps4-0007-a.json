@@ -1,0 +1,50 @@
+{
+  "answer_id": "ps4-0007-a",
+  "item_id": "ps4-0007",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Buckets now judge the industry (rule 10); prices, land, staff and utilities kept.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Demand",
+          "points": [
+            "renters by type",
+            "growth from people moving"
+          ]
+        },
+        {
+          "title": "New supply",
+          "points": [
+            "facilities being built",
+            "land costs"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "how fragmented the industry is",
+            "price wars"
+          ]
+        },
+        {
+          "title": "Returns",
+          "points": [
+            "rent per unit",
+            "occupancy",
+            "staff and utilities"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

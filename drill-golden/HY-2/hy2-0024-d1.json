@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0024-d1",
+  "item_id": "hy2-0024",
+  "drill_id": "HY-2",
+  "answer_type": "off_topic",
+  "notes": "A fix, not a test (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The LEDs are likely saving less than the supplier promised. I'd meter lighting use in a few stores before and after."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: lighting use fell 55% as planned. The plan assumed lighting was 55% of use, not 20%."
+    },
+    {
+      "type": "text",
+      "value": "The retailer should install solar panels to cut its bills."
+    }
+  ],
+  "labels": {
+    "defend_data_request": false,
+    "defend_drop_result": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

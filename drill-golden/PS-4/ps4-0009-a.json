@@ -1,0 +1,42 @@
+{
+  "answer_id": "ps4-0009-a",
+  "item_id": "ps4-0009",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Net retention bucket removed (rule 7).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "New customers",
+          "points": [
+            "deals won",
+            "sales cycle length"
+          ]
+        },
+        {
+          "title": "Expansion",
+          "points": [
+            "upsells to existing customers",
+            "price increases"
+          ]
+        },
+        {
+          "title": "Churn",
+          "points": [
+            "customers lost",
+            "downgrades by segment"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

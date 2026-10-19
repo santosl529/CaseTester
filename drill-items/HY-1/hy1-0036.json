@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0036",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Consumer / CPG",
+  "prompt": "A craft brewery's sales in bars fell 10%, while its supermarket sales rose 25%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Bar sales have likely fallen while supermarket sales grew.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This restates the facts without proposing a cause."
+    },
+    {
+      "id": "b",
+      "text": "People are probably drinking less of the brewery's beer overall.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Supermarket sales rose 25%."
+    },
+    {
+      "id": "c",
+      "text": "Bars are in decline, so the brewery should stop selling to them.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a trend as certain and jumps to a drastic action before any data."
+    },
+    {
+      "id": "d",
+      "text": "Drinking may be moving from bars to home.",
+      "correct": true,
+      "feedback": "Right. Opposite trends by channel suggest a shift in where people drink. I'd compare the brewery's trends with category trends in each channel."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows bar sales down 10% and supermarket sales up 25%. Likely cause: drinking is moving from bars to home. To test it, compare the brewery's trends with category trends in each channel. If the category isn't shifting, the brewery's bar sales have a cause of their own.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

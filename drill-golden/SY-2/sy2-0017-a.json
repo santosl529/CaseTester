@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0017-a",
+  "item_id": "sy2-0017",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Add dog training before opening new cities. 45% of customers say they'd book training, and each session earns us $25 against $8 for pet-sitting, with no $500,000 city launch. The risk is that vetting trainers takes 3 weeks each, so the next step is to vet 20 trainers in our busiest city and launch there."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

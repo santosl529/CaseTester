@@ -1,0 +1,171 @@
+{
+  "item_id": "qn5-0029",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "industry": "Other",
+  "prompt": "Estimate yearly US spending on routine veterinary care for horses.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Horses in the US",
+      "correct": true,
+      "feedback": "A driver: Reasoning: about 2% of 130M households keep horses, two or three each ≈ 6.5M"
+    },
+    {
+      "id": "2",
+      "text": "Share of horses getting routine vet care each year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: vaccines and checkups are standard; some horses get little care"
+    },
+    {
+      "id": "3",
+      "text": "Average routine vet spend per horse per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: vaccines, dental work and checkups"
+    },
+    {
+      "id": "4",
+      "text": "Horse-owning households",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same horses through their owners"
+    },
+    {
+      "id": "5",
+      "text": "Number of equine vets",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Supply, not how much care is bought"
+    },
+    {
+      "id": "6",
+      "text": "Average price of a horse",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "What horses cost to buy, not to care for"
+    }
+  ],
+  "numeric": {
+    "answer": 2994750000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "6.6M (horses in the US) × 0.85 (share of horses getting routine vet care each year) × 500 (average routine vet spend per horse per year) ≈ $2.81B",
+  "explanation": "6.6M (horses in the US) × 0.85 (share of horses getting routine vet care each year) × 500 (average routine vet spend per horse per year) ≈ $2.81B. A believable total is 1.4B–5.6B (Derived: the central driver values give about $2.81B; the range allows a factor of 2 either way for the least certain driver (average routine vet spend per horse per year)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 6000000,
+        "high": 7200000,
+        "unit": "horses",
+        "source": "Reasoning: about 2% of 130M households keep horses, two or three each ≈ 6.5M"
+      },
+      "2": {
+        "low": 0.7,
+        "high": 0.95,
+        "unit": "share",
+        "source": "Reasoning: vaccines and checkups are standard; some horses get little care"
+      },
+      "3": {
+        "low": 300,
+        "high": 800,
+        "unit": "dollars",
+        "source": "Reasoning: vaccines, dental work and checkups"
+      }
+    },
+    "benchmark": {
+      "low": 1400000000,
+      "high": 5600000000,
+      "source": "Derived: the central driver values give about $2.81B; the range allows a factor of 2 either way for the least certain driver (average routine vet spend per horse per year)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-11",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

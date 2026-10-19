@@ -1,0 +1,57 @@
+{
+  "answer_id": "ps3-0016-a",
+  "item_id": "ps3-0016",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Covers the critical area: costs set against the rental price (rule 4). Getting bags back covers logistics. Misses competition.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Who rents",
+          "points": [
+            "people who travel once or twice a year",
+            "families on long trips"
+          ]
+        },
+        {
+          "title": "Cost per rental",
+          "points": [
+            "two-way shipping",
+            "cleaning",
+            "repairs vs rental price"
+          ]
+        },
+        {
+          "title": "Getting bags back",
+          "points": [
+            "late returns",
+            "damage deposits"
+          ]
+        },
+        {
+          "title": "Brand",
+          "points": [
+            "renters who later buy"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": false,
+    "cover_4": true,
+    "cover_5": true,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

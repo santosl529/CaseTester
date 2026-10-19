@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0001-d1",
+  "item_id": "hy2-0001",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Metric plus a comparison; a result that would reject it (rules 7, 8).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With revenue and repairs flat, profit likely fell because each repair costs more to do, most likely more mechanic time per job. I'd compare labor hours and parts cost per repair with last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: parts and pay are flat, but each repair takes 30% longer, so labor cost per repair rose."
+    },
+    {
+      "type": "text",
+      "value": "Labor hours per repair for e-bikes against regular bikes. If e-bike repairs take no longer than others, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

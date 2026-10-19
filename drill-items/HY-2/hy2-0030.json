@@ -1,0 +1,235 @@
+{
+  "item_id": "hy2-0030",
+  "version": 2,
+  "drill_id": "HY-2",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "HY.form",
+    "HY.update"
+  ],
+  "case_type": "operations",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A theme park's average ride wait rose from 20 to 35 minutes this season, while attendance was flat.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "steps": [
+      {
+        "type": "free_text",
+        "weight": 0.6,
+        "label": "Your hypothesis, and why",
+        "max_words": 50,
+        "time_limits_s": [
+          90,
+          75,
+          60
+        ]
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.25,
+        "label": "Given the new fact, what do you do with your hypothesis?",
+        "choices": [
+          {
+            "id": "keep",
+            "text": "Keep my hypothesis"
+          },
+          {
+            "id": "revise",
+            "text": "Revise it"
+          },
+          {
+            "id": "drop",
+            "text": "Drop it"
+          }
+        ],
+        "time_limits_s": [
+          60,
+          45,
+          35
+        ]
+      },
+      {
+        "type": "free_text",
+        "weight": 0.15,
+        "label": "Why? If you revise it, give the revised hypothesis.",
+        "max_words": 30
+      }
+    ]
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "directional",
+      "question": "Does the hypothesis name a specific likely cause, either one of the listed hypothesis families or another specific cause consistent with the facts?",
+      "weight": 0.15,
+      "fail_tag": "M.restates_facts",
+      "feedback": "Name a specific likely cause, not a restatement of what happened.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "evidence_based",
+      "question": "Does the hypothesis use at least one of the facts given in the question? Quote the student's own words that use it, not the question.",
+      "weight": 0.15,
+      "fail_tag": "M.ignores_facts",
+      "feedback": "Tie the hypothesis to the facts you were given.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "testable",
+      "question": "Is it clear what data would confirm or reject the hypothesis?",
+      "weight": 0.15,
+      "fail_tag": "M.untestable_hypothesis",
+      "feedback": "Say what data would confirm or reject it.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "tentative",
+      "question": "Is the hypothesis framed as something to verify, while still committing to one direction?",
+      "weight": 0.15,
+      "fail_tag": "M.overconfident_hypothesis",
+      "feedback": "Frame it as something to test, not a conclusion.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "update_reason",
+      "question": "Does the stage 2 explanation use the new fact (\"Three of the park's 12 major rides were closed for repairs for most of the season. The rides that were open ran at normal capacity.\"), its content or a number from it, and draw a conclusion from it about the hypothesis? Any of these counts as a conclusion: naming the cause the fact points to (\"so it's the rainy days\", \"the issue is that 40% of stores ran out\"), saying what the fact does to the mechanism (\"so fewer ambulances are free\", \"cutting capacity\"), or saying whether it supports the hypothesis (\"which confirms it\"). Restating the fact with no conclusion fails.",
+      "weight": 0.15,
+      "fail_tag": "M.sticky_hypothesis",
+      "feedback": "Use the new fact to explain your decision.",
+      "step": 2,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "restates_facts",
+      "definition": "Stage 1 only restates the facts and names no cause.",
+      "cap": 0.3,
+      "tag": "M.restates_facts",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "three_plus_causes",
+      "definition": "Stage 1 lists three or more causes without picking one.",
+      "cap": 0.5,
+      "tag": "M.shotgun_hypotheses",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "Stage 1 offers no cause for what happened: it proposes a fix or answers a different question.",
+      "cap": 0.2,
+      "tag": "M.no_hypothesis",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    }
+  ],
+  "model_answer": "Stage 1: With attendance flat, longer waits likely mean fewer rides are running, so the same crowds share less capacity. I'd check each ride's operating days this season against last.\nStage 2: Keep: three of 12 major rides were closed for most of the season, so the same crowds share fewer rides.",
+  "explanation": "The new fact: Three of the park's 12 major rides were closed for repairs for most of the season. The rides that were open ran at normal capacity. More visitors: drop (Attendance was flat). Fewer rides open: keep (Three of 12 major rides were closed most of the season). Slower ride operations: drop (Open rides ran at normal capacity).",
+  "extras": {
+    "families": [
+      {
+        "family": "More visitors",
+        "description": "Bigger crowds",
+        "actions": [
+          "drop"
+        ],
+        "reason": "Attendance was flat"
+      },
+      {
+        "family": "Fewer rides open",
+        "description": "Closed rides cut capacity",
+        "actions": [
+          "keep"
+        ],
+        "reason": "Three of 12 major rides were closed most of the season"
+      },
+      {
+        "family": "Slower ride operations",
+        "description": "Rides load fewer riders per hour",
+        "actions": [
+          "drop"
+        ],
+        "reason": "Open rides ran at normal capacity"
+      }
+    ],
+    "new_fact": "Three of the park's 12 major rides were closed for repairs for most of the season. The rides that were open ran at normal capacity.",
+    "grading_rules": [
+      "Directional: the cause says what changed and through which driver (\"customers buy fewer units per visit\"). A generic cause (\"operational problems\", \"market conditions\", \"costs went up\") is not directional, and neither is the facts re-stated as a ratio (\"fewer appointments end in a sale\", \"revenue per customer fell\").",
+      "Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails.",
+      "Testable: it names the data or comparison that would confirm or reject it (\"units per customer by month\"). \"Look into it\" or \"analyze the data\" is not enough.",
+      "Tentative: it is framed as something to check (\"likely\", \"my hypothesis is\", \"I would test\") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.",
+      "Update reason: it uses the new fact (its content or its number) and draws a conclusion from it. Any of these counts: naming the cause the fact points to (\"so it's the rainy days\", \"the issue is that 40% of stores ran out\"), saying what the fact does to the mechanism (\"so fewer ambulances are free\", \"cutting capacity\"), or saying whether it supports the hypothesis (\"which confirms it\"). A conclusion that misreads the fact still counts here, since the decision check catches the wrong update. Restating the fact with no conclusion fails, restating the decision (\"I keep it because it still makes sense\") fails, and so does a fix with no hypothesis behind it (\"so reopen them\").",
+      "Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. Even a bare label names a mechanism (\"price elasticity\" is a price cause). If it names a lead cause and a backup, use the lead for the family and report the backup's family as backup_family; when causes are joined by \"or\", the first is the lead. If it names several causes and none leads, the family is \"other\" and there is no backup.",
+      "Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null,
+  "defend": {
+    "type": "justify",
+    "text": "What data would you ask for first to test your hypothesis, and what result would make you drop it?",
+    "checks": [
+      {
+        "check_id": "defend_data_request",
+        "question": "Does the reply name specific data: a metric plus at least one of a cut, a comparison or a time period? Judge only that; whether the data fits the hypothesis is for the other checks.",
+        "weight": 0.4,
+        "fail_tag": "M.untestable_hypothesis",
+        "feedback": "Name the specific data you would ask for.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_drop_result",
+        "question": "Does the reply state a result that would make the student drop the hypothesis?",
+        "weight": 0.35,
+        "fail_tag": "M.untestable_hypothesis",
+        "feedback": "Say what result would make you drop it.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Do the reply's data request and drop result test the same cause as the student's hypothesis as it stands after stage 2? A vague request or a result that would confirm it is judged by the other checks, not here.",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Test your own hypothesis, not a different one.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Waits by ride on days all 12 rides ran against days three were closed. If waits were as long on full days, I'd drop it."
+  }
+}

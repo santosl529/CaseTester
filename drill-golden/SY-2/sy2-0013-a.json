@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0013-a",
+  "item_id": "sy2-0013",
+  "drill_id": "SY-2",
+  "answer_type": "borderline",
+  "notes": "Uses three relevant facts (margin, shipping, certificate), so reasons pass (rule 2). Germany's size is offered as a reason to keep going, not as a risk to the recommendation (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Don't ship to Germany yet. On a £35 order at a 40% margin we make £14, and German shipping is £14 plus £3 for the health certificate, so each order loses about £3. Germany's market is twice ours, so next I'd get quotes from a German grower to fulfil orders locally."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": false,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

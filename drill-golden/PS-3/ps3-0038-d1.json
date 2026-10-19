@@ -1,0 +1,66 @@
+{
+  "answer_id": "ps3-0038-d1",
+  "item_id": "ps3-0038",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the record attendance and the $25M swing (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Matchday revenue",
+          "points": [
+            "ticket prices",
+            "hospitality",
+            "spending per fan"
+          ]
+        },
+        {
+          "title": "Other revenue",
+          "points": [
+            "TV rights",
+            "sponsors",
+            "merchandise",
+            "prize money"
+          ]
+        },
+        {
+          "title": "Player costs",
+          "points": [
+            "wages",
+            "transfer fees spread over contracts"
+          ]
+        },
+        {
+          "title": "Other costs",
+          "points": [
+            "stadium",
+            "travel",
+            "staff"
+          ]
+        },
+        {
+          "title": "What changed",
+          "points": [
+            "league finish",
+            "new contracts",
+            "one-off items"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Player costs. Attendance hit a record, so the $25M swing must come from wages or transfer fees."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

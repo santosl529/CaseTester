@@ -1,0 +1,25 @@
+{
+  "case_attempt_id": "ca_81f2",
+  "student_id": "6f1c2a7e-3b4d-4e5f-8a9b-0c1d2e3f4a5b",
+  "case_id": "prof-001",
+  "case_type": "market_entry",
+  "difficulty_tier": 2,
+  "completed_at": "2026-10-05T18:22:00Z",
+  "taxonomy_version": "v1",
+  "rubric_scores": { "structure": "needs_work", "quantitative": "meets_bar", "synthesis": "strong" },
+  "skills_observed": ["PS.mece", "QN.setup", "SY.answer_first"],
+  "findings": [
+    {
+      "tag": "M.wrong_formula",
+      "severity": "major",
+      "turn_ids": [14, 15],
+      "evidence": "so breakeven is two million divided by fifty dollars"
+    },
+    {
+      "tag": "M.generic_framework",
+      "severity": "minor",
+      "turn_ids": [4],
+      "evidence": "I'd look at revenue and costs"
+    }
+  ]
+}

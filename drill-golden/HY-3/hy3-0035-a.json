@@ -1,0 +1,21 @@
+{
+  "answer_id": "hy3-0035-a",
+  "item_id": "hy3-0035",
+  "drill_id": "HY-3",
+  "answer_type": "borderline",
+  "notes": "Now framed as something to test with the fix dropped (flaw 2, rule 12), but 'leaving' still doesn't fit 50% more new customers or the 60% drop that $40 a month explains (flaw 1, rule 12).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Customers probably see the subscription as worse value and are leaving. I'd check renewal rates by month."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

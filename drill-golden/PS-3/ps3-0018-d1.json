@@ -1,0 +1,52 @@
+{
+  "answer_id": "ps3-0018-d1",
+  "item_id": "ps3-0018",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the known wedding count to show the fee is what decides the total (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Weddings",
+          "points": [
+            "weddings per year"
+          ]
+        },
+        {
+          "title": "Share hiring a photographer",
+          "points": [
+            "professionals vs friends",
+            "small ceremonies"
+          ]
+        },
+        {
+          "title": "Spend per wedding",
+          "points": [
+            "budget, mid-range and luxury packages",
+            "albums and extras"
+          ]
+        },
+        {
+          "title": "Check",
+          "points": [
+            "photographers × weddings each × average fee"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Spend per wedding. About 2 million weddings a year is known, so the fee decides the dollar total."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,231 @@
+{
+  "item_id": "cl3-0034",
+  "version": 3,
+  "drill_id": "CL-3",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "CL.data_requests"
+  ],
+  "case_type": "investment_decision",
+  "industry": "Energy / Utilities",
+  "prompt": "A coastal city is deciding whether to build a $300M desalination plant.\n\nWhat information would you ask for, and where would you start?",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 60
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "breaks_into_drivers",
+      "question": "Does the answer break the metric into its drivers?",
+      "weight": 0.25,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Break the metric into its drivers before asking for data.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_1",
+      "question": "Does the answer cover Cost of other water sources (Cost of conservation, reuse or imports)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Cost of other water sources.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_2",
+      "question": "Does the answer cover Demand growth (Water demand forecasts)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Demand growth.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_3",
+      "question": "Does the answer cover Plant cost (Plant cost per cubic meter)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Plant cost.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_4",
+      "question": "Does the answer cover Energy prices (Power costs to run the plant)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Energy prices.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "states_where_to_start",
+      "question": "Does the answer say where to start?",
+      "weight": 0.15,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Say where you would start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "reason_for_start",
+      "question": "Does the answer give a reason for starting there?",
+      "weight": 0.1,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Give a reason for where you start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "specific_requests",
+      "question": "Judge only the data the answer asks to see, not the drivers it lists to break the metric down (\"profit is revenue minus marketing and content costs\" is a breakdown, not a request). Does every data request name a specific measure, and does the first one also include a cut, a comparison or a time period (\"marketing spend per new student by channel for two years\")?",
+      "weight": 0.25,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "Make requests specific, like: Cost per cubic meter of desalination against conservation, reuse and imported water; water demand forecasts by year.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "solution_before_diagnosis",
+      "definition": "The answer proposes solutions before diagnosing the problem.",
+      "cap": 0.5,
+      "tag": "M.premature_solution",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "six_plus_unstructured_requests",
+      "definition": "The answer lists six or more data requests with no structure.",
+      "cap": 0.5,
+      "tag": "M.laundry_list",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.vague_data_request",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "missed_critical_driver",
+      "definition": "The answer misses the critical driver: Cost of other water sources or Demand growth.",
+      "cap": 0.6,
+      "tag": "M.vague_data_request",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "The decision turns on demand growth, the cost of other sources, the plant's cost, and the price of the power it would run on. I'd start with cost per cubic meter by water source (desalination, conservation, reuse, imports) over the next 20 years, since cheaper sources may meet demand.",
+  "explanation": "Drivers: Cost of other water sources, Demand growth, Plant cost, Energy prices. Start with Cost of other water sources (or demand growth): The plant is worth it only if cheaper sources can't meet demand, and only if demand will outgrow current supply. Specific: Cost per cubic meter of desalination against conservation, reuse and imported water; water demand forecasts by year. Vague: Water information; cost data.",
+  "extras": {
+    "drivers": [
+      {
+        "driver": "Cost of other water sources",
+        "what_counts": "Cost of conservation, reuse or imports",
+        "critical": true
+      },
+      {
+        "driver": "Demand growth",
+        "what_counts": "Water demand forecasts",
+        "critical": true
+      },
+      {
+        "driver": "Plant cost",
+        "what_counts": "Plant cost per cubic meter",
+        "critical": false
+      },
+      {
+        "driver": "Energy prices",
+        "what_counts": "Power costs to run the plant",
+        "critical": false
+      }
+    ],
+    "best_starting_point": "Cost of other water sources (or demand growth)",
+    "critical_checks": [
+      "driver_1",
+      "driver_2"
+    ],
+    "grading_rules": [
+      "Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.",
+      "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
+      "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
+      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). The reason can come before the starting point (\"The list grows when operations fall behind referrals, so I'd start with operations per week\"). \"Because it's important\" fails.",
+      "Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down (\"profit is revenue minus marketing and content costs\", \"I'd look at price, mix and costs\") are the breakdown, not requests. Every data request must name a specific measure (\"the share of applications sent back\"); a request that names none (\"information about costs\") fails the check. The first request must also include a cut, a comparison or a time period (\"ingredient cost per cup by month for two years\").",
+      "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
+      "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",
+      "Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-17",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null,
+  "defend": {
+    "type": "justify",
+    "text": "If that first analysis comes back flat, what would you look at next, and why?",
+    "checks": [
+      {
+        "check_id": "defend_answers",
+        "question": "Does the reply answer the follow-up and commit to one choice?",
+        "weight": 0.35,
+        "fail_tag": "M.dodged_question",
+        "feedback": "Answer the question asked, and pick one.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reply give a reason that uses a fact from the case supporting what it picks?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Back your choice with a fact from the case that supports it.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own main answer?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own answer.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Demand growth. If other sources cost about the same as desalination, the $300M plant only makes sense if demand outgrows them, so I'd check 20-year demand forecasts."
+  }
+}

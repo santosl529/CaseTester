@@ -1,0 +1,74 @@
+{
+  "item_id": "sy1-0030",
+  "version": 3,
+  "drill_id": "SY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "industry_analysis",
+  "industry": "Consumer / CPG",
+  "prompt": "The client asks: \"Should we invest in the home fitness equipment industry?\" Fact sheet: industry sales fell 30% in each of the last two years; inventories are high; prices are falling 10% a year; the major players' margins fell from 20% to 2%; the industry's best-known brand has 5 million app subscribers. Which is the best recommendation?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Invest now. The best-known brand has 5 million app subscribers, a loyal base that will keep buying.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "A subscriber count doesn't fix the economics. Sales fell 30% in each of the last two years, and margins fell from 20% to 2%."
+    },
+    {
+      "id": "b",
+      "text": "Don't invest now. Sales fell 30% in both of the last two years, and margins are down from 20% to 2%.",
+      "correct": true,
+      "feedback": "Right. It leads with the answer and backs it with the industry's numbers."
+    },
+    {
+      "id": "c",
+      "text": "Invest now. With margins at 2%, profit is low and businesses are cheap, so it's a good time to buy in.",
+      "correct": false,
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "Nothing shows the bottom has come: inventories are high and prices are still falling 10% a year."
+    },
+    {
+      "id": "d",
+      "text": "The industry is in a downturn but may recover. Investing now has both upside and downside.",
+      "correct": false,
+      "tag": "M.hedged_recommendation",
+      "feedback": "This never commits."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Full answer: Don't invest in the industry now. Sales fell 30% in each of the last two years, prices are falling 10% a year, and major players' margins are down from 20% to 2%. The main risk is that we miss the bottom of the cycle, so the next step is to watch for inventories to clear and margins to recover before revisiting. What would change the answer: inventories clearing and prices stabilizing.",
+  "extras": {
+    "answer_type": "recommendation",
+    "irrelevant_facts": [
+      "The industry's best-known brand has 5 million app subscribers."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}
