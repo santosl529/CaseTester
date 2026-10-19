@@ -137,6 +137,21 @@ describe('vetoReason on an acknowledged turn', () => {
     allowedTexts: ['COGS is 58% of revenue.'], verified: [], alreadyProbed: new Set(), flaggedThisTurn: false,
     openItems: [], phase: 'ANALYSIS', acknowledged: true, candidateMessage: "I'd look at costs first, so COGS.", ...over,
   });
+  // Session 9a2c19eb t4 (19 Oct): "Take your time. Of course. Whenever you're
+  // ready, …" — the stuck filler already granted the pause; a sentence that only
+  // grants it again is the same acknowledgment twice.
+  it('after the stuck filler, a sentence that only grants the pause is a double acknowledgment', () => {
+    for (const ackText of ['Take your time.', 'Sure, take a moment.']) {
+      for (const s of ['Of course.', 'No problem.', 'Sure.', 'Of course, take your time.', 'No worries, take all the time you need.']) {
+        expect(vetoReason(s, g({ ackText, candidateMessage: 'Wait. Can you give me a second?' })), `${ackText} → ${s}`).toBe('double_ack');
+      }
+    }
+    // Not after a thinking filler, and never a question or a sentence with content.
+    expect(vetoReason('Of course.', g({ ackText: 'Hmm…', candidateMessage: 'Wait. Can you give me a second?' }))).not.toBe('double_ack');
+    expect(vetoReason('Of course — are you ready?', g({ ackText: 'Take your time.', candidateMessage: 'Wait.' }))).not.toBe('double_ack');
+    expect(vetoReason('Of course, the store count is in the prompt.', g({ ackText: 'Take your time.', candidateMessage: 'Wait.' }))).not.toBe('double_ack');
+  });
+
   it('drops an echo on a voice turn, acknowledged or not (17 Oct), never on a text turn', () => {
     expect(vetoReason('A COGS-first read.', g())).toBe('echo_after_ack');
     expect(vetoReason('A COGS-first read.', g({ acknowledged: false, voice: true }))).toBe('echo_after_ack');

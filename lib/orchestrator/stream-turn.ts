@@ -62,11 +62,21 @@ export type GateContext = {
 
 // A short sentence whose every word is in the filler just said ("Take your
 // time." after "Take your time."; "Take a moment." after "Sure, take a moment.").
+// After the stuck filler ("Take your time.", "Sure, take a moment."), which
+// grants the pause, a short sentence that only grants it again ("Of course.",
+// "No problem.", "Of course, take your time.") is the same acknowledgment twice
+// (session 9a2c19eb t4, 19 Oct).
+const STUCK_ACK = /\btake (?:your time|a moment)\b/i;
+const GRANT_WORDS = new Set(['of', 'course', 'no', 'problem', 'worries', 'sure', 'absolutely', 'certainly', 'okay', 'ok', 'yes', 'yeah', 'go', 'ahead',
+  'take', 'your', 'time', 'a', 'moment', 'all', 'the', 'you', 'need']);
+
 export function repeatsAck(sentence: string, ack: string): boolean {
   const words = (t: string) => t.toLowerCase().replace(/[‘’]/g, "'").match(/[a-z']+/g) ?? [];
   const mine = words(sentence);
   const theirs = new Set(words(ack));
-  return mine.length > 0 && mine.length <= 5 && !sentence.trim().endsWith('?') && mine.every(w => theirs.has(w));
+  if (mine.length === 0 || sentence.trim().endsWith('?')) return false;
+  if (mine.length <= 5 && mine.every(w => theirs.has(w))) return true;
+  return STUCK_ACK.test(ack) && mine.length <= 8 && mine.every(w => GRANT_WORDS.has(w) || theirs.has(w));
 }
 
 // "not 38", "isn't 38%", "rather than 38", "instead of about 38" — a figure negated.
