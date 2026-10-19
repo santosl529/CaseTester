@@ -172,6 +172,28 @@ export function caseNumbersOf(caseData: Pick<CheckerCase, 'prompt' | 'dataLedger
   return numbersOf([caseData.prompt, ...texts, ...changeFigures(texts)].join(' '));
 }
 
+// The wrong input a claim is built on (Lorenzo, 19 Oct, §15 o; batch 32
+// Aldermoor Marisol: $400M and $80M, built on her wrong 200,000 patients and
+// $2,000 net price, took probes of their own while the $2,000 went unasked). A case's
+// math steps name ledger inputs, not upstream steps, so the link is the wrong
+// figure itself, carried in the claim's span: a figure of another step's
+// registered error key (stepOfKey differs), stated no later than the claim
+// (its first message, then the order registered) — not a case figure (a quote
+// of the data) and not one of the claim's own figures (its result, or the
+// root's figure said again under another binding). Several roots: the
+// earliest. Returns the root's key, or null.
+export function rootOf(span: string, key: string, keys: Record<string, CheckerKeyEntry>, caseFigures: number[]): string | null {
+  const at = key.lastIndexOf('@');
+  const own = [...(keys[key]?.figures ?? []), ...(at < 0 ? [] : [Number(key.slice(at + 1))]).filter(n => !Number.isNaN(n))];
+  const carried = numbersOf(normalizeNumberWords(span)).filter(n => !caseFigures.some(x => same(n, x)) && !own.some(x => same(n, x)));
+  if (carried.length === 0) return null;
+  const order = Object.keys(keys);
+  const before = (k: string) => keys[key] === undefined
+    || keys[k].since < keys[key].since || (keys[k].since === keys[key].since && order.indexOf(k) < order.indexOf(key));
+  const roots = order.filter(k => k !== key && stepOfKey(k) !== stepOfKey(key) && before(k) && keys[k].figures.some(f => carried.some(n => same(n, f))));
+  return roots.sort((a, b) => keys[a].since - keys[b].since || order.indexOf(a) - order.indexOf(b))[0] ?? null;
+}
+
 // Lorenzo, 13 Oct (approved): a flag is raised only
 // while at most this many candidate messages have followed the claim — held
 // longer (a code flag took every turn), it expires to the report (replay:
@@ -313,7 +335,7 @@ export function probesOf(figs: number[], interviewerTexts: string[], candidateFi
 
 export type CheckerRow = { category?: string; subtype: string; turnIndex: number | null; payloadJsonb: unknown };
 
-export type CheckerOutcome = 'probe' | 'correct' | 'converted' | 'pointer' | 'hint' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close' | 'undelivered';
+export type CheckerOutcome = 'probe' | 'correct' | 'converted' | 'pointer' | 'hint' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close' | 'undelivered' | 'derived';
 
 // Whether the delivered text holds the checker's line (Lorenzo, 15 Oct): case,
 // quotes, dashes and spacing aside — a paraphrase is not the vetted line.
@@ -567,6 +589,31 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       eligible.push({ id, n: v.candidateTurnIndex, c, key, figs, codeProbed: Boolean(codeFlag) });
     });
   }
+  // A claim built on another error's figure yields to it (rootOf): while the
+  // root is open the probe follows the input; once it closed (corrected, or
+  // left for the report) the claim goes to the report too. The flag is the
+  // key, so a claim restating a figure another claim of its key built on the
+  // input is built on it too (Marisol t19: "with peak at $80 million" after
+  // t17's "40,000 × $2,000 = $80 million"). A root whose every claim here is
+  // itself built on another follows that one; a held line keeps its turn.
+  const all = [...eligible];
+  const ofKey = (key: string, id: string) => flaggedSoFar.filter(f => f.id !== id && (checkerKey(f.c) === key || flagKeyFor(f.c, idFigsOf(f.c), keys) === key));
+  const direct = new Map(all.map(e => [e.id, e.id === p.held ? null
+    : rootOf(e.c.span, e.key, keys, caseNumbers) ?? ofKey(e.key, e.id).map(f => rootOf(f.c.span, e.key, keys, caseNumbers)).find(r => r !== null) ?? null]));
+  const rootFrom = (key: string, depth = 0): string => {
+    const holders = all.filter(e => e.key === key);
+    const next = holders.length > 0 && holders.every(h => direct.get(h.id)) ? direct.get(holders[0].id)! : null;
+    return next && depth < 8 ? rootFrom(next, depth + 1) : key;
+  };
+  for (const e of all) {
+    const first = direct.get(e.id);
+    if (!first) continue;
+    const root = rootFrom(first);
+    const isClosed = closed.has(first) || closed.has(root);
+    decisions.push(decision(e.id, e.n, e.c, isClosed ? 'unresolved' : 'derived', isClosed ? `built on a closed input (${root})` : `built on ${root}'s figure — the probe follows the input`, undefined, e.key));
+    handled.add(e.id);
+    eligible.splice(eligible.indexOf(e), 1);
+  }
   for (const r of reopened) if (!eligible.some(e => e.key === r.key)) eligible.push({ id: r.id, n: r.n, c: r.c, key: r.key, figs: r.figs });
   // One checker probe a turn, conclusion-changing first; none beside a
   // deterministic flag on this message (that is the turn's probe) or a
@@ -636,7 +683,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
 // must agree with one of them or a change they imply — the agreement rule of
 // corrections, 3% or 0.5 — so a flag on another reading of the claim releases
 // nothing.
-export type GateOutcome = 'released' | 'checker_correct' | 'not_rated' | 'checker_disagrees' | 'stale' | 'expired';
+export type GateOutcome = 'released' | 'checker_correct' | 'not_rated' | 'checker_disagrees' | 'stale' | 'expired' | 'derived';
 export type GateDecision = {
   id: string; candidateTurnIndex: number; key: string; value: number; span: string;
   finding: CodeFinding; outcome: GateOutcome; reason: string;
@@ -664,10 +711,13 @@ export function gateCodeFindings(p: {
   finalAnswer?: (candidateTurnIndex: number) => boolean;
   // The right figures code's line on the finding states, or null: no figure to agree on (the flag is enough).
   codeFigures?: (f: CodeFinding) => number[] | null;
+  // The checker's raised flags and the closed ones (plan-turn's checker memory): a finding on a claim built on one of them yields (rootOf).
+  keys?: Record<string, CheckerKeyEntry>; closed?: string[];
 }): { released: ReleasedFinding[]; decisions: GateDecision[] } {
   const handled = new Set(p.handled);
   const released: ReleasedFinding[] = [];
   const decisions: GateDecision[] = [];
+  const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
   const verdicts = p.rows
     .filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'verdict')
     .map(r => r.payloadJsonb as VerdictPayload)
@@ -699,6 +749,11 @@ export function gateCodeFindings(p: {
       const stale = isStale(flagged, later, p.caseData, p.revealedIds);
       if (stale) { decide('stale', stale); return; }
       if (later.length > CHECKER_MAX_WAIT_MESSAGES && !p.finalAnswer?.(v.candidateTurnIndex)) { decide('expired', `${later.length} messages since the claim`); return; }
+      // Built on a raised error's figure (Lorenzo, 19 Oct, §15 o): the probe follows the input, as the checker's own flag does.
+      const own = checkerKey(flagged);
+      const keys = { ...(p.keys ?? {}), ...(p.keys?.[own] ? {} : { [own]: { figures: claimFigures(flagged, caseNumbers), since: v.candidateTurnIndex } }) };
+      const root = rootOf(flagged.span, own, keys, caseNumbers);
+      if (root) { decide('derived', (p.closed ?? []).includes(root) ? `built on a closed input (${root})` : `built on ${root}'s figure — the probe follows the input`); return; }
       decide('released', `the checker flags "${flagged.candidateValue}"`);
     });
   }

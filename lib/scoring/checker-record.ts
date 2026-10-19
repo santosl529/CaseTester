@@ -56,6 +56,9 @@ function outcomeText(outcomes: CheckerDecision[]): string {
   if (has('shed')) return 'Not raised in the interview (minor, under time pressure).';
   if (has('unresolved_at_close')) return 'Not raised in the interview (the case closed first).';
   if (has('undelivered')) return 'Not raised in the interview (another line took the question).';
+  // Built on another wrong figure (Lorenzo, 19 Oct, §15 o): the interview took up the input, not this claim.
+  const built = outcomes.find(d => d.outcome === 'derived' || (d.outcome === 'unresolved' && /^built on a closed input/.test(d.reason)));
+  if (built) return 'Not raised on its own: it is built on an earlier wrong figure of theirs, which the interview took up instead.';
   // Past Rule 14 (Lorenzo, 13 Oct): probed twice with nothing code could correct, or a restatement of an error already handled.
   const unresolved = has('unresolved');
   if (unresolved && /restated after the flag closed/.test(unresolved.reason)) return 'Restated after it had been probed or corrected.';

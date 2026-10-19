@@ -38,6 +38,11 @@ describe('the judge reads the checker\'s flags and what became of them', () => {
     expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'unresolved', { reason: 'attempt 3: no correction code can write, no pointer — left for the report' })])).toContain('Probed twice; not corrected — left for this report.');
     expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'unresolved', { reason: 'restated after the flag closed (corrected, or left for the report)' })])).toContain('Restated after it had been probed or corrected.');
   });
+  it('built on an earlier wrong figure (Lorenzo, 19 Oct): derived, or closed with its input', () => {
+    const text = 'Not raised on its own: it is built on an earlier wrong figure of theirs, which the interview took up instead.';
+    expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'derived', { reason: "built on net_price@2000's figure — the probe follows the input" })])).toContain(text);
+    expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'unresolved', { reason: 'built on a closed input (net_price@2000)' })])).toContain(text);
+  });
   it('probed twice, the second time with a hint (Lorenzo, 13 Oct: the two-step probe)', () => {
     expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'probe'), flag('3:0', 'hint')])).toContain('Probed twice (the second time with a hint); not corrected.');
   });

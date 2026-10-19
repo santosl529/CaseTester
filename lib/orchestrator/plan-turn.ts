@@ -468,6 +468,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const gate = gateCodeFindings({
     rows: checkerRows, handled: gateMemory.handled ?? [], turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     caseData, revealedIds: revealedIdsNow, finalAnswer, codeFigures,
+    // A finding on a claim built on a raised error's figure yields to it (rootOf; Lorenzo, 19 Oct, §15 o).
+    keys: (flags.mathChecker as Partial<CheckerMemory> | undefined)?.keys, closed: (flags.mathChecker as Partial<CheckerMemory> | undefined)?.closed,
   });
   if (gate.decisions.length > 0) flags.codeGate = { handled: [...(gateMemory.handled ?? []), ...gate.decisions.map(d => d.id)] };
   const releasedFlags = gate.released.flatMap(r => r.finding.kind === 'flag' ? [{ flag: r.finding.flag, n: r.candidateTurnIndex }] : []);

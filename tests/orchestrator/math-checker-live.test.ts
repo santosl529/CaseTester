@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, codeFlagRefs,
+  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, codeFlagRefs, rootOf, caseNumbersOf,
   MATH_CHECKER_CATEGORY, type CheckerRow, type CheckerPlanInput, type VerdictPayload,
 } from '@/lib/orchestrator/math-checker-live';
 import type { CheckerClaim, VettedClaim } from '@/lib/orchestrator/math-checker';
@@ -773,6 +773,70 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
     it('a pricing claim said again at its own figure is no staleness; at another figure it is', () => {
       expect(isStale(vetted(), ['A 10% price rise recovers about 5 points of margin.'], prof, COSTS)).toBeNull();
       expect(isStale(vetted(), ['A 10% price rise recovers 8 points of margin.'], prof, COSTS)).toMatch(/^restated at 8/);
+    });
+  });
+
+  describe('(b) a claim built on an open wrong input yields to it', () => {
+    it('net_price@2000 open: "40,000 × $2,000 = $80 million" is derived, and the net price is selected', () => {
+      const p = run([net, sales('40,000 × $2,000 = $80 million', '$80 million')]);
+      expect(p.decisions.find(d => d.id === '17:1')).toMatchObject({ outcome: 'derived', reason: expect.stringMatching(/net_price@2000/) });
+      expect(p.handledNow).toContain('17:1');
+      expect(p.selected).toMatchObject({ id: '17:0', key: 'net_price@2000', action: 'probe' });
+    });
+    it('the root raised on an earlier turn, its claim not in this verdict: still derived', () => {
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { keys: { 'net_price@2000': { figures: [2000], since: 7 } }, attempts: { 'net_price@2000': 1 } });
+      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'derived' })]);
+      expect(p.selected).toBeNull();
+    });
+    it('the flag is the key: "with peak at $80 million" (t19) restates a key another claim built on $2,000 — derived too', () => {
+      const p = run([sales('with peak at $80 million there\'s no headroom at all', '$80M peak')], {
+        rows: [verdictRow(17, [net, sales('40,000 × $2,000 = $80 million', '$80 million')]), verdictRow(19, [sales('with peak at $80 million there\'s no headroom at all', '$80M peak')])],
+        handled: ['17:0', '17:1'], keys: { 'net_price@2000': { figures: [2000], since: 17 } }, attempts: { 'net_price@2000': 1 },
+        turnRows: [{ turnIndex: 17, role: 'candidate', text: T17 }, { turnIndex: 18, role: 'interviewer', text: 'Go on.' }, { turnIndex: 19, role: 'candidate', text: 'With peak at $80 million there\'s no headroom at all.' }, { turnIndex: 20, role: 'interviewer', text: 'Go on.' }],
+        candidateTurnIndex: 21,
+      });
+      expect(p.decisions).toEqual([expect.objectContaining({ id: '19:0', outcome: 'derived', reason: expect.stringMatching(/net_price@2000/) })]);
+    });
+    it('a line a due stage held back keeps its turn', () => {
+      const p = run([net, sales('40,000 × $2,000 = $80 million', '$80 million')], { held: '17:1' });
+      expect(p.selected?.id).toBe('17:1');
+      expect(p.decisions.some(d => d.outcome === 'derived')).toBe(false);
+    });
+    it('a claim built on a derived one follows it to the input', () => {
+      const share = vetted({ span: 'so $80 million is about 27% of the bar', quantity: 'peak sales as a share of the bar', candidateValue: 'about 27% of the bar', correctValue: 107, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+      const p = run([net, sales('40,000 × $2,000 = $80 million', '$80 million'), share]);
+      expect(p.decisions.find(d => d.id === '17:2')).toMatchObject({ outcome: 'derived', reason: expect.stringMatching(/^built on net_price@2000/) });
+      expect(p.selected?.id).toBe('17:0');
+    });
+    it('net_price@2000 closed: the same claim is unresolved — built on a closed input', () => {
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { keys: { 'net_price@2000': { figures: [2000], since: 7 } }, closed: ['net_price@2000'] });
+      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: expect.stringMatching(/built on a closed input/) })]);
+      expect(p.selected).toBeNull();
+    });
+    it('the right input, a wrong product ("40,000 × $8,000 = $300 million"): selected on its own key', () => {
+      const p = run([sales('40,000 × $8,000 = $300 million', '$300 million')], { keys: { 'net_price@2000': { figures: [2000], since: 7 } }, attempts: { 'net_price@2000': 1 } });
+      expect(p.selected).toMatchObject({ id: '17:0', key: 'peak_net_sales@300' });
+    });
+    it('a case figure or the claim\'s own figure in the span links nothing', () => {
+      // $300 million is the board's bar; a root at 300 is no input of the claim.
+      expect(rootOf('$80 million against a $300 million bar', 'peak_net_sales@220', { 'checker:$300 million': { figures: [300], since: 5 } }, caseNumbersOf(entry, ENTRY))).toBeNull();
+      expect(rootOf('40,000 × $2,000 = $80 million', 'peak_net_sales@80', { 'peak_net_sales@80': { figures: [80], since: 17 }, 'option_a_profit@80': { figures: [80], since: 9 } }, [])).toBeNull();
+      // Another figure of the same step is a restatement, not an input.
+      expect(rootOf('$400 million, now $80 million', 'peak_net_sales@80', { 'peak_net_sales@400': { figures: [400], since: 7 } }, [])).toBeNull();
+    });
+    it('several roots: the earliest', () => {
+      const keys = { 'net_price@2000': { figures: [2000], since: 9 }, 'peak_patients@200000': { figures: [200000], since: 7 } };
+      expect(rootOf('200,000 × $2,000 = $400 million', 'peak_net_sales@400', keys, [])).toBe('peak_patients@200000');
+    });
+    it('the gate: code\'s own finding on a claim built on an open input is derived', () => {
+      const flag = { kind: 'step' as const, stepId: 'peak_net_sales', description: '', expected: 320, candidateValue: 80, errorClass: 'case_breaking' as const, span: '40,000 × $2,000 = $80 million' };
+      const g = gateCodeFindings({
+        rows: [verdictRow(17, [sales('40,000 × $2,000 = $80 million', '$80 million')], { codeFlags: codeFlagRefs({ flags: [flag] }, []) })], handled: [],
+        turnRows: [{ turnIndex: 17, role: 'candidate', text: T17 }], candidateText: 'Nimbrel nets $9,000.', candidateTurnIndex: 19, caseData: entry, revealedIds: ENTRY,
+        keys: { 'net_price@2000': { figures: [2000], since: 7 } }, closed: [],
+      });
+      expect(g.released).toEqual([]);
+      expect(g.decisions[0]).toMatchObject({ outcome: 'derived', reason: expect.stringMatching(/net_price@2000/) });
     });
   });
 });
