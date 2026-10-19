@@ -2,6 +2,7 @@
 // 2026-10-08-voice-phase-b §5, §6). Types only plus one parser, so the client
 // can import it; the exhibit display is what the text UI already shows.
 import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
+import type { CaptionWord } from './caption-timing';
 
 export const AGENT_NAME = 'case-interviewer';
 export const DATA_TOPIC = 'case';
@@ -13,9 +14,16 @@ export type ServerMessage =
   // (re)joins, because a `ready` sent before it joined is lost (§5.1).
   | { type: 'hello' }
   | { type: 'state'; state: VoiceState; turnSeq: number }
-  // Interviewer captions show only heard words; a candidate caption with
-  // `replaces` supersedes a cancelled turn's (its text was carried).
+  // A candidate caption with `replaces` supersedes a cancelled turn's (its
+  // text was carried). An interviewer caption is what was heard: sent at a cut
+  // and at the turn's end, replacing the whole sentences shown.
   | { type: 'caption'; who: 'interviewer' | 'candidate'; turnSeq: number; text: string; final: boolean; replaces?: number }
+  // An interviewer segment's audio has started (18 Oct, item 7): its whole text
+  // and each word's start (ms from the segment's first audio; null while not
+  // timed), for the browser to show dimmed and brighten as it is spoken.
+  | { type: 'caption_segment'; turnSeq: number; index: number; text: string; words: CaptionWord[] }
+  // The word starts that arrived after the audio started (Cartesia streams them with it): at most one per segment.
+  | { type: 'caption_words'; turnSeq: number; index: number; words: CaptionWord[] }
   | { type: 'exhibit'; turnSeq: number; exhibit: ExhibitDisplay }
   | { type: 'exhibit_withdraw'; turnSeq: number; exhibitId: string }
   | { type: 'latency'; turnSeq: number; firstSoundMs: number | null; firstUsefulMs: number | null }

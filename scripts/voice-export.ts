@@ -33,7 +33,7 @@ async function main() {
   if (existsSync(jsonl) && !force) throw new Error(`${jsonl} exists — pass --force to overwrite`);
   mkdirSync(dir, { recursive: true });
   writeFileSync(jsonl, jsonlOf(lines));
-  writeFileSync(path.join(dir, `${sessionId}.md`), transcriptMd(session, turns));
+  writeFileSync(path.join(dir, `${sessionId}.md`), transcriptMd(session, turns, lines));
   writeFileSync(path.join(dir, `${sessionId}-db-dump.json`), JSON.stringify({ session, turns, events, analytics, revealed, exhibits }, null, 1));
   console.log(`${lines.length} record lines, ${turns.length} turns, ${events.length} events → ${dir}`);
   if (lines.length === 0) console.log('no record lines: the session ran on a worker before the voice_session_lines table, or never reached a turn');

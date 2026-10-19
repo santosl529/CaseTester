@@ -84,6 +84,8 @@ Optional (the defaults are in code):
 | `VOICE_TTS_CHAR_CAP` | `90000` — the monthly cap, shared through the table |
 | `VOICE_MAX_SESSION_MIN` | `25` |
 | `VOICE_BARGE_MIN_WORDS` | `2` |
+| `VOICE_CHECKIN_MS` | `90000` (the silence check-in; `0` = off) |
+| `VOICE_CHECKIN_OPENER_MS` | `180000` (the first silence, after the case prompt) |
 | `VOICE_FILLER_LONG_WORDS`, `VOICE_FILLER_MAX_RUN`, `VOICE_FILLER_DELAY_MS`, `VOICE_FILLER_GAP_MS`, `VOICE_FILLER_TAIL_MS` | the tuned values |
 | `MATH_CHECKER_CONFIG`, `INTERVIEWER_PROVIDER` | production defaults |
 
@@ -208,7 +210,9 @@ npx tsx --env-file=.env.local scripts/voice-export.ts <sessionId>
 This writes `Case Interview Runs/voice-live/<date>/<sessionId>.jsonl` (the
 per-turn records, as before), `<sessionId>.md` (the transcript) and
 `<sessionId>-db-dump.json` (the shape the replay tools read). It's free and
-only reads.
+only reads. The transcript marks a filler that was picked but didn't play as
+`~~Hmm…~~ *(filler skipped: fillers_off)*` — the saved line still opens with
+it, so the db dump and the scorer's transcript show it as said.
 
 ## Getting club-beta-2 and this work onto main
 

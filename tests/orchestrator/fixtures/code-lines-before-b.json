@@ -1,0 +1,246 @@
+{
+ "defer": [
+  "I'll come back to {x} shortly.",
+  "We'll get to {x} in a bit.",
+  "I'll get to {x} a little later.",
+  "We'll come back to {x} in a moment."
+ ],
+ "refuse": [
+  "I don't have {x}.",
+  "I don't have {x} to share.",
+  "Unfortunately, I don't have {x}.",
+  "I'm afraid I don't have {x}."
+ ],
+ "exhibit": [
+  "Here's an exhibit: {x}.",
+  "Take a look at this exhibit: {x}.",
+  "Have a look at this exhibit: {x}.",
+  "I'll put up an exhibit: {x}."
+ ],
+ "restate": [
+  "As I mentioned: {x}",
+  "As I said earlier: {x}",
+  "To repeat: {x}",
+  "Just to restate: {x}"
+ ],
+ "earlier": [
+  "On what you asked about earlier:",
+  "Coming back to what you asked for earlier:",
+  "You asked about this earlier:",
+  "Back to your earlier question:"
+ ],
+ "correct_one": [
+  "To correct one figure: {x}",
+  "One correction: {x}",
+  "A quick correction: {x}",
+  "Just to correct a figure: {x}"
+ ],
+ "correct_two": [
+  "To correct two figures: {x}",
+  "Two corrections: {x}",
+  "A quick correction on two figures: {x}",
+  "Just to correct two figures: {x}"
+ ],
+ "wrap_up": [
+  "Before we wrap up — {x}",
+  "One more thing before we wrap up — {x}",
+  "Quickly, before we wrap up — {x}",
+  "Last thing before we wrap up — {x}"
+ ],
+ "gate_defer": [
+  "I'll share {x} once we've settled your structure."
+ ],
+ "unmapped_defer": [
+  "Let's settle your structure before we get into the data."
+ ],
+ "offer": [
+  "I can share {x} if you'd like."
+ ],
+ "figures_q": [
+  "What do those figures tell you?",
+  "What do you take from those numbers?",
+  "Where do those numbers point you?"
+ ],
+ "no_figures_q": [
+  "Where would you like to start the analysis?",
+  "What would you look at first, and why?",
+  "Which area would you dig into first?"
+ ],
+ "analysis_q": [
+  "What would you look at next, and why?",
+  "Where does that leave your analysis?",
+  "What's your next step from here?"
+ ],
+ "brainstorm_q": [
+  "Which of those would you pursue first, and why?",
+  "How would you prioritize those?",
+  "Which of those matters most, and why?"
+ ],
+ "late_q": [
+  "Walk me through the reasoning behind that.",
+  "What's the strongest evidence for that?",
+  "What makes you confident in that?"
+ ],
+ "time_pressure_q": [
+  "Briefly, where does that leave you?",
+  "In a sentence, what does that tell you?"
+ ],
+ "hypothesis_q": [
+  "What's your working hypothesis, and why?",
+  "What do you expect that analysis to show, and why?",
+  "Why do you expect the answer to sit there?"
+ ],
+ "before_data": [
+  "Before we get into the data: {x}"
+ ],
+ "ask_missing": [
+  "what might be missing from your structure?"
+ ],
+ "ask_branch": [
+  "which branch would you start with, and why?"
+ ],
+ "ask_break": [
+  "what result would break this structure?"
+ ],
+ "reask_more": [
+  "One more on your structure before I share that data: {x}"
+ ],
+ "reask_answer": [
+  "Before I share that data, I'd like your answer on the structure: {x}"
+ ],
+ "reask_back": [
+  "Coming back to your structure: {x}"
+ ],
+ "concrete": [
+  "Let me make it concrete: {x}"
+ ],
+ "narrow_missing": [
+  "name one thing your structure doesn't cover yet."
+ ],
+ "narrow_branch": [
+  "of the areas you've named, which one would you check first, and why?"
+ ],
+ "narrow_break": [
+  "what one finding would make you drop one of your branches?"
+ ],
+ "waiver_awaiting": [
+  "Let's leave the structure there."
+ ],
+ "waiver_not_asked": [
+  "Let's move on to the analysis."
+ ],
+ "structure_ask": [
+  "Before we get into the data, how would you structure your approach to this case?",
+  "Before we go further into the data, could you lay out how you would structure this case?"
+ ],
+ "got_to": [
+  "How did you get to {x}?"
+ ],
+ "advance_data": [
+  "Let's move on: what data would you want to see first?"
+ ],
+ "advance_conclusion": [
+  "Let's step back: what would you need to see before committing to a recommendation?"
+ ],
+ "advance_next": [
+  "Let's move on: what would you look at next, and why?"
+ ],
+ "stage_exhibit_q": [
+  "What does this exhibit tell you?",
+  "What do you take from this exhibit?"
+ ],
+ "brainstorm_generic": [
+  "Beyond what we've discussed, what else could the client do?",
+  "What other levers could the client pull here?"
+ ],
+ "rec_ask": [
+  "Pull it together — what's your recommendation to the CEO?",
+  "Based on what you have, what would you tell the CEO to do?",
+  "What's your recommendation to the client?"
+ ],
+ "risk_ask": [
+  "What's the biggest risk to that recommendation, and how would you test for it?",
+  "What would change your mind on that recommendation?",
+  "What's the key risk with that plan, and how would you de-risk it?"
+ ],
+ "late_rec_ask": [
+  "Pull it together — what's your recommendation to the CEO, and what's the biggest risk to it?",
+  "Based on what you have, what would you tell the CEO to do, and what's the biggest risk to it?",
+  "What's your recommendation to the client, and what's the biggest risk to it?"
+ ],
+ "grace_ask": [
+  "We're at time. In one or two sentences, what's your recommendation to the CEO?",
+  "That's the clock — before we stop, what's your recommendation to the CEO, in a sentence or two?",
+  "We're at time, so give me the short version: what would you tell the CEO?"
+ ],
+ "time_warning": [
+  "We're near time. What's your bottom-line recommendation to the CEO, and the biggest risk to it?",
+  "We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?",
+  "Time's nearly up. What's your bottom-line recommendation, and what's the biggest risk to it?"
+ ],
+ "rec_revision": [
+  "With that corrected, does your recommendation change?",
+  "Given the corrected figure, would you change your recommendation?"
+ ],
+ "rec_math_revision": [
+  "Does that change your recommendation?",
+  "Would that change your recommendation at all?"
+ ],
+ "analysis_revision": [
+  "Does that change your analysis?",
+  "How does that change your numbers?"
+ ],
+ "after_risk": [
+  "How would you guard against that?",
+  "What would you put in place to guard against that?"
+ ],
+ "first_step": [
+  "What would you have the client do first?",
+  "What's the first step you'd want the client to take?"
+ ],
+ "measure": [
+  "How would you know, six months in, that it was working?"
+ ],
+ "stall_lead": [
+  "Take your time. {x}"
+ ],
+ "opener_invite": [
+  "Take a moment, then walk me through how you'd approach this.",
+  "Take a minute if you need it, then tell me how you'd structure your approach.",
+  "How would you like to approach this? Feel free to take a moment to gather your thoughts first."
+ ],
+ "opener_after_q": [
+  "Take a moment, then walk me through your thinking.",
+  "Take a minute if you need it, then lay out your structure.",
+  "Feel free to take a moment to gather your thoughts first."
+ ],
+ "close_time_up": [
+  "That's time. Thanks for working through it — your written report will follow.",
+  "That's our time. Thanks for working through this with me — your written report will follow."
+ ],
+ "close_complete": [
+  "We've covered everything I wanted to. Thanks for working through the case — your written report will follow.",
+  "That covers what I wanted to get to. Thanks for working through the case — your written report will follow."
+ ],
+ "close_unresolved": [
+  "We'll stop there. Thanks for working through the case — your written report will follow."
+ ],
+ "probe_got_to": [
+  "Walk me through how you got to {x}."
+ ],
+ "probe_calc": [
+  "Walk me through that calculation."
+ ],
+ "probe_there": [
+  "Walk me through how you got there."
+ ],
+ "check_in": [
+  "Still with me? Take your time."
+ ],
+ "pause": [
+  "Looks like we may have lost you — I've paused the clock. If you're not back within {x}, we'll end the session here."
+ ],
+ "voice_check_in": [
+  "Take your time — feel free to think out loud."
+ ]
+}

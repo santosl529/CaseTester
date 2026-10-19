@@ -8,9 +8,18 @@ export function pickCandidateTrack(ownerId: string, current: string | null, iden
   return identity === ownerId && (current === null || current === trackSid);
 }
 
+// `at` never runs fn before ms on Date.now(): Node can fire a timer ~1ms early
+// (15% of fractional targets, measured 18 Oct), and Playout's ends are
+// fractional — an idle wait that resolved before a segment's end had classify
+// take it as still playing and drop its last word (session 9813d6ce).
 export const realClock: Clock = {
   now: () => Date.now(),
-  at: (ms, fn) => { const h = setTimeout(fn, Math.max(0, ms - Date.now())); return () => clearTimeout(h); },
+  at: (ms, fn) => {
+    let h: ReturnType<typeof setTimeout>;
+    const arm = (delay: number) => { h = setTimeout(() => { const left = ms - Date.now(); if (left > 0) arm(Math.ceil(left)); else fn(); }, delay); };
+    arm(Math.max(0, ms - Date.now()));
+    return () => clearTimeout(h);
+  },
 };
 
 // The owner's audio track that was already subscribed before the agent's

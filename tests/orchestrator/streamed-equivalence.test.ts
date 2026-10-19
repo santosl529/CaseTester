@@ -12,6 +12,10 @@ import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnKind } from '@/lib/orchestrator/plan-turn';
 import { modelPlanFixture } from './fixtures/model-plan';
 
+// These tests pin the ledger's own data lines: prof-001's pre-written versions
+// are off here (DATA_LINE_VARIANTS=0; on by default since 18 Oct).
+process.env.DATA_LINE_VARIANTS = '0';
+
 // Streaming changes WHEN the candidate hears the turn, never WHAT: delivered
 // segments + Settle's tail == the turn Settle composes when nothing streamed.
 
@@ -119,7 +123,7 @@ describe('settleTurn composition', () => {
 
   it('on a rec_ask turn the question is the scripted recommendation ask', async () => {
     const s = await settle(T({ say: 'Okay.', question: '' }), 'rec_ask');
-    expect(s.spokenText).toMatch(/^Okay\. .*(recommendation|tell the CEO)/i);
+    expect(s.spokenText).toMatch(/^Okay\. .*(recommend|tell the CEO)/i);
   });
 
   it('a close turn ends the case with its scripted line, answering the final ask first', async () => {

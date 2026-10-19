@@ -10,7 +10,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checker';
-import { anyVariant } from '@/lib/orchestrator/phrasing';
+import { anyVariant, fill, PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
+// The neutral probes vary (brief B rulings, 18 Oct): any version of the line, as said.
+const lowerFirst = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
+const CALC_WRAP_UPS = PHRASE_POOLS.probe_calc.map(a => `Before we wrap up — ${lowerFirst(a)}`);
+const saysGotTo = (text: string, x: string) => PHRASE_POOLS.probe_got_to.some(v => text.includes(fill(v, x)));
 
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
@@ -289,7 +293,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     at(17.10);
     const r21 = await runTurn('s1', JORDAN.t21Risk);
     expect(r21.ended).toBe(false);
-    expect(r21.interviewerText).toBe(`Before we wrap up — walk me through that calculation.`);
+    expect(CALC_WRAP_UPS).toContain(r21.interviewerText);
     expect(flags().heldCloseHold).toBe(true);
     expect(flags().recMathProbed).toBe(true);   // the conclusion-changing hold's own counter, untouched (already spent at t15)
     // The final answers' verdicts landed clean (close-hold.ts); the redo of code's probe is not waited on: the close.
@@ -307,7 +311,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     MODEL.turn = NEUTRAL;
     at(17.10);
     const r21 = await runTurn('s1', JORDAN.t21Risk);
-    expect(r21.interviewerText).toBe('Before we wrap up — walk me through that calculation.');
+    expect(CALC_WRAP_UPS).toContain(r21.interviewerText);
     expect(flags().heldCloseHold).toBe(true);
     expect(flags().recMathProbed).toBe(false);
   });
@@ -321,7 +325,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     at(17.10);
     const r21 = await runTurn('s1', JORDAN.t21Risk);
     expect(r21.ended).toBe(false);
-    expect(r21.interviewerText).toBe('Before we wrap up — walk me through that calculation.');
+    expect(CALC_WRAP_UPS).toContain(r21.interviewerText);
     expect((flags().closeHold as Row).probed).toEqual([{ key: expect.stringMatching(/growth masks/), at: 21 }]);
   });
   it('limit: at time-up the hold is skipped and the line goes to the report', async () => {
@@ -350,7 +354,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     // The redo holds nothing; t17's other flag gets its own one probe; then the close.
     const r23 = await runTurn('s1', 'It is still forty points, I think.');
     // The session's second wrap-up probe: its lead varies (phrasing.ts), the probe doesn't.
-    expect(r23.interviewerText).toMatch(new RegExp(`^(?:${anyVariant('wrap_up', 'walk me through that calculation.').source})$`));
+    expect(PHRASE_POOLS.probe_calc.some(a => new RegExp(`^(?:${anyVariant('wrap_up', lowerFirst(a)).source})$`).test(r23.interviewerText))).toBe(true);
     expect((flags().closeHold as Row).probed).toHaveLength(2);
     at(18.6);
     const r25 = await runTurn('s1', 'Sixteen plus two is the eighteen.');
@@ -397,7 +401,7 @@ describe('a due-stage variant: Jasmine\'s probe held back by a recommendation as
     MODEL.turn = NEUTRAL;
     at(17.0);
     const r33 = await runTurn('s1', 'I would start with dairy renegotiation and a phased price rise.');
-    expect(r33.interviewerText).toContain(JASMINE_PROBE);
+    expect(saysGotTo(r33.interviewerText, 'about 5 points')).toBe(true);   // JASMINE_PROBE, in any version
     expect(decisionsFor('27:0').map(d => d.outcome)).toEqual(['undelivered', 'probe']);
     expect((flags().mathChecker as Row).held).toBeUndefined();
   });
@@ -417,7 +421,7 @@ describe('a due-stage variant: Jasmine\'s probe held back by a recommendation as
     store.session = { ...store.session, coverageJsonb: { structure: 80, quantitative: 80, dataExhibit: 80, judgment: 80, creativity: 80, synthesis: 80, communication: 80, pushback: 80 } };
     at(14.6);
     const r33 = await runTurn('s1', 'Waste control, mix shift toward brewed coffee, and loyalty pricing.');
-    expect(r33.interviewerText).toContain(JASMINE_PROBE);
+    expect(saysGotTo(r33.interviewerText, 'about 5 points')).toBe(true);   // JASMINE_PROBE, in any version
     expect(r33.interviewerText).not.toMatch(/recommendation/);
   });
 });

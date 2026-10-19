@@ -6,6 +6,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { readsFixture } from './fixtures/turn-reads';
+import { anyVariant, poolPattern } from '@/lib/orchestrator/phrasing';
 
 // ---- in-memory store ----
 type Row = Record<string, unknown>;
@@ -192,7 +193,7 @@ describe('bounded fallbacks', () => {
     expect(heard[2]).toMatch(/Let's leave the structure there\./);
     // The waiver releases what was held: the three cost lines, as their exhibit (a group ask, 12 Oct).
     expect(heard[2]).toMatch(/COGS|Here's an exhibit: Brew & Bean Cost Structure/);
-    for (const h of heard.slice(0, 2)) expect(h).toMatch(/I'll share COGS, labor, and overhead including rent as a percent of revenue once we've settled your structure\./);
+    for (const h of heard.slice(0, 2)) expect(h).toMatch(anyVariant('gate_defer', 'COGS, labor, and overhead including rent as a percent of revenue'));
     expect(heard.filter(h => /MECE/.test(h))).toHaveLength(0);
     expect(pt()).toMatchObject({ state: 'waived', awaitingReplies: 3 });
     expect(pt()?.satisfiedAt).toBeUndefined();
@@ -282,7 +283,7 @@ describe('bounded fallbacks', () => {
     // A later real verdict still gets its one fallback.
     structureGiven = false;
     const next = await turn('Could I get the cost breakdown?', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'What else would you want?' }));
-    expect(next).toMatch(/Before we (get into|go further into) the data, .*structure/);
+    expect(next).toMatch(poolPattern('structure_ask'));
     expect(pt()).toMatchObject({ structureAsked: true });
   });
 

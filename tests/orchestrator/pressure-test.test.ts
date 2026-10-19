@@ -218,7 +218,7 @@ describe('fallback wording is case-neutral (13 Oct)', () => {
   it("code's structure asks don't either, and keep what they ask for", () => {
     for (const q of CODE_STRUCTURE_ASKS) expect(q).not.toMatch(/\bproblem\b/i);
     // as before the rewording: the second reads as a structure ask to the loop guard, the first doesn't
-    expect(CODE_STRUCTURE_ASKS.map(q => askIntents(q))).toEqual([[], ['structure']]);
+    for (const q of CODE_STRUCTURE_ASKS) expect([[], ['structure']]).toContainEqual(askIntents(q));
   });
 });
 

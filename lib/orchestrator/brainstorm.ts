@@ -11,6 +11,8 @@
 import { GENERIC_BRAINSTORM_ASKS, asksBrainstorm } from './spoken-close';
 import { exhibitOut, type ExhibitInfo } from './data-decisions';
 import type { DataLedger } from './data-ledger';
+import { line, type PhraseUses } from './phrasing';
+import { pickScript } from '@/lib/agent/prompts/scripts';
 
 export { GENERIC_BRAINSTORM_ASKS };
 
@@ -20,6 +22,13 @@ export type CaseBrainstorm = { brainstorm?: { ask?: string | string[]; required?
 export function brainstormAsks(c: CaseBrainstorm): string[] {
   const ask = c.brainstorm?.ask;
   return ask === undefined ? [...GENERIC_BRAINSTORM_ASKS] : typeof ask === 'string' ? [ask] : [...ask];
+}
+
+// The line code says: the case's own ask (by seed when several — case text, not
+// ours to vary), else the generic pool with the session's memory (phrasing.ts).
+export function brainstormAskLine(c: CaseBrainstorm, uses: PhraseUses | undefined, seed: string): string {
+  if (c.brainstorm?.ask === undefined) return line('brainstorm_generic', uses, seed);
+  return pickScript(brainstormAsks(c), seed);
 }
 
 export function brainstormRequired(c: CaseBrainstorm): boolean {

@@ -4,6 +4,7 @@
 // Read by the loop guard in Settle and the LOOP detector (lib/eval/flow-check.ts).
 // "What else?" is no loop: each answer adds ideas.
 import { asksForConclusion } from './spoken-close';
+import { line, type PhraseUses } from './phrasing';
 
 export type AskIntent = 'prioritize' | 'structure' | 'clarify' | 'conclusion' | 'implication';
 
@@ -21,8 +22,8 @@ export function askIntents(question: string): AskIntent[] {
 
 // The third ask of one intent with nothing given between: move the case on,
 // never a rewording of the same ask.
-export function advanceLine(looping: AskIntent[]): string {
-  if (looping.some(t => t === 'prioritize' || t === 'structure' || t === 'clarify')) return "Let's move on: what data would you want to see first?";
-  if (looping.includes('conclusion')) return "Let's step back: what would you need to see before committing to a recommendation?";
-  return "Let's move on: what would you look at next, and why?";
+export function advanceLine(looping: AskIntent[], uses?: PhraseUses, seed = ''): string {
+  if (looping.some(t => t === 'prioritize' || t === 'structure' || t === 'clarify')) return line('advance_data', uses, seed);
+  if (looping.includes('conclusion')) return line('advance_conclusion', uses, seed);
+  return line('advance_next', uses, seed);
 }

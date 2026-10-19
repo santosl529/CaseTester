@@ -24,6 +24,8 @@
 // can't predate the last turn, and once checked in, it can't predate the
 // silence start recorded then (the check-in is itself a turn).
 
+import { line, phrase, PHRASE_POOLS, type PhraseUses } from './phrasing';
+
 export const SILENCE_CHECK_IN_MS = 60_000;
 export const SILENCE_PAUSE_MS = 180_000;
 export const SILENCE_PAUSE_MAX_MS = 5 * 60_000;
@@ -89,18 +91,19 @@ export function effectiveElapsedMs(startedAtMs: number, nowMs: number, state: Si
   return nowMs - startedAtMs - state.pausedTotalMs - creditedPauseMs(state, nowMs);
 }
 
-const CHECK_IN = 'Still with me? Take your time.';
 
 // The check-in restates the pending question. `storedQuestion` is the
 // question field the last turn ended on (flags.lastQuestion); the text
 // fallback serves sessions recorded before it was stored. Batch 9, Maya t16:
 // a question that itself began "The question on the table is…" was wrapped
 // again ("The question on the table: the question on the table is…").
-export function checkInText(lastInterviewerText: string | null, storedQuestion?: string | null): string {
+// \`uses\`, \`seed\`: the check-in in one of its versions (phrasing.ts check_in), never one of its last 3.
+export function checkInText(lastInterviewerText: string | null, storedQuestion?: string | null, uses?: PhraseUses, seed = ''): string {
   const raw = storedQuestion?.trim() || lastInterviewerText?.match(/[^.?!]*\?/g)?.at(-1)?.trim();
   const question = raw ? withoutLeadIn(raw) : '';
-  if (!question) return CHECK_IN;
-  return `${CHECK_IN} The question on the table: ${lowerQuestionWord(question)}`;
+  const checkIn = line('check_in', uses, seed);
+  if (!question) return checkIn;
+  return `${checkIn} The question on the table: ${lowerQuestionWord(question)}`;
 }
 
 // A question said again mid-sentence (batch 21 D8, Destiny t4: "The question
@@ -109,7 +112,11 @@ export function checkInText(lastInterviewerText: string | null, storedQuestion?:
 // imperative's, a name's or an acronym's ("COGS", "Hollis Bay"); "is" joins
 // only one sentence that opens with a question word, anything else follows a colon.
 const QUESTION_WORD = /^(?:what|which|how|why|where|who|whose|when|whether|is|are|was|were|do|does|did|can|could|would|should|will|has|have)\b/i;
-const withoutLeadIn = (q: string) => q.trim().replace(/^(?:take your time\.\s*)?the question on the table(?: is|:)\s*/i, '').trim();
+// Any version of the stall lead (phrasing.ts stall_lead) before it, too.
+const STALL_LEADS = PHRASE_POOLS.stall_lead.map(v => v.split('{x}')[0].trim()).filter(Boolean)
+  .map(l => l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/ +/g, '\\s+'));
+const LEAD_IN = new RegExp(`^(?:(?:${STALL_LEADS.join('|')})\\s*)?the question on the table(?: is|:)\\s*`, 'i');
+const withoutLeadIn = (q: string) => q.trim().replace(LEAD_IN, '').trim();
 const lowerQuestionWord = (q: string) => (QUESTION_WORD.test(q) ? q.charAt(0).toLowerCase() + q.slice(1) : q);
 export function restateOnTable(stored: string): string {
   const q = withoutLeadIn(stored);
@@ -119,11 +126,14 @@ export function restateOnTable(stored: string): string {
 
 // The scripted silence lines (check-in, pause): the model never sees them in
 // its history (spec 2026-10-06 D7) — it copied them into its own turns.
+// Every version of the check-in and the pause (phrasing.ts), by its opening words.
+const SILENCE_OPENINGS = [...PHRASE_POOLS.check_in, ...PHRASE_POOLS.pause.map(v => v.split(/\{[xX]\}/)[0])];
 export function isSilenceLine(text: string): boolean {
-  return text.startsWith(CHECK_IN) || text.startsWith('Looks like we may have lost you');
+  return SILENCE_OPENINGS.some(o => text.startsWith(o.trim()));
 }
 
-export function pauseText(limitMs: number): string {
+// \`uses\`, \`seed\`: the pause in one of its versions (phrasing.ts pause), never one of its last 3.
+export function pauseText(limitMs: number, uses?: PhraseUses, seed = ''): string {
   const minutes = Math.max(1, Math.ceil(limitMs / 60_000));
-  return `Looks like we may have lost you — I've paused the clock. If you're not back within ${minutes} minute${minutes === 1 ? '' : 's'}, we'll end the session here.`;
+  return phrase('pause', `${minutes} minute${minutes === 1 ? '' : 's'}`, uses, seed);
 }

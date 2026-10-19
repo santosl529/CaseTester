@@ -20,6 +20,8 @@
 
 // Unambiguous goodbyes. Mid-case courtesy ("thanks for walking me through
 // that", "thanks for working through the math") is not one.
+import { PHRASE_POOLS } from './phrasing';
+
 const STRONG_CLOSE =
   /\b(that'?s (our )?time|time'?s up|we'?re out of time|we'?ll (stop|end|close|wrap)( it)? (there|here)|(that'?s|this is) where we'?ll (stop|end)|(i'?ll|let'?s|we'?ll) close (the case|it|things) (out |up )?(here|there)|close the case|that'?s the (end of the )?case|that concludes the case|good place to stop|that'?s all for today|thanks?( you)? for your time|thanks?( you)? for working through (it|the case|this)|take care)\b/i;
 
@@ -215,34 +217,19 @@ export function endAllowed(p: { coverageMayEnd: boolean; timeUp: boolean; stageG
 
 // Case-neutral (new cases, 13 Oct): a case's own question is its
 // brainstorm.ask (brainstorm.ts); prof-001's profitability line lives there.
-export const GENERIC_BRAINSTORM_ASKS = [
-  "Beyond what we've discussed, what else could the client do?",
-  'What other levers could the client pull here?',
-] as const;
+export const GENERIC_BRAINSTORM_ASKS = PHRASE_POOLS.brainstorm_generic;
 
 export const BLOCKED_CLOSE_PROBES = {
   brainstorm: GENERIC_BRAINSTORM_ASKS,
-  recommendation: [
-    "Pull it together — what's your recommendation to the CEO?",
-    'Based on what you have, what would you tell the CEO to do?',
-    "What's your recommendation to the client?",
-  ],
-  risk: [
-    "What's the biggest risk to that recommendation, and how would you test for it?",
-    'What would change your mind on that recommendation?',
-    "What's the key risk with that plan, and how would you de-risk it?",
-  ],
+  recommendation: PHRASE_POOLS.rec_ask,
+  risk: PHRASE_POOLS.risk_ask,
 } as const;
 
 export type BlockedCloseProbe = keyof typeof BLOCKED_CLOSE_PROBES;
 
 // Code's recommendation ask past the recommendation deadline also asks for the
 // biggest risk, in one question (Lorenzo, 15 Oct; batch 26 Blake 4755c03a).
-export const LATE_RECOMMENDATION_ASKS = [
-  "Pull it together — what's your recommendation to the CEO, and what's the biggest risk to it?",
-  "Based on what you have, what would you tell the CEO to do, and what's the biggest risk to it?",
-  "What's your recommendation to the client, and what's the biggest risk to it?",
-] as const;
+export const LATE_RECOMMENDATION_ASKS = PHRASE_POOLS.late_rec_ask;
 
 export function chooseBlockedCloseProbe(s: StageAdministration): BlockedCloseProbe {
   if (!s.brainstormAsked) return 'brainstorm';

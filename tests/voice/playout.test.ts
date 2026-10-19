@@ -206,3 +206,27 @@ describe('Playout', () => {
     expect(idle).toBe(true);
   });
 });
+
+import { realClock } from '@/lib/voice/room-rules';
+
+// Session 9813d6ce (18 Oct): 10 of 23 replies booked without their last word
+// ("…which would it be and" — "why?" dropped) though nothing cut them: the idle
+// wait ran a hair before the fractional end, so classify saw the segment as
+// still playing. On the real clock, the turn's flow (whenIdle, then classify)
+// must book every uncut segment as played in full.
+describe('Playout on the real clock', () => {
+  it('an uncut segment is played in full when the idle wait resolves', async () => {
+    const instant: FrameSink = { capture: async () => {}, clear: () => {} };
+    for (let i = 0; i < 20; i++) {
+      const p = new Playout(instant, realClock, RATE);
+      const text = 'Which one, and why?';
+      const ms = 40 + i * 0.37 + 0.13;                      // fractional, like a TTS chunk's last frame
+      p.open('a', { text, interruptible: true });
+      p.push('a', new Uint8Array(Math.round(RATE * ms / 1000) * 2));
+      p.words('a', [{ word: 'Which', startMs: 0, endMs: 10 }, { word: 'one,', startMs: 10, endMs: 20 }, { word: 'and', startMs: 20, endMs: 30 }, { word: 'why?', startMs: 30, endMs: Math.floor(ms) }]);
+      p.finish('a');
+      await p.whenIdle();
+      expect(p.classify('a')).toEqual({ playback: 'played', heardChars: text.length });
+    }
+  });
+});

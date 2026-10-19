@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { CaseSchema, type Case } from './schema';
+import { DataLineVariantsSchema, checkDataLineVariants } from './data-line-variants';
 
 let _cache: Case[] | null = null;
 
@@ -18,8 +19,40 @@ export function loadCases(): Case[] {
     }
     return result.data;
   });
+  _dataLines = loadDataLineVariants(casesDir, _cache);
 
   return _cache;
+}
+
+// Pre-written data-line versions (cases/variants/<caseId>.data-lines.json; brief
+// B, 18 Oct), keyed by the ledger line they vary. Checked here like the cases.
+let _dataLines: Map<string, { itemId: string; versions: readonly string[] }> = new Map();
+function loadDataLineVariants(casesDir: string, cases: Case[]): typeof _dataLines {
+  const dir = path.join(casesDir, 'variants');
+  const out: typeof _dataLines = new Map();
+  if (!fs.existsSync(dir)) return out;
+  for (const file of fs.readdirSync(dir).filter(f => f.endsWith('.data-lines.json'))) {
+    const result = DataLineVariantsSchema.safeParse(JSON.parse(fs.readFileSync(path.join(dir, file), 'utf-8')));
+    if (!result.success) throw new Error(`Malformed data-line variants ${file}: ${result.error.message}`);
+    const c = cases.find(x => x.id === result.data.caseId);
+    if (!c) throw new Error(`Data-line variants ${file}: no case ${result.data.caseId}`);
+    const problems = checkDataLineVariants(result.data, c.dataLedger);
+    if (problems.length > 0) throw new Error(`Data-line variants ${file} don't match the ledger:\n${problems.join('\n')}`);
+    for (const [itemId, { versions }] of Object.entries(result.data.items)) out.set(versions[0], { itemId, versions });
+  }
+  return out;
+}
+
+// The versions of a ledger line, or null when it has none.
+export function dataLineVersions(value: string): { itemId: string; versions: readonly string[] } | null {
+  loadCases();
+  return _dataLines.get(value) ?? null;
+}
+
+// Every case's data-line versions as phrase pools ("data:<itemId>"), for the use memory.
+export function dataLinePools(): Record<string, readonly string[]> {
+  loadCases();
+  return Object.fromEntries([..._dataLines.values()].map(d => [`data:${d.itemId}`, d.versions]));
 }
 
 export function getCaseById(id: string): Case {

@@ -244,3 +244,29 @@ describe('scripted lines: barge-in proof, but aware of cuts (§5.6)', () => {
     expect(v.heard).not.toHaveBeenCalled();
   });
 });
+
+// Lorenzo, 18 Oct (item 4 ruling): a filler that wasn't played never appears
+// as said. A late skip (decided after the turn started, e.g. the reply was
+// ready first) is reported in the heard report; the saved line — the model's
+// history and the scorer's transcript — then leaves it out.
+describe('an acknowledgment the candidate never heard', () => {
+  const withAck = (v: ReturnType<typeof voice>, ackHeard: boolean | undefined) =>
+    async () => ({ ...(await v.heard()), ...(ackHeard === undefined ? {} : { ackHeard }) });
+
+  it('is not saved when the heard report says it did not play', async () => {
+    resetStore('CLARIFY');
+    const v = voice(all, false);
+    modelQueue.push(T({ question: 'How would you structure it?' }));
+    const r = await runTurn('s1', 'I would look at costs.', { onSegment: v.onSegment, heard: withAck(v, false), acknowledged: 'Mhm… okay…', voice: true });
+    expect(store.turns.at(-1)?.text).toBe('How would you structure it?');
+    expect(r.interviewerText).toBe('How would you structure it?');
+  });
+
+  it('is saved ahead of the line when it played', async () => {
+    resetStore('CLARIFY');
+    const v = voice(all, false);
+    modelQueue.push(T({ question: 'How would you structure it?' }));
+    await runTurn('s1', 'I would look at costs.', { onSegment: v.onSegment, heard: withAck(v, true), acknowledged: 'Mhm… okay…', voice: true });
+    expect(store.turns.at(-1)?.text).toBe('Mhm… okay… How would you structure it?');
+  });
+});

@@ -7,6 +7,10 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import saved from './fixtures/batch18-math-challenges.json';
 
+// These tests pin the ledger's own data lines: prof-001's pre-written versions
+// are off here (DATA_LINE_VARIANTS=0; on by default since 18 Oct).
+process.env.DATA_LINE_VARIANTS = '0';
+
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
 vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims: async () => { throw new Error('no math checker calls in tests'); } }));

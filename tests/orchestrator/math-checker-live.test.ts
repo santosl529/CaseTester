@@ -692,3 +692,42 @@ describe('gateCodeFindings', () => {
     expect(gate([vetted()], { at: 9, rows: later, final: true }).decisions[0]).toMatchObject({ outcome: 'released' });
   });
 });
+
+// Lorenzo, 18 Oct (brief B rulings): the checker's neutral probes vary — five
+// versions, chosen once when code selects the flag; the decision carries the
+// exact line, and the heard check reads that line, not a pattern.
+import { neutralProbe, lineHeard } from '@/lib/orchestrator/math-checker-live';
+import { PHRASE_POOLS, fill, recordPhraseUses, type PhraseUses } from '@/lib/orchestrator/phrasing';
+describe('the neutral probes vary', () => {
+  const neutral = vetted({ probeLine: 'Walk me through how you got to about 5 points.' });
+  it('a vetted neutral probe is said in one of its versions; the checker\'s own drafted probe as vetted', () => {
+    expect(PHRASE_POOLS.probe_got_to.map(v => fill(v, 'about 5 points'))).toContain(neutralProbe('Walk me through how you got to about 5 points.', undefined, 's:5'));   // first use: by seed
+    const used: PhraseUses = { probe_got_to: [0] };
+    const again = neutralProbe('Walk me through how you got to about 5 points.', used, 's:9');
+    expect(PHRASE_POOLS.probe_got_to.map(v => fill(v, 'about 5 points'))).toContain(again);
+    expect(again).not.toBe('Walk me through how you got to about 5 points.');
+    expect(PHRASE_POOLS.probe_calc).toContain(neutralProbe('Walk me through that calculation.', { probe_calc: [0] }, 's:9'));
+    expect(PHRASE_POOLS.probe_there).toContain(neutralProbe('Walk me through how you got there.', { probe_there: [0] }, 's:9'));
+    expect(neutralProbe(vetted().probeLine!, used, 's:9')).toBe(vetted().probeLine);
+  });
+  it('the selection and its decision carry the exact line chosen; the heard check reads only that line', () => {
+    const uses: PhraseUses = { probe_got_to: [0, 1] };
+    const p = planCheckerFlags(input({ rows: [verdictRow(3, [neutral])], phraseUses: uses, seed: 's1:5' }));
+    const line = p.selected!.line;
+    expect(PHRASE_POOLS.probe_got_to.slice(2).map(v => fill(v, 'about 5 points'))).toContain(line);
+    expect(p.decisions.find(d => d.id === p.selected!.id)?.line).toBe(line);
+    expect(lineHeard(`Okay. ${line}`, line)).toBe(true);
+    const other = PHRASE_POOLS.probe_got_to.map(v => fill(v, 'about 5 points')).find(v => v !== line)!;
+    expect(lineHeard(`Okay. ${other}`, line)).toBe(false);   // another version is not the line chosen
+  });
+  it('never one of the last 3 versions, over a session of probes', () => {
+    let uses: PhraseUses = {};
+    const seen: string[] = [];
+    for (let t = 5; t < 25; t++) {
+      const line = planCheckerFlags(input({ rows: [verdictRow(3, [neutral])], phraseUses: uses, seed: `s:${t}` })).selected!.line;
+      expect(seen.slice(-3)).not.toContain(line);
+      seen.push(line);
+      uses = recordPhraseUses(line, uses);
+    }
+  });
+});

@@ -12,6 +12,7 @@
 //
 // Plan stays free of writes: startMathCheck returns the job, and the runner
 // writes its row once the turn is accepted (session-runner.ts).
+import { line, phrase, PHRASE_POOLS, type PhraseUses } from './phrasing';
 import { mathCheckerConfig, type MathCheckerConfig } from '@/lib/models';
 import type { OnUsage } from '@/lib/llm-usage';
 import { normalizeNumberWords } from '@/lib/number-words';
@@ -352,6 +353,8 @@ export type CheckerPlanInput = {
   underTimePressure: boolean;
   candidateFigures: number[];
   caseData: CheckerCase; revealedIds: string[];
+  // The session's recent lines and the turn's seed: a neutral probe is said in one of its versions (phrasing.ts).
+  phraseUses?: PhraseUses; seed?: string;
 };
 export type CheckerPlan = {
   selected: CheckerSelection | null;  // at most one a turn
@@ -369,6 +372,19 @@ const decision = (id: string, n: number, c: VettedClaim, outcome: CheckerOutcome
 });
 
 // The landed verdicts, decided for this turn.
+// A neutral probe of the vetting (math-checker.ts: "Walk me through how you got
+// to {x}." / "…that calculation." / "…how you got there.") said in one of its
+// five versions, chosen here — once, for the selection, which carries the
+// exact line to the decision, the model's hint and the heard check. Any other
+// line (the checker's own drafted probe) as vetted.
+const NEUTRAL_GOT_TO = /^Walk me through how you got to (.+)\.$/;
+export function neutralProbe(vetted: string, uses: PhraseUses | undefined, seed: string): string {
+  if (vetted === PHRASE_POOLS.probe_calc[0]) return line('probe_calc', uses, seed);
+  if (vetted === PHRASE_POOLS.probe_there[0]) return line('probe_there', uses, seed);
+  const m = NEUTRAL_GOT_TO.exec(vetted);
+  return m ? phrase('probe_got_to', m[1], uses, seed) : vetted;
+}
+
 export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const handled = new Set(p.handled);
   const decisions: CheckerDecision[] = [];
@@ -577,7 +593,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       closedNow.push(key);
       continue;
     }
-    if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', line: c.probeLine, derived: [], claim: c }; continue; }
+    if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', line: neutralProbe(c.probeLine, p.phraseUses, p.seed ?? ''), derived: [], claim: c }; continue; }
     const corrected = correction(id, n, c, key, attempt);
     if (corrected) { selected = corrected; continue; }
     // Code can't compute it: the pointer probe is the second attempt.

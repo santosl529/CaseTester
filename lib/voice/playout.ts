@@ -10,6 +10,7 @@
 // the saved line won't hold.
 import type { SegmentPlayback } from '@/lib/orchestrator/turn-types';
 import type { Word } from './types';
+import { captionWords, type CaptionWord } from './caption-timing';
 
 export const HEARD_MARGIN_MS = 150;   // network + jitter buffer
 export const FRAME_MS = 20;
@@ -184,6 +185,19 @@ export class Playout {
     return this.segs.some(s => !s.interruptible && !s.cut && (s.endAt === null || s.endAt > now));
   }
 
+  // The caption's word starts (caption-timing.ts), on the trimmed timeline:
+  // the display only — heard accounting stays on word ends + the margin.
+  captionWords(id: string): CaptionWord[] {
+    const s = this.byId.get(id);
+    return s ? captionWords(s.text, this.trimmedWords(s)) : [];
+  }
+
+  // Anything queued or still playing (the check-in waits for nothing to play).
+  busy(): boolean {
+    const now = this.clock.now();
+    return this.segs.some(s => !s.cut && (s.endAt === null || s.endAt > now));
+  }
+
   whenIdle(): Promise<void> {
     return new Promise(r => { this.idleWaiters.push(r); this.checkIdle(); });
   }
@@ -213,11 +227,14 @@ export class Playout {
   }
 
   // Word times are from the TTS clip's start; the lead-in we trimmed moves them earlier.
-  private timeline(s: Seg): Token[] {
-    const words = s.words && s.trimmedMs > 0
+  private trimmedWords(s: Seg): Word[] | null {
+    return s.words && s.trimmedMs > 0
       ? s.words.map(w => ({ ...w, startMs: Math.max(0, w.startMs - s.trimmedMs), endMs: Math.max(0, w.endMs - s.trimmedMs) }))
       : s.words;
-    return tokenTimeline(s.text, words, s.audioMs, s.finished && !s.failed);
+  }
+
+  private timeline(s: Seg): Token[] {
+    return tokenTimeline(s.text, this.trimmedWords(s), s.audioMs, s.finished && !s.failed);
   }
 
   // At a cut, or (cutAt null) now: a segment that has finished playing

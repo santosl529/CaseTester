@@ -7,7 +7,7 @@
 import type { OnUsage } from '@/lib/llm-usage';
 import type { DataLedger } from './data-ledger';
 import { PHASES, type Phase } from './state-machine';
-import { pickScript } from '@/lib/agent/prompts/scripts';
+import { line, phrase, PHRASE_POOLS, type PhrasePool, type PhraseUses } from './phrasing';
 import { anthropicClient } from '@/lib/anthropic-client';
 import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
 
@@ -34,7 +34,7 @@ export const INITIAL_PRESSURE_TEST: PressureTestState = { state: 'not_asked', re
 // Rule 7 intents. Read from the question text; callers limit it to the early
 // stages (a "which line first" question during the analysis is not a probe).
 const INTENTS: [ProbeIntent, RegExp][] = [
-  ['mece', /\b(mece|mutually exclusive|collectively exhaustive)\b|\bwhat('?s| is| might be| could be)\s+(missing|not in)\b|\bmissing from (your|the|that)\b|\b(anything|something)\s+(missing|left out)\b|\boverlap\b/i],
+  ['mece', /\b(mece|mutually exclusive|collectively exhaustive)\b|\bwhat('?s| is| might be| could be)\s+(missing|not in)\b|\bmissing from (your|the|that)\b|\b(anything|something)\s+(missing|left out)\b|\bdoes your structure leave out\b|\boverlap\b/i],
   ['prioritize', /\bwhich\s+(branch|bucket|area|part|piece|of those)\b[^?]*\b(first|prioriti[sz]e|start)\b|\bprioriti[sz]e\b[^?]*\b(first|which|why)\b/i],
   ['robustness', /\bwhat\s+(result|finding|data|evidence)\s+would\s+(break|change|invalidate|disprove)\b|\bbreak\s+(this|your|that)\s+(structure|framework)\b/i],
 ];
@@ -167,29 +167,30 @@ export function exhibitIsGated(ledger: DataLedger, covers: string[]): boolean {
 
 // ---- bounded fallbacks ----
 
-export const FIGURES_QUESTIONS = ['What do those figures tell you?', 'What do you take from those numbers?', 'Where do those numbers point you?'] as const;
+export const FIGURES_QUESTIONS = PHRASE_POOLS.figures_q;
 // Case-neutral wording (13 Oct): not every case is a "problem" (a launch, an entry, a pricing decision).
-export const NO_FIGURES_QUESTIONS = ['Where would you like to start the analysis?', 'What would you look at first, and why?', 'Which area would you dig into first?'] as const;
+export const NO_FIGURES_QUESTIONS = PHRASE_POOLS.no_figures_q;
 // Step 4 (batch 19, 12 Oct): the no-figures replacement fits the phase — Owen
 // t22 at 16:52, mid-analysis, heard "Where would you like to start the
 // analysis?" — and none asks for a stage (it would count as administered).
-export const ANALYSIS_QUESTIONS = ['What would you look at next, and why?', 'Where does that leave your analysis?', "What's your next step from here?"] as const;
-export const BRAINSTORM_QUESTIONS = ['Which of those would you pursue first, and why?', 'How would you prioritize those?', 'Which of those matters most, and why?'] as const;
-export const LATE_QUESTIONS = ['Walk me through the reasoning behind that.', "What's the strongest evidence for that?", 'What makes you confident in that?'] as const;
+export const ANALYSIS_QUESTIONS = PHRASE_POOLS.analysis_q;
+export const BRAINSTORM_QUESTIONS = PHRASE_POOLS.brainstorm_q;
+export const LATE_QUESTIONS = PHRASE_POOLS.late_q;
 // The last minutes (isUnderTimePressure): short, whatever went out.
-export const TIME_PRESSURE_QUESTIONS = ['Briefly, where does that leave you?', 'In a sentence, what does that tell you?'] as const;
-export const CODE_PROBES = [
-  'Before we get into the data: what might be missing from your structure?',
-  'Before we get into the data: which branch would you start with, and why?',
-  'Before we get into the data: what result would break this structure?',
-] as const;
+export const TIME_PRESSURE_QUESTIONS = PHRASE_POOLS.time_pressure_q;
+// Code's own probe (once): the lead, then one of the three asks — chosen by
+// seed among the asks, each worded from its pool (phrasing.ts).
+const PROBE_ASKS = ['ask_missing', 'ask_branch', 'ask_break'] as const;
+export const CODE_PROBES = PROBE_ASKS.map(a => PHRASE_POOLS.before_data[0].replace('{x}', PHRASE_POOLS[a][0]));
+export function codeProbe(uses: PhraseUses | undefined, seed: string): string {
+  const ask = PROBE_ASKS[seedIndex(seed, PROBE_ASKS.length)];
+  return phrase('before_data', line(ask, uses, seed), uses, seed);
+}
+const seedIndex = (seed: string, n: number) => { let h = 0; for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0; return h % n; };
 
 // Code asks for the structure (once) when none is on the table. Case-neutral
 // wording (13 Oct, as the fallbacks): not every case is a "problem".
-export const CODE_STRUCTURE_ASKS = [
-  'Before we get into the data, how would you structure your approach to this case?',
-  'Before we go further into the data, could you lay out how you would structure this case?',
-] as const;
+export const CODE_STRUCTURE_ASKS = PHRASE_POOLS.structure_ask;
 
 // A question that points at figures as if the candidate had them ("Which of
 // these three cost lines moved the most?", "With those in front of you…").
@@ -204,21 +205,20 @@ export function refersToFigures(question: string): boolean {
 // of your four levers do you prioritize…?" answered, then the fallback "What
 // would you look at first, and why?"): no where-to-start ask again; when the
 // whole pool is one, a question on what they expect to find (no stage, no probe).
-const WHERE_TO_START = /\b(?:first|start|prioriti[sz]e|matters most|most important)\b/i;
-export const HYPOTHESIS_QUESTIONS = ["What's your working hypothesis, and why?", 'What do you expect that analysis to show, and why?', 'Why do you expect the answer to sit there?'] as const;
+export const WHERE_TO_START = /\b(?:first|start|prioriti[sz]e|matters most|most important)\b/i;
+export const HYPOTHESIS_QUESTIONS = PHRASE_POOLS.hypothesis_q;
 
-export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: string; last: string | null; phase?: Phase; timePressure?: boolean; lastAnswered?: boolean }): string {
-  const phasePool: readonly string[] = p.timePressure ? TIME_PRESSURE_QUESTIONS
-    : p.figuresDelivered ? FIGURES_QUESTIONS
-    : p.phase === 'ANALYSIS' || p.phase === 'EXHIBIT' ? ANALYSIS_QUESTIONS
-    : p.phase === 'BRAINSTORM' ? BRAINSTORM_QUESTIONS
-    : p.phase === 'RECOMMENDATION' || p.phase === 'WRAP' ? LATE_QUESTIONS
-    : NO_FIGURES_QUESTIONS;
+export function pickFallbackQuestion(p: { figuresDelivered: boolean; seed: string; last: string | null; phase?: Phase; timePressure?: boolean; lastAnswered?: boolean; uses?: PhraseUses }): string {
+  const phasePool: PhrasePool = p.timePressure ? 'time_pressure_q'
+    : p.figuresDelivered ? 'figures_q'
+    : p.phase === 'ANALYSIS' || p.phase === 'EXHIBIT' ? 'analysis_q'
+    : p.phase === 'BRAINSTORM' ? 'brainstorm_q'
+    : p.phase === 'RECOMMENDATION' || p.phase === 'WRAP' ? 'late_q'
+    : 'no_figures_q';
   const answeredStart = Boolean(p.lastAnswered && p.last && WHERE_TO_START.test(p.last));
-  const left = answeredStart ? phasePool.filter(q => !WHERE_TO_START.test(q)) : phasePool;
-  const pool: readonly string[] = left.length > 0 ? left : p.phase === 'BRAINSTORM' ? LATE_QUESTIONS : HYPOTHESIS_QUESTIONS;
-  const first = pickScript([...pool], p.seed);
-  return first !== p.last ? first : pool[(pool.indexOf(first) + 1) % pool.length];
+  const fits = (q: string) => !(answeredStart && WHERE_TO_START.test(q));
+  const pool: PhrasePool = PHRASE_POOLS[phasePool].some(fits) ? phasePool : p.phase === 'BRAINSTORM' ? 'late_q' : 'hypothesis_q';
+  return line(pool, p.uses, p.seed, q => fits(q) && q !== p.last);
 }
 
 // v3 bound (batch 18, 10 Oct — Destiny and Maya held 20 turns): while the
@@ -238,26 +238,23 @@ export const PT_NOT_ASKED_LIMIT = 5;
 // "I'd like your answer on the structure" only when they didn't answer
 // (Lorenzo, 13 Oct; Tyler af62e2e2 t4 and Jasmine 35897f4a t4 had answered —
 // the judge wanted more): a substantive reply gets the next probe plainly.
-export function reaskProbe(intents: ProbeIntent[] | undefined, dataHeld = true, replied = false): string {
+export function reaskProbe(intents: ProbeIntent[] | undefined, dataHeld = true, replied = false, uses?: PhraseUses, seed = ''): string {
   const intent = intents?.[0] ?? 'mece';
-  const ask = intent === 'prioritize' ? 'which branch would you start with, and why?'
-    : intent === 'robustness' ? 'what result would break this structure?'
-      : 'what might be missing from your structure?';
-  if (replied && dataHeld) return `One more on your structure before I share that data: ${ask}`;
-  return dataHeld ? `Before I share that data, I'd like your answer on the structure: ${ask}` : `Coming back to your structure: ${ask}`;
+  const ask = line(intent === 'prioritize' ? 'ask_branch' : intent === 'robustness' ? 'ask_break' : 'ask_missing', uses, seed);
+  return phrase(replied && dataHeld ? 'reask_more' : dataHeld ? 'reask_answer' : 'reask_back', ask, uses, seed);
 }
 
 // The narrowed probe: the same intent, made concrete (a Rule 13 Level 2 for the test).
-export function narrowProbe(intents: ProbeIntent[] | undefined): string {
+export function narrowProbe(intents: ProbeIntent[] | undefined, uses?: PhraseUses, seed = ''): string {
   const intent = intents?.at(-1) ?? 'mece';
-  const ask = intent === 'prioritize' ? "of the areas you've named, which one would you check first, and why?"
-    : intent === 'robustness' ? 'what one finding would make you drop one of your branches?'
-      : "name one thing your structure doesn't cover yet.";
-  return `Let me make it concrete: ${ask}`;
+  const ask = line(intent === 'prioritize' ? 'narrow_branch' : intent === 'robustness' ? 'narrow_break' : 'narrow_missing', uses, seed);
+  return phrase('concrete', ask, uses, seed);
 }
 
 // The waiver's spoken lead, before the question (v3).
-export const WAIVER_LEAD = { awaiting: "Let's leave the structure there.", not_asked: "Let's move on to the analysis." } as const;
+export const WAIVER_LEAD = { awaiting: PHRASE_POOLS.waiver_awaiting[0], not_asked: PHRASE_POOLS.waiver_not_asked[0] } as const;
+export const waiverLead = (k: keyof typeof WAIVER_LEAD, uses: PhraseUses | undefined, seed: string) =>
+  line(k === 'awaiting' ? 'waiver_awaiting' : 'waiver_not_asked', uses, seed);
 
 // The probe as the candidate heard it, for the judge: the original and code's follow-ups.
 export function probeAsHeard(pt: PressureTestState): string {

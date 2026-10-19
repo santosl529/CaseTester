@@ -11,6 +11,10 @@ import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { readsFixture } from './fixtures/turn-reads';
 import replays from './fixtures/repeat-requests.json';
 
+// These tests pin the ledger's own data lines: prof-001's pre-written versions
+// are off here (DATA_LINE_VARIANTS=0; on by default since 18 Oct).
+process.env.DATA_LINE_VARIANTS = '0';
+
 // ---- in-memory store (as in pressure-test-runner.test.ts) ----
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };

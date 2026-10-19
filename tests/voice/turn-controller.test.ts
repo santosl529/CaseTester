@@ -461,7 +461,8 @@ describe('scripted lines: barge-in proof (§5.6)', () => {
     const h = harness([[seg('scripted', LINE)]], noAck);
     await h.c.ready(''); h.c.onStt(final('I cannot do this'));
     await h.advance(20);
-    expect(h.captions('interviewer').at(-1)?.text).toBe(LINE);
+    // Every segment is shown whole at its start now (item 7, 18 Oct).
+    expect(h.sent.find(m => m.type === 'caption_segment')).toMatchObject({ text: LINE });
   });
 });
 
@@ -679,3 +680,234 @@ describe('the TTS allowance runs out (voice deploy, 18 Oct): never silence', () 
   });
 });
 
+
+import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
+
+// Lorenzo's brief, 18 Oct, item 5: after VOICE_CHECKIN_MS with no candidate
+// speech and nothing playing, one soft line from a 5-version pool — once per
+// silence, again only after the candidate speaks; never while the interviewer
+// speaks; no clock pause, no session end. Logged per turn.
+describe('the voice silence check-in', () => {
+  const CHECK = 90_000;
+  const setup = (script: Parameters<typeof harness>[0] = [], o: Partial<ControllerDeps> = {}) => {
+    let lastVoiced: number | null = null;
+    const notes: Record<string, unknown>[] = [];
+    const h = harness(script, { checkInMs: CHECK, speechEndAt: () => lastVoiced, note: l => notes.push(l), ...o });
+    return { ...h, notes, voiced: (at: number) => { lastVoiced = at; } };
+  };
+  const checkIns = (h: ReturnType<typeof setup>) => h.captions('interviewer').filter(m => m.final && (PHRASE_POOLS.voice_check_in as readonly string[]).includes(m.text));
+
+  it('says one line from the pool after the silence, and only once until the candidate speaks', async () => {
+    const h = setup();
+    await h.c.ready('Your client is a coffee chain. How would you approach this?');
+    await h.advance(CHECK - 1000);
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(5000);
+    expect(checkIns(h).map(m => m.text)).toEqual([PHRASE_POOLS.voice_check_in[0]]);
+    await h.advance(3 * CHECK);                                         // still silent: no second line
+    expect(checkIns(h)).toHaveLength(1);
+    expect(h.sent.some(m => m.type === 'ended')).toBe(false);           // no session end
+  });
+
+  it('resets when the candidate speaks: the silence counts from their last words', async () => {
+    const h = setup([[seg('tail', 'Which bucket first?')]]);
+    await h.c.ready('');
+    await h.advance(60_000);
+    h.c.onStt(speech('so I think'));                                    // words, no end of turn yet
+    await h.advance(60_000);                                            // 120s in, 60s since they spoke
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(35_000);
+    expect(checkIns(h)).toHaveLength(1);
+    h.c.onStt(final('Costs first.'));                                   // a turn, then a new silence
+    await h.advance(5000);
+    await h.advance(CHECK + 5000);
+    expect(checkIns(h)).toHaveLength(2);
+    expect(checkIns(h)[1].text).not.toBe(checkIns(h)[0].text);         // the next version, not a repeat
+  });
+
+  it('a voiced mic frame defers it, though no words were transcribed', async () => {
+    const h = setup();
+    await h.c.ready('');
+    await h.advance(80_000);
+    h.voiced(h.clock.now());                                            // a mumble the STT didn't turn into words
+    await h.advance(20_000);
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(CHECK);
+    expect(checkIns(h)).toHaveLength(1);
+  });
+
+  it('never while the interviewer is thinking or speaking: the silence starts when the reply has played', async () => {
+    const h = setup([{ segs: [seg('tail', 'Walk me through it.')], delayMs: 100_000 }]);
+    await h.c.ready('');
+    h.c.onStt(final('Let me think about the structure.'));
+    await h.advance(100_000 + 2000);                                    // the model took 100s; the reply plays
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(CHECK - 5000);
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(10_000);
+    expect(checkIns(h)).toHaveLength(1);
+  });
+
+  it('is interruptible: the candidate talking over it cuts it, and their turn runs', async () => {
+    const h = setup([[seg('tail', 'Go on.')]], { tts: new FakeTTS(80, 0) });
+    await h.c.ready('');
+    await h.advance(CHECK + 500);                                       // the line has started
+    h.c.onStt(speech('sorry I was'));
+    h.c.onStt(final('Sorry, I was working it out. Costs first.'));
+    await h.advance(5000);
+    expect(h.texts).toEqual(['Sorry, I was working it out. Costs first.']);
+    expect(h.notes[0]).toMatchObject({ checkIn: { playback: 'partial' } });
+  });
+
+  it('is logged per turn: the line, the silence before it, what was heard', async () => {
+    const h = setup([[seg('tail', 'Which bucket first?')]]);
+    await h.c.ready('');
+    h.c.onStt(final('Revenue and costs.'));
+    await h.advance(5000);
+    await h.advance(CHECK + 10_000);
+    expect(h.notes).toHaveLength(1);
+    const line = PHRASE_POOLS.voice_check_in[0];
+    expect(h.notes[0]).toMatchObject({ turnSeq: 2, afterTurnSeq: 1, checkIn: { line, playback: 'played', heardChars: line.length } });
+    expect((h.notes[0] as { checkIn: { silentMs: number } }).checkIn.silentMs).toBeGreaterThanOrEqual(CHECK);
+  });
+
+  // Lorenzo, 18 Oct (ruling 3): a candidate reads and thinks after the case
+  // prompt (9813d6ce: 1:49 to the first answer) — that first silence waits 180s.
+  it('waits VOICE_CHECKIN_OPENER_MS after the case prompt, then checkInMs once the candidate has spoken', async () => {
+    const h = setup([[seg('tail', 'Which bucket first?')]], { checkInOpenerMs: 180_000 });
+    await h.c.ready('Your client is a coffee chain. How would you approach this?');
+    await h.advance(170_000);
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(15_000);
+    expect(checkIns(h)).toHaveLength(1);
+    h.c.onStt(final('Costs first.'));
+    await h.advance(5000);
+    await h.advance(CHECK + 5000);
+    expect(checkIns(h)).toHaveLength(2);
+  });
+
+  it('is off without checkInMs', async () => {
+    const h = setup([], { checkInMs: undefined });
+    await h.c.ready('');
+    await h.advance(5 * CHECK);
+    expect(checkIns(h)).toHaveLength(0);
+  });
+});
+
+// Lorenzo, 18 Oct (item 4 ruling): a filler that wasn't played never appears as
+// said. Skipped before the turn runs (toggle off, the rate): not given to the
+// turn at all. Skipped after it started (the reply ready first): the heard
+// report says so, and the runner leaves it out of the saved line.
+describe('an acknowledgment that did not play', () => {
+  const capture = (segs: Segment[]) => {
+    const seen: { acknowledged?: string; report?: HeardReport }[] = [];
+    const runTurn: RunTurnFn = async (_text, opts) => {
+      const row: (typeof seen)[number] = { acknowledged: opts.acknowledged };
+      seen.push(row);
+      for (const s of segs) await opts.onSegment(s).catch(() => {});
+      row.report = await opts.heard();
+      opts.onTiming({});
+      return result();
+    };
+    return { seen, runTurn };
+  };
+
+  it('thinking sounds off: the turn is not told of the filler code picked', async () => {
+    const cap = capture([seg('tail', 'Which bucket first?')]);
+    const h = harness([], { runTurn: cap.runTurn });
+    await h.c.ready(''); h.c.setFillers(false);
+    h.c.onStt(final('I would look at costs and revenue.'));
+    await h.advance(3000);
+    expect((h.records[0] as { ackSkipped: { why: string } }).ackSkipped.why).toBe('fillers_off');
+    expect(cap.seen[0].acknowledged).toBeUndefined();
+  });
+
+  it('skipped after the turn started (the reply came first): the report says it was not heard', async () => {
+    const cap = capture([seg('tail', 'Which bucket first?')]);
+    const h = harness([], { runTurn: cap.runTurn, fillerDelayMs: 500 });
+    await h.c.ready('');
+    h.c.onStt(final('I would look at costs and revenue.'));
+    await h.advance(3000);
+    expect((h.records[0] as { ackSkipped: { why: string } }).ackSkipped.why).toBe('reply_ready');
+    expect(cap.seen[0].acknowledged).toBeTruthy();
+    expect(cap.seen[0].report?.ackHeard).toBe(false);
+  });
+
+  it('played: the report says it was heard', async () => {
+    const cap = capture([seg('tail', 'Which bucket first?')]);
+    const slow: RunTurnFn = async (text, opts) => { await new Promise<void>(r => h.clock.at(h.clock.now() + 1000, r)); return cap.runTurn(text, opts); };
+    const h = harness([], { runTurn: slow, fillerDelayMs: 500, speechEndAt: () => 700 });   // no voice since the end of turn
+    await h.c.ready('');
+    h.c.onStt(final('I would look at costs and revenue.'));
+    await h.advance(4000);
+    expect((h.records[0] as { ack: string | null }).ack).toBeTruthy();
+    expect(cap.seen[0].report?.ackHeard).toBe(true);
+  });
+});
+
+// Lorenzo, 18 Oct (item 7): the interviewer's caption is the whole sentence at
+// its audio start, with Cartesia's word starts for the browser to brighten;
+// no caption message per word. A cut replaces it with what was heard, at once.
+// What counts as heard is unchanged.
+describe('interviewer captions shown whole', () => {
+  type SegMsg = Extract<ServerMessage, { type: 'caption_segment' }>;
+  const segMsgs = (h: ReturnType<typeof harness>) => h.sent.filter((m): m is SegMsg => m.type === 'caption_segment');
+
+  it('one message per segment at its audio start: the full text and its word starts; no per-word captions', async () => {
+    const h = harness([[seg('data', 'There are 120 stores.'), seg('tail', 'Where would you start?')]], { ...noAck, tts: new FakeTTS(40, 0) });
+    await h.c.ready(''); h.c.onStt(final('How many stores?'));
+    await h.advance(200);
+    expect(segMsgs(h)).toHaveLength(1);                                  // the first segment has started; the second hasn't
+    const first = segMsgs(h)[0];
+    expect(first).toMatchObject({ turnSeq: 1, index: 0, text: 'There are 120 stores.' });
+    expect(first.words.map(w => w.startMs)).toEqual([0, 210, 420, 630]);
+    await h.advance(3000);
+    expect(segMsgs(h).map(m => m.text)).toEqual(['There are 120 stores.', 'Where would you start?']);
+    expect(h.captions('interviewer').filter(m => !m.final)).toEqual([]);  // no per-word messages
+    expect(h.captions('interviewer').at(-1)).toMatchObject({ final: true, text: 'There are 120 stores. Where would you start?' });
+    expect(h.sent.some(m => m.type === 'caption_words')).toBe(false);    // every word timed at the start
+  });
+
+  it('word starts that arrive after the audio started follow in one message', async () => {
+    // A TTS whose timestamps come after its first audio (Cartesia streams them with the audio).
+    const late: TTSProvider = {
+      name: 'late',
+      async open() {
+        let onAudio: (pcm: Uint8Array, at: number) => void = () => {};
+        let onWords: (w: { word: string; startMs: number; endMs: number }[]) => void = () => {};
+        return {
+          push: async (text: string) => {
+            const ws = text.trim().split(/\s+/);
+            onAudio(new Uint8Array((RATE * 0.1) * 2 * ws.length).fill(40), Date.now());
+            await new Promise(r => setTimeout(r, 0));
+            onWords(ws.map((word, i) => ({ word, startMs: i * 100, endMs: (i + 1) * 100 })));
+          },
+          end: async () => {}, cancel: async () => {},
+          onAudio: (cb: typeof onAudio) => { onAudio = cb; }, onWords: (cb: typeof onWords) => { onWords = cb; },
+        };
+      },
+    } as never;
+    const h = harness([[seg('tail', 'Where would you start?')]], { ...noAck, tts: late });
+    await h.c.ready(''); h.c.onStt(final('Costs.'));
+    await h.advance(2000);
+    const [start] = segMsgs(h);
+    expect(start.words.every(w => w.startMs === null)).toBe(true);
+    const more = h.sent.filter((m): m is Extract<ServerMessage, { type: 'caption_words' }> => m.type === 'caption_words');
+    expect(more).toHaveLength(1);
+    expect(more[0]).toMatchObject({ turnSeq: 1, index: 0 });
+    expect(more[0].words.map(w => w.startMs)).toEqual([0, 100, 200, 300]);
+  });
+
+  it('a barge-in replaces the sentence with the heard text at once', async () => {
+    const LINE = 'Walk me through your structure, step by step please.';
+    const h = harness([[seg('tail', LINE)]], { ...noAck, tts: new FakeTTS(40, 0) });
+    await h.c.ready(''); h.c.onStt(final('Okay.'));
+    await h.advance(1000);
+    h.c.onStt(speech('sorry wait'));
+    const atCut = h.captions('interviewer');
+    expect(atCut).toHaveLength(1);
+    expect(LINE.startsWith(atCut[0].text)).toBe(true);
+    expect(atCut[0].text.length).toBeGreaterThan(0);
+    expect(atCut[0].text.length).toBeLessThan(LINE.length);
+  });
+});

@@ -20,6 +20,7 @@
 // The numeric provenance audit checks that a number appears somewhere
 // allowed; F1 checks that it is attached to the right quantity (PRD §15, the
 // 8 Oct Qwen screen: "beans at 42% of COGS" passed because 42 is allowed).
+import { asOriginalProbe } from './phrasing';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { exhibitColumns, findMisquotes, type QuoteAnchor } from './misquote';
 import { findCellMisquotes } from './cell-lookup';
@@ -646,6 +647,13 @@ export function coverageOf(what: string, fb: FactBase): Coverage {
 export type RefusalFlag = { refused: string; items: string[]; sentence: string };
 
 const REFUSAL = [
+  // Code's refusal variants first (phrasing.ts refuse, 18 Oct; the first pattern that matches is read): "That's not something I have — X.",
+  // "When it comes to X, I'm afraid I don't have that.", "As for X, that's not something
+  // I have.", "X — I'm afraid that's not something I have."
+  /\b(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\s+[—–:]\s+(.+)/i,
+  /\bwhen it comes to\s+(.+?),\s+(?:I'm afraid\s+)?(?:I|we)\s+(?:don't|do not)\s+have\b/i,
+  /\bas for\s+(.+?),\s+(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
+  /^(.+?)\s+[—–]\s+(?:I'm afraid\s+)?(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
   /\b(?:I|we)\s+(?:don't|do not|didn't|did not)\s+have\s+(.+)/i,
   /^(.+?)\s+(?:isn't|is not|aren't|are not)\s+(?:something|data|information|figures?|numbers?)\s+(?:that\s+)?(?:I|we)\s+have\b/i,
   /\b(?:that|this|it)(?:'s| is)\s+not\s+(?:something|data)\s+(?:that\s+)?(?:I|we)\s+have(?:\s+(?:on|for)\s+(.+))?/i,
@@ -871,7 +879,8 @@ export function echoesOf(m: MisquoteFlag, fb: FactBase): Echo[] {
   return out;
 }
 
-const PROBE = /\b(?:walk me through|how (?:did|do) you get|how you got|where does|where did|check (?:that|your|the)|recheck|points of what|you said|you're using|you used|your figure|is that right|does that match|against the exhibit|what does the exhibit)\b/i;
+// Read on the text with code's neutral probes as their original (phrasing.ts asOriginalProbe).
+export const ECHO_PROBE = /\b(?:walk me through|how (?:did|do) you get|how you got|where does|where did|check (?:that|your|the)|recheck|points of what|you said|you're using|you used|your figure|is that right|does that match|against the exhibit|what does the exhibit)\b/i;
 
 // F1 echo: the interviewer repeating a still-uncorrected misquote as a fact
 // ("16 of the 19 points" after the candidate's "19-point COGS increase").
@@ -883,7 +892,7 @@ export function findEchoes(text: string, echoes: Echo[], fb: FactBase, opts: { s
   if (!echoes.length) return out;
   for (const s of sentencesOf(text)) {
     // A probe of the figure, or doubt about it ("depends on the 61% being exact"), isn't adopting it.
-    if (!opts.strict && (PROBE.test(s) || /\bnot\s+\$?\d/i.test(s) || /\b(?:exact|accurate|precise|correct|right|depends on|hold up|holds)\b/i.test(s))) continue;
+    if (!opts.strict && (ECHO_PROBE.test(asOriginalProbe(s)) || /\bnot\s+\$?\d/i.test(s) || /\b(?:exact|accurate|precise|correct|right|depends on|hold up|holds)\b/i.test(s))) continue;
     for (const e of echoes) {
       const re = e.change
         ? new RegExp(`(?<![\\d.])${escape(String(e.value))}(?:\\.0)?[- ]?(?:percentage[- ])?points?\\b`, 'i')

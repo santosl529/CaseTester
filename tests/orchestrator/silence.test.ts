@@ -210,3 +210,27 @@ describe('recordSilenceStall', () => {
     expect(s.consecutiveClarify).toBe(0);
   });
 });
+
+// Brief B rulings (18 Oct): the check-in and the pause can fire more than once a
+// session, so they vary; the expiry line ends the session and stays fixed.
+import { checkInText as checkIn2, pauseText as pause2, isSilenceLine as isSilence2 } from '@/lib/orchestrator/silence';
+import { PHRASE_POOLS as POOLS2, PHRASE_MEMORY as MEM2, recordPhraseUses as record2, type PhraseUses as Uses2 } from '@/lib/orchestrator/phrasing';
+describe('the silence lines vary', () => {
+  it('the check-in and the pause: never one of their last 3, every version still a silence line', () => {
+    for (const make of [(u: Uses2, s: string) => checkIn2(null, 'How would you size it?', u, s), (u: Uses2, s: string) => pause2(300_000, u, s)]) {
+      let uses: Uses2 = {};
+      const seen: string[] = [];
+      for (let t = 0; t < 15; t++) {
+        const text = make(uses, `s:${t}`);
+        expect(isSilence2(text), text).toBe(true);
+        expect(seen.slice(-MEM2)).not.toContain(text);
+        seen.push(text);
+        uses = record2(text, uses);
+      }
+    }
+  });
+  it('the first check-in is the original line, the question after it', () => {
+    expect(checkIn2(null, 'How would you size it?')).toBe(`${POOLS2.check_in[0]} The question on the table: how would you size it?`);
+    expect(pause2(300_000)).toBe(POOLS2.pause[0].replace('{x}', '5 minutes'));
+  });
+});

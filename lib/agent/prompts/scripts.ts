@@ -5,76 +5,50 @@
 // scripted phrase in this doc"), seeded by session id so a given session sees
 // one consistent phrase while different sessions vary.
 
+import { line, PHRASE_POOLS, type PhraseUses } from '@/lib/orchestrator/phrasing';
+
 // Rule 12 time-up grace ask (v4.3): time ran out before any recommendation
 // ask landed. Must match REC_ASK and must not match CLOSE_CUE.
-export const GRACE_ASK_SCRIPTS = [
-  "We're at time. In one or two sentences, what's your recommendation to the CEO?",
-  "That's the clock — before we stop, what's your recommendation to the CEO, in a sentence or two?",
-  "We're at time, so give me the short version: what would you tell the CEO?",
-];
+export const GRACE_ASK_SCRIPTS: readonly string[] = PHRASE_POOLS.grace_ask;
 
 // Code administers an owed exhibit (Rule 9 v4.10): the data line hands it over,
 // then one of these asks about it.
-export const STAGE_EXHIBIT_QUESTIONS = ['What does this exhibit tell you?', 'What do you take from this exhibit?'];
+export const STAGE_EXHIBIT_QUESTIONS: readonly string[] = PHRASE_POOLS.stage_exhibit_q;
 
 // A late recommendation ask also asks for the biggest risk (Lorenzo, 15 Oct;
 // batch 26 Blake 4755c03a: the recommendation came only with this line, and
 // time-up left no turn for the risk question). One question.
-export const TIME_WARNING_SCRIPTS = [
-  "We're near time. What's your bottom-line recommendation to the CEO, and the biggest risk to it?",
-  "We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?",
-  "Time's nearly up. What's your bottom-line recommendation, and what's the biggest risk to it?",
-];
+export const TIME_WARNING_SCRIPTS: readonly string[] = PHRASE_POOLS.time_warning;
 
 // Round-3 stale release: an earlier request released by code once its stage
 // is reached, mid-case. Not the forced-release pool — "Before we wrap" there
 // is right only next to the recommendation ask (batch 7: Nikhil heard it at
 // turn 4).
-export const STALE_RELEASE_LEADINS = [
-  'On what you asked about earlier:',
-  'Coming back to what you asked for earlier:',
-  'You asked about this earlier:',
-];
+export const STALE_RELEASE_LEADINS: readonly string[] = PHRASE_POOLS.earlier;
 
 // Rule 12 v4.6: the one goodbye — a single neutral line, no evaluation
 // (Rule 1), carrying the report hand-off. Every ending turn IS this script.
 // v4.10: the line follows the reason the case ended — "That's time" only at
 // time-up (batch 18: 32 sessions said it before minute 18).
 export const CLOSE_SCRIPTS_BY_REASON = {
-  time_up: [
-    "That's time. Thanks for working through it — your written report will follow.",
-    "That's our time. Thanks for working through this with me — your written report will follow.",
-  ],
-  complete: [
-    "We've covered everything I wanted to. Thanks for working through the case — your written report will follow.",
-    "That covers what I wanted to get to. Thanks for working through the case — your written report will follow.",
-  ],
-  unresolved: [
-    "We'll stop there. Thanks for working through the case — your written report will follow.",
-  ],
+  time_up: PHRASE_POOLS.close_time_up,
+  complete: PHRASE_POOLS.close_complete,
+  unresolved: PHRASE_POOLS.close_unresolved,
 } as const;
 
 export const CLOSE_SCRIPTS = [...CLOSE_SCRIPTS_BY_REASON.time_up, ...CLOSE_SCRIPTS_BY_REASON.complete, ...CLOSE_SCRIPTS_BY_REASON.unresolved];
 
-export function closeLine(reason: keyof typeof CLOSE_SCRIPTS_BY_REASON, seed: string): string {
-  return pickScript([...CLOSE_SCRIPTS_BY_REASON[reason]], seed);
+export function closeLine(reason: keyof typeof CLOSE_SCRIPTS_BY_REASON, seed: string, uses?: PhraseUses): string {
+  return line(reason === 'time_up' ? 'close_time_up' : reason === 'complete' ? 'close_complete' : 'close_unresolved', uses, seed);
 }
 
 // Opening invitation appended after the (verbatim) case prompt. Rotated for the
 // anti-tell reason (Rule 7); the substance is the prompt itself, this is just
 // the hand-off to the candidate.
-export const OPENING_INVITATIONS = [
-  "Take a moment, then walk me through how you'd approach this.",
-  "Take a minute if you need it, then tell me how you'd structure your approach.",
-  "How would you like to approach this? Feel free to take a moment to gather your thoughts first.",
-];
+export const OPENING_INVITATIONS: readonly string[] = PHRASE_POOLS.opener_invite;
 
 // After a prompt that ends in its own question: time to think, no second ask.
-export const OPENING_INVITATIONS_AFTER_QUESTION = [
-  'Take a moment, then walk me through your thinking.',
-  'Take a minute if you need it, then lay out your structure.',
-  'Feel free to take a moment to gather your thoughts first.',
-];
+export const OPENING_INVITATIONS_AFTER_QUESTION: readonly string[] = PHRASE_POOLS.opener_after_q;
 
 // The opening message the candidate sees. The case prompt is included VERBATIM
 // (not model-generated) so the candidate always sees the exact scenario and
@@ -84,8 +58,7 @@ export function buildOpeningMessage(casePrompt: string, seed: string): string {
   // A prompt that already asks ("How would you approach this problem?") gets a
   // hand-off that doesn't ask again (Lorenzo's brief, 17 Oct: "…approach this
   // problem? Take a moment, then walk me through how you'd approach this.").
-  const pool = /\?\s*$/.test(casePrompt) ? OPENING_INVITATIONS_AFTER_QUESTION : OPENING_INVITATIONS;
-  return `${casePrompt}\n\n${pickScript(pool, seed)}`;
+  return `${casePrompt}\n\n${line(/\?\s*$/.test(casePrompt) ? 'opener_after_q' : 'opener_invite', undefined, seed)}`;
 }
 
 // Conduct-track scripts (docs/interviewer-behavior.md Rules 17–18). These are
@@ -135,7 +108,7 @@ export function hasCloseCue(spokenText: string): boolean {
   return CLOSE_CUE.test(spokenText);
 }
 
-export function pickScript(pool: string[], seed: string): string {
+export function pickScript(pool: readonly string[], seed: string): string {
   let hash = 0;
   for (let i = 0; i < seed.length; i++) {
     hash = (hash * 31 + seed.charCodeAt(i)) >>> 0;

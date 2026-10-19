@@ -126,6 +126,21 @@ describe('planTurn turn kinds', () => {
     expect(noQ.state.kind).toBe('model');
   });
 
+  // Lorenzo, 18 Oct (ruling 2): the voice check-in is something the interviewer
+  // said — the model sees it (so it doesn't say "take your time" again) — but
+  // it is no turn: it rides on the interviewer message before it.
+  it('gives the model the voice check-in, on the interviewer message before it, as no turn of its own', () => {
+    const reads = readsFixture({ phase: 'ANALYSIS' });
+    const last = reads.turnRows.at(-1)!;
+    const at = last.timestampMs + 90_000;
+    const plan = planTurn({ ...reads, checkInEventRows: [{ id: 'e1', sessionId: 's1', category: 'intervention', subtype: 'voice_check_in', turnIndex: null, phase: 'ANALYSIS', payloadJsonb: { text: 'Take your time — feel free to think out loud.', atMs: at }, createdAt: new Date(at) }] }, 'Sorry, here.', deps());
+    const base = planTurn(readsFixture({ phase: 'ANALYSIS' }), 'Sorry, here.', deps());
+    if (plan.kind !== 'model' || base.kind !== 'model') throw new Error('expected model plans');
+    expect(plan.state.history).toHaveLength(base.state.history.length);
+    expect(plan.state.history.at(-1)).toEqual({ role: 'assistant', content: `${last.text} Take your time — feel free to think out loud.` });
+    expect(plan.ctx.nextTurnIndex).toBe(base.ctx.nextTurnIndex);
+  });
+
   it('keeps silence check-ins out of the model\'s history', () => {
     const plan = planTurn(readsFixture({ phase: 'ANALYSIS', extraTurns: [{ role: 'interviewer', text: 'Still with me? Take your time.' }] }), 'Sorry, here.', deps());
     if (plan.kind !== 'model') throw new Error('expected a model plan');

@@ -2,7 +2,7 @@ import { closeWaitLine } from './close-hold';
 import { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, or } from 'drizzle-orm';
 import { recordSilenceStall, INITIAL_STALL_STATE, type StallState } from './stall';
 import {
   evaluateSilence, checkInText, pauseText, restateOnTable, INITIAL_SILENCE_STATE, type SilenceAction, type SilenceState,
@@ -14,7 +14,7 @@ import { logEvent, inDraftScope } from '@/lib/analytics';
 import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
-import { SILENCE_PAUSE_EXPIRED, GRACE_ASK_SCRIPTS, TIME_WARNING_SCRIPTS, STAGE_EXHIBIT_QUESTIONS, closeLine, pickScript } from '@/lib/agent/prompts/scripts';
+import { SILENCE_PAUSE_EXPIRED, closeLine } from '@/lib/agent/prompts/scripts';
 import { planTurn, scriptedOffer, scriptedOfferFor, terminationPlanFor, type ModelPlan, type TurnReads } from './plan-turn';
 import { conductEnds } from './stream-turn';
 import type { ConductModelVerdict } from './conduct-model';
@@ -23,14 +23,15 @@ import { promptContextFor } from './prompt-context';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
 import { revealedValues } from './data-ledger';
 import { nextReadyExhibit } from './data-decisions';
-import { brainstormAsks } from './brainstorm';
+import { brainstormAskLine } from './brainstorm';
 import { analysisAskLine } from './spoken-close';
 import { streamTurnSegments } from './stream-turn';
 import { settleTurn, commitScripted, logSessionEvent, type TurnUsage, type ModelOutcome } from './settle-turn';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { recMathLine } from './recompute';
 import { MATH_CHECKER_CATEGORY, type CheckerJob, type CheckerJobResult } from './math-checker-live';
-import { phrase, type PhraseUses } from './phrasing';
+import { VOICE_CHECK_IN } from './voice-check-in';
+import { line, phrase, recordPhraseUses, PHRASE_POOLS, type PhraseUses } from './phrasing';
 import {
   isUsefulSegment, isCancelledTurn, TurnCancelled,
   type ConductFlags, type HeardReport, type ScriptedPlan, type SegmentSink, type TurnCtx, type TurnResult,
@@ -129,15 +130,19 @@ async function readTurn(sessionId: string): Promise<TurnReads> {
     }),
     db.query.exhibitsShown.findMany({ where: eq(exhibitsShown.sessionId, sessionId) }),
     db.query.revealedData.findMany({ where: eq(revealedData.sessionId, sessionId) }),
-    // Rule 11's data-request rows and the math checker's verdicts.
+    // Rule 11's data-request rows, the math checker's verdicts and the voice check-ins.
     db.query.sessionEvents.findMany({
-      where: and(eq(sessionEvents.sessionId, sessionId), inArray(sessionEvents.category, ['data_request', MATH_CHECKER_CATEGORY])),
+      where: and(eq(sessionEvents.sessionId, sessionId), or(
+        inArray(sessionEvents.category, ['data_request', MATH_CHECKER_CATEGORY]),
+        and(eq(sessionEvents.category, VOICE_CHECK_IN.category), eq(sessionEvents.subtype, VOICE_CHECK_IN.subtype)),
+      )),
     }),
   ]);
   return {
     session, turnRows, exhibitRows, revealedRows,
     dataRequestEventRows: eventRows.filter(r => r.category === 'data_request'),
     checkerEventRows: eventRows.filter(r => r.category === MATH_CHECKER_CATEGORY),
+    checkInEventRows: eventRows.filter(r => r.category === VOICE_CHECK_IN.category && r.subtype === VOICE_CHECK_IN.subtype),
   };
 }
 
@@ -437,12 +442,12 @@ async function runTurnBody(
 
 const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_revision', 'rec_math_probe', 'close_wait']);
 // After code corrects a misquote in the recommendation: one chance to revise it.
-const REC_REVISION_QUESTIONS = ['With that corrected, does your recommendation change?', 'Given the corrected figure, would you change your recommendation?'] as const;
+export const REC_REVISION_QUESTIONS = PHRASE_POOLS.rec_revision;
 // After code corrects the candidate's own math in the recommendation (Rule 14
 // past its probe): the correction is theirs, so no "corrected figure" talk.
-const REC_MATH_REVISION_QUESTIONS = ['Does that change your recommendation?', 'Would that change your recommendation at all?'] as const;
+export const REC_MATH_REVISION_QUESTIONS = PHRASE_POOLS.rec_math_revision;
 // …and with no recommendation received yet, nothing about "your recommendation" (batch 29 Jordan ea27d1f6 t13).
-const ANALYSIS_REVISION_QUESTIONS = ['Does that change your analysis?', 'How does that change your numbers?'] as const;
+export const ANALYSIS_REVISION_QUESTIONS = PHRASE_POOLS.analysis_revision;
 
 
 // A code-written turn as a turn of the interviewer's shape: the message's data
@@ -454,24 +459,26 @@ export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[]
   // The math checker's flag in place of the close: its vetted line, said by code.
   // The wrap-up lead's connecting words vary (phrasing.ts); the probe's own words don't.
   const wrapUp = (x: string) => phrase('wrap_up', x, ctx.flags.phraseUses as PhraseUses | undefined, seed);
+  const gotTo = (fig: string) => phrase('probe_got_to', fig, ctx.flags.phraseUses as PhraseUses | undefined, seed);
   const recLine = (action: 'probe' | 'correct') => !recMath ? ''
     : 'checker' in recMath ? (action === 'probe' ? wrapUp(lowerFirst(recMath.checker.line)) : recMath.checker.line)
-      : 'closed' in recMath ? (action === 'probe' || !recMath.closed.correction ? wrapUp(`walk me through how you got to ${recMath.closed.said}.`) : recMath.closed.correction)
-        : recMathLine(recMath.flag, action, wrapUp);
+      : 'closed' in recMath ? (action === 'probe' || !recMath.closed.correction ? wrapUp(lowerFirst(gotTo(recMath.closed.said))) : recMath.closed.correction)
+        : recMathLine(recMath.flag, action, wrapUp, gotTo);
   const requests = (detected ?? [])
     .filter(r => r.explicit) // a code-written turn answers asks, it doesn't offer
     .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));
-  const question = state.kind === 'close' ? closeLine(state.closeReason, seed)
-    : state.kind === 'grace_ask' ? pickScript(GRACE_ASK_SCRIPTS, seed)
-      : state.kind === 'time_warning' ? pickScript(TIME_WARNING_SCRIPTS, seed)
-        : state.kind === 'stage_brainstorm' ? pickScript(brainstormAsks(state.caseData), seed)
-          : state.kind === 'stage_exhibit' ? pickScript(STAGE_EXHIBIT_QUESTIONS, seed)
+  const uses = ctx.flags.phraseUses as PhraseUses | undefined;
+  const question = state.kind === 'close' ? closeLine(state.closeReason, seed, uses)
+    : state.kind === 'grace_ask' ? line('grace_ask', uses, seed)
+      : state.kind === 'time_warning' ? line('time_warning', uses, seed)
+        : state.kind === 'stage_brainstorm' ? brainstormAskLine(state.caseData, uses, seed)
+          : state.kind === 'stage_exhibit' ? line('stage_exhibit_q', uses, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? analysisAskLine(state.caseData.analysisCore.ask, state.recommendationInPlay)
-            : state.kind === 'rec_revision' ? pickScript([...(state.recommendationReceived ? REC_REVISION_QUESTIONS : ANALYSIS_REVISION_QUESTIONS)], seed)
-              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed)
-              : recMath?.action === 'correct' ? pickScript([...(state.recommendationReceived ? REC_MATH_REVISION_QUESTIONS : ANALYSIS_REVISION_QUESTIONS)], seed)
+            : state.kind === 'rec_revision' ? line(state.recommendationReceived ? 'rec_revision' : 'analysis_revision', uses, seed)
+              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed, uses)
+              : recMath?.action === 'correct' ? line(state.recommendationReceived ? 'rec_math_revision' : 'analysis_revision', uses, seed)
               : recMath ? recLine('probe')
-            : `Take your time. ${restateOnTable(state.lastQuestion ?? '')}`;
+            : phrase('stall_lead', restateOnTable(state.lastQuestion ?? ''), uses, seed);
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
   const exhibit = state.kind === 'stage_exhibit' ? state.requiredExhibit ?? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger, state.stagesOut)?.id ?? null : null;
   // Rule 14 past its probe: the figure, flat, before the revision question.
@@ -536,7 +543,9 @@ export async function runSilence(sessionId: string, silentMs: number): Promise<S
   }
 
   const storedQuestion = typeof flags.lastQuestion === 'string' ? flags.lastQuestion : null;
-  const interviewerText = decision.action === 'check_in' ? checkInText(lastInterviewer, storedQuestion) : pauseText(decision.state.pauseLimitMs ?? 0);
+  const silenceUses = flags.phraseUses as PhraseUses | undefined;
+  const silenceSeed = `${sessionId}:${nextTurnIndex}`;
+  const interviewerText = decision.action === 'check_in' ? checkInText(lastInterviewer, storedQuestion, silenceUses, silenceSeed) : pauseText(decision.state.pauseLimitMs ?? 0, silenceUses, silenceSeed);
 
   await db.insert(sessionTurns).values({ sessionId, turnIndex: nextTurnIndex, role: 'interviewer', text: interviewerText, timestampMs: now });
   // Not an assist: lib/scoring/assists.ts only counts ladder rungs.
@@ -550,6 +559,8 @@ export async function runSilence(sessionId: string, silentMs: number): Promise<S
     flagsJsonb: {
       ...flags,
       silence: decision.state,
+      // The scripted line's version, for the last-3 rule (it doesn't pass through Settle).
+      phraseUses: recordPhraseUses(interviewerText, silenceUses),
       // Rule 13: silence past tolerance is one no-progress turn (check-in only).
       stall: decision.action === 'check_in' ? recordSilenceStall(priorStall) : priorStall,
     },
