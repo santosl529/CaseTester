@@ -59,12 +59,23 @@ describe('an item-less deferral', () => {
 describe('an ask mapped to an item that the BASIS rule empties', () => {
   const BASIS_ASK = 'the basis for the COGS percentage';
   const B = { requests: [{ what: BASIS_ASK, itemIds: ['cogs_pct'], explicit: true, respond: 'release' as const }], exhibit: null, rescueItem: null };
-  it('is a named deferral when the check maps it to an item, nothing released', async () => {
-    classify.mockResolvedValueOnce([{ what: BASIS_ASK, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
+  it('is a named deferral when the check maps it to another item, nothing released', async () => {
+    classify.mockResolvedValueOnce([{ what: BASIS_ASK, ledgerItemIds: ['cogs_pct', 'labor_pct'], response: 'none', explicit: true }]);
     const d = await turnDataChecked(plan(SATISFIED), B);
     expect(d.releases).toEqual([]);
     expect(d.refusals).toEqual([]);
     expect(d.defers).toEqual([BASIS_ASK]);
+  });
+  // Engine-asks final review (19 Oct): the classifier maps a basis ask by topic
+  // to the very item the BASIS rule cut — a deferral nothing keeps.
+  it('is refused when the check maps it back only to the item the BASIS rule cut', async () => {
+    classify.mockResolvedValueOnce([{ what: BASIS_ASK, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
+    const d = await turnDataChecked(plan(SATISFIED), B);
+    expect(d.basisCut).toEqual({ [BASIS_ASK]: ['cogs_pct'] });
+    expect(d.releases).toEqual([]);
+    expect(d.defers).toEqual([]);
+    expect(d.refusals).toEqual([BASIS_ASK]);
+    expect(d.requests.map(r => r.response)).toEqual(['refuse']);
   });
   it('is refused when the check maps it to none, and not re-queued as a deferral', async () => {
     classify.mockResolvedValueOnce([]);

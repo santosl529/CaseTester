@@ -52,7 +52,8 @@ export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfi
   return { satisfied, waiving, nothingMissing };
 }
 
-export type TurnData = DataDecisions & { gatedIds: string[] };
+// basisCut: per ask the BASIS rule emptied, the items it cut (fix-wave 1, below).
+export type TurnData = DataDecisions & { gatedIds: string[]; basisCut?: Record<string, string[]> };
 
 // An explicit deferral with no item is checked by a small model before code
 // refuses it (Lorenzo, 19 Oct; engine-asks R1, "yes, with a guard"; batch 32
@@ -64,8 +65,12 @@ export type TurnData = DataDecisions & { gatedIds: string[] };
 // code-spoken refusal goes out unchecked. Item-less releases are refused as
 // before. Stream and Settle share the result through the plan (one call per
 // ask per turn).
+// For an ask the BASIS rule emptied, `cut` holds the items it cut: the check
+// mapping the ask back only to them is "maps to none" — refused, not "I'll come
+// back to …" a deferral nothing keeps (engine-asks final review, 19 Oct; the
+// classifier maps "basis for the 70% load factor" by topic to the load factor).
 const DEFER_CHECK_TIMEOUT_MS = 3000;
-async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsage): Promise<boolean> {
+async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: string[] = []): Promise<boolean> {
   const cache = plan.state.deferChecks;
   const cached = cache.get(what);
   if (cached) return cached;
@@ -83,9 +88,9 @@ async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsag
       }).catch(() => null),
       timeout,
     ]).finally(() => clearTimeout(timer));
-    const mapped = found === null ? null : found.some(f => f.ledgerItemIds.length > 0);
+    const mapped = found === null ? null : found.some(f => f.ledgerItemIds.some(id => !cut.includes(id)));
     plan.ctx.checks.record('itemless_defer', mapped !== false, mapped === null ? 'no verdict: a named deferral' : mapped ? 'mapped to a ledger item: a named deferral' : 'maps to no item: refused',
-      { what, mapped, found: found === null ? null : found.map(f => ({ what: f.what, ids: f.ledgerItemIds })), latencyMs: Date.now() - t0 });
+      { what, mapped, found: found === null ? null : found.map(f => ({ what: f.what, ids: f.ledgerItemIds })), ...(cut.length > 0 ? { basisCut: cut } : {}), latencyMs: Date.now() - t0 });
     return mapped !== false;
   })();
   cache.set(what, run);
@@ -96,7 +101,7 @@ async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsag
 export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage): Promise<TurnData> {
   const d = turnData(plan, turn);
   if (d.unmatchedDefers.length === 0) return d;
-  const held = await Promise.all(d.unmatchedDefers.map(w => itemlessDeferHeld(plan, w, onUsage)));
+  const held = await Promise.all(d.unmatchedDefers.map(w => itemlessDeferHeld(plan, w, onUsage, d.basisCut?.[w])));
   const defers: string[] = [], refusals: string[] = [];
   d.unmatchedDefers.forEach((w, i) => (held[i] ? defers : refusals).push(w));
   const refused = new Set(refusals);
@@ -193,6 +198,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const scoped: { what: string; ids: string[] }[] = [];
   // Asks the BASIS rule emptied: checked like an item-less deferral before any refusal goes out.
   const basisEmptied = new Set<string>();
+  const basisCut: Record<string, string[]> = {};
   requests = requests.flatMap(r => {
     // An item the case's own `covers` names for the ask is in its scope (Marisol
     // 0f7551c2 t9: "transaction volume per store" mapped to the ticket, which the
@@ -222,7 +228,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     if (out.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) finerAsks.add(r.what);
     const kept = { ...r, itemIds: r.itemIds.filter(id => !out.includes(id)) };
     if (out.length > 0) scoped.push({ what: r.what, ids: out });
-    if (r.explicit && out.length > 0 && kept.itemIds.length === 0 && BASIS.test(r.what)) basisEmptied.add(r.what);
+    if (r.explicit && out.length > 0 && kept.itemIds.length === 0 && BASIS.test(r.what)) { basisEmptied.add(r.what); basisCut[r.what] = [...new Set([...(basisCut[r.what] ?? []), ...out])]; }
     // A finer ask the case doesn't hold is refused (4b), even beside an exhibit the model handed over for it.
     if (r.explicit && finerAsks.has(r.what) && kept.itemIds.length > 0 && !kept.itemIds.some(id => ledger.items.some(i => i.id === id))) {
       return [kept, { ...r, itemIds: [] }];
@@ -347,7 +353,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // Lorenzo, 19 Oct (R1, "don't add code-spoken refusals without the check"): an
   // ask the model mapped to an item and the BASIS rule emptied (Larkspur Marisol
   // t27) goes through the same check as an item-less deferral (turnDataChecked)
-  // instead of being refused at once: named deferral, or refused when it maps to none.
+  // instead of being refused at once: named deferral, or refused when it maps to none
+  // (or only to the items the rule cut — basisCut; controller's proposal, 19 Oct).
   if (basisEmptied.size > 0) {
     decisions.unmatchedDefers.push(...decisions.refusals.filter(w => basisEmptied.has(w)));
     decisions.refusals = decisions.refusals.filter(w => !basisEmptied.has(w));
@@ -362,5 +369,5 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     decisions.restates.push({ id: p.id, value: p.value });
     decisions.requests.push({ request: p.request, response: 'clarify', ledgerItemIds: [] });
   }
-  return { ...decisions, correction, gatedIds };
+  return { ...decisions, correction, gatedIds, ...(basisEmptied.size > 0 ? { basisCut } : {}) };
 }
