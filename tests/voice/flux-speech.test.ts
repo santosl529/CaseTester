@@ -5,7 +5,8 @@ import { fluxSignal } from '@/lib/voice/deepgram';
 
 describe('fluxSignal speech events', () => {
   it('maps StartOfTurn and Update to speech with a word count', () => {
-    expect(fluxSignal({ type: 'TurnInfo', event: 'StartOfTurn', transcript: '' }, 5)).toEqual({ kind: 'speech', transcript: '', words: 0, atMs: 5 });
+    // StartOfTurn is marked (19 Oct): the check-in resets on it, not on a wordless Update.
+    expect(fluxSignal({ type: 'TurnInfo', event: 'StartOfTurn', transcript: '' }, 5)).toEqual({ kind: 'speech', transcript: '', words: 0, atMs: 5, start: true });
     expect(fluxSignal({ type: 'TurnInfo', event: 'Update', transcript: ' wait, sorry ' }, 6)).toEqual({ kind: 'speech', transcript: 'wait, sorry', words: 2, atMs: 6 });
   });
   it('keeps end-of-turn signals as before', () => {

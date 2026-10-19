@@ -693,7 +693,9 @@ describe('the voice silence check-in', () => {
     let lastVoiced: number | null = null;
     const notes: Record<string, unknown>[] = [];
     const h = harness(script, { checkInMs: CHECK, speechEndAt: () => lastVoiced, note: l => notes.push(l), ...o });
-    return { ...h, notes, voiced: (at: number) => { lastVoiced = at; } };
+    // The check-in lines themselves (the push-back and skip lines are notes too, 19 Oct).
+    const said = () => notes.filter(n => 'checkIn' in n);
+    return { ...h, notes, said, voiced: (at: number) => { lastVoiced = at; } };
   };
   const checkIns = (h: ReturnType<typeof setup>) => h.captions('interviewer').filter(m => m.final && (PHRASE_POOLS.voice_check_in as readonly string[]).includes(m.text));
 
@@ -725,15 +727,41 @@ describe('the voice silence check-in', () => {
     expect(checkIns(h)[1].text).not.toBe(checkIns(h)[0].text);         // the next version, not a repeat
   });
 
-  it('a voiced mic frame defers it, though no words were transcribed', async () => {
+  // Lorenzo's live session (19 Oct): room and keyboard noise kept pushing the
+  // 90s back (any frame over the RMS floor, with the browser's AGC). Only speech
+  // resets it: words (interim or final) or Flux's StartOfTurn.
+  it('keyboard-like noise (voiced frames, no words, no StartOfTurn) does not delay it', async () => {
     const h = setup();
     await h.c.ready('');
-    await h.advance(80_000);
-    h.voiced(h.clock.now());                                            // a mumble the STT didn't turn into words
-    await h.advance(20_000);
-    expect(checkIns(h)).toHaveLength(0);
-    await h.advance(CHECK);
+    for (let t = 0; t < 88; t += 4) { await h.advance(4000); h.voiced(h.clock.now()); h.c.onStt({ kind: 'speech', transcript: '', words: 0, atMs: 0 }); }
+    await h.advance(5000);
     expect(checkIns(h)).toHaveLength(1);
+    expect(h.notes.some(n => (n as { checkInEvent?: unknown }).checkInEvent)).toBe(false);   // nothing pushed it back
+  });
+
+  it('speech delays it: interim words, and a StartOfTurn with no words yet — each logged once with what reset it', async () => {
+    const h = setup();
+    await h.c.ready('');
+    await h.advance(60_000);
+    h.c.onStt({ kind: 'speech', transcript: '', words: 0, atMs: 0, start: true });   // Flux heard a turn start
+    h.c.onStt(speech('so I'));
+    h.c.onStt(speech('so I think'));
+    await h.advance(80_000);
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(15_000);
+    expect(checkIns(h)).toHaveLength(1);
+    const events = h.notes.map(n => (n as { checkInEvent?: Record<string, unknown> }).checkInEvent).filter(Boolean);
+    expect(events).toEqual([expect.objectContaining({ kind: 'pushed_back', by: 'start_of_turn' })]);
+    expect((events[0] as { silentMs: number }).silentMs).toBeGreaterThanOrEqual(59_000);
+  });
+
+  it('logs a skip with its reason when the time comes but it cannot speak', async () => {
+    const h = setup([], { canStartTurn: () => false });
+    await h.c.ready('');
+    await h.advance(CHECK + 1000);
+    expect(checkIns(h)).toHaveLength(0);
+    const events = h.notes.map(n => (n as { checkInEvent?: Record<string, unknown> }).checkInEvent).filter(Boolean);
+    expect(events).toEqual([expect.objectContaining({ kind: 'skipped', reason: 'tts_allowance' })]);
   });
 
   it('never while the interviewer is thinking or speaking: the silence starts when the reply has played', async () => {
@@ -756,7 +784,7 @@ describe('the voice silence check-in', () => {
     h.c.onStt(final('Sorry, I was working it out. Costs first.'));
     await h.advance(5000);
     expect(h.texts).toEqual(['Sorry, I was working it out. Costs first.']);
-    expect(h.notes[0]).toMatchObject({ checkIn: { playback: 'partial' } });
+    expect(h.said()[0]).toMatchObject({ checkIn: { playback: 'partial' } });
   });
 
   it('is logged per turn: the line, the silence before it, what was heard', async () => {
@@ -765,10 +793,10 @@ describe('the voice silence check-in', () => {
     h.c.onStt(final('Revenue and costs.'));
     await h.advance(5000);
     await h.advance(CHECK + 10_000);
-    expect(h.notes).toHaveLength(1);
+    expect(h.said()).toHaveLength(1);
     const line = PHRASE_POOLS.voice_check_in[0];
-    expect(h.notes[0]).toMatchObject({ turnSeq: 2, afterTurnSeq: 1, checkIn: { line, playback: 'played', heardChars: line.length } });
-    expect((h.notes[0] as { checkIn: { silentMs: number } }).checkIn.silentMs).toBeGreaterThanOrEqual(CHECK);
+    expect(h.said()[0]).toMatchObject({ turnSeq: 2, afterTurnSeq: 1, checkIn: { line, playback: 'played', heardChars: line.length } });
+    expect((h.said()[0] as { checkIn: { silentMs: number } }).checkIn.silentMs).toBeGreaterThanOrEqual(CHECK);
   });
 
   // Lorenzo, 18 Oct (ruling 3): a candidate reads and thinks after the case

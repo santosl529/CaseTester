@@ -116,7 +116,8 @@ export class VoiceTurnController {
   private closing = false;             // the cap's closing line is under way
   // The silence check-in: armed while listening, from `since`; once a silence
   // (`done` until the candidate speaks); `uses` = the pool versions said.
-  private checkIn: { cancel: (() => void) | null; since: number; done: boolean; uses: number[]; spoken: boolean } = { cancel: null, since: 0, done: false, uses: [], spoken: false };
+  // `armedBy`: a fresh silence, or re-armed by speech (only the first speech of a silence is logged).
+  private checkIn: { cancel: (() => void) | null; since: number; done: boolean; uses: number[]; spoken: boolean; armedBy: 'silence' | 'speech' } = { cancel: null, since: 0, done: false, uses: [], spoken: false, armedBy: 'silence' };
 
   constructor(private d: ControllerDeps) {}
 
@@ -181,7 +182,10 @@ export class VoiceTurnController {
       return;
     }
     if (this.state === 'waiting') return;
-    if (e.kind === 'speech' || e.kind === 'final') this.candidateSpoke();
+    // Only speech resets the check-in (19 Oct): words, interim or final, or Flux's
+    // StartOfTurn — not room or keyboard noise (no raw-energy reset).
+    const spoke = e.kind === 'final' ? 'final' : e.kind === 'speech' ? (e.start ? 'start_of_turn' : e.words > 0 ? 'interim' : null) : null;
+    if (spoke) this.candidateSpoke(spoke);
     if (e.kind === 'speech') {
       if (e.transcript) this.d.send({ type: 'caption', who: 'candidate', turnSeq: this.seq + 1, text: e.transcript, final: false });
       this.maybeBargeIn(e.words);
@@ -547,28 +551,35 @@ export class VoiceTurnController {
   // silence, again only after the candidate speaks; never while the
   // interviewer thinks or speaks; interruptible; no clock pause, no session
   // end. Not a turn: logged as its own line (note), not booked.
-  private armCheckIn(from = this.d.now()): void {
+  private armCheckIn(from = this.d.now(), by: 'silence' | 'speech' = 'silence'): void {
     this.checkIn.cancel?.();
     this.checkIn.cancel = null;
     const every = this.d.checkInMs ?? 0;
     const ms = this.checkIn.spoken ? every : (this.d.checkInOpenerMs ?? every);
     if (every <= 0 || ms <= 0 || this.checkIn.done || this.state !== 'listening') return;
     this.checkIn.since = from;
+    this.checkIn.armedBy = by;
     this.checkIn.cancel = this.d.clock.at(from + ms, () => this.fireCheckIn());
   }
 
-  private candidateSpoke(): void {
+  // A line in the session's records for each push-back and skip, so a session
+  // shows why the check-in didn't fire (Lorenzo, 19 Oct).
+  private noteCheckIn(event: Record<string, unknown>): void {
+    this.d.note?.({ turnSeq: this.seq, at: new Date(this.d.now()).toISOString(), checkInEvent: event });
+  }
+
+  private candidateSpoke(by: 'final' | 'interim' | 'start_of_turn'): void {
+    if (this.checkIn.cancel && this.checkIn.armedBy === 'silence') this.noteCheckIn({ kind: 'pushed_back', by, silentMs: this.d.now() - this.checkIn.since });
     this.checkIn.spoken = true;
     this.checkIn.done = false;
-    this.armCheckIn();
+    this.armCheckIn(this.d.now(), 'speech');
   }
 
   private fireCheckIn(): void {
     this.checkIn.cancel = null;
-    if (this.state !== 'listening' || this.blocked || this.closing || this.capHit || this.d.playout.busy()) return;
-    const voiced = this.d.speechEndAt();
-    if (voiced !== null && voiced > this.checkIn.since) { this.armCheckIn(voiced); return; }   // a sound since: count from it
-    if (!this.d.canStartTurn()) return;
+    const skip = this.state !== 'listening' ? `not_listening:${this.state}` : this.blocked ? 'audio_blocked' : this.closing || this.capHit ? 'tts_cap'
+      : this.d.playout.busy() ? 'playing' : !this.d.canStartTurn() ? 'tts_allowance' : null;
+    if (skip) { this.noteCheckIn({ kind: 'skipped', reason: skip, silentMs: this.d.now() - this.checkIn.since }); return; }
     this.checkIn.done = true;
     const v = variantIndex('voice_check_in', { voice_check_in: this.checkIn.uses }, `${this.d.sessionSeed}:check_in:${this.checkIn.uses.length}`);
     this.checkIn.uses.push(v);

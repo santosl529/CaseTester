@@ -18,7 +18,8 @@ export type TurnSignal = {
 
 // The candidate is speaking (Flux StartOfTurn / Update): the barge-in input
 // (spec 2026-10-08-voice-phase-b §5.7). `words` counts the transcript so far.
-export type SpeechSignal = { kind: 'speech'; transcript: string; words: number; atMs: number };
+// `start`: Flux's StartOfTurn (the silence check-in resets on it; 19 Oct).
+export type SpeechSignal = { kind: 'speech'; transcript: string; words: number; atMs: number; start?: true };
 export type SttEvent = TurnSignal | SpeechSignal | { kind: 'resumed'; atMs: number };
 
 // One spoken word of a TTS utterance, in ms from the utterance's first audio.

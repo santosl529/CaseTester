@@ -15,7 +15,7 @@ export function fluxSignal(msg: FluxMessage, atMs: number): Signal | null {
   if (msg.type !== 'TurnInfo') return null;
   const transcript = (msg.transcript ?? '').trim();
   if (msg.event === 'StartOfTurn' || msg.event === 'Update') {
-    return { kind: 'speech', transcript, words: transcript ? transcript.split(/\s+/).length : 0, atMs };
+    return { kind: 'speech', transcript, words: transcript ? transcript.split(/\s+/).length : 0, atMs, ...(msg.event === 'StartOfTurn' ? { start: true as const } : {}) };
   }
   if (msg.event === 'EagerEndOfTurn') return { kind: 'eager', transcript, atMs };
   if (msg.event === 'EndOfTurn') return { kind: 'final', transcript, atMs };
