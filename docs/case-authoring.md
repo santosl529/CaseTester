@@ -411,9 +411,11 @@ budgets are stage deadlines (15 Oct):** a required lead exhibit and the core
 analysis are owed by the end of the ANALYSIS budget, later exhibits and the
 brainstorm by the end of EXHIBIT, the recommendation ask by the end of
 BRAINSTORM — so RECOMMENDATION + WRAP should leave room for two exchanges
-(the recommendation and its risk question, ~3 minutes at a typed pace). The clock is one for
-every case: the AI Casing cases were written for 25 minutes and run at 20, with
-their budgets scaled (Lorenzo, 13 Oct). Wave reports give each stage's minute
+(the recommendation and its risk question, ~3 minutes at a typed pace). The AI Casing cases
+were written for 25 minutes and run at 25 (`pacing.totalMs`; prof-002 since 13
+Oct, the others since 19 Oct), with budgets ×1.25 and at least 3 minutes for
+RECOMMENDATION + WRAP, taken from ANALYSIS (Lorenzo, 15 and 19 Oct); prof-001
+runs 20. Wave reports give each stage's minute
 per run (`scripts/stage-minutes.ts`). Prefer setting
 `phaseBudgetsMs` for any case where structuring or analysis legitimately needs
 more than an even 1/8th share of the clock — a uniform default fires spurious
