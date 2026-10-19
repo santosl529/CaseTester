@@ -150,26 +150,29 @@ except where the fix applies) and a prof-001 wave.
 | pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
 | launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
 
-**Next (19 Oct):** the shared-engine bundle — plan ruled (R1–R9), building on
-branch `engine-asks` (`docs/superpowers/plans/2026-10-19-engine-asks.md`); free
-proof first, then a prof-001 wave (A) and the new cases as two waves of 10
-(B1 prof-002 + entry-001, B2 pricing-001 + launch-001), each with its own cap.
+**Next (19 Oct):** the shared-engine bundle is built on branch `engine-asks`
+(not merged or deployed; plan `docs/superpowers/plans/2026-10-19-engine-asks.md`)
+and its free proof is done (prof-001: every change intended, no regression —
+`Case Interview Runs/replays/2026-10-19/engine-asks/final.md`). Waves A
+(prof-001, cap $10), B1 (prof-002 + entry-001, cap $20) and B2 (pricing-001 +
+launch-001, cap $20) await Lorenzo's go and caps.
 
 ## Shared-engine gaps that affect new cases (PRD §15)
 
-Status: open unless marked. **Bundle in build (engine-asks, 19 Oct):** (q), (r),
-(h), (o), (p) with (c), (k), (l), (m) (built, below), the strengths check (built with (m)); out of it: (s), (t),
-the stale-check redo, the misquote-in-recommendation gate. **(q)** asks the model never declares go unanswered. *Built on engine-asks (not merged), part 1: guard B reads "I'd want:" and addressed asks after the brainstorm; part 2: an item-less deferral is checked by the small model (a named deferral, or refused when it maps to no item; the generic "settle your structure" line is gone), and a basis ask is out of scope of an item that doesn't say where its figure comes from.*
+Status: open unless marked. **Bundle built (engine-asks, 19 Oct; not merged or
+deployed; free proof done, `final.md`):** (q), (r), (h), (o), (p) with (c), (k),
+(l), (m) and the strengths check (with (m)), all below; out of it and open: (s),
+(t), (j) the stale-check redo, (i) the misquote-in-recommendation gate. **(q)** asks the model never declares go unanswered. *Built on engine-asks (not merged), part 1: guard B reads "I'd want:" and addressed asks after the brainstorm; part 2: an item-less deferral is checked by the small model (a named deferral, or refused when it maps to no item; the generic "settle your structure" line is gone), and a basis ask is out of scope of an item that doesn't say where its figure comes from.*
 **(r)** the live false-refusal guard and F3 read names, not covers. *Built on engine-asks (not merged): both pass `{ covers: true }` to `findFalseRefusals`, which sends an object no item name hits through `coverageOf`.* **(h)** a
 stage deadline yields to every checker line. *Built on engine-asks (not merged): a deadline yields to a probe once (`flags.stageYielded`; an exhibit's by its id), then the stage goes and a probe due then is held for the next model turn; a correction (the checker's or code's own) rides on any overdue stage turn, said first, and a misquote no longer blocks it (R7).* **(o)** the correction cap resets on
 each derived figure. *Built on engine-asks (not merged), part (a): a flag is stale only when the quantity is restated at a different value (R2); said again at its own figure the error stands, and the key dedupes it. Part (b): a flagged claim whose span (or another claim of its key) carries another step's wrong result (`rootOf`, the root's head figure) rides on that root's line — `derived` only on a turn the root is said, else it waits; a raised, open root carried into a new message comes back there with its next Rule-14 attempt (the correction follows the wrong input); the root takes the claim's rating; once the root closes the claim goes to the report ("built on a closed input"); code's own finding on it yields to a raised root. A step span at a case figure no longer counts as a restatement.* **(p)** "million" and arithmetic quotes are unchecked. *Built on engine-asks (not merged), with (c): the quote grammar reads a figure before a full stop ("The shelf price is $4.49."), thousands ("$1,200", not "$1"), and a scale word ("$77 million" against the item's "$80 million", at full scale; a scaled figure quotes only an item stated at scale); arithmetic skips a quote only up to the end of the anchor's clause, unless the quoted figure is an operand later; "you gave / you said" links an anchor to its figure; cells written "$80 million" or "250 million" are lookup facts; a figure written in full ("$1,200,000") is read at the item's scale; the checker's claim is no longer deduped for a misquote flag the gate will hold (checker_disagrees), so its probe still goes. Still open: a figure before its quantity ("the $77 million annual selling cost"), a widening awaiting a ruling.*
 **(s)** a ledger line can't be ordered after an exhibit. **(t)** an existing
 group beats a more specific cover. Others:
-- the stale check misses a late redo;
-- a repeated misquote in the recommendation is dropped without a checker flag;
+- (j) the stale check misses a late redo;
+- (i) a repeated misquote in the recommendation is dropped without a checker flag;
 - *(m) built on engine-asks (not merged):* reports' "Better" answers and the facts of strengths are fact-checked: `auditBetterFigures` lists figures no case value or one operation of two explains, the verifier gets them as hints, and an unsupported Better answer is blanked (moment stays) or an unsupported strength dropped;
-- *the caveat floor covers only needs_work: built on engine-asks (not merged):* any assessed dimension with no quote in wentWell or needsWork is now not assessed, whatever its rating and caveat (R4); a strong overall is re-capped against the dimensions still assessed;
-- literal `\uXXXX` appears in the interviewer's text. *Built on engine-asks (not merged): `decodeLiteralEscapes` decodes `\uXXXX` (exactly four hex digits) in the streamed sentences and fields and in the final parsed turn, before any guard reads it.*
+- *(l) the caveat floor covers only needs_work: built on engine-asks (not merged):* any assessed dimension with no quote in wentWell or needsWork is now not assessed, whatever its rating and caveat (R4); a strong overall is re-capped against the dimensions still assessed;
+- (k) literal `\uXXXX` appears in the interviewer's text. *Built on engine-asks (not merged): `decodeLiteralEscapes` decodes `\uXXXX` (exactly four hex digits) in the streamed sentences and fields and in the final parsed turn, before any guard reads it.*
 - "say before stage" isn't supported.
 
 ## Lessons log
@@ -198,3 +201,9 @@ group beats a more specific cover. Others:
   at a different value; reports are fact-checked in Better answers and in the
   facts of strengths; any dimension with no evidence is not assessed; new-case
   waves run at most 10 sessions at once.
+- 19 Oct, engine-asks free proof: a fix in shared code can be proved free on
+  prof-001 by replaying its saved runs (checker off and on) and listing every
+  changed decision and line; it caught a false positive (Guard B on "Do you
+  want me to work from 25%?") and a probe delayed by a dedupe before any spend.
+  The replay can't show regenerations, small-model checks or scoring — a wave
+  has to.
