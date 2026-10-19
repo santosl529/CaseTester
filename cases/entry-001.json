@@ -879,6 +879,40 @@
         "adults in the us"
       ],
       "kind": "level"
+    },
+    {
+      "item": "funnel_rates",
+      "names": [
+        "prevalence",
+        "prevalence rate",
+        "diagnosis rate",
+        "treatment rate"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "barriers_to_prescribing",
+      "names": [
+        "insurance coverage",
+        "insurance and prior approval",
+        "prior approval",
+        "prior authorization",
+        "no local support",
+        "local support",
+        "out-of-pocket cost",
+        "side-effect concerns"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "reasons_to_prescribe",
+      "names": [
+        "once-daily pill",
+        "oral convenience",
+        "fewer side effects",
+        "efficacy data"
+      ],
+      "kind": "level"
     }
   ],
   "factAnchors": {
