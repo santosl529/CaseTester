@@ -779,6 +779,9 @@ export function gateCodeFindings(p: {
   codeFigures?: (f: CodeFinding) => number[] | null;
   // The checker's raised flags and the closed ones (plan-turn's checker memory): a finding on a claim built on one of them yields (rootOf).
   keys?: Record<string, CheckerKeyEntry>; closed?: string[];
+  // Findings released on a deadline-made stage turn and held back there (plan-turn's codeProbesHeld): exempt from the wait,
+  // like the checker's own held line (Lorenzo, 19 Oct, ruling 6; the round-1 final re-review).
+  held?: string[];
 }): { released: ReleasedFinding[]; decisions: GateDecision[] } {
   const handled = new Set(p.handled);
   const released: ReleasedFinding[] = [];
@@ -814,7 +817,7 @@ export function gateCodeFindings(p: {
       }
       const stale = isStale(flagged, later, p.caseData, p.revealedIds);
       if (stale) { decide('stale', stale); return; }
-      if (later.length > CHECKER_MAX_WAIT_MESSAGES && !p.finalAnswer?.(v.candidateTurnIndex)) { decide('expired', `${later.length} messages since the claim`); return; }
+      if (later.length > CHECKER_MAX_WAIT_MESSAGES && !p.held?.includes(id) && !p.finalAnswer?.(v.candidateTurnIndex)) { decide('expired', `${later.length} messages since the claim`); return; }
       // Built on a raised error's figure (Lorenzo, 19 Oct, §15 o): the probe follows the input, as the checker's own flag does.
       // Keyed as the plan keys it (flagKeyFor), so the own-figure and same-step exclusions run on the same key (review M1).
       const idFigs = [...ownFigures(flagged, caseNumbers), ...wordFigures(flagged.candidateValue)];
@@ -826,6 +829,16 @@ export function gateCodeFindings(p: {
     });
   }
   return { released, decisions };
+}
+
+// The gate's decision on each finding, by id: the code_gate rows, then this turn's decisions — the last wins.
+// The rows come unordered from the event read, and a held finding has two (released, then its re-gate's
+// outcome): sorted by turn, a turn's own rows in their order (Lorenzo, 19 Oct, ruling 6).
+export function gateOutcomesOf(rows: CheckerRow[], now: Pick<GateDecision, 'id' | 'outcome'>[]): Record<string, GateOutcome> {
+  const logged = rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'code_gate')
+    .map((r, i) => ({ at: r.turnIndex ?? -1, i, d: r.payloadJsonb as GateDecision }))
+    .sort((a, b) => a.at - b.at || a.i - b.i);
+  return Object.fromEntries([...logged.map(x => x.d), ...now].map(d => [d.id, d.outcome]));
 }
 
 // The selected flag as the interviewer model reads it: Rule 14's line, said

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, codeFlagRefs, rootOf, caseNumbersOf,
+  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, gateOutcomesOf, codeFlagRefs, rootOf, caseNumbersOf,
   MATH_CHECKER_CATEGORY, type CheckerRow, type CheckerPlanInput, type VerdictPayload,
 } from '@/lib/orchestrator/math-checker-live';
 import type { CheckerClaim, VettedClaim } from '@/lib/orchestrator/math-checker';
@@ -687,8 +687,8 @@ describe('gateCodeFindings', () => {
   const MISQ = { item: 'cogs_pct', cited: 'to 61%', sentence: 'COGS went from 42% to 61%.' };
   const refs = codeFlagRefs({ flags: [pricing] }, [MISQ]);
   const turnRows = [{ turnIndex: 3, role: 'candidate', text: WRONG }, { turnIndex: 4, role: 'interviewer', text: 'What would you look at next?' }];
-  const gate = (claims: VettedClaim[], o: { now?: string; at?: number; rows?: { turnIndex: number; role: string; text: string }[]; handled?: string[]; final?: boolean } = {}) => gateCodeFindings({
-    rows: [verdictRow(3, claims, { codeFlags: refs })], handled: o.handled ?? [], turnRows: o.rows ?? turnRows, candidateText: o.now ?? 'Next I would look at competitors.',
+  const gate = (claims: VettedClaim[], o: { now?: string; at?: number; rows?: { turnIndex: number; role: string; text: string }[]; handled?: string[]; final?: boolean; held?: string[] } = {}) => gateCodeFindings({
+    rows: [verdictRow(3, claims, { codeFlags: refs })], handled: o.handled ?? [], held: o.held, turnRows: o.rows ?? turnRows, candidateText: o.now ?? 'Next I would look at competitors.',
     candidateTurnIndex: o.at ?? 5, caseData: prof, revealedIds: COSTS, finalAnswer: o.final ? () => true : undefined,
     codeFigures: (f: { kind: string }) => (f.kind === 'misquote' ? [58, 42, 16] : null),
   });
@@ -722,6 +722,35 @@ describe('gateCodeFindings', () => {
     const later = [...turnRows, { turnIndex: 5, role: 'candidate', text: 'Competitors.' }, { turnIndex: 6, role: 'interviewer', text: 'Go on.' }, { turnIndex: 7, role: 'candidate', text: 'And suppliers.' }, { turnIndex: 8, role: 'interviewer', text: 'Go on.' }];
     expect(gate([vetted()], { at: 9, rows: later }).decisions[0]).toMatchObject({ outcome: 'expired' });
     expect(gate([vetted()], { at: 9, rows: later, final: true }).decisions[0]).toMatchObject({ outcome: 'released' });
+  });
+  // Engine-asks round 2 (Lorenzo, 19 Oct, ruling 6): a finding released on a
+  // deadline-made stage turn and held back there (plan-turn's codeProbesHeld)
+  // is re-gated on the next turn exempt from the wait, like the checker's own
+  // held line — the stage turn spent its last waiting message.
+  it('held back on a stage turn: re-gated past the wait, still released (a finding not held expires)', () => {
+    const later = [...turnRows, { turnIndex: 5, role: 'candidate', text: 'Competitors.' }, { turnIndex: 6, role: 'interviewer', text: 'Go on.' }, { turnIndex: 7, role: 'candidate', text: 'And suppliers.' }, { turnIndex: 8, role: 'interviewer', text: 'Go on.' }];
+    const g = gate([vetted()], { at: 9, rows: later, held: ['3:code:0'] });
+    expect(g.decisions[0]).toMatchObject({ id: '3:code:0', outcome: 'released' });
+    expect(g.released.map(r => r.id)).toEqual(['3:code:0']);
+    expect(gate([vetted(), MISQ_FLAG], { at: 9, rows: later, held: ['3:code:0'] }).decisions[1]).toMatchObject({ id: '3:code:1', outcome: 'expired' });
+  });
+});
+
+// Engine-asks round 2 (Lorenzo, 19 Oct, ruling 6): the code_gate rows come
+// unordered from the event read; a held finding writes two (released, then its
+// re-gate's outcome), so the last decision by turn wins, this turn's after them.
+describe('gateOutcomesOf', () => {
+  const row = (turnIndex: number, id: string, outcome: string) => ({ category: 'math_checker', subtype: 'code_gate', turnIndex, payloadJsonb: { id, candidateTurnIndex: 3, outcome } });
+  const inOrder = [row(4, '3:code:0', 'released'), row(4, '3:code:1', 'not_rated'), row(6, '3:code:0', 'derived'), { category: 'math_checker', subtype: 'verdict', turnIndex: 5, payloadJsonb: {} }];
+  it('rows given out of order build the same map as rows in order: the later turn\'s decision wins', () => {
+    const want = { '3:code:0': 'derived', '3:code:1': 'not_rated' };
+    expect(gateOutcomesOf(inOrder, [])).toEqual(want);
+    expect(gateOutcomesOf([...inOrder].reverse(), [])).toEqual(want);
+    expect(gateOutcomesOf([inOrder[2], inOrder[0], inOrder[3], inOrder[1]], [])).toEqual(want);
+  });
+  it('rows of one turn keep their order; this turn\'s decisions come last', () => {
+    expect(gateOutcomesOf([row(4, '3:code:0', 'released'), row(4, '3:code:0', 'expired')], [])).toEqual({ '3:code:0': 'expired' });
+    expect(gateOutcomesOf([row(6, '3:code:0', 'derived'), row(4, '3:code:0', 'released')], [{ id: '3:code:0', outcome: 'released' }])).toEqual({ '3:code:0': 'released' });
   });
 });
 

@@ -33,7 +33,7 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type GateDecision } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
 import { theirFigure } from './own-quantity';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
@@ -90,6 +90,8 @@ export type CheckerLinePlan = {
 // flags.mathChecker. held: a line a due stage question held back (Settle), until it is raised or decided.
 // convertedFigures: the figures a conversion closed (own-quantity.ts) — a case figure too ("10 points of COGS"), which no key keeps.
 export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[] };
+// The gate's memory (flags.codeGate): findings decided, and those held back on a stage turn (re-gated, exempt from the wait).
+type CodeGateMemory = { handled?: string[]; held?: string[] };
 // A stage the model's question may ask, and whether it is due (Lorenzo, 15 Oct): a due one wins over a checker probe.
 export type StagesDue = { brainstorm: boolean; recommendation: boolean; risk: boolean };
 // A deadline that yielded to a math probe once (flags.stageYielded; Lorenzo, 19 Oct, R7): it yields no more.
@@ -457,7 +459,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // code says now comes from earlier messages whose verdict has landed.
   const checkerConfig = extra.classify && ctx.background ? liveCheckerConfig() : null;
   const checkerRows = (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY);
-  const gateMemory = (flags.codeGate as { handled?: string[] } | undefined) ?? {};
+  const gateMemory = (flags.codeGate as CodeGateMemory | undefined) ?? {};
   // The figures a misquote's data line states, and the changes they imply ("58% today, up from 42%" → 16). A unit
   // line names its quantity and period, true on the base it names (Lorenzo, 16 Oct): the checker's flag is enough.
   const codeFigures = (f: CodeFinding): number[] | null => {
@@ -470,8 +472,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     caseData, revealedIds: revealedIdsNow, finalAnswer, codeFigures,
     // A finding on a claim built on a raised error's figure yields to it (rootOf; Lorenzo, 19 Oct, §15 o).
     keys: (flags.mathChecker as Partial<CheckerMemory> | undefined)?.keys, closed: (flags.mathChecker as Partial<CheckerMemory> | undefined)?.closed,
+    held: gateMemory.held,
   });
-  if (gate.decisions.length > 0) flags.codeGate = { handled: [...(gateMemory.handled ?? []), ...gate.decisions.map(d => d.id)] };
+  if (gate.decisions.length > 0) {
+    const stillHeld = (gateMemory.held ?? []).filter(id => !gate.decisions.some(d => d.id === id));
+    flags.codeGate = { handled: [...(gateMemory.handled ?? []), ...gate.decisions.map(d => d.id)], ...(stillHeld.length ? { held: stillHeld } : {}) };
+  }
   const releasedFlags = gate.released.flatMap(r => r.finding.kind === 'flag' ? [{ flag: r.finding.flag, n: r.candidateTurnIndex }] : []);
   const recomputeFlags = releasedFlags.map(r => r.flag);
   // The message a released flag was said in.
@@ -653,11 +659,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer, rank,
     convertedFigures: checkerMemory.convertedFigures,
     phraseUses: flags.phraseUses as PhraseUses | undefined, seed: `${ctx.sessionId}:${ctx.nextTurnIndex}`, codeFigures,
-    // The gate's decisions, earlier turns' then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
-    gateOutcomes: Object.fromEntries([
-      ...checkerRows.filter(r => r.subtype === 'code_gate').map(r => r.payloadJsonb as GateDecision),
-      ...gate.decisions,
-    ].map(d => [d.id, d.outcome])),
+    // The gate's decisions, earlier turns' (by turn) then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
+    gateOutcomes: gateOutcomesOf(checkerRows, gate.decisions),
   };
   let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
@@ -665,13 +668,6 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Jordan 099f33e9, seven probes on one "40 points").
   const closedKeys = [...new Set([...(checkerMemory.closed ?? []), ...checkerPlan.closedNow])];
   const closedFigures = [...closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []), ...(checkerMemory.convertedFigures ?? [])];
-  // Deterministic first: a stamp the checker found wrong no longer protects
-  // the figure; a landed flag's figure may be doubted (Rule 14).
-  if (checkerPlan.droppedStamps.length > 0) {
-    verifiedPrev = verifiedPrev.filter(v => !checkerPlan.droppedStamps.some(d => Math.abs(d.value - v.value) < 1e-9));
-    for (const d of checkerPlan.droppedStamps) ctx.events.push({ category: 'math_checker', subtype: 'stamp_dropped', payload: d });
-  }
-  flaggedFigures = [...new Set([...flaggedFigures, ...checkerPlan.flaggedFigures])].filter(f => !closedFigures.some(x => Math.abs(x - f) < 1e-9));
 
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
@@ -912,11 +908,18 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // next model turn, like the checker's (PRD §5.2; engine-asks final review, 19
   // Oct — the controller's proposal): no model reads its hint there and the
   // code-written turn says only corrections. Left out of the gate's handled ids
-  // and the attempt count, it is re-gated on the next turn (its expiry still applies).
+  // and the attempt count, it is re-gated on the next turn — exempt from the
+  // wait, like the checker's held line (flags.codeGate.held; Lorenzo, 19 Oct,
+  // ruling 6: the round-1 final re-review found it expiring there). Not said, it
+  // dedupes nothing: the checker plan, read before the turn kind was known,
+  // is read again without it (no selection either way — code's flag is this turn's).
   const codeProbesHeld = deadlineStage ? liveFlags.filter(f => codeSpeaks(f) && !codeCorrects(f)) : [];
   if (codeProbesHeld.length > 0) {
     const heldIds = gate.released.filter(r => r.finding.kind === 'flag' && codeProbesHeld.includes(r.finding.flag)).map(r => r.id);
-    flags.codeGate = { handled: ((flags.codeGate as { handled?: string[] } | undefined)?.handled ?? []).filter(id => !heldIds.includes(id)) };
+    const gateNow = (flags.codeGate as CodeGateMemory | undefined) ?? {};
+    flags.codeGate = { handled: (gateNow.handled ?? []).filter(id => !heldIds.includes(id)), held: [...new Set([...(gateNow.held ?? []), ...heldIds])] };
+    checkerInput.gateOutcomes = Object.fromEntries(Object.entries(checkerInput.gateOutcomes).filter(([id]) => !heldIds.includes(id)));
+    checkerPlan = planCheckerFlags(checkerInput);
     for (const f of codeProbesHeld) {
       const k = attemptKey(f);
       if ((recomputeAttempts[k] ?? 0) <= 1) delete recomputeAttempts[k];
@@ -924,6 +927,13 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     }
     checks.act('stage_code_probe_held', 'code\'s probe held: the overdue stage goes this turn; the probe is re-gated on the next model turn', { held: heldIds, kind });
   }
+  // Deterministic first: a stamp the checker found wrong no longer protects
+  // the figure; a landed flag's figure may be doubted (Rule 14).
+  if (checkerPlan.droppedStamps.length > 0) {
+    verifiedPrev = verifiedPrev.filter(v => !checkerPlan.droppedStamps.some(d => Math.abs(d.value - v.value) < 1e-9));
+    for (const d of checkerPlan.droppedStamps) ctx.events.push({ category: 'math_checker', subtype: 'stamp_dropped', payload: d });
+  }
+  flaggedFigures = [...new Set([...flaggedFigures, ...checkerPlan.flaggedFigures])].filter(f => !closedFigures.some(x => Math.abs(x - f) < 1e-9));
   const yieldedAfter: StageYielded = { ...stageYielded, ...Object.fromEntries(yieldedNow.map(s => [s, s === 'exhibit' ? exhibitDueId : true])) };
   if (JSON.stringify(yieldedAfter) !== JSON.stringify(stageYielded)) flags.stageYielded = yieldedAfter;
   checks.record('end_rec_ask_gate', awaitingRecAsk, recAskByTime ? 'the brainstorm budget is spent and the recommendation was never asked — code asks' : 'coverage complete but the recommendation was never asked — code asks this turn', { recAskByTime });

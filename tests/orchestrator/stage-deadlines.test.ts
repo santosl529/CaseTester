@@ -330,6 +330,27 @@ describe('a deadline yields to a checker line once (R7)', () => {
     expect(Object.values(t3.state.recomputeAttempts)).toEqual([1]);
     expect((t3.ctx.flags.codeGate as { handled: string[] }).handled).toContain('3:code:0');
   });
+  // Engine-asks round 2 (Lorenzo, 19 Oct, ruling 6; the round-1 final re-review):
+  // the checker plan reads the gate's outcomes before the turn kind is known, so
+  // code's held probe read as released there and the checker's claim on it was
+  // deduped though code said nothing. Held, it dedupes nothing that turn; the
+  // next model turn re-gates it (exempt from the wait) and the dedupe happens then.
+  it("code's probe held on a stage turn: the checker's claim on it isn't deduped that turn; the next model turn says code's probe and dedupes it", () => {
+    const BARE = { ...PRICE, correctionLine: null, correctionFigure: null };
+    const t2 = owed({ claims: [BARE], codeFlags: true, flags: { stageYielded: { brainstorm: true } } });
+    expect(t2.state.kind).toBe('stage_brainstorm');
+    expect(t2.state.recomputeAttempts).toEqual({});
+    expect((t2.ctx.flags.codeGate as { handled?: string[]; held?: string[] }).held).toEqual(['3:code:0']);
+    expect((t2.ctx.flags.mathChecker as { handled?: string[] } | undefined)?.handled ?? []).not.toContain('3:0');
+    const t3 = owed({ claims: [BARE], codeFlags: true, flags: {
+      stageYielded: { brainstorm: true }, codeGate: t2.ctx.flags.codeGate, mathChecker: t2.ctx.flags.mathChecker, recomputeAttempts: t2.state.recomputeAttempts,
+      stageEvidence: { ...INITIAL_STAGES, structure: ANSWERED, pressure_test: ANSWERED, exhibit: SHOWN, brainstorm: { delivered: true, deliveredAt: 6, outcome: 'answered' as const } },
+    } });
+    expect(t3.state.kind).toBe('model');
+    expect(t3.state.recomputeHint).not.toContain(BARE.probeLine);
+    expect(Object.values(t3.state.recomputeAttempts)).toEqual([1]);
+    expect((t3.ctx.flags.mathChecker as { handled: string[] }).handled).toContain('3:0');
+  });
 });
 
 // Review fix 4 (controller, 19 Oct): an exhibit's yield is keyed by the exhibit it was for.
