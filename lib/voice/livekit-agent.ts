@@ -197,6 +197,7 @@ export default defineAgent({
       note: l => {
         lines.add(l);
         console.log('[voice] note', JSON.stringify(l));
+        if (l.opener) lines.release();   // the opener has ended: the jobStart line goes now
         const ci = (l as { checkIn?: { heardText?: string; startedAtMs?: number | null; silentMs?: number } }).checkIn;
         if (ci?.heardText) {
           void db.insert(sessionEvents).values({
@@ -255,6 +256,7 @@ export default defineAgent({
       await Promise.allSettled(background);
       if (tts instanceof CartesiaTTS) tts.close();
       await ledger.flush();
+      lines.release();   // the jobStart line, when the opener never ended
       await lines.flush();
       const summary = { why, ...summarize(records), ttsCharsThisRun: run?.used ?? 0, ttsCharsThisMonth: ledger.used, ...(ledger.writeErrors ? { ttsLedgerWriteErrors: ledger.writeErrors } : {}),
         ...(lines.writeErrors ? { recordWriteErrors: lines.writeErrors } : {}) };
@@ -281,7 +283,8 @@ export default defineAgent({
     mark('hello');
     const start = { marksMs: jobStart, moduleLoadMs: MODULE_LOADED_AT - PROCESS_STARTED_AT, processAgeMs: t0 - PROCESS_STARTED_AT,
       load1AtEntry: Math.round(load1AtEntry * 100) / 100, cpus: os.availableParallelism() };
-    lines.add({ jobStart: start });
+    // Written after the opener ends, not now: no record write while it streams (agent-timing proposal 3, Lorenzo 19 Oct).
+    lines.hold({ jobStart: start });
     console.log('[voice] job start', JSON.stringify(start));
     room.on(RoomEvent.ParticipantConnected, (p: RemoteParticipant) => {
       if (p.identity === session.userId) send({ type: 'hello' });
