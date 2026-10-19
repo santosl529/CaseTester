@@ -1205,14 +1205,26 @@
         "hub–lakeport",
         "hub-lakeport",
         "lakeport route",
-        "lakeport results"
+        "lakeport results",
+        "lakeport revenue",
+        "lakeport contribution",
+        "lakeport p&l",
+        "revenue on lakeport",
+        "contribution on lakeport",
+        "lakeport route revenue"
       ],
       "route_results_port_avery": [
         "port avery",
         "hub–port avery",
         "hub-port avery",
         "port avery route",
-        "port avery results"
+        "port avery results",
+        "port avery revenue",
+        "port avery contribution",
+        "port avery p&l",
+        "revenue on port avery",
+        "contribution on port avery",
+        "port avery flights"
       ],
       "route_results_other": [
         "other routes",
@@ -1221,7 +1233,14 @@
         "granite falls",
         "millbrook",
         "westhaven",
-        "uncontested routes"
+        "uncontested routes",
+        "remaining four routes",
+        "the four other routes",
+        "stable routes",
+        "cedar bluff results",
+        "granite falls results",
+        "millbrook results",
+        "westhaven results"
       ],
       "network_totals": [
         "total contribution",
@@ -1230,37 +1249,69 @@
         "revenue by route",
         "route results",
         "route p&l",
-        "results by route"
+        "results by route",
+        "network contribution",
+        "overall contribution",
+        "contribution totals",
+        "total flights",
+        "contribution both years"
       ],
       "fixed_costs": [
         "fixed costs",
         "fixed cost",
         "hub facilities",
-        "corporate overhead"
+        "corporate overhead",
+        "overhead costs",
+        "fixed cost base",
+        "fixed expenses",
+        "hub costs",
+        "overhead"
       ],
       "lakeport_seats_load": [
         "lakeport load factor",
         "seats per flight",
-        "lakeport seats"
+        "lakeport seats",
+        "lakeport passengers",
+        "lakeport passengers per flight",
+        "load factor on lakeport",
+        "lakeport occupancy",
+        "lakeport load"
       ],
       "lakeport_fare": [
         "lakeport fare",
         "lakeport fares",
         "fare on lakeport",
-        "lakeport ticket price"
+        "lakeport ticket price",
+        "lakeport pricing",
+        "lakeport yield",
+        "price on lakeport",
+        "lakeport ticket prices",
+        "lakeport airfare"
       ],
       "extras_revenue": [
         "extras",
         "ancillary",
         "ancillary revenue",
         "bag fees",
-        "seat selection"
+        "seat selection",
+        "extras revenue",
+        "ancillaries",
+        "baggage fees",
+        "add-on revenue",
+        "extras per passenger",
+        "ancillary fees"
       ],
       "lakeport_variable_cost": [
         "lakeport variable cost",
         "lakeport cost per flight",
         "lakeport fuel cost",
-        "lakeport crew cost"
+        "lakeport crew cost",
+        "lakeport maintenance cost",
+        "lakeport airport fees",
+        "lakeport landing fees",
+        "variable cost on lakeport",
+        "lakeport cost breakdown",
+        "lakeport operating cost per flight"
       ],
       "competitor_entry": [
         "competitor",
@@ -1269,66 +1320,182 @@
         "new competitor",
         "low-cost airline",
         "low-cost carrier",
-        "what changed"
+        "what changed",
+        "competitor entry",
+        "new entrants",
+        "low-cost competitor",
+        "budget carrier",
+        "budget airline",
+        "entry of a competitor"
       ],
       "competitor_costs": [
         "competitor's costs",
         "competitor costs",
         "cost per seat",
         "competitor fares",
-        "competitor's fares"
+        "competitor's fares",
+        "competitor cost advantage",
+        "competitor pricing",
+        "competitor labor costs",
+        "low-cost airline's costs",
+        "their cost per seat"
       ],
       "connecting_passengers": [
         "connecting passengers",
         "connections",
         "connecting traffic",
-        "connecting"
+        "connecting",
+        "connecting share",
+        "share of connecting passengers",
+        "transfer passengers",
+        "network feed",
+        "local versus connecting"
       ],
       "new_route_rampup": [
         "ramp-up",
         "ramp up",
         "new route maturity",
         "first-year load factor",
-        "how long new routes take"
+        "how long new routes take",
+        "route maturity",
+        "ramp-up period",
+        "time to mature",
+        "new route ramp-up time",
+        "first-year performance"
       ],
       "aircraft_leases": [
         "aircraft leases",
         "leases",
         "return the aircraft",
         "ground aircraft",
-        "sell aircraft"
+        "sell aircraft",
+        "lease terms",
+        "lease end date",
+        "lease length",
+        "when leases expire",
+        "early lease return"
       ],
       "port_avery_per_flight": [
         "port avery per flight",
         "port avery per-flight",
         "port avery economics",
-        "port avery fare"
+        "port avery fare",
+        "port avery load factor",
+        "port avery variable cost",
+        "port avery cost per flight",
+        "port avery passengers",
+        "port avery seats",
+        "port avery unit economics",
+        "port avery ticket price"
       ],
       "new_routes_plan": [
         "new routes",
         "new route",
         "ashford",
         "brookhaven",
-        "planning estimates"
+        "planning estimates",
+        "new route fare",
+        "new route load factor",
+        "ashford fare",
+        "brookhaven fare",
+        "new route seats",
+        "new route extras",
+        "expected fare on new routes"
       ],
       "new_routes_cost_flights": [
         "new route costs",
-        "new route flights"
+        "new route flights",
+        "new route variable cost",
+        "new route cost per flight",
+        "flights on new routes",
+        "new route frequency",
+        "variable cost on new routes"
       ],
       "fuel_prices": [
         "fuel prices",
         "fuel price",
-        "fuel"
+        "fuel",
+        "jet fuel prices",
+        "fuel price trend",
+        "oil prices",
+        "jet fuel",
+        "fuel cost trend"
       ],
       "unit_costs": [
         "wages",
         "labor costs",
-        "unit costs"
+        "unit costs",
+        "wage changes",
+        "crew wages",
+        "pilot wages",
+        "labor cost trend",
+        "labor and unit costs",
+        "salaries"
       ],
       "demand": [
         "demand",
         "air travel demand",
-        "overall demand"
+        "overall demand",
+        "market demand",
+        "travel demand trend",
+        "passenger demand",
+        "demand in larkspur's cities"
+      ],
+      "op_profit_definition": [
+        "definition of operating profit",
+        "operating profit definition",
+        "what operating profit includes",
+        "what's in operating profit",
+        "operating profit components"
+      ],
+      "geography": [
+        "larkspur's geography",
+        "where larkspur flies",
+        "domestic or international",
+        "international flights",
+        "us domestic flights"
+      ],
+      "fleet": [
+        "fleet size",
+        "larkspur's fleet",
+        "number of aircraft",
+        "how many planes",
+        "fleet composition",
+        "aircraft type",
+        "fleet changes"
+      ],
+      "routes_schedule": [
+        "flight schedule",
+        "route network",
+        "network changes",
+        "schedule changes",
+        "flight frequency",
+        "frequency changes"
+      ],
+      "one_time_charges": [
+        "one-time charges",
+        "one-off charges",
+        "one-time costs",
+        "non-recurring items",
+        "special items",
+        "exceptional items",
+        "write-offs"
+      ],
+      "competition_general": [
+        "competition in general",
+        "competitive landscape",
+        "other airlines",
+        "larger airlines",
+        "major airlines",
+        "existing competitors",
+        "competition overall"
+      ],
+      "new_routes_context": [
+        "new route competition",
+        "competition on the new routes",
+        "competitors on new routes",
+        "new route fixed costs",
+        "new routes context"
       ]
     },
     "covers": {
@@ -1340,7 +1507,13 @@
         "larger planes",
         "bigger planes",
         "larger aircraft",
-        "bigger aircraft"
+        "bigger aircraft",
+        "competitor cost structure",
+        "can we match their costs",
+        "can we win a fare war",
+        "competitor's fares",
+        "competitor fares",
+        "low-cost airline's fares"
       ],
       "routes_schedule": [
         "fares and volume",
@@ -1358,7 +1531,12 @@
         "price and volume",
         "price versus volume",
         "volume and price",
-        "volume versus price"
+        "volume versus price",
+        "did routes change",
+        "added or dropped routes",
+        "same routes",
+        "capacity changes",
+        "did the schedule change"
       ],
       "planes_as_full": [
         "fares and volume",
@@ -1377,6 +1555,172 @@
         "price versus volume",
         "volume and price",
         "volume versus price"
+      ],
+      "op_profit_definition": [
+        "before interest and taxes",
+        "does profit include leases",
+        "is it ebit",
+        "ebit"
+      ],
+      "geography": [
+        "any international routes",
+        "international exposure",
+        "domestic only"
+      ],
+      "fleet": [
+        "did the fleet change",
+        "number of jets",
+        "owned or leased",
+        "new aircraft added"
+      ],
+      "fuel_prices": [
+        "did fuel prices rise",
+        "fuel price changes",
+        "cost breakdown"
+      ],
+      "unit_costs": [
+        "did costs per flight change",
+        "did labor costs rise",
+        "cost inflation",
+        "did wages rise",
+        "cost breakdown"
+      ],
+      "demand": [
+        "did demand fall",
+        "market growth",
+        "is the market shrinking"
+      ],
+      "one_time_charges": [
+        "is the loss recurring",
+        "restructuring charges",
+        "impairments",
+        "one-off events"
+      ],
+      "competition_general": [
+        "connecting itineraries",
+        "legacy carriers",
+        "who else flies from the hub"
+      ],
+      "route_results_lakeport": [
+        "how much lakeport lost",
+        "lakeport decline"
+      ],
+      "route_results_port_avery": [
+        "how much port avery lost",
+        "port avery decline"
+      ],
+      "route_results_other": [
+        "how other routes performed",
+        "did other routes decline"
+      ],
+      "network_totals": [
+        "did the number of flights change",
+        "contribution decline",
+        "cost breakdown"
+      ],
+      "fixed_costs": [
+        "did fixed costs rise",
+        "fixed cost trend",
+        "did overhead change",
+        "cost breakdown"
+      ],
+      "lakeport_seats_load": [
+        "how many passengers on lakeport",
+        "lakeport volume"
+      ],
+      "lakeport_fare": [
+        "how much lakeport fares fell",
+        "lakeport fare cut",
+        "fare and variable cost per flight",
+        "fare and the variable cost",
+        "fare and cost per flight",
+        "fares and costs per flight",
+        "fare and variable cost"
+      ],
+      "extras_revenue": [
+        "revenue beyond the fare",
+        "non-ticket revenue"
+      ],
+      "lakeport_variable_cost": [
+        "did lakeport costs change",
+        "lakeport cost structure",
+        "fare and variable cost per flight",
+        "fare and the variable cost",
+        "fare and cost per flight",
+        "fares and costs per flight",
+        "fare and variable cost"
+      ],
+      "competitor_entry": [
+        "why fares fell",
+        "why did fares drop",
+        "what changed on these routes",
+        "what changed in fy2024",
+        "competition on lakeport",
+        "competition on port avery",
+        "fare war"
+      ],
+      "connecting_passengers": [
+        "feed to other flights",
+        "network effects of exiting",
+        "share of local passengers"
+      ],
+      "new_route_rampup": [
+        "how fast new routes fill",
+        "time to reach load factor",
+        "year one load factor",
+        "70% load factor assumption",
+        "70% load assumption",
+        "load factor assumption on the new routes",
+        "how firm the 70%",
+        "how realistic the 70%",
+        "first-year load factor"
+      ],
+      "aircraft_leases": [
+        "shrink the fleet",
+        "reduce the fleet",
+        "park the planes",
+        "can we return planes"
+      ],
+      "port_avery_per_flight": [
+        "same data for port avery",
+        "port avery fare and cost",
+        "fare and variable cost per flight",
+        "fare and the variable cost",
+        "fare and cost per flight",
+        "fares and costs per flight",
+        "fare and variable cost"
+      ],
+      "new_routes_plan": [
+        "expected load factor on new routes",
+        "new route revenue per passenger",
+        "fare on the new routes",
+        "fares on the new routes",
+        "fares on ashford and brookhaven",
+        "fare on ashford",
+        "fares on ashford",
+        "load factor on the new routes"
+      ],
+      "new_routes_cost_flights": [
+        "freed aircraft time",
+        "how many flights redeployed",
+        "where the aircraft come from",
+        "cost per flight on the new routes",
+        "variable cost per flight on the new routes",
+        "cost on the new routes"
+      ],
+      "new_routes_context": [
+        "competition on ashford",
+        "competition on brookhaven",
+        "anyone flying ashford",
+        "anyone flying brookhaven",
+        "fixed costs after redeploying",
+        "do fixed costs change",
+        "competition on ashford and brookhaven",
+        "competition on ashford or brookhaven",
+        "competitors on ashford and brookhaven",
+        "competitor at ashford or brookhaven",
+        "competitor already at ashford or brookhaven",
+        "nonstop competition on the new routes"
       ]
     },
     "groups": [

@@ -508,3 +508,74 @@ describe('the brainstorm waits on Exhibit 3 (Aldermoor)', () => {
     expect(stageRecord().brainstorm.delivered).toBe(true);
   });
 });
+
+// Lorenzo, 19 Oct (batch 32 grading): every refusal or unanswered ask in the
+// two waves, with the ask the model declared — or, where it declared nothing,
+// the one it should have — now gets a release, a true deferral or a true
+// refusal (the anchor audit: factAnchors names and covers, scripts/anchor-audit.ts).
+// What the model leaves undeclared (Guard B's colon miss, after the brainstorm)
+// is a shared-engine gap, PRD §15.
+describe('batch-32 asks: a release, a true deferral or a true refusal', () => {
+  const REFUSED = /don't have|not something I have/i;
+  const ask = (what: string, respond: 'release' | 'defer' = 'release') => T({ say: 'Okay.', requests: [{ what, itemIds: [], explicit: true, respond }] });
+  const LARK_LATE = { caseId: 'prof-002', phase: 'BRAINSTORM', flags: PT_SATISFIED, shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'],
+    revealed: ['route_results_lakeport', 'route_results_port_avery', 'route_results_other', 'network_totals', 'fixed_costs', 'lakeport_seats_load', 'lakeport_fare',
+      'extras_revenue', 'lakeport_variable_cost', 'new_routes_plan', 'new_routes_cost_flights', 'new_routes_context'], elapsedMin: 17 };
+  const ALDER = { caseId: 'entry-001', phase: 'EXHIBIT', flags: PT_SATISFIED, shown: ['exhibit-1'], revealed: ['us_adults', 'funnel_rates', 'peak_share_forecast', 'kelvexa_pricing'] };
+
+  it('Larkspur Marcus t8: "the FY2023 versus FY2025 cost breakdown" — flat fuel and wages, not a refusal', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', flags: PT_SATISFIED });
+    const r = await say('Do we have the FY2023 versus FY2025 cost breakdown?', ask('the FY2023 versus FY2025 cost breakdown'));
+    expect(r.interviewerText).not.toMatch(REFUSED);
+    expect(r.interviewerText).toMatch(/Fuel prices have been roughly flat/);
+    expect(r.interviewerText).toMatch(/no material changes to wages or other costs per flight/);
+  });
+  it('Larkspur Marcus t8: "passengers flown" — a true refusal (the case holds no passenger count)', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', flags: PT_SATISFIED });
+    const r = await say('Do we have passengers flown?', ask('passengers flown'));
+    expect(r.interviewerText).toMatch(REFUSED);
+  });
+  it('Larkspur Tyler t6: "average fare and variable cost per flight" — Port Avery given, Lakeport deferred to its exhibit, not refused', async () => {
+    seed({ caseId: 'prof-002', phase: 'ANALYSIS', flags: PT_SATISFIED, revealed: ['network_totals', 'routes_schedule'] });
+    const r = await say('Do we have the fare and the variable cost breakdown per flight for both years?', ask('average fare and variable cost per flight', 'defer'));
+    expect(r.interviewerText).not.toMatch(REFUSED);
+    expect(r.interviewerText).toMatch(/Hub–Port Avery shows the same pattern/);
+    expect(r.interviewerText).toMatch(/come back to the Hub–Lakeport fare/);
+  });
+  it('Larkspur Tyler t22: "competition on Ashford and Brookhaven" — the no-competitor line, not a refusal', async () => {
+    seed(LARK_LATE);
+    const r = await say('Is there a competitor already at Ashford or Brookhaven?', ask('competition on Ashford and Brookhaven'));
+    expect(r.interviewerText).not.toMatch(REFUSED);
+    expect(r.interviewerText).toMatch(/No other airline is flying nonstop on either new route/);
+  });
+  it('Larkspur Tyler t21: "how firm the 70% load factor assumption is" — the ramp-up fact', async () => {
+    seed(LARK_LATE);
+    const r = await say('How firm is that 70% load assumption?', ask('how firm the 70% load factor assumption is'));
+    expect(r.interviewerText).toMatch(/6–12 months to reach their expected load factor/);
+  });
+  it.each([
+    ['Larkspur Raj t19', 'the basis for the demand estimate'],
+    ['Larkspur Marisol t27', 'the basis for the 70% load factor estimate'],
+  ])('%s: "%s" — a true refusal (the case holds no basis for the estimate)', async (_, what) => {
+    seed(LARK_LATE);
+    const r = await say(`What's ${what}?`, ask(what));
+    expect(r.interviewerText).toMatch(REFUSED);
+    expect(r.interviewerText).not.toMatch(/80 seats per flight, a 70% load factor/);
+  });
+  it('Aldermoor Marisol t8: "how the diagnosis rate has trended" — the diagnosis gap', async () => {
+    seed(ALDER);
+    const r = await say('Is diagnosis rate rising over time?', ask('how the diagnosis rate has trended'));
+    expect(r.interviewerText).not.toMatch(REFUSED);
+    expect(r.interviewerText).toMatch(/undiagnosed for years/);
+  });
+  it.each([
+    ['Aldermoor Jasmine t5', 'how the eligible moderate-to-severe pool has trended'],
+    ['Aldermoor Marcus t5', "Aldermoor's European Kelvexa sales trend since 2022"],
+    ['Aldermoor Marcus t19', 'whether the 30% royalty is negotiable'],
+    ['Aldermoor Marcus t19', 'whether the $80 million selling cost holds flat across the five years'],
+  ])('%s: "%s" — a true refusal', async (_, what) => {
+    seed(ALDER);
+    const r = await say(`And ${what}?`, ask(what));
+    expect(r.interviewerText).toMatch(REFUSED);
+  });
+});

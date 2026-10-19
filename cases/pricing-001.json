@@ -1119,93 +1119,215 @@
       "plan_prices_costs": [
         "plan economics",
         "cost to serve",
-        "unit economics"
+        "unit economics",
+        "prices and cost to serve",
+        "monthly price and cost to serve",
+        "gross margin by plan",
+        "plan prices",
+        "starter cost to serve",
+        "pro cost to serve"
       ],
       "plan_cac": [
         "cac",
         "acquisition cost",
         "cost to acquire",
-        "customer acquisition cost"
+        "customer acquisition cost",
+        "cac by plan",
+        "starter cac",
+        "pro cac",
+        "cost per acquisition",
+        "acquisition cost per customer",
+        "sales and marketing cost per customer"
       ],
       "ltv_definition": [
         "ltv definition",
         "how ltv is calculated",
-        "lifetime value formula"
+        "lifetime value formula",
+        "ltv formula",
+        "lifetime value calculation",
+        "how to calculate lifetime value",
+        "expected lifetime formula",
+        "ltv methodology"
       ],
       "pro_cohort": [
         "pro cohort",
         "pro retention",
-        "pro churn"
+        "pro churn",
+        "pro cohort retention",
+        "pro cancellation rate",
+        "pro attrition",
+        "how long pro customers stay",
+        "pro customers still active",
+        "pro survival curve"
       ],
       "starter_cohort": [
         "starter cohort",
         "starter retention",
         "starter churn",
         "upgrades",
-        "upgrade rate"
+        "upgrade rate",
+        "starter cancellation rate",
+        "starter attrition",
+        "starter upgrade rate",
+        "starter to pro upgrades",
+        "how many starter customers upgrade",
+        "how long starter customers stay"
       ],
       "cohort_notes": [
         "cohort notes",
-        "how finance values upgrades"
+        "how finance values upgrades",
+        "finance upgrade method",
+        "how to value upgrades",
+        "is churn steady",
+        "upgrade valuation method",
+        "upgraded customer behavior"
       ],
       "new_customers_by_plan": [
         "sign-ups by plan",
         "new customers by plan",
-        "cannibalization"
+        "cannibalization",
+        "new customers per month",
+        "monthly sign-ups by plan",
+        "sign-ups before and after launch",
+        "new customer trend",
+        "customer acquisition by plan"
       ],
       "price_test_results": [
         "price test",
         "price test results",
         "test results",
-        "willingness to pay"
+        "willingness to pay",
+        "starter price test",
+        "results of the price test",
+        "a/b test results",
+        "price experiment results"
       ],
       "price_test_notes": [
-        "price test notes"
+        "price test notes",
+        "test caveats",
+        "price test limitations",
+        "price test footnotes",
+        "test limitations"
       ],
       "upgrade_timing": [
         "upgrade timing",
-        "when customers upgrade"
+        "when customers upgrade",
+        "time to upgrade",
+        "upgrade triggers",
+        "what triggers an upgrade",
+        "why customers upgrade",
+        "upgrade drivers"
       ],
       "why_pro_fell": [
         "why pro fell",
         "why pro sign-ups fell",
-        "pro decline"
+        "pro decline",
+        "reason pro sign-ups fell",
+        "why pro sales dropped",
+        "cause of the pro decline",
+        "reason for fewer pro customers"
       ],
       "buyer_profile": [
         "who buys each plan",
         "customer profile",
-        "buyer profile"
+        "buyer profile",
+        "starter buyers",
+        "pro buyers",
+        "customer segments",
+        "business size by plan",
+        "who chooses starter"
       ],
       "competitor_prices": [
         "competitor prices",
         "competitors' prices",
         "competitor pricing",
-        "competitors"
+        "competitors",
+        "competitor entry plans",
+        "what competitors charge",
+        "competitive pricing",
+        "rival prices"
       ],
       "test_design": [
         "test design",
-        "how the test worked"
+        "how the test worked",
+        "test methodology",
+        "how the price test was run",
+        "price test setup",
+        "test duration",
+        "price test randomization"
       ],
       "existing_starter_customers": [
         "existing starter customers",
         "current starter customers",
         "existing customers",
-        "grandfathering"
+        "grandfathering",
+        "current starter base",
+        "number of starter customers",
+        "how many starter customers",
+        "installed starter base",
+        "legacy starter pricing"
       ],
       "company_size": [
         "company size",
         "paying customers",
-        "customer base"
+        "customer base",
+        "number of customers",
+        "total customers",
+        "customer count",
+        "how many customers today",
+        "size of quillpath"
       ],
       "market_growth": [
         "market growth",
         "market",
-        "demand growth"
+        "demand growth",
+        "market growth rate",
+        "industry growth",
+        "how fast the market is growing",
+        "sector growth",
+        "small-business software demand"
       ],
       "plan_features": [
         "plan features",
         "features",
-        "difference between the plans"
+        "difference between the plans",
+        "starter features",
+        "pro features",
+        "what starter includes",
+        "plan comparison",
+        "feature differences",
+        "starter versus pro features"
+      ],
+      "product": [
+        "the product",
+        "quillpath's product",
+        "what quillpath sells",
+        "what the software does",
+        "product description",
+        "product offering"
+      ],
+      "signup_channels": [
+        "how customers sign up",
+        "sign-up process",
+        "sales channel",
+        "acquisition channel",
+        "sales motion",
+        "how pro is sold"
+      ],
+      "board_rule_definition": [
+        "board rule",
+        "the board's rule",
+        "three times rule",
+        "board's ltv/cac rule",
+        "ltv/cac threshold",
+        "worth three times acquisition cost"
+      ],
+      "ceo_goal": [
+        "ceo's goal",
+        "ceo objective",
+        "what the ceo cares about",
+        "ceo priorities",
+        "ceo's objective"
       ]
     },
     "groups": [
@@ -1253,6 +1375,135 @@
       }
     ],
     "directions": {},
-    "drivers": []
+    "drivers": [],
+    "covers": {
+      "product": [
+        "who the software is for",
+        "what quillpath does",
+        "where quillpath operates"
+      ],
+      "plan_features": [
+        "how many users on starter",
+        "user limits",
+        "billing frequency",
+        "annual billing option",
+        "does starter include reports"
+      ],
+      "signup_channels": [
+        "self-serve versus sales-led",
+        "do pro customers get a demo",
+        "is starter self-serve"
+      ],
+      "board_rule_definition": [
+        "what metric the board uses",
+        "how the board defines worth",
+        "ltv to cac target",
+        "what the hurdle means"
+      ],
+      "company_size": [
+        "how big is quillpath",
+        "installed base"
+      ],
+      "market_growth": [
+        "is the market growing",
+        "market trend"
+      ],
+      "ceo_goal": [
+        "what are we optimizing for",
+        "growth or profitability",
+        "value or ratio",
+        "how we measure success"
+      ],
+      "plan_prices_costs": [
+        "margins by plan",
+        "gross margin per customer",
+        "hosting and support costs",
+        "payment processing costs",
+        "variable cost per customer",
+        "contribution margin by plan"
+      ],
+      "plan_cac": [
+        "does cac change with volume",
+        "cac at scale",
+        "marginal acquisition cost"
+      ],
+      "ltv_definition": [
+        "price or margin in ltv",
+        "how lifetime is estimated",
+        "how to get lifetime from churn",
+        "gross margin definition"
+      ],
+      "pro_cohort": [
+        "pro retention over first year",
+        "share of pro customers cancelling"
+      ],
+      "starter_cohort": [
+        "do starter customers move to pro",
+        "share upgrading within a year",
+        "what happens to starter customers"
+      ],
+      "cohort_notes": [
+        "is cancellation constant over time",
+        "do upgraded customers churn like pro",
+        "churn of upgraded customers",
+        "how to value a starter sign-up"
+      ],
+      "new_customers_by_plan": [
+        "effect on pro sales",
+        "did pro sign-ups change",
+        "impact of starter on pro",
+        "pro sign-ups lost",
+        "how much did sign-ups grow",
+        "total new customers"
+      ],
+      "price_test_results": [
+        "demand at a higher starter price",
+        "price elasticity of starter",
+        "what if starter costs more",
+        "effect of a price increase on sign-ups",
+        "pro sign-ups at higher starter price"
+      ],
+      "price_test_notes": [
+        "does cac change with price",
+        "cost to serve at the higher price",
+        "churn at the higher price",
+        "upgrade rate at the higher price",
+        "can the test measure churn"
+      ],
+      "upgrade_timing": [
+        "upgrades after first year",
+        "upgrades after month 12",
+        "when businesses outgrow starter"
+      ],
+      "why_pro_fell": [
+        "did pro marketing change",
+        "was the sales team changed",
+        "did demo requests fall",
+        "other causes of the pro drop"
+      ],
+      "buyer_profile": [
+        "typical starter customer",
+        "how many employees customers have",
+        "customer segmentation"
+      ],
+      "competitor_prices": [
+        "is the higher price competitive",
+        "price benchmarks",
+        "competitors charge",
+        "competitor charges",
+        "competitor entry plans"
+      ],
+      "test_design": [
+        "was the test randomized",
+        "how long the test ran",
+        "how results were scaled"
+      ],
+      "existing_starter_customers": [
+        "can we grandfather",
+        "new customers only pricing",
+        "price change for current users",
+        "would a price increase hit existing customers"
+      ]
+    }
   }
 }

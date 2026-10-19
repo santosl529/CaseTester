@@ -958,7 +958,12 @@
         "price per bag",
         "price to retailers",
         "shelf price",
-        "what hollis bay receives"
+        "what hollis bay receives",
+        "wholesale price",
+        "net price per bag",
+        "selling price per bag",
+        "retail price",
+        "consumer price"
       ],
       "variable_costs": [
         "variable costs",
@@ -967,7 +972,15 @@
         "ingredients",
         "packaging",
         "freight",
-        "roasting cost"
+        "roasting cost",
+        "variable cost per bag",
+        "unit cost",
+        "cost of goods",
+        "cogs",
+        "production cost per bag",
+        "ingredient cost",
+        "packaging cost",
+        "freight cost"
       ],
       "launch_costs": [
         "launch costs",
@@ -975,78 +988,202 @@
         "launch investment",
         "marketing budget",
         "shelf fees",
-        "roasting line"
+        "roasting line",
+        "roasting line cost",
+        "roasting line lease",
+        "advertising budget",
+        "advertising spend",
+        "marketing spend",
+        "slotting fees"
       ],
       "recipe_cost": [
         "recipe development",
         "recipe cost",
-        "r&d"
+        "r&d",
+        "recipe development cost",
+        "sunk cost",
+        "sunk costs",
+        "development costs",
+        "product development cost",
+        "past spend on recipes"
       ],
       "purchase_intent": [
         "purchase intent",
         "how likely to buy",
         "would buy",
-        "intent"
+        "intent",
+        "purchase intent survey",
+        "likelihood to buy",
+        "buying intent",
+        "willingness to buy",
+        "intent to purchase",
+        "share who would buy"
       ],
       "liked_most": [
         "what shoppers like",
         "likes",
-        "liked most"
+        "liked most",
+        "what shoppers like most",
+        "most liked features",
+        "product appeal",
+        "appeal drivers",
+        "reasons to buy",
+        "favorite attributes"
       ],
       "hesitations": [
         "hesitations",
         "concerns",
         "what makes them hesitate",
-        "barriers"
+        "barriers",
+        "shopper hesitations",
+        "purchase barriers",
+        "reasons not to buy",
+        "shopper concerns",
+        "objections",
+        "what holds shoppers back"
       ],
       "survey_design": [
         "survey",
         "shopper survey",
-        "consumer research"
+        "consumer research",
+        "survey design",
+        "survey methodology",
+        "sample size",
+        "survey sample",
+        "who was surveyed",
+        "survey method"
       ],
       "planning_assumptions": [
         "planning assumptions",
         "conversion rates",
-        "bags per household"
+        "bags per household",
+        "conversion assumptions",
+        "number of households",
+        "households in stores",
+        "past launch benchmarks",
+        "intent to purchase conversion"
       ],
       "sampling_program": [
         "sampling",
         "sampling program",
         "in-store sampling",
         "tastings",
-        "tasting tables"
+        "tasting tables",
+        "sampling proposal",
+        "sampling plan",
+        "sampling cost",
+        "product sampling",
+        "trial program",
+        "in-store tastings"
       ],
       "cannibalization": [
         "cannibalization",
         "cannibalisation",
         "chip sales impact",
-        "take sales from chips"
+        "take sales from chips",
+        "chip cannibalization",
+        "impact on chip sales",
+        "cannibalizing chips",
+        "switching from chips"
       ],
       "survey_reliability": [
         "survey reliability",
-        "how reliable the survey is"
+        "how reliable the survey is",
+        "survey representativeness",
+        "survey validity",
+        "survey accuracy",
+        "is the sample representative",
+        "source of conversion rates"
       ],
       "taste_test": [
         "taste test",
         "taste tests",
         "product quality",
-        "blind taste test"
+        "blind taste test",
+        "taste test results",
+        "how it tastes",
+        "consumer taste ratings",
+        "product ratings"
       ],
       "competitor_prices": [
         "competitor prices",
         "competitors' prices",
-        "competitor pricing"
+        "competitor pricing",
+        "competitor price points",
+        "rival prices",
+        "competitive pricing",
+        "price of competing chickpea snacks"
       ],
       "retailer_support": [
         "retailer support",
         "retailers",
-        "shelf space"
+        "shelf space",
+        "retailer commitment",
+        "retailer buy-in",
+        "retail partner support",
+        "listing agreements",
+        "will retailers stock it"
       ],
       "manufacturing": [
         "manufacturing",
         "production",
         "fryers",
-        "roasting"
+        "roasting",
+        "manufacturing timeline",
+        "production timeline",
+        "manufacturing readiness",
+        "how it would be made",
+        "manufacturing setup",
+        "production setup"
+      ],
+      "product": [
+        "the product",
+        "product details",
+        "product description",
+        "what the product is",
+        "bag size",
+        "number of flavors",
+        "chickpea snack product"
+      ],
+      "channels": [
+        "where it would be sold",
+        "sales channels",
+        "distribution channels",
+        "channel strategy",
+        "retail channels",
+        "where it's sold"
+      ],
+      "breakeven_definition": [
+        "break-even definition",
+        "what break even means",
+        "definition of break even",
+        "the board's rule",
+        "board's break-even test",
+        "break even in year one meaning"
+      ],
+      "why_now": [
+        "why now",
+        "why launch now",
+        "reason for the launch",
+        "launch rationale",
+        "strategic rationale",
+        "why launch chickpea snacks"
+      ],
+      "competition_general": [
+        "competition in general",
+        "competitive landscape",
+        "competitive environment",
+        "who the competitors are",
+        "competitor brands",
+        "existing chickpea brands"
+      ],
+      "longer_term_goals": [
+        "goals beyond year one",
+        "long-term goals",
+        "longer-term strategy",
+        "long-term ambition",
+        "growth platform",
+        "strategic goals"
       ]
     },
     "groups": [
@@ -1096,6 +1233,127 @@
       }
     ],
     "directions": {},
-    "drivers": []
+    "drivers": [],
+    "covers": {
+      "product": [
+        "how many flavors",
+        "how big is the bag",
+        "protein versus chips",
+        "fat versus chips",
+        "nutrition profile"
+      ],
+      "channels": [
+        "which stores would carry it",
+        "same stores as chips",
+        "grocery or mass retail",
+        "where it would be stocked"
+      ],
+      "manufacturing": [
+        "can it use chip fryers",
+        "can they use existing lines",
+        "time to be ready",
+        "production lead time",
+        "lease or build the line"
+      ],
+      "breakeven_definition": [
+        "does profit need to be positive",
+        "is zero profit acceptable",
+        "what the board requires"
+      ],
+      "why_now": [
+        "retailer demand for healthy snacks",
+        "have retailers asked for this",
+        "chip sales trend",
+        "is better-for-you growing"
+      ],
+      "competition_general": [
+        "is there a dominant brand",
+        "any national brand",
+        "big brands in the category",
+        "who else sells chickpea snacks",
+        "market concentration"
+      ],
+      "longer_term_goals": [
+        "plans after year one",
+        "future product extensions",
+        "more better-for-you products"
+      ],
+      "bag_price": [
+        "how much retailers keep",
+        "retailer margin",
+        "retailer markup",
+        "price shoppers pay",
+        "revenue per bag"
+      ],
+      "variable_costs": [
+        "cost breakdown per bag",
+        "cost to make a bag",
+        "shipping cost per bag"
+      ],
+      "launch_costs": [
+        "cost of the new line",
+        "fees to retailers",
+        "cost to get on shelf"
+      ],
+      "recipe_cost": [
+        "money already spent",
+        "costs incurred so far",
+        "what's already been spent"
+      ],
+      "purchase_intent": [
+        "how many would definitely buy",
+        "would shoppers buy at the shelf price",
+        "stated demand"
+      ],
+      "liked_most": [
+        "what attracts shoppers",
+        "key selling points",
+        "is protein the main draw"
+      ],
+      "hesitations": [
+        "taste concerns",
+        "is price a concern",
+        "is taste a concern"
+      ],
+      "survey_design": [
+        "how many respondents",
+        "multiple answers allowed"
+      ],
+      "planning_assumptions": [
+        "how many households",
+        "market size in households",
+        "how many actually buy",
+        "bags each buyer buys",
+        "purchase frequency"
+      ],
+      "sampling_program": [
+        "sampling uplift",
+        "extra households from sampling"
+      ],
+      "cannibalization": [
+        "will it hurt chip sales",
+        "steal from our chips",
+        "substitution of our chips"
+      ],
+      "survey_reliability": [
+        "where conversion rates come from",
+        "survey bias",
+        "basis for conversion assumptions"
+      ],
+      "taste_test": [
+        "do people like the taste",
+        "does it taste good",
+        "trial satisfaction"
+      ],
+      "competitor_prices": [
+        "price versus competitors",
+        "are we cheaper than competitors"
+      ],
+      "retailer_support": [
+        "guaranteed shelf space",
+        "distribution commitments",
+        "will stores carry it"
+      ]
+    }
   }
 }
