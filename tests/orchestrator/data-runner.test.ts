@@ -39,7 +39,9 @@ vi.mock('@/lib/orchestrator/distress', async orig => ({
   classifyDistress: async (p: { candidateText: string; earlier?: { disclosure: string } }) => { distressCalls.push(p); return distressVerdict(p); },
 }));
 const classified: unknown[][] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => classified.shift() ?? [] }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { candidateText: string }) => (p.candidateText in deferChecks ? deferChecks[p.candidateText] : classified.shift() ?? []) }));
+// The item-less deferral check (engine-asks R1) is asked with the ask's own words.
+const deferChecks: Record<string, unknown> = {};
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
 
 const modelQueue: ModelTurn[] = [];
@@ -124,12 +126,14 @@ describe('a qualified re-ask is not answered with the unqualified figures', () =
 });
 
 describe('KF-4: an ask the case may not hold, made while the structure is open', () => {
-  it('is never promised, and is put back to the interviewer once when the gate closes', async () => {
+  it('is named in the deferral when the check has no verdict, and is put back to the interviewer once when the gate closes', async () => {
+    deferChecks['marketing spend and store square footage'] = null;
     seed({ phase: 'STRUCTURE', flags: { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false, awaitingReplies: 0, followUps: [] } } });
     judgeVerdict = { answered: false, reason: '' };
     const held = await say('Could I get marketing spend and store square footage?', T({ requests: [{ what: 'marketing spend and store square footage', itemIds: [], explicit: true, respond: 'defer' }] }));
-    expect(held.interviewerText).toMatch(/Let's settle your structure before we get into the data\./);
-    expect(held.interviewerText).not.toMatch(/I'll come back to|I'll share/);
+    // 19 Oct (engine-asks R1): the generic "settle your structure" line answered nothing; the deferral names the ask, promising no item.
+    expect(held.interviewerText).toMatch(/marketing spend and store square footage/);
+    expect(held.interviewerText).not.toMatch(/Let's settle your structure before we get into the data|I don't have/);
     // The probe is answered: the gate closes, the unmapped ask is queued for the next turn.
     judgeVerdict = { answered: true, reason: 'names a missing branch' };
     await say("It's missing a competitor branch; I'd add it under revenue.", T());

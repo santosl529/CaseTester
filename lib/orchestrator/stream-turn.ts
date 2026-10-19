@@ -31,7 +31,7 @@ import { hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { handoffSentences } from './data-ledger';
 import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
-import { turnData, pressureTestOutcomeNow } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
 import { findFalseFacts, findEchoes, findFalseRefusals, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
 import { isGradingSentence } from './grading';
@@ -340,7 +340,7 @@ export async function streamTurnSegments(
     // "say" and the declarations closed: code's data line — once the
     // pressure test's verdict for this turn is in (the gate depends on it).
     await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
-    const d = turnData(plan, fields);
+    const d = await turnDataChecked(plan, fields);
     // The same connecting words Settle renders: the same seed and the session's recent uses (phrasing.ts).
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`, plan.ctx.flags.phraseUses as PhraseUses | undefined);
     if (lines.length > 0 || d.exhibit) {

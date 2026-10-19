@@ -8,7 +8,7 @@ import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
 import { findFalseRefusals, groupItemsAsked, coverageOf } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
-import { planForcedReleases } from './data-requests';
+import { planForcedReleases, classifyDataRequests } from './data-requests';
 import { askingSentences } from './request-signal';
 import { revealedValues } from './data-ledger';
 
@@ -52,6 +52,54 @@ export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfi
 }
 
 export type TurnData = DataDecisions & { gatedIds: string[] };
+
+// An explicit deferral with no item is checked by a small model before code
+// refuses it (Lorenzo, 19 Oct; engine-asks R1, "yes, with a guard"; batch 32
+// Aldermoor Marcus t5: the generic "settle your structure" line answered
+// nothing). The check is the data-request classifier in detection mode with the
+// ledger as the catalog: an ask it maps to any item is a named deferral ("I'll
+// come back to <ask>" — nothing is released on its word); one it maps to none
+// is refused; no verdict (failure, timeout) is a named deferral, so no
+// code-spoken refusal goes out unchecked. Item-less releases are refused as
+// before. Stream and Settle share the result through the plan (one call per
+// ask per turn).
+const DEFER_CHECK_TIMEOUT_MS = 3000;
+async function itemlessDeferHeld(plan: ModelPlan, what: string): Promise<boolean> {
+  const cache = plan.state.deferChecks;
+  const cached = cache.get(what);
+  if (cached) return cached;
+  const run = (async () => {
+    const t0 = Date.now();
+    const timeout = new Promise<null>(r => setTimeout(() => r(null), DEFER_CHECK_TIMEOUT_MS));
+    const found = await Promise.race([
+      classifyDataRequests({ candidateText: what, interviewerText: null, catalog: plan.state.catalog }).catch(() => null),
+      timeout,
+    ]);
+    const mapped = found === null ? null : found.some(f => f.ledgerItemIds.length > 0);
+    plan.ctx.checks.record('itemless_defer', mapped !== false, mapped === null ? 'no verdict: a named deferral' : mapped ? 'mapped to a ledger item: a named deferral' : 'maps to no item: refused',
+      { what, mapped, found: found === null ? null : found.map(f => ({ what: f.what, ids: f.ledgerItemIds })), latencyMs: Date.now() - t0 });
+    return mapped !== false;
+  })();
+  cache.set(what, run);
+  return run;
+}
+
+// turnData, with the item-less deferrals resolved (async: the check above).
+export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>): Promise<TurnData> {
+  const d = turnData(plan, turn);
+  if (d.unmatchedDefers.length === 0) return d;
+  const held = await Promise.all(d.unmatchedDefers.map(w => itemlessDeferHeld(plan, w)));
+  const defers: string[] = [], refusals: string[] = [];
+  d.unmatchedDefers.forEach((w, i) => (held[i] ? defers : refusals).push(w));
+  const refused = new Set(refusals);
+  return {
+    ...d,
+    unmatchedDefers: [],
+    defers: [...d.defers, ...defers],
+    refusals: [...d.refusals, ...refusals],
+    requests: d.requests.map(r => (r.response === 'defer' && r.ledgerItemIds.length === 0 && refused.has(r.request.what) ? { ...r, response: 'refuse' as const } : r)),
+  };
+}
 
 export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>): TurnData {
   const { ctx, state } = plan;

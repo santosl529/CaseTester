@@ -72,7 +72,7 @@ describe('recording what was said', () => {
 });
 
 describe('the data lines', () => {
-  const d = { correction: null, releases: [], restates: [], exhibit: { id: 'exhibit-a', title: 'Cost Structure Over Time' }, refusals: ['competitor pricing'], defers: ['the ticket'], gateDefers: [], unmappedDefer: false, offers: [] } as never;
+  const d = { correction: null, releases: [], restates: [], exhibit: { id: 'exhibit-a', title: 'Cost Structure Over Time' }, refusals: ['competitor pricing'], defers: ['the ticket'], gateDefers: [], unmatchedDefers: [], offers: [] } as never;
   it('first time the original words; later another variant — the content verbatim', () => {
     expect(renderDataLines(d, 's:3')).toEqual(["Here's an exhibit: Cost Structure Over Time.", "I don't have competitor pricing.", "I'll come back to the ticket shortly."]);
     const later = renderDataLines(d, 's:9', { exhibit: [0], refuse: [0], defer: [0] });

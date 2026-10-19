@@ -32,7 +32,7 @@ for (const dir of savedRunDirs('Case Interview Runs/test runs', batches)) {
     if (dd) {
       const lines = (d: Partial<DataDecisions>) => renderDataLines({
         releases: [], restates: [], exhibit: null, refusals: d.refusals ?? [], defers: d.defers ?? [], gateDefers: d.gateDefers ?? [],
-        unmappedDefer: false, offers: d.offers ?? [], requests: [],
+        unmatchedDefers: [], offers: d.offers ?? [], requests: [],
       }, 's');
       // The renderer now reads catalog text as speech: compare against what was spoken.
       const old = spoken.split(/(?<=[.?!])\s+/).filter(x => /^(?:I don't have|I'll come back to|I'll share|I can share)\b/.test(x));

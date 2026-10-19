@@ -36,7 +36,7 @@ import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-deci
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnData, pressureTestOutcomeNow } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard } from './math-checker-live';
@@ -190,7 +190,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // Data: the same decisions Stream delivered from (the pressure test's
   // verdict for this turn first — the gate depends on it).
   const { satisfied: satisfiedNow, waiving, nothingMissing } = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
-  const decisions = turnData(plan, turn);
+  const decisions = await turnDataChecked(plan, turn);
   const phraseUses = flags.phraseUses as PhraseUses | undefined;
   const dataParts = renderDataLineParts(decisions, seed, phraseUses);
   const dataLines = dataParts.map(p => p.text);
@@ -200,7 +200,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     revealed: gBase.facts.revealed, exhibitShown: state.shownExhibitIds.size > 0 || decisions.exhibit !== null,
     deliveredNow: decisions.releases.length > 0 || decisions.exhibit !== null || decisions.restates.length > 0 || decisions.correction != null,
     deliveredPrev: false, refusedNow: decisions.refusals.length > 0,
-    deferredNow: decisions.defers.length + decisions.gateDefers.length + decisions.offers.length > 0 || decisions.unmappedDefer,
+    deferredNow: decisions.defers.length + decisions.gateDefers.length + decisions.offers.length > 0,
   } } } : gBase;
 
   // The model's words, vetoed sentence by sentence (never rewritten).

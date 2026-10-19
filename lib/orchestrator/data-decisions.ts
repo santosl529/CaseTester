@@ -12,7 +12,8 @@ import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import type { RequestResponse } from './data-requests';
 import { canReveal, type DataLedger } from './data-ledger';
-import { line, phrase, versionIndex, PHRASE_POOLS, type PhraseUses } from './phrasing';
+import { phrase, versionIndex, type PhraseUses } from './phrasing';
+import { BASIS } from './fact-check';
 import { dataLineVersions } from '@/lib/cases/loader';
 import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
 import { isOrderStage } from '@/lib/cases/schema';
@@ -20,12 +21,6 @@ import { isOrderStage } from '@/lib/cases/schema';
 export const RELEASE_CAP = 3;
 
 // The lead-in for data said again on an explicit re-ask.
-
-// Spec 2026-10-07 §4's line for asks code can't map while the structure is
-// open. v4.10 (KF-4): it promises nothing — the ask may name data the case
-// doesn't have; it is put to the interviewer again once the structure is
-// settled (plan-turn.ts unmappedToResolve), to map or decline then.
-export const UNMAPPED_DEFER_LINE = PHRASE_POOLS.unmapped_defer[0];
 
 // Resolves a declared id to a canonical one. Exact only — an id or a
 // label / title, ignoring case and punctuation: a partial match could release
@@ -140,8 +135,14 @@ export function splitOfItem(what: string, item: { label: string }, names: string
   return names.map(esc).some(name => new RegExp(String.raw`(?:\b${SPLIT_WORDS}\s+(?:of|within|inside|in)\s+|\b(?:within|inside)\s+)${det}${name}\b(?!\s*(?:,|and\b|or\b|vs\.?|versus\b))|\b${name}\s+${SPLIT_WORDS}\b`, 'i').test(what));
 }
 
-export function outsideAskScope(what: string, item: { label: string; timeframes?: Record<string, string> }, names: string[] = []): boolean {
+// A basis ask (Lorenzo, 19 Oct; batch 32 Larkspur Marisol t27, "Basis for the 70%
+// load factor estimate on the new routes" answered by restating the plan): out
+// of scope of an item unless the item's value itself says where the figure comes from.
+const SAYS_BASIS = /\b(?:based on|comes? from|derived from|benchmark(?:ed)? (?:on|against))\b/i;
+
+export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = []): boolean {
   const ask = what.toLowerCase();
+  if (BASIS.test(ask) && !SAYS_BASIS.test(item.value ?? '')) return true;
   const head = HEAD_NOUN(item.label);
   if (!head) return false;
   const label = item.label.toLowerCase();
@@ -213,7 +214,10 @@ export type DataDecisions = {
   refusals: string[];     // what, for explicit asks the case doesn't hold
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
   gateDefers: string[];   // what, for asks the pressure-test gate holds: deferred with the reason (v3)
-  unmappedDefer: boolean; // an explicit deferral the model couldn't map: a generic line, nothing promised
+  // Explicit deferrals with no item, awaiting the small-model check (turn-data.ts
+  // turnDataChecked) that makes each a named deferral or a refusal (Lorenzo, 19 Oct;
+  // engine-asks R1). Nothing is said for them until then.
+  unmatchedDefers: string[];
   offers: string[];       // what, for passing mentions of data the case holds
   // Rule 6 option 4 (v4.11): code's correction of a misquoted revealed figure,
   // spoken first in the data line (set by turn-data.ts on model turns).
@@ -272,7 +276,7 @@ export function decideData(p: {
   const defers: string[] = [];
   const gateDefers: string[] = [];
   const offers: string[] = [];
-  let unmappedDefer = false;
+  const unmatchedDefers: string[] = [];
   const decided: DataDecisions['requests'] = [];
 
   const available = (id: string) => itemById.has(id) && canReveal(p.ledger, id) && !releasing.has(id);
@@ -307,8 +311,10 @@ export function decideData(p: {
     const exhibitIds = r.itemIds.filter(id => exhibitById.has(id));
     if (ledgerIds.length === 0 && exhibitIds.length === 0) {
       // An unmapped deferral contradicts itself (the model meant to hold
-      // something): no refusal, and no named item promised — it may not exist.
-      if (r.explicit && r.respond === 'defer') { unmappedDefer = true; decidedAt.push({ at, d: { request: r, response: 'defer', ledgerItemIds: [] } }); }
+      // something): neither refused nor promised here — the small-model check
+      // decides (turnDataChecked); the generic "settle your structure" line
+      // answered nothing (batch 32 Aldermoor Marcus t5).
+      if (r.explicit && r.respond === 'defer') { unmatchedDefers.push(r.what); decidedAt.push({ at, d: { request: r, response: 'defer', ledgerItemIds: [] } }); }
       else if (r.explicit) { refusals.push(r.what); decidedAt.push({ at, d: { request: r, response: 'refuse', ledgerItemIds: [] } }); }
       return;
     }
@@ -356,7 +362,7 @@ export function decideData(p: {
 
   // Earlier asks first, so the lead-in introduces them together.
   releases.sort((a, b) => Number(b.earlier) - Number(a.earlier));
-  return { releases, restates, exhibit, refusals, defers: asGroup(defers), gateDefers: asGroup(gateDefers), unmappedDefer, offers, requests: decided };
+  return { releases, restates, exhibit, refusals, defers: asGroup(defers), gateDefers: asGroup(gateDefers), unmatchedDefers, offers, requests: decided };
 }
 
 // An item spoken mid-sentence starts lower-case (smoke run 9 Oct: "I don't
@@ -462,7 +468,6 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or'), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });
   if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and'), uses, seed) });
-  if (d.unmappedDefer) parts.push({ kind: 'defers', ids: [], text: line('unmapped_defer', uses, seed) });
   if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and'), uses, seed) });
   return parts;
 }

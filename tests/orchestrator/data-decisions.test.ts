@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, splitOfItem, mentionStatesNeed, exhibitReady, heldForOrder, nextReadyExhibit, nextRequiredExhibit } from '@/lib/orchestrator/data-decisions';
 import { createLedger, reveal, type LedgerItem } from '@/lib/orchestrator/data-ledger';
+import { getCaseById } from '@/lib/cases/loader';
+import { factBaseFor, coverageOf } from '@/lib/orchestrator/fact-check';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 
 // Rule 11 decided in code (spec 2026-10-06 D2/D3): the model declares what was
@@ -258,11 +260,12 @@ describe('an empty item mapping is not proof the case lacks the data', () => {
     expect(labelMatch('pilot elasticity results', CATALOG)).toBeNull();
   });
 
-  it('a deferral the model could not map is not a refusal: one generic line, no item promised', () => {
+  it('a deferral the model could not map is not refused here: held for the small-model check (turnDataChecked), nothing promised', () => {
     const d = decideData(base({ requests: [req({ what: 'the number of stores over the two years', itemIds: [], respond: 'defer' })] }));
     expect(d.refusals).toEqual([]);
-    // v4.10 (KF-4): nothing promised — the ask may name data the case doesn't have.
-    expect(renderDataLines(d, 's')).toEqual(["Let's settle your structure before we get into the data."]);
+    // Nothing is said until the check decides (19 Oct, engine-asks R1; the generic line is gone).
+    expect(d.unmatchedDefers).toEqual(['the number of stores over the two years']);
+    expect(renderDataLines(d, 's')).toEqual([]);
     expect(decisionRows(d)).toEqual([{ what: 'the number of stores over the two years', ledgerItemIds: [], response: 'defer', explicit: true }]);
   });
 
@@ -341,6 +344,22 @@ describe('splitOfItem', () => {
   });
   it('an item that is itself a part answers a split ("the coffee beans\' share of COGS")', () => {
     expect(splitOfItem('the split within the bean share', { label: "Composition of COGS: coffee beans' share of COGS" }, ['bean share'])).toBe(false);
+  });
+});
+
+describe('a basis ask (Lorenzo, 19 Oct; batch 32 Larkspur Marisol t27)', () => {
+  const plan = getCaseById('prof-002').dataLedger.find(i => i.id === 'new_routes_plan')!;
+  const fb = factBaseFor(getCaseById('prof-002') as never);
+  const names = fb.quantities.find(q => q.id === 'new_routes_plan')?.names ?? [];
+  it('is outside the item that holds only the figure', () => {
+    expect(outsideAskScope('Basis for the 70% load factor estimate on the new routes', plan, names)).toBe(true);
+    expect(outsideAskScope('the 70% load factor on the new routes', plan, names)).toBe(false);
+  });
+  it('is in scope when the item says where the figure comes from', () => {
+    expect(outsideAskScope('the basis for the estimate', { label: 'Forecast', value: 'The forecast is based on 3 pilots.' })).toBe(false);
+  });
+  it('is not covered by the phrase beside it', () => {
+    expect(coverageOf('basis for the 70% load factor estimate', fb).items).toEqual([]);
   });
 });
 

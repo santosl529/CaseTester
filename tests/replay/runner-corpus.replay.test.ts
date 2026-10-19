@@ -64,7 +64,10 @@ vi.mock('@/db/client', async () => {
 vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => ({ label: 'none', reason: '' }) }));
 let detections: unknown[] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => detections }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { interviewerText: string | null; candidateText: string }) => (p.interviewerText === null && p.candidateText !== turnText ? null : detections) }));
+// The item-less deferral check (turn-data.ts, engine-asks R1) calls the classifier
+// with the ask's own words, not the message: no verdict, so a named deferral.
+let turnText = '';
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
 let modelTurn: ModelTurn | null = null;
 let modelCalled = false;
@@ -162,6 +165,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     const startedBefore = pendingChecks.length;
     // The replay's own turn index for this message (a verdict row carries it) → the saved one and its clock.
     replayIndex.set(store.turns.length, { saved: r.turnIndex, ms: r.stateBefore.elapsedMs ?? 0 });
+    turnText = r.candidateText;
     await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); } });
     // The turn has returned: its check is still pending (nothing awaited it).
     const started = pendingChecks.splice(startedBefore);

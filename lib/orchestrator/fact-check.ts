@@ -609,8 +609,14 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
 // phrase is matched in the whole ask, so one that spans a list's "and" ("fares
 // and volume" — Owen c2cdbcc3 t5) covers every entry it touches. An entry cut
 // finer than the case (by region, per item…) is not covered.
+// Basis asks (Lorenzo, 19 Oct; batch 32 Larkspur Marisol t27, "Basis for the 70%
+// load factor estimate on the new routes" mapped to the plan and restated): a
+// question about where a figure comes from. The case holds the figure, not its
+// basis; outsideAskScope (data-decisions.ts) reads the same words.
+export const BASIS = /\b(?:basis|source|where\b.{0,40}?\bcomes? from|how (?:firm|solid|reliable)|methodology|assumptions? behind|validated|evidence (?:for|behind))\b/i;
 export type Coverage = { items: string[]; promptFacts: string[]; rest: string | null };
-const FURTHER_CUT = /\b(?:broken (?:down|out) by|split by|by (?:customer|segment|type|age|income|loyalty|hour|day|time)\w*|segments?|cohorts?|per (?:day|hour|customer|week|month))\b/;
+const FURTHER_CUT_WORDS = /\b(?:broken (?:down|out) by|split by|by (?:customer|segment|type|age|income|loyalty|hour|day|time)\w*|segments?|cohorts?|per (?:day|hour|customer|week|month))\b/;
+const FURTHER_CUT = { test: (t: string) => FURTHER_CUT_WORDS.test(t) || BASIS.test(t) };
 export function coverageOf(what: string, fb: FactBase): Coverage {
   const text = what.trim();
   const lower = lc(text);
@@ -665,7 +671,9 @@ const REFUSAL = [
 // What makes an ask finer than an item ("bean cost per pound", "labor hours",
 // "supplier contract terms for coffee beans", "category margins"): read per
 // list entry (an entry is a comma / and / or piece of the ask).
-const FINER_WORDS = /\b(?:per|by(?! input| ingredient| component| line| cost line)|ranked|terms|contracts?|contractual|constraints?|agreements?|suppliers?|switch(?:es)?|hedg\w*|forward|futures|pounds?|purchas\w*|volumes?|units?|counts?|rates?|hours|headcount|elasticity|sensitivity|benchmarks?|competitors?|competitive|regional|regions?|store[- ]level|item[- ]level|categor\w*|segments?|cohorts?|daypart|channel|sku|quarter\w*|month\w*|week\w*|forecasts?|targets?|plans?|budgets?|beyond|itemi[sz]ed|detailed|line[- ]by[- ]line|granular|definitions?|reclassif\w*|one[- ]time|year[- ]by[- ]year|imported|exposure|retail|packaged|same[- ]store|new[- ]store|gross|contribution|operating|variable|fixed|turnover|loyalty|origins?|grades?|quality|spot|commodity|futures|mix|wait|timing|gradual|stepped|fastest|slowest|largest|biggest|growing|outgrew|drivers?|recognition|redemption|returns|comps|channel|wholesale|breakage|fees?|theft|date|last|vintage|mature|maturity|opened|openings?|breakeven|pre-opening|depreciation|interest|tax|fx|freight|shrink\w*|waste|spoilage|portion\w*|recipe|promotion\w*|discount\w*|loyalty)\b/i;
+const FINER_WORDS_RE = /\b(?:per|by(?! input| ingredient| component| line| cost line)|ranked|terms|contracts?|contractual|constraints?|agreements?|suppliers?|switch(?:es)?|hedg\w*|forward|futures|pounds?|purchas\w*|volumes?|units?|counts?|rates?|hours|headcount|elasticity|sensitivity|benchmarks?|competitors?|competitive|regional|regions?|store[- ]level|item[- ]level|categor\w*|segments?|cohorts?|daypart|channel|sku|quarter\w*|month\w*|week\w*|forecasts?|targets?|plans?|budgets?|beyond|itemi[sz]ed|detailed|line[- ]by[- ]line|granular|definitions?|reclassif\w*|one[- ]time|year[- ]by[- ]year|imported|exposure|retail|packaged|same[- ]store|new[- ]store|gross|contribution|operating|variable|fixed|turnover|loyalty|origins?|grades?|quality|spot|commodity|futures|mix|wait|timing|gradual|stepped|fastest|slowest|largest|biggest|growing|outgrew|drivers?|recognition|redemption|returns|comps|channel|wholesale|breakage|fees?|theft|date|last|vintage|mature|maturity|opened|openings?|breakeven|pre-opening|depreciation|interest|tax|fx|freight|shrink\w*|waste|spoilage|portion\w*|recipe|promotion\w*|discount\w*|loyalty)\b/i;
+// A basis ask is finer than the item (Lorenzo, 19 Oct; Larkspur Marisol t27).
+const FINER_WORDS = { test: (t: string) => FINER_WORDS_RE.test(t) || BASIS.test(t) };
 // Dollar amounts of a line the case gives as a share of revenue.
 const DOLLARS = /\b(?:dollars?|absolute|dollar terms|dollar amounts?|in \$)\b/i;
 // A qualifier on the whole ask: the case has no cut by store, category, item…
