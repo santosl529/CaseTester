@@ -2,12 +2,12 @@
 // step of joining took, from the Start click, so the next freeze shows which
 // step it sat in. Sent once, as a `setup` line in the session records.
 import { describe, it, expect } from 'vitest';
-import { SetupTimings } from '@/lib/voice/setup-timing';
+import { SETUP_LINE_DELAY_MS, SetupTimings } from '@/lib/voice/setup-timing';
 import { parseClientMessage } from '@/lib/voice/protocol';
 
 function clock() {
   const c = { t: 1000 };
-  return { c, now: () => c.t };
+  return { c, now: () => c.t, later: () => { c.t += SETUP_LINE_DELAY_MS; } };   // later: the line's delay after ready has passed
 }
 
 describe('SetupTimings', () => {
@@ -23,6 +23,7 @@ describe('SetupTimings', () => {
     s.mark('setupDone');
     s.mark('ready');
     s.span('firstTrack', () => { c.t += 2; });
+    c.t += SETUP_LINE_DELAY_MS;
     expect(s.take()).toEqual({
       spans: {
         audioContext: { atMs: 300, ms: 5 }, connect: { atMs: 305, ms: 1200 }, startAudio: { atMs: 1505, ms: 3000 },
@@ -37,10 +38,12 @@ describe('SetupTimings', () => {
     const s = new SetupTimings(now);
     c.t = 3200; s.mark('playing');
     c.t = 3300; s.mark('ready'); s.span('firstTrack', () => {});
+    c.t = 4300;
     expect(s.take()).toMatchObject({ playingAtMs: 2200, playingFallbackAtMs: null });
     const f = new SetupTimings(now);
     c.t = 6400; f.mark('playingFallback'); f.mark('ready'); f.span('firstTrack', () => {});
-    expect(f.take()).toMatchObject({ playingAtMs: null, playingFallbackAtMs: 3100 });   // its click was at 3300
+    c.t = 7400;
+    expect(f.take()).toMatchObject({ playingAtMs: null, playingFallbackAtMs: 2100 });   // its click was at 4300
   });
 
   it('records each long task from the Start click (startTime is on the same clock), until the line is taken', () => {
@@ -49,30 +52,32 @@ describe('SetupTimings', () => {
     s.longTask(2105.4, 2860.2);     // the b406165f freeze: 1.1s into connect
     s.longTask(5000, 61);
     c.t = 6000; s.mark('ready'); s.span('firstTrack', () => {});
+    c.t = 7000;
     expect(s.take()?.longTasks).toEqual([{ atMs: 1105, ms: 2860 }, { atMs: 4000, ms: 61 }]);
     s.longTask(7000, 80);           // after: not the setup
   });
 
   it('keeps at most 50 long tasks', () => {
-    const { now } = clock();
+    const { now, later } = clock();
     const s = new SetupTimings(now, true);
     for (let i = 0; i < 60; i++) s.longTask(1000 + i * 100, 55);
-    s.mark('ready'); s.span('firstTrack', () => {});
+    s.mark('ready'); s.span('firstTrack', () => {}); later();
     expect(s.take()?.longTasks).toHaveLength(50);
   });
 
   it('a browser that reports long tasks with none during setup says [] (not null)', () => {
-    const { now } = clock();
+    const { now, later } = clock();
     const s = new SetupTimings(now, true);
-    s.mark('ready'); s.span('firstTrack', () => {});
+    s.mark('ready'); s.span('firstTrack', () => {}); later();
     expect(s.take()?.longTasks).toEqual([]);
   });
 
   it('is taken once; later spans and marks (a rejoin) change nothing', () => {
-    const { now } = clock();
+    const { now, later } = clock();
     const s = new SetupTimings(now);
     s.mark('ready');
     s.span('firstTrack', () => {});
+    later();
     expect(s.take()).not.toBeNull();
     s.mark('hello');
     expect(s.take()).toBeNull();
@@ -84,6 +89,7 @@ describe('SetupTimings', () => {
     c.t = 1100; s.span('firstTrack', () => {});
     c.t = 1200; s.mark('ready');
     c.t = 1900; s.span('firstTrack', () => {}); s.mark('ready');
+    c.t = 2200;
     expect(s.take()).toMatchObject({ spans: { firstTrack: { atMs: 100, ms: 0 } }, readyAtMs: 200 });
   });
 
@@ -91,8 +97,31 @@ describe('SetupTimings', () => {
     const { c, now } = clock();
     const s = new SetupTimings(now);
     await expect(s.spanAsync('mic', async () => { c.t += 40; throw new Error('NotAllowedError'); })).rejects.toThrow('NotAllowedError');
-    s.mark('ready'); s.span('firstTrack', () => {});
+    s.mark('ready'); s.span('firstTrack', () => {}); c.t += SETUP_LINE_DELAY_MS;
     expect(s.take()?.spans.mic).toEqual({ atMs: 0, ms: 40 });
+  });
+
+  // 2b9059aa (19 Oct): the freeze's end set off playing, ready and the line at
+  // once, and its long-task entry reached the observer just after — lost.
+  it(`waits ${SETUP_LINE_DELAY_MS}ms after ready (from the unrounded ready time)`, () => {
+    const { c, now } = clock();
+    const s = new SetupTimings(now);
+    s.span('firstTrack', () => {});
+    c.t = 1500.6; s.mark('ready');       // rounds to 501
+    c.t = 1500.6 + SETUP_LINE_DELAY_MS - 1;
+    expect(s.take()).toBeNull();
+    c.t = 1500.6 + SETUP_LINE_DELAY_MS;  // a timer set at ready fires here at the earliest
+    expect(s.take()).toMatchObject({ readyAtMs: 501 });
+  });
+
+  it('takes the observer\'s pending entries first (takeRecords)', () => {
+    const { c, now } = clock();
+    const s = new SetupTimings(now, true);
+    s.longTask(1100, 70);
+    s.span('firstTrack', () => {});
+    c.t = 5575; s.mark('ready');
+    c.t = 6575;
+    expect(s.take([{ startTime: 2340, duration: 3233 }])?.longTasks).toEqual([{ atMs: 100, ms: 70 }, { atMs: 1340, ms: 3233 }]);
   });
 });
 

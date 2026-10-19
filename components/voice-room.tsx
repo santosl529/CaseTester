@@ -16,7 +16,7 @@ import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/
 import { agentAudioWatchdog, CONNECTING_MESSAGE, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
 import { HealthMeter } from '@/lib/voice/health';
 import { ReadyGate } from '@/lib/voice/ready-gate';
-import { SetupTimings } from '@/lib/voice/setup-timing';
+import { SETUP_LINE_DELAY_MS, SetupTimings } from '@/lib/voice/setup-timing';
 
 const STATE_LABEL: Record<string, string> = {
   idle: 'Not started', connecting: 'Connecting…', waiting: 'Waiting for audio', listening: 'Listening',
@@ -78,6 +78,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   // How long each setup step took, with the long tasks from the Start click, sent once (lib/voice/setup-timing.ts).
   const setupTimes = useRef<SetupTimings | null>(null);
   const setupObserver = useRef<PerformanceObserver | null>(null);
+  const setupTimer = useRef<number | null>(null);
 
   // No interviewer audio within 15s of connecting (or of the audio-unlock
   // click): the agent never came — capacity — so say so and leave (lib/voice/capacity.ts).
@@ -95,12 +96,13 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     send({ type: 'fillers', on: fillerPref.get() });
     send({ type: 'ready' });
     setupTimes.current?.mark('ready');
-    sendSetup();
+    // The setup line, ~1s after the first ready: a freeze that just ended has reported its long task by then (2b9059aa).
+    if (setupTimer.current === null) setupTimer.current = window.setTimeout(sendSetup, SETUP_LINE_DELAY_MS);
   };
 
-  // The setup line, once ready has gone out and the agent's track is attached (the agent is in the room).
+  // The setup line, once (the agent is in the room: it said hello); the observer's pending entries first.
   const sendSetup = () => {
-    const line = setupTimes.current?.take();
+    const line = setupTimes.current?.take(setupObserver.current?.takeRecords() ?? []);
     if (!line) return;
     stopSetupObserver();
     send({ type: 'setup', ...line });
@@ -109,6 +111,8 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   const stopSetupObserver = () => {
     setupObserver.current?.disconnect();
     setupObserver.current = null;
+    if (setupTimer.current !== null) window.clearTimeout(setupTimer.current);
+    setupTimer.current = null;
   };
 
   // An exhibit counts as shown once it has rendered (spec §5.3): confirm after commit.
@@ -141,7 +145,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   useEffect(() => () => {
     if (health.current?.raf != null) cancelAnimationFrame(health.current.raf);
     health.current?.observer?.disconnect();
-    setupObserver.current?.disconnect();
+    stopSetupObserver();
     gate.current?.close();
     watchdog.current?.stop();
     if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
@@ -198,7 +202,6 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
         const t = timing.current;
         if (t.ctx) t.remote = levelMeter(t.ctx, track.mediaStreamTrack);
       });
-      sendSetup();
     });
     room.on(RoomEvent.AudioPlaybackStatusChanged, () => {
       if (room.canPlaybackAudio) return;
