@@ -95,7 +95,7 @@ for (const pool of Object.keys(PHRASE_POOLS) as PhrasePool[]) {
 }
 const prof = getCaseById('prof-001');
 const dl = JSON.parse(readFileSync('cases/variants/prof-001.data-lines.json', 'utf8')) as { items: Record<string, { versions: string[]; keep?: string[] }> };
-out.push('## prof-001 data lines (behind DATA_LINE_VARIANTS=1, off)', '',
+out.push('## prof-001 data lines (on by default; DATA_LINE_VARIANTS=0 turns them off)', '',
   'Each item\'s line as released or restated. **1** is the ledger line. Checked on load: every version states exactly the ledger line\'s figures, periods, units and direction, and keeps the listed phrases.', '');
 for (const item of prof.dataLedger) {
   const v = dl.items[item.id];

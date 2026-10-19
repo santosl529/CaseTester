@@ -1,8 +1,8 @@
 // prof-001's data lines in five pre-written versions (Lorenzo's brief B, 18 Oct),
-// behind DATA_LINE_VARIANTS=1, default off.
+// on by default since 18 Oct; DATA_LINE_VARIANTS=0 turns them off.
 import { describe, it, expect, afterEach } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { DataLineVariantsSchema, checkDataLineVariants, lineFacts } from '@/lib/cases/data-line-variants';
+import { DataLineVariantsSchema, checkDataLineVariants, lineFacts, dataLineVariantsOn } from '@/lib/cases/data-line-variants';
 import { getCaseById, dataLineVersions, dataLinePools } from '@/lib/cases/loader';
 import { factBaseFor, findFalseFacts, nameHits } from '@/lib/orchestrator/fact-check';
 import { renderDataLines } from '@/lib/orchestrator/data-decisions';
@@ -60,8 +60,15 @@ describe('every version says what its ledger line says, to the checks', () => {
 
 describe('behind DATA_LINE_VARIANTS', () => {
   afterEach(() => { delete process.env.DATA_LINE_VARIANTS; });
+  // On by default since Lorenzo read all 55 (18 Oct); 0 is the off switch.
+  it('on unless DATA_LINE_VARIANTS=0', () => {
+    expect(dataLineVariantsOn({})).toBe(true);
+    expect(dataLineVariantsOn({ DATA_LINE_VARIANTS: '1' })).toBe(true);
+    expect(dataLineVariantsOn({ DATA_LINE_VARIANTS: '0' })).toBe(false);
+  });
   const release = (id: string) => ({ correction: null, releases: [{ id, value: prof.dataLedger.find(i => i.id === id)!.value, earlier: false }], restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmappedDefer: false, offers: [] }) as never;
-  it('off (the default): the ledger line, always', () => {
+  it('off (DATA_LINE_VARIANTS=0): the ledger line, always', () => {
+    process.env.DATA_LINE_VARIANTS = '0';
     for (const seed of ['a:1', 'b:2', 'c:3', 'd:4']) expect(renderDataLines(release('cogs_pct'), seed)).toEqual([prof.dataLedger.find(i => i.id === 'cogs_pct')!.value]);
   });
   it('on: one of the item\'s versions, the same for the same snapshot (Stream and Settle), varied across sessions', () => {

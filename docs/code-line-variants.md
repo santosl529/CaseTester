@@ -620,7 +620,7 @@ The goodbye otherwise. First use by seed.
 4. I'll stop us there. Thanks for working through the case — your written report will follow.
 5. That's where we'll stop. Thanks for working through the case — your written report will follow.
 
-## prof-001 data lines (behind DATA_LINE_VARIANTS=1, off)
+## prof-001 data lines (on by default; DATA_LINE_VARIANTS=0 turns them off)
 
 Each item's line as released or restated. **1** is the ledger line. Checked on load: every version states exactly the ledger line's figures, periods, units and direction, and keeps the listed phrases.
 

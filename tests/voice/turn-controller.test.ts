@@ -770,6 +770,21 @@ describe('the voice silence check-in', () => {
     expect((h.notes[0] as { checkIn: { silentMs: number } }).checkIn.silentMs).toBeGreaterThanOrEqual(CHECK);
   });
 
+  // Lorenzo, 18 Oct (ruling 3): a candidate reads and thinks after the case
+  // prompt (9813d6ce: 1:49 to the first answer) — that first silence waits 180s.
+  it('waits VOICE_CHECKIN_OPENER_MS after the case prompt, then checkInMs once the candidate has spoken', async () => {
+    const h = setup([[seg('tail', 'Which bucket first?')]], { checkInOpenerMs: 180_000 });
+    await h.c.ready('Your client is a coffee chain. How would you approach this?');
+    await h.advance(170_000);
+    expect(checkIns(h)).toHaveLength(0);
+    await h.advance(15_000);
+    expect(checkIns(h)).toHaveLength(1);
+    h.c.onStt(final('Costs first.'));
+    await h.advance(5000);
+    await h.advance(CHECK + 5000);
+    expect(checkIns(h)).toHaveLength(2);
+  });
+
   it('is off without checkInMs', async () => {
     const h = setup([], { checkInMs: undefined });
     await h.c.ready('');

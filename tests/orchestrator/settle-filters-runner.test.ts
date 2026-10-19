@@ -9,6 +9,10 @@ import type { CheckerClaim } from '@/lib/orchestrator/math-checker';
 import { checkerClaim, landed } from './helpers/checker-claim';
 import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 
+// These tests pin the ledger's own data lines: prof-001's pre-written versions
+// are off here (DATA_LINE_VARIANTS=0; on by default since 18 Oct).
+process.env.DATA_LINE_VARIANTS = '0';
+
 type Row = Record<string, unknown>;
 const store = { session: {} as Row, turns: [] as Row[], revealed: [] as Row[], exhibits: [] as Row[], events: [] as Row[] };
 // The math checker (the gate, 16 Oct): the claims it returns for a message; none set → no verdict.

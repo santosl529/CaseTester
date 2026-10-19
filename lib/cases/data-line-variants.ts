@@ -1,6 +1,7 @@
 // A case's data lines in five pre-written versions (Lorenzo's brief B, 18 Oct;
 // prof-001 only): cases/variants/<caseId>.data-lines.json, human-written, never
-// generated at runtime, spoken only with DATA_LINE_VARIANTS=1 (default off).
+// generated at runtime; spoken by default since Lorenzo read all 55 (18 Oct) —
+// DATA_LINE_VARIANTS=0 is the off switch.
 // SERVER-ONLY: the versions carry ledger values.
 //
 // Checked on load, beside the case schema (loader.ts): the first version is the
@@ -75,4 +76,4 @@ export function checkDataLineVariants(v: DataLineVariants, ledger: { id: string;
   return problems;
 }
 
-export const dataLineVariantsOn = (env: Record<string, string | undefined> = process.env) => env.DATA_LINE_VARIANTS === '1';
+export const dataLineVariantsOn = (env: Record<string, string | undefined> = process.env) => env.DATA_LINE_VARIANTS?.trim() !== '0';

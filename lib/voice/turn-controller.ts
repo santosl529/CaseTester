@@ -64,6 +64,9 @@ export type ControllerDeps = {
   // The silence check-in (Lorenzo, 18 Oct): one soft line after this much
   // silence (VOICE_CHECKIN_MS); unset or 0 = off.
   checkInMs?: number;
+  // The first silence after the case prompt, before the candidate has said
+  // anything (VOICE_CHECKIN_OPENER_MS; Lorenzo, 18 Oct: 180s); default checkInMs.
+  checkInOpenerMs?: number;
   // A line for the session's records outside a turn's own (the check-in).
   note?: (line: Record<string, unknown>) => void;
 };
@@ -112,7 +115,7 @@ export class VoiceTurnController {
   private closing = false;             // the cap's closing line is under way
   // The silence check-in: armed while listening, from `since`; once a silence
   // (`done` until the candidate speaks); `uses` = the pool versions said.
-  private checkIn: { cancel: (() => void) | null; since: number; done: boolean; uses: number[] } = { cancel: null, since: 0, done: false, uses: [] };
+  private checkIn: { cancel: (() => void) | null; since: number; done: boolean; uses: number[]; spoken: boolean } = { cancel: null, since: 0, done: false, uses: [], spoken: false };
 
   constructor(private d: ControllerDeps) {}
 
@@ -530,13 +533,15 @@ export class VoiceTurnController {
   private armCheckIn(from = this.d.now()): void {
     this.checkIn.cancel?.();
     this.checkIn.cancel = null;
-    const ms = this.d.checkInMs ?? 0;
-    if (ms <= 0 || this.checkIn.done || this.state !== 'listening') return;
+    const every = this.d.checkInMs ?? 0;
+    const ms = this.checkIn.spoken ? every : (this.d.checkInOpenerMs ?? every);
+    if (every <= 0 || ms <= 0 || this.checkIn.done || this.state !== 'listening') return;
     this.checkIn.since = from;
     this.checkIn.cancel = this.d.clock.at(from + ms, () => this.fireCheckIn());
   }
 
   private candidateSpoke(): void {
+    this.checkIn.spoken = true;
     this.checkIn.done = false;
     this.armCheckIn();
   }

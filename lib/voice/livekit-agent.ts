@@ -164,6 +164,7 @@ export default defineAgent({
       endEarly: async () => ({ scoringSuppressed: !(await endByCandidate(session.id, session.userId, 'voice_tts_cap')).report }),
       // The silence check-in (Lorenzo, 18 Oct): 90s by default; 0 = off.
       checkInMs: num('VOICE_CHECKIN_MS', 90_000),
+      checkInOpenerMs: num('VOICE_CHECKIN_OPENER_MS', 180_000),   // the first silence, after the case prompt
       // The check-in heard goes to the model's history as no turn (voice-check-in.ts).
       note: l => {
         lines.add(l);

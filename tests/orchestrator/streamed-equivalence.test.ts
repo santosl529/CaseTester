@@ -12,6 +12,10 @@ import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnKind } from '@/lib/orchestrator/plan-turn';
 import { modelPlanFixture } from './fixtures/model-plan';
 
+// These tests pin the ledger's own data lines: prof-001's pre-written versions
+// are off here (DATA_LINE_VARIANTS=0; on by default since 18 Oct).
+process.env.DATA_LINE_VARIANTS = '0';
+
 // Streaming changes WHEN the candidate hears the turn, never WHAT: delivered
 // segments + Settle's tail == the turn Settle composes when nothing streamed.
 
