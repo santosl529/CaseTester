@@ -118,6 +118,21 @@ transcripts and get zero false flags. Until then leave `stepFlagsLive` out —
 its step flags are logged (`recompute_report_only`) and never spoken. Set it
 to `true` only with that validation recorded (prof-001 is the only case).
 
+**The anchor audit (19 Oct; `scripts/anchor-audit.ts`).** Before a case's first
+wave, run it: an LLM reads the case JSON and the PDF (as text) and proposes, per
+ledger item, the names candidates use for it and the asks it answers without
+naming it; the script lints the proposal, writes a diff, replays a file of asks
+(`--asks=`: real ones from transcripts, `evals/anchor-probes.json` for asks that
+must not misfire) through today's anchors and the proposed ones, and `--apply`
+merges a reviewed proposal into `factAnchors.names`/`covers`. Review is the
+human step — strike a phrase that sends an ask to the wrong item, add the ones
+the asks need. Batch 32: three false refusals of held data were asks no anchor
+named; the model's raw proposal fixed one of five, the reviewed one all five.
+Know the matcher: it splits a declared ask at commas, "and", "or", "plus" and
+matches each part alone; names before covers; a name only when the rest of
+its part is neutral words; a short generic cover ("average fare") fires on every
+part that contains it.
+
 **`factAnchors.covers` (13 Oct).** Before code says "I don't have X" it checks
 whether a ledger item or a prompt fact covers X. Most asks are matched by an
 item's names; `covers` lists the asks an item or prompt fact answers without
