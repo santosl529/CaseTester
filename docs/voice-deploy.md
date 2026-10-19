@@ -83,7 +83,7 @@ Optional (the defaults are in code):
 | `VOICE_TTS_RUN_CAP` | `8000` — Cartesia characters per session (a voice session uses ≈ 3,700–4,000). At the cap the interviewer says a closing line and the session ends like the End button, with a report when assessable — never silence (below) |
 | `VOICE_TTS_CHAR_CAP` | `90000` — the monthly cap, shared through the table |
 | `VOICE_MAX_SESSION_MIN` | `25` |
-| `VOICE_BARGE_MIN_WORDS` | `2` |
+| `VOICE_BARGE_MIN_WORDS` | `2` in code; **`4` set on the hosted agent (19 Oct, echo on laptop speakers)** |
 | `VOICE_CHECKIN_MS` | `90000` (the silence check-in; `0` = off) |
 | `VOICE_CHECKIN_OPENER_MS` | `180000` (the first silence, after the case prompt) |
 | `VOICE_FILLER_LONG_WORDS`, `VOICE_FILLER_MAX_RUN`, `VOICE_FILLER_DELAY_MS`, `VOICE_FILLER_GAP_MS`, `VOICE_FILLER_TAIL_MS` | the tuned values |

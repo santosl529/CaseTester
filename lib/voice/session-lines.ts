@@ -14,6 +14,7 @@ export class SessionLines {
   readonly file: string | null;
   writeErrors = 0;
   private chain: Promise<void> = Promise.resolve();
+  private held: object[] = [];
   private log: (msg: string) => void;
 
   constructor(private write: LineWriter, o: { sessionId: string; dir?: string | null; date?: Date; log?: (msg: string) => void }) {
@@ -28,6 +29,14 @@ export class SessionLines {
       this.writeErrors++;
       this.log(`[voice-records] database write failed: ${e instanceof Error ? e.message : String(e)}`);
     });
+  }
+
+  // A line kept back until release() (the jobStart line waits for the opener's
+  // end: no record write while it streams; 19 Oct). Released lines go once, in order.
+  hold(line: object): void { this.held.push(line); }
+
+  release(): void {
+    for (const l of this.held.splice(0)) this.add(l);
   }
 
   flush(): Promise<void> { return this.chain; }

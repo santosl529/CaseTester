@@ -13,7 +13,10 @@ import { ExhibitTable } from '@/components/exhibit-table';
 import { LiveCaption } from '@/components/live-caption';
 import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
-import { agentAudioWatchdog, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
+import { agentAudioWatchdog, CONNECTING_MESSAGE, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
+import { HealthMeter } from '@/lib/voice/health';
+import { ReadyGate } from '@/lib/voice/ready-gate';
+import { SETUP_LINE_DELAY_MS, SetupTimings } from '@/lib/voice/setup-timing';
 
 const STATE_LABEL: Record<string, string> = {
   idle: 'Not started', connecting: 'Connecting…', waiting: 'Waiting for audio', listening: 'Listening',
@@ -54,6 +57,8 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   const [problem, setProblem] = useState<string | null>(null);
   const [scoring, setScoring] = useState<false | 'finalizing' | 'scoring'>(false);
   const [endedWithReport, setEndedWithReport] = useState(false);
+  // Waiting for the interviewer's first audio (a cold-starting agent can take 10–20s).
+  const [connecting, setConnecting] = useState(false);
   // Thinking sounds and the "So," connector (item 3): on by default, remembered
   // in this browser, sent to the agent, applied from the next turn.
   const fillers = useSyncExternalStore(fillerPref.subscribe, fillerPref.get, () => true);
@@ -63,6 +68,17 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   const timing = useRef<{ ctx: AudioContext | null; mic: (() => number) | null; remote: (() => number) | null; lastMicLoudAt: number; pending: { turnSeq: number; from: number } | null; timer: number | null }>(
     { ctx: null, mic: null, remote: null, lastMicLoudAt: 0, pending: null, timer: null },
   );
+
+  // The page's health, reported at the end of each interviewer turn (19 Oct, d).
+  const health = useRef<{ meter: HealthMeter; raf: number | null; observer: PerformanceObserver | null } | null>(null);
+
+  // `ready` waits for the end of setup, the agent's hello, playable audio and the agent's
+  // audio element playing (b406165f, d4bf4638, 19 Oct; lib/voice/ready-gate.ts).
+  const gate = useRef<ReadyGate | null>(null);
+  // How long each setup step took, with the long tasks from the Start click, sent once (lib/voice/setup-timing.ts).
+  const setupTimes = useRef<SetupTimings | null>(null);
+  const setupObserver = useRef<PerformanceObserver | null>(null);
+  const setupTimer = useRef<number | null>(null);
 
   // No interviewer audio within 15s of connecting (or of the audio-unlock
   // click): the agent never came — capacity — so say so and leave (lib/voice/capacity.ts).
@@ -75,9 +91,28 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   };
 
   // `ready`, with the filler toggle first: an agent that (re)joins learns it before its first turn.
+  // Only the gate calls it.
   const sendReady = () => {
     send({ type: 'fillers', on: fillerPref.get() });
     send({ type: 'ready' });
+    setupTimes.current?.mark('ready');
+    // The setup line, ~1s after the first ready: a freeze that just ended has reported its long task by then (2b9059aa).
+    if (setupTimer.current === null) setupTimer.current = window.setTimeout(sendSetup, SETUP_LINE_DELAY_MS);
+  };
+
+  // The setup line, once (the agent is in the room: it said hello); the observer's pending entries first.
+  const sendSetup = () => {
+    const line = setupTimes.current?.take(setupObserver.current?.takeRecords() ?? []);
+    if (!line) return;
+    stopSetupObserver();
+    send({ type: 'setup', ...line });
+  };
+
+  const stopSetupObserver = () => {
+    setupObserver.current?.disconnect();
+    setupObserver.current = null;
+    if (setupTimer.current !== null) window.clearTimeout(setupTimer.current);
+    setupTimer.current = null;
   };
 
   // An exhibit counts as shown once it has rendered (spec §5.3): confirm after commit.
@@ -97,7 +132,21 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     if (view.phase === 'thinking') timing.current.pending = { turnSeq: view.stateTurnSeq, from: timing.current.lastMicLoudAt };
   }, [view.phase, view.stateTurnSeq]);
 
+  // An interviewer turn has ended (the agent is listening again): the health line for it.
+  useEffect(() => {
+    const h = health.current;
+    if (!h || view.phase !== 'listening' || view.stateTurnSeq === 0) return;
+    send({ type: 'health', turnSeq: view.stateTurnSeq, ...h.meter.take({
+      audioElements: audioBox.current?.querySelectorAll('audio').length ?? 0,
+      audioContextState: timing.current.ctx?.state ?? 'none',
+    }) });
+  }, [view.phase, view.stateTurnSeq]);
+
   useEffect(() => () => {
+    if (health.current?.raf != null) cancelAnimationFrame(health.current.raf);
+    health.current?.observer?.disconnect();
+    stopSetupObserver();
+    gate.current?.close();
     watchdog.current?.stop();
     if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
     void timing.current.ctx?.close();
@@ -105,10 +154,20 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   }, []);
 
   async function start() {
+    stopSetupObserver();
+    const longTasks = typeof PerformanceObserver !== 'undefined' && (PerformanceObserver.supportedEntryTypes ?? []).includes('longtask');
+    const times = new SetupTimings(() => performance.now(), longTasks);
+    setupTimes.current = times;
+    if (longTasks) {
+      const o = new PerformanceObserver(list => { for (const e of list.getEntries()) times.longTask(e.startTime, e.duration); });
+      o.observe({ entryTypes: ['longtask'] });
+      setupObserver.current = o;
+    }
     setLocal('connecting');
     setProblem(null);
     const res = await fetch(`/api/voice/${sessionId}/token`, { method: 'POST' });
     if (!res.ok) {
+      stopSetupObserver();
       setProblem(res.status === 429 ? VOICE_BUSY_MESSAGE : res.status === 409 ? 'This case is no longer active.' : res.status === 503 ? 'Voice is not configured on the server.' : 'Could not start the voice session.');
       setLocal('idle');
       return;
@@ -116,39 +175,52 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     const { url, token } = await res.json() as { url: string; token: string };
     const room = new Room({ adaptiveStream: false });
     roomRef.current = room;
+    const readyGate = new ReadyGate({ canPlay: () => room.canPlaybackAudio, sendReady, onFallback: () => times.mark('playingFallback') });
+    gate.current = readyGate;
     const dec = new TextDecoder();
     room.on(RoomEvent.DataReceived, (payload, _p, _k, topic) => {
       if (topic !== DATA_TOPIC) return;
       let m: ServerMessage;
       try { m = JSON.parse(dec.decode(payload)) as ServerMessage; } catch { return; }
       // The agent may join after us: its hello is when our `ready` can arrive.
+      // During setup it waits for setup's end (the opener would start mid-join).
       if (m.type === 'hello') {
-        if (room.canPlaybackAudio) sendReady();
-        else { setNeedsClick(true); watchdog.current?.stop(); }
+        times.mark('hello');
+        readyGate.hello();
+        if (readyGate.isSetupDone && !room.canPlaybackAudio) { setNeedsClick(true); watchdog.current?.stop(); }
       }
       dispatch({ ...m, receivedAt: performance.now() });   // the caption's words are timed from arrival
     });
     room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
       if (track.kind !== Track.Kind.Audio) return;
-      audioBox.current?.appendChild(track.attach());
-      const t = timing.current;
-      if (t.ctx) t.remote = levelMeter(t.ctx, track.mediaStreamTrack);
+      times.span('firstTrack', () => {
+        // ready waits for this element to play (d4bf4638: the freeze came 1ms after the attach); a new track resets it.
+        const el = track.attach();
+        const n = readyGate.trackAttached();
+        el.addEventListener('playing', () => { times.mark('playing'); readyGate.trackPlaying(n); }, { once: true });
+        audioBox.current?.appendChild(el);
+        const t = timing.current;
+        if (t.ctx) t.remote = levelMeter(t.ctx, track.mediaStreamTrack);
+      });
     });
     room.on(RoomEvent.AudioPlaybackStatusChanged, () => {
       if (room.canPlaybackAudio) return;
       send({ type: 'audio_blocked' });
+      readyGate.audioBlocked();
       setNeedsClick(true);
       watchdog.current?.stop();
     });
     room.on(RoomEvent.Disconnected, () => setLocal(l => (l === 'live' ? 'ended' : l)));
     try {
-      timing.current.ctx = new AudioContext();
-      await room.connect(url, token);
-      await room.startAudio();
-      const pub = await room.localParticipant.setMicrophoneEnabled(true, { echoCancellation: true, noiseSuppression: true, autoGainControl: true });
+      timing.current.ctx = times.span('audioContext', () => new AudioContext());
+      await times.spanAsync('connect', () => room.connect(url, token));
+      await times.spanAsync('startAudio', () => room.startAudio());
+      const pub = await times.spanAsync('mic', () => room.localParticipant.setMicrophoneEnabled(true, { echoCancellation: true, noiseSuppression: true, autoGainControl: true }));
       const micTrack = pub?.track?.mediaStreamTrack;
-      if (micTrack && timing.current.ctx) timing.current.mic = levelMeter(timing.current.ctx, micTrack);
+      const ctx = timing.current.ctx;
+      if (micTrack && ctx) timing.current.mic = times.span('micMeter', () => levelMeter(ctx, micTrack));
     } catch (e) {
+      stopSetupObserver();
       setProblem(e instanceof Error && e.name === 'NotAllowedError' ? 'Microphone permission was denied.' : 'Could not connect the audio.');
       room.disconnect();
       setLocal('idle');
@@ -158,22 +230,41 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       const t = timing.current;
       const now = performance.now();
       if (t.mic && t.mic() > MIC_LOUD) t.lastMicLoudAt = now;
-      if (t.remote && !watchdog.current?.wasHeard && t.remote() > REMOTE_LOUD) watchdog.current?.heard();
+      if (t.remote && !watchdog.current?.wasHeard && t.remote() > REMOTE_LOUD) { watchdog.current?.heard(); setConnecting(false); }
       if (t.pending && t.remote && t.remote() > REMOTE_LOUD) {
         send({ type: 'timing', turnSeq: t.pending.turnSeq, clientFirstSoundMs: Math.round(now - t.pending.from) });
         t.pending = null;
       }
     }, 20);
     setLocal('live');
+    startHealth();
     watchdog.current = agentAudioWatchdog({ onTimeout: () => {
+      setConnecting(false);
       setProblem(VOICE_BUSY_MESSAGE);
       if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
       timing.current.timer = null;
       room.disconnect();
       setLocal('idle');
     } });
-    if (room.canPlaybackAudio) { sendReady(); watchdog.current.arm(); }
+    // Setup is done: a hello that came during it is answered now, once.
+    times.mark('setupDone');
+    readyGate.setupComplete();
+    if (room.canPlaybackAudio) { watchdog.current.arm(); setConnecting(true); }
     else setNeedsClick(true);
+  }
+
+  // Frame gaps (visible tab only) and long tasks (where the browser reports them), from the start.
+  function startHealth() {
+    if (health.current) return;
+    const longTasks = typeof PerformanceObserver !== 'undefined' && (PerformanceObserver.supportedEntryTypes ?? []).includes('longtask');
+    const h: { meter: HealthMeter; raf: number | null; observer: PerformanceObserver | null } = { meter: new HealthMeter(longTasks), raf: null, observer: null };
+    if (longTasks) {
+      h.observer = new PerformanceObserver(list => { for (const e of list.getEntries()) h.meter.longTask(e.duration); });
+      h.observer.observe({ entryTypes: ['longtask'] });
+    }
+    const tick = (t: number) => { h.meter.frame(t, document.visibilityState === 'visible'); h.raf = requestAnimationFrame(tick); };
+    h.raf = requestAnimationFrame(tick);
+    health.current = h;
   }
 
   async function enableAudio() {
@@ -182,8 +273,9 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     await room.startAudio();
     if (room.canPlaybackAudio) {
       setNeedsClick(false);
-      sendReady();
+      gate.current?.audioUnlocked();
       watchdog.current?.arm();
+      if (!watchdog.current?.wasHeard) setConnecting(true);
     }
   }
 
@@ -220,7 +312,6 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     <div className="h-full flex flex-col gap-3 p-4">
       <div className="flex items-center gap-2">
         <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">{STATE_LABEL[phase] ?? phase}</span>
-        <span className="text-xs text-neutral-500">Use headphones — the interviewer&apos;s voice on speakers can interrupt itself.</span>
       </div>
 
       {casePrompt && (
@@ -239,11 +330,16 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
         {view.exhibits.map(e => <ExhibitTable key={e.id} exhibit={e} />)}
       </div>
 
+      {connecting && local === 'live' && !needsClick && !problem && <p className="text-sm text-neutral-600">{CONNECTING_MESSAGE}</p>}
       {(problem || view.error) && <p className="text-sm text-red-600">{problem ?? view.error}</p>}
       {view.endedReason && view.endedReason !== 'case_complete' && (
         <p className="text-sm text-neutral-600">{ENDED_TEXT[view.endedReason] ?? 'The session ended.'}{view.canScore ? ' You can score it for a report on what you covered.' : ''}</p>
       )}
 
+      {/* Before Start, on its own line (Lorenzo, 19 Oct): on speakers the room hears the interviewer. */}
+      {local === 'idle' && (
+        <p className="text-sm font-medium text-neutral-800">Headphones work best — on laptop speakers the interviewer can hear itself and cut off.</p>
+      )}
       <div className="flex items-center gap-2">
         {local === 'idle' && <Button onClick={start}>Start</Button>}
         {needsClick && local === 'live' && <Button onClick={enableAudio}>Click to enable audio</Button>}

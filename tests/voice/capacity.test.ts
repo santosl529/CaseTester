@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { agentAudioWatchdog, liveVoiceRooms, maxConcurrentVoice } from '@/lib/voice/capacity';
+import { agentAudioWatchdog, liveVoiceRooms, maxConcurrentVoice, CONNECTING_MESSAGE } from '@/lib/voice/capacity';
 
 describe('voice capacity', () => {
   it('VOICE_MAX_CONCURRENT defaults to 1 and takes a positive whole number', () => {
@@ -52,5 +52,26 @@ describe('the agent-audio watchdog', () => {
     expect(onTimeout).not.toHaveBeenCalled();
     expect(w.wasHeard).toBe(true);
     vi.useRealTimers();
+  });
+});
+
+// Lorenzo, 19 Oct: a LiveKit Build-plan agent can cold-start 10–20s after
+// idle; 15s with no interviewer audio called that "busy". The wait is 30s, and
+// the page says it is connecting meanwhile (the token route's 429 stays immediate).
+describe('the cold-start wait', () => {
+  it('waits 30s by default before calling voice busy', () => {
+    vi.useFakeTimers();
+    const onTimeout = vi.fn();
+    const w = agentAudioWatchdog({ onTimeout });
+    w.arm();
+    vi.advanceTimersByTime(29_999);
+    expect(onTimeout).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(onTimeout).toHaveBeenCalledTimes(1);
+    vi.useRealTimers();
+  });
+
+  it('says it is connecting while it waits', () => {
+    expect(CONNECTING_MESSAGE).toBe('Connecting to your interviewer…');
   });
 });

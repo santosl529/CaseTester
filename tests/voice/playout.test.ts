@@ -230,3 +230,37 @@ describe('Playout on the real clock', () => {
     }
   });
 });
+
+// Session b406165f (19 Oct): the opener sped up / rubberbanded. Per turn, how
+// steadily audio went to the track: the longest gap between frame pushes
+// within a segment, the longest wait on the track, and every underrun — the
+// queued audio ran out mid-segment (TTS or the event loop late) and playback
+// had to restart.
+describe('audio push stats', () => {
+  it('counts an underrun when a segment\'s next audio comes after the queued audio ran out', async () => {
+    const { clock, advance } = fakeClock();
+    const p = new Playout(sink(), clock, RATE);
+    p.open('a', { text: 'There are 120 stores.', interruptible: true });
+    p.push('a', pcmMs(100));
+    await advance(250);                        // 100ms queued, nothing for 250ms: 150ms dry
+    p.push('a', pcmMs(100));
+    p.finish('a');
+    await advance(300);
+    const s = p.takeAudioStats();
+    expect(s.underruns).toBe(1);
+    expect(s.underrunMs).toBe(150);
+    expect(s.maxPushGapMs).toBeGreaterThanOrEqual(230);
+    expect(s.frames).toBe(10);
+    expect(p.takeAudioStats()).toMatchObject({ frames: 0, underruns: 0, underrunMs: 0, maxPushGapMs: 0 });   // per turn: reset
+  });
+
+  it('steady audio has no underrun, and a new segment after silence is not one', async () => {
+    const { clock, advance } = fakeClock();
+    const p = new Playout(sink(), clock, RATE);
+    p.open('a', { text: 'One.', interruptible: true }); p.push('a', pcmMs(200)); p.finish('a');
+    await advance(1000);                       // played out; idle
+    p.open('b', { text: 'Two.', interruptible: true }); p.push('b', pcmMs(200)); p.finish('b');
+    await advance(500);
+    expect(p.takeAudioStats()).toMatchObject({ underruns: 0, underrunMs: 0 });
+  });
+});

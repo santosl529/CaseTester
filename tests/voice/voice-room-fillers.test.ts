@@ -16,3 +16,15 @@ describe('the interview screen', () => {
     expect(html).toMatch(/Applies from the next turn/);
   });
 });
+
+// Lorenzo, 19 Oct (c): the headphones hint is its own clear line above Start
+// (the small grey one beside the state badge is gone).
+describe('the headphones hint', () => {
+  it('stands above Start as its own line, once', () => {
+    const html = renderToStaticMarkup(createElement(VoiceRoom, { sessionId: 's1', casePrompt: null }));
+    const hint = html.indexOf('Headphones work best');
+    expect(hint).toBeGreaterThan(-1);
+    expect(hint).toBeLessThan(html.indexOf('>Start<'));
+    expect(html.match(/headphones/gi)).toHaveLength(1);
+  });
+});

@@ -22,6 +22,15 @@ const LEAD_PAD_MS = 20;
 const LEAD_GIVE_UP_MS = 600;   // no onset this far in: play it as it is
 
 export interface FrameSink { capture(frame: Int16Array): Promise<void>; clear(): void }
+
+// How steadily audio went to the track since the last take (session b406165f,
+// 19 Oct: the opener sped up / rubberbanded). Within a segment: the longest
+// gap between frame pushes, the longest wait on the track, and each underrun —
+// the queued audio ran out before the segment's next frame arrived (TTS or the
+// event loop late), so playback stopped and restarted.
+export type AudioStats = { frames: number; maxPushGapMs: number; maxCaptureMs: number; underruns: number; underrunMs: number; maxUnderrunMs: number };
+const UNDERRUN_TOLERANCE_MS = 5;
+const noStats = (): AudioStats => ({ frames: 0, maxPushGapMs: 0, maxCaptureMs: 0, underruns: 0, underrunMs: 0, maxUnderrunMs: 0 });
 export interface Clock { now(): number; at(ms: number, fn: () => void): () => void }
 export type Outcome = { playback: SegmentPlayback; heardChars: number };
 
@@ -65,7 +74,7 @@ export function heardCharsAt(tl: Token[], heardMs: number): number {
 type Seg = {
   id: string; text: string; interruptible: boolean;
   onStart?: (atMs: number) => void; onHeard?: (heardChars: number, atMs: number) => void;
-  chunks: Int16Array[]; finished: boolean; failed: boolean; cut: boolean;
+  chunks: Int16Array[]; finished: boolean; failed: boolean; cut: boolean; cutAt: number | null;
   words: Word[] | null; audioMs: number; startAt: number | null; endAt: number | null;
   captioned: number;   // tokens whose caption is scheduled
   oddByte: number | null;   // half a sample left over from the last chunk
@@ -81,6 +90,8 @@ export class Playout {
   private gen = 0;
   private pumping = false;
   private idleWaiters: (() => void)[] = [];
+  private stats: AudioStats = noStats();
+  private lastPushAt: number | null = null;   // within the segment playing
 
   // taps: optional observers (session recording) — each frame at its play
   // time, and each cut.
@@ -92,7 +103,7 @@ export class Playout {
   open(id: string, o: { text: string; interruptible: boolean; trimLeadingSilence?: boolean; onStart?: (atMs: number) => void; onHeard?: (heardChars: number, atMs: number) => void }): void {
     const { trimLeadingSilence, ...rest } = o;
     const s: Seg = {
-      id, ...rest, chunks: [], finished: false, failed: false, cut: false, words: null, audioMs: 0, startAt: null, endAt: null,
+      id, ...rest, chunks: [], finished: false, failed: false, cut: false, cutAt: null, words: null, audioMs: 0, startAt: null, endAt: null,
       captioned: 0, oddByte: null, trimLead: Boolean(trimLeadingSilence), lead: null, trimmedMs: 0,
     };
     this.segs.push(s);
@@ -192,6 +203,23 @@ export class Playout {
     return s ? captionWords(s.text, this.trimmedWords(s)) : [];
   }
 
+  // The text of every segment playing now, or that stopped (ended or was cut)
+  // at or after `sinceMs` — what the room may still be hearing (the echo guard).
+  spokenSince(sinceMs: number): string[] {
+    const now = this.clock.now();
+    return this.segs
+      .filter(s => s.startAt !== null && s.startAt <= now && (s.cut ? (s.cutAt ?? now) >= sinceMs : s.endAt === null || s.endAt >= sinceMs))
+      .map(s => s.text);
+  }
+
+  // The audio push stats since the last call (per turn), then start over.
+  takeAudioStats(): AudioStats {
+    const s = this.stats;
+    this.stats = noStats();
+    const r = (x: number) => Math.round(x);
+    return { frames: s.frames, maxPushGapMs: r(s.maxPushGapMs), maxCaptureMs: r(s.maxCaptureMs), underruns: s.underruns, underrunMs: r(s.underrunMs), maxUnderrunMs: r(s.maxUnderrunMs) };
+  }
+
   // Anything queued or still playing (the check-in waits for nothing to play).
   busy(): boolean {
     const now = this.clock.now();
@@ -220,6 +248,7 @@ export class Playout {
       if (s.cut) continue;
       out.set(s.id, this.outcome(s, atMs));
       s.cut = true;
+      s.cutAt = atMs;
     }
     this.cursor = atMs;
     for (const w of this.idleWaiters.splice(0)) w();
@@ -271,11 +300,21 @@ export class Playout {
         const chunk = s.chunks.shift()!;
         for (let i = 0; i < chunk.length && gen === this.gen; i += frameLen) {
           const frame = chunk.subarray(i, i + frameLen);
-          const playAt = Math.max(this.clock.now(), this.cursor);
-          if (s.startAt === null) this.begin(s, playAt);
+          const now = this.clock.now();
+          if (s.startAt !== null) {
+            // Mid-segment: the queued audio ran out before this frame (an underrun).
+            const dry = now - this.cursor;
+            if (dry > UNDERRUN_TOLERANCE_MS) { this.stats.underruns++; this.stats.underrunMs += dry; this.stats.maxUnderrunMs = Math.max(this.stats.maxUnderrunMs, dry); }
+            if (this.lastPushAt !== null) this.stats.maxPushGapMs = Math.max(this.stats.maxPushGapMs, now - this.lastPushAt);
+          }
+          const playAt = Math.max(now, this.cursor);
+          if (s.startAt === null) { this.begin(s, playAt); this.lastPushAt = null; }
           this.cursor = playAt + (frame.length / this.sampleRate) * 1000;
           this.taps.frame?.(frame, playAt);
+          this.lastPushAt = now;
+          this.stats.frames++;
           await this.sink.capture(frame);
+          this.stats.maxCaptureMs = Math.max(this.stats.maxCaptureMs, this.clock.now() - now);
         }
       }
     } finally {
