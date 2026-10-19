@@ -72,7 +72,8 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   // The page's health, reported at the end of each interviewer turn (19 Oct, d).
   const health = useRef<{ meter: HealthMeter; raf: number | null; observer: PerformanceObserver | null } | null>(null);
 
-  // `ready` waits for the end of setup, the agent's hello and playable audio (b406165f, 19 Oct; lib/voice/ready-gate.ts).
+  // `ready` waits for the end of setup, the agent's hello, playable audio and the agent's
+  // audio element playing (b406165f, d4bf4638, 19 Oct; lib/voice/ready-gate.ts).
   const gate = useRef<ReadyGate | null>(null);
   // How long each setup step took, with the long tasks from the Start click, sent once (lib/voice/setup-timing.ts).
   const setupTimes = useRef<SetupTimings | null>(null);
@@ -141,6 +142,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     if (health.current?.raf != null) cancelAnimationFrame(health.current.raf);
     health.current?.observer?.disconnect();
     setupObserver.current?.disconnect();
+    gate.current?.close();
     watchdog.current?.stop();
     if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
     void timing.current.ctx?.close();
@@ -169,7 +171,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     const { url, token } = await res.json() as { url: string; token: string };
     const room = new Room({ adaptiveStream: false });
     roomRef.current = room;
-    const readyGate = new ReadyGate({ canPlay: () => room.canPlaybackAudio, sendReady });
+    const readyGate = new ReadyGate({ canPlay: () => room.canPlaybackAudio, sendReady, onFallback: () => times.mark('playingFallback') });
     gate.current = readyGate;
     const dec = new TextDecoder();
     room.on(RoomEvent.DataReceived, (payload, _p, _k, topic) => {
@@ -188,7 +190,11 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     room.on(RoomEvent.TrackSubscribed, (track: RemoteTrack) => {
       if (track.kind !== Track.Kind.Audio) return;
       times.span('firstTrack', () => {
-        audioBox.current?.appendChild(track.attach());
+        // ready waits for this element to play (d4bf4638: the freeze came 1ms after the attach); a new track resets it.
+        const el = track.attach();
+        const n = readyGate.trackAttached();
+        el.addEventListener('playing', () => { times.mark('playing'); readyGate.trackPlaying(n); }, { once: true });
+        audioBox.current?.appendChild(el);
         const t = timing.current;
         if (t.ctx) t.remote = levelMeter(t.ctx, track.mediaStreamTrack);
       });

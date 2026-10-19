@@ -239,7 +239,8 @@ export default defineAgent({
         lines.add({ turnSeq: m.turnSeq, health: { longestFrameGapMs: m.longestFrameGapMs, longTaskMs: m.longTaskMs, audioElements: m.audioElements, audioContextState: m.audioContextState } });
       } else if (m.type === 'setup') {
         // The page's setup timings, once (19 Oct, lib/voice/setup-timing.ts).
-        lines.add({ setup: { spans: m.spans, helloAtMs: m.helloAtMs, setupDoneAtMs: m.setupDoneAtMs, readyAtMs: m.readyAtMs, longTasks: m.longTasks } });
+        lines.add({ setup: { spans: m.spans, helloAtMs: m.helloAtMs, setupDoneAtMs: m.setupDoneAtMs, readyAtMs: m.readyAtMs,
+          playingAtMs: m.playingAtMs, playingFallbackAtMs: m.playingFallbackAtMs, longTasks: m.longTasks } });
       }
     });
 

@@ -86,6 +86,9 @@ function parseSetup(m: Record<string, unknown>): ClientMessage | null {
     spans[n] = v;
   }
   if (!msOrNull(m.helloAtMs) || !msOrNull(m.setupDoneAtMs) || !msOrNull(m.readyAtMs)) return null;
+  // Absent on a page from before the playing gate (19 Oct): null.
+  const playingAtMs = m.playingAtMs ?? null, playingFallbackAtMs = m.playingFallbackAtMs ?? null;
+  if (!msOrNull(playingAtMs) || !msOrNull(playingFallbackAtMs)) return null;
   let longTasks: SetupSpan[] | null = null;
   if (m.longTasks !== null) {
     if (!Array.isArray(m.longTasks)) return null;
@@ -96,5 +99,5 @@ function parseSetup(m: Record<string, unknown>): ClientMessage | null {
       longTasks.push(v);
     }
   }
-  return { type: 'setup', spans, helloAtMs: m.helloAtMs, setupDoneAtMs: m.setupDoneAtMs, readyAtMs: m.readyAtMs, longTasks };
+  return { type: 'setup', spans, helloAtMs: m.helloAtMs, setupDoneAtMs: m.setupDoneAtMs, readyAtMs: m.readyAtMs, playingAtMs, playingFallbackAtMs, longTasks };
 }

@@ -11,10 +11,12 @@ export const SETUP_SPANS = ['audioContext', 'connect', 'startAudio', 'mic', 'mic
 export type SetupSpanName = (typeof SETUP_SPANS)[number];
 export type SetupSpan = { atMs: number; ms: number };
 export const MAX_SETUP_LONG_TASKS = 50;
-export type SetupMark = 'hello' | 'setupDone' | 'ready';
+// playing: the agent's audio element fired 'playing'; playingFallback: the gate's fallback went instead (lib/voice/ready-gate.ts).
+export type SetupMark = 'hello' | 'setupDone' | 'ready' | 'playing' | 'playingFallback';
 export type SetupTimingLine = {
   spans: Record<SetupSpanName, SetupSpan | null>;
   helloAtMs: number | null; setupDoneAtMs: number | null; readyAtMs: number | null;
+  playingAtMs: number | null; playingFallbackAtMs: number | null;
   longTasks: SetupSpan[] | null;
 };
 
@@ -55,6 +57,7 @@ export class SetupTimings {
     this.taken = true;
     const spans = Object.fromEntries(SETUP_SPANS.map(n => [n, this.spans[n] ?? null])) as Record<SetupSpanName, SetupSpan | null>;
     return { spans, helloAtMs: this.marks.hello ?? null, setupDoneAtMs: this.marks.setupDone ?? null, readyAtMs: this.marks.ready ?? null,
+      playingAtMs: this.marks.playing ?? null, playingFallbackAtMs: this.marks.playingFallback ?? null,
       longTasks: this.reportsLongTasks ? this.longTasks : null };
   }
 
