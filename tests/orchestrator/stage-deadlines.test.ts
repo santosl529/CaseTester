@@ -281,6 +281,17 @@ describe('a deadline yields to a checker line once (R7)', () => {
     expect(codeWrittenTurn(p, null).say).toBe(CORRECTION);
     expect(p.ctx.flags.mathChecker).toMatchObject({ handled: ['3:0'], closed: ['pricing:gain@5'] });
   });
+  // Lorenzo, 19 Oct (round-2 ruling 1): the restatement of a root's live correction is a correction — it rides too.
+  it('a claim built on a root corrected live: its restatement rides on the overdue stage turn, said first by code', () => {
+    const BUILT = vettedFlag('11%', 14.5, { span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', errorType: 'conceptual', unit: '%',
+      codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null }, probeLine: 'Walk me through how you got to 11%.' });
+    const p = owed({ claims: [PRICE, BUILT], landedText: `${CLAIM} So margin goes 6 + 5 = 11%.`, flags: { mathChecker: { handled: ['3:0'], keys: { 'pricing:gain@5': { figures: [5], since: 3 } }, closed: ['pricing:gain@5'], corrected: { 'pricing:gain@5': { line: CORRECTION, figure: '8.5' } } } } });
+    expect(p.state.kind).toBe('stage_brainstorm');
+    expect(p.ctx.flags.stageYielded).toBeUndefined();
+    expect(p.state.stageCheckerLine).toEqual({ id: '3:1', key: 'pricing:gain@5', line: CORRECTION });
+    expect(codeWrittenTurn(p, null).say).toBe(CORRECTION);
+    expect(p.ctx.flags.mathChecker).toMatchObject({ handled: ['3:0', '3:1'], restated: ['pricing:gain@5'] });
+  });
   it('a stage turn coverage makes before its deadline (12:00) is not overdue: the correction waits (unchanged)', () => {
     const p = owed({ claims: [PRICE], flags: { recomputeAttempts: { 'pricing:gain@5': 1 } }, coverage: 80, min: 12 });
     expect(p.state.kind).toBe('stage_brainstorm');

@@ -53,6 +53,18 @@ describe('the judge reads the checker\'s flags and what became of them', () => {
       expect(formatCheckerSection(closedRows)).toContain(`${lead}, which the interview corrected: "Net is $8,000."`);
     });
     it('never said', () => expect(formatCheckerSection(rows())).toContain(`${lead}; that figure was not raised in the interview either.`));
+    // Lorenzo, 19 Oct (round-2 ruling 1): the root's correction restated once for a later claim on its wrong value, then report-only.
+    it('corrected, and restated for this claim', () => {
+      const LINE = 'Net price is about $8,000, not $2,000.';
+      const s = formatCheckerSection([verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]), flag('3:0', 'correct', { key: 'net_price@2000', line: LINE }),
+        flag('5:0', 'restate', { key: 'peak_net_sales@80', root: 'net_price@2000', line: LINE, reason: 'built on net_price@2000, corrected live — its correction restated once' })]);
+      expect(s).toContain(`${lead}, which the interview corrected: "${LINE}"; it was still in use here, and the correction was said once more.`);
+    });
+    it('corrected and restated already: report-only', () => {
+      const s = formatCheckerSection([verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]), flag('3:0', 'correct', { key: 'net_price@2000', line: 'Net is $8,000.' }),
+        flag('5:0', 'unresolved', { key: 'peak_net_sales@80', root: 'net_price@2000', reason: 'built on a corrected input (net_price@2000) — restated once already; left for the report' })]);
+      expect(s).toContain(`${lead}, which the interview corrected: "Net is $8,000."`);
+    });
   });
   it('probed twice, the second time with a hint (Lorenzo, 13 Oct: the two-step probe)', () => {
     expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'probe'), flag('3:0', 'hint')])).toContain('Probed twice (the second time with a hint); not corrected.');

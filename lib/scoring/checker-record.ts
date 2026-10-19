@@ -46,10 +46,12 @@ export function dropCheckerStamps(v: Map<number, TurnVerification>, rows: Checke
 }
 
 // A claim built on an earlier wrong figure (Lorenzo, 19 Oct, §15 o): what became of that input in the interview.
-function builtText(root: string | undefined, all: CheckerDecision[]): string {
+// The root's correction said once more for this claim (Lorenzo, 19 Oct, round-2 ruling 1): `restated`.
+function builtText(root: string | undefined, all: CheckerDecision[], restated = false): string {
   const onRoot = root === undefined ? [] : all.filter(d => d.key === root);
   const fix = onRoot.find(d => d.outcome === 'correct' || d.outcome === 'converted');
   const lead = 'Not raised on its own: it is built on an earlier wrong figure of theirs';
+  if (fix && restated) return `${lead}, which the interview corrected: "${fix.line}"; it was still in use here, and the correction was said once more.`;
   if (fix) return `${lead}, which the interview corrected: "${fix.line}"`;
   if (onRoot.some(d => d.outcome === 'unresolved' && /left for the report/.test(d.reason))) return `${lead}, which was probed and left for this report.`;
   if (onRoot.some(d => ['probe', 'pointer', 'hint'].includes(d.outcome))) return `${lead}, which the interview probed instead; not corrected.`;
@@ -60,6 +62,9 @@ function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outco
   const has = (o: CheckerDecision['outcome']) => outcomes.find(d => d.outcome === o);
   const corrected = has('correct');
   if (corrected) return `Corrected: "${corrected.line}"`;
+  // Said once more for this claim, built on a root corrected live (ruling 1) — whatever line took the question on an earlier try.
+  const restate = has('restate');
+  if (restate) return builtText(restate.root, all, true);
   if (has('stale')) return 'The candidate revised or withdrew it since.';
   if (has('pointer')) return 'Probed twice (the second time against the data); not corrected.';
   if (has('hint')) return 'Probed twice (the second time with a hint); not corrected.';
@@ -69,8 +74,8 @@ function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outco
   if (has('unresolved_at_close')) return 'Not raised in the interview (the case closed first).';
   if (has('undelivered')) return 'Not raised in the interview (another line took the question).';
   // Built on another wrong figure (Lorenzo, 19 Oct, §15 o): the input's outcome, said as it went.
-  const built = outcomes.find(d => d.outcome === 'derived' || (d.outcome === 'unresolved' && /^built on a closed input/.test(d.reason)));
-  if (built) return builtText(built.root ?? /^built on (?:a closed input \()?([^ )']+)/.exec(built.reason)?.[1], all);
+  const built = outcomes.find(d => d.outcome === 'derived' || (d.outcome === 'unresolved' && /^built on a (?:closed|corrected) input/.test(d.reason)));
+  if (built) return builtText(built.root ?? /^built on (?:a (?:closed|corrected) input \()?([^ )']+)/.exec(built.reason)?.[1], all);
   // Past Rule 14 (Lorenzo, 13 Oct): probed twice with nothing code could correct, or a restatement of an error already handled.
   const unresolved = has('unresolved');
   if (unresolved && /restated after the flag closed/.test(unresolved.reason)) return 'Restated after it had been probed or corrected.';

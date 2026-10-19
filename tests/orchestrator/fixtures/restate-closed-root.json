@@ -1,0 +1,1859 @@
+{
+ "b28-jordan-591cff13-t19": {
+  "source": "b28-on replay r2-16 of test runs/batch-28-oct-15-runs-1-10/14-jordan-the-order-of-magnitude-exaggerator/live-run-2026-10-16-591cff13; rows: the recorded verdicts and the flag rows before t19; memory: flags.mathChecker, recomputeAttempts and stepProbes after t17",
+  "candidateTurnIndex": 19,
+  "candidateText": "A few levers beyond price.\n\nOn procurement: beans are 25% of COGS and up 40%. I'd look at forward contracts or hedging to lock bean cost rather than riding spot, plus renegotiating with roasters at 200-store scale. If they're buying regionally, consolidating to one or two suppliers should pull cost down.\n\nOn mix: ticket rose because customers buy more items per visit. If I can steer that incremental item toward high-margin products \u2014 pastries made in-house, drip coffee over milk-heavy espresso drinks \u2014 I improve margin without a price increase. Menu engineering and barista prompts do that cheaply.\n\nOn portion and waste: a 16-point move in COGS as a percent of revenue is large enough that I'd want to rule out shrink, over-pouring, and end-of-day waste before assuming it's all commodity price.\n\nOn product: smaller default sizes, or alt-milk surcharges if dairy is up 37.5%.\n\nGiven the roughly 38 to 40 points of pressure I sized, no single lever closes it \u2014 this needs pricing plus procurement plus mix together.",
+  "revealedIds": [
+   "cogs_pct",
+   "labor_pct",
+   "overhead_pct",
+   "bean_share_of_cogs",
+   "bean_price_change",
+   "non_bean_input_change",
+   "menu_price_change",
+   "avg_ticket",
+   "stores_count"
+  ],
+  "turnRows": [
+   {
+    "turnIndex": 0,
+    "role": "interviewer",
+    "text": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?\n\nTake a moment, then walk me through how you'd approach this."
+   },
+   {
+    "turnIndex": 1,
+    "role": "candidate",
+    "text": "Happy to take a crack at it. So just to play back: 200 locations, revenue up 15% over two years, but net margin fell from 24% to 6% \u2014 that's an 18-point drop, which is huge given revenue is actually growing. So this almost certainly isn't a demand problem; it's a cost problem, or a mix/pricing problem where revenue growth came from discounting or from new stores that aren't profitable.\n\nI'd structure it as profit = revenue minus costs, and go down three branches. First, revenue quality: is the 15% from more stores, more transactions, or price? Second, cost structure: split COGS \u2014 coffee beans, milk, cups \u2014 from labor, rent, and corporate overhead, and see which line grew faster than revenue. Third, store-level mix: are the newer locations dragging the average?\n\nI'd start with the cost side since that's where an 18-point swing most likely sits. Do we have a cost breakdown as a percent of revenue for both years?"
+   },
+   {
+    "turnIndex": 2,
+    "role": "interviewer",
+    "text": "Understood. I'll come back to the cost breakdown as a percent of revenue shortly. Before we pull data: is that structure MECE, and what might be missing from it?"
+   },
+   {
+    "turnIndex": 3,
+    "role": "candidate",
+    "text": "Fair challenge. I think the three branches are collectively exhaustive on the P&L, but they're not cleanly mutually exclusive \u2014 store mix overlaps with both revenue and cost, since new stores carry their own revenue and their own cost base. I'd probably fix that by making it two clean branches, revenue and cost, and then treating store mix as a lens I cut both by rather than a third bucket.\n\nOn what's missing: I jumped to operating costs and skipped the lines between operating profit and net profit. If they've been opening stores aggressively, there could be a lot of new debt, so interest expense could be eating margin. Same with depreciation on buildouts, and one-time items like impairments or lease write-offs. Taxes too, though that's less likely to move 18 points.\n\nSo the fuller version is: revenue, cost of goods, operating expenses, then below-the-line items \u2014 interest, D&A, one-offs \u2014 all cut by store vintage."
+   },
+   {
+    "turnIndex": 4,
+    "role": "interviewer",
+    "text": "Got it, a cleaner two-branch split with below-the-line items added. Here's an exhibit: Brew & Bean Cost Structure Over Time. With those figures, what do you conclude about where the margin went, and what would you look at next?"
+   },
+   {
+    "turnIndex": 5,
+    "role": "candidate",
+    "text": "Okay, let me read this as percent of revenue. Labor is flat at 22 the whole way \u2014 totally stable. Overhead creeps 12 to 13 to 14, so two points, minor. COGS is the story: 42 to 50 to 58.\n\nLet me size that. It goes up 8 points in year one and another 8 in year two, so compounding across the two periods that's roughly 40 points of margin pressure from COGS alone \u2014 call it 38 to 40. Against an 18-point decline, that tells me COGS is more than fully responsible, and something on the revenue side must be partially offsetting it, probably the 15% growth absorbing some fixed cost. Overhead's 2 points is noise by comparison.\n\nSo the diagnosis is squarely input costs, not labor, not overhead.\n\nNext I'd want COGS broken into coffee beans, dairy, cups and packaging, plus food. Do we have that split? And separately, have menu prices moved at all in two years?"
+   },
+   {
+    "turnIndex": 6,
+    "role": "interviewer",
+    "text": "Understood. Two years ago, coffee beans made up 25% of COGS. Raw coffee bean costs: up 40% over the past two years. The other input costs \u2014 dairy, packaging, and food \u2014 have gone up 37.5% in the past two years. Hold that thought on menu price changes \u2014 we'll come back to it shortly. Before you use those, walk me through the roughly 40 points you sized for COGS. How does that reconcile with the margin decline you started from?"
+   },
+   {
+    "turnIndex": 7,
+    "role": "candidate",
+    "text": "Sure. I took it as two sequential hits: 42 to 50 is eight points, then 50 to 58 is another eight, and because each year's increase lands on an already-compressed base, I was treating the cumulative drag as roughly double the headline \u2014 so call it 38 to 40 points of pressure on margin from COGS.\n\nReconciling it with the 18-point decline: the two don't net out, and that's actually the interesting part. If COGS alone is pushing something like 40 points of pressure and margin only fell 18, then roughly half of it got absorbed somewhere \u2014 most plausibly by the 15% revenue growth spreading fixed overhead across more volume, which is consistent with overhead only moving two points despite more stores.\n\nSo my read is COGS is the whole story and then some, and operating leverage is masking part of it.\n\nOn the inputs you gave: beans were a quarter of COGS and up 40%, everything else up 37.5% \u2014 so the increases are nearly uniform. That says a broad commodity shock, not a bean-specific one. Any sense of whether transaction volume grew in line with the 15%?"
+   },
+   {
+    "turnIndex": 8,
+    "role": "interviewer",
+    "text": "Right. On what you asked about earlier: Menu prices have held flat over the past two years. Customers are buying more items per visit, so the average transaction is up from $6.20 two years ago to $6.80 \u2014 about a 10% increase. The footprint hasn't changed: 200 stores today, and 200 stores two years ago. You said roughly 40 points of margin pressure from COGS. How did you get from the 8-point steps each year to that figure?"
+   },
+   {
+    "turnIndex": 9,
+    "role": "candidate",
+    "text": "Walking it again: 42 to 50 is an 8-point step, and 50 to 58 is another 8-point step, so 16 points nominally. The reason I size the true drag higher is that the second 8 points lands on a base where margin is already down to 15, so proportionally it's doing far more damage than the first \u2014 I'm scaling the second step by that compression, which roughly doubles it, and that's how I get to the high-30s to 40 range of effective pressure.\n\nAnd the new data reinforces it. Prices are flat, footprint is flat, so all 15% of revenue growth is volume and basket \u2014 ticket up 10%, implying transactions up about 5%. That means the client took a pure input-cost shock with zero pricing offset. Every cent of commodity inflation went straight through to margin, and growing volume on a worse unit economics actually amplified it.\n\nSo: COGS inflation unpriced is the root cause."
+   },
+   {
+    "turnIndex": 10,
+    "role": "interviewer",
+    "text": "Understood. You said COGS is more than fully responsible for the 18-point decline. What is that based on, and what offset are you assuming?"
+   },
+   {
+    "turnIndex": 11,
+    "role": "candidate",
+    "text": "It's based on the exhibit read plus the compounding logic. COGS goes 42, 50, 58 \u2014 two 8-point steps, but the second one lands on a base already compressed to 15 points of margin, so I'm weighting it roughly double. That gets me to the high-30s, call it 38 to 40 points of effective pressure, against an 18-point actual decline.\n\nThe offset I'm assuming is operating leverage on the fixed base. Footprint is flat at 200 stores and transactions are up about 5% with ticket up 10%, so they're pushing meaningfully more volume through the same real estate, the same leases, the same corporate structure. That spreads fixed cost over a bigger revenue base and claws back a chunk of margin \u2014 which is exactly why overhead only drifted two points despite higher throughput. I'd put that absorption at roughly the 20-point gap.\n\nI'd want store-level fixed cost absolute dollars to confirm the offset is real and not an artifact. But directionally, that's my read."
+   },
+   {
+    "turnIndex": 12,
+    "role": "interviewer",
+    "text": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base. Where does that leave your analysis?"
+   },
+   {
+    "turnIndex": 13,
+    "role": "candidate",
+    "text": "Fair \u2014 16 points is the raw movement on the revenue base, and 38% is the growth relative to COGS itself. I'd still argue the margin impact is closer to that high-30s figure in practice, because the later increase lands on a base already down to 15 points of profit, so it bites disproportionately. Either way the conclusion is the same and it's directionally overwhelming: COGS is the driver, labor and overhead are rounding errors.\n\nNext I'd go two places. First, decompose the COGS increase into price versus mix \u2014 beans up 40%, everything else up 37.5%, but ticket also rose because customers buy more items per visit. If that incremental item is a low-margin food or dairy-heavy drink, mix is making the input shock worse, and that's fixable without touching price.\n\nSecond, pricing power. Prices have been frozen two years while costs ran away. I'd want elasticity \u2014 competitor price moves, any test-market data on a 5\u201310% increase. Do we have anything on competitor pricing?"
+   },
+   {
+    "turnIndex": 14,
+    "role": "interviewer",
+    "text": "Understood. I don't have competitor pricing. Can you show me that calculation step by step?"
+   },
+   {
+    "turnIndex": 15,
+    "role": "candidate",
+    "text": "Sure, let me size what a price increase would have to do.\n\nSetting it up per $100 of current revenue: COGS is $58, labor $22, overhead $14, profit $6. Hold volume flat and raise price x%. Revenue becomes 100(1+x). COGS in dollars doesn't move with price \u2014 beans and milk cost what they cost \u2014 so it stays $58. Labor and overhead are largely fixed in the short run, so call them $36 combined. New profit is 100(1+x) \u2212 94, and new margin is that over 100(1+x).\n\nTo get back to 24%: 100(1+x) \u2212 94 = 0.24 \u00d7 100(1+x), so 0.76 \u00d7 100(1+x) = 94, giving 1+x = 1.237. So about a 24% price increase to fully restore.\n\nBut I'd scale that against the roughly 38 to 40 points of pressure I identified \u2014 that's the real hole \u2014 so a single 24% jump is only part of the answer. I'd pair maybe 8\u201310% in pricing with supply-side action on beans."
+   },
+   {
+    "turnIndex": 16,
+    "role": "interviewer",
+    "text": "Understood. The 24% follows from your own setup. You put the absorption at roughly 20 points. What base and figures is that gap built from?"
+   },
+   {
+    "turnIndex": 17,
+    "role": "candidate",
+    "text": "It's built as a residual rather than from a bottom-up number, so let me be honest about that. I sized COGS pressure at roughly 38 to 40 points on the margin base. Actual margin fell 18 points, 24 down to 6. The gap is 38 minus 18, so about 20 points, and I attributed it to operating leverage because it's the only live candidate \u2014 footprint flat at 200 stores, transactions up about 5%, ticket up 10%, so meaningfully more volume over an unchanged fixed base.\n\nThe support for it is that overhead only moved 12 to 14 across two years despite that extra throughput. If overhead dollars grew at all, holding it to two points of revenue means the revenue denominator did real work. Labor staying pinned at 22 while volume rose says the same thing.\n\nWhat I don't have is store-level fixed cost in absolute dollars, which is what would let me build the 20 points directly instead of backing into it. That's the number I'd want."
+   },
+   {
+    "turnIndex": 18,
+    "role": "interviewer",
+    "text": "Beyond what we've discussed, what else could the client do?"
+   }
+  ],
+  "rows": [
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 1,
+    "payloadJsonb": {
+     "candidateTurnIndex": 1,
+     "latencyMs": 2303,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "net margin fell from 24% to 6% \u2014 that's an 18-point drop",
+       "unit": "percentage points",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "decline in net profit margin, percentage points",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "24 - 6 = 18 points",
+       "assumptions": "Margins 24% to 6% as stated in the prompt",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 18,
+       "candidateValue": "18 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 3,
+    "payloadJsonb": {
+     "candidateTurnIndex": 3,
+     "latencyMs": 1536,
+     "model": "claude-sonnet-5-5",
+     "claims": [],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 5,
+    "payloadJsonb": {
+     "candidateTurnIndex": 5,
+     "latencyMs": 7734,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "Labor is flat at 22 the whole way",
+       "unit": "% of revenue",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "labor % of revenue",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Exhibit shows 22 in all three years.",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 22,
+       "candidateValue": "22 flat",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "Overhead creeps 12 to 13 to 14, so two points, minor",
+       "unit": "points",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "overhead increase",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "14-12=2.",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 2,
+       "candidateValue": "2 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "It goes up 8 points in year one and another 8 in year two",
+       "unit": "points",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "COGS yearly increases",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "42->50 = 8; 50->58 = 8.",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 8,
+       "candidateValue": "8 and 8 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "How does that fit with the 18-point margin decline and the 42% to 58% COGS figures in the exhibit?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "compounding across the two periods that's roughly 40 points of margin pressure from COGS alone \u2014 call it 38 to 40",
+       "unit": "points",
+       "probe": "You said roughly 40 points of margin pressure from COGS. How did you get from the 8-point steps each year to that figure?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "total COGS margin pressure over two years",
+       "vetNotes": [
+        "no correction: code computes nothing for none",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "You said roughly 40 points of margin pressure from COGS. How did you get from the 8-point steps each year to that figure?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "The point changes add, not compound: 8+8=16 points (58-42). Not 40.",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "38 to 40 points",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "How does that fit with the exhibit's profit line and the labor and overhead lines together?",
+       "actualShare": 0.89,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "COGS is more than fully responsible, and something on the revenue side must be partially offsetting it",
+       "unit": "points",
+       "probe": "You said COGS is more than fully responsible for the 18-point decline. What is that based on, and what offset are you assuming?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "COGS share of margin decline",
+       "vetNotes": [
+        "no correction: code computes nothing for none",
+        "pointer dropped (names no revealed figure): How does that fit with the exhibit's profit line and the labor and overhead lines together?"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "You said COGS is more than fully responsible for the 18-point decline. What is that based on, and what offset are you assuming?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS explains 16 of the 18-point decline (about 89%), with overhead the other 2. Not more than fully, and no revenue offset is needed.",
+       "assumptions": "Based on their 40-point figure",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "more than 100% of the 18-point decline",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 7,
+    "payloadJsonb": {
+     "id": "5:3",
+     "candidateTurnIndex": 5,
+     "outcome": "probe",
+     "reason": "attempt 1",
+     "span": "compounding across the two periods that's roughly 40 points of margin pressure from COGS alone \u2014 call it 38 to 40",
+     "candidateValue": "38 to 40 points",
+     "key": "checker:38 to 40 points",
+     "changesConclusion": true,
+     "line": "You said roughly 40 points of margin pressure from COGS. How did you get from the 8-point steps each year to that figure?"
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 7,
+    "payloadJsonb": {
+     "candidateTurnIndex": 7,
+     "latencyMs": 6768,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "How does that fit with the exhibit showing COGS at 42 percent two years ago and 58 percent today?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "cogs_dollar_impact",
+        "target": null
+       },
+       "flag": true,
+       "span": "cumulative drag as roughly double the headline \u2014 so call it 38 to 40 points of pressure on margin from COGS",
+       "unit": "percentage points",
+       "probe": "You said roughly 38 to 40 points of pressure from COGS. How did you get from the two 8-point steps to that figure, and what base is it on?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "COGS margin pressure over two years (points of revenue)",
+       "vetNotes": [
+        "no correction: code computes nothing for step cogs_dollar_impact",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "You said roughly 38 to 40 points of pressure from COGS. How did you get from the two 8-point steps to that figure, and what base is it on?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS share rose 58-42 = 16 points. The two 8-point steps are sequential and add to 16; they do not compound or double.",
+       "assumptions": "Exhibit A: COGS 42 to 58 percent of revenue",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "38 to 40 points",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "How does that fit with the exhibit showing COGS up 16 points, overhead up 2 and labor flat, against an 18-point margin decline?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "roughly half of it got absorbed somewhere \u2014 most plausibly by the 15% revenue growth spreading fixed overhead",
+       "unit": "points absorbed",
+       "probe": "You said roughly half of the COGS pressure got absorbed. Which cost lines in the exhibit show that offset, and by how much?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Share of COGS pressure absorbed by operating leverage",
+       "vetNotes": [
+        "no correction: code computes nothing for none",
+        "pointer withheld (leads: names labor, not in the claim): How does that fit with the exhibit showing COGS up 16 points, overhead up 2 and labor flat, against an 18-point margin decline?"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "You said roughly half of the COGS pressure got absorbed. Which cost lines in the exhibit show that offset, and by how much?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS rose 16 points, overhead rose 2, labor flat: total 18 points of margin decline. Nothing was absorbed; the decline is fully explained by COGS plus overhead.",
+       "assumptions": "Built on the 40-point figure",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 0,
+       "candidateValue": "about half absorbed",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "the increases are nearly uniform",
+       "unit": "",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "Bean vs other input price increases",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "40% vs 37.5% is nearly uniform.",
+       "assumptions": "Given case figures",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": null,
+       "candidateValue": "40% vs 37.5%",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 9,
+    "payloadJsonb": {
+     "id": "7:1",
+     "candidateTurnIndex": 7,
+     "outcome": "stale",
+     "reason": "the right figure (0) stated since",
+     "span": "roughly half of it got absorbed somewhere \u2014 most plausibly by the 15% revenue growth spreading fixed overhead",
+     "candidateValue": "about half absorbed",
+     "key": "checker:about half absorbed",
+     "changesConclusion": true
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 9,
+    "payloadJsonb": {
+     "id": "5:4",
+     "candidateTurnIndex": 5,
+     "outcome": "probe",
+     "reason": "attempt 1",
+     "span": "COGS is more than fully responsible, and something on the revenue side must be partially offsetting it",
+     "candidateValue": "more than 100% of the 18-point decline",
+     "key": "checker:more than 100% of the 18-point decline",
+     "changesConclusion": true,
+     "line": "You said COGS is more than fully responsible for the 18-point decline. What is that based on, and what offset are you assuming?"
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 9,
+    "payloadJsonb": {
+     "candidateTurnIndex": 9,
+     "latencyMs": 6306,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "42 to 50 is an 8-point step, and 50 to 58 is another 8-point step, so 16 points nominally",
+       "unit": "points",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "COGS increase in points of revenue",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "58-42=16",
+       "assumptions": "none",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "16 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "How does that fit with the 24% to 6% margin decline and the exhibit showing COGS rising from 42% to 58%?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "cogs_dollar_impact",
+        "target": null
+       },
+       "flag": true,
+       "span": "that's how I get to the high-30s to 40 range of effective pressure",
+       "unit": "points of margin",
+       "probe": "You mentioned the high-30s to 40 points of effective pressure from COGS. How does that fit with the margin falling 18 points in total, from 24% to 6%?",
+       "verdict": "error",
+       "hintLine": "You mentioned the high-30s to 40 points of effective pressure from COGS. How does that fit with the margin falling 18 points in total, from 24% to 6%?",
+       "quantity": "effective COGS margin pressure",
+       "vetNotes": [
+        "probe withheld (leads: names cog, not in the claim): You mentioned the high-30s to 40 points of effective pressure from COGS. How does that fit with the margin falling 18 points in total, from 24% to 6%?",
+        "hint kept for the second probe",
+        "no correction: code computes nothing for step cogs_dollar_impact",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "Walk me through how you got to 38-40 points.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS pressure on margin is 58-42=16 points; steps are additive, no compounding. Cannot exceed the 18-point total decline.",
+       "assumptions": "scaling second step by compression, roughly doubling",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "38-40 points",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "ticket up 10%, implying transactions up about 5%",
+       "unit": "%",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "transaction growth implied",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "1.15/1.10=1.045, so ~4.5%; within rounding of 5%",
+       "assumptions": "revenue +15%, ticket +10%, prices flat",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 4.5,
+       "candidateValue": "about 5%",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "all 15% of revenue growth is volume and basket",
+       "unit": "%",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "revenue growth from volume/basket",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Prices flat so all growth is volume/basket",
+       "assumptions": "prices flat",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 15,
+       "candidateValue": "all 15%",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 11,
+    "payloadJsonb": {
+     "id": "7:0",
+     "candidateTurnIndex": 7,
+     "outcome": "correct",
+     "reason": "attempt 2; no \"not X\" in the line",
+     "span": "cumulative drag as roughly double the headline \u2014 so call it 38 to 40 points of pressure on margin from COGS",
+     "candidateValue": "38 to 40 points",
+     "key": "checker:38 to 40 points",
+     "changesConclusion": true,
+     "line": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base."
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 11,
+    "payloadJsonb": {
+     "candidateTurnIndex": 11,
+     "latencyMs": 8579,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "How does that fit with the 42% to 58% COGS share in the exhibit and the 18-point margin decline?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "cogs_dollar_impact",
+        "target": null
+       },
+       "flag": true,
+       "span": "call it 38 to 40 points of effective pressure",
+       "unit": "points of revenue",
+       "probe": "You said 38 to 40 points of effective pressure from COGS. How did you get that from the 42, 50, 58 figures, and what base is it on?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "COGS margin pressure in points of revenue",
+       "vetNotes": [
+        "no correction: code computes nothing for step cogs_dollar_impact",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "You said 38 to 40 points of effective pressure from COGS. How did you get that from the 42, 50, 58 figures, and what base is it on?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS share rose from 42% to 58% of revenue, which is 16 points. Steps are not compounded or re-weighted by the compressed margin; the two 8-point steps add to 16.",
+       "assumptions": "Exhibit A COGS 42, 50, 58 as % of revenue; the candidate weights the second 8-point step by roughly double",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "38 to 40 points",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "How does that fit with the exhibit's 24% to 6% margin and the 42% to 58% COGS share?",
+       "actualShare": 0.89,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "COGS is more than fully responsible against an 18-point actual decline",
+       "unit": "share of decline",
+       "probe": "You said COGS is more than fully responsible for the 18-point decline. How do the 16 points of COGS and the 2 points of overhead add up against it?",
+       "verdict": "error",
+       "hintLine": "You said COGS is more than fully responsible for the 18-point decline. How do the 16 points of COGS and the 2 points of overhead add up against it?",
+       "quantity": "COGS share of the margin decline",
+       "vetNotes": [
+        "probe withheld (leads: names overhead, not in the claim): You said COGS is more than fully responsible for the 18-point decline. How do the 16 points of COGS and the 2 points of overhead add up against it?",
+        "hint kept for the second probe",
+        "no correction: code computes nothing for none",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS contributes 16 of the 18 points, about 89% of the decline, which is most but not more than all. Overhead accounts for the other 2 points. No offset is needed.",
+       "assumptions": "Margin fell 18 points; COGS rose 16 points; overhead rose 2 points; labor flat",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": null,
+       "candidateValue": "more than 100% (38-40 vs 18)",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "How does that fit with the exhibit's cost lines, where overhead went from 12% to 14% of revenue?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "I'd put that absorption at roughly the 20-point gap",
+       "unit": "points of revenue",
+       "probe": "You put the absorption at roughly 20 points. What base and figures is that gap built from?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Operating-leverage offset size",
+       "vetNotes": [
+        "no correction: code computes nothing for none",
+        "pointer withheld (leads: names 12, 14, not in the claim): How does that fit with the exhibit's cost lines, where overhead went from 12% to 14% of revenue?"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "You put the absorption at roughly 20 points. What base and figures is that gap built from?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "The correct COGS pressure is 16 points, and the decline is 18 points including 2 points of overhead. There is no gap to absorb. Overhead only rose 2 points, and the exhibit already includes any leverage.",
+       "assumptions": "Offset is the gap between the claimed 38-40 pressure and the 18-point decline",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 0,
+       "candidateValue": "about 20 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "transactions are up about 5% with ticket up 10%",
+       "unit": "percent",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "Transaction growth implied by revenue and ticket",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "1.15/1.10 = 1.045, so transactions are up about 4.5%, which rounds to about 5%.",
+       "assumptions": "Revenue up 15% with flat store count and flat menu prices; ticket up about 10%",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 4.5,
+       "candidateValue": "about 5%",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 13,
+    "payloadJsonb": {
+     "id": "9:1",
+     "candidateTurnIndex": 9,
+     "outcome": "unresolved",
+     "reason": "restated after the flag closed (corrected, or left for the report)",
+     "span": "that's how I get to the high-30s to 40 range of effective pressure",
+     "candidateValue": "38-40 points",
+     "key": "checker:38 to 40 points",
+     "changesConclusion": true
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 13,
+    "payloadJsonb": {
+     "id": "11:0",
+     "candidateTurnIndex": 11,
+     "outcome": "unresolved",
+     "reason": "restated after the flag closed (corrected, or left for the report)",
+     "span": "call it 38 to 40 points of effective pressure",
+     "candidateValue": "38 to 40 points",
+     "key": "checker:38 to 40 points",
+     "changesConclusion": true
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 13,
+    "payloadJsonb": {
+     "id": "11:1",
+     "candidateTurnIndex": 11,
+     "outcome": "probe",
+     "reason": "attempt 1",
+     "span": "COGS is more than fully responsible against an 18-point actual decline",
+     "candidateValue": "more than 100% (38-40 vs 18)",
+     "key": "checker:more than 100% (38-40 vs 18)",
+     "changesConclusion": true,
+     "line": "Can you show me that calculation step by step?"
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 13,
+    "payloadJsonb": {
+     "candidateTurnIndex": 13,
+     "latencyMs": 3818,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "How does that fit with the exhibit, where margin falls from 24 to 6 while labor stays at 22 and overhead moves only from 12 to 14?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "cogs_dollar_impact",
+        "target": null
+       },
+       "flag": true,
+       "span": "I'd still argue the margin impact is closer to that high-30s figure in practice, because the later increase lands on a base already down to 15 points of profit, so it bites disproportionately.",
+       "unit": "percentage points of revenue",
+       "probe": "You said the margin impact is closer to the high-30s. How did you get that figure, and what base is it measured on?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "margin impact of COGS increase in points",
+       "vetNotes": [
+        "no correction: code computes nothing for step cogs_dollar_impact",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "You said the margin impact is closer to the high-30s. How did you get that figure, and what base is it measured on?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS went from 42% to 58% of revenue, a 16-point increase. Margin points are additive, so the second 8-point step does not get scaled by the compressed base. A 16-point COGS rise cannot exceed the 18-point total margin decline, and overhead's 2 points accounts for the rest.",
+       "assumptions": "COGS share of revenue went 42% to 58%; margin = 100 - COGS - labor - overhead; no compounding of point changes.",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "high-30s points (38-40)",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 15,
+    "payloadJsonb": {
+     "id": "13:0",
+     "candidateTurnIndex": 13,
+     "outcome": "unresolved",
+     "reason": "restated after the flag closed (corrected, or left for the report)",
+     "span": "I'd still argue the margin impact is closer to that high-30s figure in practice, because the later increase lands on a base already down to 15 points of profit, so it bites disproportionately.",
+     "candidateValue": "high-30s points (38-40)",
+     "key": "checker:38 to 40 points",
+     "changesConclusion": true
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 15,
+    "payloadJsonb": {
+     "id": "11:2",
+     "candidateTurnIndex": 11,
+     "outcome": "probe",
+     "reason": "attempt 1",
+     "span": "I'd put that absorption at roughly the 20-point gap",
+     "candidateValue": "about 20 points",
+     "key": "checker:about 20 points",
+     "changesConclusion": true,
+     "line": "You put the absorption at roughly 20 points. What base and figures is that gap built from?"
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 15,
+    "payloadJsonb": {
+     "candidateTurnIndex": 15,
+     "latencyMs": 5887,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "needed_for_margin",
+        "price": null,
+        "stepId": null,
+        "target": 24
+       },
+       "flag": false,
+       "span": "1+x = 1.237. So about a 24% price increase to fully restore.",
+       "unit": "%",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "price rise needed to restore 24% margin at flat volume",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "0.76*R=94 -> R=123.7, so a 23.7% rise; matches code.",
+       "assumptions": "Volume flat, all costs $94 fixed in dollars",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 23.7,
+       "candidateValue": "23.7% (~24%)",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "New profit is 100(1+x) \u2212 94, and new margin is that over 100(1+x).",
+       "unit": "",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "new profit and margin formula",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Revenue minus fixed cost dollars of 94 is correct setup.",
+       "assumptions": "Volume flat",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": null,
+       "candidateValue": "(100(1+x)-94)/(100(1+x))",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "How does that fit with the exhibit showing COGS at 42%, 50% and 58% of revenue and profit falling from 24% to 6%?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "cogs_dollar_impact",
+        "target": null
+       },
+       "flag": true,
+       "span": "the roughly 38 to 40 points of pressure I identified \u2014 that's the real hole",
+       "unit": "points",
+       "probe": "You mentioned roughly 38 to 40 points of pressure from COGS. What base is that measured on, given COGS went from 42% to 58% of revenue?",
+       "verdict": "error",
+       "hintLine": "You mentioned roughly 38 to 40 points of pressure from COGS. What base is that measured on, given COGS went from 42% to 58% of revenue?",
+       "quantity": "COGS margin pressure in points",
+       "vetNotes": [
+        "probe withheld (leads: names cog, not in the claim): You mentioned roughly 38 to 40 points of pressure from COGS. What base is that measured on, given COGS went from 42% to 58% of revenue?",
+        "hint kept for the second probe",
+        "no correction: code computes nothing for step cogs_dollar_impact",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS rose 16 points of revenue; the 38-40 comes from an invalid compounding and cannot exceed the 18-point decline as a real hole.",
+       "assumptions": "Restated from earlier; COGS rose 42% to 58% of revenue",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "38 to 40 points",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 17,
+    "payloadJsonb": {
+     "id": "15:2",
+     "candidateTurnIndex": 15,
+     "outcome": "unresolved",
+     "reason": "restated after the flag closed (corrected, or left for the report)",
+     "span": "the roughly 38 to 40 points of pressure I identified \u2014 that's the real hole",
+     "candidateValue": "38 to 40 points",
+     "key": "checker:38 to 40 points",
+     "changesConclusion": true
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 17,
+    "payloadJsonb": {
+     "candidateTurnIndex": 17,
+     "latencyMs": 6593,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "cogs_dollar_impact",
+        "target": null
+       },
+       "flag": true,
+       "span": "I sized COGS pressure at roughly 38 to 40 points on the margin base.",
+       "unit": "points of revenue",
+       "probe": "You said COGS pressure is roughly 38 to 40 points on the margin base. How did you get from the two 8-point steps to that figure?",
+       "verdict": "error",
+       "hintLine": "You said COGS pressure is roughly 38 to 40 points on the margin base. How did you get from the two 8-point steps to that figure?",
+       "quantity": "COGS margin pressure in points",
+       "vetNotes": [
+        "probe withheld (leads: names 2, 8, not in the claim): You said COGS pressure is roughly 38 to 40 points on the margin base. How did you get from the two 8-point steps to that figure?",
+        "hint kept for the second probe",
+        "no correction: code computes nothing for step cogs_dollar_impact",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "Walk me through how you got to 38-40 points.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS share rose 58 \u2212 42 = 16 points; the two 8-point steps add, not compound or double.",
+       "assumptions": "Exhibit A: COGS 42\u219258% of revenue",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "38-40 points",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "The gap is 38 minus 18, so about 20 points, and I attributed it to operating leverage",
+       "unit": "points",
+       "probe": "You put the gap at about 20 points, 38 minus 18. What base is that 38 built on, and how does it relate to COGS moving 42 to 58?",
+       "verdict": "error",
+       "hintLine": "You put the gap at about 20 points, 38 minus 18. What base is that 38 built on, and how does it relate to COGS moving 42 to 58?",
+       "quantity": "Offset/absorption gap in points",
+       "vetNotes": [
+        "probe trimmed (leads: names cog, not in the claim): You put the gap at about 20 points, 38 minus 18. What base is that 38 built on, and how does it relate to COGS moving 42 to 58?",
+        "hint kept for the second probe",
+        "no correction: code computes nothing for none"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "You put the gap at about 20 points, 38 minus 18. What base is that 38 built on?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS +16, overhead +2 = 18 points decline, which equals the actual margin drop; there is no 20-point offset to explain.",
+       "assumptions": "Built on 38 points COGS pressure",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 0,
+       "candidateValue": "about 20 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "Actual margin fell 18 points, 24 down to 6.",
+       "unit": "points",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "margin decline",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "24 \u2212 6 = 18",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 18,
+       "candidateValue": "18 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "overhead only moved 12 to 14 across two years",
+       "unit": "points",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "overhead change",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Matches case data.",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 2,
+       "candidateValue": "12 to 14",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   }
+  ],
+  "mathChecker": {
+   "handled": [
+    "5:3",
+    "7:1",
+    "5:4",
+    "7:0",
+    "9:1",
+    "11:0",
+    "11:1",
+    "13:0",
+    "11:2",
+    "15:2"
+   ],
+   "keys": {
+    "checker:38 to 40 points": {
+     "figures": [
+      38
+     ],
+     "since": 5
+    },
+    "checker:about 20 points": {
+     "figures": [
+      20
+     ],
+     "since": 11
+    }
+   },
+   "closed": [
+    "checker:38 to 40 points"
+   ]
+  },
+  "attempts": {
+   "checker:38 to 40 points": 2,
+   "checker:more than 100% of the 18-point decline": 1,
+   "checker:more than 100% (38-40 vs 18)": 1,
+   "checker:about 20 points": 1
+  },
+  "stepProbes": {
+   "checker:38 to 40 points": 1,
+   "checker:more than 100% of the 18-point decline": 1,
+   "checker:more than 100% (38-40 vs 18)": 1,
+   "checker:about 20 points": 1
+  }
+ },
+ "b29-jordan-ea27d1f6-t9": {
+  "source": "b29-on replay r2-16 of test runs/batch-29-oct-16-runs-1-10/14-jordan-the-order-of-magnitude-exaggerator/live-run-2026-10-16-ea27d1f6; rows: the recorded verdicts and the flag rows before t9; memory: flags.mathChecker, recomputeAttempts and stepProbes after t7",
+  "candidateTurnIndex": 9,
+  "candidateText": "Right, and that's the crux of it: prices flat while essentially every input rose about 38 to 40 percent. The client absorbed the entire input shock on their own P&L. No pass-through at all.\n\nThat lines up with what I was saying \u2014 the COGS pressure here is on the order of 38 to 40 points of margin, and the reason the reported decline is only 18 is that labor leverage and revenue growth masked about half of it. Which actually makes the situation worse than the exhibit looks, because those offsets are finite. Labor can't stay flat at 22% forever if wages move.\n\nSo the cause is unambiguous: this is a pricing failure, not a cost-control failure. Costs rose roughly in line with the broader input market \u2014 beans up 40%, everything else up 37.5%, which is about what the commodity environment did. The client just didn't move price with them.\n\nThe corollary is that the fix is primarily on the price side. Cost levers like renegotiating bean contracts only address a quarter of COGS.",
+  "revealedIds": [
+   "cogs_pct",
+   "labor_pct",
+   "overhead_pct",
+   "bean_share_of_cogs",
+   "bean_price_change",
+   "non_bean_input_change",
+   "menu_price_change"
+  ],
+  "turnRows": [
+   {
+    "turnIndex": 0,
+    "role": "interviewer",
+    "text": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?\n\nTake a minute if you need it, then tell me how you'd structure your approach."
+   },
+   {
+    "turnIndex": 1,
+    "role": "candidate",
+    "text": "Okay. So the headline is margin collapsing from 24% to 6% \u2014 18 points \u2014 while revenue actually grew 15%. That tells me this is almost certainly a cost problem, not a demand problem, though I want to confirm revenue quality too.\n\nI'd structure it as profit = revenue minus costs, and work both sides.\n\nOn revenue: is the 15% growth coming from new stores, more transactions per store, or higher prices? Same-store revenue versus total matters a lot \u2014 if they opened locations, revenue grows while per-store economics could be deteriorating.\n\nOn costs: I'd split fixed versus variable. Variable would be coffee beans, milk, cups, and store labor. Fixed would be rent, corporate overhead, marketing, and any depreciation from new store buildouts.\n\nThen I'd look at which cost line grew fastest as a percent of revenue over the two years.\n\nCan I start with the cost breakdown as a percentage of revenue for both years?"
+   },
+   {
+    "turnIndex": 2,
+    "role": "interviewer",
+    "text": "Right, revenue and cost sides. I'll come back to the cost breakdown as a percentage of revenue shortly. Before we pull data: is that structure MECE, and which branch would you prioritize first, and why?"
+   },
+   {
+    "turnIndex": 3,
+    "role": "candidate",
+    "text": "I think it's close to MECE, with one gap: I lumped new-store buildout into fixed costs, but store count expansion really sits on both sides \u2014 it drives revenue up and brings in new rent, labor, and depreciation. So I'd pull \"store footprint changes\" out as its own branch rather than burying it, otherwise I risk double-counting or missing it entirely.\n\nRevised: revenue drivers (price, volume, mix), cost structure (variable and fixed per store), and footprint changes affecting both.\n\nI'd prioritize the cost branch first. The reason is arithmetic \u2014 revenue grew 15% and margin still fell 18 points. If costs had stayed flat as a percentage of revenue, growing revenue would have held or improved margin. So costs must be growing meaningfully faster than revenue. That's where the answer is. Revenue I'd treat as a secondary check, mainly to see whether pricing has been held flat while input costs rose."
+   },
+   {
+    "turnIndex": 4,
+    "role": "interviewer",
+    "text": "Understood. Here's an exhibit: Brew & Bean Cost Structure Over Time. With those figures in hand, which cost line would you dig into first, and what would you want to know about it?"
+   },
+   {
+    "turnIndex": 5,
+    "role": "candidate",
+    "text": "COGS, clearly. Labor's flat at 22 across all three years, overhead creeps from 12 to 14 \u2014 that's two points, minor. COGS is the story.\n\nLet me size it. COGS goes 42 to 50 to 58. That's a 38% increase on the base \u2014 58 over 42 is about 1.38. So COGS is eating roughly 38 points of margin, call it 40. Against an 18-point total decline, that says COGS isn't just the main driver, it's essentially the entire driver and then some \u2014 the only reason margin didn't fall further is that revenue growth and flat labor absorbed part of it. Overhead's 2 points is noise by comparison.\n\nSo the diagnosis is: a roughly 40-point COGS problem partially offset elsewhere.\n\nWhat I'd want to know: what's inside COGS? Green coffee beans, dairy, packaging? And has the client taken any menu price increases over these two years, or held prices flat while inputs ran?"
+   },
+   {
+    "turnIndex": 6,
+    "role": "interviewer",
+    "text": "Mm-hm. Two years ago, coffee beans made up 25% of COGS. Raw coffee bean costs have gone up 40% in the past two years. Over the past two years, the other input costs \u2014 dairy, packaging, and food \u2014 have risen 37.5%. Hold that thought on menu price changes \u2014 we'll come back to it shortly. Before we use it: you said COGS is eating roughly 38 points of margin against an 18-point decline. Walk me through that. Is 38 points the margin impact, and how does it reconcile with the exhibit?"
+   },
+   {
+    "turnIndex": 7,
+    "role": "candidate",
+    "text": "Sure. So COGS as a share of revenue went 42 \u2192 58. I'm reading that as a 38% increase on the 42 base \u2014 16 over 42 is 38%. And since these are all expressed as percentage points of revenue, that 38% increase translates straight through as roughly 38 points of margin pressure from COGS alone.\n\nThe reconciliation is that the observed decline is only 18 points because other things pushed the other way. Revenue grew 15% over the period, and labor held flat at 22 \u2014 meaning labor got cheaper in real per-unit terms as volume grew. Those offsets absorb a large chunk of the 38. Overhead adds back 2 points of drag. Net, you land near the 18 we see.\n\nSo I'd say the gross COGS pressure is around 38 to 40 points, and roughly half of it is being masked by operating leverage on labor.\n\nAnd on the input data \u2014 beans at 25% of COGS up 40%, everything else up 37.5% \u2014 that's remarkably uniform. That's not a coffee-specific shock, that's broad input inflation."
+   },
+   {
+    "turnIndex": 8,
+    "role": "interviewer",
+    "text": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base. On what you asked about earlier: Menu prices have stayed the same for two years. With the menu price figure in hand, how does the input inflation compare to what the client did on pricing, and what does that tell you about the cause of the margin decline?"
+   }
+  ],
+  "rows": [
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 1,
+    "payloadJsonb": {
+     "candidateTurnIndex": 1,
+     "latencyMs": 1832,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "margin collapsing from 24% to 6% \u2014 18 points",
+       "unit": "percentage points",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "margin decline in points",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "24 - 6 = 18",
+       "assumptions": "Figures from the prompt",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 18,
+       "candidateValue": "18",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 3,
+    "payloadJsonb": {
+     "candidateTurnIndex": 3,
+     "latencyMs": 3905,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "revenue grew 15% and margin still fell 18 points",
+       "unit": "percentage points",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "margin decline in points (24% to 6%)",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "24 - 6 = 18 points; matches the prompt.",
+       "assumptions": "Case prompt: margin 24% to 6%; revenue growth 15%",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 18,
+       "candidateValue": "18 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "If costs had stayed flat as a percentage of revenue, growing revenue would have held or improved margin. So costs must be growing meaningfully faster than revenue.",
+       "unit": "",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "cost growth vs revenue growth inference",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Margin fell means costs/revenue rose, so costs grew faster than revenue. Logic is sound.",
+       "assumptions": "Margin fell while revenue grew 15%; margin = 1 - cost/revenue",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": null,
+       "candidateValue": "costs growing faster than revenue",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      }
+     ],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 5,
+    "payloadJsonb": {
+     "candidateTurnIndex": 5,
+     "latencyMs": 10148,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "Labor's flat at 22 across all three years",
+       "unit": "% of revenue",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "labor % of revenue over time",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Exhibit shows 22 in all three years.",
+       "assumptions": "exhibit-a",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 22,
+       "candidateValue": "22 flat",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "overhead creeps from 12 to 14 \u2014 that's two points",
+       "unit": "points",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "overhead change",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "14-12=2",
+       "assumptions": "exhibit-a",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 2,
+       "candidateValue": "2 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "That's a 38% increase on the base \u2014 58 over 42 is about 1.38.",
+       "unit": "%",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "relative COGS increase",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "58/42=1.381, so 38% relative increase.",
+       "assumptions": "58/42",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 38.1,
+       "candidateValue": "38%",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "cogs_dollar_impact",
+        "target": null
+       },
+       "flag": true,
+       "span": "So COGS is eating roughly 38 points of margin, call it 40.",
+       "unit": "points of margin",
+       "probe": "You said COGS is eating roughly 38 points of margin. How did you get from COGS going 42 to 58 to a figure in points of margin?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "margin impact of COGS increase in points",
+       "vetNotes": [
+        "no correction: code computes nothing for step cogs_dollar_impact",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "unit",
+       "probeLine": "You said COGS is eating roughly 38 points of margin. How did you get from COGS going 42 to 58 to a figure in points of margin?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Margin impact is the change in COGS as % of revenue: 58-42=16 points, not the 38% relative increase.",
+       "assumptions": "COGS share of revenue 42 to 58",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "38-40 points",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": 0.89,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "COGS isn't just the main driver, it's essentially the entire driver and then some",
+       "unit": "share of decline",
+       "probe": "You said COGS is the entire driver and then some of the 18-point decline. How do the COGS and overhead changes in the exhibit add up to that 18?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "COGS share of margin decline",
+       "vetNotes": [
+        "flag dropped \u2014 word quantity holds: 0.89 of the whole against 0.85 (atLeast, margin 0.1)"
+       ],
+       "errorType": "conceptual",
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS is 16 of 18 points, about 89%: the main driver but not more than the whole decline. Overhead adds 2.",
+       "assumptions": "18-point decline; COGS 16 points",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": null,
+       "candidateValue": "more than 100% of the 18-point decline",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": false,
+       "span": "the only reason margin didn't fall further is that revenue growth and flat labor absorbed part of it",
+       "unit": "",
+       "probe": "You mention revenue growth and flat labor absorbed part of the COGS hit. How do the exhibit's percent-of-revenue lines account for that offset?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "offsetting by revenue growth",
+       "vetNotes": [
+        "flag dropped \u2014 no correct figure to check"
+       ],
+       "errorType": "conceptual",
+       "probeLine": null,
+       "confidence": "medium",
+       "correctLow": null,
+       "derivation": "Cost lines sum to the 18-point decline exactly (16+2+0); nothing was offset since margins are shares of revenue.",
+       "assumptions": "percent-of-revenue exhibit",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": null,
+       "candidateValue": "offset exists",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "a roughly 40-point COGS problem partially offset elsewhere",
+       "unit": "points of margin",
+       "probe": "You called it a roughly 40-point COGS problem. What base are you measuring those points against?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "COGS problem size",
+       "vetNotes": [
+        "no correction: code computes nothing for none",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "unit",
+       "probeLine": "You called it a roughly 40-point COGS problem. What base are you measuring those points against?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS rose 16 points of revenue; no offset exists.",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "~40 points",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      }
+     ],
+     "codeFlags": [],
+     "stamps": [
+      {
+       "stepId": "arith:58 / 42",
+       "value": 1.38,
+       "span": "That's a 38% increase on the base \u2014 58 over 42 is about 1.38."
+      },
+      {
+       "stepId": "arith:58 / 42",
+       "value": 38,
+       "span": "That's a 38% increase on the base \u2014 58 over 42 is about 1.38."
+      },
+      {
+       "stepId": "arith:58 / 42",
+       "value": 138,
+       "span": "That's a 38% increase on the base \u2014 58 over 42 is about 1.38."
+      }
+     ]
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 7,
+    "payloadJsonb": {
+     "id": "5:3",
+     "candidateTurnIndex": 5,
+     "outcome": "correct",
+     "reason": "attempt 2; code's quantity stated (revenue or margin units attached)",
+     "span": "So COGS is eating roughly 38 points of margin, call it 40.",
+     "candidateValue": "38-40 points",
+     "key": "cogs_dollar_impact@38",
+     "changesConclusion": true,
+     "line": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base."
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 7,
+    "payloadJsonb": {
+     "candidateTurnIndex": 7,
+     "latencyMs": 8779,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "cogs_dollar_impact",
+        "target": null
+       },
+       "flag": true,
+       "span": "that 38% increase translates straight through as roughly 38 points of margin pressure from COGS alone",
+       "unit": "points of revenue",
+       "probe": "You said the 38% increase on COGS translates to roughly 38 points of margin pressure. What base is that 38 measured on, and how does it map to the exhibit?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "COGS margin impact in points of revenue",
+       "vetNotes": [
+        "no correction: code computes nothing for step cogs_dollar_impact",
+        "correction: a relative change stated as points (code)"
+       ],
+       "errorType": "unit",
+       "probeLine": "You said the 38% increase on COGS translates to roughly 38 points of margin pressure. What base is that 38 measured on, and how does it map to the exhibit?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS rose from 42 to 58 points of revenue, so margin pressure is 16 points. The 38% is a relative increase on the COGS base, not points of revenue.",
+       "assumptions": "COGS share of revenue 42% to 58%, per exhibit",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "38 points (38-40)",
+       "correctionLine": "COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.",
+       "correctionFigure": "16",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "Those offsets absorb a large chunk of the 38. Overhead adds back 2 points of drag. Net, you land near the 18 we see.",
+       "unit": "points of revenue",
+       "probe": "You said revenue growth and flat labor offset part of the COGS impact. How do those show up in the percent-of-revenue lines in the exhibit?",
+       "verdict": "error",
+       "hintLine": "You said revenue growth and flat labor offset part of the COGS impact. How do those show up in the percent-of-revenue lines in the exhibit?",
+       "quantity": "Reconciliation of COGS impact to 18-point decline via offsets",
+       "vetNotes": [
+        "probe withheld (leads: names cog, not in the claim): You said revenue growth and flat labor offset part of the COGS impact. How do those show up in the percent-of-revenue lines in the exhibit?",
+        "hint kept for the second probe",
+        "no correction: code computes nothing for none"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "COGS 16 points plus overhead 2 points gives the 18-point decline. Labor is flat at 22 points, so it offsets nothing. There is no offset to reconcile.",
+       "assumptions": "Margin = 100 - COGS - labor - overhead, all as % of revenue",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 16,
+       "candidateValue": "offsets (revenue growth, flat labor) absorb ~20 points",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": 0,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "roughly half of it is being masked by operating leverage on labor",
+       "unit": "points of revenue",
+       "probe": "You said about half of the COGS pressure is masked by labor leverage. What change in labor as a share of revenue does that rest on?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Share of COGS pressure masked by labor leverage",
+       "vetNotes": [
+        "no correction: code computes nothing for none"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "You said about half of the COGS pressure is masked by labor leverage. What change in labor as a share of revenue does that rest on?",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Labor is 22% of revenue in both years, so it contributes 0 points of margin change. Nothing is masked.",
+       "assumptions": "Labor flat at 22% of revenue in both periods",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 0,
+       "candidateValue": "about half",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      }
+     ],
+     "codeFlags": [],
+     "stamps": [
+      {
+       "stepId": "arith:16 / 42",
+       "value": 38,
+       "span": "I'm reading that as a 38% increase on the 42 base \u2014 16 over 42 is 38%."
+      }
+     ]
+    }
+   }
+  ],
+  "mathChecker": {
+   "handled": [
+    "5:3"
+   ],
+   "keys": {
+    "cogs_dollar_impact@38": {
+     "figures": [
+      38
+     ],
+     "since": 5
+    }
+   },
+   "closed": [
+    "cogs_dollar_impact@38"
+   ]
+  },
+  "attempts": {
+   "cogs_dollar_impact@38": 2
+  },
+  "stepProbes": {}
+ }
+}

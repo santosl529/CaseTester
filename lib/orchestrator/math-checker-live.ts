@@ -344,7 +344,30 @@ export function probesOf(figs: number[], interviewerTexts: string[], candidateFi
 
 export type CheckerRow = { category?: string; subtype: string; turnIndex: number | null; payloadJsonb: unknown };
 
-export type CheckerOutcome = 'probe' | 'correct' | 'converted' | 'pointer' | 'hint' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close' | 'undelivered' | 'derived';
+export type CheckerOutcome = 'probe' | 'correct' | 'converted' | 'pointer' | 'hint' | 'unresolved' | 'shed' | 'stale' | 'expired' | 'dedupe' | 'disagrees_with_code' | 'unresolved_at_close' | 'undelivered' | 'derived' | 'restate';
+
+// Lorenzo, 19 Oct (round-2 ruling 1; b28 Jordan t19 "The gap is 38 minus 18",
+// b29 Jordan t9 "a large chunk of the 38" — both after code had corrected the
+// 38 live): a root closed by a delivered correction (plan-turn records it,
+// flags.mathChecker.corrected: the line said and its right figure) is said once
+// more for a later claim still on its wrong value — "<root quantity> is
+// <right>, not <wrong>" — then the report. The delivered line when it has that
+// form; else built from it: no figure but its own (vetted, FR-4) and theirs.
+export type CorrectedRoot = { line: string; figure?: string };
+const NOT_X = /,\s+not\s+\S.*\.$/;
+const REL_POINTS = /^(.+?) (rose|fell) (\d+(?:\.\d+)?) points, from [^;]+? of ([^;]+); \d+(?:\.\d+)?% is its (?:growth|fall) on its own base\.$/;
+const STATEMENT = /^(.+?\bis\b(?:\s+about)?\s+)(\$?)(\d[\d,]*(?:\.\d+)?)(%?)([^,]*)\.$/;
+const figureSaid = (n: number) => (Math.abs(n) >= 1000 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : String(n));
+export function restatementLine(fix: CorrectedRoot, wrong: number): string {
+  if (NOT_X.test(fix.line)) return fix.line;
+  // A relative change stated as points (math-checker.ts relativeAsPoints): "COGS rose 16 points, from 42% to 58% of revenue; …".
+  const rel = REL_POINTS.exec(fix.line);
+  if (rel) return `The ${rel[2] === 'rose' ? 'rise' : 'fall'} in ${rel[1]} is ${rel[3]} points of ${rel[4]}, not ${figureSaid(wrong)}.`;
+  // A statement of code's figure without its "not X" (own-quantity.ts): their value added, in the figure's unit.
+  const st = STATEMENT.exec(fix.line);
+  if (st) return `${st[1]}${st[2]}${st[3]}${st[4]}${st[5]}, not ${st[2]}${figureSaid(wrong)}${st[4]}.`;
+  return fix.line;
+}
 
 // Whether the delivered text holds the checker's line (Lorenzo, 15 Oct): case,
 // quotes, dashes and spacing aside — a paraphrase is not the vetted line.
@@ -364,7 +387,7 @@ export type CheckerDecision = {
 };
 export type CheckerSelection = {
   id: string; candidateTurnIndex: number; key: string; attempt: number;
-  action: 'probe' | 'correct' | 'pointer' | 'hint'; line: string; derived: string[];
+  action: 'probe' | 'correct' | 'pointer' | 'hint' | 'restate'; line: string; derived: string[];
   claim: VettedClaim;
   // A correction said as a conversion — the figure right on the candidate's own
   // quantity, or no quantity stated (own-quantity.ts): no "not X", and its step closes.
@@ -373,6 +396,8 @@ export type CheckerSelection = {
   // Claims built on this line's root, 'derived' on it: handled only if the line is used and heard (plan-turn, settle-turn).
   riders?: { id: string; candidateTurnIndex: number; claim: VettedClaim }[];
 };
+// A line that states the right figure — a correction, or its restatement (ruling 1): no probe; it rides on an overdue stage turn and goes first.
+export const correctsNow = (s: Pick<CheckerSelection, 'action'>) => s.action === 'correct' || s.action === 'restate';
 export type CheckerPlanInput = {
   rows: CheckerRow[];                 // the session's math_checker events
   handled: string[];                  // claim ids already decided
@@ -383,6 +408,8 @@ export type CheckerPlanInput = {
   attempts: RecomputeAttempts;        // Rule 14's counter, this message's flags counted
   keys?: Record<string, CheckerKeyEntry>; // the flags raised so far (one per error, across messages)
   closed?: string[];                  // keys past Rule 14: corrected once, or left for the report
+  corrected?: Record<string, CorrectedRoot>; // the closed keys a delivered correction closed (ruling 1)
+  restated?: string[];                // …and those whose correction was restated once since
   stepProbes?: Record<string, number>; // probes spent on each step this interview (STEP_PROBE_CAP)
   held?: string;                      // a line a due stage question held back (Settle): raised first, and it doesn't expire
   // The final answers the close waits on (close-hold.ts; Lorenzo, 16 Oct): their
@@ -438,7 +465,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const decisions: CheckerDecision[] = [];
   const flaggedFigures: number[] = [];
   const droppedStamps: CheckerPlan['droppedStamps'] = [];
-  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean; carried?: boolean }[] = [];
+  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean; carried?: boolean; restate?: { line: string; figure?: string; own: string } }[] = [];
   const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
   const keys: Record<string, CheckerKeyEntry> = { ...(p.keys ?? {}) };
   const closed = new Set(p.closed ?? []);
@@ -452,7 +479,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // on message m and spoken on m + 1): what the next candidate message answers.
   const delivered = p.rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag')
     .map(r => ({ at: r.turnIndex, d: r.payloadJsonb as CheckerDecision }))
-    .filter(x => ['probe', 'pointer', 'hint', 'correct', 'converted'].includes(x.d.outcome));
+    .filter(x => ['probe', 'pointer', 'hint', 'correct', 'converted', 'restate'].includes(x.d.outcome));
   const laterMessages = (n: number) => [...p.turnRows.filter(t => t.role === 'candidate' && t.turnIndex > n).map(t => ({ text: t.text, index: t.turnIndex })), { text: p.candidateText, index: p.candidateTurnIndex }];
   // Did the interviewer line just before message m question this claim — code's checker line on it, or the model asking about its own figures?
   const questionedBefore = (id: string, c: CheckerClaim, m: number) => {
@@ -645,13 +672,23 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     return next && depth < 8 ? rootFrom(next, depth + 1) : key;
   };
   const built: { e: typeof all[number]; root: string }[] = [];
+  // A closed root a delivered correction closed, not restated yet (ruling 1): its correction is said once more, on
+  // the first claim built on it — keyed by the root, so the others built on it ride on that line; after it, the report.
+  const restated = new Set(p.restated ?? []);
   for (const e of all) {
     const first = direct.get(e.id);
     if (!first) continue;
     const root = rootFrom(first);
     eligible.splice(eligible.indexOf(e), 1);
     if (closed.has(first) || closed.has(root)) {
-      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `built on a closed input (${root})`, undefined, e.key), root });
+      const fix = p.corrected?.[root];
+      const wrong = fix && !restated.has(root) ? headOf(root, keys) : undefined;
+      if (fix && wrong !== undefined) {
+        if (eligible.some(x => x.key === root && x.restate)) built.push({ e, root });
+        else eligible.push({ ...e, key: root, restate: { line: restatementLine(fix, wrong), ...(fix.figure ? { figure: fix.figure } : {}), own: e.key } });
+        continue;
+      }
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', fix ? `built on a corrected input (${root}) — restated once already; left for the report` : `built on a closed input (${root})`, undefined, e.key), root });
       handled.add(e.id);
     } else built.push({ e, root });
   }
@@ -673,12 +710,23 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const final = (x: { n: number; key: string }) => Number(isFinal(x));
   const rank = (x: { n: number; c: VettedClaim; key: string }) => (p.rank ? Math.max(0, ...[x, ...riding(x)].filter(y => p.finalAnswer?.(y.n)).map(y => p.rank!(y.n, y.c))) : 0);
   const changes = (x: { c: VettedClaim; key: string }) => x.c.changesConclusion || riding(x).some(d => d.c.changesConclusion);
-  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b) - final(a) || rank(b) - rank(a) || Number(changes(b)) - Number(changes(a)) || a.n - b.n);
+  // A restatement before the other flags (ruling 1): the error it closes is still in use (b29 Jordan t9: before a
+  // second correction of the same 38, "~40 points", whose line was the root's word for word).
+  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b) - final(a) || rank(b) - rank(a) || Number(Boolean(b.restate)) - Number(Boolean(a.restate))
+    || Number(changes(b)) - Number(changes(a)) || a.n - b.n);
   let selected: CheckerSelection | null = null;
   const waiting = [...eligible];
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
     const entry = waiting.shift()!;
     const { id, n, c, key, codeProbed } = entry;
+    // The root's correction once more (ruling 1): no Rule-14 attempt and no probe; a minor one is shed under time pressure, as a flag is.
+    if (entry.restate) {
+      const own = entry.restate.own;
+      if (p.underTimePressure && !isFinal(entry) && !changes(entry)) { decisions.push({ ...decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, own), root: key }); handled.add(id); continue; }
+      selected = { id, candidateTurnIndex: n, key, attempt: p.attempts[key] ?? 0, action: 'restate', line: entry.restate.line, derived: entry.restate.figure ? [entry.restate.figure] : [], claim: c };
+      decisions.push({ ...decision(id, n, c, 'restate', `built on ${key}, corrected live — its correction said once more`, selected.line, own), root: key });
+      continue;
+    }
     if (closedNow.includes(key)) { decisions.push(decision(id, n, c, 'unresolved', 'its flag closed this turn', undefined, key)); handled.add(id); continue; }
     // Every probe of the error counts — code's, the checker's and the model's
     // own — since it was first stated (the stored counter, or the interviewer
@@ -712,14 +760,15 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     handled.add(id);
     closedNow.push(key);
   }
-  if (selected) decisions.push(decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
+  const restating = selected?.action === 'restate';
+  if (selected && !restating) decisions.push(decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
     `attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}${eligible.find(e => e.id === selected!.id && e.key === selected!.key)?.carried ? `; carried into ${riding(selected).map(d => d.id).join(', ')}` : ''}`, selected.line, selected.key));
   // The claims built on a root said now ride on its line (booked only if the line is used — plan-turn);
   // on a root closed this turn they go to the report with it; the rest wait.
   const riders: NonNullable<CheckerSelection['riders']> = [];
   for (const { e, root } of built) {
     if (selected?.key === root) {
-      decisions.push({ ...decision(e.id, e.n, e.c, 'derived', `built on ${root}'s figure — the probe follows the input`, undefined, e.key), root });
+      decisions.push({ ...decision(e.id, e.n, e.c, 'derived', restating ? `built on ${root}'s figure — rides on its restated correction` : `built on ${root}'s figure — the probe follows the input`, undefined, e.key), root });
       riders.push({ id: e.id, candidateTurnIndex: e.n, claim: e.c });
     } else if (closedNow.includes(root)) {
       decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `built on a closed input (${root})`, undefined, e.key), root });
@@ -849,6 +898,8 @@ export function formatCheckerHint(s: CheckerSelection): string {
     ? `- Earlier the candidate said ${said}; a check found it doesn't follow from the data they have. Probe once — "${s.line}" — Do not correct it or say the right figure.`
     : s.action === 'pointer' || s.action === 'hint'
       ? `- Earlier the candidate said ${said}, still unresolved after a probe. Ask this, once, as written — "${s.line}" — and nothing else about it. Do not correct it or say the right figure.`
+      : s.action === 'restate'
+        ? `- Earlier the candidate said ${said}, still using a figure code corrected already. Say the correction again in "say", once, as written — "${s.line}" — then continue. No probe, no consolation, no figure of your own.`
       : `- Earlier the candidate said ${said}; a check in code found it wrong. This overrides the no-correction rule: say this in "say", once, as written — "${s.line}" — then continue. No probe, no consolation, no figure of your own.`;
   return `MATH CHECK FLAG (a background check of an earlier message, vetted in code):\n${line}`;
 }

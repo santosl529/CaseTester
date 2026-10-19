@@ -200,3 +200,68 @@ describe('planTurn pricing claims', () => {
     expect(s.verifiedNow).toEqual([]);
   });
 });
+
+// Lorenzo, 19 Oct (round-2 ruling 1): a root corrected live — code said the
+// right value — and a later claim still on its wrong value: code restates the
+// root's correction once, then the report. The booking: a delivered correction
+// records its root (flags.mathChecker.corrected), a restatement its root
+// (flags.mathChecker.restated); neither is a Rule-14 attempt or a probe.
+describe('planTurn: the correction restated once (ruling 1)', () => {
+  const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'revenue_total'];
+  const CLAIM = 'A 10% price increase recovers about 5 points of margin, so margin goes 6 + 5 = 11%.';
+  const CORRECTION = 'A 10% price rise lifts margin about 8.5 points, not 5.';
+  const gain = vettedFlag('about 5 points', 8.5, {
+    span: 'A 10% price increase recovers about 5 points of margin', quantity: 'margin gain', errorType: 'conceptual', unit: 'points',
+    codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null }, probeLine: 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?',
+    correctionLine: CORRECTION, correctionFigure: '8.5',
+  });
+  const built = vettedFlag('11%', 14.5, {
+    span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', errorType: 'conceptual', unit: '%',
+    codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null }, probeLine: 'Walk me through how you got to 11%.',
+  });
+  // Message 3 says both; message 5 is now.
+  const at5 = (flags: Record<string, unknown>, claims = [gain, built]) => {
+    const reads = readsFixture({ phase: 'ANALYSIS', revealed: COSTS,
+      flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false }, ...flags },
+      extraTurns: [{ role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What would you look at next?' }] });
+    const p = planTurn({ ...reads, checkerEventRows: [verdictRow(3, claims)] } as never, 'Next I would look at competitors.', deps());
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    return p;
+  };
+  const corrected = { mathChecker: { handled: ['3:0'], keys: { 'pricing:gain@5': { figures: [5], since: 3 } }, closed: ['pricing:gain@5'], corrected: { 'pricing:gain@5': { line: CORRECTION, figure: '8.5' } } } };
+
+  it('a delivered correction records its root: the key, the line said, its figure', () => {
+    const p = at5({ recomputeAttempts: { 'pricing:gain@5': 1 } }, [gain]);
+    expect(p.state.checkerLine).toMatchObject({ action: 'correct', line: CORRECTION });
+    expect(p.ctx.flags.mathChecker).toMatchObject({ closed: ['pricing:gain@5'], corrected: { 'pricing:gain@5': { line: CORRECTION, figure: '8.5' } } });
+    // Not heard, the booking is undone: no record of a correction.
+    expect(p.state.checkerLine?.undo.mathChecker.corrected).toBeUndefined();
+  });
+
+  it('the claim built on it, next: the line restated on the model turn, booked once — no attempt, no probe', () => {
+    const p = at5({ ...corrected, recomputeAttempts: { 'pricing:gain@5': 2 } });
+    expect(p.state.recomputeHint).toContain(`"${CORRECTION}"`);
+    expect(p.state.checkerLine).toMatchObject({ id: '3:1', action: 'restate', line: CORRECTION });
+    expect(p.state.derivedValueTexts).toContain('8.5');
+    expect(p.state.recomputeAttempts['pricing:gain@5']).toBe(2);
+    expect(p.ctx.flags.stepProbes).toBeUndefined();
+    expect(p.ctx.flags.mathChecker).toMatchObject({ handled: ['3:0', '3:1'], restated: ['pricing:gain@5'], corrected: { 'pricing:gain@5': { line: CORRECTION } } });
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ id: '3:1', outcome: 'restate', root: 'pricing:gain@5' }) }));
+    // Not heard: undone — the restatement is still owed, the record of the correction kept.
+    expect(p.state.checkerLine?.undo.mathChecker).toMatchObject({ handled: ['3:0'], corrected: { 'pricing:gain@5': { line: CORRECTION } } });
+    expect(p.state.checkerLine?.undo.mathChecker.restated).toBeUndefined();
+  });
+
+  it('restated once already: the next such claim goes to the report, no line', () => {
+    const p = at5({ mathChecker: { ...corrected.mathChecker, restated: ['pricing:gain@5'] } });
+    expect(p.state.checkerLine).toBeNull();
+    expect(p.state.recomputeHint ?? '').not.toMatch(/MATH CHECK FLAG/);
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ id: '3:1', outcome: 'unresolved', reason: expect.stringMatching(/built on a corrected input/) }) }));
+  });
+
+  it('old flags with no record of the correction read as before: built on a closed input', () => {
+    const p = at5({ mathChecker: { handled: ['3:0'], keys: corrected.mathChecker.keys, closed: corrected.mathChecker.closed } });
+    expect(p.state.checkerLine).toBeNull();
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ id: '3:1', outcome: 'unresolved', reason: 'built on a closed input (pricing:gain@5)' }) }));
+  });
+});

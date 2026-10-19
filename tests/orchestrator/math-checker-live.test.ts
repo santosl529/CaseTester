@@ -1,10 +1,12 @@
 import { describe, it, expect } from 'vitest';
 import {
-  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, gateOutcomesOf, codeFlagRefs, rootOf, caseNumbersOf,
+  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, gateOutcomesOf, codeFlagRefs, rootOf, caseNumbersOf, restatementLine,
   MATH_CHECKER_CATEGORY, type CheckerRow, type CheckerPlanInput, type VerdictPayload,
 } from '@/lib/orchestrator/math-checker-live';
 import type { CheckerClaim, VettedClaim } from '@/lib/orchestrator/math-checker';
+import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 import { getCaseById } from '@/lib/cases/loader';
+import EVIDENCE from './fixtures/restate-closed-root.json';
 
 const prof = getCaseById('prof-001');
 const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'menu_price_change', 'bean_price_change', 'non_bean_input_change'];
@@ -953,5 +955,107 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       });
       expect(g.decisions[0]).toMatchObject({ outcome: 'released' });
     });
+  });
+
+  // Lorenzo, 19 Oct (round-2 ruling 1; b28 Jordan t19, b29 Jordan t9): a root
+  // corrected live and a later claim still on its wrong value — code restates
+  // the root's correction once ("<root> is <right>, not <wrong>"), then the
+  // report. A root closed without a live correction keeps "built on a closed input".
+  describe('(c) a later claim at a corrected wrong value: the correction once more', () => {
+    const NET_LINE = 'Kelvexa net price per patient per year is about $8,000, not $2,000.';
+    const closedNet = { keys: { 'net_price@2000': { figures: [2000], since: 7 } }, closed: ['net_price@2000'] };
+    const corrected = { 'net_price@2000': { line: NET_LINE, figure: '8000' } };
+    it('root corrected live, then a claim built on its wrong value: restated, the delivered line reused, its figure licensed', () => {
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected });
+      expect(p.selected).toMatchObject({ id: '17:0', key: 'net_price@2000', action: 'restate', line: NET_LINE, derived: ['8000'] });
+      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'restate', line: NET_LINE, root: 'net_price@2000' })]);
+      // Booked by plan-turn only when the line is said (like a correction).
+      expect(p.handledNow).not.toContain('17:0');
+    });
+    it('a second such claim, after the restatement: report-only, no line', () => {
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected, restated: ['net_price@2000'] });
+      expect(p.selected).toBeNull();
+      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', root: 'net_price@2000', reason: expect.stringMatching(/^built on a corrected input \(net_price@2000\) — restated once/) })]);
+      expect(p.handledNow).toContain('17:0');
+    });
+    it('a root closed with no live correction (attempts ran out): built on a closed input, no line (unchanged)', () => {
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected: { 'peak_patients@200000': { line: 'Patients on Kelvexa at peak is about 40,000, not 200,000.', figure: '40000' } } });
+      expect(p.selected).toBeNull();
+      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: expect.stringMatching(/^built on a closed input/) })]);
+    });
+    it('two claims on the one corrected root in a message: one restatement, the other rides on it', () => {
+      const share = vetted({ span: '$2,000 a patient is a fifth of list', quantity: 'net as a share of list', candidateValue: 'a fifth of list', correctValue: 0.8, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million'), share], { ...closedNet, corrected });
+      expect(p.selected).toMatchObject({ id: '17:0', action: 'restate' });
+      expect(p.selected?.riders?.map(r => r.id)).toEqual(['17:1']);
+      expect(p.handledNow).not.toContain('17:1');
+    });
+    it('the turn\'s one math line: none beside a deterministic flag on this message — it waits', () => {
+      const flag = { kind: 'step' as const, stepId: 'x', description: '', expected: 1, candidateValue: 2, errorClass: 'case_breaking' as const, span: '' };
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected, currentFlags: [flag] });
+      expect(p.selected).toBeNull();
+      expect(p.waiting.map(w => w.id)).toEqual(['17:0']);
+      expect(p.decisions).toEqual([]);
+    });
+    it('a minor claim under time pressure is shed, as a minor flag is', () => {
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million', { changesConclusion: false })], { ...closedNet, corrected, underTimePressure: true });
+      expect(p.selected).toBeNull();
+      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'shed' })]);
+    });
+  });
+});
+
+describe('restatementLine: "<root quantity> is <right>, not <wrong>" (ruling 1)', () => {
+  it('a delivered line of that form is said again as delivered', () => {
+    expect(restatementLine({ line: 'Patients on Kelvexa at peak is about 40,000, not 200,000.', figure: '40000' }, 200000)).toBe('Patients on Kelvexa at peak is about 40,000, not 200,000.');
+    expect(restatementLine({ line: 'A 10% price rise lifts margin about 8.5 points, not 5.', figure: '8.5' }, 5)).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+  });
+  it('a relative change stated as points: the line\'s quantity and figure, their wrong value', () => {
+    expect(restatementLine({ line: 'COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.', figure: '16' }, 38))
+      .toBe('The rise in COGS is 16 points of revenue, not 38.');
+  });
+  it('a statement with no "not X": their wrong value added, in the right figure\'s unit', () => {
+    expect(restatementLine({ line: 'Kelvexa net price per patient per year is about $8,000.', figure: '8000' }, 2000)).toBe('Kelvexa net price per patient per year is about $8,000, not $2,000.');
+    expect(restatementLine({ line: 'The bean share of COGS is about 30%.', figure: '30' }, 25)).toBe('The bean share of COGS is about 30%, not 25%.');
+  });
+  it('any other line: as delivered', () => {
+    expect(restatementLine({ line: 'In revenue terms, that\'s about 10.5 points.', figure: '10.5' }, 25)).toBe('In revenue terms, that\'s about 10.5 points.');
+  });
+});
+
+// The evidence turns, from their recorded verdicts (replay r2-16, checker on;
+// the memory as the replay held it before the turn, plus the correction the
+// root's delivered line records now).
+describe('ruling 1 on the evidence: b28 Jordan t19, b29 Jordan t9', () => {
+  type Fixture = { candidateTurnIndex: number; candidateText: string; revealedIds: string[]; turnRows: CheckerPlanInput['turnRows']; rows: CheckerRow[];
+    mathChecker: { handled: string[]; keys: Record<string, { figures: number[]; since: number }>; closed: string[] }; attempts: Record<string, number>; stepProbes: Record<string, number> };
+  const COGS_LINE = 'COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.';
+  const replayed = (f: Fixture, root: string) => planCheckerFlags({
+    rows: f.rows, handled: f.mathChecker.handled, turnRows: f.turnRows, candidateText: f.candidateText, candidateTurnIndex: f.candidateTurnIndex,
+    currentFlags: [], attempts: f.attempts, keys: f.mathChecker.keys, closed: f.mathChecker.closed, stepProbes: f.stepProbes,
+    corrected: { [root]: { line: COGS_LINE, figure: '16' } },
+    underTimePressure: false, candidateFigures: candidateFiguresOf([...f.turnRows.filter(t => t.role === 'candidate').map(t => t.text), f.candidateText], [prof.prompt]),
+    caseData: prof, revealedIds: f.revealedIds,
+  });
+  it('b28 Jordan 591cff13 t19: "The gap is 38 minus 18, so about 20 points" — the 38-to-40 correction restated', () => {
+    const p = replayed(EVIDENCE['b28-jordan-591cff13-t19'] as unknown as Fixture, 'checker:38 to 40 points');
+    expect(p.selected).toMatchObject({ id: '17:1', action: 'restate', key: 'checker:38 to 40 points', line: 'The rise in COGS is 16 points of revenue, not 38.' });
+    expect(p.decisions.find(d => d.id === '17:1')).toMatchObject({ outcome: 'restate', root: 'checker:38 to 40 points' });
+  });
+  it('b29 Jordan ea27d1f6 t9: "a large chunk of the 38" — restated, ahead of the "~40 points" correction (the same line again)', () => {
+    const p = replayed(EVIDENCE['b29-jordan-ea27d1f6-t9'] as unknown as Fixture, 'cogs_dollar_impact@38');
+    expect(p.selected).toMatchObject({ id: '7:1', action: 'restate', key: 'cogs_dollar_impact@38', line: 'The rise in COGS is 16 points of revenue, not 38.' });
+    expect(p.waiting.map(w => w.id)).toContain('5:6');
+  });
+  it('…and without the record of a live correction, both stay "built on a closed input" (an old session\'s flags)', () => {
+    for (const [name, root] of [['b28-jordan-591cff13-t19', 'checker:38 to 40 points'], ['b29-jordan-ea27d1f6-t9', 'cogs_dollar_impact@38']] as const) {
+      const f = EVIDENCE[name] as unknown as Fixture;
+      const p = planCheckerFlags({ ...{
+        rows: f.rows, handled: f.mathChecker.handled, turnRows: f.turnRows, candidateText: f.candidateText, candidateTurnIndex: f.candidateTurnIndex,
+        currentFlags: [], attempts: f.attempts, keys: f.mathChecker.keys, closed: f.mathChecker.closed, stepProbes: f.stepProbes,
+        underTimePressure: false, candidateFigures: [], caseData: prof, revealedIds: f.revealedIds,
+      } });
+      expect(p.decisions).toEqual(expect.arrayContaining([expect.objectContaining({ outcome: 'unresolved', reason: `built on a closed input (${root})` })]));
+    }
   });
 });

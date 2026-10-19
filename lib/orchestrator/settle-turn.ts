@@ -39,7 +39,7 @@ import { derivePhase, type TurnMove } from './progress';
 import { turnDataChecked, pressureTestOutcomeNow } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
-import { lineHeard } from './math-checker-live';
+import { lineHeard, correctsNow } from './math-checker-live';
 import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim, dropAckOpening } from './stream-turn';
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
@@ -547,10 +547,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     }) : null;
     const dueAsked = asked ? (['risk', 'recommendation', 'brainstorm'] as const).find(k => asked[k] && state.stagesDue[k]) : undefined;
     if (lineHeard(`${say} ${question}`, checkerLine.line)) checkerLineBy = 'model';
-    else if (dueAsked && checkerLine.action !== 'correct' && !checkerLine.wasHeld) heldForStage = dueAsked;
+    else if (dueAsked && !correctsNow(checkerLine) && !checkerLine.wasHeld) heldForStage = dueAsked;
     else {
       // A correction goes before the question; so does a line held back once already, before a due stage question it no longer waits for.
-      const before = checkerLine.action === 'correct' || (dueAsked !== undefined && checkerLine.wasHeld);
+      const before = correctsNow(checkerLine) || (dueAsked !== undefined && checkerLine.wasHeld);
       question = before ? [checkerLine.line, question].filter(Boolean).join(' ') : checkerLine.line;
       if (!before) modelQuestion = '';
       checkerLineBy = 'code';

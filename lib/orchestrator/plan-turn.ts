@@ -33,7 +33,7 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, correctsNow, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot } from './math-checker-live';
 import { theirFigure } from './own-quantity';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
@@ -89,7 +89,10 @@ export type CheckerLinePlan = {
 };
 // flags.mathChecker. held: a line a due stage question held back (Settle), until it is raised or decided.
 // convertedFigures: the figures a conversion closed (own-quantity.ts) — a case figure too ("10 points of COGS"), which no key keeps.
-export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[] };
+// corrected: the closed keys a delivered correction closed, with the line said and its figure; restated: those whose
+// correction was said once more for a later claim on the wrong value (Lorenzo, 19 Oct, round-2 ruling 1). Both optional:
+// an older session's flags read as no live correction recorded (built on a closed input, as before).
+export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[]; corrected?: Record<string, CorrectedRoot>; restated?: string[] };
 // The gate's memory (flags.codeGate): findings decided, and those held back on a stage turn (re-gated, exempt from the wait).
 type CodeGateMemory = { handled?: string[]; held?: string[] };
 // A stage the model's question may ask, and whether it is due (Lorenzo, 15 Oct): a due one wins over a checker probe.
@@ -657,7 +660,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
     candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer, rank,
-    convertedFigures: checkerMemory.convertedFigures,
+    convertedFigures: checkerMemory.convertedFigures, corrected: checkerMemory.corrected, restated: checkerMemory.restated,
     phraseUses: flags.phraseUses as PhraseUses | undefined, seed: `${ctx.sessionId}:${ctx.nextTurnIndex}`, codeFigures,
     // The gate's decisions, earlier turns' (by turn) then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
     gateOutcomes: gateOutcomesOf(checkerRows, gate.decisions),
@@ -748,7 +751,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // aren't said on a code-written turn: they yield once, like the checker's.
   const codeSpeaks = (f: RecomputeFlag) => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS));
   const codeCorrects = (f: RecomputeFlag) => codeSpeaks(f) && recomputeAction(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) === 'correct';
-  const probeLineNow = (checkerPlan.selected !== null && checkerPlan.selected.action !== 'correct')
+  const probeLineNow = (checkerPlan.selected !== null && !correctsNow(checkerPlan.selected))
     || liveFlags.some(f => codeSpeaks(f) && !codeCorrects(f));
   const stageYielded = (flags.stageYielded as StageYielded | undefined) ?? {};
   // The exhibit's yield is the exhibit's: one the model or code hands over meanwhile leaves the next one its own yield.
@@ -985,16 +988,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     finalHold = true;
   } else if (holdable && sel && finalSel(sel)) {
     kind = 'rec_math_probe';
-    recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
+    recMathProbe = { checker: sel, action: correctsNow(sel) ? 'correct' : 'probe' };
     finalProbeKey = sel.key;
     finalHold = true;
     heldCloseHold = sel.id === heldLine && !flags.heldCloseHold;
   } else if (holdable && sel?.claim.changesConclusion && !selFinal && !flags.recMathProbed) {
     kind = 'rec_math_probe';
-    recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
+    recMathProbe = { checker: sel, action: correctsNow(sel) ? 'correct' : 'probe' };
   } else if (holdable && sel && !selFinal && sel.id === heldLine && !flags.heldCloseHold) {
     kind = 'rec_math_probe';
-    recMathProbe = { checker: sel, action: sel.action === 'correct' ? 'correct' : 'probe' };
+    recMathProbe = { checker: sel, action: correctsNow(sel) ? 'correct' : 'probe' };
     heldCloseHold = true;
   }
   // A final answer whose verdict hasn't landed (the closing message's own, as a
@@ -1013,10 +1016,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // A deadline's stage turn (R7, above): the checker's correction rides on it,
   // said first by code and booked as on a model turn; a probe due then is held
   // for the next model turn (flags.mathChecker.held: raised first, it doesn't expire).
-  const stageCorrection = overdueStage && sel?.action === 'correct' ? sel : null;
+  // A restatement of a root's live correction is a correction here too (ruling 1).
+  const stageCorrection = overdueStage && sel && correctsNow(sel) ? sel : null;
   // Code's own correction (a unit line past its probe) rides the same way; its attempt is already counted, its figures licensed (formatRecomputeHint).
   const stageCodeLines = overdueStage ? liveFlags.filter(codeCorrects).map(f => recMathLine(f, 'correct')) : [];
-  const stageHeld = deadlineStage && sel && sel.action !== 'correct' ? sel : null;
+  const stageHeld = deadlineStage && sel && !correctsNow(sel) ? sel : null;
   const checkerUsed = sel && (kind === 'model' || stageCorrection || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];
   // Claims built on the line's root ride on it (math-checker-live.ts, §15 o): booked only when the line is used.
@@ -1026,7 +1030,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   if (heldDecision) checkerDecisions.push({ ...heldDecision, outcome: 'undelivered', reason: `held back: the overdue ${kind === 'rec_ask' ? 'recommendation ask' : STAGE_OF_KIND[kind]} goes this turn (its deadline yielded once already); the line goes out on the next model turn` });
   const attemptBeforeChecker = checkerUsed ? recomputeAttempts[checkerUsed.key] : undefined;
   if (checkerUsed) {
-    recomputeAttempts[checkerUsed.key] = checkerUsed.attempt;
+    // A restatement is no Rule-14 attempt: its root is closed already.
+    if (checkerUsed.action !== 'restate') recomputeAttempts[checkerUsed.key] = checkerUsed.attempt;
     checkerHandledNow.push(checkerUsed.id, ...riderIds);
     derivedValueTexts.push(...checkerUsed.derived);
     if (kind === 'model') recomputeHint = [recomputeHint, formatCheckerHint(checkerUsed)].filter(Boolean).join('\n\n');
@@ -1053,8 +1058,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const convertedFigure = checkerUsed?.converted ? theirFigure(checkerUsed.claim) : undefined;
   const convertedAfter = [...(checkerMemory.convertedFigures ?? []), ...(convertedFigure !== undefined ? [convertedFigure] : [])];
   const convertedKept = checkerMemory.convertedFigures?.length ? { convertedFigures: checkerMemory.convertedFigures } : {};
-  if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held || convertedFigure !== undefined) {
-    flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}), ...(heldAfter ? { held: heldAfter } : {}), ...(convertedAfter.length ? { convertedFigures: convertedAfter } : {}) };
+  // A correction said closes its key by a live correction: recorded with its line and figure, for a later claim still
+  // on the wrong value; a restatement, once per root (Lorenzo, 19 Oct, round-2 ruling 1). A conversion corrects no error.
+  const correctedNow = checkerUsed?.action === 'correct' && !checkerUsed.converted ? { [checkerUsed.key]: { line: checkerUsed.line, ...(checkerUsed.derived[0] ? { figure: checkerUsed.derived[0] } : {}) } } : {};
+  const correctedAfter = { ...(checkerMemory.corrected ?? {}), ...correctedNow };
+  const restatedAfter = [...(checkerMemory.restated ?? []), ...(checkerUsed?.action === 'restate' ? [checkerUsed.key] : [])];
+  const fixesKept = { ...(checkerMemory.corrected && Object.keys(checkerMemory.corrected).length ? { corrected: checkerMemory.corrected } : {}), ...(checkerMemory.restated?.length ? { restated: checkerMemory.restated } : {}) };
+  if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held || convertedFigure !== undefined
+    || Object.keys(correctedNow).length > 0 || restatedAfter.length !== (checkerMemory.restated ?? []).length) {
+    flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}), ...(heldAfter ? { held: heldAfter } : {}), ...(convertedAfter.length ? { convertedFigures: convertedAfter } : {}),
+      ...(Object.keys(correctedAfter).length ? { corrected: correctedAfter } : {}), ...(restatedAfter.length ? { restated: restatedAfter } : {}) };
   }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.
@@ -1064,8 +1077,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     if ('flag' in recMathProbe && recMathProbe.flag.kind !== 'unit') probedSteps.add(recMathProbe.flag.stepId);
     if ('closed' in recMathProbe) probedSteps.add(stepOfKey(recMathProbe.closed.key));
   }
-  const checkerStepOwn = checkerUsed && checkerUsed.action !== 'correct' && !probedSteps.has(stepOfKey(checkerUsed.key)) ? stepOfKey(checkerUsed.key) : null;
-  if (checkerUsed && checkerUsed.action !== 'correct') probedSteps.add(stepOfKey(checkerUsed.key));
+  const checkerStepOwn = checkerUsed && !correctsNow(checkerUsed) && !probedSteps.has(stepOfKey(checkerUsed.key)) ? stepOfKey(checkerUsed.key) : null;
+  if (checkerUsed && !correctsNow(checkerUsed)) probedSteps.add(stepOfKey(checkerUsed.key));
   for (const s of probedSteps) stepProbes[s] = (stepProbes[s] ?? 0) + 1;
   if (probedSteps.size > 0) flags.stepProbes = stepProbes;
   // On a model turn the line is the model's to say: Settle checks the delivered
@@ -1083,7 +1096,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line, ...(checkerUsed.id === heldLine ? { wasHeld: true } : {}),
       undo: {
         attempt: attemptBeforeChecker, step: checkerStepOwn,
-        mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}), ...(heldLine ? { held: heldLine } : {}), ...convertedKept },
+        mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}), ...(heldLine ? { held: heldLine } : {}), ...convertedKept, ...fixesKept },
       },
     };
   }
