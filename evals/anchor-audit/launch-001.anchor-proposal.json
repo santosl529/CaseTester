@@ -1,0 +1,496 @@
+{
+  "items": [
+    {
+      "id": "product",
+      "names": [
+        "the product",
+        "product details",
+        "product description",
+        "what the product is",
+        "bag size",
+        "number of flavors",
+        "chickpea snack product"
+      ],
+      "covers": [
+        "how many flavors",
+        "how big is the bag",
+        "protein versus chips",
+        "fat versus chips",
+        "nutrition profile"
+      ],
+      "notHeld": [
+        "which flavors",
+        "flavor-level sales",
+        "ingredient list",
+        "nutrition facts per serving"
+      ],
+      "note": "The value gives the count of flavors, not their names, so a request for specific flavors must not be remapped here."
+    },
+    {
+      "id": "channels",
+      "names": [
+        "where it would be sold",
+        "sales channels",
+        "distribution channels",
+        "channel strategy",
+        "retail channels",
+        "where it's sold"
+      ],
+      "covers": [
+        "which stores would carry it",
+        "same stores as chips",
+        "grocery or mass retail",
+        "where it would be stocked"
+      ],
+      "notHeld": [
+        "number of stores",
+        "store counts",
+        "sales by channel",
+        "online sales"
+      ],
+      "note": "Avoid 'retailers', which names retailer_support. 'Where it would be stocked' could drift toward retailer commitments, so check this."
+    },
+    {
+      "id": "manufacturing",
+      "names": [
+        "manufacturing timeline",
+        "production timeline",
+        "manufacturing readiness",
+        "how it would be made",
+        "manufacturing setup",
+        "production setup"
+      ],
+      "covers": [
+        "can it use chip fryers",
+        "can they use existing lines",
+        "time to be ready",
+        "production lead time",
+        "lease or build the line"
+      ],
+      "notHeld": [
+        "roasting line cost",
+        "production capacity",
+        "factory location",
+        "co-packer option"
+      ],
+      "note": "'New roasting line' is avoided because launch_costs names the roasting line; the line's cost belongs there, not here."
+    },
+    {
+      "id": "breakeven_definition",
+      "names": [
+        "break-even definition",
+        "what break even means",
+        "definition of break even",
+        "the board's rule",
+        "board's break-even test",
+        "break even in year one meaning"
+      ],
+      "covers": [
+        "does profit need to be positive",
+        "is zero profit acceptable",
+        "what the board requires"
+      ],
+      "notHeld": [
+        "break-even volume",
+        "how many bags to break even",
+        "payback period",
+        "multi-year break-even"
+      ],
+      "note": "Bare 'break-even' asks usually seek the derived volume, which must never be volunteered, so only definitional phrasings are listed."
+    },
+    {
+      "id": "why_now",
+      "names": [
+        "why now",
+        "why launch now",
+        "reason for the launch",
+        "launch rationale",
+        "strategic rationale",
+        "why launch chickpea snacks"
+      ],
+      "covers": [
+        "retailer demand for healthy snacks",
+        "have retailers asked for this",
+        "chip sales trend",
+        "is better-for-you growing"
+      ],
+      "notHeld": [
+        "better-for-you market growth rate",
+        "market size",
+        "chip sales figures"
+      ],
+      "note": "The value states growth qualitatively, with no rate or market size, so asks for numbers are not covered."
+    },
+    {
+      "id": "competition_general",
+      "names": [
+        "competition in general",
+        "competitive landscape",
+        "competitive environment",
+        "who the competitors are",
+        "competitor brands",
+        "existing chickpea brands"
+      ],
+      "covers": [
+        "is there a dominant brand",
+        "any national brand",
+        "big brands in the category",
+        "who else sells chickpea snacks",
+        "market concentration"
+      ],
+      "notHeld": [
+        "competitor prices",
+        "competitor market shares",
+        "competitor sales",
+        "competitor names"
+      ],
+      "note": "Price asks belong to competitor_prices. The value names no specific brands or shares."
+    },
+    {
+      "id": "longer_term_goals",
+      "names": [
+        "goals beyond year one",
+        "long-term goals",
+        "longer-term strategy",
+        "long-term ambition",
+        "growth platform",
+        "strategic goals"
+      ],
+      "covers": [
+        "plans after year one",
+        "future product extensions",
+        "more better-for-you products"
+      ],
+      "notHeld": [
+        "year-two forecast",
+        "multi-year financials",
+        "long-term targets"
+      ],
+      "note": "The value is qualitative only, so numeric long-term targets are not held."
+    },
+    {
+      "id": "bag_price",
+      "names": [
+        "wholesale price",
+        "net price per bag",
+        "selling price per bag",
+        "retail price",
+        "consumer price"
+      ],
+      "covers": [
+        "how much retailers keep",
+        "retailer margin",
+        "retailer markup",
+        "price shoppers pay",
+        "revenue per bag"
+      ],
+      "notHeld": [
+        "price elasticity",
+        "competitor prices",
+        "promotional pricing",
+        "price by flavor"
+      ],
+      "note": "Generic 'price' is excluded because competitor_prices also names a price. 'Revenue per bag' is truthfully $3.00. [Reviewed 19 Oct (Claude): struck price point; ]"
+    },
+    {
+      "id": "variable_costs",
+      "names": [
+        "variable cost per bag",
+        "unit cost",
+        "cost of goods",
+        "cogs",
+        "production cost per bag",
+        "ingredient cost",
+        "packaging cost",
+        "freight cost"
+      ],
+      "covers": [
+        "cost breakdown per bag",
+        "cost to make a bag",
+        "shipping cost per bag"
+      ],
+      "notHeld": [
+        "margin per bag",
+        "fixed costs",
+        "cost at scale",
+        "cost by flavor"
+      ],
+      "note": "'Margin per bag' needs bag_price too (the group covers it). 'Fixed costs' belongs to launch_costs."
+    },
+    {
+      "id": "launch_costs",
+      "names": [
+        "roasting line cost",
+        "roasting line lease",
+        "advertising budget",
+        "advertising spend",
+        "marketing spend",
+        "slotting fees"
+      ],
+      "covers": [
+        "cost of the new line",
+        "fees to retailers",
+        "cost to get on shelf"
+      ],
+      "notHeld": [
+        "marketing by channel",
+        "ad campaign details",
+        "year-two marketing",
+        "sampling cost"
+      ],
+      "note": "The sampling cost sits outside launch costs (exhibit-3). 'Launch costs' as a group phrase also pulls in recipe_cost."
+    },
+    {
+      "id": "recipe_cost",
+      "names": [
+        "recipe development cost",
+        "sunk cost",
+        "sunk costs",
+        "development costs",
+        "product development cost",
+        "past spend on recipes"
+      ],
+      "covers": [
+        "money already spent",
+        "costs incurred so far",
+        "what's already been spent"
+      ],
+      "notHeld": [
+        "future r&d",
+        "new flavor development"
+      ],
+      "note": "Sunk-cost phrasings map only here, since nothing else in the ledger is already spent."
+    },
+    {
+      "id": "purchase_intent",
+      "names": [
+        "purchase intent survey",
+        "likelihood to buy",
+        "buying intent",
+        "willingness to buy",
+        "intent to purchase",
+        "share who would buy"
+      ],
+      "covers": [
+        "how many would definitely buy",
+        "would shoppers buy at the shelf price",
+        "stated demand"
+      ],
+      "notHeld": [
+        "intent at other prices",
+        "actual purchase rates",
+        "intent by segment",
+        "repeat purchase intent"
+      ],
+      "note": "Actual buying rates are in planning_assumptions, so keep conversion phrasing out of this item."
+    },
+    {
+      "id": "liked_most",
+      "names": [
+        "what shoppers like most",
+        "most liked features",
+        "product appeal",
+        "appeal drivers",
+        "reasons to buy",
+        "favorite attributes"
+      ],
+      "covers": [
+        "what attracts shoppers",
+        "key selling points",
+        "is protein the main draw"
+      ],
+      "notHeld": [
+        "likes by segment",
+        "flavor preferences"
+      ],
+      "note": "Percentages are multi-select, and the value says nothing about individual flavors."
+    },
+    {
+      "id": "hesitations",
+      "names": [
+        "shopper hesitations",
+        "purchase barriers",
+        "reasons not to buy",
+        "shopper concerns",
+        "objections",
+        "what holds shoppers back"
+      ],
+      "covers": [
+        "taste concerns",
+        "is price a concern",
+        "is taste a concern"
+      ],
+      "notHeld": [
+        "hesitations by segment",
+        "price sensitivity curve"
+      ],
+      "note": "Brand-fit asks ('see Hollis Bay as healthy') are partly answered by the 12% figure, but row 9 routes them to a prompt, so the reviewer should decide whether to add that cover."
+    },
+    {
+      "id": "survey_design",
+      "names": [
+        "survey design",
+        "survey methodology",
+        "sample size",
+        "survey sample",
+        "who was surveyed",
+        "survey method"
+      ],
+      "covers": [
+        "how many respondents",
+        "multiple answers allowed",
+        "why percentages exceed 100"
+      ],
+      "notHeld": [
+        "survey dates",
+        "respondent demographics",
+        "responses by region"
+      ],
+      "note": "Reliability and representativeness asks belong to survey_reliability, not here."
+    },
+    {
+      "id": "planning_assumptions",
+      "names": [
+        "conversion assumptions",
+        "number of households",
+        "households in stores",
+        "past launch benchmarks",
+        "intent to purchase conversion"
+      ],
+      "covers": [
+        "how many households",
+        "market size in households",
+        "how many actually buy",
+        "bags each buyer buys",
+        "purchase frequency"
+      ],
+      "notHeld": [
+        "repeat purchase rate",
+        "households by region",
+        "year-two conversion"
+      ],
+      "note": "Three bags is an average per buyer, not a repeat rate, so 'repeat rate' is deliberately excluded."
+    },
+    {
+      "id": "sampling_program",
+      "names": [
+        "sampling proposal",
+        "sampling plan",
+        "sampling cost",
+        "product sampling",
+        "trial program",
+        "in-store tastings"
+      ],
+      "covers": [
+        "sampling uplift",
+        "extra households from sampling"
+      ],
+      "notHeld": [
+        "sampling at gyms",
+        "sampling in more stores",
+        "repeat after sampling",
+        "out-of-store sampling"
+      ],
+      "note": "Release only after N2 and N3. 'Free samples' is omitted because trial packs are a different idea."
+    },
+    {
+      "id": "cannibalization",
+      "names": [
+        "chip cannibalization",
+        "impact on chip sales",
+        "cannibalizing chips",
+        "switching from chips"
+      ],
+      "covers": [
+        "will it hurt chip sales",
+        "steal from our chips",
+        "substitution of our chips"
+      ],
+      "notHeld": [
+        "impact on competitor chips",
+        "cannibalization in dollars"
+      ],
+      "note": "The value concerns Hollis Bay's own chips only."
+    },
+    {
+      "id": "survey_reliability",
+      "names": [
+        "survey representativeness",
+        "survey validity",
+        "survey accuracy",
+        "is the sample representative",
+        "source of conversion rates"
+      ],
+      "covers": [
+        "where conversion rates come from",
+        "survey bias",
+        "basis for conversion assumptions"
+      ],
+      "notHeld": [
+        "margin of error",
+        "survey dates",
+        "past launch results"
+      ],
+      "note": "The value gives the source of the rates, not the past launches' outcomes."
+    },
+    {
+      "id": "taste_test",
+      "names": [
+        "taste test results",
+        "how it tastes",
+        "consumer taste ratings",
+        "product ratings"
+      ],
+      "covers": [
+        "do people like the taste",
+        "does it taste good",
+        "trial satisfaction"
+      ],
+      "notHeld": [
+        "taste by flavor",
+        "repeat after tasting"
+      ],
+      "note": "Avoid 'tasting', which names sampling_program."
+    },
+    {
+      "id": "competitor_prices",
+      "names": [
+        "competitor price points",
+        "rival prices",
+        "competitive pricing",
+        "price of competing chickpea snacks"
+      ],
+      "covers": [
+        "price versus competitors",
+        "are we cheaper than competitors"
+      ],
+      "notHeld": [
+        "competitor costs",
+        "competitor promotions",
+        "competitor sales volumes"
+      ],
+      "note": "The comparison covers assume the candidate knows the $3.99 shelf price."
+    },
+    {
+      "id": "retailer_support",
+      "names": [
+        "retailer commitment",
+        "retailer buy-in",
+        "retail partner support",
+        "listing agreements",
+        "will retailers stock it"
+      ],
+      "covers": [
+        "guaranteed shelf space",
+        "distribution commitments",
+        "will stores carry it"
+      ],
+      "notHeld": [
+        "other retailers' commitment",
+        "shelf placement location",
+        "number of stores"
+      ],
+      "note": "Retailers asking for healthier options belongs to why_now, not here."
+    }
+  ]
+}

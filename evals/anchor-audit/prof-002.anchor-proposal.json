@@ -1,0 +1,636 @@
+{
+  "items": [
+    {
+      "id": "op_profit_definition",
+      "names": [
+        "definition of operating profit",
+        "operating profit definition",
+        "what operating profit includes",
+        "what's in operating profit",
+        "operating profit components"
+      ],
+      "covers": [
+        "before interest and taxes",
+        "does profit include leases",
+        "is it ebit",
+        "ebit"
+      ],
+      "notHeld": [
+        "interest expense",
+        "tax rate",
+        "net income"
+      ],
+      "note": "Names wrap the prompt-fact name 'operating profit' with a definitional word so they don't collide with the operating_profit prompt fact."
+    },
+    {
+      "id": "geography",
+      "names": [
+        "larkspur's geography",
+        "where larkspur flies",
+        "domestic or international",
+        "international flights",
+        "us domestic flights"
+      ],
+      "covers": [
+        "any international routes",
+        "international exposure",
+        "domestic only"
+      ],
+      "notHeld": [
+        "which cities",
+        "hub location",
+        "airport details"
+      ],
+      "note": "'which cities' is not answered: the value only says domestic, and the city names come from exhibits."
+    },
+    {
+      "id": "fleet",
+      "names": [
+        "fleet size",
+        "larkspur's fleet",
+        "number of aircraft",
+        "how many planes",
+        "fleet composition",
+        "aircraft type",
+        "fleet changes"
+      ],
+      "covers": [
+        "did the fleet change",
+        "number of jets",
+        "owned or leased",
+        "new aircraft added"
+      ],
+      "notHeld": [
+        "lease terms",
+        "lease cost",
+        "aircraft age"
+      ],
+      "note": "Lease duration and early return belong to aircraft_leases. 'owned or leased' is fully answered here (all leased)."
+    },
+    {
+      "id": "routes_schedule",
+      "names": [
+        "flight schedule",
+        "route network",
+        "network changes",
+        "schedule changes",
+        "flight frequency",
+        "frequency changes"
+      ],
+      "covers": [
+        "did routes change",
+        "added or dropped routes",
+        "same routes",
+        "capacity changes",
+        "did the schedule change"
+      ],
+      "notHeld": [
+        "flights per route",
+        "departure times",
+        "competitor schedules"
+      ],
+      "note": "Avoided 'number of flights' because it collides with the flight figures in network_totals. The existing fares-and-volume covers look misplaced on a schedule item, so the reviewer should check them."
+    },
+    {
+      "id": "fuel_prices",
+      "names": [
+        "jet fuel prices",
+        "fuel price trend",
+        "oil prices",
+        "jet fuel",
+        "fuel cost trend"
+      ],
+      "covers": [
+        "did fuel prices rise",
+        "fuel price changes",
+        "cost breakdown"
+      ],
+      "notHeld": [
+        "fuel cost per flight",
+        "fuel hedging",
+        "fuel cost by route"
+      ],
+      "note": "'fuel cost' alone could mean Lakeport's $4,000 per flight, so only trend or price phrasings are used. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks]"
+    },
+    {
+      "id": "unit_costs",
+      "names": [
+        "wage changes",
+        "crew wages",
+        "pilot wages",
+        "labor cost trend",
+        "labor and unit costs",
+        "salaries"
+      ],
+      "covers": [
+        "did costs per flight change",
+        "did labor costs rise",
+        "cost inflation",
+        "did wages rise",
+        "cost breakdown"
+      ],
+      "notHeld": [
+        "cost per flight figures",
+        "fixed costs",
+        "labor contract terms"
+      ],
+      "note": "Avoided 'costs per flight' as a name because it would collide with the route-specific variable cost items holding actual figures. Fixed costs are a separate item. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks]"
+    },
+    {
+      "id": "demand",
+      "names": [
+        "market demand",
+        "travel demand trend",
+        "passenger demand",
+        "demand in larkspur's cities"
+      ],
+      "covers": [
+        "did demand fall",
+        "market growth",
+        "is the market shrinking"
+      ],
+      "notHeld": [
+        "route-level demand forecasts",
+        "demand on new routes",
+        "demand by route"
+      ],
+      "note": "The value is market-level only, so any route-level or new-route demand ask must not map here. [Reviewed 19 Oct (Claude): struck market size; ]"
+    },
+    {
+      "id": "one_time_charges",
+      "names": [
+        "one-time charges",
+        "one-off charges",
+        "one-time costs",
+        "non-recurring items",
+        "special items",
+        "exceptional items",
+        "write-offs"
+      ],
+      "covers": [
+        "is the loss recurring",
+        "restructuring charges",
+        "impairments",
+        "one-off events"
+      ],
+      "notHeld": [
+        "interest",
+        "taxes"
+      ],
+      "note": "Straightforward: the value says none, and the loss is ongoing."
+    },
+    {
+      "id": "competition_general",
+      "names": [
+        "competition in general",
+        "competitive landscape",
+        "other airlines",
+        "larger airlines",
+        "major airlines",
+        "existing competitors",
+        "competition overall"
+      ],
+      "covers": [
+        "connecting itineraries",
+        "legacy carriers",
+        "who else flies from the hub"
+      ],
+      "notHeld": [
+        "new entrant",
+        "competitor market share",
+        "competitor fares",
+        "competitor schedules"
+      ],
+      "note": "Per C-09, any ask about new competitors or entrants or what changed must go to competitor_entry, not here."
+    },
+    {
+      "id": "route_results_lakeport",
+      "names": [
+        "lakeport revenue",
+        "lakeport contribution",
+        "lakeport p&l",
+        "revenue on lakeport",
+        "contribution on lakeport",
+        "lakeport route revenue"
+      ],
+      "covers": [
+        "how much lakeport lost",
+        "lakeport decline"
+      ],
+      "notHeld": [
+        "lakeport fare",
+        "lakeport cost per flight",
+        "lakeport passengers"
+      ],
+      "note": "Annual route figures. Per-flight asks with 'lakeport' should go to the exhibit-2 items, and the bare 'lakeport' name may over-capture."
+    },
+    {
+      "id": "route_results_port_avery",
+      "names": [
+        "port avery revenue",
+        "port avery contribution",
+        "port avery p&l",
+        "revenue on port avery",
+        "contribution on port avery",
+        "port avery flights"
+      ],
+      "covers": [
+        "how much port avery lost",
+        "port avery decline"
+      ],
+      "notHeld": [
+        "port avery fare",
+        "port avery variable cost",
+        "port avery passengers"
+      ],
+      "note": "'port avery flights' maps here because only this item holds the 3,000 flights a year; per-flight data is port_avery_per_flight."
+    },
+    {
+      "id": "route_results_other",
+      "names": [
+        "remaining four routes",
+        "the four other routes",
+        "stable routes",
+        "cedar bluff results",
+        "granite falls results",
+        "millbrook results",
+        "westhaven results"
+      ],
+      "covers": [
+        "how other routes performed",
+        "did other routes decline"
+      ],
+      "notHeld": [
+        "fares on other routes",
+        "load factor on other routes",
+        "per-flight data for other routes"
+      ],
+      "note": "Single-route names release all four routes' figures, which is truthful. Fares and load factors for these routes are not held."
+    },
+    {
+      "id": "network_totals",
+      "names": [
+        "network contribution",
+        "overall contribution",
+        "contribution totals",
+        "total flights",
+        "contribution both years"
+      ],
+      "covers": [
+        "did the number of flights change",
+        "contribution decline",
+        "cost breakdown"
+      ],
+      "notHeld": [
+        "total variable costs",
+        "contribution per flight",
+        "total passengers"
+      ],
+      "note": "Avoided 'flights per year' because it collides with the Lakeport and new-route counts. Total variable costs are derivable but not stated. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks]"
+    },
+    {
+      "id": "fixed_costs",
+      "names": [
+        "overhead costs",
+        "fixed cost base",
+        "fixed expenses",
+        "hub costs",
+        "overhead"
+      ],
+      "covers": [
+        "did fixed costs rise",
+        "fixed cost trend",
+        "did overhead change",
+        "cost breakdown"
+      ],
+      "notHeld": [
+        "lease cost breakdown",
+        "fixed costs by route",
+        "overhead breakdown"
+      ],
+      "note": "A 'FY2023 vs FY2025 cost breakdown' ask spans this item plus unit_costs, fuel_prices and network_totals. No single cover can carry it, so the reviewer should consider a group. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks]"
+    },
+    {
+      "id": "lakeport_seats_load",
+      "names": [
+        "lakeport passengers",
+        "lakeport passengers per flight",
+        "load factor on lakeport",
+        "lakeport occupancy",
+        "lakeport load"
+      ],
+      "covers": [
+        "how many passengers on lakeport",
+        "lakeport volume"
+      ],
+      "notHeld": [
+        "port avery load factor",
+        "new route load factor",
+        "load factor on other routes"
+      ],
+      "note": "The existing name 'seats per flight' equally names Port Avery and the new routes (80 seats each), so the reviewer should check it. Bare 'load factor' was deliberately avoided."
+    },
+    {
+      "id": "lakeport_fare",
+      "names": [
+        "lakeport pricing",
+        "lakeport yield",
+        "price on lakeport",
+        "lakeport ticket prices",
+        "lakeport airfare"
+      ],
+      "covers": [
+        "how much lakeport fares fell",
+        "lakeport fare cut",
+        "fare and variable cost per flight",
+        "fare and the variable cost",
+        "fare and cost per flight",
+        "fares and costs per flight",
+        "fare and variable cost"
+      ],
+      "notHeld": [
+        "round-trip fare",
+        "fare by fare class",
+        "competitor fare",
+        "port avery fare"
+      ],
+      "note": "The 'average fare and variable cost per flight' failure needs a group per route (Lakeport fare plus variable cost) rather than a cover here, since the phrase doesn't name the route. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks] [Probes 19 Oct: generic \"average fare\" / \"variable cost per flight\" covers dropped (they sent new-route asks to Lakeport); two-part, route-qualified and competitor-fare covers instead.]"
+    },
+    {
+      "id": "extras_revenue",
+      "names": [
+        "extras revenue",
+        "ancillaries",
+        "baggage fees",
+        "add-on revenue",
+        "extras per passenger",
+        "ancillary fees"
+      ],
+      "covers": [
+        "revenue beyond the fare",
+        "non-ticket revenue"
+      ],
+      "notHeld": [
+        "extras by route",
+        "extras breakdown by type",
+        "total extras revenue"
+      ],
+      "note": "The $20 figure is shown for Lakeport but holds on Port Avery and the new routes too, so a route-agnostic name is acceptable."
+    },
+    {
+      "id": "lakeport_variable_cost",
+      "names": [
+        "lakeport maintenance cost",
+        "lakeport airport fees",
+        "lakeport landing fees",
+        "variable cost on lakeport",
+        "lakeport cost breakdown",
+        "lakeport operating cost per flight"
+      ],
+      "covers": [
+        "did lakeport costs change",
+        "lakeport cost structure",
+        "fare and variable cost per flight",
+        "fare and the variable cost",
+        "fare and cost per flight",
+        "fares and costs per flight",
+        "fare and variable cost"
+      ],
+      "notHeld": [
+        "port avery variable cost",
+        "cost per seat",
+        "fixed cost allocation"
+      ],
+      "note": "All names carry 'lakeport' so they cannot steal Port Avery ($11,000) or new-route ($9,200) cost asks. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks] [Probes 19 Oct: generic \"average fare\" / \"variable cost per flight\" covers dropped (they sent new-route asks to Lakeport); two-part, route-qualified and competitor-fare covers instead.]"
+    },
+    {
+      "id": "competitor_entry",
+      "names": [
+        "competitor entry",
+        "new entrants",
+        "low-cost competitor",
+        "budget carrier",
+        "budget airline",
+        "entry of a competitor"
+      ],
+      "covers": [
+        "why fares fell",
+        "why did fares drop",
+        "what changed on these routes",
+        "what changed in fy2024",
+        "competition on lakeport",
+        "competition on port avery",
+        "fare war"
+      ],
+      "notHeld": [
+        "competitor schedules",
+        "competitor market share",
+        "competitor capacity"
+      ],
+      "note": "'competition on lakeport/port avery' is truthfully answered by the entry fact. Competition on the new routes must go to new_routes_context."
+    },
+    {
+      "id": "competitor_costs",
+      "names": [
+        "competitor cost advantage",
+        "competitor pricing",
+        "competitor labor costs",
+        "low-cost airline's costs",
+        "their cost per seat"
+      ],
+      "covers": [
+        "competitor cost structure",
+        "can we match their costs",
+        "can we win a fare war",
+        "competitor's fares",
+        "competitor fares",
+        "low-cost airline's fares"
+      ],
+      "notHeld": [
+        "competitor cost breakdown",
+        "competitor load factor",
+        "competitor profitability"
+      ],
+      "note": "'can we win a fare war' is settled by the 30% cost gap plus matching fares. The existing 'cost per seat' name might catch a Larkspur cost-per-seat ask, so the reviewer should check it. [Probes 19 Oct: generic \"average fare\" / \"variable cost per flight\" covers dropped (they sent new-route asks to Lakeport); two-part, route-qualified and competitor-fare covers instead.]"
+    },
+    {
+      "id": "connecting_passengers",
+      "names": [
+        "connecting share",
+        "share of connecting passengers",
+        "transfer passengers",
+        "network feed",
+        "local versus connecting"
+      ],
+      "covers": [
+        "feed to other flights",
+        "network effects of exiting",
+        "share of local passengers"
+      ],
+      "notHeld": [
+        "connecting passengers on other routes",
+        "contribution from connecting passengers",
+        "connecting destinations"
+      ],
+      "note": "The value covers only the two contested routes."
+    },
+    {
+      "id": "new_route_rampup",
+      "names": [
+        "route maturity",
+        "ramp-up period",
+        "time to mature",
+        "new route ramp-up time",
+        "first-year performance"
+      ],
+      "covers": [
+        "how fast new routes fill",
+        "time to reach load factor",
+        "year one load factor",
+        "70% load factor assumption",
+        "70% load assumption",
+        "load factor assumption on the new routes",
+        "how firm the 70%",
+        "how realistic the 70%",
+        "first-year load factor"
+      ],
+      "notHeld": [
+        "ramp-up fare",
+        "ramp-up costs",
+        "launch costs"
+      ],
+      "note": "Generic industry fact, not specific to Ashford or Brookhaven estimates. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks]"
+    },
+    {
+      "id": "aircraft_leases",
+      "names": [
+        "lease terms",
+        "lease end date",
+        "lease length",
+        "when leases expire",
+        "early lease return"
+      ],
+      "covers": [
+        "shrink the fleet",
+        "reduce the fleet",
+        "park the planes",
+        "can we return planes"
+      ],
+      "notHeld": [
+        "lease cost",
+        "subleasing",
+        "lease penalties"
+      ],
+      "note": "Row 9 maps grounding and shrinking to R-05, so fleet-reduction covers are truthful. Subleasing is not answered."
+    },
+    {
+      "id": "port_avery_per_flight",
+      "names": [
+        "port avery load factor",
+        "port avery variable cost",
+        "port avery cost per flight",
+        "port avery passengers",
+        "port avery seats",
+        "port avery unit economics",
+        "port avery ticket price"
+      ],
+      "covers": [
+        "same data for port avery",
+        "port avery fare and cost",
+        "fare and variable cost per flight",
+        "fare and the variable cost",
+        "fare and cost per flight",
+        "fares and costs per flight",
+        "fare and variable cost"
+      ],
+      "notHeld": [
+        "port avery cost breakdown",
+        "port avery breakeven fare",
+        "port avery connecting share"
+      ],
+      "note": "Release is gated after exhibit 1 (row 4). The cost is a single $11,000 total with no fuel/crew split. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks] [Probes 19 Oct: generic \"average fare\" / \"variable cost per flight\" covers dropped (they sent new-route asks to Lakeport); two-part, route-qualified and competitor-fare covers instead.]"
+    },
+    {
+      "id": "new_routes_plan",
+      "names": [
+        "new route fare",
+        "new route load factor",
+        "ashford fare",
+        "brookhaven fare",
+        "new route seats",
+        "new route extras",
+        "expected fare on new routes"
+      ],
+      "covers": [
+        "expected load factor on new routes",
+        "new route revenue per passenger",
+        "fare on the new routes",
+        "fares on the new routes",
+        "fares on ashford and brookhaven",
+        "fare on ashford",
+        "fares on ashford",
+        "load factor on the new routes"
+      ],
+      "notHeld": [
+        "fare for each new route separately",
+        "first-year load factor",
+        "demand on new routes"
+      ],
+      "note": "Values are averages across both routes. Per-route splits and ramp-up figures are not held. [Probes 19 Oct: generic \"average fare\" / \"variable cost per flight\" covers dropped (they sent new-route asks to Lakeport); two-part, route-qualified and competitor-fare covers instead.]"
+    },
+    {
+      "id": "new_routes_cost_flights",
+      "names": [
+        "new route variable cost",
+        "new route cost per flight",
+        "flights on new routes",
+        "new route frequency",
+        "variable cost on new routes"
+      ],
+      "covers": [
+        "freed aircraft time",
+        "how many flights redeployed",
+        "where the aircraft come from",
+        "cost per flight on the new routes",
+        "variable cost per flight on the new routes",
+        "cost on the new routes"
+      ],
+      "notHeld": [
+        "new route cost breakdown",
+        "launch costs",
+        "flight split by new route"
+      ],
+      "note": "5,000 is combined across both routes; there is no fuel/crew breakdown. [Probes 19 Oct: generic \"average fare\" / \"variable cost per flight\" covers dropped (they sent new-route asks to Lakeport); two-part, route-qualified and competitor-fare covers instead.]"
+    },
+    {
+      "id": "new_routes_context",
+      "names": [
+        "new route competition",
+        "competition on the new routes",
+        "competitors on new routes",
+        "new route fixed costs",
+        "new routes context"
+      ],
+      "covers": [
+        "competition on ashford",
+        "competition on brookhaven",
+        "anyone flying ashford",
+        "anyone flying brookhaven",
+        "fixed costs after redeploying",
+        "do fixed costs change",
+        "competition on ashford and brookhaven",
+        "competition on ashford or brookhaven",
+        "competitors on ashford and brookhaven",
+        "competitor at ashford or brookhaven",
+        "competitor already at ashford or brookhaven",
+        "nonstop competition on the new routes"
+      ],
+      "notHeld": [
+        "connecting competitors on new routes",
+        "risk of competitor following",
+        "launch costs"
+      ],
+      "note": "Fixes the 'competition on Ashford and Brookhaven' refusal. Generic 'nonstop competitor' was avoided because it would misfire on Lakeport asks. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks]"
+    }
+  ]
+}

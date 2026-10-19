@@ -1,0 +1,14 @@
+[
+  { "case": "prof-002", "source": "batch-32-larkspur Marcus t7 (refused at t8)", "what": "the FY2023 versus FY2025 cost breakdown", "expect": { "items": ["fixed_costs", "unit_costs", "fuel_prices", "network_totals"], "refused": false } },
+  { "case": "prof-002", "source": "batch-32-larkspur Marcus t7 (refused at t8)", "what": "passengers flown", "expect": { "items": [], "refused": true } },
+  { "case": "prof-002", "source": "batch-32-larkspur Tyler t5 (refused at t6)", "what": "average fare and variable cost per flight", "expect": { "items": ["lakeport_fare", "lakeport_variable_cost", "port_avery_per_flight"], "refused": false } },
+  { "case": "prof-002", "source": "batch-32-larkspur Tyler t21 (refused at t22)", "what": "competition on Ashford and Brookhaven", "expect": { "items": ["new_routes_context"], "refused": false } },
+  { "case": "prof-002", "source": "batch-32-larkspur Tyler t21 (not declared)", "what": "how firm the 70% load factor assumption is", "expect": { "items": ["new_route_rampup"], "refused": false } },
+  { "case": "prof-002", "source": "batch-32-larkspur Raj t19 (not declared)", "what": "the basis for the demand estimate", "expect": { "items": [], "refused": true } },
+  { "case": "prof-002", "source": "batch-32-larkspur Marisol t27 (mapped to the plan line)", "what": "the basis for the 70% load factor estimate", "expect": { "items": [], "refused": true } },
+  { "case": "entry-001", "source": "batch-32-aldermoor Marisol t7 (not declared)", "what": "how the diagnosis rate has trended", "expect": { "items": ["diagnosis_gap"], "refused": false } },
+  { "case": "entry-001", "source": "batch-32-aldermoor Jasmine t5 (not declared)", "what": "how the eligible moderate-to-severe pool has trended", "expect": { "items": [], "refused": true } },
+  { "case": "entry-001", "source": "batch-32-aldermoor Marcus t5 (declared as a deferral with no item, dropped)", "what": "Aldermoor's European Kelvexa sales trend since 2022", "expect": { "items": [], "refused": true } },
+  { "case": "entry-001", "source": "batch-32-aldermoor Marcus t19 (not declared)", "what": "whether the 30% royalty is negotiable", "expect": { "items": [], "refused": true } },
+  { "case": "entry-001", "source": "batch-32-aldermoor Marcus t19 (not declared)", "what": "whether the $80 million selling cost holds flat across the five years", "expect": { "items": [], "refused": true } }
+]

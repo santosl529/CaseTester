@@ -1,0 +1,23 @@
+[
+  { "case": "prof-002", "source": "probe: a new-route fare ask is not Lakeport's", "what": "the average fare on the new routes", "expect": { "items": ["new_routes_plan"], "refused": false } },
+  { "case": "prof-002", "source": "probe: a new-route cost ask is not Lakeport's", "what": "variable cost per flight on the new routes", "expect": { "items": ["new_routes_cost_flights"], "refused": false } },
+  { "case": "prof-002", "source": "probe: fares on the new routes are the plan, not the competition line", "what": "fares on Ashford and Brookhaven", "expect": { "items": ["new_routes_plan"], "refused": false } },
+  { "case": "prof-002", "source": "probe: Lakeport's load factor", "what": "the load factor on Lakeport", "expect": { "items": ["lakeport_seats_load"], "refused": false } },
+  { "case": "prof-002", "source": "probe: Port Avery's fare", "what": "the Port Avery fare", "expect": { "items": ["port_avery_per_flight"], "refused": false } },
+  { "case": "prof-002", "source": "probe: a cost breakdown by route gets the route results (the existing group, unchanged)", "what": "the cost breakdown by route", "expect": { "items": ["route_results_lakeport", "route_results_port_avery", "route_results_other", "network_totals", "fixed_costs"], "refused": false } },
+  { "case": "prof-002", "source": "probe: the competitor's fares", "what": "the competitor's fares on Lakeport", "expect": { "items": ["competitor_costs"], "refused": false } },
+  { "case": "prof-002", "source": "probe: market size is not the flat-demand line", "what": "the market size", "expect": { "items": [], "refused": true } },
+  { "case": "prof-002", "source": "probe: route demand forecasts aren't held", "what": "route-level demand forecasts", "expect": { "items": [], "refused": true } },
+  { "case": "entry-001", "source": "probe: Nimbrel's exclusivity isn't Kelvexa's patents", "what": "Nimbrel's loss of exclusivity timing", "expect": { "items": [], "refused": true } },
+  { "case": "entry-001", "source": "probe: Kelvexa's European share isn't held", "what": "Kelvexa's European share", "expect": { "items": [], "refused": true } },
+  { "case": "entry-001", "source": "probe: Nimbrel's price", "what": "the price of Nimbrel", "expect": { "items": ["nimbrel"], "refused": false } },
+  { "case": "entry-001", "source": "probe: product cost", "what": "cost of goods", "expect": { "items": ["option_shared"], "refused": false } },
+  { "case": "entry-001", "source": "probe: named US insurers aren't held", "what": "named US insurers", "expect": { "items": [], "refused": true } },
+  { "case": "entry-001", "source": "probe: rep salaries aren't held", "what": "rep salaries", "expect": { "items": [], "refused": true } },
+  { "case": "pricing-001", "source": "probe: competitors' entry prices", "what": "what competitors charge", "expect": { "items": ["competitor_prices"], "refused": false } },
+  { "case": "pricing-001", "source": "probe: churn at $60 can't be measured — said by the notes", "what": "churn at the higher price", "expect": { "items": ["price_test_notes"], "refused": false } },
+  { "case": "pricing-001", "source": "probe: feature usage isn't held", "what": "feature usage by plan", "expect": { "items": [], "refused": true } },
+  { "case": "launch-001", "source": "probe: the shelf price", "what": "the retail price", "expect": { "items": ["bag_price"], "refused": false } },
+  { "case": "launch-001", "source": "probe: flavor-level sales aren't held", "what": "flavor-level sales", "expect": { "items": [], "refused": true } },
+  { "case": "launch-001", "source": "probe: store counts aren't held", "what": "the number of stores", "expect": { "items": [], "refused": true } }
+]
