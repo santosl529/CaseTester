@@ -322,8 +322,7 @@
         80,
         75
       ],
-      "quantity": "passengers per Hub–Lakeport flight",
-      "timeframe": "current",
+      "quantity": "passengers per Hub–Lakeport flight, the same in FY2023 and FY2025",
       "unit": "count",
       "flagNotCues": [
         "network",
@@ -781,7 +780,7 @@
       "id": "rampup_operating_profit",
       "description": "First-year operating profit ≈ −$4.0M + $1.8M + 5,000 × $400 ($2.0M) = −$0.2M — roughly breakeven",
       "answer": 0.2,
-      "tolerance": 0.2,
+      "tolerance": 0.05,
       "cues": [
         "ramp",
         "first year",
@@ -801,7 +800,7 @@
         "route_results_port_avery"
       ],
       "verifyOnly": true,
-      "quantity": "Larkspur's operating profit in the first year of the redeployment (≈ −$0.2M)",
+      "quantity": "Larkspur's first-year operating result after the redeployment: a $0.2M loss (−$0.2M), not a profit",
       "timeframe": "current"
     }
   ],
@@ -1003,7 +1002,7 @@
         }
       ],
       "notes": "The 5,000 flights would use the aircraft time freed by exiting Hub–Lakeport (2,000 flights) and Hub–Port Avery (3,000 flights). No other airline currently flies nonstop on either new route. Aircraft lease and other fixed costs would not change.",
-      "interpretationKey": "New route: 56 passengers × $200 − $9,200 = +$2,000 per flight, × 5,000 = +$10.0M a year. Exiting removes today's −$1.8M (Lakeport −$1.2M, Port Avery −$0.6M), so the improvement is +$11.8M and operating profit ≈ +$7.8M at full run rate; leases continue, so fixed costs are unchanged. $2,000 per flight is in line with the uncontested routes (~$1,840–$2,200). The 5,000 flights use the aircraft time freed by exiting Hub–Lakeport (2,000) and Hub–Port Avery (3,000); no other airline flies either route nonstop."
+      "interpretationKey": "New route: 56 passengers × $200 − $9,200 = +$2,000 per flight, × 5,000 = +$10.0M a year. Exiting removes today's −$1.8M (Lakeport −$1.2M, Port Avery −$0.6M), so the improvement is +$11.8M and operating profit ≈ +$7.8M at full run rate; leases continue, so fixed costs are unchanged. $2,000 per flight is in line with the uncontested routes (~$1,840–$2,200 per flight in FY2023). The 5,000 flights use the aircraft time freed by exiting Hub–Lakeport (2,000) and Hub–Port Avery (3,000); no other airline flies either route nonstop."
     }
   ],
   "structureKey": "A strong structure builds an airline profit tree — revenue = passengers (seats × load factor) × revenue per passenger (fare + extras), by route; variable costs per flight (fuel, crew, maintenance, airport and landing fees); fixed costs (aircraft leases, hub, overhead); and external changes (competition, demand, fuel). Strong candidates use the clue that revenue and profit both fell $24M (so costs didn't move — it's revenue), link 'planes as full as before' to a lower fare, want to look route by route, and hypothesize a new competitor or fare war on specific routes. Red flags: generic frameworks with no link to profit, most of the answer on cost cutting, an unprioritized list, ignoring the route dimension.",
@@ -1088,10 +1087,10 @@
       "INTRO": 30000,
       "CLARIFY": 60000,
       "STRUCTURE": 240000,
-      "ANALYSIS": 360000,
+      "ANALYSIS": 300000,
       "EXHIBIT": 420000,
       "BRAINSTORM": 270000,
-      "RECOMMENDATION": 90000,
+      "RECOMMENDATION": 150000,
       "WRAP": 30000
     },
     "totalMs": 1500000

@@ -885,15 +885,16 @@
   ],
   "pacing": {
     "phaseBudgetsMs": {
-      "INTRO": 24000,
-      "CLARIFY": 48000,
-      "STRUCTURE": 192000,
+      "INTRO": 30000,
+      "CLARIFY": 60000,
+      "STRUCTURE": 240000,
       "ANALYSIS": 240000,
-      "EXHIBIT": 312000,
-      "BRAINSTORM": 288000,
-      "RECOMMENDATION": 72000,
-      "WRAP": 24000
-    }
+      "EXHIBIT": 390000,
+      "BRAINSTORM": 360000,
+      "RECOMMENDATION": 150000,
+      "WRAP": 30000
+    },
+    "totalMs": 1500000
   },
   "format": "interviewer_led",
   "brainstorm": {

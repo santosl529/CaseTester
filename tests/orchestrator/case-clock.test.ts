@@ -18,13 +18,16 @@ import { promptContextFor } from '@/lib/orchestrator/prompt-context';
 import { readsFixture } from './fixtures/turn-reads';
 
 describe('the case clock', () => {
-  it('prof-002 runs 25 minutes; the others 20', () => {
-    expect(caseTotalMs(getCaseById('prof-002'))).toBe(25 * 60_000);
-    for (const id of ['prof-001', 'entry-001', 'pricing-001', 'launch-001']) expect(caseTotalMs(getCaseById(id))).toBe(TOTAL_CASE_MS);
+  it('the four new cases run 25 minutes; prof-001 20', () => {
+    for (const id of ['prof-002', 'entry-001', 'pricing-001', 'launch-001']) expect(caseTotalMs(getCaseById(id))).toBe(25 * 60_000);
+    expect(caseTotalMs(getCaseById('prof-001'))).toBe(TOTAL_CASE_MS);
   });
-  it("prof-002's phase budgets add up to its clock", () => {
-    const b = getCaseById('prof-002').pacing!.phaseBudgetsMs!;
-    expect(Object.values(b).reduce((a, x) => a + (x ?? 0), 0)).toBe(25 * 60_000);
+  it("the new cases' phase budgets add up to their clock, with at least 3 minutes for recommendation + risk + close", () => {
+    for (const id of ['prof-002', 'entry-001', 'pricing-001', 'launch-001']) {
+      const b = getCaseById(id).pacing!.phaseBudgetsMs!;
+      expect(Object.values(b).reduce((a, x) => a + (x ?? 0), 0)).toBe(25 * 60_000);
+      expect((b.RECOMMENDATION ?? 0) + (b.WRAP ?? 0)).toBeGreaterThanOrEqual(3 * 60_000);
+    }
   });
   it('at 21 minutes prof-001 is out of time; prof-002 is not, and the model is told 25', () => {
     const at21 = (caseId: string) => planTurn(readsFixture({ caseId, phase: 'ANALYSIS', elapsedMs: 21 * 60_000 }), 'I think the routes are the story.', { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });

@@ -344,7 +344,7 @@ describe('Hollis Bay: the sampling exhibit after the brainstorm', () => {
   });
 
   it('under time pressure, no brainstorm asked: Exhibit 3 goes out with the recommendation ask', async () => {
-    seed({ ...BEFORE, elapsedMin: 18.7, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
+    seed({ ...BEFORE, elapsedMin: 23.7, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
     const r = await say('So it breaks even.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
     expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposal — In-store sampling program.*recommend.*biggest risk to it\?$/);

@@ -56,7 +56,7 @@ describe('stage deadlines from the phase budgets', () => {
   });
   it("prof-002's deadlines follow its own budgets (25-minute clock)", () => {
     const c = getCaseById('prof-002');
-    expect(stageDeadlinesMs(resolvePhaseBudgets(c, caseTotalMs(c)))).toEqual({ analysisEnd: 690_000, exhibitEnd: 1_110_000, brainstormEnd: 1_380_000 });
+    expect(stageDeadlinesMs(resolvePhaseBudgets(c, caseTotalMs(c)))).toEqual({ analysisEnd: 630_000, exhibitEnd: 1_050_000, brainstormEnd: 1_320_000 });
   });
   it("prof-001's exhibit is required", () => {
     expect(getCaseById('prof-001').exhibits.find(e => e.id === 'exhibit-a')?.required).toBe(true);
@@ -140,16 +140,16 @@ describe('ordered exhibits on the new cases', () => {
     if (p.kind !== 'model') throw new Error('expected a model plan');
     return p.state;
   };
-  it("Hollis Bay's lead exhibits after its analysis budget (8:24): the first unshown one is handed over", () => {
-    const s = lb(9, [], false);
+  it("Hollis Bay's lead exhibits after its analysis budget (9:30): the first unshown one is handed over", () => {
+    const s = lb(10, [], false);
     expect(s.kind).toBe('stage_exhibit');
     expect(s.requiredExhibit).toBe('exhibit-1');
   });
   it('its sampling exhibit (after the brainstorm) is not pulled forward at the analysis deadline…', () => {
     expect(lb(12, ['exhibit-1', 'exhibit-2'], true).kind).toBe('model');
   });
-  it('…but is handed over once the exhibit budget is spent (13:36)', () => {
-    const s = lb(14, ['exhibit-1', 'exhibit-2'], true);
+  it('…but is handed over once the exhibit budget is spent (16:00)', () => {
+    const s = lb(16.5, ['exhibit-1', 'exhibit-2'], true);
     expect(s.kind).toBe('stage_exhibit');
     expect(s.requiredExhibit).toBe('exhibit-3');
   });

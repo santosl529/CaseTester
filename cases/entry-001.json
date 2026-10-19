@@ -699,7 +699,7 @@
         }
       ],
       "notes": "Survey of 200 US specialists who treat Corlan's disease. Each specialist could choose up to two answers per question, so percentages add up to more than 100%. “Local support” means sales reps and nurse educators who help doctors and patients get started.",
-      "interpretationKey": "Doctors like the product — the once-daily pill is the top reason (64%) — but the top barriers are insurance coverage (58%) and no local support from the company (41%): access and presence, which Aldermoor doesn't have in the US. 27% want more US experience first, so uptake starts slowly; with only 1.25 points of cushion over the $300M bar, the 20% share needs both barriers fixed. Percentages add up to more than 100% (up to two answers); price (11% / 15%) is well behind coverage and support. 'Local support' means sales reps and nurse educators."
+      "interpretationKey": "Doctors like the product — the once-daily pill is the top reason (64%) — but the top barriers are insurance coverage (58%) and no local support from the company (41%): access and presence, which Aldermoor doesn't have in the US. 27% want more US experience first, so uptake starts slowly; with only 1.25 points of cushion over the $300M bar, the 20% share needs both barriers fixed. Percentages add up to more than 100% (up to two answers). Price is not the main barrier: patient out-of-pocket cost (15%) is well behind coverage and support. 'Local support' means sales reps and nurse educators."
     },
     {
       "id": "exhibit-3",
@@ -817,15 +817,16 @@
   ],
   "pacing": {
     "phaseBudgetsMs": {
-      "INTRO": 24000,
-      "CLARIFY": 48000,
-      "STRUCTURE": 192000,
-      "ANALYSIS": 336000,
-      "EXHIBIT": 264000,
-      "BRAINSTORM": 240000,
-      "RECOMMENDATION": 72000,
-      "WRAP": 24000
-    }
+      "INTRO": 30000,
+      "CLARIFY": 60000,
+      "STRUCTURE": 240000,
+      "ANALYSIS": 360000,
+      "EXHIBIT": 330000,
+      "BRAINSTORM": 300000,
+      "RECOMMENDATION": 150000,
+      "WRAP": 30000
+    },
+    "totalMs": 1500000
   },
   "format": "interviewer_led",
   "brainstorm": {
