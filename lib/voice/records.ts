@@ -17,6 +17,8 @@ export type TurnRecord = {
   interrupted: boolean; cancelled: boolean; backchannelsDropped: number;
   segments: { kind: string; playback: string; heardChars: number; exhibitShown: boolean }[];
   clientFirstSoundMs?: number;
+  // The agent's own timing since the last record (19 Oct): event-loop delay and audio push stats.
+  agent?: Record<string, unknown>;
 };
 
 // How long delivery was blocked on each classifier (TurnTimer marks, ms from

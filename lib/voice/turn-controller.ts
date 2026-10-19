@@ -70,6 +70,9 @@ export type ControllerDeps = {
   checkInOpenerMs?: number;
   // A line for the session's records outside a turn's own (the check-in).
   note?: (line: Record<string, unknown>) => void;
+  // The agent's own timing since the last call (event-loop delay; 19 Oct); the
+  // controller adds the playout's audio push stats.
+  agentTiming?: () => Record<string, number>;
 };
 
 type Entry = {
@@ -149,8 +152,14 @@ export class VoiceTurnController {
     this.setState('thinking', t.seq);
     await this.accept(t, { kind: 'say', text: opening, revealIds: [] });
     void this.d.playout.whenIdle().then(() => {
+      // The opener has no turn record: its timing gets a line of its own (b406165f, 19 Oct).
+      this.d.note?.({ turnSeq: t.seq, at: new Date(this.d.now()).toISOString(), opener: true, cut: t.cutAt !== null, agent: this.timing() });
       if (this.live === t && t.cutAt === null) this.setState('listening', t.seq);
     });
+  }
+
+  private timing(): Record<string, unknown> {
+    return { ...(this.d.agentTiming?.() ?? {}), audio: this.d.playout.takeAudioStats() };
   }
 
   // The browser can no longer play audio: a cut without a carry; silent until ready.
@@ -638,6 +647,7 @@ export class VoiceTurnController {
       waits: classifierWaits(t.marks), marks: t.marks,
       interrupted: t.cutAt !== null, cancelled, backchannelsDropped: t.backchannels,
       segments: (t.report?.segments ?? []).map(s => ({ kind: s.kind, playback: s.playback, heardChars: s.heardChars, exhibitShown: s.exhibitShown })),
+      agent: this.timing(),
     };
     this.d.record(rec);
     this.d.trace?.('turn_end', { seq: t.seq, cancelled, interrupted: rec.interrupted, firstSoundMs: rec.firstSoundMs, firstUsefulMs: rec.firstUsefulMs });

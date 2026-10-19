@@ -3,6 +3,7 @@
 // can import it; the exhibit display is what the text UI already shows.
 import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
 import type { CaptionWord } from './caption-timing';
+import { MAX_SETUP_LONG_TASKS, SETUP_SPANS, type SetupSpan, type SetupTimingLine } from './setup-timing';
 
 export const AGENT_NAME = 'case-interviewer';
 export const DATA_TOPIC = 'case';
@@ -37,6 +38,8 @@ export type ClientMessage =
   | { type: 'timing'; turnSeq: number; clientFirstSoundMs: number }
   // The page's health since its last line, at the end of each interviewer turn (19 Oct; lib/voice/health.ts).
   | { type: 'health'; turnSeq: number; longestFrameGapMs: number; longTaskMs: number | null; audioElements: number; audioContextState: string }
+  // The page's setup timings, once a session (19 Oct; lib/voice/setup-timing.ts).
+  | ({ type: 'setup' } & SetupTimingLine)
   // The interview screen's toggle for the thinking sounds and the "So,"
   // connector (item 3, 17 Oct): sent when changed and with every `ready`, so an
   // agent that (re)joins learns it; the agent applies it from the next turn.
@@ -56,8 +59,45 @@ export function parseClientMessage(raw: string): ClientMessage | null {
     && Number.isInteger(m.audioElements) && typeof m.audioContextState === 'string') {
     return { type: 'health', turnSeq: m.turnSeq as number, longestFrameGapMs: m.longestFrameGapMs, longTaskMs: m.longTaskMs as number | null, audioElements: m.audioElements as number, audioContextState: m.audioContextState.slice(0, 20) };
   }
+  if (m.type === 'setup') return parseSetup(m);
   if (m.type === 'timing' && Number.isInteger(m.turnSeq) && typeof m.clientFirstSoundMs === 'number') {
     return { type: 'timing', turnSeq: m.turnSeq as number, clientFirstSoundMs: m.clientFirstSoundMs };
   }
   return null;
+}
+
+const msOrNull = (v: unknown): v is number | null => v === null || typeof v === 'number';
+
+const asSpan = (v: unknown): SetupSpan | null => {
+  const o = v as Record<string, unknown> | null;
+  return o && typeof o === 'object' && typeof o.atMs === 'number' && typeof o.ms === 'number' ? { atMs: o.atMs, ms: o.ms } : null;
+};
+
+// Only the known steps, each null or { atMs, ms }; long tasks null or a list
+// of { atMs, ms } (at most 50 kept); anything else malformed → null.
+function parseSetup(m: Record<string, unknown>): ClientMessage | null {
+  const raw = m.spans as Record<string, unknown> | null;
+  if (!raw || typeof raw !== 'object') return null;
+  const spans = {} as SetupTimingLine['spans'];
+  for (const n of SETUP_SPANS) {
+    if (raw[n] == null) { spans[n] = null; continue; }
+    const v = asSpan(raw[n]);
+    if (!v) return null;
+    spans[n] = v;
+  }
+  if (!msOrNull(m.helloAtMs) || !msOrNull(m.setupDoneAtMs) || !msOrNull(m.readyAtMs)) return null;
+  // Absent on a page from before the playing gate (19 Oct): null.
+  const playingAtMs = m.playingAtMs ?? null, playingFallbackAtMs = m.playingFallbackAtMs ?? null;
+  if (!msOrNull(playingAtMs) || !msOrNull(playingFallbackAtMs)) return null;
+  let longTasks: SetupSpan[] | null = null;
+  if (m.longTasks !== null) {
+    if (!Array.isArray(m.longTasks)) return null;
+    longTasks = [];
+    for (const e of m.longTasks.slice(0, MAX_SETUP_LONG_TASKS)) {
+      const v = asSpan(e);
+      if (!v) return null;
+      longTasks.push(v);
+    }
+  }
+  return { type: 'setup', spans, helloAtMs: m.helloAtMs, setupDoneAtMs: m.setupDoneAtMs, readyAtMs: m.readyAtMs, playingAtMs, playingFallbackAtMs, longTasks };
 }

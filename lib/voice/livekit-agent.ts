@@ -5,7 +5,9 @@
 // leaves, the time limit hits, or a budget refuses. Haiku 5.5 interviews here
 // (INTERVIEWER_PROVIDER, set by `npm run voice:agent`); background checks are
 // the production mix.
+import os from 'node:os';
 import path from 'node:path';
+import { monitorEventLoopDelay } from 'node:perf_hooks';
 import { defineAgent, type JobContext } from '@livekit/agents';
 import {
   AudioSource, AudioStream, LocalAudioTrack, RoomEvent, TrackKind, TrackPublishOptions, TrackSource,
@@ -45,11 +47,31 @@ import type { SttEvent, TTSProvider } from './types';
 const OUT_RATE = 24000;   // Cartesia out
 const IN_RATE = 16000;    // Flux in
 const num = (k: string, d: number) => Number(process.env[k] ?? d);
+// When this module finished loading: with the process start, how long a job
+// process takes to load the agent — what each pre-warmed replacement costs the
+// container while a job runs (session b406165f, 19 Oct).
+const MODULE_LOADED_AT = Date.now();
+const PROCESS_STARTED_AT = Math.round(Date.now() - process.uptime() * 1000);
 
 export default defineAgent({
   entry: async (ctx: JobContext) => {
+    // Job start, step by step (19 Oct): what runs before the opener can play.
+    const t0 = Date.now();
+    const jobStart: Record<string, number> = {};
+    const mark = (k: string) => { jobStart[k] = Date.now() - t0; };
+    const load1AtEntry = os.loadavg()[0];
+    // The event loop's delay, per turn (agentTiming).
+    const loop = monitorEventLoopDelay({ resolution: 10 });
+    loop.enable();
+    const agentTiming = () => {
+      const ms = (ns: number) => Math.round(ns / 1e5) / 10;
+      const r = { loopDelayMaxMs: ms(loop.max), loopDelayP99Ms: ms(loop.percentile(99)), loopDelayMeanMs: ms(loop.mean), load1: Math.round(os.loadavg()[0] * 100) / 100 };
+      loop.reset();
+      return r;
+    };
     const { sessionId } = JSON.parse(ctx.job.metadata || '{}') as { sessionId?: string };
     const session = sessionId ? await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) }) : undefined;
+    mark('session_read');
     if (!session || session.status !== 'active') {
       console.warn('[voice-agent] no active session for', sessionId);
       ctx.shutdown('no active session');
@@ -66,6 +88,7 @@ export default defineAgent({
     // interviewer audio and events, local under .voice-cache/recordings.
     const rec = process.env.VOICE_RECORD === '1' ? new SessionRecorder(Date.now(), { candidateRate: IN_RATE, interviewerRate: OUT_RATE }) : null;
     await ctx.connect();
+    mark('room_connected');
     const room = ctx.room;
 
     // The owner's mic → Flux + the speech-end tracker, wired before anything
@@ -78,6 +101,7 @@ export default defineAgent({
     const keyterms = keytermsIfEnabled(caseData);
     console.log(`[voice-agent] stt keyterms: ${keyterms ? `on (${keyterms.length})` : 'off'}`);
     const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5, keyterms }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
+    mark('stt_open');
     let onStt: (s: SttEvent) => void = () => {};   // the controller, once it exists
     stt.onSignal(sig => {
       rec?.event('stt', sig.kind === 'resumed' ? { kind: sig.kind } : { kind: sig.kind, transcript: sig.transcript, ...(sig.kind === 'speech' ? { words: sig.words } : {}) });
@@ -113,6 +137,7 @@ export default defineAgent({
     const source = new AudioSource(OUT_RATE, 1);
     const track = LocalAudioTrack.createAudioTrack('interviewer', source);
     await room.localParticipant!.publishTrack(track, new TrackPublishOptions({ source: TrackSource.SOURCE_MICROPHONE }));
+    mark('track_published');
     const playout = new Playout(new LiveKitSink(source, OUT_RATE), realClock, OUT_RATE,
       rec ? { frame: (f, at) => rec.interviewer(f, at), cut: at => rec.interviewerCut(at) } : {});
 
@@ -120,7 +145,9 @@ export default defineAgent({
     const voice = fake ? 'tone' : await defaultVoiceId();
     const tts: TTSProvider = fake ? new FakeTTS() : new CartesiaTTS(voice);
     if (tts instanceof CartesiaTTS) await tts.connect();
+    mark('tts_connected');
     const ledger = await openTtsLedger();   // the month's row in voice_tts_usage, shared by every job
+    mark('ledger_open');
     const run = runCap === null ? null : new RunCharCap(runCap);
     // The session's cap keeps the closing line's characters back: when it runs
     // out the interviewer says so (TTS_CAP_CLOSING) instead of going silent.
@@ -131,6 +158,7 @@ export default defineAgent({
     const missingClips: string[] = [];
     const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS),
       synthesize: process.env.VOICE_ACK_SYNTH !== '0', onMissing: t => missingClips.push(t) });
+    mark('acks_loaded');
     if (missingClips.length) console.warn(`[voice-agent] ${missingClips.length} acknowledgment clip(s) not shipped for ${tts.name} ${voice}, left out: ${missingClips.join(' | ')} — render with scripts/voice-render-acks.ts`);
 
     // Timing records (spec §7): voice_session_lines, and the local jsonl when
@@ -169,6 +197,7 @@ export default defineAgent({
       note: l => {
         lines.add(l);
         console.log('[voice] note', JSON.stringify(l));
+        if (l.opener) lines.release();   // the opener has ended: the jobStart line goes now
         const ci = (l as { checkIn?: { heardText?: string; startedAtMs?: number | null; silentMs?: number } }).checkIn;
         if (ci?.heardText) {
           void db.insert(sessionEvents).values({
@@ -179,19 +208,25 @@ export default defineAgent({
       },
       bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS), fillerRate,
       trace: rec ? (type, data) => rec.event(type, data) : undefined,
+      agentTiming,
     });
 
     onStt = sig => controller.onStt(sig);
 
-    // The browser's back-channel: ready / audio_blocked / exhibit_shown / timing.
+    // The browser's back-channel: ready / audio_blocked / exhibit_shown / timing / health / setup.
     const turnRows = await db.query.sessionTurns.findMany({ where: eq(sessionTurns.sessionId, session.id), orderBy: [asc(sessionTurns.turnIndex)] });
     const opening = turnRows.filter(r => r.role === 'interviewer').at(-1)?.text ?? '';
+    mark('turns_read');
+    let readyAt: number | null = null;
     const dec = new TextDecoder();
     room.on(RoomEvent.DataReceived, (payload: Uint8Array, p?: RemoteParticipant, _kind?: unknown, topic?: string) => {
       if (topic !== DATA_TOPIC || p?.identity !== session.userId) return;
       const m = parseClientMessage(dec.decode(payload));
       if (!m) return;
-      if (m.type === 'ready') void controller.ready(opening);
+      if (m.type === 'ready') {
+        if (readyAt === null) { readyAt = Date.now() - t0; lines.add({ ready: { atMs: readyAt } }); }   // the opener can start now
+        void controller.ready(opening);
+      }
       else if (m.type === 'audio_blocked') controller.audioBlocked();
       else if (m.type === 'exhibit_shown') controller.exhibitShown(m.turnSeq, m.exhibitId);
       else if (m.type === 'fillers') controller.setFillers(m.on);
@@ -202,6 +237,10 @@ export default defineAgent({
       } else if (m.type === 'health') {
         // The page's health line (19 Oct, lib/voice/health.ts).
         lines.add({ turnSeq: m.turnSeq, health: { longestFrameGapMs: m.longestFrameGapMs, longTaskMs: m.longTaskMs, audioElements: m.audioElements, audioContextState: m.audioContextState } });
+      } else if (m.type === 'setup') {
+        // The page's setup timings, once (19 Oct, lib/voice/setup-timing.ts).
+        lines.add({ setup: { spans: m.spans, helloAtMs: m.helloAtMs, setupDoneAtMs: m.setupDoneAtMs, readyAtMs: m.readyAtMs,
+          playingAtMs: m.playingAtMs, playingFallbackAtMs: m.playingFallbackAtMs, longTasks: m.longTasks } });
       }
     });
 
@@ -211,12 +250,14 @@ export default defineAgent({
       if (finished) return;
       finished = true;
       clearTimeout(limit);
+      loop.disable();
       controller.close();
       await stt.close().catch(() => {});
       await controller.idle().catch(() => {});
       await Promise.allSettled(background);
       if (tts instanceof CartesiaTTS) tts.close();
       await ledger.flush();
+      lines.release();   // the jobStart line, when the opener never ended
       await lines.flush();
       const summary = { why, ...summarize(records), ttsCharsThisRun: run?.used ?? 0, ttsCharsThisMonth: ledger.used, ...(ledger.writeErrors ? { ttsLedgerWriteErrors: ledger.writeErrors } : {}),
         ...(lines.writeErrors ? { recordWriteErrors: lines.writeErrors } : {}) };
@@ -240,6 +281,12 @@ export default defineAgent({
     // Listening now: announce it, so a `ready` the browser sent before we
     // joined is sent again (and again if the owner joins after us).
     send({ type: 'hello' });
+    mark('hello');
+    const start = { marksMs: jobStart, moduleLoadMs: MODULE_LOADED_AT - PROCESS_STARTED_AT, processAgeMs: t0 - PROCESS_STARTED_AT,
+      load1AtEntry: Math.round(load1AtEntry * 100) / 100, cpus: os.availableParallelism() };
+    // Written after the opener ends, not now: no record write while it streams (agent-timing proposal 3, Lorenzo 19 Oct).
+    lines.hold({ jobStart: start });
+    console.log('[voice] job start', JSON.stringify(start));
     room.on(RoomEvent.ParticipantConnected, (p: RemoteParticipant) => {
       if (p.identity === session.userId) send({ type: 'hello' });
     });
