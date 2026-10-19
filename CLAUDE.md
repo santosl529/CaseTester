@@ -44,6 +44,9 @@ See the PRD §3 for the proposed layout (`/lib/orchestrator`, `/lib/agent`, `/li
 - Case answer keys, data-ledger values, `*_key` fields, `math_steps.answer`, and `rubric_anchors` are SERVER-ONLY. They must never reach the client bundle.
 - Case content is human-authored JSON in `/cases`, validated against a zod schema on load — reject malformed cases at boot.
 - Deterministic checks (math tolerance, data-leak audit) are computed in code, never delegated to the LLM where ground truth exists.
+- Never charge twice for one thing. Any action that spends money (LLM calls such as scoring or grading, TTS, STT) must run at most once per request, even on a double click, two tabs or a client retry:
+  - Server: guard it in code. A "done already?" check is not enough, because two calls can both pass it while the first is still running. Claim the work atomically first (one conditional UPDATE, or a unique key), and make a second caller wait for the first result or return it. The model is `lib/scoring/scoring-claim.ts`.
+  - Client: disable the button while the action runs, and ignore a second click that lands before the disabled state renders (a `useRef` guard).
 - Before working on a new task, start with `.superpowers/sdd/progress.md` "## Now" (then its rules, batches table and the latest round). Read the PRD only at §15 and the latest §16 entries unless a task needs more; read the rest of the PRD body, older §16 entries and `.superpowers/sdd/progress-archive.md` only when the task needs them.
 - Keep progress.md "## Now" current (≤ 15 lines) and move finished rounds to `progress-archive.md` verbatim, leaving one line each.
 - Always update progress.md, and the PRD sections the work touched, after finishing work
