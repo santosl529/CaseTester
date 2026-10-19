@@ -994,3 +994,23 @@ describe('the echo guard', () => {
     expect(h.barges().map(b => b.words)).toEqual([5, 10]);   // first, then once it grew by 3+ words
   });
 });
+
+// Session b406165f (19 Oct): agent timing per turn in the records — the event
+// loop's delay (the agent's own, injected) and the audio push stats — and a
+// line for the opener (turn 0), which has no turn record.
+describe('agent timing in the records', () => {
+  it('each turn record carries the agent timing; the opener gets a line of its own', async () => {
+    const notes: Record<string, unknown>[] = [];
+    let calls = 0;
+    const h = harness([[seg('tail', 'Which bucket first?')]], { ...noAck, note: l => notes.push(l), agentTiming: () => ({ loopDelayMaxMs: 12 + calls++, loopDelayP99Ms: 3 }) });
+    await h.c.ready('Your client is a coffee chain. How would you approach this?');
+    await h.advance(10_000);
+    const opener = notes.find(n => (n as { opener?: boolean }).opener) as { turnSeq: number; agent: Record<string, unknown> };
+    expect(opener.turnSeq).toBe(1);
+    expect(opener.agent).toMatchObject({ loopDelayMaxMs: 12, loopDelayP99Ms: 3, audio: { underruns: 0 } });
+    expect((opener.agent.audio as { frames: number }).frames).toBeGreaterThan(0);
+    h.c.onStt(final('Costs first.'));
+    await h.advance(5000);
+    expect((h.records[0] as { agent?: Record<string, unknown> }).agent).toMatchObject({ loopDelayMaxMs: 13, audio: { underruns: 0 } });
+  });
+});
