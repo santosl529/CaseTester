@@ -15,7 +15,7 @@ Next session: read this, then progress.md "## Now" and PRD §15 "New cases — k
 >
 > For each item: the change, the files, the test, and how you'll show prof-001 is unaffected (replays of batches 28–31 must stay identical except where the fix is meant to apply, with every difference listed). Also give the cost estimate for a verification run: a prof-001 wave plus the four new cases, as two waves. Don't spend anything yet.
 
-Deliverable: a written plan (per item: change, files, test, prof-001 proof) + the cost estimate. Branch name suggestion: `engine-asks` off `cases-eval` (fe0bb87 or later), worktree under `.claude/worktrees/`. Per CLAUDE.md, the plan is reported and he rules before any code.
+Deliverable: a written plan (per item: change, files, test, prof-001 proof) + the cost estimate. **Standing rule (Lorenzo, 19 Oct):** after every wave, fix or ruling, update `docs/case-onboarding.md` — its tracker and lessons log — in the same commit; when the engine-bundle plan lands, fold its outcome into that file's "Shared-engine gaps" list. Branch name suggestion: `engine-asks` off `cases-eval` (fe0bb87 or later), worktree under `.claude/worktrees/`. Per CLAUDE.md, the plan is reported and he rules before any code.
 
 ## State
 

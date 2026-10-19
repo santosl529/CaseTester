@@ -1,5 +1,7 @@
 # Case Authoring Rules
 
+Onboarding a case end to end (stages, gates, costs, tracker): `docs/case-onboarding.md`.
+
 Source: pilot transcript review (July 2026). Complements `docs/interviewer-behavior.md`.
 
 ## Pre-flight ledger consistency (hard QA gate)

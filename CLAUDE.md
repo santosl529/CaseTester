@@ -46,6 +46,7 @@ See the PRD §3 for the proposed layout (`/lib/orchestrator`, `/lib/agent`, `/li
 - Before working on a new task, start with `.superpowers/sdd/progress.md` "## Now" (then its rules, batches table and the latest round). Read the PRD only at §15 and the latest §16 entries unless a task needs more; read the rest of the PRD body, older §16 entries and `.superpowers/sdd/progress-archive.md` only when the task needs them.
 - Keep progress.md "## Now" current (≤ 15 lines) and move finished rounds to `progress-archive.md` verbatim, leaving one line each.
 - Always update progress.md, and the PRD sections the work touched, after finishing work
+- Onboarding a new case: follow docs/case-onboarding.md.
 
 ## Supabase
 - Client-side: `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (publishable key).
