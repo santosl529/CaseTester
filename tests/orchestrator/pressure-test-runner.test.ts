@@ -138,6 +138,24 @@ describe('pressure-test state', () => {
     expect(heard).toMatch(/Which of those areas would you look at first, and why\?/);
   });
 
+  it('…only when the judge did not count the reply: an answer it counted goes on as before', async () => {
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
+    judgeQueue.push({ answered: true });
+    const heard = await turn('Yes, it is MECE and nothing is missing.', T({ question: 'What does the cost side tell you so far?' }));
+    expect(pt()?.state).toBe('satisfied');
+    expect(heard).toMatch(/What does the cost side tell you so far\?/);
+    expect(store.events.some(e => e.subtype === 'pressure_test_nothing_missing')).toBe(false);
+  });
+
+  it('…and no branch ask when the reply already says where they would start', async () => {
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
+    judgeQueue.push({ answered: false });
+    const heard = await turn("Nothing is missing. I'd start with COGS.", T({ question: 'What would you want to see on COGS?' }));
+    expect(pt()?.state).toBe('satisfied');
+    expect(heard).toMatch(/What would you want to see on COGS\?/);
+    expect(heard).not.toMatch(/which branch/i);
+  });
+
   it('…not when the reply adds something: the judge decides as before', async () => {
     resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     judgeQueue.push({ answered: false });

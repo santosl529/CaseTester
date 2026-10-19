@@ -249,5 +249,9 @@ describe('saysNothingMissing', () => {
   it.each([
     "Nothing's missing, but I'd add competitors.", 'Maybe nothing is missing?', 'I think the market is missing.', 'Competitors are missing, otherwise that covers everything.',
     'Not sure what is missing.', "That's it for costs; I'd also add competitors.", 'Can I get the cost breakdown?',
+    // The replay (19 Oct): full answers that say "covers everything" in passing, or name a gap — the judge's to read.
+    "I think it's close to MECE — revenue and cost are exclusive, and within cost, COGS versus operating expenses covers everything. One gap: store count drives costs too.",
+    "I think it's broadly MECE — within cost, fixed versus variable covers everything, though labor straddles both, so I'd split it.",
+    'Roughly, yes — revenue and cost are mutually exclusive and collectively exhaustive at the top, and under cost, COGS versus operating expense covers everything. I would admit labor is a little fuzzy, since you can put it in COGS or in operating depending on how they book store-level wages, so there is an overlap risk there.',
   ])('does not read %s as nothing missing', r => expect(saysNothingMissing(r)).toBe(false));
 });

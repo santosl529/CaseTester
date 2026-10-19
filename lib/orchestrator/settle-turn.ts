@@ -349,13 +349,19 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       // once, unless the model already asks where to start. Any gap against the
       // case key goes in the report (scoring is told), not into more probing.
       const ownStart = WHERE_TO_START.test(modelQuestion) && !probeIntents(modelQuestion).includes('mece');
-      if (!ownStart) {
+      const picked = WHERE_TO_START.test(candidateText);   // they said where they'd start already
+      if (picked) {
+        if (probeIntents(modelQuestion).includes('mece')) {
+          question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null, lastAnswered: true, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+          modelQuestion = '';
+        }
+      } else if (!ownStart) {
         const ask = line('ask_branch', phraseUses, seed);
         question = ask.charAt(0).toUpperCase() + ask.slice(1); modelQuestion = '';
       }
       ptAction = 'nothing_missing';
       ctx.events.push({ category: 'intervention', subtype: 'pressure_test_nothing_missing', payload: {
-        probe: ptPrev.probe ?? null, askedAt: ptPrev.askedAt ?? null, replyTurn: nextTurnIndex, reply: candidateText, branchAsked: !ownStart,
+        probe: ptPrev.probe ?? null, askedAt: ptPrev.askedAt ?? null, replyTurn: nextTurnIndex, reply: candidateText, branchAsked: !ownStart && !picked,
       } });
     } else if (ptPrev.state === 'awaiting' && !satisfiedNow) {
       if (waiving) {

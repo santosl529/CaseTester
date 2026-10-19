@@ -33,14 +33,16 @@ const FORCES_OPEN = new Set(['rec_ask', 'grace_ask', 'time_warning']);
 // after code asked for one). Only model turns count. Resolved once (Stream
 // and Settle both await it before deciding data) and cached on the plan.
 // nothingMissing (19 Oct): a what's-missing probe answered "nothing is missing"
-// counts as answered, whatever the judge says.
+// counts as answered when the judge didn't count it (a bare claim to the judge);
+// an answer the judge counted goes on as before.
 export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfied: boolean; waiving: boolean; nothingMissing: boolean }> {
   const { state } = plan;
   const pt = state.pressureTest;
-  const nothingMissing = pt.state === 'awaiting' && (pt.intents ?? []).includes('mece') && saysNothingMissing(plan.ctx.candidateText);
+  const said = pt.state === 'awaiting' && (pt.intents ?? []).includes('mece') && saysNothingMissing(plan.ctx.candidateText);
+  const judged = pt.state === 'awaiting' && Boolean((await state.probeVerdict)?.answered);
+  const nothingMissing = said && !judged;
   if (state.ptSatisfiedNow !== undefined && state.ptWaivingNow !== undefined) return { satisfied: state.ptSatisfiedNow, waiving: state.ptWaivingNow, nothingMissing };
-  const satisfied = pt.state === 'satisfied'
-    || (pt.state === 'awaiting' && (nothingMissing || Boolean((await state.probeVerdict)?.answered)));
+  const satisfied = pt.state === 'satisfied' || judged || nothingMissing;
   const waiving = !satisfied && state.kind === 'model' && (
     (pt.state === 'awaiting' && (pt.awaitingReplies ?? 0) + 1 >= PT_REPLY_LIMIT)
     || (pt.state === 'not_asked' && pt.structureAsked && pt.gatedTurns + 1 >= PT_NOT_ASKED_LIMIT));

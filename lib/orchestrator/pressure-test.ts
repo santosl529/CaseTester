@@ -262,10 +262,14 @@ const NOTHING_MISSING = [
   /^(?:(?:yeah|yes|no|yep|nope)[.,!]?\s*)*(?:i think\s+)?that's\s+(?:it|everything|all)\s*(?:[.!]|$)/,
   /\bnot missing anything\b|\bdoesn't miss anything\b|\bno gaps?\b/,
 ];
-const ADDS_OR_HEDGES = /\b(?:i'd|i would|we could|we should|let me)\s+(?:also\s+)?add\b|\b(?!nothing\b|anything\b)[a-z]+\s+(?:is|are)\s+missing\b|\bmissing (?:is|are)\b|\bexcept\b|\bforgot\b|\bmaybe\b|\bperhaps\b|\bnot sure\b|\bother than\b|\bbesides\b/;
+// A short declaration only: a longer reply is an argument the judge reads (the
+// replay, 19 Oct: "fixed versus variable covers everything, though labor
+// straddles both" — answered, with a gap of its own).
+const NOTHING_MISSING_MAX_WORDS = 40;
+const ADDS_OR_HEDGES = /\b(?:one|a|the|only|another)\s+gap\b|\bthough\b|\bbut\b|\bfuzzy\b|\boverlap\b|\bdouble-count|\b(?:i'd|i would|we could|we should|let me)\s+(?:also\s+)?add\b|\b(?!nothing\b|anything\b)[a-z]+\s+(?:is|are)\s+missing\b|\bmissing (?:is|are)\b|\bexcept\b|\bforgot\b|\bmaybe\b|\bperhaps\b|\bnot sure\b|\bother than\b|\bbesides\b/;
 export function saysNothingMissing(reply: string): boolean {
   const t = reply.toLowerCase().replace(/[‘’]/g, "'").replace(/\s+/g, ' ').trim();
-  return NOTHING_MISSING.some(re => re.test(t)) && !ADDS_OR_HEDGES.test(t);
+  return t.split(' ').length <= NOTHING_MISSING_MAX_WORDS && NOTHING_MISSING.some(re => re.test(t)) && !ADDS_OR_HEDGES.test(t);
 }
 
 // The narrowed probe: the same intent, made concrete (a Rule 13 Level 2 for the test).
