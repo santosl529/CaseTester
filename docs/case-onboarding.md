@@ -158,7 +158,7 @@ proof first, then a prof-001 wave (A) and the new cases as two waves of 10
 ## Shared-engine gaps that affect new cases (PRD §15)
 
 Status: open unless marked. **Bundle in build (engine-asks, 19 Oct):** (q), (r),
-(h), (o), (p) with (c), (k), (l), (m), the strengths check; out of it: (s), (t),
+(h), (o), (p) with (c), (k), (l), (m) (built, below), the strengths check (built with (m)); out of it: (s), (t),
 the stale-check redo, the misquote-in-recommendation gate. **(q)** asks the model never declares go unanswered. *Built on engine-asks (not merged), part 1: guard B reads "I'd want:" and addressed asks after the brainstorm; part 2: an item-less deferral is checked by the small model (a named deferral, or refused when it maps to no item; the generic "settle your structure" line is gone), and a basis ask is out of scope of an item that doesn't say where its figure comes from.*
 **(r)** the live false-refusal guard and F3 read names, not covers. *Built on engine-asks (not merged): both pass `{ covers: true }` to `findFalseRefusals`, which sends an object no item name hits through `coverageOf`.* **(h)** a
 stage deadline yields to every checker line. *Built on engine-asks (not merged): a deadline yields to a probe once (`flags.stageYielded`; an exhibit's by its id), then the stage goes and a probe due then is held for the next model turn; a correction (the checker's or code's own) rides on any overdue stage turn, said first, and a misquote no longer blocks it (R7).* **(o)** the correction cap resets on
@@ -167,7 +167,7 @@ each derived figure. *Built on engine-asks (not merged), part (a): a flag is sta
 group beats a more specific cover. Others:
 - the stale check misses a late redo;
 - a repeated misquote in the recommendation is dropped without a checker flag;
-- reports' "Better" answers aren't fact-checked;
+- *(m) built on engine-asks (not merged):* reports' "Better" answers and the facts of strengths are fact-checked: `auditBetterFigures` lists figures no case value or one operation of two explains, the verifier gets them as hints, and an unsupported Better answer is blanked (moment stays) or an unsupported strength dropped;
 - the caveat floor covers only needs_work;
 - literal `\uXXXX` appears in the interviewer's text;
 - "say before stage" isn't supported.

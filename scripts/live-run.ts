@@ -532,7 +532,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
       if (d.coverageCaveat) md.push(`_Coverage caveat: ${d.coverageCaveat}_`);
       for (const w of d.wentWell) md.push(`- ✅ ${w.point}${w.quotes.map(q => `\n  > ${q}`).join('')}`);
       for (const n of d.needsWork) md.push(`- ⚠️ ${n.point}${n.quotes.map(q => `\n  > ${q}`).join('')}`);
-      for (const m of d.missedOpportunities) md.push(`- 💡 ${m.moment}\n  > Better: ${m.betterResponse}`);
+      for (const m of d.missedOpportunities) md.push(`- 💡 ${m.moment}${m.betterResponse ? `\n  > Better: ${m.betterResponse}` : ''}`);
       md.push('');
     }
   }

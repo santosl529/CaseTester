@@ -229,7 +229,7 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   // Second pass: verify claims the quote audit can't (omission claims,
   // mischaracterizations); drop what the transcript contradicts.
   const { rubric: verifiedRubric, dropped } = await runClaimVerifier(
-    auditedRubric, transcript, u => logUsage({ ...u }), { mathResults, marksSection: formatInterviewerMarksSection(marks) },
+    auditedRubric, transcript, u => logUsage({ ...u }), { mathResults, marksSection: formatInterviewerMarksSection(marks), caseData },
   );
   if (dropped.length > 0) {
     console.warn('[score] verifier dropped unsupported claims:', JSON.stringify(dropped));

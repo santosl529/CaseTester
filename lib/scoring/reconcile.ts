@@ -75,7 +75,7 @@ export function collectReconcileItems(rubric: RubricScores): ReconcileItem[] {
     rubric[key].needsWork.forEach((n, index) => items.push({ id: id++, dimension: key, section: 'needsWork', index, text: n.point }));
     rubric[key].missedOpportunities.forEach((m, index) => items.push({
       id: id++, dimension: key, section: 'missedOpportunities', index,
-      text: `${m.moment} — a better response: "${m.betterResponse}"`,
+      text: m.betterResponse ? `${m.moment} — a better response: "${m.betterResponse}"` : m.moment, // blanked by the verifier: the moment alone
     }));
   }
   items.push({ id: id++, dimension: 'topFix', section: 'topFix', index: 0, text: rubric.topFix });

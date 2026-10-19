@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { collectClaims, applyVerdicts, buildVerifierFacts, VERIFIER_OUTPUT_FORMAT, type Verdict } from '@/lib/scoring/verifier';
+import { collectClaims, applyVerdicts, buildVerifierFacts, buildVerifierPrompt, VERIFIER_OUTPUT_FORMAT, type Verdict } from '@/lib/scoring/verifier';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 import type { RubricScores, DimensionFeedback } from '@/lib/scoring/judge';
 
@@ -33,16 +33,18 @@ function baseRubric(): RubricScores {
 }
 
 describe('collectClaims', () => {
-  it('collects needsWork, missedOpportunities, and topFix with unique ids', () => {
+  it('collects wentWell, needsWork, missedOpportunities, betterResponse, and topFix with unique ids', () => {
     const claims = collectClaims(baseRubric());
-    expect(claims).toHaveLength(4); // 2 needsWork + 1 missed + topFix
-    expect(new Set(claims.map(c => c.id)).size).toBe(4);
+    expect(claims).toHaveLength(8 + 2 + 2 + 1); // 8 wentWell + 2 needsWork + (moment + better) + topFix
+    expect(new Set(claims.map(c => c.id)).size).toBe(claims.length);
     expect(claims.at(-1)!.section).toBe('topFix');
+    expect(claims.filter(c => c.section === 'betterResponse').map(c => c.text)).toEqual(['I would hedge bean prices.']);
   });
 
-  it('does not collect wentWell', () => {
-    const claims = collectClaims(baseRubric());
-    expect(claims.every(c => c.section !== ('wentWell' as never))).toBe(true);
+  it('collects no Better claim for an empty betterResponse', () => {
+    const r = baseRubric();
+    r.synthesis.missedOpportunities[0].betterResponse = '';
+    expect(collectClaims(r).some(c => c.section === 'betterResponse')).toBe(false);
   });
 });
 
@@ -96,6 +98,54 @@ describe('applyVerdicts', () => {
     const claims = collectClaims(rubric);
     applyVerdicts(rubric, claims, claims.map(c => ({ id: c.id, supported: false, reason: 'x' })));
     expect(rubric.synthesis.needsWork).toHaveLength(2);
+  });
+});
+
+// Lorenzo, 19 Oct (§15 m; R3 "facts only").
+describe('Better answers and strengths as claims', () => {
+  const verdictsFor = (rubric: RubricScores, pick: (c: ReturnType<typeof collectClaims>[number]) => boolean): Verdict[] =>
+    collectClaims(rubric).map(c => ({ id: c.id, supported: !pick(c), reason: 'x' }));
+
+  it('an unsupported betterResponse is blanked and only that one; its moment stays', () => {
+    const rubric = baseRubric();
+    const claims = collectClaims(rubric);
+    const { rubric: cleaned, dropped } = applyVerdicts(rubric, claims, verdictsFor(rubric, c => c.section === 'betterResponse'));
+    expect(cleaned.synthesis.missedOpportunities).toEqual([{ moment: 'Never proposed supply-side levers.', betterResponse: '' }]);
+    expect(cleaned.synthesis.needsWork).toHaveLength(2);
+    expect(cleaned.structure.wentWell).toHaveLength(1);
+    expect(dropped.map(d => d.section)).toEqual(['betterResponse']);
+  });
+
+  it('blanks the right answer when the dimension has several', () => {
+    const rubric = baseRubric();
+    rubric.synthesis.missedOpportunities.push({ moment: 'Second moment.', betterResponse: 'Second answer.' });
+    const claims = collectClaims(rubric);
+    const second = claims.find(c => c.section === 'betterResponse' && c.index === 1)!;
+    const { rubric: cleaned } = applyVerdicts(rubric, claims, verdictsFor(rubric, c => c.id === second.id));
+    expect(cleaned.synthesis.missedOpportunities.map(m => m.betterResponse)).toEqual(['I would hedge bean prices.', '']);
+  });
+
+  it('an unsupported wentWell point is dropped and only that point', () => {
+    const rubric = baseRubric();
+    rubric.structure.wentWell.push({ point: 'Kept point.', quotes: ['q'] });
+    const claims = collectClaims(rubric);
+    const first = claims.find(c => c.dimension === 'structure' && c.section === 'wentWell' && c.index === 0)!;
+    const { rubric: cleaned, dropped } = applyVerdicts(rubric, claims, verdictsFor(rubric, c => c.id === first.id));
+    expect(cleaned.structure.wentWell.map(w => w.point)).toEqual(['Kept point.']);
+    expect(cleaned.quantitative.wentWell).toHaveLength(1);
+    expect(dropped).toHaveLength(1);
+  });
+
+  it('the prompt carries the facts-only instruction and the audit figures as hints', () => {
+    const rubric = baseRubric();
+    const claims = collectClaims(rubric);
+    const better = claims.find(c => c.section === 'betterResponse')!;
+    const prompt = buildVerifierPrompt(claims, 'T', [], '', [{ dimension: 'synthesis', index: 0, figure: '$30M' }]);
+    expect(prompt).toContain('Judge only the facts a point states');
+    expect(prompt).toContain('Adjectives and judgments ("proactively", "clearly", "strong") are not checked');
+    expect(prompt).toContain('FIGURES NOT FOUND IN THE CASE DATA');
+    expect(prompt).toContain(`claim ${better.id}: $30M`);
+    expect(buildVerifierPrompt(claims, 'T')).not.toContain('FIGURES NOT FOUND IN THE CASE DATA (');
   });
 });
 
