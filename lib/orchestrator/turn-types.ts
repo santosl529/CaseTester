@@ -117,7 +117,9 @@ export type SegmentSink = (s: Segment) => Promise<void>;
 export type SegmentPlayback = 'played' | 'partial' | 'unplayed';
 export type HeardSegment = Segment & { playback: SegmentPlayback; heardChars: number; exhibitShown: boolean };
 // What the candidate got of one turn: every accepted segment, in order.
-export type HeardReport = { segments: HeardSegment[]; interrupted: boolean };
+// ackHeard false: the acknowledgment the turn was told of (acknowledged) was
+// skipped after the turn started — the saved line leaves it out (18 Oct).
+export type HeardReport = { segments: HeardSegment[]; interrupted: boolean; ackHeard?: boolean };
 
 // A cut before anything of the turn was heard or shown: the turn is dropped
 // whole — no writes, no deferred work — and the voice layer carries the

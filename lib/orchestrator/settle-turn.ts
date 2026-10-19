@@ -68,9 +68,12 @@ export function pendingEventRows(ctx: TurnCtx, events: PendingEvent[]) {
 }
 
 // What the candidate heard: a voice acknowledgment spoken at end-of-turn, then
-// the turn. Saved and returned as one interviewer line; never re-sent.
-export function heardText(ctx: { acknowledged?: string }, text: string): string {
-  return ctx.acknowledged ? [ctx.acknowledged, text].map(s => s.trim()).filter(Boolean).join(' ') : text;
+// the turn. Saved and returned as one interviewer line; never re-sent. An
+// acknowledgment the heard report says didn't play (a late skip, 18 Oct) is
+// left out: a filler never appears as said unless it was.
+export function heardText(ctx: { acknowledged?: string }, text: string, heard?: HeardReport | null): string {
+  const ack = heard?.ackHeard === false ? undefined : ctx.acknowledged;
+  return ack ? [ack, text].map(s => s.trim()).filter(Boolean).join(' ') : text;
 }
 
 // A scripted turn (no model call): the candidate turn and the scripted reply,
@@ -96,7 +99,7 @@ export async function commitScripted(plan: ScriptedPlan, heard: HeardReport | nu
   // A session ended meanwhile (End) is not touched (v4.10: text too).
   const live = (await db.query.sessions.findFirst({ where: eq(sessions.id, ctx.sessionId) }))?.status === 'active';
   if (!live) return { ...plan.result, interviewerText: '', ended: true, scoringSuppressed: true };
-  const saved = heardText(ctx, spoken);
+  const saved = heardText(ctx, spoken, heard);
   await db.insert(sessionTurns).values([
     { sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex, role: 'candidate', text: ctx.heardText ?? ctx.candidateText, timestampMs: ctx.now },
     ...(saved ? [{ sessionId: ctx.sessionId, turnIndex: ctx.nextTurnIndex + 1, role: 'interviewer' as const, text: saved, timestampMs: Date.now() }] : []),
@@ -780,7 +783,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       console.warn('[runner] stale turn dropped: session no longer active', sessionId);
       return { ...result, interviewerText: '', exhibit: undefined, ended: true, scoringSuppressed: true };
     }
-    const savedLine = heardText(ctx, h.savedText);
+    const savedLine = heardText(ctx, h.savedText, heard);
     const underTimePressure = isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
     const loadShedLoggedThisTurn = underTimePressure && !flags.loadShedLogged;
     const advancedThisTurn = phaseSaved !== currentPhase && !endedSaved;

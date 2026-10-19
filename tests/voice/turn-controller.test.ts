@@ -777,3 +777,54 @@ describe('the voice silence check-in', () => {
     expect(checkIns(h)).toHaveLength(0);
   });
 });
+
+// Lorenzo, 18 Oct (item 4 ruling): a filler that wasn't played never appears as
+// said. Skipped before the turn runs (toggle off, the rate): not given to the
+// turn at all. Skipped after it started (the reply ready first): the heard
+// report says so, and the runner leaves it out of the saved line.
+describe('an acknowledgment that did not play', () => {
+  const capture = (segs: Segment[]) => {
+    const seen: { acknowledged?: string; report?: HeardReport }[] = [];
+    const runTurn: RunTurnFn = async (_text, opts) => {
+      const row: (typeof seen)[number] = { acknowledged: opts.acknowledged };
+      seen.push(row);
+      for (const s of segs) await opts.onSegment(s).catch(() => {});
+      row.report = await opts.heard();
+      opts.onTiming({});
+      return result();
+    };
+    return { seen, runTurn };
+  };
+
+  it('thinking sounds off: the turn is not told of the filler code picked', async () => {
+    const cap = capture([seg('tail', 'Which bucket first?')]);
+    const h = harness([], { runTurn: cap.runTurn });
+    await h.c.ready(''); h.c.setFillers(false);
+    h.c.onStt(final('I would look at costs and revenue.'));
+    await h.advance(3000);
+    expect((h.records[0] as { ackSkipped: { why: string } }).ackSkipped.why).toBe('fillers_off');
+    expect(cap.seen[0].acknowledged).toBeUndefined();
+  });
+
+  it('skipped after the turn started (the reply came first): the report says it was not heard', async () => {
+    const cap = capture([seg('tail', 'Which bucket first?')]);
+    const h = harness([], { runTurn: cap.runTurn, fillerDelayMs: 500 });
+    await h.c.ready('');
+    h.c.onStt(final('I would look at costs and revenue.'));
+    await h.advance(3000);
+    expect((h.records[0] as { ackSkipped: { why: string } }).ackSkipped.why).toBe('reply_ready');
+    expect(cap.seen[0].acknowledged).toBeTruthy();
+    expect(cap.seen[0].report?.ackHeard).toBe(false);
+  });
+
+  it('played: the report says it was heard', async () => {
+    const cap = capture([seg('tail', 'Which bucket first?')]);
+    const slow: RunTurnFn = async (text, opts) => { await new Promise<void>(r => h.clock.at(h.clock.now() + 1000, r)); return cap.runTurn(text, opts); };
+    const h = harness([], { runTurn: slow, fillerDelayMs: 500, speechEndAt: () => 700 });   // no voice since the end of turn
+    await h.c.ready('');
+    h.c.onStt(final('I would look at costs and revenue.'));
+    await h.advance(4000);
+    expect((h.records[0] as { ack: string | null }).ack).toBeTruthy();
+    expect(cap.seen[0].report?.ackHeard).toBe(true);
+  });
+});

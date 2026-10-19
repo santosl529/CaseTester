@@ -81,6 +81,7 @@ type Live = {
   connectorDecided: boolean;   // the first spoken segment has been given its connector (or none)
   ackState: 'none' | 'pending' | 'played' | 'skipped';
   ackSkipped: string | null;   // why a planned acknowledgment didn't play
+  toldAck: boolean;            // the turn was told of the acknowledgment (runTurn's acknowledged)
   finalAt: number; speechEndAt: number | null; startedAt: number | null;
   entries: Entry[];
   cutAt: number | null; cutKind: CutKind | null; cutOutcome: Map<string, Outcome> | null;
@@ -239,7 +240,7 @@ export class VoiceTurnController {
 
   private newLive(text: string, finalAt: number, opening: boolean): Live {
     const t: Live = {
-      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck, fillers: this.fillers, connectorDecided: false, ackState: 'none', ackSkipped: null,
+      seq: ++this.seq, text, carried: false, replaces: null, opening, ack: null, prevAck: this.lastAck, fillers: this.fillers, connectorDecided: false, ackState: 'none', ackSkipped: null, toldAck: false,
       finalAt, speechEndAt: null, startedAt: null, entries: [],
       cutAt: null, cutKind: null, cutOutcome: null, finalizing: false, report: null, waiters: [],
       firstSoundAt: null, firstUsefulAt: null, firstAcceptedAt: null, ttsFirstAudioAt: null,
@@ -310,10 +311,13 @@ export class VoiceTurnController {
     t.startedAt = this.d.now();
     let result: TurnResult;
     try {
+      t.toldAck = t.ackState !== 'skipped' && t.ack !== null;
       result = await this.d.runTurn(t.text, {
         onSegment: seg => this.accept(t, seg),
         heard: () => this.heardFor(t),
-        acknowledged: t.ack ?? undefined,
+        // A filler skipped before the turn runs (toggle off, the rate) is not
+        // the turn's to know of: never saved, noted or gated as said (18 Oct).
+        acknowledged: t.ackState === 'skipped' ? undefined : t.ack ?? undefined,
         onTiming: marks => { t.marks = marks; },
       });
     } catch (e) {
@@ -448,6 +452,8 @@ export class VoiceTurnController {
     t.report = {
       interrupted: t.cutAt !== null,
       segments: t.entries.map(e => ({ ...e.seg, ...outcome(e), exhibitShown: e.exhibitConfirmed })),
+      // Whether the acknowledgment the turn was told of played (a late skip didn't).
+      ...(t.toldAck ? { ackHeard: t.ackState === 'played' } : {}),
     };
     for (const e of t.entries) {
       if (e.exhibitSentAt !== null && !e.exhibitConfirmed) {
