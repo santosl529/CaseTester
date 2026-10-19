@@ -611,9 +611,19 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
 // finer than the case (by region, per item…) is not covered.
 // Basis asks (Lorenzo, 19 Oct; batch 32 Larkspur Marisol t27, "Basis for the 70%
 // load factor estimate on the new routes" mapped to the plan and restated): a
-// question about where a figure comes from. The case holds the figure, not its
+// question about the basis of a figure or estimate (narrowed the same day: bare
+// "source" / "where … comes from" also read "revenue sources"). The case holds the figure, not its
 // basis; outsideAskScope (data-decisions.ts) reads the same words.
-export const BASIS = /\b(?:basis|source|where\b.{0,40}?\bcomes? from|how (?:firm|solid|reliable)|methodology|assumptions? behind|validated|evidence (?:for|behind))\b/i;
+export const BASIS = new RegExp([
+  String.raw`\bbasis\s+(?:for|of)\b`,
+  String.raw`\bsource\s+of\s+(?:the|this|that)\s+(?:[\w%$-]+\s+){0,3}?(?:figures?|estimates?|numbers?|assumptions?|forecasts?|projections?|percent(?:age)?|%)`,
+  String.raw`\bwhere\s+(?:the|this|that)\s+(?:[\w%$-]+\s+){0,3}?(?:figures?|estimates?|numbers?|assumptions?|forecasts?|projections?|percent(?:age)?|%)\s+comes?\s+from`,
+  String.raw`\bhow\s+(?:firm|solid|reliable)\s+(?:(?:is|are)\s+)?(?:the|this|that)\b`,
+  String.raw`\bmethodology\b`,
+  String.raw`\bassumptions?\s+behind\b`,
+  String.raw`\bhow\s+(?:was|were)\b.{0,40}?\b(?:estimated|derived|calculated)\b`,
+  String.raw`\bevidence\s+(?:for|behind)\b`,
+].join('|'), 'i');
 export type Coverage = { items: string[]; promptFacts: string[]; rest: string | null };
 const FURTHER_CUT_WORDS = /\b(?:broken (?:down|out) by|split by|by (?:customer|segment|type|age|income|loyalty|hour|day|time)\w*|segments?|cohorts?|per (?:day|hour|customer|week|month))\b/;
 const FURTHER_CUT = { test: (t: string) => FURTHER_CUT_WORDS.test(t) || BASIS.test(t) };

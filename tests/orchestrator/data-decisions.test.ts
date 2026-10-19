@@ -358,6 +358,16 @@ describe('a basis ask (Lorenzo, 19 Oct; batch 32 Larkspur Marisol t27)', () => {
   it('is in scope when the item says where the figure comes from', () => {
     expect(outsideAskScope('the basis for the estimate', { label: 'Forecast', value: 'The forecast is based on 3 pilots.' })).toBe(false);
   });
+  it.each([
+    ['What are the revenue sources?', { label: 'Revenue by source', value: 'Fares are 80% of revenue.' }],
+    ['Where does our revenue come from?', { label: 'Revenue mix by source', value: 'Fares are 80% of revenue.' }],
+    ['the source data for revenue', { label: 'Revenue', value: 'Revenue was $200M.' }],
+  ])('"%s" stays in scope of a revenue item', (what, item) => {
+    expect(outsideAskScope(what, item)).toBe(false);
+  });
+  it.each(['where the 70% load factor estimate comes from', 'how solid is the 70% assumption', 'the source of the 70% figure', 'how was the 70% estimated'])('"%s" is a basis ask', what => {
+    expect(outsideAskScope(what, plan, names)).toBe(true);
+  });
   it('is not covered by the phrase beside it', () => {
     expect(coverageOf('basis for the 70% load factor estimate', fb).items).toEqual([]);
   });

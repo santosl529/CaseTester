@@ -396,7 +396,7 @@ async function runTurnBody(
     });
     // Stream (stream-turn.ts): segments go out as they pass, after the
     // distress verdict; the rest of the turn is Settle's.
-    const streamed = await streamTurnSegments(events, plan, deliver, { isDelivered, timer });
+    const streamed = await streamTurnSegments(events, plan, deliver, { isDelivered, timer, onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); } });
     // Interviewer latency is the model call alone (the whole stream); the wait
     // on the distress verdict past it is logged apart (batch 4 conflated them).
     const modelLatencyMs = streamed.modelDoneAt - modelCallStart;

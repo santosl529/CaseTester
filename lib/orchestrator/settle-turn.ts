@@ -190,7 +190,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // Data: the same decisions Stream delivered from (the pressure test's
   // verdict for this turn first — the gate depends on it).
   const { satisfied: satisfiedNow, waiving, nothingMissing } = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
-  const decisions = await turnDataChecked(plan, turn);
+  const decisions = await turnDataChecked(plan, turn, u => { void logEvent('llm_usage', { ...u }, { sessionId: plan.ctx.sessionId, userId: plan.ctx.userId }); });
   const phraseUses = flags.phraseUses as PhraseUses | undefined;
   const dataParts = renderDataLineParts(decisions, seed, phraseUses);
   const dataLines = dataParts.map(p => p.text);

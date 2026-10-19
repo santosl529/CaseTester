@@ -6,11 +6,12 @@ import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema'
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
-import { findFalseRefusals, groupItemsAsked, coverageOf } from './fact-check';
+import { findFalseRefusals, groupItemsAsked, coverageOf, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests } from './data-requests';
 import { askingSentences } from './request-signal';
 import { revealedValues } from './data-ledger';
+import type { OnUsage } from '@/lib/llm-usage';
 
 export function caseResolver(plan: ModelPlan): (raw: string) => string | null {
   const { ledger, caseData } = plan.state;
@@ -64,17 +65,24 @@ export type TurnData = DataDecisions & { gatedIds: string[] };
 // before. Stream and Settle share the result through the plan (one call per
 // ask per turn).
 const DEFER_CHECK_TIMEOUT_MS = 3000;
-async function itemlessDeferHeld(plan: ModelPlan, what: string): Promise<boolean> {
+async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsage): Promise<boolean> {
   const cache = plan.state.deferChecks;
   const cached = cache.get(what);
   if (cached) return cached;
   const run = (async () => {
     const t0 = Date.now();
-    const timeout = new Promise<null>(r => setTimeout(() => r(null), DEFER_CHECK_TIMEOUT_MS));
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<null>(r => { timer = setTimeout(() => r(null), DEFER_CHECK_TIMEOUT_MS); });
+    // Put as an ask, not a bare noun phrase: detection mode is tuned for a
+    // candidate's message and may return [] for a fragment, which would make
+    // refusal the common outcome. Usage is logged as 'data_request' ($/case, PRD §13).
     const found = await Promise.race([
-      classifyDataRequests({ candidateText: what, interviewerText: null, catalog: plan.state.catalog }).catch(() => null),
+      classifyDataRequests({
+        candidateText: `Could I get ${what}?`, interviewerText: null, catalog: plan.state.catalog,
+        onUsage,
+      }).catch(() => null),
       timeout,
-    ]);
+    ]).finally(() => clearTimeout(timer));
     const mapped = found === null ? null : found.some(f => f.ledgerItemIds.length > 0);
     plan.ctx.checks.record('itemless_defer', mapped !== false, mapped === null ? 'no verdict: a named deferral' : mapped ? 'mapped to a ledger item: a named deferral' : 'maps to no item: refused',
       { what, mapped, found: found === null ? null : found.map(f => ({ what: f.what, ids: f.ledgerItemIds })), latencyMs: Date.now() - t0 });
@@ -85,10 +93,10 @@ async function itemlessDeferHeld(plan: ModelPlan, what: string): Promise<boolean
 }
 
 // turnData, with the item-less deferrals resolved (async: the check above).
-export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>): Promise<TurnData> {
+export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage): Promise<TurnData> {
   const d = turnData(plan, turn);
   if (d.unmatchedDefers.length === 0) return d;
-  const held = await Promise.all(d.unmatchedDefers.map(w => itemlessDeferHeld(plan, w)));
+  const held = await Promise.all(d.unmatchedDefers.map(w => itemlessDeferHeld(plan, w, onUsage)));
   const defers: string[] = [], refusals: string[] = [];
   d.unmatchedDefers.forEach((w, i) => (held[i] ? defers : refusals).push(w));
   const refused = new Set(refusals);
@@ -183,6 +191,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // whole when a split of it was asked for, a cut it doesn't have — is not
   // what was requested, released or restated (data-decisions.ts).
   const scoped: { what: string; ids: string[] }[] = [];
+  // Asks the BASIS rule emptied: checked like an item-less deferral before any refusal goes out.
+  const basisEmptied = new Set<string>();
   requests = requests.flatMap(r => {
     // An item the case's own `covers` names for the ask is in its scope (Marisol
     // 0f7551c2 t9: "transaction volume per store" mapped to the ticket, which the
@@ -212,6 +222,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     if (out.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) finerAsks.add(r.what);
     const kept = { ...r, itemIds: r.itemIds.filter(id => !out.includes(id)) };
     if (out.length > 0) scoped.push({ what: r.what, ids: out });
+    if (r.explicit && out.length > 0 && kept.itemIds.length === 0 && BASIS.test(r.what)) basisEmptied.add(r.what);
     // A finer ask the case doesn't hold is refused (4b), even beside an exhibit the model handed over for it.
     if (r.explicit && finerAsks.has(r.what) && kept.itemIds.length > 0 && !kept.itemIds.some(id => ledger.items.some(i => i.id === id))) {
       return [kept, { ...r, itemIds: [] }];
@@ -333,6 +344,15 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     // slot and the third COGS item was deferred).
     groups: askedGroups,
   });
+  // Lorenzo, 19 Oct (R1, "don't add code-spoken refusals without the check"): an
+  // ask the model mapped to an item and the BASIS rule emptied (Larkspur Marisol
+  // t27) goes through the same check as an item-less deferral (turnDataChecked)
+  // instead of being refused at once: named deferral, or refused when it maps to none.
+  if (basisEmptied.size > 0) {
+    decisions.unmatchedDefers.push(...decisions.refusals.filter(w => basisEmptied.has(w)));
+    decisions.refusals = decisions.refusals.filter(w => !basisEmptied.has(w));
+    decisions.requests = decisions.requests.map(d => (d.response === 'refuse' && basisEmptied.has(d.request.what) ? { ...d, response: 'defer' as const } : d));
+  }
   // Code's correction of a misquote (plan-turn.ts), on any turn that answers
   // the message — a code-written close or recommendation ask included (batch 20:
   // R21 and R47's corrections were decided at the close and never spoken).

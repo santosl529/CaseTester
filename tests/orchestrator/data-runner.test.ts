@@ -39,7 +39,7 @@ vi.mock('@/lib/orchestrator/distress', async orig => ({
   classifyDistress: async (p: { candidateText: string; earlier?: { disclosure: string } }) => { distressCalls.push(p); return distressVerdict(p); },
 }));
 const classified: unknown[][] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { candidateText: string }) => (p.candidateText in deferChecks ? deferChecks[p.candidateText] : classified.shift() ?? []) }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { candidateText: string }) => { const ask = p.candidateText.replace(/^Could I get (.*)\?$/, '$1'); return ask in deferChecks ? deferChecks[ask] : classified.shift() ?? []; } }));
 // The item-less deferral check (engine-asks R1) is asked with the ask's own words.
 const deferChecks: Record<string, unknown> = {};
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
@@ -170,4 +170,16 @@ describe('the analysis turn', () => {
     expect(((store.session.flagsJsonb as Row).stagesEnforced as Row).analysis).toBe(true);
   });
 
+
+  // Plan item 5: a refused item-less deferral is not put to the interviewer again (the row's response is 'refuse', not 'defer').
+  it('a deferral the check refuses is not queued for the next turn', async () => {
+    deferChecks['marketing spend and store square footage'] = [];
+    seed({ phase: 'STRUCTURE', flags: { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false, awaitingReplies: 0, followUps: [] } } });
+    judgeVerdict = { answered: false, reason: '' };
+    const held = await say('Could I get marketing spend and store square footage?', T({ requests: [{ what: 'marketing spend and store square footage', itemIds: [], explicit: true, respond: 'defer' }] }));
+    expect(held.interviewerText).toMatch(/I don't have marketing spend and store square footage/);
+    judgeVerdict = { answered: true, reason: 'names a missing branch' };
+    await say("It's missing a competitor branch; I'd add it under revenue.", T());
+    expect(flags().unmappedToResolve ?? []).toEqual([]);
+  });
 });
