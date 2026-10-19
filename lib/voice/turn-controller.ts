@@ -17,6 +17,7 @@ import { DEFAULT_FILLER_RATE, FILLER_DELAY_MS, ackKind, fillerAllowed, isThinkin
 import { connectorWordCount, pickConnector, spokenWithConnector } from './connector';
 import { speechTextFor, WordFolder } from './pronounce';
 import { PHRASE_POOLS, variantIndex } from '@/lib/orchestrator/phrasing';
+import { ECHO_WINDOW_MS, echoScore, ECHO_MIN_SCORE } from './echo';
 
 // How long heard() waits for the browser to confirm an exhibit it was sent.
 export const EXHIBIT_CONFIRM_MS = 1500;
@@ -188,7 +189,7 @@ export class VoiceTurnController {
     if (spoke) this.candidateSpoke(spoke);
     if (e.kind === 'speech') {
       if (e.transcript) this.d.send({ type: 'caption', who: 'candidate', turnSeq: this.seq + 1, text: e.transcript, final: false });
-      this.maybeBargeIn(e.words);
+      this.maybeBargeIn(e.words, e.transcript);
       return;
     }
     if (e.kind === 'final') this.onFinal(e.transcript, e.atMs);
@@ -204,12 +205,31 @@ export class VoiceTurnController {
     this.state = 'ended';
   }
 
-  private maybeBargeIn(words: number): void {
+  private maybeBargeIn(words: number, transcript = ''): void {
     const t = this.live;
     if (!t || t.cutAt !== null || this.d.playout.hasPendingNonInterruptible()) return;
     const anyStarted = t.entries.some(x => this.d.playout.started(x.id));
-    if (this.state === 'thinking' && !anyStarted && words >= 1) this.cut(t, 'barge');
-    else if (this.state === 'speaking' && anyStarted && words >= this.d.bargeMinWords) this.cut(t, 'barge');
+    const wouldCut = (this.state === 'thinking' && !anyStarted && words >= 1) || (this.state === 'speaking' && anyStarted && words >= this.d.bargeMinWords);
+    if (!wouldCut) return;
+    // The echo guard (Lorenzo, 19 Oct): words that mostly follow the
+    // interviewer's own text, playing or played in the last ~10s (the ack
+    // clips too), are the room hearing it — ignored. Every barge is logged.
+    const score = transcript ? echoScore(transcript, this.d.playout.spokenSince(this.d.now() - ECHO_WINDOW_MS)) : 0;
+    const echo = score >= ECHO_MIN_SCORE;
+    this.noteBarge(t, { state: this.state, transcript, words, score: Math.round(score * 100) / 100, decision: echo ? 'ignored' : 'cut' });
+    if (!echo) this.cut(t, 'barge');
+  }
+
+  // One line per barge decision; an ignored echo again only once it has grown
+  // by 3+ words (an interim transcript updates several times a second).
+  private lastIgnored: { seq: number; words: number } | null = null;
+  private noteBarge(t: Live, barge: { state: VoiceState; transcript: string; words: number; score: number; decision: 'cut' | 'ignored' }): void {
+    if (barge.decision === 'ignored') {
+      if (this.lastIgnored?.seq === t.seq && barge.words < this.lastIgnored.words + 3) return;
+      this.lastIgnored = { seq: t.seq, words: barge.words };
+    }
+    this.d.trace?.('barge', { seq: t.seq, ...barge });
+    this.d.note?.({ turnSeq: t.seq, at: new Date(this.d.now()).toISOString(), barge });
   }
 
   private onFinal(transcript: string, atMs: number): void {

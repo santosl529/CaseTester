@@ -35,6 +35,8 @@ export type ClientMessage =
   | { type: 'audio_blocked' }                                    // it no longer can
   | { type: 'exhibit_shown'; turnSeq: number; exhibitId: string } // rendered (§5.3)
   | { type: 'timing'; turnSeq: number; clientFirstSoundMs: number }
+  // The page's health since its last line, at the end of each interviewer turn (19 Oct; lib/voice/health.ts).
+  | { type: 'health'; turnSeq: number; longestFrameGapMs: number; longTaskMs: number | null; audioElements: number; audioContextState: string }
   // The interview screen's toggle for the thinking sounds and the "So,"
   // connector (item 3, 17 Oct): sent when changed and with every `ready`, so an
   // agent that (re)joins learns it; the agent applies it from the next turn.
@@ -50,6 +52,10 @@ export function parseClientMessage(raw: string): ClientMessage | null {
     return { type: 'exhibit_shown', turnSeq: m.turnSeq as number, exhibitId: m.exhibitId };
   }
   if (m.type === 'fillers' && typeof m.on === 'boolean') return { type: 'fillers', on: m.on };
+  if (m.type === 'health' && Number.isInteger(m.turnSeq) && typeof m.longestFrameGapMs === 'number' && (m.longTaskMs === null || typeof m.longTaskMs === 'number')
+    && Number.isInteger(m.audioElements) && typeof m.audioContextState === 'string') {
+    return { type: 'health', turnSeq: m.turnSeq as number, longestFrameGapMs: m.longestFrameGapMs, longTaskMs: m.longTaskMs as number | null, audioElements: m.audioElements as number, audioContextState: m.audioContextState.slice(0, 20) };
+  }
   if (m.type === 'timing' && Number.isInteger(m.turnSeq) && typeof m.clientFirstSoundMs === 'number') {
     return { type: 'timing', turnSeq: m.turnSeq as number, clientFirstSoundMs: m.clientFirstSoundMs };
   }

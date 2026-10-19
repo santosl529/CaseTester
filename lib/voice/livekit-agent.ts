@@ -168,7 +168,7 @@ export default defineAgent({
       // The check-in heard goes to the model's history as no turn (voice-check-in.ts).
       note: l => {
         lines.add(l);
-        console.log('[voice] check-in', JSON.stringify(l));
+        console.log('[voice] note', JSON.stringify(l));
         const ci = (l as { checkIn?: { heardText?: string; startedAtMs?: number | null; silentMs?: number } }).checkIn;
         if (ci?.heardText) {
           void db.insert(sessionEvents).values({
@@ -199,6 +199,9 @@ export default defineAgent({
         const r = records.find(x => x.turnSeq === m.turnSeq);
         if (r) r.clientFirstSoundMs = m.clientFirstSoundMs;
         lines.add({ turnSeq: m.turnSeq, clientFirstSoundMs: m.clientFirstSoundMs });
+      } else if (m.type === 'health') {
+        // The page's health line (19 Oct, lib/voice/health.ts).
+        lines.add({ turnSeq: m.turnSeq, health: { longestFrameGapMs: m.longestFrameGapMs, longTaskMs: m.longTaskMs, audioElements: m.audioElements, audioContextState: m.audioContextState } });
       }
     });
 

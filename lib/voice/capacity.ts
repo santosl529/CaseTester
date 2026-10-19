@@ -6,7 +6,11 @@
 // A session past it is refused before any dispatch; one whose agent never
 // speaks gets the same message from the browser after AGENT_AUDIO_TIMEOUT_MS.
 export const VOICE_BUSY_MESSAGE = 'Voice is busy right now. Try again in a few minutes.';
-export const AGENT_AUDIO_TIMEOUT_MS = 15_000;
+// 30s, not 15 (Lorenzo, 19 Oct): a LiveKit Build-plan agent can cold-start
+// 10–20s after idle, which 15s called "busy". The page says it is connecting
+// meanwhile; the token route's 429 (rooms full) stays immediate.
+export const AGENT_AUDIO_TIMEOUT_MS = 30_000;
+export const CONNECTING_MESSAGE = 'Connecting to your interviewer…';
 export const ROOM_PREFIX = 'case-';
 // A room this new counts even before anyone has joined it: the dispatch
 // creates it, and the candidate and the agent join within seconds.
