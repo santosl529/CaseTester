@@ -399,7 +399,8 @@ describe('the stale check — a late verdict on a claim since revised or withdra
   });
   it('a math step restated since at another figure (R2, 19 Oct: at the same figure the error stands)', () => {
     const step = vetted({ span: '10 percentage points of revenue', candidateValue: '10 percentage points', correctValue: 4.2, codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null } });
-    expect(isStale(step, ['Beans add 6 points of revenue to COGS.'], prof, COSTS)).toMatch(/^restated at 6/);
+    expect(isStale(step, ['Beans add 7.5 points of revenue to COGS.'], prof, COSTS)).toMatch(/^restated at 7.5/);
+    expect(isStale(step, ['Beans add 6 points of revenue to COGS.'], prof, COSTS)).toBeNull();   // 6 is today's margin: a case figure (review M2)
     expect(isStale(step, ['Beans add 10 points of revenue to COGS.'], prof, COSTS)).toBeNull();
   });
 });
@@ -769,6 +770,11 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
     });
     it('the right figure stated is still stale', () => expect(stale('List is $10,000 per patient per year, so net is $8,000.')).not.toBeNull());
     it('the same value again is no staleness', () => expect(stale('So $2,000 net per patient again.')).toBeNull());
+    // Review M2: a span at a case figure is a quote of the data, not the quantity restated.
+    it('a step span at a case figure ("List is $10,000") restates nothing', () => {
+      expect(stale('List is $10,000 per patient per year.')).toBeNull();
+      expect(stale('List is $10,000 per patient per year, and net comes to $7,000.')).toMatch(/^restated at 7000/);
+    });
     it('restated at a different value is stale, with the value', () => expect(stale('Net comes to $7,000 per patient.')).toMatch(/^restated at 7000/));
     it('a pricing claim said again at its own figure is no staleness; at another figure it is', () => {
       expect(isStale(vetted(), ['A 10% price rise recovers about 5 points of margin.'], prof, COSTS)).toBeNull();
@@ -779,14 +785,49 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
   describe('(b) a claim built on an open wrong input yields to it', () => {
     it('net_price@2000 open: "40,000 × $2,000 = $80 million" is derived, and the net price is selected', () => {
       const p = run([net, sales('40,000 × $2,000 = $80 million', '$80 million')]);
-      expect(p.decisions.find(d => d.id === '17:1')).toMatchObject({ outcome: 'derived', reason: expect.stringMatching(/net_price@2000/) });
-      expect(p.handledNow).toContain('17:1');
+      expect(p.decisions.find(d => d.id === '17:1')).toMatchObject({ outcome: 'derived', root: 'net_price@2000', reason: expect.stringMatching(/net_price@2000/) });
       expect(p.selected).toMatchObject({ id: '17:0', key: 'net_price@2000', action: 'probe' });
+      // It rides on the root's line: plan-turn books it only when the line is used (and unbooks it with an unheard line).
+      expect(p.selected?.riders?.map(r => r.id)).toEqual(['17:1']);
+      expect(p.handledNow).not.toContain('17:1');
     });
-    it('the root raised on an earlier turn, its claim not in this verdict: still derived', () => {
-      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { keys: { 'net_price@2000': { figures: [2000], since: 7 } }, attempts: { 'net_price@2000': 1 } });
-      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'derived' })]);
+    // Review I1: yielding to a root that isn't said is no yielding.
+    it('the root loses the race (outranked): the claim built on it is not handled — it waits', () => {
+      const other = vetted({ span: 'the eligible pool is 300,000', quantity: 'eligible patients', candidateValue: '300,000', correctValue: 200000, codeQuantity: step('eligible_patients'), changesConclusion: true });
+      const p = run([{ ...net, changesConclusion: false }, sales('40,000 × $2,000 = $80 million', '$80 million', { changesConclusion: false }), other]);
+      expect(p.selected?.id).toBe('17:2');
+      expect(p.decisions.find(d => d.id === '17:1')).toBeUndefined();
+      expect(p.handledNow).not.toContain('17:1');
+      expect(p.waiting.map(w => w.id)).toEqual(expect.arrayContaining(['17:0', '17:1']));
+    });
+    it('a minor root under time pressure takes the conclusion-changing rating of a claim built on it: not shed', () => {
+      const p = run([{ ...net, changesConclusion: false }, sales('40,000 × $2,000 = $80 million', '$80 million', { changesConclusion: true })], { underTimePressure: true });
+      expect(p.decisions.some(d => d.outcome === 'shed')).toBe(false);
+      expect(p.selected).toMatchObject({ id: '17:0', key: 'net_price@2000', action: 'correct' });
+      expect(p.decisions.find(d => d.id === '17:1')).toMatchObject({ outcome: 'derived' });
+    });
+    // Review I3 (controller ruling; Lorenzo's (o): "the correction should follow the wrong input").
+    it('the root probed once and not restated: the next message carries its figure — the root\'s correction goes on that turn', () => {
+      const T7 = 'On price: list is $10,000 per patient per year, and discounts and rebates to insurers are 20% of list, so net realized is $2,000 per patient per year.';
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], {
+        rows: [verdictRow(7, [{ ...net, span: 'net realized is $2,000 per patient per year' }]), verdictRow(17, [sales('40,000 × $2,000 = $80 million', '$80 million')])],
+        handled: ['7:0'], keys: { 'net_price@2000': { figures: [2000], since: 7 } }, attempts: { 'net_price@2000': 1 },
+        turnRows: [{ turnIndex: 7, role: 'candidate', text: T7 }, { turnIndex: 8, role: 'interviewer', text: net.probeLine! },
+          { turnIndex: 17, role: 'candidate', text: T17 }, { turnIndex: 18, role: 'interviewer', text: 'Go on.' }],
+      });
+      expect(p.selected).toMatchObject({ id: '7:0', key: 'net_price@2000', action: 'correct', attempt: 2, line: 'Kelvexa net price per patient per year is about $8,000, not $2,000.' });
+      expect(p.selected?.riders?.map(r => r.id)).toEqual(['17:0']);
+      expect(p.decisions.find(d => d.id === '17:0')).toMatchObject({ outcome: 'derived' });
+      expect(p.waiting).toEqual([]);
+    });
+    it('…and the step cap still counts on the root\'s step', () => {
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], {
+        rows: [verdictRow(7, [{ ...net, correctionLine: null, correctionFigure: null, span: 'net realized is $2,000 per patient per year' }]), verdictRow(17, [sales('40,000 × $2,000 = $80 million', '$80 million')])],
+        handled: ['7:0'], keys: { 'net_price@2000': { figures: [2000], since: 7 } }, attempts: { 'net_price@2000': 1 }, stepProbes: { net_price: 2 },
+      });
       expect(p.selected).toBeNull();
+      expect(p.decisions).toEqual(expect.arrayContaining([expect.objectContaining({ id: '7:0', outcome: 'unresolved', reason: expect.stringMatching(/two probes on this step/) }),
+        expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: expect.stringMatching(/built on a closed input/) })]));
     });
     it('the flag is the key: "with peak at $80 million" (t19) restates a key another claim built on $2,000 — derived too', () => {
       const p = run([sales('with peak at $80 million there\'s no headroom at all', '$80M peak')], {
@@ -795,7 +836,8 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
         turnRows: [{ turnIndex: 17, role: 'candidate', text: T17 }, { turnIndex: 18, role: 'interviewer', text: 'Go on.' }, { turnIndex: 19, role: 'candidate', text: 'With peak at $80 million there\'s no headroom at all.' }, { turnIndex: 20, role: 'interviewer', text: 'Go on.' }],
         candidateTurnIndex: 21,
       });
-      expect(p.decisions).toEqual([expect.objectContaining({ id: '19:0', outcome: 'derived', reason: expect.stringMatching(/net_price@2000/) })]);
+      expect(p.decisions).toEqual(expect.arrayContaining([expect.objectContaining({ id: '19:0', outcome: 'derived', reason: expect.stringMatching(/net_price@2000/) })]));
+      expect(p.selected).toMatchObject({ key: 'net_price@2000', action: 'correct' });
     });
     it('a line a due stage held back keeps its turn', () => {
       const p = run([net, sales('40,000 × $2,000 = $80 million', '$80 million')], { held: '17:1' });
@@ -824,6 +866,12 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       // Another figure of the same step is a restatement, not an input.
       expect(rootOf('$400 million, now $80 million', 'peak_net_sales@80', { 'peak_net_sales@400': { figures: [400], since: 7 } }, [])).toBeNull();
     });
+    // Review I2: the root's head figure (its wrong result), not every figure it was said with.
+    it('a root matches on its head figure only', () => {
+      expect(rootOf('Beans at 10.5 points, so the rest is 31.5', 'non_bean_points_now@31.5', { 'bean_points_added@3.7': { figures: [3.7, 10.5, 14.2], since: 7 } }, [])).toBeNull();
+      const keys = { 'peak_net_sales@400': { figures: [400, 200000, 2000], since: 7 }, 'net_price@2000': { figures: [2000], since: 7 } };
+      expect(rootOf('$300 million ÷ $2,000 = 150,000 patients', 'breakeven_patients@150000', keys, [])).toBe('net_price@2000');
+    });
     it('several roots: the earliest', () => {
       const keys = { 'net_price@2000': { figures: [2000], since: 9 }, 'peak_patients@200000': { figures: [200000], since: 7 } };
       expect(rootOf('200,000 × $2,000 = $400 million', 'peak_net_sales@400', keys, [])).toBe('peak_patients@200000');
@@ -837,6 +885,17 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       });
       expect(g.released).toEqual([]);
       expect(g.decisions[0]).toMatchObject({ outcome: 'derived', reason: expect.stringMatching(/net_price@2000/) });
+    });
+    // Review M1: the gate keys the claim as the plan does (flagKeyFor), so a restatement of a raised key at a new value is that key's step — no root.
+    it('the gate keys the claim as the plan does: "down from $400 million to $80 million" is peak_net_sales again, not built on it', () => {
+      const flag = { kind: 'step' as const, stepId: 'peak_net_sales', description: '', expected: 320, candidateValue: 80, errorClass: 'case_breaking' as const, span: 'down from $400 million to $80 million' };
+      const claim = vetted({ span: 'down from $400 million to $80 million', quantity: 'peak sales', candidateValue: '$80 million', correctValue: 320, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
+      const g = gateCodeFindings({
+        rows: [verdictRow(17, [claim], { codeFlags: codeFlagRefs({ flags: [flag] }, []) })], handled: [],
+        turnRows: [{ turnIndex: 17, role: 'candidate', text: 'Peak is down from $400 million to $80 million.' }], candidateText: 'Nimbrel nets $9,000.', candidateTurnIndex: 19, caseData: entry, revealedIds: ENTRY,
+        keys: { 'peak_net_sales@400': { figures: [400], since: 7 }, 'peak_net_sales@80': { figures: [80], since: 9 } }, closed: [],
+      });
+      expect(g.decisions[0]).toMatchObject({ outcome: 'released' });
     });
   });
 });

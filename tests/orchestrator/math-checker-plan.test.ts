@@ -113,6 +113,24 @@ describe('on a code-written turn other than the close, the flag waits', () => {
   });
 });
 
+// Lorenzo, 19 Oct (§15 o; review I1): a claim built on the flagged figure rides
+// on its line — booked with it on a turn that says it, left waiting on one that doesn't.
+describe('a claim built on the flagged figure rides on its line', () => {
+  const built: VettedClaim = { ...flagged, span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', candidateValue: '11%', correctValue: 14.5, codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null },
+    probeLine: 'Walk me through how you got to 11%.', correctionLine: null, correctionFigure: null };
+  it('a model turn: the root probed, the built claim derived and handled with it', () => {
+    const p = modelState(planTurn(withVerdict(analysis(), [verdict(3, { claims: [flagged, built] })]), 'Next I would look at competitors.', deps()));
+    expect(p.state.recomputeHint).toMatch(/Which cost lines did you include\?/);
+    expect((p.ctx.flags.mathChecker as { handled: string[] }).handled).toEqual(['3:0', '3:1']);
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ id: '3:1', outcome: 'derived', root: 'pricing:gain@5' }) }));
+  });
+  it('a code-written stage or time line: neither handled, no derived row', () => {
+    const p = modelState(planTurn(withVerdict(analysis({}, 16 * 60 * 1000 + 30_000), [verdict(3, { claims: [flagged, built] })]), 'Next I would look at competitors.', deps()));
+    expect(p.ctx.flags.mathChecker).toBeUndefined();
+    expect(p.ctx.events).not.toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ outcome: 'derived' }) }));
+  });
+});
+
 describe('the close holds one turn for an unresolved conclusion-changing flag', () => {
   const CORE = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change', 'menu_price_change'];
   const endReads = (o: { flags?: Record<string, unknown>; elapsedMs?: number } = {}) => readsFixture({

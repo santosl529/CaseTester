@@ -176,21 +176,28 @@ export function caseNumbersOf(caseData: Pick<CheckerCase, 'prompt' | 'dataLedger
 // Aldermoor Marisol: $400M and $80M, built on her wrong 200,000 patients and
 // $2,000 net price, took probes of their own while the $2,000 went unasked). A case's
 // math steps name ledger inputs, not upstream steps, so the link is the wrong
-// figure itself, carried in the claim's span: a figure of another step's
-// registered error key (stepOfKey differs), stated no later than the claim
+// figure itself, carried in the claim's span: the wrong result of another
+// step's registered error key (stepOfKey differs) — its head figure, the
+// key's value, never an input or range end it was said with ("$400M (200,000
+// × $2,000)" is no root at $2,000; review I2) — stated no later than the claim
 // (its first message, then the order registered) — not a case figure (a quote
 // of the data) and not one of the claim's own figures (its result, or the
 // root's figure said again under another binding). Several roots: the
 // earliest. Returns the root's key, or null.
-export function rootOf(span: string, key: string, keys: Record<string, CheckerKeyEntry>, caseFigures: number[]): string | null {
+// The figure a key stands for: its value ("net_price@2000" → 2000), else the first figure registered.
+function headOf(key: string, keys: Record<string, CheckerKeyEntry>): number | undefined {
   const at = key.lastIndexOf('@');
-  const own = [...(keys[key]?.figures ?? []), ...(at < 0 ? [] : [Number(key.slice(at + 1))]).filter(n => !Number.isNaN(n))];
+  const v = at < 0 ? NaN : Number(key.slice(at + 1));
+  return Number.isNaN(v) ? keys[key]?.figures[0] : v;
+}
+export function rootOf(span: string, key: string, keys: Record<string, CheckerKeyEntry>, caseFigures: number[]): string | null {
+  const own = [...(keys[key]?.figures ?? []), headOf(key, keys)].filter((n): n is number => n !== undefined);
   const carried = numbersOf(normalizeNumberWords(span)).filter(n => !caseFigures.some(x => same(n, x)) && !own.some(x => same(n, x)));
   if (carried.length === 0) return null;
   const order = Object.keys(keys);
   const before = (k: string) => keys[key] === undefined
     || keys[k].since < keys[key].since || (keys[k].since === keys[key].since && order.indexOf(k) < order.indexOf(key));
-  const roots = order.filter(k => k !== key && stepOfKey(k) !== stepOfKey(key) && before(k) && keys[k].figures.some(f => carried.some(n => same(n, f))));
+  const roots = order.filter(k => k !== key && stepOfKey(k) !== stepOfKey(key) && before(k) && carried.some(n => { const h = headOf(k, keys); return h !== undefined && same(n, h); }));
   return roots.sort((a, b) => keys[a].since - keys[b].since || order.indexOf(a) - order.indexOf(b))[0] ?? null;
 }
 
@@ -298,16 +305,18 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
     // "List is $10,000 per patient per year" beside "$2,000 realized"): the
     // quantity said again at its own figure carries the error on — the key
     // dedupes it — and so does a message that still states the claim's figure.
-    if (!namesClaim(text)) {
-      if (pm && q.kind !== 'none' && q.kind !== 'step') {
-        const kind = q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain' ? 'needed' : q.kind;
-        const again = checkPricingClaims(text, pm).find(x => x.kind === kind && (kind === 'needed' || x.price === q.price));
-        if (again) return `restated at ${kind === 'needed' ? again.price : again.stated}: "${again.span}"`;
-      }
-      if (step) {
-        const again = findStepSpans(text, step as never)[0];
-        if (again) return `restated at ${again.value}: "${again.span}"`;
-      }
+    // A step span at a case figure is a quote of the data, not the quantity
+    // restated ("List is $10,000" read as the net-price step; review M2).
+    const atOwn = (v: number) => own.some(x => same(v, x));
+    if (pm && q.kind !== 'none' && q.kind !== 'step') {
+      const kind = q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain' ? 'needed' : q.kind;
+      const again = checkPricingClaims(text, pm).find(x => x.kind === kind && (kind === 'needed' || x.price === q.price));
+      const value = again && (kind === 'needed' ? again.price : again.stated);
+      if (again && value !== undefined && !atOwn(value) && !namesClaim(text)) return `restated at ${value}: "${again.span}"`;
+    }
+    if (step) {
+      const again = findStepSpans(text, step as never).find(x => !caseFigures.some(f => same(x.value, f)));
+      if (again && !atOwn(again.value) && !namesClaim(text)) return `restated at ${again.value}: "${again.span}"`;
     }
   }
   return null;
@@ -351,6 +360,7 @@ export function lineHeard(text: string, line: string): boolean {
 export type CheckerDecision = {
   id: string; candidateTurnIndex: number; outcome: CheckerOutcome; reason: string;
   span: string; candidateValue: string; key: string; changesConclusion: boolean; line?: string;
+  root?: string;   // a claim built on another error: that error's key (rootOf)
 };
 export type CheckerSelection = {
   id: string; candidateTurnIndex: number; key: string; attempt: number;
@@ -360,6 +370,8 @@ export type CheckerSelection = {
   // quantity, or no quantity stated (own-quantity.ts): no "not X", and its step closes.
   converted?: boolean;
   framing?: string;   // how the candidate framed the figure, for the log
+  // Claims built on this line's root, 'derived' on it: handled only if the line is used and heard (plan-turn, settle-turn).
+  riders?: { id: string; candidateTurnIndex: number; claim: VettedClaim }[];
 };
 export type CheckerPlanInput = {
   rows: CheckerRow[];                 // the session's math_checker events
@@ -419,7 +431,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const decisions: CheckerDecision[] = [];
   const flaggedFigures: number[] = [];
   const droppedStamps: CheckerPlan['droppedStamps'] = [];
-  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean }[] = [];
+  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean; carried?: boolean }[] = [];
   const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
   const keys: Record<string, CheckerKeyEntry> = { ...(p.keys ?? {}) };
   const closed = new Set(p.closed ?? []);
@@ -589,13 +601,20 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       eligible.push({ id, n: v.candidateTurnIndex, c, key, figs, codeProbed: Boolean(codeFlag) });
     });
   }
-  // A claim built on another error's figure yields to it (rootOf): while the
-  // root is open the probe follows the input; once it closed (corrected, or
-  // left for the report) the claim goes to the report too. The flag is the
-  // key, so a claim restating a figure another claim of its key built on the
-  // input is built on it too (Marisol t19: "with peak at $80 million" after
-  // t17's "40,000 × $2,000 = $80 million"). A root whose every claim here is
-  // itself built on another follows that one; a held line keeps its turn.
+  // A claim built on another error's figure yields to it (rootOf): the probe
+  // follows the input. The flag is the key, so a claim restating a figure
+  // another claim of its key built on the input is built on it too (Marisol
+  // t19: "with peak at $80 million" after t17's "40,000 × $2,000 = $80
+  // million"); a root whose every claim here is itself built on another
+  // follows that one; a held line keeps its turn.
+  // Lorenzo, 19 Oct (§15 o, review I1/I3): the claim yields only to a root
+  // that is said — its root's line is this turn's selection (then it is
+  // 'derived'), or the root closed (then it goes to the report with it).
+  // Otherwise it waits, and expires or links again. A root carried into a new
+  // message is the root restated: raised before and open, with no claim of its
+  // own here, it comes back on the derived claim's turn with its next Rule-14
+  // attempt (the correction, or the pointer or hint). The root takes the
+  // derived claims' rating and final-answer rank.
   const all = [...eligible];
   const ofKey = (key: string, id: string) => flaggedSoFar.filter(f => f.id !== id && (checkerKey(f.c) === key || flagKeyFor(f.c, idFigsOf(f.c), keys) === key));
   const direct = new Map(all.map(e => [e.id, e.id === p.held ? null
@@ -605,28 +624,41 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const next = holders.length > 0 && holders.every(h => direct.get(h.id)) ? direct.get(holders[0].id)! : null;
     return next && depth < 8 ? rootFrom(next, depth + 1) : key;
   };
+  const built: { e: typeof all[number]; root: string }[] = [];
   for (const e of all) {
     const first = direct.get(e.id);
     if (!first) continue;
     const root = rootFrom(first);
-    const isClosed = closed.has(first) || closed.has(root);
-    decisions.push(decision(e.id, e.n, e.c, isClosed ? 'unresolved' : 'derived', isClosed ? `built on a closed input (${root})` : `built on ${root}'s figure — the probe follows the input`, undefined, e.key));
-    handled.add(e.id);
     eligible.splice(eligible.indexOf(e), 1);
+    if (closed.has(first) || closed.has(root)) {
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `built on a closed input (${root})`, undefined, e.key), root });
+      handled.add(e.id);
+    } else built.push({ e, root });
   }
   for (const r of reopened) if (!eligible.some(e => e.key === r.key)) eligible.push({ id: r.id, n: r.n, c: r.c, key: r.key, figs: r.figs });
+  // A raised, open root with no claim here comes back on its latest claim (one with a correction first).
+  for (const root of new Set(built.map(b => b.root))) {
+    if (eligible.some(e => e.key === root) || !p.keys?.[root]) continue;
+    const claims = flaggedSoFar.filter(f => checkerKey(f.c) === root || flagKeyFor(f.c, idFigsOf(f.c), keys) === root);
+    const own = [...claims].reverse().find(f => f.c.correctionLine) ?? claims[claims.length - 1];
+    if (own) eligible.push({ id: own.id, n: own.n, c: own.c, key: root, figs: claimFigures(own.c, caseNumbers), carried: true });
+  }
   // One checker probe a turn, conclusion-changing first; none beside a
   // deterministic flag on this message (that is the turn's probe) or a
   // misquote code corrects this turn (one math line a turn).
   // A line a due stage held back goes out first, on the next turn it can.
   // Then a final answer's (close-hold.ts).
-  const final = (n: number) => Number(Boolean(p.finalAnswer?.(n)));
-  const rank = (x: { n: number; c: VettedClaim }) => (final(x.n) && p.rank ? p.rank(x.n, x.c) : 0);
-  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b.n) - final(a.n) || rank(b) - rank(a) || Number(b.c.changesConclusion) - Number(a.c.changesConclusion) || a.n - b.n);
+  const riding = (x: { key: string }) => built.filter(b => b.root === x.key).map(b => b.e);
+  const isFinal = (x: { n: number; key: string }) => Boolean(p.finalAnswer?.(x.n)) || riding(x).some(d => Boolean(p.finalAnswer?.(d.n)));
+  const final = (x: { n: number; key: string }) => Number(isFinal(x));
+  const rank = (x: { n: number; c: VettedClaim; key: string }) => (p.rank ? Math.max(0, ...[x, ...riding(x)].filter(y => p.finalAnswer?.(y.n)).map(y => p.rank!(y.n, y.c))) : 0);
+  const changes = (x: { c: VettedClaim; key: string }) => x.c.changesConclusion || riding(x).some(d => d.c.changesConclusion);
+  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b) - final(a) || rank(b) - rank(a) || Number(changes(b)) - Number(changes(a)) || a.n - b.n);
   let selected: CheckerSelection | null = null;
   const waiting = [...eligible];
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
-    const { id, n, c, key, codeProbed } = waiting.shift()!;
+    const entry = waiting.shift()!;
+    const { id, n, c, key, codeProbed } = entry;
     if (closedNow.includes(key)) { decisions.push(decision(id, n, c, 'unresolved', 'its flag closed this turn', undefined, key)); handled.add(id); continue; }
     // Every probe of the error counts — code's, the checker's and the model's
     // own — since it was first stated (the stored counter, or the interviewer
@@ -636,7 +668,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     // A claim code flagged was probed by code: it comes back only as the correction.
     const probed = Math.max(p.attempts[key] ?? 0, probesOf(keys[key]?.figures ?? claimFigures(c), interviewerSince, p.candidateFigures), codeProbed ? 1 : 0);
     const attempt = probed + 1;
-    const action = recomputeAction({ errorClass: c.changesConclusion ? 'case_breaking' : 'minor' } as RecomputeFlag, attempt, p.underTimePressure && !p.finalAnswer?.(n));
+    const action = recomputeAction({ errorClass: changes(entry) ? 'case_breaking' : 'minor' } as RecomputeFlag, attempt, p.underTimePressure && !isFinal(entry));
     if (action === 'shed') { decisions.push(decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key)); handled.add(id); continue; }
     // Two probes on the step already: a correction code can write is said (it is no probe); else the report.
     if ((p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
@@ -661,9 +693,23 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     closedNow.push(key);
   }
   if (selected) decisions.push(decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
-    `attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}`, selected.line, selected.key));
+    `attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}${eligible.find(e => e.id === selected!.id && e.key === selected!.key)?.carried ? `; carried into ${riding(selected).map(d => d.id).join(', ')}` : ''}`, selected.line, selected.key));
+  // The claims built on a root said now ride on its line (booked only if the line is used — plan-turn);
+  // on a root closed this turn they go to the report with it; the rest wait.
+  const riders: NonNullable<CheckerSelection['riders']> = [];
+  for (const { e, root } of built) {
+    if (selected?.key === root) {
+      decisions.push({ ...decision(e.id, e.n, e.c, 'derived', `built on ${root}'s figure — the probe follows the input`, undefined, e.key), root });
+      riders.push({ id: e.id, candidateTurnIndex: e.n, claim: e.c });
+    } else if (closedNow.includes(root)) {
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `built on a closed input (${root})`, undefined, e.key), root });
+      handled.add(e.id);
+    } else waiting.push(e);
+  }
+  if (selected && riders.length > 0) selected = { ...selected, riders };
+  const pending = waiting.filter(w => !w.carried);
   return {
-    selected, waiting: waiting.map(w => ({ id: w.id, candidateTurnIndex: w.n, claim: w.c })), decisions, flaggedFigures: [...new Set(flaggedFigures)], droppedStamps,
+    selected, waiting: pending.map(w => ({ id: w.id, candidateTurnIndex: w.n, claim: w.c })), decisions, flaggedFigures: [...new Set(flaggedFigures)], droppedStamps,
     handledNow: [...handled].filter(id => !p.handled.includes(id)), keys, closedNow,
   };
 }
@@ -750,8 +796,10 @@ export function gateCodeFindings(p: {
       if (stale) { decide('stale', stale); return; }
       if (later.length > CHECKER_MAX_WAIT_MESSAGES && !p.finalAnswer?.(v.candidateTurnIndex)) { decide('expired', `${later.length} messages since the claim`); return; }
       // Built on a raised error's figure (Lorenzo, 19 Oct, §15 o): the probe follows the input, as the checker's own flag does.
-      const own = checkerKey(flagged);
-      const keys = { ...(p.keys ?? {}), ...(p.keys?.[own] ? {} : { [own]: { figures: claimFigures(flagged, caseNumbers), since: v.candidateTurnIndex } }) };
+      // Keyed as the plan keys it (flagKeyFor), so the own-figure and same-step exclusions run on the same key (review M1).
+      const idFigs = [...ownFigures(flagged, caseNumbers), ...wordFigures(flagged.candidateValue)];
+      const own = flagKeyFor(flagged, idFigs, p.keys ?? {});
+      const keys = { ...(p.keys ?? {}), ...(p.keys?.[own] ? {} : { [own]: { figures: idFigs, since: v.candidateTurnIndex } }) };
       const root = rootOf(flagged.span, own, keys, caseNumbers);
       if (root) { decide('derived', (p.closed ?? []).includes(root) ? `built on a closed input (${root})` : `built on ${root}'s figure — the probe follows the input`); return; }
       decide('released', `the checker flags "${flagged.candidateValue}"`);

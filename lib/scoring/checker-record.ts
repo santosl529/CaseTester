@@ -20,8 +20,9 @@ export type CheckerEventRow = { category: string; subtype: string; turnIndex: nu
 
 type Flagged = { id: string; turn: number; claim: VettedClaim; outcomes: CheckerDecision[] };
 
+const decisionsOf = (rows: CheckerEventRow[]) => rows.filter(r => r.category === 'math_checker' && r.subtype === 'flag').map(r => r.payloadJsonb as CheckerDecision);
 function flaggedClaims(rows: CheckerEventRow[]): Flagged[] {
-  const decisions = rows.filter(r => r.category === 'math_checker' && r.subtype === 'flag').map(r => r.payloadJsonb as CheckerDecision);
+  const decisions = decisionsOf(rows);
   return rows.filter(r => r.category === 'math_checker' && r.subtype === 'verdict')
     .map(r => r.payloadJsonb as VerdictPayload)
     .sort((a, b) => a.candidateTurnIndex - b.candidateTurnIndex)
@@ -44,7 +45,18 @@ export function dropCheckerStamps(v: Map<number, TurnVerification>, rows: Checke
   return new Map([...v].map(([turn, x]) => [turn, { ...x, verified: x.verified.filter(s => !(flagged.get(turn) ?? []).some(n => same(n, s.value))) }]));
 }
 
-function outcomeText(outcomes: CheckerDecision[]): string {
+// A claim built on an earlier wrong figure (Lorenzo, 19 Oct, §15 o): what became of that input in the interview.
+function builtText(root: string | undefined, all: CheckerDecision[]): string {
+  const onRoot = root === undefined ? [] : all.filter(d => d.key === root);
+  const fix = onRoot.find(d => d.outcome === 'correct' || d.outcome === 'converted');
+  const lead = 'Not raised on its own: it is built on an earlier wrong figure of theirs';
+  if (fix) return `${lead}, which the interview corrected: "${fix.line}"`;
+  if (onRoot.some(d => d.outcome === 'unresolved' && /left for the report/.test(d.reason))) return `${lead}, which was probed and left for this report.`;
+  if (onRoot.some(d => ['probe', 'pointer', 'hint'].includes(d.outcome))) return `${lead}, which the interview probed instead; not corrected.`;
+  return `${lead}; that figure was not raised in the interview either.`;
+}
+
+function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outcomes): string {
   const has = (o: CheckerDecision['outcome']) => outcomes.find(d => d.outcome === o);
   const corrected = has('correct');
   if (corrected) return `Corrected: "${corrected.line}"`;
@@ -56,9 +68,9 @@ function outcomeText(outcomes: CheckerDecision[]): string {
   if (has('shed')) return 'Not raised in the interview (minor, under time pressure).';
   if (has('unresolved_at_close')) return 'Not raised in the interview (the case closed first).';
   if (has('undelivered')) return 'Not raised in the interview (another line took the question).';
-  // Built on another wrong figure (Lorenzo, 19 Oct, §15 o): the interview took up the input, not this claim.
+  // Built on another wrong figure (Lorenzo, 19 Oct, §15 o): the input's outcome, said as it went.
   const built = outcomes.find(d => d.outcome === 'derived' || (d.outcome === 'unresolved' && /^built on a closed input/.test(d.reason)));
-  if (built) return 'Not raised on its own: it is built on an earlier wrong figure of theirs, which the interview took up instead.';
+  if (built) return builtText(built.root ?? /^built on (?:a closed input \()?([^ )']+)/.exec(built.reason)?.[1], all);
   // Past Rule 14 (Lorenzo, 13 Oct): probed twice with nothing code could correct, or a restatement of an error already handled.
   const unresolved = has('unresolved');
   if (unresolved && /restated after the flag closed/.test(unresolved.reason)) return 'Restated after it had been probed or corrected.';
@@ -77,8 +89,9 @@ function figureText(c: VettedClaim): string {
 export function formatCheckerSection(rows: CheckerEventRow[]): string {
   const flagged = flaggedClaims(rows);
   if (flagged.length === 0) return '';
+  const all = decisionsOf(rows);
   const lines = flagged.map(({ turn, claim: c, outcomes }) =>
-    `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${c.changesConclusion ? '; changes the conclusion' : ''}): ${figureText(c)}. ${outcomeText(outcomes)}`);
+    `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${c.changesConclusion ? '; changes the conclusion' : ''}): ${figureText(c)}. ${outcomeText(outcomes, all)}`);
   return `MATH CHECKER (a model's check of the candidate's claims, vetted in code; a figure "computed in code" is code's own):
 ${lines.join('\n')}
 Treat a WRONG claim as the candidate's error unless they revised it — and cite it only where the transcript bears it out. One they revised or withdrew is a self-correction.`;

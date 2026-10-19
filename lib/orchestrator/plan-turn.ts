@@ -988,13 +988,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const stageHeld = deadlineStage && sel && sel.action !== 'correct' ? sel : null;
   const checkerUsed = sel && (kind === 'model' || stageCorrection || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];
-  const checkerDecisions = checkerPlan.decisions.filter(d => !sel || d.id !== sel.id || checkerUsed);
+  // Claims built on the line's root ride on it (math-checker-live.ts, §15 o): booked only when the line is used.
+  const riderIds = (sel?.riders ?? []).map(r => r.id);
+  const checkerDecisions = checkerPlan.decisions.filter(d => !sel || (d.id !== sel.id && !riderIds.includes(d.id)) || checkerUsed);
   const heldDecision = stageHeld ? checkerPlan.decisions.find(d => d.id === stageHeld.id) : undefined;
   if (heldDecision) checkerDecisions.push({ ...heldDecision, outcome: 'undelivered', reason: `held back: the overdue ${kind === 'rec_ask' ? 'recommendation ask' : STAGE_OF_KIND[kind]} goes this turn (its deadline yielded once already); the line goes out on the next model turn` });
   const attemptBeforeChecker = checkerUsed ? recomputeAttempts[checkerUsed.key] : undefined;
   if (checkerUsed) {
     recomputeAttempts[checkerUsed.key] = checkerUsed.attempt;
-    checkerHandledNow.push(checkerUsed.id);
+    checkerHandledNow.push(checkerUsed.id, ...riderIds);
     derivedValueTexts.push(...checkerUsed.derived);
     if (kind === 'model') recomputeHint = [recomputeHint, formatCheckerHint(checkerUsed)].filter(Boolean).join('\n\n');
   }
@@ -1006,7 +1008,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${leftForReport.map(d => `"${d.candidateValue}"`).join(', ')} has been probed twice and goes in the written report. Don't ask about it again — move the case on.`].filter(Boolean).join('\n\n');
   }
   if (kind === 'close') {
-    for (const w of [...(sel ? [{ id: sel.id, candidateTurnIndex: sel.candidateTurnIndex, claim: sel.claim }] : []), ...checkerPlan.waiting]) {
+    for (const w of [...(sel ? [{ id: sel.id, candidateTurnIndex: sel.candidateTurnIndex, claim: sel.claim }, ...(checkerUsed ? [] : sel.riders ?? [])] : []), ...checkerPlan.waiting]) {
       checkerDecisions.push({ id: w.id, candidateTurnIndex: w.candidateTurnIndex, outcome: 'unresolved_at_close', reason: timeUp ? 'time up' : 'the case closed', span: w.claim.span, candidateValue: w.claim.candidateValue, key: checkerKey(w.claim), changesConclusion: w.claim.changesConclusion });
       checkerHandledNow.push(w.id);
     }
@@ -1045,7 +1047,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   if (checkerUsed && (kind === 'model' || stageCheckerLine)) {
     const raisedUndo = new Set([...Object.keys(checkerMemory.keys ?? {}), ...closedKeys]);
     const keysUndo = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raisedUndo.has(k) && e.figures.length > 0));
-    const handledUndo = [...checkerHandled, ...checkerHandledNow.filter(id => id !== checkerUsed.id)];
+    const handledUndo = [...checkerHandled, ...checkerHandledNow.filter(id => id !== checkerUsed.id && !riderIds.includes(id))];
     checkerLine = {
       id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line, ...(checkerUsed.id === heldLine ? { wasHeld: true } : {}),
       undo: {

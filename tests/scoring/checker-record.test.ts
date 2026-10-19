@@ -38,10 +38,21 @@ describe('the judge reads the checker\'s flags and what became of them', () => {
     expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'unresolved', { reason: 'attempt 3: no correction code can write, no pointer — left for the report' })])).toContain('Probed twice; not corrected — left for this report.');
     expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'unresolved', { reason: 'restated after the flag closed (corrected, or left for the report)' })])).toContain('Restated after it had been probed or corrected.');
   });
-  it('built on an earlier wrong figure (Lorenzo, 19 Oct): derived, or closed with its input', () => {
-    const text = 'Not raised on its own: it is built on an earlier wrong figure of theirs, which the interview took up instead.';
-    expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'derived', { reason: "built on net_price@2000's figure — the probe follows the input" })])).toContain(text);
-    expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'unresolved', { reason: 'built on a closed input (net_price@2000)' })])).toContain(text);
+  // Lorenzo, 19 Oct (§15 o; review I1): each outcome of the input, said as it went.
+  describe('built on an earlier wrong figure: what became of the input', () => {
+    const lead = 'Not raised on its own: it is built on an earlier wrong figure of theirs';
+    const derived = flag('5:0', 'derived', { key: 'peak_net_sales@80', root: 'net_price@2000', reason: "built on net_price@2000's figure — the probe follows the input" });
+    const rows = (...onRoot: ReturnType<typeof flag>[]) => [verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]), ...onRoot, derived];
+    it('corrected', () => expect(formatCheckerSection(rows(flag('3:0', 'probe', { key: 'net_price@2000' }), flag('3:0', 'correct', { key: 'net_price@2000', line: 'Net price is about $8,000, not $2,000.' }))))
+      .toContain(`${lead}, which the interview corrected: "Net price is about $8,000, not $2,000."`));
+    it('probed, not corrected', () => expect(formatCheckerSection(rows(flag('3:0', 'probe', { key: 'net_price@2000' })))).toContain(`${lead}, which the interview probed instead; not corrected.`));
+    it('left for the report', () => expect(formatCheckerSection(rows(flag('3:0', 'unresolved', { key: 'net_price@2000', reason: 'attempt 3: no correction code can write, no pointer — left for the report' }))))
+      .toContain(`${lead}, which was probed and left for this report.`));
+    it('a closed input, read from the reason', () => {
+      const closedRows = [verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]), flag('3:0', 'correct', { key: 'net_price@2000', line: 'Net is $8,000.' }), flag('5:0', 'unresolved', { key: 'peak_net_sales@80', reason: 'built on a closed input (net_price@2000)' })];
+      expect(formatCheckerSection(closedRows)).toContain(`${lead}, which the interview corrected: "Net is $8,000."`);
+    });
+    it('never said', () => expect(formatCheckerSection(rows())).toContain(`${lead}; that figure was not raised in the interview either.`));
   });
   it('probed twice, the second time with a hint (Lorenzo, 13 Oct: the two-step probe)', () => {
     expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'probe'), flag('3:0', 'hint')])).toContain('Probed twice (the second time with a hint); not corrected.');
