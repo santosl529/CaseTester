@@ -13,7 +13,7 @@ import { ExhibitTable } from '@/components/exhibit-table';
 import { LiveCaption } from '@/components/live-caption';
 import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
-import { agentAudioWatchdog, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
+import { agentAudioWatchdog, CONNECTING_MESSAGE, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
 import { HealthMeter } from '@/lib/voice/health';
 
 const STATE_LABEL: Record<string, string> = {
@@ -55,6 +55,8 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   const [problem, setProblem] = useState<string | null>(null);
   const [scoring, setScoring] = useState<false | 'finalizing' | 'scoring'>(false);
   const [endedWithReport, setEndedWithReport] = useState(false);
+  // Waiting for the interviewer's first audio (a cold-starting agent can take 10–20s).
+  const [connecting, setConnecting] = useState(false);
   // Thinking sounds and the "So," connector (item 3): on by default, remembered
   // in this browser, sent to the agent, applied from the next turn.
   const fillers = useSyncExternalStore(fillerPref.subscribe, fillerPref.get, () => true);
@@ -174,7 +176,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       const t = timing.current;
       const now = performance.now();
       if (t.mic && t.mic() > MIC_LOUD) t.lastMicLoudAt = now;
-      if (t.remote && !watchdog.current?.wasHeard && t.remote() > REMOTE_LOUD) watchdog.current?.heard();
+      if (t.remote && !watchdog.current?.wasHeard && t.remote() > REMOTE_LOUD) { watchdog.current?.heard(); setConnecting(false); }
       if (t.pending && t.remote && t.remote() > REMOTE_LOUD) {
         send({ type: 'timing', turnSeq: t.pending.turnSeq, clientFirstSoundMs: Math.round(now - t.pending.from) });
         t.pending = null;
@@ -183,13 +185,14 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     setLocal('live');
     startHealth();
     watchdog.current = agentAudioWatchdog({ onTimeout: () => {
+      setConnecting(false);
       setProblem(VOICE_BUSY_MESSAGE);
       if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
       timing.current.timer = null;
       room.disconnect();
       setLocal('idle');
     } });
-    if (room.canPlaybackAudio) { sendReady(); watchdog.current.arm(); }
+    if (room.canPlaybackAudio) { sendReady(); watchdog.current.arm(); setConnecting(true); }
     else setNeedsClick(true);
   }
 
@@ -215,6 +218,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       setNeedsClick(false);
       sendReady();
       watchdog.current?.arm();
+      if (!watchdog.current?.wasHeard) setConnecting(true);
     }
   }
 
@@ -269,6 +273,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
         {view.exhibits.map(e => <ExhibitTable key={e.id} exhibit={e} />)}
       </div>
 
+      {connecting && local === 'live' && !needsClick && !problem && <p className="text-sm text-neutral-600">{CONNECTING_MESSAGE}</p>}
       {(problem || view.error) && <p className="text-sm text-red-600">{problem ?? view.error}</p>}
       {view.endedReason && view.endedReason !== 'case_complete' && (
         <p className="text-sm text-neutral-600">{ENDED_TEXT[view.endedReason] ?? 'The session ended.'}{view.canScore ? ' You can score it for a report on what you covered.' : ''}</p>
