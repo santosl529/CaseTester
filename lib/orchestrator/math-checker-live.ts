@@ -210,8 +210,8 @@ const BASE_CUE = /\b(?:scal(?:e|ed|ing)|rebas\w*|re-?based|(?:today'?s|current|t
 // Has the candidate revised or withdrawn the claim since? Read in every
 // candidate message after it: a withdrawal, a revision with a figure, the
 // right figure stated (when it isn't also a case figure), or the same claim
-// restated (a pricing claim of the same kind at the same price; the same math
-// step). Returns why, or null.
+// restated at a different value (a pricing claim of the same kind at the same
+// price; the same math step). Returns why, or null.
 // A concession — a withdrawal or an "Actually, …" revision — withdraws only
 // the claim it answers (Lorenzo, 14 Oct; batch 24: Owen e64de272's "You're
 // right, I stated that as fact" about competitors dropped his "27–28%",
@@ -271,14 +271,21 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
     }
     const other = sentencesOf(text).filter(x => BASE_CUE.test(x)).flatMap(x => numbersOf(x)).find(n => rebased.some(r => same(n, r)));
     if (other !== undefined) return `the right figure on another base (${other}) stated since`;
-    if (pm && q.kind !== 'none' && q.kind !== 'step') {
-      const kind = q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain' ? 'needed' : q.kind;
-      const again = checkPricingClaims(text, pm).find(x => x.kind === kind && (kind === 'needed' || x.price === q.price));
-      if (again) return `restated: "${again.span}"`;
-    }
-    if (step) {
-      const again = findStepSpans(text, step as never)[0];
-      if (again) return `restated: "${again.span}"`;
+    // Restated at a different value (Lorenzo, 19 Oct, R2; batch 32 Aldermoor
+    // Marisol t9–t23: her $2,000 net price dropped five times as "restated" by
+    // "List is $10,000 per patient per year" beside "$2,000 realized"): the
+    // quantity said again at its own figure carries the error on — the key
+    // dedupes it — and so does a message that still states the claim's figure.
+    if (!namesClaim(text)) {
+      if (pm && q.kind !== 'none' && q.kind !== 'step') {
+        const kind = q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain' ? 'needed' : q.kind;
+        const again = checkPricingClaims(text, pm).find(x => x.kind === kind && (kind === 'needed' || x.price === q.price));
+        if (again) return `restated at ${kind === 'needed' ? again.price : again.stated}: "${again.span}"`;
+      }
+      if (step) {
+        const again = findStepSpans(text, step as never)[0];
+        if (again) return `restated at ${again.value}: "${again.span}"`;
+      }
     }
   }
   return null;

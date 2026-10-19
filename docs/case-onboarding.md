@@ -162,7 +162,7 @@ Status: open unless marked. **Bundle in build (engine-asks, 19 Oct):** (q), (r),
 the stale-check redo, the misquote-in-recommendation gate. **(q)** asks the model never declares go unanswered. *Built on engine-asks (not merged), part 1: guard B reads "I'd want:" and addressed asks after the brainstorm; part 2: an item-less deferral is checked by the small model (a named deferral, or refused when it maps to no item; the generic "settle your structure" line is gone), and a basis ask is out of scope of an item that doesn't say where its figure comes from.*
 **(r)** the live false-refusal guard and F3 read names, not covers. *Built on engine-asks (not merged): both pass `{ covers: true }` to `findFalseRefusals`, which sends an object no item name hits through `coverageOf`.* **(h)** a
 stage deadline yields to every checker line. *Built on engine-asks (not merged): a deadline yields to a probe once (`flags.stageYielded`; an exhibit's by its id), then the stage goes and a probe due then is held for the next model turn; a correction (the checker's or code's own) rides on any overdue stage turn, said first, and a misquote no longer blocks it (R7).* **(o)** the correction cap resets on
-each derived figure. **(p)** "million" and arithmetic quotes are unchecked.
+each derived figure. *Built on engine-asks (not merged), part (a): a flag is stale only when the quantity is restated at a different value (R2); said again at its own figure the error stands, and the key dedupes it.* **(p)** "million" and arithmetic quotes are unchecked.
 **(s)** a ledger line can't be ordered after an exhibit. **(t)** an existing
 group beats a more specific cover. Others:
 - the stale check misses a late redo;

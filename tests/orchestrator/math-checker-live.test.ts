@@ -366,8 +366,11 @@ describe('the stale check — a late verdict on a claim since revised or withdra
         rows: [verdictRow(3, claims)], turnRows: [{ turnIndex: 3, role: 'candidate', text: said }, { turnIndex: 4, role: 'interviewer', text: 'Go on.' }],
         candidateTurnIndex: 5, candidateText: now, candidateFigures: [5.8, 10.2],
       }));
-      // Restated (the step again, same error): the 10.2 built on it stays open.
-      expect(run([root, rest], 'Beans add 5.8 points of revenue to COGS. With COGS up 16, so the rest is 10.2 points.', 'Beans add 5.8 points of revenue to COGS, I am sure.').selected?.id).toBe('3:1');
+      // Restated (the step again, same error): the 10.2 built on it stays open — and, since R2 (19 Oct), so does the 5.8: the error stands.
+      const restated = run([root, rest], 'Beans add 5.8 points of revenue to COGS. With COGS up 16, so the rest is 10.2 points.', 'Beans add 5.8 points of revenue to COGS, I am sure.');
+      expect(restated.decisions.filter(d => d.outcome === 'stale')).toEqual([]);
+      expect(restated.selected?.id).toBe('3:0');
+      expect(restated.waiting.map(w => w.id)).toEqual(['3:1']);
       const other = vetted({ span: 'other inputs 16.3', candidateValue: '16.3 points', correctValue: 11.8, correctionLine: null, codeQuantity: NONE });
       const total = vetted({ span: 'together 22.1', candidateValue: '22.1 points', correctValue: 16, correctionLine: null, codeQuantity: NONE });
       // The 5.8 answered; 16.3 = 22.1 − 5.8, but 22.1 is the flagged total that adds them.
@@ -394,9 +397,10 @@ describe('the stale check — a late verdict on a claim since revised or withdra
       ['the wrong figure itself on another base', marisol, 'Inflation is 22.1 points against a 9.7-point gap.'],
     ] as [string, VettedClaim, string][])('not stale — %s: %s', (_, c, text) => expect(isStale(c, [text], prof, COSTS)).toBeNull());
   });
-  it('a math step restated since, whatever the figure', () => {
+  it('a math step restated since at another figure (R2, 19 Oct: at the same figure the error stands)', () => {
     const step = vetted({ span: '10 percentage points of revenue', candidateValue: '10 percentage points', correctValue: 4.2, codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null } });
-    expect(isStale(step, ['Beans add 6 points of revenue to COGS.'], prof, COSTS)).toMatch(/^restated/);
+    expect(isStale(step, ['Beans add 6 points of revenue to COGS.'], prof, COSTS)).toMatch(/^restated at 6/);
+    expect(isStale(step, ['Beans add 10 points of revenue to COGS.'], prof, COSTS)).toBeNull();
   });
 });
 
@@ -729,5 +733,46 @@ describe('the neutral probes vary', () => {
       seen.push(line);
       uses = recordPhraseUses(line, uses);
     }
+  });
+});
+
+// Lorenzo, 19 Oct (R2; batch 32 Aldermoor Marisol 6a721cdf): her wrong net
+// price, $2,000, was dropped as "restated" five times (t9–t23) while the
+// $400M, $80M and 150,000 built on it each took probes of their own. (a) A
+// flag goes stale only when the quantity is restated at a different value;
+// (b) a claim carrying an open input error's figure yields to it.
+describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)', () => {
+  const entry = getCaseById('entry-001');
+  const ENTRY = ['us_adults', 'funnel_rates', 'peak_share_forecast', 'kelvexa_pricing'];
+  const step = (stepId: string) => ({ kind: 'step' as const, stepId, price: null, target: null });
+  const net = vetted({
+    span: 'list $10,000, discounts and rebates 20% of list, so $2,000 realized', quantity: 'Net price per patient per year', candidateValue: '$2,000', correctValue: 8000, unit: 'usd',
+    codeQuantity: step('net_price'), probeLine: 'You said $2,000 realized per patient per year. How did you get from the $10,000 list price and the 20% discounts and rebates to that figure?',
+    correctionLine: 'Kelvexa net price per patient per year is about $8,000, not $2,000.', correctionFigure: '8000',
+  });
+  const sales = (span: string, value: string, over: Partial<VettedClaim> = {}) => vetted({
+    span, quantity: 'Peak annual US net sales', candidateValue: value, correctValue: 320, unit: 'usd', codeQuantity: step('peak_net_sales'),
+    probeLine: `You got ${value} at peak. Walk me through that calculation.`, correctionLine: `Peak annual US net sales of Kelvexa is about $320 million, not ${value}.`, correctionFigure: '320', ...over,
+  });
+  const T17 = 'Net price per patient per year: list $10,000, discounts and rebates 20% of list, so $2,000 realized. Peak revenue: 40,000 × $2,000 = $80 million.';
+  const run = (claims: VettedClaim[], over: Partial<CheckerPlanInput> = {}) => planCheckerFlags(input({
+    rows: [verdictRow(17, claims)], caseData: entry, revealedIds: ENTRY,
+    turnRows: [{ turnIndex: 17, role: 'candidate', text: T17 }, { turnIndex: 18, role: 'interviewer', text: 'Do we have the competitor price points?' }],
+    candidateTurnIndex: 19, candidateText: 'Nimbrel nets $9,000, so we are priced well under the standard of care.', candidateFigures: [2000, 80],
+    ...over,
+  }));
+
+  describe('(a) stale only when restated at a different value', () => {
+    const stale = (text: string) => isStale(net, [text], entry, ENTRY);
+    it('the step said again at the claim\'s own figure — beside a span misread on the list price — is no staleness (t9, t21)', () => {
+      expect(stale('Three: net price. List is $10,000 per patient per year. Discounts and rebates are 20% of list, so $2,000 realized per patient per year.')).toBeNull();
+    });
+    it('the right figure stated is still stale', () => expect(stale('List is $10,000 per patient per year, so net is $8,000.')).not.toBeNull());
+    it('the same value again is no staleness', () => expect(stale('So $2,000 net per patient again.')).toBeNull());
+    it('restated at a different value is stale, with the value', () => expect(stale('Net comes to $7,000 per patient.')).toMatch(/^restated at 7000/));
+    it('a pricing claim said again at its own figure is no staleness; at another figure it is', () => {
+      expect(isStale(vetted(), ['A 10% price rise recovers about 5 points of margin.'], prof, COSTS)).toBeNull();
+      expect(isStale(vetted(), ['A 10% price rise recovers 8 points of margin.'], prof, COSTS)).toMatch(/^restated at 8/);
+    });
   });
 });
