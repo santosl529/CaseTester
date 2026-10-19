@@ -150,12 +150,16 @@ except where the fix applies) and a prof-001 wave.
 | pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
 | launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
 
-**Next (19 Oct):** the shared-engine bundle (plan first), then a prof-001
-recheck plus all four new cases, in two waves.
+**Next (19 Oct):** the shared-engine bundle — plan ruled (R1–R9), building on
+branch `engine-asks` (`docs/superpowers/plans/2026-10-19-engine-asks.md`); free
+proof first, then a prof-001 wave (A) and the new cases as two waves of 10
+(B1 prof-002 + entry-001, B2 pricing-001 + launch-001), each with its own cap.
 
 ## Shared-engine gaps that affect new cases (PRD §15)
 
-Status: open unless marked. **(q)** asks the model never declares go unanswered.
+Status: open unless marked. **Bundle in build (engine-asks, 19 Oct):** (q), (r),
+(h), (o), (p) with (c), (k), (l), (m), the strengths check; out of it: (s), (t),
+the stale-check redo, the misquote-in-recommendation gate. **(q)** asks the model never declares go unanswered.
 **(r)** the live false-refusal guard and F3 read names, not covers. **(h)** a
 stage deadline yields to every checker line. **(o)** the correction cap resets on
 each derived figure. **(p)** "million" and arithmetic quotes are unchecked.
@@ -189,3 +193,8 @@ group beats a more specific cover. Others:
   rate untested dimensions.
 - 19 Oct, batch 32: "Understood." opens consecutive turns in every run. It isn't
   a bar failure, but it will sound robotic in voice.
+- 19 Oct, engine-asks rulings: no code-spoken refusal without a small-model
+  check against the ledger; a flag is stale only when the quantity is restated
+  at a different value; reports are fact-checked in Better answers and in the
+  facts of strengths; any dimension with no evidence is not assessed; new-case
+  waves run at most 10 sessions at once.
