@@ -14,6 +14,7 @@ import { LiveCaption } from '@/components/live-caption';
 import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
 import { agentAudioWatchdog, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
+import { HealthMeter } from '@/lib/voice/health';
 
 const STATE_LABEL: Record<string, string> = {
   idle: 'Not started', connecting: 'Connecting…', waiting: 'Waiting for audio', listening: 'Listening',
@@ -64,6 +65,9 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     { ctx: null, mic: null, remote: null, lastMicLoudAt: 0, pending: null, timer: null },
   );
 
+  // The page's health, reported at the end of each interviewer turn (19 Oct, d).
+  const health = useRef<{ meter: HealthMeter; raf: number | null; observer: PerformanceObserver | null } | null>(null);
+
   // No interviewer audio within 15s of connecting (or of the audio-unlock
   // click): the agent never came — capacity — so say so and leave (lib/voice/capacity.ts).
   const watchdog = useRef<ReturnType<typeof agentAudioWatchdog> | null>(null);
@@ -97,7 +101,19 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     if (view.phase === 'thinking') timing.current.pending = { turnSeq: view.stateTurnSeq, from: timing.current.lastMicLoudAt };
   }, [view.phase, view.stateTurnSeq]);
 
+  // An interviewer turn has ended (the agent is listening again): the health line for it.
+  useEffect(() => {
+    const h = health.current;
+    if (!h || view.phase !== 'listening' || view.stateTurnSeq === 0) return;
+    send({ type: 'health', turnSeq: view.stateTurnSeq, ...h.meter.take({
+      audioElements: audioBox.current?.querySelectorAll('audio').length ?? 0,
+      audioContextState: timing.current.ctx?.state ?? 'none',
+    }) });
+  }, [view.phase, view.stateTurnSeq]);
+
   useEffect(() => () => {
+    if (health.current?.raf != null) cancelAnimationFrame(health.current.raf);
+    health.current?.observer?.disconnect();
     watchdog.current?.stop();
     if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
     void timing.current.ctx?.close();
@@ -165,6 +181,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       }
     }, 20);
     setLocal('live');
+    startHealth();
     watchdog.current = agentAudioWatchdog({ onTimeout: () => {
       setProblem(VOICE_BUSY_MESSAGE);
       if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
@@ -174,6 +191,20 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     } });
     if (room.canPlaybackAudio) { sendReady(); watchdog.current.arm(); }
     else setNeedsClick(true);
+  }
+
+  // Frame gaps (visible tab only) and long tasks (where the browser reports them), from the start.
+  function startHealth() {
+    if (health.current) return;
+    const longTasks = typeof PerformanceObserver !== 'undefined' && (PerformanceObserver.supportedEntryTypes ?? []).includes('longtask');
+    const h: { meter: HealthMeter; raf: number | null; observer: PerformanceObserver | null } = { meter: new HealthMeter(longTasks), raf: null, observer: null };
+    if (longTasks) {
+      h.observer = new PerformanceObserver(list => { for (const e of list.getEntries()) h.meter.longTask(e.duration); });
+      h.observer.observe({ entryTypes: ['longtask'] });
+    }
+    const tick = (t: number) => { h.meter.frame(t, document.visibilityState === 'visible'); h.raf = requestAnimationFrame(tick); };
+    h.raf = requestAnimationFrame(tick);
+    health.current = h;
   }
 
   async function enableAudio() {

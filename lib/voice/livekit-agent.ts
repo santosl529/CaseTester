@@ -199,6 +199,9 @@ export default defineAgent({
         const r = records.find(x => x.turnSeq === m.turnSeq);
         if (r) r.clientFirstSoundMs = m.clientFirstSoundMs;
         lines.add({ turnSeq: m.turnSeq, clientFirstSoundMs: m.clientFirstSoundMs });
+      } else if (m.type === 'health') {
+        // The page's health line (19 Oct, lib/voice/health.ts).
+        lines.add({ turnSeq: m.turnSeq, health: { longestFrameGapMs: m.longestFrameGapMs, longTaskMs: m.longTaskMs, audioElements: m.audioElements, audioContextState: m.audioContextState } });
       }
     });
 
