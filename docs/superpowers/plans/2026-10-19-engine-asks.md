@@ -64,16 +64,23 @@
 
 ### Task 2: An ask with no item is answered; a "basis" ask isn't remapped (§15 q, part 2)
 
-**Files:** Modify `lib/orchestrator/data-decisions.ts:308-313` and `:143` (`outsideAskScope`), and `lib/orchestrator/fact-check.ts:613` (`FURTHER_CUT`) and `:676` (`FINER_WORDS`). Test: `tests/orchestrator/data-decisions.test.ts` and `tests/orchestrator/fact-check.test.ts`.
+**Files:** Modify `lib/orchestrator/turn-data.ts` (the check, before `decideData`), `lib/orchestrator/data-decisions.ts:308-313` and `:143` (`outsideAskScope`), `lib/orchestrator/phrasing.ts` (drop the `unmapped_defer` pool if nothing else uses it), `tests/replay/runner-corpus.replay.test.ts` (mock the new call to null), and `lib/orchestrator/fact-check.ts:613` (`FURTHER_CUT`) and `:676` (`FINER_WORDS`). Test: `tests/orchestrator/data-decisions.test.ts` and `tests/orchestrator/fact-check.test.ts`.
 
 **Correction to the handoff:** Aldermoor Marcus t5 was not silent. Code said its generic `unmapped_defer` line ("Let's settle your structure before we get into the data."). It answers nothing, and the case doesn't hold the trend, so the ask is never answered.
 
 **The change:**
-- **Item-less deferrals (needs your ruling R1).** An explicit item-less deferral that survives the remap (`turn-data.ts:194`, names then covers) is refused, the same as an item-less release. The `unmappedDefer` line goes.
+- **Item-less deferrals (Lorenzo's R1, 19 Oct: "yes, with a guard").** An explicit item-less deferral that survives the remap (`turn-data.ts:194`, names then covers) is checked by a small model before code refuses it: `classifyDataRequests({ candidateText: r.what, interviewerText: null, catalog })` (`lib/orchestrator/data-requests.ts`, Haiku 4.5, detection mode, the ledger labels as the catalog).
+  - If it maps the ask to any ledger item, it is a **named deferral**: `defers` gets `r.what`, so the line names the ask ("I'll come back to <ask>"). Nothing is released on the classifier's word.
+  - If it maps to none, it is refused.
+  - If the check fails or times out (null), it is a named deferral. No code-spoken refusal goes out without the check.
+  - The `unmappedDefer` generic line goes.
+  - Only this path is checked. Item-less *releases* are refused today without a check, and that is unchanged (extending the check to them would change prof-001; it is listed in the report as a follow-up).
+  - Latency: one awaited Haiku call, only on turns with an item-less deferral. Its timing is logged.
+  - In the replay the classifier is mocked to return null, which gives a named deferral.
 - **Basis asks.** A new `BASIS` qualifier (`basis|source|where … comes? from|how (firm|solid|reliable)|methodology|assumptions? behind|validated|evidence (for|behind)`). `outsideAskScope` treats it as out of scope unless the item's value says where the figure comes from (`/\b(?:based on|comes? from|derived from|benchmark(?:ed)? (?:on|against))\b/`). `BASIS` is also added to `FURTHER_CUT` and `FINER_WORDS`, so the remap doesn't map the ask straight back to the item. Larkspur Marisol t27 then gets a true refusal of the basis, not the plan restated.
 
 - [ ] **Step 1: Failing tests.**
-  - `decideData` with `{what: "Aldermoor's European Kelvexa sales trend since 2022", itemIds: [], explicit: true, respond: 'defer'}`: `refusals` contains it and `unmappedDefer` is `false`.
+  - Item-less deferral `{what: "Aldermoor's European Kelvexa sales trend since 2022", itemIds: [], explicit: true, respond: 'defer'}`, with the check mocked to `[]`: refused. Mocked to map to an item: `defers` contains the `what`. Mocked to `null`: `defers` contains the `what`. `unmappedDefer` is gone from the decisions.
   - `outsideAskScope("Basis for the 70% load factor estimate on the new routes", prof002.new_routes_plan, names)` is `true`.
   - `outsideAskScope("the 70% load factor on the new routes", …)` is `false`.
   - `coverageOf("basis for the 70% load factor estimate", fb).items` is `[]`.
@@ -109,17 +116,18 @@
 
 **Interfaces:**
 - Session flag `flags.stageYielded: Partial<Record<'rec_ask' | 'exhibit' | 'brainstorm' | 'analysis', true>>`, set on the turn a passed deadline yields to `mathLineNow`.
-- `byTime(deadlineMs, stage)` becomes `elapsedMs >= deadlineMs && (!mathLineNow || stageYielded[stage])`.
+- `byTime(deadlineMs, stage)` becomes `elapsedMs >= deadlineMs && (!probeLineNow || stageYielded[stage])`. `probeLineNow` is `mathLineNow` without corrections (checker `correct` and misquotes).
 - New plan state `stageCheckerLine: { id: string; key: string; line: string } | null`, the checker correction a forced stage turn says first.
 
-**The change.** On the turn after a yield, the stage goes even with a math line due:
-- a checker **correction** is said first, in the code-written turn's `say`, booked like a model-turn checker line (attempt, `closed`, handled);
-- a checker **probe** is held with `flags.mathChecker.held = sel.id`, so it goes out first on the next model turn and doesn't expire;
-- a misquote correction already rides on the turn's data line (`turn-data.ts`), unchanged.
+**The change (Lorenzo's R7, 19 Oct: "the correction and the overdue stage ask go in the same turn when they can; otherwise the stage goes the very next turn, with no further yield").**
+- A due deadline with a checker **correction** selected doesn't yield. The stage turn goes now, with the correction first in the code-written turn's `say`. It is booked like a model-turn checker line (attempt, `closed`, handled).
+- A misquote correction already rides on any turn's data line (`turn-data.ts`), so a misquote never blocks a stage either. `mathLineNow` no longer counts it for deadlines.
+- A due deadline with a **probe** (a checker probe, pointer or hint, or code's own deterministic probe) yields once: the probe goes and `stageYielded[stage]` is set. The next turn the stage goes whatever is due, with no further yield. A checker probe due then is held (`flags.mathChecker.held = sel.id`) for the next model turn and doesn't expire.
 
 - [ ] **Step 1: Failing tests (`planTurn` fixtures).**
   - The exhibit deadline passed, with a checker probe selected on two turns in a row. Turn 1 is kind `model` with `stageYielded.brainstorm` set (or `.exhibit`, whichever is owed). Turn 2 is kind `stage_brainstorm`, `flags.mathChecker.held` equals the probe's id, and the probe isn't said.
-  - The same with a correction on turn 2: the turn's `say` is the correction line, and the key is in `closed` after the turn.
+  - A checker correction selected on the first turn past the deadline: no yield. The kind is the stage kind, `say` is the correction line, and the key is in `closed` after the turn.
+  - A misquote correction due on the first turn past the deadline: no yield (the stage turn's data line carries the correction).
   - With no math line, the stage fires on the first turn past the deadline (unchanged).
 - [ ] **Step 2:** Run the tests. Expect FAIL.
 - [ ] **Step 3:** Implement.
@@ -136,7 +144,7 @@
 
 **What the evidence shows** (`ev.py` on Aldermoor Marisol). The wrong input, `net_price@2000`, was raised at t9, t13, t15, t21 and t23. Every time it was dropped as **stale "restated"**: the next message had a span of the net-price step ("List is $10,000 per patient per year", or the $2,000 itself again). Meanwhile $400M, $80M and 150,000, all built on $2,000, each took their own probes and corrections. So two causes:
 
-- **(a) The restated-stale rule needs a ruling (R2).** A later message that still carries the claim's own wrong figure (`namesClaim(text)`) means the error stands, so the claim stays eligible (the key dedupes across messages). Only a step span with another figure counts as a revision ("restated", stale). This is the opposite of the deferred stale-check item (j), which is a missed redo. I include it because (o) can't work without it.
+- **(a) The restated-stale rule (Lorenzo's R2, 19 Oct: "a flag goes stale only when the candidate restates the quantity at a different value").** A later step span at the claim's own figure is no staleness: the error stands, and the key dedupes across messages. A step span at a different value is stale ("restated at <value>"), unless the same message still states the claim's own figure for the quantity (`namesClaim`), as with Marisol's "List is $10,000 per patient per year" (the step's span misread on the list price) beside "$2,000 realized". The earlier stale reasons (withdrawn, revised, right figure stated) are unchanged.
 - **(b) Root linking.** A flagged claim D is derived from root R when D's span carries R's wrong figure, and:
   - R is a registered error key of another step (`stepOfKey` differs);
   - the figure isn't a case figure (`caseNumbersOf`).
@@ -150,6 +158,8 @@
 - [ ] **Step 1: Failing tests (fixtures from Aldermoor Marisol's verdicts).**
   - `isStale(claim $2,000 net price, ["List is $10,000 per patient per year. … so $2,000 realized …"])` is `null`.
   - `isStale(same, ["List is $10,000 per patient per year, so net is $8,000."])` is not `null` (the right figure).
+  - `isStale(same, ["So $2,000 net per patient again."])` is `null` (same value).
+  - `isStale(same, ["Net comes to $7,000 per patient."])` is not `null` (restated at a different value).
   - With `net_price@2000` open, a claim "40,000 × $2,000 = $80 million" gets outcome `'derived'`, and the `net_price@2000` claim is selected.
   - With `net_price@2000` closed, the same claim gets `'unresolved'` with reason "built on a closed input".
   - A claim "40,000 × $8,000 = $300 million" (right input, wrong product) is selected on its own key.
@@ -167,7 +177,7 @@
 
 ### Task 6: Fact-check the "Better" answers (§15 m)
 
-**Files:** Create `lib/scoring/better-audit.ts`. Modify `lib/scoring/verifier.ts` (`Claim.section`, `collectClaims`, `applyVerdicts`, the prompt), `lib/scoring/score-session.ts:231`, and the renderers `components/report-card.tsx`, `app/api/report/[sessionId]/pdf/report-pdf.tsx` and `scripts/live-run.ts:~535` (no "Better:" when it is empty). Test: `tests/scoring/better-audit.test.ts` (new) and `tests/scoring/verifier.test.ts`.
+**Files:** Create `lib/scoring/better-audit.ts`. Modify `lib/scoring/verifier.ts` (`Claim.section` gains `'betterResponse' | 'wentWell'`, `collectClaims`, `applyVerdicts`, the prompt), `lib/scoring/score-session.ts:231`, and the renderers `components/report-card.tsx`, `app/api/report/[sessionId]/pdf/report-pdf.tsx` and `scripts/live-run.ts:~535` (no "Better:" when it is empty). Test: `tests/scoring/better-audit.test.ts` (new) and `tests/scoring/verifier.test.ts`.
 
 **Interfaces:** `auditBetterFigures(rubric: RubricScores, caseData: Case): { dimension: RubricDimensionKey; index: number; figure: string }[]`. It lists the figures in each `betterResponse` that are none of:
 - a case figure (ledger, exhibit or prompt, at any scale);
@@ -178,13 +188,15 @@
 **The change:**
 - The verifier gets `betterResponse` as claims (section `'betterResponse'`), with the audit's figures as hints ("FIGURES NOT FOUND IN THE CASE DATA"). The instruction: unsupported when it states a figure or fact the case data or the transcript contradicts (recompute); a labelled hypothetical is fine.
 - An unsupported Better answer is blanked (`''`), and its "moment" stays.
-- **Strengths are also unchecked** (Aldermoor Marisol's "proactively withdrew a stale figure"). Your brief names only Better answers, so strengths are R3: add `wentWell` to the verifier (an unsupported point is dropped) or leave them.
+- **Strengths (Lorenzo's R3, 19 Oct: "facts only — figures, turn references, what the candidate said — not judgments like 'proactively'").** `wentWell` points go to the verifier as claims (section `'wentWell'`). The instruction: judge only the facts a point states (a figure, a turn reference, what the candidate said or did), and mark it unsupported only when the transcript contradicts one; adjectives and judgments ("proactively", "clearly", "strong") are not checked. An unsupported point is dropped. Task 7's rule then applies if a dimension is left with no evidence.
 
 - [ ] **Step 1: Failing tests.**
   - `auditBetterFigures` on "$10 more per passenger on roughly 3 million passengers is about $30M" (prof-002) lists `3 million` and `$30M`.
   - On "$10 more on about 840,000 passengers is about $8.4M" it lists nothing.
   - On "If we assume a 5% price rise, revenue rises about $X…" it doesn't list 5.
   - `applyVerdicts` with an unsupported betterResponse claim blanks only that `betterResponse`.
+  - `applyVerdicts` with an unsupported wentWell claim drops only that point.
+  - The prompt text contains the facts-only instruction for wentWell (a string assertion on the built prompt).
 - [ ] **Step 2:** Run the tests. Expect FAIL.
 - [ ] **Step 3:** Implement.
 - [ ] **Step 4:** Tests and suite pass.
@@ -199,19 +211,18 @@
 
 **Files:** Modify `lib/scoring/caveat-floor.ts`. Test: `tests/scoring/caveat-floor.test.ts`.
 
-**The change.** A dimension with a `coverageCaveat` and no quoted evidence (no quote in `wentWell` or `needsWork`) is `notAssessed`, whatever its rating (meets_bar and strong included). Today only needs_work is checked. Aldermoor Marisol's Creativity (caveated, meets_bar, no quote) becomes not assessed.
-
-**R4:** your brief says "the caveat floor applies to any rating with no evidence". Should that also cover a dimension *without* a caveat that has no quotes? Stage 5 of `case-onboarding.md` counts any evidence-free rating as a false statement. My default is caveated dimensions only, as in §15 (l).
+**The change (Lorenzo's R4, 19 Oct: "any dimension").** Any assessed dimension with no quoted evidence (no quote in `wentWell` or `needsWork`) is `notAssessed`, whatever its rating and whether or not it carries a caveat. Today only a caveated needs_work is checked. Aldermoor Marisol's Creativity (caveated, meets_bar, no quote) becomes not assessed. The caveated needs_work → meets_bar floor (quoted strengths, no quoted weakness) is unchanged. Check how `assembleReport`, `strong-gate.ts` and the overall rating treat a newly unassessed dimension; the overall must not be computed from it.
 
 - [ ] **Step 1: Failing tests.**
   - A caveated meets_bar with empty quotes gives `notAssessed: true` and is listed in `unassessed`.
   - A caveated strong with empty quotes gives the same.
   - A caveated meets_bar with one wentWell quote is unchanged.
-  - Uncaveated, it is unchanged (or, if R4 is "any", not assessed).
+  - Uncaveated meets_bar with empty quotes gives `notAssessed: true`.
+  - Uncaveated meets_bar with one needsWork quote is unchanged.
 - [ ] **Step 2:** Run the tests. Expect FAIL.
 - [ ] **Step 3:** Implement.
 - [ ] **Step 4:** Tests and suite pass.
-- [ ] **Step 5: Proof (free).** Scan every saved scored `.md` report (batches 28–32) for caveated dimensions with a rating and no quotes, and list them. Expect Aldermoor Marisol's Creativity, and on prof-001 any hits read by hand.
+- [ ] **Step 5: Proof (free; Lorenzo: "first run it over the saved prof-001 reports and list how many ratings flip").** Parse every saved scored prof-001 report under `Case Interview Runs/` (`.md`; all batches, plus `default-candidate/`), and batch 32. Count the dimensions the new rule flips to not assessed: per report, the dimension, the old rating and caveated or not. Also count how many overall ratings change. Write the list to `replays/2026-10-19/engine-asks/r4-flips.md`.
 - [ ] **Step 6:** Commit `fix(scoring): a caveated dimension with no evidence is not assessed, whatever its rating`.
 
 ### Task 8: Decode literal `\uXXXX` (§15 k)
@@ -266,7 +277,7 @@ Decoding at the parse covers all three before any guard reads the text. That mat
   - PRD §8 "Stage deadlines" paragraph (the one yield);
   - `docs/case-onboarding.md`: the "Shared-engine gaps" list, the tracker's Next line and a lessons-log line;
   - progress.md "## Now".
-- [ ] **Step 3:** Report to you with the per-task difference lists and the totals. Then wait for your go on the waves.
+- [ ] **Step 3:** Report to you with the per-task difference lists, the report audit over the saved reports and the R4 flip count. Then wait for your go on the waves (Lorenzo, 19 Oct: "stop after the free proof … and report before any paid run").
 
 ---
 
@@ -274,15 +285,15 @@ Decoding at the parse covers all three before any guard reads the text. That mat
 
 | # | Question | My recommendation |
 |---|---|---|
-| R1 | Should an item-less deferral nothing covers be refused instead of getting the generic structure line? | Yes: the line answers nothing, and after the covers remap the case doesn't hold the data. |
-| R2 | (o) includes changing the "restated" stale rule: a message that still carries the wrong figure keeps the flag alive. | Yes: without it the input is never probed. It is separate from the deferred stale-redo item (j). |
-| R3 | Should strengths (wentWell) be fact-checked too? | Yes, in the same verifier call (about +$0.01 a report, estimated). |
-| R4 | Does the no-evidence rule apply only to caveated dimensions, or to any dimension? | Caveated only, as in §15 (l), unless you meant any. |
-| R5 | Fold (c), thousands commas, into Task 9? | Yes: it is the same `FIG` edit, and prof-001 has no thousands. |
-| R6 | When a Better answer is unsupported, blank only the Better answer or drop the whole missed opportunity? | Blank only the Better answer. |
-| R7 | On a forced stage turn, should a checker correction go first in `say` and a probe be held to the next model turn? | Yes, as your 15 Oct rule says. |
-| R8 | Which prof-001 runs in wave A are scored? | 3 scored: Tyler, Marisol, Jasmine. |
-| R9 | Wave B runs 20 sessions at once, and batch 32 ran 10. Keep that, or split it? | Keep it as one wave, and stop it if rate limits show in the first minutes. |
+| R1 | Should an item-less deferral nothing covers be refused instead of getting the generic structure line? | **Ruled (19 Oct): yes, with a guard** — a small-model check against the ledger labels first; a plausible item → a deferral naming the ask; no code-spoken refusal without the check (Task 2). |
+| R2 | (o) includes changing the "restated" stale rule. | **Ruled: yes** — stale only when the candidate restates the quantity at a different value (Task 5). |
+| R3 | Should strengths (wentWell) be fact-checked too? | **Ruled: yes, facts only** (figures, turn references, what the candidate said), not judgments (Task 6). |
+| R4 | Does the no-evidence rule apply only to caveated dimensions, or to any dimension? | **Ruled: any dimension**; first list the flips over the saved prof-001 reports (Task 7). |
+| R5 | Fold (c), thousands commas, into Task 9? | **Ruled: yes.** |
+| R6 | When a Better answer is unsupported, blank only the Better answer or drop the whole missed opportunity? | **Ruled: blank just the wrong Better answer.** |
+| R7 | On a forced stage turn, a checker correction first and a probe held? | **Ruled: yes**, but the correction and the overdue stage ask go in the same turn when they can; otherwise the stage goes the very next turn, no further yield (Task 4). |
+| R8 | Which prof-001 runs in wave A are scored? | **Ruled: Tyler, Marisol, Jasmine.** |
+| R9 | Wave B as 20 sessions at once? | **Ruled: no** — two waves of 10 (prof-002 + entry-001, then pricing-001 + launch-001), each with its own cap. |
 
 ## Cost estimate — verification run (two waves, after Task 10 and your go)
 
@@ -294,7 +305,7 @@ All figures use 19 Oct prices and the measured batches. Pricing and launch have 
 - Worst case, +35% for longer runs, Guard B regenerations and checker retries: about **$8.60**. If all 10 are scored, about $10 expected and $13 worst.
 - **Proposed cap: $10** (3 scored).
 
-**Wave B — the four new cases in parallel, 5 personas each (7, 64, 57, 24, 40), all scored, 25 minutes. One batch per case.**
+**Waves B1 and B2 (R9) — the new cases, two at a time in parallel, 5 personas each (7, 64, 57, 24, 40), all scored, 25 minutes. One batch per case. B1 = prof-002 + entry-001; B2 = pricing-001 + launch-001.**
 
 | Batch | Basis | Expected | Worst case | Proposed cap |
 |---|---|---|---|---|
@@ -302,8 +313,9 @@ All figures use 19 Oct prices and the measured batches. Pricing and launch have 
 | entry-001 Aldermoor | batch 32: $5.99 | ≈ $6.0 | ≈ $7.8 | $10 |
 | pricing-001 Quillpath | unmeasured, $1.2–1.4 a run | ≈ $6–7 | ≈ $9 | $10 |
 | launch-001 Hollis Bay | unmeasured, $1.2–1.4 a run | ≈ $6–7 | ≈ $9 | $10 |
-| **Wave B** | | **≈ $25–27** | **≈ $34** | **$40** |
+| **B1** (prof-002 + entry-001) | | **≈ $12.7** | **≈ $16.3** | **$20** |
+| **B2** (pricing-001 + launch-001) | | **≈ $12–14** | **≈ $18** | **$20** |
 
-- **Both waves:** about $31–34 expected, about $43 worst case, caps adding up to $50.
-- **The bundle's own cost:** a Guard B regeneration is one more Sonnet turn where it fires (about $0.01–0.02 each); Better answers and strengths in the verifier add about $0.01–0.03 a scored report (estimated, not measured). Both are inside the margins above.
+- **All three waves (A, B1, B2):** about $31–34 expected, about $43 worst case, caps adding up to $50.
+- **The bundle's own cost:** R1's check is one Haiku 4.5 call per item-less deferral (well under $0.01 each); a Guard B regeneration is one more Sonnet turn where it fires (about $0.01–0.02 each); Better answers and strengths in the verifier add about $0.01–0.03 a scored report (estimated, not measured). Both are inside the margins above.
 - **Not included:** the free replays, and anything after the waves (a re-run or anchor work) needs its own go.
