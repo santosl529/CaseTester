@@ -526,11 +526,18 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // held back to the next turn. Due: at or past the stage's deadline or after
   // the time warning; the risk once the recommendation is in (Plan's stagesDue).
   // A correction is no probe: it still goes first, before the stage question.
-  const checkerLine = !codeWritten && kind === 'model' ? state.checkerLine : null;
+  // A correction riding on a deadline's stage turn (Lorenzo, 19 Oct, R7): code
+  // wrote it into a code-written turn's "say"; before code's recommendation ask
+  // it goes ahead of the question (the model's "say" is already spoken). Heard,
+  // booked, undone if not heard — as on a model turn.
+  const checkerLine = (!codeWritten && kind === 'model') || state.stageCheckerLine ? state.checkerLine : null;
   let checkerLineBy: 'model' | 'code' | null = null;
   let heldForStage: StageKey | undefined;
   const codeTookQuestion = ['waived', 'reask', 'narrowed', 'code_asked', 'code_asked_structure'].includes(ptAction ?? '') || stageAsked !== undefined || heldForExhibit !== undefined;
-  if (checkerLine && !codeTookQuestion) {
+  if (checkerLine && state.stageCheckerLine) {
+    if (!codeWritten && !lineHeard(`${say} ${question}`, checkerLine.line)) question = [checkerLine.line, question].filter(Boolean).join(' ');
+    checkerLineBy = 'code';
+  } else if (checkerLine && !codeTookQuestion) {
     const asked = modelQuestion ? stageQuestions(modelQuestion, {
       move: turn.move, recOnTable: state.stages.recommendationAsked || state.recommendationReceived,
       brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue,

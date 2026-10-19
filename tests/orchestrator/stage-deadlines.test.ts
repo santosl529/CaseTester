@@ -202,3 +202,69 @@ describe('a deadline yields to a math line', () => {
     expect(plan({ min: BLAKE.t17, shown: true, revealed: CORE, stages: { exhibit: SHOWN } }).kind).toBe('stage_brainstorm');
   });
 });
+
+// Lorenzo, 19 Oct (R7; batch 32 Aldermoor Marisol: a checker line every turn
+// from 6:32 to 22:07, so the brainstorm was never asked and the survey exhibit
+// came only with the time warning): "the correction and the overdue stage ask
+// go in the same turn when they can; otherwise the stage goes the very next
+// turn, with no further yield".
+describe('a deadline yields to a checker line once (R7)', () => {
+  const CLAIM = 'A 10% price increase recovers about 5 points of margin.';
+  const PRICE: VettedClaim = vettedFlag('about 5 points', 8.5, {
+    span: 'A 10% price increase recovers about 5 points of margin', quantity: 'margin gain', errorType: 'conceptual', unit: 'points',
+    codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null },
+    probeLine: 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?',
+    correctionLine: 'A 10% price rise lifts margin about 8.5 points, not 5.', correctionFigure: '8.5',
+  });
+  const PROBE = PRICE.probeLine!;
+  const CORRECTION = PRICE.correctionLine!;
+  // Blake's clock at 13:30 (past the exhibit budget, 13:20): the exhibit and the COGS inputs out, the brainstorm owed.
+  const owed = (o: { flags?: Record<string, unknown>; claims?: VettedClaim[]; landedText?: string; codeFlags?: boolean } = {}) => {
+    const reads = readsFixture({
+      phase: 'EXHIBIT', elapsedMs: Math.round(13.5 * MIN), revealed: CORE,
+      flags: { pressureTest: { state: 'satisfied', askedAt: 2 }, stageEvidence: { ...INITIAL_STAGES, structure: ANSWERED, pressure_test: ANSWERED, exhibit: SHOWN }, ...o.flags },
+      extraTurns: o.claims ? [{ role: 'candidate', text: o.landedText ?? CLAIM }, { role: 'interviewer', text: 'What would you look at next?' }] : [],
+    });
+    (reads as { exhibitRows: unknown[] }).exhibitRows = [{ id: 'x1', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: 0 }];
+    (reads.session as { coverageJsonb: unknown }).coverageJsonb = LOW;
+    if (o.claims) reads.checkerEventRows = [verdictRow(3, o.claims, o.codeFlags ? codeFlagsOf(o.landedText ?? CLAIM, CORE) : [])] as never;
+    const p = planTurn(reads, MSG, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    return p;
+  };
+  it('with no math line the stage fires on the first turn past the deadline (unchanged)', () => {
+    const p = owed();
+    expect(p.state.kind).toBe('stage_brainstorm');
+    expect(p.ctx.flags.stageYielded).toBeUndefined();
+  });
+  it('a checker probe on two turns in a row: the first yields (the probe on the model turn), the second is the stage, the probe held', () => {
+    const t1 = owed({ claims: [PRICE] });
+    expect(t1.state.kind).toBe('model');
+    expect(t1.state.recomputeHint).toContain(PROBE);
+    expect(t1.ctx.flags.stageYielded).toEqual({ brainstorm: true });
+    const t2 = owed({ claims: [PRICE], flags: { stageYielded: { brainstorm: true } } });
+    expect(t2.state.kind).toBe('stage_brainstorm');
+    expect((t2.ctx.flags.mathChecker as { held?: string }).held).toBe('3:0');
+    expect(t2.state.checkerLine).toBeNull();
+    expect(t2.state.stageCheckerLine).toBeNull();
+    expect(t2.state.recomputeAttempts['pricing:gain@5']).toBeUndefined();
+    expect((t2.ctx.flags.mathChecker as { handled: string[] }).handled).not.toContain('3:0');
+  });
+  it('a checker correction on the first turn past the deadline: no yield — the stage turn says it first, booked and closed', () => {
+    const p = owed({ claims: [PRICE], flags: { recomputeAttempts: { 'pricing:gain@5': 1 } } });
+    expect(p.state.kind).toBe('stage_brainstorm');
+    expect(p.ctx.flags.stageYielded).toBeUndefined();
+    expect(p.state.stageCheckerLine).toEqual({ id: '3:0', key: 'pricing:gain@5', line: CORRECTION });
+    expect(p.state.checkerLine).toMatchObject({ id: '3:0', action: 'correct', line: CORRECTION });
+    expect(p.state.recomputeAttempts['pricing:gain@5']).toBe(2);
+    expect(p.ctx.flags.mathChecker).toMatchObject({ handled: ['3:0'], closed: ['pricing:gain@5'] });
+    expect(p.state.derivedValueTexts).toContain('8.5');
+  });
+  it('a misquote correction due on the first turn past the deadline: no yield — the stage turn\'s data line carries it', () => {
+    const MISQ = "Revenue grew about 19% over the period, so volume is clearly healthy — that's a decent sign demand isn't fragile.";
+    const p = owed({ claims: [vettedFlag('about 19%', 15)], landedText: MISQ, codeFlags: true });
+    expect(p.state.misquote).not.toBeNull();
+    expect(p.state.kind).toBe('stage_brainstorm');
+    expect(p.ctx.flags.stageYielded).toBeUndefined();
+  });
+});

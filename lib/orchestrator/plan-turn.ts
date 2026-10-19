@@ -92,6 +92,15 @@ export type CheckerLinePlan = {
 export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[] };
 // A stage the model's question may ask, and whether it is due (Lorenzo, 15 Oct): a due one wins over a checker probe.
 export type StagesDue = { brainstorm: boolean; recommendation: boolean; risk: boolean };
+// A deadline that yielded to a math probe once (flags.stageYielded; Lorenzo, 19 Oct, R7): it yields no more.
+export type YieldStage = 'rec_ask' | 'exhibit' | 'brainstorm' | 'analysis';
+export type StageYielded = Partial<Record<YieldStage, true>>;
+const YIELD_STAGES: readonly YieldStage[] = ['rec_ask', 'exhibit', 'brainstorm', 'analysis'];
+// The turns a deadline makes, and the deadline each spends.
+const DEADLINE_KINDS: ReadonlySet<TurnKind> = new Set(['stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_ask']);
+const STAGE_OF_KIND: Partial<Record<TurnKind, YieldStage>> = { stage_exhibit: 'exhibit', stage_brainstorm: 'brainstorm', stage_analysis: 'analysis', rec_ask: 'rec_ask' };
+// The checker's correction a deadline's stage turn says first (code-written: its "say"; the recommendation ask: before code's question).
+export type StageCheckerLine = { id: string; key: string; line: string };
 export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { checker: CheckerSelection; action: 'probe' | 'correct' } | { closed: ClosedRestatement; action: 'probe' | 'correct' };
 
 // Rule 6 option 4: how many times code corrects one item's misquote in a session.
@@ -724,16 +733,22 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // never asked for — volunteered mid-case — is asked for by code before the
   // case may close.
   // Past the brainstorm budget the recommendation is asked by code, owed stages first (Lorenzo, 15 Oct; batch 26 Blake).
-  // A deadline yields for a turn that carries a math or misquote line (batch 19 4bf008f t17's checker probe): it fires on the next.
-  const mathLineNow = misquote !== null || Boolean(checkerPlan.selected)
+  // A deadline yields for a turn that carries a math probe (batch 19 4bf008f t17's checker probe): it fires on the next.
+  // Once a deadline (Lorenzo, 19 Oct, R7; batch 32 Aldermoor Marisol: a checker
+  // line every turn from 6:32 to 22:07, the brainstorm never asked): yielded
+  // once (flags.stageYielded), the stage goes whatever is due, and a checker
+  // probe due then is held for the next model turn. A correction never makes it
+  // yield — the checker's rides on the stage turn, said first (stageCheckerLine),
+  // and a misquote's on any turn's data line (turn-data.ts). Code's own
+  // deterministic flags are said by the model from its hint and wait on a
+  // code-written turn: they yield once, like a probe.
+  const probeLineNow = (checkerPlan.selected !== null && checkerPlan.selected.action !== 'correct')
     || liveFlags.some(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)));
-  const byTime = (deadlineMs: number) => !mathLineNow && elapsedMs >= deadlineMs;
-  const recAskByTime = (pressureTest.state === 'satisfied' || pressureTest.state === 'waived') && !stages.recommendationAsked && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) && byTime(deadlines.brainstormEnd);
+  const stageYielded = (flags.stageYielded as StageYielded | undefined) ?? {};
+  const yieldsNow = (s: YieldStage) => probeLineNow && !stageYielded[s];
   // A line a due stage held back goes out the next turn (Lorenzo, 15 Oct): code's coverage ask yields it that turn, as the deadlines yield to a math line.
   const heldNow = heldLine !== undefined && checkerPlan.selected?.id === heldLine;
-  const awaitingRecAsk = (!stages.recommendationAsked && (recommendationReceived ? mayEnd : coverageMayEnd) && !heldNow) || recAskByTime;
   const coverageSteer = formatCoverageSteer(coverage);
-  checks.record('end_rec_ask_gate', awaitingRecAsk, recAskByTime ? 'the brainstorm budget is spent and the recommendation was never asked — code asks' : 'coverage complete but the recommendation was never asked — code asks this turn', { recAskByTime });
   checks.record('end_gate', stageGate && !coverageMayEnd, 'stage gate opened the end (coverage below threshold)', {
     coverageMayEnd, stageGate, ...stages,
   });
@@ -785,10 +800,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Oct): the exhibit after the analysis budget, the brainstorm after the
   // exhibit budget (pacing.ts).
   // An exhibit standing in for a brainstorm that waits on it is due with the brainstorm.
-  const stageDeadlinePassed = owedStage !== undefined
-    && byTime(owedStage === 'exhibit' && missingStages.includes('exhibit') ? exhibitDeadline(readyExhibit) : deadlines.exhibitEnd);
-  const stageDue = owedStage !== undefined && ptClosed && !timeUp && !isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)
-    && (closeDue || awaitingRecAsk || stageDeadlinePassed);
+  // (stageDue, below with the other deadlines.)
+  const owedDeadline: [number, YieldStage] = owedStage === 'exhibit' && missingStages.includes('exhibit') ? [exhibitDeadline(readyExhibit), 'exhibit'] : [deadlines.exhibitEnd, 'brainstorm'];
   // The core analysis (the case's analysisCore): no recommendation ask and no
   // close before it is attempted — code asks back to it once, recorded like a
   // stage it enforced (batch 20 R14, R27, R28, R46: closed at 7–12 min with the
@@ -828,9 +841,6 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     : closedRec ? { closed: closedRec, action: closedRec.correction ? 'correct' : 'probe' }
     : null;
   if (closedRec?.correction) derivedValueTexts.push(...numbersOf(closedRec.correction).map(String));
-  // …and once the analysis budget is spent (Lorenzo, 15 Oct; Blake 4755c03a's COGS inputs came at 17 min, his own ask).
-  const analysisByTime = analysisOwed && ptClosed && byTime(deadlines.analysisEnd);
-  const analysisDue = analysisOwed && (closeDue || awaitingRecAsk || analysisByTime);
   // Required exhibits (Lorenzo, 13 Oct): an unshown one is owed in the
   // analysis gate and the end gate — code hands the next one over (in the
   // release order) instead of asking for the recommendation or closing; the
@@ -840,20 +850,49 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const underTimePressure = isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
   const requiredExhibit = requiredNext && !timeUp && !underTimePressure ? requiredNext.id : undefined;
   const pressureExhibit = requiredNext && !timeUp && underTimePressure ? requiredNext.id : undefined;
-  // The time backstop (Lorenzo, 15 Oct; batch 26 Blake: owed on every turn, never shown): once the analysis budget is spent, code hands it over.
-  // At the analysis deadline a ready required exhibit goes before code's analysis line: it carries the analysis data.
-  const requiredExhibitDue = requiredExhibit !== undefined && ptClosed && (closeDue || awaitingRecAsk || analysisByTime || byTime(exhibitDeadline(requiredNext)));
-  let kind: TurnKind = recRevisionDue ? 'rec_revision'
-    : recMathProbe ? 'rec_math_probe'
-    : requiredExhibitDue ? 'stage_exhibit'
-    : analysisDue ? 'stage_analysis'
-    : closeDue && !stageDue ? 'close'
-    : graceDue ? 'grace_ask'
-      : shouldFireTimeWarning && !recommendationReceived ? 'time_warning'
-        : stageDue ? (owedStage === 'exhibit' ? 'stage_exhibit' : 'stage_brainstorm')
-          : awaitingRecAsk ? 'rec_ask'
-            : stallDecision.intervene && stallDecision.rung === 1 && lastQuestion ? 'rung1'
-              : 'model';
+  // The deadlines and the turn they make, the deadlines `held` waiting (for a
+  // probe this turn, once each — above); read again with each one alone let go
+  // (which yielded), and with all held (is a stage turn a deadline's?).
+  const deadlineTurn = (held: (s: YieldStage) => boolean) => {
+    const byTime = (deadlineMs: number, s: YieldStage) => elapsedMs >= deadlineMs && !held(s);
+    const recAskByTime = ptClosed && !stages.recommendationAsked && !timeUp && !underTimePressure && byTime(deadlines.brainstormEnd, 'rec_ask');
+    const awaitingRecAsk = (!stages.recommendationAsked && (recommendationReceived ? mayEnd : coverageMayEnd) && !heldNow) || recAskByTime;
+    const stageDue = owedStage !== undefined && ptClosed && !timeUp && !underTimePressure
+      && (closeDue || awaitingRecAsk || byTime(...owedDeadline));
+    // …and once the analysis budget is spent (Lorenzo, 15 Oct; Blake 4755c03a's COGS inputs came at 17 min, his own ask).
+    const analysisByTime = analysisOwed && ptClosed && byTime(deadlines.analysisEnd, 'analysis');
+    const analysisDue = analysisOwed && (closeDue || awaitingRecAsk || analysisByTime);
+    // The time backstop (Lorenzo, 15 Oct; batch 26 Blake: owed on every turn, never shown): once the analysis budget is spent, code hands it over.
+    // At the analysis deadline a ready required exhibit goes before code's analysis line: it carries the analysis data.
+    const requiredExhibitDue = requiredExhibit !== undefined && ptClosed && (closeDue || awaitingRecAsk || analysisByTime || byTime(exhibitDeadline(requiredNext), 'exhibit'));
+    const kind: TurnKind = recRevisionDue ? 'rec_revision'
+      : recMathProbe ? 'rec_math_probe'
+      : requiredExhibitDue ? 'stage_exhibit'
+      : analysisDue ? 'stage_analysis'
+      : closeDue && !stageDue ? 'close'
+      : graceDue ? 'grace_ask'
+        : shouldFireTimeWarning && !recommendationReceived ? 'time_warning'
+          : stageDue ? (owedStage === 'exhibit' ? 'stage_exhibit' : 'stage_brainstorm')
+            : awaitingRecAsk ? 'rec_ask'
+              : stallDecision.intervene && stallDecision.rung === 1 && lastQuestion ? 'rung1'
+                : 'model';
+    return { kind, recAskByTime, awaitingRecAsk };
+  };
+  const planned = deadlineTurn(yieldsNow);
+  const { recAskByTime, awaitingRecAsk } = planned;
+  let kind: TurnKind = planned.kind;
+  // The deadlines that yielded this turn: each one that, alone not held, would have made another turn.
+  const yieldedNow = YIELD_STAGES.filter(s => yieldsNow(s) && deadlineTurn(x => x !== s && yieldsNow(x)).kind !== kind);
+  // A stage turn a deadline made (with no deadline at all it would be another): the checker's correction rides on it, said first; its probe is held.
+  const deadlineStage = DEADLINE_KINDS.has(kind) && deadlineTurn(() => true).kind !== kind;
+  // An exhibit's yield is spent once code hands it over: the next exhibit's deadline may yield once (the other stages go once a case).
+  const yieldedAfter: StageYielded = { ...stageYielded, ...Object.fromEntries(yieldedNow.map(s => [s, true])) };
+  if (deadlineStage && kind === 'stage_exhibit') delete yieldedAfter.exhibit;
+  if (JSON.stringify(yieldedAfter) !== JSON.stringify(stageYielded)) flags.stageYielded = yieldedAfter;
+  checks.record('end_rec_ask_gate', awaitingRecAsk, recAskByTime ? 'the brainstorm budget is spent and the recommendation was never asked — code asks' : 'coverage complete but the recommendation was never asked — code asks this turn', { recAskByTime });
+  checks.record('stage_yield', yieldedNow.length > 0 || (deadlineStage && checkerPlan.selected !== null), yieldedNow.length > 0 ? `a deadline yields to the math line once: ${yieldedNow.join(', ')}` : 'the overdue stage goes; the checker line rides or waits', {
+    yielded: yieldedNow, before: stageYielded, deadlineStage, selected: checkerPlan.selected ? { id: checkerPlan.selected.id, action: checkerPlan.selected.action } : null,
+  });
   // The math checker's flag (Lorenzo, 13 Oct): on a model turn, a
   // RECOMPUTE-style hint; at the close, an unresolved conclusion-changing flag
   // holds the close one turn — code says Rule 14's line (once a case, not when
@@ -924,9 +963,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     : finalHold ? 'a final answer\'s flag — probed before the close' : 'no close hold on the final answers', {
     finalFrom, pending: pendingFinal, probeKey: finalProbeKey, waits: closeHold.waits ?? [], probed: closeHold.probed ?? [],
   });
-  const checkerUsed = sel && (kind === 'model' || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
+  // A deadline's stage turn (R7, above): the checker's correction rides on it,
+  // said first by code and booked as on a model turn; a probe due then is held
+  // for the next model turn (flags.mathChecker.held: raised first, it doesn't expire).
+  const stageCorrection = deadlineStage && sel?.action === 'correct' ? sel : null;
+  const stageHeld = deadlineStage && sel && sel.action !== 'correct' ? sel : null;
+  const checkerUsed = sel && (kind === 'model' || stageCorrection || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];
   const checkerDecisions = checkerPlan.decisions.filter(d => !sel || d.id !== sel.id || checkerUsed);
+  const heldDecision = stageHeld ? checkerPlan.decisions.find(d => d.id === stageHeld.id) : undefined;
+  if (heldDecision) checkerDecisions.push({ ...heldDecision, outcome: 'undelivered', reason: `held back: the overdue ${kind === 'rec_ask' ? 'recommendation ask' : STAGE_OF_KIND[kind]} goes this turn (its deadline yielded once already); the line goes out on the next model turn` });
   const attemptBeforeChecker = checkerUsed ? recomputeAttempts[checkerUsed.key] : undefined;
   if (checkerUsed) {
     recomputeAttempts[checkerUsed.key] = checkerUsed.attempt;
@@ -952,7 +998,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const raised = new Set([...Object.keys(checkerMemory.keys ?? {}), ...(checkerUsed ? [checkerUsed.key] : []), ...closedAfter]);
   const checkerKeys = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raised.has(k) && e.figures.length > 0));
   const keysChanged = JSON.stringify(checkerKeys) !== JSON.stringify(checkerMemory.keys ?? {});
-  const heldAfter = heldLine && !checkerHandledNow.includes(heldLine) ? heldLine : undefined;
+  const heldAfter = stageHeld?.id ?? (heldLine && !checkerHandledNow.includes(heldLine) ? heldLine : undefined);
   const convertedFigure = checkerUsed?.converted ? theirFigure(checkerUsed.claim) : undefined;
   const convertedAfter = [...(checkerMemory.convertedFigures ?? []), ...(convertedFigure !== undefined ? [convertedFigure] : [])];
   const convertedKept = checkerMemory.convertedFigures?.length ? { convertedFigures: checkerMemory.convertedFigures } : {};
@@ -975,8 +1021,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // text holds it, says it itself if the model left it out, and undoes this
   // booking if it still isn't heard — the flag then stays pending (Lorenzo, 15
   // Oct; batch 26 Jasmine 074b0534 t31, logged "used", never said).
+  // A correction riding on a deadline's stage turn is code's to say (session-runner's codeWrittenTurn, or Settle before code's recommendation ask): the same heard check and undo.
   let checkerLine: CheckerLinePlan | null = null;
-  if (checkerUsed && kind === 'model') {
+  const stageCheckerLine: StageCheckerLine | null = stageCorrection ? { id: stageCorrection.id, key: stageCorrection.key, line: stageCorrection.line } : null;
+  if (checkerUsed && (kind === 'model' || stageCheckerLine)) {
     const raisedUndo = new Set([...Object.keys(checkerMemory.keys ?? {}), ...closedKeys]);
     const keysUndo = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raisedUndo.has(k) && e.figures.length > 0));
     const handledUndo = [...checkerHandled, ...checkerHandledNow.filter(id => id !== checkerUsed.id)];
@@ -1078,7 +1126,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, convertedFigures: convertedAfter, recMathProbe, checkerLine, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, deferChecks: new Map<string, Promise<boolean>>(), requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

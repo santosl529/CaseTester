@@ -482,7 +482,9 @@ export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[]
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
   const exhibit = state.kind === 'stage_exhibit' ? state.requiredExhibit ?? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger, state.stagesOut)?.id ?? null : null;
   // Rule 14 past its probe: the figure, flat, before the revision question.
-  const say = recMath?.action === 'correct' ? recLine('correct') : '';
+  // The checker's correction riding on a deadline's stage turn (Lorenzo, 19 Oct,
+  // R7): first, then the data line or exhibit and the stage question.
+  const say = recMath?.action === 'correct' ? recLine('correct') : state.stageCheckerLine?.line ?? '';
   return { move: 'other', requests, exhibit, rescueItem: null, say, question };
 }
 

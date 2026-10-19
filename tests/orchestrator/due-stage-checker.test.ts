@@ -62,6 +62,7 @@ const { getCaseById } = await import('@/lib/cases/loader');
 const { INITIAL_STAGES } = await import('@/lib/orchestrator/stage-evidence');
 const { INITIAL_PRESSURE_TEST } = await import('@/lib/orchestrator/pressure-test');
 const { readsFixture } = await import('./fixtures/turn-reads');
+const { brainstormAsks } = await import('@/lib/orchestrator/brainstorm');
 const { modelPlanFixture } = await import('./fixtures/model-plan');
 
 const MIN = 60_000;
@@ -423,5 +424,86 @@ describe('a due-stage variant: Jasmine\'s probe held back by a recommendation as
     const r33 = await runTurn('s1', 'Waste control, mix shift toward brewed coffee, and loyalty pricing.');
     expect(saysGotTo(r33.interviewerText, 'about 5 points')).toBe(true);   // JASMINE_PROBE, in any version
     expect(r33.interviewerText).not.toMatch(/recommendation/);
+  });
+});
+
+// ── R7 (Lorenzo, 19 Oct): a stage deadline yields to a checker line at most once ──
+// Batch 32 Aldermoor Marisol: a checker line every turn from 6:32 to 22:07 —
+// the brainstorm never asked, the survey exhibit only with the time warning.
+// A correction rides on the overdue stage turn (said first, by code); a probe
+// yields once, then the stage goes and the probe is held for the next model turn.
+describe('R7 through the runner: the overdue brainstorm and the checker line', () => {
+  const CLAIM = 'A 10% price increase recovers about 5 points of margin, and the underlying pressure is about 40 points.';
+  const PRICE: CheckerClaim = {
+    span: 'A 10% price increase recovers about 5 points of margin', quantity: 'margin gain', candidateValue: 'about 5 points', assumptions: '',
+    verdict: 'error', correctValue: 8.5, correctLow: null, correctHigh: null, unit: 'points', derivation: '', errorType: 'conceptual',
+    changesConclusion: true, confidence: 'high', probe: 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?', pointer: '',
+    codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null }, actualShare: null,
+  };
+  const FORTY: CheckerClaim = { ...JORDAN_17_0, span: 'the underlying pressure is about 40 points', candidateValue: 'about 40 points' };
+  const asksBrainstorm = (text: string) => brainstormAsks(getCaseById('prof-001')).some(a => text.includes(a));
+  function seedOwed(o: { attempts?: Record<string, number> } = {}) {
+    const startedAt = new Date(Date.now() - 13.5 * MIN);
+    store.session = {
+      id: 's1', userId: 'u1', caseId: 'prof-001', phase: 'EXHIBIT', elapsedMs: 0, phaseStartedAt: startedAt, status: 'active',
+      abandonPhase: null, startedAt, completedAt: null, coverageJsonb: { structure: 20, quantitative: 20, dataExhibit: 20, judgment: 20, creativity: 20, synthesis: 20, communication: 20, pushback: 20 },
+      flagsJsonb: {
+        conduct: { warnings: 0 }, pressureTest: { ...INITIAL_PRESSURE_TEST, state: 'satisfied', askedAt: 2, satisfiedAt: 3, structureGiven: true }, stagesEnforced: { exhibit: true },
+        ...(o.attempts ? { recomputeAttempts: o.attempts } : {}),
+        stageEvidence: { ...INITIAL_STAGES, structure: ANSWERED, pressure_test: ANSWERED, analysis: { delivered: true, deliveredAt: 2, outcome: 'answered' }, exhibit: { delivered: true, deliveredAt: 2, outcome: 'answered' } },
+      },
+    };
+    const rows = [
+      { role: 'interviewer', text: 'Your client is Brew & Bean. How would you approach this?' }, { role: 'candidate', text: 'I would split profit into revenue and costs.' },
+      { role: 'interviewer', text: 'Go on.' }, { role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What would you look at next?' },
+    ];
+    store.turns = rows.map((t, i) => ({ id: `t${i}`, sessionId: 's1', turnIndex: i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 30_000, latencyMs: null }));
+    store.revealed = COSTS.map((ledgerItemId, i) => ({ id: `r${i}`, sessionId: 's1', ledgerItemId, revealedAtMs: startedAt.getTime() }));
+    store.exhibits = [{ id: 'e0', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: startedAt.getTime() }];
+    const claims = vetCheckerClaims([PRICE, FORTY], { caseData: getCaseById('prof-001'), revealedIds: COSTS, shownExhibitIds: ['exhibit-a'], candidateTexts: [CLAIM] });
+    store.events = [{ sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: 3, phase: 'EXHIBIT', payloadJsonb: { candidateTurnIndex: 3, latencyMs: 6000, model: 'claude-sonnet-5-5', claims, codeFlags: [], stamps: [] } }];
+    calls.length = 0; MODEL.turn = NEUTRAL;
+  }
+  it('a correction due at 13:30: one turn — code says the correction, then the brainstorm; the flag is booked and closed', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    at(13.5);
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\./);
+    expect(asksBrainstorm(r.interviewerText)).toBe(true);
+    const mc = flags().mathChecker as { handled: string[]; closed: string[] };
+    expect(mc.handled).toContain('3:0');
+    expect(mc.closed).toContain('pricing:gain@5');
+    expect((flags().recomputeAttempts as Record<string, number>)['pricing:gain@5']).toBe(2);
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'correct' });
+    expect((flags().stageEvidence as Row & { brainstorm: { delivered: boolean } }).brainstorm.delivered).toBe(true);
+    expect(flags().stageYielded).toBeUndefined();
+  });
+  it('past 16:00 with the recommendation never asked: code\'s recommendation ask, the correction before it (the model\'s "say" first)', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    store.session = { ...store.session, phase: 'BRAINSTORM', flagsJsonb: { ...flags(), stageEvidence: { ...(flags().stageEvidence as Row), brainstorm: { delivered: true, deliveredAt: 2, outcome: 'answered' } } } };
+    at(16.2);
+    MODEL.turn = { ...NEUTRAL, say: 'Understood.' };
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^Understood\. From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\. \S/);
+    expect(r.interviewerText).toMatch(/recommendation/i);
+    expect((flags().mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
+    expect((flags().stageEvidence as Row & { recommendation: { delivered: boolean } }).recommendation.delivered).toBe(true);
+  });
+  it('probes due on three turns: 13:30 the probe (the deadline yields), 14:00 the brainstorm (the next probe held), 14:30 the held probe', async () => {
+    seedOwed();
+    at(13.5);
+    const r5 = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r5.interviewerText).toMatch(/Which cost lines did you include\?/);
+    expect(asksBrainstorm(r5.interviewerText)).toBe(false);
+    expect(flags().stageYielded).toEqual({ brainstorm: true });
+    at(14.0);
+    const r7 = await runTurn('s1', 'Labor and overhead, I think.');
+    expect(asksBrainstorm(r7.interviewerText)).toBe(true);
+    expect(saysGotTo(r7.interviewerText, 'about 40 points')).toBe(false);
+    expect((flags().mathChecker as Row).held).toBe('3:1');
+    at(14.5);
+    const r9 = await runTurn('s1', 'Pricing, procurement and waste reduction.');
+    expect(saysGotTo(r9.interviewerText, 'about 40 points') || /forty points|40 points/.test(r9.interviewerText)).toBe(true);
+    expect((flags().mathChecker as Row).held).toBeUndefined();
   });
 });
