@@ -381,7 +381,7 @@ describe('trace (recording)', () => {
     h.c.onStt(speech('mhm')); h.c.onStt(final('mhm'));
     h.c.onStt(speech('wait sorry'));
     await h.advance(2000);
-    expect(trace).toEqual(['final', 'turn_start', 'connector', 'ack_start', 'segment_start', 'backchannel', 'cut', 'turn_end']);
+    expect(trace).toEqual(['final', 'turn_start', 'connector', 'ack_start', 'segment_start', 'backchannel', 'barge', 'cut', 'turn_end']);
   });
 });
 
@@ -937,5 +937,60 @@ describe('interviewer captions shown whole', () => {
     expect(LINE.startsWith(atCut[0].text)).toBe(true);
     expect(atCut[0].text.length).toBeGreaterThan(0);
     expect(atCut[0].text.length).toBeLessThan(LINE.length);
+  });
+});
+
+// Lorenzo, 19 Oct (b): on speakers the room hears the interviewer, and the
+// transcript cut the opening (97cc44af: "chain with"). A barge that mostly
+// follows the interviewer's text playing or played in the last ~10s is
+// ignored; a real interruption still cuts. Every barge is logged.
+describe('the echo guard', () => {
+  const OPENING = 'Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%.';
+  const setup = (script: Parameters<typeof harness>[0] = []) => {
+    const notes: Record<string, unknown>[] = [];
+    const h = harness(script, { ...noAck, tts: new FakeTTS(40, 0), bargeMinWords: 4, note: l => notes.push(l) });
+    const barges = () => notes.map(n => (n as { barge?: Record<string, unknown> }).barge).filter(Boolean) as Record<string, unknown>[];
+    return { ...h, notes, barges };
+  };
+
+  it('an echo of the opening is ignored: the opening plays on', async () => {
+    const h = setup();
+    await h.c.ready(OPENING);
+    await h.advance(2000);
+    h.c.onStt(speech('a specialty coffee chain with two hundred locations'));
+    await h.advance(20);
+    expect(h.sent.some(m => m.type === 'state' && m.state === 'listening' && m.turnSeq === 1)).toBe(false);   // not cut
+    expect(h.barges()).toEqual([expect.objectContaining({ decision: 'ignored', transcript: 'a specialty coffee chain with two hundred locations' })]);
+    expect((h.barges()[0].score as number)).toBeGreaterThanOrEqual(0.8);
+  });
+
+  it('"wait, sorry, I have a question" cuts', async () => {
+    const h = setup();
+    await h.c.ready(OPENING);
+    await h.advance(2000);
+    h.c.onStt(speech('wait, sorry, I have a question'));
+    await h.advance(20);
+    expect(h.sent.some(m => m.type === 'state' && m.state === 'listening')).toBe(true);
+    expect(h.barges()).toEqual([expect.objectContaining({ decision: 'cut', transcript: 'wait, sorry, I have a question' })]);
+  });
+
+  it('a candidate repeating one of the interviewer\'s figures still cuts', async () => {
+    const h = setup();
+    await h.c.ready(OPENING);
+    await h.advance(3000);
+    h.c.onStt(speech('hold on, did you say twenty four percent?'));
+    await h.advance(20);
+    expect(h.barges()).toEqual([expect.objectContaining({ decision: 'cut' })]);
+  });
+
+  it('logs an ignored echo once while it grows, not on every update', async () => {
+    const h = setup();
+    await h.c.ready(OPENING);
+    await h.advance(2000);
+    h.c.onStt(speech('a specialty coffee chain with'));
+    h.c.onStt(speech('a specialty coffee chain with two'));
+    h.c.onStt(speech('a specialty coffee chain with two hundred'));
+    h.c.onStt(speech('a specialty coffee chain with two hundred locations across the'));
+    expect(h.barges().map(b => b.words)).toEqual([5, 10]);   // first, then once it grew by 3+ words
   });
 });

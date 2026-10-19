@@ -65,7 +65,7 @@ export function heardCharsAt(tl: Token[], heardMs: number): number {
 type Seg = {
   id: string; text: string; interruptible: boolean;
   onStart?: (atMs: number) => void; onHeard?: (heardChars: number, atMs: number) => void;
-  chunks: Int16Array[]; finished: boolean; failed: boolean; cut: boolean;
+  chunks: Int16Array[]; finished: boolean; failed: boolean; cut: boolean; cutAt: number | null;
   words: Word[] | null; audioMs: number; startAt: number | null; endAt: number | null;
   captioned: number;   // tokens whose caption is scheduled
   oddByte: number | null;   // half a sample left over from the last chunk
@@ -92,7 +92,7 @@ export class Playout {
   open(id: string, o: { text: string; interruptible: boolean; trimLeadingSilence?: boolean; onStart?: (atMs: number) => void; onHeard?: (heardChars: number, atMs: number) => void }): void {
     const { trimLeadingSilence, ...rest } = o;
     const s: Seg = {
-      id, ...rest, chunks: [], finished: false, failed: false, cut: false, words: null, audioMs: 0, startAt: null, endAt: null,
+      id, ...rest, chunks: [], finished: false, failed: false, cut: false, cutAt: null, words: null, audioMs: 0, startAt: null, endAt: null,
       captioned: 0, oddByte: null, trimLead: Boolean(trimLeadingSilence), lead: null, trimmedMs: 0,
     };
     this.segs.push(s);
@@ -192,6 +192,15 @@ export class Playout {
     return s ? captionWords(s.text, this.trimmedWords(s)) : [];
   }
 
+  // The text of every segment playing now, or that stopped (ended or was cut)
+  // at or after `sinceMs` — what the room may still be hearing (the echo guard).
+  spokenSince(sinceMs: number): string[] {
+    const now = this.clock.now();
+    return this.segs
+      .filter(s => s.startAt !== null && s.startAt <= now && (s.cut ? (s.cutAt ?? now) >= sinceMs : s.endAt === null || s.endAt >= sinceMs))
+      .map(s => s.text);
+  }
+
   // Anything queued or still playing (the check-in waits for nothing to play).
   busy(): boolean {
     const now = this.clock.now();
@@ -220,6 +229,7 @@ export class Playout {
       if (s.cut) continue;
       out.set(s.id, this.outcome(s, atMs));
       s.cut = true;
+      s.cutAt = atMs;
     }
     this.cursor = atMs;
     for (const w of this.idleWaiters.splice(0)) w();

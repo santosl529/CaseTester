@@ -168,7 +168,7 @@ export default defineAgent({
       // The check-in heard goes to the model's history as no turn (voice-check-in.ts).
       note: l => {
         lines.add(l);
-        console.log('[voice] check-in', JSON.stringify(l));
+        console.log('[voice] note', JSON.stringify(l));
         const ci = (l as { checkIn?: { heardText?: string; startedAtMs?: number | null; silentMs?: number } }).checkIn;
         if (ci?.heardText) {
           void db.insert(sessionEvents).values({
