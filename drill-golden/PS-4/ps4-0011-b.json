@@ -1,0 +1,43 @@
+{
+  "answer_id": "ps4-0011-b",
+  "item_id": "ps4-0011",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Bucket 3 still counts visits by store, which the revenue bucket's shoppers already cover: reworded, not removed (rules 2, 7). The competitor sub-point is a fair addition, not a new flaw.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue",
+          "points": [
+            "number of shoppers",
+            "spend per visit"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "cost of goods",
+            "labor",
+            "rent"
+          ]
+        },
+        {
+          "title": "Shopper traffic",
+          "points": [
+            "competitor openings near our stores",
+            "visits by store"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

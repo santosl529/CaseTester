@@ -1,0 +1,708 @@
+'use client';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { Button } from '@/components/ui/button';
+import { DrillChart } from '@/components/drills/chart';
+import { NumericInput } from '@/components/drills/numeric-input';
+import { Timer } from '@/components/drills/timer';
+import { ReportProblem } from '@/components/drills/feedback';
+import { BucketsEditor, CardPicker, ChoiceList, NumberFields, WrittenAnswer, type Bucket } from '@/components/drills/step-inputs';
+import { parseNumericInput } from '@/lib/drills/numeric';
+import type { ChartSpec } from '@/lib/drills/chart-spec';
+import type { PublicItem } from '@/lib/drills/public-item';
+import type { ItemFeedback, StepFeedback, WorkedExample } from '@/lib/drills/sets/service';
+
+export interface RunnerView {
+  set_id: string;
+  // A diagnostic part: no per-item feedback, back to the diagnostic after.
+  diagnostic: { part: number; of: number } | null;
+  lesson_skill: string | null;
+  position: number;
+  size: number;
+  drill: { id: string; name: string; level: number };
+  skills: { id: string; name: string }[];
+  focus_skill: string | null;
+  time_limit_ms: number;
+  stage_limits_ms: number[];
+  ai_graded: boolean;
+  pass_bar: number;
+  example: WorkedExample | null;
+  // Repair drills: how much the student is told about the flaws at this tier.
+  repair_hint: string | null;
+  // The set runs the Defend follow-up after each answer.
+  defend: { type: 'justify' | 'challenge'; seconds: number; max_words: number } | null;
+  // "No time limit": no timer; the limits are only a pace target.
+  untimed: boolean;
+  // The countdown is hidden (the limit still applies).
+  timer_hidden: boolean;
+  // Timed or No timer can still be chosen (no item served yet).
+  timer_choice_open: boolean;
+  // Feedback after each question or at the end of the set (chosen with the
+  // timer); null on a diagnostic part, and on sets from before the choice.
+  feedback_mode: 'immediate' | 'end' | null;
+}
+
+// Immediate feedback on a written answer: poll for the grade this long, then
+// say it's delayed and let the student go on (Feedback timing: ~15 s).
+const GRADING_WAIT_MS = 15_000;
+const POLL_MS = 1_000;
+
+interface LoadedItem {
+  position: number;
+  size: number;
+  item: PublicItem;
+  time_limit_ms: number;
+  remaining_ms: number;
+  completed_steps: StepFeedback[];
+}
+
+type Step = NonNullable<PublicItem['input']['steps']>[number];
+
+// One answer in progress, whatever the step's input.
+interface Draft { choice: string | null; numeric: string; text: string; buckets: Bucket[]; cards: string[]; numbers: Record<string, string> }
+const emptyDraft = (): Draft => ({ choice: null, numeric: '', text: '', buckets: [{ title: '', points: [''] }, { title: '', points: [''] }], cards: [], numbers: {} });
+
+// A Repair item starts from the flawed answer it asks the student to fix.
+function firstDraft(item: PublicItem): Draft {
+  const prefill = item.repair?.prefill;
+  if (prefill?.type === 'text') return { ...emptyDraft(), text: prefill.value };
+  if (prefill?.type === 'buckets') return { ...emptyDraft(), buckets: prefill.buckets.map(b => ({ title: b.title, points: b.points.length ? [...b.points] : [''] })) };
+  return emptyDraft();
+}
+
+const DEFAULT_LABELS: Record<string, string> = {
+  single_choice: 'Choose one', numeric: 'Your answer', free_text: 'Your answer',
+  structured_buckets: 'Your framework', multi_select: 'Choose all that apply', numeric_set: 'Your numbers',
+};
+
+// Builds the response the server expects, or an error to show. A timed-out
+// submit sends whatever is there, possibly nothing.
+function responseFor(step: Step, draft: Draft, timedOut: boolean): { response: unknown } | { error: string } {
+  switch (step.type) {
+    case 'single_choice':
+      if (draft.choice) return { response: { type: 'choice', option_id: draft.choice } };
+      return timedOut ? { response: null } : { error: 'Choose an answer' };
+    case 'multi_select':
+      if (draft.cards.length) return { response: { type: 'choices', option_ids: draft.cards } };
+      return timedOut ? { response: null } : { error: 'Pick at least one' };
+    case 'numeric':
+      if (draft.numeric.trim() && parseNumericInput(draft.numeric).ok) return { response: { type: 'numeric', value: draft.numeric } };
+      return timedOut ? { response: null } : { error: 'Enter a number' };
+    case 'numeric_set': {
+      const filled = Object.values(draft.numbers).filter(v => v.trim());
+      if (filled.some(v => !parseNumericInput(v).ok) && !timedOut) return { error: 'Enter a number for every driver' };
+      return { response: { type: 'numbers', values: draft.numbers } };
+    }
+    case 'free_text':
+      if (draft.text.trim()) return { response: { type: 'text', value: draft.text } };
+      return timedOut ? { response: null } : { error: 'Write an answer first' };
+    case 'structured_buckets': {
+      const buckets = draft.buckets.map(b => ({ title: b.title.trim(), points: b.points.map(p => p.trim()).filter(Boolean) })).filter(b => b.title || b.points.length);
+      if (buckets.length) return { response: { type: 'buckets', buckets } };
+      return timedOut ? { response: null } : { error: 'Add at least one bucket' };
+    }
+    default:
+      return { error: 'This input is not supported yet' };
+  }
+}
+
+// One drill set, item by item (docs/prd-drills.md "Drill intro screen",
+// "Item screen", "Feedback timing"). The server owns timing, order and keys;
+// this screen shows them and submits.
+export function DrillRunner({ view }: { view: RunnerView }) {
+  const router = useRouter();
+  const [phase, setPhase] = useState<'intro' | 'item' | 'grading' | 'feedback' | 'finishing'>('intro');
+  const [loaded, setLoaded] = useState<LoadedItem | null>(null);
+  const [deadline, setDeadline] = useState(0);
+  const [limitMs, setLimitMs] = useState(0);
+  const [steps, setSteps] = useState<StepFeedback[]>([]);
+  const [draft, setDraft] = useState<Draft>(emptyDraft);
+  const [final, setFinal] = useState<ItemFeedback | null>(null);
+  const [error, setError] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [showExample, setShowExample] = useState(Boolean(view.example));
+  // Timer options (D6 round 2): chosen on the intro; hide or show any time.
+  const [untimed, setUntimed] = useState(view.untimed);
+  const [hidden, setHidden] = useState(view.timer_hidden);
+  const [paused, setPaused] = useState(false);
+  // Feedback timing, chosen on the intro with the timer.
+  const [feedbackMode, setFeedbackMode] = useState(view.feedback_mode);
+  // Immediate feedback: grading took too long or failed; it's on the results.
+  const [gradingDelayed, setGradingDelayed] = useState(false);
+  // What a screen reader announces when feedback arrives (or doesn't).
+  const [announce, setAnnounce] = useState('');
+  const keys = useRef(new Map<string, string>());
+  const headingRef = useRef<HTMLHeadingElement>(null);
+  // Focus while an answer is graded: the Submit button is gone.
+  const gradingRef = useRef<HTMLDivElement>(null);
+  const patch = (p: Partial<Draft>) => setDraft(d => ({ ...d, ...p }));
+
+  // One idempotency key per item step, reused on retries of the same submit.
+  const keyFor = (slot: string) => {
+    if (!keys.current.has(slot)) keys.current.set(slot, crypto.randomUUID());
+    return keys.current.get(slot)!;
+  };
+
+  // Saves the timer choice (Timed / No timer before the first item; Hide
+  // timer any time); the server keeps them as the student's defaults.
+  const saveTimer = (body: { untimed?: boolean; hidden?: boolean; at_start?: boolean; feedback?: 'immediate' | 'end' }) =>
+    fetch(`/api/drills/sets/${view.set_id}/timer`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).catch(() => null);
+  const toggleHidden = (next: boolean) => {
+    setHidden(next);
+    void saveTimer({ hidden: next });
+  };
+
+  // The clock pauses while Report a problem or the feedback box is open
+  // (components/drills/feedback.tsx sends these events).
+  const phaseRef = useRef(phase);
+  useEffect(() => { phaseRef.current = phase; }, [phase]);
+  useEffect(() => {
+    const onPause = (e: Event) => {
+      if (phaseRef.current !== 'item' || untimed) return;
+      setPaused(true);
+      void fetch(`/api/drills/sets/${view.set_id}/pause`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'pause', reason: (e as CustomEvent).detail }) });
+    };
+    const onResume = async (e: Event) => {
+      if (phaseRef.current !== 'item' || untimed) return;
+      const res = await fetch(`/api/drills/sets/${view.set_id}/pause`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resume', reason: (e as CustomEvent).detail }) }).catch(() => null);
+      const data = res?.ok ? await res.json().catch(() => null) : null;
+      if (data && typeof data.remaining_ms === 'number') setDeadline(Date.now() + data.remaining_ms);
+      setPaused(false);
+    };
+    window.addEventListener('drills:timer-pause', onPause);
+    window.addEventListener('drills:timer-resume', onResume);
+    return () => { window.removeEventListener('drills:timer-pause', onPause); window.removeEventListener('drills:timer-resume', onResume); };
+  }, [untimed, view.set_id]);
+
+  const finish = useCallback(async () => {
+    setPhase('finishing');
+    const res = await fetch(`/api/drills/sets/${view.set_id}/complete`, { method: 'POST' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      setError(data.message ?? 'Could not finish the set.');
+      return;
+    }
+    // A diagnostic part goes straight back to the diagnostic: no results screen.
+    router.push(view.diagnostic ? '/drills/diagnostic' : `/drills/sets/${view.set_id}/results`);
+    router.refresh();
+  }, [router, view.diagnostic, view.set_id]);
+
+  const loadItem = useCallback(async (requested: number) => {
+    setError('');
+    // If the server says another position is current (a second tab, a
+    // retried submit), follow it once.
+    let position = requested;
+    let res: Response | null = null;
+    let data: Record<string, unknown> = {};
+    for (let tries = 0; tries < 2; tries++) {
+      res = await fetch(`/api/drills/sets/${view.set_id}/items/${position}`);
+      data = await res.json().catch(() => ({}));
+      if (res.ok || data.error !== 'out_of_order' || typeof data.position !== 'number' || data.position === position) break;
+      position = data.position;
+    }
+    if (!res?.ok) {
+      if (data.error === 'set_finished') return finish();
+      setError(typeof data.message === 'string' ? data.message : 'Could not load the item.');
+      return;
+    }
+    const item = data as unknown as LoadedItem;
+    setLoaded(item);
+    setDeadline(Date.now() + item.remaining_ms);
+    setLimitMs(item.time_limit_ms);
+    setSteps(item.completed_steps);
+    // A resumed item past its first step continues with an empty answer box.
+    setDraft(item.completed_steps.length ? emptyDraft() : firstDraft(item.item));
+    setFinal(null);
+    setGradingDelayed(false);
+    setAnnounce('');
+    setPhase('item');
+    requestAnimationFrame(() => headingRef.current?.focus());
+  }, [finish, view.set_id]);
+
+  // Start (or Resume): the timer choice is saved before the first item, so the
+  // server's clock knows whether this set is timed.
+  const startOrResume = async () => {
+    if (view.timer_choice_open) await saveTimer({ untimed, hidden: untimed ? false : hidden, at_start: true, ...(feedbackMode && { feedback: feedbackMode }) });
+    else if (hidden !== view.timer_hidden) await saveTimer({ hidden });
+    await loadItem(view.position);
+  };
+
+  const stepSpecs: Step[] = loaded ? (loaded.item.input.steps ?? [{ type: loaded.item.input.type, weight: 1, max_words: loaded.item.input.max_words }]) : [];
+  const stepIndex = steps.length;
+  const current = stepSpecs[stepIndex];
+
+  const submit = useCallback(async (opts: { skip?: boolean; timedOut?: boolean } = {}) => {
+    if (!loaded || busy || phase !== 'item' || !current) return;
+    let response: unknown = null;
+    if (!opts.skip) {
+      const built = responseFor(current, draft, Boolean(opts.timedOut));
+      if ('error' in built) { setError(built.error); return; }
+      response = built.response;
+    }
+    setBusy(true);
+    setError('');
+    const slot = `${loaded.position}:${opts.skip ? 'skip' : stepIndex}`;
+    const res = await fetch(`/api/drills/sets/${view.set_id}/attempts`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        position: loaded.position, idempotency_key: keyFor(slot), step: stepIndex,
+        response, skip: Boolean(opts.skip), timed_out: Boolean(opts.timedOut),
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setBusy(false);
+    if (!res.ok) {
+      if (data.error === 'out_of_order' && typeof data.position === 'number') return loadItem(data.position);
+      setError(data.message ?? 'Could not submit. Please try again.');
+      return;
+    }
+    if (data.done === false) {
+      // Next step of the same item. A new stage (HY-2) restarts the clock.
+      setSteps(s => [...s, data.step as StepFeedback]);
+      setDraft(emptyDraft());
+      setDeadline(Date.now() + data.remaining_ms);
+      setLimitMs(data.time_limit_ms);
+      return;
+    }
+    // The diagnostic shows no per-item feedback: on to the next item.
+    if (view.diagnostic) {
+      if (loaded.position + 1 < loaded.size) loadItem(loaded.position + 1);
+      else finish();
+      return;
+    }
+    const fb = data as ItemFeedback;
+    setFinal(fb);
+    // Immediate feedback on a written answer: wait for its grade.
+    if (fb.grading_now) {
+      setAnnounce('Grading your answer.');
+      setPhase('grading');
+      requestAnimationFrame(() => gradingRef.current?.focus());
+      return;
+    }
+    setAnnounce(fb.held ? 'Answer saved. Feedback is on your results.' : 'Feedback is below.');
+    setPhase('feedback');
+  }, [busy, current, draft, finish, loadItem, loaded, phase, stepIndex, view.diagnostic, view.set_id]);
+
+  // Immediate feedback: poll for the grade; after GRADING_WAIT_MS, or if
+  // grading failed, say it's delayed and let the student go on (never block).
+  useEffect(() => {
+    if (phase !== 'grading' || !loaded) return;
+    let stop = false;
+    const startedAt = Date.now();
+    const delayed = () => {
+      setGradingDelayed(true);
+      setAnnounce('Grading delayed. You will see it on your results.');
+      setPhase('feedback');
+    };
+    const poll = async () => {
+      if (stop) return;
+      const res = await fetch(`/api/drills/sets/${view.set_id}/items/${loaded.position}/feedback`).catch(() => null);
+      const data = res?.ok ? await res.json().catch(() => null) : null;
+      if (stop) return;
+      if (data?.status === 'ready') {
+        const fb = data.feedback as ItemFeedback;
+        setFinal(fb);
+        setAnnounce(fb.ungraded ? 'Grading delayed. You will see it on your results.' : 'Your feedback is ready below.');
+        setPhase('feedback');
+        return;
+      }
+      if (data?.status === 'delayed' || Date.now() - startedAt >= GRADING_WAIT_MS) return delayed();
+      setTimeout(poll, POLL_MS);
+    };
+    const first = setTimeout(poll, POLL_MS);
+    return () => { stop = true; clearTimeout(first); };
+  }, [phase, loaded, view.set_id]);
+
+  const next = () => {
+    if (!loaded) return;
+    if (loaded.position + 1 < loaded.size) loadItem(loaded.position + 1);
+    else finish();
+  };
+
+  async function skipExample() {
+    setShowExample(false);
+    await fetch('/api/me/drill-settings', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ skip_example_for: view.drill.id }),
+    });
+  }
+
+  if (phase === 'intro') {
+    const time = view.stage_limits_ms.map(ms => `${Math.round(ms / 1000)} s`).join(', then ');
+    return (
+      <section className="space-y-5">
+        <div className="space-y-1">
+          {view.diagnostic && <p className="text-sm text-muted-foreground">Diagnostic · Part {view.diagnostic.part} of {view.diagnostic.of}</p>}
+          <h1 className="text-xl font-semibold">{view.drill.name}</h1>
+          <p className="text-sm text-muted-foreground">
+            Trains {view.skills.map(s => s.name).join(', ')}.
+            {view.focus_skill && view.skills.length > 1 && ` You chose to practice ${view.focus_skill}.`}
+          </p>
+        </div>
+        <ul className={`grid gap-3 text-sm ${view.diagnostic ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Items</span><span className="font-medium">{view.size}</span></li>
+          <li className="rounded-lg border p-3">
+            <span className="block text-muted-foreground">Time per item</span>
+            {untimed
+              ? <><span className="font-medium">No time limit</span><span className="block text-xs text-muted-foreground">Timed target: {time}</span></>
+              : <span className="font-medium">{time}</span>}
+          </li>
+          {!view.diagnostic && <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Pass bar</span><span className="font-medium">{Math.round(view.pass_bar * 100)}%</span></li>}
+        </ul>
+        {view.diagnostic && <p className="text-sm text-muted-foreground">No feedback during the diagnostic: answer and move on. You&apos;ll see where you start at the end.</p>}
+        {view.lesson_skill && (
+          <p className="text-sm"><Link href={`/drills/learn/${encodeURIComponent(view.lesson_skill)}?source=intro`} className="underline underline-offset-4">Read the short lesson</Link> first if this skill is new to you.</p>
+        )}
+        {view.repair_hint && <p className="text-sm">{view.repair_hint}</p>}
+        {view.defend && (
+          <p className="text-sm">
+            After each answer, the interviewer asks one follow-up{view.defend.type === 'challenge' ? ' that pushes back on your recommendation: hold it or update it, then say why' : ' about it'}.
+            {untimed ? `Write up to ${view.defend.max_words} words.` : `You get ${view.defend.seconds} s and up to ${view.defend.max_words} words.`}
+          </p>
+        )}
+        {!view.diagnostic && view.ai_graded && feedbackMode !== 'immediate' && (
+          <p className="text-sm text-muted-foreground">Your written answers are graded together after the last item, so there is no feedback until then.</p>
+        )}
+        {view.example && showExample && (
+          <section aria-labelledby="example-heading" className="space-y-3 rounded-lg border bg-muted/40 p-4">
+            <div className="flex items-baseline justify-between">
+              <h2 id="example-heading" className="text-sm font-medium">Worked example</h2>
+              <Button variant="ghost" size="sm" onClick={skipExample}>Skip example</Button>
+            </div>
+            <p className="whitespace-pre-line text-sm">{view.example.prompt}</p>
+            {view.example.exhibit && <DrillChart spec={view.example.exhibit as ChartSpec} />}
+            {view.example.options.length > 0 && (
+              <ul className="space-y-1 text-sm">
+                {view.example.options.map(o => (
+                  <li key={o.id} className={o.correct ? 'font-medium' : 'text-muted-foreground'}>{o.correct ? '✓ ' : '• '}{o.text}</li>
+                ))}
+              </ul>
+            )}
+            <p className="whitespace-pre-line text-sm"><span className="font-medium">Answer:</span> {view.example.answer}</p>
+            <p className="text-sm text-muted-foreground">{view.example.explanation}</p>
+          </section>
+        )}
+        <fieldset className="space-y-2">
+          <legend className="mb-1 text-sm font-medium">Timer</legend>
+          {view.timer_choice_open ? (
+            <div className="flex flex-wrap gap-2">
+              {[{ v: false, label: `Timed (${time} per item)` }, { v: true, label: 'No timer' }].map(o => (
+                <label key={String(o.v)} className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm has-checked:border-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
+                  <input type="radio" name="timer" checked={untimed === o.v} onChange={() => setUntimed(o.v)} />
+                  {o.label}
+                </label>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">{untimed ? 'This set has no timer.' : 'This set is timed.'}</p>
+          )}
+          {!untimed && (
+            <label className="flex items-start gap-2 text-sm">
+              <input type="checkbox" checked={hidden} onChange={e => setHidden(e.target.checked)} className="mt-1" />
+              <span>Hide the countdown <span className="text-muted-foreground">(the time limit still applies; we warn you 10 seconds before it runs out)</span></span>
+            </label>
+          )}
+          <p className="text-xs text-muted-foreground">{untimed ? 'Untimed sets count fully toward your progress, and your results show how long you took.' : 'You can show or hide the timer during the set.'}</p>
+        </fieldset>
+        {feedbackMode && (
+          <fieldset className="space-y-2">
+            <legend className="mb-1 text-sm font-medium">Feedback</legend>
+            {view.timer_choice_open ? (
+              <div className="flex flex-wrap gap-2">
+                {([['immediate', 'After each question'], ['end', 'At the end of the set']] as const).map(([v, label]) => (
+                  <label key={v} className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm has-checked:border-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
+                    <input type="radio" name="feedback" checked={feedbackMode === v} onChange={() => setFeedbackMode(v)} />
+                    {label}
+                  </label>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">{feedbackMode === 'immediate' ? 'Feedback after each question.' : 'Feedback at the end of the set.'}</p>
+            )}
+            <p className="text-xs text-muted-foreground">
+              {feedbackMode === 'end' && view.drill.id === 'QN-5' && <span className="block">You&apos;ll see which drivers to use before entering your numbers.</span>}
+              {feedbackMode === 'immediate'
+                ? view.ai_graded
+                  ? `Each answer is graded as soon as you submit it${view.defend ? ', after its follow-up' : ''}, usually in a few seconds.`
+                  : 'You see whether you were right after each question.'
+                : 'Everything is on your results screen. Your score and progress are the same either way.'}
+            </p>
+          </fieldset>
+        )}
+        <Button size="lg" onClick={startOrResume}>{view.position > 0 ? 'Resume' : 'Start'}</Button>
+        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      </section>
+    );
+  }
+
+  if (!loaded) {
+    return <p className="text-sm text-muted-foreground">{error || 'Loading…'}</p>;
+  }
+
+  const { item } = loaded;
+  // Steps of the main answer; the Defend follow-up's steps come after them.
+  const mainSteps = stepSpecs.filter(s => !s.defend).length;
+  const multi = mainSteps > 1;
+  const label = current
+    ? current.defend ? current.label ?? 'Your reply' : `${multi ? `Step ${stepIndex + 1}: ` : ''}${current.label ?? DEFAULT_LABELS[current.type] ?? 'Your answer'}`
+    : '';
+  const followup = steps.find(s => s.followup)?.followup;
+  // QN-5: the driver cards the numbers step asks about, from step 1's feedback.
+  const drivers = steps.find(s => s.drivers)?.drivers ?? [];
+  return (
+    <section className="space-y-5">
+      <div className="flex items-baseline justify-between text-sm text-muted-foreground">
+        <span>{view.diagnostic ? `Diagnostic · Part ${view.diagnostic.part} of ${view.diagnostic.of}` : view.drill.name}</span>
+        <span className="flex items-baseline gap-3">
+          <ReportProblem setId={view.set_id} position={loaded.position} screen="item" />
+          <span>Item {loaded.position + 1} of {loaded.size}</span>
+        </span>
+      </div>
+      <h1 ref={headingRef} tabIndex={-1} className="whitespace-pre-line text-base font-medium leading-relaxed outline-none">{item.prompt}</h1>
+      {item.exhibit && <DrillChart spec={item.exhibit} />}
+
+      {phase === 'item' && !untimed && (
+        <div className="space-y-1">
+          <Timer key={`${loaded.position}-${limitMs}`} deadline={deadline} totalMs={limitMs} hidden={hidden} paused={paused} onExpire={() => submit({ timedOut: true })} />
+          <button type="button" onClick={() => toggleHidden(!hidden)} aria-pressed={hidden}
+            className="rounded-sm text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+            {hidden ? 'Show timer' : 'Hide timer'}
+          </button>
+        </div>
+      )}
+
+      {/* Finished steps: auto-checked ones show their verdict (QN-4's formula
+          before the calculation); AI-graded ones are just saved, and show the
+          student's own words, read-only, once a follow-up asks about them. */}
+      {steps.map((s, i) => i >= mainSteps ? null : (
+        <div key={i} className="space-y-1 rounded-lg border p-3 text-sm">
+          {s.held && !s.pending && !view.diagnostic ? (
+            <>
+              <p className="font-medium">{multi ? `Step ${i + 1}: saved` : 'Your answer: saved'}</p>
+              {s.drivers && <p>Use these drivers for the next steps: <span className="font-medium">{s.correct_answer}</span></p>}
+            </>
+          ) : s.pending || view.diagnostic ? (
+            <>
+              <p className="font-medium">{multi ? `Step ${i + 1}: saved` : 'Your answer: saved'}</p>
+              {followup && s.your_answer && <p className="whitespace-pre-line text-muted-foreground">{s.your_answer}</p>}
+            </>
+          ) : (
+            <>
+              <p className="font-medium">Step {i + 1}: {s.correct ? 'Correct' : 'Not quite'}</p>
+              {!s.correct && s.your_answer && <p>You answered: {s.your_answer}</p>}
+              <p>{s.drivers ? 'Use these drivers' : 'Correct'}: <span className="font-medium">{s.correct_answer}</span></p>
+              {s.feedback && <p className="text-muted-foreground">{s.feedback}</p>}
+            </>
+          )}
+          {s.reveal && (
+            <p className="rounded-md bg-muted p-2"><span className="font-medium">New fact:</span> {s.reveal}</p>
+          )}
+        </div>
+      ))}
+
+      {/* The Defend step (PRD "Defend step screen"). */}
+      {followup && phase === 'item' && (
+        <div role="note" className="space-y-1 rounded-lg border-2 border-primary/60 p-3 text-sm">
+          <p className="font-medium">Interviewer follow-up</p>
+          <p>{followup.type === 'challenge' ? `“${followup.text}”` : followup.text}</p>
+        </div>
+      )}
+
+      {phase === 'item' && item.repair && stepIndex === 0 && (
+        <p className="rounded-md bg-muted p-2 text-sm"><span className="font-medium">Fix this answer.</span> {item.repair.hint}</p>
+      )}
+
+      {phase === 'item' && current && (
+        <div>
+          {current.type === 'single_choice' && (
+            <ChoiceList name={`item-${loaded.position}-${stepIndex}`} label={label}
+              choices={current.choices ?? item.options} value={draft.choice} onChange={choice => patch({ choice })} />
+          )}
+          {current.type === 'multi_select' && (
+            <CardPicker label={label} cards={item.options} value={draft.cards} onChange={cards => patch({ cards })} />
+          )}
+          {current.type === 'numeric' && (
+            <NumericInput value={draft.numeric} onChange={numeric => patch({ numeric })} onSubmit={() => submit()} label={label} />
+          )}
+          {current.type === 'numeric_set' && (
+            <NumberFields label={label} fields={drivers} value={draft.numbers} onChange={numbers => patch({ numbers })} />
+          )}
+          {current.type === 'free_text' && (
+            <WrittenAnswer label={label} cap={current.max_words ?? 120} value={draft.text} onChange={text => patch({ text })} />
+          )}
+          {current.type === 'structured_buckets' && (
+            <BucketsEditor cap={item.input.max_words ?? 120} value={draft.buckets} onChange={buckets => patch({ buckets })} />
+          )}
+        </div>
+      )}
+
+      {phase === 'item' && (
+        <div className="flex items-center gap-3">
+          <Button onClick={() => submit()} disabled={busy}>{stepIndex < stepSpecs.length - 1 ? (stepSpecs[stepIndex + 1]?.defend && !current?.defend ? 'Submit answer' : 'Next step') : 'Submit'}</Button>
+          <Button variant="ghost" onClick={() => submit({ skip: true })} disabled={busy}>{current?.defend ? 'Skip follow-up' : 'Skip'}</Button>
+        </div>
+      )}
+
+      <p role="status" aria-live="polite" className="sr-only">{announce}</p>
+      {phase === 'grading' && (
+        <div ref={gradingRef} tabIndex={-1} className="flex items-center gap-3 rounded-lg border p-4 text-sm outline-none">
+          <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+          <span>Grading your answer…</span>
+        </div>
+      )}
+      {phase === 'feedback' && gradingDelayed && (
+        <div className="space-y-1 rounded-lg border p-4 text-sm">
+          <p className="font-medium">Grading delayed</p>
+          <p className="text-muted-foreground">You&apos;ll see it on your results. Carry on with the set.</p>
+        </div>
+      )}
+      {phase === 'feedback' && final && !gradingDelayed && <section aria-label="Feedback"><ItemFeedbackPanel feedback={final} /></section>}
+      {phase === 'feedback' && (
+        <Button size="lg" onClick={next} autoFocus>{loaded.position + 1 < loaded.size ? 'Next item' : 'See results'}</Button>
+      )}
+      {phase === 'finishing' && <p className="text-sm text-muted-foreground">{view.ai_graded ? 'Sending your answers for grading…' : 'Scoring your set…'}</p>}
+      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+    </section>
+  );
+}
+
+export function ItemFeedbackPanel({ feedback }: { feedback: ItemFeedback }) {
+  if (feedback.held) {
+    return (
+      <div className="space-y-1 rounded-lg border p-4 text-sm">
+        <p className="font-medium">{feedback.skipped ? 'Skipped' : 'Answer saved'}</p>
+        <p className="text-muted-foreground">You chose feedback at the end of the set: it&apos;s all on your results screen.</p>
+      </div>
+    );
+  }
+  if (feedback.pending) {
+    return (
+      <div role="status" className="space-y-1 rounded-lg border p-4 text-sm">
+        <p className="font-medium">{feedback.skipped ? 'Skipped' : 'Answer saved'}</p>
+        <p className="text-muted-foreground">Written answers are graded together after the last item.</p>
+      </div>
+    );
+  }
+  if (feedback.ungraded) {
+    return (
+      <div role="status" className="space-y-2 rounded-lg border p-4 text-sm">
+        <p className="font-medium">Grading delayed</p>
+        <p className="text-muted-foreground">We couldn&apos;t grade this answer, so it doesn&apos;t count toward your score or progress, either way. If something looks wrong, use Report a problem.</p>
+        {feedback.model_answer && (
+          <div className="space-y-1">
+            <p className="font-medium">A strong answer</p>
+            <p className="whitespace-pre-line text-muted-foreground">{feedback.model_answer}</p>
+          </div>
+        )}
+      </div>
+    );
+  }
+  const verdict = feedback.skipped ? 'Skipped' : feedback.correct ? 'Correct' : feedback.score > 0 ? 'Partly correct' : feedback.timed_out ? 'Time ran out' : 'Not quite';
+  if (feedback.grading) return <GradedPanel feedback={feedback} verdict={verdict} />;
+  return (
+    <div role="status" className={`space-y-2 rounded-lg border p-4 text-sm ${feedback.correct ? 'border-primary' : 'border-destructive/60'}`}>
+      <p className="font-medium">{verdict}{feedback.score > 0 && feedback.score < 1 ? ` (${Math.round(feedback.score * 100)}%)` : ''}</p>
+      {feedback.steps.map((s, i) => (
+        <div key={i} className="space-y-0.5">
+          {feedback.steps.length > 1 && <p className="text-muted-foreground">Step {i + 1}</p>}
+          {s.your_answer !== null && !s.correct && <p>Your answer: {s.your_answer}</p>}
+          {s.correct_answer && <p>Correct answer: <span className="font-medium">{s.correct_answer}</span></p>}
+          {!s.correct && s.feedback && <p>{s.feedback}</p>}
+        </div>
+      ))}
+      {feedback.model_answer && (
+        <div className="space-y-1">
+          <p className="font-medium">A strong answer</p>
+          <p className="whitespace-pre-line text-muted-foreground">{feedback.model_answer}</p>
+        </div>
+      )}
+      <p className="text-muted-foreground"><span className="font-medium text-foreground">Worked solution:</span> {feedback.explanation}</p>
+    </div>
+  );
+}
+
+// AI-graded items (PRD "Set results screen"): each check passed or failed,
+// the quote that shows it, any red flag, and the model answer.
+function GradedPanel({ feedback, verdict }: { feedback: ItemFeedback; verdict: string }) {
+  const g = feedback.grading!;
+  return (
+    <div className="space-y-3 rounded-lg border p-4 text-sm">
+      <p className="font-medium">{verdict} ({Math.round(feedback.score * 100)}%)</p>
+      {/* An unchanged Repair answer was scored by code; its checks' tips don't apply. */}
+      {!g.unchanged && <ul className="space-y-2">
+        {g.checks.map(c => (
+          <li key={c.check_id} className="flex gap-2">
+            <span aria-hidden="true" className={c.pass ? 'text-primary' : 'text-destructive'}>{c.pass ? '✓' : '✗'}</span>
+            <span className="sr-only">{c.pass ? 'Passed:' : 'Missed:'}</span>
+            <span className="space-y-0.5">
+              <span className="block">{c.question}</span>
+              {c.pass && c.evidence && <span className="block text-muted-foreground">You wrote: “{c.evidence}”</span>}
+              {!c.pass && <span className="block text-muted-foreground">{c.feedback}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>}
+      {g.decision && (
+        <p>Your choice after the new fact: <span className="font-medium">{g.decision.chose}</span>, {g.decision.right ? 'the right call.' : 'not the right call for your hypothesis.'}</p>
+      )}
+      {g.red_flags.map(f => (
+        <p key={f.id} className="rounded-md border border-destructive/60 p-2">
+          <span className="font-medium">Red flag:</span> {f.definition}{f.evidence ? ` (“${f.evidence}”)` : ''} This caps the score.
+        </p>
+      ))}
+      {g.unchanged && <p className="rounded-md border border-destructive/60 p-2">Your answer was the original, unchanged, so it scores 0.</p>}
+      {g.original && (
+        <div className="space-y-1">
+          <p className="font-medium">The answer you were fixing</p>
+          <p className="whitespace-pre-line text-muted-foreground">{g.original}</p>
+        </div>
+      )}
+      {g.model_answer && (
+        <div className="space-y-1">
+          <p className="font-medium">{g.original ? 'A strong fix' : 'A strong answer'}</p>
+          <p className="whitespace-pre-line text-muted-foreground">{g.model_answer}</p>
+        </div>
+      )}
+      <p className="text-muted-foreground">{feedback.explanation}</p>
+      {g.defend && <DefendPanel defend={g.defend} />}
+      {g.review_flagged && <p className="text-xs text-muted-foreground">Part of this grade has been flagged for a human check.</p>}
+    </div>
+  );
+}
+
+// The follow-up, the student's reply, each check with evidence and the model
+// reply (PRD "Set results screen").
+function DefendPanel({ defend }: { defend: NonNullable<NonNullable<ItemFeedback['grading']>['defend']> }) {
+  return (
+    <div className="space-y-2 border-t pt-3">
+      <p className="font-medium">Interviewer follow-up</p>
+      <p>{defend.type === 'challenge' ? `“${defend.text}”` : defend.text}</p>
+      {defend.skipped ? <p className="text-muted-foreground">You skipped the follow-up.</p> : (
+        <p className="whitespace-pre-line"><span className="font-medium">Your reply:</span> {defend.reply || '(no reply)'}</p>
+      )}
+      {defend.decision && (
+        <p>You chose to <span className="font-medium">{defend.decision.chose.toLowerCase()}</span>: {defend.decision.right ? 'the right call.' : 'not the right call here.'}</p>
+      )}
+      <ul className="space-y-2">
+        {defend.checks.map(c => (
+          <li key={c.check_id} className="flex gap-2">
+            <span aria-hidden="true" className={c.pass ? 'text-primary' : 'text-destructive'}>{c.pass ? '✓' : '✗'}</span>
+            <span className="sr-only">{c.pass ? 'Passed:' : 'Missed:'}</span>
+            <span className="space-y-0.5">
+              <span className="block">{c.question}</span>
+              {c.pass && c.evidence && <span className="block text-muted-foreground">You wrote: “{c.evidence}”</span>}
+              {!c.pass && <span className="block text-muted-foreground">{c.feedback}</span>}
+            </span>
+          </li>
+        ))}
+      </ul>
+      <div className="space-y-1">
+        <p className="font-medium">A strong reply</p>
+        <p className="whitespace-pre-line text-muted-foreground">{defend.model_reply}</p>
+      </div>
+    </div>
+  );
+}

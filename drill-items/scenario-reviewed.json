@@ -1,0 +1,305 @@
+{
+  "pairs": [
+    {
+      "items": [
+        "cl1-0003",
+        "ps1-0027"
+      ],
+      "reason": "Both are warehouses, but different problems and figures: a parts distributor's picking slowed by new scanners (CL-1) vs a framework that includes next season's forecast (PS-1). Neither reveals the other's answer."
+    },
+    {
+      "items": [
+        "cl1-0006",
+        "ps1-0007"
+      ],
+      "reason": "Hotel staffing vs airline crew staffing; the shared 10% is a different target. Different clients and questions."
+    },
+    {
+      "items": [
+        "cl1-0007",
+        "sy1-0005"
+      ],
+      "reason": "Both are acquisitions, so they share deal vocabulary (synergies, worth), but different clients, prices and figures ($250M packaging rival vs $500M RivalCo)."
+    },
+    {
+      "items": [
+        "cl1-0015",
+        "sy1-0002"
+      ],
+      "reason": "Both test a subscription price rise against a cancellation survey, but different clients and figures (newspaper +25% with 5% cancelling vs app plan $20→$24 with 8%)."
+    },
+    {
+      "items": [
+        "cl1-0023",
+        "sy1-0009"
+      ],
+      "reason": "Both mention a factory night shift, but different questions: electronics defects isolated to nights (CL-1) vs adding a night shift for capacity (SY-1)."
+    },
+    {
+      "items": [
+        "cl1-0029",
+        "ex1-0021"
+      ],
+      "reason": "Same reasoning on purpose (use spare capacity before building), kept per Matt's Oct 10 instruction, in a different industry with different figures: bottling lines at 97% and 58% vs plants at 98% and 60–63%."
+    },
+    {
+      "items": [
+        "ex1-0014",
+        "hy1-0008"
+      ],
+      "reason": "Shared 25 and 60 are coincidence: department budget changes vs a software company's revenue and headcount growth."
+    },
+    {
+      "items": [
+        "ex1-0017",
+        "sy1-0030"
+      ],
+      "reason": "Coincidental numbers: a company's cash-flow waterfall vs the home fitness industry's sales and margins."
+    },
+    {
+      "items": [
+        "ex1-0023",
+        "sy1-0016"
+      ],
+      "reason": "Austin is a city in a market table (EX-1) and an office location (SY-1); figures coincide by chance."
+    },
+    {
+      "items": [
+        "hy1-0013",
+        "ps1-0044"
+      ],
+      "reason": "Both are airline routes, but different questions and figures: a fare cut on a business route (HY-1) vs a framework for adding daily flights (PS-1)."
+    },
+    {
+      "items": [
+        "hy1-0015",
+        "ps1-0022"
+      ],
+      "reason": "Both are car washes, but different situations and figures: revenue −15% with flat volume (HY-1) vs profit −25% and a kiosk bucket in a framework (PS-1). Neither reveals the other."
+    },
+    {
+      "items": [
+        "hy1-0020",
+        "sy1-0007"
+      ],
+      "reason": "$8M and $20M coincide: delayed merger savings (HY-1) vs choosing among cost-cutting options (SY-1)."
+    },
+    {
+      "items": [
+        "hy1-0040",
+        "sy1-0030"
+      ],
+      "reason": "Coincidental numbers: solar installations after a subsidy ends vs the home fitness industry downturn."
+    },
+    {
+      "items": [
+        "ps1-0012",
+        "sy1-0035"
+      ],
+      "reason": "Both are fitness businesses, but different questions and no shared figures: a studio profit framework missing instructor pay (PS-1) vs a mid-case growth summary (SY-1)."
+    },
+    {
+      "items": [
+        "ps1-0013",
+        "sy1-0033"
+      ],
+      "reason": "Shared words only (system, transit, extra): a city fare rise framework vs a delivery-time mid-case summary."
+    },
+    {
+      "items": [
+        "ps1-0019",
+        "sy1-0025"
+      ],
+      "reason": "Both are state programs, but different questions and figures: a graduation-rate framework vs funding a job-training program."
+    },
+    {
+      "items": [
+        "ps1-0046",
+        "sy1-0011"
+      ],
+      "reason": "Coincidental numbers: ARR growth for a software company vs a city's parking garages."
+    },
+    {
+      "items": [
+        "cl1-0021",
+        "example-sy2-01"
+      ],
+      "reason": "Both use hours when the business is closed, but different clients, figures and tasks: a salon's Monday children's haircuts (pick a next step) vs trampoline parks hosting school field trips (write a recommendation)."
+    },
+    {
+      "items": [
+        "example-sy2-01",
+        "sy1-0028"
+      ],
+      "reason": "Both add a service in hours when the business is closed, but different clients and figures: burger restaurants adding breakfast ($20k setup, $30k a year) vs trampoline parks hosting school groups (120 groups at $600 against $40k of costs, with a museum price risk)."
+    },
+    {
+      "items": [
+        "ex1-0037",
+        "ps3-0007"
+      ],
+      "reason": "Shared words only (center, minute, without): a call center cutting phone waits without hiring (EX-1) vs a blood donation center shortening donor visits without weakening screening (PS-3). Different clients and no shared figures."
+    },
+    {
+      "items": [
+        "cl1-0001",
+        "hy2-0007"
+      ],
+      "reason": "Shared words only (held, steady) and a coincidental 15: a paint maker whose profit fell (CL-1) vs car-dealership service departments losing routine visits to cheaper rivals (HY-2)."
+    },
+    {
+      "items": [
+        "cl1-0026",
+        "hy2-0034"
+      ],
+      "reason": "Both mention existing customers spending, but different clients and questions: growing a B2B software firm 50% with no mid-market product (CL-1) vs a cloud-storage company whose retention fell after a console change (HY-2)."
+    },
+    {
+      "items": [
+        "ex1-0014",
+        "hy2-0007"
+      ],
+      "reason": "\"Department\" means budget departments (EX-1) and dealership service departments (HY-2); 15 and 25 are coincidence."
+    },
+    {
+      "items": [
+        "cl1-0016",
+        "sy2-0002"
+      ],
+      "reason": "Shared words only (evening, weekday, weekend): a bowling chain's falling weekday sales (CL-1) vs a golf-simulator studio raising its peak price (SY-2)."
+    },
+    {
+      "items": [
+        "cl1-0027",
+        "sy2-0023"
+      ],
+      "reason": "Coincidental words and numbers: a university's lab-supply costs (CL-1) vs a sporting-goods chain deciding whether to match online prices (SY-2)."
+    },
+    {
+      "items": [
+        "cl1-0035",
+        "sy2-0021"
+      ],
+      "reason": "Both mention a county, residents and towns, but library-card sign-ups (CL-1) vs consolidating animal shelters (SY-2)."
+    },
+    {
+      "items": [
+        "cl1-0038",
+        "sy2-0026"
+      ],
+      "reason": "Shared common words only: a department-store turnaround (CL-1) vs a city bus lane (SY-2)."
+    },
+    {
+      "items": [
+        "cl1-0040",
+        "sy2-0023"
+      ],
+      "reason": "Coincidental numbers: a gym's off-peak membership (CL-1) vs a sporting-goods chain's price matching (SY-2)."
+    },
+    {
+      "items": [
+        "ex1-0007",
+        "sy2-0019"
+      ],
+      "reason": "Coincidental numbers: choosing an acquisition target from a chart (EX-1) vs closing furniture-rental showrooms (SY-2)."
+    },
+    {
+      "items": [
+        "ex1-0014",
+        "sy2-0026"
+      ],
+      "reason": "Coincidental numbers: department budget changes (EX-1) vs a city bus lane (SY-2)."
+    },
+    {
+      "items": [
+        "ex1-0035",
+        "sy2-0018"
+      ],
+      "reason": "'Fund' means funding one project (EX-1) and an investment fund (SY-2); different decisions and figures."
+    },
+    {
+      "items": [
+        "hy1-0025",
+        "sy2-0002"
+      ],
+      "reason": "'License' is a software license (HY-1) and a liquor license, an irrelevant fact (SY-2); different clients."
+    },
+    {
+      "items": [
+        "hy2-0024",
+        "sy2-0016"
+      ],
+      "reason": "'Replaced' refers to LED lighting (HY-2) and a warehouse roof, an irrelevant fact (SY-2); different decisions."
+    },
+    {
+      "items": [
+        "ps3-0019",
+        "sy2-0024"
+      ],
+      "reason": "Both mention a free tool and 4,000, but a tax chain's 4,000 offices facing a free filing tool (PS-3) vs 4,000 tattoo studios as a software market (SY-2)."
+    },
+    {
+      "items": [
+        "ps3-0036",
+        "sy2-0018"
+      ],
+      "reason": "Both are funds weighing an industry, but satellite internet for rural homes (PS-3) vs a vinyl-record pressing plant (SY-2); different facts."
+    },
+    {
+      "items": [
+        "sy1-0008",
+        "sy2-0003"
+      ],
+      "reason": "Both start selling somewhere new, but a retailer going online (SY-1) vs a barbecue-sauce brand entering Canadian supermarkets (SY-2); different figures."
+    },
+    {
+      "items": [
+        "sy1-0020",
+        "sy2-0004"
+      ],
+      "reason": "Both involve a lease, but closing a loss-making store (SY-1) vs moving an accounting firm to a smaller office (SY-2)."
+    },
+    {
+      "items": [
+        "sy1-0021",
+        "sy2-0002"
+      ],
+      "reason": "'License' and numbers are coincidence: a ride-hailing city launch (SY-1) vs a golf-simulator price rise (SY-2)."
+    },
+    {
+      "items": [
+        "sy1-0025",
+        "sy2-0001"
+      ],
+      "reason": "'Training' means a job-training program (SY-1) and technician training for a 3D printer (SY-2)."
+    },
+    {
+      "items": [
+        "sy1-0030",
+        "sy2-0018"
+      ],
+      "reason": "Both ask whether to invest in an industry, but a shrinking home-fitness industry (SY-1) vs vinyl pressing with long waitlists (SY-2); different facts and answers."
+    },
+    {
+      "items": [
+        "cl3-0008",
+        "sy1-0008"
+      ],
+      "reason": "Shared word (selling) and coincidental numbers: mattress stores losing sales to online brands (CL-3) vs a retailer deciding whether to sell online (SY-1)."
+    },
+    {
+      "items": [
+        "cl3-0008",
+        "sy2-0011"
+      ],
+      "reason": "Shared word (began) and coincidental numbers: mattress stores losing sales to online brands (CL-3) vs a caterer restoring its margin (SY-2)."
+    },
+    {
+      "items": [
+        "ps3-0034",
+        "qn5-0022"
+      ],
+      "reason": "Both size a global replacement market in dollars, but for electric-car batteries in 2030 (PS-3 framework) vs airliner seats today (QN-5 sizing); different drivers and figures."
+    }
+  ]
+}

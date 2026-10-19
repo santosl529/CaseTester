@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0026-d1",
+  "item_id": "sy2-0026",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Convert the lane. Buses carry 18,000 riders a day, and each would save 8 minutes, against 2 minutes lost by each of 22,000 people in cars, so total travel time falls sharply, for $3M. The main risk is opposition from 40 shops worried about parking, though 70% of their customers arrive on foot or by bus. The next step is a 6-month pilot with loading zones that measures trip times and shop sales."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. At 8 minutes each, the 22,000 in cars lose about 176,000 minutes a day, more than the 144,000 bus riders save, so I'd make it peak-hours only."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

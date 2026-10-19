@@ -1,0 +1,66 @@
+{
+  "item_id": "cl1-0040",
+  "version": 1,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "pricing",
+  "industry": "Other",
+  "prompt": "Objective: decide whether a gym should add a cheaper off-peak membership. What you've learned: peak hours are full while mornings and afternoons are 30% used. Latest finding: a survey shows 25% of non-members would join at a lower off-peak price. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Ask the interviewer what discount the gym has in mind",
+      "correct": false,
+      "tag": "M.waited_for_interviewer",
+      "feedback": "Drive the case: work out the trade-off yourself."
+    },
+    {
+      "id": "b",
+      "text": "Measure peak-hour usage day by day",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Already answered: peak hours are full."
+    },
+    {
+      "id": "c",
+      "text": "Calculate revenue if the off-peak plan were half price",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That ignores current members who might downgrade."
+    },
+    {
+      "id": "d",
+      "text": "Weigh the gain from new off-peak members against downgrades",
+      "correct": true,
+      "feedback": "Right. Demand exists; the open question is whether downgrades by current members eat the gain."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "25% of non-members would join off-peak. Weigh their revenue against current members downgrading.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

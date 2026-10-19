@@ -1,0 +1,2 @@
+answer_id,item_id,answer_type,answer,flaws_fixed,no_new_flaw,keeps_right,notes
+EXAMPLE-sy3-01-a,EXAMPLE-sy3-01,normal,"Keep the price at $4. Cutting it to $3 drops our margin from $2.50 to $1.50 a cup, so we'd need about 1,670 cups a day, and the survey expects 1,200.",1,Y,Y,Recommendation now leads; the numbers that were right are kept.

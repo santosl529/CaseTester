@@ -1,0 +1,49 @@
+{
+  "answer_id": "ps4-0001-a",
+  "item_id": "ps4-0001",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Airport charges now sit in one bucket (rule 7); the rest is kept.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "What the airport charges",
+          "points": [
+            "lease",
+            "share of sales"
+          ]
+        },
+        {
+          "title": "Staff and supplies",
+          "points": [
+            "wages",
+            "coffee and food costs"
+          ]
+        },
+        {
+          "title": "Traveler demand",
+          "points": [
+            "passengers per day",
+            "spend per traveler"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "existing airport food outlets",
+            "their prices"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

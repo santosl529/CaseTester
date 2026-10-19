@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0002-d1",
+  "item_id": "hy2-0002",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Tests the stock-out cause it moved to after dropping (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Lemon reached only 60% of its first-month target and has fallen 30% a month since, likely because shoppers who try it don't like it enough to rebuy. I'd compare repeat-purchase rates for lemon with the brand's other flavors."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: where lemon stayed in stock, repeat buying matched other flavors. The fall comes from stock-outs in 40% of stores."
+    },
+    {
+      "type": "text",
+      "value": "Weekly lemon sales in stores that never ran out. If they fell 30% a month too, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

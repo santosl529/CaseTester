@@ -1,0 +1,4 @@
+answer_id,item_id,answer_type,answer,areas_covered,no_overlap,case_specific,concrete_subpoints,red_flag_generic_framework,red_flag_off_topic,notes
+EXAMPLE-ps3-01-a,EXAMPLE-ps3-01,borderline,"Market: how many people work out at home; growth
+Revenue: price per month; number of subscribers
+Costs: app, video production, marketing",Customer demand; Economics,Y,Y,Y,N,N,"Market, revenue and costs headings are generic, but the sub-points tie them to at-home fitness, so case-specific passes (grading guide PS-3 rule 6). Misses competition and cannibalization."

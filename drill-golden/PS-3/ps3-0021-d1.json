@@ -1,0 +1,63 @@
+{
+  "answer_id": "ps3-0021-d1",
+  "item_id": "ps3-0021",
+  "drill_id": "PS-3",
+  "answer_type": "short",
+  "notes": "A pick (rule 2), no reason (rule 3), and reviews aren't in the framework, with no reason for adding them (rule 4).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "The contractors",
+          "points": [
+            "revenue",
+            "margins",
+            "customer lists",
+            "dependence on owners"
+          ]
+        },
+        {
+          "title": "Synergies",
+          "points": [
+            "shared dispatch and buying",
+            "selling service plans"
+          ]
+        },
+        {
+          "title": "Price vs value",
+          "points": [
+            "earnings and synergies against $60M"
+          ]
+        },
+        {
+          "title": "Integration",
+          "points": [
+            "keeping technicians and owners",
+            "systems",
+            "local brands"
+          ]
+        },
+        {
+          "title": "Risks",
+          "points": [
+            "technician shortages",
+            "local reputation after the sale"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Customer reviews."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,171 @@
+{
+  "item_id": "qn5-0002",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "live",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "industry": "Consumer / CPG",
+  "prompt": "Estimate annual US spending on store-bought birthday cakes.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "US population",
+      "correct": true,
+      "feedback": "A driver: Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way"
+    },
+    {
+      "id": "2",
+      "text": "Share of birthdays celebrated with a store-bought cake",
+      "correct": true,
+      "feedback": "A driver: Reasoning: most children's birthdays and some adults' get a bought cake; many are homemade or skipped"
+    },
+    {
+      "id": "3",
+      "text": "Average price of a birthday cake",
+      "correct": true,
+      "feedback": "A driver: Reasoning: supermarket cakes run $20 to $30, bakery cakes more"
+    },
+    {
+      "id": "4",
+      "text": "US households",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Counts the same people the population already counts"
+    },
+    {
+      "id": "5",
+      "text": "Number of bakeries",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Where cakes are bought, not how many"
+    },
+    {
+      "id": "6",
+      "text": "Average number of guests at a birthday party",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Party size may change cake size, but the estimate counts cakes, not guests"
+    }
+  ],
+  "numeric": {
+    "answer": 3266250000,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "335M (US population) × 0.3 (share of birthdays celebrated with a store-bought cake) × 30 (average price of a birthday cake) ≈ $3.02B",
+  "explanation": "335M (US population) × 0.3 (share of birthdays celebrated with a store-bought cake) × 30 (average price of a birthday cake) ≈ $3.02B. A believable total is 1.5B–6B (Derived: the central driver values give about $3.02B; the range allows a factor of 2 either way for the least certain driver (share of birthdays celebrated with a store-bought cake)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 320000000,
+        "high": 350000000,
+        "unit": "people",
+        "source": "Reasoning: the commonly quoted US population is about 335M; the range allows about 5% either way"
+      },
+      "2": {
+        "low": 0.2,
+        "high": 0.45,
+        "unit": "share",
+        "source": "Reasoning: most children's birthdays and some adults' get a bought cake; many are homemade or skipped"
+      },
+      "3": {
+        "low": 20,
+        "high": 40,
+        "unit": "dollars",
+        "source": "Reasoning: supermarket cakes run $20 to $30, bakery cakes more"
+      }
+    },
+    "benchmark": {
+      "low": 1500000000,
+      "high": 6000000000,
+      "source": "Derived: the central driver values give about $3.02B; the range allows a factor of 2 either way for the least certain driver (share of birthdays celebrated with a store-bought cake)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-11",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

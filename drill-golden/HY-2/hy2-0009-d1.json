@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0009-d1",
+  "item_id": "hy2-0009",
+  "drill_id": "HY-2",
+  "answer_type": "off_topic",
+  "notes": "A fix, not a test (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With attendance steady, revenue per show likely fell because guests spend less on food and drink, not on tickets. I'd compare bar sales per guest by month."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: ticket prices are unchanged, and food and drink spending per guest fell 30% after the switch to app-only ordering."
+    },
+    {
+      "type": "text",
+      "value": "They should bring back the bars."
+    }
+  ],
+  "labels": {
+    "defend_data_request": false,
+    "defend_drop_result": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

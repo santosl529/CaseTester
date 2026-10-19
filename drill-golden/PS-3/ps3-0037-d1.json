@@ -1,0 +1,62 @@
+{
+  "answer_id": "ps3-0037-d1",
+  "item_id": "ps3-0037",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the 5- against 15-year choice (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Health risk",
+          "points": [
+            "children exposed while pipes wait",
+            "which neighborhoods first"
+          ]
+        },
+        {
+          "title": "Cost",
+          "points": [
+            "borrowing",
+            "contractor prices when rushing",
+            "federal funds"
+          ]
+        },
+        {
+          "title": "Water bills",
+          "points": [
+            "rate increases",
+            "low-income customers"
+          ]
+        },
+        {
+          "title": "Capacity",
+          "points": [
+            "contractors and crews",
+            "street disruption"
+          ]
+        },
+        {
+          "title": "Rules",
+          "points": [
+            "federal deadlines",
+            "legal liability"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Health risk. Over 15 years, children in the last neighborhoods stay exposed ten years longer than under the five-year plan."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

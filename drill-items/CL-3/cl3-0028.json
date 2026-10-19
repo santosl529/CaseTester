@@ -1,0 +1,230 @@
+{
+  "item_id": "cl3-0028",
+  "version": 3,
+  "drill_id": "CL-3",
+  "status": "live",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "CL.data_requests"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A regional airport wants to grow passenger numbers 30%. Many travelers in its area drive 90 minutes to a larger airport instead.\n\nWhat information would you ask for, and where would you start?",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 60
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "breaks_into_drivers",
+      "question": "Does the answer break the metric into its drivers?",
+      "weight": 0.25,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Break the metric into its drivers before asking for data.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_1",
+      "question": "Does the answer cover Airlines and routes (Routes, airlines or seats offered)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Airlines and routes.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_2",
+      "question": "Does the answer cover Leakage (Local travelers using another airport)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Leakage.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_3",
+      "question": "Does the answer cover Fees and incentives (Landing fees or deals for airlines)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Fees and incentives.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "driver_4",
+      "question": "Does the answer cover Ground access (Road, parking or rail links)?",
+      "weight": 0.0625,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "It doesn't cover Ground access.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "states_where_to_start",
+      "question": "Does the answer say where to start?",
+      "weight": 0.15,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Say where you would start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "reason_for_start",
+      "question": "Does the answer give a reason for starting there?",
+      "weight": 0.1,
+      "fail_tag": "M.laundry_list",
+      "feedback": "Give a reason for where you start.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "specific_requests",
+      "question": "Judge only the data the answer asks to see, not the drivers it lists to break the metric down (\"profit is revenue minus marketing and content costs\" is a breakdown, not a request). Does every data request name a specific measure, and does the first one also include a cut, a comparison or a time period (\"marketing spend per new student by channel for two years\")?",
+      "weight": 0.25,
+      "fail_tag": "M.vague_data_request",
+      "feedback": "Make requests specific, like: Routes flown from the airport and seats per week for three years; passengers in the area who drive to a larger airport.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "solution_before_diagnosis",
+      "definition": "The answer proposes solutions before diagnosing the problem.",
+      "cap": 0.5,
+      "tag": "M.premature_solution",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "six_plus_unstructured_requests",
+      "definition": "The answer lists six or more data requests with no structure.",
+      "cap": 0.5,
+      "tag": "M.laundry_list",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the one asked.",
+      "cap": 0.2,
+      "tag": "M.vague_data_request",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "missed_critical_driver",
+      "definition": "The answer misses the critical driver: Airlines and routes.",
+      "cap": 0.6,
+      "tag": "M.vague_data_request",
+      "detection": "code",
+      "step": 0
+    }
+  ],
+  "model_answer": "I'd look at airlines and routes, local passengers who use a bigger airport, landing fees and incentives, and road and rail access. I'd start with routes and seats per week for three years, since passengers come from the flights airlines choose to run here.",
+  "explanation": "Drivers: Airlines and routes, Leakage, Fees and incentives, Ground access. Start with Airlines and routes: Passengers come from the flights airlines choose to run, so the airport grows by winning routes. Specific: Routes flown from the airport and seats per week for three years; passengers in the area who drive to a larger airport. Vague: Passenger data; airline information.",
+  "extras": {
+    "drivers": [
+      {
+        "driver": "Airlines and routes",
+        "what_counts": "Routes, airlines or seats offered",
+        "critical": true
+      },
+      {
+        "driver": "Leakage",
+        "what_counts": "Local travelers using another airport",
+        "critical": false
+      },
+      {
+        "driver": "Fees and incentives",
+        "what_counts": "Landing fees or deals for airlines",
+        "critical": false
+      },
+      {
+        "driver": "Ground access",
+        "what_counts": "Road, parking or rail links",
+        "critical": false
+      }
+    ],
+    "best_starting_point": "Airlines and routes",
+    "critical_checks": [
+      "driver_1"
+    ],
+    "grading_rules": [
+      "Breaks into drivers: names at least two parts of the metric that together explain it (price and volume; ingredient, labor and rent costs) as a structure. A list of data sources or reports is not a breakdown.",
+      "Driver coverage: a driver counts if the answer names it or asks for data on it, tied to this case. A generic word alone (\"costs\", \"market data\") does not cover a specific driver (\"ingredient cost per cup\") unless the request makes it specific.",
+      "Where to start: the answer names one driver or analysis to look at first (\"I'd start with\", \"first\"). Listing everything with no order fails.",
+      "Reason for starting there: it says why, using the situation (the biggest cost, the part that changed, the part the client controls). The reason can come before the starting point (\"The list grows when operations fall behind referrals, so I'd start with operations per week\"). \"Because it's important\" fails.",
+      "Specific requests: judge only the data the answer asks to see. Drivers listed to break the metric down (\"profit is revenue minus marketing and content costs\", \"I'd look at price, mix and costs\") are the breakdown, not requests. Every data request must name a specific measure (\"the share of applications sent back\"); a request that names none (\"information about costs\") fails the check. The first request must also include a cut, a comparison or a time period (\"ingredient cost per cup by month for two years\").",
+      "Solution before diagnosis: the answer proposes fixes (\"cut staff\", \"raise prices\") before finding the cause. A hypothesis to test is not a solution.",
+      "Six or more unstructured requests: count separate data requests; six or more with no grouping by driver is a laundry list.",
+      "Off-topic: the answer addresses a different question from the one asked, for example it recommends a strategy instead of asking for information.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-17",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-13",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null,
+  "defend": {
+    "type": "justify",
+    "text": "If that first analysis comes back flat, what would you look at next, and why?",
+    "checks": [
+      {
+        "check_id": "defend_answers",
+        "question": "Does the reply answer the follow-up and commit to one choice?",
+        "weight": 0.35,
+        "fail_tag": "M.dodged_question",
+        "feedback": "Answer the question asked, and pick one.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reply give a reason that uses a fact from the case supporting what it picks?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Back your choice with a fact from the case that supports it.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own main answer?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own answer.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Leakage. If routes and seats are flat, the 30% has to come from local travelers who now drive 90 minutes to the larger airport, so I'd check how many do and why."
+  }
+}

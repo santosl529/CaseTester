@@ -29,6 +29,7 @@ See the PRD §3 for the proposed layout (`/lib/orchestrator`, `/lib/agent`, `/li
 
 ## Spec
 - The approved technical PRD is at `docs/prd-voice-ai-mock-case-technical.md`, with the product PRD (`prd-voice-ai-mock-case.md`, not in the repo) as the source of intent. Treat the technical PRD as the build source of truth.
+- Drills are a parallel workstream with their own spec: `docs/prd-drills.md` (build phases D0–D4 in its last section). The technical PRD's §11 exclusion covers the case-interview build only.
 - Build against it. Flag gaps or ambiguities to me rather than filling them in unilaterally.
 - The technical PRD is a living document, and the place to get the project's full history.
   - Its body describes the build as it is now. After changes that affect scope or behavior, update the affected sections in the same piece of work (new checks, case-format fields, behavior rules, model choices), and say in your report what you changed.

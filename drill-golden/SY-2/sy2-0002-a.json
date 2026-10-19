@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0002-a",
+  "item_id": "sy2-0002",
+  "drill_id": "SY-2",
+  "answer_type": "borderline",
+  "notes": "The recommendation comes in the second sentence, so recommendation-first fails (rule 1). Offering leagues a season rate is a concrete next step (rule 6).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Peak hours are 95% booked with a waitlist, and the rival charges $65, so we have room on price. Raise the peak rate to $60. League players are 60% of peak bookings and may push back, so let's offer them a season rate."
+    }
+  ],
+  "labels": {
+    "recommendation_first": false,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

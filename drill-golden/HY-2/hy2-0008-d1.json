@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0008-d1",
+  "item_id": "hy2-0008",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With more members but fewer visits, members are likely finding it harder to come rather than losing interest, perhaps because of opening hours. I'd compare visits by time of day with two years ago."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: evening visits halved after evening hours were cut while daytime and weekends held, which confirms that shorter hours, not lost interest, cut visits."
+    },
+    {
+      "type": "text",
+      "value": "Evening visits by center before and after the hour cuts. If they were already falling before, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0025-a",
+  "item_id": "hy2-0025",
+  "drill_id": "HY-2",
+  "answer_type": "short",
+  "notes": "Two words name a product, not what changed and through which driver, so directional fails (rule 1); by mechanism it's the digital family, so keep is right. 'Yes' doesn't use the new fact (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Digital pianos."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Yes."
+    }
+  ],
+  "labels": {
+    "directional": false,
+    "evidence_based": false,
+    "testable": false,
+    "tentative": false,
+    "update_reason": false
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Shift to digital pianos"
+}

@@ -1,0 +1,102 @@
+{
+  "item_id": "ex1-0004",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "cost_reduction",
+  "industry": null,
+  "prompt": "The client's costs are rising and it wants to know where to look first. Which takeaway matters most?",
+  "exhibit": {
+    "type": "stacked_bar",
+    "title": "Operating costs by type ($M)",
+    "categories": [
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "series": [
+      {
+        "name": "Labor",
+        "values": [
+          50,
+          52,
+          54
+        ]
+      },
+      {
+        "name": "Materials",
+        "values": [
+          30,
+          38,
+          48
+        ]
+      },
+      {
+        "name": "Overhead",
+        "values": [
+          20,
+          20,
+          20
+        ]
+      }
+    ]
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Labor is the largest cost, at $54M in 2025",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but labor rose only 4 (50 to 54). The question is where costs are rising, and that is materials."
+    },
+    {
+      "id": "b",
+      "text": "Labor and materials grew by similar amounts",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "Labor grew 4 (50 to 54); materials grew 18 (30 to 48)."
+    },
+    {
+      "id": "c",
+      "text": "Supplier price rises pushed materials costs up",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart shows materials rising, not why. That may be true, but nothing here supports it."
+    },
+    {
+      "id": "d",
+      "text": "Most of the cost rise comes from materials",
+      "correct": true,
+      "feedback": "Right. Total cost rose 22 (100 to 122); materials account for 18 of it (30 to 48)."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Total cost rose 22 (100 to 122); materials account for 18 of it (30 to 48).",
+  "extras": {
+    "proof": "Total cost rose 22 (100 to 122); materials account for 18 of it (30 to 48)."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

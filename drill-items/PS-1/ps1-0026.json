@@ -1,0 +1,71 @@
+{
+  "item_id": "ps1-0026",
+  "version": 2,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
+  "prompt": "A snack company is deciding whether to launch a high-protein chip. The candidate's framework: (1) Competing protein snacks; (2) Cost to make and distribute the chip; (3) Consumer demand for high-protein snacks; (4) Which athlete should front the launch ads. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 3 overlap: protein bars already meet the demand",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Whether rivals already meet demand is a competition question, separate from how much demand exists."
+    },
+    {
+      "id": "b",
+      "text": "Bucket 4 doesn't belong: choosing the ads' athlete only matters once the launch is decided",
+      "correct": true,
+      "feedback": "Right. Picking a face for the ads is launch execution. Replace it with the launch economics: price, margin and expected volume."
+    },
+    {
+      "id": "c",
+      "text": "Missing: protein bars and other snacks it would compete with",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Competing protein snacks are bucket 1."
+    },
+    {
+      "id": "d",
+      "text": "It's a generic launch framework: it never tests whether the chip tastes good",
+      "correct": false,
+      "tag": "M.generic_framework",
+      "feedback": "Taste shows up in consumer demand, bucket 3. The flaw is bucket 4."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Choosing an athlete for the ads is execution, not part of the go or no-go decision. A launch framework covers demand, competition, economics and the ability to execute.",
+  "extras": {
+    "flaw_type": "irrelevant",
+    "corrected_framework": "Demand; competition; economics (price, margin, volume); ability to execute"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

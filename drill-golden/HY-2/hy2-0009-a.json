@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0009-a",
+  "item_id": "hy2-0009",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With attendance steady, revenue per show likely fell because guests spend less at the bar, not on tickets. I'd compare drink and food sales per guest by month."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Bar spending per guest fell 30% after the app-only switch, which confirms it."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Less spending per guest"
+}

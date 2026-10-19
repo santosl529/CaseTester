@@ -1,0 +1,56 @@
+{
+  "answer_id": "ps3-0011-d1",
+  "item_id": "ps3-0011",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Picks a bucket; uses the margin fall on growing sales (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Price and mix",
+          "points": [
+            "price per pizza",
+            "promotions and retailer discounts",
+            "shift to cheaper lines"
+          ]
+        },
+        {
+          "title": "Cost per pizza",
+          "points": [
+            "cheese, flour and packaging",
+            "factory labor and energy per pizza"
+          ]
+        },
+        {
+          "title": "Selling and delivery",
+          "points": [
+            "freezer trucking",
+            "retailer fees",
+            "marketing"
+          ]
+        },
+        {
+          "title": "Where margin fell",
+          "points": [
+            "by product line",
+            "by retailer"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Cost per pizza, since sales grew 10% but margin fell from 14% to 8%, so each pizza earns less."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

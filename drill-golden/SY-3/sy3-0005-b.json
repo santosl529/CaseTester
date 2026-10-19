@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0005-b",
+  "item_id": "sy3-0005",
+  "drill_id": "SY-3",
+  "answer_type": "borderline",
+  "notes": "'Signs first' states the course of action (rule 14).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Signs first. Guidance signs cost $6M and cut search times 30% for 25,000 drivers a week, against $30M for 600 new spaces."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

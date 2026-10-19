@@ -1,0 +1,43 @@
+{
+  "answer_id": "ps4-0015-a",
+  "item_id": "ps4-0015",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Adds revenue beyond rooms (rule 8). Rates and occupancy are merged into one room-revenue bucket, which keeps their substance (rule 4).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Room revenue",
+          "points": [
+            "rates by season",
+            "rooms filled per night"
+          ]
+        },
+        {
+          "title": "Food and events",
+          "points": [
+            "restaurant and bar",
+            "weddings and conferences"
+          ]
+        },
+        {
+          "title": "Operating costs",
+          "points": [
+            "staff",
+            "energy",
+            "supplies"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

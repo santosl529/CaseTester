@@ -1,0 +1,40 @@
+{
+  "answer_id": "ps4-0014-a",
+  "item_id": "ps4-0014",
+  "drill_id": "PS-4",
+  "answer_type": "short",
+  "notes": "'Our edge: brand; dealers' covers whether the client can win (rule 8). The entry-cost bucket is dropped: keeps-right fails, and the thinner buckets are the same slip, so no new flaw (rules 3, 4).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "US demand",
+          "points": [
+            "e-bike sales"
+          ]
+        },
+        {
+          "title": "Competitors",
+          "points": [
+            "leading brands"
+          ]
+        },
+        {
+          "title": "Our edge",
+          "points": [
+            "brand",
+            "dealers"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

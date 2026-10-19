@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0014",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "turnaround",
+  "industry": "Retail / E-commerce",
+  "prompt": "A clothing retailer's inventory has grown 35% in a year while sales fell 5%. Markdowns doubled. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Lighter markdowns have likely made the stock harder to sell.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Markdowns doubled."
+    },
+    {
+      "id": "b",
+      "text": "Buying has probably stayed high as demand fell, piling up stock.",
+      "correct": true,
+      "feedback": "Right. Inventory grew 35% while sales fell 5%, so buying didn't track demand, and markdowns doubled to clear it. I'd compare purchase orders with sales by category."
+    },
+    {
+      "id": "c",
+      "text": "The buyers ordered the wrong styles, and that explains the whole problem.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states one cause as the whole explanation before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Demand has probably surged and the stores can't keep up.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Sales fell 5%."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows inventory up 35% while sales fell 5%, and markdowns doubled. Likely cause: buying stayed high as demand fell. To test it, compare purchase orders with sales by category. If orders fell in line with sales, look at the product mix instead.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

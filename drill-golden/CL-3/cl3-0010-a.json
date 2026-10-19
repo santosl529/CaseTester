@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0010-a",
+  "item_id": "cl3-0010",
+  "drill_id": "CL-3",
+  "answer_type": "borderline",
+  "notes": "Starts with synergies rather than the key's starting point, but it says where and why (rules 3 and 4); the critical driver is still covered. 'Savings per route' is a metric with a cut, and 'contract end dates' is already broken down by contract (rule 5; Matt, 2026-10-15).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at the rival's profit, route savings and contracts, and whether $40M is fair. I'd start with route savings, because that's where most value in waste deals comes from. I'd want savings per route and contract end dates."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": true,
+    "driver_1": true,
+    "driver_2": true,
+    "driver_3": true,
+    "driver_4": true,
+    "states_where_to_start": true,
+    "reason_for_start": true,
+    "specific_requests": true
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

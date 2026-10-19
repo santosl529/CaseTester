@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0015-a",
+  "item_id": "cl3-0015",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at how visitors respond to price, members against day visitors, and spending in the zoo. First, attendance after past price changes by visitor type, since the question is how many visitors $5 would lose."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": true,
+    "driver_1": true,
+    "driver_2": true,
+    "driver_3": true,
+    "driver_4": false,
+    "states_where_to_start": true,
+    "reason_for_start": true,
+    "specific_requests": true
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

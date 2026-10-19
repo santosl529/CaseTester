@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0001",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A sandwich chain's revenue is flat, but its profit fell 20%. Food costs rose from 30% to 32% of revenue. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Ingredient prices have probably risen faster than the chain's menu prices.",
+      "correct": true,
+      "feedback": "Right. Food cost rose as a share of flat revenue, so each sandwich costs more relative to its price. I'd check cost per sandwich by ingredient over the last two years."
+    },
+    {
+      "id": "b",
+      "text": "Rent and staff costs have likely grown faster than sales.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "The prompt points to food cost, which rose from 30% to 32% of revenue. Nothing suggests rent or staff."
+    },
+    {
+      "id": "c",
+      "text": "Sales per store have likely slipped as traffic moves to rivals.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Revenue is flat, so falling sales can't explain the profit drop."
+    },
+    {
+      "id": "d",
+      "text": "Something on the cost side has probably gone wrong.",
+      "correct": false,
+      "tag": "M.untestable_hypothesis",
+      "feedback": "Too vague to test: which cost, and what data would show it? The prompt already points to food cost."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows food cost rising from 30% to 32% of flat revenue, enough to cut a thin margin by a fifth. Likely cause: ingredient prices have risen faster than menu prices. To test it, compare cost per sandwich by ingredient with menu prices over two years. If ingredient costs are flat, look at waste or portion sizes instead.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

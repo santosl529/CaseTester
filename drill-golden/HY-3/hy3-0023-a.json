@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0023-a",
+  "item_id": "hy3-0023",
+  "drill_id": "HY-3",
+  "answer_type": "borderline",
+  "notes": "Framed as likely, but it still jumps to a fix, so it isn't yet something to test (rule 12).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The new competitor is probably taking share where it opened, so we should match its prices."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

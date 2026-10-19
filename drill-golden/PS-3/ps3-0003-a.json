@@ -1,0 +1,57 @@
+{
+  "answer_id": "ps3-0003-a",
+  "item_id": "ps3-0003",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "People costs is outside the brief (non-salary costs only), so case-specific fails (rule 6). Covers the critical area, office space. Misses travel and events.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Office",
+          "points": [
+            "rent",
+            "fewer floors with hybrid work"
+          ]
+        },
+        {
+          "title": "Tech",
+          "points": [
+            "research databases",
+            "unused software licenses"
+          ]
+        },
+        {
+          "title": "People costs",
+          "points": [
+            "paralegal headcount",
+            "partner bonuses"
+          ]
+        },
+        {
+          "title": "Vendors",
+          "points": [
+            "printing",
+            "couriers",
+            "temp staff"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": false,
+    "no_overlap": true,
+    "case_specific": false,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0001-a",
+  "item_id": "hy2-0001",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Strong answer: lead cause, data to check, and the right update.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With revenue and repairs flat, profit likely fell because each repair costs more to do, probably more mechanic hours per job. I'd compare labor hours and parts cost per repair with last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Repairs take 65 minutes instead of 50 at the same pay, so labor cost per repair rose."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Longer repairs"
+}

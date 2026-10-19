@@ -1,0 +1,47 @@
+{
+  "answer_id": "ps4-0030-a",
+  "item_id": "ps4-0030",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Breaks the 40 minutes into steps (rule 10); ovens and drivers kept as oven time and waiting for a driver (rule 4).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Taking the order",
+          "points": [
+            "phone and app time"
+          ]
+        },
+        {
+          "title": "Kitchen",
+          "points": [
+            "making the pizza",
+            "oven time"
+          ]
+        },
+        {
+          "title": "Dispatch",
+          "points": [
+            "waiting for a driver"
+          ]
+        },
+        {
+          "title": "Driving",
+          "points": [
+            "distance",
+            "traffic"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

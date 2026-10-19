@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0002-b",
+  "item_id": "sy2-0002",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Keeping the price at $50 isn't the key's recommendation (raise to $60): wrong-recommendation flag (rule 9). It uses the deciding fact (95% booked) but draws the opposite conclusion.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Keep the peak rate at $50. League players are 60% of peak bookings, and raising prices could push them to the rival. Peak hours are already 95% booked, so revenue is strong. The risk is leaving money on the table, so review prices again next year."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": true
+  },
+  "family": null
+}

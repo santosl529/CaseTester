@@ -1,0 +1,67 @@
+{
+  "item_id": "cl1-0011",
+  "version": 2,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "profitability",
+  "industry": "Public / Education / Nonprofit",
+  "prompt": "Objective: find why a driving-school chain's profit fell. What you've learned: revenue rose 6%. Latest finding: costs rose 14%, mostly instructor pay after a new contract. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Size revenue by course type",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Revenue rose 6%. The finding is on the cost side."
+    },
+    {
+      "id": "b",
+      "text": "Find out why instructors pushed for a new contract",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "The contract is signed. What matters is how big it is and what can offset it."
+    },
+    {
+      "id": "c",
+      "text": "Size the new contract and what could offset it",
+      "correct": true,
+      "feedback": "Right. The cost driver is identified. Next is how big it is and what can offset it."
+    },
+    {
+      "id": "d",
+      "text": "Estimate savings from closing the least profitable schools",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a fix unrelated to the finding."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Costs rose 14%, mostly from a new instructor contract. Size it and look for offsets.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

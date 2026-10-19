@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0024-a",
+  "item_id": "sy2-0024",
+  "drill_id": "SY-2",
+  "answer_type": "short",
+  "notes": "The first sentence is a reason, not the recommendation (rule 1). 'Too small a market' with no number doesn't use the deciding fact (rule 7).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Too small a market. Don't build."
+    }
+  ],
+  "labels": {
+    "recommendation_first": false,
+    "two_to_three_reasons": false,
+    "cites_numbers": false,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": false,
+    "includes_next_step": false
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": true,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0016-b",
+  "item_id": "sy2-0016",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "Closing now isn't acceptable while store stock is wrong: wrong-recommendation flag (rule 9). It uses the deciding fact only as a risk.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Close the warehouse and ship from stores. It costs $2.4M a year against $1.6M of extra store labor and packaging, saving $800,000. The risk is that 1 in 8 store-picked orders couldn't be filled in the test, so the next step is to train store staff on picking."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": true
+  },
+  "family": null
+}

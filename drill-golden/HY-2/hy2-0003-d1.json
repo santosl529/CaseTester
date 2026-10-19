@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0003-d1",
+  "item_id": "hy2-0003",
+  "drill_id": "HY-2",
+  "answer_type": "borderline",
+  "notes": "The result given confirms the hypothesis rather than dropping it (rule 8).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With rentals up only 3%, the longer waits more likely come from slower service per customer than from more customers. I'd compare time per customer at the counter with last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: staffing is the same, but each customer takes 9 minutes instead of 4 since the new ID check."
+    },
+    {
+      "type": "text",
+      "value": "Time per customer at the counter by day. If it's still 9 minutes, that confirms the ID check."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

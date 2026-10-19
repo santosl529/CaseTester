@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0010-d1",
+  "item_id": "hy2-0010",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With volume flat, late jobs likely come from delays outside the presses, probably waiting for customer approvals. I'd measure how long each job spends at each step."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: presses and staff are normal, but jobs wait two days for proof approval since the online portal."
+    },
+    {
+      "type": "text",
+      "value": "Days each job waits for proof approval, by month. If waits are no longer than before the portal, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,171 @@
+{
+  "item_id": "qn5-0030",
+  "version": 1,
+  "drill_id": "QN-5",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "QN.sizing_structure",
+    "QN.assumptions",
+    "QN.arithmetic",
+    "QN.sanity_check"
+  ],
+  "case_type": "market_sizing",
+  "industry": "Healthcare Provider / Payor",
+  "prompt": "Estimate how many units of red blood cells are transfused in US hospitals each year.",
+  "exhibit": null,
+  "input": {
+    "type": "multi_select",
+    "steps": [
+      {
+        "type": "multi_select",
+        "weight": 0.35,
+        "label": "Pick the drivers that build the estimate"
+      },
+      {
+        "type": "numeric_set",
+        "weight": 0.3,
+        "label": "Estimate each driver"
+      },
+      {
+        "type": "numeric",
+        "weight": 0.25,
+        "label": "Multiply them out: your estimate of the total"
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.1,
+        "label": "Does your total seem reasonable?",
+        "choices": [
+          {
+            "id": "reasonable",
+            "text": "Seems reasonable"
+          },
+          {
+            "id": "too_high",
+            "text": "Seems too high"
+          },
+          {
+            "id": "too_low",
+            "text": "Seems too low"
+          }
+        ]
+      }
+    ]
+  },
+  "options": [
+    {
+      "id": "1",
+      "text": "Hospital admissions per year",
+      "correct": true,
+      "feedback": "A driver: Reasoning: about one hospital admission per 10 people a year × 335M ≈ 34M"
+    },
+    {
+      "id": "2",
+      "text": "Share of admitted patients who get a transfusion",
+      "correct": true,
+      "feedback": "A driver: Reasoning: surgery, trauma and cancer patients most often"
+    },
+    {
+      "id": "3",
+      "text": "Units transfused per transfused patient",
+      "correct": true,
+      "feedback": "A driver: Reasoning: a typical transfusion is 2 to 3 units"
+    },
+    {
+      "id": "4",
+      "text": "Blood donations per year",
+      "correct": false,
+      "tag": "M.double_counting",
+      "feedback": "Supply that roughly matches transfusions; using both counts the same blood"
+    },
+    {
+      "id": "5",
+      "text": "Number of blood banks",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Supply, not how much is transfused"
+    },
+    {
+      "id": "6",
+      "text": "Number of surgeons",
+      "correct": false,
+      "tag": "M.irrelevant_driver",
+      "feedback": "Supply of operations, not transfusions"
+    }
+  ],
+  "numeric": {
+    "answer": 9918749.999999998,
+    "tolerance_type": "relative",
+    "tolerance_value": 0.02,
+    "percent_format": "none",
+    "trap_values": []
+  },
+  "checks": [],
+  "red_flags": [],
+  "model_answer": "34.5M (hospital admissions per year) × 0.12 (share of admitted patients who get a transfusion) × 2.5 (units transfused per transfused patient) ≈ 10.3M",
+  "explanation": "34.5M (hospital admissions per year) × 0.12 (share of admitted patients who get a transfusion) × 2.5 (units transfused per transfused patient) ≈ 10.3M. A believable total is 5.2M–21M (Derived: the central driver values give about 10.3M; the range allows a factor of 2 either way for the least certain driver (share of admitted patients who get a transfusion)).",
+  "extras": {
+    "accepted_sets": [
+      [
+        "1",
+        "2",
+        "3"
+      ]
+    ],
+    "ranges": {
+      "1": {
+        "low": 33000000,
+        "high": 36000000,
+        "unit": "admissions",
+        "source": "Reasoning: about one hospital admission per 10 people a year × 335M ≈ 34M"
+      },
+      "2": {
+        "low": 0.08,
+        "high": 0.15,
+        "unit": "share",
+        "source": "Reasoning: surgery, trauma and cancer patients most often"
+      },
+      "3": {
+        "low": 2,
+        "high": 3,
+        "unit": "units",
+        "source": "Reasoning: a typical transfusion is 2 to 3 units"
+      }
+    },
+    "benchmark": {
+      "low": 5200000,
+      "high": 21000000,
+      "source": "Derived: the central driver values give about 10.3M; the range allows a factor of 2 either way for the least certain driver (share of admitted patients who get a transfusion)"
+    },
+    "step_skills": [
+      [
+        "QN.sizing_structure"
+      ],
+      [
+        "QN.assumptions"
+      ],
+      [
+        "QN.arithmetic"
+      ],
+      [
+        "QN.sanity_check"
+      ]
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-11",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

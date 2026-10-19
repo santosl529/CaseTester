@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0031-a",
+  "item_id": "cl3-0031",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split the swing into rates, volume, fuel and ship costs. I'd start with average rate per container by lane by quarter for two years, since a swing this big usually comes from rates. Then volume by lane."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": true,
+    "driver_1": true,
+    "driver_2": true,
+    "driver_3": true,
+    "driver_4": true,
+    "states_where_to_start": true,
+    "reason_for_start": true,
+    "specific_requests": true
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

@@ -1,0 +1,49 @@
+{
+  "answer_id": "ps4-0019-b",
+  "item_id": "ps4-0019",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Still the 4Ps with 'Park' added to each heading: renaming generic headings doesn't fix it (rule 10).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Park product",
+          "points": [
+            "trails",
+            "visitor centers"
+          ]
+        },
+        {
+          "title": "Park price",
+          "points": [
+            "entry fees",
+            "annual passes"
+          ]
+        },
+        {
+          "title": "Park place",
+          "points": [
+            "entrances",
+            "parking"
+          ]
+        },
+        {
+          "title": "Park promotion",
+          "points": [
+            "websites",
+            "travel guides"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

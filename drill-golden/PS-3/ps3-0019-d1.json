@@ -1,0 +1,63 @@
+{
+  "answer_id": "ps3-0019-d1",
+  "item_id": "ps3-0019",
+  "drill_id": "PS-3",
+  "answer_type": "off_topic",
+  "notes": "A response plan, not a bucket to dig into (rule 2); nothing in it comes from the framework (rule 4).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Who will switch",
+          "points": [
+            "simple vs complex returns",
+            "customers' comfort online"
+          ]
+        },
+        {
+          "title": "Revenue at risk",
+          "points": [
+            "share of revenue from simple returns",
+            "fees per return"
+          ]
+        },
+        {
+          "title": "Our edge",
+          "points": [
+            "in-person help",
+            "audit support",
+            "refund advances"
+          ]
+        },
+        {
+          "title": "Response options",
+          "points": [
+            "lower prices on simple returns",
+            "focus on complex returns",
+            "our own free tier"
+          ]
+        },
+        {
+          "title": "Offices",
+          "points": [
+            "offices to close or convert",
+            "seasonal staff"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "The chain should lobby against the government tool."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,73 @@
+{
+  "item_id": "sy1-0038",
+  "version": 1,
+  "drill_id": "SY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "public_sector",
+  "industry": "Healthcare Provider / Payor",
+  "prompt": "Mid-case: A hospital wants to cut ER waiting times. You've found that 40% of ER visits are non-urgent and could go to urgent care clinics. You also learned the hospital has a helicopter pad. You haven't looked at ER staffing. Which is the best summary?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "So far: 40% of ER visits are non-urgent, so diverting them fixes waiting times on its own.",
+      "correct": false,
+      "tag": "M.inaccurate_summary",
+      "feedback": "It closes the case before looking at staffing."
+    },
+    {
+      "id": "b",
+      "text": "So far: 40% of ER visits are non-urgent and could go to urgent care clinics. ER staffing is still unchecked.",
+      "correct": true,
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
+    },
+    {
+      "id": "c",
+      "text": "So far: 40% of visits are non-urgent, and the hospital has a helicopter pad for emergencies. Next, ER staffing.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "The helicopter pad has nothing to do with waiting times, so it doesn't belong in the summary."
+    },
+    {
+      "id": "d",
+      "text": "So far: 40% of ER visits are urgent cases arriving at peak hours. Next I'd look at staffing.",
+      "correct": false,
+      "tag": "M.inaccurate_summary",
+      "feedback": "It misstates what you found: the 40% are non-urgent."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Known: 40% of visits are non-urgent and could go to urgent care. Open: ER staffing. Next: check staffing at peak hours. If waits stay long at peak even after non-urgent cases are diverted, staffing is part of the problem.",
+  "extras": {
+    "answer_type": "summary",
+    "irrelevant_facts": [
+      "The hospital has a helicopter pad."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

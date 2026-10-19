@@ -1,0 +1,97 @@
+{
+  "item_id": "ps4-0026",
+  "version": 1,
+  "drill_id": "PS-4",
+  "status": "live",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific",
+    "PS.depth"
+  ],
+  "case_type": "cost_reduction",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A hotel chain wants to reduce operating costs.\n\nA candidate wrote the framework below. Fix it.",
+  "exhibit": null,
+  "input": {
+    "type": "structured_buckets",
+    "max_words": 120,
+    "max_buckets": 5
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "fix_1",
+      "question": "The original had this flaw: the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut. Does the edited answer fix it? One way to fix it: removes the guest satisfaction bucket, with or without a cost area such as maintenance in its place. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
+      "weight": 0.5,
+      "fail_tag": "M.irrelevant_bucket",
+      "feedback": "The flaw is still there: the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "no_new_flaw",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: overlapping buckets, missing bucket, irrelevant bucket, generic framework, shallow structure? The original's own flaw (the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "weight": 0.3,
+      "fail_tag": "M.overlapping_buckets",
+      "feedback": "Your edit added a new flaw. Change only what needs fixing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "keeps_right",
+      "question": "Does the edit keep the substance of each part of the original that was right: the staff, energy, and supplies and laundry buckets? Rewording or condensing a part is fine; dropping one fails.",
+      "weight": 0.2,
+      "fail_tag": "M.missing_bucket",
+      "feedback": "Keep what was already right: the staff, energy, and supplies and laundry buckets.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [],
+  "model_answer": "Staff: housekeeping; front desk; overtime\nEnergy: heating and cooling; lighting\nSupplies and laundry: toiletries; washing linen\nMaintenance: repair call-outs per hotel; equipment service contracts",
+  "explanation": "The flaw: the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut. What was right: the staff, energy, and supplies and laundry buckets.",
+  "extras": {
+    "derived_from": "ps1-0025",
+    "flawed_answer": "Staff: housekeeping; front desk; overtime\nEnergy: heating and cooling; lighting\nGuest satisfaction: last year's survey scores; online reviews\nSupplies and laundry: toiletries; washing linen",
+    "flaws": [
+      {
+        "tag": "M.irrelevant_bucket",
+        "hint": "the guest satisfaction bucket doesn't belong: survey scores and reviews aren't costs the chain can cut",
+        "fix": "removes the guest satisfaction bucket, with or without a cost area such as maintenance in its place"
+      }
+    ],
+    "right_parts": "the staff, energy, and supplies and laundry buckets",
+    "grading_rules": [
+      "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
+      "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it. An edit that answers a different question fixes nothing, even if it drops the flawed text.",
+      "A new flaw is one the original did not have, of the kinds listed. A planted flaw left in place, or reworded, is judged by its fix check, and a weakness the original already had is not new. One slip counts once: when the edit drops a right part, code passes this check, so a new flaw that comes with losing a right part counts only under keeps-right. When the edit adds a new flaw, name its kind in new_flaw_tag.",
+      "Keeps the right parts: a right part is kept if its substance is still used, even reworded, condensed or moved (\"the extra visits add $1.2M\" keeps \"40% joined and visited 12% more\"). Deleting it, or changing it so it is no longer right, fails.",
+      "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.",
+      "Overlap is fixed when no two buckets would have the student examine the same thing: merge them, or redefine one so they split the ground.",
+      "A missing area is fixed only when the edited framework covers it, as a bucket or a sub-point tied to this case. Match the substance of what is missing, not a neighboring topic: a count of riders today does not cover how many would stop riding at a higher fare. Deleting other buckets does not fix it.",
+      "An irrelevant bucket is fixed when it is removed or replaced by one that bears on the client's question.",
+      "A generic framework is fixed when its buckets, through their headings or sub-points, are about this client and objective. Renaming generic headings with the client's name or industry does not fix it."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": null,
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

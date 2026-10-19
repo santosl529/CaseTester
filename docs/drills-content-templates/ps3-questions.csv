@@ -1,0 +1,5 @@
+item_id,tier,case_type,prompt,model_framework,common_overlaps
+EXAMPLE-ps3-01,2,new_product_launch,A regional gym chain is considering launching an at-home fitness subscription. Its goal is to add $10M in revenue within three years.,"Customer demand: interest among members and non-members; willingness to pay
+Economics: price, content and app costs, break-even subscribers
+Competition: existing apps and their pricing; how the chain differs
+Fit with the gyms: cannibalization of memberships; brand and trainer assets",Demand and willingness to pay often overlap with pricing; keep pricing under economics

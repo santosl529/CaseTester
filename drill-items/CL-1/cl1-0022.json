@@ -1,0 +1,67 @@
+{
+  "item_id": "cl1-0022",
+  "version": 2,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
+  "prompt": "Objective: raise a county's adult literacy program completion rate. What you've learned: completion fell from 70% to 61%. Latest finding: the drop is concentrated in two programs run at rural libraries. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Compare the county's rate with neighboring counties",
+      "correct": false,
+      "tag": "M.low_priority_next_step",
+      "feedback": "Less useful: the drop is concentrated in two programs."
+    },
+    {
+      "id": "b",
+      "text": "Find out what changed in those two rural programs",
+      "correct": true,
+      "feedback": "Right. The problem is local, so diagnose those two programs."
+    },
+    {
+      "id": "c",
+      "text": "Budget a countywide tutoring expansion",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a countywide fix for a local problem."
+    },
+    {
+      "id": "d",
+      "text": "Break the county's rate down by student age",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Already narrowed down: two rural programs."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The drop is concentrated in two rural programs. Diagnose what changed there.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

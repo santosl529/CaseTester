@@ -1,0 +1,39 @@
+{
+  "answer_id": "ps4-0036-a",
+  "item_id": "ps4-0036",
+  "drill_id": "PS-4",
+  "answer_type": "short",
+  "notes": "Gross margin bucket removed (rule 7). Marketing and overhead dropped: keeps-right only (rules 3, 4).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Prices",
+          "points": [
+            "discounting"
+          ]
+        },
+        {
+          "title": "Product costs",
+          "points": [
+            "supplier prices"
+          ]
+        },
+        {
+          "title": "Delivery",
+          "points": [
+            "returns"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

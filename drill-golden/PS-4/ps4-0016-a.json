@@ -1,0 +1,49 @@
+{
+  "answer_id": "ps4-0016-a",
+  "item_id": "ps4-0016",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Covers making and shipping each refill, the core of the subscription's economics, though not the cost to win a subscriber; the fix described in the key is one example (rule 8, guide: any edit that removes the flaw and fits the case).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Demand",
+          "points": [
+            "shoppers wanting refillable tablets",
+            "how often they'd reorder"
+          ]
+        },
+        {
+          "title": "Pricing",
+          "points": [
+            "price against regular toothpaste",
+            "subscription discounts"
+          ]
+        },
+        {
+          "title": "Competitors",
+          "points": [
+            "brands already selling tablets",
+            "their prices"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "making the tablets",
+            "shipping each refill"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,2 @@
+item_id,tag,hint,fix
+EXAMPLE-sy3-01,M.buried_recommendation,the recommendation comes last instead of first,opens with the recommendation to keep the price at $4 and then gives the numbers

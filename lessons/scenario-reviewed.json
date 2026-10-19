@@ -1,0 +1,11 @@
+{
+  "pairs": [
+    {
+      "items": [
+        "lesson-sy-evidence#another-example",
+        "ex1-0045"
+      ],
+      "reason": "Different scenario and question: a winery deciding whether to build a bottling line (a $40K truck rental, $10K a year to run) against a customer renewal-rate table by tenure. They share only the word \"third\" and two round figures."
+    }
+  ]
+}

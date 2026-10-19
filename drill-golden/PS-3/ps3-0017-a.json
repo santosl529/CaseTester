@@ -1,0 +1,50 @@
+{
+  "answer_id": "ps3-0017-a",
+  "item_id": "ps3-0017",
+  "drill_id": "PS-3",
+  "answer_type": "off_topic",
+  "notes": "Answers a different question (how to raise more donations), not how to move food faster: off-topic flag (rule 10). Donors is about getting more food, not when it arrives, so it doesn't cover donation flow (rule 3). Sub-points are concrete.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Donors",
+          "points": [
+            "grocery stores",
+            "farms",
+            "food drives"
+          ]
+        },
+        {
+          "title": "Funding",
+          "points": [
+            "grants",
+            "individual giving"
+          ]
+        },
+        {
+          "title": "Awareness",
+          "points": [
+            "social media",
+            "local news"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": false,
+    "cover_2": false,
+    "cover_3": false,
+    "cover_4": false,
+    "no_overlap": true,
+    "case_specific": false,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": true
+  },
+  "family": null
+}

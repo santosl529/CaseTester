@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0021-a",
+  "item_id": "hy2-0021",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With wages flat, cost per building likely rose because crews spend more time in each building. I'd compare hours on site per building with last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Hours on site are unchanged; travel between buildings doubled, so it's travel time."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "More hours per building"
+}

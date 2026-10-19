@@ -1,0 +1,67 @@
+{
+  "item_id": "cl1-0018",
+  "version": 2,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "profitability",
+  "industry": "Other",
+  "prompt": "Objective: find why an engineering consultancy's margin fell from 18% to 9%. What you've learned: revenue grew 20%. Latest finding: headcount grew 45%, mostly junior engineers. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Find out why revenue grew only 20%",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Revenue grew; the margin fell because costs grew faster."
+    },
+    {
+      "id": "b",
+      "text": "Compare revenue per engineer before and after the hiring",
+      "correct": true,
+      "feedback": "Right. Hiring outran revenue. Revenue per engineer shows whether the new hires are billing enough yet."
+    },
+    {
+      "id": "c",
+      "text": "Compare office costs with industry benchmarks",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "The finding points to headcount, not office costs."
+    },
+    {
+      "id": "d",
+      "text": "Estimate savings from cutting a third of junior engineers this year",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a fix before knowing whether the hires are ramping up."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Headcount grew 45%, mostly junior engineers, against 20% revenue growth. Check revenue per engineer before and after.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,70 @@
+{
+  "item_id": "ps1-0032",
+  "version": 1,
+  "drill_id": "PS-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "PS.mece",
+    "PS.case_specific"
+  ],
+  "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
+  "prompt": "A national park service wants to reduce overcrowding at its three most visited parks. The candidate's framework: (1) Product; (2) Price; (3) Place; (4) Promotion. What is the flaw in this framework?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Buckets 1 and 4 overlap: promotion is part of the park experience",
+      "correct": false,
+      "tag": "M.overlapping_buckets",
+      "feedback": "Product and promotion are different Ps. The real issue is that the 4Ps don't fit a crowding problem."
+    },
+    {
+      "id": "b",
+      "text": "Missing: a fifth P for people",
+      "correct": false,
+      "tag": "M.missing_bucket",
+      "feedback": "Adding another P doesn't help, because a marketing checklist doesn't fit the problem."
+    },
+    {
+      "id": "c",
+      "text": "Bucket 4 doesn't belong: busy parks need no more promotion",
+      "correct": false,
+      "tag": "M.irrelevant_bucket",
+      "feedback": "Promotion could steer visitors to quieter times. The issue is that the whole framework is canned."
+    },
+    {
+      "id": "d",
+      "text": "It's a generic 4Ps list: it ignores visitor flows and capacity",
+      "correct": true,
+      "feedback": "Right. Overcrowding is a demand and capacity problem. Use demand by time and place, capacity, and levers to shift or cap visits."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The 4Ps are a marketing checklist. Overcrowding is a demand and capacity problem.",
+  "extras": {
+    "flaw_type": "generic",
+    "corrected_framework": "Visitor demand by park, season and hour; capacity (trails, parking, facilities); levers (reservations, pricing, shifting demand); visitor and conservation impact"
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

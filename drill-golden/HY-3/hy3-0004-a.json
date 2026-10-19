@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0004-a",
+  "item_id": "hy3-0004",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "Specific cause plus the data that tests it (rule 12).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With volumes and items per patient flat, the hospital is probably paying more per item. I'd compare unit prices paid for the top supplies with contract prices."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

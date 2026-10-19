@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0022-d1",
+  "item_id": "cl3-0022",
+  "drill_id": "CL-3",
+  "answer_type": "borderline",
+  "notes": "A general claim about private schools, not a fact from this case (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at enrollment trends, tuition and discounts, teacher and building costs, and price against value. I'd start with enrollment by school and grade for five years, since enrollment drives revenue and a decline would undercut the $120M."
+    },
+    {
+      "type": "text",
+      "value": "Tuition and discounts, because private schools often discount heavily."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

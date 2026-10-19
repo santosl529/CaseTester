@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0021-d1",
+  "item_id": "cl3-0021",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "Uses the 18 to 30 weeks (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd compare referrals with operations, and look at surgeon and theater capacity, bed shortages that block discharge, and cancellations. I'd start with operations per week against referrals per week for two years, to see whether capacity fell or demand rose."
+    },
+    {
+      "type": "text",
+      "value": "Cancellations. If operations kept up with referrals, the wait growing from 18 to 30 weeks could come from operations cancelled on the day."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,64 @@
+{
+  "answer_id": "ps3-0026-d1",
+  "item_id": "ps3-0026",
+  "drill_id": "PS-3",
+  "answer_type": "off_topic",
+  "notes": "A fix, not a bucket (rule 2); not in the framework (rule 4).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "More stores",
+          "points": [
+            "regional and national grocery chains",
+            "distributors"
+          ]
+        },
+        {
+          "title": "Sales per store",
+          "points": [
+            "shelf placement",
+            "in-store tastings",
+            "best-selling flavors"
+          ]
+        },
+        {
+          "title": "New channels",
+          "points": [
+            "online store",
+            "restaurants and food service"
+          ]
+        },
+        {
+          "title": "New products",
+          "points": [
+            "new flavors",
+            "marinades",
+            "gift packs"
+          ]
+        },
+        {
+          "title": "Making three times as much",
+          "points": [
+            "kitchen capacity",
+            "co-packer",
+            "cash to fund inventory"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "They should change the label design to look more premium."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

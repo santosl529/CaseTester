@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0004-a",
+  "item_id": "sy3-0004",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "Commits (rule 15).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Raise menu prices about 8%, like competitors. Flour and butter are up 35% while our prices haven't moved in three years."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

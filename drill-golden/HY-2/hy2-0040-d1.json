@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0040-d1",
+  "item_id": "hy2-0040",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Profit likely missed the plan by 30% because fewer families than planned are enrolling children at the newly bought centers. I'd compare enrollment and waitlists by center with plan."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Drop: demand matches plan, with waitlists. Fifteen centers run at 60% of capacity because they can't hire teachers."
+    },
+    {
+      "type": "text",
+      "value": "Enrollment and teachers hired at the 15 new centers, by month. If centers that hired enough teachers still ran near 60%, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

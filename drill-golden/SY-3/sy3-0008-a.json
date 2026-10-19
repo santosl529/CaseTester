@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0008-a",
+  "item_id": "sy3-0008",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "Commits; the volume-margin trade-off is still there.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Hold our price. At a 30% margin, a 15% cut halves profit per unit, so volume would have to double, and we've lost only 5%."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

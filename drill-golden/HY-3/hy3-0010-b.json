@@ -1,0 +1,21 @@
+{
+  "answer_id": "hy3-0010-b",
+  "item_id": "hy3-0010",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "Now tentative (flaw 2 fixed) but still contradicts the unchanged box price (flaw 1).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Discounts for new customers have probably cut the price per box. I'd compare price paid per box for new and old customers."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

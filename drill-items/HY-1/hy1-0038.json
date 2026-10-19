@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0038",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "m_and_a",
+  "industry": null,
+  "prompt": "A company's stock fell 15% after it announced a deal to buy a rival for $2B. Analysts estimate the rival is worth $1.5B on its own. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Investors likely worry the deal will take years to clear regulators.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing suggests delays. The obvious concern is the $500M premium over the rival's stand-alone value."
+    },
+    {
+      "id": "b",
+      "text": "Investors likely think synergies won't cover the $500M premium.",
+      "correct": true,
+      "feedback": "Right. The company is paying $2B for a business worth $1.5B alone. I'd compare the $500M premium with an estimate of the synergies."
+    },
+    {
+      "id": "c",
+      "text": "The company overpaid, so it ought to cancel the deal.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a verdict as certain and jumps to cancelling before any data."
+    },
+    {
+      "id": "d",
+      "text": "Investors probably think the company paid too little.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "The price is $500M above the rival's stand-alone value."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows a $2B price for a business worth $1.5B alone, a $500M premium, and the stock falling 15%. Likely cause: investors doubt synergies will cover the premium. To test it, estimate the synergies and compare them with $500M. If synergies clearly exceed $500M, look for other concerns, such as the debt taken on.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0037",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "turnaround",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A regional airline has lost money for three years. Its planes fly 70% full, while the industry average is 82%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Low load factors are likely the main drag on profit.",
+      "correct": true,
+      "feedback": "Right. Flying 70% full against an 82% industry average is a large cost disadvantage. I'd compare load factors and profit by route."
+    },
+    {
+      "id": "b",
+      "text": "Planes are probably full, leaving no room for more passengers.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Planes fly 70% full, below the 82% industry average."
+    },
+    {
+      "id": "c",
+      "text": "The airline flies too many routes and needs to cut a third of them.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain and jumps to a drastic cut before any data."
+    },
+    {
+      "id": "d",
+      "text": "Fuel costs have likely risen faster than at rivals.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Possible, but nothing points to it. The gap the prompt gives is load factor."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows planes flying 70% full against an 82% industry average. Likely cause: low load factors drive the losses. To test it, compare load factor and profit by route. If full routes also lose money, look at costs.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

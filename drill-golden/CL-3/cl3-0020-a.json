@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0020-a",
+  "item_id": "cl3-0020",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at satisfaction, price against rivals and where the cans sit in stores. I'd start with a survey of one-time buyers on why they didn't rebuy, by flavor, since trial is fine but repeat is half of rivals'."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": true,
+    "driver_1": true,
+    "driver_2": true,
+    "driver_3": true,
+    "driver_4": false,
+    "states_where_to_start": true,
+    "reason_for_start": true,
+    "specific_requests": true
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

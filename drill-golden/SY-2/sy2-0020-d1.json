@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0020-d1",
+  "item_id": "sy2-0020",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Move customers to direct booking with a 5% discount. Commissions to online travel sites rose from 10% to 22% of revenue, while revenue, fuel and driver costs were flat, so commissions explain the drop. 70% of customers say they'd book directly for 5% off; moving $5.6M of bookings from a 22% commission to a 5% discount saves about $950,000 a year. The main risk is that the sites rank us lower. The next step is to launch direct booking and track how many bookings move."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "Hold. 70% would book direct for 5% off, saving about $952,000 a year. Launch direct booking."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

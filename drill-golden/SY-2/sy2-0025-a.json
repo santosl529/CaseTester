@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0025-a",
+  "item_id": "sy2-0025",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Buy the startup, but tie most of the $80M to US approval. Our sales force already calls on the doctors who prescribe it, and if approved it adds about $25M a year of profit. Regulators rejected its first US application, so approval isn't certain; next, have our regulatory team review the accuracy data before we bid."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

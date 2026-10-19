@@ -1,0 +1,43 @@
+{
+  "answer_id": "ps4-0002-a",
+  "item_id": "ps4-0002",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Kiosk removed and replaced by a bucket that could explain the drop (rule 9).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue",
+          "points": [
+            "cars washed",
+            "price per wash"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "water and chemicals",
+            "labor",
+            "rent"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "new car washes nearby",
+            "their prices"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

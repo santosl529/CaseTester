@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0008-a",
+  "item_id": "sy2-0008",
+  "drill_id": "SY-2",
+  "answer_type": "off_topic",
+  "notes": "Answers how to grow, not whether to match the rival's prices: off-topic flag (rule 8), and it doesn't use the deciding fact. Not also flagged for no clear position or a wrong recommendation (rule 8).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "We should market our 4.7-star reviews harder and launch a referral program to win more whole-house moves."
+    }
+  ],
+  "labels": {
+    "recommendation_first": false,
+    "two_to_three_reasons": false,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": false,
+    "includes_next_step": false
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": true,
+    "off_topic": true,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0013-d2",
+  "item_id": "sy2-0013",
+  "drill_id": "SY-2",
+  "answer_type": "short",
+  "notes": "No reason, and it doesn't restate the recommendation (rule 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Don't ship to Germany from the UK. An average £35 order at a 40% margin earns £14, and shipping to Germany costs £14 plus £3 for the health certificate, so each order loses about £3. Germany's market is twice the UK's, though, so the risk is that a rival takes it while we wait. The next step is to get quotes from a German grower to fulfil orders locally, which would remove the shipping and certificate costs."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "No."
+    }
+  ],
+  "labels": {
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

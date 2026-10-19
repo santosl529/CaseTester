@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0016-a",
+  "item_id": "cl3-0016",
+  "drill_id": "CL-3",
+  "answer_type": "off_topic",
+  "notes": "Proposes fixes instead of asking for information: off-topic (rule 8) and solution before diagnosis (rule 6).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Switch to a cheaper carrier and stop offering free shipping on small orders."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": false,
+    "driver_1": false,
+    "driver_2": false,
+    "driver_3": false,
+    "driver_4": false,
+    "states_where_to_start": false,
+    "reason_for_start": false,
+    "specific_requests": false
+  },
+  "red_flags": {
+    "solution_before_diagnosis": true,
+    "six_plus_unstructured_requests": false,
+    "off_topic": true
+  },
+  "family": null
+}

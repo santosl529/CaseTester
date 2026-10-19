@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0040",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "industry_analysis",
+  "industry": "Energy / Utilities",
+  "prompt": "US home solar installations grew 30% a year for five years. This year they fell 10%, after the largest state ended its installation subsidy. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Demand has likely peaked as most suitable homes now have panels.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Installations grew 30% a year until now, and the drop coincides with the subsidy ending in the largest state."
+    },
+    {
+      "id": "b",
+      "text": "Subsidies, interest rates, panel prices and installers likely matter.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists causes without committing to one."
+    },
+    {
+      "id": "c",
+      "text": "Higher panel prices are likely pricing many homes out of solar.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing mentions panel prices. The drop coincides with the subsidy ending."
+    },
+    {
+      "id": "d",
+      "text": "Losing the largest state's subsidy probably caused the decline.",
+      "correct": true,
+      "feedback": "Right. The timing points to the subsidy. I'd compare installation trends in that state with the rest of the country."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows installations growing 30% a year, then falling 10% as the largest state ended its subsidy. Likely cause: losing that subsidy. To test it, compare installations in that state with the rest of the country. If other states fell too, look at national factors such as interest rates.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

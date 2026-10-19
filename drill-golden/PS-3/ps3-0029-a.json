@@ -1,0 +1,56 @@
+{
+  "answer_id": "ps3-0029-a",
+  "item_id": "ps3-0029",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "A market-entry list, but three of four buckets have sub-points about Pennsylvania home care, so no generic flag (rule 11). Financials has only generic words, so case-specific and concrete sub-points fail (rules 6 and 7). Misses the critical area, nurse supply (rule 12).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Market",
+          "points": [
+            "elderly people in Pennsylvania",
+            "growth"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "local agencies"
+          ]
+        },
+        {
+          "title": "Regulation",
+          "points": [
+            "state license"
+          ]
+        },
+        {
+          "title": "Financials",
+          "points": [
+            "revenue",
+            "costs"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": false,
+    "cover_3": true,
+    "cover_4": false,
+    "cover_5": false,
+    "cover_6": true,
+    "no_overlap": true,
+    "case_specific": false,
+    "concrete_subpoints": false
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

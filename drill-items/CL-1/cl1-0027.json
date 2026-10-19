@@ -1,0 +1,67 @@
+{
+  "item_id": "cl1-0027",
+  "version": 2,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "cost_reduction",
+  "industry": "Public / Education / Nonprofit",
+  "prompt": "Objective: cut a university's lab supply costs. What you've learned: lab supply costs rose 16% with research activity flat. Latest finding: prices paid for the top 30 items are 12% above negotiated contract prices. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Compare research activity by department",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Already answered: activity is flat."
+    },
+    {
+      "id": "b",
+      "text": "Benchmark the university's contract prices against other universities",
+      "correct": false,
+      "tag": "M.low_priority_next_step",
+      "feedback": "Secondary: the university isn't even paying its own contract prices."
+    },
+    {
+      "id": "c",
+      "text": "Find out why purchases are made off-contract so often",
+      "correct": true,
+      "feedback": "Right. The gap between paid and contract prices is the lever; why it happens is next."
+    },
+    {
+      "id": "d",
+      "text": "Work out the savings from switching to a new supplier",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps to a fix when the problem is buying off-contract."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The top 30 items cost 12% above contract. Find out why purchases are off-contract and what fixing it is worth.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

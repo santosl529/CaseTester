@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0025",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "pricing",
+  "industry": "Tech / SaaS",
+  "prompt": "A software company moved from a one-time license of $1,200 to a $40-a-month subscription. New customers rose 50%, but first-year revenue per customer fell 60%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "More customers likely signed up, and they'll pay off if they stay past 30 months.",
+      "correct": true,
+      "feedback": "Right. $40 a month equals the $1,200 license after 30 months. I'd model retention by customer cohort."
+    },
+    {
+      "id": "b",
+      "text": "Customers probably see the subscription as worse value and are leaving.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "New customers rose 50%."
+    },
+    {
+      "id": "c",
+      "text": "The switch was a mistake, so the company has to return to licenses.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a verdict as certain before retention data exists."
+    },
+    {
+      "id": "d",
+      "text": "Revenue per customer has likely fallen because of heavy discounting.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "No discount is needed to explain it: $40 × 12 = $480, which is 60% below $1,200."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows first-year revenue per customer down 60% ($40 × 12 = $480 against $1,200) while new customers rose 50%. Likely conclusion: the cheaper entry drew more customers, and it pays off if they stay past 30 months, when $40 a month matches the license. To test it, track retention by customer cohort. If most cancel before 30 months, the switch loses money.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

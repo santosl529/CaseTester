@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0031-d2",
+  "item_id": "cl3-0031",
+  "drill_id": "CL-3",
+  "answer_type": "off_topic",
+  "notes": "A fix, not what to look at next.",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split it into freight rates, volume carried, fuel costs, and ship charter costs. I'd start with average rate per container by trade lane by quarter, since a $2.3B swing usually comes from rates, which can halve in a year."
+    },
+    {
+      "type": "text",
+      "value": "They should sell some ships to raise cash."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

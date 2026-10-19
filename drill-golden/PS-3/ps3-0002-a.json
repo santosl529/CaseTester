@@ -1,0 +1,58 @@
+{
+  "answer_id": "ps3-0002-a",
+  "item_id": "ps3-0002",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Every bucket uses generic words with nothing tying it to olive oil or the US, so no area counts (rule 1). An unadapted market-entry list: generic-framework flag (rule 11). Also misses the critical area, entry economics (rule 12); the lower generic cap applies. Four distinct buckets with sub-points, so no overlap passes.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Market",
+          "points": [
+            "size",
+            "growth"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "competitors",
+            "market share"
+          ]
+        },
+        {
+          "title": "Company",
+          "points": [
+            "capabilities",
+            "resources"
+          ]
+        },
+        {
+          "title": "Financials",
+          "points": [
+            "revenue",
+            "costs",
+            "profit"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": false,
+    "cover_2": false,
+    "cover_3": false,
+    "cover_4": false,
+    "cover_5": false,
+    "no_overlap": true,
+    "case_specific": false,
+    "concrete_subpoints": false
+  },
+  "red_flags": {
+    "generic_framework": true,
+    "off_topic": false
+  },
+  "family": null
+}

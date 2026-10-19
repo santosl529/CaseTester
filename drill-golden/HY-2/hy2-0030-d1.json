@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0030-d1",
+  "item_id": "hy2-0030",
+  "drill_id": "HY-2",
+  "answer_type": "short",
+  "notes": "No specific data and no result (rules 7, 8). About the rides, so consistent (rule 9: vagueness fails only the data and result checks).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With attendance flat, longer waits likely mean fewer rides are running, so the same crowds share less capacity. I'd check each ride's operating days this season against last."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: three of 12 major rides were closed for most of the season, so the same crowds share fewer rides."
+    },
+    {
+      "type": "text",
+      "value": "Ride data."
+    }
+  ],
+  "labels": {
+    "defend_data_request": false,
+    "defend_drop_result": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,65 @@
+{
+  "answer_id": "ps3-0030-d1",
+  "item_id": "ps3-0030",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the 25% rise (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Ore quality",
+          "points": [
+            "copper per ton of rock",
+            "deeper pits"
+          ]
+        },
+        {
+          "title": "Volume",
+          "points": [
+            "tons mined and processed",
+            "plant uptime"
+          ]
+        },
+        {
+          "title": "Inputs",
+          "points": [
+            "diesel",
+            "electricity",
+            "explosives",
+            "tires"
+          ]
+        },
+        {
+          "title": "Labor and contractors",
+          "points": [
+            "headcount",
+            "contractor rates",
+            "overtime"
+          ]
+        },
+        {
+          "title": "Maintenance",
+          "points": [
+            "equipment age",
+            "breakdowns",
+            "spare parts"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Ore quality. Cost per ton rose 25% in three years, which fits mining deeper, poorer rock."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

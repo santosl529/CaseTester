@@ -1,0 +1,45 @@
+{
+  "answer_id": "ps4-0032-a",
+  "item_id": "ps4-0032",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Japan financing replaced by Canadian competition: fixes both flaws (rules 8, 9).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Canadian demand",
+          "points": [
+            "interest in ramen",
+            "cities with large Asian populations"
+          ]
+        },
+        {
+          "title": "Competition",
+          "points": [
+            "local ramen shops",
+            "other noodle chains"
+          ]
+        },
+        {
+          "title": "Restaurant economics",
+          "points": [
+            "opening costs",
+            "rent",
+            "staff",
+            "sales per restaurant"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

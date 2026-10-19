@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0018-d1",
+  "item_id": "hy2-0018",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Tests the revised hypothesis (work pressure).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With enrollment up 15%, the added students are likely less prepared for college work, so more leave. I'd compare first-year dropout for new and other students, by placement-test score."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "Revise: dropout rose only for program students, who work 25 hours a week, so the cause is work pressure."
+    },
+    {
+      "type": "text",
+      "value": "Dropout among program students by hours worked a week. If those working 25 hours left no more often than those working little, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,57 @@
+{
+  "answer_id": "ps3-0010-a",
+  "item_id": "ps3-0010",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Demand and Market overlap: both size the pool of students (rule 8). Costs alone, with no tuition or 1,000-student break-even, doesn't cover program economics (rule 4), the critical area (rule 12). Misses capacity to deliver.",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Demand",
+          "points": [
+            "working adults in tech",
+            "tuition they'd pay"
+          ]
+        },
+        {
+          "title": "Market",
+          "points": [
+            "number of people wanting data science skills",
+            "other online programs"
+          ]
+        },
+        {
+          "title": "Costs",
+          "points": [
+            "building courses",
+            "faculty pay",
+            "marketing"
+          ]
+        },
+        {
+          "title": "Reputation",
+          "points": [
+            "lower quality than the on-campus degree"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": false,
+    "cover_4": false,
+    "cover_5": true,
+    "no_overlap": false,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

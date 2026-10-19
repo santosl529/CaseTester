@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0027-a",
+  "item_id": "sy2-0027",
+  "drill_id": "SY-2",
+  "answer_type": "off_topic",
+  "notes": "Answers a question about the venue deposits, the irrelevant fact: off-topic flag (rule 8), and it fails leaving out irrelevant facts (rule 3). 'Our auditors will flag' is a claim beyond the sheet stated as fact (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Our venue deposits for next year are a sunk cost that our auditors will flag, so the finance team should write them off this quarter."
+    }
+  ],
+  "labels": {
+    "recommendation_first": false,
+    "two_to_three_reasons": false,
+    "cites_numbers": false,
+    "leaves_out_irrelevant": false,
+    "consistent_with_facts": false,
+    "includes_risk": false,
+    "includes_next_step": false
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": true,
+    "off_topic": true,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

@@ -1,0 +1,20 @@
+{
+  "answer_id": "hy3-0002-b",
+  "item_id": "hy3-0002",
+  "drill_id": "HY-3",
+  "answer_type": "normal",
+  "notes": "Hedged ('might') and the fix is gone, so the overconfident flaw is fixed (rule 12); four causes with none leading is a new shotgun flaw (rule 3; Matt, 2026-10-15).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The phone system might be slowing agents, or calls might be harder, or staff might be idle, or wages might be miscounted."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": false,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

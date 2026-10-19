@@ -1,0 +1,49 @@
+{
+  "answer_id": "ps4-0027-a",
+  "item_id": "ps4-0027",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Next-season bucket replaced by staffing, which could explain the slowdown (rule 9).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Orders",
+          "points": [
+            "volume",
+            "items per order"
+          ]
+        },
+        {
+          "title": "Picking and packing",
+          "points": [
+            "items picked per hour",
+            "packing stations"
+          ]
+        },
+        {
+          "title": "Staffing",
+          "points": [
+            "new hires",
+            "overtime"
+          ]
+        },
+        {
+          "title": "Shipping",
+          "points": [
+            "carrier pickup times",
+            "loading docks"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

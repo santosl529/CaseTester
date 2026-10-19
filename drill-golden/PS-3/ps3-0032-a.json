@@ -1,0 +1,64 @@
+{
+  "answer_id": "ps3-0032-a",
+  "item_id": "ps3-0032",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Strong answer: all five areas, including the critical one (gap analysis).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Who is missed",
+          "points": [
+            "regions and rural areas",
+            "which doses are skipped"
+          ]
+        },
+        {
+          "title": "Access",
+          "points": [
+            "clinic hours",
+            "mobile teams",
+            "vaccine stock"
+          ]
+        },
+        {
+          "title": "Parents",
+          "points": [
+            "trust",
+            "reminders by text"
+          ]
+        },
+        {
+          "title": "Tracking",
+          "points": [
+            "records of missed doses",
+            "school-entry checks"
+          ]
+        },
+        {
+          "title": "Funding",
+          "points": [
+            "budget for nurses and outreach"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "cover_1": true,
+    "cover_2": true,
+    "cover_3": true,
+    "cover_4": true,
+    "cover_5": true,
+    "no_overlap": true,
+    "case_specific": true,
+    "concrete_subpoints": true
+  },
+  "red_flags": {
+    "generic_framework": false,
+    "off_topic": false
+  },
+  "family": null
+}

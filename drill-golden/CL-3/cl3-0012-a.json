@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0012-a",
+  "item_id": "cl3-0012",
+  "drill_id": "CL-3",
+  "answer_type": "short",
+  "notes": "Names the right driver but no structure, starting point, reason or specific request; 'labor hours' has no cut or period (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Labor hours."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": false,
+    "driver_1": true,
+    "driver_2": false,
+    "driver_3": false,
+    "driver_4": false,
+    "states_where_to_start": false,
+    "reason_for_start": false,
+    "specific_requests": false
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

@@ -1,0 +1,63 @@
+{
+  "answer_id": "ps3-0008-d1",
+  "item_id": "ps3-0008",
+  "drill_id": "PS-3",
+  "answer_type": "normal",
+  "notes": "Uses the 60 deaths.",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Where deaths happen",
+          "points": [
+            "pedestrians, drivers or cyclists",
+            "locations",
+            "times",
+            "speeds"
+          ]
+        },
+        {
+          "title": "Street design",
+          "points": [
+            "speed limits",
+            "crossings",
+            "protected bike lanes"
+          ]
+        },
+        {
+          "title": "Enforcement",
+          "points": [
+            "speed and red-light cameras",
+            "impaired driving"
+          ]
+        },
+        {
+          "title": "Driver behavior",
+          "points": [
+            "campaigns on speeding and phone use"
+          ]
+        },
+        {
+          "title": "Funding and support",
+          "points": [
+            "cost of each fix",
+            "council and public backing"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Where deaths happen. To halve 60 deaths I need to know if they're mostly pedestrians, and on which streets."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

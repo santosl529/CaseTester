@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0003-d1",
+  "item_id": "cl3-0003",
+  "drill_id": "CL-3",
+  "answer_type": "short",
+  "notes": "A single pick counts (rule 2); no reason (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd split it into the UK market's size and growth, competitors' shares, getting into supermarkets, and margin after import costs. I'd start with UK frozen Mexican-food sales by year for five years, since £20M is only realistic if the category is several times bigger."
+    },
+    {
+      "type": "text",
+      "value": "Competitors."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,56 @@
+{
+  "answer_id": "ps3-0001-d2",
+  "item_id": "ps3-0001",
+  "drill_id": "PS-3",
+  "answer_type": "borderline",
+  "notes": "Two buckets, no pick (rule 2). The $18M to $12M drop is what needs explaining; it doesn't support either option (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Revenue per car",
+          "points": [
+            "mix of tires vs repairs",
+            "prices and discounts",
+            "add-on services sold"
+          ]
+        },
+        {
+          "title": "Variable costs per car",
+          "points": [
+            "parts and tire costs",
+            "technician hours per job"
+          ]
+        },
+        {
+          "title": "Fixed costs",
+          "points": [
+            "rent",
+            "equipment",
+            "managers and admin"
+          ]
+        },
+        {
+          "title": "Where the drop sits",
+          "points": [
+            "which shops or regions",
+            "which service lines"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "Revenue per car or fixed costs, both could explain the drop from $18M to $12M."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

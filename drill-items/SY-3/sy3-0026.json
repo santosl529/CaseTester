@@ -1,0 +1,95 @@
+{
+  "item_id": "sy3-0026",
+  "version": 1,
+  "drill_id": "SY-3",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence"
+  ],
+  "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
+  "prompt": "The client asks: \"Should we launch the premium dog food line nationally?\" Fact sheet: the premium segment is worth $800M and growing 12% a year; the line reached 1% share in a test market; break-even requires a 2% share; the national launch costs $10M; a well-known veterinary nutritionist developed the line.\n\nA candidate gave the recommendation below. Fix it.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 80
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "fix_1",
+      "question": "The original had this flaw: it ignores the deciding fact: break-even needs a 2% share, and the test reached only 1%. Does the edited answer fix it? One way to fix it: uses the 1% test share against the 2% needed to decide, which means holding off on the national launch. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
+      "weight": 0.5,
+      "fail_tag": "M.ignores_deciding_fact",
+      "feedback": "The flaw is still there: it ignores the deciding fact: break-even needs a 2% share, and the test reached only 1%.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_new_flaw",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: buried recommendation, hedged recommendation, irrelevant facts, unsupported recommendation, ignored the deciding fact? The original's own flaw (it ignores the deciding fact: break-even needs a 2% share, and the test reached only 1%) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "weight": 0.3,
+      "fail_tag": "M.buried_recommendation",
+      "feedback": "Your edit added a new flaw. Change only what needs fixing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "keeps_right",
+      "question": "Does the edit keep the substance of each part of the original that was right: the segment's size and growth: $800M, growing 12% a year? Rewording or condensing a part is fine; dropping one fails.",
+      "weight": 0.2,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Keep what was already right: the segment's size and growth: $800M, growing 12% a year.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [],
+  "model_answer": "Hold off on the national launch. The $800M segment grows 12% a year, but the line reached only 1% share in the test, and break-even needs 2%, so the $10M launch would lose money.",
+  "explanation": "The flaw: it ignores the deciding fact: break-even needs a 2% share, and the test reached only 1%. What was right: the segment's size and growth: $800M, growing 12% a year.",
+  "extras": {
+    "derived_from": "sy1-0019",
+    "flawed_answer": "Launch nationally. The premium segment is $800M and growing 12% a year, so even our 1% test share would be $8M of sales.",
+    "flaws": [
+      {
+        "tag": "M.ignores_deciding_fact",
+        "hint": "it ignores the deciding fact: break-even needs a 2% share, and the test reached only 1%",
+        "fix": "uses the 1% test share against the 2% needed to decide, which means holding off on the national launch"
+      }
+    ],
+    "right_parts": "the segment's size and growth: $800M, growing 12% a year",
+    "grading_rules": [
+      "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
+      "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it. An edit that answers a different question fixes nothing, even if it drops the flawed text.",
+      "A new flaw is one the original did not have, of the kinds listed. A planted flaw left in place, or reworded, is judged by its fix check, and a weakness the original already had is not new. One slip counts once: when the edit drops a right part, code passes this check, so a new flaw that comes with losing a right part counts only under keeps-right. When the edit adds a new flaw, name its kind in new_flaw_tag.",
+      "Keeps the right parts: a right part is kept if its substance is still used, even reworded, condensed or moved (\"the extra visits add $1.2M\" keeps \"40% joined and visited 12% more\"). Deleting it, or changing it so it is no longer right, fails.",
+      "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.",
+      "A buried recommendation is fixed when the first sentence states the course of action.",
+      "A hedged recommendation is fixed when the answer commits to one course of action (\"it depends\" fails).",
+      "Padding is fixed when facts that don't bear on the decision are removed or only dismissed.",
+      "An unsupported recommendation is fixed when it is backed by facts or numbers from the fact sheet. Ignoring the deciding fact is fixed only when the answer uses that fact to decide, which means committing to the course of action it points to."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": null,
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

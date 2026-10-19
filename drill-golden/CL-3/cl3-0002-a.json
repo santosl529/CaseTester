@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0002-a",
+  "item_id": "cl3-0002",
+  "drill_id": "CL-3",
+  "answer_type": "short",
+  "notes": "One vague request. 'Shipping data' doesn't cover a specific driver (rule 2), so it misses the critical one.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Shipping data."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": false,
+    "driver_1": false,
+    "driver_2": false,
+    "driver_3": false,
+    "driver_4": false,
+    "states_where_to_start": false,
+    "reason_for_start": false,
+    "specific_requests": false
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

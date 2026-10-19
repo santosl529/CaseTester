@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0027-a",
+  "item_id": "hy2-0027",
+  "drill_id": "HY-2",
+  "answer_type": "borderline",
+  "notes": "Losing shoppers leads, so that is the family (rule 6) and tentative passes (rule 4). Its backup, lost shelf space, is the family the fact supports, so revising to it is right (decision passes).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The brand is probably losing shoppers to national brands, or it lost shelf space. I'd look at sales by store."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "Core stores grew 9%; the gap is the lost 150-store chain."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Brand losing appeal"
+}

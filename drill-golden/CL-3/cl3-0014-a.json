@@ -1,0 +1,29 @@
+{
+  "answer_id": "cl3-0014-a",
+  "item_id": "cl3-0014",
+  "drill_id": "CL-3",
+  "answer_type": "borderline",
+  "notes": "A list of data, not a breakdown (rule 1). 'Customer data' and 'information on churn' are vague (rule 5). The reason uses the 15% (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd want customer data, sales by region, revenue per account, and information on churn. I'd start with churn because losing 15% a year is a lot."
+    }
+  ],
+  "labels": {
+    "breaks_into_drivers": false,
+    "driver_1": true,
+    "driver_2": false,
+    "driver_3": true,
+    "driver_4": false,
+    "states_where_to_start": true,
+    "reason_for_start": true,
+    "specific_requests": false
+  },
+  "red_flags": {
+    "solution_before_diagnosis": false,
+    "six_plus_unstructured_requests": false,
+    "off_topic": false
+  },
+  "family": null
+}

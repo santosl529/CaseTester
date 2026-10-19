@@ -1,0 +1,42 @@
+{
+  "answer_id": "ps4-0007-b",
+  "item_id": "ps4-0007",
+  "drill_id": "PS-4",
+  "answer_type": "borderline",
+  "notes": "Generic headings renamed with the industry's name: still a profit tree (rule 10).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Self-storage revenue",
+          "points": [
+            "price",
+            "volume"
+          ]
+        },
+        {
+          "title": "Self-storage fixed costs",
+          "points": [
+            "buildings",
+            "land"
+          ]
+        },
+        {
+          "title": "Self-storage variable costs",
+          "points": [
+            "staff",
+            "utilities"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

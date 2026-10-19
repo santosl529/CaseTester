@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0011-a",
+  "item_id": "sy3-0011",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "Uses the payback against the hurdle to decide (rule 17).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Don't enter Canada now. A 5-year payback misses our 3-year hurdle, even in a $400M market growing 3% a year with $12M of yearly profit on $60M."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

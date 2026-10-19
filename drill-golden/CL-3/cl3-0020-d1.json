@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0020-d1",
+  "item_id": "cl3-0020",
+  "drill_id": "CL-3",
+  "answer_type": "short",
+  "notes": "A pick with no case fact behind it (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at product satisfaction, price against rivals, where and how it's displayed, and pack sizes. I'd start with a survey of one-time buyers on why they didn't buy again, by flavor, since trial is fine and repeat buying is where we trail rivals."
+    },
+    {
+      "type": "text",
+      "value": "Price per can vs rivals."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

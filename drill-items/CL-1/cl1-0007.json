@@ -1,0 +1,67 @@
+{
+  "item_id": "cl1-0007",
+  "version": 2,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 3,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "m_and_a",
+  "industry": "Industrials / Manufacturing",
+  "prompt": "Objective: decide whether a packaging maker should buy a rival for $250M. What you've learned: the target is worth about $210M on its own. Latest finding: cost synergies are estimated at $12M a year. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Check how much the two companies' customers overlap",
+      "correct": false,
+      "tag": "M.low_priority_next_step",
+      "feedback": "Useful later for revenue risks, but the deal turns on value against price."
+    },
+    {
+      "id": "b",
+      "text": "Estimate revenue synergies on top of the cost savings",
+      "correct": false,
+      "tag": "M.low_priority_next_step",
+      "feedback": "Secondary: first check whether the cost synergies already justify the price."
+    },
+    {
+      "id": "c",
+      "text": "Check whether net synergies justify the $250M price",
+      "correct": true,
+      "feedback": "Right. $210M stand-alone is $40M short of the price. The deal works only if the synergies, net of integration costs, close that gap."
+    },
+    {
+      "id": "d",
+      "text": "Re-estimate the target's stand-alone value with a second method",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Already answered: about $210M."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Stand-alone value is $210M against a $250M price. The question is whether $12M a year of synergies, net of integration costs, closes the gap.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

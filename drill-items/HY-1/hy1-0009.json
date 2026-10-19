@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0009",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "competitive_response",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A pizza chain's same-store sales fell 8% this year. A new competitor opened in 40% of its markets. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The new competitor is likely taking share in the markets it has entered.",
+      "correct": true,
+      "feedback": "Right. A competitor opened in 40% of markets in the same year. I'd compare sales declines in markets with and without it."
+    },
+    {
+      "id": "b",
+      "text": "Diners are likely cutting back evenly, with or without the new rival.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "This ignores the competitor that opened in 40% of markets, the most obvious lead."
+    },
+    {
+      "id": "c",
+      "text": "The competitor caused the decline, so prices need to be cut to match.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This states a cause as certain and jumps to a price cut before any data has tested it."
+    },
+    {
+      "id": "d",
+      "text": "Delivery apps are probably pulling orders away from the chain.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing points to delivery apps, and it ignores the competitor that opened this year."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows same-store sales down 8% in the year a competitor entered 40% of markets. Likely cause: the competitor is taking share. To test it, compare declines in markets with and without it. If sales fell as much where it didn't open, the cause is broader.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

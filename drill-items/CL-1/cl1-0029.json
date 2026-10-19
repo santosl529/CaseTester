@@ -1,0 +1,67 @@
+{
+  "item_id": "cl1-0029",
+  "version": 2,
+  "drill_id": "CL-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "investment_decision",
+  "industry": "Consumer / CPG",
+  "prompt": "Objective: decide whether a bottling company should build a third bottling line. What you've learned: Line A runs at 97% utilization. Latest finding: Line B runs at 58%. What is the best next step?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Check whether Line B can take on Line A's work",
+      "correct": true,
+      "feedback": "Right. Spare capacity on Line B may remove the need to build, so test that first."
+    },
+    {
+      "id": "b",
+      "text": "Test demand forecasts to size the third line",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That assumes a third line is needed. Line B has spare capacity."
+    },
+    {
+      "id": "c",
+      "text": "Plan where a third line could be built",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "That jumps ahead to building."
+    },
+    {
+      "id": "d",
+      "text": "Check that Line A's utilization is measured correctly",
+      "correct": false,
+      "tag": "M.illogical_next_step",
+      "feedback": "Already answered: 97%."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Line A is at 97% but Line B is at 58%. Test whether B can take over some of A's work before building.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-11",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": true,
+  "firm_style": null
+}

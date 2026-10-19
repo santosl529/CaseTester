@@ -1,0 +1,63 @@
+{
+  "answer_id": "ps3-0008-d2",
+  "item_id": "ps3-0008",
+  "drill_id": "PS-3",
+  "answer_type": "off_topic",
+  "notes": "Doesn't answer which bucket; nothing in it comes from the framework.",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Where deaths happen",
+          "points": [
+            "pedestrians, drivers or cyclists",
+            "locations",
+            "times",
+            "speeds"
+          ]
+        },
+        {
+          "title": "Street design",
+          "points": [
+            "speed limits",
+            "crossings",
+            "protected bike lanes"
+          ]
+        },
+        {
+          "title": "Enforcement",
+          "points": [
+            "speed and red-light cameras",
+            "impaired driving"
+          ]
+        },
+        {
+          "title": "Driver behavior",
+          "points": [
+            "campaigns on speeding and phone use"
+          ]
+        },
+        {
+          "title": "Funding and support",
+          "points": [
+            "cost of each fix",
+            "council and public backing"
+          ]
+        }
+      ]
+    },
+    {
+      "type": "text",
+      "value": "I think the city should hire a new transport commissioner."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

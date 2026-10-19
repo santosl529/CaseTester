@@ -1,0 +1,74 @@
+{
+  "item_id": "sy1-0026",
+  "version": 3,
+  "drill_id": "SY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "The client asks: \"Should we cut our coffee price from $4 to $3?\" Fact sheet: we sell 1,000 cups a day; each cup costs $1.50 to make; a survey suggests sales would rise to 1,200 cups a day at $3; the café's espresso machine, bought for $12,000, is paid off. Which is the best recommendation?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Cut the price to $3. Sales would rise 20%, to 1,200 cups a day, bringing in more customers.",
+      "correct": false,
+      "tag": "M.ignores_deciding_fact",
+      "feedback": "It ignores the margin: 1,200 cups at $1.50 earn $1,800 a day, less than 1,000 at $2.50 ($2,500)."
+    },
+    {
+      "id": "b",
+      "text": "Keep the price at $4. At $3 we would need about 1,670 cups a day to keep profit flat, and the survey says 1,200.",
+      "correct": true,
+      "feedback": "Right. It leads with the answer and backs it with the break-even volume."
+    },
+    {
+      "id": "c",
+      "text": "Cut the price to $3. Our espresso machine is paid off, so the extra cups cost us almost nothing.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "The machine is paid for either way, and each cup still costs $1.50 to make. At $3 we'd need about 1,670 cups a day, and the survey says 1,200."
+    },
+    {
+      "id": "d",
+      "text": "At $3 we'd earn $1.50 a cup instead of $2.50 and need about 1,670 cups a day against 1,200 expected. The price should stay at $4.",
+      "correct": false,
+      "tag": "M.buried_recommendation",
+      "feedback": "The reasoning is right, but the answer comes last. Lead with the recommendation."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Full answer: Keep the price at $4. At $3 the margin per cup falls from $2.50 to $1.50, so sales would need about 1,670 cups a day to keep profit flat, but the survey suggests only 1,200. The main risk is that a competitor undercuts us, so the next step is to use targeted promotions at slow times instead. What would change the answer: evidence that sales at $3 would reach about 1,670 cups a day.",
+  "extras": {
+    "answer_type": "recommendation",
+    "irrelevant_facts": [
+      "The café's espresso machine, bought for $12,000, is paid off."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-15",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": true,
+  "firm_style": null
+}

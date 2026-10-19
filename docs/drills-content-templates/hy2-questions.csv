@@ -1,0 +1,2 @@
+item_id,tier,case_type,opening_facts,new_fact,model_answer_stage1,model_answer_stage2
+EXAMPLE-hy2-01,2,profitability,"Revenue declined 12% last year, but the customer count increased 8%.",Price per unit is flat; units bought per customer fell 20%.,"Revenue per customer likely fell, probably because customers are buying less per visit. I would check units and spend per customer by segment.","Keep: units per customer fell 20% at flat prices, which confirms that customers are buying less."

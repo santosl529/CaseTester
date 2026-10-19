@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0026-a",
+  "item_id": "hy2-0026",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With enrollment flat, the deficit likely grew because costs rose faster than tuition, probably staff pay. I'd compare staff costs per student with two years ago."
+    },
+    {
+      "type": "choice",
+      "option_id": "drop"
+    },
+    {
+      "type": "text",
+      "value": "Staff costs rose only 3%. Students on aid rose from 20% to 35%, so tuition collected fell."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Higher staff costs"
+}

@@ -1,0 +1,41 @@
+{
+  "answer_id": "ps4-0019-a",
+  "item_id": "ps4-0019",
+  "drill_id": "PS-4",
+  "answer_type": "normal",
+  "notes": "Buckets are now about crowding at these parks (rule 10); entry fees and parking kept (rule 4).",
+  "responses": [
+    {
+      "type": "buckets",
+      "buckets": [
+        {
+          "title": "Crowds",
+          "points": [
+            "visits by park, season and hour"
+          ]
+        },
+        {
+          "title": "Capacity",
+          "points": [
+            "trails",
+            "parking"
+          ]
+        },
+        {
+          "title": "Levers",
+          "points": [
+            "entry fees",
+            "timed reservations"
+          ]
+        }
+      ]
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

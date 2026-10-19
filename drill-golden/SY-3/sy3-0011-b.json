@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0011-b",
+  "item_id": "sy3-0011",
+  "drill_id": "SY-3",
+  "answer_type": "borderline",
+  "notes": "Mentions the payback but doesn't decide on it: the hurdle points to not entering (rule 17).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Enter Canada, though the 5-year payback is above our 3-year hurdle. It's a $400M market growing 3% a year, and $12M a year on $60M adds to earnings."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

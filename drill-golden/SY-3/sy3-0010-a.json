@@ -1,0 +1,21 @@
+{
+  "answer_id": "sy3-0010-a",
+  "item_id": "sy3-0010",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "Recommendation first, and the 2015 purchase price is gone.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Sell the division for the $50M offered. It lost $20M last year, revenue falls 10% a year, and restructuring would cost $80M for break-even at best."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0029-d1",
+  "item_id": "sy2-0029",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Install carbon capture. A government credit of $85 a ton on 1 million tons a year pays $85M a year for 12 years, far above the $15M running cost, so the $200M pays back in about 3 years, and two states will require low-carbon cement for public projects from 2028. The main risk is that the credit is cut or repealed. The next step is to sign a binding credit agreement before committing."
+    },
+    {
+      "type": "choice",
+      "option_id": "update"
+    },
+    {
+      "type": "text",
+      "value": "Update. At $20 a ton the credit pays $20M, only $5M over running costs, so I'd hold off on the $200M."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

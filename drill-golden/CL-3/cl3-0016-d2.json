@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0016-d2",
+  "item_id": "cl3-0016",
+  "drill_id": "CL-3",
+  "answer_type": "normal",
+  "notes": "The 18% rise in shipping cost per order doesn't support looking at warehouse rent (rule 3); warehouse rent isn't in the student's breakdown (rule 4).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at box size and carrier rates, starting with box size since the carrier now prices by size."
+    },
+    {
+      "type": "text",
+      "value": "Warehouse rent, because costs rose 18%."
+    }
+  ],
+  "labels": {
+    "defend_answers": true,
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

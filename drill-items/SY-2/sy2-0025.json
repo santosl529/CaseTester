@@ -1,0 +1,228 @@
+{
+  "item_id": "sy2-0025",
+  "version": 3,
+  "drill_id": "SY-2",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.complete"
+  ],
+  "case_type": "m_and_a",
+  "prompt": "The client asks: \"Should our medical-device company buy a startup for $80M to get its glucose-monitoring patch?\"\n\nFact sheet:\n- The patch is approved in Europe and awaits US approval, expected in 18 months\n- Our sales force already calls on the doctors who prescribe it\n- If approved in the US, the patch would add about $25M a year of profit by year 3\n- US regulators rejected the startup's first application in 2024 over accuracy data\n- Diabetes affects about 1 in 10 US adults\n\nGive your recommendation.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "max_words": 120
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "recommendation_first",
+      "question": "Does the first sentence state a clear recommendation?",
+      "weight": 0.2,
+      "fail_tag": "M.buried_recommendation",
+      "feedback": "Lead with the recommendation in your first sentence.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "two_to_three_reasons",
+      "question": "Does the answer give two or three supporting reasons?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Back the recommendation with two or three reasons.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_numbers",
+      "question": "Do the reasons cite numbers from the fact sheet?",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Use the numbers from the fact sheet to support your reasons.",
+      "step": 0,
+      "detection": "code",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "leaves_out_irrelevant",
+      "question": "Does the answer avoid using the irrelevant facts (Diabetes affects about 1 in 10 US adults) as reasons or support? Mentioning one only to dismiss it is fine.",
+      "weight": 0.15,
+      "fail_tag": "M.irrelevant_facts",
+      "feedback": "Leave out facts that don't bear on the decision.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "consistent_with_facts",
+      "question": "Does every number the answer states match the fact sheet or the key figures (within 10% of the exact value, or 1 percentage point for a percentage), with no claim going beyond the sheet as stated fact? Judge only stated facts and numbers, not whether the recommendation is right.",
+      "weight": 0.15,
+      "fail_tag": "M.unsupported_recommendation",
+      "feedback": "Some points go beyond or against the fact sheet.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "includes_risk",
+      "question": "Does the answer name a risk?",
+      "weight": 0.1,
+      "fail_tag": "M.missing_risk_or_next_step",
+      "feedback": "Name the main risk to your recommendation.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "includes_next_step",
+      "question": "Does the answer give a next step?",
+      "weight": 0.1,
+      "fail_tag": "M.missing_risk_or_next_step",
+      "feedback": "End with a concrete next step.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "no_clear_position",
+      "definition": "The answer takes no clear position, for example \"it depends\".",
+      "cap": 0.4,
+      "tag": "M.hedged_recommendation",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "contradicts_facts",
+      "definition": "The answer makes a claim the fact sheet contradicts.",
+      "cap": 0.5,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0
+    },
+    {
+      "id": "misses_deciding_fact",
+      "definition": "Present when the answer never uses the deciding fact, neither its content nor its numbers. The deciding fact: US regulators rejected the startup's first application in 2024 over accuracy data.",
+      "cap": 0.6,
+      "tag": "M.ignores_deciding_fact",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "off_topic",
+      "definition": "The answer addresses a different question from the client's.",
+      "cap": 0.2,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0,
+      "evidence": "whole"
+    },
+    {
+      "id": "wrong_recommendation",
+      "definition": "Present when the answer recommends a different action from the acceptable recommendations (\"Buy, with most of the price tied to US approval\" or \"Wait for US approval, then bid\"), however well it argues for it or softens it with a risk or next step.",
+      "cap": 0.5,
+      "tag": "M.unsupported_recommendation",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "Buy the startup, but tie most of the $80M to US approval. Approved, the patch adds about $25M a year of profit by year 3, and our sales force already calls on the doctors who prescribe it. But regulators rejected its first US application over accuracy data, so approval is the main risk. The next step is for our regulatory team to review the accuracy data and structure the deal so most of the price is paid on approval.",
+  "explanation": "Acceptable recommendation: Buy, with most of the price tied to US approval, or Wait for US approval, then bid. The deciding fact: US regulators rejected the startup's first application in 2024 over accuracy data. Key risks: US approval may fail again. Next steps: Have the regulatory team review the accuracy data and structure an earn-out.",
+  "extras": {
+    "facts": [
+      {
+        "fact": "The patch is approved in Europe and awaits US approval, expected in 18 months",
+        "relevant": true,
+        "deciding": false
+      },
+      {
+        "fact": "Our sales force already calls on the doctors who prescribe it",
+        "relevant": true,
+        "deciding": false
+      },
+      {
+        "fact": "If approved in the US, the patch would add about $25M a year of profit by year 3",
+        "relevant": true,
+        "deciding": false
+      },
+      {
+        "fact": "US regulators rejected the startup's first application in 2024 over accuracy data",
+        "relevant": true,
+        "deciding": true
+      },
+      {
+        "fact": "Diabetes affects about 1 in 10 US adults",
+        "relevant": false,
+        "deciding": false
+      }
+    ],
+    "acceptable_recommendations": "Buy, with most of the price tied to US approval | Wait for US approval, then bid",
+    "key_figures": [
+      "Once approved, payback on $80M = 3.2 years ($80M ÷ $25M a year)"
+    ],
+    "grading_rules": [
+      "Recommendation first: the first sentence commits to a course of action that answers the client's question. Context or a restated question first fails. A condition (\"open, starting with a pilot\") is fine if it still picks a direction.",
+      "Reasons: count the distinct relevant facts from the fact sheet, or numbers worked out from them, that the answer uses to support its recommendation. Two or more pass. Generic reasons (\"it's a good opportunity\", \"the market is attractive\") and irrelevant facts don't count, and the same fact said twice counts once. Count them even if the recommendation is wrong or the answer also addresses the grader: those have their own checks. A misstated fact still counts as a reason; the misstatement is graded by the contradicts-facts check.",
+      "Irrelevant facts: using an irrelevant fact as a reason or as support fails. Mentioning one only to dismiss it (\"the kitchen shouldn't drive this\") is fine.",
+      "Consistent with the facts: every number the answer states matches the fact sheet or the key figures, which are exact: a stated number passes within 10% of the exact value, or within 1 percentage point for a percentage. No claim may go beyond the sheet as stated fact; a claim framed as a risk or an assumption is fine. A number outside that tolerance fails. Judge only the stated facts and numbers, not whether the recommendation is right: a wrong recommendation has its own red flag. The contradicts_facts red flag is only for a claim the sheet states the opposite of, not for a wrong calculation.",
+      "Risk: names something specific that could make the recommendation wrong (\"schools may not pay $600 when museums charge $450\"). \"There are risks\" fails.",
+      "Next step: a concrete action (\"pilot in 5 parks and track bookings\"). \"Do more analysis\" fails.",
+      "Deciding fact: the answer uses the deciding fact, by its content or its number, as part of its case. Mentioning it only in passing, without using it to decide, does not count.",
+      "Off-topic: the answer addresses a different question from the client's. An off-topic answer is not also flagged for no clear position or a wrong recommendation.",
+      "Acceptable recommendation: the recommendation matches one of the key's acceptable recommendations in substance: the same action, in any wording. A phased or conditional version of an acceptable action matches. A different action is a wrong recommendation, however well argued.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-15",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-13",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null,
+  "defend": {
+    "type": "challenge",
+    "text": "An outside banker says a rival device maker paid $70M last month for a startup with a similar patch, so $80M is a fair price to pay now.",
+    "valid": false,
+    "reason": "A comparable price doesn't remove the approval risk: regulators already rejected the first US application over accuracy data, so most of the price should still wait for approval.",
+    "checks": [
+      {
+        "check_id": "defend_evidence",
+        "question": "Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?",
+        "weight": 0.4,
+        "fail_tag": "M.no_evidence_in_defense",
+        "feedback": "Use a fact or number from the case that supports your decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "After Update, does the reply say specifically what the recommendation becomes (it may replace it)? After Hold, does it restate the recommendation without contradicting the main answer?",
+        "weight": 0.2,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Say what changes if you update, or restate your recommendation if you hold.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Hold. A similar deal's price doesn't change the risk: regulators already rejected the first application. I'd still tie most of the $80M to US approval."
+  }
+}

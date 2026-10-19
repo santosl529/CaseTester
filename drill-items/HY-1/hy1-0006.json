@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0006",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "pricing",
+  "industry": "Telecom / Media",
+  "prompt": "A streaming service raised its price by 15%. Subscribers fell by 3% in the following quarter. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "Subscribers probably fell 3% because the price rose 15%.",
+      "correct": false,
+      "tag": "M.restates_facts",
+      "feedback": "This repeats the facts as if they were the answer. It doesn't say what they mean for revenue, which is the question that matters."
+    },
+    {
+      "id": "b",
+      "text": "Demand probably barely reacts to price, so revenue likely rose.",
+      "correct": true,
+      "feedback": "Right. About 1.15 × 0.97 ≈ 1.12, so revenue likely rose about 11%. I'd check revenue and cancellations by plan before and after."
+    },
+    {
+      "id": "c",
+      "text": "The price rise worked, so a second increase will work too.",
+      "correct": false,
+      "tag": "M.overconfident_hypothesis",
+      "feedback": "This treats one result as certain and assumes the next increase will behave the same way."
+    },
+    {
+      "id": "d",
+      "text": "Most subscribers have likely cancelled or paused since the increase.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Only 3% of subscribers left."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows price up 15% and subscribers down 3%, so revenue rose about 11% (1.15 × 0.97). Likely cause: demand is price-insensitive. To test it, track revenue and cancellations by plan for more than one quarter. If cancellations keep climbing, the gain will shrink.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

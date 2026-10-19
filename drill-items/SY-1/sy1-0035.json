@@ -1,0 +1,73 @@
+{
+  "item_id": "sy1-0035",
+  "version": 1,
+  "drill_id": "SY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "SY.answer_first",
+    "SY.evidence",
+    "SY.summary"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Other",
+  "prompt": "Mid-case: A gym chain wants to grow revenue. You've found that membership is flat at 50,000, but revenue per member rose 8% thanks to personal training. You also learned the gyms are open 24 hours. You haven't looked at new locations. Which is the best summary?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "So far: membership is flat at 50,000 at our 24-hour gyms, and personal training raised revenue per member 8%. Next, new locations.",
+      "correct": false,
+      "tag": "M.irrelevant_facts",
+      "feedback": "Opening hours aren't part of what you found about growth, so they don't belong in the summary."
+    },
+    {
+      "id": "b",
+      "text": "So far: membership grew 8% thanks to personal training. New locations come next.",
+      "correct": false,
+      "tag": "M.inaccurate_summary",
+      "feedback": "It misstates what you found: membership is flat; revenue per member rose 8%."
+    },
+    {
+      "id": "c",
+      "text": "So far: membership is flat at 50,000, so growth came from personal training, which raised revenue per member 8%. Next I'd look at new locations.",
+      "correct": true,
+      "feedback": "Right. It states what is known, with numbers, then what is still open."
+    },
+    {
+      "id": "d",
+      "text": "So far: personal training is driving growth, so new locations won't be needed.",
+      "correct": false,
+      "tag": "M.inaccurate_summary",
+      "feedback": "It closes a question that hasn't been looked at: new locations."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "Known: membership is flat at 50,000, and personal training raised revenue per member 8%. Open: new locations. Next: evaluate them. If personal-training uptake is leveling off, new locations become the main growth lever.",
+  "extras": {
+    "answer_type": "summary",
+    "irrelevant_facts": [
+      "The chain's gyms are open 24 hours."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

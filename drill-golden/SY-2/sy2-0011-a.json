@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0011-a",
+  "item_id": "sy2-0011",
+  "drill_id": "SY-2",
+  "answer_type": "borderline",
+  "notes": "Two actions in one recommendation still commit to a direction (rule 1). No next step.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Raise prices about 8% to match competitors, and charge more for same-week bookings. Margin fell from 15% to 6% while food costs held at 30%, and overtime doubled with same-week events, now 40% of the total. The risk is losing clients who are used to our prices."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": false
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

@@ -1,0 +1,30 @@
+{
+  "answer_id": "sy2-0015-a",
+  "item_id": "sy2-0015",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Hold off on a full launch and pilot it first. A quarter of customers say they'd subscribe, but 35% of test subscribers canceled within 3 months, which would sink the economics once we pay $6 a kit. The risk of waiting is that a rival launches first, so the next step is a 3-month pilot that tests a better fit tool to cut early cancellations."
+    }
+  ],
+  "labels": {
+    "recommendation_first": true,
+    "two_to_three_reasons": true,
+    "cites_numbers": true,
+    "leaves_out_irrelevant": true,
+    "consistent_with_facts": true,
+    "includes_risk": true,
+    "includes_next_step": true
+  },
+  "red_flags": {
+    "no_clear_position": false,
+    "contradicts_facts": false,
+    "misses_deciding_fact": false,
+    "off_topic": false,
+    "wrong_recommendation": false
+  },
+  "family": null
+}

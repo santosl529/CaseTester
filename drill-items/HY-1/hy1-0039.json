@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0039",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
+  "prompt": "A state's unemployment office processes claims in 21 days on average, against a 10-day target. Claims volume is flat, but staff fell 30%. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "A surge in claims has likely swamped the office.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Claims volume is flat."
+    },
+    {
+      "id": "b",
+      "text": "Staffing, IT, fraud checks and rules each probably add delay.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists causes without committing to one."
+    },
+    {
+      "id": "c",
+      "text": "Losing 30% of staff has likely caused the longer delays.",
+      "correct": true,
+      "feedback": "Right. With volume flat, fewer staff means less capacity. I'd compare claims processed per caseworker and backlog growth since the cuts."
+    },
+    {
+      "id": "d",
+      "text": "The 10-day target is probably unrealistic for any office.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "This ignores the 30% staff cut, the obvious change."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows claims taking 21 days against a 10-day target, with flat volume and 30% fewer staff. Likely cause: the staff cut. To test it, compare claims processed per caseworker and backlog growth since the cuts. If output per caseworker also fell, look at systems or rules.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

@@ -1,0 +1,25 @@
+{
+  "answer_id": "cl3-0008-d1",
+  "item_id": "cl3-0008",
+  "drill_id": "CL-3",
+  "answer_type": "borderline",
+  "notes": "Two options, no pick (rule 2); the 30% gap supports the options it weighs (rule 3).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "I'd look at which products lost sales, the price gap with online brands, store traffic against conversion, and what stores offer that online can't. I'd start with sales by price band this year against last, to see whether the losses sit where online brands compete."
+    },
+    {
+      "type": "text",
+      "value": "Price gap or in-store advantages, since online brands are 30% cheaper."
+    }
+  ],
+  "labels": {
+    "defend_answers": false,
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

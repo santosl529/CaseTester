@@ -1,0 +1,66 @@
+{
+  "item_id": "hy1-0016",
+  "version": 1,
+  "drill_id": "HY-1",
+  "status": "live",
+  "level": 1,
+  "tier": 2,
+  "skills": [
+    "HY.form"
+  ],
+  "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
+  "prompt": "A beverage company's new energy drink sells well in convenience stores but poorly in supermarkets, where it has half the shelf space of rivals. Which is the strongest initial hypothesis?",
+  "exhibit": null,
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "The drink is probably priced high for supermarket shoppers.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "Nothing points to price, and it ignores the fact that supermarkets give it half the shelf space of rivals."
+    },
+    {
+      "id": "b",
+      "text": "Shelf space, price, promotions and shopper type are probably part of it.",
+      "correct": false,
+      "tag": "M.shotgun_hypotheses",
+      "feedback": "This lists causes without committing to one."
+    },
+    {
+      "id": "c",
+      "text": "Energy drinks are likely losing popularity with consumers.",
+      "correct": false,
+      "tag": "M.ignores_facts",
+      "feedback": "It sells well in convenience stores, so demand for the drink is there."
+    },
+    {
+      "id": "d",
+      "text": "Limited shelf space in supermarkets is likely holding back sales.",
+      "correct": true,
+      "feedback": "Right. It sells where it's visible and struggles where it has half the space of rivals. I'd compare sales per store against shelf space and placement."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "The data shows the drink selling well in convenience stores and poorly in supermarkets, where it has half the shelf space of rivals. Likely cause: limited visibility. To test it, compare sales per store with shelf space and placement. If stores with more space sell no better, look at price or shopper type.",
+  "extras": {},
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

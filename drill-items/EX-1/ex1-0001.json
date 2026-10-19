@@ -1,0 +1,94 @@
+{
+  "item_id": "ex1-0001",
+  "version": 1,
+  "drill_id": "EX-1",
+  "status": "live",
+  "level": 1,
+  "tier": 1,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "profitability",
+  "industry": null,
+  "prompt": "The client wants to know why profit fell from 2023 to 2025. Which takeaway matters most?",
+  "exhibit": {
+    "type": "grouped_bar",
+    "title": "Revenue and cost of goods sold ($M)",
+    "categories": [
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "series": [
+      {
+        "name": "Revenue",
+        "values": [
+          200,
+          210,
+          220
+        ]
+      },
+      {
+        "name": "COGS",
+        "values": [
+          120,
+          135,
+          150
+        ]
+      }
+    ]
+  },
+  "input": {
+    "type": "single_choice"
+  },
+  "options": [
+    {
+      "id": "a",
+      "text": "COGS grew faster than revenue, cutting gross profit",
+      "correct": true,
+      "feedback": "Right. COGS rose 25% (120 to 150) against 10% revenue growth (200 to 220), so gross profit fell from 80 to 70."
+    },
+    {
+      "id": "b",
+      "text": "Revenue grew 10% over the period, reaching $220M in 2025",
+      "correct": false,
+      "tag": "M.trivial_takeaway",
+      "feedback": "True, but growing revenue doesn't explain why profit fell. Look at what grew faster."
+    },
+    {
+      "id": "c",
+      "text": "Revenue dipped in 2025 while the cost of goods rose",
+      "correct": false,
+      "tag": "M.misread_trend",
+      "feedback": "Revenue rose every year, from 200 to 220."
+    },
+    {
+      "id": "d",
+      "text": "Supplier contracts pushed up the cost of goods sold",
+      "correct": false,
+      "tag": "M.unsupported_claim",
+      "feedback": "The chart shows costs rising, not why. A supplier contract may be true, but nothing here supports it."
+    }
+  ],
+  "numeric": null,
+  "checks": [],
+  "red_flags": [],
+  "model_answer": null,
+  "explanation": "COGS rose 25% (120 to 150) against 10% revenue growth (200 to 220), so gross profit fell from 80 to 70.",
+  "extras": {
+    "proof": "COGS rose 25% (120 to 150) against 10% revenue growth (200 to 220), so gross profit fell from 80 to 70."
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": "claude-opus-5-5",
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-10-10",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-10-10"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

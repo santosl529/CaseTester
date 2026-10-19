@@ -1,0 +1,20 @@
+{
+  "answer_id": "sy3-0012-a",
+  "item_id": "sy3-0012",
+  "drill_id": "SY-3",
+  "answer_type": "normal",
+  "notes": "Recommendation first (rule 14).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Launch online. The category grows 25% a year, 40% of our customers would buy online, and $4M at a 20% margin nearly covers the $1M setup."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

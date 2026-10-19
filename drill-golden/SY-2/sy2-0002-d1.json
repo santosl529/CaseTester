@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0002-d1",
+  "item_id": "sy2-0002",
+  "drill_id": "SY-2",
+  "answer_type": "normal",
+  "notes": "",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Raise the peak rate to $60. Peak hours are 95% booked with a waitlist most nights, so demand outruns supply at today's price, and a competing studio already charges $65. The main risk is that league players, who make up 60% of peak bookings, push back or leave. The next step is to raise the rate for non-league bookings first and track peak occupancy for a month before extending it to leagues."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "Hold. Peak is 95% booked with a waitlist; off-peak is a separate question. Raise peak to $60."
+    }
+  ],
+  "labels": {
+    "defend_evidence": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

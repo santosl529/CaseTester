@@ -1,0 +1,62 @@
+import { notFound } from 'next/navigation';
+import { studentOrRedirect } from '@/lib/drills/session';
+import { DRILLS_CONFIG, getMistakeTag, getSkill } from '@/lib/drills/config';
+import { introProblems, lessonIdFor, lessonProblems, loadIntroLesson, loadLessons, MAX_WORDS, P0_LESSON_SKILLS } from '@/lib/drills/lessons';
+import { lessonReviewEnabled } from '@/lib/drills/review';
+import { IntroLessonBody, LessonBody } from '@/components/drills/lesson';
+import { LessonReviewButtons } from '@/components/drills/lesson-review';
+
+// Lesson review (local development only): every lesson rendered as students
+// see it, with its word count, any problems, and Approve / Request changes.
+// Decisions are written into the lesson files; `npm run db:seed-lessons`
+// publishes approved ones.
+export default async function LessonReviewPage() {
+  if (!lessonReviewEnabled()) notFound();
+  await studentOrRedirect();
+  // In skill order (Problem Structuring first), as everywhere else.
+  const order = DRILLS_CONFIG.taxonomy.skills.map(x => x.id);
+  const lessons = loadLessons().sort((a, b) => order.indexOf(a.skill_id) - order.indexOf(b.skill_id));
+  const missing = P0_LESSON_SKILLS().filter(id => !lessons.some(l => l.skill_id === id));
+  const intro = loadIntroLesson();
+  const counts = { live: 0, in_review: 0, draft: 0, retired: 0 };
+  for (const l of [...lessons, ...(intro ? [intro] : [])]) counts[l.status]++;
+  const skillLinks = Object.fromEntries(DRILLS_CONFIG.taxonomy.skills.map(s => [s.id, { name: s.name, href: lessons.some(l => l.skill_id === s.id) ? `#${lessonIdFor(s.id)}` : null }]));
+  return (
+    <main className="mx-auto w-full max-w-2xl space-y-10 p-4 sm:p-6">
+      <header className="space-y-1">
+        <h1 className="text-xl font-semibold">Lesson review</h1>
+        <p className="text-sm text-muted-foreground">{lessons.length + (intro ? 1 : 0)} lessons: {counts.live} approved, {counts.in_review} with changes requested, {counts.draft} to review.{missing.length > 0 && ` Not written yet: ${missing.map(id => getSkill(id).name).join(', ')}.`}</p>
+        <nav aria-label="Lessons" className="flex flex-wrap gap-2 pt-2 text-xs">
+          {intro && <a href={`#${intro.lesson_id}`} className="rounded-full border px-2 py-1 hover:bg-muted">How a case interview works{intro.status === 'live' ? ' ✓' : ''}</a>}
+          {lessons.map(l => <a key={l.lesson_id} href={`#${l.lesson_id}`} className="rounded-full border px-2 py-1 hover:bg-muted">{getSkill(l.skill_id).name}{l.status === 'live' ? ' ✓' : ''}</a>)}
+        </nav>
+      </header>
+      {intro && (() => {
+        const problems = introProblems(intro, lessons.map(l => l.skill_id));
+        return (
+          <section id={intro.lesson_id} className="space-y-4 border-t pt-8">
+            <p className="text-xs text-muted-foreground">{intro.file} · v{intro.version} · {intro.words} of {MAX_WORDS} words · Foundations intro</p>
+            {problems.length > 0 && <ul role="alert" className="list-disc pl-5 text-sm text-destructive">{problems.map(p => <li key={p}>{p}</li>)}</ul>}
+            <IntroLessonBody lesson={intro} skills={skillLinks} />
+            <LessonReviewButtons lessonId={intro.lesson_id} status={intro.status} notes={intro.authorship.review_notes} />
+          </section>
+        );
+      })()}
+      {lessons.map(l => {
+        const problems = lessonProblems(l);
+        return (
+          <section key={l.lesson_id} id={l.lesson_id} className="space-y-4 border-t pt-8">
+            <p className="text-xs text-muted-foreground">{l.file} · v{l.version} · {l.words} of {MAX_WORDS} words</p>
+            {problems.length > 0 && <ul role="alert" className="list-disc pl-5 text-sm text-destructive">{problems.map(p => <li key={p}>{p}</li>)}</ul>}
+            <LessonBody lesson={{ ...l, skill_name: getSkill(l.skill_id).name, mistakes: l.mistakes.map(m => ({ ...m, label: getMistakeTag(m.tag)?.label ?? m.tag })) }} />
+            <details className="rounded-lg border p-4">
+              <summary className="cursor-pointer text-sm font-medium">Summary card (Standard, Sprint and self-directed students)</summary>
+              <div className="pt-4"><LessonBody mode="summary" lesson={{ ...l, skill_name: getSkill(l.skill_id).name, mistakes: l.mistakes.map(m => ({ ...m, label: getMistakeTag(m.tag)?.label ?? m.tag })) }} /></div>
+            </details>
+            <LessonReviewButtons lessonId={l.lesson_id} status={l.status} notes={l.authorship.review_notes} />
+          </section>
+        );
+      })}
+    </main>
+  );
+}

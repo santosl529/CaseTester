@@ -1,0 +1,28 @@
+{
+  "answer_id": "sy2-0017-d1",
+  "item_id": "sy2-0017",
+  "drill_id": "SY-2",
+  "answer_type": "off_topic",
+  "notes": "No fact behind it, and no restated recommendation (rules 12, 13).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Add dog training before opening new cities. 45% of current customers say they'd book training through the app, and each session earns us $25 against $8 for pet-sitting, with none of the $500,000 per-city launch cost. The main risk is that vetting takes 3 weeks per trainer, which slows the start. The next step is to vet 20 trainers in our busiest city and launch training there first."
+    },
+    {
+      "type": "choice",
+      "option_id": "hold"
+    },
+    {
+      "type": "text",
+      "value": "I'd change the app's logo to attract more users."
+    }
+  ],
+  "labels": {
+    "defend_evidence": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

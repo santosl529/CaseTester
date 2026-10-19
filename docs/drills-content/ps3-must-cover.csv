@@ -1,0 +1,196 @@
+item_id,area,what_counts,also_accept,critical
+ps3-0001,Revenue per car,"Price, service mix or add-on sales per car serviced",average ticket; price; mix; upsell; revenue per visit,Y
+ps3-0001,Variable costs,"Parts, tires and technician labor that rise with each job",cost of goods; parts costs; labor per job; direct costs,N
+ps3-0001,Fixed costs,"Rent, equipment and overhead that don't change with the number of jobs",overhead; occupancy; admin; SG&A,N
+ps3-0001,Where the decline is,"Splitting the drop by shop, region or service line",segmentation; by location; by service line; which shops,N
+ps3-0002,US demand,"Size, growth or willingness to pay in US premium olive oil",market size; consumer demand; market attractiveness,N
+ps3-0002,Competition,Existing olive oil brands and store brands in US supermarkets,competitors; competitive landscape; private label,N
+ps3-0002,Distribution,"How the brand gets onto US supermarket shelves: distributors, listing fees, retailer terms",route to market; channel; retail access; shelf space,N
+ps3-0002,Entry economics,"Branded price and margin against marketing, import and listing costs, or against bulk sales",profitability; investment; unit economics; break-even,Y
+ps3-0002,Effect on bulk customers,Bulk buyers that sell competing brands may cut their orders,cannibalization; channel conflict; existing customers,N
+ps3-0003,Office space,Rent and how the space is used,real estate; occupancy; rent; facilities,Y
+ps3-0003,Technology,"Software, databases and research subscriptions",IT; legal research; licenses; subscriptions,N
+ps3-0003,Outside services,Vendors and contractors,third-party services; vendors; contractors; temps,N
+ps3-0003,Travel and events,"Travel, conferences and entertainment",T&E; travel; entertainment; marketing events,N
+ps3-0004,Value to districts,"What the course is worth to a district: savings, teacher time or student results",willingness to pay; value-based pricing; customer value; benefits,Y
+ps3-0004,Competing options,"Rival digital courses, free resources or staying with print",competitors; alternatives; competitor prices; market prices,N
+ps3-0004,Cost to serve,"Platform, content, training and support costs that set a price floor",costs; cost-plus; unit cost; price floor,N
+ps3-0004,District buying process,"Budgets, purchase cycles and who decides",budget constraints; procurement; decision makers; adoption cycle,N
+ps3-0004,Print cannibalization,"The publisher's own lost print revenue as districts switch to digital (a district's saving on print is value to districts, not this)",cannibalization; impact on print sales; existing products,N
+ps3-0005,Contractor customers,"Growing sales to trade customers: accounts, volume or delivery, or a split by customer type that treats contractors on their own (for example traffic, basket and margin for contractors)",pros; trade; B2B; professional customers,N
+ps3-0005,Retail shoppers,"More visits or bigger baskets from DIY shoppers, including traffic and basket size in a split by customer type",consumers; DIY; existing customers; basket size; traffic,N
+ps3-0005,New services,"Revenue from services such as rental, repairs or installation",services; rentals; adjacent offerings,N
+ps3-0005,Online and convenience,"Online ordering, pickup or delivery",e-commerce; digital; click and collect; omnichannel,N
+ps3-0005,Margin,"Raising profit per sale: own-label, pricing, product mix or costs at these stores, including margin in a traffic, basket and margin split",pricing; gross margin; private label; product mix,Y
+ps3-0006,Target's performance,"The cheese maker's own sales, profit and growth",standalone value; financials; target attractiveness; market position,N
+ps3-0006,Synergies,Using the co-op's surplus milk or other gains from combining,strategic fit; milk supply; cost savings; synergy,N
+ps3-0006,Price vs value,Whether $90M is justified by the target's value plus synergies,valuation; deal price; return; payback,Y
+ps3-0006,Risks,"Integration, people or cheese market risks",integration; execution risk; downside,N
+ps3-0006,Member approval and funding,How the farm-owners fund and approve the deal,financing; members; owners; governance,N
+ps3-0007,Arrival pattern,"When and how donors arrive: walk-ins, appointments, peaks",demand; scheduling; arrivals; appointments,N
+ps3-0007,Time per step,"Breaking the visit into steps such as check-in, screening, donation and recovery",process steps; process map; bottleneck; visit flow,Y
+ps3-0007,Capacity,Staff and chairs against demand,staffing; resources; staff; beds; chairs,N
+ps3-0007,Pre-visit work,"Moving paperwork or questionnaires before the visit, or cutting duplicate checks",online forms; pre-screening; paperwork; process redesign,N
+ps3-0008,Crash patterns,"Who dies, where and when: pedestrians, locations, times, speed",data analysis; root causes; hotspots; where crashes happen,Y
+ps3-0008,Road design,"Physical changes such as speed limits, crossings or bike lanes",infrastructure; street design; engineering; speed limits,N
+ps3-0008,Enforcement,"Cameras, police or penalties",policing; cameras; traffic enforcement; laws,N
+ps3-0008,Driver behavior,"Education or campaigns on speeding, impaired or distracted driving",education; awareness; behavior change; campaigns,N
+ps3-0008,Funding and support,"Cost of the measures, the budget, or political and public backing",budget; political support; stakeholders; feasibility,N
+ps3-0009,Demand for slips,"Occupancy, waitlists or boat ownership trends",demand; occupancy; market demand; utilization,N
+ps3-0009,Revenue streams,"Where the money comes from: slips, fuel, service, storage",revenue; pricing; income sources,N
+ps3-0009,Operating and upkeep costs,"Running and maintenance costs such as staff, dredging, docks or insurance",costs; capex; maintenance; operating expenses,N
+ps3-0009,Return against price,"Whether cash flow meets 8% on $150M, or the exit value",valuation; ROI; cash yield; returns; price,Y
+ps3-0009,Storm and climate risk,"Hurricane damage, insurance availability or climate exposure",weather risk; climate; natural disasters; insurance risk,N
+ps3-0010,Student demand,"Who would enroll, how many, and at what tuition",market size; demand; enrollment; willingness to pay,N
+ps3-0010,Competition,"Other online degrees, bootcamps or certificates",competitors; alternatives; competitive landscape,N
+ps3-0010,Program economics,"Tuition revenue against costs, or what it takes to reach 1,000 students",break-even; profitability; unit economics,Y
+ps3-0010,Capacity to deliver,"Faculty, technology or online teaching ability",capabilities; faculty; operations; delivery,N
+ps3-0010,Effect on the university,"Brand or quality risk, or drawing students from the on-campus program",reputation; cannibalization; brand risk; academic quality,N
+ps3-0011,Price and mix,"Price per pizza, promotions or a shift toward cheaper products",pricing; discounts; product mix; revenue per unit,N
+ps3-0011,Cost per pizza,"Ingredients, packaging, factory labor or energy per pizza",COGS; unit cost; raw materials; input costs,Y
+ps3-0011,Selling and distribution,"Freezer trucking, retailer fees or marketing",distribution costs; SG&A; logistics,N
+ps3-0011,Where margin fell,"Splitting the drop by product line, brand or retailer",segmentation; by product; by customer,N
+ps3-0012,Demand in Portugal,"Whether Portuguese customers or tourists would buy açaí bowls, and how many",market size; consumer demand; customer interest,N
+ps3-0012,Competition,"Juice bars, smoothie or frozen-dessert chains already in Portugal",competitors; rivals,N
+ps3-0012,Store economics,"Sales, costs or payback of a store in Portugal",unit economics; profitability; break-even; payback,Y
+ps3-0012,Supply chain,"Getting frozen açaí to Portugal, or sourcing it locally",sourcing; logistics; import,N
+ps3-0012,Entry model,"Own stores, franchising or a local partner",mode of entry; franchising; partnership,N
+ps3-0013,Route design,"Number or length of routes, stops, or combining routes",routing; route optimization; stops,Y
+ps3-0013,Fleet costs,"Buses, maintenance or fuel",vehicles; fuel; maintenance; fleet,N
+ps3-0013,Driver costs,"Driver pay, overtime or staffing model",labor; drivers; wages,N
+ps3-0013,School schedules,School start times that let each bus serve more routes,bell times; scheduling; tiered start times,N
+ps3-0013,Contractors,Outside bus contractors and what they charge,outsourcing; vendors; contracts,N
+ps3-0014,Willingness to pay,What different fans would pay,customer value; demand; price sensitivity,Y
+ps3-0014,Seat tiers,Different prices for different seats or sections,price tiers; segmentation; premium seating,N
+ps3-0014,Filling capacity,Selling the extra seats: attendance by game or day,attendance; occupancy; demand by game; dynamic pricing,N
+ps3-0014,In-stadium spending,"Food, parking or merchandise per fan that cheaper tickets could bring in",concessions; ancillary revenue; per-fan spending,N
+ps3-0014,Alternatives,Prices at the old stadium or of other local entertainment,benchmarks; reference prices; competitors,N
+ps3-0015,Existing members,More loans to current members,cross-selling; member penetration; share of wallet,N
+ps3-0015,New members,Bringing in new members who borrow,acquisition; membership growth,N
+ps3-0015,Loan products,"Which loan types to grow, or new products",product mix; car loans; mortgages,N
+ps3-0015,Distribution,"How members apply: online, dealers, branches or approval speed",channels; partnerships; digital lending,N
+ps3-0015,Credit risk,Growing without riskier borrowers: credit standards or defaults,risk; underwriting; credit quality,Y
+ps3-0016,Customer demand,Who would rent and how often,market size; demand; target customers,N
+ps3-0016,Rental economics,"Rental price against shipping, cleaning and repair costs",unit economics; profitability; break-even,Y
+ps3-0016,Competition,"Other rental services, or buying a cheap suitcase instead",competitors; alternatives,N
+ps3-0016,Logistics,"Delivery, return, cleaning or damage handling",operations; fulfillment; delivery,N
+ps3-0016,Effect on sales,"Rentals replacing purchases, or leading to them",cannibalization; brand; impact on core business,N
+ps3-0017,Donation flow,"When and how much food arrives, including spikes",inbound; supply; donation volume,N
+ps3-0017,Warehouse process,Time spent in each warehouse step,process steps; bottleneck; sorting; process map,Y
+ps3-0017,Labor capacity,Volunteers or staff available to sort and pack,staffing; volunteers; capacity,N
+ps3-0017,Distribution to pantries,How pantries order and how often trucks deliver,delivery; logistics; ordering,N
+ps3-0018,Number of weddings,Weddings held each year,marriages; ceremonies,N
+ps3-0018,Share hiring a professional,The share of weddings that pay a photographer,adoption; penetration,N
+ps3-0018,Spend per wedding,"Average spend on photography, or spend by tier",price; average fee; package price,Y
+ps3-0018,Sanity check,"A second estimate from the supply side, such as photographers × weddings × fee",supply-side check; triangulation; cross-check,N
+ps3-0019,Customers at risk,Which customers are likely to switch,customer segments; churn; at-risk customers,N
+ps3-0019,Revenue impact,How much revenue the switch puts at risk,financial impact; revenue at risk,Y
+ps3-0019,Our advantages,What the chain offers that a free tool doesn't,differentiation; strengths; value proposition,N
+ps3-0019,Response options,"Price, service or product moves to answer the tool",strategic options; pricing response; repositioning,N
+ps3-0019,Office network,What happens to offices and staff,footprint; store network; costs,N
+ps3-0020,Cash position,How long the cash lasts and how to free up cash,liquidity; working capital; runway,Y
+ps3-0020,Profit by segment,"Which products, channels or customers lose money",product profitability; segment profitability,N
+ps3-0020,Revenue replacement,Replacing the bankrupt customer's sales,new customers; new channels; sales growth,N
+ps3-0020,Cost restructuring,Cutting costs to fit lower volume,cost cuts; capacity; overhead,N
+ps3-0020,Lender requirements,"What the bank needs, or the loan terms",covenants; creditors; financing,N
+ps3-0021,Targets' performance,"Revenue, margins or customers of the contractors",standalone value; financials,N
+ps3-0021,Synergies,Cost or revenue gains from combining,cost savings; cross-selling; synergy,N
+ps3-0021,Price vs value,Whether $60M is justified by the contractors' value plus synergies,valuation; multiple; return; deal price,Y
+ps3-0021,Integration,"Keeping technicians and owners, or combining systems",post-merger integration; retention,N
+ps3-0021,Risks,"Labor shortages, reputation or other downside",downside; deal risk,N
+ps3-0022,Demand growth,Growth in players or courts needed,market growth; demand; participation,N
+ps3-0022,Staying power,Whether demand lasts or is a fad,durability; trend; long-term demand,Y
+ps3-0022,Competition,"Number of builders, entry barriers or price pressure",competitive intensity; barriers to entry; rivals,N
+ps3-0022,Profitability,Margins or the economics of building courts,margins; unit economics,N
+ps3-0022,Customers,"Who buys courts, such as cities, clubs or homeowners, and their budgets",buyers; customer segments,N
+ps3-0023,Test demand,"Tests needed per week, including retests and no-shows",demand; volume; bookings,N
+ps3-0023,Examiner capacity,Examiners and how many tests each can give,staffing; capacity; examiners,Y
+ps3-0023,Sites and hours,"Locations, opening hours or slots",locations; schedule; slots,N
+ps3-0023,Booking rules,"No-show, cancellation or retest rules",policy; scheduling rules,N
+ps3-0023,Outside testers,Letting driving schools or contractors give tests,third-party testing; outsourcing,N
+ps3-0024,Lifetime cost,Purchase price against fuel and maintenance savings over the bus's life,total cost of ownership; payback; lifetime economics,Y
+ps3-0024,Subsidies,Grants or incentives that cut the price,incentives; grants; funding,N
+ps3-0024,Charging infrastructure,"Chargers, grid upgrades or range",infrastructure; charging; range,N
+ps3-0024,Customer contracts,"What school districts want, or contract terms",customers; contracts; districts,N
+ps3-0024,Technology risk,"Battery life, resale value or reliability",battery risk; reliability,N
+ps3-0025,Revenue impact,How revenue changes across customers with more or fewer devices per employee,revenue effect; winners and losers; customer mix,Y
+ps3-0025,Customer value,What protection is worth to small businesses,willingness to pay; value; breach cost,N
+ps3-0025,Competitor pricing,How rivals charge,competitors; benchmarks; market pricing,N
+ps3-0025,Customer reaction,"Churn or pushback, especially from customers who would pay more",churn; retention; migration,N
+ps3-0025,Ease of selling,"Simpler quotes, billing or sales process",simplicity; sales process; billing,N
+ps3-0026,More stores,"Getting into more grocery stores or chains, directly or through distributors",distribution; retail expansion; shelf space,Y
+ps3-0026,Sales per store,"Selling more where it is already sold: placement, promotions or flavors",same-store sales; velocity,N
+ps3-0026,New channels,"Selling online, direct, or to restaurants and food service",e-commerce; direct to consumer; food service,N
+ps3-0026,New products,"New flavors, sizes or products such as marinades",product extensions; innovation,N
+ps3-0026,Production capacity,"Making three times as much: kitchen, co-packer, or cash to fund growth",capacity; supply; co-packer; funding,N
+ps3-0027,Return reasons,Breaking returns down by why they happen,root causes; return reasons; analysis,Y
+ps3-0027,Product information,"Fitment lookup, descriptions or photos",catalog data; fitment; listings,N
+ps3-0027,Order accuracy and damage,Wrong parts picked or damage in shipping,fulfillment; warehouse errors; packaging,N
+ps3-0027,Customer support,Help before buying,pre-sale support; chat; guidance,N
+ps3-0027,Return policy,Fees or rules on returns,policy; restocking fee,N
+ps3-0028,Customer uptake,"Which customers would sign up, and privacy concerns",demand; adoption; customer interest,N
+ps3-0028,Claims savings,Whether app data lowers claims enough to fund the discounts,risk prediction; loss ratio; underwriting economics,Y
+ps3-0028,Effect on existing customers,"Which drivers switch, and what that does to the rest of the book",adverse selection; cannibalization; portfolio mix,N
+ps3-0028,Competition,Rivals' driving-based programs,competitors; market,N
+ps3-0028,Regulation and data,"Regulators, data privacy or security",compliance; privacy law; data security,N
+ps3-0029,Patient demand,"Elderly population, need or growth in Pennsylvania",market size; demand,N
+ps3-0029,Payers and rates,Who pays for visits and at what rates,reimbursement; Medicare; Medicaid; pricing,N
+ps3-0029,Competition,Local agencies or hospital services,competitors,N
+ps3-0029,Nurse supply,Hiring and paying enough nurses,staffing; labor; workforce,Y
+ps3-0029,Entry route,"Buying, partnering or starting fresh, or referral sources",mode of entry; acquisition; referrals,N
+ps3-0029,Licensing,State licensing and rules,regulation; compliance,N
+ps3-0030,Ore grade,"Copper content of the rock, or mining deeper or harder rock",grade; ore quality; geology,Y
+ps3-0030,Throughput,"Tons mined or processed, or plant uptime",volume; productivity; utilization,N
+ps3-0030,Energy and supplies,"Fuel, power, explosives or other inputs",input costs; energy; consumables,N
+ps3-0030,Labor,Staff or contractor costs,workforce; contractors; wages,N
+ps3-0030,Equipment,"Maintenance, breakdowns or equipment age",maintenance; reliability; fleet,N
+ps3-0031,Students at risk,Which students or services apps could replace,at-risk segments; customer segments; churn,N
+ps3-0031,Size of the threat,"How much enrollment or revenue could go, and how fast",revenue at risk; threat assessment; impact,Y
+ps3-0031,Our advantages,What in-person tutoring offers that apps don't,differentiation; value proposition,N
+ps3-0031,Response options,"Products, prices or partnerships to respond",options; strategy; hybrid model; pricing,N
+ps3-0031,Cost base,Center costs if enrollment falls,fixed costs; footprint; rent,N
+ps3-0032,Gap analysis,"Which children are missed: where, which groups or which doses",segmentation; root cause; coverage gaps,Y
+ps3-0032,Access,"Getting vaccines and clinics to families: distance, hours or stock",supply; availability; outreach,N
+ps3-0032,Parent demand,"Trust, awareness, hesitancy or reminders",hesitancy; awareness; communication,N
+ps3-0032,Health-system capacity,"Staff, tracking or records",workforce; tracking; systems,N
+ps3-0032,Policy and funding,"Budget, incentives or school-entry rules",funding; incentives; mandates,N
+ps3-0033,Cross-selling,Revenue from offering legal work to the accounting firm's clients,synergies; strategic fit; revenue synergies,N
+ps3-0033,Target's performance,"The law firm's revenue, clients or profit",standalone value; financials,N
+ps3-0033,Price vs value,Whether $150M is justified,valuation; return; deal price,N
+ps3-0033,Regulatory limits,"Audit independence, legal ethics or state rules that limit what the combined firm can do",regulation; compliance; conflicts of interest; independence,Y
+ps3-0033,Partner retention,Keeping lawyers and partners after the deal,retention; culture; talent,N
+ps3-0034,Fleet by age,"Electric cars on the road in 2030, ideally by age",installed base; vehicle fleet,N
+ps3-0034,Replacement rate,"Share of cars needing a new battery, from battery life",failure rate; battery life; degradation,Y
+ps3-0034,"Replace, repair or scrap",Share that replace the whole pack rather than repair it or scrap the car,alternatives; repair; module replacement,N
+ps3-0034,Price per battery,Pack price in 2030,cost per kWh; battery price,N
+ps3-0034,Sanity check,A second estimate or a comparison,triangulation; cross-check,N
+ps3-0035,Results by course,Which courses lose the most,segmentation; course-level profit,Y
+ps3-0035,Revenue levers,"Fees, rounds, food or events",pricing; utilization; rounds,N
+ps3-0035,Cost levers,"Staff, water, maintenance or management costs",cost reduction; operations,N
+ps3-0035,Alternatives for the land,"Outside operator, sale, new use or closure",outsourcing; land use; closure options,N
+ps3-0035,Public value,"Access, green space or resident support",stakeholders; politics; community,N
+ps3-0036,Addressable demand,Rural homes needing broadband and willing to pay,market size; demand; subscribers,N
+ps3-0036,Substitutes,"Fiber, cable or 5G reaching rural areas",alternatives; competing technologies,Y
+ps3-0036,Industry economics,Capital costs against subscriber revenue,capex; margins; unit economics; profitability,N
+ps3-0036,Competitive structure,"Number of players, scale or barriers",market structure; barriers to entry,N
+ps3-0036,Regulation,"Spectrum, licensing or subsidy rules",policy; government; spectrum,N
+ps3-0037,Health impact,"Exposure while pipes wait, or who is most at risk",public health; exposure,Y
+ps3-0037,Cost and funding,"Cost, borrowing or grants under each timeline",financing; budget; federal funding,N
+ps3-0037,Customer bills,Effect on water rates or affordability,rates; affordability,N
+ps3-0037,Delivery capacity,"Contractors, crews or disruption",execution; capacity; feasibility,N
+ps3-0037,Legal requirements,"Deadlines, regulations or liability",regulation; compliance,N
+ps3-0038,Matchday revenue,"Tickets, hospitality or spending per fan",ticketing; gate receipts,N
+ps3-0038,Media and commercial revenue,"TV rights, sponsors, merchandise or prize money",broadcast; sponsorship; commercial,N
+ps3-0038,Player costs,Wages or transfer fees,salaries; payroll; squad costs,Y
+ps3-0038,Other costs,"Stadium, travel or staff costs",operating costs; overhead,N
+ps3-0038,One-off changes,"Events that changed results, such as league finish, new deals or one-off charges",one-offs; timeline,N
+ps3-0039,Clinic demand,"Which supplies clinics need fast, and how often",demand; use cases; customer need,N
+ps3-0039,Delivery economics,"Cost per drone delivery against vans, and what customers pay",unit economics; profitability; cost comparison,Y
+ps3-0039,Aviation approval,Regulators allowing the drone flights,regulation; permits,N
+ps3-0039,Operations,"Range, weather, landing sites or fleet",logistics; feasibility; infrastructure,N
+ps3-0039,Who pays,"Health systems, governments or clinics paying",customers; payers; funding,N
+ps3-0040,Customer needs,What current solvent customers will need instead,customers; substitution; switching,N
+ps3-0040,Replacement product,Developing a compliant replacement,R&D; new product; reformulation,Y
+ps3-0040,New markets,Other markets for its plants and skills,adjacencies; diversification,N
+ps3-0040,Acquisitions,Buying products or companies,M&A; inorganic growth,N
+ps3-0040,Timeline and investment,Fitting the work and spending into five years,funding; budget; roadmap,N
