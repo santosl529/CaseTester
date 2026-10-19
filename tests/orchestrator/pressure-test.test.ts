@@ -7,7 +7,7 @@ import {
   probeIntents, buildProbeJudgePrompt, parseProbeJudge, judgeProbeAnswer, isGatedItem, exhibitIsGated, probeAsHeard,
   pickFallbackQuestion, INITIAL_PRESSURE_TEST, FIGURES_QUESTIONS, NO_FIGURES_QUESTIONS,
   ANALYSIS_QUESTIONS, BRAINSTORM_QUESTIONS, LATE_QUESTIONS, TIME_PRESSURE_QUESTIONS, HYPOTHESIS_QUESTIONS,
-  buildStructureJudgePrompt, parseStructureJudge, judgeStructureGiven, CODE_STRUCTURE_ASKS, reaskProbe,
+  buildStructureJudgePrompt, parseStructureJudge, judgeStructureGiven, CODE_STRUCTURE_ASKS, reaskProbe, saysNothingMissing,
 } from '@/lib/orchestrator/pressure-test';
 import { askIntents } from '@/lib/orchestrator/ask-intent';
 import { createLedger } from '@/lib/orchestrator/data-ledger';
@@ -225,8 +225,33 @@ describe('fallback wording is case-neutral (13 Oct)', () => {
 // Lorenzo, 13 Oct (Tyler af62e2e2 t4, Jasmine 35897f4a t4: they had answered).
 describe('the re-ask', () => {
   it('asks for "your answer on the structure" only when they gave none', () => {
-    expect(reaskProbe(['mece'], true, false)).toBe("Before I share that data, I'd like your answer on the structure: what might be missing from your structure?");
-    expect(reaskProbe(['mece'], true, true)).toBe('One more on your structure before I share that data: what might be missing from your structure?');
+    expect(reaskProbe(['mece'], true, false)).toBe("Before I share that data, I'd like your answer on the structure: what might be missing from it?");
+    expect(reaskProbe(['mece'], true, true)).toBe('One more on your structure before I share that data: what might be missing from it?');
     expect(reaskProbe(['prioritize'], false, true)).toBe('Coming back to your structure: which branch would you start with, and why?');
   });
+
+  // Session 0f1b28ea t10 (19 Oct): "Coming back to your structure: what might be missing from your structure?"
+  it('never names the structure twice, in any version, and still reads as the same probe', () => {
+    for (let i = 0; i < 40; i++) for (const [held, replied] of [[true, false], [true, true], [false, true], [false, false]] as const) {
+      const q = reaskProbe(['mece'], held, replied, { reask_answer: [i % 5], reask_more: [i % 5], reask_back: [i % 5], ask_missing: [(i + 1) % 5] }, `s:${i}`);
+      expect(q.match(/\bstructure\b/gi)?.length, q).toBe(1);
+      expect(probeIntents(q), q).toContain('mece');
+    }
+  });
+});
+
+// Lorenzo, 19 Oct (0f1b28ea t9–t13): "nothing is missing" answers the what's-missing ask.
+describe('saysNothingMissing', () => {
+  it.each([
+    'Yes. It is busy, and nothing is missing.', 'Yeah. No. I think that\'s it.', 'Yeah. It covers everything. Uh, is there something that you\'re expecting?',
+    "Nothing's missing.", "I don't think anything is missing.", "It's MECE and complete.", 'No, that covers it all.', 'I think it is exhaustive.',
+  ])('reads %s as nothing missing', r => expect(saysNothingMissing(r)).toBe(true));
+  it.each([
+    "Nothing's missing, but I'd add competitors.", 'Maybe nothing is missing?', 'I think the market is missing.', 'Competitors are missing, otherwise that covers everything.',
+    'Not sure what is missing.', "That's it for costs; I'd also add competitors.", 'Can I get the cost breakdown?',
+    // The replay (19 Oct): full answers that say "covers everything" in passing, or name a gap — the judge's to read.
+    "I think it's close to MECE — revenue and cost are exclusive, and within cost, COGS versus operating expenses covers everything. One gap: store count drives costs too.",
+    "I think it's broadly MECE — within cost, fixed versus variable covers everything, though labor straddles both, so I'd split it.",
+    'Roughly, yes — revenue and cost are mutually exclusive and collectively exhaustive at the top, and under cost, COGS versus operating expense covers everything. I would admit labor is a little fuzzy, since you can put it in COGS or in operating depending on how they book store-level wages, so there is an overlap risk there.',
+  ])('does not read %s as nothing missing', r => expect(saysNothingMissing(r)).toBe(false));
 });

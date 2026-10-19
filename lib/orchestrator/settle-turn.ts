@@ -20,7 +20,7 @@ import { classifyMathTalk } from './math-talk';
 import { checkTimeframes } from './timeframe-check';
 import { checkHintDelivered } from './hint-check';
 
-import { probeIntents, pickFallbackQuestion, reaskProbe, narrowProbe, refersToFigures, codeProbe, EARLY_PHASES, waiverLead, type PressureTestState } from './pressure-test';
+import { probeIntents, pickFallbackQuestion, reaskProbe, narrowProbe, refersToFigures, codeProbe, EARLY_PHASES, waiverLead, WHERE_TO_START, type PressureTestState } from './pressure-test';
 import { requestSentences } from './request-signal';
 import { isUnderTimePressure } from './pacing';
 import { rungName, classifyRungDelivery, revertUndeliveredRung } from './stall';
@@ -189,7 +189,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
 
   // Data: the same decisions Stream delivered from (the pressure test's
   // verdict for this turn first — the gate depends on it).
-  const { satisfied: satisfiedNow, waiving } = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
+  const { satisfied: satisfiedNow, waiving, nothingMissing } = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
   const decisions = turnData(plan, turn);
   const phraseUses = flags.phraseUses as PhraseUses | undefined;
   const dataParts = renderDataLineParts(decisions, seed, phraseUses);
@@ -343,7 +343,27 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     pt.awaitingReplies = (ptPrev.awaitingReplies ?? 0) + 1;
   }
   if (!codeWritten && kind !== 'rec_ask') {
-    if (ptPrev.state === 'awaiting' && !satisfiedNow) {
+    if (ptPrev.state === 'awaiting' && nothingMissing) {
+      // "Nothing is missing" answers the what's-missing ask (Lorenzo, 19 Oct):
+      // no re-ask, no narrowed probe toward a gap; code asks which branch first,
+      // once, unless the model already asks where to start. Any gap against the
+      // case key goes in the report (scoring is told), not into more probing.
+      const ownStart = WHERE_TO_START.test(modelQuestion) && !probeIntents(modelQuestion).includes('mece');
+      const picked = WHERE_TO_START.test(candidateText);   // they said where they'd start already
+      if (picked) {
+        if (probeIntents(modelQuestion).includes('mece')) {
+          question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null, lastAnswered: true, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+          modelQuestion = '';
+        }
+      } else if (!ownStart) {
+        const ask = line('ask_branch', phraseUses, seed);
+        question = ask.charAt(0).toUpperCase() + ask.slice(1); modelQuestion = '';
+      }
+      ptAction = 'nothing_missing';
+      ctx.events.push({ category: 'intervention', subtype: 'pressure_test_nothing_missing', payload: {
+        probe: ptPrev.probe ?? null, askedAt: ptPrev.askedAt ?? null, replyTurn: nextTurnIndex, reply: candidateText, branchAsked: !ownStart && !picked,
+      } });
+    } else if (ptPrev.state === 'awaiting' && !satisfiedNow) {
       if (waiving) {
         question = waiverQuestion(waiverLead('awaiting', phraseUses, seed)); modelQuestion = '';
         ptAction = 'waived';

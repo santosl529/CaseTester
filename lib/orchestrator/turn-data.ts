@@ -7,7 +7,7 @@ import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
 import { findFalseRefusals, groupItemsAsked, coverageOf } from './fact-check';
-import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT } from './pressure-test';
+import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases } from './data-requests';
 import { askingSentences } from './request-signal';
 import { revealedValues } from './data-ledger';
@@ -32,18 +32,23 @@ const FORCES_OPEN = new Set(['rec_ask', 'grace_ask', 'time_warning']);
 // awaiting; PT_NOT_ASKED_LIMIT held turns when no structure was ever given,
 // after code asked for one). Only model turns count. Resolved once (Stream
 // and Settle both await it before deciding data) and cached on the plan.
-export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfied: boolean; waiving: boolean }> {
+// nothingMissing (19 Oct): a what's-missing probe answered "nothing is missing"
+// counts as answered when the judge didn't count it (a bare claim to the judge);
+// an answer the judge counted goes on as before.
+export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfied: boolean; waiving: boolean; nothingMissing: boolean }> {
   const { state } = plan;
-  if (state.ptSatisfiedNow !== undefined && state.ptWaivingNow !== undefined) return { satisfied: state.ptSatisfiedNow, waiving: state.ptWaivingNow };
   const pt = state.pressureTest;
-  const satisfied = pt.state === 'satisfied'
-    || (pt.state === 'awaiting' && Boolean((await state.probeVerdict)?.answered));
+  const said = pt.state === 'awaiting' && (pt.intents ?? []).includes('mece') && saysNothingMissing(plan.ctx.candidateText);
+  const judged = pt.state === 'awaiting' && Boolean((await state.probeVerdict)?.answered);
+  const nothingMissing = said && !judged;
+  if (state.ptSatisfiedNow !== undefined && state.ptWaivingNow !== undefined) return { satisfied: state.ptSatisfiedNow, waiving: state.ptWaivingNow, nothingMissing };
+  const satisfied = pt.state === 'satisfied' || judged || nothingMissing;
   const waiving = !satisfied && state.kind === 'model' && (
     (pt.state === 'awaiting' && (pt.awaitingReplies ?? 0) + 1 >= PT_REPLY_LIMIT)
     || (pt.state === 'not_asked' && pt.structureAsked && pt.gatedTurns + 1 >= PT_NOT_ASKED_LIMIT));
   state.ptSatisfiedNow = satisfied;
   state.ptWaivingNow = waiving;
-  return { satisfied, waiving };
+  return { satisfied, waiving, nothingMissing };
 }
 
 export type TurnData = DataDecisions & { gatedIds: string[] };
