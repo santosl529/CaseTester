@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { getCaseById } from '@/lib/cases/loader';
 import {
-  buildFactBase, findFalseFacts, findCandidateMisquotes, findFalseRefusals, findUndeliveredClaims, findEchoes, echoesOf,
+  factBaseFor, buildFactBase, findFalseFacts, findCandidateMisquotes, findFalseRefusals, findUndeliveredClaims, findEchoes, echoesOf,
 } from '@/lib/orchestrator/fact-check';
 
 const fb = buildFactBase(getCaseById('prof-001') as never);
@@ -188,5 +188,20 @@ describe('F4 — delivery claims without delivery', () => {
     expect(why('The question on the table: given those 3 figures, what do you conclude?')).toEqual([]);
     expect(why('With labor as a share of revenue in front of you, what does that tell you?')).toEqual([]);
     expect(why('What does the exhibit tell you?', ctx({ exhibitShown: true }))).toEqual([]);
+  });
+});
+
+describe('F3 reads covers (Lorenzo, 19 Oct; engine-asks task 3)', () => {
+  const fb2 = factBaseFor(getCaseById('prof-002') as never);
+  const ask = 'As for competition on Ashford and Brookhaven, that\'s not something I have.';
+  it('a refusal of what a cover phrase answers is flagged with covers on', () => {
+    const flags = findFalseRefusals(ask, fb2, new Set(), { covers: true });
+    expect(flags.flatMap(f => f.items)).toContain('new_routes_context');
+  });
+  it('a finer cut beside the phrase is not covered', () => {
+    expect(findFalseRefusals('As for competition on Ashford broken down by month, that\'s not something I have.', fb2, new Set(), { covers: true })).toEqual([]);
+  });
+  it('without covers the same refusal flags nothing', () => {
+    expect(findFalseRefusals(ask, fb2, new Set())).toEqual([]);
   });
 });

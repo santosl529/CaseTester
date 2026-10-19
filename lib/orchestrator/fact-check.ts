@@ -697,7 +697,14 @@ const COMPOSITION = /\b(?:shares?|split|breakdown|broken down|composition|compon
 // group with a list ("COGS by input — beans, dairy, cups") is judged by the
 // list. In an ask about make-up (shares, split, breakdown) only a share item
 // of the line named counts — the case's price changes are not a split.
-export function findFalseRefusals(text: string, fb: FactBase, revealed: Set<string> = new Set()): RefusalFlag[] {
+//
+// With `covers` (Lorenzo, 19 Oct; batch 32 Larkspur — "competition on Ashford and
+// Brookhaven" refused while new_routes_context covers it): an object no item
+// name hits goes through coverageOf, so the case's cover phrases (and its
+// FURTHER_CUT / GLOBAL_FINER / BASIS vetoes) decide; the cover items and prompt
+// facts are the flag's items. turn-data.ts and anchor-audit.ts read covers
+// themselves and keep the default.
+export function findFalseRefusals(text: string, fb: FactBase, revealed: Set<string> = new Set(), opts: { covers?: boolean } = {}): RefusalFlag[] {
   const out: RefusalFlag[] = [];
   for (const s of sentencesOf(text)) {
     for (const re of REFUSAL) {
@@ -782,6 +789,10 @@ export function findFalseRefusals(text: string, fb: FactBase, revealed: Set<stri
           }
           items.add(q.id);
         }
+      }
+      if (!items.size && opts.covers) {
+        const c = coverageOf(x, fb);
+        for (const id of [...c.items, ...c.promptFacts]) if (!revealed.has(id)) items.add(id);
       }
       if (items.size) out.push({ refused: x.slice(0, 160), items: [...items], sentence: s.slice(0, 260) });
       break;
