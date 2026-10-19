@@ -144,6 +144,8 @@ describe('Better answers and strengths as claims', () => {
     expect(prompt).toContain('Judge only the facts a point states');
     expect(prompt).toContain('Adjectives and judgments ("proactively", "clearly", "strong") are not checked');
     expect(prompt).toContain('FIGURES NOT FOUND IN THE CASE DATA');
+    expect(prompt).toContain('cannot be derived from the transcript\'s figures');
+    expect(prompt).not.toContain('or does not give');
     expect(prompt).toContain(`claim ${better.id}: $30M`);
     expect(buildVerifierPrompt(claims, 'T')).not.toContain('FIGURES NOT FOUND IN THE CASE DATA (');
   });

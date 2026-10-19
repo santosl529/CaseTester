@@ -170,7 +170,7 @@ Mark a claim UNSUPPORTED only when the transcript factually contradicts it — a
 Lean SUPPORTED on matters of judgment or severity — you are checking facts, not re-grading the interview.
 
 Two kinds of claim are checked on facts alone:
-- [betterResponse] claims are the words a great candidate would have said. Mark one UNSUPPORTED when it states a figure or fact that the case data or the transcript contradicts or does not give (recompute it from the numbers in the transcript; the figures listed under FIGURES NOT FOUND IN THE CASE DATA are the ones to check first). A figure labelled as a hypothetical ("if we assume 5%", "say 100,000 passengers") is fine.
+- [betterResponse] claims are the words a great candidate would have said. Mark one UNSUPPORTED when it states a figure or fact that the case data or the transcript contradicts (recompute it from the numbers in the transcript), or a figure listed under FIGURES NOT FOUND IN THE CASE DATA that cannot be derived from the transcript's figures. A hypothetical or estimate stated as such ("if we assume 5%", "say 100,000 passengers", "roughly") is fine.
 - [wentWell] claims are strengths. Judge only the facts a point states (a figure, a turn reference, what the candidate said or did), and mark it UNSUPPORTED only when the transcript contradicts one of them. Adjectives and judgments ("proactively", "clearly", "strong") are not checked.
 
 ${buildVerifierFacts(mathResults, marksSection)}${hints ? `\n\n${hints}` : ''}
@@ -201,7 +201,14 @@ export async function runClaimVerifier(
     .map(t => `[${t.role.toUpperCase()} turn ${t.turnIndex}]: ${t.text}`)
     .join('\n\n');
 
-  const prompt = buildVerifierPrompt(claims, transcriptText, context.mathResults, context.marksSection, context.caseData ? auditBetterFigures(rubric, context.caseData) : []);
+  // The audit is a hint list: a throw on odd case data must not block the report.
+  let betterFigures: BetterFigure[] = [];
+  try {
+    if (context.caseData) betterFigures = auditBetterFigures(rubric, context.caseData);
+  } catch (err) {
+    console.error('[verifier] Better-figure audit failed, no hints:', err instanceof Error ? err.message : err);
+  }
+  const prompt = buildVerifierPrompt(claims, transcriptText, context.mathResults, context.marksSection, betterFigures);
 
   // A broken verifier response must not block the report — ship unverified
   // rather than fail scoring; the caller logs this.
