@@ -30,7 +30,7 @@ export default async function DrillsHomePage() {
       {home.plan.source && <Link href="/drills/plan" className="underline-offset-4 hover:underline">Your plan</Link>}
       <Link href="/drills/browse" className="underline-offset-4 hover:underline">Browse drills</Link>
       <Link href="/drills/learn" className="underline-offset-4 hover:underline">Learn</Link>
-      <Link href="/drills/profile" className="underline-offset-4 hover:underline">Your skills</Link>
+      <Link href="/drills/progress" className="underline-offset-4 hover:underline">Your progress</Link>
       <Link href="/drills/settings" className="underline-offset-4 hover:underline">Settings</Link>
       <Link href="/" className="text-muted-foreground underline-offset-4 hover:underline">Cases</Link>
     </nav>

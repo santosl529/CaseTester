@@ -36,7 +36,7 @@ export default async function BrowseDrillsPage() {
         <nav className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
           <Link href="/drills" className="underline-offset-4 hover:underline">Training home</Link>
           <Link href="/drills/learn" className="underline-offset-4 hover:underline">Learn</Link>
-          <Link href="/drills/profile" className="underline-offset-4 hover:underline">Your skills</Link>
+          <Link href="/drills/progress" className="underline-offset-4 hover:underline">Your progress</Link>
         </nav>
       </header>
       {current && (

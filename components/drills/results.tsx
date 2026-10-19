@@ -49,7 +49,7 @@ export function SetResults({ results, checkin }: { results: Results; checkin?: C
         )}
         {results.skill_changes.map(c => (
           <p key={`${c.skill_id}-${c.to}`} className="text-sm font-medium">
-            {c.skill_name}: now {STATE_LABEL[c.to]}.
+            <Link href={`/drills/progress/${encodeURIComponent(c.skill_id)}?from=results`} className="underline underline-offset-4">{c.skill_name}</Link>: now {STATE_LABEL[c.to]}.
             {c.transfer_due_at && ` Transfer check unlocks ${new Date(c.transfer_due_at).toLocaleDateString('en-US', { weekday: 'long' })}.`}
           </p>
         ))}
@@ -72,7 +72,7 @@ export function SetResults({ results, checkin }: { results: Results; checkin?: C
         <Link href="/drills" className={buttonVariants({ size: 'lg' })}>{results.from_workout ? 'Continue workout' : 'Back to training'}</Link>
         <RetryButton drillId={results.drill.id} skillId={results.focus_skill} />
         <Link href="/" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Take a case</Link>
-        <Link href="/drills/profile" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Your skills</Link>
+        <Link href="/drills/progress" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Your progress</Link>
       </div>
 
       {checkin && <CheckIn id={checkin.id} kind={checkin.kind} />}

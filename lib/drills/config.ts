@@ -196,6 +196,34 @@ export const RulesSchema = z.object({
     daily_spend_limit_usd: z.number().positive(),
     spend_day_time_zone: z.string().min(1),
   }),
+  // Your progress dashboard: the summary's windows and thresholds (trend
+  // rules A1–A4, Matt 2026-10-18), the skill map's periods, readiness, and
+  // where case results come from: 'case_results' (sent by the case grader) or
+  // 'case_sessions' (the case product's own scores; read-only, off until
+  // Lorenzo agrees).
+  dashboard: z.object({
+    compare_windows_days: z.array(z.number().int().positive()).min(1),
+    min_sets_per_window: z.number().int().positive(),
+    min_answers_per_window: z.number().int().positive(),
+    slipping_rate_rise: z.number().positive(),
+    slipping_min_rise_per_10: z.number().nonnegative(),
+    arrow_sets_per_side: z.number().int().positive(),
+    arrow_min_change: Share,
+    periods_days: z.record(z.string(), z.number().int().positive().nullable()),
+    trend_weeks: z.number().int().positive(),
+    score_points_max: z.number().int().positive(),
+    top_n: z.number().int().positive(),
+    strengths_min_state: z.enum(['learning', 'recognizes', 'practiced', 'mastered', 'validated']),
+    readiness: z.object({
+      milestone_min_state: z.enum(['practiced', 'mastered', 'validated']),
+      other_min_state: z.enum(['recognizes', 'practiced', 'mastered', 'validated']),
+      cases_needed: z.number().int().positive(),
+      case_min_tier: z.number().int().min(1).max(3),
+      statuses: z.array(z.object({ min_met: z.number().int().nonnegative(), label: z.string().min(1) })).min(1),
+    }),
+    case_source: z.enum(['case_results', 'case_sessions']),
+    case_difficulty_tiers: z.record(z.string(), z.number().int().min(1).max(3)),
+  }),
   item_health: z.object({
     min_attempts: z.number().int().positive(),
     pull_below_correct_rate: Share,

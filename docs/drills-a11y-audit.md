@@ -79,6 +79,17 @@ Use VoiceOver (macOS: Cmd+F5) in Safari, and do one full set of PS-1, EX-1 and C
   - Then each check in order, read as "Passed:" or "Missed:", then the check's question, then the quoted evidence or the tip.
   - Then any red flag, "A strong answer" with the model answer, and for a follow-up, the follow-up, your reply and its checks.
   - VO+Right should move through all of it in that order, and Tab should go from the panel to **Next item** without skipping it.
+- [ ] **Your progress: the skill map and its views** (the audit checks the markup, not what VoiceOver says). Open Your progress after some practice.
+  - Tab through the skill map. Each tile should be read as one link: the skill name, its state and its trend in words, for example "MECE structure, Mastered, improving, link" (or "not enough data for a trend"). You should never hear a skill code like "PS.mece".
+  - In **Group by** and **Trends over**, the selected option should be read as current ("Skill area, current, link"). Choosing another should update the page without losing your place (focus stays on the views or moves to the page, never into nothing), and the new grouping should be read in order: Clarify, Structure, Analyze, Recommend. Clarify should say "Practiced in full cases for now."
+  - In **Interview ready**, each line should start with "Done:" or "Not yet:".
+  - Under Focus areas, **Practice** should open a set, and **Dismiss** should remove the card with focus kept on the page, not lost.
+  - **Recent activity** should open and close with Space or Enter, and you should hear "collapsed" and "expanded".
+- [ ] **Your progress: charts and the skill page.** Open a skill with a tier change (for example MECE structure after moving up a tier).
+  - On the ladder, the current state should be read as the current step ("Mastered, current step"); Validated, when not reached, should add "(needs a full case)".
+  - On "Score over time", press **Show data table** with the keyboard. The table should be read with its headers ("Score", "Note"), and the tier change should be read in the Note column ("Up to tier 2"). Below the chart you should hear "Dashed line: the 80% bar."
+  - In the Mistakes table, each row should be read as the mistake, the counts with "(more)", "(fewer)" or "(same)", and an example starting "Your answer:", "You picked:" or "From your case:".
+  - Repeat **Show data table** on each trend chart on Your progress; a week with no answers should be read as "–", not 0.
 - [ ] At 200% browser zoom, nothing is cut off or overlaps (WCAG 1.4.4).
 - [ ] With the text-spacing bookmarklet (WCAG 1.4.12), no text is cut off.
 

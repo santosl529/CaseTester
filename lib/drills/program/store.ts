@@ -167,7 +167,7 @@ export const planOf = (p: ProgramRow): Plan => buildPlan({
   track: p.track, start_date: p.startDate, interview_date: p.interviewDate, workouts_per_week: p.workoutsPerWeek ?? workoutsPerWeek(),
 });
 
-async function openRx(x: Exec, studentId: string): Promise<OpenPrescription[]> {
+export async function openRx(x: Exec, studentId: string): Promise<OpenPrescription[]> {
   const rows = await x.select().from(prescriptions)
     .where(and(eq(prescriptions.studentId, studentId), eq(prescriptions.status, 'open')));
   return rows.map(r => ({ id: r.id, skill_id: r.skillId, priority: r.priority, source: r.sourceType, reason: r.reasonText, created_at: r.createdAt }));

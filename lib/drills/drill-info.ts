@@ -17,7 +17,7 @@ export function drillDescription(drillId: string): { what: string; why: string }
 }
 
 // skill id → interview stage, from the intro lesson ("## 2. Structure" … "Skills: …").
-function stageOfSkill(): Map<string, InterviewStage> {
+export function stageOfSkill(): Map<string, InterviewStage> {
   const intro = loadIntroLesson();
   const out = new Map<string, InterviewStage>();
   for (const s of intro?.sections ?? []) {

@@ -18,7 +18,7 @@ const DAY = 86_400_000;
 
 // "1 of 2 passing sets. Last score: 74%. Need 80%." The streak that counts is
 // the one for the stage the skill is climbing.
-function progressTowardNext(p: SkillProgress) {
+export function progressTowardNext(p: SkillProgress) {
   const level1Only = !stageDrills(p.skill_id, isLiveDrill).construct;
   const streak = level1Only || p.stage === 'recognize' ? p.l1_streak : p.l2_streak;
   return { passing_sets: Math.min(streak, rules.mastery.consecutive_sets), of: rules.mastery.consecutive_sets, last_score: p.last_skill_score, bar: rules.mastery.passing_score };

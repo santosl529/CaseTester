@@ -30,6 +30,8 @@ const SeriesSchema = z.object({
   values: z.array(z.number()),
   axis: z.enum(['left', 'right']).default('left'),
   mark: z.enum(['bar', 'line']).optional(),        // dual_axis only
+  // Your progress: a fixed color (the state scale), instead of the palette.
+  color: z.string().regex(/^#[0-9a-f]{6}$/i).optional(),
 });
 
 export const ChartSpecSchema = z.object({
@@ -50,6 +52,16 @@ export const ChartSpecSchema = z.object({
     rows: z.array(z.array(z.union([z.string(), z.number()]))).min(1),
   }).optional(),
   footnotes: z.array(z.string()).default([]),
+  // Your progress (not used by drill exhibits): a dashed horizontal line (the
+  // 80% bar), labeled vertical markers before a category (a tier or stage
+  // change), and categories with no data (a gap in a line, "–" in the table).
+  reference_lines: z.array(z.object({ value: z.number(), label: z.string().min(1) })).default([]),
+  markers: z.array(z.object({ index: z.number().int().nonnegative(), label: z.string().min(1) })).default([]),
+  gaps: z.array(z.number().int().nonnegative()).default([]),
+  // Points drawn hollow (a set that doesn't count), and per-category notes
+  // shown only in the data table (with the markers, in its Note column).
+  hollow: z.array(z.number().int().nonnegative()).default([]),
+  notes: z.array(z.object({ index: z.number().int().nonnegative(), text: z.string().min(1) })).default([]),
 }).superRefine((spec, ctx) => {
   const issue = (message: string, path: (string | number)[] = []) => ctx.addIssue({ code: 'custom', message, path });
   if (spec.type === 'table') {

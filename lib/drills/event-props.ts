@@ -54,6 +54,11 @@ export const DRILL_EVENT_PROPS = {
   questionnaire_completed: ['questionnaire_id', 'ratings', 'hardest'],
   plan_created: ['source', 'track', 'previous_source', 'focus_skills'],
   timer_chosen: ['set_id', 'untimed', 'timer_hidden', 'feedback_mode'],
+  // Your progress.
+  dashboard_viewed: ['summary_status', 'readiness_status', 'window_days', 'period', 'group_by', 'practiced'],
+  dashboard_filter_changed: ['filter', 'value'],
+  skill_detail_opened: ['skill_id', 'state', 'from'],
+  dashboard_practice_clicked: ['skill_id', 'section', 'set_id'],
   timer_visibility_changed: ['set_id', 'position', 'timer_hidden'],
   timer_paused: ['set_id', 'position', 'reason'],
   timer_resumed: ['set_id', 'position', 'reason', 'paused_ms'],

@@ -10,7 +10,7 @@ const HEIGHT = 360;
 // Drill charts carry their own palette rather than the app theme's chart
 // colors, which are near-gray and fail non-text contrast (WCAG 1.4.11). Each
 // color is at least 3:1 against white.
-const COLORS = ['#2f6fb5', '#c9822b', '#2f8f62', '#8b5fbf', '#c4515a'];
+const COLORS = ['#2f6fb5', '#c9822b', '#2f8f62', '#8b5fbf', '#c4515a', '#5b6472'];
 const UP = '#2f8f62';
 const DOWN = '#c4515a';
 
@@ -68,6 +68,9 @@ function Plot({ spec }: { spec: ChartSpec }) {
   const plotWidth = WIDTH - margin.left - margin.right;
   const band = plotWidth / spec.categories.length;
   const bandX = (i: number) => margin.left + i * band;
+  // Dense categories (a score per set): label every few, so labels don't collide.
+  const labelEvery = Math.max(1, Math.ceil(44 / band));
+  const gap = (i: number) => spec.gaps.includes(i);
 
   const left = spec.series.filter(s => s.axis === 'left');
   const right = spec.series.filter(s => s.axis === 'right');
@@ -76,7 +79,7 @@ function Plot({ spec }: { spec: ChartSpec }) {
   let leftValues: number[];
   const running: { from: number; to: number }[] = [];
   if (spec.type === 'stacked_bar') {
-    leftValues = spec.categories.map((_, i) => left.reduce((sum, s) => sum + s.values[i], 0));
+    leftValues = spec.categories.map((_, i) => left.reduce((sum, s) => sum + s.values[i], 0)).filter((_, i) => !gap(i));
   } else if (spec.type === 'waterfall') {
     let total = 0;
     spec.series[0].values.forEach((v, i) => {
@@ -85,17 +88,19 @@ function Plot({ spec }: { spec: ChartSpec }) {
     });
     leftValues = running.flatMap(r => [r.from, r.to]);
   } else {
-    leftValues = left.flatMap(s => s.values);
+    leftValues = left.flatMap(s => s.values.filter((_, i) => !gap(i)));
   }
+  leftValues.push(...spec.reference_lines.map(r => r.value));
+  if (leftValues.length === 0) leftValues.push(0);
   const yl = makeScale(leftValues, spec.y_axis, top, bottom);
   const yr = dual && spec.y2_axis ? makeScale(right.flatMap(s => s.values), spec.y2_axis, top, bottom) : null;
   const base = (scale: Scale) => scale.y(Math.min(Math.max(0, scale.lo), scale.hi));
 
   const bars: Bar[] = [];
-  const lines: { points: [number, number][]; color: string; labels: string[]; values: number[] }[] = [];
+  const lines: { points: ([number, number] | null)[]; color: string; labels: string[]; values: number[] }[] = [];
   const barSeries = dual ? spec.series.filter(s => (s.mark ?? (s.axis === 'left' ? 'bar' : 'line')) === 'bar') : spec.series;
   const lineSeries = dual ? spec.series.filter(s => !barSeries.includes(s)) : [];
-  const colorOf = (name: string) => COLORS[spec.series.findIndex(s => s.name === name) % COLORS.length];
+  const colorOf = (name: string) => spec.series.find(s => s.name === name)?.color ?? COLORS[spec.series.findIndex(s => s.name === name) % COLORS.length];
 
   if (spec.type === 'line') {
     lineSeries.push(...spec.series);
@@ -115,6 +120,7 @@ function Plot({ spec }: { spec: ChartSpec }) {
     const fmt = seriesFormat(spec, 'left');
     spec.categories.forEach((_, i) => {
       let acc = 0;
+      if (gap(i)) return;
       for (const s of spec.series) {
         const v = s.values[i];
         bars.push({
@@ -144,7 +150,7 @@ function Plot({ spec }: { spec: ChartSpec }) {
     const scale = s.axis === 'right' && yr ? yr : yl;
     const fmt = seriesFormat(spec, s.axis);
     lines.push({
-      points: s.values.map((v, i) => [bandX(i) + band / 2, scale.y(v)]),
+      points: s.values.map((v, i) => (gap(i) ? null : [bandX(i) + band / 2, scale.y(v)])),
       color: colorOf(s.name),
       labels: s.values.map(v => formatValue(v, fmt)),
       values: s.values,
@@ -200,19 +206,42 @@ function Plot({ spec }: { spec: ChartSpec }) {
       ))}
       {lines.map((l, i) => (
         <g key={`p${i}`}>
-          <polyline points={l.points.map(p => p.join(',')).join(' ')} fill="none" stroke={l.color} strokeWidth={2.5} />
-          {l.points.map(([x, y], j) => (
+          {/* A gap breaks the line into runs. */}
+          {l.points.reduce<[number, number][][]>((runs, p) => {
+            if (!p) runs.push([]);
+            else runs[runs.length - 1].push(p);
+            return runs;
+          }, [[]]).filter(run => run.length > 1).map((run, k) => (
+            <polyline key={k} points={run.map(p => p.join(',')).join(' ')} fill="none" stroke={l.color} strokeWidth={2.5} />
+          ))}
+          {l.points.map((p, j) => p && (
             <g key={j}>
-              <circle cx={x} cy={y} r={3.5} fill={l.color} />
+              {spec.hollow.includes(j)
+                ? <circle cx={p[0]} cy={p[1]} r={4} fill="var(--background, #fff)" stroke={l.color} strokeWidth={2} />
+                : <circle cx={p[0]} cy={p[1]} r={3.5} fill={l.color} />}
               {spec.show_values && (
-                <text x={x} y={y - 8} textAnchor="middle" fontSize={11} fill="currentColor">{l.labels[j]}</text>
+                <text x={p[0]} y={p[1] - 8} textAnchor="middle" fontSize={11} fill="currentColor">{l.labels[j]}</text>
               )}
             </g>
           ))}
         </g>
       ))}
+      {/* Reference lines and markers last, so their labels sit above the data. */}
+      {spec.reference_lines.map((r, i) => (
+        <g key={`r${i}`}>
+          <line x1={margin.left} x2={WIDTH - margin.right} y1={yl.y(r.value)} y2={yl.y(r.value)} stroke="currentColor" strokeDasharray="6 4" />
+          <text x={WIDTH - margin.right} y={yl.y(r.value) + 14} textAnchor="end" fontSize={11} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{r.label}</text>
+        </g>
+      ))}
+      {spec.markers.map((m, i) => (
+        <g key={`m${i}`}>
+          <line x1={bandX(m.index)} x2={bandX(m.index)} y1={top} y2={bottom} stroke="currentColor" strokeDasharray="2 3" />
+          {/* Past the middle, the label sits left of its line so it isn't cut off. */}
+          <text x={bandX(m.index) + (bandX(m.index) > WIDTH / 2 ? -4 : 4)} y={top + 10 + (i % 2) * 14} textAnchor={bandX(m.index) > WIDTH / 2 ? 'end' : 'start'} fontSize={11} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{m.label}</text>
+        </g>
+      ))}
       <line x1={margin.left} x2={WIDTH - margin.right} y1={bottom} y2={bottom} stroke="currentColor" />
-      {spec.categories.map((c, i) => (
+      {spec.categories.map((c, i) => i % labelEvery === 0 && (
         <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 18} textAnchor="middle" fontSize={12} fill="currentColor">{c}</text>
       ))}
       {legend && legendEntries.map(({ name, label, x }, i) => (
@@ -230,8 +259,12 @@ function DataTable({ spec, visible }: { spec: ChartSpec; visible: boolean }) {
   const table = spec.type === 'table' && spec.table
     ? { columns: spec.table.columns, rows: spec.table.rows.map(r => r.map(String)) }
     : {
-        columns: ['', ...spec.series.map(s => s.name)],
-        rows: spec.categories.map((c, i) => [c, ...spec.series.map(s => formatValue(s.values[i], seriesFormat(spec, s.axis)))]),
+        columns: ['', ...spec.series.map(s => s.name), ...(spec.markers.length || spec.notes.length ? ['Note'] : [])],
+        rows: spec.categories.map((c, i) => [
+          c, ...spec.series.map(s => (spec.gaps.includes(i) ? '–' : formatValue(s.values[i], seriesFormat(spec, s.axis)))),
+          ...(spec.markers.length || spec.notes.length
+            ? [[...spec.markers.filter(m => m.index === i).map(m => m.label), ...spec.notes.filter(n => n.index === i).map(n => n.text)].join('; ')] : []),
+        ]),
       };
   // A wide table scrolls inside its own box, not the page (WCAG 1.4.10
   // allows two-dimensional scrolling for data tables); focusable so keyboard
@@ -276,6 +309,10 @@ export function DrillChart({ spec }: { spec: ChartSpec }) {
           </details>
         </>
       )}
+      {spec.reference_lines.map((r, i) => (
+        <p key={`ref${i}`} className="text-xs text-muted-foreground">Dashed line: {r.label}.</p>
+      ))}
+      {spec.markers.length > 0 && <p className="text-xs text-muted-foreground">▲ ▼ mark a move up or down a tier, or to another kind of drill: a dip right after moving up is expected.</p>}
       {spec.footnotes.map((note, i) => (
         <p key={i} className="text-xs text-muted-foreground">{note}</p>
       ))}

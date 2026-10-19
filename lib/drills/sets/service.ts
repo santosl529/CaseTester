@@ -120,6 +120,8 @@ export const StartSetSchema = z.object({
   // A self-directed quick check of a questionnaire placement (with quick_start).
   placement_check: z.boolean().optional(),
   suggestion: z.object({ reason: z.string().transform(s => s.slice(0, 300)), source: z.enum(['weak', 'unfamiliar', 'review']) }).optional(),
+  // Started from Your progress: a focus area's or a skill page's Practice button.
+  dashboard: z.enum(['focus', 'detail']).optional(),
 }).refine(b => b.skill_id || b.drill_id || b.prescription_id || b.workout_id || b.diagnostic_part !== undefined,
   'skill_id, drill_id, prescription_id, workout_id or diagnostic_part is required')
   .refine(b => !b.workout_id || b.block !== undefined, 'block is required with workout_id')
@@ -310,6 +312,9 @@ export async function startSet(studentId: string, input: z.infer<typeof StartSet
     defend: plan.some(r => r.kind === 'authored' && r.defend), untimed, feedback_mode: feedbackMode,
     browse: input.browse ?? false, suggested: input.browse ? await hasOpenPrescription(studentId, choice.focusSkill) : null,
   });
+  if (input.dashboard) {
+    await logDrillEvent(studentId, 'dashboard_practice_clicked', { skill_id: choice.focusSkill ?? drill.primary_skills[0] ?? null, section: input.dashboard, set_id: setId });
+  }
   if (input.suggestion) {
     await logDrillEvent(studentId, 'suggestion_started', { set_id: setId, drill_id: drill.id, skill_id: choice.focusSkill, kind, reason: input.suggestion.reason, source: input.suggestion.source });
   }

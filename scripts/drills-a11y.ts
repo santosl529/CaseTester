@@ -13,6 +13,7 @@
 // run the manual checklist in docs/drills-a11y-audit.md (screen reader, zoom).
 import { randomUUID } from 'crypto';
 import { printSmokeSpend } from './smoke-spend';
+import { cleanupDashboardSeed, seedDashboardHistory } from './dashboard-seed';
 import fs from 'fs';
 import path from 'path';
 import { eq, inArray } from 'drizzle-orm';
@@ -188,6 +189,7 @@ async function main() {
     await updateSettings(student, { feedback_mode: 'end' });
 
     await scan(page, 'Training home (no plan yet: Get your plan)', '/drills');
+    await scan(page, 'Your progress (before any practice)', '/drills/progress');
     await scan(page, 'Questionnaire', '/drills/questionnaire', p => p.waitForSelector('main form', { timeout: 15_000 }));
     await submitQuestionnaire(student, { interview_date: null, cases_done: '1-5', availability: 'standard', ratings: { structuring: 2, math: 3, charts: 4, recommendations: 3 }, hardest: 'structuring' });
     await scan(page, 'Training home (Your plan is ready)', '/drills');
@@ -197,7 +199,6 @@ async function main() {
     await scan(page, 'Learn library', '/drills/learn');
     await scan(page, 'Lesson: How a case interview works', '/drills/learn/intro');
     await scan(page, 'Lesson: MECE (full)', '/drills/learn/PS.mece');
-    await scan(page, 'Your skills', '/drills/profile');
     await scan(page, 'Settings', '/drills/settings');
     await scan(page, 'Pilot reports (local dev)', '/drills/reports');
     await scan(page, 'Feedback dialog (on the training home)', '/drills', openDialog(/^Feedback$/));
@@ -296,6 +297,12 @@ async function main() {
       await reportProblem(student, set_id, { position: 0, reason: 'grade_unfair', comment: 'I asked for costs by month.', screen: 'results' });
       await scan(page, 'Review queue (local dev)', '/drills/review/reports');
       await scan(page, 'Pilot reports with feedback (the audit club)', '/drills/reports?org=a11y-test');
+      // Your progress, with six weeks of seeded history (scripts/dashboard-seed.ts).
+      await seedDashboardHistory(student);
+      await scan(page, 'Your progress', '/drills/progress?period=4w');
+      await scan(page, 'Your progress (by interview stage, all time)', '/drills/progress?group=stage&period=all&window=7');
+      await scan(page, 'Your progress: MECE structure (tier-up marked)', '/drills/progress/PS.mece');
+      await scan(page, 'Your progress: Data requests (written answers, case finding)', '/drills/progress/CL.data_requests');
       // Practice on my own: the starting point instead of a plan.
       await changeProgram(student, { track: 'self_directed' });
       await scan(page, 'Your starting point (practice on my own)', '/drills/plan');
@@ -309,6 +316,7 @@ async function main() {
     await printSmokeSpend([student], { stub: true });
     // Feedback rows reference sets: delete them first.
     for (const t of [drillFeedback, drillItemReports, drillCheckins]) await db.delete(t).where(eq(t.studentId, student));
+    await cleanupDashboardSeed(student);
     await db.delete(sessions).where(eq(sessions.userId, student));
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));
     const ids = sets.map(s => s.id);

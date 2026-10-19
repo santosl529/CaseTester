@@ -164,9 +164,7 @@ export function buildWorkout(input: WorkoutInput): Workout {
   // Weak spots (50%): highest-priority open prescriptions, +2 for the week's
   // focus, +1 for a missed milestone; at most one set per skill. A skill whose
   // transfer check is due takes the unfamiliar slot instead.
-  const ranked = input.prescriptions
-    .map(rx => ({ rx, score: rx.priority + (inFocus(rx.skill_id, input.week) ? programs.focus_priority_bonus : 0) + (input.missed_milestone_skills.includes(rx.skill_id) ? programs.missed_milestone_bonus : 0) }))
-    .sort((a, b) => b.score - a.score || SOURCE_ORDER[a.rx.source] - SOURCE_ORDER[b.rx.source] || a.rx.created_at.getTime() - b.rx.created_at.getTime());
+  const ranked = rankPrescriptions(input.prescriptions, input.week, input.missed_milestone_skills);
   const weakBudget = target * w.mix.weak;
   let weakMinutes = 0;
   let weakSets = 0;
@@ -301,6 +299,15 @@ export function weekMilestones(week: PlanWeek, all: PlanWeek[], facts: Milestone
 }
 
 // Milestone skills from earlier weeks not yet met: +1 in the weak-spot pool.
+// The weak-spot order (also Your progress's focus areas, so the two never
+// disagree): priority, +2 for the week's focus, +1 for a missed milestone;
+// ties go to the more reliable source, then the older prescription.
+export function rankPrescriptions(prescriptions: OpenPrescription[], week: PlanWeek | null, missedMilestones: string[]) {
+  return prescriptions
+    .map(rx => ({ rx, score: rx.priority + (inFocus(rx.skill_id, week) ? programs.focus_priority_bonus : 0) + (missedMilestones.includes(rx.skill_id) ? programs.missed_milestone_bonus : 0) }))
+    .sort((a, b) => b.score - a.score || SOURCE_ORDER[a.rx.source] - SOURCE_ORDER[b.rx.source] || a.rx.created_at.getTime() - b.rx.created_at.getTime());
+}
+
 export function missedMilestoneSkills(current: PlanWeek | null, all: PlanWeek[], progress: ProgressMap): string[] {
   if (!current) return [];
   const out = new Set<string>();
