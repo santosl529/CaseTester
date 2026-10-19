@@ -507,3 +507,25 @@ describe('R7 through the runner: the overdue brainstorm and the checker line', (
     expect((flags().mathChecker as Row).held).toBeUndefined();
   });
 });
+
+// Review fix 3 (controller's ruling on R7, 19 Oct): code's own correction rides on an overdue recommendation ask, before code's question.
+describe("Settle: code's own correction on an overdue recommendation ask", () => {
+  const LINE = 'That 25 is points of COGS, not points of revenue: about 10.5 points of revenue.';
+  const recAskPlan = () => {
+    const plan = modelPlanFixture({ distress: null, candidateText: 'I would lead with pricing.', revealed: COSTS, kind: 'rec_ask' });
+    plan.state.pressureTest = { ...INITIAL_PRESSURE_TEST, state: 'satisfied', satisfiedAt: 2 };
+    plan.state.requiredExhibit = undefined; plan.state.analysisOwed = false; plan.state.owedStage = undefined;
+    plan.state.stageCodeLines = [LINE];
+    plan.state.derivedValueTexts.push('25', '10.5');
+    return plan;
+  };
+  it('said first, before code\'s recommendation ask (the model\'s "say" already spoken)', async () => {
+    const s = await settleTurn(recAskPlan(), outcome({ ...NEUTRAL, say: 'Understood.', question: '' }));
+    expect(s.spokenText.startsWith(`Understood. ${LINE} `)).toBe(true);
+    expect(s.spokenText).toMatch(/recommend/i);
+  });
+  it('not twice when the model already said it from its hint', async () => {
+    const s = await settleTurn(recAskPlan(), outcome({ ...NEUTRAL, say: `Understood. ${LINE}`, question: '' }));
+    expect(s.spokenText.split(LINE)).toHaveLength(2);
+  });
+});

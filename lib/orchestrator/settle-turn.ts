@@ -534,6 +534,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   let checkerLineBy: 'model' | 'code' | null = null;
   let heldForStage: StageKey | undefined;
   const codeTookQuestion = ['waived', 'reask', 'narrowed', 'code_asked', 'code_asked_structure'].includes(ptAction ?? '') || stageAsked !== undefined || heldForExhibit !== undefined;
+  // Code's own correction before code's recommendation ask the same way (the model may have said it from its hint).
+  if (kind === 'rec_ask') for (const l of [...state.stageCodeLines].reverse()) if (!lineHeard(`${say} ${question}`, l)) question = `${l} ${question}`;
   if (checkerLine && state.stageCheckerLine) {
     if (!codeWritten && !lineHeard(`${say} ${question}`, checkerLine.line)) question = [checkerLine.line, question].filter(Boolean).join(' ');
     checkerLineBy = 'code';

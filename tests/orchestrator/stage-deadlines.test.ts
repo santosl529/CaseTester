@@ -21,6 +21,8 @@ import { INITIAL_STAGES, type StageRecord } from '@/lib/orchestrator/stage-evide
 import { readsFixture } from './fixtures/turn-reads';
 import { codeFlagsOf, vettedFlag, verdictRow } from './helpers/checker-claim';
 import type { VettedClaim } from '@/lib/orchestrator/math-checker';
+import { turnData } from '@/lib/orchestrator/turn-data';
+import { codeWrittenTurn } from '@/lib/orchestrator/session-runner';
 
 const MIN = 60_000;
 // Blake 4755c03a's candidate messages, minutes since the start (session clock).
@@ -219,14 +221,14 @@ describe('a deadline yields to a checker line once (R7)', () => {
   const PROBE = PRICE.probeLine!;
   const CORRECTION = PRICE.correctionLine!;
   // Blake's clock at 13:30 (past the exhibit budget, 13:20): the exhibit and the COGS inputs out, the brainstorm owed.
-  const owed = (o: { flags?: Record<string, unknown>; claims?: VettedClaim[]; landedText?: string; codeFlags?: boolean } = {}) => {
+  const owed = (o: { flags?: Record<string, unknown>; claims?: VettedClaim[]; landedText?: string; codeFlags?: boolean; min?: number; coverage?: number } = {}) => {
     const reads = readsFixture({
-      phase: 'EXHIBIT', elapsedMs: Math.round(13.5 * MIN), revealed: CORE,
+      phase: 'EXHIBIT', elapsedMs: Math.round((o.min ?? 13.5) * MIN), revealed: CORE,
       flags: { pressureTest: { state: 'satisfied', askedAt: 2 }, stageEvidence: { ...INITIAL_STAGES, structure: ANSWERED, pressure_test: ANSWERED, exhibit: SHOWN }, ...o.flags },
       extraTurns: o.claims ? [{ role: 'candidate', text: o.landedText ?? CLAIM }, { role: 'interviewer', text: 'What would you look at next?' }] : [],
     });
     (reads as { exhibitRows: unknown[] }).exhibitRows = [{ id: 'x1', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: 0 }];
-    (reads.session as { coverageJsonb: unknown }).coverageJsonb = LOW;
+    (reads.session as { coverageJsonb: unknown }).coverageJsonb = o.coverage ? Object.fromEntries(Object.keys(LOW).map(k => [k, o.coverage])) : LOW;
     if (o.claims) reads.checkerEventRows = [verdictRow(3, o.claims, o.codeFlags ? codeFlagsOf(o.landedText ?? CLAIM, CORE) : [])] as never;
     const p = planTurn(reads, MSG, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
     if (p.kind !== 'model') throw new Error('expected a model plan');
@@ -266,5 +268,74 @@ describe('a deadline yields to a checker line once (R7)', () => {
     expect(p.state.misquote).not.toBeNull();
     expect(p.state.kind).toBe('stage_brainstorm');
     expect(p.ctx.flags.stageYielded).toBeUndefined();
+    // turn-data.ts: the stage turn's data line carries the correction.
+    const data = turnData(p, { requests: [], exhibit: null, rescueItem: null });
+    expect(data.correction).toMatchObject({ text: p.state.misquote!.text });
+    expect(data.correction!.text).toMatch(/15/);
+  });
+  // Review fix 1 (controller, 19 Oct): overdue is the stage's deadline passed, whatever else made the turn.
+  it('an overdue stage turn that coverage also makes: the correction still rides on it', () => {
+    const p = owed({ claims: [PRICE], flags: { recomputeAttempts: { 'pricing:gain@5': 1 } }, coverage: 80 });
+    expect(p.state.kind).toBe('stage_brainstorm');
+    expect(p.state.stageCheckerLine).toEqual({ id: '3:0', key: 'pricing:gain@5', line: CORRECTION });
+    expect(codeWrittenTurn(p, null).say).toBe(CORRECTION);
+    expect(p.ctx.flags.mathChecker).toMatchObject({ handled: ['3:0'], closed: ['pricing:gain@5'] });
+  });
+  it('a stage turn coverage makes before its deadline (12:00) is not overdue: the correction waits (unchanged)', () => {
+    const p = owed({ claims: [PRICE], flags: { recomputeAttempts: { 'pricing:gain@5': 1 } }, coverage: 80, min: 12 });
+    expect(p.state.kind).toBe('stage_brainstorm');
+    expect(p.state.stageCheckerLine).toBeNull();
+    expect(codeWrittenTurn(p, null).say).toBe('');
+    expect((p.ctx.flags.mathChecker as { handled?: string[] } | undefined)?.handled ?? []).not.toContain('3:0');
+  });
+  // Review fix 3 (controller's ruling on R7): code's own correction is a correction — it rides; code's probe yields once.
+  it("code's own unit line: its probe yields the deadline once; past the probe its correction rides on the stage turn", () => {
+    const flagged = "Beans are 25% of COGS, so that's 25 points of revenue sitting in beans.";
+    const unit = [vettedFlag('25 points of revenue', 10.5, { errorType: 'unit' })];
+    const t1 = owed({ claims: unit, landedText: flagged, codeFlags: true });
+    expect(t1.state.kind).toBe('model');
+    expect(t1.state.recomputeHint).toMatch(/points of what/);
+    expect(t1.ctx.flags.stageYielded).toEqual({ brainstorm: true });
+    const key = Object.keys(t1.state.recomputeAttempts).find(k => t1.state.recomputeAttempts[k] === 1)!;
+    const t2 = owed({ claims: unit, landedText: flagged, codeFlags: true, flags: { recomputeAttempts: { [key]: 1 } } });
+    expect(t2.state.kind).toBe('stage_brainstorm');
+    expect(t2.ctx.flags.stageYielded).toBeUndefined();
+    expect(t2.state.stageCodeLines).toHaveLength(1);
+    expect(codeWrittenTurn(t2, null).say).toBe(t2.state.stageCodeLines[0]);
+    expect(t2.state.recomputeAttempts[key]).toBe(2);
+    const figures = t2.state.stageCodeLines[0].match(/\d+(?:\.\d+)?/g) ?? [];
+    for (const f of figures) expect(t2.state.derivedValueTexts).toContain(f);
+  });
+});
+
+// Review fix 4 (controller, 19 Oct): an exhibit's yield is keyed by the exhibit it was for.
+describe('an exhibit deadline yields once per exhibit', () => {
+  const PROBE_CLAIM = vettedFlag('about 2 million bags', 1.2, { span: 'we sell about 2 million bags', probeLine: 'Walk me through how you got to about 2 million bags.', errorType: 'conceptual' });
+  const hb = (shown: string[], flags: Record<string, unknown> = {}) => {
+    const reads = readsFixture({ caseId: 'launch-001', phase: 'EXHIBIT', elapsedMs: 10 * MIN, revealed: ['bag_price', 'variable_costs', 'launch_costs', 'purchase_intent', 'planning_assumptions'],
+      flags: { pressureTest: { state: 'satisfied', askedAt: 2 }, stageEvidence: { ...INITIAL_STAGES, structure: ANSWERED, pressure_test: ANSWERED, ...(shown.length ? { exhibit: SHOWN } : {}) }, ...flags },
+      extraTurns: [{ role: 'candidate', text: 'In year one we sell about 2 million bags.' }, { role: 'interviewer', text: 'What would you look at next?' }] });
+    (reads as { exhibitRows: unknown[] }).exhibitRows = shown.map((exhibitId, i) => ({ id: `x${i}`, sessionId: 's1', exhibitId, shownAtMs: 0 }));
+    (reads.session as { coverageJsonb: unknown }).coverageJsonb = LOW;
+    reads.checkerEventRows = [verdictRow(3, [PROBE_CLAIM])] as never;
+    const p = planTurn(reads, 'The year-one numbers break even.', { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    return p;
+  };
+  it("Hollis Bay at 10:00 with a probe due: exhibit-1's deadline yields, keyed by exhibit-1", () => {
+    const p = hb([]);
+    expect(p.state.kind).toBe('model');
+    expect(p.ctx.flags.stageYielded).toEqual({ exhibit: 'exhibit-1' });
+  });
+  it('exhibit-1 still owed after its yield: it goes, the probe held', () => {
+    const p = hb([], { stageYielded: { exhibit: 'exhibit-1' } });
+    expect(p.state.kind).toBe('stage_exhibit');
+    expect(p.state.requiredExhibit).toBe('exhibit-1');
+    expect((p.ctx.flags.mathChecker as { held?: string }).held).toBe('3:0');
+  });
+  it('exhibit-1 handed over meanwhile (by the model): exhibit-2 gets its own yield', () => {
+    const p = hb(['exhibit-1'], { stageYielded: { exhibit: 'exhibit-1' } });
+    expect(p.state.kind).toBe('model');
+    expect(p.ctx.flags.stageYielded).toEqual({ exhibit: 'exhibit-2' });
   });
 });

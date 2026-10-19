@@ -8,7 +8,7 @@ import { formatOpenRequestsHint, formatUnmappedHint } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
-import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, flagSpeaks, attemptKey, type RecomputeAttempts, type RecomputeFlag, type RecomputeAction, type VerifiedFigure } from './recompute';
+import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, flagSpeaks, attemptKey, recMathLine, type RecomputeAttempts, type RecomputeFlag, type RecomputeAction, type VerifiedFigure } from './recompute';
 import { candidateFiguresOf } from './math-talk';
 import { changeFigures } from './numeric-provenance';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk, stageDeadlinesMs, timeWarningDue } from './pacing';
@@ -94,7 +94,7 @@ export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKe
 export type StagesDue = { brainstorm: boolean; recommendation: boolean; risk: boolean };
 // A deadline that yielded to a math probe once (flags.stageYielded; Lorenzo, 19 Oct, R7): it yields no more.
 export type YieldStage = 'rec_ask' | 'exhibit' | 'brainstorm' | 'analysis';
-export type StageYielded = Partial<Record<YieldStage, true>>;
+export type StageYielded = Partial<Record<Exclude<YieldStage, 'exhibit'>, true>> & { exhibit?: string };   // the exhibit's: by its id
 const YIELD_STAGES: readonly YieldStage[] = ['rec_ask', 'exhibit', 'brainstorm', 'analysis'];
 // The turns a deadline makes, and the deadline each spends.
 const DEADLINE_KINDS: ReadonlySet<TurnKind> = new Set(['stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_ask']);
@@ -738,14 +738,19 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // line every turn from 6:32 to 22:07, the brainstorm never asked): yielded
   // once (flags.stageYielded), the stage goes whatever is due, and a checker
   // probe due then is held for the next model turn. A correction never makes it
-  // yield — the checker's rides on the stage turn, said first (stageCheckerLine),
-  // and a misquote's on any turn's data line (turn-data.ts). Code's own
-  // deterministic flags are said by the model from its hint and wait on a
-  // code-written turn: they yield once, like a probe.
+  // yield (the controller's ruling on R7, 19 Oct: code's own correction too) —
+  // the checker's or code's rides on the overdue stage turn, said first
+  // (stageCheckerLine, stageCodeLines), and a misquote's on any turn's data line
+  // (turn-data.ts). Code's own probes are said by the model from its hint and
+  // aren't said on a code-written turn: they yield once, like the checker's.
+  const codeSpeaks = (f: RecomputeFlag) => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS));
+  const codeCorrects = (f: RecomputeFlag) => codeSpeaks(f) && recomputeAction(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) === 'correct';
   const probeLineNow = (checkerPlan.selected !== null && checkerPlan.selected.action !== 'correct')
-    || liveFlags.some(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)));
+    || liveFlags.some(f => codeSpeaks(f) && !codeCorrects(f));
   const stageYielded = (flags.stageYielded as StageYielded | undefined) ?? {};
-  const yieldsNow = (s: YieldStage) => probeLineNow && !stageYielded[s];
+  // The exhibit's yield is the exhibit's: one the model or code hands over meanwhile leaves the next one its own yield.
+  const yieldedAlready = (s: YieldStage) => (s === 'exhibit' ? exhibitDueId !== undefined && stageYielded.exhibit === exhibitDueId : Boolean(stageYielded[s]));
+  const yieldsNow = (s: YieldStage) => probeLineNow && !yieldedAlready(s);
   // A line a due stage held back goes out the next turn (Lorenzo, 15 Oct): code's coverage ask yields it that turn, as the deadlines yield to a math line.
   const heldNow = heldLine !== undefined && checkerPlan.selected?.id === heldLine;
   const coverageSteer = formatCoverageSteer(coverage);
@@ -853,8 +858,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The deadlines and the turn they make, the deadlines `held` waiting (for a
   // probe this turn, once each — above); read again with each one alone let go
   // (which yielded), and with all held (is a stage turn a deadline's?).
+  // The exhibit an exhibit deadline is for (its yield is keyed by it).
+  const exhibitDueId = requiredExhibit ?? readyExhibit?.id;
   const deadlineTurn = (held: (s: YieldStage) => boolean) => {
-    const byTime = (deadlineMs: number, s: YieldStage) => elapsedMs >= deadlineMs && !held(s);
+    const past = (deadlineMs: number) => elapsedMs >= deadlineMs;
+    const byTime = (deadlineMs: number, s: YieldStage) => past(deadlineMs) && !held(s);
     const recAskByTime = ptClosed && !stages.recommendationAsked && !timeUp && !underTimePressure && byTime(deadlines.brainstormEnd, 'rec_ask');
     const awaitingRecAsk = (!stages.recommendationAsked && (recommendationReceived ? mayEnd : coverageMayEnd) && !heldNow) || recAskByTime;
     const stageDue = owedStage !== undefined && ptClosed && !timeUp && !underTimePressure
@@ -876,22 +884,28 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
             : awaitingRecAsk ? 'rec_ask'
               : stallDecision.intervene && stallDecision.rung === 1 && lastQuestion ? 'rung1'
                 : 'model';
-    return { kind, recAskByTime, awaitingRecAsk };
+    // Overdue: the stage's own deadline has passed, whatever else made the turn (coverage, the close).
+    const overdue = kind === 'rec_ask' ? past(deadlines.brainstormEnd)
+      : kind === 'stage_analysis' ? past(deadlines.analysisEnd)
+        : kind === 'stage_exhibit' && requiredExhibitDue ? past(exhibitDeadline(requiredNext)) || (analysisOwed && past(deadlines.analysisEnd))
+          : kind === 'stage_exhibit' || kind === 'stage_brainstorm' ? past(owedDeadline[0])
+            : false;
+    return { kind, recAskByTime, awaitingRecAsk, overdue };
   };
   const planned = deadlineTurn(yieldsNow);
   const { recAskByTime, awaitingRecAsk } = planned;
   let kind: TurnKind = planned.kind;
   // The deadlines that yielded this turn: each one that, alone not held, would have made another turn.
   const yieldedNow = YIELD_STAGES.filter(s => yieldsNow(s) && deadlineTurn(x => x !== s && yieldsNow(x)).kind !== kind);
-  // A stage turn a deadline made (with no deadline at all it would be another): the checker's correction rides on it, said first; its probe is held.
+  // A stage turn a deadline made (with no deadline at all it would be another): a checker probe due then is held.
   const deadlineStage = DEADLINE_KINDS.has(kind) && deadlineTurn(() => true).kind !== kind;
-  // An exhibit's yield is spent once code hands it over: the next exhibit's deadline may yield once (the other stages go once a case).
-  const yieldedAfter: StageYielded = { ...stageYielded, ...Object.fromEntries(yieldedNow.map(s => [s, true])) };
-  if (deadlineStage && kind === 'stage_exhibit') delete yieldedAfter.exhibit;
+  // An overdue stage turn, whatever made it (the controller's ruling on R7, 19 Oct): a correction rides on it, said first.
+  const overdueStage = DEADLINE_KINDS.has(kind) && planned.overdue;
+  const yieldedAfter: StageYielded = { ...stageYielded, ...Object.fromEntries(yieldedNow.map(s => [s, s === 'exhibit' ? exhibitDueId : true])) };
   if (JSON.stringify(yieldedAfter) !== JSON.stringify(stageYielded)) flags.stageYielded = yieldedAfter;
   checks.record('end_rec_ask_gate', awaitingRecAsk, recAskByTime ? 'the brainstorm budget is spent and the recommendation was never asked — code asks' : 'coverage complete but the recommendation was never asked — code asks this turn', { recAskByTime });
-  checks.record('stage_yield', yieldedNow.length > 0 || (deadlineStage && checkerPlan.selected !== null), yieldedNow.length > 0 ? `a deadline yields to the math line once: ${yieldedNow.join(', ')}` : 'the overdue stage goes; the checker line rides or waits', {
-    yielded: yieldedNow, before: stageYielded, deadlineStage, selected: checkerPlan.selected ? { id: checkerPlan.selected.id, action: checkerPlan.selected.action } : null,
+  checks.record('stage_yield', yieldedNow.length > 0 || ((deadlineStage || overdueStage) && checkerPlan.selected !== null), yieldedNow.length > 0 ? `a deadline yields to the math line once: ${yieldedNow.join(', ')}` : 'the overdue stage goes; the checker line rides or waits', {
+    yielded: yieldedNow, before: stageYielded, deadlineStage, overdueStage, selected: checkerPlan.selected ? { id: checkerPlan.selected.id, action: checkerPlan.selected.action } : null,
   });
   // The math checker's flag (Lorenzo, 13 Oct): on a model turn, a
   // RECOMPUTE-style hint; at the close, an unresolved conclusion-changing flag
@@ -966,7 +980,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // A deadline's stage turn (R7, above): the checker's correction rides on it,
   // said first by code and booked as on a model turn; a probe due then is held
   // for the next model turn (flags.mathChecker.held: raised first, it doesn't expire).
-  const stageCorrection = deadlineStage && sel?.action === 'correct' ? sel : null;
+  const stageCorrection = overdueStage && sel?.action === 'correct' ? sel : null;
+  // Code's own correction (a unit line past its probe) rides the same way; its attempt is already counted, its figures licensed (formatRecomputeHint).
+  const stageCodeLines = overdueStage ? liveFlags.filter(codeCorrects).map(f => recMathLine(f, 'correct')) : [];
   const stageHeld = deadlineStage && sel && sel.action !== 'correct' ? sel : null;
   const checkerUsed = sel && (kind === 'model' || stageCorrection || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];
@@ -1126,7 +1142,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, stageCodeLines, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, deferChecks: new Map<string, Promise<boolean>>(), requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,
