@@ -6,13 +6,15 @@
 // Statement-form asks without these phrasings ("this hinges on volume") are
 // left to the model, as today.
 import type { Phase } from './state-machine';
+import { normalizeNumberWords } from '@/lib/number-words';
 import { DATA_NOUN, isQuestionSentence, sentencesOf } from './stall';
 
 const CUES: [label: string, pattern: RegExp][] = [
   ['could I get', /\b(could|can|may)\s+(i|we)\s+(get|have|see)\b/i],
   ['do we have', /\bdo\s+(we|you)\s+have\b/i],
   ['is there data', /\bis\s+there\s+(any\s+)?(data|information|a\s+breakdown|a\s+split)\b/i],
-  ["I'd want the", /\b(i'?d|i\s+would)\s+(want|need|like)\s+(the|a|an|some|any|to\s+see|to\s+know|to\s+get)\b/i],
+  // "One thing I'd want: how…" asks too (Lorenzo, 19 Oct; batch 32 Aldermoor Marisol t7, Jasmine t5, Marcus t5).
+  ["I'd want the", /\b(i'?d|i\s+would)\s+(want|need|like)\s*(:|\s(the|a|an|some|any|to\s+see|to\s+know|to\s+get)\b)/i],
   ['please share', /\bplease\s+(share|send|give|show)\b/i],
 ];
 
@@ -43,7 +45,7 @@ const ADDRESSED_CUES: RegExp[] = [
 const WANT_CUE = CUES.find(([label]) => label === "I'd want the")![1];
 // Before the brainstorm "I'd want the…" is usually an ask; later it is usually
 // a next step (plan-turn.ts, guard B) — unless the sentence is a question.
-const WANT_ASK_PHASES: Phase[] = ['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', 'EXHIBIT'];
+export const WANT_ASK_PHASES: Phase[] = ['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', 'EXHIBIT'];
 // stall.ts's case nouns, plus the store count (prof-001's scoping facts).
 const ASK_DATA_NOUN = /\b(stores?|counts?)\b/i;
 // A list that continues an ask: "Could I get: one, …. Two, …." or bullets.
@@ -51,13 +53,16 @@ const LIST_ITEM = /^(?:(?:one|first(?:ly)?|two|three|four|five|six|seven|eight|n
 
 // "Do we know how many stores…" asks; "Do you know what worries me?" is
 // rhetorical (fix round 2). It counts only before a quantity ("how many",
-// "how much") or a case figure ("the / our / what the … store count").
+// "how much") or a case figure ("the / our / what the … store count"), or
+// "whether / if" with a data noun or a number ("whether the 30% is
+// negotiable" — Lorenzo, 19 Oct; batch 32 Aldermoor Marcus t19).
 const DO_KNOW = /\bdo\s+(?:we|you)\s+know\s+(.*)$/i;
 const isDataNoun = (t: string) => DATA_NOUN.test(t) || ASK_DATA_NOUN.test(t);
 function doKnowAsk(sentence: string): boolean {
   const rest = DO_KNOW.exec(sentence)?.[1];
   if (rest === undefined) return false;
   if (/^how\s+(many|much)\b/i.test(rest)) return true;
+  if (/^(?:whether|if)\b/i.test(rest)) return isDataNoun(rest) || /\d/.test(rest);
   return /^(?:what\s+)?(?:the|our|their|its|any)\b/i.test(rest) && isDataNoun(rest);
 }
 
@@ -66,10 +71,21 @@ function cueAsk(sentence: string): boolean {
   return ADDRESSED_CUES.some(re => re.test(sentence)) || doKnowAsk(sentence);
 }
 
-function asksAddressed(sentence: string, phase: Phase): boolean {
+// The numbers in a text, spoken forms read as digits ("80 million" -> 80).
+const numbersIn = (text: string) => [...normalizeNumberWords(text).matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => parseFloat(m[0].replace(/,/g, '')));
+const sameFigure = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.01, Math.abs(b) * 0.005);
+
+// A question about how to proceed names a figure without asking for data
+// ("Do you want me to work from 25%?" — prof-001 Tyler, batch 28 t15).
+const PROCEED_Q = /^\W*(?:(?:and|so|ok(?:ay)?|then)\b,?\s+)?(?:do you want|would you (?:like|prefer)|should (?:i|we)|shall (?:i|we)|want me to|is that (?:ok|okay|fine|right|correct)|does that (?:work|sound))/i;
+
+function asksAddressed(sentence: string, phase: Phase, given: number[] = []): boolean {
   if (cueAsk(sentence)) return true;
   if (WANT_CUE.test(sentence) && (WANT_ASK_PHASES.includes(phase) || sentence.endsWith('?'))) return true;
-  return isQuestionSentence(sentence) && isDataNoun(sentence);
+  if (!isQuestionSentence(sentence)) return false;
+  if (PROCEED_Q.test(sentence)) return isDataNoun(sentence);
+  // A question naming a figure the candidate was given: "does the $80 million hold flat…?"
+  return isDataNoun(sentence) || (given.length > 0 && numbersIn(sentence).some(n => given.some(g => sameFigure(n, g))));
 }
 
 // A question the candidate asks themselves (Lorenzo, 14 Oct; batch 24, Sofia
@@ -95,15 +111,25 @@ function rhetorical(sentences: string[], i: number): boolean {
 // list that follows one. At the close, a rhetorical question is none.
 // "1. Store count" would split after "1.": numbered lines become "1) …".
 const askSentencesOf = (text: string) => sentencesOf(text.replace(/(^|\n)\s*(\d+)[.)]\s+/g, '$1$2) '));
-export function addressedAskSentences(text: string, phase: Phase, opts: { closing?: boolean } = {}): string[] {
+export function addressedAskSentences(text: string, phase: Phase, opts: { closing?: boolean; given?: number[] } = {}): string[] {
   const out: string[] = [];
   let inAsk = false;
   const sentences = askSentencesOf(text);
   sentences.forEach((s, i) => {
-    inAsk = (asksAddressed(s, phase) && !(opts.closing && rhetorical(sentences, i))) || (inAsk && LIST_ITEM.test(s));
+    inAsk = (asksAddressed(s, phase, opts.given) && !(opts.closing && rhetorical(sentences, i))) || (inAsk && LIST_ITEM.test(s));
     if (inAsk) out.push(s);
   });
   return out;
+}
+
+// Guard B from the brainstorm on (Lorenzo, 19 Oct; batch 32 Aldermoor Marisol
+// t7, Marcus t19): addressed asks, rhetorical self-questions filtered as at
+// the close, so a next step ("I'd want the store-level data to confirm.")
+// stays out. caseTexts: the prompt and revealed values — figures the
+// candidate was given.
+export function lateAskCues(text: string, phase: Phase, caseTexts: string[] = []): string[] {
+  const given = caseTexts.flatMap(numbersIn);
+  return addressedAskSentences(text, phase, { closing: true, given }).length > 0 ? ['addressed ask'] : [];
 }
 
 // The sentences where the candidate asks for something or states what they

@@ -22,7 +22,7 @@ import { classifyConductModel, type ConductModelVerdict } from './conduct-model'
 import { classifyExitIntent, isBareSignOff, isRefusalToStart, exitReplyChoice, EXIT_CLARIFY, EXIT_CLOSE, REFUSAL_OFFER } from './candidate-exit';
 import { missingRequiredStages, stagesFromRecord, INITIAL_STAGES, type StageKey, type StageRecord } from './stage-evidence';
 import { caseFinished, hasAssessableEvidence } from './session-outcome';
-import { explicitRequestCues } from './request-signal';
+import { explicitRequestCues, lateAskCues, WANT_ASK_PHASES } from './request-signal';
 import { judgeProbeAnswer, judgeStructureGiven, probeAsHeard, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
 import { logEvent } from '@/lib/analytics';
 import { caseTotalMs, type Phase } from './state-machine';
@@ -709,10 +709,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       })
       : Promise.resolve(null);
   structureVerdict.catch(() => {});
-  // Guard B (7 Oct): explicit data asks by phrasing, before the brainstorm
-  // only — later, "I'd want…" is usually a next step, not a question.
-  const requestCues = (['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', 'EXHIBIT'] as Phase[]).includes(currentPhase)
-    ? explicitRequestCues(candidateText) : [];
+  // Guard B (7 Oct): explicit data asks by phrasing before the brainstorm;
+  // from it on, addressed asks only — "I'd want…" is usually a next step
+  // there (Lorenzo, 19 Oct; batch 32 Aldermoor Marisol t7, Marcus t19).
+  const requestCues = WANT_ASK_PHASES.includes(currentPhase)
+    ? explicitRequestCues(candidateText)
+    : lateAskCues(candidateText, currentPhase, [caseData.prompt, ...Object.values(revealedValues(ledger))]);
   // The end gate reads the stage record — what code owes reads it too (Lorenzo, 13 Oct: one source of truth).
   const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
   const stages = stagesFromRecord(stageRecord, recommendationReceived);

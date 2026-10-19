@@ -159,7 +159,7 @@ proof first, then a prof-001 wave (A) and the new cases as two waves of 10
 
 Status: open unless marked. **Bundle in build (engine-asks, 19 Oct):** (q), (r),
 (h), (o), (p) with (c), (k), (l), (m), the strengths check; out of it: (s), (t),
-the stale-check redo, the misquote-in-recommendation gate. **(q)** asks the model never declares go unanswered.
+the stale-check redo, the misquote-in-recommendation gate. **(q)** asks the model never declares go unanswered. *Built on engine-asks (not merged), part 1: guard B reads "I'd want:" and addressed asks after the brainstorm.*
 **(r)** the live false-refusal guard and F3 read names, not covers. **(h)** a
 stage deadline yields to every checker line. **(o)** the correction cap resets on
 each derived figure. **(p)** "million" and arithmetic quotes are unchecked.
