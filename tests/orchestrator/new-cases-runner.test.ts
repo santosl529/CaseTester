@@ -485,3 +485,26 @@ describe('the fare / volume split', () => {
     expect(r.interviewerText).not.toMatch(/I don't have/);
   });
 });
+
+// Lorenzo, 19 Oct (batch-32-aldermoor): Aldermoor's brainstorm ("If Aldermoor
+// builds its own team, how could it reduce the risk of a slow start?") is the
+// PDF's de-risking follow-up to the entry options, but the model asked it before
+// Exhibit 3 in three runs (Raj t18, Marcus t14, Jasmine t12), presuming the build
+// answer. It now waits on Exhibit 3, as Larkspur's does.
+describe('the brainstorm waits on Exhibit 3 (Aldermoor)', () => {
+  const ASK = 'If Aldermoor builds its own team, how could it reduce the risk of a slow start?';
+  it("the model's brainstorm before the entry options is held: Exhibit 3 is handed over instead (Marcus t14)", async () => {
+    seed({ caseId: 'entry-001', phase: 'EXHIBIT', shown: ['exhibit-1', 'exhibit-2'], flags: PT_SATISFIED });
+    const r = await say('The barriers are access and presence, not the product.', T({ move: 'brainstorm', say: 'You read the barriers as access and presence.', question: 'If Aldermoor builds its own US team rather than partnering, how could it reduce the risk of a slow start?' }));
+    expect(r.interviewerText).not.toMatch(/reduce the risk of a slow start/);
+    expect(r.interviewerText).toMatch(/Here's an exhibit: US entry options for Kelvexa/);
+    expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
+    expect(stageRecord().brainstorm.delivered).toBe(false);
+  });
+  it('once Exhibit 3 is out the brainstorm goes out and is recorded', async () => {
+    seed({ caseId: 'entry-001', phase: 'EXHIBIT', shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'], flags: PT_SATISFIED });
+    const r = await say('Building earns $240 million against $120 million.', T({ move: 'brainstorm', say: 'Right.', question: ASK }));
+    expect(r.interviewerText).toContain(ASK);
+    expect(stageRecord().brainstorm.delivered).toBe(true);
+  });
+});

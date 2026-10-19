@@ -830,7 +830,10 @@
   },
   "format": "interviewer_led",
   "brainstorm": {
-    "ask": "If Aldermoor builds its own team, how could it reduce the risk of a slow start?"
+    "ask": "If Aldermoor builds its own team, how could it reduce the risk of a slow start?",
+    "after": [
+      "exhibit-3"
+    ]
   },
   "analysisCore": {
     "items": [
