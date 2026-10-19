@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
 import { ExhibitTable } from '@/components/exhibit-table';
+import { CaseEndPanel, type EndReport } from '@/components/case-end-panel';
 
 type ExhibitDisplay = {
   id: string;
@@ -34,31 +35,38 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
     { role: 'interviewer', text: initialMessage },
   ]);
   const [input, setInput] = useState('');
-  const [status, setStatus] = useState<'idle' | 'waiting' | 'finalizing' | 'evaluating' | 'closed'>('idle');
+  const [status, setStatus] = useState<'idle' | 'waiting' | 'closed'>('idle');
+  // The end screen (site flow, 19 Oct): shown once the case ends; `report`
+  // absent when the case ended with no report.
+  const [ended, setEnded] = useState<{ report?: EndReport } | null>(null);
+  const scoring = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const busy = status !== 'idle';
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, status]);
+  }, [messages, status, ended]);
 
-  async function scoreAndRedirect() {
+  // Scoring starts as soon as the case ends; the end screen's "Get my report"
+  // opens once it lands (site flow, 19 Oct — it no longer jumps to the report).
+  async function prepareReport() {
+    if (scoring.current) return; // a double click on "Try again"
+    scoring.current = true;
+    setStatus('closed');
+    setEnded({ report: 'preparing' });
     // A math check still running on the last message reaches the report (…/finalize waits for it, ≤30s).
-    setStatus('finalizing');
     await fetch(`/api/channel/${sessionId}/finalize`, { method: 'POST' }).catch(() => null);
-    setStatus('evaluating');
     // The score endpoint is idempotent, so one retry on failure is safe
     for (let attempt = 0; attempt < 2; attempt++) {
-      const res = await fetch(`/api/channel/${sessionId}/score`, { method: 'POST' });
-      if (res.ok) {
-        window.location.href = `/case/${sessionId}/report`;
+      const res = await fetch(`/api/channel/${sessionId}/score`, { method: 'POST' }).catch(() => null);
+      if (res?.ok) {
+        scoring.current = false;
+        setEnded({ report: 'ready' });
         return;
       }
     }
-    setMessages(m => [...m, {
-      role: 'interviewer',
-      text: 'The case ended, but generating your report hit an error. Reload this page to retry.',
-    }]);
+    scoring.current = false;
+    setEnded({ report: 'failed' });
   }
 
   // Rule 18A: the candidate can end the interview at any time. With work done,
@@ -69,7 +77,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
     const res = await fetch(`/api/channel/${sessionId}/end`, { method: 'POST' });
     const data = res.ok ? await res.json() as { status: string; report: boolean } : null;
     if (data?.report) {
-      await scoreAndRedirect();
+      await prepareReport();
       return;
     }
     setMessages(m => [...m, {
@@ -77,6 +85,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
       text: data ? 'The interview has ended. We hadn\'t got into the case, so there\'s no report this time — start a new case whenever you like.' : 'Something went wrong ending the interview. Please try again.',
     }]);
     setStatus(data ? 'closed' : 'idle');
+    if (data) setEnded({});
   }
 
   async function sendTurn(e: React.FormEvent) {
@@ -104,10 +113,11 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
     }
     if (data.ended && data.scoringSuppressed) {
       // Session ended without a score (conduct termination or accepted pause).
-      // No report — just close the input.
+      // No report — the end screen without one.
       setStatus('closed');
+      setEnded({});
     } else if (data.ended) {
-      await scoreAndRedirect();
+      await prepareReport();
     } else {
       setStatus('idle');
     }
@@ -118,7 +128,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
       <div className="flex-1 overflow-y-auto space-y-4 p-4">
         {messages.map((m, i) => (
           <div key={i} className={`flex ${m.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[75%] rounded-lg px-4 py-2 text-sm ${
+            <div className={`max-w-[85%] sm:max-w-[75%] rounded-lg px-4 py-2 text-sm ${
               m.role === 'candidate'
                 ? 'bg-blue-600 text-white'
                 : 'bg-neutral-100 text-neutral-900'
@@ -139,11 +149,10 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
           </div>
         ))}
         {status === 'waiting' && <TypingIndicator />}
-        {status === 'finalizing' && <TypingIndicator label="Finalizing your report…" />}
-        {status === 'evaluating' && <TypingIndicator label="Case ended, now evaluating…" />}
+        {ended && <CaseEndPanel sessionId={sessionId} report={ended.report} onRetry={prepareReport} />}
         <div ref={bottomRef} />
       </div>
-      <form onSubmit={sendTurn} className="border-t p-4 flex gap-2">
+      {!ended && <form onSubmit={sendTurn} className="border-t p-3 sm:p-4 flex gap-2">
         <Input
           value={input}
           onChange={e => setInput(e.target.value)}
@@ -153,7 +162,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
         />
         <Button type="submit" disabled={busy}>Send</Button>
         <Button type="button" variant="outline" onClick={endInterview} disabled={busy}>End</Button>
-      </form>
+      </form>}
     </div>
   );
 }

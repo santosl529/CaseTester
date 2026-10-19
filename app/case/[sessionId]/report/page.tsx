@@ -7,6 +7,8 @@ import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { ReportCard } from '@/components/report-card';
 import { PostCaseSurvey } from '@/components/post-case-survey';
+import { PrepareReport } from '@/components/prepare-report';
+import { SiteHeader } from '@/components/site-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { reportDimensions } from '@/lib/scoring/report-dimensions';
 import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
@@ -32,7 +34,20 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   const score = await db.query.scores.findFirst({
     where: eq(scores.sessionId, sessionId),
   });
-  if (!score) notFound();
+  // A completed case not scored yet (left before scoring ended, or it failed):
+  // offer to prepare it (site flow, 19 Oct). Other sessions have no report.
+  if (!score) {
+    if (session.status !== 'completed') notFound();
+    return (
+      <>
+        <SiteHeader />
+        <main className="w-full max-w-2xl mx-auto py-8 px-4 space-y-6">
+          <h1 className="text-2xl font-bold">Interview Feedback</h1>
+          <PrepareReport sessionId={sessionId} />
+        </main>
+      </>
+    );
+  }
 
   const turns = await db.query.sessionTurns.findMany({
     where: eq(sessionTurns.sessionId, sessionId),
@@ -49,8 +64,10 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   const partial = Boolean((session.flagsJsonb as Record<string, unknown> | null)?.partial);
 
   return (
-    <main className="max-w-2xl mx-auto py-8 px-4 space-y-6">
-      <div className="flex items-center gap-3">
+    <>
+    <SiteHeader />
+    <main className="w-full max-w-2xl mx-auto py-8 px-4 space-y-6">
+      <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-2xl font-bold">Interview Feedback</h1>
         {partial ? (
           <Badge variant="outline">Partial interview — no overall rating</Badge>
@@ -131,5 +148,6 @@ export default async function ReportPage({ params }: { params: Promise<{ session
         </Card>
       )}
     </main>
+    </>
   );
 }

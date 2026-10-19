@@ -4,6 +4,8 @@ import { sessions, sessionTurns } from '@/db/schema';
 import { eq, asc, and } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
 import { ChatWindow } from '@/components/chat-window';
+import { CaseEndPanel } from '@/components/case-end-panel';
+import { SiteHeader } from '@/components/site-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getCaseById } from '@/lib/cases/loader';
 
@@ -36,7 +38,9 @@ export default async function CasePage({ params }: { params: Promise<{ sessionId
   }
 
   return (
-    <main className="h-screen flex flex-col max-w-2xl mx-auto">
+    <div className="h-dvh flex flex-col">
+    <SiteHeader inCase={session.status === 'active'} />
+    <main className="flex-1 min-h-0 w-full flex flex-col max-w-2xl mx-auto">
       <header className="border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="text-sm font-medium text-neutral-700">Case Interview — {session.phase} phase</div>
@@ -52,8 +56,13 @@ export default async function CasePage({ params }: { params: Promise<{ sessionId
         )}
       </header>
       <div className="flex-1 min-h-0">
-        <ChatWindow sessionId={sessionId} initialMessage={initialMessage} />
+        {session.status === 'active'
+          ? <ChatWindow sessionId={sessionId} initialMessage={initialMessage} />
+          // An ended case reopened: the end screen (site flow, 19 Oct). The
+          // report page prepares a report not scored yet.
+          : <div className="p-4"><CaseEndPanel sessionId={sessionId} report={session.status === 'completed' ? 'ready' : undefined} /></div>}
       </div>
     </main>
+    </div>
   );
 }

@@ -49,7 +49,9 @@ function levelMeter(ctx: AudioContext, track: MediaStreamTrack): () => number {
 // Reading localStorage itself can throw when site data is blocked: then memory.
 const fillerPref = fillerPrefStore(() => { try { return typeof window === 'undefined' ? null : window.localStorage; } catch { return null; } });
 
-export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePrompt: string | null }) {
+// `endActions`: shown once the case is over (the site's end screen links, site
+// flow 19 Oct) — display only; ending and scoring are unchanged.
+export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: string; casePrompt: string | null; endActions?: React.ReactNode }) {
   const router = useRouter();
   const [view, dispatch] = useReducer(applyMessage, initialView);
   const [local, setLocal] = useState<'idle' | 'connecting' | 'live' | 'ended'>('idle');
@@ -353,6 +355,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
           {view.latency ? `first sound ${view.latency.firstSoundMs ?? '–'}ms · first useful ${view.latency.firstUsefulMs ?? '–'}ms` : ''}
         </span>
       </div>
+      {caseOver && endActions}
       <div ref={audioBox} className="hidden" />
     </div>
   );
