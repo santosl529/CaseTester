@@ -1024,7 +1024,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerUsed = sel && (kind === 'model' || stageCorrection || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];
   // Claims built on the line's root ride on it (math-checker-live.ts, §15 o): booked only when the line is used.
-  const riderIds = (sel?.riders ?? []).map(r => r.id);
+  // …and so are the flags a restatement corrects word for word (covers; the controller's option c on Task 11).
+  const riderIds = [...(sel?.riders ?? []), ...(sel?.covers ?? [])].map(r => r.id);
   const checkerDecisions = checkerPlan.decisions.filter(d => !sel || (d.id !== sel.id && !riderIds.includes(d.id)) || checkerUsed);
   const heldDecision = stageHeld ? checkerPlan.decisions.find(d => d.id === stageHeld.id) : undefined;
   if (heldDecision) checkerDecisions.push({ ...heldDecision, outcome: 'undelivered', reason: `held back: the overdue ${kind === 'rec_ask' ? 'recommendation ask' : STAGE_OF_KIND[kind]} goes this turn (its deadline yielded once already); the line goes out on the next model turn` });
@@ -1038,7 +1039,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   }
   // The correction is said once: its flag closes after this turn.
   // A conversion closes its whole step (Lorenzo, 17 Oct).
-  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key, ...(checkerUsed.converted ? [convertedMarker(checkerUsed.key)] : [])] : [])])];
+  const coveredNow = checkerUsed?.covers ?? [];
+  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key, ...(checkerUsed.converted ? [convertedMarker(checkerUsed.key)] : [])] : []), ...coveredNow.map(c => c.key)])];
   const leftForReport = checkerDecisions.filter(d => d.outcome === 'unresolved' && closedKeys.includes(d.key));
   if (kind === 'model' && leftForReport.length > 0) {
     recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${leftForReport.map(d => `"${d.candidateValue}"`).join(', ')} has been probed twice and goes in the written report. Don't ask about it again — move the case on.`].filter(Boolean).join('\n\n');
@@ -1060,7 +1062,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const convertedKept = checkerMemory.convertedFigures?.length ? { convertedFigures: checkerMemory.convertedFigures } : {};
   // A correction said closes its key by a live correction: recorded with its line and figure, for a later claim still
   // on the wrong value; a restatement, once per root (Lorenzo, 19 Oct, round-2 ruling 1). A conversion corrects no error.
-  const correctedNow = checkerUsed?.action === 'correct' && !checkerUsed.converted ? { [checkerUsed.key]: { line: checkerUsed.line, ...(checkerUsed.derived[0] ? { figure: checkerUsed.derived[0] } : {}) } } : {};
+  const correctedNow = {
+    ...(checkerUsed?.action === 'correct' && !checkerUsed.converted ? { [checkerUsed.key]: { line: checkerUsed.line, ...(checkerUsed.derived[0] ? { figure: checkerUsed.derived[0] } : {}) } } : {}),
+    ...Object.fromEntries(coveredNow.map(c => [c.key, { line: c.line, ...(c.claim.correctionFigure ? { figure: c.claim.correctionFigure } : {}) }])),
+  };
   const correctedAfter = { ...(checkerMemory.corrected ?? {}), ...correctedNow };
   const restatedAfter = [...(checkerMemory.restated ?? []), ...(checkerUsed?.action === 'restate' ? [checkerUsed.key] : [])];
   const fixesKept = { ...(checkerMemory.corrected && Object.keys(checkerMemory.corrected).length ? { corrected: checkerMemory.corrected } : {}), ...(checkerMemory.restated?.length ? { restated: checkerMemory.restated } : {}) };

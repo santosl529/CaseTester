@@ -252,6 +252,23 @@ describe('planTurn: the correction restated once (ruling 1)', () => {
     expect(p.state.checkerLine?.undo.mathChecker.restated).toBeUndefined();
   });
 
+  // The controller's ruling on Task 11 (option c; b29 Jordan ea27d1f6 t9, 5:6): a flag waiting whose own correction is the
+  // line the restatement says, word for word, is corrected by it — closed and recorded, not said twice; undone with the line.
+  it('a waiting flag with the same correction, word for word: corrected by the restatement — its key closed and recorded', () => {
+    const twin = vettedFlag('nearly 4 points', 8.5, { span: 'call it nearly 4 points of margin back', quantity: 'margin gain, again', errorType: 'conceptual', unit: 'points',
+      probeLine: 'Walk me through how you got to nearly 4 points.', correctionLine: CORRECTION, correctionFigure: '8.5' });
+    const p = at5({ ...corrected, recomputeAttempts: { 'pricing:gain@5': 2 } }, [gain, built, twin]);
+    expect(p.state.checkerLine).toMatchObject({ id: '3:1', action: 'restate', line: CORRECTION });
+    const mc = p.ctx.flags.mathChecker as { handled: string[]; closed: string[]; corrected: Record<string, unknown> };
+    expect(mc.handled).toEqual(['3:0', '3:1', '3:2']);
+    expect(mc.closed).toEqual(['pricing:gain@5', 'checker:nearly 4 points']);
+    expect(mc.corrected['checker:nearly 4 points']).toEqual({ line: CORRECTION, figure: '8.5' });
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ id: '3:2', outcome: 'correct', line: CORRECTION, by: '3:1' }) }));
+    // Not heard: nothing of it booked.
+    expect(p.state.checkerLine?.undo.mathChecker).toMatchObject({ handled: ['3:0'], closed: ['pricing:gain@5'] });
+    expect(p.state.checkerLine?.undo.mathChecker.corrected).not.toHaveProperty('checker:nearly 4 points');
+  });
+
   it('restated once already: the next such claim goes to the report, no line', () => {
     const p = at5({ mathChecker: { ...corrected.mathChecker, restated: ['pricing:gain@5'] } });
     expect(p.state.checkerLine).toBeNull();

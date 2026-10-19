@@ -997,6 +997,13 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       expect(p.waiting.map(w => w.id)).toEqual(['17:0']);
       expect(p.decisions).toEqual([]);
     });
+    it('a waiting flag whose own correction is another line is not covered', () => {
+      const other = vetted({ span: 'eligible pool of 300,000', quantity: 'eligible patients', candidateValue: '300,000', correctValue: 200000, codeQuantity: step('eligible_patients'),
+        correctionLine: 'Eligible patients is about 200,000, not 300,000.', correctionFigure: '200000' });
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million'), other], { ...closedNet, corrected });
+      expect(p.selected).toMatchObject({ id: '17:0', action: 'restate' });
+      expect(p.selected?.covers).toBeUndefined();
+    });
     it('a minor claim under time pressure is shed, as a minor flag is', () => {
       const p = run([sales('40,000 × $2,000 = $80 million', '$80 million', { changesConclusion: false })], { ...closedNet, corrected, underTimePressure: true });
       expect(p.selected).toBeNull();
@@ -1046,6 +1053,11 @@ describe('ruling 1 on the evidence: b28 Jordan t19, b29 Jordan t9', () => {
     const p = replayed(EVIDENCE['b29-jordan-ea27d1f6-t9'] as unknown as Fixture, 'cogs_dollar_impact@38');
     expect(p.selected).toMatchObject({ id: '7:1', action: 'restate', key: 'cogs_dollar_impact@38', line: 'The rise in COGS is 16 points of revenue, not 38.' });
     expect(p.waiting.map(w => w.id)).toContain('5:6');
+    // The controller's ruling on Task 11 (option c): 5:6's own correction is the root's delivered line, word for word —
+    // the restatement corrects it (booked with the line, plan-turn): its key closes and t20's re-correction in the recommendation stays.
+    expect(p.selected?.covers).toEqual([expect.objectContaining({ id: '5:6', key: 'checker:~40 points', line: COGS_LINE })]);
+    expect(p.decisions.find(d => d.id === '5:6')).toMatchObject({ outcome: 'correct', line: COGS_LINE, key: 'checker:~40 points', by: '7:1' });
+    expect(p.handledNow).not.toContain('5:6');
   });
   it('…and without the record of a live correction, both stay "built on a closed input" (an old session\'s flags)', () => {
     for (const [name, root] of [['b28-jordan-591cff13-t19', 'checker:38 to 40 points'], ['b29-jordan-ea27d1f6-t9', 'cogs_dollar_impact@38']] as const) {

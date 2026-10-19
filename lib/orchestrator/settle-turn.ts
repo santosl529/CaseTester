@@ -631,7 +631,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       flags.stepProbes = steps;
     }
     for (const e of ctx.events) {
-      if (e.category === 'math_checker' && e.subtype === 'flag' && (e.payload as { id?: string }).id === checkerLine.id) {
+      // …and the flags it corrected word for word (by: its id) — not corrected after all.
+      if (e.category === 'math_checker' && e.subtype === 'flag' && ((e.payload as { id?: string }).id === checkerLine.id || (e.payload as { by?: string }).by === checkerLine.id)) {
         e.payload = { ...e.payload, outcome: 'undelivered', reason: heldForStage
           ? `held back: the ${heldForStage} question is due and keeps the question; the line goes out next turn`
           : 'chosen, not said: another line took the question' };
