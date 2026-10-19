@@ -186,6 +186,8 @@ Respond with ONLY valid JSON:
 Include a verdict for every claim.`;
 }
 
+const VERIFIER_MAX_TOKENS = 32000;
+
 export async function runClaimVerifier(
   rubric: RubricScores,
   transcript: TranscriptTurn[],
@@ -217,10 +219,12 @@ export async function runClaimVerifier(
     // Opus 5.5: thinking always on (adaptive); effort set explicitly (the
     // model's default is medium); thinking counts against max_tokens.
     // Streamed like the judge, so a raised max_tokens can never trip the
-    // SDK's non-streaming guard.
+    // SDK's non-streaming guard. The judge's cap on the same model (engine-asks
+    // final review, 19 Oct): every strength and Better answer is a claim now, and
+    // a response cut at the cap has no parsed output — all verification skipped.
     const response = await client.beta.messages.stream({
       model: SCORING_MODEL_ID,
-      max_tokens: 16000,
+      max_tokens: VERIFIER_MAX_TOKENS,
       thinking: { type: 'adaptive' },
       messages: [{ role: 'user', content: prompt }],
       output_config: { format: VERIFIER_OUTPUT_FORMAT, effort: 'high' },
@@ -233,6 +237,7 @@ export async function runClaimVerifier(
       inputTokens: response.usage.input_tokens,
       outputTokens: response.usage.output_tokens,
     });
+    console.log('[verifier] response', { stopReason: response.stop_reason, outputTokens: response.usage.output_tokens, maxTokens: VERIFIER_MAX_TOKENS, claims: claims.length });
     if (!response.parsed_output) throw new Error(`no structured output (stop_reason: ${response.stop_reason})`);
     verdicts = response.parsed_output.verdicts;
   } catch (err) {
