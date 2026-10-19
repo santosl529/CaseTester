@@ -55,19 +55,30 @@ function subjectNames(label: string): string[] {
   return [...new Set([clean(label), s])].filter(Boolean);
 }
 
-function parseCell(raw: string): { value: number; dollar: boolean; pct: boolean } | null {
-  const m = /^\s*(\()?\s*(\$)?\s*(-|−)?(\d[\d,]*(?:\.\d+)?)\s*(%|M)?\s*\)?\s*$/i.exec(raw);
+// A cell's figure; "$80 million", "250 million" and "$1.2 billion" are figures at
+// million scale (entry-001, launch-001 — they were no facts; Lorenzo, 19 Oct, §15 p).
+// `written`: the number as the cell writes it (a billion cell's ledger line says "1.2").
+function parseCell(raw: string): { value: number; written: number; dollar: boolean; pct: boolean; million: boolean } | null {
+  const m = /^\s*(\()?\s*(\$)?\s*(-|−)?(\d[\d,]*(?:\.\d+)?)\s*(%|M|mn|million|bn|billion)?\s*\)?\s*$/i.exec(raw);
   if (!m) return null;
-  return { value: parseFloat(m[4].replace(/,/g, '')) * (m[1] || m[3] ? -1 : 1), dollar: Boolean(m[2]), pct: m[5] === '%' };
+  const written = parseFloat(m[4].replace(/,/g, '')) * (m[1] || m[3] ? -1 : 1);
+  const scale = (m[5] ?? '').toLowerCase();
+  const billion = scale === 'bn' || scale === 'billion';
+  return { value: billion ? written * 1000 : written, written, dollar: Boolean(m[2]), pct: scale === '%', million: scale !== '' && scale !== '%' };
 }
 
 export function buildCellFacts(c: CaseLike): CellFact[] {
   const facts: CellFact[] = [];
   const ledger = new Map(c.dataLedger.map(d => [d.id, d]));
   // The ledger line that shows a figure: its exact figure in the line.
-  // …preferring the line that names the row's subject (Millbrook's 2,000 flights, not Lakeport's).
-  const itemFor = (covers: string[], value: number, subject: string[]) => {
-    const showing = covers.filter(id => [...(ledger.get(id)?.value ?? '').matchAll(/\d[\d,]*(?:\.\d+)?/g)].some(m => Math.abs(parseFloat(m[0].replace(/,/g, '')) - Math.abs(value)) < 1e-9));
+  // …preferring the line that names the row's subject (Millbrook's 2,000 flights, not Lakeport's),
+  // and for a cell at scale the line that states it at scale (launch-001's "$3.0 million" roasting line, not the $3.00 bag).
+  const itemFor = (covers: string[], value: number, subject: string[], million = false) => {
+    const states = (id: string, scaled: boolean) => [...(ledger.get(id)?.value ?? '').matchAll(/\d[\d,]*(?:\.\d+)?(\s?(?:M|mn|million|bn|billion)\b)?/g)]
+      .some(m => Math.abs(parseFloat(m[0].replace(/,/g, '')) - Math.abs(value)) < 1e-9 && (!scaled || Boolean(m[1])));
+    const any = covers.filter(id => states(id, false));
+    const atScale = million ? any.filter(id => states(id, true)) : [];
+    const showing = atScale.length ? atScale : any;
     return showing.find(id => subject.some(n => lc(ledger.get(id)?.value ?? '').replace(/[–-]/g, ' ').includes(n.replace(/[–-]/g, ' ')))) ?? showing[0] ?? null;
   };
   for (const e of c.exhibits) {
@@ -91,12 +102,12 @@ export function buildCellFacts(c: CaseLike): CellFact[] {
         if (quantity.length === 0) continue;
         const counted = COUNT_WORDS.test(rowsAreSubjects ? k : label) && !cell.dollar;
         const kind: Kind = cell.pct ? 'percent' : cell.dollar || (!counted && millions) ? 'money' : 'count';
-        const item = itemFor(e.coversLedgerItems ?? [], cell.value, rowsAreSubjects ? subjectNames(label) : exhibitSubject);
+        const item = itemFor(e.coversLedgerItems ?? [], cell.written, rowsAreSubjects ? subjectNames(label) : exhibitSubject, cell.million);
         if (!item) continue;
         facts.push({
           subject: rowsAreSubjects ? subjectNames(label) : exhibitSubject, quantity,
           period: (PERIOD.exec(k)?.[1] ?? null), value: cell.value, kind,
-          scale: kind === 'money' && millions && !cell.dollar ? 'million' : 'unit', item, exhibit: e.id,
+          scale: kind === 'money' && (cell.million || (millions && !cell.dollar)) ? 'million' : 'unit', item, exhibit: e.id,
         });
       }
     }

@@ -22,7 +22,7 @@
 // 8 Oct Qwen screen: "beans at 42% of COGS" passed because 42 is allowed).
 import { asOriginalProbe } from './phrasing';
 import { normalizeNumberWords } from '@/lib/number-words';
-import { exhibitColumns, findMisquotes, type QuoteAnchor } from './misquote';
+import { exhibitColumns, findMisquotes, SCALE, type QuoteAnchor } from './misquote';
 import { findCellMisquotes } from './cell-lookup';
 
 export type Unit = 'percent' | 'dollar' | 'count' | 'plain';
@@ -484,10 +484,14 @@ const POINTS_HYPOTHETICAL = /\b(?:if|would|could|need|needs|needed|target|restor
 // ("per-unit bean cost").
 function quoteFits(m: { item: string; cited: string; sentence: string }, fb: FactBase): boolean {
   const q = fb.quantities.find(x => x.id === m.item);
-  const fig = /(\$)?(\d+(?:\.\d+)?)\s*(%|percent|stores|locations)?/i.exec(m.cited);
+  const fig = new RegExp(String.raw`(\$)?(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(?:\s?(${SCALE})\b)?\s*(%|percent|stores|locations)?`, 'i').exec(m.cited);
   if (!q || !fig) return true;
-  const unit: Unit = fig[1] ? 'dollar' : /stores|locations/i.test(fig[3] ?? '') ? 'count' : fig[3] ? 'percent' : 'plain';
-  if (unit !== 'plain' && q.unit !== 'plain' && unit !== q.unit) return false;
+  const unit: Unit = fig[1] ? 'dollar' : /stores|locations/i.test(fig[4] ?? '') ? 'count' : fig[4] ? 'percent' : 'plain';
+  // A figure at scale fits an item that states one in its unit, whatever unit the item's first figure has
+  // (Aldermoor's option_a: "20% … $80 million"; Lorenzo, 19 Oct, §15 p).
+  const value = fb.ledger.find(x => x.id === m.item)?.value ?? '';
+  const atScale = Boolean(fig[3]) && new RegExp(String.raw`${unit === 'dollar' ? String.raw`\$\s?` : String.raw`(?<!\$\s?)\b`}\d[\d,]*(?:\.\d+)?\s?(?:${SCALE})\b`, 'i').test(value);
+  if (unit !== 'plain' && q.unit !== 'plain' && unit !== q.unit && !atScale) return false;
   if ((fig[2].split('.')[1]?.length ?? 0) >= 3) return false;
   const c = m.sentence.indexOf(m.cited.trim());
   const at = c >= 0 ? c + m.cited.trim().indexOf(fig[0].trim()) : m.sentence.indexOf(fig[0].trim());

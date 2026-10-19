@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { findMisquotes, exhibitColumns, correctionLine, type QuoteAnchor } from '@/lib/orchestrator/misquote';
 import { getCaseById } from '@/lib/cases/loader';
+import { factBaseFor, findCandidateMisquotes } from '@/lib/orchestrator/fact-check';
 
 // Rule 6 option 4 (v4.11): lines from batches 12–19, read by hand
 // (tests/orchestrator/fixtures/misquote-labelled.json).
@@ -85,5 +86,47 @@ describe('correctionLine', () => {
   it('is the ledger value, flat, after one lead-in — an acronym keeps its case', () => {
     expect(correctionLine('COGS is 58% of revenue today, up from 42% two years ago.')).toBe('To correct one figure: COGS is 58% of revenue today, up from 42% two years ago.');
     expect(correctionLine('The average transaction is $6.80, up from $6.20 two years ago.')).toBe('To correct one figure: the average transaction is $6.80, up from $6.20 two years ago.');
+  });
+});
+
+// Task 9 (Lorenzo, 19 Oct; §15 p, c): the grammar missed a figure before the
+// sentence's full stop ("The shelf price is $4.49." flagged nothing, "…$4.49 per
+// bag." did), read "$1,200" as "$1", refused "million", and skipped a whole
+// sentence for arithmetic in a later clause (batch-32 Aldermoor Tyler t9:
+// "Prevalence you gave is 1.5%, so 250 × 0.015 = …"). Through the live path.
+describe('the quote grammar: full stops, thousands, scale words, arithmetic clauses', () => {
+  const live = (caseId: string, revealed: string[], shown: string[] = []) => {
+    const fb = factBaseFor(getCaseById(caseId) as never);
+    return (s: string) => findCandidateMisquotes(s, fb, new Set(revealed), shown).map(m => m.items[0]);
+  };
+  const launch = live('launch-001', ['bag_price', 'recipe_cost', 'launch_costs']);
+  const entry = live('entry-001', ['funnel_rates', 'us_adults', 'option_a'], ['exhibit-1', 'exhibit-3']);
+  const pricing = live('pricing-001', ['plan_cac'], ['exhibit-1']);
+  const larkspur = live('prof-002', ['lakeport_variable_cost'], ['exhibit-2']);
+  const prof1 = live('prof-001', ALL, ['exhibit-a']);
+
+  it.each([
+    ['The shelf price is $4.49.', 'bag_price', launch],
+    ['Recipe development was $1.5 million.', 'recipe_cost', launch],
+    ['Prevalence you gave is 1.5%, so 250 × 0.015 = 3.75 million.', 'funnel_rates', entry],
+    ['Selling costs are $77 million.', 'option_a', entry],
+    ['The ticket is $6.90.', 'avg_ticket', prof1],
+  ] as const)('flags: %s', (text, item, check) => expect(check(text)).toEqual([item]));
+
+  it.each([
+    ['The shelf price is $3.00.', launch],
+    ['Recipe development was $1.2 million.', launch],
+    ['Selling costs are $80 million.', entry],
+    ['Pro CAC is $1,200', pricing],
+    ['Pro CAC is $1,200.', pricing],
+    ['The Lakeport cost per flight is $9,000.', larkspur],
+    ['COGS is 58/110, about 53%.', prof1],
+    ['The ticket is $6.80.', prof1],
+  ] as const)('does not flag: %s', (text, check) => expect(check(text)).toEqual([]));
+
+  it('chains still read through the periods', () => {
+    expect(items('COGS went from 42% to 58% of revenue.')).toEqual([]);
+    expect(items('COGS goes 42 → 50 → 58.')).toEqual([]);
+    expect(items('COGS went from 42% to 61%.')).toEqual(['cogs_pct']);
   });
 });
