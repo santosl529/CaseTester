@@ -194,6 +194,20 @@ describe('dedupe with the deterministic checks — one probe per claim', () => {
     expect(planCheckerFlags(input({ rows, codeFigures: () => [10.5, 25] })).decisions[0].outcome).toBe('dedupe');
     expect(planCheckerFlags(input({ rows })).decisions[0].outcome).toBe('dedupe');
   });
+  // Engine-asks final review (19 Oct): with the gate's decisions given, only a
+  // code flag the gate released — code's line said — dedupes the checker's claim;
+  // one it ruled derived, not_rated, stale, expired or disagreeing leaves it standing.
+  it.each(['derived', 'not_rated', 'stale', 'expired', 'checker_disagrees'] as const)('a code flag the gate ruled %s dedupes nothing: the checker\'s probe stands, no code probe counted', outcome => {
+    const rows = [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null })], { codeFlags: [{ key: 'pricing:gain@5', value: 5, span: 'recovers about 5 points' }] })];
+    const p = planCheckerFlags(input({ rows, gateOutcomes: { '3:code:0': outcome } }));
+    expect(p.decisions.find(d => d.id === '3:0')?.outcome).not.toBe('dedupe');
+    expect(p.selected).toMatchObject({ id: '3:0', action: 'probe', attempt: 1 });
+  });
+  it('a code flag the gate released still dedupes; one with no gate decision (never said) does not', () => {
+    const rows = [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null })], { codeFlags: [{ key: 'pricing:gain@5', value: 5, span: 'recovers about 5 points' }] })];
+    expect(planCheckerFlags(input({ rows, gateOutcomes: { '3:code:0': 'released' } })).decisions[0].outcome).toBe('dedupe');
+    expect(planCheckerFlags(input({ rows, gateOutcomes: {} })).selected).toMatchObject({ id: '3:0', action: 'probe' });
+  });
   it('matched by key when their figure is also a case figure ("about 40 points" — beans rose 40%)', () => {
     const forty = vetted({ span: 'about 40 points of margin erosion', candidateValue: 'about 40 points', correctValue: 16, correctionLine: null, correctionFigure: null, codeQuantity: { kind: 'step', stepId: 'cogs_dollar_impact', price: null, target: null } });
     const p = planCheckerFlags(input({ rows: [verdictRow(3, [forty], { codeFlags: [{ key: 'cogs_dollar_impact@40', value: 40, span: 'x' }] })] }));

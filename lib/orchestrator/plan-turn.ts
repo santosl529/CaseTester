@@ -33,7 +33,7 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, gateCodeFindings, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type GateDecision } from './math-checker-live';
 import { theirFigure } from './own-quantity';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
@@ -653,6 +653,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer, rank,
     convertedFigures: checkerMemory.convertedFigures,
     phraseUses: flags.phraseUses as PhraseUses | undefined, seed: `${ctx.sessionId}:${ctx.nextTurnIndex}`, codeFigures,
+    // The gate's decisions, earlier turns' then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
+    gateOutcomes: Object.fromEntries([
+      ...checkerRows.filter(r => r.subtype === 'code_gate').map(r => r.payloadJsonb as GateDecision),
+      ...gate.decisions,
+    ].map(d => [d.id, d.outcome])),
   };
   let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
@@ -903,6 +908,22 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const deadlineStage = DEADLINE_KINDS.has(kind) && deadlineTurn(() => true).kind !== kind;
   // An overdue stage turn, whatever made it (the controller's ruling on R7, 19 Oct): a correction rides on it, said first.
   const overdueStage = DEADLINE_KINDS.has(kind) && planned.overdue;
+  // Code's own probe released on a deadline-made stage turn is held for the
+  // next model turn, like the checker's (PRD §5.2; engine-asks final review, 19
+  // Oct — the controller's proposal): no model reads its hint there and the
+  // code-written turn says only corrections. Left out of the gate's handled ids
+  // and the attempt count, it is re-gated on the next turn (its expiry still applies).
+  const codeProbesHeld = deadlineStage ? liveFlags.filter(f => codeSpeaks(f) && !codeCorrects(f)) : [];
+  if (codeProbesHeld.length > 0) {
+    const heldIds = gate.released.filter(r => r.finding.kind === 'flag' && codeProbesHeld.includes(r.finding.flag)).map(r => r.id);
+    flags.codeGate = { handled: ((flags.codeGate as { handled?: string[] } | undefined)?.handled ?? []).filter(id => !heldIds.includes(id)) };
+    for (const f of codeProbesHeld) {
+      const k = attemptKey(f);
+      if ((recomputeAttempts[k] ?? 0) <= 1) delete recomputeAttempts[k];
+      else recomputeAttempts[k] -= 1;
+    }
+    checks.act('stage_code_probe_held', 'code\'s probe held: the overdue stage goes this turn; the probe is re-gated on the next model turn', { held: heldIds, kind });
+  }
   const yieldedAfter: StageYielded = { ...stageYielded, ...Object.fromEntries(yieldedNow.map(s => [s, s === 'exhibit' ? exhibitDueId : true])) };
   if (JSON.stringify(yieldedAfter) !== JSON.stringify(stageYielded)) flags.stageYielded = yieldedAfter;
   checks.record('end_rec_ask_gate', awaitingRecAsk, recAskByTime ? 'the brainstorm budget is spent and the recommendation was never asked — code asks' : 'coverage complete but the recommendation was never asked — code asks this turn', { recAskByTime });

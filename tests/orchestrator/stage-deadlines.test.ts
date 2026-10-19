@@ -306,6 +306,30 @@ describe('a deadline yields to a checker line once (R7)', () => {
     const figures = t2.state.stageCodeLines[0].match(/\d+(?:\.\d+)?/g) ?? [];
     for (const f of figures) expect(t2.state.derivedValueTexts).toContain(f);
   });
+  // Engine-asks final review (19 Oct; PRD §5.2): code's own probe released on a
+  // deadline-made stage turn is held for the next model turn, like the
+  // checker's — no model reads its hint there, and the code-written turn says
+  // only corrections. It stays out of the gate's handled ids and the attempt
+  // count, so it is re-gated and said on the next model turn.
+  it("code's own probe released on a deadline-made stage turn: held — not handled, no attempt — and said on the next model turn", () => {
+    const flagged = "Beans are 25% of COGS, so that's 25 points of revenue sitting in beans.";
+    const unit = [vettedFlag('25 points of revenue', 10.5, { errorType: 'unit' })];
+    const t2 = owed({ claims: unit, landedText: flagged, codeFlags: true, flags: { stageYielded: { brainstorm: true } } });
+    expect(t2.state.kind).toBe('stage_brainstorm');
+    expect(t2.state.stageCodeLines).toEqual([]);
+    expect(codeWrittenTurn(t2, null).say).toBe('');
+    expect(t2.state.recomputeAttempts).toEqual({});
+    expect((t2.ctx.flags.codeGate as { handled?: string[] } | undefined)?.handled ?? []).not.toContain('3:code:0');
+    // The next model turn (the brainstorm asked meanwhile): the gate releases it again and the model says it.
+    const t3 = owed({ claims: unit, landedText: flagged, codeFlags: true, flags: {
+      stageYielded: { brainstorm: true }, codeGate: t2.ctx.flags.codeGate, mathChecker: t2.ctx.flags.mathChecker, recomputeAttempts: t2.state.recomputeAttempts,
+      stageEvidence: { ...INITIAL_STAGES, structure: ANSWERED, pressure_test: ANSWERED, exhibit: SHOWN, brainstorm: { delivered: true, deliveredAt: 6, outcome: 'answered' as const } },
+    } });
+    expect(t3.state.kind).toBe('model');
+    expect(t3.state.recomputeHint).toMatch(/points of what/);
+    expect(Object.values(t3.state.recomputeAttempts)).toEqual([1]);
+    expect((t3.ctx.flags.codeGate as { handled: string[] }).handled).toContain('3:code:0');
+  });
 });
 
 // Review fix 4 (controller, 19 Oct): an exhibit's yield is keyed by the exhibit it was for.
@@ -339,3 +363,40 @@ describe('an exhibit deadline yields once per exhibit', () => {
     expect(p.ctx.flags.stageYielded).toEqual({ exhibit: 'exhibit-2' });
   });
 });
+
+// Engine-asks final review (19 Oct): plan-turn hands the gate's decisions —
+// earlier turns' code_gate rows and this turn's — to the checker plan: a code
+// flag the gate didn't release dedupes nothing.
+describe("the checker's claim stands when the gate held code's line", () => {
+  const CLAIM = 'A 10% price increase recovers about 5 points of margin.';
+  const PRICE: VettedClaim = vettedFlag('about 5 points', 8.5, {
+    span: 'A 10% price increase recovers about 5 points of margin', quantity: 'margin gain', errorType: 'conceptual', unit: 'points',
+    codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null },
+    probeLine: 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?',
+  });
+  const run = (gateRow: string | null) => {
+    const reads = readsFixture({
+      phase: 'ANALYSIS', elapsedMs: 8 * MIN, revealed: CORE,
+      flags: { pressureTest: { state: 'satisfied', askedAt: 2 }, stageEvidence: { ...INITIAL_STAGES, structure: ANSWERED, pressure_test: ANSWERED }, ...(gateRow ? { codeGate: { handled: ['3:code:0'] } } : {}) },
+      extraTurns: [{ role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What would you look at next?' }],
+    });
+    const codeFlags = codeFlagsOf(CLAIM, CORE);
+    expect(codeFlags.map(f => f.key)).toEqual(['pricing:gain@5']);
+    reads.checkerEventRows = [verdictRow(3, [PRICE], codeFlags),
+      ...(gateRow ? [{ id: 'g3', sessionId: 's1', category: 'math_checker', subtype: 'code_gate', turnIndex: 4, phase: 'ANALYSIS', payloadJsonb: { id: '3:code:0', candidateTurnIndex: 3, outcome: gateRow } }] : [])] as never;
+    (reads.session as { coverageJsonb: unknown }).coverageJsonb = LOW;
+    const p = planTurn(reads, MSG, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    return p;
+  };
+  it('released this turn: code says its probe, the checker\'s claim is deduped (unchanged)', () => {
+    const p = run(null);
+    expect(p.state.recomputeHint).not.toContain(PRICE.probeLine);
+    expect((p.ctx.flags.mathChecker as { handled: string[] }).handled).toContain('3:0');
+  });
+  it('ruled not_rated on an earlier turn (the claim left waiting): the checker\'s probe goes out', () => {
+    const p = run('not_rated');
+    expect(p.state.recomputeHint).toContain(PRICE.probeLine);
+  });
+});
+
