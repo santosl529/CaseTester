@@ -6,6 +6,8 @@
 // does not split, so a "\n\nuser …" continuation stays inside its sentence
 // where the fabricated-turn check sees it.
 
+import { decodeLiteralEscapes, decodeLiteralEscapesDeep } from '../../decode-escapes';
+
 export type TurnStreamEvent =
   | { type: 'field'; key: string; value: unknown }
   | { type: 'sentence'; text: string };
@@ -101,14 +103,14 @@ export class TurnStreamParser {
   private endValue(out: TurnStreamEvent[], end: number): void {
     if (this.expect !== 'value' || this.valueStart === -1) return;
     try {
-      out.push({ type: 'field', key: this.key, value: JSON.parse(this.buf.slice(this.valueStart, end)) });
+      out.push({ type: 'field', key: this.key, value: decodeLiteralEscapesDeep(JSON.parse(this.buf.slice(this.valueStart, end))) });
     } catch { /* malformed value: left to the final parse */ }
     this.valueStart = -1;
     this.expect = 'after';
   }
 
   private flush(out: TurnStreamEvent[]): void {
-    const text = this.sentence.trim();
+    const text = decodeLiteralEscapes(this.sentence).trim();
     if (text) out.push({ type: 'sentence', text });
     this.sentence = '';
   }

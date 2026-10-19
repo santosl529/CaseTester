@@ -169,7 +169,7 @@ group beats a more specific cover. Others:
 - a repeated misquote in the recommendation is dropped without a checker flag;
 - *(m) built on engine-asks (not merged):* reports' "Better" answers and the facts of strengths are fact-checked: `auditBetterFigures` lists figures no case value or one operation of two explains, the verifier gets them as hints, and an unsupported Better answer is blanked (moment stays) or an unsupported strength dropped;
 - *the caveat floor covers only needs_work: built on engine-asks (not merged):* any assessed dimension with no quote in wentWell or needsWork is now not assessed, whatever its rating and caveat (R4); a strong overall is re-capped against the dimensions still assessed;
-- literal `\uXXXX` appears in the interviewer's text;
+- literal `\uXXXX` appears in the interviewer's text. *Built on engine-asks (not merged): `decodeLiteralEscapes` decodes `\uXXXX` (exactly four hex digits) in the streamed sentences and fields and in the final parsed turn, before any guard reads it.*
 - "say before stage" isn't supported.
 
 ## Lessons log

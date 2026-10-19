@@ -8,6 +8,8 @@
 // turn put 350–580 tokens ahead of the first word), then the declarations,
 // which close before the data line and the question.
 
+import { decodeLiteralEscapesDeep } from '../../decode-escapes';
+
 export const MOVES = [
   'clarify', 'structure', 'pressure_test', 'analysis', 'exhibit', 'brainstorm', 'risk', 'recommendation', 'other',
 ] as const;
@@ -96,7 +98,8 @@ export function toModelTurn(raw: unknown): ModelTurn | null {
 
 export function parseTurn(text: string): ModelTurn | null {
   try {
-    return toModelTurn(JSON.parse(text));
+    // Literal \uXXXX in the model's strings is decoded once here, for every provider.
+    return toModelTurn(decodeLiteralEscapesDeep(JSON.parse(text)));
   } catch {
     return null;
   }
