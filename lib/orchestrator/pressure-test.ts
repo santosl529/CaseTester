@@ -7,7 +7,7 @@
 import type { OnUsage } from '@/lib/llm-usage';
 import type { DataLedger } from './data-ledger';
 import { PHASES, type Phase } from './state-machine';
-import { line, phrase, PHRASE_POOLS, type PhrasePool, type PhraseUses } from './phrasing';
+import { fill, line, phrase, PHRASE_POOLS, variantIndex, type PhrasePool, type PhraseUses } from './phrasing';
 import { anthropicClient } from '@/lib/anthropic-client';
 import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
 
@@ -34,7 +34,7 @@ export const INITIAL_PRESSURE_TEST: PressureTestState = { state: 'not_asked', re
 // Rule 7 intents. Read from the question text; callers limit it to the early
 // stages (a "which line first" question during the analysis is not a probe).
 const INTENTS: [ProbeIntent, RegExp][] = [
-  ['mece', /\b(mece|mutually exclusive|collectively exhaustive)\b|\bwhat('?s| is| might be| could be)\s+(missing|not in)\b|\bmissing from (your|the|that)\b|\b(anything|something)\s+(missing|left out)\b|\bdoes your structure leave out\b|\boverlap\b/i],
+  ['mece', /\b(mece|mutually exclusive|collectively exhaustive)\b|\bwhat('?s| is| might be| could be)\s+(missing|not in)\b|\bmissing from (your|the|that)\b|\b(anything|something)\s+(missing|left out)\b|\bdoes (?:your structure|it) leave out\b|\boverlap\b/i],
   ['prioritize', /\bwhich\s+(branch|bucket|area|part|piece|of those)\b[^?]*\b(first|prioriti[sz]e|start)\b|\bprioriti[sz]e\b[^?]*\b(first|which|why)\b/i],
   ['robustness', /\bwhat\s+(result|finding|data|evidence)\s+would\s+(break|change|invalidate|disprove)\b|\bbreak\s+(this|your|that)\s+(structure|framework)\b/i],
 ];
@@ -238,10 +238,34 @@ export const PT_NOT_ASKED_LIMIT = 5;
 // "I'd like your answer on the structure" only when they didn't answer
 // (Lorenzo, 13 Oct; Tyler af62e2e2 t4 and Jasmine 35897f4a t4 had answered —
 // the judge wanted more): a substantive reply gets the next probe plainly.
+// A lead that already names the structure takes the ask with "it" (0f1b28ea t10,
+// 19 Oct: "Coming back to your structure: what might be missing from your structure?").
 export function reaskProbe(intents: ProbeIntent[] | undefined, dataHeld = true, replied = false, uses?: PhraseUses, seed = ''): string {
   const intent = intents?.[0] ?? 'mece';
   const ask = line(intent === 'prioritize' ? 'ask_branch' : intent === 'robustness' ? 'ask_break' : 'ask_missing', uses, seed);
-  return phrase(replied && dataHeld ? 'reask_more' : dataHeld ? 'reask_answer' : 'reask_back', ask, uses, seed);
+  const pool = replied && dataHeld ? 'reask_more' : dataHeld ? 'reask_answer' : 'reask_back';
+  const lead = PHRASE_POOLS[pool][variantIndex(pool, uses, seed)];
+  return fill(lead, /\bstructure\b/i.test(lead) ? ask.replace(/\byour structure\b/i, 'it') : ask);
+}
+
+// The candidate says their structure misses nothing (Lorenzo, 19 Oct;
+// 0f1b28ea t9–t13: "nothing is missing", "I think that's it", "It covers
+// everything"): to the what's-missing ask, that is the answer — counted, never
+// re-asked or narrowed toward a gap. Not when the reply adds something, hedges,
+// or names a gap of its own.
+const NOTHING_MISSING = [
+  /\bnothing(?:'s| is)?\s+(?:missing|left out)\b/,
+  /\b(?:don't|do not)\s+think\s+(?:anything|there's anything|there is anything)\s+(?:is\s+)?missing\b/,
+  /\b(?:it|that|this|my structure)\s+(?:covers|captures)\s+(?:everything|it all|all of it)\b/,
+  /\bcovers everything\b/,
+  /\b(?:it's|it is|that's|that is)\s+(?:mece\s+and\s+)?(?:complete|comprehensive|exhaustive)\b/,
+  /^(?:(?:yeah|yes|no|yep|nope)[.,!]?\s*)*(?:i think\s+)?that's\s+(?:it|everything|all)\s*(?:[.!]|$)/,
+  /\bnot missing anything\b|\bdoesn't miss anything\b|\bno gaps?\b/,
+];
+const ADDS_OR_HEDGES = /\b(?:i'd|i would|we could|we should|let me)\s+(?:also\s+)?add\b|\b(?!nothing\b|anything\b)[a-z]+\s+(?:is|are)\s+missing\b|\bmissing (?:is|are)\b|\bexcept\b|\bforgot\b|\bmaybe\b|\bperhaps\b|\bnot sure\b|\bother than\b|\bbesides\b/;
+export function saysNothingMissing(reply: string): boolean {
+  const t = reply.toLowerCase().replace(/[‘’]/g, "'").replace(/\s+/g, ' ').trim();
+  return NOTHING_MISSING.some(re => re.test(t)) && !ADDS_OR_HEDGES.test(t);
 }
 
 // The narrowed probe: the same intent, made concrete (a Rule 13 Level 2 for the test).

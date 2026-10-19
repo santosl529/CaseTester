@@ -70,6 +70,17 @@ type Line = { role: string; turnIndex: number; text: string };
 
 export function summarizePressureTest(events: InterventionEvent[], transcript: Line[]): string {
   const e = events.find(x => x.subtype === 'pressure_test_waived');
+  const nm = events.find(x => x.subtype === 'pressure_test_nothing_missing');
+  // "Nothing is missing" closed the probe (Lorenzo, 19 Oct): the report, not the
+  // interview, says what the structure leaves out against the case key.
+  if (!e && nm) {
+    const p = (nm.payloadJsonb ?? {}) as { probe?: string | null; askedAt?: number | null; replyTurn?: number; reply?: string; branchAsked?: boolean };
+    return `PRESSURE TEST (Rule 7) — a record of what happened, not a verdict:
+- The interviewer's structure probe was delivered${p.askedAt != null ? ` (turn ${p.askedAt})` : ''}: "${(p.probe ?? '').trim()}"
+- The candidate's reply: ${p.replyTurn !== undefined ? `turn ${p.replyTurn}: ` : ''}"${(p.reply ?? '').trim()}"
+- Code took "nothing is missing" as the answer and did not press for a gap${p.branchAsked ? '; it asked which branch they would start with' : ''}.
+Scoring: count the probe as answered (not an assist). Judge the structure's completeness yourself against the case's structure key; if it leaves something out (for example, competitive context), name it in the report as feedback.`;
+  }
   if (!e) return '';
   const p = (e.payloadJsonb ?? {}) as WaiverPayload;
   const quote = (s: string) => `"${s.trim()}"`;

@@ -83,6 +83,18 @@ describe('summarizePressureTest', () => {
   ];
   const waived = (payload: Record<string, unknown>) => ({ subtype: 'pressure_test_waived', phase: 'STRUCTURE', payloadJsonb: payload });
 
+  // Lorenzo, 19 Oct: "nothing is missing" closes the probe; any gap goes in the report, not more probing.
+  it('records a probe closed by "nothing is missing": the reply, the switch, and completeness left to the report', () => {
+    const s = summarizePressureTest([{ subtype: 'pressure_test_nothing_missing', phase: 'STRUCTURE', payloadJsonb: {
+      probe: 'Is that structure MECE, and what might be missing from it?', askedAt: 8, replyTurn: 9, reply: 'Yes. It is MECE, and nothing is missing.', branchAsked: true,
+    } }], transcript);
+    expect(s).toMatch(/PRESSURE TEST/);
+    expect(s).toMatch(/turn 9: "Yes\. It is MECE, and nothing is missing\."/);
+    expect(s).toMatch(/structure key/);
+    expect(s).toMatch(/name (it|any gap)/i);
+    expect(s).not.toMatch(/unanswered/);
+  });
+
   it('records a delivered probe that code closed: the questions, the replies, the closure — neutrally', () => {
     const s = summarizePressureTest([waived({
       from: 'awaiting', probeDelivered: true, probe: 'Three buckets. Is that MECE, and what is missing?', askedAt: 4,

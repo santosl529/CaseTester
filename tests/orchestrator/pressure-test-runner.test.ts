@@ -111,8 +111,39 @@ describe('pressure-test state', () => {
     judgeQueue.push({ answered: false });
     const heard = await turn('Roughly, yes: revenue and cost are exclusive and together make up profit, and external factors flow through both, so I would fold them in. Within costs, COGS versus operating versus overhead is clean.',
       T({ move: 'pressure_test', requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Is that MECE — what’s missing?' }));
-    expect(heard).toMatch(/One more on your structure before I share that data: what might be missing from your structure\?/);
+    expect(heard).toMatch(/One more on your structure before I share that data: what might be missing from it\?/);
     expect(heard).not.toMatch(/I'd like your answer/);
+  });
+
+  // Lorenzo, 19 Oct (0f1b28ea t8–t14): "nothing is missing" answers the
+  // what's-missing ask — counted, never re-asked or narrowed ("name one thing
+  // your structure doesn't cover" presumes a gap); code asks which branch
+  // first, once; the report judges completeness against the case key.
+  it('"nothing is missing" answers the what\'s-missing probe: satisfied, data released, code asks which branch first', async () => {
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that structure MECE, and what might be missing from it?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
+    judgeQueue.push({ answered: false });   // the judge called it a bare claim
+    const heard = await turn('Yes. It is MECE, and nothing is missing.', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Coming back to it: what might be missing?' }));
+    expect(pt()?.state).toBe('satisfied');
+    expect(heard).toMatch(new RegExp(anyVariant('ask_branch').source, 'i'));   // code's line, opening its sentence
+    expect(heard).not.toMatch(/missing|doesn't cover|leaves out/i);
+    expect(revealed()).toContain('cogs_pct');
+    expect(store.events.some(e => e.category === 'intervention' && e.subtype === 'pressure_test_nothing_missing')).toBe(true);
+  });
+
+  it('…keeps the model\'s own where-to-start question when it already asks one', async () => {
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
+    judgeQueue.push({ answered: false });
+    const heard = await turn('It covers everything.', T({ question: 'Which of those areas would you look at first, and why?' }));
+    expect(pt()?.state).toBe('satisfied');
+    expect(heard).toMatch(/Which of those areas would you look at first, and why\?/);
+  });
+
+  it('…not when the reply adds something: the judge decides as before', async () => {
+    resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that MECE?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
+    judgeQueue.push({ answered: false });
+    const heard = await turn("Nothing's missing, but maybe I'd add competitors.", T({ question: 'Go on.' }));
+    expect(pt()?.state).toBe('awaiting');
+    expect(heard).toMatch(/what might be missing from it\?/);
   });
 
   it('is satisfied by a partial answer to a compound probe, and the held data is then released', async () => {
