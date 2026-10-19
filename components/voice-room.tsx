@@ -74,8 +74,9 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
 
   // `ready` waits for the end of setup, the agent's hello and playable audio (b406165f, 19 Oct; lib/voice/ready-gate.ts).
   const gate = useRef<ReadyGate | null>(null);
-  // How long each setup step took, sent once (lib/voice/setup-timing.ts).
+  // How long each setup step took, with the long tasks from the Start click, sent once (lib/voice/setup-timing.ts).
   const setupTimes = useRef<SetupTimings | null>(null);
+  const setupObserver = useRef<PerformanceObserver | null>(null);
 
   // No interviewer audio within 15s of connecting (or of the audio-unlock
   // click): the agent never came — capacity — so say so and leave (lib/voice/capacity.ts).
@@ -99,7 +100,14 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   // The setup line, once ready has gone out and the agent's track is attached (the agent is in the room).
   const sendSetup = () => {
     const line = setupTimes.current?.take();
-    if (line) send({ type: 'setup', ...line });
+    if (!line) return;
+    stopSetupObserver();
+    send({ type: 'setup', ...line });
+  };
+
+  const stopSetupObserver = () => {
+    setupObserver.current?.disconnect();
+    setupObserver.current = null;
   };
 
   // An exhibit counts as shown once it has rendered (spec §5.3): confirm after commit.
@@ -132,6 +140,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   useEffect(() => () => {
     if (health.current?.raf != null) cancelAnimationFrame(health.current.raf);
     health.current?.observer?.disconnect();
+    setupObserver.current?.disconnect();
     watchdog.current?.stop();
     if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
     void timing.current.ctx?.close();
@@ -139,12 +148,20 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
   }, []);
 
   async function start() {
-    const times = new SetupTimings(() => performance.now());
+    stopSetupObserver();
+    const longTasks = typeof PerformanceObserver !== 'undefined' && (PerformanceObserver.supportedEntryTypes ?? []).includes('longtask');
+    const times = new SetupTimings(() => performance.now(), longTasks);
     setupTimes.current = times;
+    if (longTasks) {
+      const o = new PerformanceObserver(list => { for (const e of list.getEntries()) times.longTask(e.startTime, e.duration); });
+      o.observe({ entryTypes: ['longtask'] });
+      setupObserver.current = o;
+    }
     setLocal('connecting');
     setProblem(null);
     const res = await fetch(`/api/voice/${sessionId}/token`, { method: 'POST' });
     if (!res.ok) {
+      stopSetupObserver();
       setProblem(res.status === 429 ? VOICE_BUSY_MESSAGE : res.status === 409 ? 'This case is no longer active.' : res.status === 503 ? 'Voice is not configured on the server.' : 'Could not start the voice session.');
       setLocal('idle');
       return;
@@ -194,6 +211,7 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
       const ctx = timing.current.ctx;
       if (micTrack && ctx) timing.current.mic = times.span('micMeter', () => levelMeter(ctx, micTrack));
     } catch (e) {
+      stopSetupObserver();
       setProblem(e instanceof Error && e.name === 'NotAllowedError' ? 'Microphone permission was denied.' : 'Could not connect the audio.');
       room.disconnect();
       setLocal('idle');

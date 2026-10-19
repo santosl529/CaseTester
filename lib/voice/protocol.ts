@@ -3,7 +3,7 @@
 // can import it; the exhibit display is what the text UI already shows.
 import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
 import type { CaptionWord } from './caption-timing';
-import { SETUP_SPANS, type SetupSpan, type SetupTimingLine } from './setup-timing';
+import { MAX_SETUP_LONG_TASKS, SETUP_SPANS, type SetupSpan, type SetupTimingLine } from './setup-timing';
 
 export const AGENT_NAME = 'case-interviewer';
 export const DATA_TOPIC = 'case';
@@ -68,17 +68,33 @@ export function parseClientMessage(raw: string): ClientMessage | null {
 
 const msOrNull = (v: unknown): v is number | null => v === null || typeof v === 'number';
 
-// Only the known steps, each null or { atMs, ms }; anything else malformed → null.
+const asSpan = (v: unknown): SetupSpan | null => {
+  const o = v as Record<string, unknown> | null;
+  return o && typeof o === 'object' && typeof o.atMs === 'number' && typeof o.ms === 'number' ? { atMs: o.atMs, ms: o.ms } : null;
+};
+
+// Only the known steps, each null or { atMs, ms }; long tasks null or a list
+// of { atMs, ms } (at most 50 kept); anything else malformed → null.
 function parseSetup(m: Record<string, unknown>): ClientMessage | null {
   const raw = m.spans as Record<string, unknown> | null;
   if (!raw || typeof raw !== 'object') return null;
   const spans = {} as SetupTimingLine['spans'];
   for (const n of SETUP_SPANS) {
-    const v = raw[n] as Record<string, unknown> | null | undefined;
-    if (v == null) { spans[n] = null; continue; }
-    if (typeof v !== 'object' || typeof v.atMs !== 'number' || typeof v.ms !== 'number') return null;
-    spans[n] = { atMs: v.atMs, ms: v.ms } satisfies SetupSpan;
+    if (raw[n] == null) { spans[n] = null; continue; }
+    const v = asSpan(raw[n]);
+    if (!v) return null;
+    spans[n] = v;
   }
   if (!msOrNull(m.helloAtMs) || !msOrNull(m.setupDoneAtMs) || !msOrNull(m.readyAtMs)) return null;
-  return { type: 'setup', spans, helloAtMs: m.helloAtMs, setupDoneAtMs: m.setupDoneAtMs, readyAtMs: m.readyAtMs };
+  let longTasks: SetupSpan[] | null = null;
+  if (m.longTasks !== null) {
+    if (!Array.isArray(m.longTasks)) return null;
+    longTasks = [];
+    for (const e of m.longTasks.slice(0, MAX_SETUP_LONG_TASKS)) {
+      const v = asSpan(e);
+      if (!v) return null;
+      longTasks.push(v);
+    }
+  }
+  return { type: 'setup', spans, helloAtMs: m.helloAtMs, setupDoneAtMs: m.setupDoneAtMs, readyAtMs: m.readyAtMs, longTasks };
 }

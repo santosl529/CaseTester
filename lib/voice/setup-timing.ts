@@ -3,24 +3,36 @@
 // record said which step it sat in. Each step's start (from the Start click)
 // and duration, with when the agent's hello came, setup ended and `ready` went
 // out — sent once, when ready has gone out and the agent's audio track is
-// attached, as a `setup` line in the session records. Client-safe: no imports.
+// attached, as a `setup` line in the session records. With each long task from
+// the click until then (Chromium; null elsewhere), at its start from the click,
+// so a freeze sits inside a step. Client-safe: no imports.
 
 export const SETUP_SPANS = ['audioContext', 'connect', 'startAudio', 'mic', 'micMeter', 'firstTrack'] as const;
 export type SetupSpanName = (typeof SETUP_SPANS)[number];
 export type SetupSpan = { atMs: number; ms: number };
+export const MAX_SETUP_LONG_TASKS = 50;
 export type SetupMark = 'hello' | 'setupDone' | 'ready';
 export type SetupTimingLine = {
   spans: Record<SetupSpanName, SetupSpan | null>;
   helloAtMs: number | null; setupDoneAtMs: number | null; readyAtMs: number | null;
+  longTasks: SetupSpan[] | null;
 };
 
 export class SetupTimings {
   private t0: number;
   private spans: Partial<Record<SetupSpanName, SetupSpan>> = {};
   private marks: Partial<Record<SetupMark, number>> = {};
+  private longTasks: SetupSpan[] = [];
   private taken = false;
 
-  constructor(private now: () => number) { this.t0 = now(); }
+  // longTasks: the browser reports long tasks (Chromium only).
+  constructor(private now: () => number, private reportsLongTasks = false) { this.t0 = now(); }
+
+  // A long task's entry (startTime on the now() clock), until the line is taken.
+  longTask(startTime: number, duration: number): void {
+    if (this.taken || this.longTasks.length >= MAX_SETUP_LONG_TASKS) return;
+    this.longTasks.push({ atMs: Math.round(startTime - this.t0), ms: Math.round(duration) });
+  }
 
   // The first of each step counts (a rejoining agent's track is not the setup).
   span<T>(name: SetupSpanName, fn: () => T): T {
@@ -42,7 +54,8 @@ export class SetupTimings {
     if (this.taken || this.marks.ready === undefined || !this.spans.firstTrack) return null;
     this.taken = true;
     const spans = Object.fromEntries(SETUP_SPANS.map(n => [n, this.spans[n] ?? null])) as Record<SetupSpanName, SetupSpan | null>;
-    return { spans, helloAtMs: this.marks.hello ?? null, setupDoneAtMs: this.marks.setupDone ?? null, readyAtMs: this.marks.ready ?? null };
+    return { spans, helloAtMs: this.marks.hello ?? null, setupDoneAtMs: this.marks.setupDone ?? null, readyAtMs: this.marks.ready ?? null,
+      longTasks: this.reportsLongTasks ? this.longTasks : null };
   }
 
   private record(name: SetupSpanName, at: number): void {
