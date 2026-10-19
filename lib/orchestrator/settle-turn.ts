@@ -537,8 +537,9 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // Code's own correction before code's recommendation ask the same way (the model may have said it from its hint).
   if (kind === 'rec_ask') for (const l of [...state.stageCodeLines].reverse()) if (!lineHeard(`${say} ${question}`, l)) question = `${l} ${question}`;
   if (checkerLine && state.stageCheckerLine) {
-    if (!codeWritten && !lineHeard(`${say} ${question}`, checkerLine.line)) question = [checkerLine.line, question].filter(Boolean).join(' ');
-    checkerLineBy = 'code';
+    const saidByModel = !codeWritten && lineHeard(`${say} ${question}`, checkerLine.line);
+    if (!codeWritten && !saidByModel) question = [checkerLine.line, question].filter(Boolean).join(' ');
+    checkerLineBy = saidByModel ? 'model' : 'code';
   } else if (checkerLine && !codeTookQuestion) {
     const asked = modelQuestion ? stageQuestions(modelQuestion, {
       move: turn.move, recOnTable: state.stages.recommendationAsked || state.recommendationReceived,
