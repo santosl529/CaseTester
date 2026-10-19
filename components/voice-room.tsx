@@ -220,7 +220,6 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
     <div className="h-full flex flex-col gap-3 p-4">
       <div className="flex items-center gap-2">
         <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">{STATE_LABEL[phase] ?? phase}</span>
-        <span className="text-xs text-neutral-500">Use headphones — the interviewer&apos;s voice on speakers can interrupt itself.</span>
       </div>
 
       {casePrompt && (
@@ -244,6 +243,10 @@ export function VoiceRoom({ sessionId, casePrompt }: { sessionId: string; casePr
         <p className="text-sm text-neutral-600">{ENDED_TEXT[view.endedReason] ?? 'The session ended.'}{view.canScore ? ' You can score it for a report on what you covered.' : ''}</p>
       )}
 
+      {/* Before Start, on its own line (Lorenzo, 19 Oct): on speakers the room hears the interviewer. */}
+      {local === 'idle' && (
+        <p className="text-sm font-medium text-neutral-800">Headphones work best — on laptop speakers the interviewer can hear itself and cut off.</p>
+      )}
       <div className="flex items-center gap-2">
         {local === 'idle' && <Button onClick={start}>Start</Button>}
         {needsClick && local === 'live' && <Button onClick={enableAudio}>Click to enable audio</Button>}
