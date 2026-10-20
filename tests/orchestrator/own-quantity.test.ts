@@ -128,3 +128,234 @@ describe('the lines are true statements of the case', () => {
     'Getting COGS back to 42% of revenue takes about a 38.1% price rise, not 45%.',
   ])('%s', line => expect(findFalseFacts(line, fb, new Set(COSTS))).toEqual([]));
 });
+
+// Lorenzo, 19 Oct (round 4, ruling 1; batch 33 Marisol 31e33506 t14): "points
+// of the N-point COGS increase" is revenue points; "points of revenue" with
+// their figure wins over a COGS reading; the "In COGS terms … not X" line only
+// when every mention of their figure with a unit names the COGS base —
+// otherwise the checker's own revenue-terms line.
+describe('batch 33 Marisol 31e33506: her 5.8 was revenue points — the revenue-terms line, no "In COGS terms"', () => {
+  const t9 = "You're right to push — that was a stretch. Overhead is rent, corporate, admin; packaging sits in COGS. There's no reason one line's drift tells me anything about a component of another. I was pattern-matching on the number 2 because it was convenient. Scratch it.\n\nLet me use the actual figures. Beans are 25% of COGS, and COGS is currently 58 points of revenue, so beans are 0.25 × 58 = 14.5 points. The other inputs are the remaining 43.5 points. Now apply the growth: beans up 40%, so 14.5 × 0.40 = 5.8 points of increase. Everything else up 37.5%, but that's spread across dairy, packaging, and food — three separate inputs, so call it roughly 2 points each.\n\nSo beans at 5.8 points is the single largest contributor by a wide margin, more than double any other line, and it has the steepest growth rate at 40%. Coffee beans are driving the COGS increase. That's the one to attack.";
+  const t11 = "Two things, in order.\n\nFirst, I'd size what fixing beans buys us. Beans are 5.8 points of the 16-point COGS increase. If we could hold bean costs at the old level, margin goes from 6% to roughly 11.8% — so call it 12%. That's meaningful but it doesn't get us back to 24, which tells me beans are the driver but not the whole fix, and I'd want to be honest with the CEO about that gap.\n\nSecond, procurement. I'd look at how they buy green coffee — spot versus forward contracts, how many suppliers, contract length. A 40% run-up over two years with flat menu prices suggests they're exposed to spot and never hedged.\n\nThen the pricing side, since prices have been flat for two years. I'd want elasticity — how much can a specialty chain pass through before volume moves?\n\nDo we have transaction volume by store over the period? Want to be sure same-store traffic is steady before I recommend a price increase.";
+  const t13 = "Sure. Beans were 25% of COGS. I took the current COGS line, 58 points of revenue, and multiplied: 0.25 × 58 = 14.5 points of revenue sitting in beans today. Then beans rose 40% over the two years, so the increase is 14.5 × 0.40 = 5.8 points of revenue.\n\nAnd the transaction figure actually reinforces the pricing story. Average ticket is $6.80 now versus $6.20 two years ago — so a cup of coffee effectively goes for $6.80. If beans run at 14.5% of revenue, that's about $0.99 of bean cost in that $6.80 cup, up from roughly $0.71 before the run-up. So customers are absorbing nothing, because menu prices held flat — the whole $0.28 landed on us.\n\nA 5% price increase on $6.80 is about $0.34, which more than covers the bean inflation per cup. That's a clean, small ask of the customer.";
+  const REVENUE_LINE = "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8.";
+  const c11 = beans('5.8 points', 'Beans are 5.8 points of the 16-point COGS increase.');
+  it('the checker\'s line is in revenue terms', () => expect(c11.correctionLine).toBe(REVENUE_LINE));
+  it('t11 alone: "5.8 points of the 16-point COGS increase" is revenue points — code\'s unit, the checker\'s line', () => {
+    const w = claimWindow(c11.span, t11, []);
+    expect(frameOfClaim(c11, w, ctx).kind).toBe('code');
+    expect(lineFor(c11, w)).toMatchObject({ line: REVENUE_LINE, derived: ['4.2'], converted: false });
+  });
+  it('the live window (t11, then t13 "5.8 points of revenue"): the checker\'s line, never "In COGS terms"', () => {
+    const w = claimWindow(c11.span, t11, [t13]);
+    expect(frameOfClaim(c11, w, ctx).kind).toBe('code');
+    expect(lineFor(c11, w)?.line).toBe(REVENUE_LINE);
+  });
+  // The guard: one mention names COGS, another ("5.8 points of increase", her t9) doesn't.
+  // Neither base established (controller ruling, Task 27 review): code's figure, no "not X".
+  it('t9 then "5.8 points of COGS": not every mention names the COGS base — code\'s figure, no "not 5.8"', () => {
+    const c9 = beans('5.8 points', 'beans up 40%, so 14.5 × 0.40 = 5.8 points of increase');
+    const w = claimWindow(c9.span, t9, ['To be clear about my units, beans are 5.8 points of COGS.']);
+    expect(frameOfClaim(c9, w, ctx)).toEqual({ kind: 'unstated', rightOn: null });
+    expect(lineFor(c9, w)).toMatchObject({ line: "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points.", converted: false });
+  });
+  it('"points of revenue" with their figure wins over a COGS reading it is right on', () => {
+    const c = beans('10 points', 'beans are 10 points of COGS');
+    const w = 'Beans are 10 points of COGS, so 10 points of revenue.';
+    expect(frameOfClaim(c, w, ctx).kind).toBe('code');
+    expect(lineFor(c, w)?.line).toBe("Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 10.");
+  });
+  // Controller ruling (19 Oct, Task 27 review): Lorenzo's words only — the N-point form with N the COGS change (16).
+  it('"5.8 points of the COGS increase" (no N) names no base: code\'s figure, no "not 5.8"', () => {
+    const c = beans('5.8 points', 'beans are 5.8 points of the COGS increase');
+    expect(lineFor(c, 'Beans are 5.8 points of the COGS increase.')).toMatchObject({ line: "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points.", converted: false });
+  });
+  it.each([
+    'Beans are 10 points of the COGS increase.',
+    'Beans are 10 points of COGS growth.',
+    'Beans are 10 points of the COGS rise.',
+    'Beans are 10 points of the 37.5-point COGS increase.',
+  ])('%s — right on the COGS-growth reading: the conversion, no "not 10"', w => {
+    const c = beans('10 points', w.replace(/\.$/, '').toLowerCase());
+    expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'own_right', quantity: 'points of COGS' });
+    expect(lineFor(c, w)).toMatchObject({ line: "In revenue terms, that's about 4.2 points.", converted: true });
+  });
+  it('"26% of the COGS increase" names no COGS base: right as a share of the increase — the conversion line', () => {
+    const c = beans('26%', 'beans are about 26% of the COGS increase');
+    const w = 'Beans are about 26% of the COGS increase.';
+    expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'unstated', rightOn: { quantity: 'a share of the COGS increase' } });
+    expect(lineFor(c, w)).toMatchObject({ line: "In revenue terms, that's about 4.2 points.", converted: true });
+  });
+  // The guard: a mention names the base only as the object of its own "of / in" phrase,
+  // with no change word before it and no change after it. Otherwise code's figure, no "not X".
+  const NO_NOT = "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points.";
+  it.each([
+    ['5.8', 'Beans are 5.8 points of increase, which is most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase. COGS went from 42 to 58.'],
+    ['5.8', 'Beans are 5.8 points of increase. I meant 5.8 points of COGS.'],
+    ['5.8', 'Beans are 5.8 points of increase — most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase—most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase, so most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase, but most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase: most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase (most of the COGS jump).'],
+    ['5.8', 'Beans are 5.8 points of increase and most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase, that is most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase, mostly COGS.'],
+    ['5.8', 'Beans are 5.8 points of the increase in COGS.'],
+    ['5.8', 'Beans are 5.8 points of the rise in COGS.'],
+    ['5.8', 'Beans are 5.8 points of increase in COGS.'],
+    ['5.8', 'Beans are 5.8 points of COGS inflation.'],
+    ['15', 'Beans are 15 points of — sorry — COGS.'],
+    ['15', 'Beans are 15 points of the total: COGS, I mean.'],
+  ])('%s: "%s" — no COGS base established: code\'s figure, no "not X"', (x, w) => {
+    const c = beans(`${x} points`, w.replace(/\.$/, '').toLowerCase());
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  // The 9ccf0836 STT shape with a wrong figure: never the revenue line's "not 12".
+  it.each([
+    "I'm saying it's twelve points of the thirty seven point five percent. increasing COGS.",
+    "I'm saying it's 12 points of the 37.5 percent. increasing COGS.",
+  ])('%s — no revenue "not 12"', w => {
+    const c = beans('12 points', w);
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  // The allowlist (controller ruling, Task 27 review, 20 Oct): only the base's level after it, only
+  // the / old / current / today's / total / prior / our / its / two years ago's before it.
+  it.each([
+    'Beans are 5.8 points of the COGS delta.',
+    'Beans are 5.8 points of the COGS move.',
+    'Beans are 5.8 points of the COGS hike.',
+    'Beans are 5.8 points of the COGS spike.',
+    'Beans are 5.8 points of the COGS bump.',
+    'Beans are 5.8 points of the COGS gap.',
+    'Beans are 5.8 points of the COGS run-up.',
+    'Beans are 5.8 points of COGS going up.',
+    'Beans are 5.8 points of the extra COGS.',
+    'Beans are 5.8 points of the additional COGS.',
+    'Beans are 5.8 points of the incremental COGS.',
+    'Beans are 5.8 points of the higher COGS.',
+    'Beans are 5.8 points of the uh COGS.',
+    'Beans are 5.8 points of the COGS line increase.',
+    'Beans are 5.8 points in COGS.',
+    'Beans are 5.8 points of COGS, which went up 16 points.',
+  ])('"%s" — not on the allowlist: code\'s figure, no "not 5.8"', w => {
+    const c = beans('5.8 points', w.replace(/\.$/, '').toLowerCase());
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  it.each([
+    ['5.8 points', 'Beans are 5.8 points of the 16 points of COGS.'],
+    ['5.8', 'Beans are 5.8 of the 16 points COGS went up.'],
+    ['5.8 points', 'Beans are 5.8 points of the 58 points of COGS.'],
+    ['5.8 points', 'Beans are 5.8 points of the 42 points of COGS.'],
+    ['5.8 points', 'Beans are 5.8 points of revenue.'],
+    ['5.8 points', 'Beans are 5.8 points of margin.'],
+    ['5.8 points', 'Beans are five point eight points of the sixteen point COGS increase.'],
+    ['5.8 points', 'Beans are 5.8 points of the 16-point COGS increase. That is 5.8 points of COGS.'],
+  ])('%s: "%s" — revenue points: the checker\'s line, "not 5.8"', (v, w) => {
+    const c = beans(v, w.split('. ')[0].replace(/\.$/, '').toLowerCase());
+    expect(lineFor(c, w)).toMatchObject({ line: REVENUE_LINE, converted: false });
+  });
+  it.each([
+    ['5.8 points', 'Beans are 5.8 points of COGS.', 'about 10 points, not 5.8.'],
+    ['15 points', 'Beans are 15 points of COGS.', 'about 10 points, not 15.'],
+    ['15%', 'Beans are 15% of the COGS base.', 'about 10%, not 15.'],
+    ['15 points', 'Beans are 15 points of the old COGS.', 'about 10 points, not 15.'],
+    ['5.8 points', 'Beans are 5.8 points of the COGS line — most of the jump.', 'about 10 points, not 5.8.'],
+  ])('%s: "%s" — on the allowlist: the "In COGS terms" line', (v, w, end) => {
+    const c = beans(v, w.replace(/\.$/, '').toLowerCase());
+    expect(lineFor(c, w)?.line).toBe(`In COGS terms, bean inflation's contribution to the COGS increase is ${end}`);
+  });
+  // Controller ruling (Task 27 re-review, 20 Oct): "the COGS share" is COGS as a share of revenue,
+  // so points of it are revenue points — never "In COGS terms … not X"; not established either, so no "not X".
+  it.each([
+    'Beans are 5.8 points of the COGS share.',
+    'Beans are 5.8 points of COGS share.',
+    'Beans are 5.8 points of the current COGS share.',
+  ])('"%s" — the COGS share is no COGS base: code\'s figure, no "not 5.8"', w => {
+    const c = beans('5.8 points', w.replace(/\.$/, '').toLowerCase());
+    expect(frameOfClaim(c, w, ctx)).toEqual({ kind: 'unstated', rightOn: null });
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  // The same sentence (or an STT run-on up to the next capitalised sentence) also carries the
+  // COGS change in revenue points (16) or the COGS level (58/42): the COGS base is not established.
+  it.each([
+    'Beans are 5.8 points of COGS, out of the 16-point increase.',
+    'Beans are 5.8 points of COGS, most of the 16-point jump.',
+    'Beans are 5.8 points of COGS, i.e. a third of the 16 points.',
+    'Beans are 5.8 points of the COGS line, up from 42.',
+    'beans are five point eight points of cogs. like out of the fifty eight.',
+  ])('"%s" — revenue-point context in the sentence: code\'s figure, no "not 5.8"', w => {
+    const c = beans('5.8 points', w.split('. ')[0].replace(/\.$/, '').toLowerCase());
+    expect(frameOfClaim(c, w, ctx)).toEqual({ kind: 'unstated', rightOn: null });
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  // An abbreviation ("i.e.", "e.g.", "vs.", "etc.", "approx.") ends no sentence, though "COGS" follows capitalised.
+  it.each([
+    ['5.8 points', 'Beans are 5.8 points of COGS, i.e. COGS rose 16 points.'],
+    ['5.8 points', "Beans are 5.8 points of COGS, i.e. COGS's 16-point jump."],
+    ['5.8 points', 'Beans are 5.8 points of COGS, e.g. COGS went from 42 to 58.'],
+    ['15 points', 'Beans are 15 points of COGS, i.e. COGS rose 16 points.'],
+    ['5.8 points', 'Beans are 5.8 points of COGS, vs. COGS rising 16 points.'],
+    ['5.8 points', 'Beans are 5.8 points of COGS, etc. COGS rose 16 points.'],
+    ['5.8 points', 'Beans are 5.8 points of COGS, approx. COGS rose 16 points.'],
+  ])('%s: "%s" — the context after an abbreviation is the same sentence: no "In COGS terms … not X"', (v, w) => {
+    const c = beans(v, w.split(', ')[0].toLowerCase());
+    expect(frameOfClaim(c, w, ctx)).toEqual({ kind: 'unstated', rightOn: null });
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  it('the context in the next capitalised sentence leaves "5.8 points of COGS" its "In COGS terms" line', () => {
+    const c = beans('5.8 points', 'beans are 5.8 points of cogs');
+    expect(lineFor(c, 'Beans are 5.8 points of COGS. COGS went from 42 to 58.')?.line).toBe("In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 5.8.");
+  });
+  // Revenue growth is another base than revenue points: not established, no "not X".
+  it.each([
+    'Beans are 5.8 points of revenue growth.',
+    'Beans are 5.8 points of revenue increase.',
+    'Beans are 5.8 points of total revenue change.',
+  ])('"%s" — no revenue points: code\'s figure, no "not 5.8"', w => {
+    const c = beans('5.8 points', w.replace(/\.$/, '').toLowerCase());
+    expect(frameOfClaim(c, w, ctx)).toEqual({ kind: 'unstated', rightOn: null });
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  it('"5.8 points of the 16-point COGS increase. That is 5.8 points of COGS, up from 42." — revenue points still win: "not 5.8"', () => {
+    const c = beans('5.8 points', 'beans are 5.8 points of the 16-point cogs increase');
+    expect(lineFor(c, 'Beans are 5.8 points of the 16-point COGS increase. That is 5.8 points of COGS, up from 42.')?.line).toBe(REVENUE_LINE);
+  });
+  it('"5.8 points of the COGS line\'s 16-point increase" is revenue points: the checker\'s line (the b33 t14 shape)', () => {
+    const c = beans('5.8 points', "beans are 5.8 points of the cogs line's 16-point increase");
+    const w = "Beans are 5.8 points of the COGS line's 16-point increase.";
+    expect(frameOfClaim(c, w, ctx).kind).toBe('code');
+    expect(lineFor(c, w)?.line).toBe("Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8.");
+  });
+  it('"5.8 points of the COGS line — most of the jump": the base named before the dash, the "In COGS terms" line', () => {
+    const c = beans('5.8 points of COGS', 'beans are 5.8 points of the COGS line');
+    expect(lineFor(c, 'Beans are 5.8 points of the COGS line — most of the jump.')?.line).toBe("In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 5.8.");
+  });
+  it('"5.8 points of COGS": the "In COGS terms" line', () => {
+    const c = beans('5.8 points of COGS', 'beans are 5.8 points of COGS');
+    expect(lineFor(c, 'Beans are 5.8 points of COGS.')?.line).toBe("In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 5.8.");
+  });
+  it('"26% of the 16-point COGS increase" names no COGS base: right as a share — the conversion line', () => {
+    const c = beans('26%', 'beans are about 26% of the 16-point COGS increase');
+    const w = 'Beans are about 26% of the 16-point COGS increase.';
+    expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'unstated', rightOn: { quantity: 'a share of the COGS increase' } });
+    expect(lineFor(c, w)).toMatchObject({ line: "In revenue terms, that's about 4.2 points.", converted: true });
+  });
+  it('every mention with a unit names COGS: the "In COGS terms" line stays', () => {
+    const c = beans('15 points of COGS', 'beans add 15 points of COGS');
+    const w = 'Beans add 15 points of COGS. So beans are 15 percent of COGS.';
+    expect(lineFor(c, w)?.line).toBe("In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 15.");
+  });
+});
+
+describe('batch 30 Noor a35507dc t9/t13, verbatim: right on her own quantity — no "not 38%"', () => {
+  const t9 = "That confirms it — zero pass-through. Input costs up roughly 38% blended, prices flat, so the entire inflation hit landed on margin. And since COGS went from 42 to 58 points while revenue per unit was unchanged, the 15% revenue growth has to be coming from volume or store count, not price.\n\nWhat does it take to fix? If they want to recover the 16 points, a rough cut: raise prices so that the new COGS of 58 falls back toward 42 as a share. Revenue would need to go up by 58/42, about 38% — which makes sense, it's just the input inflation. That's a big number, so realistically they'd phase it and take some of it back on overhead too.\n\nSo I'd focus the client on pricing first. Two years of flat menu prices in a specialty category with real brand equity is money left on the table. Secondary focus is procurement — renegotiating dairy and packaging contracts, since those are the bigger share of the increase.";
+  const t13 = "I held COGS dollars constant and asked what revenue would have to be for COGS to fall back to 42% of it. Right now COGS is 58% of revenue. If I index revenue at 100, COGS dollars are 58. For 58 to equal 42% of revenue, revenue has to be 58 ÷ 0.42 = 138. So revenue rises 38%.\n\nTwo caveats I should flag. First, that's a pure price increase with volume held constant — in reality a 38% price hike would cost them volume, so the realized recovery is less and I'd want elasticity data. Second, it only restores COGS; labor and overhead are also fixed dollars in that scenario, so they'd actually fall as a share of revenue and margin would overshoot 24%. So 38% is the ceiling, not the target. A smaller increase gets you most of the way.";
+  const c = flagged('38%', 'Revenue would need to go up by 58/42, about 38% ... to recover the 16 points', { kind: 'needed_for_gain', stepId: null, price: null, target: 16 }, 20.5);
+  it('the claim with her redo (t13) in the window: converted, no "not 38%"', () => {
+    const w = claimWindow(c.span, t9, [t13]);
+    expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'own_right', quantity: 'COGS back to 42% of revenue' });
+    expect(lineFor(c, w)).toMatchObject({ line: "From today's 6% margin, recovering 16 points of margin takes about a 20.5% price rise.", converted: true });
+  });
+});
