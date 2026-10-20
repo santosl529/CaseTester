@@ -152,11 +152,12 @@ describe('batch 33 Marisol 31e33506: her 5.8 was revenue points — the revenue-
     expect(lineFor(c11, w)?.line).toBe(REVENUE_LINE);
   });
   // The guard: one mention names COGS, another ("5.8 points of increase", her t9) doesn't.
-  it('t9 then "5.8 points of COGS": not every mention names the COGS base — the checker\'s line', () => {
+  // Neither base established (controller ruling, Task 27 review): code's figure, no "not X".
+  it('t9 then "5.8 points of COGS": not every mention names the COGS base — code\'s figure, no "not 5.8"', () => {
     const c9 = beans('5.8 points', 'beans up 40%, so 14.5 × 0.40 = 5.8 points of increase');
     const w = claimWindow(c9.span, t9, ['To be clear about my units, beans are 5.8 points of COGS.']);
-    expect(frameOfClaim(c9, w, ctx).kind).toBe('code');
-    expect(lineFor(c9, w)?.line).toBe(REVENUE_LINE);
+    expect(frameOfClaim(c9, w, ctx)).toEqual({ kind: 'unstated', rightOn: null });
+    expect(lineFor(c9, w)).toMatchObject({ line: "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points.", converted: false });
   });
   it('"points of revenue" with their figure wins over a COGS reading it is right on', () => {
     const c = beans('10 points', 'beans are 10 points of COGS');
@@ -185,18 +186,47 @@ describe('batch 33 Marisol 31e33506: her 5.8 was revenue points — the revenue-
     expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'unstated', rightOn: { quantity: 'a share of the COGS increase' } });
     expect(lineFor(c, w)).toMatchObject({ line: "In revenue terms, that's about 4.2 points.", converted: true });
   });
-  // The guard reads each mention's own clause.
+  // The guard: a mention names the base only as the object of its own "of / in" phrase,
+  // with no change word before it and no change after it. Otherwise code's figure, no "not X".
+  const NO_NOT = "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points.";
   it.each([
-    'Beans are 5.8 points of increase, which is most of the COGS jump.',
-    'Beans are 5.8 points of increase. COGS went from 42 to 58.',
-    'Beans are 5.8 points of increase. I meant 5.8 points of COGS.',
-    'Beans are 5.8 points of increase — most of the COGS jump.',
-    'Beans are 5.8 points of increase, so most of the COGS jump.',
-    'Beans are 5.8 points of increase, but most of the COGS jump.',
-    'Beans are 5.8 points of increase: most of the COGS jump.',
-  ])('%s — a mention names no COGS base in its own clause: no "In COGS terms" line', w => {
-    const c = beans('5.8 points', 'beans are 5.8 points of increase');
-    expect(lineFor(c, w)?.line).not.toMatch(/In COGS terms/);
+    ['5.8', 'Beans are 5.8 points of increase, which is most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase. COGS went from 42 to 58.'],
+    ['5.8', 'Beans are 5.8 points of increase. I meant 5.8 points of COGS.'],
+    ['5.8', 'Beans are 5.8 points of increase — most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase—most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase, so most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase, but most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase: most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase (most of the COGS jump).'],
+    ['5.8', 'Beans are 5.8 points of increase and most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase, that is most of the COGS jump.'],
+    ['5.8', 'Beans are 5.8 points of increase, mostly COGS.'],
+    ['5.8', 'Beans are 5.8 points of the increase in COGS.'],
+    ['5.8', 'Beans are 5.8 points of the rise in COGS.'],
+    ['5.8', 'Beans are 5.8 points of increase in COGS.'],
+    ['5.8', 'Beans are 5.8 points of COGS inflation.'],
+    ['15', 'Beans are 15 points of — sorry — COGS.'],
+    ['15', 'Beans are 15 points of the total: COGS, I mean.'],
+  ])('%s: "%s" — no COGS base established: code\'s figure, no "not X"', (x, w) => {
+    const c = beans(`${x} points`, w.replace(/\.$/, '').toLowerCase());
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  // The 9ccf0836 STT shape with a wrong figure: never the revenue line's "not 12".
+  it.each([
+    "I'm saying it's twelve points of the thirty seven point five percent. increasing COGS.",
+    "I'm saying it's 12 points of the 37.5 percent. increasing COGS.",
+  ])('%s — no revenue "not 12"', w => {
+    const c = beans('12 points', w);
+    const line = lineFor(c, w)?.line ?? '';
+    expect(line).not.toMatch(/in points of revenue, is about 4\.2 points, not 12/);
+    expect(line === NO_NOT || /^In COGS terms/.test(line)).toBe(true);
+  });
+  it('"5.8 points of the COGS line\'s 16-point increase" is revenue points: the checker\'s line (the b33 t14 shape)', () => {
+    const c = beans('5.8 points', "beans are 5.8 points of the cogs line's 16-point increase");
+    const w = "Beans are 5.8 points of the COGS line's 16-point increase.";
+    expect(frameOfClaim(c, w, ctx).kind).toBe('code');
+    expect(lineFor(c, w)?.line).toBe("Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8.");
   });
   it('"5.8 points of the COGS line — most of the jump": the base named before the dash, the "In COGS terms" line', () => {
     const c = beans('5.8 points of COGS', 'beans are 5.8 points of the COGS line');

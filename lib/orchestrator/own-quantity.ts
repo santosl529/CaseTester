@@ -53,13 +53,14 @@ const REVENUE_UNITS = /^\s*(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\
 // A unit right after a figure, and points in particular.
 const UNIT_AT = /^\s*(?:-|\s)?(?:%|percent(?:age)?\b|points?\b|pp\b|pts\b)/i;
 const POINTS_AT = /^\s*(?:-|\s)?(?:percentage\s+)?(?:points?|pp|pts)\b/i;
-// Of an N-point change ("5.8 points of the 16-point COGS increase"): N, read against the base line's change.
-const N_POINT_OF = /^\s*(?:-|\s)?(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\s*of\s+(?:the\s+|that\s+|an?\s+)?(\d+(?:\.\d+)?)[-\s]?(?:percentage[-\s])?points?\b/i;
-// Of the base line's change, no size ("10 points of the COGS increase", "of COGS growth"): names no base.
-const baseChangeOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:the\\s+|that\\s+|an?\\s+)?(?:${names})\\s+(?:increase|rise|growth|jump)\\b`, 'i');
-// The clause a mention is in: up to a sentence end, ";", ":", a spaced dash,
-// ", which" / ", and" / ", so" or "but".
-const clauseOf = (tail: string) => tail.split(/[.!?](?=\s|$)|[;:]|\s[—–-]\s|,\s*(?:which|and|so)\b|,?\s+but\b/i)[0];
+// Of an N-point change ("5.8 points of the 16-point COGS increase", "of the COGS
+// line's 16-point increase"): N, read against the base line's change.
+const nPointOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:the\\s+|that\\s+|an?\\s+)?(?:(?:${names})(?:\\s+line)?['’]s\\s+)?(\\d+(?:\\.\\d+)?)[-\\s]?(?:percentage[-\\s])?points?\\b`, 'i');
+// The base named by the figure's own phrase: the object of its "of / in (the)",
+// after at most three plain words (no change word, no punctuation), and not
+// itself the head of a change ("COGS inflation", "the COGS line's increase").
+const CHANGE_WORDS = 'increases?|increasing|increased|rises?|rising|rose|growth|grow(?:s|ing)?|grew|jumps?|jumped|inflation|inflat(?:es|ed|ing)|changes?|chang(?:ed|ing)|drops?|declines?|fall|falls|up|down';
+const strictBaseOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*(?:of|in)\\s+(?:the\\s+|that\\s+|its\\s+|their\\s+|our\\s+)?(?:(?!(?:${CHANGE_WORDS}|revenue|sales|margin)\\b)(?:\\d+(?:\\.\\d+)?(?:-[a-z]+)?|[a-z][a-z'’-]*)\\s+){0,3}?(?:${names})\\b(?!['’]s\\b|\\s+line['’]s\\b|\\s+(?:${CHANGE_WORDS})\\b)`, 'i');
 
 // What follows each place their figure is said in the window: the unit and what it is "of".
 function tailsOf(window: string, figure: number): { tail: string; before: string }[] {
@@ -124,7 +125,8 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
     // 37.5-point COGS increase" is no such change.
     const bases = inRevenuePoints(st) ? basesOf(ctx, st) : [];
     const changes = bases.flatMap(b => (b.current !== undefined && b.prior !== undefined && b.current !== b.prior ? [Math.abs(b.current - b.prior)] : []));
-    const ofRevenueChange = (tail: string) => { const m = N_POINT_OF.exec(tail); return m !== null && changes.some(n => agrees(parseFloat(m[1]), n)); };
+    const nPoint = bases.length > 0 ? nPointOf(bases.map(b => b.names).join('|')) : null;
+    const ofRevenueChange = (tail: string) => { const m = nPoint?.exec(tail); return !!m && changes.some(n => agrees(parseFloat(m[1]), n)); };
     const revenuePart = (tail: string) => ofRevenueChange(tail) && POINTS_AT.test(tail);
     const revenueSaid = tails.some(t => !NOT_BEFORE.test(t.before) && (REVENUE_UNITS.test(t.tail) || revenuePart(t.tail)));
     if (inRevenuePoints(st) && value !== null && !revenueSaid) {
@@ -134,11 +136,8 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
         const onBase = value / level * 100;
         // Their figure with the base attached ("10 points of the 37.5 percent. increasing COGS"),
         // or their units named for the base anywhere ("I was saying in points of COGS").
-        // A part of the base line's change ("of the 16-point COGS increase", "of the COGS increase") names no base.
-        const baseChange = baseChangeOf(b.names);
         const namesBase = (tail: string) => new RegExp(`^\\s*(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*(?:of|in)\\s+(?:the\\s+)?(?:[^?!]{0,40}?\\s)?(?:${b.names})\\b`, 'i').test(tail)
-          && !new RegExp(`^\\s*(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:total\\s+)?(?:revenue|sales)\\b`, 'i').test(tail)
-          && !ofRevenueChange(tail) && !baseChange.test(tail);
+          && !new RegExp(`^\\s*(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:total\\s+)?(?:revenue|sales)\\b`, 'i').test(tail);
         const attached = tails.some(t => namesBase(t.tail));
         const named = [...text.matchAll(new RegExp(`\\b(?:points?|percent|%)\\s+of\\s+(?:the\\s+)?(?:${b.names})\\b(?!\\s+(?:as|is|was|were)\\b)|\\bin\\s+(?:${b.names})\\s+terms\\b|\\bon\\s+an?\\s+(?:${b.names})\\s+base\\b`, 'gi'))]
           .some(m => !NOT_BEFORE.test(text.slice(Math.max(0, m.index! - 30), m.index!)));
@@ -149,11 +148,14 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
         if ((attached || named || ofIncrease) && agrees(theirs, onBase)) return { kind: 'own_right', quantity, value: onBase };
         if (ofIncrease && share !== undefined && agrees(theirs, share)) return { kind: 'own_right', quantity: `a share of the ${b.name} increase`, value: share };
         // "In COGS terms … not X" only when every mention of their figure with a
-        // unit names the base in its own clause; otherwise the checker's
-        // revenue-terms line (Lorenzo, 19 Oct, round 4 ruling 1; batch 33 Marisol 31e33506 t14).
-        if (attached) return tails.filter(t => UNIT_AT.test(t.tail) && !NOT_BEFORE.test(t.before)).every(t => namesBase(clauseOf(t.tail)))
+        // unit names the base in its own phrase (Lorenzo, 19 Oct, round 4 ruling 1;
+        // batch 33 Marisol 31e33506 t14). Otherwise neither base is established:
+        // code's figure with no "not X" — the conversion when it is right on a
+        // reading (controller ruling, Task 27 review, 19 Oct).
+        const strict = strictBaseOf(b.names);
+        if (attached) return tails.some(t => strict.test(t.tail)) && tails.filter(t => UNIT_AT.test(t.tail) && !NOT_BEFORE.test(t.before)).every(t => strict.test(t.tail))
           ? { kind: 'own_wrong', quantity, value: onBase }
-          : { kind: 'code', basis: `another mention of their figure names no ${b.name} base` };
+          : unstated();
       }
     }
     // A bare "points" is code's unit only where the step has no other points
