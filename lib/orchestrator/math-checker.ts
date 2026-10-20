@@ -235,6 +235,7 @@ export type VetContext = {
 };
 
 export type VettedClaim = CheckerClaim & {
+  ratio?: boolean;              // its step is a ratio (unit 'ratio'): the flag key takes the figure said with x or times
   flag: boolean;                // an error the interviewer should act on
   probeLine: string | null;     // safe to speak: Rule 14's first attempt
   correctionLine: string | null; // written by code: the second attempt when code computes the quantity
@@ -348,6 +349,8 @@ function spokenFigure(x: number): string {
 const FIGURE = /\d[\d,]*(?:\.\d+)?(?:\s*%?\s*(?:to|-|–)\s*\d[\d,]*(?:\.\d+)?)?/;
 // A figure as said, with its unit: "10–12%", "5 points", "10 percentage points", "$70 million".
 const FIGURE_SAID = /(?:\$\s?)?\d[\d,]*(?:\.\d+)?(?:\s*%?\s*(?:to|-|–)\s*\d[\d,]*(?:\.\d+)?)?(?:\s?%|\s+(?:percentage\s+)?points?\b|\s+percent\b|\s?(?:million|billion|m|bn|k)\b)?/gi;
+// A ratio said with x or times: "2.5x", "2.5 times" (a ratio step, unit 'ratio').
+export const RATIO_SAID = /(\d[\d,]*(?:\.\d+)?)\s*(?:x|×|times)\b/gi;
 const HAS_UNIT = /[%$]|\bpercent|\bpoints?\b|\b(?:million|billion)\b|\d\s*(?:m|bn|k)\b/i;
 
 // The unit of the quantity, for a figure the candidate said without one.
@@ -435,7 +438,12 @@ function otherYearBase(c: CheckerClaim, ctx: VetContext): string | null {
 // index (a break-even has one per variable set). null when their value has no
 // figure or the step has no quantity to name.
 export function codeCorrection(c: CheckerClaim, at: { value: number; index: number }, ctx: VetContext): { line: string; figure: string; theirs: string } | null {
-  const said = [...normalizeNumberWords(c.candidateValue).matchAll(FIGURE_SAID)].map(m => m[0].trim());
+  const stepOf = c.codeQuantity.kind === 'step' ? ctx.caseData.mathSteps.find(s => s.id === c.codeQuantity.stepId) as { unit?: string | string[]; scale?: string } | undefined : undefined;
+  const firstUnit = Array.isArray(stepOf?.unit) ? stepOf?.unit[0] : stepOf?.unit;
+  const ratio = firstUnit === 'ratio';
+  // A ratio step's figure is the one said with x or times, written that way ("2.5 times").
+  const ratioSaid = ratio ? [...normalizeNumberWords(c.candidateValue).matchAll(RATIO_SAID)].map(m => `${m[1]} times`) : [];
+  const said = ratio ? ratioSaid : [...normalizeNumberWords(c.candidateValue).matchAll(FIGURE_SAID)].map(m => m[0].trim());
   const unit = unitOf(c, ctx);
   const inUnit = said.filter(x => unit === '%' ? /%|percent/i.test(x) : unit === ' points' ? /point/i.test(x) : true);
   const theirs = said.length === 1 ? said[0] : inUnit[0] ?? said[0];
@@ -460,14 +468,17 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
         return `With ${set.map(id => lineName(ctx, id)).join(' and ')} varying with volume, ${articleFor(q.price!)} ${q.price}% price rise breaks even at about ${articleFor(x)} ${x}% volume loss, not ${bare}.`;
       }
       case 'step': {
-        const st = ctx.caseData.mathSteps.find(s => s.id === q.stepId) as { quantity?: string; unit?: string | string[] } | undefined;
+        const st = ctx.caseData.mathSteps.find(s => s.id === q.stepId) as { quantity?: string; unit?: string | string[]; scale?: string } | undefined;
         const quantity = st?.quantity?.replace(/\s*\([^)]*\)/g, '').trim();
         if (!quantity) return null;
         // Named in words, the figure as money is written (Lorenzo, 13 Oct: never a bare number).
         const usd = (Array.isArray(st?.unit) ? st?.unit[0] : st?.unit) === 'usd';
         const shown = Math.abs(at.value) >= 1000 ? at.value.toLocaleString('en-US', { maximumFractionDigits: 1 }) : x;
-        const closer = HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}` : `${shown}${unit}`;
-        return `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${bare}.`;
+        // The "not X" side carries the same unit and scale as the figure code speaks (Lorenzo, 20 Oct: "about $9 million, not $8.8 million").
+        const million = usd && st?.scale === 'million' ? ' million' : '';
+        const closer = ratio ? `${shown} times` : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}${million}` : `${shown}${unit}`;
+        const notX = ratio ? theirs : million && !HAS_UNIT.test(theirs) ? `$${bare}${million}` : bare;
+        return `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${notX}.`;
       }
       default: return null;
     }
@@ -624,7 +635,8 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
     const tolerated = isActionable(c) ? selfCleared ?? withinTolerance(c, ctx) : null;
     if (tolerated) vetNotes.push(`flag dropped — ${tolerated}`);
     const flag = isActionable(c) && !tolerated;
-    if (!flag) return { ...c, flag, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, hintLine: null, vetNotes };
+    const ratio = c.codeQuantity.kind === 'step' && ((s => Array.isArray(s?.unit) ? s?.unit[0] : s?.unit)(ctx.caseData.mathSteps.find(s => s.id === c.codeQuantity.stepId) as { unit?: string | string[] } | undefined) === 'ratio');
+    if (!flag) return { ...c, ...(ratio ? { ratio } : {}), flag, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, hintLine: null, vetNotes };
     let probeLine: string | null = c.probe.trim() || null;
     let hintLine: string | null = null;
     if (probeLine && !speakable(probeLine, target)) { vetNotes.push(`probe withheld (provenance/truth): ${probeLine}`); probeLine = null; }
@@ -690,6 +702,6 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
         else pointerLine = pointer;
       }
     }
-    return { ...c, flag, probeLine, correctionLine, correctionFigure, pointerLine, hintLine, vetNotes };
+    return { ...c, ...(ratio ? { ratio } : {}), flag, probeLine, correctionLine, correctionFigure, pointerLine, hintLine, vetNotes };
   });
 }

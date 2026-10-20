@@ -392,6 +392,7 @@
       ],
       "verifyOnly": true,
       "quantity": "Pro LTV/CAC",
+      "unit": "ratio",
       "timeframe": "current"
     },
     {
@@ -418,6 +419,7 @@
         "plan_cac"
       ],
       "quantity": "Starter standalone LTV/CAC",
+      "unit": "ratio",
       "timeframe": "current"
     },
     {
@@ -485,6 +487,7 @@
         "plan_cac"
       ],
       "quantity": "Starter LTV/CAC including upgrades",
+      "unit": "ratio",
       "timeframe": "current"
     },
     {

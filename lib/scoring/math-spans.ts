@@ -14,7 +14,7 @@
 
 import { normalizeNumberWords } from '@/lib/number-words';
 
-export type MathUnit = 'percent' | 'points' | 'usd' | 'count';
+export type MathUnit = 'percent' | 'points' | 'usd' | 'count' | 'ratio';
 
 export type SpanStep = {
   id: string;
@@ -126,6 +126,9 @@ export function findStepSpans(rawText: string, step: SpanStep, scope: 'clause' |
       // more per passenger", "75% load factor" — Larkspur); "6 million bags" is one.
       if (units?.includes('count')) {
         if (m[1] || unit === 'percent' || unit === 'points') continue;
+      } else if (units?.includes('ratio') && !units.some(u => u !== 'ratio')) {
+        // "3.3x", "2 times" or a bare ratio — never money or a percent ("$750" is a price).
+        if (m[1] || unit !== undefined) continue;
       } else if (units && (unit === undefined || !units.includes(unit))) continue;
       if (step.scale && unit === 'usd' && scaleOf(m[3]) !== step.scale) continue;
       const start = m.index ?? 0;

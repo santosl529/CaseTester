@@ -79,7 +79,8 @@ const MathStepSchema = z.object({
   // of plan", "trigger" — and other routes' or periods' figures).
   flagNotCues: z.array(z.string().min(2)).optional(),
   // "count" (13 Oct): passengers, patients, bags — never a $ or % figure.
-  unit: z.union([z.enum(['percent', 'points', 'usd', 'count']), z.array(z.enum(['percent', 'points', 'usd', 'count'])).min(1)]).optional(),
+  // "ratio" (20 Oct): LTV/CAC, "2.5x" — said with x or times, never a $ or % figure; code says it "about 2 times".
+  unit: z.union([z.enum(['percent', 'points', 'usd', 'count', 'ratio']), z.array(z.enum(['percent', 'points', 'usd', 'count', 'ratio'])).min(1)]).optional(),
   // Money's scale (13 Oct, Larkspur): "unit" — a per-unit dollar figure
   // ($4,200 per flight); "million" — stated in $M. A figure stated at another
   // scale is not this step (lib/scoring/math-spans.ts).

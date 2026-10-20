@@ -39,7 +39,7 @@ type Kind = 'money' | 'percent' | 'count' | 'any';
 type Value = { v: number; kind: Kind; src: string; n?: number; directOnly?: boolean };
 // A bare number ("the 16 COGS points") carries no unit in the sentence: any kind will do.
 const kindOf = (f: Figure): Kind => (f.money ? 'money' : f.percent ? 'percent' : f.scale ? 'count' : 'any');
-const STEP_KIND = { usd: 'money', percent: 'percent', points: 'percent', count: 'count' } as const;
+const STEP_KIND = { usd: 'money', percent: 'percent', points: 'percent', count: 'count', ratio: 'any' } as const;
 
 // Every value the case gives, at the scales it is said in: the prompt, the
 // ledger (periods too), the exhibits' cells, the math steps' answers.

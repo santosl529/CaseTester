@@ -18,7 +18,7 @@ import type { OnUsage } from '@/lib/llm-usage';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { findStepSpans } from '@/lib/scoring/math-spans';
 import {
-  checkMathClaims, vetCheckerClaims, codeComputed, boundInput, numbersOf, quantityWords,
+  checkMathClaims, vetCheckerClaims, codeComputed, boundInput, numbersOf, quantityWords, RATIO_SAID,
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
 import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
@@ -103,7 +103,7 @@ export function startMathCheck(p: {
 // a math step's id, a pricing claim's kind, else the claim in their words.
 // The step or pricing kind plus the claimed value (Lorenzo, 13 Oct: the same
 // flag is the bound step and the value — attemptKey).
-export function checkerKey(c: CheckerClaim): string {
+export function checkerKey(c: CheckerClaim & { ratio?: boolean }): string {
   const q = c.codeQuantity;
   const at = (k: string) => { const v = claimFigures(c)[0]; return v === undefined ? k : attemptKey({ stepId: k, candidateValue: v }); };
   if (q.kind === 'step' && q.stepId) return at(q.stepId);
@@ -153,10 +153,12 @@ export function flagKeyFor(c: CheckerClaim, figs: number[], keys: Record<string,
 // 5) and the case's own figures they quote ("about 11% (6 + 5)" → 11, 5). A
 // word quantity has none: its error is the words ("fully explained … 4.2 +
 // 11.8" — both right; replay, 0bfe5f38 t19).
-export function claimFigures(c: CheckerClaim, caseNumbers: number[] = []): number[] {
+export function claimFigures(c: CheckerClaim & { ratio?: boolean }, caseNumbers: number[] = []): number[] {
   if (c.actualShare !== null) return [];
   const input = boundInput(c);
-  return numbersOf(c.candidateValue).filter(n => (input === null || !same(n, input)) && !caseNumbers.some(x => same(n, x)));
+  // A ratio step's figure is the one said with x or times ("$750; 2.5x" → 2.5, key starter_ratio@2.5; 20 Oct).
+  const ratios = c.ratio ? [...normalizeNumberWords(c.candidateValue).matchAll(RATIO_SAID)].map(m => parseFloat(m[1].replace(/,/g, ''))) : [];
+  return (ratios.length > 0 ? ratios : numbersOf(c.candidateValue)).filter(n => (input === null || !same(n, input)) && !caseNumbers.some(x => same(n, x)));
 }
 const figuresOf = (c: CheckerClaim) => claimFigures(c);
 // The figures that identify a claim: its own, else — when every one is also a
@@ -560,7 +562,7 @@ function verbatim(part: string, message: string): string | null {
 // thousands separator included ("6 to 7 points", "8,000"); null if the text doesn't hold it.
 function figureWritten(text: string, f: number): string | null {
   const forms = [...new Set([String(f), f.toLocaleString('en-US', { maximumFractionDigits: 6 })])].map(esc).join('|');
-  const m = new RegExp(`(?:\\$\\s?)?(?<![\\d.,])(?:${forms})(?![\\d,]*\\d)(?:\\s*(?:[–-]|to)\\s*\\$?\\d[\\d,]*(?:\\.\\d+)?)?(?:\\s?%|\\s+(?:percentage\\s+)?points?|\\s+percent|\\s?(?:million|billion|m|bn)\\b)?`, 'i').exec(text);
+  const m = new RegExp(`(?:\\$\\s?)?(?<![\\d.,])(?:${forms})(?![\\d,]*\\d)(?:\\s*(?:[–-]|to)\\s*\\$?\\d[\\d,]*(?:\\.\\d+)?)?(?:\\s?%|\\s+(?:percentage\\s+)?points?|\\s+percent|\\s?(?:million|billion|thousand|m|bn|k)\\b)?`, 'i').exec(text);
   return m ? m[0] : null;
 }
 // What the probe quotes. The claim's own figure (its value's, not a case figure), as written in its span or message.

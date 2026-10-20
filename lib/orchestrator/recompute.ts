@@ -157,7 +157,7 @@ export function verifiedFromChecks(claims: ArithmeticClaim[], unitVerified: Unit
 // there is one, so another figure of the same value isn't picked up.
 export function figureAsWritten(text: string, figure: number): string {
   const n = String(figure).replace('.', '\\.');
-  const m = new RegExp(`(?:\\$\\s?)?(?<![\\d.])${n}(?:\\s?%|\\s+(?:percentage\\s+)?points?|\\s+percent|\\s?(?:million|billion|m|bn)\\b)?`, 'i').exec(text);
+  const m = new RegExp(`(?:\\$\\s?)?(?<![\\d.])${n}(?:\\s?%|\\s+(?:percentage\\s+)?points?|\\s+percent|\\s?(?:million|billion|thousand|m|bn|k)\\b)?`, 'i').exec(text);
   return m ? m[0] : String(figure);
 }
 
