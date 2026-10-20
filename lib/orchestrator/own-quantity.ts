@@ -57,8 +57,9 @@ const POINTS_AT = /^\s*(?:-|\s)?(?:percentage\s+)?(?:points?|pp|pts)\b/i;
 const N_POINT_OF = /^\s*(?:-|\s)?(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\s*of\s+(?:the\s+|that\s+|an?\s+)?(\d+(?:\.\d+)?)[-\s]?(?:percentage[-\s])?points?\b/i;
 // Of the base line's change, no size ("10 points of the COGS increase", "of COGS growth"): names no base.
 const baseChangeOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:the\\s+|that\\s+|an?\\s+)?(?:${names})\\s+(?:increase|rise|growth|jump)\\b`, 'i');
-// The clause a mention is in: up to a sentence end or ", which" / ", and".
-const clauseOf = (tail: string) => tail.split(/[.!?](?=\s|$)|;|,\s*(?:which|and)\b/i)[0];
+// The clause a mention is in: up to a sentence end, ";", ":", a spaced dash,
+// ", which" / ", and" / ", so" or "but".
+const clauseOf = (tail: string) => tail.split(/[.!?](?=\s|$)|[;:]|\s[—–-]\s|,\s*(?:which|and|so)\b|,?\s+but\b/i)[0];
 
 // What follows each place their figure is said in the window: the unit and what it is "of".
 function tailsOf(window: string, figure: number): { tail: string; before: string }[] {

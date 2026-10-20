@@ -190,9 +190,17 @@ describe('batch 33 Marisol 31e33506: her 5.8 was revenue points — the revenue-
     'Beans are 5.8 points of increase, which is most of the COGS jump.',
     'Beans are 5.8 points of increase. COGS went from 42 to 58.',
     'Beans are 5.8 points of increase. I meant 5.8 points of COGS.',
+    'Beans are 5.8 points of increase — most of the COGS jump.',
+    'Beans are 5.8 points of increase, so most of the COGS jump.',
+    'Beans are 5.8 points of increase, but most of the COGS jump.',
+    'Beans are 5.8 points of increase: most of the COGS jump.',
   ])('%s — a mention names no COGS base in its own clause: no "In COGS terms" line', w => {
     const c = beans('5.8 points', 'beans are 5.8 points of increase');
     expect(lineFor(c, w)?.line).not.toMatch(/In COGS terms/);
+  });
+  it('"5.8 points of the COGS line — most of the jump": the base named before the dash, the "In COGS terms" line', () => {
+    const c = beans('5.8 points of COGS', 'beans are 5.8 points of the COGS line');
+    expect(lineFor(c, 'Beans are 5.8 points of the COGS line — most of the jump.')?.line).toBe("In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 5.8.");
   });
   it('"5.8 points of COGS": the "In COGS terms" line', () => {
     const c = beans('5.8 points of COGS', 'beans are 5.8 points of COGS');
