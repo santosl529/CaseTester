@@ -157,6 +157,19 @@ entries of the list it splits into). A prompt fact may carry no figure when
 the prompt states it only in words (Larkspur's `planes_as_full`, direction
 flat): it is restated by its `say`.
 
+**Covers for the forms candidates use (20 Oct, round 5).** B1 and B2 refused
+held data for "treatment mix", "breakdown by drug class", "store count",
+"distribution rate", "chip volume" and "forecast versus actual" (D1–D5). Audit
+covers for the mix / breakdown-by / how-many / store-count / trend forms of
+every landscape and reach item. No bare category word ("distribution" would
+also take "distribution costs", which are freight). A count ask ("how many …",
+"number of …") of an item whose value states no figure gets the item's line
+(when it isn't out yet) and "I don't have the number of …", unless a cover carries the count ("how many
+stores" keeps `retailer_support` whole; the count rule is proposed, awaiting
+Lorenzo). A one-off, upfront or setup cost asked of an item that states only an
+annual or monthly figure is a finer cut the same way. Add each batch ask
+verbatim, and a true-refusal probe per cover, to `evals/anchor-probes.json`.
+
 **`ledgerLookupLive` (13 Oct).** The exact lookup also reads ledger lines no
 exhibit shows, figure by figure, for the quantity named next to each
 (`lib/orchestrator/cell-lookup.ts`). Write such lines so each figure sits next
@@ -203,10 +216,22 @@ false revenue-per-store error in most reports. Each step now declares:
   within five words of it in the same clause (clauses split at "but", "so",
   commas, dashes). Pick phrases a candidate uses when stating *this* quantity,
   not words that describe its inputs — "COGS" as a cue for the dollar-impact
-  step matched "$280 million COGS", a spend figure.
-- `unit` (`percent` | `points` | `usd`) — when set, only numbers that state
-  this unit count. Unitless ratios and hypotheticals ("1 minus 0.94") are too
-  weak to attribute. Set it on every step whose answer has a natural unit.
+  step matched "$280 million COGS", a spend figure. **Since round 5 (20 Oct,
+  E6) the live stale reader reads them too:** a later figure closes the step's
+  flag when it is tied to a phrase whose head noun a cue (or the checker's
+  quantity) names. The engine adds no synonyms (Lorenzo), so the case's own
+  words for the quantity belong here: launch-001's `launch_costs_total` takes
+  "fixed costs" (Hollis Bay Tyler's "fixed costs $3.0 + $4.5 + $1.5 = $9.0
+  million").
+- `unit` (`percent` | `points` | `usd` | `ratio`) — when set, only numbers that
+  state this unit count. Unitless ratios and hypotheticals ("1 minus 0.94") are
+  too weak to attribute. Set it on every step whose answer has a natural unit.
+  `ratio` (20 Oct, E3) is for a multiple such as LTV/CAC (pricing-001's
+  `pro_ratio`, `starter_ratio`, `starter_ratio_with_upgrades`): it reads
+  "2.5x", "2 times" or a bare figure, never a $ or % figure; code's line says
+  "about 2 times", never "$2"; the claim is keyed by its x / times figure. A
+  `usd` step at `scale: "million"` gets "about $9 million, not $8.8 million"
+  for a bare "8.8".
 - `inputs` — the ledger item ids the step derives from. The step is checked
   only after all of them are revealed (live) or were revealed at some point
   (scoring). Leave empty only for steps derivable from the case prompt alone.
@@ -333,6 +358,19 @@ not in the title: the title is read aloud at handover ("Here's an exhibit: …")
 and sits in the interviewer's prompt before anything is released. Every figure
 in the notes must be in a sentence the exhibit covers, like its cells
 (consistency test).
+
+**Notes are read by the candidate (20 Oct, D6, Lorenzo).** The chat and the
+voice room's exhibit panel show them under the table, and since round 5 the
+simulated candidate gets them too (`exhibitAsText`: the rows, then
+`Note: <notes>`; before that, waves never saw them). Write them for the
+candidate. Keep notes as notes; never move them into rows. Every item in
+`coversLedgerItems` must have its figures and key words (words of seven or
+more letters) somewhere on the exhibit: cells, column headers, title or notes
+(consistency test). An item that came out only on an exhibit is restated as
+"As the exhibit shows: <its ledger line>", one that was said as "As I
+mentioned: …" (`restate_exhibit` pool), so a ledger line should read after
+either lead-in. One that opens "As …" reads twice ("As the exhibit shows: As a
+share of revenue…", prof-001; cosmetic, logged).
 
 ## The analysis ask's lead (13 Oct)
 
