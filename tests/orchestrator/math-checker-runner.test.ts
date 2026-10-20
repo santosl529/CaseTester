@@ -205,6 +205,40 @@ describe('a final answer\'s flag raised on a model turn', () => {
   });
 });
 
+// Lorenzo, 19 Oct (round-2 ruling 4): a root inherits the highest rating riding on it — its line, heard on a model
+// turn, is the final answers' one extra probe when a claim built on it is in them, keyed by the root.
+describe('a root whose rider is a final answer, raised on a model turn', () => {
+  beforeEach(seed);
+  it('counts as the root\'s probe in the final answers', async () => {
+    const startedAt = new Date(Date.now() - 15 * 60_000);
+    store.session = {
+      ...store.session, phase: 'RECOMMENDATION', startedAt,
+      flagsJsonb: { ...(store.session.flagsJsonb as Row), moves: { 4: 'brainstorm', 6: 'recommendation' }, stall: { recommendationDelivered: true }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const } } },
+    };
+    const PRICE = 'A 10% price increase recovers about 5 points of margin.';
+    const REPLY = 'My recommendation is to raise menu prices, so margin goes 6 + 5 = 11%.';
+    const more = [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: PRICE }, { role: 'interviewer', text: 'What do you recommend?' },
+      { role: 'candidate', text: REPLY }, { role: 'interviewer', text: 'How would you sequence it?' },
+    ];
+    store.turns.push(...more.map((t, i) => ({ id: `x${i}`, sessionId: 's1', turnIndex: 3 + i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null })));
+    store.exhibits = [{ id: 'e0', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: startedAt.getTime() }];
+    const vetted = { flag: true, correctionLine: null, correctionFigure: null, pointerLine: null, vetNotes: [] };
+    const root = { span: 'A 10% price increase recovers about 5 points of margin', quantity: 'margin gain', candidateValue: 'about 5 points', assumptions: '', verdict: 'error', correctValue: 8.5, correctLow: null, correctHigh: null,
+      unit: 'points', derivation: '', errorType: 'conceptual', changesConclusion: false, confidence: 'high', probe: '', pointer: '', codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null }, actualShare: null,
+      ...vetted, probeLine: 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?' };
+    const rider = { ...root, span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', candidateValue: '11%', correctValue: 14.5, changesConclusion: true,
+      codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null }, probeLine: 'Walk me through how you got to 11%.' };
+    for (const [n, claims] of [[5, [root]], [7, [rider]]] as const) {
+      store.events.push({ sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: n, phase: 'RECOMMENDATION', payloadJsonb: { candidateTurnIndex: n, latencyMs: 6000, model: 'claude-sonnet-5-5', claims, codeFlags: [], stamps: [] } });
+    }
+    const r9 = await runTurn('s1', 'I would sequence pricing first, then procurement.');
+    expect(r9.interviewerText).toContain('Which cost lines did you include?');
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: [{ key: 'pricing:gain@5', at: 9 }] });
+  });
+});
+
 // Lorenzo, 16 Oct (batches 23–28: 19 of 60 closed before the final answers were checked).
 describe('a final answer not yet checked: the stage\'s follow-up, not the close', () => {
   beforeEach(seed);

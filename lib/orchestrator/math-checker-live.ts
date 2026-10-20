@@ -400,6 +400,10 @@ export type CheckerSelection = {
   riders?: { id: string; candidateTurnIndex: number; claim: VettedClaim }[];
   // A restatement's: flags waiting whose own correction is the line it says, word for word — corrected by it (booked only if it is said).
   covers?: { id: string; candidateTurnIndex: number; key: string; claim: VettedClaim; line: string }[];
+  // The highest rating among the claims riding on it, its own included — the close hold reads it, not the root's own
+  // claim (Lorenzo, 19 Oct, round-2 ruling 4): conclusion-changing if one is; its messages in the final answers, each
+  // with its hold rank (the best claim there; plan-turn drops a redo's).
+  rating?: { changesConclusion: boolean; final: { n: number; rank: number }[] };
 };
 // A line that states the right figure — a correction, or its restatement (ruling 1): no probe; it rides on an overdue stage turn and goes first.
 export const correctsNow = (s: Pick<CheckerSelection, 'action'>) => s.action === 'correct' || s.action === 'restate';
@@ -716,6 +720,11 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const final = (x: { n: number; key: string }) => Number(isFinal(x));
   const rank = (x: { n: number; c: VettedClaim; key: string }) => (p.rank ? Math.max(0, ...[x, ...riding(x)].filter(y => p.finalAnswer?.(y.n)).map(y => p.rank!(y.n, y.c))) : 0);
   const changes = (x: { c: VettedClaim; key: string }) => x.c.changesConclusion || riding(x).some(d => d.c.changesConclusion);
+  const ratingOf = (x: { n: number; c: VettedClaim; key: string }): NonNullable<CheckerSelection['rating']> => {
+    const final = new Map<number, number>();
+    for (const y of [x, ...riding(x)].filter(y => p.finalAnswer?.(y.n))) final.set(y.n, Math.max(final.get(y.n) ?? 0, p.rank?.(y.n, y.c) ?? 0));
+    return { changesConclusion: changes(x), final: [...final].sort((a, b) => a[0] - b[0]).map(([n, rank]) => ({ n, rank })) };
+  };
   // A restatement before the other flags of its rating (ruling 1): the error it closes is still in use (b29 Jordan t9:
   // before a second correction of the same 38, "~40 points", whose line was the root's word for word). Below a
   // conclusion-changing flag when it is minor — the controller's middle ordering (review, 19 Oct): held, final, rank,
@@ -786,6 +795,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     } else waiting.push(e);
   }
   if (selected && riders.length > 0) selected = { ...selected, riders };
+  if (selected) { const s = selected; selected = { ...s, rating: ratingOf({ n: s.candidateTurnIndex, c: s.claim, key: s.key }) }; }
   // A flag waiting whose own correction is the line a restatement says — the root's delivered line, or the restatement
   // itself — word for word is corrected by it (the controller's ruling on Task 11, option c; b29 Jordan ea27d1f6 t9:
   // 5:6 "~40 points", keyed apart because 40 is a case figure, had the root's correction as its own): it closes and is

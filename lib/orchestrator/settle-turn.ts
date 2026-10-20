@@ -834,7 +834,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     // checker's line heard on a model turn.
     const holdPrev = (flags.closeHold as CloseHoldMemory | undefined) ?? {};
     const holdFrom = state.closeHoldPlan.from;
-    const finalLineHeard = checkerLine !== null && checkerHeard === true && holdFrom !== null && Number(checkerLine.id.split(':')[0]) >= holdFrom;
+    // A root's line counts there when a claim riding on it is a final answer (Lorenzo, 19 Oct, round-2 ruling 4): keyed by the root.
+    const finalLineHeard = checkerLine !== null && checkerHeard === true && holdFrom !== null && (Number(checkerLine.id.split(':')[0]) >= holdFrom || checkerLine.final === true);
     const probedNow = [...(kind === 'rec_math_probe' && qHeard && state.closeHoldPlan.probeKey ? [state.closeHoldPlan.probeKey] : []), ...(finalLineHeard ? [checkerLine.key] : [])];
     const closeHoldSaved: CloseHoldMemory = {
       ...(holdPrev.waits?.length || (kind === 'close_wait' && qHeard) ? { waits: [...(holdPrev.waits ?? []), ...(kind === 'close_wait' && qHeard ? [nextTurnIndex] : [])] } : {}),

@@ -85,6 +85,7 @@ export type ModelState = ModelPlan['state'];
 export type CheckerLinePlan = {
   id: string; key: string; action: CheckerSelection['action']; line: string;
   wasHeld?: boolean;   // held back once already by a due stage: not held again
+  final?: boolean;     // in the final answers, a rider's included (ruling 4): heard, it is the root's one extra probe there (close-hold.ts)
   undo: { attempt: number | undefined; step: string | null; mathChecker: CheckerMemory };
 };
 // flags.mathChecker. held: a line a due stage question held back (Settle), until it is raised or decided.
@@ -963,8 +964,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     : closedRec && finalAnswer(closedRec.n) ? closedRec.key : null;
   let finalHold = false;
   const holdable = kind === 'close' && !timeUp && wrapUps > 0;
-  const finalSel = (s: CheckerSelection | null) => s !== null && finalAnswer(s.candidateTurnIndex) && !isRedo(s.candidateTurnIndex, candidateIndexes, closeHold)
-    && !probedAlready(s.key, s.candidateTurnIndex, closeHold, candidateIndexes);
+  // A root holds the close with the highest rating riding on it (Lorenzo, 19 Oct, round-2 ruling 4; round-1 final review:
+  // a minor carried root whose rider was in the recommendation got no hold — both went to unresolved_at_close): a final
+  // answer of its own or a rider's, the redo's apart, the best rank among them, and conclusion-changing if one is.
+  // The once-per-figure limits stay keyed by the root (probedAlready, heldCloseHold).
+  const ratingOf = (s: CheckerSelection) => s.rating ?? { changesConclusion: s.claim.changesConclusion, final: finalAnswer(s.candidateTurnIndex) ? [{ n: s.candidateTurnIndex, rank: rank(s.candidateTurnIndex, s.claim) }] : [] };
+  const holdsFinal = (s: CheckerSelection) => ratingOf(s).final.filter(f => !isRedo(f.n, candidateIndexes, closeHold) && !probedAlready(s.key, f.n, closeHold, candidateIndexes));
+  const finalSel = (s: CheckerSelection | null) => s !== null && holdsFinal(s).length > 0;
+  const selRank = (s: CheckerSelection) => Math.max(0, ...holdsFinal(s).map(f => f.rank));
   // A final answer's flag released this turn (the gate), the redo's apart.
   const codeFinal = holdable
     ? liveFlags.filter(f => finalAnswer(fromOf(f)) && !isRedo(fromOf(f), candidateIndexes, closeHold)
@@ -977,10 +984,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // first — when it is in the recommendation, or the larger error.
   if (codeFinal && !sel) {
     const alt = planCheckerFlags({ ...checkerInput, currentFlags: [], codeLineThisTurn: false });
-    if (alt.selected && finalSel(alt.selected) && rank(alt.selected.candidateTurnIndex, alt.selected.claim) > codeRank) { checkerPlan = alt; sel = alt.selected; }
+    if (alt.selected && finalSel(alt.selected) && selRank(alt.selected) > codeRank) { checkerPlan = alt; sel = alt.selected; }
   }
-  const selFinal = sel !== null && finalAnswer(sel.candidateTurnIndex);
-  const checkerFirst = sel !== null && finalSel(sel) && codeFinal !== undefined && rank(sel.candidateTurnIndex, sel.claim) > codeRank;
+  const selFinal = sel !== null && ratingOf(sel).final.length > 0;
+  const checkerFirst = sel !== null && finalSel(sel) && codeFinal !== undefined && selRank(sel) > codeRank;
   if (codeFinal && !checkerFirst) {
     kind = 'rec_math_probe';
     recMathProbe = { flag: codeFinal, action: recomputeAction(codeFinal, recomputeAttempts[attemptKey(codeFinal)] ?? 1, false) };
@@ -992,7 +999,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     finalProbeKey = sel.key;
     finalHold = true;
     heldCloseHold = sel.id === heldLine && !flags.heldCloseHold;
-  } else if (holdable && sel?.claim.changesConclusion && !selFinal && !flags.recMathProbed) {
+  } else if (holdable && sel && ratingOf(sel).changesConclusion && !selFinal && !flags.recMathProbed) {
     kind = 'rec_math_probe';
     recMathProbe = { checker: sel, action: correctsNow(sel) ? 'correct' : 'probe' };
   } else if (holdable && sel && !selFinal && sel.id === heldLine && !flags.heldCloseHold) {
@@ -1100,6 +1107,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     const handledUndo = [...checkerHandled, ...checkerHandledNow.filter(id => id !== checkerUsed.id && !riderIds.includes(id))];
     checkerLine = {
       id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line, ...(checkerUsed.id === heldLine ? { wasHeld: true } : {}),
+      ...(ratingOf(checkerUsed).final.length > 0 ? { final: true } : {}),
       undo: {
         attempt: attemptBeforeChecker, step: checkerStepOwn,
         mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}), ...(heldLine ? { held: heldLine } : {}), ...convertedKept, ...fixesKept },

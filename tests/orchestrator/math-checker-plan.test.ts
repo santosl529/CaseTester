@@ -343,6 +343,55 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
   });
 });
 
+// Lorenzo, 19 Oct (round-2 ruling 4): "Close hold: a root inherits the highest
+// rating among the claims riding on it." A minor root before the final answers,
+// a claim built on it in the recommendation reply that changes the conclusion.
+describe('the close hold reads the highest rating riding on a root (ruling 4)', () => {
+  const CORE = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change', 'menu_price_change'];
+  const REPLY = 'My recommendation is to raise menu prices, so margin goes 6 + 5 = 11%.';
+  const RISK = 'The biggest risk is volume loss; I would pilot it first.';
+  const stages = { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 }, pending: 'risk' as const };
+  const reads = (flags: Record<string, unknown> = {}) => readsFixture({
+    phase: 'RECOMMENDATION', elapsedMs: 17 * 60 * 1000, revealed: CORE,
+    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, stageEvidence: stages, ...flags },
+    extraTurns: [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What do you recommend?' },
+      { role: 'candidate', text: REPLY }, { role: 'interviewer', text: 'What is the biggest risk?' },
+    ],
+  });
+  const root = verdict(5, { claims: [{ ...flagged, changesConclusion: false }] });
+  const rider: VettedClaim = { ...flagged, span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', candidateValue: '11%', correctValue: 14.5, changesConclusion: true,
+    codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null }, probeLine: 'Walk me through how you got to 11%.', correctionLine: null, correctionFigure: null };
+  const rows = () => [root, verdict(7, { claims: [rider] })];
+
+  it('a minor root whose rider is in the final answer and changes the conclusion: the close is held for it', () => {
+    const p = modelState(planTurn(withVerdict(reads(), rows()), RISK, deps()));
+    expect(p.state.kind).toBe('rec_math_probe');
+    expect(p.state.recMathProbe).toEqual(expect.objectContaining({ checker: expect.objectContaining({ id: '5:0', key: 'pricing:gain@5' }) }));
+    // A final answer's hold, keyed by the root: once per figure.
+    expect(p.state.closeHoldPlan).toEqual({ from: 7, probeKey: 'pricing:gain@5', hold: true });
+    expect((p.ctx.flags.mathChecker as { handled: string[] }).handled).toEqual(expect.arrayContaining(['5:0', '7:0']));
+    expect(p.ctx.events).not.toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ outcome: 'unresolved_at_close' }) }));
+  });
+  it('the same root again: no second hold — the close, both to the report', () => {
+    const p = modelState(planTurn(withVerdict(reads({ closeHold: { probed: [{ key: 'pricing:gain@5', at: 3 }] } }), rows()), RISK, deps()));
+    expect(p.state.kind).toBe('close');
+    for (const id of ['5:0', '7:0']) expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id, outcome: 'unresolved_at_close' }) }));
+  });
+  it('the selection carries the riders\' rating: conclusion-changing, its final answers and rank', () => {
+    const sel = planCheckerFlags({ rows: rows() as never, handled: [], turnRows: [5, 7].map(i => ({ turnIndex: i, role: 'candidate', text: i === 5 ? CLAIM : REPLY })), candidateText: RISK, candidateTurnIndex: 9,
+      currentFlags: [], attempts: {}, underTimePressure: false, candidateFigures: [], caseData: getCaseById('prof-001'), revealedIds: CORE, finalAnswer: n => n >= 7, rank: n => (n === 7 ? 1e6 : 0) }).selected;
+    expect(sel).toMatchObject({ id: '5:0', claim: { changesConclusion: false }, rating: { changesConclusion: true, final: [{ n: 7, rank: 1e6 }] } });
+  });
+  // Before the final answers the conclusion-changing hold reads the riders' rating too (once a case).
+  it('before the recommendation: a minor root with a conclusion-changing rider holds the close once a case', () => {
+    const early = (flags: Record<string, unknown> = {}) => reads({ stageEvidence: { ...stages, recommendation: { delivered: true, deliveredAt: 10, asks: 1, outcome: 'answered' as const } }, ...flags });
+    expect(modelState(planTurn(withVerdict(early(), rows()), RISK, deps())).state.kind).toBe('rec_math_probe');
+    expect(modelState(planTurn(withVerdict(early({ recMathProbed: true }), rows()), RISK, deps())).state.kind).toBe('close');
+  });
+});
+
 describe('a closed error said again in the recommendation (Lorenzo, 13 Oct; Jordan 099f33e9 t25)', () => {
   it("code's correction again, its figure licensed for the provenance audit", () => {
     // The reply (message 5) said the closed figure again; its verdict flags it (the gate); message 7 is now.
