@@ -342,7 +342,8 @@ describe('the stale check — a late verdict on a claim since revised or withdra
     const MARCUS_T9 = "Let me actually do it rather than hand-wave, because I think I was sloppy.\n\nSet revenue today at 100. Costs are 58 COGS, 22 labor, 14 overhead, total 94, profit 6. If I raise prices by x and volume holds, revenue becomes 100(1+x) and the dollar costs stay at 94. For a 24% margin I need 94/(1+x) = 76, so 1+x = 1.237 — about a 24% price increase, not 15-20%. I conflated the percentage-point gap with a price change, which isn't the same thing. So my earlier number was understated.";
     const owen = vetted({ span: "to recover the 16 points of COGS they'd need high-single-digit to low-double-digit price increases, phased", candidateValue: '~8-12%', correctValue: 20.5, correctionLine: null, codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 16 } });
     const OWEN_T15 = "Let me actually run it, because I think I was loose.\n\nTake revenue of 100 today: COGS 58, labor 22, overhead 14, profit 6. If I raise prices 10% and volume holds, revenue goes to 110 and costs stay at 94 in dollars, so profit is 16 — a 14.5% margin. Better, but not 24%.\n\nTo get back to 24%: (R − 94)/R = 0.24, so R = 94/0.76 = 123.7. That's roughly a 24% price increase. So my earlier range was wrong — I was anchoring on the 16 point gap without accounting for the fact that price flows straight to the bottom line. Call it high-teens to mid-twenties to fully restore, which is a much harder ask.";
-    const marisol = vetted({ span: '22.1 points of input inflation against a 9.7-point gap means inflation over-explains by more than double.', candidateValue: '22.1 vs 9.7, more than double', correctValue: 16, correctionLine: null, codeQuantity: NONE });
+    // Quantities as the checker wrote them in 0f7551c2 t13 (the rebased branch reads them since round-4 ruling 3).
+    const marisol = vetted({ span: '22.1 points of input inflation against a 9.7-point gap means inflation over-explains by more than double.', quantity: 'over-explanation of COGS gap by inflation', candidateValue: '22.1 vs 9.7, more than double', correctValue: 16, correctionLine: null, codeQuantity: NONE });
     const MARISOL_T15 = "Ah — no, they're not. 48.3 is dollars on today's revenue of 115, but 58 is a percentage. I have to convert it: 58% of 115 is 66.7.\n\nSo the gap is 66.7 minus 48.3, which is 18.4 points of extra COGS dollars on an index where two years ago revenue was 100.\n\nNow against inflation: my 16.0 points of inflation came off the two-years-ago base of 42, so that's also in old dollars. Scaling it up by the 15% revenue growth gives 16.0 times 1.15, about 18.4. That matches the 18.4 gap almost exactly.";
     it('Marcus f8ed869d t9: "1+x = 1.237 — about a 24% price increase" answers his "15-20%" (no correction at t10)', () => {
       expect(isStale(marcus, [MARCUS_T9], prof, COSTS)).not.toBeNull();
@@ -361,8 +362,8 @@ describe('the stale check — a late verdict on a claim since revised or withdra
     });
     it('Marisol 0f7551c2: her t15 redo answers the t13 gap (9.7) and what she built on it (6.3 = 16.0 − 9.7) — no probe of either at t16', () => {
       const T13 = 'So inflation accounts for 16 points of added cost, and the COGS gap I measured on a consistent base was 9.7. Inflation still over-explains, now by about 6.3 points rather than double. So the direction holds: input prices fully explain the COGS rise, and the client has clawed back roughly 6 points somewhere — probably procurement or mix.';
-      const gap = vetted({ span: 'the COGS gap I measured on a consistent base was 9.7', candidateValue: '9.7 points', correctValue: 16, correctionLine: null, codeQuantity: NONE, probeLine: 'Walk me through how you got to 9.7 points.' });
-      const over = vetted({ span: 'Inflation still over-explains, now by about 6.3 points ... the client has clawed back roughly 6 points somewhere', candidateValue: '6.3 points', correctValue: 0, correctionLine: null, codeQuantity: NONE, probeLine: 'Walk me through how you got to 6.3 points.' });
+      const gap = vetted({ span: 'the COGS gap I measured on a consistent base was 9.7', quantity: 'COGS margin gap', candidateValue: '9.7 points', correctValue: 16, correctionLine: null, codeQuantity: NONE, probeLine: 'Walk me through how you got to 9.7 points.' });
+      const over = vetted({ span: 'Inflation still over-explains, now by about 6.3 points ... the client has clawed back roughly 6 points somewhere', quantity: 'over-explanation of COGS gap by inflation', candidateValue: '6.3 points', correctValue: 0, correctionLine: null, codeQuantity: NONE, probeLine: 'Walk me through how you got to 6.3 points.' });
       const p = planCheckerFlags(input({
         rows: [verdictRow(13, [gap, over])],
         turnRows: [{ turnIndex: 13, role: 'candidate', text: T13 }, { turnIndex: 14, role: 'interviewer', text: 'Which revenue base is that 58 on, and is the 48.3 on the same base?' }],
@@ -384,9 +385,10 @@ describe('the stale check — a late verdict on a claim since revised or withdra
       expect(isStale(c, ['So it takes about a 20% price increase.'], prof, COSTS)).toMatch(/right figure \(20\)/);
       expect(isStale(owen, ['A 24% price rise recovers the 18 points.'], prof, COSTS)).toBeNull();   // a scenario, not the answer
     });
-    it('a rebased figure needs its base said (a bare "18.4" is no redo)', () => {
+    it('a rebased figure needs its base said (a bare "18.4" is no redo) — and, since round-4 ruling 3, its quantity named', () => {
       expect(isStale(marisol, ['Inflation is 18.4 points, and that is the story.'], prof, COSTS)).toBeNull();
-      expect(isStale(marisol, ['Scaled to today\'s revenue, that is 18.4 points.'], prof, COSTS)).not.toBeNull();
+      expect(isStale(marisol, ['Scaled to today\'s revenue, the COGS gap is 18.4 points.'], prof, COSTS)).not.toBeNull();
+      expect(isStale(marisol, ['Scaled to today\'s revenue, that is 18.4 points.'], prof, COSTS)).toBeNull();   // names no quantity
     });
     it('built on: only on a figure answered, not restated; and a total of flagged figures is no operand', () => {
       const root = vetted({ span: 'Beans add 5.8 points of revenue to COGS', candidateValue: '5.8 points', correctValue: 4.2, correctionLine: null, codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null } });
@@ -425,6 +427,44 @@ describe('the stale check — a late verdict on a claim since revised or withdra
       ['a concession, unasked and naming nothing', owen, 'I think I was loose on the competitor point.'],
       ['the wrong figure itself on another base', marisol, 'Inflation is 22.1 points against a 9.7-point gap.'],
     ] as [string, VettedClaim, string][])('not stale — %s: %s', (_, c, text) => expect(isStale(c, [text], prof, COSTS)).toBeNull());
+  });
+  // Lorenzo, 19 Oct (round-4 ruling 3): a figure closes a flag as stale only
+  // when it is stated for the claim's own quantity — the 15 Oct redo rule
+  // applied to the stale check.
+  describe("a figure closes a flag only when stated for the claim's own quantity (b33 Blake cb23e17b t17)", () => {
+    const blake = vetted({
+      span: 'A 10–12% price increase on a flat cost base recovers roughly 6 to 7 points of margin', quantity: 'Margin points recovered by a 10–12% price rise at flat costs',
+      candidateValue: '6 to 7 points', correctValue: null, correctLow: 8.5, correctHigh: 10.1, unit: 'percentage points', changesConclusion: false,
+      codeQuantity: { kind: 'gain', stepId: null, price: 12, target: null }, correctionLine: null, correctionFigure: null,
+    });
+    const BLAKE_T19 = "The single biggest risk is that the price increase doesn't stick — that volume falls more than I've assumed. My whole recommendation rests on a 2–3% volume loss against a 10–12% price increase, and that number is a benchmark, not something we've tested on this customer base. If elasticity is actually closer to one, I lose the entire margin recovery and I've also lost traffic, which is much harder to win back than price is to roll back.\n\nMitigation is the pilot. Three to five markets, representative mix of urban and suburban, run it for eight to twelve weeks, measure transaction counts and ticket size against matched control stores. If volume holds, roll national. If it doesn't, I shift weight onto procurement and the non-dairy surcharge, which don't carry the same traffic risk.\n\nThe second-order risk is that input costs keep climbing eight points a year, in which case pricing is a treadmill and the real fix is contract hedging.";
+    it('t19: the "10" of "a 10–12% price increase" is the price, not the gain — the flag stays open', () => {
+      expect(isStale(blake, [BLAKE_T19], prof, COSTS)).toBeNull();
+    });
+    it('the price said again in a sentence naming the gain is still its input, not the gain', () => {
+      expect(isStale(blake, ['A 10–12% price increase gets most of the margin back.'], prof, COSTS)).toBeNull();
+    });
+    it('an unasked concession beside the price withdraws nothing: the price is no redo of the gain', () => {
+      expect(isStale(blake, ['I was loose on elasticity. My plan still rests on a 10–12% price increase.'], prof, COSTS)).toBeNull();
+    });
+    it('a true redo, the right figure in a sentence naming the quantity: stale', () => {
+      expect(isStale(blake, ['On a flat cost base the margin gain is really 8.5 to 10 points.'], prof, COSTS)).toMatch(/right figure \(8\.5\)/);
+      // b33 Sofia f86f6530 t17, verbatim: her 10% price rise redone to 8.5 points of margin.
+      const sofia = vetted({ span: 'A 10% price increase recovers about 25 percentage points of revenue against that bean exposure alone', quantity: 'margin points recovered by a 10% price rise (versus bean exposure)', candidateValue: 'about 25 percentage points of revenue', correctValue: 8.5, codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } });
+      expect(isStale(sofia, ['So a 10% increase recovers about 8.5 points of margin, taking us from 6% to roughly 14.5%. Not all the way back to 24% — that would need closer to a 22% price rise.'], prof, COSTS)).toMatch(/right figure \(8\.5\)/);
+    });
+    it('b33 Marisol 31e33506 t11/t17: "11.8%" as a margin is no redo of her other-inputs claim (right 11.8 points)', () => {
+      const other = vetted({ span: 'Everything else up 37.5%... call it roughly 2 points each', quantity: "Other inputs' contribution to the COGS increase", candidateValue: 'about 2 points each, ~6 total', correctValue: 11.8, codeQuantity: { kind: 'step', stepId: 'non_bean_points_added', price: null, target: null } });
+      expect(isStale(other, ['Beans are 5.8 points of the 16-point COGS increase. If we could hold bean costs at the old level, margin goes from 6% to roughly 11.8% — so call it 12%.'], prof, COSTS)).toBeNull();
+      expect(isStale(other, ['I took the 5.8 points and added it straight onto the current 6% margin, which got me to 11.8%, call it 12%.'], prof, COSTS)).toBeNull();
+      // Said for the other inputs, it is the redo.
+      expect(isStale(other, ['The other inputs add 11.8 points.'], prof, COSTS)).toMatch(/right figure \(11\.8\)/);
+    });
+    it('a needed claim: its right figure said bare, for another quantity, closes nothing; as the price answer it does', () => {
+      const needed = vetted({ span: 'they need something like a 15-20% effective price increase to get back toward 24%', quantity: 'price increase needed to restore a 24% margin', candidateValue: '15-20%', correctValue: 23.7, correctionLine: null, codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } });
+      expect(isStale(needed, ['Their COGS dollars grew 23.7% over the period.'], prof, COSTS)).toBeNull();
+      expect(isStale(needed, ['So the menu needs to go up about 23.7%.'], prof, COSTS)).not.toBeNull();
+    });
   });
   it('a math step restated since at another figure (R2, 19 Oct: at the same figure the error stands)', () => {
     const step = vetted({ span: '10 percentage points of revenue', candidateValue: '10 percentage points', correctValue: 4.2, codeQuantity: { kind: 'step', stepId: 'bean_points_added', price: null, target: null } });

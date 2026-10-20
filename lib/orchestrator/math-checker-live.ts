@@ -233,14 +233,24 @@ const priorMarginOf = (prompt: string) => { const m = /margin[^.]*?\bfrom\s+(\d+
 // the other period's revenue is the same quantity on another base.
 const revenueGrowthOf = (prompt: string) => { const m = /\brevenues?\s+(?:have\s+|has\s+)?(?:grown|grew|risen|rose|increased|gone up|are up|is up)\s+(?:by\s+)?(\d+(?:\.\d+)?)%/i.exec(prompt); return m ? 1 + Number(m[1]) / 100 : null; };
 const NEEDED_KINDS = new Set(['needed_for_margin', 'needed_for_gain']);
+// The words code names its own computed quantity by (Lorenzo, 19 Oct; round-4
+// ruling 3): quantityWords drops "margin", "gain", "recover", "price" as plain,
+// and those are what names a pricing claim's quantity ("So the gain is 8.5 points").
+const NEED_CUE = /\b(?:need\w*|takes?|requir\w*|restor\w*|prices?|menu)\b/i;
+const KIND_CUE: Partial<Record<CheckerClaim['codeQuantity']['kind'], RegExp>> = {
+  gain: /\b(?:gain\w*|recover\w*|margin)\b/i, new_margin: /\bmargin\b/i, breakeven: /\b(?:volume|break-?even|elasticity|traffic)\b/i,
+  needed_for_margin: NEED_CUE, needed_for_gain: NEED_CUE,
+};
+// A pricing claim computed from a price: the price is its input, never its quantity.
+const FROM_PRICE = new Set(['gain', 'new_margin', 'breakeven']);
 // A sentence that says which base it is on.
 const BASE_CUE = /\b(?:scal(?:e|ed|ing)|rebas\w*|re-?based|(?:today'?s|current|this year'?s|the new|the old|two years ago'?s?|prior) (?:revenue|base|dollars)|old[- ]dollar|in old dollars|index|times 1\.\d+|× ?1\.\d+|on (?:a|the) base of)\b/i;
 
 // Has the candidate revised or withdrawn the claim since? Read in every
 // candidate message after it: a withdrawal, a revision with a figure, the
-// right figure stated (when it isn't also a case figure), or the same claim
-// restated at a different value (a pricing claim of the same kind at the same
-// price; the same math step). Returns why, or null.
+// right figure stated for the claim's own quantity (when it isn't also a case
+// figure), or the same claim restated at a different value (a pricing claim of
+// the same kind at the same price; the same math step). Returns why, or null.
 // A concession — a withdrawal or an "Actually, …" revision — withdraws only
 // the claim it answers (Lorenzo, 14 Oct; batch 24: Owen e64de272's "You're
 // right, I stated that as fact" about competitors dropped his "27–28%",
@@ -279,17 +289,26 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
   // figure that is also a case figure counts only in a sentence naming the
   // claim's quantity; any other right figure, anywhere in the message.
   const subject = quantityWords(c.quantity);
-  const redoneToRight = (text: string) => [...numbersOf(text), ...factorFigures(text)].some(n => rightToCheck.some(r => same(n, r)))
-    || (subject.size > 0 && sentencesOf(text).some(x => [...numbersOf(x), ...factorFigures(x)].some(n => right.some(r => same(n, r)))
+  // Lorenzo, 19 Oct (round-4 ruling 3; batch 33 Blake cb23e17b t17: his "6 to 7
+  // points" closed stale on the "10" of "a 10–12% price increase" — the price,
+  // not the gain): a figure closes a flag only when stated for the claim's own
+  // quantity — the 15 Oct redo rule applied to the stale check. In a sentence
+  // naming the quantity (its words, or the words of code's kind), and never an
+  // input the claim was computed from (a pricing claim's price, from its span).
+  const names = (x: string) => (subject.size > 0 && [...quantityWords(x)].some(w => subject.has(w))) || (KIND_CUE[q.kind]?.test(x) ?? false);
+  const inputs = FROM_PRICE.has(q.kind) ? [...numbersOf(c.span), ...(q.price !== null ? [q.price] : [])].filter(n => !own.some(x => same(n, x))) : [];
+  const notInput = (n: number) => !inputs.some(x => same(n, x));
+  const forQuantity = (text: string) => sentencesOf(text).filter(names).flatMap(x => [...numbersOf(x), ...factorFigures(x)]).filter(notInput);
+  const redoneToRight = (text: string) => [...numbersOf(text), ...factorFigures(text)].filter(notInput).some(n => rightToCheck.some(r => same(n, r)))
+    || (subject.size > 0 && sentencesOf(text).some(x => [...numbersOf(x), ...factorFigures(x)].filter(notInput).some(n => right.some(r => same(n, r)))
       && [...quantityWords(x)].some(w => subject.has(w))));
   for (const m of later) {
     const { text, questioned } = typeof m === 'string' ? { text: m, questioned: false } : m;
-    const figures = [...numbersOf(text), ...factorFigures(text)];
     const concession = sentencesOf(text).find(s => WITHDRAWN.test(s) || (REVISING.test(s) && /\d/.test(s)));
     if (concession && (questioned || namesClaim(text) || redoneToRight(text))) {
       return WITHDRAWN.test(concession) ? `withdrawn: "${concession}"` : `revised: "${concession}"`;
     }
-    const stated = figures.find(n => rightToCheck.some(r => same(n, r)));
+    const stated = forQuantity(text).find(n => rightToCheck.some(r => same(n, r)));
     if (stated !== undefined) return `the right figure (${stated}) stated since`;
     if (NEEDED_KINDS.has(q.kind)) {
       const prices = [...priceAnswers(text), ...factorFigures(text)].filter(n => !own.some(x => same(n, x)));
@@ -298,7 +317,7 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
       const redo = prices.find(n => redoTargets.some(r => near(n, r)));
       if (redo !== undefined) return `redone for another target (${redo}% for the ${priorMargin}% margin)`;
     }
-    const other = sentencesOf(text).filter(x => BASE_CUE.test(x)).flatMap(x => numbersOf(x)).find(n => rebased.some(r => same(n, r)));
+    const other = sentencesOf(text).filter(x => BASE_CUE.test(x) && names(x)).flatMap(x => numbersOf(x)).find(n => rebased.some(r => same(n, r)));
     if (other !== undefined) return `the right figure on another base (${other}) stated since`;
     // Restated at a different value (Lorenzo, 19 Oct, R2; batch 32 Aldermoor
     // Marisol t9–t23: her $2,000 net price dropped five times as "restated" by
