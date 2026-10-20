@@ -45,7 +45,7 @@ vi.mock('@/db/client', async () => {
 });
 vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = async () => []; return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
 
 // ---- scripted model and judge ----
 const modelQueue: ModelTurn[] = [];

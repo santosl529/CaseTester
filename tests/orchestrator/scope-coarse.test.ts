@@ -10,7 +10,7 @@ vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<obje
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
 const { classify } = vi.hoisted(() => ({ classify: vi.fn(async (): Promise<unknown> => []) }));
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: classify }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = classify; return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
 // Aldermoor without D1's covers (Task 37 added "treatment mix", "breakdown by
 // drug class", … to current_treatment and nimbrel, which exempt those asks from

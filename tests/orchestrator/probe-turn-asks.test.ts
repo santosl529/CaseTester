@@ -18,13 +18,14 @@ vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()
 let detected: DetectedDataRequest[] | null = [];
 let checkVerdict: DetectedDataRequest[] | null = [];
 const calls: string[] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({
-  ...(await orig<object>()),
-  classifyDataRequests: async (p: { candidateText: string }) => {
+vi.mock('@/lib/orchestrator/data-requests', async orig => {
+  const { askVia } = await import('./fixtures/ask-check');
+  const detect = async (p: { candidateText: string }) => {
     calls.push(p.candidateText);
     return p.candidateText.startsWith('Could I get ') ? checkVerdict : detected;
-  },
-}));
+  };
+  return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) };
+});
 
 import { planTurn, type ModelPlan, type CheckerLinePlan } from '@/lib/orchestrator/plan-turn';
 import { settleTurn, type ModelOutcome } from '@/lib/orchestrator/settle-turn';

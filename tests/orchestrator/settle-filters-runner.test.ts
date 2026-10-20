@@ -50,7 +50,7 @@ vi.mock('@/lib/orchestrator/distress', async orig => ({
 }));
 // A null queued is the check's no-verdict (failure or timeout).
 const classified: (unknown[] | null)[] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => (classified.length > 0 ? classified.shift() : []) }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = async () => (classified.length > 0 ? classified.shift() : []); return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
 
 const modelQueue: ModelTurn[] = [];

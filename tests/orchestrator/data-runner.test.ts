@@ -39,7 +39,7 @@ vi.mock('@/lib/orchestrator/distress', async orig => ({
   classifyDistress: async (p: { candidateText: string; earlier?: { disclosure: string } }) => { distressCalls.push(p); return distressVerdict(p); },
 }));
 const classified: unknown[][] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { candidateText: string }) => { const ask = p.candidateText.replace(/^Could I get (.*)\?$/, '$1'); return ask in deferChecks ? deferChecks[ask] : classified.shift() ?? []; } }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = async (p: { candidateText: string }) => { const ask = p.candidateText.replace(/^Could I get (.*)\?$/, '$1'); return ask in deferChecks ? deferChecks[ask] : classified.shift() ?? []; }; return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
 // The item-less deferral check (engine-asks R1) is asked with the ask's own words.
 const deferChecks: Record<string, unknown> = {};
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));

@@ -3,7 +3,8 @@ import {
   parseDataRequestResponse, buildDataRequestPrompt, toDataRequestEvents,
   formatOpenRequestsHint, planForcedReleases,
   classifiedMarkerEvent, findUnclassifiedExchanges,
-  type LedgerCatalogItem,
+  buildAskCheckPrompt, parseAskCheckResponse, askCheckCatalog, maskFigures,
+  type LedgerCatalogItem, type AskCheckItem,
 } from '@/lib/orchestrator/data-requests';
 
 describe('classifiedMarkerEvent (classified-empty vs never-classified)', () => {
@@ -222,5 +223,95 @@ describe('toDataRequestEvents', () => {
     const ctx = { candidateTurnIndex: 4, interviewerTurnIndex: 5 };
     expect(toDataRequestEvents(request, { ...ctx, revealedIds: new Set(['avg_ticket']) })[0].payload.revealedByNow).toBe(false);
     expect(toDataRequestEvents(request, { ...ctx, revealedIds: new Set(['avg_ticket', 'bean_price_change']) })[0].payload.revealedByNow).toBe(true);
+  });
+});
+
+// Round 5b Task 56 (Lorenzo, 20 Oct, job 3): the item-less ask check gets its own
+// prompt — the item(s) that hold the answer, and per item whether its line answers
+// the ask in full or only holds the nearest data (`partial`, with the asked part it
+// lacks). The check sees each item's label and its line with every figure masked.
+describe('the ask check (classifyAsk): catalog, prompt and parser', () => {
+  const CASES = ['prof-001', 'prof-002', 'entry-001', 'launch-001', 'pricing-001'];
+  const NUMBER_WORDS = /\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|forty|fifty|hundred|thousand|million|billion|half|twice|double)\b/i;
+
+  it('masks every figure in each item\'s line: digits and spelled-out amounts', () => {
+    expect(maskFigures('Raw coffee bean costs are up 40% over the past two years.')).toBe('Raw coffee bean costs are up #% over the past # years.');
+    expect(maskFigures('Aldermoor has about $1.5 billion in annual revenue, almost all in Europe, and it has no US employees or sales force today.'))
+      .toBe('Aldermoor has about $# # in annual revenue, almost all in Europe, and it has no US employees or sales force today.');
+    expect(maskFigures('Hub–Cedar Bluff (2,500 flights) went from $38.0M to $37.5M')).toBe('Hub–Cedar Bluff (# flights) went from $#M to $#M');
+    for (const id of CASES) for (const item of askCheckCatalog(getCaseById(id).dataLedger)) {
+      expect(item.line, `${id}/${item.id}`).not.toMatch(/\d/);
+      expect(item.line, `${id}/${item.id}`).not.toMatch(NUMBER_WORDS);
+    }
+  });
+
+  it('the catalog is the check\'s: id, the label with its period, the masked line', () => {
+    const cat = askCheckCatalog(getCaseById('prof-001').dataLedger);
+    expect(cat.find(c => c.id === 'bean_share_of_cogs')).toEqual({
+      id: 'bean_share_of_cogs', label: "Composition of COGS: coffee beans' share of COGS (covers the prior period)", line: 'Coffee beans were #% of COGS # years ago.',
+    });
+  });
+
+  it('the prompt lists every catalog id with its label and masked line; no figure of any value reaches it', () => {
+    for (const id of CASES) {
+      const c = getCaseById(id);
+      const catalog = askCheckCatalog(c.dataLedger);
+      const what = 'the cost breakdown by region';
+      const prompt = buildAskCheckPrompt(what, catalog);
+      for (const item of catalog) expect(prompt).toContain(`- ${item.id}: ${item.label} — ${item.line}`);
+      // Labels and the ask are the classifier's input already (some labels carry a digit: "over 2 years").
+      let rest = prompt.replace(what, '');
+      for (const item of catalog) rest = rest.replace(item.label, '');
+      expect(rest, id).not.toMatch(/\d/);
+      // A line with a figure never goes in whole (a line without one, a definition, is its own masked line).
+      for (const item of c.dataLedger) if (/\d/.test(item.value)) expect(prompt).not.toContain(item.value);
+    }
+  });
+
+  it('the prompt states the rules: the item that holds the answer, full or partial, the missing part in the ask\'s words, and the examples', () => {
+    const prompt = buildAskCheckPrompt('Starter cohort beyond month 12', askCheckCatalog(getCaseById('pricing-001').dataLedger));
+    expect(prompt).toContain('"Starter cohort beyond month 12"');
+    expect(prompt).toMatch(/hold the answer to what was asked/);
+    expect(prompt).toMatch(/same topic that doesn't hold it is no mapping/);
+    expect(prompt).toMatch(/"answers": "full"/);
+    expect(prompt).toMatch(/"partial"/);
+    expect(prompt).toMatch(/"missing"/);
+    expect(prompt).toMatch(/in the ask's own words, no numbers/);
+    for (const ex of ['option_b', 'company_size', 'cohort_notes', 'starter_cohort', 'upgrade_timing', 'cogs_pct', 'labor_pct', 'overhead_pct']) expect(prompt).toContain(ex);
+  });
+
+  const cat: AskCheckItem[] = [
+    { id: 'bean_share_of_cogs', label: "Composition of COGS: coffee beans' share of COGS (covers the prior period)", line: 'Coffee beans were #% of COGS # years ago.' },
+    { id: 'cogs_pct', label: 'COGS as % of revenue', line: 'COGS is #% of revenue today, up from #% # years ago.' },
+  ];
+  const WHAT = 'coffee beans as a share of COGS today';
+  const parse = (o: unknown, what = WHAT) => parseAskCheckResponse(JSON.stringify(o), what, cat);
+
+  it('parses items; ids outside the catalog are dropped; a repeated id kept once', () => {
+    expect(parse({ items: [{ id: 'cogs_pct', answers: 'full' }, { id: 'made_up', answers: 'full' }, { id: 'cogs_pct', answers: 'partial', missing: 'today' }] }))
+      .toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+    expect(parse({ items: [] })).toEqual({ items: [] });
+  });
+  it('`answers` missing or unknown → full', () => {
+    expect(parse({ items: [{ id: 'cogs_pct' }, { id: 'bean_share_of_cogs', answers: 'mostly' }] }))
+      .toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'full' }] });
+  });
+  it('a partial keeps its `missing` when it has no digit and every content word is the ask\'s', () => {
+    expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: "coffee beans' share of COGS today" }] }))
+      .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: "coffee beans' share of COGS today" }] });
+  });
+  it('`missing` with a digit, a content word not in the ask, or none at all → the ask\'s own words', () => {
+    for (const missing of ['the 2025 bean share', "today's bean share at 58%", 'the current-period bean share', 'bean share by region', '', undefined]) {
+      expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', ...(missing === undefined ? {} : { missing }) }] }), String(missing))
+        .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: WHAT }] });
+    }
+  });
+  it('a full item carries no `missing`', () => {
+    expect(parse({ items: [{ id: 'cogs_pct', answers: 'full', missing: 'today' }] })).toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+  });
+  it('null on garbage or a reply without items; code fences stripped', () => {
+    expect(parseAskCheckResponse('not json', WHAT, cat)).toBeNull();
+    expect(parse({ requests: [] })).toBeNull();
+    expect(parseAskCheckResponse('```json\n{"items":[{"id":"cogs_pct","answers":"full"}]}\n```', WHAT, cat)).toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
   });
 });

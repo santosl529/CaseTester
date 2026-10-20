@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = async () => []; return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
 
 import { vetoReason, streamTurnSegments, gateContext, type GateContext } from '@/lib/orchestrator/stream-turn';
 import { getCaseById } from '@/lib/cases/loader';

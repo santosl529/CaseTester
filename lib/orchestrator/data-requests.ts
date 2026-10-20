@@ -3,6 +3,7 @@ import type { OnUsage } from '@/lib/llm-usage';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import { anthropicClient } from '@/lib/anthropic-client';
 import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
+import { labelWithPeriod, type LedgerItem } from './data-ledger';
 
 // Rule 11 (docs/interviewer-behavior.md v4.1): every candidate data request is
 // released, refused, or audibly deferred — never ignored. Run 4 had two silent
@@ -332,6 +333,149 @@ export async function classifyDataRequests(params: {
     return text ? parseDataRequestResponse(text.text, params.catalog) : null;
   } catch (err) {
     console.error('[data-requests] classify failed:', err instanceof Error ? err.message : err);
+    return null;
+  }
+}
+
+// ── The item-less ask check (round 5b Task 56) ──────────────────────────────
+// Lorenzo, 20 Oct (job 3): "E5 partial answers: the check reports per mapped item
+// whether it fully answers or is only the nearest held data. Partial → E1's form
+// ("I don't have <the asked part>." + the item's line). Tighten the check prompt to
+// the item that holds the answer." In the round-5 Haiku check (68 asks, r5-haiku),
+// 9 releases or restates answered a nearby question with no word for the asked part
+// (#12, 30, 42, 48, 60, 63, 64, 66, 67). The check (turn-data.ts checkAsk) gets this
+// prompt of its own; the detection prompt above stays the message classifier's,
+// post-turn's and scoring's (controller pre-flight ruling, 20 Oct).
+//
+// The check sees each item's label and its line with every figure masked ("#"):
+// labels alone can't tell a partial answer (#42 "royalty step-downs", #66 "moved
+// since January 2025"), and no figure reaches the classifier (FR-4). A partial's
+// `missing` phrase is said aloud ("I don't have <missing>."), so it is kept only
+// when it has no digit and every content word of it is the ask's own; else the
+// ask's words (controller pre-flight ruling).
+export type AskCheckItem = { id: string; label: string; line: string };
+export type AskAnswer = 'full' | 'partial';
+export type AskCheckResult = { items: { id: string; answers: AskAnswer; missing?: string }[] };
+
+// Spelled-out amounts the ledger lines use ("two years", "$1.5 billion", "about twice
+// the protein"); ordinals ("first year") are not amounts and stay.
+const NUMBER_WORDS = /\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|thirteen|fourteen|fifteen|sixteen|seventeen|eighteen|nineteen|twenty|thirty|forty|fifty|sixty|seventy|eighty|ninety|hundred|thousand|million|billion|trillion|dozen|half|halves|twice|double|triple)\b/gi;
+// Every figure in a line as "#": digit runs (with their separators) and spelled-out amounts.
+export function maskFigures(text: string): string {
+  return text.replace(/\d(?:[\d,.]*\d)?/g, '#').replace(NUMBER_WORDS, '#');
+}
+
+// The check's catalog for a case: built once per case (the ledger array is the
+// loaded case's own), every line masked.
+const askCatalogs = new WeakMap<readonly object[], AskCheckItem[]>();
+export function askCheckCatalog(items: readonly Pick<LedgerItem, 'id' | 'label' | 'timeframes' | 'value'>[]): AskCheckItem[] {
+  const cached = askCatalogs.get(items);
+  if (cached) return cached;
+  const built = items.map(i => ({ id: i.id, label: labelWithPeriod(i), line: maskFigures(i.value) }));
+  askCatalogs.set(items, built);
+  return built;
+}
+
+export function buildAskCheckPrompt(what: string, catalog: AskCheckItem[]): string {
+  const lines = catalog.length > 0 ? catalog.map(c => `- ${c.id}: ${c.label} — ${c.line}`).join('\n') : '- (none)';
+  return `Check one data request a candidate made in a mock case interview against the case's data.
+
+REQUEST: "${what}"
+
+Map the request to the item(s) that hold the answer to what was asked; an item on the same topic that doesn't hold it is no mapping. If none holds it, no items.
+Per mapped item:
+- "answers": "full" when its line answers the request; "partial" when it holds only the nearest data, not the asked part.
+- "missing" (with "partial" only): the asked part it lacks, in the ask's own words, no numbers.
+
+Examples from other interviews:
+- Aldermoor, "whether any US player has an existing Corlan's franchise": option_b (the partner, an established US drug company) is closer than company_size (Aldermoor's own size).
+- Quillpath, "the Starter cohort beyond the cohort table's last month": cohort_notes, not the table (starter_cohort).
+- Quillpath, "churn for upgraded customers measured from their upgrade date": cohort_notes ("upgraded customers then behave like Pro customers"), not upgrade_timing.
+- Brew & Bean, "operating margin over the period": cogs_pct, labor_pct, overhead_pct answer it in full (the exhibit shows margin by year).
+
+CASE DATA (id: label — its line as the interviewer says it, figures hidden as "#"):
+${lines}
+
+Reply with ONLY this JSON (an empty list if no item holds it):
+{"items":[{"id":"...","answers":"full|partial","missing":"..."}]}`;
+}
+
+// Words that carry no content of their own in a `missing` phrase.
+const FUNCTION_WORDS = new Set(`the and for any are was were has have had its it's their there this that these those with from into onto about over under
+than then what which who whom whose when where whether how why our your his her they them not but nor yet also just very
+data`.split(/\s+/));
+const missingStem = (w: string) => { const s = w.replace(/(?:ies|es|s|'s)$/, ''); return s.length >= 3 ? s : w; };
+const contentStems = (t: string) => (t.toLowerCase().replace(/[’']s\b/g, '').match(/[a-z]+/g) ?? [])
+  .filter(w => w.length >= 3 && !FUNCTION_WORDS.has(w)).map(missingStem);
+// A `missing` phrase is said aloud: no digit, and nothing the candidate didn't ask.
+function validMissing(missing: string, what: string): boolean {
+  if (!missing.trim() || /\d/.test(missing)) return false;
+  const asked = new Set(contentStems(what));
+  const words = contentStems(missing);
+  return words.length > 0 && words.every(w => asked.has(w));
+}
+
+export function parseAskCheckResponse(raw: string, what: string, catalog: AskCheckItem[]): AskCheckResult | null {
+  const jsonText = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
+  let obj: unknown;
+  try {
+    obj = JSON.parse(jsonText);
+  } catch {
+    return null;
+  }
+  if (obj == null || typeof obj !== 'object' || !Array.isArray((obj as Record<string, unknown>).items)) return null;
+  const ids = new Set(catalog.map(c => c.id));
+  const seen = new Set<string>();
+  const items: AskCheckResult['items'] = [];
+  for (const entry of (obj as { items: unknown[] }).items) {
+    if (entry == null || typeof entry !== 'object') continue;
+    const e = entry as Record<string, unknown>;
+    // Closed catalog, first mention wins.
+    if (typeof e.id !== 'string' || !ids.has(e.id) || seen.has(e.id)) continue;
+    seen.add(e.id);
+    // Absent or unknown = full: the release as before E5's partial form.
+    if (e.answers !== 'partial') { items.push({ id: e.id, answers: 'full' }); continue; }
+    const missing = typeof e.missing === 'string' ? e.missing.trim() : '';
+    items.push({ id: e.id, answers: 'partial', missing: validMissing(missing, what) ? missing : what });
+  }
+  return { items };
+}
+
+export function askCheckSchema(catalog: AskCheckItem[]): Record<string, unknown> {
+  return {
+    type: 'object', additionalProperties: false, required: ['items'],
+    properties: {
+      items: {
+        type: 'array',
+        items: {
+          type: 'object', additionalProperties: false, required: ['id', 'answers'],
+          properties: {
+            id: catalog.length > 0 ? { type: 'string', enum: catalog.map(c => c.id) } : { type: 'string' },
+            answers: { type: 'string', enum: ['full', 'partial'] },
+            missing: { type: 'string' },
+          },
+        },
+      },
+    },
+  };
+}
+
+// The check: same model as the detection classifier, usage logged as 'data_request'
+// ($/case, PRD §13). Null on failure (the caller's named deferral).
+export async function classifyAsk(params: { what: string; catalog: AskCheckItem[]; onUsage?: OnUsage; model?: string }): Promise<AskCheckResult | null> {
+  const client = anthropicClient();
+  const model = params.model ?? DATA_REQUEST_MODEL_ID;
+  try {
+    const response = await client.messages.create({
+      model,
+      ...backgroundRequest(model, 512, { jsonSchema: askCheckSchema(params.catalog) }),
+      messages: [{ role: 'user', content: buildAskCheckPrompt(params.what, params.catalog) }],
+    } as Anthropic.MessageCreateParamsNonStreaming);
+    params.onUsage?.({ component: 'data_request', model, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens });
+    const text = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+    return text ? parseAskCheckResponse(text.text, params.what, params.catalog) : null;
+  } catch (err) {
+    console.error('[data-requests] ask check failed:', err instanceof Error ? err.message : err);
     return null;
   }
 }

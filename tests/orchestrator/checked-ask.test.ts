@@ -10,8 +10,8 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-const { classify } = vi.hoisted(() => ({ classify: vi.fn(async (): Promise<unknown> => []) }));
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: classify }));
+const { classify, ask } = vi.hoisted(() => ({ classify: vi.fn(async (): Promise<unknown> => []), ask: vi.fn() }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: classify, classifyAsk: ask }));
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
 
 import { planTurn, type ModelPlan, type TurnReads } from '@/lib/orchestrator/plan-turn';
@@ -21,6 +21,8 @@ import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { getCaseById } from '@/lib/cases/loader';
 import { readsFixture } from './fixtures/turn-reads';
+import { askVia } from './fixtures/ask-check';
+import { recordedChecks, recordedCheckVerdict } from '@/lib/eval/recorded-checks';
 
 const RAJ = { text: "It flips the answer. The upgraders are effectively Pro customers acquired for $300 instead of $1,200.\n\nPer Starter sign-up: $400 of Starter margin, plus 20% × Pro LTV of $4,000 = $800. Total ≈ $1,200 against $300 CAC, so about 4x — comfortably above the board's 3.\n\nSo the CFO is measuring Starter as a standalone plan and treating an upgrade as churn, when it's actually the cheapest Pro acquisition channel Quillpath has. Note too that Starter's \"40% cancelled\" overstates damage because a chunk of the exits are upgrades.\n\nOne caution: the 20% is from a single Jan–March cohort only 12 months old, and that cohort is early adopters, likely the best-fit customers. Do we have upgrade rates for later cohorts — say the ones that signed up mid-2025 — to see if the rate is holding?", ask: {"what": "upgrade rates for later cohorts", "itemIds": [], "explicit": true, "respond": "release"}, phase: "EXHIBIT", revealed: ["cohort_notes", "board_rule_definition", "pro_cohort", "starter_cohort", "plan_prices_costs", "plan_cac", "ltv_definition"], shown: ["exhibit-1"], found: [{"what": "upgrade rates for later cohorts", "ledgerItemIds": ["starter_cohort", "cohort_notes", "upgrade_timing"], "response": "none", "explicit": true}] };
 const MARCUS_T17 = { text: "Honestly, I took 40% over 12 months and divided — that's 3.3% a month, and I rounded to 4% to be conservative. Then life = 1/0.04 = 25 months. That's a shortcut, and the exhibit says it's a bad one.\n\nTwo problems. First, a constant 3.3% monthly rate compounds, so you'd never actually hit exactly 40% cumulative — it's loose. Second, and bigger, the rate isn't constant. Cancellations by period are 5, then 8, then 11, then 16 — that's accelerating, not front-loaded. I said front-loaded a minute ago and that was wrong.\n\nIf anything the churn is getting worse month over month, which means extrapolating 25 months of life is probably too generous, and Starter's standalone value is below the $750 I quoted.\n\nDo we have the cohort beyond month 12 — months 18 or 24?\n\nThat said, the upgrade economics still carry it. Keep Starter, reprice.", ask: {"what": "Starter cohort beyond month 12", "itemIds": [], "explicit": true, "respond": "release"}, phase: "EXHIBIT", revealed: ["cohort_notes", "plan_cac", "pro_cohort", "new_customers_by_plan", "starter_cohort", "plan_prices_costs", "ltv_definition", "board_rule_definition"], shown: ["exhibit-3", "exhibit-1", "exhibit-2"], found: [{"what": "Starter cohort status data beyond month 12 (covering retention, upgrades, and cancellations past the initial 12-month period)", "ledgerItemIds": ["starter_cohort", "cohort_notes"], "response": "none", "explicit": true}] };
@@ -43,7 +45,7 @@ const turn = (fx: Fx) => ({ requests: [fx.ask as DeclaredRequest], exhibit: null
 const value = (id: string) => getCaseById('pricing-001').dataLedger.find(i => i.id === id)!.value;
 const acted = (p: ModelPlan, check: string) => p.ctx.checks.entries.filter(e => e.check === check);
 const NO_FIGURE = /\d/;
-beforeEach(() => { classify.mockReset(); classify.mockImplementation(async () => []); });
+beforeEach(() => { classify.mockReset(); classify.mockImplementation(async () => []); ask.mockReset(); ask.mockImplementation(askVia(classify)); });
 
 describe('(b) the check maps the ask only to an item out of its scope', () => {
   it('Marcus t27: price_test_results already on Exhibit 4 → "I don\'t have week-by-week sign-ups within the price test." alone', async () => {
@@ -228,13 +230,134 @@ describe('no verdict, or no item: as before', () => {
 describe('decideCheckedAsk', () => {
   const p = () => plan(RAJ);
   it('sorts a verdict: no verdict, none, in scope, out of scope, siblings only', () => {
-    expect(decideCheckedAsk(p(), 'x', { mapped: null, ids: [], outOfScope: [] })).toEqual({ kind: 'named' });
-    expect(decideCheckedAsk(p(), 'x', { mapped: false, ids: [], outOfScope: [] })).toEqual({ kind: 'refuse' });
-    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['upgrade_timing', 'cohort_notes'], outOfScope: ['cohort_notes'] })).toEqual({ kind: 'items', ids: ['upgrade_timing'] });
-    expect(decideCheckedAsk(p(), 'week-by-week sign-ups within the price test', { mapped: true, ids: ['price_test_results'], outOfScope: ['price_test_results'] })).toEqual({ kind: 'coarse', ids: ['price_test_results'] });
-    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['not_an_item'], outOfScope: [] })).toEqual({ kind: 'refuse' });
+    expect(decideCheckedAsk(p(), 'x', { mapped: null, ids: [], outOfScope: [], partial: [], missing: {} })).toEqual({ kind: 'named' });
+    expect(decideCheckedAsk(p(), 'x', { mapped: false, ids: [], outOfScope: [], partial: [], missing: {} })).toEqual({ kind: 'refuse' });
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['upgrade_timing', 'cohort_notes'], outOfScope: ['cohort_notes'], partial: [], missing: {} })).toEqual({ kind: 'items', ids: ['upgrade_timing'] });
+    expect(decideCheckedAsk(p(), 'week-by-week sign-ups within the price test', { mapped: true, ids: ['price_test_results'], outOfScope: ['price_test_results'], partial: [], missing: {} })).toEqual({ kind: 'coarse', ids: ['price_test_results'] });
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['not_an_item'], outOfScope: [], partial: [], missing: {} })).toEqual({ kind: 'refuse' });
     // (a) only on a pure re-ask: all out → all (restated); mixed → only those not yet out.
-    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['starter_cohort', 'cohort_notes'], outOfScope: [] })).toEqual({ kind: 'items', ids: ['starter_cohort', 'cohort_notes'] });
-    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['starter_cohort', 'cohort_notes', 'upgrade_timing'], outOfScope: [] })).toEqual({ kind: 'items', ids: ['upgrade_timing'] });
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['starter_cohort', 'cohort_notes'], outOfScope: [], partial: [], missing: {} })).toEqual({ kind: 'items', ids: ['starter_cohort', 'cohort_notes'] });
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['starter_cohort', 'cohort_notes', 'upgrade_timing'], outOfScope: [], partial: [], missing: {} })).toEqual({ kind: 'items', ids: ['upgrade_timing'] });
+  });
+});
+
+// Round 5b Task 56 (Lorenzo, 20 Oct, job 3): "E5 partial answers: the check reports
+// per mapped item whether it fully answers or is only the nearest held data.
+// Partial → E1's form ("I don't have <the asked part>." + the item's line)."
+// b31 Sofia (e0f7d46c) t7 → t8 and b29 Fiona (fed61584) t3 → t4, prof-001: the
+// candidate's message verbatim, the model's item-less ask as it declared it.
+const SOFIA_T8 = { caseId: 'prof-001', text: "You're right, that doesn't square — let me redo it. COGS went from 42% of revenue to 58% of revenue. That's a 16 percentage point increase of revenue. The 38% is a separate thing: it's the relative growth in COGS, 16/42. I conflated the two. The 16 points is what I should be using, and that plus the 2 points of overhead gives 18 points, which exactly matches the margin falling from 24 to 6. Good — that fully reconciles.\n\nNow with your data: beans were 25% of COGS two years ago, so 25% of 42 — that's about 10.5% of revenue. And menu prices haven't moved in two years, which is important. It means they've absorbed every bit of input inflation without passing any through. Revenue grew 15% purely on volume or store count, not price.\n\nSo: do we have what beans are as a share of COGS today?", ask: { what: 'coffee beans as a share of COGS today', itemIds: [], explicit: true, respond: 'release' }, phase: 'ANALYSIS', revealed: ['bean_share_of_cogs', 'menu_price_change', 'cogs_pct', 'labor_pct', 'overhead_pct'], shown: [] as string[], found: [] };
+const FIONA_T4 = { caseId: 'prof-001', text: "Fair point — net profit margin, not operating margin, so my structure is incomplete below the operating line. I'm missing non-operating items: interest expense, depreciation and amortization, taxes, and any one-time or restructuring charges.\n\nThat actually matters here. If they've grown to 200 locations, that expansion was likely debt-financed, and new store buildouts create a big depreciation load. Both of those hit net income without touching COGS or labor at all. A tax rate change or an impairment on underperforming stores would do the same.\n\nSo the cleaner structure is: revenue, then COGS, then operating expenses — labor, rent, utilities, marketing, corporate overhead — then below the line, interest, D&A, taxes, and one-offs. And I'd want to know whether the decline is concentrated above or below the operating line before I go hunting in COGS at all.\n\nDo we know what operating margin did over the same period?", ask: { what: 'operating margin over the period', itemIds: [], explicit: true, respond: 'release' }, phase: 'STRUCTURE', revealed: [] as string[], shown: [] as string[], found: [] };
+const BEAN_PARTIAL = { items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: 'coffee beans as a share of COGS today' }] };
+const planOf = (fx: Fx & { caseId: string }, o: { revealed?: string[]; pressureTest?: unknown; phase?: Phase } = {}): ModelPlan => {
+  const reads = readsFixture({ caseId: fx.caseId, phase: o.phase ?? (fx.phase as Phase), revealed: o.revealed ?? fx.revealed, flags: { pressureTest: o.pressureTest ?? SATISFIED } });
+  const p = planTurn(reads, fx.text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+  if (p.kind !== 'model') throw new Error('expected a model plan');
+  for (const id of fx.shown) p.state.shownExhibitIds.add(id);
+  return p;
+};
+
+describe('E5 partial: the check maps the ask to an item holding only the nearest data', () => {
+  it('Sofia t8: bean_share_of_cogs (the prior-period share) already said → "I don\'t have coffee beans as a share of COGS today." alone, no restate (4b)', async () => {
+    classify.mockResolvedValueOnce(BEAN_PARTIAL);
+    const p = planOf(SOFIA_T8);
+    const d = await turnDataChecked(p, turn(SOFIA_T8));
+    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ decision: 'coarse', partial: ['bean_share_of_cogs'], missing: { bean_share_of_cogs: 'coffee beans as a share of COGS today' } });
+    expect(d.restates).toEqual([]);
+    expect(d.releases).toEqual([]);
+    expect(d.defers).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have coffee beans as a share of COGS today."]);
+    expect(d.requests.map(r => r.response)).toEqual(['refuse']);
+  });
+  it('… the bean share not yet out: its line, and "I don\'t have coffee beans as a share of COGS today." beside it', async () => {
+    classify.mockResolvedValueOnce(BEAN_PARTIAL);
+    const p = planOf(SOFIA_T8, { revealed: SOFIA_T8.revealed.filter(id => id !== 'bean_share_of_cogs') });
+    const d = await turnDataChecked(p, turn(SOFIA_T8));
+    expect(d.releases.map(r => r.id)).toEqual(['bean_share_of_cogs']);
+    // The bean-share line (prof-001 speaks it in a variant: cases/variants/prof-001.data-lines.json), then the refusal.
+    const lines = renderDataLines(d, 's');
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toMatch(/coffee beans were 25% of COGS/i);
+    expect(lines[1]).toBe("I don't have coffee beans as a share of COGS today.");
+    expect(d.requests.map(r => [r.response, r.ledgerItemIds])).toEqual([['release', ['bean_share_of_cogs']], ['refuse', []]]);
+  });
+  it('the refusal says the check\'s `missing` part, not the whole ask', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: "coffee beans' share of COGS today" }] });
+    const d = await turnDataChecked(planOf(SOFIA_T8), turn(SOFIA_T8));
+    expect(renderDataLines(d, 's')).toEqual(["I don't have coffee beans' share of COGS today."]);
+  });
+  it('… before the pressure test is answered (the bean share is gated): not given, the refusal alone, no deferral, no figure', async () => {
+    classify.mockResolvedValueOnce(BEAN_PARTIAL);
+    const p = planOf(SOFIA_T8, { revealed: [], pressureTest: AWAITING, phase: 'STRUCTURE' });
+    const d = await turnDataChecked(p, turn(SOFIA_T8));
+    expect(d.releases).toEqual([]);
+    expect(d.defers).toEqual([]);
+    expect(d.gateDefers).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have coffee beans as a share of COGS today."]);
+    expect(classify).toHaveBeenCalledTimes(1);
+  });
+  it('… held by the release order (Marcus t27, Exhibit 4 waits on 1-3): not released, the refusal in the missing part\'s words', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'price_test_results', answers: 'partial', missing: 'week-by-week sign-ups' }] });
+    const p = plan(MARCUS_T27, { revealed: [], shown: [] });
+    const d = await turnDataChecked(p, turn(MARCUS_T27));
+    expect(d.releases).toEqual([]);
+    expect(d.exhibit).toBeNull();
+    expect(d.defers).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have week-by-week sign-ups."]);
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(NO_FIGURE);
+  });
+  it('mixed full + partial (Tyler t11): the full item decides as today (cohort_notes, out: restated); the partial one (upgrade_timing) is dropped', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'upgrade_timing', answers: 'partial', missing: 'churn for upgraded customers' }, { id: 'cohort_notes', answers: 'full' }] });
+    const p = plan(TYLER);
+    const d = await turnDataChecked(p, turn(TYLER));
+    expect(d.restates.map(r => r.id)).toEqual(['cohort_notes']);
+    expect(d.releases).toEqual([]);
+    expect(d.refusals).toEqual([]);
+    expect(renderDataLines(d, 's').join(' ')).not.toContain(value('upgrade_timing'));
+  });
+  it('#12 Fiona t4: all full (the cost shares answer operating margin by year) → released with the exhibit, no refusal', async () => {
+    classify.mockResolvedValueOnce({ items: ['revenue_total', 'cogs_pct', 'labor_pct', 'overhead_pct'].map(id => ({ id, answers: 'full' })) });
+    const p = planOf(FIONA_T4);
+    const d = await turnDataChecked(p, { requests: [FIONA_T4.ask as DeclaredRequest], exhibit: 'exhibit-a', rescueItem: null });
+    expect(d.refusals).toEqual([]);
+    expect(d.exhibit?.id).toBe('exhibit-a');
+    expect(d.releases.map(r => r.id)).toEqual(['revenue_total']);
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(/I don't have/);
+  });
+  it('an old recorded verdict (no `answers`) decides exactly as before: Marcus t27 → coarse, the refusal in the ask\'s words', async () => {
+    const old = recordedChecks([{ turnIndex: 27, checks: [{ check: 'itemless_defer', decision: 'act', detail: { what: 'week-by-week sign-ups within the price test', mapped: true, found: [{ what: 'Week-by-week sign-ups during the price test period', ids: ['price_test_results'] }], outOfScope: ['price_test_results'], latencyMs: 776 } }] }]);
+    ask.mockImplementationOnce(async (q: { what: string }) => recordedCheckVerdict(old, 27, q.what));
+    const p = plan(MARCUS_T27, { exhibitOnly: ['price_test_results', 'price_test_notes'] });
+    const d = await turnDataChecked(p, turn(MARCUS_T27));
+    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ decision: 'coarse', outOfScope: ['price_test_results'] });
+    expect(acted(p, 'itemless_defer')[0].detail).not.toHaveProperty('partial');
+    expect(renderDataLines(d, 's')).toEqual(["I don't have week-by-week sign-ups within the price test."]);
+  });
+  it('the check record carries the call\'s tokens and cost, for the per-session check cost', async () => {
+    ask.mockImplementationOnce(async (q: { onUsage?: (u: unknown) => void }) => {
+      q.onUsage?.({ component: 'data_request', model: 'claude-haiku-4-5', inputTokens: 1200, outputTokens: 40 });
+      return BEAN_PARTIAL;
+    });
+    const p = planOf(SOFIA_T8);
+    await turnDataChecked(p, turn(SOFIA_T8));
+    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ inputTokens: 1200, outputTokens: 40 });
+    expect((acted(p, 'itemless_defer')[0].detail as { costUsd: number }).costUsd).toBeCloseTo(0.0014, 8);
+    expect(ask).toHaveBeenCalledWith(expect.objectContaining({ what: 'coffee beans as a share of COGS today', catalog: expect.arrayContaining([expect.objectContaining({ id: 'bean_share_of_cogs', line: 'Coffee beans were #% of COGS # years ago.' })]) }));
+  });
+});
+
+describe('decideCheckedAsk with partial answers', () => {
+  const p = () => plan(RAJ);
+  it('partial only → coarse with its missing part; mixed → the full items alone; a partial sibling (a change item asked for a split) → refused', () => {
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['upgrade_timing'], outOfScope: [], partial: ['upgrade_timing'], missing: { upgrade_timing: 'x' } }))
+      .toEqual({ kind: 'coarse', ids: ['upgrade_timing'], missing: 'x' });
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['upgrade_timing', 'price_test_notes'], outOfScope: [], partial: ['upgrade_timing'], missing: { upgrade_timing: 'x' } }))
+      .toEqual({ kind: 'items', ids: ['price_test_notes'] });
+    // Out of scope and partial both coarse; the partial's missing part speaks.
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['price_test_results', 'upgrade_timing'], outOfScope: ['price_test_results'], partial: ['upgrade_timing'], missing: { upgrade_timing: 'y' } }))
+      .toEqual({ kind: 'coarse', ids: ['price_test_results', 'upgrade_timing'], missing: 'y' });
+    // b31 Sofia t17's sibling: a change item asked for a split is never a coarse item, partial or not.
+    expect(decideCheckedAsk(planOf(SOFIA_T8), 'the current COGS split by category', { mapped: true, ids: ['bean_price_change'], outOfScope: [], partial: ['bean_price_change'], missing: { bean_price_change: 'the current COGS split by category' } }))
+      .toEqual({ kind: 'refuse' });
   });
 });

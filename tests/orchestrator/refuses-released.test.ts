@@ -5,7 +5,7 @@ vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
 // The small-model check's verdict on an item-less ask ("Could I get <ask>?"), set per test; else none.
 const { checkFound } = vi.hoisted(() => ({ checkFound: { value: [] as unknown[] } }));
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { candidateText: string }) => (p.candidateText.startsWith('Could I get ') ? checkFound.value : []) }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = async (p: { candidateText: string }) => (p.candidateText.startsWith('Could I get ') ? checkFound.value : []); return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
 
 import { settleTurn } from '@/lib/orchestrator/settle-turn';
 import { vetoReason, streamTurnSegments, type GateContext } from '@/lib/orchestrator/stream-turn';

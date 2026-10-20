@@ -48,10 +48,11 @@ vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()
 // ruling 2, 19 Oct): maps to none unless a test says otherwise.
 let detected: DetectedDataRequest[] | null = [];
 let checkVerdict: DetectedDataRequest[] | null = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({
-  ...(await orig<object>()),
-  classifyDataRequests: async (p: { candidateText: string }) => ((detected ?? []).some(d => p.candidateText === `Could I get ${d.what}?`) ? checkVerdict : detected),
-}));
+vi.mock('@/lib/orchestrator/data-requests', async orig => {
+  const { askVia } = await import('./fixtures/ask-check');
+  const detect = async (p: { candidateText: string }) => ((detected ?? []).some(d => p.candidateText === `Could I get ${d.what}?`) ? checkVerdict : detected);
+  return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) };
+});
 vi.mock('@/lib/agent/models/factory', async () => ({
   createInterviewerModel: () => ({
     runTurn: async () => { throw new Error('code-written turns make no model call'); },

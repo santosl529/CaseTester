@@ -65,18 +65,22 @@ vi.mock('@/db/client', async () => {
 vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => ({ label: 'none', reason: '' }) }));
 let detections: unknown[] = [];
-// The item-less ask check (turn-data.ts checkAsk, engine-asks R1) calls the
-// classifier with the ask's own words ("Could I get <ask>?"), not the message: it
-// gets the verdict the replayed run recorded for that ask (`itemless_defer`; the
-// same turn first, else the run's nearest turn — lib/eval/recorded-checks.ts,
-// round 5 Task 45), else none (null: a named deferral), as before.
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { interviewerText: string | null; candidateText: string }) => {
-  if (!(p.interviewerText === null && p.candidateText !== turnText)) return detections;
-  const ask = /^Could I get ([\s\S]*)\?$/.exec(p.candidateText)?.[1];
-  if (ask === undefined) return null;
-  const over = overrideVerdict(checkOverrides, currentRunFile, savedTurnIndex, ask);   // REPLAY_CHECKS, else the recorded verdict
-  return over !== undefined ? over : recordedCheckVerdict(runChecks, savedTurnIndex, ask);
-} }));
+// The item-less ask check (turn-data.ts checkAsk → classifyAsk, engine-asks R1;
+// its own prompt since round 5b Task 56) gets the verdict the replayed run recorded
+// for that ask (`itemless_defer`; the same turn first, else the run's nearest turn —
+// lib/eval/recorded-checks.ts, round 5 Task 45), else none (null: a named deferral),
+// as before. A verdict recorded without the partial form reads as all full;
+// REPLAY_CHECKS rows may carry `answers` and `missing`.
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({
+  ...(await orig<object>()),
+  // The message classifier (the run's own message): its recorded detections. No other call reads it.
+  classifyDataRequests: async (p: { interviewerText: string | null; candidateText: string }) =>
+    (!(p.interviewerText === null && p.candidateText !== turnText) ? detections : null),
+  classifyAsk: async (p: { what: string }) => {
+    const over = overrideVerdict(checkOverrides, currentRunFile, savedTurnIndex, p.what);   // REPLAY_CHECKS, else the recorded verdict
+    return over !== undefined ? over : recordedCheckVerdict(runChecks, savedTurnIndex, p.what);
+  },
+}));
 let turnText = '';
 let runChecks: RecordedCheck[] = [];
 const checkOverrides = loadCheckOverrides(process.env.REPLAY_CHECKS);

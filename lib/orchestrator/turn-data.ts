@@ -8,11 +8,12 @@ import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
 import { findFalseRefusals, groupItemsAsked, coverageOf, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
-import { planForcedReleases, classifyDataRequests, type DetectedDataRequest } from './data-requests';
+import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, WANT_ASK_PHASES } from './request-signal';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal } from './data-ledger';
-import type { OnUsage } from '@/lib/llm-usage';
+import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
+import { costOf } from '@/lib/llm-pricing';
 
 export function caseResolver(plan: ModelPlan): (raw: string) => string | null {
   const { ledger, caseData } = plan.state;
@@ -97,6 +98,12 @@ export function wrapUpTurn(plan: ModelPlan): boolean {
 // check maps to a ledger item is never refused on the check's say alone — out of
 // the ask's scope included (E5 b below gives such an item E1's form).
 const DEFER_CHECK_TIMEOUT_MS = 1500;
+// The check call's tokens and cost on its record, for the check's cost per session.
+function usageDetail(u: LlmUsage): { inputTokens: number; outputTokens: number; costUsd?: number } {
+  let costUsd: number | undefined;
+  try { costUsd = costOf(u); } catch { costUsd = undefined; }   // an unpriced model: tokens only
+  return { inputTokens: u.inputTokens, outputTokens: u.outputTokens, ...(costUsd !== undefined ? { costUsd } : {}) };
+}
 // Whether the scope rules keep this item for the ask (the case's covers first).
 function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
   const { ledger, factBase } = plan.state;
@@ -107,8 +114,10 @@ function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
 }
 
 // The check's verdict on one unmatched ask: mapped (null: no verdict), the
-// ledger items it found, and those of them the ask's scope rules rule out.
-export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: string[] };
+// ledger items it found, those of them the ask's scope rules rule out, and those
+// the check says hold only the nearest data (`partial`, round 5b Task 56) with the
+// asked part each lacks (`missing`, validated: no digit, the ask's own words).
+export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: string[]; partial: string[]; missing: Record<string, string> };
 
 // What code does with a verdict (Lorenzo, 20 Oct, round 5 E5: "build (a) and
 // (b). Not (c). Add (d): a deferral names the item it will deliver, not the
@@ -133,30 +142,38 @@ export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: 
 //     released (not yet out, under the gates); none: the refusal stands. A change
 //     item asked for a split is a sibling, never a coarse item (E1's ruling), so
 //     an ask mapped only to siblings is refused.
-// In-scope items win over out-of-scope ones in a mixed mapping, as for the
-// model's own mapping (the scope rule drops the rest silently).
+//   - E5 partial (Lorenzo, 20 Oct, round 5b job 3: "Partial → E1's form ("I don't
+//     have <the asked part>." + the item's line)"): an item the check says holds
+//     only the nearest data, not the asked part, is a coarse item like one out of
+//     scope; the refusal says the check's `missing` part (`coarse.missing`). Out
+//     already: the refusal alone (4b); held by a gate: as E1's held coarse item.
+// Full in-scope items win over out-of-scope and partial ones in a mixed mapping,
+// as for the model's own mapping (the scope rule drops the rest silently).
 export type CheckedAsk =
   | { kind: 'named' }
   | { kind: 'refuse' }
   | { kind: 'items'; ids: string[] }
-  | { kind: 'coarse'; ids: string[] };
+  | { kind: 'coarse'; ids: string[]; missing?: string };
 export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict): CheckedAsk {
   if (v.mapped === null) return { kind: 'named' };
   const { ledger } = plan.state;
   const ids = v.ids.filter(id => ledger.items.some(i => i.id === id));
   if (!v.mapped || ids.length === 0) return { kind: 'refuse' };
-  const inScope = ids.filter(id => !v.outOfScope.includes(id));
+  const partial = new Set(v.partial ?? []);
+  const inScope = ids.filter(id => !v.outOfScope.includes(id) && !partial.has(id));
   const notOut = inScope.filter(id => !ledger.revealed.has(id));
   if (inScope.length > 0) return { kind: 'items', ids: notOut.length > 0 ? notOut : inScope };
   const coarse = ids.filter(id => !changeForSplit(what, ledger.items.find(i => i.id === id)!));
-  return coarse.length > 0 ? { kind: 'coarse', ids: coarse } : { kind: 'refuse' };
+  if (coarse.length === 0) return { kind: 'refuse' };
+  const missing = coarse.filter(id => partial.has(id)).map(id => v.missing?.[id]).find(m => m !== undefined);
+  return { kind: 'coarse', ids: coarse, ...(missing !== undefined ? { missing } : {}) };
 }
 
 const DECIDED: Record<CheckedAsk['kind'], string> = {
   named: 'no verdict: a named deferral',
   refuse: 'maps to no item: refused',
   items: 'mapped to a ledger item: restated if out, released if it can go now, else deferred by its name',
-  coarse: 'mapped only to items outside the ask: the coarse item\'s line if one can go, and the refusal',
+  coarse: 'mapped only to items outside the ask or holding only the nearest data: the coarse item\'s line if one can go, and the refusal',
 };
 
 // The check, cached per ask for the turn. Out of scope is read for every
@@ -170,23 +187,28 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     const t0 = Date.now();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<null>(r => { timer = setTimeout(() => r(null), DEFER_CHECK_TIMEOUT_MS); });
-    // Put as an ask, not a bare noun phrase: detection mode is tuned for a
-    // candidate's message and may return [] for a fragment, which would make
-    // refusal the common outcome. Usage is logged as 'data_request' ($/case, PRD §13).
+    // The check's own prompt (classifyAsk, round 5b Task 56): the ask, and the
+    // case's items with their labels and masked lines (built once per case). Usage
+    // is logged as 'data_request' ($/case, PRD §13) and kept on the record below.
+    let usage: LlmUsage | undefined;
     const found = await Promise.race([
-      classifyDataRequests({
-        candidateText: `Could I get ${what}?`, interviewerText: null, catalog: plan.state.catalog,
-        onUsage,
+      classifyAsk({
+        what, catalog: askCheckCatalog(plan.state.caseData.dataLedger),
+        onUsage: u => { usage = u; onUsage?.(u); },
       }).catch(() => null),
       timeout,
     ]).finally(() => clearTimeout(timer));
-    const ids = found === null ? [] : [...new Set(found.flatMap(f => f.ledgerItemIds))];
+    const ids = found === null ? [] : [...new Set(found.items.map(f => f.id))];
     const mapped = found === null ? null : ids.length > 0;
     const outOfScope = ids.filter(id => answersAsk(plan, what, id) === false);
-    const verdict: CheckVerdict = { mapped, ids, outOfScope };
+    const partial = (found?.items ?? []).filter(f => f.answers === 'partial').map(f => f.id);
+    const missing = Object.fromEntries((found?.items ?? []).flatMap(f => (f.answers === 'partial' && f.missing !== undefined ? [[f.id, f.missing]] : [])));
+    const verdict: CheckVerdict = { mapped, ids, outOfScope, partial, missing };
     const decision = decideCheckedAsk(plan, what, verdict);
+    // `found` keeps its old shape, so a replay reads old and new records alike (lib/eval/recorded-checks.ts).
     plan.ctx.checks.record('itemless_defer', mapped !== false, DECIDED[decision.kind],
-      { what, mapped, found: found === null ? null : found.map(f => ({ what: f.what, ids: f.ledgerItemIds })), decision: decision.kind, ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}), latencyMs: Date.now() - t0 });
+      { what, mapped, found: found === null ? null : [{ what, ids }], decision: decision.kind, ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}),
+        ...(partial.length > 0 ? { partial, missing } : {}), latencyMs: Date.now() - t0, ...(usage ? usageDetail(usage) : {}) });
     return verdict;
   })();
   cache.set(what, run);
@@ -623,15 +645,21 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // model's deferral held nothing. Either way it is decided here: an ask still
   // item-less after it is refused, never checked again.
   const checkedAsks = new Set<string>();
+  // A partial answer's refusal (E5 partial): the asked part the coarse item lacks, said for the ask.
+  const missingOf = new Map<string, string>();
   if (checked) {
-    const applied: { what: string; kind: string; ids: string[] }[] = [];
+    const applied: { what: string; kind: string; ids: string[]; missing?: string }[] = [];
     requests = requests.flatMap(r => {
       const c = r.explicit && r.itemIds.length === 0 ? checked.get(r.what) : undefined;
       if (!c || c.kind === 'named') return [r];
       checkedAsks.add(r.what);
-      applied.push({ what: r.what, kind: c.kind, ids: c.kind === 'refuse' ? [] : c.ids });
+      applied.push({ what: r.what, kind: c.kind, ids: c.kind === 'refuse' ? [] : c.ids, ...(c.kind === 'coarse' && c.missing !== undefined ? { missing: c.missing } : {}) });
       if (c.kind === 'refuse') return [{ ...r, respond: 'release' as const }];
-      if (c.kind === 'coarse') { coarseOf.set(r.what, c.ids); return [{ ...r, respond: 'release' as const }]; }
+      if (c.kind === 'coarse') {
+        coarseOf.set(r.what, c.ids);
+        if (c.missing !== undefined) missingOf.set(r.what, c.missing);
+        return [{ ...r, respond: 'release' as const }];
+      }
       return c.ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label, respond: 'release' as const }));
     });
     if (applied.length > 0) plan.ctx.checks.act('checked_ask', 'the check\'s mapping of an unmatched ask, decided by code', { asks: applied });
@@ -798,6 +826,10 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     decisions.refusals = decisions.refusals.filter(w => !checking.has(w));
     decisions.requests = decisions.requests.map(d => (d.response === 'refuse' && checking.has(d.request.what) ? { ...d, response: 'defer' as const } : d));
   }
+  // A partial answer's refusal says the part the item lacks (E5 partial; the
+  // decision row keeps the ask's words): beside the item's line, or alone when the
+  // item is out already or held.
+  if (missingOf.size > 0) decisions.refusals = [...new Set(decisions.refusals.map(w => missingOf.get(w) ?? w))];
   // Code's correction of a misquote (plan-turn.ts), on any turn that answers
   // the message — a code-written close or recommendation ask included (batch 20:
   // R21 and R47's corrections were decided at the close and never spoken).
