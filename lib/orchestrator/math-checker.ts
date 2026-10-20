@@ -563,8 +563,19 @@ export function claimSentences(span: string, message: string): string[] {
 }
 // A period word names a span of time, not a figure (Lorenzo, 19 Oct; batch 33
 // Marisol 31e33506 t9: "a 40% rise over two years" held back as "names 2").
-const PERIOD_WORDS = /\b(?:(?:\d+(?:\.\d+)?|[a-z-]+) (?:years?|months?|quarters?|yrs?)|years? (?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)|fy\s?'?\d{2,4}|(?:19|20)\d{2})\b/gi;
-const withoutPeriods = (text: string) => text.replace(PERIOD_WORDS, ' ');
+// Only the case's own periods: a duration the prompt never uses ("a 3.5 year payback",
+// "breaks even in 18 months", "2000") can be a leaked answer (controller, 20 Oct; Task 31 review).
+const PERIOD_UNIT = /\b(\d+(?:\.\d+)?|[a-z-]+) (years?|months?|quarters?|yrs?)\b/gi;
+const PERIOD_FREE = /\b(?:years? (?:one|two|three|four|five|six|seven|eight|nine|ten)|(?:last|this|next|prior|previous) (?:year|quarter|month))\b/gi;
+const PERIOD_YEAR = /\b(?:fy\s?'?(\d{2,4})|((?:19|20)\d{2}))\b/gi;
+const periodKey = (n: string, unit: string) => `${normalizeNumberWords(n.toLowerCase())} ${unit.toLowerCase().replace(/s$/, '')}`;
+const withoutPeriods = (text: string, prompt: string) => {
+  const used = new Set([...prompt.matchAll(PERIOD_UNIT)].map(m => periodKey(m[1], m[2])));
+  const years = new Set([...prompt.matchAll(PERIOD_YEAR)].map(m => (m[1] ?? m[2]).slice(-2)));
+  return text.replace(PERIOD_FREE, ' ')
+    .replace(PERIOD_UNIT, (m, n: string, unit: string) => (used.has(periodKey(n, unit)) ? ' ' : m))
+    .replace(PERIOD_YEAR, (m, fy?: string, yr?: string) => (years.has((fy ?? yr ?? '').slice(-2)) ? ' ' : m));
+};
 export function probeLeads(probe: string, span: string, ctx: VetContext, components: Set<string>, step: 'first' | 'hint' = 'first'): string | null {
   if (ARITHMETIC.test(probe)) return 'carries arithmetic';
   const theirs = step === 'first' ? claimSentences(span, ctx.candidateTexts.at(-1) ?? '') : [...ctx.candidateTexts, span];
@@ -572,8 +583,8 @@ export function probeLeads(probe: string, span: string, ctx: VetContext, compone
   const named = [...new Set(wordsOf(probe))].filter(w => components.has(w) && !theirWords.has(w));
   if (named.length) return `names ${named.join(', ')}${step === 'first' ? ', not in the claim' : ''}`;
   // Figures in the case prompt are the candidate's own as much as the target is.
-  const theirNumbers = [...theirs.flatMap(numbersOf), ...targetNumbers(ctx.caseData), ...numbersOf(withoutPeriods(ctx.caseData.prompt))];
-  const figures = numbersOf(withoutPeriods(probe)).filter(n => !theirNumbers.some(a => near(n, a)));
+  const theirNumbers = [...theirs.flatMap(numbersOf), ...targetNumbers(ctx.caseData), ...numbersOf(withoutPeriods(ctx.caseData.prompt, ctx.caseData.prompt))];
+  const figures = numbersOf(withoutPeriods(probe, ctx.caseData.prompt)).filter(n => !theirNumbers.some(a => near(n, a)));
   return figures.length ? `names ${figures.join(', ')}, ${step === 'first' ? 'not in the claim' : 'not theirs'}` : null;
 }
 // A leading draft without its last ask: "…against the 18, and where does

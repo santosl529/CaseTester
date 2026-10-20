@@ -571,7 +571,7 @@ describe('the leads check ignores period words and prompt figures', () => {
     expect(v.probeLine).toBe(t9);
     expect(v.vetNotes.join(' ')).not.toMatch(/leads/);
   });
-  it.each(['over 2 years', 'in year one', 'since last year', 'versus this year', 'in FY2025', 'two years ago', 'over the past two years'])('"%s" is a period word', phrase => {
+  it.each(['over 2 years', 'in year one', 'since last year', 'versus this year', 'two years ago', 'over the past two years'])('"%s" is a period word', phrase => {
     const p = `Which base does the 40% rise apply to ${phrase}?`;
     const [v] = vetCheckerClaims([flagged(p)], ctx());
     expect(v.probeLine).toBe(p);
@@ -587,6 +587,10 @@ describe('the leads check ignores period words and prompt figures', () => {
     expect(probeLeads('Would 4.2 points over two years be closer?', said, ctx(), comps)).toBe('names 4.2, not in the claim');
     expect(probeLeads('Which base over two years gives 31.5 points?', said, ctx(), comps)).toBe('names 31.5, not in the claim');
     expect(probeLeads('And two years ago it was 10.5?', said, ctx(), comps)).toBe('names 10.5, not in the claim');
+    // a duration the prompt never uses may be a leaked answer (controller, 20 Oct; Task 31 review)
+    expect(probeLeads('Does it break even in 21 months?', said, ctx(), comps)).toBe('names 21, not in the claim');
+    expect(probeLeads('Is that a 3.5 year payback?', said, ctx(), comps)).toBe('names 3.5, not in the claim');
+    expect(probeLeads('Is it 2000 in FY2025?', said, ctx(), comps)).toBe('names 2000, 2025, not in the claim');
     const [v] = vetCheckerClaims([flagged('Is 58 percent over two years the base?')], ctx());
     expect(v.vetNotes.join(' ')).toMatch(/probe withheld \(leads: names 58, not in the claim/);
   });
