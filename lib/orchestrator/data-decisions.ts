@@ -428,7 +428,35 @@ export function decideData(p: {
 // Marisol t18: "Hold that thought on Whether Larkspur has sufficient crew
 // capacity…"). The logged `what` is never changed.
 const QUESTION_WORD = /^(?:whether|if|how|what|when|where|which|who|why)$/i;
-function spokenWhat(what: string): string {
+// A count or amount asked as a question is said as a noun phrase (round 5 Task 50
+// fix round 2; B2 Hollis Bay Jasmine t6 "I don't have how many bags of chips Hollis
+// Bay sells a year."): "how many X" → "the number of X" ("how many of the 200
+// stores are new" → "the number of the 200 stores that are new"), "how much X
+// costs / is" → "what X costs / is". Any other "how much …" stays a question — the
+// corpus's are degree or share questions ("how much the other COGS inputs changed
+// over two years", "How much of the 22% labor cost is …"), where "the amount of"
+// reads wrong — and a refusal says it "data on how much …" (joinWhat). An inverted
+// question ("how much does X cost") is left as written.
+const BE_VERB = /^(.*?)\s+(are|is|were|was)\b(.*)$/i;
+const AMOUNT_VERB = /^(.+?)\s+(costs?|is|are|was|were)\b(.*)$/i;
+function nounPhrase(what: string): string {
+  const many = /^how\s+many\s+(.+)$/i.exec(what.trim());
+  if (many) {
+    if (/^(?:do|does|did|will|would|can|could|should)\b/i.test(many[1])) return what;
+    const be = BE_VERB.exec(many[1]);
+    const counted = be && be[1].split(/\s+/).length <= 5 ? `${be[1]} that ${be[2]}${be[3]}` : many[1];
+    return `the number ${/^of\s/i.test(counted) ? '' : 'of '}${counted}`;
+  }
+  const much = /^how\s+much\s+(.+)$/i.exec(what.trim());
+  if (much) {
+    if (/^(?:do|does|did|will|would|can|could|should)\b/i.test(much[1])) return what;
+    const verb = /^of\b/i.test(much[1]) ? null : AMOUNT_VERB.exec(much[1]);
+    return verb ? `what ${verb[1]} ${verb[2]}${verb[3]}` : what;
+  }
+  return what;
+}
+function spokenWhat(raw: string): string {
+  const what = nounPhrase(raw);
   const words = what.trim().split(/\s+/);
   const first = words[0] ?? '';
   const letters = first.replace(/[^A-Za-z]/g, '');
@@ -487,9 +515,13 @@ export function spokenItemName(label: string): string {
   return bare ? s : `the ${spokenWhat(s)}`;
 }
 
-const joinWhat = (whats: string[], conj: 'and' | 'or') => {
+// In a refusal, an ask still worded as a question is "data on …" ("I don't have
+// data on whether load factor would fall …", not "I don't have whether …"; fix
+// round 2); a deferral keeps it ("I'll come back to whether …").
+const QUESTION_START = /^(?:whether|if|how|what(?!['’]s)|when|where|which|who|why)\b/i;
+const joinWhat = (whats: string[], conj: 'and' | 'or', refusal = false) => {
   const inList = new Set(whats).size > 1;
-  const u = [...new Set(whats.map(w => spokenWhat(speakable(w, conj, inList))))];
+  const u = [...new Set(whats.map(w => spokenWhat(speakable(w, conj, inList))).map(w => (refusal && QUESTION_START.test(w) ? `data on ${w}` : w)))];
   if (u.length <= 1) return u[0] ?? '';
   // A suffix every item shares is said once: "COGS and labor as a percent of revenue".
   const tail = / as a (?:percent|share) of revenue$/i.exec(u[0])?.[0];
@@ -541,7 +573,7 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
     parts.push({ kind: 'restate', ids: [], text: lead ? phrase(r.exhibit ? 'restate_exhibit' : 'restate', v, uses, seed) : v });
   });
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
-  if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or'), uses, seed) });
+  if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });
   if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed) });
   if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and'), uses, seed) });

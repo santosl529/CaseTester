@@ -757,7 +757,8 @@ export function findFalseRefusals(text: string, fb: FactBase, revealed: Set<stri
       const x = butNot ?? m?.[1]?.split(/\s[—–-]\s(?=[a-z]+\s(?:it|that|them|this)\b)|;|:(?!\s*$)|\s+(?:but|so|which|because)\s+|\.\s/i)[0]?.trim();
       if (!m || !x) continue;
       if (/^(?:a\s+)?(?:view|preference|opinion|answer for you|a number for that|strong|good|time|anything else|more|further)\b/i.test(x)) continue;
-      if (/^(?:whether|if|how|why|which|a finer|any finer|anything finer|more detail|a split finer)\b|^what\b(?!'s)/i.test(x)) continue;
+      // Code's refusal of a question-worded ask says "data on whether …" (data-decisions.ts joinWhat): the same question.
+      if (/^(?:(?:data|information) on\s+)?(?:whether|if|how|why|which|a finer|any finer|anything finer|more detail|a split finer)\b|^(?:(?:data|information) on\s+)?what\b(?!'s)/i.test(x)) continue;
       const lower = lc(x).replace(/-/g, ' ');
       // The period an entry asks about: its own words, else the whole ask's.
       const periodOf = (t: string) => {

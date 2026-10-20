@@ -125,6 +125,13 @@ describe('F2 — candidate misquotes', () => {
 });
 
 describe('F3 — false refusals', () => {
+  // Round 5 Task 50 fix round 2: code refuses a question-worded ask as "data on whether …";
+  // read as the question it was ("I don't have whether …" was), the case's covers included.
+  it('"data on whether …" is read as the question, covers included', () => {
+    const t = "I don't have data on whether the 15% growth is total or same-store revenue.";
+    expect(findFalseRefusals(t, fb, new Set(), { covers: true })).toEqual([]);
+    expect(findFalseRefusals("I don't have whether the 15% growth is total or same-store revenue.", fb, new Set(), { covers: true })).toEqual([]);
+  });
   const fr = (t: string, revealed: string[] = []) => findFalseRefusals(t, fb, new Set(revealed)).map(f => f.items).flat();
   it('refusals of items the case holds (batch 20 R10, R23, R28; batch 18 Maya t7; batch 5 Destiny t24; prefix runs; screens)', () => {
     expect(fr('I don\'t have what\'s inside COGS, bean cost per pound and dairy.', COST_LINES)).toEqual(expect.arrayContaining(['bean_share_of_cogs', 'bean_price_change']));
@@ -153,6 +160,8 @@ describe('F3 — false refusals', () => {
       'I don\'t have transaction volume per store across the three years.',
       'I don\'t have COGS, labor, rent and SG&A dollars by year.',
       'I don\'t have whether the 37.5% on other inputs is total spend or per unit.',
+      // Code's refusal form since round 5 Task 50 fix round 2: the same question.
+      'I don\'t have data on whether the 37.5% on other inputs is total spend or per unit.',
       'I don\'t have that detail — treat it as overall net margin.',
       'I don\'t have revenue 2 years ago, annual transaction count, items per transaction.',
       'I don\'t have pounds of beans purchased per year, packaging and cup costs or capex.',

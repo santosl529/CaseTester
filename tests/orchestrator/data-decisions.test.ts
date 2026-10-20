@@ -511,7 +511,26 @@ describe('spoken whats', () => {
       req({ what: 'Pilot elasticity results (volume loss from price increase)', itemIds: [] }),
       req({ what: 'whether the 15% growth is per store', itemIds: [] }),
     ] }));
-    expect(renderDataLines(d, 's')).toEqual(["I don't have pilot elasticity results or whether the 15% growth is per store."]);
+    // A question-worded ask is "data on …" in a refusal (round 5 Task 50 fix round 2).
+    expect(renderDataLines(d, 's')).toEqual(["I don't have pilot elasticity results or data on whether the 15% growth is per store."]);
+  });
+  // Round 5 Task 50 fix round 2: a count or amount asked as a question is said as a
+  // noun phrase; a refusal of a question-worded ask is "data on …". The asks are
+  // the corpus's own `what`s (batch run records).
+  it.each([
+    ['how many bags of chips Hollis Bay sells a year', "I don't have the number of bags of chips Hollis Bay sells a year."],
+    ['how many of the 200 stores are new', "I don't have the number of the 200 stores that are new."],
+    ['How many of the 200 stores opened in the last two years', "I don't have the number of the 200 stores opened in the last two years."],
+    // Constructed (no corpus `what` has "how much X costs"): the cost rewrite, then the refusal's "data on".
+    ['how much the roasting line costs', "I don't have data on what the roasting line costs."],
+    ['how much the other COGS inputs changed over two years', "I don't have data on how much the other COGS inputs changed over two years."],
+    ['How much of the 22% labor cost is schedulable/variable hours vs. fixed', "I don't have data on how much of the 22% labor cost is schedulable or variable hours vs. fixed."],
+  ])('refused: "%s"', (what, said) => {
+    expect(renderDataLines(decideData(base({ requests: [req({ what, itemIds: [] })] })), 's')).toEqual([said]);
+  });
+  it('a deferral keeps the question word; a count is still a noun phrase', () => {
+    const d = decideData(base({ requests: [req({ what: 'whether the 15% growth is per store', itemIds: [], respond: 'defer' }), req({ what: 'how many stores opened in the last two years', itemIds: [], respond: 'defer' })] }));
+    expect(d.unmatchedDefers).toEqual(['whether the 15% growth is per store', 'how many stores opened in the last two years']);
   });
   it('a parenthesis inside is read as an aside', () => {
     const d = decideData(base({ requests: [req({ what: 'price change of the other inputs (dairy, packaging, food) by supplier', itemIds: ['bean_price_change'], explicit: false })], candidateText: "I'd want the bean price trend." }));

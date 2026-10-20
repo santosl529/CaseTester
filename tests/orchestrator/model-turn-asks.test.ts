@@ -47,6 +47,8 @@ const T6_QUESTION = "You said six million bags is an achievable bar. Walk me thr
 const T6_TURN: ModelTurn = { move: 'analysis', requests: [OFFER], exhibit: null, rescueItem: null, say: "Understood. Let's stay with this case.", question: T6_QUESTION };
 const T5_REVEALED = ['bag_price', 'variable_costs', 'launch_costs', 'recipe_cost'];
 const BAGS = { what: 'how many bags of chips Hollis Bay sells a year', ledgerItemIds: [] as string[], response: 'none' as const, explicit: true };
+// As said (fix round 2): a count asked as a question is a noun phrase.
+const BAGS_SAID = 'the number of bags of chips Hollis Bay sells a year';
 
 // Jasmine t1, verbatim: her opening ask, before the pressure test.
 const T1_TEXT = "Let me lay out how I'd think about this. The core question is whether the chickpea line breaks even in year one, so I'd structure it as a profitability build plus two qualifying checks.\n\nFirst, market: size of the US better-for-you salty snack segment, growth rate, and what share Hollis Bay could realistically capture given its Northeast/Midwest footprint and existing retail relationships.\n\nSecond, economics: revenue as shelf-space-weighted distribution times velocity times price, against variable cost per unit — chickpea sourcing, roasting, packaging — plus the fixed costs that matter in year one: new or converted production lines, slotting fees to retailers, and trade/marketing spend to drive trial.\n\nThird, capabilities and risks: can existing plants roast chickpeas or is that capex, can the sales force sell into a different shelf set, and is there cannibalization of the core chip business.\n\nTo start on the economics — do we have the projected price point and volume, and the cost structure for the chickpea line?";
@@ -85,7 +87,7 @@ const dataOf = (spoken: string, say: string, question: string) => {
 beforeEach(() => { detected = []; checkVerdict = []; calls.length = 0; });
 
 describe('an explicit ask the model replaced gets its own answer (A4)', () => {
-  it('Jasmine t5 → t6: the chip-sales-flat line, "I don\'t have how many bags of chips …", and the model\'s offer', async () => {
+  it('Jasmine t5 → t6: the chip-sales-flat line, "I don\'t have the number of bags of chips …", and the model\'s offer', async () => {
     detected = [BAGS];
     const p = t5();
     const s = await settleTurn(p, outcome(T6_TURN));
@@ -95,7 +97,7 @@ describe('an explicit ask the model replaced gets its own answer (A4)', () => {
     expect(WHY_NOW).toMatch(/^Chip sales are flat/);
     const refusal = rest.slice(0, rest.indexOf(' I can share'));
     expect(refusal).toMatch(REFUSE);
-    expect(refusal).toContain(BAGS.what);
+    expect(refusal).toBe(`I don't have ${BAGS_SAID}.`);
     expect(rest.slice(refusal.length + 1)).toMatch(pool('offer'));
     expect(rest).toContain(OFFER.what);
     expect(checkOf(p, 'data_decisions')).toMatchObject({ detail: { releases: ['why_now'], refusals: [BAGS.what], offers: [OFFER.what] } });
@@ -146,7 +148,7 @@ describe('an explicit ask the model replaced gets its own answer (A4)', () => {
     const other = { ...OFFER, explicit: true, respond: 'release' as const };
     const s = await settleTurn(p, outcome({ ...T6_TURN, requests: [other] }));
     expect(s.spokenText).toContain(WHY_NOW);
-    expect(s.spokenText).toContain(BAGS.what);
+    expect(s.spokenText).toContain(BAGS_SAID);
     expect(checkOf(p, 'data_decisions')).toMatchObject({ detail: { releases: expect.arrayContaining(['planning_assumptions', 'why_now']) } });
   });
 
@@ -168,7 +170,7 @@ describe('an explicit ask the model replaced gets its own answer (A4)', () => {
     const replacement = { what: 'the planning assumptions on households, conversion and bags per household', itemIds: ['planning_assumptions'], explicit: true, respond: 'release' as const };
     const s = await settleTurn(p, outcome({ ...T6_TURN, requests: [replacement] }));
     expect(s.spokenText).toContain(WHY_NOW);
-    expect(s.spokenText).toContain(BAGS.what);
+    expect(s.spokenText).toContain(BAGS_SAID);
     expect(checkOf(p, 'uncovered_asks')).toMatchObject({ decision: 'act', detail: { answered: [BAGS.what], covered: [] } });
   });
 
