@@ -343,7 +343,8 @@ export function decideData(p: {
       // decides (turnDataChecked); the generic "settle your structure" line
       // answered nothing (batch 32 Aldermoor Marcus t5).
       // An unmapped release is refused here; turnData sends it through the same
-      // check unless a finer-cut scope rule emptied it (round-2 ruling 2, 19 Oct).
+      // check (round-2 ruling 2, 19 Oct) unless it is the finer cut of an ask whose
+      // coarse item goes out beside it (round 5 E1, 20 Oct: `scope_coarse`).
       if (r.explicit && r.respond === 'defer') { unmatchedDefers.push(r.what); decidedAt.push({ at, d: { request: r, response: 'defer', ledgerItemIds: [] } }); }
       else if (r.explicit) { refusals.push(r.what); decidedAt.push({ at, d: { request: r, response: 'refuse', ledgerItemIds: [] } }); }
       return;

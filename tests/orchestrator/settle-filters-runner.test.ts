@@ -648,18 +648,27 @@ describe('no refusal names data the case holds (fact checks F3)', () => {
   // the split within that non-bean bucket?" heard "As I mentioned:" and the
   // bean and other-input figures again): "As I mentioned" only for a re-ask
   // of the same item; a narrower ask the case doesn't hold is refused.
+  // Round 5 E1 (Lorenzo, 20 Oct): a narrower ask the model mapped to the coarse
+  // item keeps it — said again, with the finer cut refused beside it.
   describe('"As I mentioned" only for a re-ask of the same item', () => {
     const ALL = [...COST, 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change'];
     it.each([
       ['the split within the non-bean input costs', ['exhibit-a']],
-      ['the split within the non-bean input costs', ['non_bean_input_change']],
-      ['the breakdown of the other inputs', ['non_bean_input_change']],
       ['the split within dairy, packaging and food', []],
     ] as [string, string[]][])('"%s" (mapped to %o): refused, nothing restated', async (what, itemIds) => {
       seed({ phase: 'EXHIBIT', revealed: ALL, flags: SATISFIED });
       const r = await say('Do we have the split within that non-bean bucket?', T({ say: 'Understood.', requests: [ask(what, itemIds)], question: 'What does it tell you?' }));
       expect(r.interviewerText).not.toMatch(/As I mentioned|up 40%|up 37\.5%/);
       expect(r.interviewerText).toContain(`I don't have ${what}.`);
+    });
+    it.each([
+      ['the split within the non-bean input costs', ['non_bean_input_change']],
+      ['the breakdown of the other inputs', ['non_bean_input_change']],
+    ] as [string, string[]][])('"%s" (mapped to %o): the coarse item said again, the finer cut refused (E1)', async (what, itemIds) => {
+      seed({ phase: 'EXHIBIT', revealed: ALL, flags: SATISFIED });
+      const r = await say('Do we have the split within that non-bean bucket?', T({ say: 'Understood.', requests: [ask(what, itemIds)], question: 'What does it tell you?' }));
+      expect(r.interviewerText).toContain(`As I mentioned: Other input costs — dairy, packaging, and food — are up 37.5% over the past two years. I don't have ${what}.`);
+      expect(r.interviewerText).not.toMatch(/up 40%/);
     });
     it('a split of a whole line by its case name ("rent" for overhead), beside an exhibit: refused, the line not restated', async () => {
       seed({ phase: 'EXHIBIT', revealed: ALL, flags: SATISFIED });

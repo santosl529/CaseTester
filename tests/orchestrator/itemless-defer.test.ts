@@ -144,14 +144,28 @@ describe('an item-less release', () => {
       vi.useRealTimers();
     }
   });
-  // The controller's ruling (19 Oct): an ask that matched an item a finer-cut
-  // scope rule emptied ("by month") is not unmatched — refused as today, unchecked.
-  it('an ask the finer-cut scope rule emptied is refused without the check', async () => {
+  // Round 5 E1 (Lorenzo, 20 Oct) reverses the controller's 19 Oct ruling (an ask
+  // a finer-cut scope rule emptied was refused whole, unchecked): it keeps its
+  // coarse item — released with "I don't have <the ask>." — and is checked only
+  // when no coarse item can go out.
+  const BY_MONTH = { requests: [{ what: 'COGS by month', itemIds: ['cogs_pct'], explicit: true, respond: 'release' as const }], exhibit: null, rescueItem: null };
+  it('an ask the finer-cut scope rule emptied keeps its coarse item: released, the finer cut refused, no check', async () => {
     classify.mockClear();
-    const d = await turnDataChecked(plan(SATISFIED), { requests: [{ what: 'COGS by month', itemIds: ['cogs_pct'], explicit: true, respond: 'release' }], exhibit: null, rescueItem: null });
+    const d = await turnDataChecked(plan(SATISFIED), BY_MONTH);
+    expect(d.releases.map(r => r.id)).toEqual(['cogs_pct']);
     expect(d.refusals).toEqual(['COGS by month']);
-    expect(d.releases).toEqual([]);
     expect(classify).not.toHaveBeenCalled();
+    expect(renderDataLines(d, 's')).toEqual(['COGS is 58% of revenue today, up from 42% two years ago.', "I don't have COGS by month."]);
+    expect(d.requests.map(r => [r.response, r.ledgerItemIds])).toEqual([['release', ['cogs_pct']], ['refuse', []]]);
+  });
+  it('… its coarse item held by the pressure-test gate: not released, the ask checked like any refusal', async () => {
+    classify.mockClear();
+    classify.mockResolvedValueOnce([]);
+    const d = await turnDataChecked(plan(), BY_MONTH);
+    expect(d.releases).toEqual([]);
+    expect(d.gateDefers).toEqual([]);
+    expect(classify).toHaveBeenCalledTimes(1);
+    expect(d.refusals).toEqual(['COGS by month']);
   });
 });
 

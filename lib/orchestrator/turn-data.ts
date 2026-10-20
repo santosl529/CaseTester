@@ -80,9 +80,13 @@ export function wrapUpTurn(plan: ModelPlan): boolean {
 // Round-2 ruling 2 (Lorenzo, 19 Oct): "R1 covers every code refusal of an
 // unmatched ask, item-less releases included … Cap the Haiku check at ~1.5s; on
 // a timeout or error, use the named deferral, never a refusal." Item-less
-// releases (a code-written turn's detections among them) go through it too;
-// an ask a finer-cut scope rule emptied (it matched an item that can't answer
-// it) is refused unchecked, as before (turnData, refuseNow).
+// releases (a code-written turn's detections among them) go through it too.
+// An ask a finer-cut scope rule emptied (it matched an item that can't answer
+// it) keeps that coarse item (Lorenzo, 20 Oct, round 5 E1; batch 34 Aldermoor
+// Marisol t14, Jasmine t4): released under every gate with "I don't have <the
+// ask>." for the finer cut; with no coarse item going out it is checked like
+// any other refusal (turnData, `scope_coarse`). This reverses the round-2
+// exception that refused it unchecked.
 // Round-3 ruling 5 (Lorenzo, 19 Oct; batch 28 Marisol t8, batch 30 Anika t6):
 // "Code refuses only when the check says the case doesn't hold it." Any ledger
 // item the check finds is a named deferral, whether or not the scope rules or
@@ -234,8 +238,14 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // Asks the BASIS rule emptied: checked like an item-less deferral before any refusal goes out.
   const basisEmptied = new Set<string>();
   // Asks the other scope rules emptied — they matched an item that can't answer
-  // the finer cut they ask for: refused without the check (controller, 19 Oct).
-  const refuseNow = new Set<string>();
+  // the finer cut they ask for (Lorenzo, 20 Oct, round 5 E1; batch 34 Aldermoor
+  // Marisol t14 "the current treatment mix across treated patients", Jasmine t4
+  // "current US treatment breakdown by drug class", both refused whole): each
+  // keeps its coarse items, given back to it once the coverage step below has
+  // read the ask (`coarseOf`). A finer ask left holding only the exhibit the
+  // model handed over is backed by that exhibit (`exhibitBacked`).
+  const coarseOf = new Map<string, string[]>();
+  const exhibitBacked = new Map<string, string[]>();
   const basisCut: Record<string, string[]> = {};
   requests = requests.flatMap(r => {
     // An item the case's own `covers` names for the ask is in its scope (Marisol
@@ -268,11 +278,12 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     if (out.length > 0) scoped.push({ what: r.what, ids: out });
     if (r.explicit && out.length > 0 && kept.itemIds.length === 0) {
       if (BASIS.test(r.what)) { basisEmptied.add(r.what); basisCut[r.what] = [...new Set([...(basisCut[r.what] ?? []), ...out])]; }
-      else refuseNow.add(r.what);
+      else coarseOf.set(r.what, [...new Set([...(coarseOf.get(r.what) ?? []), ...out])]);
     }
-    // A finer ask the case doesn't hold is refused (4b), even beside an exhibit the model handed over for it.
+    // A finer ask the case doesn't hold is refused (4b), even beside an exhibit the
+    // model handed over for it — the exhibit is its coarse answer (E1).
     if (r.explicit && finerAsks.has(r.what) && kept.itemIds.length > 0 && !kept.itemIds.some(id => ledger.items.some(i => i.id === id))) {
-      refuseNow.add(r.what);
+      exhibitBacked.set(r.what, kept.itemIds);
       return [kept, { ...r, itemIds: [] }];
     }
     return [out.length === 0 ? r : kept];
@@ -312,7 +323,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
         if (value && !promptRestates.some(p => p.id === id)) promptRestates.push({ id, value, request: r });
       }
       // What nothing covers of an ask a scope rule emptied is still that ask's finer cut.
-      if (cov.rest && refuseNow.has(r.what)) refuseNow.add(cov.rest);
+      if (cov.rest && coarseOf.has(r.what)) coarseOf.set(cov.rest, coarseOf.get(r.what)!);
       return [
         ...covIds.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label })),
         ...(cov.rest ? [{ ...r, what: cov.rest, itemIds: [] as string[] }] : []),
@@ -328,6 +339,17 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // After the pressure test, nothing is premature: a declared deferral is
   // released (or refused, when the case doesn't hold the data).
   if (satisfied) requests = requests.map(r => (r.respond === 'defer' ? { ...r, respond: 'release' as const } : r));
+  // An explicit release a scope rule emptied gets its coarse items back (E1):
+  // released under every gate below and in decideData, the finer cut refused
+  // beside them. A declared deferral stays item-less: the check decides it.
+  const coarseAsks = new Set<DeclaredRequest>();
+  requests = requests.map(r => {
+    const ids = r.explicit && r.respond === 'release' && r.itemIds.length === 0 ? coarseOf.get(r.what) : undefined;
+    if (!ids) return r;
+    const back = { ...r, itemIds: ids };
+    coarseAsks.add(back);
+    return back;
+  });
   // Before it, the part of a release that needs it is held; the rest
   // (scoping facts) goes out. Every held ask is answered out loud with the
   // reason, repeats too (v3 — v2 held a repeat silently: Destiny asked eight
@@ -338,6 +360,13 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
       // Data already given is never held again: a re-ask restates it (data-decisions.ts).
       const held = r.itemIds.filter(id => gated(id) && !ledger.revealed.has(id));
       if (held.length === 0) return [r];
+      // A coarse item the gate holds is not given: what's left of the ask (all of
+      // it, when nothing is) goes the way of any item-less ask — the check (E1).
+      if (coarseAsks.has(r)) {
+        const back = { ...r, itemIds: r.itemIds.filter(id => !held.includes(id)) };
+        coarseAsks.add(back);
+        return [back];
+      }
       gatedIds.push(...held);
       gateHeld.add(r.what);
       const free = r.itemIds.filter(id => !held.includes(id));
@@ -377,7 +406,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   }
 
   const modelExhibit = turn.exhibit ? resolve(turn.exhibit) : null;
-  const decisions = decideData({
+  const decide = (requests: DeclaredRequest[]) => decideData({
     requests,
     candidateText: ctx.candidateText,
     exhibit: modelExhibit && !(gateOn && gated(modelExhibit)) ? modelExhibit : null,
@@ -395,15 +424,53 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     groups: askedGroups,
     wrapUp: wrapUpTurn(plan),
   });
+  let decisions = decide(requests);
+  // E1 (Lorenzo, 20 Oct): a coarse item goes out when it is released, restated
+  // (already out) or shown on the exhibit handed over this turn. Those that
+  // don't (not in the ledger, waiting on the release order, over the cap) are
+  // taken off the ask — no deferral is said for data the ask didn't name — and
+  // the turn decided again: an ask left with none goes to the check below.
+  const wentOut = (id: string) => decisions.releases.some(x => x.id === id) || decisions.restates.some(x => x.id === id)
+    || decisions.exhibit?.id === id || Boolean(decisions.exhibit?.covers.includes(id));
+  if ([...coarseAsks].some(r => requests.includes(r) && !r.itemIds.every(wentOut))) {
+    requests = requests.map(r => {
+      if (!coarseAsks.has(r) || r.itemIds.every(wentOut)) return r;
+      const back = { ...r, itemIds: r.itemIds.filter(wentOut) };
+      coarseAsks.add(back);
+      return back;
+    });
+    decisions = decide(requests);
+  }
+  // Each coarse ask still holding an item that went out: the item's line, and
+  // "I don't have <the ask>." for the finer cut, refused beside it (logged
+  // `scope_coarse`; its own refuse row after the release row). So is a finer ask
+  // whose exhibit is handed over.
+  const scopeCoarse: { what: string; ids: string[] }[] = [];
+  for (const r of requests) {
+    if (coarseAsks.has(r) && r.itemIds.length > 0 && r.itemIds.some(wentOut)) scopeCoarse.push({ what: r.what, ids: r.itemIds });
+  }
+  for (const [what, ids] of exhibitBacked) {
+    if (decisions.refusals.includes(what) && ids.some(wentOut)) scopeCoarse.push({ what, ids });
+  }
+  const scopeRefused = new Set(scopeCoarse.map(x => x.what));
+  if (scopeCoarse.length > 0) {
+    const firstAt = (w: string) => requests.findIndex(r => r.what === w);
+    decisions.refusals = [...new Set([...decisions.refusals, ...scopeRefused])].sort((a, b) => firstAt(a) - firstAt(b));
+    decisions.requests = decisions.requests.flatMap(d => (coarseAsks.has(d.request) && scopeRefused.has(d.request.what) && d.ledgerItemIds.length > 0
+      ? [d, { request: { ...d.request, itemIds: [] }, response: 'refuse' as const, ledgerItemIds: [] }] : [d]));
+    plan.ctx.checks.act('scope_coarse', 'an ask a scope rule emptied keeps its coarse items: given, and the finer cut refused beside them', { asks: scopeCoarse });
+  }
   // Lorenzo, 19 Oct (R1, "don't add code-spoken refusals without the check";
   // round-2 ruling 2, every unmatched ask): an item-less ask code would refuse
   // goes through the same check as an item-less deferral (turnDataChecked)
   // instead of being refused at once: named deferral, or refused when it maps to
   // none. That includes an ask the model mapped to an item and the BASIS rule
   // emptied (Larkspur Marisol t27; since round-3 ruling 5 a mapping back to the
-  // items the rule cut is a named deferral too — basisCut is only logged). Asks
-  // the finer-cut scope rules emptied (refuseNow) are refused as before.
-  const toCheck = decisions.refusals.filter(w => !refuseNow.has(w));
+  // items the rule cut is a named deferral too — basisCut is only logged). An
+  // ask the finer-cut scope rules emptied is refused unchecked only beside its
+  // coarse item (E1, `scope_coarse`, above); with none going out it is checked
+  // like the rest (round 5 reverses the round-2 exception).
+  const toCheck = decisions.refusals.filter(w => !scopeRefused.has(w));
   if (toCheck.length > 0) {
     const checking = new Set(toCheck);
     decisions.unmatchedDefers.push(...toCheck);
