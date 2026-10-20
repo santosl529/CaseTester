@@ -1004,6 +1004,18 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       expect(p.selected).toMatchObject({ id: '17:0', action: 'restate' });
       expect(p.selected?.covers).toBeUndefined();
     });
+    // The controller's middle ordering (review fix 2): a restatement goes before other flags of its rating, not before a conclusion-changing one when minor.
+    it('ordering: a minor restatement waits behind a conclusion-changing flag; of equal rating it goes first, whatever the age', () => {
+      const other = vetted({ span: 'the eligible pool is 300,000', quantity: 'eligible patients', candidateValue: '300,000', correctValue: 200000, codeQuantity: step('eligible_patients'), changesConclusion: true });
+      const minor = run([sales('40,000 × $2,000 = $80 million', '$80 million', { changesConclusion: false }), other], { ...closedNet, corrected });
+      expect(minor.selected).toMatchObject({ id: '17:1' });
+      expect(minor.waiting.map(w => w.id)).toContain('17:0');
+      const equal = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected,
+        rows: [verdictRow(15, [other]), verdictRow(17, [sales('40,000 × $2,000 = $80 million', '$80 million')])],
+        turnRows: [{ turnIndex: 15, role: 'candidate', text: 'The eligible pool is 300,000.' }, { turnIndex: 16, role: 'interviewer', text: 'Go on.' }, { turnIndex: 17, role: 'candidate', text: T17 }, { turnIndex: 18, role: 'interviewer', text: 'Go on.' }] });
+      expect(equal.selected).toMatchObject({ id: '17:0', action: 'restate' });
+      expect(equal.waiting.map(w => w.id)).toContain('15:0');
+    });
     it('a minor claim under time pressure is shed, as a minor flag is', () => {
       const p = run([sales('40,000 × $2,000 = $80 million', '$80 million', { changesConclusion: false })], { ...closedNet, corrected, underTimePressure: true });
       expect(p.selected).toBeNull();
@@ -1024,6 +1036,12 @@ describe('restatementLine: "<root quantity> is <right>, not <wrong>" (ruling 1)'
   it('a statement with no "not X": their wrong value added, in the right figure\'s unit', () => {
     expect(restatementLine({ line: 'Kelvexa net price per patient per year is about $8,000.', figure: '8000' }, 2000)).toBe('Kelvexa net price per patient per year is about $8,000, not $2,000.');
     expect(restatementLine({ line: 'The bean share of COGS is about 30%.', figure: '30' }, 25)).toBe('The bean share of COGS is about 30%, not 25%.');
+  });
+  // Review fix 3: the scale word goes with their figure too ("$80", not $80 million, read as another figure).
+  it('…with the statement\'s scale word on their figure too', () => {
+    expect(restatementLine({ line: 'Peak annual US net sales of Kelvexa is about $320 million.', figure: '320' }, 80)).toBe('Peak annual US net sales of Kelvexa is about $320 million, not $80 million.');
+    expect(restatementLine({ line: 'Eligible patients is about 1.2 million in the US.', figure: '1.2' }, 3)).toBe('Eligible patients is about 1.2 million in the US, not 3 million.');
+    expect(restatementLine({ line: 'The COGS rise is about 16 points.', figure: '16' }, 38)).toBe('The COGS rise is about 16 points, not 38.');
   });
   it('any other line: as delivered', () => {
     expect(restatementLine({ line: 'In revenue terms, that\'s about 10.5 points.', figure: '10.5' }, 25)).toBe('In revenue terms, that\'s about 10.5 points.');

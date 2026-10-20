@@ -263,6 +263,8 @@ describe('planTurn: the correction restated once (ruling 1)', () => {
     expect(mc.handled).toEqual(['3:0', '3:1', '3:2']);
     expect(mc.closed).toEqual(['pricing:gain@5', 'checker:nearly 4 points']);
     expect(mc.corrected['checker:nearly 4 points']).toEqual({ line: CORRECTION, figure: '8.5' });
+    // Review fix 1: its line has been said — as a root later it is not restated a second time.
+    expect((p.ctx.flags.mathChecker as { restated: string[] }).restated).toEqual(['pricing:gain@5', 'checker:nearly 4 points']);
     expect(p.ctx.events).toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ id: '3:2', outcome: 'correct', line: CORRECTION, by: '3:1' }) }));
     // Not heard: nothing of it booked.
     expect(p.state.checkerLine?.undo.mathChecker).toMatchObject({ handled: ['3:0'], closed: ['pricing:gain@5'] });

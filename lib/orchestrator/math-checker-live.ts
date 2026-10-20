@@ -365,7 +365,9 @@ export function restatementLine(fix: CorrectedRoot, wrong: number): string {
   if (rel) return `The ${rel[2] === 'rose' ? 'rise' : 'fall'} in ${rel[1]} is ${rel[3]} points of ${rel[4]}, not ${figureSaid(wrong)}.`;
   // A statement of code's figure without its "not X" (own-quantity.ts): their value added, in the figure's unit.
   const st = STATEMENT.exec(fix.line);
-  if (st) return `${st[1]}${st[2]}${st[3]}${st[4]}${st[5]}, not ${st[2]}${figureSaid(wrong)}${st[4]}.`;
+  // Their figure in the figure's scale too ("$320 million, not $80 million"; review fix 3).
+  const scale = /^\s*(thousand|million|billion|trillion)\b/i.exec(st?.[5] ?? '')?.[1];
+  if (st) return `${st[1]}${st[2]}${st[3]}${st[4]}${st[5]}, not ${st[2]}${figureSaid(wrong)}${st[4]}${scale ? ` ${scale}` : ''}.`;
   return fix.line;
 }
 
@@ -691,7 +693,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         else eligible.push({ ...e, key: root, restate: { line: restatementLine(fix, wrong), ...(fix.figure ? { figure: fix.figure } : {}), own: e.key, fixLine: fix.line } });
         continue;
       }
-      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', fix ? `built on a corrected input (${root}) — restated once already; left for the report` : `built on a closed input (${root})`, undefined, e.key), root });
+      // "Restated once already" only when it was (a root with no head figure to restate reads as any closed input; review fix 4).
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', fix && restated.has(root) ? `built on a corrected input (${root}) — restated once already; left for the report` : `built on a closed input (${root})`, undefined, e.key), root });
       handled.add(e.id);
     } else built.push({ e, root });
   }
@@ -713,10 +716,12 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const final = (x: { n: number; key: string }) => Number(isFinal(x));
   const rank = (x: { n: number; c: VettedClaim; key: string }) => (p.rank ? Math.max(0, ...[x, ...riding(x)].filter(y => p.finalAnswer?.(y.n)).map(y => p.rank!(y.n, y.c))) : 0);
   const changes = (x: { c: VettedClaim; key: string }) => x.c.changesConclusion || riding(x).some(d => d.c.changesConclusion);
-  // A restatement before the other flags (ruling 1): the error it closes is still in use (b29 Jordan t9: before a
-  // second correction of the same 38, "~40 points", whose line was the root's word for word).
-  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b) - final(a) || rank(b) - rank(a) || Number(Boolean(b.restate)) - Number(Boolean(a.restate))
-    || Number(changes(b)) - Number(changes(a)) || a.n - b.n);
+  // A restatement before the other flags of its rating (ruling 1): the error it closes is still in use (b29 Jordan t9:
+  // before a second correction of the same 38, "~40 points", whose line was the root's word for word). Below a
+  // conclusion-changing flag when it is minor — the controller's middle ordering (review, 19 Oct): held, final, rank,
+  // rating, then the restatement, then age.
+  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b) - final(a) || rank(b) - rank(a) || Number(changes(b)) - Number(changes(a))
+    || Number(Boolean(b.restate)) - Number(Boolean(a.restate)) || a.n - b.n);
   let selected: CheckerSelection | null = null;
   let restatedFrom: string | null = null;   // the delivered line a selected restatement says again
   const waiting = [...eligible];

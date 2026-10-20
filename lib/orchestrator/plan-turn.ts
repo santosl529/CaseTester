@@ -1067,7 +1067,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     ...Object.fromEntries(coveredNow.map(c => [c.key, { line: c.line, ...(c.claim.correctionFigure ? { figure: c.claim.correctionFigure } : {}) }])),
   };
   const correctedAfter = { ...(checkerMemory.corrected ?? {}), ...correctedNow };
-  const restatedAfter = [...(checkerMemory.restated ?? []), ...(checkerUsed?.action === 'restate' ? [checkerUsed.key] : [])];
+  // A key the restatement corrected word for word (covers) has had that line said: it is restated too, never restated on its own later (review fix 1).
+  const restatedAfter = [...new Set([...(checkerMemory.restated ?? []), ...(checkerUsed?.action === 'restate' ? [checkerUsed.key, ...coveredNow.map(c => c.key)] : [])])];
   const fixesKept = { ...(checkerMemory.corrected && Object.keys(checkerMemory.corrected).length ? { corrected: checkerMemory.corrected } : {}), ...(checkerMemory.restated?.length ? { restated: checkerMemory.restated } : {}) };
   if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held || convertedFigure !== undefined
     || Object.keys(correctedNow).length > 0 || restatedAfter.length !== (checkerMemory.restated ?? []).length) {
