@@ -3,7 +3,7 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-// The small-model check's verdict on an item-less ask ("Could I get <ask>?"), set per test; else none.
+// The small-model check's verdict on an item-less ask (classifyAsk, served through this file's detection mock as "Could I get <ask>?" — a test adapter, fixtures/ask-check.ts; production sends the ask to the check's own prompt), set per test; else none.
 const { checkFound } = vi.hoisted(() => ({ checkFound: { value: [] as unknown[] } }));
 vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = async (p: { candidateText: string }) => (p.candidateText.startsWith('Could I get ') ? checkFound.value : []); return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
 

@@ -8,14 +8,17 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-const { classify } = vi.hoisted(() => ({ classify: vi.fn(async (): Promise<unknown> => []) }));
-vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = classify; return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
+// The check (classifyAsk) is a spy served through this file's detection mock (fixtures/ask-check.ts askVia —
+// a test adapter; production sends the ask to the check's own prompt).
+const { classify, ask } = vi.hoisted(() => ({ classify: vi.fn(async (): Promise<unknown> => []), ask: vi.fn() }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: classify, classifyAsk: ask }));
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
 
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
 import { turnDataChecked } from '@/lib/orchestrator/turn-data';
 import { renderDataLines } from '@/lib/orchestrator/data-decisions';
 import { readsFixture } from './fixtures/turn-reads';
+import { askVia } from './fixtures/ask-check';
 
 const WHAT = "Aldermoor's European Kelvexa sales trend since 2022";
 const SATISFIED = { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } };
@@ -26,7 +29,9 @@ const plan = (flags: Record<string, unknown> = {}): ModelPlan => {
   return p;
 };
 // No verdict left over from another test (an unconsumed mockResolvedValueOnce).
-beforeEach(() => { classify.mockReset(); classify.mockImplementation(async () => []); });
+beforeEach(() => { classify.mockReset(); classify.mockImplementation(async () => []); ask.mockReset(); ask.mockImplementation(askVia(classify)); });
+// The check's call as production makes it: the ask, and the case's catalog with each line's figures masked.
+const COGS_MASKED = expect.objectContaining({ id: 'cogs_pct', line: 'COGS is #% of revenue today, up from #% # years ago.' });
 const T = { requests: [{ what: WHAT, itemIds: [], explicit: true, respond: 'defer' as const }], exhibit: null, rescueItem: null };
 
 describe('an item-less deferral', () => {
@@ -114,11 +119,12 @@ describe('an ask mapped to an item that the BASIS rule empties', () => {
     classify.mockResolvedValueOnce(null);
     expect((await turnDataChecked(plan(SATISFIED), B)).defers).toEqual([BASIS_ASK]);
   });
-  it('is asked of the classifier as an ask, not a bare noun phrase', async () => {
-    classify.mockClear();
+  it('is sent to the check as the ask, with the masked catalog', async () => {
     classify.mockResolvedValueOnce([]);
     await turnDataChecked(plan(SATISFIED), B);
-    expect(classify).toHaveBeenCalledWith(expect.objectContaining({ candidateText: `Could I get ${BASIS_ASK}?`, interviewerText: null }));
+    expect(ask).toHaveBeenCalledTimes(1);
+    expect(ask).toHaveBeenCalledWith(expect.objectContaining({ what: BASIS_ASK, catalog: expect.arrayContaining([COGS_MASKED]) }));
+    expect((ask.mock.calls[0][0] as { catalog: { line: string }[] }).catalog.filter(c => /\d/.test(c.line))).toEqual([]);
   });
 });
 
@@ -211,12 +217,11 @@ import type { TurnKind } from '@/lib/orchestrator/plan-turn';
 describe('a code-written turn\'s item-less detection', () => {
   const det = [{ what: WHAT, ledgerItemIds: [], response: 'none' as const, explicit: true }];
   const atKind = (kind: TurnKind) => { const p = plan(SATISFIED); p.state.kind = kind; return p; };
-  it('goes through the check (asked as an ask)', async () => {
-    classify.mockClear();
+  it('goes through the check (the ask, with the masked catalog)', async () => {
     classify.mockResolvedValueOnce([]);
     const p = atKind('time_warning');
     const d = await turnDataChecked(p, codeWrittenTurn(p, det));
-    expect(classify).toHaveBeenCalledWith(expect.objectContaining({ candidateText: `Could I get ${WHAT}?` }));
+    expect(ask).toHaveBeenCalledWith(expect.objectContaining({ what: WHAT, catalog: expect.arrayContaining([COGS_MASKED]) }));
     expect(d.refusals).toEqual([WHAT]);
   });
   // E5 (d) at a wrap-up: what can go now goes; what can't (here over the release

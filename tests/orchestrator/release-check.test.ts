@@ -14,7 +14,7 @@ vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<obje
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
 // The classifier on the message (the check), and the small-model check on an
-// item-less ask ("Could I get <ask>?", turn-data.ts checkAsk): set per test.
+// item-less ask (classifyAsk, served through this file's detection mock as "Could I get <ask>?" — a test adapter, fixtures/ask-check.ts; production sends the ask to the check's own prompt): set per test.
 let detected: DetectedDataRequest[] | null | 'hang' = [];
 let checkVerdict: DetectedDataRequest[] | null = [];
 const calls: string[] = [];

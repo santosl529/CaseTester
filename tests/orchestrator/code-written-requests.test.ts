@@ -44,8 +44,8 @@ vi.mock('@/db/client', async () => {
 vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
 // The classifier's verdict for the message, set per test; and the small-model
-// check's on an item-less ask ("Could I get <ask>?", turn-data.ts; round-2
-// ruling 2, 19 Oct): maps to none unless a test says otherwise.
+// check's on an item-less ask (round-2 ruling 2, 19 Oct) (classifyAsk, served through this file's detection mock as "Could I get <ask>?" — a test adapter, fixtures/ask-check.ts; production sends the ask to the check's own prompt):
+// maps to none unless a test says otherwise.
 let detected: DetectedDataRequest[] | null = [];
 let checkVerdict: DetectedDataRequest[] | null = [];
 vi.mock('@/lib/orchestrator/data-requests', async orig => {
