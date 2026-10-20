@@ -141,6 +141,7 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     ...d,
     unmatchedDefers: [],
     defers: wrapUp ? d.defers : [...d.defers, ...defers],
+    ...(!wrapUp && defers.length > 0 ? { itemlessDefers: defers } : {}),
     ...(wrapUp ? { wontGetTo: [...(d.wontGetTo ?? []), ...defers] } : {}),
     refusals: [...d.refusals, ...refusals],
     requests: d.requests.map(r => (r.response === 'defer' && r.ledgerItemIds.length === 0 && refused.has(r.request.what) ? { ...r, response: 'refuse' as const } : r)),

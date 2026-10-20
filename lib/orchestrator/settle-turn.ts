@@ -32,7 +32,7 @@ import { dataLinePools } from '@/lib/cases/loader';
 import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
 import { asksForConclusion, analysisAskLine } from './spoken-close';
 import { updateStages, stageQuestions, type StageKey, type StageRecord } from './stage-evidence';
-import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
+import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers } from './data-decisions';
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
@@ -200,7 +200,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     revealed: gBase.facts.revealed, exhibitShown: state.shownExhibitIds.size > 0 || decisions.exhibit !== null,
     deliveredNow: decisions.releases.length > 0 || decisions.exhibit !== null || decisions.restates.length > 0 || decisions.correction != null,
     deliveredPrev: false, refusedNow: decisions.refusals.length > 0,
-    deferredNow: decisions.defers.length + decisions.gateDefers.length + decisions.offers.length > 0,
+    deferredNow: itemBackedDefers(decisions).length + decisions.gateDefers.length + decisions.offers.length > 0,
   } } } : gBase;
 
   // The model's words, vetoed sentence by sentence (never rewritten).
@@ -314,7 +314,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       modelQuestion = kept.some(x => x.endsWith('?')) && modelQuestion ? question : '';
     }
   }
-  const heldThisTurn = decisions.gatedIds.length > 0 || decisions.defers.length > 0 || decisions.gateDefers.length > 0;
+  // Only item-backed deferrals hold the model's figure question: the check's item-less
+  // named deferrals hold no data (Lorenzo, 19 Oct, round-3 ruling 3; batch 31 Sofia t10's
+  // math probe was withheld), and "We won't get to" lines are not counted either.
+  const heldThisTurn = decisions.gatedIds.length > 0 || itemBackedDefers(decisions).length > 0 || decisions.gateDefers.length > 0;
   if (!codeWritten && kind !== 'rec_ask' && !figuresOut && refersToFigures(question)
     && (heldThisTurn || Object.keys(revealedValues(ledger)).length === 0)) {
     withheld.push({ sentence: question, reason: 'undelivered_figures', field: 'question' });

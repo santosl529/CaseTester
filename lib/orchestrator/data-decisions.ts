@@ -221,12 +221,21 @@ export type DataDecisions = {
   // The check's named deferrals on a wrap-up or close turn: "We won't get to <ask>
   // today." (Lorenzo, 19 Oct, round-2 ruling 3; set by turnDataChecked).
   wontGetTo?: string[];
+  // Which of `defers` are the check's item-less named deferrals: they hold no ledger
+  // item, so they hold no data (Lorenzo, 19 Oct, round-3 ruling 3; set by turnDataChecked).
+  itemlessDefers?: string[];
   offers: string[];       // what, for passing mentions of data the case holds
   // Rule 6 option 4 (v4.11): code's correction of a misquoted revealed figure,
   // spoken first in the data line (set by turn-data.ts on model turns).
   correction?: { item: string; items?: string[]; text: string } | null;
   requests: { request: DeclaredRequest; response: RequestResponse; ledgerItemIds: string[] }[];
 };
+
+// The deferrals that hold a ledger item: the check's item-less named deferrals hold no data.
+export function itemBackedDefers(d: Pick<DataDecisions, 'defers' | 'itemlessDefers'>): string[] {
+  const itemless = new Set(d.itemlessDefers ?? []);
+  return d.defers.filter(w => !itemless.has(w));
+}
 
 export function decideData(p: {
   requests: DeclaredRequest[];      // ids already resolved to canonical ledger / exhibit ids

@@ -849,6 +849,30 @@ describe('the question agrees with what code delivered (fact checks F4)', () => 
     expect(withheldFor('undelivered_claim')).toHaveLength(1);
   });
 
+  // Lorenzo, 19 Oct (engine-asks round 3, ruling 3): only item-backed deferrals hold the
+  // model's figure question; the check's item-less named deferral holds no data (batch 31
+  // Sofia t10: the math probe was withheld).
+  const FIG_Q = 'Which of those cost lines is driving the margin decline, and why?';
+  it('a named item-less deferral does not hold the model\'s figure question (b31 Sofia t10)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    classified.push([{ what: 'the supplier contract terms', ledgerItemIds: ['bean_price_change'], response: 'none', explicit: true }]);
+    const r = await say('Beans are the lever.', T({
+      say: 'Mm-hm.', requests: [{ what: 'the supplier contract terms', itemIds: [], explicit: true, respond: 'defer' }], question: FIG_Q,
+    }));
+    expect(r.interviewerText).toMatch(/I'll come back to the supplier contract terms|supplier contract terms/);
+    expect(r.interviewerText).toContain(FIG_Q);
+    expect(withheldFor('undelivered_figures')).toHaveLength(0);
+  });
+
+  it('an item-backed hold (the gate\'s deferral) still holds it', async () => {
+    seed({ phase: 'STRUCTURE', revealed: COST });
+    const r = await say('Beans are the lever.', T({
+      say: 'Mm-hm.', requests: [{ what: 'bean price change', itemIds: ['bean_price_change'], explicit: true, respond: 'release' }], question: FIG_Q,
+    }));
+    expect(r.interviewerText).not.toContain(FIG_Q);
+    expect(withheldFor('undelivered_figures')).toHaveLength(1);
+  });
+
   it('a true claim stays: the figure went out this turn', async () => {
     seed({ phase: 'EXHIBIT', revealed: [...COST, 'bean_share_of_cogs'], flags: SATISFIED });
     const r = await say('What did bean prices do?', T({
