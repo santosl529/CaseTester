@@ -202,6 +202,14 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       answered: asked.fresh.map(r => r.what), covered: asked.covered.map(r => r.what), dropped: asked.dropped.map(r => r.what),
     });
   }
+  // A model release the message never named, checked by the classifier on the message (Task 51).
+  if (asked?.release) {
+    const r = asked.release;
+    checks.record('release_checked', r.withdrawn.length > 0, 'a model release the message never named, and no detection maps: withdrawn, the message\'s asks answered on their own', {
+      checked: r.checked.map(c => ({ what: c.what, id: c.id })), confirmed: r.confirmed, withdrawn: r.withdrawn.map(c => c.id),
+      classified: r.classified, ...(asked.timedOut ? { timedOut: true } : {}), latencyMs: r.latencyMs, waitMs: r.waitMs,
+    });
+  }
   const decisions = await turnDataChecked(plan, withAsks(turn, asked), onUsage);
   const phraseUses = flags.phraseUses as PhraseUses | undefined;
   const dataParts = renderDataLineParts(decisions, seed, phraseUses);

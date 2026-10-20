@@ -181,12 +181,24 @@ export type HeldAsks = { text: string; isHeld: (id: string) => boolean; itemName
 export function matchAskDetections<T extends { what: string; ledgerItemIds?: string[] }>(sentences: string[], detections: T[], held?: HeldAsks): { kept: T[]; dropped: T[] } {
   const split = coveredAsks(sentences, detections);
   if (!held || split.dropped.length === 0) return split;
-  const proper = contentWords(held.caseNames.join(' '));
-  const questions = [...contentWords(askSentencesOf(held.text).filter(isQuestionSentence).join(' '))].filter(w => !proper.has(w));
-  const named = (id: string) => { const names = contentWords(held.itemNames(id).join(' ')); return questions.some(w => names.has(w)); };
+  const questions = askSentencesOf(held.text).filter(isQuestionSentence).join(' ');
+  const named = (id: string) => namesItem(questions, held.itemNames(id), held.caseNames);
   const keep = new Set<T>([...split.kept, ...split.dropped.filter(d => (d.ledgerItemIds ?? []).some(id => held.isHeld(id) && named(id)))]);
   return { kept: detections.filter(d => keep.has(d)), dropped: detections.filter(d => !keep.has(d)) };
 }
+// Whether a text shares a content word (stem match) with an item's own words — its
+// label, spoken name, the case's names (and covers) for it — the case's proper names
+// aside (Task 49's held-ask test; round 5 Task 51's release check). A proper name is
+// taken out as a name, not word by word: "Kelvexa" alone names no item, while
+// "beans" still names the bean items though the client is "Brew & Bean" (Task 51).
+const withoutNames = (text: string, caseNames: string[]) => [...caseNames].sort((a, b) => b.length - a.length)
+  .reduce((t, n) => t.replace(new RegExp(`(?<![a-z])${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'gi'), ' '), text);
+export function namesItem(text: string, itemWords: string[], caseNames: string[]): boolean {
+  const words = contentWords(withoutNames(itemWords.join(' '), caseNames));
+  return [...contentWords(withoutNames(text, caseNames))].some(w => words.has(w));
+}
+// A text with no naming word (the case's proper names aside): a pointer ("Can I see the data?").
+export const namesNothing = (text: string, caseNames: string[]) => contentWords(withoutNames(text, caseNames)).size === 0;
 function coveredAsks<T extends { what: string }>(sentences: string[], detections: T[]): { kept: T[]; dropped: T[] } {
   if (sentences.length === 0) return { kept: [], dropped: [...detections] };
   if (sentences.length === 1 && detections.length === 1 && cueAsk(sentences[0])) {

@@ -9,7 +9,7 @@ import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit,
 import { findFalseRefusals, groupItemsAsked, coverageOf, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, type DetectedDataRequest } from './data-requests';
-import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, WANT_ASK_PHASES } from './request-signal';
+import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, WANT_ASK_PHASES } from './request-signal';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal } from './data-ledger';
 import type { OnUsage } from '@/lib/llm-usage';
@@ -263,7 +263,8 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
 // From the brainstorm on, the sentences are guard B's late ones (rhetorical
 // self-questions filtered; Lorenzo, 19 Oct).
 const ASK_WAIT_MS = 1500;
-export type MessageAsks = { sentences: string[]; detected: DetectedDataRequest[] | null };
+// latencyMs: the classifier call's own time; waitMs: how long the turn waited on it.
+export type MessageAsks = { sentences: string[]; detected: DetectedDataRequest[] | null; latencyMs?: number; waitMs?: number };
 export function probeTurn(plan: ModelPlan): boolean {
   const { checkerLine, kind } = plan.state;
   return kind === 'model' && checkerLine !== null && !correctsNow(checkerLine);
@@ -273,48 +274,137 @@ function messageAskSentences(plan: ModelPlan): string[] {
   return WANT_ASK_PHASES.includes(ctx.currentPhase) ? addressedAskSentences(ctx.candidateText, ctx.currentPhase)
     : lateAskSentences(ctx.candidateText, ctx.currentPhase, [state.caseData.prompt, ...Object.values(revealedValues(state.ledger))]);
 }
-export function startMessageAsks(plan: ModelPlan, onUsage?: OnUsage): Promise<MessageAsks> | null {
+// The classifier on the message: one call per turn, shared through the plan.
+function classifyMessage(plan: ModelPlan, sentences: string[], onUsage?: OnUsage): Promise<MessageAsks> {
   const { state, ctx } = plan;
+  if (state.messageAsks) return state.messageAsks;
+  const t0 = Date.now();
+  state.messageAsks = classifyDataRequests({ candidateText: ctx.candidateText, interviewerText: null, catalog: state.catalog, onUsage })
+    .catch(() => null).then(detected => ({ sentences, detected, latencyMs: Date.now() - t0 }));
+  return state.messageAsks;
+}
+// Started beside the model call when a sentence asks; a message with none is
+// classified only if a model release needs the check (Task 51, below).
+export function startMessageAsks(plan: ModelPlan, onUsage?: OnUsage): Promise<MessageAsks> | null {
+  const { state } = plan;
   if (state.kind !== 'model') return null;
   if (state.messageAsks) return state.messageAsks;
   const sentences = messageAskSentences(plan);
-  state.messageAsks = sentences.length === 0 ? Promise.resolve({ sentences, detected: [] })
-    : classifyDataRequests({ candidateText: ctx.candidateText, interviewerText: null, catalog: state.catalog, onUsage })
-      .catch(() => null).then(detected => ({ sentences, detected }));
-  return state.messageAsks;
+  return sentences.length === 0 ? Promise.resolve({ sentences, detected: [] }) : classifyMessage(plan, sentences, onUsage);
 }
 // The detections, waited on at most ASK_WAIT_MS from the first wait (null after it);
 // one outcome for Stream and Settle.
 function heardAsks(plan: ModelPlan, started: Promise<MessageAsks>): Promise<MessageAsks & { timedOut?: true }> {
   const { state } = plan;
   if (state.messageAsksHeard) return state.messageAsksHeard;
+  const t0 = Date.now();
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<null>(r => { timer = setTimeout(() => r(null), ASK_WAIT_MS); });
   state.messageAsksHeard = Promise.race([started, timeout]).finally(() => clearTimeout(timer))
-    .then(x => x ?? { sentences: messageAskSentences(plan), detected: null, timedOut: true as const });
+    .then(x => ({ ...(x ?? { sentences: messageAskSentences(plan), detected: null, timedOut: true as const }), waitMs: Date.now() - t0 }));
   return state.messageAsksHeard;
 }
+
+// ---- A model release the message never asked for (round 5 Task 51, A5) ----
+// B2 Hollis Bay Marisol a14ca044 t9 → t10: "Do we have a sense of what marketing
+// looks like in year two, or is the $4.5 million a one-time launch push?" (and
+// whether the roasting line's lease recurs) — the model declared a release of
+// longer_term_goals, "Hollis Bay's goals beyond year one, including year-two
+// marketing and line costs", and code said its line ("Hollis Bay's hope is that
+// the line becomes a growth platform…"). The model's `what` is no evidence for its
+// item: it was written from the item's label. So an explicit model release of an
+// item not yet out is checked before release when the item's own words — its label,
+// spoken name, the case's names and covers for it — share no content word with the
+// candidate's message or the question it answers (request-signal.ts namesItem: stem
+// match, the case's proper names aside), no group the message names holds it (the
+// case's groups: "the cost breakdown"), and no earlier ask for it is open. The
+// whole message, not only its asking sentences: those miss a pointer ("Can we see
+// that breakdown?", "Do we have the cost breakdown per cup…") — over b28–b35's
+// recorded declarations, asking sentences alone send 124 of 522 model releases of
+// an item not yet out to the check (67 of prof-001's 371, all answering the ask);
+// the whole message 3, none prof-001 (Marisol t9 among them). A message that names
+// nothing at all ("Could you share them?") points at the conversation: no check.
+// The check is the classifier on the message — the small model the item-less check
+// uses, in detection mode, on the candidate's words (a check on the model's `what`
+// maps it straight back to its item) — the call above, already running beside the
+// model call when a sentence asks (started here otherwise), waited on at most
+// ASK_WAIT_MS:
+//   - a detection maps the item: the release stands;
+//   - none does: the item is taken off the declaration (a declaration left with no
+//     item is dropped, never refused in the model's words — "I don't have Hollis
+//     Bay's goals beyond year one" would refuse data the case holds), and the
+//     message's asks the declaration covered are answered on their own (`fresh`):
+//     Task 45's decisions through turnDataChecked — refused, restated, released
+//     under every gate, or named;
+//   - no verdict (failure, timeout): the release stands — no data is withheld unchecked.
+// Logged `release_checked` (Settle), with the classifier's latency and the turn's wait.
+export type ReleaseCheck = { what: string; raw: string; id: string };
+export function uncheckedReleases(plan: ModelPlan, declared: DeclaredRequest[]): ReleaseCheck[] {
+  const { state, ctx } = plan;
+  if (state.kind !== 'model') return [];
+  const releases = declared.filter(r => r.explicit && r.respond === 'release' && r.itemIds.length > 0);
+  if (releases.length === 0) return [];
+  const resolve = caseResolver(plan);
+  const fb = state.factBase;
+  const text = `${ctx.candidateText}\n${state.lastQuestion ?? ''}`;
+  const caseNames = properNames(state.caseData.sttKeyterms);
+  // A message that names nothing points at the conversation, which only the model reads.
+  if (namesNothing(ctx.candidateText, caseNames)) return [];
+  const grouped = new Set(groupItemsAsked(text, fb));
+  const open = new Set(state.openDataRequests.map(o => o.ledgerItemId));
+  return releases.flatMap(r => r.itemIds.flatMap(raw => {
+    const id = resolve(raw);
+    const item = id ? state.ledger.items.find(i => i.id === id) : undefined;
+    if (!item || !canReveal(state.ledger, item.id) || open.has(item.id) || grouped.has(item.id)) return [];
+    const words = [item.label, item.spoken ?? '', ...(fb.quantities.find(q => q.id === item.id)?.names ?? []), ...(fb.covers.find(c => c.id === item.id)?.phrases ?? [])];
+    return namesItem(text, words, caseNames) ? [] : [{ what: r.what, raw, id: item.id }];
+  }));
+}
+// The declarations without the releases the check withdrew; one left with no item is dropped.
+function withoutReleases(requests: DeclaredRequest[], out: ReleaseCheck[]): DeclaredRequest[] {
+  return requests.flatMap(r => {
+    if (!r.explicit || r.respond !== 'release') return [r];
+    const raws = new Set(out.filter(o => o.what === r.what).map(o => o.raw));
+    if (raws.size === 0) return [r];
+    const itemIds = r.itemIds.filter(x => !raws.has(x));
+    return itemIds.length > 0 ? [{ ...r, itemIds }] : [];
+  });
+}
+export type ReleaseOutcome = { checked: ReleaseCheck[]; confirmed: string[]; withdrawn: ReleaseCheck[]; classified: boolean; latencyMs: number | null; waitMs: number | null };
+
 // The asks a model turn answers beside the model's declared ones (`fresh`), and
 // those no asking sentence covers (`dropped`) or an explicit declaration does
 // (`covered`); `open`: the sentences with a clause no explicit declaration names
-// (none: the classifier is not waited on, `detected` null). Null off a model turn.
-export type TurnAsks = MessageAsks & { open: string[]; waited: boolean; timedOut?: true; fresh: DetectedDataRequest[]; covered: DetectedDataRequest[]; dropped: DetectedDataRequest[] };
+// (none, and no release to check: the classifier is not waited on, `detected`
+// null); `release`: the Task 51 check, when a model release needed it. Null off a model turn.
+export type TurnAsks = MessageAsks & { open: string[]; waited: boolean; timedOut?: true; fresh: DetectedDataRequest[]; covered: DetectedDataRequest[]; dropped: DetectedDataRequest[]; release?: ReleaseOutcome };
 export async function messageAsks(plan: ModelPlan, declared: DeclaredRequest[], onUsage?: OnUsage): Promise<TurnAsks | null> {
   const started = startMessageAsks(plan, onUsage);
   if (!started) return null;
-  const explicit = declared.filter(r => r.explicit);
   const caseNames = properNames(plan.state.caseData.sttKeyterms);
   const sentences = messageAskSentences(plan);
-  const open = undeclaredSentences(sentences, explicit, caseNames);
-  if (open.length === 0) return { sentences, detected: null, open, waited: false, fresh: [], covered: [], dropped: [] };
-  const { detected, timedOut } = await heardAsks(plan, started);
+  const open = undeclaredSentences(sentences, declared.filter(r => r.explicit), caseNames);
+  const checking = uncheckedReleases(plan, declared);
+  if (open.length === 0 && checking.length === 0) return { sentences, detected: null, open, waited: false, fresh: [], covered: [], dropped: [] };
+  const heard = await heardAsks(plan, checking.length > 0 ? classifyMessage(plan, sentences, onUsage) : started);
+  const { detected, timedOut } = heard;
+  const confirmed = detected === null ? checking.map(c => c.id) : checking.filter(c => detected.some(d => d.ledgerItemIds.includes(c.id))).map(c => c.id);
+  const withdrawn = checking.filter(c => !confirmed.includes(c.id));
+  const release: ReleaseOutcome | undefined = checking.length > 0
+    ? { checked: checking, confirmed: [...new Set(confirmed)], withdrawn, classified: detected !== null, latencyMs: heard.latencyMs ?? null, waitMs: heard.waitMs ?? null }
+    : undefined;
+  const base = { sentences, detected, open, waited: true, ...(timedOut ? { timedOut } : {}), ...(release ? { release } : {}) };
+  // Waited only for the check, and the release stands: no ask was left out.
+  if (open.length === 0 && withdrawn.length === 0) return { ...base, fresh: [], covered: [], dropped: [] };
+  const explicit = withoutReleases(declared, withdrawn).filter(r => r.explicit);
   // Every asking sentence: the gate only decided to wait; coverage is per detection.
   const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit));
-  return { sentences, detected, open, waited: true, ...(timedOut ? { timedOut } : {}), ...uncoveredAsks(explicit, kept, caseNames), dropped };
+  return { ...base, ...uncoveredAsks(explicit, kept, caseNames), dropped };
 }
 export function withAsks<T extends Pick<ModelTurn, 'requests'>>(turn: T, asks: TurnAsks | null): T {
-  if (!asks || asks.fresh.length === 0) return turn;
-  return { ...turn, requests: [...turn.requests, ...asks.fresh.map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }))] };
+  const out = asks?.release?.withdrawn ?? [];
+  if (!asks || (asks.fresh.length === 0 && out.length === 0)) return turn;
+  return { ...turn, requests: [...withoutReleases(turn.requests, out), ...asks.fresh.map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }))] };
 }
 
 // `checked`: the check's decisions on this turn's unmatched asks (turnDataChecked's

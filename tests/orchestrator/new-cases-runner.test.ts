@@ -381,10 +381,13 @@ describe('an exhibit-stage exhibit that waits for the brainstorm (variant: Exhib
 // costs" names a cost line, not a fixed/variable cut — the ask names the
 // aircraft leases, which the case holds, so they go out; nothing is refused.
 describe('an ask inside the fixed costs that names the aircraft leases', () => {
+  const MARCUS_T22 = "Taking $4,200 — that changes the math meaningfully. We only need $2.2M, so roughly 525 redeployed flights covers it rather than 1,100, out of 5,000 available. Much more headroom, and it means we don't need to flood the four routes to get there.\n\nSetting my plan aside, other things Larkspur could do in year one:\n\nAttack the fixed $20M directly — it's 100% of the gap. It hasn't moved in two years despite revenue falling 12%, which suggests it's never been pressure-tested. Hub overhead, admin, facilities, fleet ownership. If we're returning five aircraft worth of flying, some of that should be sellable or sub-leasable.\n\nExtras revenue — $20 per passenger, flat both years, same on every route. Bags, seat selection, snacks. That's pure margin and doesn't require a single extra flight or risk load factor.\n\nAnd rather than a full exit, Larkspur could thin Lakeport and Port Avery to peak-only departures where fare-sensitivity is lower.\n\nDo we know what sits inside the $20M?";
   it('releases the aircraft leases instead of "I don\'t have…"', async () => {
     seed({ caseId: 'prof-002', phase: 'BRAINSTORM', flags: PT_SATISFIED, shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'] });
     const what = 'what sits inside the fixed costs, including aircraft leases';
-    const r = await say('Do we know what sits inside the $20M?', T({ move: 'brainstorm', say: 'Right.', requests: [{ what, itemIds: ['aircraft_leases'], explicit: true, respond: 'release' }] }));
+    // Marcus 27c2d0fb t22, verbatim (round 5 Task 51: a model release is checked when
+    // the message names nothing of its item — the whole message names the aircraft).
+    const r = await say(MARCUS_T22, T({ move: 'brainstorm', say: 'Right.', requests: [{ what, itemIds: ['aircraft_leases'], explicit: true, respond: 'release' }] }));
     expect(r.interviewerText).toContain('All nine aircraft are leased through 2030');
     expect(r.interviewerText).not.toMatch(/I don't have/);
     expect(store.revealed.map(x => x.ledgerItemId)).toContain('aircraft_leases');

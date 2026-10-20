@@ -105,6 +105,10 @@ const pt = () => (store.session.flagsJsonb as Row | undefined)?.pressureTest as 
 const revealed = () => store.revealed.map(r => r.ledgerItemId as string);
 const at = (run: Run, turnIndex: number) => run.turns.find(t => t.turnIndex === turnIndex)!;
 const COST = ['cogs_pct', 'labor_pct', 'overhead_pct'];
+// Destiny t15's ask for the cost lines, held by the gate: open on the later turns, as
+// in the run (a test that starts after t15 seeds it; round 5 Task 51 checks a model
+// release the message never names unless an earlier ask for it is open).
+const openCostAsk = () => store.events.push({ category: 'data_request', subtype: 'defer', turnIndex: 15, payloadJsonb: { what: 'the cost breakdown over the two years', ledgerItemIds: COST, interviewerTurnIndex: 16, revealedByNow: false, explicit: true } });
 const { maya, destiny } = stalls as unknown as { maya: Run; destiny: Run };
 
 beforeEach(() => { modelQueue.length = 0; modelNotes.length = 0; judgeQueue.length = 0; judgeProbes.length = 0; });
@@ -179,6 +183,7 @@ describe('pending requests stay recorded and their deferral is explained', () =>
   // is covered in data-decisions.test.ts.
   it('pending requests on the waiver turn: the cost lines as the exhibit, menu prices read out — nothing left held', async () => {
     seed(destiny);
+    openCostAsk();
     // Destiny t25: COGS, labor, overhead and menu prices — four held items.
     await step(at(destiny, 25));
     await step(at(destiny, 27));
@@ -208,6 +213,7 @@ describe('the interviewer never refers to figures the candidate has not received
 
   it('a question about figures that did go out this turn is kept', async () => {
     seed(destiny, { state: 'satisfied', satisfiedAt: 3 });
+    openCostAsk();
     const heard = await step(at(destiny, 17), null);   // t17 declares the three cost lines, released now
     expect(revealed()).toEqual(expect.arrayContaining(COST));
     expect(heard).toMatch(/Which of these three cost lines moved the most/);
@@ -227,7 +233,8 @@ describe('the judge reads the probe the candidate actually heard', () => {
     const reask = await step(at(destiny, 13));
     const followUp = (pt()?.followUps as string[]).at(-1)!;
     expect(reask).toContain(followUp);
-    await step({ ...at(destiny, 15), candidate: "I'd start with staff, because 200 stores of baristas is the biggest bill." }, { answered: true });
+    // With t15's own ask for the cost lines, verbatim (the model's t15 declares them).
+    await step({ ...at(destiny, 15), candidate: "I'd start with staff, because 200 stores of baristas is the biggest bill. I'd want to see what each cost was two years ago versus now, I guess." }, { answered: true });
     expect(judgeProbes[1]).toContain(destiny.probe);
     expect(judgeProbes[1]).toContain(followUp);
     expect(pt()?.state).toBe('satisfied');

@@ -73,7 +73,8 @@ describe('Stream: the refusal waits for the requests, then is withheld', () => {
     expect(got.some(s => s.kind === 'data' && s.revealIds.includes('new_route_rampup'))).toBe(true);
   });
   it('the same with no ask cue: the refusal is still held for the requests, then withheld', async () => {
-    const { got, said } = await streamed('Here is my recommendation.', RAMP);
+    // The message names the ramp (round 5 Task 51: a release of an item the message never names is checked).
+    const { got, said } = await streamed('Here is my recommendation, on the ramp as it stands.', RAMP);
     expect(said).not.toContain('no ramp assumption');
     expect(got.some(s => s.kind === 'data' && s.revealIds.includes('new_route_rampup'))).toBe(true);
   });
