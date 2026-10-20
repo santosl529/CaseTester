@@ -476,8 +476,10 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
         const shown = Math.abs(at.value) >= 1000 ? at.value.toLocaleString('en-US', { maximumFractionDigits: 1 }) : x;
         // The "not X" side carries the same unit and scale as the figure code speaks (Lorenzo, 20 Oct: "about $9 million, not $8.8 million").
         const million = usd && st?.scale === 'million' ? ' million' : '';
-        const closer = ratio ? `${shown} times` : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}${million}` : `${shown}${unit}`;
-        const notX = ratio ? theirs : usd && !HAS_UNIT.test(theirs) ? `$${Number(bare.replace(/,/g, '')).toLocaleString('en-US', { maximumFractionDigits: 6 })}${million}` : bare;
+        // "$8.8" at a million-scale step has a $ but no scale: both sides get " million" (reviewer, 20 Oct).
+        const noScale = million !== '' && !/\b(?:million|billion)\b|\d\s*(?:m|bn|k)\b|[%]|point|percent/i.test(theirs);
+        const closer = ratio ? `${shown} times` : noScale ? `$${shown} million` : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}${million}` : `${shown}${unit}`;
+        const notX = ratio ? theirs : noScale && theirs.includes('$') ? `${theirs} million` : usd && !HAS_UNIT.test(theirs) ? `$${Number(bare.replace(/,/g, '')).toLocaleString('en-US', { maximumFractionDigits: 6 })}${million}` : bare;
         return `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${notX}.`;
       }
       default: return null;

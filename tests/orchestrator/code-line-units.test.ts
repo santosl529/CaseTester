@@ -27,6 +27,12 @@ describe('Hollis Bay Tyler 9:1: the million scale carries to both sides', () => 
   });
 });
 
+describe('million scale: a "$" with no scale word still gets "million" on both sides (reviewer, fix round 2)', () => {
+  const say = (v: string) => codeCorrection(checkerClaim(v, { codeQuantity: step('launch_costs_total') }), { value: 9, index: 0 }, noVet('launch-001'))!.line;
+  it('"$8.8" at a million-scale step', () => expect(say('$8.8')).toMatch(/is about \$9 million, not \$8\.8 million\.$/));
+  it.each([['$8.8M', '$8.8M'], ['$8.8 million', '$8.8 million']])('"%s" keeps its own form', (v, form) => expect(say(v)).toMatch(new RegExp(`is about .*, not ${form.replace('$', '\\$').replace('.', '\\.')}\\.$`)));
+});
+
 describe('Quillpath Marcus 13:3: a ratio is said in times', () => {
   const said = 'Starter standalone: 40% cancelled in 12 months, call it 4% a month, a ~25-month life. 25 × $30 = $750 on $300 CAC = 2.5x. Fails — that\'s the CFO\'s number.';
   const base = checkerClaim('$750; 2.5x', {
