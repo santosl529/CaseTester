@@ -1,6 +1,8 @@
 // An explicit deferral with no item (Lorenzo, 19 Oct; engine-asks R1, batch 32
-// Aldermoor Marcus t5): checked by a small model before code refuses it —
-// mapped to an item or no verdict: a named deferral; mapped to none: refused.
+// Aldermoor Marcus t5): checked by a small model before code refuses it — no
+// verdict: a named deferral; mapped to none: refused; mapped to an item: decided
+// by code like the model's own mapping (round 5 E5, Lorenzo, 20 Oct: restated if
+// out, released if it can go now, else deferred by the item's name).
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
@@ -36,12 +38,21 @@ describe('an item-less deferral', () => {
     expect('unmappedDefer' in d).toBe(false);
     expect(d.requests.map(r => r.response)).toEqual(['refuse']);
   });
-  it('is a named deferral when the check maps it to an item (nothing released)', async () => {
+  // E5 (d): the item the check found, held by the pressure-test gate, is deferred
+  // by its own name and booked with its id — not the candidate's words.
+  it('mapped to a gated item: deferred by the item\'s name, booked with its id, nothing released', async () => {
     classify.mockResolvedValueOnce([{ what: WHAT, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
     const d = await turnDataChecked(plan(), T);
-    expect(d.defers).toEqual([WHAT]);
     expect(d.releases).toEqual([]);
-    expect(renderDataLines(d, 's').join(' ')).toContain(WHAT);
+    expect(d.defers).toEqual([]);
+    expect(d.gateDefers).toEqual(['COGS as a percent of revenue']);
+    expect(d.gatedIds).toEqual(['cogs_pct']);
+    expect(d.itemlessDefers).toBeUndefined();
+    const line = renderDataLines(d, 's').join(' ');
+    expect(line).toContain('COGS as a percent of revenue');
+    expect(line).not.toContain(WHAT);
+    expect(line).not.toMatch(/\d/);
+    expect(d.requests.map(r => [r.response, r.ledgerItemIds])).toEqual([['defer', ['cogs_pct']]]);
   });
   it('is a named deferral when the check fails', async () => {
     classify.mockResolvedValueOnce(null);
@@ -61,22 +72,37 @@ describe('an item-less deferral', () => {
 describe('an ask mapped to an item that the BASIS rule empties', () => {
   const BASIS_ASK = 'the basis for the COGS percentage';
   const B = { requests: [{ what: BASIS_ASK, itemIds: ['cogs_pct'], explicit: true, respond: 'release' as const }], exhibit: null, rescueItem: null };
-  it('is a named deferral when the check maps it to another item, nothing released', async () => {
+  // E5 (b): a basis ask is out of scope of every item whose value doesn't say
+  // where it comes from, so the check's items are coarse: their lines (not yet
+  // out), and "I don't have <the basis>." — never a hollow deferral.
+  it('mapped to other items: E1\'s form — they go out (here on the exhibit that shows both), and the basis refused', async () => {
     classify.mockResolvedValueOnce([{ what: BASIS_ASK, ledgerItemIds: ['cogs_pct', 'labor_pct'], response: 'none', explicit: true }]);
     const d = await turnDataChecked(plan(SATISFIED), B);
-    expect(d.releases).toEqual([]);
-    expect(d.refusals).toEqual([]);
-    expect(d.defers).toEqual([BASIS_ASK]);
+    expect(d.exhibit?.id).toBe('exhibit-a');
+    expect(d.refusals).toEqual([BASIS_ASK]);
+    expect(d.defers).toEqual([]);
   });
-  // Round-3 ruling 5 (Lorenzo, 19 Oct) overrules the round-1 final-review fix:
-  // the check finding the BASIS-cut item is a named deferral, not a refusal.
-  it('is a named deferral when the check maps it back only to the item the BASIS rule cut', async () => {
+  it('mapped back only to the item the BASIS rule cut: its line, and the basis refused', async () => {
     classify.mockResolvedValueOnce([{ what: BASIS_ASK, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
-    const d = await turnDataChecked(plan(SATISFIED), B);
+    const p = plan(SATISFIED);
+    const d = await turnDataChecked(p, B);
+    // Decided twice (before and after the check), logged once: the second pass's checks only.
+    expect(p.ctx.checks.entries.filter(e => e.check === 'request_scope')).toHaveLength(1);
+    expect(p.ctx.checks.entries.map(e => e.check).filter(c => c === 'itemless_defer' || c === 'checked_ask')).toEqual(['itemless_defer', 'checked_ask']);
     expect(d.basisCut).toEqual({ [BASIS_ASK]: ['cogs_pct'] });
+    expect(d.releases.map(r => r.id)).toEqual(['cogs_pct']);
+    expect(d.refusals).toEqual([BASIS_ASK]);
+    expect(d.defers).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(['COGS is 58% of revenue today, up from 42% two years ago.', `I don't have ${BASIS_ASK}.`]);
+  });
+  it('… the item already out: the refusal alone, no restate (4b)', async () => {
+    classify.mockResolvedValueOnce([{ what: BASIS_ASK, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
+    const p = planTurn(readsFixture({ phase: 'STRUCTURE', flags: SATISFIED, revealed: ['cogs_pct'] }), `Could I get ${WHAT}?`, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    const d = await turnDataChecked(p, B);
     expect(d.releases).toEqual([]);
-    expect(d.refusals).toEqual([]);
-    expect(d.defers).toEqual([BASIS_ASK]);
+    expect(d.restates).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual([`I don't have ${BASIS_ASK}.`]);
   });
   it('is refused when the check maps it to none, and not re-queued as a deferral', async () => {
     classify.mockResolvedValueOnce([]);
@@ -101,13 +127,21 @@ describe('an ask mapped to an item that the BASIS rule empties', () => {
 // a timeout or error, use the named deferral, never a refusal."
 describe('an item-less release', () => {
   const R = { requests: [{ what: WHAT, itemIds: [], explicit: true, respond: 'release' as const }], exhibit: null, rescueItem: null };
-  it('is a named deferral when the check maps it to an item, nothing released — "I\'ll come back to…" mid-case', async () => {
+  it('mapped to a gated item: not released, deferred by the item\'s name, never "I\'ll come back to <ask>"', async () => {
     classify.mockResolvedValueOnce([{ what: WHAT, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
     const d = await turnDataChecked(plan(), R);
     expect(d.releases).toEqual([]);
     expect(d.refusals).toEqual([]);
-    expect(d.defers).toEqual([WHAT]);
-    expect(renderDataLines(d, 's')).toEqual([`I'll come back to ${WHAT} shortly.`]);
+    expect(d.gateDefers).toEqual(['COGS as a percent of revenue']);
+    expect(renderDataLines(d, 's').join(' ')).not.toContain(WHAT);
+  });
+  it('mapped to an item that can go now: released this turn', async () => {
+    classify.mockResolvedValueOnce([{ what: WHAT, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
+    const d = await turnDataChecked(plan(SATISFIED), R);
+    expect(d.releases.map(r => r.id)).toEqual(['cogs_pct']);
+    expect(d.defers).toEqual([]);
+    expect(d.refusals).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(['COGS is 58% of revenue today, up from 42% two years ago.']);
   });
   it('is refused when the check maps it to none', async () => {
     classify.mockResolvedValueOnce([]);
@@ -185,13 +219,17 @@ describe('a code-written turn\'s item-less detection', () => {
     expect(classify).toHaveBeenCalledWith(expect.objectContaining({ candidateText: `Could I get ${WHAT}?` }));
     expect(d.refusals).toEqual([WHAT]);
   });
-  it.each(['close', 'close_wait', 'grace_ask', 'time_warning', 'rec_ask'] as TurnKind[])('%s: mapped → "We won\'t get to … today."', async kind => {
-    classify.mockResolvedValueOnce([{ what: WHAT, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
+  // E5 (d) at a wrap-up: what can go now goes; what can't (here over the release
+  // cap) is "We won't get to <the item> today." — by its name, as the rules say there.
+  it.each(['close', 'close_wait', 'grace_ask', 'time_warning', 'rec_ask'] as TurnKind[])('%s: mapped → released up to the cap, the rest "We won\'t get to <item> today."', async kind => {
+    classify.mockResolvedValueOnce([{ what: WHAT, ledgerItemIds: ['revenue_per_store', 'avg_ticket', 'menu_price_change', 'bean_price_change'], response: 'none', explicit: true }]);
     const p = atKind(kind);
     const d = await turnDataChecked(p, codeWrittenTurn(p, det));
-    expect(d.releases).toEqual([]);
+    expect(d.releases.map(r => r.id)).toEqual(['revenue_per_store', 'avg_ticket', 'menu_price_change']);
     expect(d.refusals).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual([`We won't get to ${WHAT} today.`]);
+    expect(d.defers).toEqual([]);
+    expect(renderDataLines(d, 's').at(-1)).toBe("We won't get to the coffee bean price change today.");
+    expect(d.requests.find(r => r.ledgerItemIds.includes('bean_price_change'))?.wontGetTo).toBe(true);
   });
   it('close: no verdict → "We won\'t get to … today." too (the named deferral)', async () => {
     classify.mockResolvedValueOnce(null);
@@ -225,19 +263,28 @@ describe('a model turn in the recommendation or wrap phase', () => {
 
 // Round-3 ruling 5 (Lorenzo, 19 Oct; batch 28 Marisol t7 "a split within the
 // non-bean inputs", batch 30 Anika t6): code refuses only when the check says
-// the case doesn't hold it. This replaces the round-2 scope filter, which
-// refused an ask the check mapped only to items the scope rules rule out.
-describe('the check\'s mapping is not held to the scope rules', () => {
+// the case doesn't hold it. Round 5 E5 (b) (Lorenzo, 20 Oct): an item the check
+// finds outside the ask's scope gets E1's form — "I don't have <the ask>." with
+// the coarse item's line when one can go; a change item asked for a split is a
+// sibling, not a coarse item (E1's ruling), so the refusal stands.
+describe('the check\'s mapping out of the ask\'s scope (E5 b)', () => {
   const ask = (what: string) => ({ requests: [{ what, itemIds: [], explicit: true, respond: 'release' as const }], exhibit: null, rescueItem: null });
-  it.each([
-    ['a split within the non-bean inputs', 'non_bean_input_change'],
-    ['bean cost per pound', 'bean_price_change'],
-  ])('"%s" mapped only to out-of-scope %s → a named deferral', async (what, id) => {
-    classify.mockResolvedValueOnce([{ what, ledgerItemIds: [id], response: 'none', explicit: true }]);
-    const d = await turnDataChecked(plan(SATISFIED), ask(what));
-    expect(d.defers).toEqual([what]);
-    expect(d.refusals).toEqual([]);
+  it('"bean cost per pound" mapped only to out-of-scope bean_price_change → its line, and the per-pound cut refused', async () => {
+    classify.mockResolvedValueOnce([{ what: 'bean cost per pound', ledgerItemIds: ['bean_price_change'], response: 'none', explicit: true }]);
+    const d = await turnDataChecked(plan(SATISFIED), ask('bean cost per pound'));
+    expect(d.releases.map(r => r.id)).toEqual(['bean_price_change']);
+    expect(d.refusals).toEqual(['bean cost per pound']);
+    expect(d.defers).toEqual([]);
+    const lines = renderDataLines(d, 's');
+    expect(lines[0]).toMatch(/40%/);
+    expect(lines.at(-1)).toBe("I don't have bean cost per pound.");
+  });
+  it('"a split within the non-bean inputs" mapped only to the sibling non_bean_input_change → refused, nothing released', async () => {
+    classify.mockResolvedValueOnce([{ what: 'a split within the non-bean inputs', ledgerItemIds: ['non_bean_input_change'], response: 'none', explicit: true }]);
+    const d = await turnDataChecked(plan(SATISFIED), ask('a split within the non-bean inputs'));
+    expect(d.refusals).toEqual(['a split within the non-bean inputs']);
     expect(d.releases).toEqual([]);
+    expect(d.defers).toEqual([]);
   });
   it('mapped to no item → refused', async () => {
     classify.mockResolvedValueOnce([]);
@@ -245,15 +292,19 @@ describe('the check\'s mapping is not held to the scope rules', () => {
     expect(d.refusals).toEqual(['bean cost per pound']);
     expect(d.requests.map(r => r.response)).toEqual(['refuse']);
   });
-  it('an in-scope mapping → a named deferral', async () => {
+  it('an in-scope mapping → released now', async () => {
     classify.mockResolvedValueOnce([{ what: WHAT, ledgerItemIds: ['bean_price_change'], response: 'none', explicit: true }]);
     const d = await turnDataChecked(plan(SATISFIED), ask(WHAT));
-    expect(d.defers).toEqual([WHAT]);
+    expect(d.releases.map(r => r.id)).toEqual(['bean_price_change']);
+    expect(d.defers).toEqual([]);
     expect(d.refusals).toEqual([]);
   });
-  it('one in-scope item among out-of-scope ones → a named deferral', async () => {
+  it('one in-scope item among out-of-scope ones → the in-scope one answers; the rest is dropped, no refusal', async () => {
     classify.mockResolvedValueOnce([{ what: 'a split within the non-bean inputs', ledgerItemIds: ['non_bean_input_change', 'cogs_pct'], response: 'none', explicit: true }]);
-    expect((await turnDataChecked(plan(SATISFIED), ask('a split within the non-bean inputs'))).defers).toEqual(['a split within the non-bean inputs']);
+    const d = await turnDataChecked(plan(SATISFIED), ask('a split within the non-bean inputs'));
+    expect(d.releases.map(r => r.id)).toEqual(['cogs_pct']);
+    expect(d.refusals).toEqual([]);
+    expect(d.defers).toEqual([]);
   });
   it('null → a named deferral', async () => {
     classify.mockResolvedValueOnce(null);

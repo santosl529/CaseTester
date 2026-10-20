@@ -232,8 +232,8 @@ export type DataDecisions = {
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
   gateDefers: string[];   // what, for asks the pressure-test gate holds: deferred with the reason (v3)
   // Explicit deferrals with no item, awaiting the small-model check (turn-data.ts
-  // turnDataChecked) that makes each a named deferral or a refusal (Lorenzo, 19 Oct;
-  // engine-asks R1). Nothing is said for them until then.
+  // turnDataChecked; Lorenzo, 19 Oct, engine-asks R1). Nothing is said for them
+  // until then; its verdict decides each (decideCheckedAsk, round 5 E5).
   unmatchedDefers: string[];
   // Every deferral on a wrap-up or close turn: "We won't get to <ask> today."
   // (Lorenzo, 19 Oct, round-2 ruling 3: the check's named deferrals, set by

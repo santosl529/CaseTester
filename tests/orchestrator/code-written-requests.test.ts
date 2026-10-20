@@ -149,19 +149,23 @@ describe('corpus final messages at the close', () => {
     expect(r.ended).toBe(true);
   });
 
-  // Round-2 rulings 2 and 3 (Lorenzo, 19 Oct): the item-less asks go through
-  // the check; one it maps to an item is "We won't get to … today." at the close —
-  // two of them are a list: "We won't get to that today." (round-3 ruling 4).
-  it('Nikhil at the close, the check mapping the item-less asks: "We won\'t get to that today."', async () => {
+  // Round-2 rulings 2 and 3 (Lorenzo, 19 Oct): the item-less asks go through the
+  // check; at the close a deferral is "We won't get to … today." Round 5 E5 (d)
+  // (Lorenzo, 20 Oct): items the check maps that can go now go now, in the order
+  // asked, up to the release cap; what's over it is "We won't get to …" — booked
+  // as such, not promised.
+  it('Nikhil at the close, the check mapping the item-less asks to items: released up to the cap, the rest "We won\'t get to … today."', async () => {
     atClose();
     detected = CORPUS.nikhil.detected;
-    checkVerdict = [det('competitor pricing', ['menu_price_change'])];
+    checkVerdict = [det('competitor pricing', ['bean_price_change', 'non_bean_input_change'])];
     const r = await runTurn('s1', CORPUS.nikhil.text);
     expect(turnKind()).toBe('close');
-    expect(new Set(revealed())).toEqual(new Set(['menu_price_change', 'avg_ticket']));
-    expect(r.interviewerText).not.toMatch(/I don't have/);
-    expect(r.interviewerText).toContain("We won't get to that today.");
-    expect(r.interviewerText).not.toMatch(/regional demographics|competitor price points/);
+    expect(new Set(revealed())).toEqual(new Set(['bean_price_change', 'non_bean_input_change', 'avg_ticket']));
+    expect(r.interviewerText).not.toMatch(/I don't have|come back to/);
+    expect(r.interviewerText).toMatch(/40%/);
+    expect(r.interviewerText).toContain("We won't get to historical response to any prior price move today.");
+    expect(r.interviewerText).not.toMatch(/regional demographics|competitor price points/i);
+    expect(explicitRows().filter(e => (e.payloadJsonb as Row).wontGetTo === true).map(e => (e.payloadJsonb as Row).what)).toEqual(['Historical response to any prior price move']);
     expect(r.ended).toBe(true);
   });
 

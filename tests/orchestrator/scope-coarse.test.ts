@@ -150,13 +150,17 @@ describe('a coarse item already out, or held back', () => {
     expect(acted(p, 'scope_coarse')).toHaveLength(0);
     expect(renderDataLines(d, 's').join(' ')).not.toMatch(/\$80 million|Option A is/);
   });
-  it('… and when the check maps it to an item: a named deferral, still nothing released', async () => {
+  // Round 5 E5 (b): the check maps it back to option_a, out of the one-off ask's
+  // scope — a coarse item that can't go yet: the refusal stands, nothing released.
+  it('… and when the check maps it back to option_a (out of scope, held): the refusal stands, still nothing released', async () => {
     const p = plan('entry-001', MARISOL_T23, { revealed: [] });
     classify.mockResolvedValueOnce([{ what: MARISOL_T23_ASK.what, ledgerItemIds: ['option_a'], response: 'none', explicit: true }]);
     const d = await turnDataChecked(p, turn([MARISOL_T23_ASK]));
     expect(d.releases).toEqual([]);
-    expect(d.refusals).toEqual([]);
-    expect(d.defers).toEqual([MARISOL_T23_ASK.what]);
+    expect(d.defers).toEqual([]);
+    expect(d.refusals).toEqual([MARISOL_T23_ASK.what]);
+    expect(classify).toHaveBeenCalledTimes(1);
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(/\$80 million|Option A is/);
   });
   it('the pressure-test gate holds the coarse item: not released, no gate deferral for it, the ask checked', async () => {
     const p = plan('entry-001', MARISOL_T23, { revealed: [], flags: { pressureTest: { state: 'awaiting', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: false, structureAsked: false, awaitingReplies: 0 } } });

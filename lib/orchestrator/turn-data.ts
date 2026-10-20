@@ -53,7 +53,7 @@ export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfi
 }
 
 // basisCut: per ask the BASIS rule emptied, the items it cut (fix-wave 1, below);
-// logged only — a mapping to them is a named deferral (round-3 ruling 5).
+// logged only; the check reads the ask's scope itself (decideCheckedAsk, round 5 E5 b).
 export type TurnData = DataDecisions & { gatedIds: string[]; basisCut?: Record<string, string[]> };
 
 // Wrap-up and close turns (Lorenzo, 19 Oct, round-2 ruling 3): the code-written
@@ -72,11 +72,11 @@ export function wrapUpTurn(plan: ModelPlan): boolean {
 // refuses it (Lorenzo, 19 Oct; engine-asks R1, "yes, with a guard"; batch 32
 // Aldermoor Marcus t5: the generic "settle your structure" line answered
 // nothing). The check is the data-request classifier in detection mode with the
-// ledger as the catalog: an ask it maps to any item is a named deferral ("I'll
-// come back to <ask>" — nothing is released on its word); one it maps to none
-// is refused; no verdict (failure, timeout) is a named deferral, so no
-// code-spoken refusal goes out unchecked. Stream and Settle share the result
-// through the plan (one call per ask per turn).
+// ledger as the catalog: an ask it maps to none is refused; no verdict (failure,
+// timeout) is a named deferral in the candidate's words, so no code-spoken
+// refusal goes out unchecked. Stream and Settle share the verdict through the
+// plan (one call per ask per turn). What code does with a mapping is
+// `decideCheckedAsk` (round 5, E5, below).
 // Round-2 ruling 2 (Lorenzo, 19 Oct): "R1 covers every code refusal of an
 // unmatched ask, item-less releases included … Cap the Haiku check at ~1.5s; on
 // a timeout or error, use the named deferral, never a refusal." Item-less
@@ -92,12 +92,11 @@ export function wrapUpTurn(plan: ModelPlan): boolean {
 // finer ask backed only by an exhibit: refused unchecked, as before E1 (the
 // controller's rulings, 20 Oct). This reverses the round-2 exception elsewhere.
 // Round-3 ruling 5 (Lorenzo, 19 Oct; batch 28 Marisol t8, batch 30 Anika t6):
-// "Code refuses only when the check says the case doesn't hold it." Any ledger
-// item the check finds is a named deferral, whether or not the scope rules or
-// the BASIS rule cut that item (this removes the round-2 scope filter and round
-// 1's final-review basis-cut refusal). The cut / out-of-scope ids are only logged.
+// "Code refuses only when the check says the case doesn't hold it." An ask the
+// check maps to a ledger item is never refused on the check's say alone — out of
+// the ask's scope included (E5 b below gives such an item E1's form).
 const DEFER_CHECK_TIMEOUT_MS = 1500;
-// Logging only (ruling 5): would the scope rules have kept this item for the ask?
+// Whether the scope rules keep this item for the ask (the case's covers first).
 function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
   const { ledger, factBase } = plan.state;
   const item = ledger.items.find(i => i.id === id);
@@ -105,11 +104,65 @@ function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
   if (coverageOf(what, factBase).items.includes(id)) return true;
   return !outsideAskScope(what, item, factBase.quantities.find(q => q.id === id)?.names ?? []);
 }
-async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: string[] = []): Promise<boolean> {
+
+// The check's verdict on one unmatched ask: mapped (null: no verdict), the
+// ledger items it found, and those of them the ask's scope rules rule out.
+export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: string[] };
+
+// What code does with a verdict (Lorenzo, 20 Oct, round 5 E5: "build (a) and
+// (b). Not (c). Add (d): a deferral names the item it will deliver, not the
+// candidate's words, and a mapped item that's releasable now goes now."; B1+B2:
+// 10 of 13 mappings were "I'll come back to <ask>" and never released). The one
+// decision for a verdict — turnData applies it under its gates (Tasks 50 and 51
+// send their asks through it too):
+//   - no verdict: the named deferral in the candidate's words, holding no item (as before);
+//   - mapped to none: refused;
+//   - mapped to items in the ask's scope (`items`), each asked in its own label:
+//     (a) one already out (said, or on a shown exhibit) is restated through the
+//     restate path (cap 3), never deferred — the check mapped the ask to that very
+//     item, the re-ask 4b allows; (d) one releasable now under every gate turnData
+//     applies (pressure test, release order, cap, the exhibit handed over) goes
+//     now; one that isn't is deferred by its spoken name and booked with its
+//     ledger id, so it is followed up (forced release, open request). On a
+//     wrap-up or close turn the "We won't get to" rules apply;
+//   - (b) mapped only to items out of the ask's scope (`coarse`): E1's form —
+//     "I don't have <the ask>." with the coarse item's line when one can be
+//     released (not yet out, under the gates); none: the refusal stands. A change
+//     item asked for a split is a sibling, never a coarse item (E1's ruling), so
+//     an ask mapped only to siblings is refused.
+// In-scope items win over out-of-scope ones in a mixed mapping, as for the
+// model's own mapping (the scope rule drops the rest silently).
+export type CheckedAsk =
+  | { kind: 'named' }
+  | { kind: 'refuse' }
+  | { kind: 'items'; ids: string[] }
+  | { kind: 'coarse'; ids: string[] };
+export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict): CheckedAsk {
+  if (v.mapped === null) return { kind: 'named' };
+  const { ledger } = plan.state;
+  const ids = v.ids.filter(id => ledger.items.some(i => i.id === id));
+  if (!v.mapped || ids.length === 0) return { kind: 'refuse' };
+  const inScope = ids.filter(id => !v.outOfScope.includes(id));
+  if (inScope.length > 0) return { kind: 'items', ids: inScope };
+  const coarse = ids.filter(id => !changeForSplit(what, ledger.items.find(i => i.id === id)!));
+  return coarse.length > 0 ? { kind: 'coarse', ids: coarse } : { kind: 'refuse' };
+}
+
+const DECIDED: Record<CheckedAsk['kind'], string> = {
+  named: 'no verdict: a named deferral',
+  refuse: 'maps to no item: refused',
+  items: 'mapped to a ledger item: restated if out, released if it can go now, else deferred by its name',
+  coarse: 'mapped only to items outside the ask: the coarse item\'s line if one can go, and the refusal',
+};
+
+// The check, cached per ask for the turn. Out of scope is read for every
+// mapping, a BASIS-emptied ask's included (a basis ask mapped back to the item
+// it asks about is not answered by that item's line: batch 32 Larkspur Marisol t27).
+export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: string[] = []): Promise<CheckVerdict> {
   const cache = plan.state.deferChecks;
   const cached = cache.get(what);
   if (cached) return cached;
-  const run = (async () => {
+  const run = (async (): Promise<CheckVerdict> => {
     const t0 = Date.now();
     let timer: ReturnType<typeof setTimeout> | undefined;
     const timeout = new Promise<null>(r => { timer = setTimeout(() => r(null), DEFER_CHECK_TIMEOUT_MS); });
@@ -123,23 +176,48 @@ async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsag
       }).catch(() => null),
       timeout,
     ]).finally(() => clearTimeout(timer));
-    const mapped = found === null ? null : found.some(f => f.ledgerItemIds.length > 0);
-    const outOfScope = cut.length > 0 || found === null ? [] : [...new Set(found.flatMap(f => f.ledgerItemIds).filter(id => answersAsk(plan, what, id) === false))];
-    plan.ctx.checks.record('itemless_defer', mapped !== false, mapped === null ? 'no verdict: a named deferral' : mapped ? 'mapped to a ledger item: a named deferral' : 'maps to no item: refused',
-      { what, mapped, found: found === null ? null : found.map(f => ({ what: f.what, ids: f.ledgerItemIds })), ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}), latencyMs: Date.now() - t0 });
-    return mapped !== false;
+    const ids = found === null ? [] : [...new Set(found.flatMap(f => f.ledgerItemIds))];
+    const mapped = found === null ? null : ids.length > 0;
+    const outOfScope = ids.filter(id => answersAsk(plan, what, id) === false);
+    const verdict: CheckVerdict = { mapped, ids, outOfScope };
+    const decision = decideCheckedAsk(plan, what, verdict);
+    plan.ctx.checks.record('itemless_defer', mapped !== false, DECIDED[decision.kind],
+      { what, mapped, found: found === null ? null : found.map(f => ({ what: f.what, ids: f.ledgerItemIds })), decision: decision.kind, ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}), latencyMs: Date.now() - t0 });
+    return verdict;
   })();
   cache.set(what, run);
   return run;
 }
 
-// turnData, with the item-less deferrals resolved (async: the check above).
+// turnData, with the item-less asks resolved (async: the check above). Every
+// unmatched ask is checked; when a verdict maps one to items (`items`, `coarse`),
+// the turn is decided again with the verdicts applied (turnData's `checked`), so
+// the items go through every gate; the first pass's check log is dropped for the
+// second's. An ask a later pass leaves unmatched is checked in turn (bounded).
+// What's left unmatched: no verdict → the named deferral; else refused.
+const CHECK_PASSES = 3;
 export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage): Promise<TurnData> {
-  const d = turnData(plan, turn);
+  const log = plan.ctx.checks.entries;
+  let at = log.length;
+  let d = turnData(plan, turn);
   if (d.unmatchedDefers.length === 0) return d;
-  const held = await Promise.all(d.unmatchedDefers.map(w => itemlessDeferHeld(plan, w, onUsage, d.basisCut?.[w])));
+  let logged = log.length - at;
+  const decided = new Map<string, CheckedAsk>();
+  for (let pass = 0; pass < CHECK_PASSES; pass++) {
+    const fresh = d.unmatchedDefers.filter(w => !decided.has(w));
+    if (fresh.length === 0) break;
+    const verdicts = await Promise.all(fresh.map(w => checkAsk(plan, w, onUsage, d.basisCut?.[w])));
+    fresh.forEach((w, i) => decided.set(w, decideCheckedAsk(plan, w, verdicts[i])));
+    if (!fresh.some(w => ['items', 'coarse'].includes(decided.get(w)!.kind))) break;
+    log.splice(at, logged);   // the pass decided again below logs its own checks
+    at = log.length;
+    d = turnData(plan, turn, decided);
+    logged = log.length - at;
+  }
+  if (d.unmatchedDefers.length === 0) return d;
   const defers: string[] = [], refusals: string[] = [];
-  d.unmatchedDefers.forEach((w, i) => (held[i] ? defers : refusals).push(w));
+  // Unmatched still: no verdict (or none reached) → the named deferral; a verdict → refused.
+  for (const w of d.unmatchedDefers) ((decided.get(w)?.kind ?? 'named') === 'named' ? defers : refusals).push(w);
   const refused = new Set(refusals);
   const wrapUp = wrapUpTurn(plan) && defers.length > 0;
   // Said "We won't get to …" at a wrap-up: logged as such, like decideData's (round-3 ruling 4).
@@ -157,7 +235,9 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
   };
 }
 
-export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>): TurnData {
+// `checked`: the check's decisions on this turn's unmatched asks (turnDataChecked's
+// second pass), applied once the coverage step has read every ask.
+export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, checked?: ReadonlyMap<string, CheckedAsk>): TurnData {
   const { ctx, state } = plan;
   const { ledger } = state;
   const resolve = caseResolver(plan);
@@ -357,6 +437,27 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // After the pressure test, nothing is premature: a declared deferral is
   // released (or refused, when the case doesn't hold the data).
   if (satisfied) requests = requests.map(r => (r.respond === 'defer' ? { ...r, respond: 'release' as const } : r));
+  // The check's decisions (decideCheckedAsk; round 5 E5): an item-less ask the
+  // check mapped is answered like an ask the model mapped, through every gate
+  // below — `items` one ask per item in its own label (so a deferral names the
+  // item, and its row books the ledger id), `coarse` through E1's coarse step with
+  // the check's out-of-scope items. A checked ask is released, not deferred: the
+  // model's deferral held nothing. Either way it is decided here: an ask still
+  // item-less after it is refused, never checked again.
+  const checkedAsks = new Set<string>();
+  if (checked) {
+    const applied: { what: string; kind: string; ids: string[] }[] = [];
+    requests = requests.flatMap(r => {
+      const c = r.explicit && r.itemIds.length === 0 ? checked.get(r.what) : undefined;
+      if (!c || c.kind === 'named') return [r];
+      checkedAsks.add(r.what);
+      applied.push({ what: r.what, kind: c.kind, ids: c.kind === 'refuse' ? [] : c.ids });
+      if (c.kind === 'refuse') return [{ ...r, respond: 'release' as const }];
+      if (c.kind === 'coarse') { coarseOf.set(r.what, c.ids); return [{ ...r, respond: 'release' as const }]; }
+      return c.ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label, respond: 'release' as const }));
+    });
+    if (applied.length > 0) plan.ctx.checks.act('checked_ask', 'the check\'s mapping of an unmatched ask, decided by code', { asks: applied });
+  }
   // An explicit release a scope rule emptied gets back its coarse items not yet
   // revealed (E1): released under every gate below and in decideData, the finer
   // cut refused beside them. One whose coarse items are all out already (said, or
@@ -503,15 +604,16 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // Lorenzo, 19 Oct (R1, "don't add code-spoken refusals without the check";
   // round-2 ruling 2, every unmatched ask): an item-less ask code would refuse
   // goes through the same check as an item-less deferral (turnDataChecked)
-  // instead of being refused at once: named deferral, or refused when it maps to
-  // none. That includes an ask the model mapped to an item and the BASIS rule
-  // emptied (Larkspur Marisol t27; since round-3 ruling 5 a mapping back to the
-  // items the rule cut is a named deferral too — basisCut is only logged). An
+  // instead of being refused at once: decided by its verdict (decideCheckedAsk).
+  // That includes an ask the model mapped to an item and the BASIS rule emptied
+  // (Larkspur Marisol t27; a mapping back to the items the rule cut is out of the
+  // ask's scope: E1's form since round 5 E5 b). An ask the check already decided
+  // (`checkedAsks`) is not checked again: still item-less, it is refused. An
   // ask the finer-cut scope rules emptied is refused unchecked only beside its
   // coarse item, or when its coarse items are all out already (E1, `scope_coarse`,
   // above); one whose coarse items are held is checked like the rest (round 5
   // reverses the round-2 exception).
-  const toCheck = decisions.refusals.filter(w => !scopeRefused.has(w));
+  const toCheck = decisions.refusals.filter(w => !scopeRefused.has(w) && !checkedAsks.has(w));
   if (toCheck.length > 0) {
     const checking = new Set(toCheck);
     decisions.unmatchedDefers.push(...toCheck);

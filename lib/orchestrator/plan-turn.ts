@@ -5,6 +5,7 @@
 // classifiers start here, in parallel with the model call that follows.
 import type { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { formatOpenRequestsHint, formatUnmappedHint, promisedRows } from './data-requests';
+import type { CheckVerdict } from './turn-data';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, restoreExhibitOnly, revealedValues, labelWithPeriod } from './data-ledger';
@@ -1222,7 +1223,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, stageCodeLines, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
-      conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, deferChecks: new Map<string, Promise<boolean>>(), requestCues, requestGuardRegenerated: false,
+      conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, deferChecks: new Map<string, Promise<CheckVerdict>>(), requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,
     },
   };

@@ -48,8 +48,9 @@ vi.mock('@/lib/orchestrator/distress', async orig => ({
   ...(await orig<object>()),
   classifyDistress: async (p: { candidateText: string; earlier?: { disclosure: string } }) => { distressCalls.push(p); return distressVerdict(p); },
 }));
-const classified: unknown[][] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => classified.shift() ?? [] }));
+// A null queued is the check's no-verdict (failure or timeout).
+const classified: (unknown[] | null)[] = [];
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => (classified.length > 0 ? classified.shift() : []) }));
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
 
 const modelQueue: ModelTurn[] = [];
@@ -856,7 +857,8 @@ describe('the question agrees with what code delivered (fact checks F4)', () => 
   const FIG_Q = 'Which of those cost lines is driving the margin decline, and why?';
   it('a named item-less deferral does not hold the model\'s figure question (b31 Sofia t10)', async () => {
     seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
-    classified.push([{ what: 'the supplier contract terms', ledgerItemIds: ['bean_price_change'], response: 'none', explicit: true }]);
+    // No verdict: the named deferral in the candidate's words (a mapped verdict is decided by code since round 5 E5).
+    classified.push(null);
     const r = await say('Beans are the lever.', T({
       say: 'Mm-hm.', requests: [{ what: 'the supplier contract terms', itemIds: [], explicit: true, respond: 'defer' }], question: FIG_Q,
     }));

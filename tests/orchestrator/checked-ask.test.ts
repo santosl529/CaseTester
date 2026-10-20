@@ -1,0 +1,214 @@
+// Round 5 E5 (Lorenzo, 20 Oct): "E5: build (a) and (b). Not (c). Add (d): a
+// deferral names the item it will deliver, not the candidate's words, and a
+// mapped item that's releasable now goes now." In B1+B2, 10 of 13 asks the
+// small-model check mapped to an item were "I'll come back to <ask>" and never
+// released. The fixtures are batch 35 Quillpath's (oct 20, runs 1-5): the
+// candidate's message and the model's request verbatim, the check's mapping as
+// logged (`itemless_defer`), the ledger and exhibits as they stood.
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
+vi.mock('@/db/client', () => ({ db: {} }));
+vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
+const { classify } = vi.hoisted(() => ({ classify: vi.fn(async (): Promise<unknown> => []) }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: classify }));
+vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
+
+import { planTurn, type ModelPlan, type TurnReads } from '@/lib/orchestrator/plan-turn';
+import { turnDataChecked, decideCheckedAsk } from '@/lib/orchestrator/turn-data';
+import { renderDataLines, decisionRows } from '@/lib/orchestrator/data-decisions';
+import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
+import type { Phase } from '@/lib/orchestrator/state-machine';
+import { getCaseById } from '@/lib/cases/loader';
+import { readsFixture } from './fixtures/turn-reads';
+
+const RAJ = { text: "It flips the answer. The upgraders are effectively Pro customers acquired for $300 instead of $1,200.\n\nPer Starter sign-up: $400 of Starter margin, plus 20% × Pro LTV of $4,000 = $800. Total ≈ $1,200 against $300 CAC, so about 4x — comfortably above the board's 3.\n\nSo the CFO is measuring Starter as a standalone plan and treating an upgrade as churn, when it's actually the cheapest Pro acquisition channel Quillpath has. Note too that Starter's \"40% cancelled\" overstates damage because a chunk of the exits are upgrades.\n\nOne caution: the 20% is from a single Jan–March cohort only 12 months old, and that cohort is early adopters, likely the best-fit customers. Do we have upgrade rates for later cohorts — say the ones that signed up mid-2025 — to see if the rate is holding?", ask: {"what": "upgrade rates for later cohorts", "itemIds": [], "explicit": true, "respond": "release"}, phase: "EXHIBIT", revealed: ["cohort_notes", "board_rule_definition", "pro_cohort", "starter_cohort", "plan_prices_costs", "plan_cac", "ltv_definition"], shown: ["exhibit-1"], found: [{"what": "upgrade rates for later cohorts", "ledgerItemIds": ["starter_cohort", "cohort_notes", "upgrade_timing"], "response": "none", "explicit": true}] };
+const MARCUS_T17 = { text: "Honestly, I took 40% over 12 months and divided — that's 3.3% a month, and I rounded to 4% to be conservative. Then life = 1/0.04 = 25 months. That's a shortcut, and the exhibit says it's a bad one.\n\nTwo problems. First, a constant 3.3% monthly rate compounds, so you'd never actually hit exactly 40% cumulative — it's loose. Second, and bigger, the rate isn't constant. Cancellations by period are 5, then 8, then 11, then 16 — that's accelerating, not front-loaded. I said front-loaded a minute ago and that was wrong.\n\nIf anything the churn is getting worse month over month, which means extrapolating 25 months of life is probably too generous, and Starter's standalone value is below the $750 I quoted.\n\nDo we have the cohort beyond month 12 — months 18 or 24?\n\nThat said, the upgrade economics still carry it. Keep Starter, reprice.", ask: {"what": "Starter cohort beyond month 12", "itemIds": [], "explicit": true, "respond": "release"}, phase: "EXHIBIT", revealed: ["cohort_notes", "plan_cac", "pro_cohort", "new_customers_by_plan", "starter_cohort", "plan_prices_costs", "ltv_definition", "board_rule_definition"], shown: ["exhibit-3", "exhibit-1", "exhibit-2"], found: [{"what": "Starter cohort status data beyond month 12 (covering retention, upgrades, and cancellations past the initial 12-month period)", "ledgerItemIds": ["starter_cohort", "cohort_notes"], "response": "none", "explicit": true}] };
+const MARCUS_T27 = { text: "The biggest risk is that the test only measures sign-ups, not what those customers do afterwards. Everything in my 3.3x rests on the retention and upgrade curves from the January 2025 cohort at $40, and I'm assuming they hold at $60. They might not. At a higher price the bar for value is higher, so early churn could rise above 5% in month one — and if the monthly cancellation rate goes from 3% to 4.5%, average life drops from ~25 months to ~17 and the whole thing falls back under 3x. The upgrade rate could also fall, because $60 to $100 is a smaller jump in features-per-dollar terms, and that stream is $800 of the value.\n\nHow I'd manage it: don't roll out nationally on eight weeks of sign-up data. Keep the $60 cohort running and track cancellation and upgrade at months 3 and 6 against the $40 benchmark, with a pre-agreed trigger to revert. Meanwhile grandfather existing customers to avoid churning the base.\n\nDo we have the week-by-week sign-ups within the eight weeks? I'd want to see the $60 volume stabilizing rather than still drifting down.", ask: {"what": "week-by-week sign-ups within the price test", "itemIds": [], "explicit": true, "respond": "release"}, phase: "RECOMMENDATION", revealed: ["cohort_notes", "plan_cac", "pro_cohort", "new_customers_by_plan", "starter_cohort", "plan_prices_costs", "ltv_definition", "board_rule_definition", "price_test_results", "price_test_notes"], shown: ["exhibit-3", "exhibit-1", "exhibit-2", "exhibit-4"], found: [{"what": "Week-by-week sign-ups during the price test period", "ledgerItemIds": ["price_test_results"], "response": "none", "explicit": true}] };
+const MARISOL = { text: "Same formula. Pro's twelve-month cancellation figure is 40%, so 1 / 0.40 = 2.5. Check: 0.40 × 2.5 = 1.00. So 2.5 years of expected life, which is 30 months.\n\nThen LTV = 30 months × $80 monthly margin = $2,400. CAC is $1,200, so the ratio is $2,400 / $1,200 = 2.0.\n\nSo Pro sits below the board's three-times bar while Starter sits above it. That's the opposite of what the CFO is claiming, and it's worth pressure-testing before we go further — the gap is driven mostly by the CAC difference, $1,200 for a salesperson-led demo versus $300 self-serve. Pro would need either a materially cheaper sales motion or a longer life to clear 3x.\n\nOne thing I'd want: do we know how Pro's CAC has moved since January 2025? If the sales team is now chasing fewer Pro deals, $1,200 may be rising.", ask: {"what": "how Pro's CAC has moved since January 2025", "itemIds": [], "explicit": true, "respond": "release"}, phase: "EXHIBIT", revealed: ["pro_cohort", "starter_cohort", "plan_prices_costs", "plan_cac", "ltv_definition", "new_customers_by_plan"], shown: ["exhibit-1", "exhibit-3"], found: [{"what": "How Pro's customer acquisition cost (CAC) has changed since January 2025", "ledgerItemIds": ["plan_cac"], "response": "none", "explicit": true}] };
+const TYLER = { text: "It came off the Pro row — still on Pro at month 12 was 81.5%, with 18.5% cancelled, so I took 1 minus that over twelve months: 0.815^(1/12) ≈ 0.983, so roughly 1.7% monthly churn, and $80 / 0.017 ≈ $4,700.\n\nOn whether it's the right base — fair challenge, and I think it's the weaker part. That cohort is sales-sourced Pro: they went through a demo, they self-selected into a $100 plan from day one, and they're probably larger businesses. An upgraded Starter customer is a smaller operator who grew into Pro. They might churn faster, in which case $4,700 is generous and the upgrade stream is worth less than $940.\n\nThe other direction: an upgrader has already survived six-plus months and proven the product works for them, which usually predicts better retention.\n\nDo we have churn for upgraded customers measured from their upgrade date? If not, I'd stress-test it — at double the churn, 3.4%, Pro LTV is about $2,350, upgrades are worth $470, and total is $875, just under the $900 bar.", ask: {"what": "churn for upgraded customers measured from their upgrade date", "itemIds": [], "explicit": true, "respond": "release"}, phase: "EXHIBIT", revealed: ["plan_prices_costs", "plan_cac", "ltv_definition", "pro_cohort", "starter_cohort", "cohort_notes"], shown: ["exhibit-1", "exhibit-2"], found: [{"what": "Churn rate for customers who upgraded to Pro, measured from their upgrade date", "ledgerItemIds": ["upgrade_timing", "cohort_notes"], "response": "none", "explicit": true}] };
+
+const SATISFIED = { state: 'satisfied', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false };
+const AWAITING = { state: 'awaiting', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: false, structureAsked: false, awaitingReplies: 0 };
+type Fx = { text: string; ask: unknown; phase: string; revealed: string[]; shown: string[]; found: unknown[] };
+const plan = (fx: Fx, o: { exhibitOnly?: string[]; revealed?: string[]; shown?: string[]; pressureTest?: unknown; phase?: Phase; edit?: (r: TurnReads) => void } = {}): ModelPlan => {
+  const reads = readsFixture({ caseId: 'pricing-001', phase: o.phase ?? (fx.phase as Phase), revealed: o.revealed ?? fx.revealed, flags: { pressureTest: o.pressureTest ?? SATISFIED, ...(o.exhibitOnly ? { exhibitOnly: o.exhibitOnly } : {}) } });
+  o.edit?.(reads);
+  const p = planTurn(reads, fx.text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+  if (p.kind !== 'model') throw new Error('expected a model plan');
+  for (const id of o.shown ?? fx.shown) p.state.shownExhibitIds.add(id);
+  return p;
+};
+const turn = (fx: Fx) => ({ requests: [fx.ask as DeclaredRequest], exhibit: null, rescueItem: null });
+const value = (id: string) => getCaseById('pricing-001').dataLedger.find(i => i.id === id)!.value;
+const acted = (p: ModelPlan, check: string) => p.ctx.checks.entries.filter(e => e.check === check);
+const NO_FIGURE = /\d/;
+beforeEach(() => { classify.mockReset(); classify.mockImplementation(async () => []); });
+
+describe('(b) the check maps the ask only to an item out of its scope', () => {
+  it('Marcus t27: price_test_results already on Exhibit 4 → "I don\'t have week-by-week sign-ups within the price test." alone', async () => {
+    classify.mockResolvedValueOnce(MARCUS_T27.found);
+    const p = plan(MARCUS_T27, { exhibitOnly: ['price_test_results', 'price_test_notes'] });
+    const d = await turnDataChecked(p, turn(MARCUS_T27));
+    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ outOfScope: ['price_test_results'], decision: 'coarse' });
+    expect(d.releases).toEqual([]);
+    expect(d.restates).toEqual([]);
+    expect(d.defers).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have week-by-week sign-ups within the price test."]);
+    expect(d.requests.map(r => r.response)).toEqual(['refuse']);
+  });
+  it('… the price test not yet out (Exhibit 4 ready): its line, and the finer cut refused beside it', async () => {
+    classify.mockResolvedValueOnce(MARCUS_T27.found);
+    const p = plan(MARCUS_T27, { revealed: MARCUS_T27.revealed.filter(id => !id.startsWith('price_test')), shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'] });
+    const d = await turnDataChecked(p, turn(MARCUS_T27));
+    expect(d.releases.map(r => r.id)).toEqual(['price_test_results']);
+    expect(renderDataLines(d, 's')).toEqual([value('price_test_results'), "I don't have week-by-week sign-ups within the price test."]);
+    expect(d.requests.map(r => [r.response, r.ledgerItemIds])).toEqual([['release', ['price_test_results']], ['refuse', []]]);
+  });
+  it('… the price test held by the release order (Exhibit 4 waits on 1-3): not released, the refusal stands', async () => {
+    classify.mockResolvedValueOnce(MARCUS_T27.found);
+    const p = plan(MARCUS_T27, { revealed: [], shown: [] });
+    const d = await turnDataChecked(p, turn(MARCUS_T27));
+    expect(d.releases).toEqual([]);
+    expect(d.defers).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have week-by-week sign-ups within the price test."]);
+    expect(classify).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('(a) the check maps the ask to an item already out → restated, never deferred', () => {
+  it('Marcus t17: starter_cohort (said) and cohort_notes (on Exhibit 2) restated', async () => {
+    classify.mockResolvedValueOnce(MARCUS_T17.found);
+    const p = plan(MARCUS_T17, { exhibitOnly: ['cohort_notes', 'pro_cohort', 'plan_prices_costs', 'ltv_definition', 'new_customers_by_plan'] });
+    const d = await turnDataChecked(p, turn(MARCUS_T17));
+    expect(d.restates.map(r => r.id)).toEqual(['starter_cohort', 'cohort_notes']);
+    expect(d.releases).toEqual([]);
+    expect(d.defers).toEqual([]);
+    expect(d.refusals).toEqual([]);
+    const lines = renderDataLines(d, 's');
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toContain(value('starter_cohort'));
+    expect(lines[1]).toContain(value('cohort_notes'));
+    expect(lines.join(' ')).not.toMatch(/come back|get there|Starter cohort beyond month 12/);
+  });
+  it('Marisol t11: plan_cac, on Exhibit 1, restated as the exhibit shows', async () => {
+    classify.mockResolvedValueOnce(MARISOL.found);
+    const p = plan(MARISOL, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] });
+    const d = await turnDataChecked(p, turn(MARISOL));
+    expect(d.restates).toEqual([{ id: 'plan_cac', value: value('plan_cac'), exhibit: true }]);
+    expect(d.defers).toEqual([]);
+    expect(renderDataLines(d, 's')).toHaveLength(1);
+    expect(renderDataLines(d, 's')[0]).toContain(value('plan_cac'));
+  });
+  it('Tyler t11: cohort_notes (said at t7) restated; upgrade_timing, not yet out, released now (d)', async () => {
+    classify.mockResolvedValueOnce(TYLER.found);
+    const p = plan(TYLER);
+    const d = await turnDataChecked(p, turn(TYLER));
+    expect(d.releases.map(r => r.id)).toEqual(['upgrade_timing']);
+    expect(d.restates.map(r => r.id)).toEqual(['cohort_notes']);
+    expect(d.defers).toEqual([]);
+    const lines = renderDataLines(d, 's');
+    expect(lines[0]).toBe(value('upgrade_timing'));
+    expect(lines[1]).toContain(value('cohort_notes'));
+    // The release is booked: Settle reveals from `releases`, the row carries the id.
+    expect(decisionRows(d).filter(r => r.response === 'release').flatMap(r => r.ledgerItemIds)).toEqual(['upgrade_timing', 'cohort_notes']);
+  });
+  it('the restates stay capped at 3', async () => {
+    const ids = ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'pro_cohort', 'starter_cohort'];
+    classify.mockResolvedValueOnce([{ what: 'churn for upgraded customers', ledgerItemIds: ids, response: 'none', explicit: true }]);
+    const d = await turnDataChecked(plan(TYLER), turn(TYLER));
+    expect(d.restates).toHaveLength(3);
+  });
+});
+
+describe('(d) the check maps the ask to an item not yet out', () => {
+  it('Raj t11: upgrade_timing released now; starter_cohort and cohort_notes, already said, restated', async () => {
+    classify.mockResolvedValueOnce(RAJ.found);
+    const p = plan(RAJ, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition'] });
+    const d = await turnDataChecked(p, turn(RAJ));
+    expect(d.releases.map(r => r.id)).toEqual(['upgrade_timing']);
+    expect(d.restates.map(r => r.id)).toEqual(['starter_cohort', 'cohort_notes']);
+    expect(d.defers).toEqual([]);
+    expect(d.refusals).toEqual([]);
+    expect(renderDataLines(d, 's').join(' ')).not.toContain('upgrade rates for later cohorts');
+  });
+  // A gated item: the Starter cohort and its notes (ANALYSIS data) before the
+  // structure is settled; upgrade_timing is clarifying data, never gated, so it goes.
+  it('… before the pressure test is answered: the gated cohort items deferred by their names, booked, no figure; upgrade_timing still goes', async () => {
+    classify.mockResolvedValueOnce(RAJ.found);
+    const p = plan(RAJ, { pressureTest: AWAITING, revealed: [], shown: [], phase: 'STRUCTURE' });
+    const d = await turnDataChecked(p, turn(RAJ));
+    expect(d.releases.map(r => r.id)).toEqual(['upgrade_timing']);
+    expect(d.gatedIds).toEqual(['starter_cohort', 'cohort_notes']);
+    expect(d.gateDefers).toEqual(["the Starter cohort's status", 'the notes on the cohorts']);
+    expect(d.itemlessDefers).toBeUndefined();
+    const line = renderDataLines(d, 's').at(-1)!;
+    expect(line).toContain("the Starter cohort's status and the notes on the cohorts");
+    expect(line).not.toContain('upgrade rates for later cohorts');
+    expect(line).not.toMatch(NO_FIGURE);
+    expect(decisionRows(d).filter(r => r.response === 'defer').map(r => r.ledgerItemIds)).toEqual([['starter_cohort'], ['cohort_notes']]);
+  });
+  it('… held over the release cap: deferred by its spoken name ("I\'ll come back to when customers upgrade"), booked, no figure', async () => {
+    classify.mockResolvedValueOnce([{ what: 'upgrade rates for later cohorts', ledgerItemIds: ['why_pro_fell', 'buyer_profile', 'competitor_prices', 'upgrade_timing'], response: 'none', explicit: true }]);
+    const p = plan(RAJ);
+    const d = await turnDataChecked(p, turn(RAJ));
+    expect(d.releases.map(r => r.id)).toEqual(['why_pro_fell', 'buyer_profile', 'competitor_prices']);
+    expect(d.defers).toEqual(['when customers upgrade']);
+    expect(d.itemlessDefers).toBeUndefined();
+    const line = renderDataLines(d, 's').at(-1)!;
+    expect(line).toContain('when customers upgrade');
+    expect(line).not.toMatch(NO_FIGURE);
+    expect(decisionRows(d).find(r => r.ledgerItemIds.includes('upgrade_timing'))).toMatchObject({ what: 'When customers upgrade', response: 'defer', explicit: true });
+  });
+  it('… and the booked deferral is followed up: an open request, released on the next turn', async () => {
+    const p = plan(RAJ, { edit: r => { (r as { dataRequestEventRows: unknown[] }).dataRequestEventRows = [{ subtype: 'defer', turnIndex: 3, payloadJsonb: { what: 'When customers upgrade', ledgerItemIds: ['upgrade_timing'], explicit: true } }]; } });
+    expect(p.state.openDataRequests.map(o => o.ledgerItemId)).toEqual(['upgrade_timing']);
+    const d = await turnDataChecked(p, { requests: [], exhibit: null, rescueItem: null });
+    expect(d.releases.map(r => r.id)).toEqual(['upgrade_timing']);
+  });
+  it('… on a wrap-up turn: "We won\'t get to when customers upgrade today." — not promised', async () => {
+    classify.mockResolvedValueOnce([{ what: 'upgrade rates for later cohorts', ledgerItemIds: ['why_pro_fell', 'buyer_profile', 'competitor_prices', 'upgrade_timing'], response: 'none', explicit: true }]);
+    const p = plan(RAJ);
+    p.state.kind = 'close';
+    const d = await turnDataChecked(p, turn(RAJ));
+    expect(d.defers).toEqual([]);
+    expect(renderDataLines(d, 's').at(-1)).toBe("We won't get to when customers upgrade today.");
+    expect(decisionRows(d).find(r => r.ledgerItemIds.includes('upgrade_timing'))).toMatchObject({ response: 'defer', wontGetTo: true });
+  });
+});
+
+describe('no verdict, or no item: as before', () => {
+  it('no verdict (failure, timeout) → the named deferral in the candidate\'s words, holding no item', async () => {
+    classify.mockResolvedValueOnce(null);
+    const d = await turnDataChecked(plan(RAJ), turn(RAJ));
+    expect(d.defers).toEqual(['upgrade rates for later cohorts']);
+    expect(d.itemlessDefers).toEqual(['upgrade rates for later cohorts']);
+    expect(d.releases).toEqual([]);
+  });
+  it('mapped to no item → refused', async () => {
+    classify.mockResolvedValueOnce([]);
+    const d = await turnDataChecked(plan(RAJ), turn(RAJ));
+    expect(d.refusals).toEqual(['upgrade rates for later cohorts']);
+  });
+  it('the check runs once for Stream and Settle, and the decision log is the second pass\'s alone', async () => {
+    classify.mockResolvedValueOnce(TYLER.found);
+    const p = plan(TYLER);
+    const a = await turnDataChecked(p, turn(TYLER));
+    const b = await turnDataChecked(p, turn(TYLER));
+    expect(classify).toHaveBeenCalledTimes(1);
+    expect(b).toEqual(a);
+    expect(acted(p, 'checked_ask')).toHaveLength(2);
+    expect(acted(p, 'itemless_defer')).toHaveLength(1);
+  });
+});
+
+describe('decideCheckedAsk', () => {
+  const p = () => plan(RAJ);
+  it('sorts a verdict: no verdict, none, in scope, out of scope, siblings only', () => {
+    expect(decideCheckedAsk(p(), 'x', { mapped: null, ids: [], outOfScope: [] })).toEqual({ kind: 'named' });
+    expect(decideCheckedAsk(p(), 'x', { mapped: false, ids: [], outOfScope: [] })).toEqual({ kind: 'refuse' });
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['upgrade_timing', 'cohort_notes'], outOfScope: ['cohort_notes'] })).toEqual({ kind: 'items', ids: ['upgrade_timing'] });
+    expect(decideCheckedAsk(p(), 'week-by-week sign-ups within the price test', { mapped: true, ids: ['price_test_results'], outOfScope: ['price_test_results'] })).toEqual({ kind: 'coarse', ids: ['price_test_results'] });
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['not_an_item'], outOfScope: [] })).toEqual({ kind: 'refuse' });
+  });
+});
