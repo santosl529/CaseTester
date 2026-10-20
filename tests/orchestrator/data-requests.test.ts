@@ -3,7 +3,7 @@ import {
   parseDataRequestResponse, buildDataRequestPrompt, toDataRequestEvents,
   formatOpenRequestsHint, planForcedReleases,
   classifiedMarkerEvent, findUnclassifiedExchanges,
-  buildAskCheckPrompt, parseAskCheckResponse, askCheckCatalog, maskFigures,
+  buildAskCheckPrompt, parseAskCheckResponse, askCheckCatalog, maskFigures, askCheckPrefill, withAskPrefill,
   type LedgerCatalogItem, type AskCheckItem,
 } from '@/lib/orchestrator/data-requests';
 
@@ -313,5 +313,36 @@ describe('the ask check (classifyAsk): catalog, prompt and parser', () => {
     expect(parseAskCheckResponse('not json', WHAT, cat)).toBeNull();
     expect(parse({ requests: [] })).toBeNull();
     expect(parseAskCheckResponse('```json\n{"items":[{"id":"cogs_pct","answers":"full"}]}\n```', WHAT, cat)).toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+  });
+});
+
+// Task 56 fix round 1 (the paid Haiku rerun, 20 Oct): 16 of 68 replies from
+// claude-haiku-4-5 (no structured output) wrapped the JSON in prose, so the parse
+// failed → no verdict → a hollow named deferral. The reply is prefilled with
+// ASK_CHECK_PREFILL on models without a JSON schema, and the parser reads the first
+// balanced JSON object out of any prose around it.
+describe('the ask check reply: prose around the JSON, and the prefill', () => {
+  const cat: AskCheckItem[] = [{ id: 'cogs_pct', label: 'COGS as % of revenue', line: 'COGS is #% of revenue today.' }];
+  it('a prose-wrapped reply parses', () => {
+    expect(parseAskCheckResponse('No item in the catalog holds competitor pricing.\n{"items":[]}', 'competitor pricing', cat)).toEqual({ items: [] });
+    expect(parseAskCheckResponse('Looking at the catalog, {"items":[{"id":"cogs_pct","answers":"full"}]} is my answer — the {COGS} line holds it.', 'COGS', cat))
+      .toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+    // A brace inside a string doesn't end the object early.
+    expect(parseAskCheckResponse('Here: {"items":[{"id":"cogs_pct","answers":"partial","missing":"COGS } today"}]}', 'COGS today', cat))
+      .toEqual({ items: [{ id: 'cogs_pct', answers: 'partial', missing: 'COGS } today' }] });
+  });
+  it('a prefilled reply, put back together with the prefill, parses (prose after it too)', () => {
+    expect(parseAskCheckResponse(withAskPrefill('{"id":"cogs_pct","answers":"full"}]}'), 'COGS', cat)).toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+    expect(parseAskCheckResponse(withAskPrefill(']}\n\nNo catalog item covers competitor pricing.'), 'competitor pricing', cat)).toEqual({ items: [] });
+  });
+  it('a reply with no JSON object, or none with items → null', () => {
+    expect(parseAskCheckResponse('No item in the catalog holds competitor pricing.', 'competitor pricing', cat)).toBeNull();
+    expect(parseAskCheckResponse('Unbalanced {"items":[', 'x', cat)).toBeNull();
+    expect(parseAskCheckResponse('{"note":"none"} and nothing else', 'x', cat)).toBeNull();
+  });
+  it('the prefill goes only to a model the JSON schema isn\'t applied to (claude-haiku-4-5), never to claude-haiku-5-5', () => {
+    expect(askCheckPrefill('claude-haiku-4-5')).toBe('{"items":[');
+    expect(askCheckPrefill('claude-haiku-5-5')).toBeNull();
+    expect(askCheckPrefill('claude-sonnet-5-5')).toBeNull();
   });
 });

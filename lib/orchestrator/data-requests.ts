@@ -415,15 +415,32 @@ function validMissing(missing: string, what: string): boolean {
   return words.length > 0 && words.every(w => asked.has(w));
 }
 
-export function parseAskCheckResponse(raw: string, what: string, catalog: AskCheckItem[]): AskCheckResult | null {
-  const jsonText = raw.replace(/^```(?:json)?\n?/m, '').replace(/\n?```$/m, '').trim();
-  let obj: unknown;
-  try {
-    obj = JSON.parse(jsonText);
-  } catch {
-    return null;
+// The first balanced JSON object in a reply that parses and holds an `items` list —
+// the JSON alone, or wrapped in prose (Task 56 fix round 1: claude-haiku-4-5 gets no
+// structured output and wrote prose around it on 16 of 68 asks). Braces inside
+// strings don't count. None: null.
+function firstItemsObject(raw: string): { items: unknown[] } | null {
+  for (let start = raw.indexOf('{'); start !== -1; start = raw.indexOf('{', start + 1)) {
+    let depth = 0, inString = false, escaped = false, end = -1;
+    for (let i = start; i < raw.length && end === -1; i++) {
+      const ch = raw[i];
+      if (inString) { if (escaped) escaped = false; else if (ch === '\\') escaped = true; else if (ch === '"') inString = false; continue; }
+      if (ch === '"') inString = true;
+      else if (ch === '{') depth++;
+      else if (ch === '}' && --depth === 0) end = i;
+    }
+    if (end === -1) continue;
+    try {
+      const obj: unknown = JSON.parse(raw.slice(start, end + 1));
+      if (obj != null && typeof obj === 'object' && Array.isArray((obj as Record<string, unknown>).items)) return obj as { items: unknown[] };
+    } catch { /* not JSON from this brace: try the next */ }
   }
-  if (obj == null || typeof obj !== 'object' || !Array.isArray((obj as Record<string, unknown>).items)) return null;
+  return null;
+}
+
+export function parseAskCheckResponse(raw: string, what: string, catalog: AskCheckItem[]): AskCheckResult | null {
+  const obj = firstItemsObject(raw);
+  if (obj === null) return null;
   const ids = new Set(catalog.map(c => c.id));
   const seen = new Set<string>();
   const items: AskCheckResult['items'] = [];
@@ -460,20 +477,41 @@ export function askCheckSchema(catalog: AskCheckItem[]): Record<string, unknown>
   };
 }
 
+// The reply's first characters, written for the model (an assistant prefill) where
+// no JSON schema constrains it: claude-haiku-4-5, the check's model today (Task 56 fix
+// round 1). Prefill is accepted on Haiku 4.5 and returns a 400 on the 4.6+ families
+// (claude-api docs, model-migration "Assistant-turn prefills"); claude-haiku-5-5 gets
+// the JSON schema (lib/models.ts backgroundRequest) and no prefill.
+const ASK_CHECK_PREFILL = '{"items":[';
+const PREFILL_MODELS: ReadonlySet<string> = new Set(['claude-haiku-4-5']);
+export function askCheckPrefill(model: string): string | null {
+  return PREFILL_MODELS.has(model) ? ASK_CHECK_PREFILL : null;
+}
+// A prefilled reply put back together: the model's text continues the prefill.
+export const withAskPrefill = (text: string, prefill: string = ASK_CHECK_PREFILL) => prefill + text;
+
 // The check: same model as the detection classifier, usage logged as 'data_request'
-// ($/case, PRD §13). Null on failure (the caller's named deferral).
-export async function classifyAsk(params: { what: string; catalog: AskCheckItem[]; onUsage?: OnUsage; model?: string }): Promise<AskCheckResult | null> {
+// ($/case, PRD §13). Null on failure (the caller's named deferral). onRaw: the reply's
+// whole text (prefill put back), for evaluation scripts.
+export async function classifyAsk(params: { what: string; catalog: AskCheckItem[]; onUsage?: OnUsage; model?: string; onRaw?: (text: string) => void }): Promise<AskCheckResult | null> {
   const client = anthropicClient();
   const model = params.model ?? DATA_REQUEST_MODEL_ID;
+  const prefill = askCheckPrefill(model);
   try {
     const response = await client.messages.create({
       model,
       ...backgroundRequest(model, 512, { jsonSchema: askCheckSchema(params.catalog) }),
-      messages: [{ role: 'user', content: buildAskCheckPrompt(params.what, params.catalog) }],
+      messages: [
+        { role: 'user', content: buildAskCheckPrompt(params.what, params.catalog) },
+        ...(prefill !== null ? [{ role: 'assistant' as const, content: prefill }] : []),
+      ],
     } as Anthropic.MessageCreateParamsNonStreaming);
     params.onUsage?.({ component: 'data_request', model, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens });
-    const text = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
-    return text ? parseAskCheckResponse(text.text, params.what, params.catalog) : null;
+    const block = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
+    if (!block && prefill === null) return null;
+    const text = prefill !== null ? withAskPrefill(block?.text ?? '', prefill) : block!.text;
+    params.onRaw?.(text);
+    return parseAskCheckResponse(text, params.what, params.catalog);
   } catch (err) {
     console.error('[data-requests] ask check failed:', err instanceof Error ? err.message : err);
     return null;
