@@ -9,7 +9,7 @@ import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit,
 import { findFalseRefusals, groupItemsAsked, coverageOf, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, type DetectedDataRequest } from './data-requests';
-import { askingSentences, addressedAskSentences, matchAskDetections, uncoveredAsks } from './request-signal';
+import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, WANT_ASK_PHASES } from './request-signal';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal } from './data-ledger';
 import type { OnUsage } from '@/lib/llm-usage';
@@ -239,47 +239,78 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
   };
 }
 
-// ---- A probe turn's asks (round 5 Task 48, A1) ----
-// B1 Larkspur Marisol e6432db0 t11 → t12 and t25 → t26: handed the math
-// checker's flag, the model wrote only the probe and declared no request (t11:
-// code's vetted line then replaced its question; t25: the model said the line),
-// guard B's cues missed both asks, and neither got a word. On a model turn that
-// carries the checker's line as its question (a probe, pointer or hint — a
-// correction goes before the model's own question), the message's addressed asks
-// are detected as on a code-written turn (session-runner.ts): the classifier on
-// the message, kept where an asking sentence covers them (request-signal.ts).
-// Those no declared request covers join the turn's requests as asks to release,
-// so turnDataChecked decides them — a release, a deferral, or a refusal through
-// the check — and the data line is said between "say" and the probe. One
-// classifier call per turn, and only when a sentence asks: started beside the
-// model call (session-runner.ts) and shared by Stream and Settle (on the plan).
-export type ProbeAsks = { sentences: string[]; detected: DetectedDataRequest[] | null };
+// ---- The message's asks the model left out (round 5 Tasks 48 and 50) ----
+// Task 48 (A1; B1 Larkspur Marisol e6432db0 t11 → t12 and t25 → t26): handed the
+// math checker's flag, the model wrote only the probe and declared no request,
+// guard B's cues missed both asks, and neither got a word.
+// Task 50 (A4; B2 Hollis Bay Jasmine 984d9066 t5 → t6): "One thing I'd want: how
+// many bags of chips does Hollis Bay sell a year?" — guard B wrote the turn again
+// and the model declared an offer of the planning assumptions instead
+// (explicit:false), so the ask was never answered. Generalized from Task 48: on
+// every model turn, after the model's requests close, an addressed asking
+// sentence no explicit declaration names (request-signal.ts undeclaredSentences)
+// is answered from the classifier's detections on the message — kept where such a
+// sentence covers them, and not covered by an explicit declaration (by item or by
+// words). They join the turn's requests as asks to release, so turnDataChecked
+// decides them — released, deferred, restated, or through the item-less check
+// (Task 45: refuse, restate, release now or name). The model's own declarations
+// (an offer included) still go out. On a probe turn the data line is said between
+// "say" and the probe. One classifier call per turn, only when a sentence asks:
+// started beside the model call (session-runner.ts), shared by Stream and Settle
+// (on the plan), and waited on only when a sentence is undeclared — at most
+// ASK_WAIT_MS, then the turn goes on without it (no hang on a slow call).
+// From the brainstorm on, the sentences are guard B's late ones (rhetorical
+// self-questions filtered; Lorenzo, 19 Oct).
+const ASK_WAIT_MS = 1500;
+export type MessageAsks = { sentences: string[]; detected: DetectedDataRequest[] | null };
 export function probeTurn(plan: ModelPlan): boolean {
   const { checkerLine, kind } = plan.state;
   return kind === 'model' && checkerLine !== null && !correctsNow(checkerLine);
 }
-export function startProbeAsks(plan: ModelPlan, onUsage?: OnUsage): Promise<ProbeAsks> | null {
-  if (!probeTurn(plan)) return null;
+function messageAskSentences(plan: ModelPlan): string[] {
+  const { ctx, state } = plan;
+  return WANT_ASK_PHASES.includes(ctx.currentPhase) ? addressedAskSentences(ctx.candidateText, ctx.currentPhase)
+    : lateAskSentences(ctx.candidateText, ctx.currentPhase, [state.caseData.prompt, ...Object.values(revealedValues(state.ledger))]);
+}
+export function startMessageAsks(plan: ModelPlan, onUsage?: OnUsage): Promise<MessageAsks> | null {
   const { state, ctx } = plan;
-  if (state.probeAsks) return state.probeAsks;
-  const sentences = addressedAskSentences(ctx.candidateText, ctx.currentPhase);
-  state.probeAsks = sentences.length === 0 ? Promise.resolve({ sentences, detected: [] })
+  if (state.kind !== 'model') return null;
+  if (state.messageAsks) return state.messageAsks;
+  const sentences = messageAskSentences(plan);
+  state.messageAsks = sentences.length === 0 ? Promise.resolve({ sentences, detected: [] })
     : classifyDataRequests({ candidateText: ctx.candidateText, interviewerText: null, catalog: state.catalog, onUsage })
       .catch(() => null).then(detected => ({ sentences, detected }));
-  return state.probeAsks;
+  return state.messageAsks;
 }
-// The asks a probe turn answers beside the model's declared ones (`fresh`), and
-// those an asking sentence doesn't cover (`dropped`) or a declared request does
-// (`covered`); null off a probe turn.
-export type ProbeTurnAsks = ProbeAsks & { fresh: DetectedDataRequest[]; covered: DetectedDataRequest[]; dropped: DetectedDataRequest[] };
-export async function probeTurnAsks(plan: ModelPlan, declared: DeclaredRequest[], onUsage?: OnUsage): Promise<ProbeTurnAsks | null> {
-  const started = startProbeAsks(plan, onUsage);
+// The detections, waited on at most ASK_WAIT_MS from the first wait (null after it);
+// one outcome for Stream and Settle.
+function heardAsks(plan: ModelPlan, started: Promise<MessageAsks>): Promise<MessageAsks & { timedOut?: true }> {
+  const { state } = plan;
+  if (state.messageAsksHeard) return state.messageAsksHeard;
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<null>(r => { timer = setTimeout(() => r(null), ASK_WAIT_MS); });
+  state.messageAsksHeard = Promise.race([started, timeout]).finally(() => clearTimeout(timer))
+    .then(x => x ?? { sentences: messageAskSentences(plan), detected: null, timedOut: true as const });
+  return state.messageAsksHeard;
+}
+// The asks a model turn answers beside the model's declared ones (`fresh`), and
+// those an undeclared sentence doesn't cover (`dropped`) or an explicit
+// declaration does (`covered`); `open`: the sentences no explicit declaration
+// names (none: the classifier is not waited on, `detected` null). Null off a model turn.
+export type TurnAsks = MessageAsks & { open: string[]; waited: boolean; timedOut?: true; fresh: DetectedDataRequest[]; covered: DetectedDataRequest[]; dropped: DetectedDataRequest[] };
+export async function messageAsks(plan: ModelPlan, declared: DeclaredRequest[], onUsage?: OnUsage): Promise<TurnAsks | null> {
+  const started = startMessageAsks(plan, onUsage);
   if (!started) return null;
-  const { sentences, detected } = await started;
-  const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit));
-  return { sentences, detected, ...uncoveredAsks(declared, kept), dropped };
+  const explicit = declared.filter(r => r.explicit);
+  const caseNames = properNames(plan.state.caseData.sttKeyterms);
+  const sentences = messageAskSentences(plan);
+  const open = undeclaredSentences(sentences, explicit, caseNames);
+  if (open.length === 0) return { sentences, detected: null, open, waited: false, fresh: [], covered: [], dropped: [] };
+  const { detected, timedOut } = await heardAsks(plan, started);
+  const { kept, dropped } = matchAskDetections(open, (detected ?? []).filter(r => r.explicit));
+  return { sentences, detected, open, waited: true, ...(timedOut ? { timedOut } : {}), ...uncoveredAsks(explicit, kept, caseNames), dropped };
 }
-export function withAsks<T extends Pick<ModelTurn, 'requests'>>(turn: T, asks: ProbeTurnAsks | null): T {
+export function withAsks<T extends Pick<ModelTurn, 'requests'>>(turn: T, asks: TurnAsks | null): T {
   if (!asks || asks.fresh.length === 0) return turn;
   return { ...turn, requests: [...turn.requests, ...asks.fresh.map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }))] };
 }
@@ -452,7 +483,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // fact restated, and only what nothing covers is refused (Raj 55d12d38 t7
   // same-store → the store count; Omar 9bbf41bc t9 aircraft size → the
   // competitor line, the frequency still refused; Maya b0b28d36 t8 net margin).
-  const covered: { what: string; ids: string[]; promptFacts: string[]; rest: string | null }[] = [];
+  const covered: { what: string; ids: string[]; promptFacts: string[]; rest: string | null; coarse?: { what: string; ids: string[] }[] }[] = [];
   const promptRestates: { id: string; value: string; request: DeclaredRequest }[] = [];
   requests = requests.flatMap(r => {
     // Declared release or defer alike: after the pressure test a deferral becomes a release (below).
@@ -462,8 +493,13 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     if (ids.length === 0) {
       const cov = coverageOf(r.what, fb);
       const covIds = cov.items.filter(id => ledger.items.some(i => i.id === id));
-      if (covIds.length === 0 && cov.promptFacts.length === 0) return [r];
-      covered.push({ what: r.what, ids: covIds, promptFacts: cov.promptFacts, rest: cov.rest });
+      // An entry a cover reaches only at a coarser cut (a count of a figure-less
+      // item; round 5 Task 50, fact-check.ts COUNT_ASK): its own item-less ask,
+      // given its coarse items E1's way below — the line and "I don't have <entry>.".
+      const coarse = cov.coarse.map(c => ({ what: c.what, ids: c.ids.filter(id => ledger.items.some(i => i.id === id)) })).filter(c => c.ids.length > 0);
+      if (covIds.length === 0 && cov.promptFacts.length === 0 && coarse.length === 0) return [r];
+      for (const c of coarse) coarseOf.set(c.what, [...new Set([...(coarseOf.get(c.what) ?? []), ...c.ids])]);
+      covered.push({ what: r.what, ids: covIds, promptFacts: cov.promptFacts, rest: cov.rest, ...(coarse.length > 0 ? { coarse } : {}) });
       for (const id of cov.promptFacts) {
         const value = fb.covers.find(c => c.id === id)?.say;
         if (value && !promptRestates.some(p => p.id === id)) promptRestates.push({ id, value, request: r });
@@ -473,6 +509,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
       if (cov.rest && siblingsOnly.has(r.what)) siblingsOnly.add(cov.rest);
       return [
         ...covIds.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label })),
+        ...coarse.map(c => ({ ...r, what: c.what, itemIds: [] as string[] })),
         ...(cov.rest ? [{ ...r, what: cov.rest, itemIds: [] as string[] }] : []),
       ];
     }

@@ -29,6 +29,7 @@
   { "case": "launch-001", "source": "probe: b35 Hollis Bay Marcus t9", "what": "Do we have store count and a velocity benchmark?", "expect": {"items": ["retailer_support"], "refused": false}},
   { "case": "launch-001", "source": "probe: b35 Hollis Bay Jasmine t9", "what": "The store build — I'd need store count, distribution rate, and bags per store per week.", "expect": {"items": ["retailer_support"], "refused": true}},
   { "case": "launch-001", "source": "probe: b35 Hollis Bay Marisol t13", "what": "Do we have a store count we could reach in year one?", "expect": {"items": ["retailer_support"], "refused": false}},
+  { "case": "launch-001", "source": "probe: b35 Hollis Bay Jasmine t5 (round 5 Task 50: why_now at a coarser cut, the count refused)", "what": "how many bags of chips Hollis Bay sells a year", "expect": {"items": ["why_now"], "refused": true}},
   { "case": "launch-001", "source": "probe: b35 Hollis Bay Tyler t7", "what": "how the chip business's volume has trended year over year, to know whether we're defending a declining base", "expect": {"items": ["why_now"], "refused": false}},
   { "case": "launch-001", "source": "probe: b35 Hollis Bay Marisol t19", "what": "how actual year-one volume compared to forecast on Hollis Bay's last two launches", "expect": {"items": ["survey_reliability"], "refused": false}},
   { "case": "launch-001", "source": "probe: Lorenzo D2: distribution costs are freight, not retailer support", "what": "distribution costs", "expect": {"items": ["variable_costs"], "refused": false}},

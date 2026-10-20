@@ -628,7 +628,28 @@ export const BASIS = new RegExp([
   String.raw`\bhow\s+(?:was|were)\b.{0,40}?\b(?:estimated|derived|calculated)\b`,
   String.raw`\bevidence\s+(?:for|behind)\b`,
 ].join('|'), 'i');
-export type Coverage = { items: string[]; promptFacts: string[]; rest: string | null };
+// A count ask (round 5 Task 50, A4; Lorenzo, 20 Oct: B2 Hollis Bay Jasmine t5
+// "how many bags of chips does Hollis Bay sell a year?" gets "the chip-sales-flat
+// line with the bag-count refusal", as D4/E1): "how many …", "the number of …"
+// is finer than an item whose value states no figure at all — no digit, no
+// number word, no "no / none / zero" (prof-002's "No other airline is flying
+// nonstop" answers "how many airlines"). Such an item holds the asked quantity
+// only at a coarser cut (why_now: chip sales are flat): E1 gives it with "I don't
+// have <the ask>." (outsideAskScope, data-decisions.ts) — unless the case's own
+// cover phrase carries the count ("how many stores", "store count": the case
+// says the item answers it; coverageOf below).
+export const COUNT_ASK = /\bhow\s+many\b|\bnumbers?\s+of\b/i;
+const COUNT_PHRASE = /\bhow\s+many\b|\bnumbers?\s+of\b|\bcounts?\b/i;
+export function statesNoFigure(value: string): boolean {
+  return !/\d/.test(normalizeNumberWords(value)) && !/\b(?:no|none|zero|nothing)\b/i.test(value);
+}
+export function countFinerThan(what: string, value: string): boolean {
+  return COUNT_ASK.test(what) && statesNoFigure(value);
+}
+// `coarse`: list entries a case cover reaches only at a coarser cut (a count
+// asked of an item that states no figure, the cover not carrying the count) —
+// each its own ask, answered E1's way (turn-data.ts).
+export type Coverage = { items: string[]; promptFacts: string[]; rest: string | null; coarse: { what: string; ids: string[] }[] };
 const FURTHER_CUT_WORDS = /\b(?:broken (?:down|out) by|split by|by (?:customer|segment|type|age|income|loyalty|hour|day|time)\w*|segments?|cohorts?|per (?:day|hour|customer|week|month))\b/;
 const FURTHER_CUT = { test: (t: string) => FURTHER_CUT_WORDS.test(t) || BASIS.test(t) };
 export function coverageOf(what: string, fb: FactBase): Coverage {
@@ -649,6 +670,7 @@ export function coverageOf(what: string, fb: FactBase): Coverage {
   const hits = fb.covers.flatMap(c => c.phrases.flatMap(p => [...lower.matchAll(new RegExp(`(?<![a-z])${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'))]
     .map(m => ({ cover: c, start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }))));
   const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
+  const coarse: Coverage['coarse'] = [];
   for (const entry of entries.filter(e => e.text.trim())) {
     // A cut the case doesn't hold ("by store", "per item") isn't covered — unless the
     // case's own phrase carries it ("transaction volume per store": the ticket and
@@ -659,9 +681,17 @@ export function coverageOf(what: string, fb: FactBase): Coverage {
       && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end)));
     const covering = GLOBAL_FINER.test(lc(entry.text)) ? overlapping.filter(h => GLOBAL_FINER.test(lower.slice(h.start, h.end))) : overlapping;
     if (covering.length === 0) { left.push(entry.text.trim()); continue; }
-    for (const h of covering) (h.cover.say !== undefined ? promptFacts : items).push(h.cover.id);
+    // A count asked of a figure-less item through a phrase that doesn't carry the
+    // count: covered only at a coarser cut (COUNT_ASK above).
+    const atCoarseCut = (h: typeof covering[number]) => {
+      const value = h.cover.say === undefined ? fb.ledger.find(l => l.id === h.cover.id)?.value : undefined;
+      return value !== undefined && countFinerThan(entry.text, value) && !COUNT_PHRASE.test(lower.slice(h.start, h.end));
+    };
+    const whole = covering.filter(h => !atCoarseCut(h));
+    if (whole.length === 0) { coarse.push({ what: entry.text.trim(), ids: [...new Set(covering.map(h => h.cover.id))] }); continue; }
+    for (const h of whole) (h.cover.say !== undefined ? promptFacts : items).push(h.cover.id);
   }
-  return { items: [...new Set(items)], promptFacts: [...new Set(promptFacts)], rest: left.length ? left.join(' and ') : null };
+  return { items: [...new Set(items)], promptFacts: [...new Set(promptFacts)], rest: left.length ? left.join(' and ') : null, coarse };
 }
 
 // The case items a sentence refuses or defers by name (same grammar and covers as the false-refusal veto), whatever was released.

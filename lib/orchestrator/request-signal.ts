@@ -130,8 +130,10 @@ export function addressedAskSentences(text: string, phase: Phase, opts: { closin
 // stays out. caseTexts: the prompt and revealed values — figures the
 // candidate was given.
 export function lateAskCues(text: string, phase: Phase, caseTexts: string[] = []): string[] {
-  const given = caseTexts.flatMap(numbersIn);
-  return addressedAskSentences(text, phase, { closing: true, given }).length > 0 ? ['addressed ask'] : [];
+  return lateAskSentences(text, phase, caseTexts).length > 0 ? ['addressed ask'] : [];
+}
+export function lateAskSentences(text: string, phase: Phase, caseTexts: string[] = []): string[] {
+  return addressedAskSentences(text, phase, { closing: true, given: caseTexts.flatMap(numbersIn) });
 }
 
 // The sentences where the candidate asks for something or states what they
@@ -197,14 +199,33 @@ function coveredAsks<T extends { what: string }>(sentences: string[], detections
   return { kept, dropped };
 }
 
+// The case's proper names (sttKeyterms: the client, products, places) — they name no item on their own.
+export const properNames = (sttKeyterms: string[]) => sttKeyterms.filter(t => /^[A-Z]/.test(t));
+// A request's content words, the case's proper names aside (round 5 Task 50:
+// "Hollis Bay" is in the offer and in the ask it replaced — B2 Jasmine t5).
+const namingWords = (text: string, caseNames: string[]) => {
+  const proper = contentWords(caseNames.join(' '));
+  return new Set([...contentWords(text)].filter(w => !proper.has(w)));
+};
+
 // The detections a declared request already covers (a ledger item in common, or
 // a content word of its "what"), and the rest (round 5 Task 48: a probe turn
-// answers only the asks the model left out — never one twice).
-export function uncoveredAsks<T extends { what: string; ledgerItemIds: string[] }>(declared: { what: string; itemIds: string[] }[], detections: T[]): { fresh: T[]; covered: T[] } {
+// answers only the asks the model left out — never one twice). Callers pass the
+// explicit declarations only: an offer answers no ask (Task 50).
+export function uncoveredAsks<T extends { what: string; ledgerItemIds: string[] }>(declared: { what: string; itemIds: string[] }[], detections: T[], caseNames: string[] = []): { fresh: T[]; covered: T[] } {
   const ids = new Set(declared.flatMap(r => r.itemIds));
-  const words = contentWords(declared.map(r => r.what).join(' '));
+  const words = namingWords(declared.map(r => r.what).join(' '), caseNames);
   const fresh: T[] = [];
   const covered: T[] = [];
-  for (const d of detections) (d.ledgerItemIds.some(id => ids.has(id)) || [...contentWords(d.what)].some(w => words.has(w)) ? covered : fresh).push(d);
+  for (const d of detections) (d.ledgerItemIds.some(id => ids.has(id)) || [...namingWords(d.what, caseNames)].some(w => words.has(w)) ? covered : fresh).push(d);
   return { fresh, covered };
+}
+
+// The asking sentences no declared request names — no content word in common
+// with any declaration's "what", the case's proper names aside (round 5 Task 50,
+// A4): only these wait for the message's classifier; a sentence the model
+// declared is its own (no wait, no second line).
+export function undeclaredSentences(sentences: string[], declared: { what: string }[], caseNames: string[] = []): string[] {
+  const words = namingWords(declared.map(r => r.what).join(' '), caseNames);
+  return sentences.filter(s => ![...namingWords(s, caseNames)].some(w => words.has(w)));
 }

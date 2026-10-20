@@ -9,7 +9,7 @@ import {
 } from './silence';
 import { isDistressVerdict, type DistressVerdict } from './distress';
 import { classifyDataRequests, type DetectedDataRequest } from './data-requests';
-import { addressedAskSentences, matchAskDetections } from './request-signal';
+import { addressedAskSentences, matchAskDetections, properNames } from './request-signal';
 import { logEvent, inDraftScope } from '@/lib/analytics';
 import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
@@ -20,7 +20,7 @@ import { conductEnds } from './stream-turn';
 import type { ConductModelVerdict } from './conduct-model';
 import { planFingerprint, type DraftGate } from './speculation';
 import { promptContextFor } from './prompt-context';
-import { startProbeAsks } from './turn-data';
+import { startMessageAsks } from './turn-data';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
 import { revealedValues, canReveal } from './data-ledger';
 import { nextReadyExhibit } from './data-decisions';
@@ -366,8 +366,8 @@ async function runTurnBody(
       extraRequestRows: state.kind === 'close' ? [] : dropped.map(r => ({ what: r.what, ledgerItemIds: r.ledgerItemIds, response: 'none' as const, explicit: false })),
     };
   } else {
-    // A probe turn's asks (round 5 Task 48, turn-data.ts): classified beside the model call.
-    void startProbeAsks(plan, u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); });
+    // The message's asks (round 5 Tasks 48, 50; turn-data.ts): classified beside the model call.
+    void startMessageAsks(plan, u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); });
     const isDelivered = { value: false };
     const events = streamInterviewerTurn({
       model,
@@ -470,7 +470,7 @@ export function codeWrittenAsks(plan: ModelPlan, detected: DetectedDataRequest[]
     isHeld: id => canReveal(state.ledger, id),
     itemNames: id => { const item = c.dataLedger.find(i => i.id === id); return item ? [item.label, item.spoken ?? '', ...(c.factAnchors?.names[id] ?? [])] : []; },
     // The case's proper names (sttKeyterms: the client, products, places) name no item on their own.
-    caseNames: c.sttKeyterms.filter(t => /^[A-Z]/.test(t)),
+    caseNames: properNames(c.sttKeyterms),
   });
   return { sentences, kept, dropped };
 }

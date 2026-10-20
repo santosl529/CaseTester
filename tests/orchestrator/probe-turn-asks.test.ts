@@ -119,12 +119,17 @@ describe('a probe turn answers the ask in the message it replies to', () => {
     expect(checkOf(p, 'probe_turn_requests')).toBeUndefined();
   });
 
-  it('a turn with no checker line is the model\'s, as before: its ask is not detected by code', async () => {
+  // Task 48 left a turn with no checker line to the model; Task 50 (A4) answers an
+  // undeclared ask on every model turn (model-turn-asks.test.ts).
+  it('a turn with no checker line answers the undeclared ask too (round 5 Task 50), then the model\'s question', async () => {
     detected = [ELASTICITY];
     const p = plan(T11_TEXT, T11_REVEALED, ['exhibit-1', 'exhibit-2'], null);
     const s = await settleTurn(p, outcome({ ...T11_TURN, question: 'What would you do next?' }));
-    expect(s.spokenText).toBe('Mm-hm. What would you do next?');
-    expect(calls).toEqual([]);
+    expect(s.spokenText.startsWith('Mm-hm. ')).toBe(true);
+    expect(s.spokenText.endsWith(' What would you do next?')).toBe(true);
+    expect(s.spokenText.slice('Mm-hm. '.length, -' What would you do next?'.length)).toMatch(REFUSE);
+    expect(checkOf(p, 'uncovered_asks')).toMatchObject({ decision: 'act', detail: { answered: [ELASTICITY.what] } });
+    expect(checkOf(p, 'probe_turn_requests')).toBeUndefined();
   });
 
   it('an ask the model declared is not answered twice', async () => {
@@ -133,7 +138,8 @@ describe('a probe turn answers the ask in the message it replies to', () => {
     const declared = { what: 'load factor response to a fare increase', itemIds: [], explicit: true, respond: 'release' as const };
     const s = await settleTurn(p, outcome({ ...T11_TURN, requests: [declared] }));
     expect(s.spokenText.match(/load factor/g)?.length).toBe(1);
-    expect(checkOf(p, 'probe_turn_requests')).toMatchObject({ detail: { answered: [], covered: [ELASTICITY.what] } });
+    // The sentence is the declaration's ("load factor"): the classifier isn't waited on (Task 50).
+    expect(checkOf(p, 'probe_turn_requests')).toMatchObject({ decision: 'pass', detail: { open: [], answered: [], classified: null } });
   });
 
   it('streamed: the data line goes out between "say" and the probe, and the message is classified once', async () => {

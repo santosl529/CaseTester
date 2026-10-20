@@ -174,8 +174,11 @@ export function resolveAsk(c: CaseJson, what: string): AskResult {
   if (named.length) return { items: named, refused: null };
   const cov = coverageOf(what, fb);
   const items = cov.items.filter(id => ledgerIds.has(id));
-  if (items.length === 0 && cov.promptFacts.length === 0) return { items: [], refused: what };
-  return { items, refused: cov.rest };
+  // An entry covered only at a coarser cut (a count of a figure-less item): its item, and the entry refused (E1; round 5 Task 50).
+  const coarse = cov.coarse.map(c => ({ what: c.what, ids: c.ids.filter(id => ledgerIds.has(id)) })).filter(c => c.ids.length > 0);
+  if (items.length === 0 && cov.promptFacts.length === 0 && coarse.length === 0) return { items: [], refused: what };
+  const refused = [...coarse.map(c => c.what), ...(cov.rest ? [cov.rest] : [])];
+  return { items: [...new Set([...items, ...coarse.flatMap(c => c.ids)])], refused: refused.length > 0 ? refused.join(' and ') : null };
 }
 
 function verdict(r: AskResult, e: AskCase['expect']): string {

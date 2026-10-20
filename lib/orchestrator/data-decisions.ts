@@ -13,7 +13,7 @@ import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import type { RequestResponse } from './data-requests';
 import { canReveal, type DataLedger } from './data-ledger';
 import { phrase, line, versionIndex, type PhraseUses } from './phrasing';
-import { BASIS } from './fact-check';
+import { BASIS, countFinerThan } from './fact-check';
 import { dataLineVersions } from '@/lib/cases/loader';
 import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
 import { isOrderStage } from '@/lib/cases/schema';
@@ -160,6 +160,9 @@ export function outsideAskScope(what: string, item: { label: string; value?: str
   const ask = what.toLowerCase();
   if (BASIS.test(ask) && !SAYS_BASIS.test(item.value ?? '')) return true;
   if (ONE_OFF_ASK.test(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
+  // A count asked of an item that states no figure (round 5 Task 50; fact-check.ts
+  // COUNT_ASK): the item is the ask's coarse answer, not the count.
+  if (item.value !== undefined && countFinerThan(ask, item.value)) return true;
   const head = HEAD_NOUN(item.label);
   if (!head) return false;
   const label = item.label.toLowerCase();

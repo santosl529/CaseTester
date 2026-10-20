@@ -32,7 +32,7 @@ import { handoffSentences } from './data-ledger';
 import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
 import type { OnUsage } from '@/lib/llm-usage';
-import { turnDataChecked, pressureTestOutcomeNow, probeTurnAsks, withAsks } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow, messageAsks, withAsks } from './turn-data';
 import { renderDataLines } from './data-decisions';
 import { findFalseFacts, findEchoes, findFalseRefusals, refusedItemIds, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
 import { isGradingSentence } from './grading';
@@ -341,7 +341,7 @@ export async function streamTurnSegments(
       let gate = g;
       if (g.facts && fields.requests.length + (fields.exhibit ? 1 : 0) > 0 && refusedItemIds(p.text, g.facts.fb).length > 0) {
         await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
-        const d = await turnDataChecked(plan, withAsks(fields, await probeTurnAsks(plan, fields.requests, opts.onUsage)), opts.onUsage);
+        const d = await turnDataChecked(plan, withAsks(fields, await messageAsks(plan, fields.requests, opts.onUsage)), opts.onUsage);
         gate = { ...g, facts: { ...g.facts, releasedNow: new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]) } };
       }
       const reason = vetoReason(p.text, gate);
@@ -359,8 +359,8 @@ export async function streamTurnSegments(
     // "say" and the declarations closed: code's data line — once the
     // pressure test's verdict for this turn is in (the gate depends on it).
     await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
-    // A probe turn's asks the model left out, as Settle adds them (round 5 Task 48).
-    const d = await turnDataChecked(plan, withAsks(fields, await probeTurnAsks(plan, fields.requests, opts.onUsage)), opts.onUsage);
+    // The message's asks the model left out, as Settle adds them (round 5 Tasks 48, 50).
+    const d = await turnDataChecked(plan, withAsks(fields, await messageAsks(plan, fields.requests, opts.onUsage)), opts.onUsage);
     // The same connecting words Settle renders: the same seed and the session's recent uses (phrasing.ts).
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`, plan.ctx.flags.phraseUses as PhraseUses | undefined);
     if (lines.length > 0 || d.exhibit) {
