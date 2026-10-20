@@ -46,6 +46,22 @@ describe('vetoReason refuses_released', () => {
   it('does not read "I have no concerns" as a refusal', () => {
     expect(vetoReason('I have no concerns with that.', gate(['new_route_rampup']))).toBeNull();
   });
+  // Final review (20 Oct), Task 39 deferred minor: "no issue/problem/objection/…" is no refusal, even when the
+  // sentence names a held case item (the ramp assumption, new_route_rampup).
+  it.each([
+    'I have no issue with your ramp assumption.',
+    'I have no problem with the ramp assumption you used.',
+    'I have no objection to your ramp-up assumption.',
+    'We have no concerns about the ramp assumption.',
+    'I have no doubts about your ramp assumption.',
+    'I have no questions on the ramp assumption.',
+  ])('does not read "%s" as a refusal', sentence => {
+    expect(vetoReason(sentence, gate())).toBeNull();
+    expect(vetoReason(sentence, gate(['new_route_rampup']))).toBeNull();
+  });
+  it('still reads "I have no ramp assumption" as a refusal', () => {
+    expect(vetoReason('I have no ramp assumption for you.', gate())).toBe('false_refusal');
+  });
 });
 
 const streamed = async (candidateText: string, requests: ModelTurn['requests']) => {
