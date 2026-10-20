@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, gateOutcomesOf, codeFlagRefs, rootOf, caseNumbersOf, restatementLine,
+  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, gateOutcomesOf, codeFlagRefs, rootOf, caseNumbersOf,
   MATH_CHECKER_CATEGORY, type CheckerRow, type CheckerPlanInput, type VerdictPayload,
 } from '@/lib/orchestrator/math-checker-live';
 import type { CheckerClaim, VettedClaim } from '@/lib/orchestrator/math-checker';
@@ -959,8 +959,9 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
 
   // Lorenzo, 19 Oct (round-2 ruling 1; b28 Jordan t19, b29 Jordan t9): a root
   // corrected live and a later claim still on its wrong value — code restates
-  // the root's correction once ("<root> is <right>, not <wrong>"), then the
-  // report. A root closed without a live correction keeps "built on a closed input".
+  // the root's correction once, then the report. A root closed without a live
+  // correction keeps "built on a closed input". Round-3 ruling 1 (Lorenzo, 19 Oct):
+  // the restatement is the line delivered, verbatim — never a built "X, not Y".
   describe('(c) a later claim at a corrected wrong value: the correction once more', () => {
     const NET_LINE = 'Kelvexa net price per patient per year is about $8,000, not $2,000.';
     const closedNet = { keys: { 'net_price@2000': { figures: [2000], since: 7 } }, closed: ['net_price@2000'] };
@@ -1016,35 +1017,19 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       expect(equal.selected).toMatchObject({ id: '17:0', action: 'restate' });
       expect(equal.waiting.map(w => w.id)).toContain('15:0');
     });
+    // Round-3 ruling 1 (Lorenzo, 19 Oct): the line delivered, word for word — no "not X" added, no scale word carried.
+    it('a delivered line with no "not X" is said again as delivered', () => {
+      for (const line of ['Kelvexa net price per patient per year is about $8,000.', 'Kelvexa net price is about $8 thousand per patient per year.']) {
+        const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected: { 'net_price@2000': { line, figure: '8000' } } });
+        expect(p.selected).toMatchObject({ id: '17:0', action: 'restate', line, derived: ['8000'] });
+        expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'restate', line })]);
+      }
+    });
     it('a minor claim under time pressure is shed, as a minor flag is', () => {
       const p = run([sales('40,000 × $2,000 = $80 million', '$80 million', { changesConclusion: false })], { ...closedNet, corrected, underTimePressure: true });
       expect(p.selected).toBeNull();
       expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'shed' })]);
     });
-  });
-});
-
-describe('restatementLine: "<root quantity> is <right>, not <wrong>" (ruling 1)', () => {
-  it('a delivered line of that form is said again as delivered', () => {
-    expect(restatementLine({ line: 'Patients on Kelvexa at peak is about 40,000, not 200,000.', figure: '40000' }, 200000)).toBe('Patients on Kelvexa at peak is about 40,000, not 200,000.');
-    expect(restatementLine({ line: 'A 10% price rise lifts margin about 8.5 points, not 5.', figure: '8.5' }, 5)).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
-  });
-  it('a relative change stated as points: the line\'s quantity and figure, their wrong value', () => {
-    expect(restatementLine({ line: 'COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.', figure: '16' }, 38))
-      .toBe('The rise in COGS is 16 points of revenue, not 38.');
-  });
-  it('a statement with no "not X": their wrong value added, in the right figure\'s unit', () => {
-    expect(restatementLine({ line: 'Kelvexa net price per patient per year is about $8,000.', figure: '8000' }, 2000)).toBe('Kelvexa net price per patient per year is about $8,000, not $2,000.');
-    expect(restatementLine({ line: 'The bean share of COGS is about 30%.', figure: '30' }, 25)).toBe('The bean share of COGS is about 30%, not 25%.');
-  });
-  // Review fix 3: the scale word goes with their figure too ("$80", not $80 million, read as another figure).
-  it('…with the statement\'s scale word on their figure too', () => {
-    expect(restatementLine({ line: 'Peak annual US net sales of Kelvexa is about $320 million.', figure: '320' }, 80)).toBe('Peak annual US net sales of Kelvexa is about $320 million, not $80 million.');
-    expect(restatementLine({ line: 'Eligible patients is about 1.2 million in the US.', figure: '1.2' }, 3)).toBe('Eligible patients is about 1.2 million in the US, not 3 million.');
-    expect(restatementLine({ line: 'The COGS rise is about 16 points.', figure: '16' }, 38)).toBe('The COGS rise is about 16 points, not 38.');
-  });
-  it('any other line: as delivered', () => {
-    expect(restatementLine({ line: 'In revenue terms, that\'s about 10.5 points.', figure: '10.5' }, 25)).toBe('In revenue terms, that\'s about 10.5 points.');
   });
 });
 
@@ -1064,12 +1049,12 @@ describe('ruling 1 on the evidence: b28 Jordan t19, b29 Jordan t9', () => {
   });
   it('b28 Jordan 591cff13 t19: "The gap is 38 minus 18, so about 20 points" — the 38-to-40 correction restated', () => {
     const p = replayed(EVIDENCE['b28-jordan-591cff13-t19'] as unknown as Fixture, 'checker:38 to 40 points');
-    expect(p.selected).toMatchObject({ id: '17:1', action: 'restate', key: 'checker:38 to 40 points', line: 'The rise in COGS is 16 points of revenue, not 38.' });
+    expect(p.selected).toMatchObject({ id: '17:1', action: 'restate', key: 'checker:38 to 40 points', line: COGS_LINE });
     expect(p.decisions.find(d => d.id === '17:1')).toMatchObject({ outcome: 'restate', root: 'checker:38 to 40 points' });
   });
   it('b29 Jordan ea27d1f6 t9: "a large chunk of the 38" — restated, ahead of the "~40 points" correction (the same line again)', () => {
     const p = replayed(EVIDENCE['b29-jordan-ea27d1f6-t9'] as unknown as Fixture, 'cogs_dollar_impact@38');
-    expect(p.selected).toMatchObject({ id: '7:1', action: 'restate', key: 'cogs_dollar_impact@38', line: 'The rise in COGS is 16 points of revenue, not 38.' });
+    expect(p.selected).toMatchObject({ id: '7:1', action: 'restate', key: 'cogs_dollar_impact@38', line: COGS_LINE });
     expect(p.waiting.map(w => w.id)).toContain('5:6');
     // The controller's ruling on Task 11 (option c): 5:6's own correction is the root's delivered line, word for word —
     // the restatement corrects it (booked with the line, plan-turn): its key closes and t20's re-correction in the recommendation stays.

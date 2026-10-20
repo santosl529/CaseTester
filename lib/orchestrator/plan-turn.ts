@@ -90,7 +90,7 @@ export type CheckerLinePlan = {
 };
 // flags.mathChecker. held: a line a due stage question held back (Settle), until it is raised or decided.
 // convertedFigures: the figures a conversion closed (own-quantity.ts) — a case figure too ("10 points of COGS"), which no key keeps.
-// corrected: the closed keys a delivered correction closed, with the line said and its figure; restated: those whose
+// corrected: the closed keys a delivered correction (or conversion) closed, with the line said and its figure; restated: those whose
 // correction was said once more for a later claim on the wrong value (Lorenzo, 19 Oct, round-2 ruling 1). Both optional:
 // an older session's flags read as no live correction recorded (built on a closed input, as before).
 export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[]; corrected?: Record<string, CorrectedRoot>; restated?: string[] };
@@ -1068,9 +1068,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const convertedAfter = [...(checkerMemory.convertedFigures ?? []), ...(convertedFigure !== undefined ? [convertedFigure] : [])];
   const convertedKept = checkerMemory.convertedFigures?.length ? { convertedFigures: checkerMemory.convertedFigures } : {};
   // A correction said closes its key by a live correction: recorded with its line and figure, for a later claim still
-  // on the wrong value; a restatement, once per root (Lorenzo, 19 Oct, round-2 ruling 1). A conversion corrects no error.
+  // on the wrong value; a restatement, once per root (Lorenzo, 19 Oct, round-2 ruling 1). A conversion's line too: the
+  // restatement is the line delivered, verbatim (round-3 ruling 1; b28/b29 Jordan).
   const correctedNow = {
-    ...(checkerUsed?.action === 'correct' && !checkerUsed.converted ? { [checkerUsed.key]: { line: checkerUsed.line, ...(checkerUsed.derived[0] ? { figure: checkerUsed.derived[0] } : {}) } } : {}),
+    ...(checkerUsed?.action === 'correct' ? { [checkerUsed.key]: { line: checkerUsed.line, ...(checkerUsed.derived[0] ? { figure: checkerUsed.derived[0] } : {}) } } : {}),
     ...Object.fromEntries(coveredNow.map(c => [c.key, { line: c.line, ...(c.claim.correctionFigure ? { figure: c.claim.correctionFigure } : {}) }])),
   };
   const correctedAfter = { ...(checkerMemory.corrected ?? {}), ...correctedNow };

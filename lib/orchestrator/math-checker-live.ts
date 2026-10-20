@@ -350,26 +350,12 @@ export type CheckerOutcome = 'probe' | 'correct' | 'converted' | 'pointer' | 'hi
 // b29 Jordan t9 "a large chunk of the 38" — both after code had corrected the
 // 38 live): a root closed by a delivered correction (plan-turn records it,
 // flags.mathChecker.corrected: the line said and its right figure) is said once
-// more for a later claim still on its wrong value — "<root quantity> is
-// <right>, not <wrong>" — then the report. The delivered line when it has that
-// form; else built from it: no figure but its own (vetted, FR-4) and theirs.
+// more for a later claim still on its wrong value, then the report. Round-3
+// ruling 1 (Lorenzo, 19 Oct; b28/b29 Jordan: "The rise in COGS is 16 points of
+// revenue, not 38." put a "not X" on 38, true as growth on its own base): "The
+// restatement must repeat the original correction line verbatim, never a new
+// "X, not Y" template" — a correction's line, or a conversion's.
 export type CorrectedRoot = { line: string; figure?: string };
-const NOT_X = /,\s+not\s+\S.*\.$/;
-const REL_POINTS = /^(.+?) (rose|fell) (\d+(?:\.\d+)?) points, from [^;]+? of ([^;]+); \d+(?:\.\d+)?% is its (?:growth|fall) on its own base\.$/;
-const STATEMENT = /^(.+?\bis\b(?:\s+about)?\s+)(\$?)(\d[\d,]*(?:\.\d+)?)(%?)([^,]*)\.$/;
-const figureSaid = (n: number) => (Math.abs(n) >= 1000 ? n.toLocaleString('en-US', { maximumFractionDigits: 1 }) : String(n));
-export function restatementLine(fix: CorrectedRoot, wrong: number): string {
-  if (NOT_X.test(fix.line)) return fix.line;
-  // A relative change stated as points (math-checker.ts relativeAsPoints): "COGS rose 16 points, from 42% to 58% of revenue; …".
-  const rel = REL_POINTS.exec(fix.line);
-  if (rel) return `The ${rel[2] === 'rose' ? 'rise' : 'fall'} in ${rel[1]} is ${rel[3]} points of ${rel[4]}, not ${figureSaid(wrong)}.`;
-  // A statement of code's figure without its "not X" (own-quantity.ts): their value added, in the figure's unit.
-  const st = STATEMENT.exec(fix.line);
-  // Their figure in the figure's scale too ("$320 million, not $80 million"; review fix 3).
-  const scale = /^\s*(thousand|million|billion|trillion)\b/i.exec(st?.[5] ?? '')?.[1];
-  if (st) return `${st[1]}${st[2]}${st[3]}${st[4]}${st[5]}, not ${st[2]}${figureSaid(wrong)}${st[4]}${scale ? ` ${scale}` : ''}.`;
-  return fix.line;
-}
 
 // Whether the delivered text holds the checker's line (Lorenzo, 15 Oct): case,
 // quotes, dashes and spacing aside — a paraphrase is not the vetted line.
@@ -417,7 +403,7 @@ export type CheckerPlanInput = {
   attempts: RecomputeAttempts;        // Rule 14's counter, this message's flags counted
   keys?: Record<string, CheckerKeyEntry>; // the flags raised so far (one per error, across messages)
   closed?: string[];                  // keys past Rule 14: corrected once, or left for the report
-  corrected?: Record<string, CorrectedRoot>; // the closed keys a delivered correction closed (ruling 1)
+  corrected?: Record<string, CorrectedRoot>; // the closed keys a delivered correction or conversion closed, with its line (ruling 1)
   restated?: string[];                // …and those whose correction was restated once since
   stepProbes?: Record<string, number>; // probes spent on each step this interview (STEP_PROBE_CAP)
   held?: string;                      // a line a due stage question held back (Settle): raised first, and it doesn't expire
@@ -474,7 +460,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const decisions: CheckerDecision[] = [];
   const flaggedFigures: number[] = [];
   const droppedStamps: CheckerPlan['droppedStamps'] = [];
-  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean; carried?: boolean; restate?: { line: string; figure?: string; own: string; fixLine: string } }[] = [];
+  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean; carried?: boolean; restate?: { line: string; figure?: string; own: string } }[] = [];
   const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
   const keys: Record<string, CheckerKeyEntry> = { ...(p.keys ?? {}) };
   const closed = new Set(p.closed ?? []);
@@ -691,14 +677,12 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     eligible.splice(eligible.indexOf(e), 1);
     if (closed.has(first) || closed.has(root)) {
       const fix = p.corrected?.[root];
-      const wrong = fix && !restated.has(root) ? headOf(root, keys) : undefined;
-      if (fix && wrong !== undefined) {
+      if (fix && !restated.has(root)) {
         if (eligible.some(x => x.key === root && x.restate)) built.push({ e, root });
-        else eligible.push({ ...e, key: root, restate: { line: restatementLine(fix, wrong), ...(fix.figure ? { figure: fix.figure } : {}), own: e.key, fixLine: fix.line } });
+        else eligible.push({ ...e, key: root, restate: { line: fix.line, ...(fix.figure ? { figure: fix.figure } : {}), own: e.key } });
         continue;
       }
-      // "Restated once already" only when it was (a root with no head figure to restate reads as any closed input; review fix 4).
-      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', fix && restated.has(root) ? `built on a corrected input (${root}) — restated once already; left for the report` : `built on a closed input (${root})`, undefined, e.key), root });
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', fix ? `built on a corrected input (${root}) — restated once already; left for the report` : `built on a closed input (${root})`, undefined, e.key), root });
       handled.add(e.id);
     } else built.push({ e, root });
   }
@@ -732,7 +716,6 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b) - final(a) || rank(b) - rank(a) || Number(changes(b)) - Number(changes(a))
     || Number(Boolean(b.restate)) - Number(Boolean(a.restate)) || a.n - b.n);
   let selected: CheckerSelection | null = null;
-  let restatedFrom: string | null = null;   // the delivered line a selected restatement says again
   const waiting = [...eligible];
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
     const entry = waiting.shift()!;
@@ -742,7 +725,6 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       const own = entry.restate.own;
       if (p.underTimePressure && !isFinal(entry) && !changes(entry)) { decisions.push({ ...decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, own), root: key }); handled.add(id); continue; }
       selected = { id, candidateTurnIndex: n, key, attempt: p.attempts[key] ?? 0, action: 'restate', line: entry.restate.line, derived: entry.restate.figure ? [entry.restate.figure] : [], claim: c };
-      restatedFrom = entry.restate.fixLine;
       decisions.push({ ...decision(id, n, c, 'restate', `built on ${key}, corrected live — its correction said once more`, selected.line, own), root: key });
       continue;
     }
@@ -796,14 +778,13 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   }
   if (selected && riders.length > 0) selected = { ...selected, riders };
   if (selected) { const s = selected; selected = { ...s, rating: ratingOf({ n: s.candidateTurnIndex, c: s.claim, key: s.key }) }; }
-  // A flag waiting whose own correction is the line a restatement says — the root's delivered line, or the restatement
-  // itself — word for word is corrected by it (the controller's ruling on Task 11, option c; b29 Jordan ea27d1f6 t9:
+  // A flag waiting whose own correction is the line a restatement says — the root's delivered line — word for word
+  // is corrected by it (the controller's ruling on Task 11, option c; b29 Jordan ea27d1f6 t9:
   // 5:6 "~40 points", keyed apart because 40 is a case figure, had the root's correction as its own): it closes and is
   // recorded corrected, as if its own line were said; it isn't said twice. Booked only with the restatement (plan-turn).
-  if (selected?.action === 'restate' && restatedFrom !== null) {
+  if (selected?.action === 'restate') {
     const r = selected;
-    const said = [restatedFrom, r.line];
-    const covers = waiting.filter(w => !w.carried && !w.restate && w.key !== r.key && w.c.correctionLine && said.includes(w.c.correctionLine));
+    const covers = waiting.filter(w => !w.carried && !w.restate && w.key !== r.key && w.c.correctionLine === r.line);
     for (const w of covers) decisions.push({ ...decision(w.id, w.n, w.c, 'correct', `corrected by the restatement of ${r.key} (${r.id}): its own correction, word for word`, w.c.correctionLine!, w.key), by: r.id });
     if (covers.length > 0) selected = { ...r, covers: covers.map(w => ({ id: w.id, candidateTurnIndex: w.n, key: w.key, claim: w.c, line: w.c.correctionLine! })) };
   }
