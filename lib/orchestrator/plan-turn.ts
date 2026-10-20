@@ -84,6 +84,7 @@ export type ModelState = ModelPlan['state'];
 // The checker's line on a model turn, and how to undo its booking if it isn't heard (Settle).
 export type CheckerLinePlan = {
   id: string; key: string; action: CheckerSelection['action']; line: string;
+  quote?: CheckerSelection['quote'];   // a late probe's quote of its claim: the heard check reads the model's line by it (round-4 ruling 4)
   wasHeld?: boolean;   // held back once already by a due stage: not held again
   final?: boolean;     // in the final answers, a rider's included (ruling 4): heard, it is the root's one extra probe there (close-hold.ts)
   undo: { attempt: number | undefined; step: string | null; mathChecker: CheckerMemory };
@@ -1120,7 +1121,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     const keysUndo = Object.fromEntries(Object.entries(checkerPlan.keys).filter(([k, e]) => raisedUndo.has(k) && e.figures.length > 0));
     const handledUndo = [...checkerHandled, ...checkerHandledNow.filter(id => id !== checkerUsed.id && !riderIds.includes(id))];
     checkerLine = {
-      id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line, ...(checkerUsed.id === heldLine ? { wasHeld: true } : {}),
+      id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line, ...(checkerUsed.quote ? { quote: checkerUsed.quote } : {}), ...(checkerUsed.id === heldLine ? { wasHeld: true } : {}),
       ...(ratingOf(checkerUsed).final.length > 0 ? { final: true } : {}),
       undo: {
         attempt: attemptBeforeChecker, step: checkerStepOwn,

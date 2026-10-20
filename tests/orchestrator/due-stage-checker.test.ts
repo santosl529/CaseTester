@@ -13,8 +13,8 @@ import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checke
 import { anyVariant, fill, PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 // The neutral probes vary (brief B rulings, 18 Oct): any version of the line, as said.
 const lowerFirst = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
-// Said turns after its t17 claim, the bare probe quotes the claim in his words (round-4 ruling 4).
-const QUOTE_17_1 = 'you said “The 16 points is what survived that dilution … which is why the net decline is only 18” — ';
+// Said turns after its t17 claim, the bare probe quotes the claim in his words, at most fifteen of them (round-4 ruling 4).
+const QUOTE_17_1 = 'you said “The 16 points is what survived that dilution … which is why the net decline…” — ';
 const CALC_WRAP_UPS = PHRASE_POOLS.probe_calc.map(a => `Before we wrap up — ${QUOTE_17_1}${lowerFirst(a)}`);
 const saysGotTo = (text: string, x: string) => PHRASE_POOLS.probe_got_to.some(v => text.includes(fill(v, x)));
 

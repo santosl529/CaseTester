@@ -541,7 +541,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // Code's own correction before code's recommendation ask the same way (the model may have said it from its hint).
   if (kind === 'rec_ask') for (const l of [...state.stageCodeLines].reverse()) if (!lineHeard(`${say} ${question}`, l)) question = `${l} ${question}`;
   if (checkerLine && state.stageCheckerLine) {
-    const saidByModel = !codeWritten && lineHeard(`${say} ${question}`, checkerLine.line);
+    const saidByModel = !codeWritten && lineHeard(`${say} ${question}`, checkerLine.line, checkerLine.quote);
     if (!codeWritten && !saidByModel) question = [checkerLine.line, question].filter(Boolean).join(' ');
     checkerLineBy = saidByModel ? 'model' : 'code';
   } else if (checkerLine && !codeTookQuestion) {
@@ -550,7 +550,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue,
     }) : null;
     const dueAsked = asked ? (['risk', 'recommendation', 'brainstorm'] as const).find(k => asked[k] && state.stagesDue[k]) : undefined;
-    if (lineHeard(`${say} ${question}`, checkerLine.line)) checkerLineBy = 'model';
+    if (lineHeard(`${say} ${question}`, checkerLine.line, checkerLine.quote)) checkerLineBy = 'model';
     else if (dueAsked && !correctsNow(checkerLine) && !checkerLine.wasHeld) heldForStage = dueAsked;
     else {
       // A correction goes before the question; so does a line held back once already, before a due stage question it no longer waits for.
@@ -624,7 +624,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // Still not heard (a pressure-test step or another of code's lines took the
   // question, or a due stage question held it back): the booking is undone and
   // the flag stays pending for a later turn — a held-back one for the next.
-  const checkerHeard = checkerLine ? lineHeard(spokenText, checkerLine.line) : null;
+  const checkerHeard = checkerLine ? lineHeard(spokenText, checkerLine.line, checkerLine.quote) : null;
   if (checkerLine && !checkerHeard) {
     if (checkerLine.undo.attempt === undefined) delete recomputeAttempts[checkerLine.key];
     else recomputeAttempts[checkerLine.key] = checkerLine.undo.attempt;
