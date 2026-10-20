@@ -290,6 +290,20 @@ describe('batch 33 Marisol 31e33506: her 5.8 was revenue points — the revenue-
     expect(frameOfClaim(c, w, ctx)).toEqual({ kind: 'unstated', rightOn: null });
     expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
   });
+  // An abbreviation ("i.e.", "e.g.", "vs.", "etc.", "approx.") ends no sentence, though "COGS" follows capitalised.
+  it.each([
+    ['5.8 points', 'Beans are 5.8 points of COGS, i.e. COGS rose 16 points.'],
+    ['5.8 points', "Beans are 5.8 points of COGS, i.e. COGS's 16-point jump."],
+    ['5.8 points', 'Beans are 5.8 points of COGS, e.g. COGS went from 42 to 58.'],
+    ['15 points', 'Beans are 15 points of COGS, i.e. COGS rose 16 points.'],
+    ['5.8 points', 'Beans are 5.8 points of COGS, vs. COGS rising 16 points.'],
+    ['5.8 points', 'Beans are 5.8 points of COGS, etc. COGS rose 16 points.'],
+    ['5.8 points', 'Beans are 5.8 points of COGS, approx. COGS rose 16 points.'],
+  ])('%s: "%s" — the context after an abbreviation is the same sentence: no "In COGS terms … not X"', (v, w) => {
+    const c = beans(v, w.split(', ')[0].toLowerCase());
+    expect(frameOfClaim(c, w, ctx)).toEqual({ kind: 'unstated', rightOn: null });
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
   it('the context in the next capitalised sentence leaves "5.8 points of COGS" its "In COGS terms" line', () => {
     const c = beans('5.8 points', 'beans are 5.8 points of cogs');
     expect(lineFor(c, 'Beans are 5.8 points of COGS. COGS went from 42 to 58.')?.line).toBe("In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 5.8.");

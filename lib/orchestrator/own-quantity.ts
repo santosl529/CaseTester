@@ -74,11 +74,13 @@ const strictBaseOf = (names: string) => {
 
 // What follows each place their figure is said in the window: the unit and what it is "of".
 // `sentence`: the rest of its sentence, the figure left out — up to the next capitalised
-// sentence, so an STT run-on ("of cogs. like out of the 58") stays one sentence.
+// sentence, so an STT run-on ("of cogs. like out of the 58") stays one sentence. An
+// abbreviation's period ends none: "of COGS, i.e. COGS rose 16 points" (Task 27 re-review, 20 Oct).
+const SENTENCE_BREAK = /(?<!\b(?:[A-Za-z]\.[A-Za-z]|[Vv]s|[Ee]tc|[Aa]pprox))\.(?=\s+[A-Z])|[!?](?=\s+[A-Z])|\n/g;
 type Tail = { tail: string; before: string; sentence: string };
 function tailsOf(window: string, figure: number): Tail[] {
   const out: Tail[] = [];
-  const breaks = [...window.matchAll(/[.!?](?=\s+[A-Z])|\n/g)].map(b => b.index!);
+  const breaks = [...window.matchAll(SENTENCE_BREAK)].map(b => b.index!);
   for (const m of window.matchAll(/\d[\d,]*(?:\.\d+)?/g)) {
     if (Math.abs(parseFloat(m[0].replace(/,/g, '')) - figure) > 1e-9) continue;
     const at = m.index! + m[0].length;
