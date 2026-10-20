@@ -5,7 +5,7 @@ import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { getCaseById } from '@/lib/cases/loader';
 import { decideData, renderDataLines } from '@/lib/orchestrator/data-decisions';
-import { createLedger, reveal, markExhibitReveals, restoreReveal } from '@/lib/orchestrator/data-ledger';
+import { createLedger, reveal, markExhibitReveals, restoreExhibitOnly, nextExhibitOnly } from '@/lib/orchestrator/data-ledger';
 import { poolPattern } from '@/lib/orchestrator/phrasing';
 import { exhibitAsText } from '@/lib/eval/exhibit-text';
 import { applyMessage, type VoiceView } from '@/components/voice-view';
@@ -47,11 +47,12 @@ describe('the restatement lead-in follows how the item came out', () => {
     reveal(ledger, 'price_test_notes');
     expect(renderDataLines(decide(ledger), 's')).toEqual([`As I mentioned: ${NOTES_LINE}`]);
   });
-  it('saved rows: source "exhibit" reads as exhibit-only; no source (older runs) and "said" read as said', () => {
-    for (const [source, lead] of [['exhibit', 'As the exhibit shows: '], [undefined, 'As I mentioned: '], [null, 'As I mentioned: '], ['said', 'As I mentioned: ']] as const) {
+  it('saved flags: exhibitOnly lists the exhibit-only ids; a missing field (older runs) reads every item as said', () => {
+    for (const [saved, lead] of [[['price_test_notes'], 'As the exhibit shows: '], [undefined, 'As I mentioned: '], [[], 'As I mentioned: '], [['stores_not_revealed'], 'As I mentioned: ']] as const) {
       const ledger = createLedger(ITEMS);
-      restoreReveal(ledger, { ledgerItemId: 'price_test_notes', source });
-      expect(renderDataLines(decide(ledger), 's'), String(source)).toEqual([`${lead}${NOTES_LINE}`]);
+      reveal(ledger, 'price_test_notes');
+      restoreExhibitOnly(ledger, saved);
+      expect(renderDataLines(decide(ledger), 's'), JSON.stringify(saved)).toEqual([`${lead}${NOTES_LINE}`]);
     }
   });
   it('one said and one exhibit-only restated together: each group leads with its own words, said first', () => {
@@ -64,6 +65,20 @@ describe('the restatement lead-in follows how the item came out', () => {
     expect(said).toBeGreaterThanOrEqual(0);
     expect(exhibit).toBeGreaterThan(said);
     expect(line.endsWith(NOTES_LINE)).toBe(true);
+  });
+});
+
+describe('the saved list (flags.exhibitOnly)', () => {
+  it('an exhibit reveal joins; a restate of it flips it to said; a release also removes it', () => {
+    const afterExhibit = nextExhibitOnly([], ['price_test_notes'], []);
+    expect(afterExhibit).toEqual(['price_test_notes']);
+    // Next turn it is restated: the line names it, so it is said from then on.
+    expect(nextExhibitOnly(afterExhibit, [], ['price_test_notes'])).toEqual([]);
+    const ledger = createLedger(ITEMS);
+    reveal(ledger, 'price_test_notes');
+    restoreExhibitOnly(ledger, nextExhibitOnly(afterExhibit, [], ['price_test_notes']));
+    expect(renderDataLines(decide(ledger), 's')).toEqual([`As I mentioned: ${NOTES_LINE}`]);
+    expect(nextExhibitOnly(['a', 'b'], [], ['a'])).toEqual(['b']);
   });
 });
 

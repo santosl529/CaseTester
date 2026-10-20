@@ -69,8 +69,6 @@ export const revealedData = pgTable('revealed_data', {
   sessionId: uuid('session_id').notNull().references(() => sessions.id),
   ledgerItemId: text('ledger_item_id').notNull(),
   revealedAtMs: bigint('revealed_at_ms', { mode: 'number' }).notNull(),
-  // 'exhibit' = came out only on an exhibit; null (older rows) and 'said' read as said.
-  source: text('source'),
 }, t => [index('revealed_session_idx').on(t.sessionId)]).enableRLS();
 
 export const exhibitsShown = pgTable('exhibits_shown', {

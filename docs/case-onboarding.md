@@ -336,4 +336,4 @@ group beats a more specific cover. Others:
   figures and key words of every ledger item it covers (cells, title or notes;
   `tests/cases/consistency.test.ts`). A restatement names where the item came from: "As I
   mentioned" if it was said, "As the exhibit shows" if it only came out on an exhibit
-  (`restate_exhibit` pool; the source is saved with each revealed row, none reads as said).
+  (`restate_exhibit` pool; the exhibit-only ids are kept in the session flags, `flags.exhibitOnly`; a missing field reads as said).

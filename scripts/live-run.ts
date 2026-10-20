@@ -206,7 +206,7 @@ async function seedSession(sessionId: string): Promise<void> {
     session: { startedAt: string; flagsJsonb: { moves?: Record<string, string> } };
     turns: { turnIndex: number; role: string; text: string; timestampMs: number }[];
     events: { category: string; subtype: string; turnIndex: number | null; phase: string; payloadJsonb: Record<string, unknown> }[];
-    revealed: { ledgerItemId: string; revealedAtMs: number; source?: string | null }[];
+    revealed: { ledgerItemId: string; revealedAtMs: number }[];
     analytics: { eventType: string; createdAt: string; payloadJsonb: Record<string, unknown> }[];
   };
   const src = JSON.parse(readFileSync(path.join(dir, readdirSync(dir).find(f => f.endsWith('.json'))!), 'utf8')) as Src;
@@ -217,7 +217,7 @@ async function seedSession(sessionId: string): Promise<void> {
   const turns = src.turns.filter(t => t.turnIndex > 0 && t.turnIndex <= through);
   if (turns.length) await db.insert(sessionTurns).values(turns.map(t => ({ sessionId, turnIndex: t.turnIndex, role: t.role, text: t.text, timestampMs: t.timestampMs + shift })));
   const revealed = src.revealed.filter(r => r.revealedAtMs <= cut.timestampMs);
-  if (revealed.length) await db.insert(revealedData).values(revealed.map(r => ({ sessionId, ledgerItemId: r.ledgerItemId, revealedAtMs: r.revealedAtMs + shift, source: r.source ?? null })));
+  if (revealed.length) await db.insert(revealedData).values(revealed.map(r => ({ sessionId, ledgerItemId: r.ledgerItemId, revealedAtMs: r.revealedAtMs + shift})));
   const shown = src.analytics.filter(a => a.eventType === 'exhibit_shown' && new Date(a.createdAt).getTime() <= cut.timestampMs);
   if (shown.length) await db.insert(exhibitsShown).values(shown.map(a => ({ sessionId, exhibitId: a.payloadJsonb.exhibitId as string, shownAtMs: new Date(a.createdAt).getTime() + shift })));
   const events = src.events.filter(e => e.category === 'data_request' && (e.payloadJsonb.interviewerTurnIndex as number) <= through);

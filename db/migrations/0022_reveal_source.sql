@@ -1,1 +1,0 @@
-ALTER TABLE "revealed_data" ADD COLUMN "source" text;

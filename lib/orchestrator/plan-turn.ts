@@ -7,7 +7,7 @@ import type { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents
 import { formatOpenRequestsHint, formatUnmappedHint, promisedRows } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
-import { createLedger, restoreReveal, revealedValues, labelWithPeriod } from './data-ledger';
+import { createLedger, reveal, restoreExhibitOnly, revealedValues, labelWithPeriod } from './data-ledger';
 import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, flagSpeaks, attemptKey, recMathLine, type RecomputeAttempts, type RecomputeFlag, type RecomputeAction, type VerifiedFigure } from './recompute';
 import { candidateFiguresOf } from './math-talk';
 import { changeFigures } from './numeric-provenance';
@@ -406,8 +406,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ledger = createLedger(caseData.dataLedger as any);
   for (const r of revealedRows) {
-    try { restoreReveal(ledger, r); } catch { /* ignore */ }
+    try { reveal(ledger, r.ledgerItemId); } catch { /* ignore */ }
   }
+  restoreExhibitOnly(ledger, session.flagsJsonb && (session.flagsJsonb as Record<string, unknown>).exhibitOnly);
 
   // Rule 11 deferral tracking: ledger data the candidate asked for (logged by
   // earlier turns' background classifier) that is still unreleased. Lags a
