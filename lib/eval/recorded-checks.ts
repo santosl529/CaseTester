@@ -46,3 +46,22 @@ export function overrideVerdict(overrides: CheckOverride[], runFile: string, tur
   if (hit.ids === null) return null;
   return hit.ids.length === 0 ? [] : [{ what, ledgerItemIds: hit.ids, response: 'none' as const, explicit: true }];
 }
+
+// The asks a code-written turn dropped (round 5 Task 49, for the runner replay):
+// the turn's `code_written_requests` row lists them by `what`; their ledger ids
+// are on the passing-mention rows the run logged for them (data_request at that
+// turn, `explicit: false`), else none (the close logs no rows). They were explicit
+// asks when the classifier detected them. Without these the replay served only
+// the turn's kept asks, so a dropped ask could never be answered on replay.
+type RecordedEvent = { category?: string; turnIndex?: number; payloadJsonb?: unknown };
+export function recordedDroppedAsks(turn: { turnIndex: number; checks?: CheckDecision[] }, events: RecordedEvent[]): DetectedDataRequest[] {
+  const row = (turn.checks ?? []).find(c => c.check === 'code_written_requests');
+  const dropped = (row?.detail as { dropped?: unknown } | undefined)?.dropped;
+  if (!Array.isArray(dropped)) return [];
+  const mentions = events.filter(e => e.category === 'data_request' && e.turnIndex === turn.turnIndex)
+    .map(e => e.payloadJsonb as { what?: unknown; ledgerItemIds?: unknown; explicit?: unknown } | undefined);
+  return dropped.filter((w): w is string => typeof w === 'string').map(what => {
+    const ids = mentions.find(m => m?.what === what && m.explicit === false)?.ledgerItemIds;
+    return { what, ledgerItemIds: Array.isArray(ids) ? ids.map(String) : [], response: 'none' as const, explicit: true };
+  });
+}

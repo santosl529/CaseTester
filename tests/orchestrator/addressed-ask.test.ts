@@ -141,3 +141,18 @@ describe('matchAskDetections', () => {
     expect(r.kept).toEqual([d('Competitor pricing')]);
   });
 });
+
+// Round 5 Task 49 (A2; B1 Aldermoor Tyler fc5eb050 t21): a held item a question
+// names is kept although no sentence counts as an addressed ask.
+describe('matchAskDetections with held items', () => {
+  const TYLER = "A middle path worth sizing: co-promote with a partner for the first two or three years to buy speed and access, with a pre-agreed option to take the product in-house once our own team is stood up for the pipeline launches. Do we know whether Kelvexa's US exclusivity runs long enough to make a build pay back?";
+  const patents = { what: "How long Kelvexa's US exclusivity/patent protection lasts", ledgerItemIds: ['patents'] };
+  const held = (ids: string[], text: string) => ({ text, isHeld: (id: string) => ids.includes(id) });
+
+  it('a held item named by a question is kept; one already out is dropped; without `held`, as before', () => {
+    expect(asks(TYLER, 'EXHIBIT')).toEqual([]);
+    expect(matchAskDetections([], [patents], held(['patents'], TYLER))).toEqual({ kept: [patents], dropped: [] });
+    expect(matchAskDetections([], [patents], held([], TYLER))).toEqual({ kept: [], dropped: [patents] });
+    expect(matchAskDetections([], [patents])).toEqual({ kept: [], dropped: [patents] });
+  });
+});

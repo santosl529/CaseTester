@@ -160,7 +160,28 @@ const contentWords = (t: string) => new Set((t.toLowerCase().match(/[a-z]+/g) ??
 // word in common with an asking sentence — a lone data question is often
 // rhetorical ("So what's driving the margin decline?", fix round 2) and covers
 // only what it names.
-export function matchAskDetections<T extends { what: string }>(sentences: string[], detections: T[]): { kept: T[]; dropped: T[] } {
+//
+// A held item asked about in a question (round 5 Task 49, A2; B1 Aldermoor
+// Tyler fc5eb050 t21 → t22): "Do we know whether Kelvexa's US exclusivity runs
+// long enough to make a build pay back?" names no data noun, so no sentence
+// counted as an ask, and the brainstorm stage turn dropped the classifier's
+// "How long Kelvexa's US exclusivity/patent protection lasts" (`patents`, held:
+// to 2038) — the answer never reached him. With `held`, a detection the asking
+// sentences don't cover is still kept when an item it maps to is held (in the
+// ledger, not yet out) and a question of the message names it (a content word
+// in common). A statement ("I'd want that definition settled before the board
+// meets.") is no question: still dropped. The close doesn't pass `held`
+// (session-runner.ts codeWrittenAsks).
+export type HeldAsks = { text: string; isHeld: (id: string) => boolean };
+export function matchAskDetections<T extends { what: string; ledgerItemIds?: string[] }>(sentences: string[], detections: T[], held?: HeldAsks): { kept: T[]; dropped: T[] } {
+  const split = coveredAsks(sentences, detections);
+  if (!held || split.dropped.length === 0) return split;
+  const questions = contentWords(askSentencesOf(held.text).filter(isQuestionSentence).join(' '));
+  const keep = new Set<T>([...split.kept, ...split.dropped.filter(d =>
+    (d.ledgerItemIds ?? []).some(held.isHeld) && [...contentWords(d.what)].some(w => questions.has(w)))]);
+  return { kept: detections.filter(d => keep.has(d)), dropped: detections.filter(d => !keep.has(d)) };
+}
+function coveredAsks<T extends { what: string }>(sentences: string[], detections: T[]): { kept: T[]; dropped: T[] } {
   if (sentences.length === 0) return { kept: [], dropped: [...detections] };
   if (sentences.length === 1 && detections.length === 1 && cueAsk(sentences[0])) {
     return { kept: [...detections], dropped: [] };

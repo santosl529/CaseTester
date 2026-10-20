@@ -518,16 +518,12 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     heldForExhibit = pressureEx;
     question = `${phrase('exhibit', pressureEx.title, phraseUses, seed)} ${question}`;
   }
-  // Code's brainstorm line on a turn whose own data line hands over data
-  // (batch 21 D8, Fiona t14: the decisive other-input figure, then "What other
-  // levers could the client pull here?") asks about the figures; the
-  // brainstorm, not yet administered, comes next turn.
-  let stageWaited = false;
-  if (kind === 'stage_brainstorm' && (decisions.releases.length > 0 || decisions.exhibit !== null)) {
-    question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
-    stageAsked = undefined;
-    stageWaited = true;
-  }
+  // Code's brainstorm line on a turn whose own data line hands over data asks
+  // the brainstorm all the same, after the data line (round 5 Task 49, A2; B1
+  // Aldermoor Tyler fc5eb050 t21 → t22: the patents ask is answered, then
+  // "If Aldermoor builds its own team, how could it reduce the risk of a slow
+  // start?"). It used to ask about the figures and leave the brainstorm to the
+  // next turn (batch 21 D8, Fiona t14), where a time-up could lose it for good.
   // The checker's line counts as delivered only if it is heard (Lorenzo, 15
   // Oct; batch 26 Jasmine 074b0534 t31: its probe was logged "used" and the
   // model asked for the recommendation instead): a model question that leaves
@@ -573,7 +569,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   }
 
   checks.record('stage_hold', Boolean(stageAsked), stageAsked ? `owed stage administered by code: ${stageAsked}`
-    : stageWaited ? 'data went out this turn — the brainstorm waits a turn' : 'no stage owed this turn', { owed: state.owedStage ?? null, kind });
+    : 'no stage owed this turn', { owed: state.owedStage ?? null, kind });
 
   // The question plays after the data line: on a turn that delivered data it
   // must not treat it as still to come ("Once you have those figures…",

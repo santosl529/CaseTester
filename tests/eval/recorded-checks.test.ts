@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { recordedChecks, recordedCheckVerdict, overrideVerdict, loadCheckOverrides } from '@/lib/eval/recorded-checks';
+import { recordedChecks, recordedCheckVerdict, overrideVerdict, loadCheckOverrides, recordedDroppedAsks } from '@/lib/eval/recorded-checks';
 
 // Batch 35 Quillpath, Marcus (24) t17 and t27, as their turn file logged them.
 const T17 = { check: 'itemless_defer', decision: 'act' as const, reason: 'mapped to a ledger item: a named deferral', detail: { what: 'Starter cohort beyond month 12', mapped: true, found: [{ what: 'Starter cohort status data beyond month 12 (covering retention, upgrades, and cancellations past the initial 12-month period)', ids: ['starter_cohort', 'cohort_notes'] }], latencyMs: 1119 } };
@@ -51,4 +51,20 @@ describe('REPLAY_CHECKS overrides the recorded verdicts', () => {
     expect(overrideVerdict([], file, 4, 'competitor pricing')).toBeUndefined();
   });
   it('loads nothing when REPLAY_CHECKS is unset', () => { expect(loadCheckOverrides(undefined)).toEqual([]); });
+});
+
+// Round 5 Task 49: a code-written turn's dropped asks, served again on replay.
+// Batch 34 Aldermoor Tyler fc5eb050 t21, as its turn file and run JSON logged them.
+describe('recordedDroppedAsks', () => {
+  const WHAT = "How long Kelvexa's US exclusivity/patent protection lasts";
+  const turn = { turnIndex: 21, checks: [{ check: 'code_written_requests', decision: 'act' as const, detail: { sentences: [], answered: [], dropped: [WHAT] } }] };
+  const mention = { category: 'data_request', subtype: 'none', turnIndex: 21, payloadJsonb: { what: WHAT, explicit: false, ledgerItemIds: ['patents'], revealedByNow: false, interviewerTurnIndex: 22 } };
+  it('the dropped ask, explicit, with the ids its passing-mention row logged', () => {
+    expect(recordedDroppedAsks(turn, [mention])).toEqual([{ what: WHAT, ledgerItemIds: ['patents'], response: 'none', explicit: true }]);
+  });
+  it('no mention row (the close): no ids; another turn\'s row is not read; no check row: nothing', () => {
+    expect(recordedDroppedAsks(turn, [])).toEqual([{ what: WHAT, ledgerItemIds: [], response: 'none', explicit: true }]);
+    expect(recordedDroppedAsks(turn, [{ ...mention, turnIndex: 19 }])[0].ledgerItemIds).toEqual([]);
+    expect(recordedDroppedAsks({ turnIndex: 21, checks: [] }, [mention])).toEqual([]);
+  });
 });

@@ -22,7 +22,7 @@ import { planFingerprint, type DraftGate } from './speculation';
 import { promptContextFor } from './prompt-context';
 import { startProbeAsks } from './turn-data';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
-import { revealedValues } from './data-ledger';
+import { revealedValues, canReveal } from './data-ledger';
 import { nextReadyExhibit } from './data-decisions';
 import { brainstormAskLine } from './brainstorm';
 import { analysisAskLine } from './spoken-close';
@@ -353,8 +353,8 @@ async function runTurnBody(
     // (the classified marker still goes in, so neither the background pass
     // nor scoring's backfill re-reads the exchange); when the case goes on,
     // they are logged as passing mentions so the classifier's record stays.
-    const askSentences = addressedAskSentences(candidateText, currentPhase, { closing: state.kind === 'close' });
-    const { kept, dropped } = matchAskDetections(askSentences, (detected ?? []).filter(r => r.explicit));
+    // A held item asked about in a question is answered too (codeWrittenAsks).
+    const { sentences: askSentences, kept, dropped } = codeWrittenAsks(plan, detected);
     if (detected !== null) {
       checks.record('code_written_requests', dropped.length > 0, 'detected requests no asking sentence covers — not answered', {
         sentences: askSentences, answered: kept.map(r => r.what), dropped: dropped.map(r => r.what),
@@ -452,6 +452,22 @@ export const REC_MATH_REVISION_QUESTIONS = PHRASE_POOLS.rec_math_revision;
 // …and with no recommendation received yet, nothing about "your recommendation" (batch 29 Jordan ea27d1f6 t13).
 export const ANALYSIS_REVISION_QUESTIONS = PHRASE_POOLS.analysis_revision;
 
+
+// The message's asks a code-written turn answers (kept) and the rest (dropped):
+// a detection an addressed asking sentence covers, or — before the goodbye — one
+// whose item is held and a question of the message names (round 5 Task 49,
+// request-signal.ts). At the close (and its hold) the final message's own
+// questions are often the candidate thinking aloud (Jordan 15ad9d8e t25: "Did a
+// competitor promote into those markets?"), and an answer comes too late to use:
+// only addressed asks are answered there, as before.
+export function codeWrittenAsks(plan: ModelPlan, detected: DetectedDataRequest[] | null): { sentences: string[]; kept: DetectedDataRequest[]; dropped: DetectedDataRequest[] } {
+  const { ctx, state } = plan;
+  const sentences = addressedAskSentences(ctx.candidateText, ctx.currentPhase, { closing: state.kind === 'close' });
+  const goodbye = state.kind === 'close' || state.kind === 'close_wait';
+  const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit),
+    goodbye ? undefined : { text: ctx.candidateText, isHeld: id => canReveal(state.ledger, id) });
+  return { sentences, kept, dropped };
+}
 
 // A code-written turn as a turn of the interviewer's shape: the message's data
 // requests (answered by Settle's data line) and the scripted line.

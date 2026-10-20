@@ -4,8 +4,8 @@
 // the interviewer model and the background classifiers are mocked (the
 // distress and conduct screens pass, the pressure-test judge returns the
 // saved verdict, the data-request classifier on a code-written turn returns
-// that turn's saved requests). The clock is set to the saved elapsed time
-// before each turn. What would now be delivered is recorded by the real
+// that turn's saved requests and the asks it dropped). The clock is set to
+// the saved elapsed time before each turn. What would now be delivered is recorded by the real
 // TurnRecorder and written as a mirror corpus — a run JSON and a turn file
 // per run — that scripts/fact-check.ts scores like the originals:
 //
@@ -30,7 +30,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
-import { recordedChecks, recordedCheckVerdict, loadCheckOverrides, overrideVerdict, type RecordedCheck } from '@/lib/eval/recorded-checks';
+import { recordedChecks, recordedCheckVerdict, recordedDroppedAsks, loadCheckOverrides, overrideVerdict, type RecordedCheck } from '@/lib/eval/recorded-checks';
 
 type Row = Record<string, unknown>;
 // The replay's clock for the checker: rows land when it reaches them.
@@ -125,7 +125,7 @@ const replayIndex = new Map<number, { saved: number; ms: number }>();
 const FILTER = process.env.REPLAY_FILTER ?? '';
 const enabled = process.env.REPLAY_RUNNER === '1' && !!OUT && existsSync(ROOT);
 
-type RunJson = { session: { caseId: string; startedAt: string; coverageJsonb?: unknown }; turns: { turnIndex: number; role: string; text: string; timestampMs: number }[] };
+type RunJson = { session: { caseId: string; startedAt: string; coverageJsonb?: unknown }; turns: { turnIndex: number; role: string; text: string; timestampMs: number }[]; events?: Row[] };
 
 const FULL_COVERAGE = { structure: 100, quantitative: 100, dataExhibit: 100, judgment: 100, creativity: 100, synthesis: 100, communication: 100, pushback: 100 };
 
@@ -160,7 +160,12 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     const savedModel = r.stateBefore.kind === 'model' || r.stateBefore.kind === 'rec_ask';
     modelTurn = savedModel ? r.parsedTurn : null;
     modelCalled = false;
-    detections = !savedModel && r.parsedTurn ? r.parsedTurn.requests.map(q => ({ what: q.what, ledgerItemIds: q.itemIds, explicit: true })) : [];
+    // A code-written turn's classifier: the asks it answered (its requests) and
+    // those it dropped (round 5 Task 49, lib/eval/recorded-checks.ts).
+    detections = !savedModel && r.parsedTurn ? [
+      ...r.parsedTurn.requests.map(q => ({ what: q.what, ledgerItemIds: q.itemIds, explicit: true })),
+      ...recordedDroppedAsks(r, run.events ?? []),
+    ] : [];
     const pt = r.checks.find(c => c.check === 'pressure_test')?.detail as { verdict?: { answered: boolean; reason: string } | null } | undefined;
     const next = saved[k + 1]?.stateBefore.pressureTest as { state?: string; structureGiven?: boolean } | undefined;
     // The structure check's verdict: what the saved state held after this turn.
