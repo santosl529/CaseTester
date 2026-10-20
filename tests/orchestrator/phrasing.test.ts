@@ -120,3 +120,17 @@ describe('the registry keeps the old choices', () => {
     for (const pool of ALL) for (const v of PHRASE_POOLS[pool]) { expect(seen.get(v), `${pool}: ${v}`).toBeUndefined(); seen.set(v, pool); }
   });
 });
+
+// Lorenzo, 19 Oct (round-2 ruling 3): at a wrap-up or the close, a named
+// deferral is "We won't get to <ask> today." — his words, one variant.
+describe('the wrap-up deferral', () => {
+  const g: GateContext = { allowedTexts: [], verified: [], alreadyProbed: new Set(), flaggedThisTurn: false, openItems: [], phase: 'WRAP' };
+  it('is Lorenzo\'s line alone', () => expect(PHRASE_POOLS.wont_get_to).toEqual(["We won't get to {x} today."]));
+  it('reads as neither the close nor a recommendation ask', () => {
+    const line = fill(PHRASE_POOLS.wont_get_to[0], 'competitor pricing');
+    expect(hasCloseCue(line)).toBe(false);
+    expect(isClosingTurn(line)).toBe(false);
+    expect(asksRecommendationAsk(line)).toBe(false);
+  });
+  it('the model saying it is data talk (code says it)', () => expect(vetoReason("We won't get to competitor pricing today.", g)).toBe('data_talk'));
+});

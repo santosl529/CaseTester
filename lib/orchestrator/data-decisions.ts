@@ -218,6 +218,9 @@ export type DataDecisions = {
   // turnDataChecked) that makes each a named deferral or a refusal (Lorenzo, 19 Oct;
   // engine-asks R1). Nothing is said for them until then.
   unmatchedDefers: string[];
+  // The check's named deferrals on a wrap-up or close turn: "We won't get to <ask>
+  // today." (Lorenzo, 19 Oct, round-2 ruling 3; set by turnDataChecked).
+  wontGetTo?: string[];
   offers: string[];       // what, for passing mentions of data the case holds
   // Rule 6 option 4 (v4.11): code's correction of a misquoted revealed figure,
   // spoken first in the data line (set by turn-data.ts on model turns).
@@ -314,6 +317,8 @@ export function decideData(p: {
       // something): neither refused nor promised here — the small-model check
       // decides (turnDataChecked); the generic "settle your structure" line
       // answered nothing (batch 32 Aldermoor Marcus t5).
+      // An unmapped release is refused here; turnData sends it through the same
+      // check unless a finer-cut scope rule emptied it (round-2 ruling 2, 19 Oct).
       if (r.explicit && r.respond === 'defer') { unmatchedDefers.push(r.what); decidedAt.push({ at, d: { request: r, response: 'defer', ledgerItemIds: [] } }); }
       else if (r.explicit) { refusals.push(r.what); decidedAt.push({ at, d: { request: r, response: 'refuse', ledgerItemIds: [] } }); }
       return;
@@ -467,6 +472,7 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or'), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });
+  if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: phrase('wont_get_to', joinWhat(d.wontGetTo, 'and'), uses, seed) });
   if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and'), uses, seed) });
   if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and'), uses, seed) });
   return parts;

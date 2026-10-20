@@ -43,9 +43,15 @@ vi.mock('@/db/client', async () => {
 });
 vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-// The classifier's verdict for the message, set per test.
+// The classifier's verdict for the message, set per test; and the small-model
+// check's on an item-less ask ("Could I get <ask>?", turn-data.ts; round-2
+// ruling 2, 19 Oct): maps to none unless a test says otherwise.
 let detected: DetectedDataRequest[] | null = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => detected }));
+let checkVerdict: DetectedDataRequest[] | null = [];
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({
+  ...(await orig<object>()),
+  classifyDataRequests: async (p: { candidateText: string }) => ((detected ?? []).some(d => p.candidateText === `Could I get ${d.what}?`) ? checkVerdict : detected),
+}));
 vi.mock('@/lib/agent/models/factory', async () => ({
   createInterviewerModel: () => ({
     runTurn: async () => { throw new Error('code-written turns make no model call'); },
@@ -127,7 +133,7 @@ const KINDS: { kind: string; setup: () => void }[] = [
   { kind: 'time_warning', setup: () => { resetStore('ANALYSIS', { pressureTest: SATISFIED }, 19 * 60_000); store.exhibits = [{ id: 'x1', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: 0 }]; } },
 ];
 
-beforeEach(() => { detected = []; });
+beforeEach(() => { detected = []; checkVerdict = []; });
 
 describe('corpus final messages at the close', () => {
   it('Nikhil (a65c1831 t21) "Could I get: one, …" — every listed item is answered', async () => {
@@ -140,6 +146,20 @@ describe('corpus final messages at the close', () => {
     expect(r.interviewerText).toMatch(/I don't have (regional demographics or competitor price points|competitor price points or regional demographics)\./);
     expect(explicitRows().length).toBe(4);
     expect(check('code_written_requests')?.decision).toBe('pass');
+    expect(r.ended).toBe(true);
+  });
+
+  // Round-2 rulings 2 and 3 (Lorenzo, 19 Oct): the item-less asks go through
+  // the check; one it maps to an item is "We won't get to … today." at the close.
+  it('Nikhil at the close, the check mapping the item-less asks: "We won\'t get to … today."', async () => {
+    atClose();
+    detected = CORPUS.nikhil.detected;
+    checkVerdict = [det('competitor pricing', ['menu_price_change'])];
+    const r = await runTurn('s1', CORPUS.nikhil.text);
+    expect(turnKind()).toBe('close');
+    expect(new Set(revealed())).toEqual(new Set(['menu_price_change', 'avg_ticket']));
+    expect(r.interviewerText).not.toMatch(/I don't have/);
+    expect(r.interviewerText).toMatch(/We won't get to (regional demographics and competitor price points|competitor price points and regional demographics) today\./);
     expect(r.ended).toBe(true);
   });
 

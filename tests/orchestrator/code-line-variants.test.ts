@@ -39,7 +39,10 @@ import { isSilenceLine } from '@/lib/orchestrator/silence';
 import { stripCopiedCheckIn } from '@/lib/orchestrator/audit';
 import { getCaseById } from '@/lib/cases/loader';
 
-const POOLS = Object.keys(PHRASE_POOLS) as PhrasePool[];
+// A pool Lorenzo worded himself as one line (19 Oct, round-2 ruling 3: "We won't
+// get to <ask> today."): no versions, no line said before the brief — its own block below.
+const ONE_LINE: PhrasePool[] = ['wont_get_to'];
+const POOLS = (Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => !ONE_LINE.includes(p));
 const before = BEFORE as Record<string, string[]>;
 const versions = (p: PhrasePool) => PHRASE_POOLS[p] as readonly string[];
 
@@ -199,5 +202,26 @@ describe('the last-3 rule', () => {
         uses = recordPhraseUses(phrase(pool, SLOT[pool] ?? '', uses, `${sid}:${turn}`), uses);
       }
     }
+  });
+});
+
+describe('a one-line pool (wont_get_to)', () => {
+  const said = fill(PHRASE_POOLS.wont_get_to[0], 'the cost breakdown');
+  it('is one line, said every time', () => {
+    expect(PHRASE_POOLS.wont_get_to).toHaveLength(1);
+    expect(phrase('wont_get_to', 'the cost breakdown', { wont_get_to: [0, 0, 0] }, 'a:1')).toBe(said);
+  });
+  it('the evaluators find it, and read its slot back out', () => {
+    expect(poolPattern('wont_get_to').test(said)).toBe(true);
+    expect(slotOf('wont_get_to', said)).toBe('the cost breakdown');
+    expect(recordPhraseUses(said, {}).wont_get_to).toEqual([0]);
+  });
+  it('reads as a deferral (an ask answered), not the close, a refusal or a delivery', () => {
+    expect(DEFER.test(said)).toBe(true);
+    expect(hasCloseCue(said)).toBe(false);
+    expect(isClosingTurn(said)).toBe(false);
+    expect(findFalseRefusals(said, fb)).toEqual([]);
+    expect(isDeliveryClaim(said)).toBe(false);
+    expect(vetoReason(said, gate)).toBe('data_talk');
   });
 });

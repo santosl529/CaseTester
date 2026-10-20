@@ -55,6 +55,16 @@ export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfi
 // basisCut: per ask the BASIS rule emptied, the items it cut (fix-wave 1, below).
 export type TurnData = DataDecisions & { gatedIds: string[]; basisCut?: Record<string, string[]> };
 
+// Wrap-up and close turns (Lorenzo, 19 Oct, round-2 ruling 3): the code-written
+// close, close wait, grace ask and time warning, and any turn of the
+// recommendation or wrap phase once the recommendation is in. A named deferral
+// there is "We won't get to <ask> today." — the case won't come back to it.
+const WRAP_UP_KINDS: ReadonlySet<string> = new Set(['close', 'close_wait', 'grace_ask', 'time_warning']);
+export function wrapUpTurn(plan: ModelPlan): boolean {
+  const { state, ctx } = plan;
+  return WRAP_UP_KINDS.has(state.kind) || ((ctx.currentPhase === 'RECOMMENDATION' || ctx.currentPhase === 'WRAP') && state.recommendationReceived);
+}
+
 // An explicit deferral with no item is checked by a small model before code
 // refuses it (Lorenzo, 19 Oct; engine-asks R1, "yes, with a guard"; batch 32
 // Aldermoor Marcus t5: the generic "settle your structure" line answered
@@ -62,14 +72,19 @@ export type TurnData = DataDecisions & { gatedIds: string[]; basisCut?: Record<s
 // ledger as the catalog: an ask it maps to any item is a named deferral ("I'll
 // come back to <ask>" — nothing is released on its word); one it maps to none
 // is refused; no verdict (failure, timeout) is a named deferral, so no
-// code-spoken refusal goes out unchecked. Item-less releases are refused as
-// before. Stream and Settle share the result through the plan (one call per
-// ask per turn).
+// code-spoken refusal goes out unchecked. Stream and Settle share the result
+// through the plan (one call per ask per turn).
+// Round-2 ruling 2 (Lorenzo, 19 Oct): "R1 covers every code refusal of an
+// unmatched ask, item-less releases included … Cap the Haiku check at ~1.5s; on
+// a timeout or error, use the named deferral, never a refusal." Item-less
+// releases (a code-written turn's detections among them) go through it too;
+// an ask a finer-cut scope rule emptied (it matched an item that can't answer
+// it) is refused unchecked, as before (turnData, refuseNow).
 // For an ask the BASIS rule emptied, `cut` holds the items it cut: the check
 // mapping the ask back only to them is "maps to none" — refused, not "I'll come
 // back to …" a deferral nothing keeps (engine-asks final review, 19 Oct; the
 // classifier maps "basis for the 70% load factor" by topic to the load factor).
-const DEFER_CHECK_TIMEOUT_MS = 3000;
+const DEFER_CHECK_TIMEOUT_MS = 1500;
 async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: string[] = []): Promise<boolean> {
   const cache = plan.state.deferChecks;
   const cached = cache.get(what);
@@ -105,10 +120,12 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
   const defers: string[] = [], refusals: string[] = [];
   d.unmatchedDefers.forEach((w, i) => (held[i] ? defers : refusals).push(w));
   const refused = new Set(refusals);
+  const wrapUp = wrapUpTurn(plan) && defers.length > 0;
   return {
     ...d,
     unmatchedDefers: [],
-    defers: [...d.defers, ...defers],
+    defers: wrapUp ? d.defers : [...d.defers, ...defers],
+    ...(wrapUp ? { wontGetTo: [...(d.wontGetTo ?? []), ...defers] } : {}),
     refusals: [...d.refusals, ...refusals],
     requests: d.requests.map(r => (r.response === 'defer' && r.ledgerItemIds.length === 0 && refused.has(r.request.what) ? { ...r, response: 'refuse' as const } : r)),
   };
@@ -198,6 +215,9 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const scoped: { what: string; ids: string[] }[] = [];
   // Asks the BASIS rule emptied: checked like an item-less deferral before any refusal goes out.
   const basisEmptied = new Set<string>();
+  // Asks the other scope rules emptied — they matched an item that can't answer
+  // the finer cut they ask for: refused without the check (controller, 19 Oct).
+  const refuseNow = new Set<string>();
   const basisCut: Record<string, string[]> = {};
   requests = requests.flatMap(r => {
     // An item the case's own `covers` names for the ask is in its scope (Marisol
@@ -228,9 +248,13 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     if (out.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) finerAsks.add(r.what);
     const kept = { ...r, itemIds: r.itemIds.filter(id => !out.includes(id)) };
     if (out.length > 0) scoped.push({ what: r.what, ids: out });
-    if (r.explicit && out.length > 0 && kept.itemIds.length === 0 && BASIS.test(r.what)) { basisEmptied.add(r.what); basisCut[r.what] = [...new Set([...(basisCut[r.what] ?? []), ...out])]; }
+    if (r.explicit && out.length > 0 && kept.itemIds.length === 0) {
+      if (BASIS.test(r.what)) { basisEmptied.add(r.what); basisCut[r.what] = [...new Set([...(basisCut[r.what] ?? []), ...out])]; }
+      else refuseNow.add(r.what);
+    }
     // A finer ask the case doesn't hold is refused (4b), even beside an exhibit the model handed over for it.
     if (r.explicit && finerAsks.has(r.what) && kept.itemIds.length > 0 && !kept.itemIds.some(id => ledger.items.some(i => i.id === id))) {
+      refuseNow.add(r.what);
       return [kept, { ...r, itemIds: [] }];
     }
     return [out.length === 0 ? r : kept];
@@ -269,6 +293,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
         const value = fb.covers.find(c => c.id === id)?.say;
         if (value && !promptRestates.some(p => p.id === id)) promptRestates.push({ id, value, request: r });
       }
+      // What nothing covers of an ask a scope rule emptied is still that ask's finer cut.
+      if (cov.rest && refuseNow.has(r.what)) refuseNow.add(cov.rest);
       return [
         ...covIds.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label })),
         ...(cov.rest ? [{ ...r, what: cov.rest, itemIds: [] as string[] }] : []),
@@ -350,15 +376,20 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     // slot and the third COGS item was deferred).
     groups: askedGroups,
   });
-  // Lorenzo, 19 Oct (R1, "don't add code-spoken refusals without the check"): an
-  // ask the model mapped to an item and the BASIS rule emptied (Larkspur Marisol
-  // t27) goes through the same check as an item-less deferral (turnDataChecked)
-  // instead of being refused at once: named deferral, or refused when it maps to none
-  // (or only to the items the rule cut — basisCut; controller's proposal, 19 Oct).
-  if (basisEmptied.size > 0) {
-    decisions.unmatchedDefers.push(...decisions.refusals.filter(w => basisEmptied.has(w)));
-    decisions.refusals = decisions.refusals.filter(w => !basisEmptied.has(w));
-    decisions.requests = decisions.requests.map(d => (d.response === 'refuse' && basisEmptied.has(d.request.what) ? { ...d, response: 'defer' as const } : d));
+  // Lorenzo, 19 Oct (R1, "don't add code-spoken refusals without the check";
+  // round-2 ruling 2, every unmatched ask): an item-less ask code would refuse
+  // goes through the same check as an item-less deferral (turnDataChecked)
+  // instead of being refused at once: named deferral, or refused when it maps to
+  // none. That includes an ask the model mapped to an item and the BASIS rule
+  // emptied (Larkspur Marisol t27; mapping back only to the items the rule cut is
+  // "none" — basisCut; controller's proposal, 19 Oct). Asks the finer-cut scope
+  // rules emptied (refuseNow) are refused as before.
+  const toCheck = decisions.refusals.filter(w => !refuseNow.has(w));
+  if (toCheck.length > 0) {
+    const checking = new Set(toCheck);
+    decisions.unmatchedDefers.push(...toCheck);
+    decisions.refusals = decisions.refusals.filter(w => !checking.has(w));
+    decisions.requests = decisions.requests.map(d => (d.response === 'refuse' && checking.has(d.request.what) ? { ...d, response: 'defer' as const } : d));
   }
   // Code's correction of a misquote (plan-turn.ts), on any turn that answers
   // the message — a code-written close or recommendation ask included (batch 20:

@@ -269,7 +269,8 @@ describe('an empty item mapping is not proof the case lacks the data', () => {
     expect(decisionRows(d)).toEqual([{ what: 'the number of stores over the two years', ledgerItemIds: [], response: 'defer', explicit: true }]);
   });
 
-  it('an unmapped explicit release is still refused', () => {
+  // decideData's refusal is provisional: turnData puts it through the small-model check (itemless-defer.test.ts; round-2 ruling 2).
+  it('an unmapped explicit release is refused here', () => {
     const d = decideData(base({ requests: [req({ what: 'total annual revenue by region', itemIds: [] })] }));
     expect(renderDataLines(d, 's')).toEqual(["I don't have total annual revenue by region."]);
   });

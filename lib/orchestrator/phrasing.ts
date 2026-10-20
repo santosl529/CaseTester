@@ -24,6 +24,11 @@ export const PHRASE_POOLS = {
     'Hold that thought on {x} — we\'ll come back to it shortly.',
     'That\'s for a little later — we\'ll come back to {x}.',
   ],
+  // A named deferral on a wrap-up or close turn (turn-data.ts wrapUpTurn): the
+  // case won't get back to it. Lorenzo's words, one variant (19 Oct, round-2 ruling 3).
+  wont_get_to: [
+    'We won\'t get to {x} today.',
+  ],
   // …and what the case doesn't hold.
   refuse: [
     'I don\'t have {x}.',

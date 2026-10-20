@@ -20,6 +20,12 @@ Data asked for that the case holds but not yet: the deferral. {x} = what was ask
 4. Hold that thought on {x} — we'll come back to it shortly.
 5. That's for a little later — we'll come back to {x}.
 
+### wont_get_to
+
+The small-model check's named deferral on a wrap-up or close turn (Lorenzo's line, one version). {x} = what was asked.
+
+1. We won't get to {x} today.
+
 ### refuse
 
 Data the case doesn't hold. {x} = what was asked.

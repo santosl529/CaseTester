@@ -674,6 +674,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     'data decided by code', {
       releases: decisions.releases.map(r => r.id), exhibit: decisions.exhibit?.id ?? null,
       refusals: decisions.refusals, defers: decisions.defers, offers: decisions.offers,
+      ...(decisions.wontGetTo?.length ? { wontGetTo: decisions.wontGetTo } : {}),
     });
 
   // Phase and stages (progress.ts).

@@ -124,7 +124,7 @@ export const DATA_TALK = /\b(i don'?t have|we don'?t have|that'?s not in the inf
 // talk, as the original wording is. The lead-ins and deferrals by their fixed words.
 const CODE_LINE_TALK = new RegExp([
   String.raw`\b(?:we'?ll|i'?ll) (?:get|come back) to\b[^.?!]{0,80}\b(?:shortly|in a bit|a little later|in a moment|later)\b`,
-  poolPattern('defer', 'gate_defer', 'offer', 'unmapped_defer', 'restate', 'earlier').source,
+  poolPattern('defer', 'wont_get_to', 'gate_defer', 'offer', 'unmapped_defer', 'restate', 'earlier').source,
 ].join('|'), 'i');
 
 // A statement in the question that hands something over ("Here's the cost
