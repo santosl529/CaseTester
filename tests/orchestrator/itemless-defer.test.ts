@@ -172,7 +172,7 @@ describe('a code-written turn\'s item-less detection', () => {
     expect(classify).toHaveBeenCalledWith(expect.objectContaining({ candidateText: `Could I get ${WHAT}?` }));
     expect(d.refusals).toEqual([WHAT]);
   });
-  it.each(['close', 'close_wait', 'grace_ask', 'time_warning'] as TurnKind[])('%s: mapped → "We won\'t get to … today."', async kind => {
+  it.each(['close', 'close_wait', 'grace_ask', 'time_warning', 'rec_ask'] as TurnKind[])('%s: mapped → "We won\'t get to … today."', async kind => {
     classify.mockResolvedValueOnce([{ what: WHAT, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
     const p = atKind(kind);
     const d = await turnDataChecked(p, codeWrittenTurn(p, det));
@@ -207,5 +207,38 @@ describe('a model turn in the recommendation or wrap phase', () => {
   it('RECOMMENDATION, before the recommendation: "I\'ll come back to…"', async () => {
     classify.mockResolvedValueOnce(null);
     expect(renderDataLines(await turnDataChecked(at('RECOMMENDATION', false), R), 's')).toEqual([`I'll come back to ${WHAT} shortly.`]);
+  });
+});
+
+// Controller's ruling on Task 13 concern 1 (19 Oct): R1 defers only on a
+// plausible item — the check's mapping goes through the same scope rules as the
+// model's own (outsideAskScope: a split of the item, a cut it doesn't have); an
+// ask it maps only to items they rule out maps to none: refused (batch 28
+// Marisol t7 "a split within the non-bean inputs"; batch 30 Anika t5 "input cost per pound").
+describe('the check\'s mapping is held to the scope rules', () => {
+  const ask = (what: string) => ({ requests: [{ what, itemIds: [], explicit: true, respond: 'release' as const }], exhibit: null, rescueItem: null });
+  it.each([
+    ['a split within the non-bean inputs', 'non_bean_input_change'],
+    ['bean cost per pound', 'bean_price_change'],
+  ])('"%s" mapped only to %s → refused', async (what, id) => {
+    classify.mockResolvedValueOnce([{ what, ledgerItemIds: [id], response: 'none', explicit: true }]);
+    const d = await turnDataChecked(plan(SATISFIED), ask(what));
+    expect(d.refusals).toEqual([what]);
+    expect(d.defers).toEqual([]);
+    expect(d.requests.map(r => r.response)).toEqual(['refuse']);
+  });
+  it('an in-scope mapping → a named deferral', async () => {
+    classify.mockResolvedValueOnce([{ what: WHAT, ledgerItemIds: ['bean_price_change'], response: 'none', explicit: true }]);
+    const d = await turnDataChecked(plan(SATISFIED), ask(WHAT));
+    expect(d.defers).toEqual([WHAT]);
+    expect(d.refusals).toEqual([]);
+  });
+  it('one in-scope item among out-of-scope ones → a named deferral', async () => {
+    classify.mockResolvedValueOnce([{ what: 'a split within the non-bean inputs', ledgerItemIds: ['non_bean_input_change', 'cogs_pct'], response: 'none', explicit: true }]);
+    expect((await turnDataChecked(plan(SATISFIED), ask('a split within the non-bean inputs'))).defers).toEqual(['a split within the non-bean inputs']);
+  });
+  it('null → a named deferral', async () => {
+    classify.mockResolvedValueOnce(null);
+    expect((await turnDataChecked(plan(SATISFIED), ask('bean cost per pound'))).defers).toEqual(['bean cost per pound']);
   });
 });

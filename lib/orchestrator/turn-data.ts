@@ -59,7 +59,8 @@ export type TurnData = DataDecisions & { gatedIds: string[]; basisCut?: Record<s
 // close, close wait, grace ask and time warning, and any turn of the
 // recommendation or wrap phase once the recommendation is in. A named deferral
 // there is "We won't get to <ask> today." — the case won't come back to it.
-const WRAP_UP_KINDS: ReadonlySet<string> = new Set(['close', 'close_wait', 'grace_ask', 'time_warning']);
+// Code's recommendation ask too (controller, 19 Oct; batch 32 Larkspur Marcus t28).
+const WRAP_UP_KINDS: ReadonlySet<string> = new Set(['close', 'close_wait', 'grace_ask', 'time_warning', 'rec_ask']);
 export function wrapUpTurn(plan: ModelPlan): boolean {
   const { state, ctx } = plan;
   return WRAP_UP_KINDS.has(state.kind) || ((ctx.currentPhase === 'RECOMMENDATION' || ctx.currentPhase === 'WRAP') && state.recommendationReceived);
@@ -84,7 +85,20 @@ export function wrapUpTurn(plan: ModelPlan): boolean {
 // mapping the ask back only to them is "maps to none" — refused, not "I'll come
 // back to …" a deferral nothing keeps (engine-asks final review, 19 Oct; the
 // classifier maps "basis for the 70% load factor" by topic to the load factor).
+// Any other ask: the check's mapping goes through the scope rules the model's own
+// mapping does (outsideAskScope: a split of the item, a cut it doesn't have;
+// the case's covers keep an item in scope) — an ask mapped only to items they
+// rule out maps to none, refused: R1 defers only on a plausible item
+// (controller's ruling on Task 13, 19 Oct; batch 28 Marisol t7 "a split within
+// the non-bean inputs", batch 30 Anika t5 "input cost per pound").
 const DEFER_CHECK_TIMEOUT_MS = 1500;
+function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
+  const { ledger, factBase } = plan.state;
+  const item = ledger.items.find(i => i.id === id);
+  if (!item) return true;   // not a ledger id: counted as before
+  if (coverageOf(what, factBase).items.includes(id)) return true;
+  return !outsideAskScope(what, item, factBase.quantities.find(q => q.id === id)?.names ?? []);
+}
 async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: string[] = []): Promise<boolean> {
   const cache = plan.state.deferChecks;
   const cached = cache.get(what);
@@ -103,9 +117,11 @@ async function itemlessDeferHeld(plan: ModelPlan, what: string, onUsage?: OnUsag
       }).catch(() => null),
       timeout,
     ]).finally(() => clearTimeout(timer));
-    const mapped = found === null ? null : found.some(f => f.ledgerItemIds.some(id => !cut.includes(id)));
+    const plausible = (id: string) => (cut.length > 0 ? !cut.includes(id) : answersAsk(plan, what, id));
+    const mapped = found === null ? null : found.some(f => f.ledgerItemIds.some(plausible));
+    const outOfScope = cut.length > 0 || found === null ? [] : [...new Set(found.flatMap(f => f.ledgerItemIds).filter(id => !plausible(id)))];
     plan.ctx.checks.record('itemless_defer', mapped !== false, mapped === null ? 'no verdict: a named deferral' : mapped ? 'mapped to a ledger item: a named deferral' : 'maps to no item: refused',
-      { what, mapped, found: found === null ? null : found.map(f => ({ what: f.what, ids: f.ledgerItemIds })), ...(cut.length > 0 ? { basisCut: cut } : {}), latencyMs: Date.now() - t0 });
+      { what, mapped, found: found === null ? null : found.map(f => ({ what: f.what, ids: f.ledgerItemIds })), ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}), latencyMs: Date.now() - t0 });
     return mapped !== false;
   })();
   cache.set(what, run);
