@@ -388,7 +388,7 @@ Per item:
 - "missing" (with "partial" only): the asked part it lacks, in the ask's own words, no numbers; it names something the line does not state.
 A selling-price or revenue item (what customers pay) never answers a cost ask, and vice versa.
 
-Examples (other cases):
+Examples:
 - Aldermoor, "whether any US player has an existing Corlan's franchise": option_b (a US partner) is closer than company_size.
 - Quillpath, "the Starter cohort beyond the cohort table's last month": cohort_notes, not the table (starter_cohort).
 - Quillpath, "churn for upgraded customers measured from their upgrade date": cohort_notes ("upgraded customers then behave like Pro customers"), not upgrade_timing.
@@ -405,11 +405,27 @@ Reply with ONLY this JSON (empty list if no item holds it):
 const FUNCTION_WORDS = new Set(`the and for any are was were has have had its it's their there this that these those with from into onto about over under
 than then what which who whom whose when where whether how why our your his her they them not but nor yet also just very
 data versus across`.split(/\s+/));
-const missingStem = (w: string) => { const s = w.replace(/(?:ies|es|s|'s)$/, ''); return s.length >= 3 ? s : w; };
-// Content tokens: words of 3+ letters and figure tokens ("fy2025", "6"), function words aside.
+// One stem for a word and its plural, the same on both sides of a match (final review
+// I2: "fares" was "far" and "fare" "fare"): 's, then the plural (-ies → -y; -es after
+// ch/sh/x/z/ss; else -s, not after s, u or i: "class", "bus", "analysis"), then a
+// trailing e — each step only while 3 letters are left ("fees" → "fee", "fee" → "fee").
+const missingStem = (w: string) => {
+  const step = (s: string, next: string) => (next.length >= 3 ? next : s);
+  let s = w.replace(/['’]s$/, '');
+  if (/ies$/.test(s)) s = step(s, `${s.slice(0, -3)}y`);
+  else if (/(?:ch|sh|x|z|ss)es$/.test(s)) s = step(s, s.slice(0, -2));
+  else if (/[^sui]s$/.test(s)) s = step(s, s.slice(0, -1));
+  if (/e$/.test(s)) s = step(s, s.slice(0, -1));
+  return s;
+};
+// A content word: 3+ letters, or a 2-letter capitalised token — a place or bloc
+// ("US", "EU", "UK"; final review I2: "US sales" passed as "sales"). Read before
+// lower-casing, so the pronoun "us" stays a function word.
+const isContent = (w: string) => (w.length >= 3 || /^[A-Z]{2}$/.test(w)) && !FUNCTION_WORDS.has(w.toLowerCase());
+// Content tokens: content words and figure tokens ("fy2025", "6"), function words aside.
 // A hyphenated word is one token ("week-by-week" is not "eight-week").
-const contentTokens = (t: string) => (t.toLowerCase().replace(/[’']s\b/g, '').match(/[a-z0-9]+(?:-[a-z0-9]+)*/g) ?? [])
-  .filter(w => (w.length >= 3 || /\d/.test(w)) && !FUNCTION_WORDS.has(w)).map(w => (/\d/.test(w) ? w : missingStem(w)));
+const contentTokens = (t: string) => (t.replace(/[’']s\b/g, '').match(/[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*/g) ?? [])
+  .filter(w => /\d/.test(w) || isContent(w)).map(w => (/\d/.test(w) ? w.toLowerCase() : missingStem(w.toLowerCase())));
 
 // A `missing` phrase is said aloud ("I don't have <missing>."), so it is checked
 // (Task 56 fix rounds 2 and 3, the controller's rulings; r5b-haiku-pre #27 "volume
@@ -427,8 +443,8 @@ const contentTokens = (t: string) => (t.toLowerCase().replace(/[’']s\b/g, '').
 const START_BREAK = /(?:^|,|;|\band|\bor|\bplus|\bincluding|\bas well as|&)\s*$/i;
 const END_BREAK = /^\s*(?:$|,|;|and\b|or\b|plus\b|including\b|as well as\b|&)/i;
 const BAD_START = /^(?:versus|vs\.?|per|by|for|of|in|on|at|to|from|with|and|or|including|plus|than|over|across|between|since|within)\b/i;
-const contentStems = (t: string) => (t.toLowerCase().replace(/[’']s\b/g, '').match(/[a-z]+/g) ?? [])
-  .filter(w => w.length >= 3 && !FUNCTION_WORDS.has(w)).map(missingStem);
+const contentStems = (t: string) => (t.replace(/[’']s\b/g, '').match(/[A-Za-z]+/g) ?? [])
+  .filter(isContent).map(w => missingStem(w.toLowerCase()));
 export function missingPart(missing: string, what: string): string | null {
   const m = missing.replace(/\s+/g, ' ').trim();
   const ask = what.replace(/\s+/g, ' ').trim();

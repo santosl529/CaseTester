@@ -3,7 +3,7 @@ import {
   parseDataRequestResponse, buildDataRequestPrompt, toDataRequestEvents,
   formatOpenRequestsHint, planForcedReleases,
   classifiedMarkerEvent, findUnclassifiedExchanges,
-  buildAskCheckPrompt, parseAskCheckResponse, askCheckCatalog, maskFigures, askCheckPrefill, withAskPrefill, statedIn, dropStatedFigures,
+  buildAskCheckPrompt, parseAskCheckResponse, askCheckCatalog, maskFigures, askCheckPrefill, withAskPrefill, statedIn, dropStatedFigures, missingPart,
   type LedgerCatalogItem, type AskCheckItem,
 } from '@/lib/orchestrator/data-requests';
 
@@ -423,5 +423,42 @@ describe('the ask check prompt: round 2 rules', () => {
   it('a selling-price or revenue item (what customers pay) never answers a cost ask, and vice versa', () => {
     expect(prompt).toMatch(/A selling-price or revenue item \(what customers pay\) never answers a cost ask, and vice versa/);
     expect(prompt).not.toMatch(/A price or revenue item/);
+  });
+});
+
+// Final review I2 (f0fbaf8..5f73bc8): both sides of the match are normalised alike — 's,
+// then s/es, then a trailing e ("fares" and "fare" both "far"; price/prices, rate/rates,
+// store/stores, share/shares) — and a 2-letter capitalised token (US, EU, UK) is a
+// content word: before, "US sales" passed as the ask's words and was spoken.
+describe('final review I2: the stems match plurals of -e words, and US/EU/UK are content words', () => {
+  it('statedIn: "the fares" is stated by a line about the fare', () => {
+    expect(statedIn('the fares', 'The average one-way fare … $180 in FY2025.')).toBe(true);
+    expect(statedIn('the fare', 'The average one-way fares … $180 in FY2025.')).toBe(true);
+  });
+  it.each([['prices', 'price'], ['rates', 'rate'], ['stores', 'store'], ['shares', 'share'], ['price', 'prices'], ['fees', 'fee'], ['classes', 'class'], ['cities', 'city'], ['niches', 'niche'], ['caches', 'cache']])('statedIn("%s") in a line with "%s"', (phrase, word) => {
+    expect(statedIn(phrase, `The ${word} is listed.`)).toBe(true);
+  });
+  it('missingPart: an -e plural is the ask\'s word ("menu prices" for "the menu price trend")', () => {
+    expect(missingPart('menu prices', 'the menu price trend and store count')).toBe('menu prices');
+  });
+  it('missingPart("US sales") for "Kelvexa\'s European sales since launch" → null (US is not the ask\'s)', () => {
+    expect(missingPart('US sales', "Kelvexa's European sales since launch")).toBeNull();
+  });
+  it('statedIn("US sales", "European sales were up.") → false; with US in the line → true', () => {
+    expect(statedIn('US sales', 'European sales were up.')).toBe(false);
+    expect(statedIn('US sales', 'US sales were up.')).toBe(true);
+  });
+  it('the pronoun "us" is still no content word', () => {
+    expect(statedIn('sales for us', 'European sales were up.')).toBe(true);
+  });
+});
+
+// Final review M7: the examples are prof-001's, pricing-001's and entry-001's own asks,
+// so the prompt makes no claim about where they come from.
+describe('final review M7: the examples carry no claim about their source', () => {
+  it.each(['prof-001', 'pricing-001', 'entry-001', 'launch-001'])('%s: "Examples:", never "other cases" or "other interviews"', id => {
+    const prompt = buildAskCheckPrompt('x', askCheckCatalog(getCaseById(id).dataLedger));
+    expect(prompt).toMatch(/^Examples:$/m);
+    expect(prompt).not.toMatch(/other cases|other interviews/i);
   });
 });
