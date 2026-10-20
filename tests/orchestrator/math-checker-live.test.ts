@@ -1044,14 +1044,20 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       expect(p.decisions.find(d => d.id === '17:0')).toMatchObject({ outcome: 'derived' });
       expect(p.waiting).toEqual([]);
     });
+    // The root goes to the report with no line said: the claim built on it gets its own correction once (R7 reversed,
+    // Lorenzo, 20 Oct, round-5b job 1) — its own key, in the turn the root closed; with none of its own, the report.
     it('…and the step cap still counts on the root\'s step', () => {
-      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], {
-        rows: [verdictRow(7, [{ ...net, correctionLine: null, correctionFigure: null, span: 'net realized is $2,000 per patient per year' }]), verdictRow(17, [sales('40,000 × $2,000 = $80 million', '$80 million')])],
+      const at = (claim: VettedClaim) => run([claim], {
+        rows: [verdictRow(7, [{ ...net, correctionLine: null, correctionFigure: null, span: 'net realized is $2,000 per patient per year' }]), verdictRow(17, [claim])],
         handled: ['7:0'], keys: { 'net_price@2000': { figures: [2000], since: 7 } }, attempts: { 'net_price@2000': 1 }, stepProbes: { net_price: 2 },
       });
-      expect(p.selected).toBeNull();
+      const p = at(sales('40,000 × $2,000 = $80 million', '$80 million'));
+      expect(p.selected).toMatchObject({ id: '17:0', key: 'peak_net_sales@80', action: 'correct', line: 'Peak annual US net sales of Kelvexa is about $320 million, not $80 million.' });
       expect(p.decisions).toEqual(expect.arrayContaining([expect.objectContaining({ id: '7:0', outcome: 'unresolved', reason: expect.stringMatching(/two probes on this step/) }),
-        expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: expect.stringMatching(/built on a closed input/) })]));
+        expect.objectContaining({ id: '17:0', outcome: 'correct', root: 'net_price@2000', reason: expect.stringMatching(/^built on a closed input \(net_price@2000\) — its own correction, once/) })]));
+      const q = at(sales('40,000 × $2,000 = $80 million', '$80 million', { correctionLine: null, correctionFigure: null }));
+      expect(q.selected).toBeNull();
+      expect(q.decisions).toEqual(expect.arrayContaining([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: 'built on a closed input (net_price@2000)' })]));
     });
     it('the flag is the key: "with peak at $80 million" (t19) restates a key another claim built on $2,000 — derived too', () => {
       const p = run([sales('with peak at $80 million there\'s no headroom at all', '$80M peak')], {
@@ -1074,10 +1080,14 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       expect(p.decisions.find(d => d.id === '17:2')).toMatchObject({ outcome: 'derived', reason: expect.stringMatching(/^built on net_price@2000/) });
       expect(p.selected?.id).toBe('17:0');
     });
-    it('net_price@2000 closed: the same claim is unresolved — built on a closed input', () => {
-      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { keys: { 'net_price@2000': { figures: [2000], since: 7 } }, closed: ['net_price@2000'] });
-      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: expect.stringMatching(/built on a closed input/) })]);
-      expect(p.selected).toBeNull();
+    it('net_price@2000 closed with no line said: the claim\'s own correction once (R7 reversed); with none of its own, unresolved — built on a closed input', () => {
+      const closedNet = { keys: { 'net_price@2000': { figures: [2000], since: 7 } }, closed: ['net_price@2000'] };
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], closedNet);
+      expect(p.selected).toMatchObject({ id: '17:0', key: 'peak_net_sales@80', action: 'correct', line: 'Peak annual US net sales of Kelvexa is about $320 million, not $80 million.' });
+      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'correct', root: 'net_price@2000' })]);
+      const q = run([sales('40,000 × $2,000 = $80 million', '$80 million', { correctionLine: null, correctionFigure: null })], closedNet);
+      expect(q.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: expect.stringMatching(/built on a closed input/) })]);
+      expect(q.selected).toBeNull();
     });
     it('the right input, a wrong product ("40,000 × $8,000 = $300 million"): selected on its own key', () => {
       const p = run([sales('40,000 × $8,000 = $300 million', '$300 million')], { keys: { 'net_price@2000': { figures: [2000], since: 7 } }, attempts: { 'net_price@2000': 1 } });
@@ -1145,17 +1155,23 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', root: 'net_price@2000', reason: expect.stringMatching(/^built on a corrected input \(net_price@2000\) — restated once/) })]);
       expect(p.handledNow).toContain('17:0');
     });
-    it('a root closed with no live correction (attempts ran out): built on a closed input, no line (unchanged)', () => {
-      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected: { 'peak_patients@200000': { line: 'Patients on Kelvexa at peak is about 40,000, not 200,000.', figure: '40000' } } });
-      expect(p.selected).toBeNull();
-      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: expect.stringMatching(/^built on a closed input/) })]);
+    // R7 reversed (Lorenzo, 20 Oct, round-5b job 1): no restatement — the claim's own correction once; none of its own → the report.
+    it('a root closed with no live correction (attempts ran out): no restatement — its own correction once; with none, built on a closed input, no line', () => {
+      const other = { corrected: { 'peak_patients@200000': { line: 'Patients on Kelvexa at peak is about 40,000, not 200,000.', figure: '40000' } } };
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, ...other });
+      expect(p.selected).toMatchObject({ id: '17:0', key: 'peak_net_sales@80', action: 'correct', line: 'Peak annual US net sales of Kelvexa is about $320 million, not $80 million.' });
+      const q = run([sales('40,000 × $2,000 = $80 million', '$80 million', { correctionLine: null, correctionFigure: null })], { ...closedNet, ...other });
+      expect(q.selected).toBeNull();
+      expect(q.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: expect.stringMatching(/^built on a closed input/) })]);
     });
     // Task 18 review: an old or malformed record with no line restates nothing.
-    it('a record with an empty or missing line: no restatement, built on a closed input', () => {
+    it('a record with an empty or missing line: no restatement — read as no line said (its own correction once; none → built on a closed input)', () => {
       for (const fix of [{ line: '', figure: '8000' }, { figure: '8000' }]) {
         const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected: { 'net_price@2000': fix as { line: string } } });
-        expect(p.selected).toBeNull();
-        expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: 'built on a closed input (net_price@2000)' })]);
+        expect(p.selected).toMatchObject({ id: '17:0', key: 'peak_net_sales@80', action: 'correct', line: 'Peak annual US net sales of Kelvexa is about $320 million, not $80 million.' });
+        const q = run([sales('40,000 × $2,000 = $80 million', '$80 million', { correctionLine: null, correctionFigure: null })], { ...closedNet, corrected: { 'net_price@2000': fix as { line: string } } });
+        expect(q.selected).toBeNull();
+        expect(q.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: 'built on a closed input (net_price@2000)' })]);
       }
     });
     it('two claims on the one corrected root in a message: one restatement, the other rides on it', () => {

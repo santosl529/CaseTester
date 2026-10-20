@@ -746,7 +746,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const decisions: CheckerDecision[] = [];
   const flaggedFigures: number[] = [];
   const droppedStamps: CheckerPlan['droppedStamps'] = [];
-  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean; carried?: boolean; restate?: { line: string; figure?: string; own: string } }[] = [];
+  // once: a claim built on a root left for the report, eligible for its own correction once (R7 reversed, onClosedRoot).
+  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean; carried?: boolean; restate?: { line: string; figure?: string; own: string }; once?: { root: string; sel: CheckerSelection } }[] = [];
   const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
   // …and the prompt's changes ("18 points" from 24% to 6%): a figure the claim cites, never its own (a late probe's quote).
   const caseFigures = [...caseNumbers, ...numbersOf(changeFigures([p.caseData.prompt]).join(' '))];
@@ -1059,6 +1060,25 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // A line said twice already is not said again, whichever selection carries it — a correction, a restatement (the
   // controller's ruling on Task 19's concern 1): report-only, its key closed.
   const saidTwice = (line: string) => (p.said?.[lineKey(line)] ?? 0) >= 2;
+  // R7 reversed (Lorenzo, 20 Oct, round-5b job 1; b33 Marisol 31e33506 11:0, "about 4.2 points of revenue, not 5.8"): a
+  // claim built on a root that went to the report with no code line said gets its own vetted correction, once — through
+  // own-quantity framing (correctionOf: framedCorrection, or the row fix of a misread input), the checker's flag as
+  // always; no probe, pointer or hint. No true line on their reading → the report, as before; its line said already
+  // (on an earlier turn, for it or another claim) → the report: a derived claim's correction is said at most once.
+  const ownOnce = (e: typeof all[number]): CheckerSelection | null => correctionOf(e.id, e.n, e.c, e.key, (p.attempts[e.key] ?? 0) + 1);
+  const saidOnce = (s: CheckerSelection) => (p.said?.[lineKey(s.line)] ?? 0) >= 1;
+  // …else the report: "built on a closed input" (no true line), or its own line already said.
+  const builtToReport = (e: typeof all[number], root: string, said?: CheckerSelection) => {
+    decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', !said ? `built on a closed input (${root})`
+      : `built on a closed input (${root}) — its own correction was said once already; left for the report`, said?.line, e.key), root });
+    handled.add(e.id);
+  };
+  // …in the queue: the claim with its correction, ready for the selection.
+  const onceEntry = (e: typeof all[number], root: string) => {
+    const sel = ownOnce(e);
+    if (!sel || saidOnce(sel)) { builtToReport(e, root, sel ?? undefined); return null; }
+    return { ...e, once: { root, sel } };
+  };
   const onClosedRoot = (e: typeof all[number], root: string) => {
     // An old or malformed record with no line restates nothing: a closed input (Task 18 review).
     const fix = p.corrected?.[root]?.line?.trim() ? p.corrected[root] : undefined;
@@ -1073,9 +1093,13 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       else eligible.push({ ...e, key: root, restate: { line: fix.line, ...(fix.figure ? { figure: fix.figure } : {}), own: e.key } });
       return;
     }
-    decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', !fix ? `built on a closed input (${root})`
-      : restated.has(root) ? `built on a corrected input (${root}) — restated once already; left for the report`
-        : `built on a corrected input (${root}) — its correction was already said twice; left for the report`, undefined, e.key), root });
+    if (!fix) {
+      const once = onceEntry(e, root);
+      if (once) eligible.push(once);
+      return;
+    }
+    decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', restated.has(root) ? `built on a corrected input (${root}) — restated once already; left for the report`
+      : `built on a corrected input (${root}) — its correction was already said twice; left for the report`, undefined, e.key), root });
     handled.add(e.id);
   };
   for (const e of all) {
@@ -1120,10 +1144,22 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // before a second correction of the same 38, "~40 points", whose line was the root's word for word). Below a
   // conclusion-changing flag when it is minor — the controller's middle ordering (review, 19 Oct): held, final, rank,
   // rating, then the restatement, then age.
-  eligible.sort((a, b) => Number(b.id === p.held) - Number(a.id === p.held) || final(b) - final(a) || rank(b) - rank(a) || Number(changes(b)) - Number(changes(a))
-    || Number(Boolean(b.restate)) - Number(Boolean(a.restate)) || a.n - b.n);
+  const order = (a: typeof eligible[number], b: typeof eligible[number]) => Number(b.id === p.held) - Number(a.id === p.held) || final(b) - final(a) || rank(b) - rank(a) || Number(changes(b)) - Number(changes(a))
+    || Number(Boolean(b.restate)) - Number(Boolean(a.restate)) || a.n - b.n;
+  eligible.sort(order);
   let selected: CheckerSelection | null = null;
+  // A derived claim's own correction selected (R7 reversed): the root it was built on, for its decision.
+  let onceRoot: string | null = null;
   const waiting = [...eligible];
+  // A key that goes to the report this turn, with no line said: the claims built on it take its place in the queue, each
+  // for its own correction once (R7 reversed, onceEntry) — they were raised through it, with its rating. None → the report.
+  const toReport = (...ks: string[]) => {
+    closedNow.push(...ks);
+    const freed = built.filter(b => ks.includes(b.root));
+    for (const b of freed) built.splice(built.indexOf(b), 1);
+    const next = freed.flatMap(({ e, root }) => { const once = onceEntry(e, root); return once ? [once] : []; }).sort(order);
+    waiting.unshift(...next);
+  };
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
     const entry = waiting.shift()!;
     const { id, n, c, key, codeProbed } = entry;
@@ -1136,6 +1172,14 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       continue;
     }
     if (closedNow.includes(key)) { decisions.push(decision(id, n, c, 'unresolved', 'its flag closed this turn', undefined, key)); handled.add(id); continue; }
+    // Its own correction once (R7 reversed): no Rule-14 probe; a minor one is shed under time pressure, as a flag is.
+    if (entry.once) {
+      const { root, sel } = entry.once;
+      if (p.underTimePressure && !isFinal(entry) && !changes(entry)) { decisions.push({ ...decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key), root }); handled.add(id); continue; }
+      selected = sel;
+      onceRoot = root;
+      continue;
+    }
     // Every probe of the error counts — code's, the checker's and the model's
     // own — since it was first stated (the stored counter, or the interviewer
     // turns that asked about its figures, whichever is more).
@@ -1153,19 +1197,24 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       if (!saidTwice(s.line)) return false;
       decisions.push(decision(id, n, c, 'unresolved', 'its correction was already said twice — left for the report', s.line, key));
       handled.add(id);
-      closedNow.push(key);
+      toReport(key);
       return true;
     };
     // E7: two probes on the claim's input already — the next line on it is the input's correction, else the report.
     const im = inputKeyOf(entry);
-    if (im && closedNow.includes(im)) { decisions.push({ ...decision(id, n, c, 'unresolved', `built on a closed input (${im})`, undefined, key), root: im }); handled.add(id); continue; }
+    // …on an input closed this turn with no line said: its own correction once (R7 reversed), else the report.
+    if (im && closedNow.includes(im)) {
+      const once = onceEntry(entry, im);
+      if (once) { selected = once.once.sel; onceRoot = im; }
+      continue;
+    }
     if (im && inputTurns(im).size >= INPUT_PROBE_CAP) {
       const fixed = inputCorrection(entry, attempt);
       if (fixed && spentLine(fixed)) continue;
       if (fixed) { selected = fixed; continue; }
       decisions.push(decision(id, n, c, 'unresolved', `two probes on its input (${im}) already, and no true correction code can write — left for the report`, undefined, key));
       handled.add(id);
-      closedNow.push(key, im);
+      toReport(key, im);
       continue;
     }
     if ((p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
@@ -1174,7 +1223,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       if (corrected) { selected = corrected; continue; }
       decisions.push(decision(id, n, c, 'unresolved', `two probes on this step already (${stepOfKey(key)}) — left for the report`, undefined, key));
       handled.add(id);
-      closedNow.push(key);
+      toReport(key);
       continue;
     }
     // Said on the turn after this message: quoted unless right after the claim (ruling 4, quoteLateProbe).
@@ -1191,13 +1240,13 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     // Past Rule 14 with nothing code can say: the report has it, and the case moves on.
     decisions.push(decision(id, n, c, 'unresolved', `attempt ${attempt}: no correction code can write${c.pointerLine || c.hintLine ? ', second probe already used' : ', no pointer'} — left for the report`, undefined, key));
     handled.add(id);
-    closedNow.push(key);
+    toReport(key);
   }
   const restating = selected?.action === 'restate';
-  if (selected && !restating) decisions.push(decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
-    `attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}${eligible.find(e => e.id === selected!.id && e.key === selected!.key)?.carried ? `; carried into ${riding(selected).map(d => d.id).join(', ')}` : ''}`, selected.line, selected.key));
-  // The claims built on a root said now ride on its line (booked only if the line is used — plan-turn);
-  // on a root closed this turn they go to the report with it; the rest wait.
+  if (selected && !restating) decisions.push({ ...decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
+    `${onceRoot ? `built on a closed input (${onceRoot}) — its own correction, once; ` : ''}attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}${eligible.find(e => e.id === selected!.id && e.key === selected!.key)?.carried ? `; carried into ${riding(selected).map(d => d.id).join(', ')}` : ''}`, selected.line, selected.key), ...(onceRoot ? { root: onceRoot } : {}) });
+  // The claims built on a root said now ride on its line (booked only if the line is used — plan-turn); the rest
+  // wait. (Those on a root closed this turn left the queue with it: toReport.)
   const riders: NonNullable<CheckerSelection['riders']> = [];
   // E7: a probe on a claim of an input is booked to the input (flags.inputProbes, plan-turn).
   if (selected && !correctsNow(selected)) { const im = inputKeyOf(selected); if (im) selected = { ...selected, input: im }; }
@@ -1205,24 +1254,19 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (selected?.key === root || (selected?.inputs ?? []).includes(root)) {
       decisions.push({ ...decision(e.id, e.n, e.c, 'derived', restating ? `built on ${root}'s figure — rides on its restated correction` : `built on ${root}'s figure — the probe follows the input`, undefined, e.key), root });
       riders.push({ id: e.id, candidateTurnIndex: e.n, claim: e.c });
-    } else if (closedNow.includes(root)) {
-      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `built on a closed input (${root})`, undefined, e.key), root });
-      handled.add(e.id);
     } else waiting.push(e);
   }
-  // E7: the claims waiting on an input the row fix corrects ride on it; on an input closed this turn they go to the report.
+  // E7: the claims waiting on an input the row fix corrects ride on it. On an input closed this turn with no line said,
+  // one with a correction of its own waits for it — a later turn's, once (R7 reversed, onClosedRoot); the rest go to
+  // the report with the input, as before.
   for (const w of [...waiting]) {
     const im = inputKeyOf(w);
-    if (!im || w.restate || w.carried || w.id === selected?.id) continue;
+    if (!im || w.restate || w.carried || w.once || w.id === selected?.id) continue;
     if ((selected?.inputs ?? []).includes(im)) {
       waiting.splice(waiting.indexOf(w), 1);
       decisions.push({ ...decision(w.id, w.n, w.c, 'derived', `on ${im}, corrected now — rides on the row fix`, undefined, w.key), root: im });
       riders.push({ id: w.id, candidateTurnIndex: w.n, claim: w.c });
-    } else if (closedNow.includes(im)) {
-      waiting.splice(waiting.indexOf(w), 1);
-      decisions.push({ ...decision(w.id, w.n, w.c, 'unresolved', `built on a closed input (${im})`, undefined, w.key), root: im });
-      handled.add(w.id);
-    }
+    } else if (closedNow.includes(im) && !onceEntry(w, im)) waiting.splice(waiting.indexOf(w), 1);
   }
   if (selected && riders.length > 0) selected = { ...selected, riders };
   if (selected) { const s = selected; selected = { ...s, rating: ratingOf({ n: s.candidateTurnIndex, c: s.claim, key: s.key }) }; }
@@ -1237,7 +1281,9 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (covers.length > 0) selected = { ...r, covers: covers.map(w => ({ id: w.id, candidateTurnIndex: w.n, key: w.key, claim: w.c, line: w.c.correctionLine! })) };
   }
   const pending = waiting.filter(w => !w.carried);
-  const rootOfWaiting = (w: typeof waiting[number]) => (w.restate ? w.key : built.find(b => b.e.id === w.id)?.root);
+  // …and one waiting on an input closed this turn for its own correction once (R7 reversed): that input.
+  const closedInput = (w: typeof waiting[number]) => { const im = inputKeyOf(w); return im !== null && closedNow.includes(im) ? im : undefined; };
+  const rootOfWaiting = (w: typeof waiting[number]) => (w.restate ? w.key : w.once?.root ?? built.find(b => b.e.id === w.id)?.root ?? closedInput(w));
   return {
     selected, waiting: pending.map(w => { const root = rootOfWaiting(w); return { id: w.id, candidateTurnIndex: w.n, claim: w.c, ...(root ? { root } : {}) }; }), decisions, flaggedFigures: [...new Set(flaggedFigures)], droppedStamps,
     handledNow: [...handled].filter(id => !p.handled.includes(id)), keys, closedNow,

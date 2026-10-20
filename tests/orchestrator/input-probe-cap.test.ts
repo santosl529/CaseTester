@@ -133,7 +133,13 @@ describe('Quillpath Marisol 087451cb at t11: the third probe on her input is its
     expect(p.selected === null || !probesInput(p.selected.line)).toBe(true);
     expect(p.decisions.find(d => d.id === '7:0')).toMatchObject({ outcome: 'unresolved', reason: expect.stringMatching(/two probes on its input \(input:21\.5%\) already.*left for the report/) });
     expect(p.closedNow).toEqual(expect.arrayContaining(['checker:21.5%', 'input:21.5%', 'input:40%']));
-    for (const id of ['7:1', '7:3', '9:0', '9:1']) expect(p.decisions.find(d => d.id === id)).toMatchObject({ outcome: 'unresolved' });
+    for (const id of ['7:1', '9:0', '9:1']) expect(p.decisions.find(d => d.id === id)).toMatchObject({ outcome: 'unresolved' });
+    // R7 reversed (Lorenzo, 20 Oct, round-5b job 1): a claim built on an input left for the report with no line said gets
+    // its own vetted correction once — "Pro at 1 / 0.40 = 2.5 years gives 2.5 × 12 × $80 = $2,400" is Pro's LTV, code's quantity.
+    expect(p.selected).toMatchObject({ id: '7:3', action: 'correct', line: 'Pro lifetime value is about $4,000, not $2,400.' });
+    expect(p.decisions.find(d => d.id === '7:3')).toMatchObject({ outcome: 'correct', root: 'input:40%', reason: expect.stringMatching(/^built on a closed input \(input:40%\) — its own correction, once/) });
+    // "Pro at 2.0x is the one in trouble." has one of its own too: it waits for a later turn, on its input.
+    expect(p.waiting).toEqual([expect.objectContaining({ id: '9:2', root: 'input:40%' })]);
   });
 });
 
