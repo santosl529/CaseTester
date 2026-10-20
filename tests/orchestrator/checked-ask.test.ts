@@ -178,6 +178,28 @@ describe('(d) the check maps the ask to an item not yet out', () => {
   });
 });
 
+// Final review (20 Oct), Review Focus 1 on the items path (Task 45): a check-mapped item the release order holds
+// back is deferred by its name and booked, never released. Raj's ask as the check might map it to the price test's
+// notes, on Exhibit 4, which waits on Exhibits 1-3 (only Exhibit 1 is shown).
+describe('(d) a mapped item held by the release order', () => {
+  const NOTES = [{ what: 'upgrade rates for later cohorts', ledgerItemIds: ['price_test_notes'], response: 'none', explicit: true }];
+  it('Raj t11 → price_test_notes, Exhibit 4 not ready: "I\'ll come back to the notes on the price test", booked, nothing released', async () => {
+    classify.mockResolvedValueOnce(NOTES);
+    const p = plan(RAJ);
+    const d = await turnDataChecked(p, turn(RAJ));
+    expect(acted(p, 'checked_ask').map(e => e.detail)).toEqual([{ asks: [{ what: 'upgrade rates for later cohorts', kind: 'items', ids: ['price_test_notes'] }] }]);
+    expect(d.releases).toEqual([]);
+    expect(d.exhibit).toBeNull();
+    expect(d.defers).toEqual(['the notes on the price test']);
+    expect(d.itemlessDefers).toBeUndefined();
+    const lines = renderDataLines(d, 's');
+    expect(lines).toEqual(["I'll come back to the notes on the price test shortly."]);
+    expect(lines.join(' ')).not.toMatch(NO_FIGURE);
+    expect(lines.join(' ')).not.toContain('upgrade rates for later cohorts');
+    expect(decisionRows(d)).toEqual([expect.objectContaining({ ledgerItemIds: ['price_test_notes'], response: 'defer', explicit: true })]);
+  });
+});
+
 describe('no verdict, or no item: as before', () => {
   it('no verdict (failure, timeout) → the named deferral in the candidate\'s words, holding no item', async () => {
     classify.mockResolvedValueOnce(null);
