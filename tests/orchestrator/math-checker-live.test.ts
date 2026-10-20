@@ -984,6 +984,14 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       expect(p.selected).toBeNull();
       expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: expect.stringMatching(/^built on a closed input/) })]);
     });
+    // Task 18 review: an old or malformed record with no line restates nothing.
+    it('a record with an empty or missing line: no restatement, built on a closed input', () => {
+      for (const fix of [{ line: '', figure: '8000' }, { figure: '8000' }]) {
+        const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected: { 'net_price@2000': fix as { line: string } } });
+        expect(p.selected).toBeNull();
+        expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', reason: 'built on a closed input (net_price@2000)' })]);
+      }
+    });
     it('two claims on the one corrected root in a message: one restatement, the other rides on it', () => {
       const share = vetted({ span: '$2,000 a patient is a fifth of list', quantity: 'net as a share of list', candidateValue: 'a fifth of list', correctValue: 0.8, codeQuantity: { kind: 'none', stepId: null, price: null, target: null } });
       const p = run([sales('40,000 × $2,000 = $80 million', '$80 million'), share], { ...closedNet, corrected });

@@ -66,6 +66,28 @@ describe('the judge reads the checker\'s flags and what became of them', () => {
       expect(s).toContain(`${lead}, which the interview corrected: "Net is $8,000."`);
     });
   });
+  // Round-3 ruling 1 (Lorenzo, 19 Oct; Task 18 review): a root closed by a conversion was right on another quantity —
+  // never called a wrong figure; a plain correction keeps "wrong figure … corrected".
+  describe('built on an earlier figure a conversion restated on its right basis', () => {
+    const CONV = "In revenue terms, that's about 4.2 points.";
+    const conv = flag('3:0', 'converted', { key: 'bean_points_added@10', line: CONV, reason: 'attempt 2; a conversion: right on their own quantity (points of COGS)' });
+    const base = [verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]), conv];
+    it('derived on it', () => {
+      const s = formatCheckerSection([...base, flag('5:0', 'derived', { key: 'k@5', root: 'bean_points_added@10', reason: "built on bean_points_added@10's figure — the probe follows the input" })]);
+      expect(s).toContain(`Not raised on its own: it is built on an earlier figure of theirs that the interview restated on its right basis: "${CONV}"`);
+      expect(s).not.toMatch(/wrong figure|interview corrected/);
+    });
+    it('restated for this claim', () => {
+      const s = formatCheckerSection([...base, flag('5:0', 'restate', { key: 'k@5', root: 'bean_points_added@10', line: CONV, reason: 'built on bean_points_added@10, corrected live — its correction said once more' })]);
+      expect(s).toContain(`Not raised on its own: it is built on an earlier figure of theirs that the interview restated on its right basis: "${CONV}"; it was still in use here, and that line was said once more.`);
+      expect(s).not.toMatch(/wrong figure|interview corrected/);
+    });
+    it('a closed input, read from the reason', () => {
+      const s = formatCheckerSection([...base, flag('5:0', 'unresolved', { key: 'k@5', root: 'bean_points_added@10', reason: 'built on a corrected input (bean_points_added@10) — restated once already; left for the report' })]);
+      expect(s).toContain(`restated on its right basis: "${CONV}"`);
+      expect(s).not.toMatch(/wrong figure|interview corrected/);
+    });
+  });
   it('probed twice, the second time with a hint (Lorenzo, 13 Oct: the two-step probe)', () => {
     expect(formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'probe'), flag('3:0', 'hint')])).toContain('Probed twice (the second time with a hint); not corrected.');
   });

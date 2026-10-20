@@ -676,7 +676,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const root = rootFrom(first);
     eligible.splice(eligible.indexOf(e), 1);
     if (closed.has(first) || closed.has(root)) {
-      const fix = p.corrected?.[root];
+      // An old or malformed record with no line restates nothing: a closed input (Task 18 review).
+      const fix = p.corrected?.[root]?.line?.trim() ? p.corrected[root] : undefined;
       if (fix && !restated.has(root)) {
         if (eligible.some(x => x.key === root && x.restate)) built.push({ e, root });
         else eligible.push({ ...e, key: root, restate: { line: fix.line, ...(fix.figure ? { figure: fix.figure } : {}), own: e.key } });

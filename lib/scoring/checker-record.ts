@@ -50,6 +50,12 @@ export function dropCheckerStamps(v: Map<number, TurnVerification>, rows: Checke
 function builtText(root: string | undefined, all: CheckerDecision[], restated = false): string {
   const onRoot = root === undefined ? [] : all.filter(d => d.key === root);
   const fix = onRoot.find(d => d.outcome === 'correct' || d.outcome === 'converted');
+  // A root a conversion closed was right on another quantity: not their error, so never "wrong" (round-3 ruling 1, Lorenzo,
+  // 19 Oct: "not X" only on code's own quantity; Task 18 review). Its line, as said, on its right basis.
+  if (fix?.outcome === 'converted') {
+    const basis = `Not raised on its own: it is built on an earlier figure of theirs that the interview restated on its right basis: "${fix.line}"`;
+    return restated ? `${basis}; it was still in use here, and that line was said once more.` : basis;
+  }
   const lead = 'Not raised on its own: it is built on an earlier wrong figure of theirs';
   if (fix && restated) return `${lead}, which the interview corrected: "${fix.line}"; it was still in use here, and the correction was said once more.`;
   if (fix) return `${lead}, which the interview corrected: "${fix.line}"`;
