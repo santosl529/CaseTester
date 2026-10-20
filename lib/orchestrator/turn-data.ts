@@ -145,15 +145,20 @@ export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: 
 //   - E5 partial (Lorenzo, 20 Oct, round 5b job 3: "Partial → E1's form ("I don't
 //     have <the asked part>." + the item's line)"): an item the check says holds
 //     only the nearest data, not the asked part, is a coarse item like one out of
-//     scope; the refusal says the check's `missing` part (`coarse.missing`). Out
+//     scope; the refusal says the check's `missing` parts (`coarse.missing`, joined —
+//     the whole ask when one part is the whole ask or an item is out of scope). Out
 //     already: the refusal alone (4b); held by a gate: as E1's held coarse item.
 // Full in-scope items win over out-of-scope and partial ones in a mixed mapping,
 // as for the model's own mapping (the scope rule drops the rest silently).
+// `dropped`: the partial parts no refusal says, and why — the part is the whole ask
+// beside a full item (`whole_ask`), or a ledger item or the prompt covers it
+// (`false_refusal`) — for checkAsk's `partial_dropped` record (final review I5, M6).
+export type DroppedPart = { id: string; missing: string; why: 'whole_ask' | 'false_refusal' };
 export type CheckedAsk =
   | { kind: 'named' }
   | { kind: 'refuse' }
-  | { kind: 'items'; ids: string[]; missing?: string[] }
-  | { kind: 'coarse'; ids: string[]; missing?: string };
+  | { kind: 'items'; ids: string[]; missing?: string[]; dropped?: DroppedPart[] }
+  | { kind: 'coarse'; ids: string[]; missing?: string[]; dropped?: DroppedPart[] };
 export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict): CheckedAsk {
   if (v.mapped === null) return { kind: 'named' };
   const { ledger } = plan.state;
@@ -163,6 +168,20 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
   // A partial's refusal as said: figures the mapped items' lines state dropped, a plan name kept (fix round 2).
   const lines = ids.map(id => ledger.items.find(i => i.id === id)!.value);
   const said = (m: string) => refusalPhrase(dropStatedFigures(m, lines), plan);
+  const norm = (m: string) => m.replace(/\s+/g, ' ').trim().toLowerCase();
+  const whole = (m: string) => norm(m) === norm(what);
+  // A part refused after the coverage step must not refuse data the case holds (final
+  // review M6): read as the refusal it becomes, with the false-refusal veto the model's
+  // own refusals get (stream-turn.ts vetoReason) — flagged, it is not said.
+  const revealedNow = new Set(Object.keys(revealedValues(ledger)));
+  const falseRefusal = (m: string) => findFalseRefusals(`I don't have ${m}.`, plan.state.factBase, revealedNow, { covers: true }).length > 0;
+  const dropped: DroppedPart[] = [];
+  const keep = (id: string, m: string) => {
+    if (!falseRefusal(m)) return true;
+    dropped.push({ id, missing: m, why: 'false_refusal' });
+    return false;
+  };
+  const withDropped = <T extends object>(d: T) => (dropped.length > 0 ? { ...d, dropped } : d);
   const inScope = ids.filter(id => !v.outOfScope.includes(id) && !partial.has(id));
   const notOut = inScope.filter(id => !ledger.revealed.has(id));
   if (inScope.length > 0) {
@@ -171,14 +190,30 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
     // refused beside them; the partial item itself is not given.
     // Never the whole ask beside a full item (fix round 3: it would refuse the part just
     // answered): a partial whose missing part didn't hold (checkAsk's fallback) gets no refusal.
-    const whole = (m: string) => m.replace(/\s+/g, ' ').trim().toLowerCase() === what.replace(/\s+/g, ' ').trim().toLowerCase();
-    const refused = [...new Set(ids.filter(id => partial.has(id)).flatMap(id => (v.missing?.[id] !== undefined && !whole(v.missing[id]) ? [said(v.missing[id])] : [])))];
-    return { kind: 'items', ids: notOut.length > 0 ? notOut : inScope, ...(refused.length > 0 ? { missing: refused } : {}) };
+    // Such a partial's part is logged (`partial_dropped`), the behaviour Lorenzo's to rule on (final review I5).
+    const refused = [...new Set(ids.filter(id => partial.has(id)).flatMap(id => {
+      const m = v.missing?.[id] ?? what;
+      if (whole(m)) { dropped.push({ id, missing: m, why: 'whole_ask' }); return []; }
+      return keep(id, said(m)) ? [said(m)] : [];
+    }))];
+    return withDropped({ kind: 'items' as const, ids: notOut.length > 0 ? notOut : inScope, ...(refused.length > 0 ? { missing: refused } : {}) });
   }
   const coarse = ids.filter(id => !changeForSplit(what, ledger.items.find(i => i.id === id)!));
   if (coarse.length === 0) return { kind: 'refuse' };
-  const missing = coarse.filter(id => partial.has(id)).map(id => v.missing?.[id]).find(m => m !== undefined);
-  return { kind: 'coarse', ids: coarse, ...(missing !== undefined ? { missing: said(missing) } : {}) };
+  // Every partial's missing part, joined ("I don't have X or Y."; final review I1, #55
+  // b35h Marcus t9: only the first partial's part was said). The whole ask instead when
+  // a coarse item is out of scope (it answers none of the ask), or a partial's part fell
+  // back to the whole ask (checkAsk) — the ask's own words cover it.
+  const parts = coarse.filter(id => partial.has(id)).map(id => v.missing?.[id] ?? what);
+  if (parts.length === 0) return { kind: 'coarse', ids: coarse };   // out of scope only: the ask, as before
+  const wholeAsk = coarse.some(id => !partial.has(id)) || parts.some(whole);
+  const partIds = coarse.filter(id => partial.has(id));
+  const said1 = wholeAsk ? [{ id: partIds[0], m: said(what) }]
+    : parts.flatMap((m, i) => (parts.findIndex(x => norm(x) === norm(m)) === i ? [{ id: partIds[i], m: said(m) }] : []));
+  // A part a ledger item covers is not said (M6); none left: the ask's own refusal, as before the rewrite.
+  // The whole ask is no rewrite: the coverage step judged it (turnData).
+  const missing = wholeAsk ? said1.map(x => x.m) : said1.filter(x => keep(x.id, x.m)).map(x => x.m);
+  return withDropped({ kind: 'coarse' as const, ids: coarse, ...(missing.length > 0 ? { missing } : {}) });
 }
 
 // A refusal phrase led by one of the case's names, not possessive ("Starter cohort
@@ -247,6 +282,13 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     plan.ctx.checks.record('itemless_defer', mapped !== false, DECIDED[decision.kind],
       { what, mapped, found: found === null ? null : [{ what, ids }], decision: decision.kind, ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}),
         ...(partial.length > 0 ? { partial, missing } : {}), latencyMs: Date.now() - t0, ...(usage ? usageDetail(usage) : {}) });
+    // A partial part no refusal says (final review I5, for Lorenzo's ruling; M6): the
+    // ask, the item, Haiku's own `missing` and the part as checked, so a wave counts them.
+    for (const x of decision.kind === 'items' || decision.kind === 'coarse' ? decision.dropped ?? [] : []) {
+      const raw = found?.items.find(f => f.id === x.id)?.missing;
+      plan.ctx.checks.act('partial_dropped', x.why === 'whole_ask' ? 'a partial beside a full item whose missing part did not hold: no refusal for it'
+        : 'a partial\'s missing part a ledger item or the prompt covers: not refused', { what, item: x.id, missing: raw ?? null, checked: x.missing, why: x.why, decision: decision.kind });
+    }
     return verdict;
   })();
   cache.set(what, run);
@@ -684,7 +726,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // item-less after it is refused, never checked again.
   const checkedAsks = new Set<string>();
   // A partial answer's refusal (E5 partial): the asked part the coarse item lacks, said for the ask.
-  const missingOf = new Map<string, string>();
+  const missingOf = new Map<string, string[]>();
   if (checked) {
     const applied: { what: string; kind: string; ids: string[]; missing?: string | string[] }[] = [];
     requests = requests.flatMap(r => {
@@ -872,7 +914,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // A partial answer's refusal says the part the item lacks (E5 partial; the
   // decision row keeps the ask's words): beside the item's line, or alone when the
   // item is out already or held.
-  if (missingOf.size > 0) decisions.refusals = [...new Set(decisions.refusals.map(w => missingOf.get(w) ?? w))];
+  if (missingOf.size > 0) decisions.refusals = [...new Set(decisions.refusals.flatMap(w => missingOf.get(w) ?? [w]))];
   // Code's correction of a misquote (plan-turn.ts), on any turn that answers
   // the message — a code-written close or recommendation ask included (batch 20:
   // R21 and R47's corrections were decided at the close and never spoken).

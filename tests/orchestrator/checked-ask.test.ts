@@ -354,15 +354,15 @@ describe('decideCheckedAsk with partial answers', () => {
   const p = () => plan(RAJ);
   it('partial only → coarse with its missing part; mixed → the full items, and the partial\'s missing part; a partial sibling (a change item asked for a split) → refused', () => {
     expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['upgrade_timing'], outOfScope: [], partial: ['upgrade_timing'], missing: { upgrade_timing: 'x' } }))
-      .toEqual({ kind: 'coarse', ids: ['upgrade_timing'], missing: 'x' });
+      .toEqual({ kind: 'coarse', ids: ['upgrade_timing'], missing: ['x'] });
     expect(decideCheckedAsk(p(), 'x and y', { mapped: true, ids: ['upgrade_timing', 'price_test_notes'], outOfScope: [], partial: ['upgrade_timing'], missing: { upgrade_timing: 'y' } }))
       .toEqual({ kind: 'items', ids: ['price_test_notes'], missing: ['y'] });
     // Never the whole ask beside a full item (fix round 3).
     expect(decideCheckedAsk(p(), 'x and y', { mapped: true, ids: ['upgrade_timing', 'price_test_notes'], outOfScope: [], partial: ['upgrade_timing'], missing: { upgrade_timing: 'x and y' } }))
-      .toEqual({ kind: 'items', ids: ['price_test_notes'] });
-    // Out of scope and partial both coarse; the partial's missing part speaks.
+      .toEqual({ kind: 'items', ids: ['price_test_notes'], dropped: [{ id: 'upgrade_timing', missing: 'x and y', why: 'whole_ask' }] });
+    // Out of scope and partial both coarse: the whole ask (final review I1; before, the partial's part alone).
     expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['price_test_results', 'upgrade_timing'], outOfScope: ['price_test_results'], partial: ['upgrade_timing'], missing: { upgrade_timing: 'y' } }))
-      .toEqual({ kind: 'coarse', ids: ['price_test_results', 'upgrade_timing'], missing: 'y' });
+      .toEqual({ kind: 'coarse', ids: ['price_test_results', 'upgrade_timing'], missing: ['x'] });
     // b31 Sofia t17's sibling: a change item asked for a split is never a coarse item, partial or not.
     expect(decideCheckedAsk(planOf(SOFIA_T8), 'the current COGS split by category', { mapped: true, ids: ['bean_price_change'], outOfScope: [], partial: ['bean_price_change'], missing: { bean_price_change: 'the current COGS split by category' } }))
       .toEqual({ kind: 'refuse' });
@@ -408,10 +408,10 @@ describe('fix round 3: a mixed verdict never refuses the whole ask', () => {
     return decideCheckedAsk(p, WHAT, await checkAsk(p, WHAT));
   };
   it('"the bean price change and current waste rates": bean_price_change full, bean_share_of_cogs partial "waste rates" (cut mid-phrase) → bean_price_change, no refusal', async () => {
-    expect(await decide('waste rates')).toEqual({ kind: 'items', ids: ['bean_price_change'] });
+    expect(await decide('waste rates')).toEqual({ kind: 'items', ids: ['bean_price_change'], dropped: [{ id: 'bean_share_of_cogs', missing: WHAT, why: 'whole_ask' }] });
   });
   it('… the partial\'s missing part the whole ask → no refusal either; a valid one ("current waste rates") is refused', async () => {
-    expect(await decide(WHAT)).toEqual({ kind: 'items', ids: ['bean_price_change'] });
+    expect(await decide(WHAT)).toEqual({ kind: 'items', ids: ['bean_price_change'], dropped: [{ id: 'bean_share_of_cogs', missing: WHAT, why: 'whole_ask' }] });
     expect(await decide('current waste rates')).toEqual({ kind: 'items', ids: ['bean_price_change'], missing: ['current waste rates'] });
   });
 });
@@ -461,5 +461,108 @@ describe('fix round 2: the refusal line keeps a plan name\'s capital', () => {
     expect(d.restates).toEqual([]);
     expect(d.refusals).toEqual(['data on the Starter cohort beyond month 12']);
     expect(renderDataLines(d, 's').join(' ')).toContain('data on the Starter cohort beyond month 12');
+  });
+});
+
+// Final review I1 (f0fbaf8..5f73bc8): a coarse verdict with two partials said only the
+// first one's missing part. #55, b35h Marcus (70a06d70) t9, launch-001: the check's
+// verdict as Haiku gave it (haiku5b2-replay-checks.json) — channels partial, missing
+// "store count"; planning_assumptions partial, missing the whole ask — was "I don't
+// have store count." with nothing on the benchmark. Now: a partial that falls back to
+// the whole ask, or a coarse item out of scope beside a partial, refuses the whole ask;
+// otherwise the distinct missing parts are joined ("I don't have X or Y.").
+const MARCUS_B35H_T9 = { caseId: 'launch-001', text: "Fair — the exhibit actually says nothing about the 6 million bags. It's entirely cost side: per-bag economics and fixed launch costs. It gives me the hurdle, not whether the hurdle gets cleared.\n\nTo judge reachability I'd want to come at it from distribution and velocity: how many stores Hollis Bay can get the line into, and how many bags per store per week a new better-for-you snack typically turns. If they're in, say, 10,000 stores, 6 million bags is 600 bags per store per year, roughly 12 a week — that feels plausible but I'd want a benchmark from the chip line or a comparable launch.\n\nI'd also want the size and growth of the roasted chickpea or better-for-you segment in the Northeast and Midwest, and what competitors are already on that shelf.\n\nDo we have store count and a velocity benchmark?", ask: { what: 'store count and a velocity benchmark', itemIds: [], explicit: true, respond: 'release' }, phase: 'EXHIBIT', revealed: ['bag_price', 'variable_costs', 'launch_costs', 'recipe_cost'], shown: ['exhibit-1'], found: [] };
+const B35H_55 = { items: [
+  { id: 'channels', answers: 'partial', missing: 'store count' },
+  { id: 'planning_assumptions', answers: 'partial', missing: 'store count and a velocity benchmark' }] };
+
+describe('final review I1: a coarse verdict with two or more partials', () => {
+  it('#55 Marcus (b35h) t9: one partial\'s missing part is the whole ask → the whole ask refused, not "store count" alone', async () => {
+    classify.mockResolvedValueOnce(B35H_55);
+    const p = planOf(MARCUS_B35H_T9);
+    const what = MARCUS_B35H_T9.ask.what;
+    const v = await checkAsk(p, what);
+    expect(v).toMatchObject({ partial: ['channels', 'planning_assumptions'], missing: { channels: 'store count', planning_assumptions: what } });
+    expect(decideCheckedAsk(p, what, v)).toEqual({ kind: 'coarse', ids: ['channels', 'planning_assumptions'], missing: ['store count and a velocity benchmark'] });
+  });
+  it('two partials with valid parts → both parts, joined: {coarse, missing: ["x", "y"]}', () => {
+    expect(decideCheckedAsk(plan(RAJ), 'x and y', { mapped: true, ids: ['upgrade_timing', 'price_test_notes'], outOfScope: [], partial: ['upgrade_timing', 'price_test_notes'], missing: { upgrade_timing: 'x', price_test_notes: 'y' } }))
+      .toEqual({ kind: 'coarse', ids: ['upgrade_timing', 'price_test_notes'], missing: ['x', 'y'] });
+    // The same part twice is said once.
+    expect(decideCheckedAsk(plan(RAJ), 'x and y', { mapped: true, ids: ['upgrade_timing', 'price_test_notes'], outOfScope: [], partial: ['upgrade_timing', 'price_test_notes'], missing: { upgrade_timing: 'x', price_test_notes: 'X' } }))
+      .toEqual({ kind: 'coarse', ids: ['upgrade_timing', 'price_test_notes'], missing: ['x'] });
+  });
+  it('an out-of-scope coarse item beside a partial → the whole ask, not the partial\'s phrase', () => {
+    expect(decideCheckedAsk(plan(RAJ), 'x and y', { mapped: true, ids: ['price_test_results', 'upgrade_timing'], outOfScope: ['price_test_results'], partial: ['upgrade_timing'], missing: { upgrade_timing: 'y' } }))
+      .toEqual({ kind: 'coarse', ids: ['price_test_results', 'upgrade_timing'], missing: ['x and y'] });
+  });
+  it('#18 Sofia (b30) t14, both items partial with a part each: "I don\'t have current waste rates or bean contracting terms."', async () => {
+    classify.mockResolvedValueOnce({ items: [
+      { id: 'bean_share_of_cogs', answers: 'partial', missing: 'current waste rates' },
+      { id: 'bean_price_change', answers: 'partial', missing: 'bean contracting terms' }] });
+    const p = planOf(SOFIA_B30_T14);
+    const d = await turnDataChecked(p, turn(SOFIA_B30_T14));
+    expect(d.refusals).toEqual(['current waste rates', 'bean contracting terms']);
+    expect(renderDataLines(d, 's').at(-1)).toBe("I don't have current waste rates or bean contracting terms.");
+  });
+});
+
+// Final review I5 (behaviour for Lorenzo to rule on; unchanged here): in a mixed verdict
+// a partial whose missing part fails validation gets no refusal beside the full items
+// (#18 waste rates, #49 FY2024). Each is now recorded (`partial_dropped`) with the ask,
+// the item and Haiku's raw `missing`, so a wave can count them.
+describe('final review I5: a dropped partial part is recorded', () => {
+  it('#49 Raj (b34l) t13, second run\'s verdict: lakeport_fare full, port_avery_per_flight partial (missing the whole ask) → no refusal, one partial_dropped record', async () => {
+    classify.mockResolvedValueOnce({ items: [
+      { id: 'lakeport_fare', answers: 'full' },
+      { id: 'port_avery_per_flight', answers: 'partial', missing: 'the fare trend across FY2024 and FY2025' }] });
+    const p = planOf(RAJ_B34L_T13);
+    const d = await turnDataChecked(p, turn(RAJ_B34L_T13));
+    expect(d.releases.map(r => r.id)).toEqual(['lakeport_fare']);
+    expect(d.refusals).toEqual([]);   // behaviour unchanged
+    expect(acted(p, 'partial_dropped').map(e => e.detail)).toEqual([{
+      what: 'the fare trend across FY2024 and FY2025', item: 'port_avery_per_flight', missing: 'the fare trend across FY2024 and FY2025',
+      checked: 'the fare trend across FY2024 and FY2025', why: 'whole_ask', decision: 'items' }]);
+  });
+  it('#18 Sofia (b30) t14 shape: "waste rates" cut mid-phrase → Haiku\'s "waste rates" kept on the record beside the checked fallback', async () => {
+    const WHAT = 'the bean price change and current waste rates';
+    classify.mockResolvedValueOnce({ items: [{ id: 'bean_price_change', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'partial', missing: 'waste rates' }] });
+    const p = planOf(SOFIA_B30_T14);
+    await checkAsk(p, WHAT);
+    expect(acted(p, 'partial_dropped').map(e => e.detail)).toEqual([{ what: WHAT, item: 'bean_share_of_cogs', missing: 'waste rates', checked: WHAT, why: 'whole_ask', decision: 'items' }]);
+  });
+  it('a refused part (valid) leaves no record', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'bean_price_change', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'partial', missing: 'current bean contracting terms' }] });
+    const p = planOf(SOFIA_B30_T14);
+    await turnDataChecked(p, turn(SOFIA_B30_T14));
+    expect(acted(p, 'partial_dropped')).toEqual([]);
+  });
+});
+
+// Final review M6: the partial refusals are made after the coverage step (turnData's
+// findFalseRefusals/coverageOf), so they get the false-refusal veto themselves: a part
+// a ledger item covers is not said, and is logged (`partial_dropped`, false_refusal).
+// Constructed on Sofia (b30) t14's plan: the average ticket is a held (and said) item.
+describe('final review M6: a partial part the case holds is not refused', () => {
+  const WHAT = 'current waste rates and the average ticket';
+  it('mixed: bean_price_change full, bean_share_of_cogs partial "the average ticket" → no refusal of the ticket, logged', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'bean_price_change', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'partial', missing: 'the average ticket' }] });
+    const p = planOf(SOFIA_B30_T14);
+    const c = decideCheckedAsk(p, WHAT, await checkAsk(p, WHAT));
+    expect(c).toEqual({ kind: 'items', ids: ['bean_price_change'], dropped: [{ id: 'bean_share_of_cogs', missing: 'the average ticket', why: 'false_refusal' }] });
+    expect(acted(p, 'partial_dropped').map(e => e.detail)).toMatchObject([{ item: 'bean_share_of_cogs', missing: 'the average ticket', why: 'false_refusal' }]);
+  });
+  it('coarse: two partials, one part the ticket → only "current waste rates" refused', async () => {
+    classify.mockResolvedValueOnce({ items: [
+      { id: 'bean_share_of_cogs', answers: 'partial', missing: 'current waste rates' },
+      { id: 'bean_price_change', answers: 'partial', missing: 'the average ticket' }] });
+    const p = planOf(SOFIA_B30_T14);
+    expect(decideCheckedAsk(p, WHAT, await checkAsk(p, WHAT))).toEqual({ kind: 'coarse', ids: ['bean_share_of_cogs', 'bean_price_change'], missing: ['current waste rates'],
+      dropped: [{ id: 'bean_price_change', missing: 'the average ticket', why: 'false_refusal' }] });
+  });
+  it('the check\'s other parts are untouched: "current waste rates" and "bean contracting terms" both refused (#18 shape)', () => {
+    const p = planOf(SOFIA_B30_T14);
+    expect(decideCheckedAsk(p, 'current waste rates and bean contracting terms', { mapped: true, ids: ['bean_share_of_cogs', 'bean_price_change'], outOfScope: [], partial: ['bean_share_of_cogs', 'bean_price_change'], missing: { bean_share_of_cogs: 'current waste rates', bean_price_change: 'bean contracting terms' } }))
+      .toEqual({ kind: 'coarse', ids: ['bean_share_of_cogs', 'bean_price_change'], missing: ['current waste rates', 'bean contracting terms'] });
   });
 });
