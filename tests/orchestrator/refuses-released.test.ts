@@ -3,7 +3,9 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
+// The small-model check's verdict on an item-less ask ("Could I get <ask>?"), set per test; else none.
+const { checkFound } = vi.hoisted(() => ({ checkFound: { value: [] as unknown[] } }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { candidateText: string }) => (p.candidateText.startsWith('Could I get ') ? checkFound.value : []) }));
 
 import { settleTurn } from '@/lib/orchestrator/settle-turn';
 import { vetoReason, streamTurnSegments, type GateContext } from '@/lib/orchestrator/stream-turn';
@@ -80,6 +82,26 @@ describe('Stream: the refusal waits for the requests, then is withheld', () => {
     expect(said).not.toContain('no ramp assumption');
     expect(got.some(s => s.kind === 'data')).toBe(false);
     expect(out.kind === 'done' && out.bufferSwitch).toBe('false_refusal');
+  });
+});
+
+// Round 5 Task 45, fix round 1 (controller): Stream judges the held refusal against
+// the checked decisions — the item-less ask the small-model check maps to the ramp
+// item releases it this turn, so the refusal is withheld, not a false refusal.
+describe('Stream: an item the check releases this turn', () => {
+  // Worded so that no code step maps it (the refusal-coverage step would map "a
+  // ramp-up assumption" itself): only the check finds the ramp item.
+  const WHAT = 'how quickly bookings build on a newly opened route';
+  const ITEMLESS = [{ what: WHAT, itemIds: [], explicit: true, respond: 'release' as const }];
+  it('the model\'s refusal of it is withheld (refuses_released) and the ramp line goes out', async () => {
+    checkFound.value = [{ what: WHAT, ledgerItemIds: ['new_route_rampup'], response: 'none', explicit: true }];
+    try {
+      const { got, out, said } = await streamed('Do we have a ramp assumption?', ITEMLESS);
+      expect(said).not.toContain('no ramp assumption');
+      expect(said).toContain('Understood.');
+      expect(got.some(s => s.kind === 'data' && s.revealIds.includes('new_route_rampup'))).toBe(true);
+      expect(out.kind === 'done' && out.bufferSwitch).toBeFalsy();
+    } finally { checkFound.value = []; }
   });
 });
 

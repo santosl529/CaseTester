@@ -100,18 +100,18 @@ describe('(a) the check maps the ask to an item already out → restated, never 
     expect(renderDataLines(d, 's')).toHaveLength(1);
     expect(renderDataLines(d, 's')[0]).toContain(value('plan_cac'));
   });
-  it('Tyler t11: cohort_notes (said at t7) restated; upgrade_timing, not yet out, released now (d)', async () => {
+  // Controller ruling (20 Oct, fix round 1): (a) only on a pure re-ask — every
+  // mapped item out. A mixed verdict answers with the new items alone.
+  it('Tyler t11 (mixed): upgrade_timing, not yet out, released now (d); cohort_notes (said at t7) not said again', async () => {
     classify.mockResolvedValueOnce(TYLER.found);
     const p = plan(TYLER);
     const d = await turnDataChecked(p, turn(TYLER));
     expect(d.releases.map(r => r.id)).toEqual(['upgrade_timing']);
-    expect(d.restates.map(r => r.id)).toEqual(['cohort_notes']);
+    expect(d.restates).toEqual([]);
     expect(d.defers).toEqual([]);
-    const lines = renderDataLines(d, 's');
-    expect(lines[0]).toBe(value('upgrade_timing'));
-    expect(lines[1]).toContain(value('cohort_notes'));
+    expect(renderDataLines(d, 's')).toEqual([value('upgrade_timing')]);
     // The release is booked: Settle reveals from `releases`, the row carries the id.
-    expect(decisionRows(d).filter(r => r.response === 'release').flatMap(r => r.ledgerItemIds)).toEqual(['upgrade_timing', 'cohort_notes']);
+    expect(decisionRows(d).map(r => [r.response, r.ledgerItemIds])).toEqual([['release', ['upgrade_timing']]]);
   });
   it('the restates stay capped at 3', async () => {
     const ids = ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'pro_cohort', 'starter_cohort'];
@@ -122,12 +122,13 @@ describe('(a) the check maps the ask to an item already out → restated, never 
 });
 
 describe('(d) the check maps the ask to an item not yet out', () => {
-  it('Raj t11: upgrade_timing released now; starter_cohort and cohort_notes, already said, restated', async () => {
+  it('Raj t11 (mixed): upgrade_timing released now; starter_cohort and cohort_notes, already said, not restated', async () => {
     classify.mockResolvedValueOnce(RAJ.found);
     const p = plan(RAJ, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition'] });
     const d = await turnDataChecked(p, turn(RAJ));
     expect(d.releases.map(r => r.id)).toEqual(['upgrade_timing']);
-    expect(d.restates.map(r => r.id)).toEqual(['starter_cohort', 'cohort_notes']);
+    expect(d.restates).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual([value('upgrade_timing')]);
     expect(d.defers).toEqual([]);
     expect(d.refusals).toEqual([]);
     expect(renderDataLines(d, 's').join(' ')).not.toContain('upgrade rates for later cohorts');
@@ -210,5 +211,8 @@ describe('decideCheckedAsk', () => {
     expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['upgrade_timing', 'cohort_notes'], outOfScope: ['cohort_notes'] })).toEqual({ kind: 'items', ids: ['upgrade_timing'] });
     expect(decideCheckedAsk(p(), 'week-by-week sign-ups within the price test', { mapped: true, ids: ['price_test_results'], outOfScope: ['price_test_results'] })).toEqual({ kind: 'coarse', ids: ['price_test_results'] });
     expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['not_an_item'], outOfScope: [] })).toEqual({ kind: 'refuse' });
+    // (a) only on a pure re-ask: all out → all (restated); mixed → only those not yet out.
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['starter_cohort', 'cohort_notes'], outOfScope: [] })).toEqual({ kind: 'items', ids: ['starter_cohort', 'cohort_notes'] });
+    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['starter_cohort', 'cohort_notes', 'upgrade_timing'], outOfScope: [] })).toEqual({ kind: 'items', ids: ['upgrade_timing'] });
   });
 });

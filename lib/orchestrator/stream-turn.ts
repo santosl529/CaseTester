@@ -32,7 +32,7 @@ import { handoffSentences } from './data-ledger';
 import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
 import type { OnUsage } from '@/lib/llm-usage';
-import { turnData, turnDataChecked, pressureTestOutcomeNow } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
 import { findFalseFacts, findEchoes, findFalseRefusals, refusedItemIds, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
 import { isGradingSentence } from './grading';
@@ -334,10 +334,12 @@ export async function streamTurnSegments(
       spokenKeys.add(key);
       // A sentence that refuses or defers an item is judged against what this
       // turn's data line releases: the requests have closed by now (it was held).
+      // The checked decisions, the data line's own (round 5 Task 45: the small-model
+      // check's verdict can release an item; cached on the plan, shared with Settle).
       let gate = g;
       if (g.facts && fields.requests.length + (fields.exhibit ? 1 : 0) > 0 && refusedItemIds(p.text, g.facts.fb).length > 0) {
         await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
-        const d = turnData(plan, fields);
+        const d = await turnDataChecked(plan, fields, opts.onUsage);
         gate = { ...g, facts: { ...g.facts, releasedNow: new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]) } };
       }
       const reason = vetoReason(p.text, gate);

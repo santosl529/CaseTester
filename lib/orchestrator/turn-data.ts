@@ -118,9 +118,11 @@ export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: 
 //   - no verdict: the named deferral in the candidate's words, holding no item (as before);
 //   - mapped to none: refused;
 //   - mapped to items in the ask's scope (`items`), each asked in its own label:
-//     (a) one already out (said, or on a shown exhibit) is restated through the
-//     restate path (cap 3), never deferred — the check mapped the ask to that very
-//     item, the re-ask 4b allows; (d) one releasable now under every gate turnData
+//     (a) all of them already out (said, or on a shown exhibit): restated through
+//     the restate path (cap 3), never deferred — a pure re-ask of those very
+//     items, the re-ask 4b allows; with any not yet out, only those are asked —
+//     the ones out are not said again (controller ruling, 20 Oct, fix round 1:
+//     Quillpath Raj t11 hears upgrade_timing, not the cohort lines again); (d) one releasable now under every gate turnData
 //     applies (pressure test, release order, cap, the exhibit handed over) goes
 //     now; one that isn't is deferred by its spoken name and booked with its
 //     ledger id, so it is followed up (forced release, open request). On a
@@ -143,7 +145,8 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
   const ids = v.ids.filter(id => ledger.items.some(i => i.id === id));
   if (!v.mapped || ids.length === 0) return { kind: 'refuse' };
   const inScope = ids.filter(id => !v.outOfScope.includes(id));
-  if (inScope.length > 0) return { kind: 'items', ids: inScope };
+  const notOut = inScope.filter(id => !ledger.revealed.has(id));
+  if (inScope.length > 0) return { kind: 'items', ids: notOut.length > 0 ? notOut : inScope };
   const coarse = ids.filter(id => !changeForSplit(what, ledger.items.find(i => i.id === id)!));
   return coarse.length > 0 ? { kind: 'coarse', ids: coarse } : { kind: 'refuse' };
 }
