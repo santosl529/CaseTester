@@ -206,7 +206,7 @@ group beats a more specific cover. Others:
   rate untested dimensions.
 - 19 Oct, batch 32: "Understood." opens consecutive turns in every run. It isn't
   a bar failure, but it will sound robotic in voice.
-- 19 Oct, engine-asks rulings: an item-less deferral (and, proposed, an ask
+- 19 Oct, engine-asks rulings: an item-less deferral (and an ask
   the basis rule empties) is checked by a small model against the ledger
   before code refuses it — item-less releases, a code-written turn's item-less
   detections among them, were still refused unchecked (round 2 checks them too,
