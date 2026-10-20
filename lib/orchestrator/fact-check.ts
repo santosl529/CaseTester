@@ -856,7 +856,7 @@ export function findUndeliveredClaims(text: string, fb: FactBase, ctx: DeliveryC
   const out: ClaimFlag[] = [];
   const promptIds = new Set(fb.promptLedger.map(p => p.id));
   for (const s of sentencesOf(text)) {
-    if (ATTRIBUTED.test(s.slice(0, 12)) && /\byou (?:asked|wanted|said)\b/i.test(s)) continue;
+    if (ATTRIBUTED.test(s.slice(0, 12)) && /\byou (?:asked|wanted|said|mentioned|had|put it at)\b/i.test(s)) continue;   // the probe_opener lead-ins too (round-4 ruling 6)
     // Code's rung-1 restatement repeats an earlier question with its earlier referents.
     if (/^(?:take your time\.\s*)?the question on the table\b/i.test(s)) continue;
     const flag = (claim: string, items: string[], why: ClaimFlag['why']) => {
@@ -913,7 +913,7 @@ export function echoesOf(m: MisquoteFlag, fb: FactBase): Echo[] {
 }
 
 // Read on the text with code's neutral probes as their original (phrasing.ts asOriginalProbe).
-export const ECHO_PROBE = /\b(?:walk me through|how (?:did|do) you get|how you got|where does|where did|check (?:that|your|the)|recheck|points of what|you said|you mentioned|you put it at|you're using|you used|your figure|is that right|does that match|against the exhibit|what does the exhibit)\b/i;
+export const ECHO_PROBE = /\b(?:walk me through|how (?:did|do) you get|how you got|where does|where did|check (?:that|your|the)|recheck|points of what|you said|you mentioned|you put it at|you had(?=\s+[“"$\d])|you're using|you used|your figure|is that right|does that match|against the exhibit|what does the exhibit)\b/i;
 
 // F1 echo: the interviewer repeating a still-uncorrected misquote as a fact
 // ("16 of the 19 points" after the candidate's "19-point COGS increase").

@@ -88,7 +88,7 @@ describe('probe_opener: the lead-in of a "You said …" probe', () => {
     expect(vs).toHaveLength(5);
     expect(new Set(vs).size).toBe(5);
     expect(vs[0]).toBe('You said');
-    for (const v of vs) expect(ECHO_PROBE.test(`${v} “5 points” — walk me through that.`), v).toBe(true);
+    for (const v of vs) expect(ECHO_PROBE.test(`${v} “5 points” — which cost lines did you include?`), v).toBe(true);
   });
 });
 

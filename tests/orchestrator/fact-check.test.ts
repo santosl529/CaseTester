@@ -77,6 +77,20 @@ describe('F1 echo — repeating a standing misquote', () => {
   });
 });
 
+describe('probe_opener lead-ins (round-4 ruling 6): a probe opened any way is read as a probe', () => {
+  const [m] = findCandidateMisquotes('The whole swing is COGS: it goes from 42% two years ago to 61% now.', fb, new Set(COST_LINES), ['exhibit-a']);
+  const echoes = echoesOf({ ...m, items: m.items }, fb);
+  const OPENERS = ['You said', 'You mentioned', 'Earlier you said', 'You put it at', 'You had'];
+  it('F1: the quote of a figure in a probe is not an echo, whatever the opener', () => {
+    for (const o of OPENERS) expect(findEchoes(`${o} “the 19 points” — which cost lines did you include?`, echoes, fb), o).toEqual([]);
+  });
+  it('F4: the "you said" exemption covers each opener', () => {
+    const ctx = { revealed: new Set<string>(COST_LINES), exhibitShown: false, deliveredNow: false, deliveredPrev: false, refusedNow: false };
+    expect(findUndeliveredClaims('What does the exhibit tell you?', fb, ctx).map(f => f.why)).toEqual(['no_exhibit']);
+    for (const o of OPENERS) expect(findUndeliveredClaims(`${o} what the exhibit tells you.`, fb, ctx).map(f => f.why), o).toEqual([]);
+  });
+});
+
 describe('F2 — candidate misquotes', () => {
   const mq = (t: string, revealed = COST_LINES) => findCandidateMisquotes(t, fb, new Set(revealed), ['exhibit-a']);
   it('misquotes of revealed data, prompt facts and changes in points (Tyler, batches 12–20)', () => {
