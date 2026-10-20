@@ -53,15 +53,17 @@ const LIST_ITEM = /^(?:(?:one|first(?:ly)?|two|three|four|five|six|seven|eight|n
 
 // "Do we know how many stores…" asks; "Do you know what worries me?" is
 // rhetorical (fix round 2). It counts only before a quantity ("how many",
-// "how much") or a case figure ("the / our / what the … store count"), or
-// "whether / if" with a data noun or a number ("whether the 30% is
+// "how much", a time: "how quickly / fast / long / soon" — round 5 Task 48, B1
+// Larkspur Marisol t25 "Do we know how quickly we can exit the Lakeport and
+// Port Avery slots?") or a case figure ("the / our / what the … store count"),
+// or "whether / if" with a data noun or a number ("whether the 30% is
 // negotiable" — Lorenzo, 19 Oct; batch 32 Aldermoor Marcus t19).
 const DO_KNOW = /\bdo\s+(?:we|you)\s+know\s+(.*)$/i;
 const isDataNoun = (t: string) => DATA_NOUN.test(t) || ASK_DATA_NOUN.test(t);
 function doKnowAsk(sentence: string): boolean {
   const rest = DO_KNOW.exec(sentence)?.[1];
   if (rest === undefined) return false;
-  if (/^how\s+(many|much)\b/i.test(rest)) return true;
+  if (/^how\s+(many|much|quickly|fast|long|soon)\b/i.test(rest)) return true;
   if (/^(?:whether|if)\b/i.test(rest)) return isDataNoun(rest) || /\d/.test(rest);
   return /^(?:what\s+)?(?:the|our|their|its|any)\b/i.test(rest) && isDataNoun(rest);
 }
@@ -168,4 +170,16 @@ export function matchAskDetections<T extends { what: string }>(sentences: string
   const dropped: T[] = [];
   for (const d of detections) ([...contentWords(d.what)].some(w => asked.has(w)) ? kept : dropped).push(d);
   return { kept, dropped };
+}
+
+// The detections a declared request already covers (a ledger item in common, or
+// a content word of its "what"), and the rest (round 5 Task 48: a probe turn
+// answers only the asks the model left out — never one twice).
+export function uncoveredAsks<T extends { what: string; ledgerItemIds: string[] }>(declared: { what: string; itemIds: string[] }[], detections: T[]): { fresh: T[]; covered: T[] } {
+  const ids = new Set(declared.flatMap(r => r.itemIds));
+  const words = contentWords(declared.map(r => r.what).join(' '));
+  const fresh: T[] = [];
+  const covered: T[] = [];
+  for (const d of detections) (d.ledgerItemIds.some(id => ids.has(id)) || [...contentWords(d.what)].some(w => words.has(w)) ? covered : fresh).push(d);
+  return { fresh, covered };
 }

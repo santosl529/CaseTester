@@ -20,6 +20,7 @@ import { conductEnds } from './stream-turn';
 import type { ConductModelVerdict } from './conduct-model';
 import { planFingerprint, type DraftGate } from './speculation';
 import { promptContextFor } from './prompt-context';
+import { startProbeAsks } from './turn-data';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
 import { revealedValues } from './data-ledger';
 import { nextReadyExhibit } from './data-decisions';
@@ -365,6 +366,8 @@ async function runTurnBody(
       extraRequestRows: state.kind === 'close' ? [] : dropped.map(r => ({ what: r.what, ledgerItemIds: r.ledgerItemIds, response: 'none' as const, explicit: false })),
     };
   } else {
+    // A probe turn's asks (round 5 Task 48, turn-data.ts): classified beside the model call.
+    void startProbeAsks(plan, u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); });
     const isDelivered = { value: false };
     const events = streamInterviewerTurn({
       model,

@@ -7,6 +7,7 @@
 // here as a turn whose words are code's own and are not vetoed.
 import type { CloseHoldMemory } from './close-hold';
 import type { TurnTimer } from './turn-timer';
+import type { OnUsage } from '@/lib/llm-usage';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -36,7 +37,7 @@ import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers }
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, probeTurnAsks, withAsks } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
@@ -190,7 +191,17 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // Data: the same decisions Stream delivered from (the pressure test's
   // verdict for this turn first — the gate depends on it).
   const { satisfied: satisfiedNow, waiving, nothingMissing } = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
-  const decisions = await turnDataChecked(plan, turn, u => { void logEvent('llm_usage', { ...u }, { sessionId: plan.ctx.sessionId, userId: plan.ctx.userId }); });
+  const onUsage: OnUsage = u => { void logEvent('llm_usage', { ...u }, { sessionId: plan.ctx.sessionId, userId: plan.ctx.userId }); };
+  // A probe turn answers the asks the model left out (round 5 Task 48, turn-data.ts
+  // probeTurnAsks): they join its requests, so the data line goes before the probe.
+  const probeAsked = await probeTurnAsks(plan, turn.requests, onUsage);
+  if (probeAsked && probeAsked.sentences.length > 0) {
+    checks.record('probe_turn_requests', probeAsked.fresh.length > 0, 'a probe turn answers the asks no declared request covers', {
+      sentences: probeAsked.sentences, classified: probeAsked.detected !== null, answered: probeAsked.fresh.map(r => r.what),
+      covered: probeAsked.covered.map(r => r.what), dropped: probeAsked.dropped.map(r => r.what),
+    });
+  }
+  const decisions = await turnDataChecked(plan, withAsks(turn, probeAsked), onUsage);
   const phraseUses = flags.phraseUses as PhraseUses | undefined;
   const dataParts = renderDataLineParts(decisions, seed, phraseUses);
   const dataLines = dataParts.map(p => p.text);

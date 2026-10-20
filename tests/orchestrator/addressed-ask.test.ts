@@ -50,6 +50,7 @@ describe('addressedAskSentences', () => {
     'Do we know what the store count was two years ago?',
     'Do we know the store count by year.',
     'Do you know our revenue by region.',
+    'Do we know how quickly we can exit the Lakeport and Port Avery slots?',   // round 5 Task 48: B1 Larkspur Marisol t25
   ])('"do we know" + a quantity or a data noun is an ask: %s', t => expect(asks(t)).toEqual([t]));
 
   it("the \"I'd want/need\" cue counts up to EXHIBIT, or late when the sentence is a question", () => {

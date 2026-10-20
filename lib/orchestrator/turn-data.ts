@@ -8,8 +8,9 @@ import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
 import { findFalseRefusals, groupItemsAsked, coverageOf, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
-import { planForcedReleases, classifyDataRequests } from './data-requests';
-import { askingSentences } from './request-signal';
+import { planForcedReleases, classifyDataRequests, type DetectedDataRequest } from './data-requests';
+import { askingSentences, addressedAskSentences, matchAskDetections, uncoveredAsks } from './request-signal';
+import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal } from './data-ledger';
 import type { OnUsage } from '@/lib/llm-usage';
 
@@ -236,6 +237,51 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
       : refused.has(r.request.what) ? { ...r, response: 'refuse' as const }
         : wont.has(r.request.what) ? { ...r, wontGetTo: true as const } : r)),
   };
+}
+
+// ---- A probe turn's asks (round 5 Task 48, A1) ----
+// B1 Larkspur Marisol e6432db0 t11 → t12 and t25 → t26: handed the math
+// checker's flag, the model wrote only the probe and declared no request (t11:
+// code's vetted line then replaced its question; t25: the model said the line),
+// guard B's cues missed both asks, and neither got a word. On a model turn that
+// carries the checker's line as its question (a probe, pointer or hint — a
+// correction goes before the model's own question), the message's addressed asks
+// are detected as on a code-written turn (session-runner.ts): the classifier on
+// the message, kept where an asking sentence covers them (request-signal.ts).
+// Those no declared request covers join the turn's requests as asks to release,
+// so turnDataChecked decides them — a release, a deferral, or a refusal through
+// the check — and the data line is said between "say" and the probe. One
+// classifier call per turn, and only when a sentence asks: started beside the
+// model call (session-runner.ts) and shared by Stream and Settle (on the plan).
+export type ProbeAsks = { sentences: string[]; detected: DetectedDataRequest[] | null };
+export function probeTurn(plan: ModelPlan): boolean {
+  const { checkerLine, kind } = plan.state;
+  return kind === 'model' && checkerLine !== null && !correctsNow(checkerLine);
+}
+export function startProbeAsks(plan: ModelPlan, onUsage?: OnUsage): Promise<ProbeAsks> | null {
+  if (!probeTurn(plan)) return null;
+  const { state, ctx } = plan;
+  if (state.probeAsks) return state.probeAsks;
+  const sentences = addressedAskSentences(ctx.candidateText, ctx.currentPhase);
+  state.probeAsks = sentences.length === 0 ? Promise.resolve({ sentences, detected: [] })
+    : classifyDataRequests({ candidateText: ctx.candidateText, interviewerText: null, catalog: state.catalog, onUsage })
+      .catch(() => null).then(detected => ({ sentences, detected }));
+  return state.probeAsks;
+}
+// The asks a probe turn answers beside the model's declared ones (`fresh`), and
+// those an asking sentence doesn't cover (`dropped`) or a declared request does
+// (`covered`); null off a probe turn.
+export type ProbeTurnAsks = ProbeAsks & { fresh: DetectedDataRequest[]; covered: DetectedDataRequest[]; dropped: DetectedDataRequest[] };
+export async function probeTurnAsks(plan: ModelPlan, declared: DeclaredRequest[], onUsage?: OnUsage): Promise<ProbeTurnAsks | null> {
+  const started = startProbeAsks(plan, onUsage);
+  if (!started) return null;
+  const { sentences, detected } = await started;
+  const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit));
+  return { sentences, detected, ...uncoveredAsks(declared, kept), dropped };
+}
+export function withAsks<T extends Pick<ModelTurn, 'requests'>>(turn: T, asks: ProbeTurnAsks | null): T {
+  if (!asks || asks.fresh.length === 0) return turn;
+  return { ...turn, requests: [...turn.requests, ...asks.fresh.map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }))] };
 }
 
 // `checked`: the check's decisions on this turn's unmatched asks (turnDataChecked's
