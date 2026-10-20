@@ -156,6 +156,24 @@ export function isQuestionSentence(sentence: string): boolean {
   return sentence.endsWith('?') && INTERROGATIVE_START.test(sentence);
 }
 
+// Question FORM without the "?": voice STT often drops it (22% of the
+// candidate's turns in the 17-19 Oct voice exports). Opens (after fillers)
+// with a wh-word + inversion ("what was", "what am I", "how many", "which
+// one") or an auxiliary + subject ("do we", "does it", "can I", "is there").
+// "do it" / "could be" / "what we need" / "what would make me change course:
+// one, …" are statements (the auxiliary needs a subject after it). A sentence ending in
+// "?" keeps today's rule (isQuestionSentence).
+const FORM_FILLERS = '(?:(?:so|and|uh|um|okay|ok|yeah|sorry|also)[,.]?\\s+)*';
+const WH_INVERSION = '(?:what|what\'s|how|why|where|when|who)\\s+(?:(?:is|are|was|were|am|do|does|did|can|could|would|should|has|have|had|will)\\s+(?:i|we|you|they|it|he|she|there|that|this|these|those|the|a|an|my|our|your|his|her|their)|many|much|long|often|about)\\b';
+const WH_WHICH = 'which\\s+(?:one|ones|of|\\w+\\s+(?:is|are|was|were|do|does|did|should|would|can|could|has|have))\\b';
+const AUX_SUBJECT = '(?:(?:do|did|can|could|would|should|will|have|has|is|are|was|were)\\s+(?:we|i|you|they|there)|does\\s+(?:it|he|she|that|this|there|the)|is\\s+(?:it|that|this)|are\\s+(?:these|those)|can\\s+(?:it|that|this)|could\\s+(?:it|that|this))\\b';
+const QUESTION_FORM = new RegExp(`^\\s*${FORM_FILLERS}(?:${WH_INVERSION}|${WH_WHICH}|${AUX_SUBJECT})`, 'i');
+export function isQuestionForm(sentence: string): boolean {
+  const s = sentence.trim();
+  if (s.endsWith('?')) return isQuestionSentence(s);
+  return QUESTION_FORM.test(s);
+}
+
 function isDataRequest(text: string): boolean {
   if (DATA_REQUEST_PHRASE.test(text)) return true;
   return sentencesOf(text).some(s => isQuestionSentence(s) && DATA_NOUN.test(s));

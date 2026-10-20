@@ -7,7 +7,7 @@
 // left to the model, as today.
 import type { Phase } from './state-machine';
 import { normalizeNumberWords } from '@/lib/number-words';
-import { DATA_NOUN, isQuestionSentence, sentencesOf } from './stall';
+import { DATA_NOUN, isQuestionForm, isQuestionSentence, sentencesOf } from './stall';
 
 const CUES: [label: string, pattern: RegExp][] = [
   ['could I get', /\b(could|can|may)\s+(i|we)\s+(get|have|see)\b/i],
@@ -170,8 +170,8 @@ const contentWords = (t: string) => new Set((t.toLowerCase().match(/[a-z]+/g) ??
 // "How long Kelvexa's US exclusivity/patent protection lasts" (`patents`, held:
 // to 2038) — the answer never reached him. With `held`, a detection the asking
 // sentences don't cover is still kept when an item it maps to is held (in the
-// ledger, not yet out) and a real question of the message (ends in "?", opens
-// like a question) shares a content word with that item's own names — its
+// ledger, not yet out) and a real question of the message (opens like a question; the "?" is
+// not required — voice STT drops it, Task 57) shares a content word with that item's own names — its
 // label, spoken name or the case's names for it — other than the case's proper
 // names (the client, the product, places: "Kelvexa" alone is no match; fix
 // round 1, controller). A statement ("I'd want that definition settled before
@@ -181,7 +181,7 @@ export type HeldAsks = { text: string; isHeld: (id: string) => boolean; itemName
 export function matchAskDetections<T extends { what: string; ledgerItemIds?: string[] }>(sentences: string[], detections: T[], held?: HeldAsks): { kept: T[]; dropped: T[] } {
   const split = coveredAsks(sentences, detections);
   if (!held || split.dropped.length === 0) return split;
-  const questions = askSentencesOf(held.text).filter(isQuestionSentence).join(' ');
+  const questions = askSentencesOf(held.text).filter(isQuestionForm).join(' ');
   const named = (id: string) => namesItem(questions, held.itemNames(id), held.caseNames);
   const keep = new Set<T>([...split.kept, ...split.dropped.filter(d => (d.ledgerItemIds ?? []).some(id => held.isHeld(id) && named(id)))]);
   return { kept: detections.filter(d => keep.has(d)), dropped: detections.filter(d => !keep.has(d)) };
