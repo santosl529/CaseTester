@@ -1264,7 +1264,11 @@
         "retailer demand for healthy snacks",
         "have retailers asked for this",
         "chip sales trend",
-        "is better-for-you growing"
+        "is better-for-you growing",
+        "chip volume",
+        "chip volume trend",
+        "chip business's volume",
+        "declining base"
       ],
       "competition_general": [
         "is there a dominant brand",
@@ -1288,7 +1292,8 @@
       "variable_costs": [
         "cost breakdown per bag",
         "cost to make a bag",
-        "shipping cost per bag"
+        "shipping cost per bag",
+        "distribution costs"
       ],
       "launch_costs": [
         "cost of the new line",
@@ -1338,7 +1343,13 @@
       "survey_reliability": [
         "where conversion rates come from",
         "survey bias",
-        "basis for conversion assumptions"
+        "basis for conversion assumptions",
+        "forecast versus actual",
+        "volume versus forecast",
+        "how accurate past forecasts",
+        "how reliable the forecast",
+        "year-one volume compared to forecast",
+        "volume compared to forecast"
       ],
       "taste_test": [
         "do people like the taste",
@@ -1352,7 +1363,13 @@
       "retailer_support": [
         "guaranteed shelf space",
         "distribution commitments",
-        "will stores carry it"
+        "will stores carry it",
+        "store count",
+        "how many stores",
+        "distribution rate",
+        "distribution reach",
+        "stores we could reach",
+        "stores the line gets into"
       ]
     }
   }

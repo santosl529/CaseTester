@@ -1259,7 +1259,13 @@
       "current_treatment": [
         "main alternative to kelvexa",
         "what patients use now",
-        "is there an injectable option"
+        "is there an injectable option",
+        "treatment mix",
+        "current treatment mix",
+        "treatment breakdown",
+        "breakdown by drug class",
+        "competitor mix",
+        "mix across treated patients"
       ],
       "company_size": [
         "does aldermoor have us reps",
@@ -1331,7 +1337,9 @@
         "how established is nimbrel",
         "who uses nimbrel",
         "competitor net price",
-        "price versus competitor"
+        "price versus competitor",
+        "competitor mix",
+        "nimbrel's share of treated patients"
       ],
       "trial_comparison": [
         "is kelvexa better than nimbrel",

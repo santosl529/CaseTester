@@ -1707,13 +1707,23 @@
         "load factor assumption on the new routes",
         "how firm the 70%",
         "how realistic the 70%",
-        "first-year load factor"
+        "first-year load factor",
+        "first-year load risk",
+        "load in the first year",
+        "70% in year one",
+        "ramp-up allowance",
+        "planning loads on day one"
       ],
       "aircraft_leases": [
         "shrink the fleet",
         "reduce the fleet",
         "park the planes",
-        "can we return planes"
+        "can we return planes",
+        "avoidable fixed costs",
+        "whether the fixed costs are avoidable",
+        "fixed costs avoidable",
+        "return the aircraft",
+        "whether it's avoidable"
       ],
       "port_avery_per_flight": [
         "same data for port avery",
