@@ -276,3 +276,9 @@ group beats a more specific cover. Others:
   correction is on; read every code correction against the candidate's own
   words. A stale reading can fire on the same figure used as another quantity
   ("10" in "a 10–12% price increase").
+- 19 Oct, wave A rulings (Lorenzo): the own-quantity "In COGS terms … not X" line
+  fires only when every unit-bearing mention of the figure names the COGS base
+  (b29, b30, b33 each produced a false correction from a new wording — sweep it);
+  a flag goes stale only on a figure stated for its own quantity; a probe said
+  later than the next turn quotes its claim; period words and prompt figures
+  aren't leading; hollow deferrals are counted in every grade.
