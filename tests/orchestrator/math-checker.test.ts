@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  statesQuantitativeClaim, buildCheckerSystem, buildCheckerUser, vetCheckerClaims, isActionable, relativeAsPoints, codeCorrection,
+  statesQuantitativeClaim, buildCheckerSystem, buildCheckerUser, vetCheckerClaims, probeLeads, isActionable, relativeAsPoints, codeCorrection,
   CheckerOutputSchema, type CheckerClaim, type VetContext,
 } from '@/lib/orchestrator/math-checker';
 import { MATH_CHECKER_CONFIGS } from '@/lib/models';
@@ -555,5 +555,39 @@ describe('a self-contradicting verdict', () => {
     const [v] = vetCheckerClaims([c], { caseData: getCaseById('prof-002'), revealedIds: [], shownExhibitIds: [], candidateTexts: ['or ~$2.8M even at half the planned contribution'] });
     expect(v.flag).toBe(false);
     expect(v.vetNotes.join(' ')).toMatch(/own derivation/);
+  });
+});
+
+// Lorenzo, 19 Oct (round 4, ruling 5; batch 33 Marisol 31e33506 t9): "which period's
+// base should a 40% rise over two years apply to?" was withheld as "names 2" — a
+// period word is no figure, and a figure in the case prompt is the candidate's own.
+describe('the leads check ignores period words and prompt figures', () => {
+  const said = 'beans up 40%, so 14.5 × 0.40 = 5.8 points of increase';
+  const ctx = (): VetContext => ({ caseData: prof, revealedIds: COSTS, shownExhibitIds: [], candidateTexts: [said] });
+  const flagged = (probe: string) => claim({ span: said, candidateValue: '5.8 points', correctValue: 4.2, probe });
+  const t9 = "You got 5.8 points of increase from 40% on 14.5 points. Which period's base should a 40% rise over two years apply to?";
+  it('Marisol t9: "a 40% rise over two years" is not withheld', () => {
+    const [v] = vetCheckerClaims([flagged(t9)], ctx());
+    expect(v.probeLine).toBe(t9);
+    expect(v.vetNotes.join(' ')).not.toMatch(/leads/);
+  });
+  it.each(['over 2 years', 'in year one', 'since last year', 'versus this year', 'in FY2025', 'two years ago', 'over the past two years'])('"%s" is a period word', phrase => {
+    const p = `Which base does the 40% rise apply to ${phrase}?`;
+    const [v] = vetCheckerClaims([flagged(p)], ctx());
+    expect(v.probeLine).toBe(p);
+  });
+  it('a figure in the case prompt is not leading (200 locations)', () => {
+    const p = 'How does 5.8 points fit across the 200 locations?';
+    const [v] = vetCheckerClaims([flagged(p)], ctx());
+    expect(v.probeLine).toBe(p);
+    expect(probeLeads(p, said, ctx(), new Set())).toBeNull();
+  });
+  it('a probe naming an unrevealed or right figure is still withheld', () => {
+    const comps = new Set<string>();
+    expect(probeLeads('Would 4.2 points over two years be closer?', said, ctx(), comps)).toBe('names 4.2, not in the claim');
+    expect(probeLeads('Which base over two years gives 31.5 points?', said, ctx(), comps)).toBe('names 31.5, not in the claim');
+    expect(probeLeads('And two years ago it was 10.5?', said, ctx(), comps)).toBe('names 10.5, not in the claim');
+    const [v] = vetCheckerClaims([flagged('Is 58 percent over two years the base?')], ctx());
+    expect(v.vetNotes.join(' ')).toMatch(/probe withheld \(leads: names 58, not in the claim/);
   });
 });

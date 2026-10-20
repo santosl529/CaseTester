@@ -561,14 +561,19 @@ export function claimSentences(span: string, message: string): string[] {
   const hit = sentences.flatMap((x, i) => pieces.some(q => x.toLowerCase().includes(q)) ? sentences.slice(Math.max(0, i - 1), i + 1) : []);
   return [span, ...hit];
 }
+// A period word names a span of time, not a figure (Lorenzo, 19 Oct; batch 33
+// Marisol 31e33506 t9: "a 40% rise over two years" held back as "names 2").
+const PERIOD_WORDS = /\b(?:(?:\d+(?:\.\d+)?|[a-z-]+) (?:years?|months?|quarters?|yrs?)|years? (?:\d+|one|two|three|four|five|six|seven|eight|nine|ten)|fy\s?'?\d{2,4}|(?:19|20)\d{2})\b/gi;
+const withoutPeriods = (text: string) => text.replace(PERIOD_WORDS, ' ');
 export function probeLeads(probe: string, span: string, ctx: VetContext, components: Set<string>, step: 'first' | 'hint' = 'first'): string | null {
   if (ARITHMETIC.test(probe)) return 'carries arithmetic';
   const theirs = step === 'first' ? claimSentences(span, ctx.candidateTexts.at(-1) ?? '') : [...ctx.candidateTexts, span];
   const theirWords = new Set(theirs.flatMap(wordsOf));
   const named = [...new Set(wordsOf(probe))].filter(w => components.has(w) && !theirWords.has(w));
   if (named.length) return `names ${named.join(', ')}${step === 'first' ? ', not in the claim' : ''}`;
-  const theirNumbers = [...theirs.flatMap(numbersOf), ...targetNumbers(ctx.caseData)];
-  const figures = numbersOf(probe).filter(n => !theirNumbers.some(a => near(n, a)));
+  // Figures in the case prompt are the candidate's own as much as the target is.
+  const theirNumbers = [...theirs.flatMap(numbersOf), ...targetNumbers(ctx.caseData), ...numbersOf(withoutPeriods(ctx.caseData.prompt))];
+  const figures = numbersOf(withoutPeriods(probe)).filter(n => !theirNumbers.some(a => near(n, a)));
   return figures.length ? `names ${figures.join(', ')}, ${step === 'first' ? 'not in the claim' : 'not theirs'}` : null;
 }
 // A leading draft without its last ask: "…against the 18, and where does
