@@ -128,3 +128,66 @@ describe('the lines are true statements of the case', () => {
     'Getting COGS back to 42% of revenue takes about a 38.1% price rise, not 45%.',
   ])('%s', line => expect(findFalseFacts(line, fb, new Set(COSTS))).toEqual([]));
 });
+
+// Lorenzo, 19 Oct (round 4, ruling 1; batch 33 Marisol 31e33506 t14): "points
+// of the N-point COGS increase" is revenue points; "points of revenue" with
+// their figure wins over a COGS reading; the "In COGS terms … not X" line only
+// when every mention of their figure with a unit names the COGS base —
+// otherwise the checker's own revenue-terms line.
+describe('batch 33 Marisol 31e33506: her 5.8 was revenue points — the revenue-terms line, no "In COGS terms"', () => {
+  const t9 = "You're right to push — that was a stretch. Overhead is rent, corporate, admin; packaging sits in COGS. There's no reason one line's drift tells me anything about a component of another. I was pattern-matching on the number 2 because it was convenient. Scratch it.\n\nLet me use the actual figures. Beans are 25% of COGS, and COGS is currently 58 points of revenue, so beans are 0.25 × 58 = 14.5 points. The other inputs are the remaining 43.5 points. Now apply the growth: beans up 40%, so 14.5 × 0.40 = 5.8 points of increase. Everything else up 37.5%, but that's spread across dairy, packaging, and food — three separate inputs, so call it roughly 2 points each.\n\nSo beans at 5.8 points is the single largest contributor by a wide margin, more than double any other line, and it has the steepest growth rate at 40%. Coffee beans are driving the COGS increase. That's the one to attack.";
+  const t11 = "Two things, in order.\n\nFirst, I'd size what fixing beans buys us. Beans are 5.8 points of the 16-point COGS increase. If we could hold bean costs at the old level, margin goes from 6% to roughly 11.8% — so call it 12%. That's meaningful but it doesn't get us back to 24, which tells me beans are the driver but not the whole fix, and I'd want to be honest with the CEO about that gap.\n\nSecond, procurement. I'd look at how they buy green coffee — spot versus forward contracts, how many suppliers, contract length. A 40% run-up over two years with flat menu prices suggests they're exposed to spot and never hedged.\n\nThen the pricing side, since prices have been flat for two years. I'd want elasticity — how much can a specialty chain pass through before volume moves?\n\nDo we have transaction volume by store over the period? Want to be sure same-store traffic is steady before I recommend a price increase.";
+  const t13 = "Sure. Beans were 25% of COGS. I took the current COGS line, 58 points of revenue, and multiplied: 0.25 × 58 = 14.5 points of revenue sitting in beans today. Then beans rose 40% over the two years, so the increase is 14.5 × 0.40 = 5.8 points of revenue.\n\nAnd the transaction figure actually reinforces the pricing story. Average ticket is $6.80 now versus $6.20 two years ago — so a cup of coffee effectively goes for $6.80. If beans run at 14.5% of revenue, that's about $0.99 of bean cost in that $6.80 cup, up from roughly $0.71 before the run-up. So customers are absorbing nothing, because menu prices held flat — the whole $0.28 landed on us.\n\nA 5% price increase on $6.80 is about $0.34, which more than covers the bean inflation per cup. That's a clean, small ask of the customer.";
+  const REVENUE_LINE = "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8.";
+  const c11 = beans('5.8 points', 'Beans are 5.8 points of the 16-point COGS increase.');
+  it('the checker\'s line is in revenue terms', () => expect(c11.correctionLine).toBe(REVENUE_LINE));
+  it('t11 alone: "5.8 points of the 16-point COGS increase" is revenue points — code\'s unit, the checker\'s line', () => {
+    const w = claimWindow(c11.span, t11, []);
+    expect(frameOfClaim(c11, w, ctx).kind).toBe('code');
+    expect(lineFor(c11, w)).toMatchObject({ line: REVENUE_LINE, derived: ['4.2'], converted: false });
+  });
+  it('the live window (t11, then t13 "5.8 points of revenue"): the checker\'s line, never "In COGS terms"', () => {
+    const w = claimWindow(c11.span, t11, [t13]);
+    expect(frameOfClaim(c11, w, ctx).kind).toBe('code');
+    expect(lineFor(c11, w)?.line).toBe(REVENUE_LINE);
+  });
+  // The guard: one mention names COGS, another ("5.8 points of increase", her t9) doesn't.
+  it('t9 then "5.8 points of COGS": not every mention names the COGS base — the checker\'s line', () => {
+    const c9 = beans('5.8 points', 'beans up 40%, so 14.5 × 0.40 = 5.8 points of increase');
+    const w = claimWindow(c9.span, t9, ['To be clear about my units, beans are 5.8 points of COGS.']);
+    expect(frameOfClaim(c9, w, ctx).kind).toBe('code');
+    expect(lineFor(c9, w)?.line).toBe(REVENUE_LINE);
+  });
+  it('"points of revenue" with their figure wins over a COGS reading it is right on', () => {
+    const c = beans('10 points', 'beans are 10 points of COGS');
+    const w = 'Beans are 10 points of COGS, so 10 points of revenue.';
+    expect(frameOfClaim(c, w, ctx).kind).toBe('code');
+    expect(lineFor(c, w)?.line).toBe("Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 10.");
+  });
+  it('"5.8 points of the COGS increase" (no N) is revenue points too', () => {
+    const c = beans('5.8 points', 'beans are 5.8 points of the COGS increase');
+    expect(lineFor(c, 'Beans are 5.8 points of the COGS increase.')?.line).toBe(REVENUE_LINE);
+  });
+  it('"26% of the COGS increase" names no COGS base: right as a share of the increase — the conversion line', () => {
+    const c = beans('26%', 'beans are about 26% of the COGS increase');
+    const w = 'Beans are about 26% of the COGS increase.';
+    expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'unstated', rightOn: { quantity: 'a share of the COGS increase' } });
+    expect(lineFor(c, w)).toMatchObject({ line: "In revenue terms, that's about 4.2 points.", converted: true });
+  });
+  it('every mention with a unit names COGS: the "In COGS terms" line stays', () => {
+    const c = beans('15 points of COGS', 'beans add 15 points of COGS');
+    const w = 'Beans add 15 points of COGS. So 15 percent of COGS is beans.';
+    expect(lineFor(c, w)?.line).toBe("In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 15.");
+  });
+});
+
+describe('batch 30 Noor a35507dc t9/t13, verbatim: right on her own quantity — no "not 38%"', () => {
+  const t9 = "That confirms it — zero pass-through. Input costs up roughly 38% blended, prices flat, so the entire inflation hit landed on margin. And since COGS went from 42 to 58 points while revenue per unit was unchanged, the 15% revenue growth has to be coming from volume or store count, not price.\n\nWhat does it take to fix? If they want to recover the 16 points, a rough cut: raise prices so that the new COGS of 58 falls back toward 42 as a share. Revenue would need to go up by 58/42, about 38% — which makes sense, it's just the input inflation. That's a big number, so realistically they'd phase it and take some of it back on overhead too.\n\nSo I'd focus the client on pricing first. Two years of flat menu prices in a specialty category with real brand equity is money left on the table. Secondary focus is procurement — renegotiating dairy and packaging contracts, since those are the bigger share of the increase.";
+  const t13 = "I held COGS dollars constant and asked what revenue would have to be for COGS to fall back to 42% of it. Right now COGS is 58% of revenue. If I index revenue at 100, COGS dollars are 58. For 58 to equal 42% of revenue, revenue has to be 58 ÷ 0.42 = 138. So revenue rises 38%.\n\nTwo caveats I should flag. First, that's a pure price increase with volume held constant — in reality a 38% price hike would cost them volume, so the realized recovery is less and I'd want elasticity data. Second, it only restores COGS; labor and overhead are also fixed dollars in that scenario, so they'd actually fall as a share of revenue and margin would overshoot 24%. So 38% is the ceiling, not the target. A smaller increase gets you most of the way.";
+  const c = flagged('38%', 'Revenue would need to go up by 58/42, about 38% ... to recover the 16 points', { kind: 'needed_for_gain', stepId: null, price: null, target: 16 }, 20.5);
+  it('the claim with her redo (t13) in the window: converted, no "not 38%"', () => {
+    const w = claimWindow(c.span, t9, [t13]);
+    expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'own_right', quantity: 'COGS back to 42% of revenue' });
+    expect(lineFor(c, w)).toMatchObject({ line: "From today's 6% margin, recovering 16 points of margin takes about a 20.5% price rise.", converted: true });
+  });
+});
