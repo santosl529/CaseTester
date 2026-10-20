@@ -65,6 +65,21 @@ describe('the judge reads the checker\'s flags and what became of them', () => {
         flag('5:0', 'unresolved', { key: 'peak_net_sales@80', root: 'net_price@2000', reason: 'built on a corrected input (net_price@2000) — restated once already; left for the report' })]);
       expect(s).toContain(`${lead}, which the interview corrected: "Net is $8,000."`);
     });
+    // Round-2 final review, Minor 2 (Lorenzo, 19 Oct, round-3 ruling 2: "Build the other two held fixes now"): a
+    // restatement that ended shed, expired or unresolved at the close carries its root — the report says what became
+    // of the root, not a bare "not raised".
+    it.each(['shed', 'expired', 'unresolved_at_close'])('a restatement that ended %s: the root\'s live correction', outcome => {
+      const LINE = 'Net price is about $8,000, not $2,000.';
+      const s = formatCheckerSection([verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]), flag('3:0', 'correct', { key: 'net_price@2000', line: LINE }),
+        flag('5:0', outcome, { key: 'peak_net_sales@80', root: 'net_price@2000' })]);
+      expect(s).toContain(`turn 5: "x" — WRONG (conceptual; changes the conclusion): about 16 by the checker. ${lead}, which the interview corrected: "${LINE}"`);
+      expect(s).not.toContain('Not raised in the interview (');
+    });
+    it('…a root with no live correction: the plain text, as before', () => {
+      const s = formatCheckerSection([verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]), flag('3:0', 'probe', { key: 'net_price@2000' }),
+        flag('5:0', 'expired', { key: 'peak_net_sales@80', root: 'net_price@2000' })]);
+      expect(s).toContain('Not raised in the interview (it waited behind other checks and expired).');
+    });
   });
   // Round-3 ruling 1 (Lorenzo, 19 Oct; Task 18 review): a root closed by a conversion was right on another quantity —
   // never called a wrong figure; a plain correction keeps "wrong figure … corrected".

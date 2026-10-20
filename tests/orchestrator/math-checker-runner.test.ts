@@ -383,6 +383,33 @@ describe('a closed error said again in the final recommendation: one flag', () =
     expect(r.ended).toBe(false);
     expect(r.interviewerText).toMatch(/^COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
     expect((store.session.flagsJsonb as Row).recMathProbed).toBe(true);
+    // Its second saying (Lorenzo, 19 Oct, round-3 ruling 2): the key is restated — no restatement of it later.
+    expect(((store.session.flagsJsonb as Row).mathChecker as Row).restated).toEqual([KEY]);
+  });
+
+  // Lorenzo, 19 Oct (round-3 ruling 2): "the 13 Oct recommendation re-correction counts as the restatement, so a
+  // correction is said at most twice in total" (b29 Jordan ea27d1f6: t8, t10, then t20 — the line a third time).
+  describe('a correction is said at most twice in total', () => {
+    const ROOT = 'cogs_dollar_impact@38';
+    const memory = (extra: Row = {}) => ({ mathChecker: { handled: ['3:0', '5:0'], keys: { [KEY]: { figures: [40], since: 3 }, [ROOT]: { figures: [38], since: 1 } }, closed: [KEY, ROOT],
+      corrected: { [ROOT]: { line: CORRECTION, figure: '16' }, [KEY]: { line: CORRECTION } }, ...extra } });
+    it('the re-correction heard: its key and every key whose line it said word for word are restated', async () => {
+      atRecommendation({ events: corrected, flags: memory() });
+      const r = await replyThenNext(REC, 'about 40 points');
+      expect(r.interviewerText).toMatch(/^COGS rose 16 points/);
+      expect(((store.session.flagsJsonb as Row).mathChecker as Row).restated).toEqual(expect.arrayContaining([KEY, ROOT]));
+    });
+    it('its key restated already: no re-correction', async () => {
+      atRecommendation({ events: corrected, flags: memory({ restated: [KEY] }) });
+      const r = await replyThenNext(REC, 'about 40 points');
+      expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+      expect((store.session.flagsJsonb as Row).recMathProbed).toBeFalsy();
+    });
+    it('another key restated with the same line (the b29 root): no re-correction — that line was said twice', async () => {
+      atRecommendation({ events: corrected, flags: memory({ restated: [ROOT] }) });
+      const r = await replyThenNext(REC, 'about 40 points');
+      expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+    });
   });
 
   it('left for the report: one neutral probe on the figure, before the case moves on', async () => {
@@ -390,6 +417,8 @@ describe('a closed error said again in the final recommendation: one flag', () =
     const r = await replyThenNext(REC, 'about 40 points');
     expect(r.interviewerText).toBe('Before we wrap up — walk me through how you got to 40 points.');
     expect((store.session.flagsJsonb as Row).recMathProbed).toBe(true);
+    // A probe says no correction: nothing restated.
+    expect(((store.session.flagsJsonb as Row).mathChecker as Row).restated).toBeUndefined();
   });
 
   it("the reply's own verdict doesn't flag it: no line (the gate, 16 Oct)", async () => {

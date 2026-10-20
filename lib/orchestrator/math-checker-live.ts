@@ -428,7 +428,8 @@ export type CheckerPlanInput = {
 };
 export type CheckerPlan = {
   selected: CheckerSelection | null;  // at most one a turn
-  waiting: { id: string; candidateTurnIndex: number; claim: VettedClaim }[]; // flags left for a later turn
+  // flags left for a later turn; one built on another error carries that root (the close's report row; round-2 final review, Minor 2)
+  waiting: { id: string; candidateTurnIndex: number; claim: VettedClaim; root?: string }[];
   decisions: CheckerDecision[];       // what was decided this turn (logged)
   handledNow: string[];               // claim ids settled this turn (the selected one is the caller's)
   flaggedFigures: number[];           // landed flags' figures: a doubt on them is licensed
@@ -623,7 +624,10 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       }
       // A line a due stage question held back waits for the next model turn (Lorenzo, 15 Oct).
       if (later.length > CHECKER_MAX_WAIT_MESSAGES && id !== p.held && !p.finalAnswer?.(v.candidateTurnIndex)) {
-        decisions.push(decision(id, v.candidateTurnIndex, c, 'expired', `${later.length} messages since the claim`));
+        // Built on a root a live correction closed (a restatement it never got): its root, for the report (round-2 final review, Minor 2).
+        const root = rootOf(c.span, flagKeyFor(c, idFigsOf(c), keys), keys, caseNumbers);
+        const restating = root !== null && closed.has(root) && Boolean(p.corrected?.[root]?.line?.trim());
+        decisions.push({ ...decision(id, v.candidateTurnIndex, c, 'expired', `${later.length} messages since the claim`), ...(restating ? { root: root! } : {}) });
         handled.add(id);
         return;
       }
@@ -790,8 +794,9 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (covers.length > 0) selected = { ...r, covers: covers.map(w => ({ id: w.id, candidateTurnIndex: w.n, key: w.key, claim: w.c, line: w.c.correctionLine! })) };
   }
   const pending = waiting.filter(w => !w.carried);
+  const rootOfWaiting = (w: typeof waiting[number]) => (w.restate ? w.key : built.find(b => b.e.id === w.id)?.root);
   return {
-    selected, waiting: pending.map(w => ({ id: w.id, candidateTurnIndex: w.n, claim: w.c })), decisions, flaggedFigures: [...new Set(flaggedFigures)], droppedStamps,
+    selected, waiting: pending.map(w => { const root = rootOfWaiting(w); return { id: w.id, candidateTurnIndex: w.n, claim: w.c, ...(root ? { root } : {}) }; }), decisions, flaggedFigures: [...new Set(flaggedFigures)], droppedStamps,
     handledNow: [...handled].filter(id => !p.handled.includes(id)), keys, closedNow,
   };
 }
@@ -935,7 +940,7 @@ const unitOfSaid = (text: string) => /%|percent/i.test(text) ? '%' : /\bpoints?\
 export function closedErrorAgreed(p: {
   rows: CheckerRow[]; candidateTurnIndex: number; messages: { index: number; text: string }[];
   recReply: (n: number) => boolean; closed: string[]; keys: Record<string, CheckerKeyEntry>;
-}): (ClosedRestatement & { n: number }) | null {
+} & SaidTwice): (ClosedRestatement & { n: number }) | null {
   const verdicts = p.rows
     .filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'verdict')
     .map(r => r.payloadJsonb as VerdictPayload)
@@ -945,13 +950,21 @@ export function closedErrorAgreed(p: {
     const n = v.candidateTurnIndex;
     if (p.messages.filter(m => m.index > n).length > CHECKER_MAX_WAIT_MESSAGES || !p.recReply(n)) continue;
     const text = p.messages.find(m => m.index === n)?.text;
-    const hit = text === undefined ? null : closedErrorRestated(text, p.closed, p.keys, p.rows);
+    const hit = text === undefined ? null : closedErrorRestated(text, p.closed, p.keys, p.rows, p);
     const value = hit ? numbersOf(hit.said)[0] : undefined;
     if (hit && value !== undefined && v.claims.some(c => c.flag && numbersOf(normalizeNumberWords(c.candidateValue)).some(x => same(x, value)))) return { ...hit, n };
   }
   return null;
 }
-export function closedErrorRestated(text: string, closed: string[], keys: Record<string, CheckerKeyEntry>, rows: CheckerRow[]): ClosedRestatement | null {
+// Lorenzo, 19 Oct (round-3 ruling 2; b29 Jordan ea27d1f6 t8, t10, t20 — the conversion line three times): "the 13 Oct
+// recommendation re-correction counts as the restatement, so a correction is said at most twice in total". A key
+// restated already, or whose correction is a restated key's line word for word, has had it said twice: no
+// re-correction (the next closed key may still have one). The re-correction heard restates its key and every key whose
+// line it said (restatedBy; Settle books it).
+export type SaidTwice = { restated?: string[]; corrected?: Record<string, CorrectedRoot> };
+export const restatedBy = (key: string, line: string, corrected: Record<string, CorrectedRoot> = {}) =>
+  [...new Set([key, ...Object.keys(corrected).filter(k => corrected[k].line === line)])];
+export function closedErrorRestated(text: string, closed: string[], keys: Record<string, CheckerKeyEntry>, rows: CheckerRow[], spent: SaidTwice = {}): ClosedRestatement | null {
   const flagRows = rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag').map(r => r.payloadJsonb as CheckerDecision);
   const said = [...normalizeNumberWords(text).matchAll(/(\$\s?)?(\d+(?:\.\d+)?)(?:\s*(%|percent\b)|[\s-]*(?:percentage\s+)?(points?)\b|\s?(m|mn|million|bn|billion)\b)?/gi)]
     // Said back whole: "38-point" (from "a 38-point cost shock") is "38 points" (Jordan 78c89dba t16).
@@ -964,7 +977,9 @@ export function closedErrorRestated(text: string, closed: string[], keys: Record
     const flags = flagRows.filter(d => d.key === key);
     const units = new Set<string>(flags.map(d => unitOfSaid(d.candidateValue)).filter(Boolean));
     const hit = said.find(s => units.has(s.unit) && figures.some(f => same(s.value, f)));
-    if (hit) return { key, said: hit.text, correction: flags.find(d => d.outcome === 'correct')?.line ?? null };
+    const correction = flags.find(d => d.outcome === 'correct')?.line ?? null;
+    if (hit && (spent.restated ?? []).some(r => r === key || (correction !== null && spent.corrected?.[r]?.line === correction))) continue;
+    if (hit) return { key, said: hit.text, correction };
   }
   return null;
 }

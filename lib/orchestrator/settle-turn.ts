@@ -39,7 +39,7 @@ import { derivePhase, type TurnMove } from './progress';
 import { turnDataChecked, pressureTestOutcomeNow } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
-import { lineHeard, correctsNow } from './math-checker-live';
+import { lineHeard, correctsNow, restatedBy, type CorrectedRoot } from './math-checker-live';
 import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim, dropAckOpening } from './stream-turn';
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
@@ -843,6 +843,13 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       ...(holdPrev.probeTurns?.length || (kind === 'rec_math_probe' && qHeard) ? { probeTurns: [...(holdPrev.probeTurns ?? []), ...(kind === 'rec_math_probe' && qHeard ? [nextTurnIndex] : [])] } : {}),
       ...(probedNow.length || holdPrev.probed?.length ? { probed: [...(holdPrev.probed ?? []), ...probedNow.filter(k => !holdPrev.probed?.some(p => p.key === k)).map(key => ({ key, at: nextTurnIndex }))] } : {}),
     };
+    // The 13 Oct re-correction heard is a correction's second saying (Lorenzo, 19 Oct, round-3 ruling 2; b29 Jordan
+    // t20): its key, and every key whose line it said word for word, are restated — no restatement after it.
+    const recMath = kind === 'rec_math_probe' ? state.recMathProbe : null;
+    const reCorrected = recMath && 'closed' in recMath && recMath.action === 'correct' ? recMath.closed : null;
+    const memory = flags.mathChecker as { restated?: string[]; corrected?: Record<string, CorrectedRoot> } | undefined;
+    const restatedNow = reCorrected?.correction && h.heardContains(reCorrected.correction) ? restatedBy(reCorrected.key, reCorrected.correction, memory?.corrected) : [];
+    const mathCheckerSaved = restatedNow.length > 0 ? { mathChecker: { ...memory, restated: [...new Set([...(memory?.restated ?? []), ...restatedNow])] } } : {};
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held
     // are put to the interviewer next turn — once; then they lapse (logged).
     const closed = (st: string | undefined) => st === 'satisfied' || st === 'waived';
@@ -910,6 +917,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             // The close hold for a line a due stage held back: once an interview (Lorenzo, 15 Oct).
             heldCloseHold: Boolean(flags.heldCloseHold) || (kind === 'rec_math_probe' && state.heldCloseHold && qHeard),
             ...(Object.keys(closeHoldSaved).length ? { closeHold: closeHoldSaved } : {}),
+            ...mathCheckerSaved,
             recomputeAttempts,
             // The connecting words heard this turn (phrasing.ts): no variant again within its pool's last 3.
             phraseUses: recordPhraseUses(savedLine, phraseUses, dataLineVariantsOn() ? dataLinePools() : undefined),

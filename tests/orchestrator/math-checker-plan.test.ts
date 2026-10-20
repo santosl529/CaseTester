@@ -378,6 +378,19 @@ describe('the close hold reads the highest rating riding on a root (ruling 4)', 
     const p = modelState(planTurn(withVerdict(reads({ closeHold: { probed: [{ key: 'pricing:gain@5', at: 3 }] } }), rows()), RISK, deps()));
     expect(p.state.kind).toBe('close');
     for (const id of ['5:0', '7:0']) expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id, outcome: 'unresolved_at_close' }) }));
+    // The rider carries its root to the report (round-2 final review, Minor 2).
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close', root: 'pricing:gain@5' }) }));
+  });
+  // Round-2 final review, Minor 2 (Lorenzo, 19 Oct, round-3 ruling 2): a restatement the close cut off carries its root.
+  it('a root corrected live, a claim on it still to restate, its hold spent: the close — the claim carries its root', () => {
+    const LINE = 'A 10% price rise lifts margin about 8.5 points, not 5.';
+    const memory = { mathChecker: { handled: ['5:0'], keys: { 'pricing:gain@5': { figures: [5], since: 5 } }, closed: ['pricing:gain@5'], corrected: { 'pricing:gain@5': { line: LINE, figure: '8.5' } } } };
+    const sel = planCheckerFlags({ rows: rows() as never, turnRows: [5, 7].map(i => ({ turnIndex: i, role: 'candidate', text: i === 5 ? CLAIM : REPLY })), candidateText: RISK, candidateTurnIndex: 9,
+      currentFlags: [], attempts: {}, underTimePressure: false, candidateFigures: [], caseData: getCaseById('prof-001'), revealedIds: CORE, ...memory.mathChecker }).selected;
+    expect(sel).toMatchObject({ id: '7:0', action: 'restate', key: 'pricing:gain@5', line: LINE });
+    const p = modelState(planTurn(withVerdict(reads({ ...memory, closeHold: { probed: [{ key: 'pricing:gain@5', at: 3 }] } }), rows()), RISK, deps()));
+    expect(p.state.kind).toBe('close');
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close', root: 'pricing:gain@5' }) }));
   });
   it('the selection carries the riders\' rating: conclusion-changing, its final answers and rank', () => {
     const sel = planCheckerFlags({ rows: rows() as never, handled: [], turnRows: [5, 7].map(i => ({ turnIndex: i, role: 'candidate', text: i === 5 ? CLAIM : REPLY })), candidateText: RISK, candidateTurnIndex: 9,

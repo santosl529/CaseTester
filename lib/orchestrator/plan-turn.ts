@@ -841,10 +841,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     : undefined;
   // An error past Rule 14 said again in the recommendation (Lorenzo, 13 Oct;
   // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule — once
-  // the reply's verdict flags it too (the gate).
+  // the reply's verdict flags it too (the gate). It is the correction's second
+  // saying: none once its line was said twice (Lorenzo, 19 Oct, round-3 ruling 2; b29 Jordan t20).
   const closedRec = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag && wrapUps > 0
     ? closedErrorAgreed({
       rows: checkerRows, candidateTurnIndex: ctx.nextTurnIndex, recReply: recReplyAt, closed: closedKeys, keys: checkerPlan.keys,
+      restated: checkerMemory.restated, corrected: checkerMemory.corrected,
       messages: [...turnRows.filter(t => t.role === 'candidate').map(t => ({ index: t.turnIndex, text: t.text })), { index: ctx.nextTurnIndex, text: candidateText }],
     })
     : null;
@@ -1053,8 +1055,13 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${leftForReport.map(d => `"${d.candidateValue}"`).join(', ')} has been probed twice and goes in the written report. Don't ask about it again — move the case on.`].filter(Boolean).join('\n\n');
   }
   if (kind === 'close') {
-    for (const w of [...(sel ? [{ id: sel.id, candidateTurnIndex: sel.candidateTurnIndex, claim: sel.claim }, ...(checkerUsed ? [] : sel.riders ?? [])] : []), ...checkerPlan.waiting]) {
-      checkerDecisions.push({ id: w.id, candidateTurnIndex: w.candidateTurnIndex, outcome: 'unresolved_at_close', reason: timeUp ? 'time up' : 'the case closed', span: w.claim.span, candidateValue: w.claim.candidateValue, key: checkerKey(w.claim), changesConclusion: w.claim.changesConclusion });
+    // A claim built on another error carries its root: the report says what became of it (round-2 final review, Minor 2).
+    const atClose: { id: string; candidateTurnIndex: number; claim: VettedClaim; root?: string }[] = [
+      ...(sel ? [{ id: sel.id, candidateTurnIndex: sel.candidateTurnIndex, claim: sel.claim, ...(sel.action === 'restate' ? { root: sel.key } : {}) }, ...(checkerUsed ? [] : (sel.riders ?? []).map(r => ({ ...r, root: sel.key })))] : []),
+      ...checkerPlan.waiting,
+    ];
+    for (const w of atClose) {
+      checkerDecisions.push({ id: w.id, candidateTurnIndex: w.candidateTurnIndex, outcome: 'unresolved_at_close', reason: timeUp ? 'time up' : 'the case closed', span: w.claim.span, candidateValue: w.claim.candidateValue, key: checkerKey(w.claim), changesConclusion: w.claim.changesConclusion, ...(w.root ? { root: w.root } : {}) });
       checkerHandledNow.push(w.id);
     }
   }

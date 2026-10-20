@@ -604,6 +604,27 @@ describe('a closed error in the recommendation: the same unit, never a bare numb
     const k = 'checker:forty points';
     expect(closedErrorRestated('It carries about 40 points of pressure.', [k], { [k]: { figures: [40], since: 3 } }, [row(k, 'forty points')])).toMatchObject({ said: '40 points' });
   });
+  // Lorenzo, 19 Oct (round-3 ruling 2; b29 Jordan ea27d1f6 t20, the conversion line a third time): a correction is
+  // said at most twice — a key restated already, or one whose correction is a restated key's line word for word, gets
+  // no re-correction in the recommendation; another closed key still does.
+  describe('a correction said twice already is not said again', () => {
+    const L = 'COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base.';
+    const fixed = (key: string, candidateValue: string, line: string): CheckerRow => ({ category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: 5, payloadJsonb: { id: `${key}:0`, candidateTurnIndex: 3, outcome: 'correct', reason: 'attempt 2', span: '', candidateValue, key, changesConclusion: true, line } });
+    const k40 = 'checker:~40 points', k48 = 'checker:$48m';
+    const keys = { [k40]: { figures: [40], since: 3 }, [k48]: { figures: [48], since: 3 } };
+    const rows = [fixed(k40, '~40 points', L), fixed(k48, '$48M', 'Lost margin is about $30M, not $48M.')];
+    const TEXT = 'COGS carries about 40 points, and I size the damage at $48M.';
+    it('not spent: the first closed key said again', () => expect(closedErrorRestated(TEXT, [k40, k48], keys, rows)).toMatchObject({ key: k40, correction: L }));
+    it('its key restated already: skipped, the next closed key found', () => {
+      expect(closedErrorRestated(TEXT, [k40, k48], keys, rows, { restated: [k40] })).toMatchObject({ key: k48 });
+      expect(closedErrorRestated(TEXT, [k40], keys, rows, { restated: [k40] })).toBeNull();
+    });
+    it("another key restated with the same line (b29: the root's restatement covered \"~40 points\"): skipped", () => {
+      const spent = { restated: ['cogs_dollar_impact@38'], corrected: { 'cogs_dollar_impact@38': { line: L, figure: '16' } } };
+      expect(closedErrorRestated(TEXT, [k40, k48], keys, rows, spent)).toMatchObject({ key: k48 });
+      expect(closedErrorRestated(TEXT, [k40, k48], keys, rows, { ...spent, corrected: { 'cogs_dollar_impact@38': { line: 'Another line.' } } })).toMatchObject({ key: k40 });
+    });
+  });
 });
 
 // Lorenzo, 15 Oct (batch-25 ruling 8; Jasmine f4fcab5b): a later "correct"
@@ -1005,6 +1026,16 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       expect(p.selected).toBeNull();
       expect(p.waiting.map(w => w.id)).toEqual(['17:0']);
       expect(p.decisions).toEqual([]);
+      // It carries its root: if the case closes on it, the report says what became of the root (round-2 final, Minor 2).
+      expect(p.waiting[0].root).toBe('net_price@2000');
+    });
+    // Round-2 final review, Minor 2: a restatement that waited and expired keeps its root for the report.
+    it('one that waited past CHECKER_MAX_WAIT_MESSAGES: expired, with its root', () => {
+      const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected, candidateTurnIndex: 23,
+        turnRows: [{ turnIndex: 17, role: 'candidate', text: T17 }, { turnIndex: 18, role: 'interviewer', text: 'Go on.' }, { turnIndex: 19, role: 'candidate', text: 'Ideas.' }, { turnIndex: 20, role: 'interviewer', text: 'Go on.' }, { turnIndex: 21, role: 'candidate', text: 'More ideas.' }, { turnIndex: 22, role: 'interviewer', text: 'Go on.' }],
+        candidateText: 'Still more ideas.' });
+      expect(p.selected).toBeNull();
+      expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'expired', root: 'net_price@2000' })]);
     });
     it('a waiting flag whose own correction is another line is not covered', () => {
       const other = vetted({ span: 'eligible pool of 300,000', quantity: 'eligible patients', candidateValue: '300,000', correctValue: 200000, codeQuantity: step('eligible_patients'),
@@ -1032,6 +1063,14 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
         expect(p.selected).toMatchObject({ id: '17:0', action: 'restate', line, derived: ['8000'] });
         expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'restate', line })]);
       }
+    });
+    // Round-2 final review, Minor 4 (the old builder took the scale word from the right figure: "$1.2 million" for
+    // "$1.2 billion"): fixed by the verbatim line (round-3 ruling 1); confirmed here (round-3 ruling 2).
+    it('a "$1.2 billion" claim: the delivered line verbatim, no scale word rebuilt', () => {
+      const line = 'Peak net sales are about $320 million, not $1.2 billion.';
+      const p = run([sales('600,000 × $2,000 = $1.2 billion', '$1.2 billion')], { ...closedNet, corrected: { 'net_price@2000': { line, figure: '320' } } });
+      expect(p.selected).toMatchObject({ id: '17:0', action: 'restate', line, derived: ['320'] });
+      expect(p.selected?.line).not.toMatch(/\$1\.2 million|\$320 billion/);
     });
     it('a minor claim under time pressure is shed, as a minor flag is', () => {
       const p = run([sales('40,000 × $2,000 = $80 million', '$80 million', { changesConclusion: false })], { ...closedNet, corrected, underTimePressure: true });
@@ -1065,7 +1104,7 @@ describe('ruling 1 on the evidence: b28 Jordan t19, b29 Jordan t9', () => {
     expect(p.selected).toMatchObject({ id: '7:1', action: 'restate', key: 'cogs_dollar_impact@38', line: COGS_LINE });
     expect(p.waiting.map(w => w.id)).toContain('5:6');
     // The controller's ruling on Task 11 (option c): 5:6's own correction is the root's delivered line, word for word —
-    // the restatement corrects it (booked with the line, plan-turn): its key closes and t20's re-correction in the recommendation stays.
+    // the restatement corrects it (booked with the line, plan-turn): its key closes, restated — so t20's re-correction in the recommendation, the line a third time, is not said (round-3 ruling 2).
     expect(p.selected?.covers).toEqual([expect.objectContaining({ id: '5:6', key: 'checker:~40 points', line: COGS_LINE })]);
     expect(p.decisions.find(d => d.id === '5:6')).toMatchObject({ outcome: 'correct', line: COGS_LINE, key: 'checker:~40 points', by: '7:1' });
     expect(p.handledNow).not.toContain('5:6');

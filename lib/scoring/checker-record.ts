@@ -75,6 +75,11 @@ function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outco
   if (has('pointer')) return 'Probed twice (the second time against the data); not corrected.';
   if (has('hint')) return 'Probed twice (the second time with a hint); not corrected.';
   if (has('probe')) return 'Probed; not corrected.';
+  // A claim built on a root a live correction closed that ended unsaid (shed, expired, cut off by the close) carries
+  // that root: what became of it, not a bare "not raised" (round-2 final review, Minor 2; Lorenzo, 19 Oct, round-3 ruling 2).
+  const unsaid = outcomes.find(d => ['expired', 'shed', 'unresolved_at_close'].includes(d.outcome) && d.root !== undefined
+    && all.some(r => r.key === d.root && (r.outcome === 'correct' || r.outcome === 'converted')));
+  if (unsaid) return builtText(unsaid.root, all);
   if (has('expired')) return 'Not raised in the interview (it waited behind other checks and expired).';
   if (has('shed')) return 'Not raised in the interview (minor, under time pressure).';
   if (has('unresolved_at_close')) return 'Not raised in the interview (the case closed first).';
