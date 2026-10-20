@@ -147,6 +147,16 @@ const SAYS_BASIS = /\b(?:based on|comes? from|derived from|benchmark(?:ed)? (?:o
 const ONE_OFF_ASK = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up)\s+(?:costs?|fees?|spend|expenses?|investment|capex)\b|\b(?:costs?|spend|investment)\s+(?:to|of|for)\s+(?:stand(?:ing)?[- ]up|set(?:ting)?[- ]up|start(?:ing)?[- ]up)\b/i;
 const RECURRING_VALUE = /\b(?:annual|annually|yearly|a year|per year|each year|a month|per month|monthly)\b/i;
 const ONE_OFF_VALUE = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up|launch costs?)\b/i;
+// An ask for both cuts ("setup cost and ongoing cost of building our own team"):
+// the item answers its recurring cut, so the one-off rule doesn't put it out of
+// scope — unless the ask sets the recurring cut aside ("separate from the $80M
+// annual", Marisol t23). A recurring word right before the one-off phrase
+// modifies it ("the monthly setup cost") and is not a second cut (final review I2, 20 Oct).
+const RECURRING_WORD = String.raw`(?:annual|annually|ongoing|recurring|running|yearly|monthly|per year|a year|each year|per month|a month)`;
+const RECURRING_CUT = new RegExp(String.raw`\b${RECURRING_WORD}\b`, 'i');
+const ONE_OFF_WITH_MODIFIER = new RegExp(String.raw`(?:\b${RECURRING_WORD}\s+)?(?:${ONE_OFF_ASK.source})`, 'gi');
+const SETS_ASIDE = /\b(?:separate(?:ly)? from|apart from|aside from|excluding|exclusive of|not (?:counting|including)|other than|beyond|on top of|over and above|besides)\b/i;
+const asksBothCuts = (ask: string) => RECURRING_CUT.test(ask.replace(ONE_OFF_WITH_MODIFIER, ' ')) && !SETS_ASIDE.test(ask);
 
 // Whether a cost recurs (round 5 Task 51 fix round 1; B2 Hollis Bay Marisol a14ca044
 // t9, "whether the $3.0 million roasting line is truly a first-year-only cost or an
@@ -170,7 +180,7 @@ export function changeForSplit(what: string, item: { label: string }): boolean {
 export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = []): boolean {
   const ask = what.toLowerCase();
   if (BASIS.test(ask) && !SAYS_BASIS.test(item.value ?? '')) return true;
-  if (ONE_OFF_ASK.test(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
+  if (ONE_OFF_ASK.test(ask) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
   if (RECURRENCE_ASK.test(ask) && firstYearOnly(item.value ?? '')) return true;
   // A count asked of an item that states no figure (round 5 Task 50; fact-check.ts
   // COUNT_ASK): the item is the ask's coarse answer, not the count.

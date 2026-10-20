@@ -105,6 +105,34 @@ describe('an ask the scope rule empties keeps its coarse item (E1), without D1\'
 const MARISOL_T23 = "That came from the version where I had the royalty reversed. I'd computed Option B as $400M × 70% = $280M to Aldermoor, and Option A as $320M − $80M = $240M, so $280M − $240M = $40M in B's favour.\n\nThat's wrong on the premise. With the royalty read correctly, Option B gives Aldermoor $400M × 30% = $120M, and Option A gives $240M. So the gap is $240M − $120M = $120M, and it runs the other way — A beats B by $120M on what Aldermoor keeps.\n\nThe $40M number should be struck.\n\nThe one thing that still favours B is timing: six months versus 12–18, so B reaches peak sooner and we bank revenue a year earlier. But on an annual peak basis A is twice as good, and with patents to 2038 we have thirteen years to amortise the build. Do we know the one-off cost to stand up the US team, separate from the $80M annual?";
 const MARISOL_T23_ASK = { what: 'One-off cost to stand up the US team under Option A, separate from the $80M annual cost', itemIds: ['option_a'], explicit: true, respond: 'release' as const };
 
+// Final review I2 (20 Oct), the reviewer's probe: an ask naming both the one-off cut
+// and the recurring cut the item holds. The one-off rule no longer puts option_a out
+// of scope, so E1 never gives the item and then refuses the whole ask.
+const BOTH_CUTS = 'What are the setup cost and ongoing cost of building our own team?';
+const BOTH_CUTS_ASK = { what: 'setup cost and ongoing cost of building our own team', itemIds: ['option_a'], explicit: true, respond: 'release' as const };
+const OPTIONS_REVEALED = ['survey_design', 'reasons_to_prescribe', 'barriers_to_prescribing', 'funnel_rates', 'patents', 'insurance_coverage', 'us_adults', 'peak_share_forecast', 'net_sales_definition', 'kelvexa_pricing'];
+
+describe('an ask naming both the one-off and the recurring cut (final review I2)', () => {
+  it('option_a not yet out: its line, and no refusal of the cost it just gave', async () => {
+    const p = plan('entry-001', BOTH_CUTS, { revealed: OPTIONS_REVEALED });
+    const d = await turnDataChecked(p, turn([BOTH_CUTS_ASK]));
+    expect(d.releases.map(r => r.id)).toEqual(['option_a']);
+    expect(d.refusals).toEqual([]);
+    expect(acted(p, 'scope_coarse')).toHaveLength(0);
+    expect(renderDataLines(d, 's').join(' ')).toMatch(/^Option A is building .*annual US selling costs are \$80 million/);
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(/I don't have/);
+  });
+  it('option_a already on Exhibit 3: no "I don\'t have" of data on screen', async () => {
+    const p = plan('entry-001', BOTH_CUTS, { revealed: [...OPTIONS_REVEALED, 'option_a', 'option_b', 'option_shared'], shown: ['exhibit-2', 'exhibit-1', 'exhibit-3'], flags: { exhibitOnly: ['option_a', 'option_b', 'option_shared'] } });
+    const d = await turnDataChecked(p, turn([BOTH_CUTS_ASK]));
+    expect(d.releases).toEqual([]);
+    expect(d.refusals).toEqual([]);
+    expect(d.restates.map(r => r.id)).toEqual(['option_a']);
+    expect(renderDataLines(d, 's').join(' ')).toMatch(/^As the exhibit shows: Option A is building/);
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(/I don't have/);
+  });
+});
+
 describe('a coarse item already out, or held back', () => {
   // Controller ruling on E1 (20 Oct): Lorenzo's 13 Oct 4b stands — a coarse item
   // already out (said, or on a shown exhibit) is not said again; the finer cut is

@@ -733,4 +733,10 @@ describe('a one-off cost ask (Lorenzo, 20 Oct; batch 34 Aldermoor Marisol t23)',
     expect(outsideAskScope('the annual selling cost', optionA)).toBe(false);
     expect(outsideAskScope('the one-off cost', { label: 'Plan cost', value: 'The plan costs $20 a month plus a one-off $500 setup fee.' })).toBe(false);
   });
+  // Final review I2 (20 Oct), the reviewer's probe: both cuts named, no cue setting the recurring one aside.
+  it('keeps an ask naming both the one-off and the recurring cut; still cuts one that sets the recurring cut aside', () => {
+    expect(outsideAskScope('setup cost and ongoing cost of building our own team', optionA)).toBe(false);
+    expect(outsideAskScope('One-off cost to stand up the US team under Option A, separate from the $80M annual cost', optionA)).toBe(true);
+    expect(outsideAskScope('the one-time cost on top of the annual selling cost', optionA)).toBe(true);
+  });
 });
