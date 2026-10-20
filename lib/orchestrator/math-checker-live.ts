@@ -948,17 +948,21 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // A claim's own figures as written in its value, less the input code computes from and a bare one-digit count ("3 steps").
   const ownAt = (c: VettedClaim) => { const input = boundInput(c); return figuresIn(c.candidateValue).filter(x => (input === null || !same(x.value, input)) && !(x.unit === '' && /^\d$/.test(x.raw))); };
   const headAt = (c: VettedClaim) => { const h = ownAt(c)[0]; return h === undefined || isData(h) ? null : h; };
+  // The claims that state the misread itself: the input as their own figure, or carried in its unit or as a fraction.
+  const statesInput = new Map<string, string>();
   for (const f of ordered) {
     const own = dataFigure(f.c, vetCtx);
-    if (own !== null) {
-      const unit = figureUnits(f.c.candidateValue, own)[0] ?? figureUnits(f.c.span, own)[0] ?? '';
-      if (onItsOwnRow(own, f.c, vetCtx, unit)) continue;
-      const k = inputKey(own, unit);
-      inputOf.set(f.id, k);
-      ownsInput.add(f.id);
-      if (!inputSince.has(k)) inputSince.set(k, f.n);
-      continue;
-    }
+    if (own === null) continue;
+    const unit = figureUnits(f.c.candidateValue, own)[0] ?? figureUnits(f.c.span, own)[0] ?? '';
+    if (onItsOwnRow(own, f.c, vetCtx, unit)) continue;
+    const k = inputKey(own, unit);
+    inputOf.set(f.id, k);
+    ownsInput.add(f.id);
+    statesInput.set(f.id, k);
+    if (!inputSince.has(k) || inputSince.get(k)! > f.n) inputSince.set(k, f.n);
+  }
+  for (const f of ordered) {
+    if (ownsInput.has(f.id)) continue;
     const carried = figuresIn(`${f.c.span} ${f.c.candidateValue}`).flatMap(x => (x.value > 0 && x.value < 1 ? [x, { ...x, value: Math.round(x.value * 1e6) / 1e4, unit: '%' }] : [x]));
     const head = headAt(f.c);
     const restated = head && ordered.find(g => g.n <= f.n && g.id !== f.id && inputOf.has(g.id) && !ownsInput.has(g.id)
@@ -967,9 +971,19 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     // 5.6x" is built on her "4.65 years (~56 months)", itself on 21.5 (rootOf's link, one input down).
     const via = ordered.find(g => g.n <= f.n && g.id !== f.id && inputOf.has(g.id)
       && ownAt(g.c).some(x => !isData(x) && carried.some(y => same(y.value, x.value) && unitsAgree(y.unit, x.unit))));
-    const k = [...inputSince].find(([key, since]) => { const i = parseInputKey(key)!; return since <= f.n && carried.some(y => same(y.value, i.figure) && y.unit === i.unit); })?.[0]
-      ?? (restated ? inputOf.get(restated.id) : undefined) ?? (via ? inputOf.get(via.id) : undefined);
-    if (k !== undefined && !onItsOwnRow(parseInputKey(k)!.figure, f.c, vetCtx, parseInputKey(k)!.unit)) inputOf.set(f.id, k);
+    const direct = [...inputSince].find(([key, since]) => { const i = parseInputKey(key)!; return since <= f.n && carried.some(y => same(y.value, i.figure) && y.unit === i.unit); })?.[0];
+    const k = direct ?? (restated ? inputOf.get(restated.id) : undefined) ?? (via ? inputOf.get(via.id) : undefined);
+    if (k !== undefined && !onItsOwnRow(parseInputKey(k)!.figure, f.c, vetCtx, parseInputKey(k)!.unit)) {
+      inputOf.set(f.id, k);
+      if (direct !== undefined) statesInput.set(f.id, direct);
+      continue;
+    }
+    // Controller's ruling (fix round 2; re-review I3, her t11 "Starter sits above it" — Starter clearing 3x, said in the
+    // message that reads 40% as Pro's): a claim in a message that states the misread is on its chain, whatever its own
+    // figures (its "3x" is the board's rule, a case figure in its unit). Before the fix it is covered; after, it hears
+    // the fix once more (round-2 ruling 1). Its own row is no test here: it doesn't use the figure.
+    const mate = ordered.find(g => g.n === f.n && g.id !== f.id && statesInput.has(g.id));
+    if (mate) inputOf.set(f.id, statesInput.get(mate.id)!);
   }
   const inputKeyOf = (e: { id: string }) => inputOf.get(e.id) ?? null;
   // The interviewer turns that probed an input: code's lines on it (flags.inputProbes), and every turn since it was

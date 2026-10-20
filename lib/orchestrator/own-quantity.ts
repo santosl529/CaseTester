@@ -16,6 +16,7 @@
 // toward 42").
 import { normalizeNumberWords, articleFor } from '@/lib/number-words';
 import { numbersOf, boundInput, quantityWords, type CheckerClaim, type VetContext } from './math-checker';
+import { boundFigures } from './figure-binding';
 
 export type Reading = { quantity: string; value: number };
 export type QuantityFrame =
@@ -339,28 +340,38 @@ const dataTexts = (ctx: VetContext) => [ctx.caseData.prompt, ...ctx.caseData.dat
 export const unitsAgree = (a: string, b: string) => a === b || ((a === '' || a === 'x') && (b === '' || b === 'x'));
 
 // A figure led into by arithmetic or a result word: computed, not read ("40 months × $30 = $1,200", "comes to $1,200").
-const COMPUTED_BEFORE = /(?:[=≈~×*/÷+−]|\s-|\bx|\btimes|\bequals?|\bcomes? to|\bworks? out to|\bgives?(?: us| you)?)\s*(?:about\s+|roughly\s+|approximately\s+|around\s+)?\$?\s?$/i;
+// "~"/"≈" right before a figure is "about" ("CAC ~$1,200", a read); after an expression it is a result ("× $30 ≈ $1,675").
+const APPROX_RESULT = /[\d%)]\s*[≈~]\s*(?:about\s+|roughly\s+)?\$?\s?$/;
+const COMPUTED_BEFORE = /(?:[=×*/÷+−]|\s-|\bx|\btimes|\bequals?|\bcomes? to|\bworks? out to|\bgives?(?: us| you)?)\s*(?:about\s+|roughly\s+|approximately\s+|around\s+)?\$?\s?$/i;
 // Read as data: some place the claim's span states the figure, not as the result of arithmetic (review I1, fix round 1).
 function readAsData(span: string, f: number): boolean {
   const t = normalizeNumberWords(span);
   const at = [...t.matchAll(/\d[\d,]*(?:\.\d+)?/g)].filter(m => Math.abs(parseFloat(m[0].replace(/,/g, '')) - f) < 1e-9);
-  return at.length === 0 || at.some(m => !COMPUTED_BEFORE.test(t.slice(Math.max(0, m.index! - 30), m.index!)));
+  return at.length === 0 || at.some(m => { const lead = t.slice(Math.max(0, m.index! - 30), m.index!); return !COMPUTED_BEFORE.test(lead) && !APPROX_RESULT.test(lead); });
 }
 // Words that name no quantity, and a word's stem (its first five letters: "cancelled" ~ "cancellation", "months" ~ "monthly").
 const PLAIN_TALK = new Set(['that', 'this', 'with', 'from', 'have', 'were', 'been', 'still', 'after', 'before', 'those', 'these', 'their', 'there', 'which', 'about', 'through', 'than', 'each', 'also', 'some', 'more', 'most', 'over', 'under', 'what', 'when', 'where', 'them', 'they', 'into', 'figure', 'number', 'used', 'read', 'take', 'took', 'from', 'whole', 'same', 'then']);
 const stemsIn = (text: string) => new Set((text.match(/[A-Za-z][A-Za-z'-]*/g) ?? []).map(w => w.toLowerCase()).filter(w => w.length >= 4 && !PLAIN_TALK.has(w)).map(w => w.slice(0, 5)));
-// The data's own words for the figure: up to six words either side of it in the sentence of a released line that states
-// it in this unit — less capitalised words, which name whose figure it is ("Pro", "Starter"), not what it is.
+// The data's own words for the figure, in each sentence of a released line that states it in this unit: the quantity
+// phrase it is bound to (figure-binding.ts: "$80 million" → "selling costs", "21.5% had cancelled"), or — where it is
+// bound to none — the three words either side of it. Capitalised words name whose figure it is ("Pro", "Starter"), not
+// what it is, and are left out. Fix round 2 (b32 Aldermoor Marisol 6a721cdf): a ±6-word window let her peak sales
+// "$80 million" share "peak" with Option A's selling costs ("…are $80 million, the expected peak share…").
 function dataWordsFor(f: number, unit: string, ctx: VetContext): Set<string> {
   const out = new Set<string>();
+  const add = (text: string) => { for (const x of text.split(/\s+/)) if (!/^[A-Z]/.test(x)) stemsIn(x).forEach(st => out.add(st)); };
   for (const text of dataTexts(ctx)) {
     for (const s of normalizeNumberWords(text).split(/(?<=[.;!?])\s+/)) {
-      const words = s.split(/\s+/);
-      words.forEach((w, i) => {
-        const n = (w.match(/\d[\d,]*(?:\.\d+)?/) ?? [])[0];
-        if (n === undefined || Math.abs(parseFloat(n.replace(/,/g, '')) - f) > 1e-9 || !figureUnits(w, f).some(u => unitsAgree(u, unit))) return;
-        for (const x of [...words.slice(Math.max(0, i - 6), i), ...words.slice(i + 1, i + 7)]) if (!/^[A-Z]/.test(x)) stemsIn(x).forEach(st => out.add(st));
-      });
+      if (!figuresIn(s).some(x => Math.abs(x.value - f) < 1e-9 && unitsAgree(x.unit, unit))) continue;
+      const bound = boundFigures(s).filter(b => Math.abs(b.value - f) < 1e-9);
+      for (const b of bound) if (b.phrase) add(b.phrase);
+      if (bound.length === 0 || bound.some(b => !b.phrase)) {
+        const words = s.split(/\s+/);
+        words.forEach((w, i) => {
+          if (!figuresIn(w).some(x => Math.abs(x.value - f) < 1e-9 && unitsAgree(x.unit, unit))) return;
+          add([...words.slice(Math.max(0, i - 3), i), ...words.slice(i + 1, i + 4)].join(' '));
+        });
+      }
     }
   }
   return out;

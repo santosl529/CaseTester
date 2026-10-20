@@ -33,6 +33,18 @@ type Fixture = {
 };
 const F = EVIDENCE['b35q-marisol-087451cb-t11'] as unknown as Fixture;
 const T23_5 = (EVIDENCE['b35q-marisol-087451cb-23:5'] as unknown as { claim: VettedClaim }).claim;
+const V11 = (EVIDENCE['b35q-marisol-087451cb-v11'] as unknown as { row: CheckerRow }).row;
+// A claim placed in her t3 message (structure, before any data: no input stated there), held so it doesn't expire —
+// a claim on no chain.
+const inMessage3 = (c: VettedClaim) => F.rows.map(r => (r.subtype === 'verdict' && (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 3
+  ? { ...r, payloadJsonb: { ...(r.payloadJsonb as VerdictPayload), claims: [c] } } : r));
+const ALL_HANDLED = [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3', '9:0', '9:1', '9:2'];
+// One claim alone in her t11 slot, the message reduced to `text` (states no input): planned on t13.
+const aloneAt11 = (c: VettedClaim, text: string, over: Partial<CheckerPlanInput> = {}) => planAt({
+  rows: [...F.rows, { ...V11, payloadJsonb: { ...(V11.payloadJsonb as VerdictPayload), claims: [c] } }], handled: ALL_HANDLED, candidateTurnIndex: 13,
+  turnRows: [...F.turnRows, { turnIndex: 11, role: 'candidate', text }, { turnIndex: 12, role: 'interviewer', text: 'Got it. Where does that leave your analysis?' }],
+  candidateText: 'Got it.', ...over,
+});
 const claimOf = (id: string): VettedClaim => {
   const [n, i] = id.split(':').map(Number);
   const v = F.rows.find(r => r.subtype === 'verdict' && (r.payloadJsonb as VerdictPayload).candidateTurnIndex === n)!.payloadJsonb as VerdictPayload;
@@ -170,20 +182,48 @@ describe('after the row fix: a claim on the input said before it was covered; on
 
 describe("a claim on no misread input: today's behavior", () => {
   // Her t23 "Pro's margin is only 2.7x Starter's" (23:5, a margin ratio — no figure of the data, nothing of 21.5 or 40),
-  // placed beside her t9 claims: after one probe, Rule 14's second attempt as before (no correction code can write, no
-  // pointer — the report), with no input booked or capped.
+  // in a message that states no input: after one probe, Rule 14's second attempt as before (no correction code can
+  // write, no pointer — the report), with no input booked or capped.
   it('"2.7x" after a probe: attempt 2, as today', () => {
-    const rows = F.rows.map(r => (r.subtype === 'verdict' && (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 9
-      ? { ...r, payloadJsonb: { ...(r.payloadJsonb as VerdictPayload), claims: [...(r.payloadJsonb as VerdictPayload).claims, T23_5] } } : r));
-    const p = planAt({ rows, handled: [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3', '9:0', '9:1', '9:2'], attempts: { ...F.attempts, 'checker:2.7x': 1 }, candidateTurnIndex: 13 });
+    const p = planAt({ rows: inMessage3(T23_5), handled: ALL_HANDLED, held: '3:0', attempts: { ...F.attempts, 'checker:2.7x': 1 }, candidateTurnIndex: 13 });
     expect(p.selected).toBeNull();
-    expect(p.decisions.find(d => d.id === '9:3')).toMatchObject({ outcome: 'unresolved', key: 'checker:2.7x', reason: 'attempt 2: no correction code can write, no pointer — left for the report' });
+    expect(p.decisions.find(d => d.id === '3:0')).toMatchObject({ outcome: 'unresolved', key: 'checker:2.7x', reason: 'attempt 2: no correction code can write, no pointer — left for the report' });
   });
   it('…and with no probe yet: its probe, not booked to any input', () => {
-    const rows = F.rows.map(r => (r.subtype === 'verdict' && (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 9
-      ? { ...r, payloadJsonb: { ...(r.payloadJsonb as VerdictPayload), claims: [...(r.payloadJsonb as VerdictPayload).claims, T23_5] } } : r));
-    const p = planAt({ rows, handled: [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3', '9:0', '9:1', '9:2'], candidateTurnIndex: 13 });
-    expect(p.selected).toMatchObject({ id: '9:3', action: 'probe' });
+    const p = planAt({ rows: inMessage3(T23_5), handled: ALL_HANDLED, held: '3:0', candidateTurnIndex: 13 });
+    expect(p.selected).toMatchObject({ id: '3:0', action: 'probe' });
+    expect(p.selected?.input).toBeUndefined();
+  });
+});
+
+describe('fix round 2: a claim in the message that states the misread is on its chain (controller ruling; re-review I3)', () => {
+  // Her t11, verbatim: "Same formula. Pro's twelve-month cancellation figure is 40%, so 1 / 0.40 = 2.5. … So Pro sits
+  // below the board's three-times bar while Starter sits above it." 11:4 "above 3x" ("Starter sits above it") carries
+  // only the board's 3x — a case figure in its unit — but is said in the message that reads 40% as Pro's (11:0).
+  const corrected = (at: number) => ({ 'input:21.5%': { line: ROW_FIX, at }, 'input:40%': { line: ROW_FIX, at } });
+  const t13 = (at: number) => planAt({
+    rows: [...F.rows, V11], candidateTurnIndex: 13, handled: [...ALL_HANDLED, '11:0', '11:1', '11:2', '11:3'], closed: ['input:21.5%', 'input:40%'], corrected: corrected(at),
+    said: { [ROW_FIX.toLowerCase().replace(/\.$/, '')]: 1 },
+    turnRows: [...F.turnRows, { turnIndex: 11, role: 'candidate', text: F.candidateText }, { turnIndex: 12, role: 'interviewer', text: `Got it. ${ROW_FIX} Where does that leave your analysis?` }],
+    candidateText: 'Got it.',
+  });
+  it('her t11 is the message in the fixture', () => {
+    expect(F.candidateText).toMatch(/Pro's twelve-month cancellation figure is 40%, so 1 \/ 0\.40 = 2\.5\./);
+    expect((V11.payloadJsonb as VerdictPayload).claims[4]).toMatchObject({ candidateValue: 'above 3x', span: 'Starter sits above it' });
+  });
+  it('said at t11, before the fix was heard at t12: covered by it — no t14 "Earlier you said “Starter sits above it” — what got you there?"', () => {
+    const p = t13(11);
+    expect(p.decisions.find(d => d.id === '11:4')).toMatchObject({ outcome: 'unresolved', root: 'input:40%', reason: expect.stringMatching(/said before its correction, which covered it/) });
+    expect(p.selected?.id).not.toBe('11:4');
+  });
+  it('said after the fix: the fix once more (round-2 ruling 1), not a probe', () => {
+    const p = t13(8);
+    expect(p.selected).toMatchObject({ action: 'restate', line: ROW_FIX, key: 'input:40%' });
+    expect(p.decisions.find(d => d.id === '11:4')?.outcome).not.toBe('probe');
+  });
+  it('the same claim in a message that states no input: unchanged — its own probe', () => {
+    const p = aloneAt11((V11.payloadJsonb as VerdictPayload).claims[4], "So Pro sits below the board's three-times bar while Starter sits above it.");
+    expect(p.selected).toMatchObject({ id: '11:0', action: 'probe' });
     expect(p.selected?.input).toBeUndefined();
   });
 });
@@ -205,15 +245,23 @@ describe('review fix round 1', () => {
     const cac = { ...LTV, span: "Starter's cost to acquire a customer = $360,000 / 300 = $1,200", quantity: 'Starter cost to acquire a customer', codeQuantity: { kind: 'none' as const, stepId: null, price: null, target: null } };
     expect(dataFigure(cac, ctxOf())).toBeNull();
     expect(dataFigure({ ...cac, span: "Starter's cost to acquire a customer is $1,200" }, ctxOf())).toBe(1200);
+    // Re-review minor (b): "~" or "≈" right before the figure is "about" — read, not computed; after an expression, a result.
+    expect(dataFigure({ ...cac, span: "Starter's cost to acquire a customer, CAC ~$1,200" }, ctxOf())).toBe(1200);
+    expect(dataFigure({ ...cac, span: "Starter's cost to acquire a customer ≈ $1,200" }, ctxOf())).toBe(1200);
+    expect(dataFigure({ ...cac, span: "Starter's cost to acquire a customer: $360,000 / 300 ≈ $1,200" }, ctxOf())).toBeNull();
+  });
+  it('fix round 2: b32 Aldermoor Marisol 6a721cdf t19 "with peak at $80 million there\'s no headroom" is not Option A\'s "$80 million" selling costs (bound phrase, not a ±6-word window that shares "peak")', () => {
+    const entry = getCaseById('entry-001');
+    const peak = { ...claimOf('7:3'), candidateValue: '$80M peak, $220M short', span: "with peak at $80 million there's no headroom at all, we're $220 million under",
+      quantity: 'peak revenue and shortfall vs $300M bar', codeQuantity: { kind: 'step' as const, stepId: 'peak_net_sales', price: null, target: null } };
+    expect(dataFigure(peak, ctxOf(entry.dataLedger.map(d => d.id), entry))).toBeNull();
   });
   it('I1: "Starter\'s LTV is $1,200" (read, but the data\'s $1,200 is a cost to acquire) is none either', () => {
     expect(dataFigure({ ...LTV, span: "Starter's LTV is $1,200" }, ctxOf())).toBeNull();
   });
   it('I1: in the planner its true correction is said, not the CAC row fix', () => {
-    const rows = F.rows.map(r => (r.subtype === 'verdict' && (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 9
-      ? { ...r, payloadJsonb: { ...(r.payloadJsonb as VerdictPayload), claims: [...(r.payloadJsonb as VerdictPayload).claims, { ...LTV, span: "Starter's LTV is $1,200" }] } } : r));
-    const p = planAt({ rows, handled: [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3', '9:0', '9:1', '9:2'], attempts: { ...F.attempts, 'starter_ltv@1200': 1 }, candidateTurnIndex: 13 });
-    expect(p.selected).toMatchObject({ id: '9:3', action: 'correct', line: LTV.correctionLine });
+    const p = aloneAt11({ ...LTV, span: "Starter's LTV is $1,200" }, "Starter's LTV is $1,200.", { attempts: { ...F.attempts, 'starter_ltv@1200': 1 } });
+    expect(p.selected).toMatchObject({ id: '11:0', action: 'correct', line: LTV.correctionLine });
     expect(p.selected?.line).not.toMatch(/cost to acquire/);
   });
   // I2: probes on another 40 stay spoken once input:40% is closed.
