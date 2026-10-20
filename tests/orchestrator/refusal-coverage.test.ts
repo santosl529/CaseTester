@@ -81,6 +81,10 @@ describe('a count asked of an item that states no figure', () => {
     const fb = buildFactBase({ ...c, factAnchors: { ...c.factAnchors!, covers: { ...c.factAnchors!.covers, why_now: ['how many bags of chips'] } } } as never);
     expect(coverageOf('how many bags of chips Hollis Bay sells a year', fb)).toMatchObject({ items: ['why_now'], coarse: [] });
   });
+  it('"a number of" is no count', () => {
+    expect(outsideAskScope('whether a number of retailers asked for healthier options', item('launch-001', 'why_now'))).toBe(false);
+    expect(outsideAskScope('the number of bags of chips Hollis Bay sells', item('launch-001', 'why_now'))).toBe(true);
+  });
   it('a value with a figure, a number word or "no" states one', () => {
     expect(statesNoFigure(item('launch-001', 'why_now').value)).toBe(true);
     expect(statesNoFigure(item('launch-001', 'retailer_support').value)).toBe(false);   // "two largest retail partners"

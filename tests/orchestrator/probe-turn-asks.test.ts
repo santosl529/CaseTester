@@ -138,8 +138,7 @@ describe('a probe turn answers the ask in the message it replies to', () => {
     const declared = { what: 'load factor response to a fare increase', itemIds: [], explicit: true, respond: 'release' as const };
     const s = await settleTurn(p, outcome({ ...T11_TURN, requests: [declared] }));
     expect(s.spokenText.match(/load factor/g)?.length).toBe(1);
-    // The sentence is the declaration's ("load factor"): the classifier isn't waited on (Task 50).
-    expect(checkOf(p, 'probe_turn_requests')).toMatchObject({ decision: 'pass', detail: { open: [], answered: [], classified: null } });
+    expect(checkOf(p, 'probe_turn_requests')).toMatchObject({ detail: { answered: [], covered: [ELASTICITY.what] } });
   });
 
   it('streamed: the data line goes out between "say" and the probe, and the message is classified once', async () => {

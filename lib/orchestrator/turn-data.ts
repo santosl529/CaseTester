@@ -247,17 +247,18 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
 // many bags of chips does Hollis Bay sell a year?" — guard B wrote the turn again
 // and the model declared an offer of the planning assumptions instead
 // (explicit:false), so the ask was never answered. Generalized from Task 48: on
-// every model turn, after the model's requests close, an addressed asking
-// sentence no explicit declaration names (request-signal.ts undeclaredSentences)
-// is answered from the classifier's detections on the message — kept where such a
-// sentence covers them, and not covered by an explicit declaration (by item or by
-// words). They join the turn's requests as asks to release, so turnDataChecked
+// every model turn, after the model's requests close, when an addressed asking
+// sentence has a clause no explicit declaration names (request-signal.ts
+// undeclaredSentences — this only decides the wait), the classifier's detections on
+// the message are read: those an asking sentence covers and no explicit
+// declaration covers (by item, or named by one declaration's words —
+// uncoveredAsks; fix round 1: decided per detection, as Task 48 did). They join the turn's requests as asks to release, so turnDataChecked
 // decides them — released, deferred, restated, or through the item-less check
 // (Task 45: refuse, restate, release now or name). The model's own declarations
 // (an offer included) still go out. On a probe turn the data line is said between
 // "say" and the probe. One classifier call per turn, only when a sentence asks:
 // started beside the model call (session-runner.ts), shared by Stream and Settle
-// (on the plan), and waited on only when a sentence is undeclared — at most
+// (on the plan), and waited on only when a clause is undeclared — at most
 // ASK_WAIT_MS, then the turn goes on without it (no hang on a slow call).
 // From the brainstorm on, the sentences are guard B's late ones (rhetorical
 // self-questions filtered; Lorenzo, 19 Oct).
@@ -294,9 +295,9 @@ function heardAsks(plan: ModelPlan, started: Promise<MessageAsks>): Promise<Mess
   return state.messageAsksHeard;
 }
 // The asks a model turn answers beside the model's declared ones (`fresh`), and
-// those an undeclared sentence doesn't cover (`dropped`) or an explicit
-// declaration does (`covered`); `open`: the sentences no explicit declaration
-// names (none: the classifier is not waited on, `detected` null). Null off a model turn.
+// those no asking sentence covers (`dropped`) or an explicit declaration does
+// (`covered`); `open`: the sentences with a clause no explicit declaration names
+// (none: the classifier is not waited on, `detected` null). Null off a model turn.
 export type TurnAsks = MessageAsks & { open: string[]; waited: boolean; timedOut?: true; fresh: DetectedDataRequest[]; covered: DetectedDataRequest[]; dropped: DetectedDataRequest[] };
 export async function messageAsks(plan: ModelPlan, declared: DeclaredRequest[], onUsage?: OnUsage): Promise<TurnAsks | null> {
   const started = startMessageAsks(plan, onUsage);
@@ -307,7 +308,8 @@ export async function messageAsks(plan: ModelPlan, declared: DeclaredRequest[], 
   const open = undeclaredSentences(sentences, explicit, caseNames);
   if (open.length === 0) return { sentences, detected: null, open, waited: false, fresh: [], covered: [], dropped: [] };
   const { detected, timedOut } = await heardAsks(plan, started);
-  const { kept, dropped } = matchAskDetections(open, (detected ?? []).filter(r => r.explicit));
+  // Every asking sentence: the gate only decided to wait; coverage is per detection.
+  const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit));
   return { sentences, detected, open, waited: true, ...(timedOut ? { timedOut } : {}), ...uncoveredAsks(explicit, kept, caseNames), dropped };
 }
 export function withAsks<T extends Pick<ModelTurn, 'requests'>>(turn: T, asks: TurnAsks | null): T {

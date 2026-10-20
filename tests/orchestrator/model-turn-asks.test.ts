@@ -160,6 +160,31 @@ describe('an explicit ask the model replaced gets its own answer (A4)', () => {
     expect(checkOf(p, 'data_decisions')).toMatchObject({ detail: { releases: ['why_now'], refusals: [BAGS.what], offers: [offer.what] } });
   });
 
+  // Fix round 1 (review): coverage is decided per detection, and one shared word is no cover.
+  it('Jasmine t5 with an explicit replacement that shares "bags": her ask is still answered', async () => {
+    detected = [BAGS];
+    const p = t5();
+    // The model's t8 declaration, verbatim (Jasmine 984d9066), made explicit: "bags" is in it too.
+    const replacement = { what: 'the planning assumptions on households, conversion and bags per household', itemIds: ['planning_assumptions'], explicit: true, respond: 'release' as const };
+    const s = await settleTurn(p, outcome({ ...T6_TURN, requests: [replacement] }));
+    expect(s.spokenText).toContain(WHY_NOW);
+    expect(s.spokenText).toContain(BAGS.what);
+    expect(checkOf(p, 'uncovered_asks')).toMatchObject({ decision: 'act', detail: { answered: [BAGS.what], covered: [] } });
+  });
+
+  it('Jasmine t1: a partly declared sentence — the price point declared, the cost-structure ask is answered too', async () => {
+    const price = { what: 'the projected price point and volume', ledgerItemIds: ['bag_price'], response: 'none' as const, explicit: true };
+    const cost = { what: 'the cost structure for the chickpea line', ledgerItemIds: ['variable_costs', 'launch_costs'], response: 'none' as const, explicit: true };
+    detected = [price, cost];
+    const p = t1();
+    const declared = { what: 'the projected price point', itemIds: ['bag_price'], explicit: true, respond: 'defer' as const };
+    const s = await settleTurn(p, outcome({ move: 'pressure_test', requests: [declared], exhibit: null, rescueItem: null, say: 'Understood.', question: T2_QUESTION }));
+    expect(checkOf(p, 'uncovered_asks')).toMatchObject({ decision: 'act', detail: { answered: [cost.what], covered: [price.what] } });
+    expect(s.spokenText).toMatch(/cost structure|variable costs|launch costs/i);
+    // Gated before the pressure test: deferred, not released.
+    expect((checkOf(p, 'data_decisions')!.detail as { releases: string[] }).releases).toEqual([]);
+  });
+
   it('a gated item is not released: Jasmine t1 before the pressure test — the ask is deferred, nothing goes out', async () => {
     detected = [{ what: 'the projected price point and volume, and the cost structure for the chickpea line', ledgerItemIds: ['bag_price', 'variable_costs', 'launch_costs'], response: 'none', explicit: true }];
     const p = t1();

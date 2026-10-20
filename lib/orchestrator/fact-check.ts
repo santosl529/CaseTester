@@ -638,7 +638,8 @@ export const BASIS = new RegExp([
 // have <the ask>." (outsideAskScope, data-decisions.ts) — unless the case's own
 // cover phrase carries the count ("how many stores", "store count": the case
 // says the item answers it; coverageOf below).
-export const COUNT_ASK = /\bhow\s+many\b|\bnumbers?\s+of\b/i;
+// ("a number of retailers" is no count: review, fix round 1.)
+export const COUNT_ASK = /\bhow\s+many\b|(?<!\ba\s)\bnumbers?\s+of\b/i;
 const COUNT_PHRASE = /\bhow\s+many\b|\bnumbers?\s+of\b|\bcounts?\b/i;
 export function statesNoFigure(value: string): boolean {
   return !/\d/.test(normalizeNumberWords(value)) && !/\b(?:no|none|zero|nothing)\b/i.test(value);

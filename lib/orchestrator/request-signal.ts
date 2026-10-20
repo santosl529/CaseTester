@@ -208,24 +208,44 @@ const namingWords = (text: string, caseNames: string[]) => {
   return new Set([...contentWords(text)].filter(w => !proper.has(w)));
 };
 
-// The detections a declared request already covers (a ledger item in common, or
-// a content word of its "what"), and the rest (round 5 Task 48: a probe turn
-// answers only the asks the model left out — never one twice). Callers pass the
-// explicit declarations only: an offer answers no ask (Task 50).
+// Whether one declaration names an ask by its words: two of the ask's naming words
+// in its "what", or the ask's only one (round 5 Task 50, fix round 1: one shared
+// word is not enough — "bags" is in the planning-assumptions declaration and in
+// Jasmine t5's "how many bags of chips …", a different item). Each declaration is
+// read on its own, never their words pooled.
+function namedBy(ask: Set<string>, declared: { what: string }[], caseNames: string[]): boolean {
+  if (ask.size === 0) return false;
+  return declared.some(r => {
+    const words = namingWords(r.what, caseNames);
+    return [...ask].filter(w => words.has(w)).length >= Math.min(2, ask.size);
+  });
+}
+
+// The detections a declared request already covers — a ledger item in common, or
+// its "what" named by one declaration (namedBy) — and the rest (round 5 Task 48: a
+// probe turn answers only the asks the model left out — never one twice). Callers
+// pass the explicit declarations only: an offer answers no ask (Task 50).
 export function uncoveredAsks<T extends { what: string; ledgerItemIds: string[] }>(declared: { what: string; itemIds: string[] }[], detections: T[], caseNames: string[] = []): { fresh: T[]; covered: T[] } {
   const ids = new Set(declared.flatMap(r => r.itemIds));
-  const words = namingWords(declared.map(r => r.what).join(' '), caseNames);
   const fresh: T[] = [];
   const covered: T[] = [];
-  for (const d of detections) (d.ledgerItemIds.some(id => ids.has(id)) || [...namingWords(d.what, caseNames)].some(w => words.has(w)) ? covered : fresh).push(d);
+  for (const d of detections) (d.ledgerItemIds.some(id => ids.has(id)) || namedBy(namingWords(d.what, caseNames), declared, caseNames) ? covered : fresh).push(d);
   return { fresh, covered };
 }
 
-// The asking sentences no declared request names — no content word in common
-// with any declaration's "what", the case's proper names aside (round 5 Task 50,
-// A4): only these wait for the message's classifier; a sentence the model
-// declared is its own (no wait, no second line).
+// The asking sentences the model may have left an ask in (round 5 Task 50, A4):
+// this decides only whether code waits for the message's classifier — what is
+// answered is decided per detection (uncoveredAsks). A sentence counts as
+// declared only when each of its list clauses (split as coverageOf splits a list:
+// commas, "and", "or", "plus") is named by a declaration (namedBy); a clause with
+// no naming word asks nothing. Fix round 1 (review): "do we have the projected
+// price point and volume, and the cost structure for the chickpea line?" (Jasmine
+// t1) with only the price point declared still waits — its cost-structure ask is
+// answered.
+const LIST_SPLIT = /,\s*(?:and\s+|or\s+)?|\s+(?:and|or|plus)\s+/i;
 export function undeclaredSentences(sentences: string[], declared: { what: string }[], caseNames: string[] = []): string[] {
-  const words = namingWords(declared.map(r => r.what).join(' '), caseNames);
-  return sentences.filter(s => ![...namingWords(s, caseNames)].some(w => words.has(w)));
+  return sentences.filter(s => s.split(LIST_SPLIT).some(clause => {
+    const words = namingWords(clause, caseNames);
+    return words.size > 0 && !namedBy(words, declared, caseNames);
+  }));
 }
