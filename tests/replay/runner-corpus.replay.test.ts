@@ -30,6 +30,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
+import { recordedChecks, recordedCheckVerdict, type RecordedCheck } from '@/lib/eval/recorded-checks';
 
 type Row = Record<string, unknown>;
 // The replay's clock for the checker: rows land when it reaches them.
@@ -64,10 +65,19 @@ vi.mock('@/db/client', async () => {
 vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => ({ label: 'none', reason: '' }) }));
 let detections: unknown[] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { interviewerText: string | null; candidateText: string }) => (p.interviewerText === null && p.candidateText !== turnText ? null : detections) }));
-// The item-less deferral check (turn-data.ts, engine-asks R1) calls the classifier
-// with the ask's own words, not the message: no verdict, so a named deferral.
+// The item-less ask check (turn-data.ts checkAsk, engine-asks R1) calls the
+// classifier with the ask's own words ("Could I get <ask>?"), not the message: it
+// gets the verdict the replayed run recorded for that ask (`itemless_defer`; the
+// same turn first, else the run's nearest turn — lib/eval/recorded-checks.ts,
+// round 5 Task 45), else none (null: a named deferral), as before.
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { interviewerText: string | null; candidateText: string }) => {
+  if (!(p.interviewerText === null && p.candidateText !== turnText)) return detections;
+  const ask = /^Could I get ([\s\S]*)\?$/.exec(p.candidateText)?.[1];
+  return ask === undefined ? null : recordedCheckVerdict(runChecks, savedTurnIndex, ask);
+} }));
 let turnText = '';
+let runChecks: RecordedCheck[] = [];
+let savedTurnIndex = -1;
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
 let modelTurn: ModelTurn | null = null;
 let modelCalled = false;
@@ -137,6 +147,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
   void opening;
   store.revealed = []; store.exhibits = []; store.events = [];
   replayIndex.clear();
+  runChecks = recordedChecks(saved);
   const records: TurnRecord[] = [];
   let diverged = 0;
   for (const [k, r] of saved.entries()) {
@@ -166,6 +177,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     // The replay's own turn index for this message (a verdict row carries it) → the saved one and its clock.
     replayIndex.set(store.turns.length, { saved: r.turnIndex, ms: r.stateBefore.elapsedMs ?? 0 });
     turnText = r.candidateText;
+    savedTurnIndex = r.turnIndex;
     await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); } });
     // The turn has returned: its check is still pending (nothing awaited it).
     const started = pendingChecks.splice(startedBefore);
