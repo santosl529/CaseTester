@@ -32,9 +32,9 @@ import { handoffSentences } from './data-ledger';
 import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
 import type { OnUsage } from '@/lib/llm-usage';
-import { turnDataChecked, pressureTestOutcomeNow } from './turn-data';
+import { turnData, turnDataChecked, pressureTestOutcomeNow } from './turn-data';
 import { renderDataLines } from './data-decisions';
-import { findFalseFacts, findEchoes, findFalseRefusals, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
+import { findFalseFacts, findEchoes, findFalseRefusals, refusedItemIds, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
 import { isGradingSentence } from './grading';
 import { sayAfterAckReason, sayFiguresOf } from './say-after-ack';
 
@@ -58,7 +58,9 @@ export type GateContext = {
   sayFigures?: number[];   // the case's and the candidate's figures: a "say" sentence with one is never dropped (say-after-ack.ts)
   // The truth check (fact-check.ts F1): the case's facts, what has been
   // revealed (ids), and the figures of misquotes still standing.
-  facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext };
+  facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext;
+    // Items code hands over in this turn's data line (releases, restates, the exhibit's covers): the model must not refuse them (Task 39).
+    releasedNow?: Set<string> };
 };
 
 // A short sentence whose every word is in the filler just said ("Take your
@@ -162,6 +164,10 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // provenance check passes these when the number was said by anyone.
   if (g.facts && (findFalseFacts(sentence, g.facts.fb, g.facts.revealed).length > 0 || findEchoes(sentence, g.facts.echoes, g.facts.fb).length > 0
     || findEchoes(sentence, g.facts.correcting ?? [], g.facts.fb, { strict: true }).length > 0)) return 'false_fact';
+  // A refusal or deferral of an item code releases in this same turn
+  // ("I have no ramp assumption to give you yet." before the ramp line; Lorenzo,
+  // 20 Oct, batch 34 Larkspur Tyler t21): false, so withheld (Task 39).
+  if (g.facts?.releasedNow?.size && refusedItemIds(sentence, g.facts.fb).some(id => g.facts!.releasedNow!.has(id))) return 'refuses_released';
   // A refusal of data the case holds, in the model's own words (code's data line answers asks).
   if (g.facts && findFalseRefusals(sentence, g.facts.fb, g.facts.revealed, { covers: true }).length > 0) return 'false_refusal';
   // The question agrees with what code delivered (fact checks F4): "with the
@@ -326,14 +332,22 @@ export async function streamTurnSegments(
       const key = p.text.toLowerCase().replace(/\s+/g, ' ');
       if (spokenKeys.has(key)) { bufferSwitch = 'duplicate'; return; }
       spokenKeys.add(key);
-      const reason = vetoReason(p.text, g);
+      // A sentence that refuses or defers an item is judged against what this
+      // turn's data line releases: the requests have closed by now (it was held).
+      let gate = g;
+      if (g.facts && fields.requests.length + (fields.exhibit ? 1 : 0) > 0 && refusedItemIds(p.text, g.facts.fb).length > 0) {
+        await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
+        const d = turnData(plan, fields);
+        gate = { ...g, facts: { ...g.facts, releasedNow: new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]) } };
+      }
+      const reason = vetoReason(p.text, gate);
       // With "say" written before the declarations, the model sometimes
       // answers the requests there ("I don't have X, Y or Z"); the data line
       // says it properly, so that sentence alone is dropped (Settle drops it
       // too) and streaming goes on — so does a verdict on their work, a
       // doubled acknowledgment and an echo after the voice's acknowledgment.
       // Any other veto stops delivery.
-      if (reason === 'data_talk' || reason === 'double_ack' || reason === 'echo_after_ack' || reason === 'grading') return;
+      if (reason === 'data_talk' || reason === 'refuses_released' || reason === 'double_ack' || reason === 'echo_after_ack' || reason === 'grading') return;
       if (reason) { bufferSwitch = reason; return; }
       await send('say', p.text, []);
       return;
@@ -376,14 +390,15 @@ export async function streamTurnSegments(
     if (e.type === 'field') closed.add(e.key);
     // Guard B: held say sentences go out once the requests have closed (a
     // regeneration before then drops them with the draft).
-    if (holdForRequests && e.type === 'field' && e.key === 'requests' && verdict !== undefined && !stops()) await flushQueue();
+    if (e.type === 'field' && e.key === 'requests' && verdict !== undefined && !stops()) await flushQueue();
     if (!p && !dataLineQueued && closed.has('say') && DECLARATIONS.every(k => closed.has(k))) {
       dataLineQueued = true;
       p = { kind: 'data_line' };
     }
     if (!p) continue;
     if (verdict === undefined) { queue.push(p); mark('held_for_distress'); continue; } // D1: hold until the verdict
-    if (p.kind === 'sentence' && holdForRequests && !closed.has('requests')) { queue.push(p); mark('held_for_requests'); continue; }
+    // …and so is a sentence that refuses or defers an item, whatever the cue: a release for it may be declared (Task 39).
+    if (p.kind === 'sentence' && !closed.has('requests') && (holdForRequests || (g.facts && refusedItemIds(p.text, g.facts.fb).length > 0))) { queue.push(p); mark('held_for_requests'); continue; }
     if (stops()) continue;
     await flushQueue();
     await handle(p);

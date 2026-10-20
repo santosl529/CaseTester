@@ -201,7 +201,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     deliveredNow: decisions.releases.length > 0 || decisions.exhibit !== null || decisions.restates.length > 0 || decisions.correction != null,
     deliveredPrev: false, refusedNow: decisions.refusals.length > 0,
     deferredNow: itemBackedDefers(decisions).length + decisions.gateDefers.length + decisions.offers.length > 0,
-  } } } : gBase;
+  }, releasedNow: new Set([...decisions.releases.map(r => r.id), ...decisions.restates.map(r => r.id), ...(decisions.exhibit?.covers ?? [])]) } } : gBase;
 
   // The model's words, vetoed sentence by sentence (never rewritten).
   const withheld: { sentence: string; reason: string; field: 'say' | 'question' }[] = [];
@@ -285,7 +285,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // (Jasmine 35897f4a t18 "That's all I have on the case.") — is replaced by one that fits the phase
   // (after whatever statement of the question is left: "Per-unit costs aren't
   // something I have directly." still needs a question after it).
-  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal' || w.reason === 'close_cue'
+  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal' || w.reason === 'refuses_released' || w.reason === 'close_cue'
       // A withheld growth probe (growth-probe.ts) leaves an ask when "Walk me through it." stays.
       || ((w.reason === 'growth_probe_on_ratio' || w.reason === 'growth_probe_unchecked') && !/\b(?:walk|talk) me through\b|\btell me\b/i.test(question))))) {
     const fallback = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });

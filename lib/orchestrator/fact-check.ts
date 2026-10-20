@@ -664,6 +664,11 @@ export function coverageOf(what: string, fb: FactBase): Coverage {
   return { items: [...new Set(items)], promptFacts: [...new Set(promptFacts)], rest: left.length ? left.join(' and ') : null };
 }
 
+// The case items a sentence refuses or defers by name (same grammar and covers as the false-refusal veto), whatever was released.
+export function refusedItemIds(sentence: string, fb: FactBase): string[] {
+  return [...new Set(findFalseRefusals(sentence, fb, new Set(), { covers: true }).flatMap(f => f.items))];
+}
+
 export type RefusalFlag = { refused: string; items: string[]; sentence: string };
 
 const REFUSAL = [
@@ -675,6 +680,8 @@ const REFUSAL = [
   /\bas for\s+(.+?),\s+(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
   /^(.+?)\s+[—–]\s+(?:I'm afraid\s+)?(?:that|it)(?:'s| is)\s+not\s+something\s+(?:I|we)\s+have\b/i,
   /\b(?:I|we)\s+(?:don't|do not|didn't|did not)\s+have\s+(.+)/i,
+  // "I have no ramp assumption to give you yet." (batch 34 Larkspur, Tyler t21)
+  /\b(?:I|we)\s+(?:have|hold)\s+(?:no|nothing on)\s+(.+?)(?:\s+(?:to\s+(?:give|share|offer|provide|show)|for you|yet|right now|at the moment)\b|[.,;—–]|$)/i,
   /^(.+?)\s+(?:isn't|is not|aren't|are not)\s+(?:something|data|information|figures?|numbers?)\s+(?:that\s+)?(?:I|we)\s+have\b/i,
   /\b(?:that|this|it)(?:'s| is)\s+not\s+(?:something|data)\s+(?:that\s+)?(?:I|we)\s+have(?:\s+(?:on|for)\s+(.+))?/i,
   /\bthere(?:'s| is)\s+no\s+(.+?)\s+(?:data|figure|breakdown|information)\b/i,
