@@ -68,16 +68,15 @@ describe('an ask mapped to an item that the BASIS rule empties', () => {
     expect(d.refusals).toEqual([]);
     expect(d.defers).toEqual([BASIS_ASK]);
   });
-  // Engine-asks final review (19 Oct): the classifier maps a basis ask by topic
-  // to the very item the BASIS rule cut — a deferral nothing keeps.
-  it('is refused when the check maps it back only to the item the BASIS rule cut', async () => {
+  // Round-3 ruling 5 (Lorenzo, 19 Oct) overrules the round-1 final-review fix:
+  // the check finding the BASIS-cut item is a named deferral, not a refusal.
+  it('is a named deferral when the check maps it back only to the item the BASIS rule cut', async () => {
     classify.mockResolvedValueOnce([{ what: BASIS_ASK, ledgerItemIds: ['cogs_pct'], response: 'none', explicit: true }]);
     const d = await turnDataChecked(plan(SATISFIED), B);
     expect(d.basisCut).toEqual({ [BASIS_ASK]: ['cogs_pct'] });
     expect(d.releases).toEqual([]);
-    expect(d.defers).toEqual([]);
-    expect(d.refusals).toEqual([BASIS_ASK]);
-    expect(d.requests.map(r => r.response)).toEqual(['refuse']);
+    expect(d.refusals).toEqual([]);
+    expect(d.defers).toEqual([BASIS_ASK]);
   });
   it('is refused when the check maps it to none, and not re-queued as a deferral', async () => {
     classify.mockResolvedValueOnce([]);
@@ -210,21 +209,26 @@ describe('a model turn in the recommendation or wrap phase', () => {
   });
 });
 
-// Controller's ruling on Task 13 concern 1 (19 Oct): R1 defers only on a
-// plausible item — the check's mapping goes through the same scope rules as the
-// model's own (outsideAskScope: a split of the item, a cut it doesn't have); an
-// ask it maps only to items they rule out maps to none: refused (batch 28
-// Marisol t7 "a split within the non-bean inputs"; batch 30 Anika t5 "input cost per pound").
-describe('the check\'s mapping is held to the scope rules', () => {
+// Round-3 ruling 5 (Lorenzo, 19 Oct; batch 28 Marisol t7 "a split within the
+// non-bean inputs", batch 30 Anika t6): code refuses only when the check says
+// the case doesn't hold it. This replaces the round-2 scope filter, which
+// refused an ask the check mapped only to items the scope rules rule out.
+describe('the check\'s mapping is not held to the scope rules', () => {
   const ask = (what: string) => ({ requests: [{ what, itemIds: [], explicit: true, respond: 'release' as const }], exhibit: null, rescueItem: null });
   it.each([
     ['a split within the non-bean inputs', 'non_bean_input_change'],
     ['bean cost per pound', 'bean_price_change'],
-  ])('"%s" mapped only to %s → refused', async (what, id) => {
+  ])('"%s" mapped only to out-of-scope %s → a named deferral', async (what, id) => {
     classify.mockResolvedValueOnce([{ what, ledgerItemIds: [id], response: 'none', explicit: true }]);
     const d = await turnDataChecked(plan(SATISFIED), ask(what));
-    expect(d.refusals).toEqual([what]);
-    expect(d.defers).toEqual([]);
+    expect(d.defers).toEqual([what]);
+    expect(d.refusals).toEqual([]);
+    expect(d.releases).toEqual([]);
+  });
+  it('mapped to no item → refused', async () => {
+    classify.mockResolvedValueOnce([]);
+    const d = await turnDataChecked(plan(SATISFIED), ask('bean cost per pound'));
+    expect(d.refusals).toEqual(['bean cost per pound']);
     expect(d.requests.map(r => r.response)).toEqual(['refuse']);
   });
   it('an in-scope mapping → a named deferral', async () => {
