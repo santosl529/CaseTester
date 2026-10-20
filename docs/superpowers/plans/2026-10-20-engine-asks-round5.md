@@ -12,7 +12,7 @@
 
 ## Global Constraints
 
-- Branch `engine-asks`, worktree `.claude/worktrees/engine-asks`, HEAD 7b41549. Nothing merged, pushed or deployed. The only paid call is the live Haiku check after Task 45 (≈ $0.04, authorized).
+- Branch `engine-asks`, worktree `.claude/worktrees/engine-asks`, HEAD 7b41549. Nothing merged, pushed or deployed. The only paid call is the live Haiku check after Task 45 (≈ $0.07, authorized).
 - One commit per task, with the full suite, `npx tsc --noEmit` and `npx eslint lib app components tests scripts db` passing.
 - Every code task has **mutation tests**: the new test fails when the fix is reverted or broken (record it in the ledger).
 - Test sentences are the batch transcripts' own words, verbatim.
@@ -28,6 +28,7 @@
 3. The unit fix (E3) must not change prof-001's correction lines, which are in points and percent. Pinned in Task 40 with the prof-001 lines as fixtures.
 4. A probe turn carrying a data line (A1) must still say its probe, and a stage turn carrying one (A2) must not lose the stage's ask for good. Pinned in Tasks 48 and 49.
 5. A deferral that names the item (E5(d)) must say the item's spoken name, never a figure from its value (FR-4). Pinned in Task 45.
+6. E7's forced correction must be true on the candidate's own reading (Lorenzo: "For Quillpath Marisol the true line is the row fix (\"Starter's 12-month cancellation is 40%; 21.5% is Pro's\"), never \"about 5%, not 21.5%\" against her annual reading. If code can't write a true line, it goes to the report."). Pinned in Task 47 with a test in her words.
 
 ---
 
@@ -45,7 +46,7 @@ Lorenzo: "Build all of D1–D7" and "Build D4/D5 anyway." Covers go in `factAnch
 **Files:** `cases/entry-001.json`, `cases/launch-001.json`, `cases/prof-002.json`, `evals/anchor-probes.json`.
 
 - D1, entry-001: `current_treatment` (and `nimbrel` where the ask names the competitor) — "treatment mix", "current treatment mix", "treatment breakdown", "breakdown by drug class", "competitor mix", "mix across treated patients".
-- D2, launch-001 `retailer_support` — "store count", "how many stores", "distribution", "distribution rate", "stores we could reach", "stores the line gets into".
+- D2, launch-001 `retailer_support` — "store count", "how many stores", "distribution rate", "distribution reach", "stores we could reach", "stores the line gets into". **No bare "distribution"** (Lorenzo). Add the probe "distribution costs" → `variable_costs` (freight), which must stay there.
 - D3, prof-002 `aircraft_leases` — "avoidable fixed costs", "whether the fixed costs are avoidable", "fixed costs avoidable", "return the aircraft".
 - D4, launch-001 `why_now` — "chip volume", "chip volume trend", "chip business's volume", "declining base".
 - D5, launch-001 `survey_reliability` — "forecast versus actual", "volume versus forecast", "how accurate past forecasts", "how reliable the forecast".
@@ -54,20 +55,25 @@ Lorenzo: "Build all of D1–D7" and "Build D4/D5 anyway." Covers go in `factAnch
 - Verify with `npx tsx scripts/anchor-audit.ts --case=<id> --dry --asks=evals/anchor-probes.json` (free) for each case, and with `npx vitest run tests/cases`. Paste the before/after verdicts into the ledger.
 - No prof-001 change.
 
-### Task 38: Exhibits that list items they don't show (D6) — **awaits Lorenzo's choice**
+### Task 38: The simulator sees exhibit notes; the restate says how the item came out (D6)
 
-Lorenzo: "exhibits list items they don't show. pricing-001 Ex1 ltv_definition, Ex2 cohort_notes, Ex4 price_test_notes; prof-002 Ex3 new_routes_context. Either list only what the exhibit shows, or add the rows. This is the cause of L4/L19's "As I mentioned" for lines never said, and of Quillpath Marisol never getting the LTV definition. Add it to the onboarding lessons."
+Lorenzo: "D6: (c) only. exhibitAsText sends the notes as the UI shows them. Don't move notes into rows. The restate prefix follows how the item came out: "As I mentioned" if said, "As the exhibit shows" if only on an exhibit. Check the voice room's exhibit panel shows notes too. The consistency test passes when the figures and phrases are in the cells, title or notes. Add the onboarding lesson."
 
-**Found while planning:** those four items are in each exhibit's `notes`. The real UI shows notes under the table (`components/exhibit-table.tsx:35-38`), so a real candidate sees them. **The persona simulator never does:** `scripts/live-run.ts:280-284` `exhibitAsText` sends title and cells only. So in the waves, the notes reach no one and are counted as revealed (`markExhibitReveals`). Three options, for his choice:
+Background: notes are shown in the UI (`components/exhibit-table.tsx:35-38`, used by `chat-window.tsx:133` and `voice-room.tsx:273`) but dropped by `scripts/live-run.ts:280-284` `exhibitAsText`, so the waves' simulated candidate never saw them.
 
-- (a) **Add the rows** (his option 2): move each note's sentence into a data row. Both the UI and the simulator then show it.
-- (b) **List only what the exhibit shows** (his option 1): drop the four ids from `coversLedgerItems`. The items are then spoken when asked, and "As I mentioned" can't fire before they're said.
-- (c) **Fix the simulator**: `exhibitAsText` sends the notes as the UI shows them. The waves then match what real candidates see. This needs (a) or (b) too only if "As I mentioned:" for a note-only item is still wrong.
+**Files:** `scripts/live-run.ts` (`exhibitAsText`), `lib/orchestrator/data-decisions.ts` (restate rendering, :287-291, 346-348, 511), `lib/orchestrator/phrasing.ts` (`restate` pool, :54-61; a new `restate_exhibit` pool), `lib/orchestrator/data-ledger.ts` (`markExhibitReveals`, :53-61 — record how each item came out), `tests/cases/consistency.test.ts`.
 
-**Proposed:** (c) plus (a) — the simulator sees what a candidate sees, and the four items become rows, so nothing important is a footnote. Whatever is chosen:
-
-- add a case-JSON test (`tests/cases/consistency.test.ts`): every `coversLedgerItems` id's figures and key phrases appear in the exhibit's cells or title (or notes, if (c) alone is chosen);
-- add the onboarding lesson.
+- `exhibitAsText` appends the notes below the rows, as the UI shows them (a line after the table, e.g. `Note: <notes>`).
+- The ledger records each revealed item's source: said (a release or restate line) or exhibit-only (`markExhibitReveals`). An item said later becomes "said".
+- The restatement lead-in follows the source: the `restate` pool ("As I mentioned: …") for said items, a new `restate_exhibit` pool for exhibit-only items (first version "As the exhibit shows: …", five versions, held to the recognizer tests in `tests/orchestrator/code-line-variants.test.ts`; register it with every recognizer that reads restate lines).
+- Persist the source with the revealed rows (old rows read as "said") so replays of saved runs read as before.
+- Check that the voice room's exhibit panel renders notes (`voice-room.tsx`, `lib/voice/livekit-agent.ts:150` passes them): a component or unit test, or a recorded read of the code if no test harness exists for it.
+- Consistency test: every `coversLedgerItems` id's figures and key phrases appear in the exhibit's cells, title or notes.
+- Mutation tests:
+  - an exhibit with notes → `exhibitAsText` contains the notes text;
+  - Quillpath Raj t22's restate of `price_test_notes` (exhibit-only) → "As the exhibit shows: …"; an item said before → "As I mentioned: …";
+  - a saved run's revealed rows without a source → "said".
+- Onboarding lesson (Task 52 docs commit, or this task's): exhibit notes are seen by real candidates; the simulator must see them too, and a restate names where the item came from.
 
 ### Task 39: Withhold a model refusal for an item code releases in the same turn (E2)
 
@@ -96,12 +102,13 @@ Lorenzo: "Unit/scale slips in code lines: false, not serious. "$210" for $210k c
 - `lib/cases/schema.ts` (unit enum, :82);
 - `cases/pricing-001.json` (ratio steps).
 
-- `codeCorrection` reads the step's `scale`. A `usd` step with `scale: 'million'` and a bare candidate figure says "$9 million", not "$9".
+- `codeCorrection` reads the step's `scale`. A `usd` step with `scale: 'million'` and a bare candidate figure says "$9 million", not "$9". **The "not X" side carries the same unit and scale** (Lorenzo: "about $9 million, not $8.8 million").
 - Add `'ratio'` to the step unit enum and mark pricing-001's LTV/CAC steps `unit: 'ratio'`. A ratio line says "about 2 times" (no "$"). "Theirs" for a ratio step is the figure written with "x" or "times". The flag key takes the step-unit figure, not the first number (`starter_ratio@2.5`, not `@750`).
-- `figureWritten` and `figureAsWritten` keep a k / K / thousand suffix ("$210k").
+- `figureWritten` and `figureAsWritten` keep a k / K / thousand suffix ("$210k"), and M / million / bn / billion suffixes as well.
 - The grammar "costs … is" stays logged (L14).
 - Mutation tests:
-  - Hollis Bay Tyler 9:1 (candidateValue "8.8", step launch_costs_total) → "… about $9 million, not 8.8." (or no "not X" if own-quantity strips it);
+  - Hollis Bay Tyler 9:1 (candidateValue "8.8", step launch_costs_total) → "… about $9 million, not $8.8 million." (or no "not X" if own-quantity strips it);
+  - quotes: "$4.5M", "$4.5 million", "$1.2bn" keep their suffix;
   - Quillpath Marcus 13:3 ("$750; 2.5x", starter_ratio) → "… about 2 times." and key `starter_ratio@2.5`;
   - Quillpath Tyler 25:7 ("$210k") → quote "$210k";
   - fixtures: three prof-001 correction lines (points, percent, price rise) are byte-identical before and after.
@@ -163,18 +170,18 @@ Lorenzo: "E5: build (a) and (b). Not (c). Add (d): a deferral names the item it 
 - `lib/orchestrator/data-decisions.ts` (`renderDataLineParts`, `spokenItemName`/`promised`).
 
 - The check's cache keeps `{ mapped, ids, outOfScope }`.
-- **(b)** Every mapped id `answersAsk` marks out of scope → refused ("I don't have …").
+- **(b)** A mapped id `answersAsk` marks out of scope uses E1's form (Lorenzo): "I don't have <X>." plus the coarse item's line when one can be released (Task 44's path and gates). Never a bare refusal on the check's scope call alone; with no coarse item releasable, the refusal stands.
 - **(a)** A mapped id already revealed (said, or on a shown exhibit) → restated through the existing restate path (cap 3), never deferred.
 - **(d)** A mapped id releasable now, under every gate `turnData` applies (`gated()`, `heldForOrder`, `RELEASE_CAP`, exhibit covers), → released this turn. One not releasable yet → deferred by the item's spoken name (`spokenItemName`), not the candidate's words, and booked as an open request with its ledger id so it is followed up.
 - On a wrap-up or close turn the existing "We won't get to" rules apply.
 - Mutation tests:
-  - Quillpath Marcus t27 ("week-by-week sign-ups", out of scope) → refused;
+  - Quillpath Marcus t27 ("week-by-week sign-ups", out of scope; `price_test_results` already on Exhibit 4) → "I don't have week-by-week sign-ups." with the restate of the coarse item, or the bare refusal only if no coarse item is releasable;
   - Quillpath Marcus t17, Marisol t11, Tyler t11 (item already out) → restated;
   - Quillpath Raj t11 (`upgrade_timing` not yet out) → released now, or a deferral naming "when customers upgrade";
   - a gated item → named deferral, not released;
   - the deferral line has no figure.
 - Proof r5-45.
-- **Then the live Haiku check** (≈ $0.04, authorized): rebuild the round-3 scratch script (per `2026-10-19-engine-asks-round3.md` Task 23: `classifyDataRequests`, prompt `Could I get ${what}?`, the prof-001 catalog, `claude-haiku-4-5`, 1.5 s). Run it on prof-001's 34 asks and pass each verdict through the new (a)/(b)/(d) decision. Report refused / restated / released / deferred / hollow / wrong releases / timeouts in `r5-haiku-check.md`. 0 wrong releases to pass.
+- **Then the live Haiku check** (≈ $0.07, authorized): rebuild the round-3 scratch script (per `2026-10-19-engine-asks-round3.md` Task 23: `classifyDataRequests`, prompt `Could I get ${what}?`, each case's catalog, `claude-haiku-4-5`, 1.5 s). Run it on prof-001's 34 asks plus every unmatched ask from B1 and B2 (batches 34 and 35), and pass each verdict through the new (a)/(b)/(d) decision. Report refused / restated / released / deferred / hollow / timeouts, **wrong releases, and releases that don't answer the ask**, each read by hand, in `r5-haiku-check.md`. 0 wrong releases to pass.
 
 ### Task 46: The stale reader ties each figure to its quantity (E6)
 
@@ -184,7 +191,7 @@ Lorenzo: "E6, both directions: the stale reader also closes flags it shouldn't (
 
 - Each number in a later message is bound to the quantity phrase it modifies: the noun phrase right after it or right before it ("$9.0 million" in "fixed costs … = $9.0 million"; "LTV $676"), using the cue window or `tailsOf`, not any quantity word in its sentence. A figure closes a flag only when it is bound to the claim's own quantity, and for pricing to the same price.
 - Message-level `namesClaim` and `redoneToRight` become figure-level the same way.
-- No new synonyms. Where a miss is a vocabulary gap ("fixed costs" for `launch_costs_total`), record it and leave it for Lorenzo, unless the step's own `quantity` or cues already name it.
+- No engine-wide synonyms. Where a miss is vocabulary, add that case's synonym to the step's cues in the case JSON (Lorenzo: "fixed costs" for launch-001's `launch_costs_total`), with a case test.
 - Mutation tests, verbatim:
   - false closes → not stale: Quillpath Marisol t31 "600 customers" vs the $900 LTV flag; Tyler t29 "0.20 × $4,000" vs the 4× ratio; "$676" at $60 vs "$405" at $40;
   - misses → stale where the restatement is bound to the quantity: Hollis Bay Tyler t11 "$9.0 million" vs the 8.8 flag; t13 "$4.5 million of first-year profit" vs $3.9M; Aldermoor Tyler t13 "$240 million" vs $225M;
@@ -199,10 +206,11 @@ Lorenzo: "Quillpath Marisol's probe chain: serious (severity.md, the same probe 
 **Files:** `lib/orchestrator/math-checker-live.ts` (`planCheckerFlags`, :904-931; `probesOf`, :352-362; `rootOf`/`rootFrom`, :193-202, 826-860), `lib/orchestrator/plan-turn.ts` (`stepProbes`, :1102-1111), `lib/orchestrator/settle-turn.ts` (undo, :631-636).
 
 - Count probes per input: a misread input figure (the candidate value at the root of a chain, here 21.5% as Starter churn and 40% as Pro's) collects every probe on it or on a claim built on it (`rootFrom`), by code or by the model (`probesOf`).
-- At two, the next code line on that input is the correction of the input (the root step's `codeCorrection`). Where code can't write one, the flag goes to the report (`unresolved`) and no third probe is said.
+- At two, the next code line on that input is the correction of the input, **through own-quantity framing** (`framedCorrection`). It must be true on the candidate's own reading: for Quillpath Marisol, the row fix ("Starter's 12-month cancellation is 40%; 21.5% is Pro's."), never "about 5%, not 21.5%" against her annual reading. Where code can't write a true line, the flag goes to the report (`unresolved`) and no third probe is said.
 - Persist the counter beside `stepProbes`, with the same undo when a line isn't heard.
 - Mutation tests, from Quillpath Marisol's verdicts:
   - the input is corrected by the third probe turn at the latest, and no third probe on 21.5% or 40% is said;
+  - Review Focus 6, in her words (t7 "21.5% is the twelve-month cancellation figure from the Starter cohort … I used it as the annual churn for Starter"): the line is the row fix; a line "about 5%, not 21.5%" fails the test; with no true line possible, the flag goes to the report;
   - a single claim with two probes and no chain → today's behavior;
   - the b28–b33 probe-cap tests unchanged.
 - Proof r5-47.
@@ -242,7 +250,7 @@ Hollis Bay Jasmine t5 → t6: "how many bags of chips does Hollis Bay sell a yea
 
 - After the model's requests close, any addressed ask sentence that no explicit declaration covers (by item or by words) goes to the item-less check (refuse, restate, release now or name, per Task 45). The model's offer still goes out.
 - Mutation tests:
-  - Jasmine t5 → "I don't have Hollis Bay's chip volume." plus the offer;
+  - Jasmine t5 → matches D4/E1: the chip-sales-flat line (`why_now`) with the bag-count refusal ("I don't have …"), plus the offer;
   - an ask the model declared → no second line;
   - a gated item → not released.
 - Proof r5-50.
@@ -271,4 +279,4 @@ Hollis Bay Marisol t9 → t10: year-two marketing and a recurring lease answered
   - `docs/case-authoring.md` if D6 changes the exhibit rule;
   - progress.md.
 - Logged, not built (his list): L1–L19, Larkspur Raj t6 (qualitative false line the fact-check can't read), Quillpath Marisol getting Exhibit 4 before the upgrade-adjusted value.
-- Stop. No wave, push or deploy. Report to Lorenzo for B1′, B2′ and the prof-001 pre-merge wave.
+- Stop after r5-final. No wave, push or deploy. Report to Lorenzo for B1′, B2′ and the prof-001 pre-merge wave.
