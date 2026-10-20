@@ -7,6 +7,7 @@ import type { CheckerClaim, VettedClaim } from '@/lib/orchestrator/math-checker'
 import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 import { getCaseById } from '@/lib/cases/loader';
 import EVIDENCE from './fixtures/restate-closed-root.json';
+import BINDING from './fixtures/stale-figure-binding.json';
 
 const prof = getCaseById('prof-001');
 const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'menu_price_change', 'bean_price_change', 'non_bean_input_change'];
@@ -472,6 +473,90 @@ describe('the stale check — a late verdict on a claim since revised or withdra
     expect(isStale(step, ['Beans add 7.5 points of revenue to COGS.'], prof, COSTS)).toMatch(/^restated at 7.5/);
     expect(isStale(step, ['Beans add 6 points of revenue to COGS.'], prof, COSTS)).toBeNull();   // 6 is today's margin: a case figure (review M2)
     expect(isStale(step, ['Beans add 10 points of revenue to COGS.'], prof, COSTS)).toBeNull();
+  });
+});
+
+// Lorenzo, 20 Oct (E6, both directions): "Tie each figure to its quantity at the
+// figure level … and prove it on both the missed and the false-close cases."
+// Claims and messages verbatim from the runs (fixtures/stale-figure-binding.json:
+// the checker's claim as recorded, each later candidate message, the items out by then).
+describe('E6: the stale reader ties each figure to its quantity', () => {
+  type Fixture = (typeof BINDING)[number];
+  const claimOf = (f: Fixture) => vetted({ ...(f.claim as Partial<VettedClaim>), probeLine: '', correctionLine: null, correctionFigure: null });
+  const staleAt = (name: string, turn: number) => {
+    const f = BINDING.find(x => x.name === name)!;
+    const m = f.later.find(x => x.turn === turn)!;
+    return isStale(claimOf(f), [m.text], getCaseById(f.caseId), m.revealed);
+  };
+  it.each(BINDING.flatMap(f => f.later.map(m => [f.name, m.turn, m.expect] as const)))('%s at t%s → %s', (name, turn, expected) => {
+    const r = staleAt(name, turn);
+    if (expected === null) expect(r).toBeNull(); else expect(r).not.toBeNull();
+  });
+  describe('false closes → not stale', () => {
+    it('Quillpath Marisol t31: "$900 of CAC saved on 600 customers" — 600 is customers, not her Starter LTV (was "the right figure (600) stated since")', () => {
+      expect(staleAt('quillpath-marisol-29:2', 31)).toBeNull();
+    });
+    it('Quillpath Tyler t29: "plus the upgrade stream 0.20 × $4,000 = $800" — 0.20 is an operand, not his ~4× ratio (was "restated at 0.2")', () => {
+      expect(staleAt('quillpath-tyler-25:1', 29)).toBeNull();
+    });
+    it('Quillpath Tyler t29: "Test arm, $60: … LTV $50 / 0.074 ≈ $676" is his LTV at $60, not his $405 at $40 (the case\'s "$60" not-cue; was "restated at 676")', () => {
+      expect(staleAt('quillpath-tyler-25:2', 29)).toBeNull();
+    });
+    it('Quillpath Tyler t31: "0.20 × $4,000 = $800" is no $0.24M uplift (was "the right figure (0.2) stated since")', () => {
+      expect(staleAt('quillpath-tyler-29:2', 31)).toBeNull();
+    });
+  });
+  describe('misses → stale where the restatement is bound to the quantity', () => {
+    it('Hollis Bay Tyler t11: "fixed costs $3.0 + $4.5 + $1.5 = $9.0 million" redoes his 8.8 launch costs (the step\'s cue "fixed")', () => {
+      expect(staleAt('hollisbay-tyler-9:1', 11)).toMatch(/^withdrawn/);
+    });
+    it('Hollis Bay Tyler t13: "about $4.5 million of first-year profit" redoes his $3.9M (the step\'s cue "profit")', () => {
+      expect(staleAt('hollisbay-tyler-11:3', 13)).toMatch(/^withdrawn/);
+    });
+    it('Aldermoor Tyler t13: "The $225 million was built on … it should be 40,000 × $6,000 = $240 million" — "it" is his $225M', () => {
+      expect(staleAt('aldermoor-tyler-9:0', 13)).toMatch(/right figure \(240\)/);
+      expect(staleAt('aldermoor-tyler-9:0', 11)).toBeNull();   // the $320 million of his funnel redo is another quantity
+    });
+  });
+  describe('the residuals (round 4)', () => {
+    it('b33 Marisol 31e33506 15:2: "The remaining gap to 24% is about 8 points" is the margin gap, not her other inputs (was "restated at 8")', () => {
+      expect(staleAt('b33-marisol-31e33506-15:2', 17)).toBeNull();
+    });
+    it('b30 Blake 01daac8b 23:0: "if volume holds within 4%" is a volume change, not his margin effect (was "the right figure (4) stated since")', () => {
+      expect(staleAt('b30-blake-01daac8b-23:0', 25)).toBeNull();
+    });
+    it('b32 Larkspur Marisol 6e5a1c90 17:2: "8,000 flights × 60 passengers × $10 = $4.8M" is no $10M of route contribution; her t21 redo is', () => {
+      expect(staleAt('b32-larkspur-marisol-6e5a1c90-17:2', 19)).toBeNull();
+      expect(staleAt('b32-larkspur-marisol-6e5a1c90-17:2', 21)).toMatch(/^withdrawn/);
+    });
+  });
+  it('a concession names or redoes the claim only through a figure bound to it (Hollis Bay Tyler t13\'s concession beside Quillpath Marisol t31\'s sentence, each verbatim)', () => {
+    const f = BINDING.find(x => x.name === 'quillpath-marisol-29:2')!;
+    const sentence = "Two, the CFO's test understates Starter because it ignores upgrades: 20% of the cohort is on Pro by month 12, acquired for $300 instead of $1,200, which is $900 of CAC saved on 600 customers from one quarter's cohort, about $540,000.";
+    // $900 is CAC, not her $900 LTV (namesClaim); 600 is customers, not her LTV's right $600 (redoneToRight).
+    expect(isStale(claimOf(f), [`You're right — the exhibit says 30 million. ${sentence}`], getCaseById(f.caseId), f.later[0].revealed)).toBeNull();
+    // Said for her LTV, either one answers the concession.
+    expect(isStale(claimOf(f), ["You're right — the exhibit says 30 million. Starter's $900 LTV was on the wrong rate."], getCaseById(f.caseId), f.later[0].revealed)).toMatch(/^withdrawn/);
+    expect(isStale(claimOf(f), ["You're right — the exhibit says 30 million. Starter LTV comes to $600."], getCaseById(f.caseId), f.later[0].revealed)).toMatch(/^withdrawn/);
+  });
+  it('kept: b33 Blake cb23e17b t19 not stale (round-4 ruling 3)', () => {
+    expect(staleAt('b33-blake-cb23e17b-17:0', 19)).toBeNull();
+  });
+  describe('in short sentences', () => {
+    const ltv = vetted({ span: 'Starter $900', quantity: 'Starter standalone LTV at $40', candidateValue: '$900', correctValue: 600, unit: '$', codeQuantity: { kind: 'step', stepId: 'starter_ltv', price: null, target: null } });
+    const Q = getCaseById('pricing-001');
+    const OUT = ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'pro_cohort', 'starter_cohort', 'cohort_notes'];
+    it.each([
+      ['Starter LTV is $600.', /right figure \(600\)/],
+      ['So Starter is worth $600 over its life.', /right figure \(600\)/],
+      ['That leaves Starter LTV at $30 × 20 = $600.', /right figure \(600\)/],
+      ['Starter brings in 600 customers a quarter.', null],
+      ['Starter: 20 × $30 = $600 of margin.', null],
+      ['We acquired 600 Starter customers.', null],
+    ] as [string, RegExp | null][])('%s', (text, expected) => {
+      const r = isStale(ltv, [text], Q, OUT);
+      if (expected === null) expect(r).toBeNull(); else expect(r).toMatch(expected);
+    });
   });
 });
 

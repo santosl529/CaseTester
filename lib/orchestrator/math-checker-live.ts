@@ -17,7 +17,8 @@ import { dataLineVersions } from '@/lib/cases/loader';
 import { mathCheckerConfig, type MathCheckerConfig } from '@/lib/models';
 import type { OnUsage } from '@/lib/llm-usage';
 import { normalizeNumberWords } from '@/lib/number-words';
-import { findStepSpans } from '@/lib/scoring/math-spans';
+import { findStepSpans, cueNames } from '@/lib/scoring/math-spans';
+import { boundFigures, type BoundFigure } from './figure-binding';
 import {
   checkMathClaims, vetCheckerClaims, codeComputed, boundInput, numbersOf, quantityWords, RATIO_SAID,
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
@@ -249,6 +250,15 @@ const FROM_PRICE = new Set(['gain', 'new_margin', 'breakeven']);
 // A sentence that says which base it is on.
 const BASE_CUE = /\b(?:scal(?:e|ed|ing)|rebas\w*|re-?based|(?:today'?s|current|this year'?s|the new|the old|two years ago'?s?|prior) (?:revenue|base|dollars)|old[- ]dollar|in old dollars|index|times 1\.\d+|× ?1\.\d+|on (?:a|the) base of)\b/i;
 
+// A phrase's words, singular ("costs" → cost), and its head noun: the last word
+// before "of"/"per" ("contribution per flight" → contribution), else the last.
+const stemsOf = (t: string) => (t.toLowerCase().match(/[a-z]+/g) ?? []).map(w => (w.length > 3 && w.endsWith('s') && !/(?:ss|is|us)$/.test(w) ? w.slice(0, -1) : w));
+function headNounOf(phrase: string): string {
+  const ws = phrase.split(/\s+/);
+  const j = ws.findIndex(w => /^(?:of|per)$/i.test(w));
+  return stemsOf((j > 0 ? ws.slice(0, j) : ws).at(-1) ?? '').at(-1) ?? '';
+}
+
 // Has the candidate revised or withdrawn the claim since? Read in every
 // candidate message after it: a withdrawal, a revision with a figure, the
 // right figure stated for the claim's own quantity (when it isn't also a case
@@ -265,14 +275,17 @@ const BASE_CUE = /\b(?:scal(?:e|ed|ing)|rebas\w*|re-?based|(?:today'?s|current|t
 export type LaterMessage = { text: string; questioned?: boolean };
 export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseData: CheckerCase, revealedIds: string[]): string | null {
   const ctx: VetContext = { caseData, revealedIds, shownExhibitIds: [], candidateTexts: [] };
-  const right = [...(codeComputed(c, ctx)?.values ?? []), c.correctValue, c.correctLow, c.correctHigh].filter((x): x is number => x !== null);
+  const codeRight = codeComputed(c, ctx)?.values ?? [];
+  const checkerRight = [c.correctValue, c.correctLow, c.correctHigh].filter((x): x is number => x !== null);
+  const right = [...codeRight, ...checkerRight];
   const caseFigures = caseNumbersOf(caseData, revealedIds);
-  const rightToCheck = right.filter(r => !caseFigures.some(x => same(r, x)));
+  const notCase = (r: number) => !caseFigures.some(x => same(r, x));
+  const rightToCheck = right.filter(notCase);
   const pm = pricingValues(caseData, new Set(revealedIds));
   const q = c.codeQuantity;
   const step = q.kind === 'step' ? caseData.mathSteps.find(st => st.id === q.stepId) : undefined;
   const own = [...ownFigures(c, caseFigures), ...wordFigures(c.candidateValue)];
-  const namesClaim = (text: string) => own.length > 0 && [...numbersOf(text), ...wordFigures(text)].some(n => own.some(x => same(n, x)));
+  const atOwn = (v: number) => own.some(x => same(v, x));
   // Lorenzo, 15 Oct (batch-25 ruling 2). A price the candidate states as the
   // answer to a "needed" claim: the right figure even when it is also a case
   // figure ("about a 24% price increase" — 24 is the prior margin), to the
@@ -286,33 +299,82 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
   // is her 16 points on today's revenue): the same quantity on another base.
   const growth = revenueGrowthOf(caseData.prompt);
   const rebased = growth === null ? [] : right.flatMap(r => [r * growth, r / growth]).filter(r => !caseFigures.some(x => same(r, x)) && !own.some(x => same(r, x)));
-  // A redo to the claim's right figure (Lorenzo, 15 Oct; batch 26 Marisol
-  // 2456aa9d t7: "Let me redo it in dollars" — about COGS — withdrew her labor
-  // claim, whose right figure, 15, its "Revenue grows 15%" also said): a right
-  // figure that is also a case figure counts only in a sentence naming the
-  // claim's quantity; any other right figure, anywhere in the message.
-  const subject = quantityWords(c.quantity);
   // Lorenzo, 19 Oct (round-4 ruling 3; batch 33 Blake cb23e17b t17: his "6 to 7
   // points" closed stale on the "10" of "a 10–12% price increase" — the price,
   // not the gain): a figure closes a flag only when stated for the claim's own
-  // quantity — the 15 Oct redo rule applied to the stale check. In a sentence
-  // naming the quantity (its words, or the words of code's kind), and never an
+  // quantity — the 15 Oct redo rule applied to the stale check — and never an
   // input the claim was computed from (a pricing claim's price, from its span).
-  const names = (x: string) => (subject.size > 0 && [...quantityWords(x)].some(w => subject.has(w))) || (KIND_CUE[q.kind]?.test(x) ?? false);
+  // Lorenzo, 20 Oct (E6): at the figure level — each figure bound to the phrase
+  // it modifies (figure-binding.ts), not to any word of its sentence. Quillpath
+  // Marisol t31 "$900 of CAC saved on 600 customers" closed her $900 Starter LTV
+  // (right $600) because the sentence says "Starter"; Tyler t29 "0.20 × $4,000"
+  // restated his 4× ratio; Hollis Bay Tyler t11 "fixed costs $3.0 + $4.5 + $1.5
+  // = $9.0 million" never closed his 8.8. No engine-wide synonyms: a phrase
+  // names the quantity by the checker's words for it, code's words for its kind
+  // (KIND_CUE), or the case's cues for its step — a vocabulary miss is fixed in
+  // the step's cues ("fixed costs", launch-001).
+  // The checker's quantity less its conditions — what it is computed with or at
+  // ("net margin effect of an 8% price rise with 8% volume loss": the volume loss
+  // is an input, b30 Blake 01daac8b; "Starter standalone LTV at $60": a price).
+  const quantity = c.quantity.split(/\s+(?:with|at|from|by|given|assuming|if|under|versus|vs\.?)\s+/i)[0];
+  const subject = quantityWords(quantity);
+  // By its head noun ("600 Starter customers" is customers, not Starter LTV), or —
+  // when the head is a plain word ("the COGS gap", "labor dollars") — by its other words.
+  const byChecker = (p: string) => {
+    if (subject.size === 0) return false;
+    const head = headNounOf(p);
+    return quantityWords(head).size > 0 ? subject.has(head) : [...quantityWords(p)].some(w => subject.has(w));
+  };
+  // A step's cue names a phrase whose head noun is the cue's or the checker's
+  // (round-4's residual, b33 Marisol 31e33506 15:2: "The remaining gap to 24% is
+  // about 8 points" is the margin gap, not her other inputs, though the step's
+  // cues hold "remaining").
+  const cues = (step as { cues?: string[] } | undefined)?.cues ?? [];
+  const cueWords = new Set(cues.flatMap(stemsOf));
+  const byStep = (p: string) => cues.some(cue => cueNames(p, cue)) && (cueWords.has(headNounOf(p)) || subject.has(headNounOf(p)));
+  const byCode = (p: string) => (KIND_CUE[q.kind]?.test(p) ?? false) || byStep(p);
+  // Code's words name the checker's value too only when they name the checker's
+  // quantity (b30 Blake 23:0: "if volume holds within 4%" is no 4-point gain;
+  // code's breakeven words name the break-even volume, not his margin effect).
+  const sameQuantity = byCode(quantity);
+  // own: bound to the claim's quantity; other: bound to another; none: to no quantity.
+  type Binding = { checker: boolean; code: boolean; other: boolean };
+  const bindingOf = (f: BoundFigure): Binding => {
+    if (f.pronoun) {
+      // "it"/"that" refers back to the claim when the claim's own figure was just said (Aldermoor Tyler t13).
+      const back = numbersOf(f.lead).some(atOwn);
+      return { checker: back, code: back, other: false };
+    }
+    const ch = byChecker(f.phrase), co = byCode(f.phrase);
+    return { checker: ch || (co && sameQuantity), code: ch || co, other: !ch && !co && quantityWords(f.phrase).size > 0 };
+  };
+  // The figure is a right figure stated for the claim's own quantity.
+  const statedRight = (f: BoundFigure, pool: number[]) => {
+    const b = bindingOf(f);
+    return (b.code && codeRight.some(r => same(f.value, r) && pool.includes(r))) || (b.checker && checkerRight.some(r => same(f.value, r) && pool.includes(r)));
+  };
   const inputs = FROM_PRICE.has(q.kind) ? [...numbersOf(c.span), ...(q.price !== null ? [q.price] : [])].filter(n => !own.some(x => same(n, x))) : [];
   const notInput = (n: number) => !inputs.some(x => same(n, x));
-  const forQuantity = (text: string) => sentencesOf(text).filter(names).flatMap(x => [...numbersOf(x), ...factorFigures(x)]).filter(notInput);
-  const redoneToRight = (text: string) => [...numbersOf(text), ...factorFigures(text)].filter(notInput).some(n => rightToCheck.some(r => same(n, r)))
-    || (subject.size > 0 && sentencesOf(text).some(x => [...numbersOf(x), ...factorFigures(x)].filter(notInput).some(n => right.some(r => same(n, r)))
-      && [...quantityWords(x)].some(w => subject.has(w))));
+  // A message that still states the claim's figure, bound to it or to nothing.
+  const namesClaim = (figs: BoundFigure[], text: string) => figs.some(f => atOwn(f.value) && !bindingOf(f).other) || wordFigures(text).some(atOwn);
+  // A redo to the claim's right figure (Lorenzo, 15 Oct; batch 26 Marisol
+  // 2456aa9d t7: "Let me redo it in dollars" — about COGS — withdrew her labor
+  // claim, whose right figure, 15, its "Revenue grows 15%" also said): a right
+  // figure that is also a case figure counts only stated for the claim's
+  // quantity; any other right figure wherever it is not bound to another quantity.
+  const redoneToRight = (figs: BoundFigure[], text: string) => factorFigures(text).filter(notInput).some(n => rightToCheck.some(r => same(n, r)))
+    || figs.some(f => notInput(f.value) && ((rightToCheck.some(r => same(f.value, r)) && !bindingOf(f).other) || (!f.operand && statedRight(f, right))));
   for (const m of later) {
     const { text, questioned } = typeof m === 'string' ? { text: m, questioned: false } : m;
+    const figs = boundFigures(text);
     const concession = sentencesOf(text).find(s => WITHDRAWN.test(s) || (REVISING.test(s) && /\d/.test(s)));
-    if (concession && (questioned || namesClaim(text) || redoneToRight(text))) {
+    if (concession && (questioned || namesClaim(figs, text) || redoneToRight(figs, text))) {
       return WITHDRAWN.test(concession) ? `withdrawn: "${concession}"` : `revised: "${concession}"`;
     }
-    const stated = forQuantity(text).find(n => rightToCheck.some(r => same(n, r)));
-    if (stated !== undefined) return `the right figure (${stated}) stated since`;
+    // An operand is an input of arithmetic, not the quantity stated (Larkspur
+    // Marisol 6e5a1c90 t19: "8,000 flights × 60 passengers × $10 = $4.8M" is no $10M of route contribution).
+    const stated = figs.find(f => !f.operand && notInput(f.value) && statedRight(f, rightToCheck));
+    if (stated !== undefined) return `the right figure (${stated.value}) stated since`;
     if (NEEDED_KINDS.has(q.kind)) {
       const prices = [...priceAnswers(text), ...factorFigures(text)].filter(n => !own.some(x => same(n, x)));
       const answer = prices.find(n => right.some(r => near(n, r)));
@@ -320,25 +382,27 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
       const redo = prices.find(n => redoTargets.some(r => near(n, r)));
       if (redo !== undefined) return `redone for another target (${redo}% for the ${priorMargin}% margin)`;
     }
-    const other = sentencesOf(text).filter(x => BASE_CUE.test(x) && names(x)).flatMap(x => numbersOf(x)).find(n => rebased.some(r => same(n, r)));
-    if (other !== undefined) return `the right figure on another base (${other}) stated since`;
+    const other = figs.find(f => BASE_CUE.test(f.sentence) && !f.operand && (bindingOf(f).checker || bindingOf(f).code) && rebased.some(r => same(f.value, r)));
+    if (other !== undefined) return `the right figure on another base (${other.value}) stated since`;
     // Restated at a different value (Lorenzo, 19 Oct, R2; batch 32 Aldermoor
     // Marisol t9–t23: her $2,000 net price dropped five times as "restated" by
     // "List is $10,000 per patient per year" beside "$2,000 realized"): the
     // quantity said again at its own figure carries the error on — the key
     // dedupes it — and so does a message that still states the claim's figure.
     // A step span at a case figure is a quote of the data, not the quantity
-    // restated ("List is $10,000" read as the net-price step; review M2).
-    const atOwn = (v: number) => own.some(x => same(v, x));
+    // restated ("List is $10,000" read as the net-price step; review M2), and
+    // a figure in it that is an operand or bound to another quantity is not the
+    // step's (E6: "0.20 × $4,000"; "The remaining gap to 24% is about 8 points").
     if (pm && q.kind !== 'none' && q.kind !== 'step') {
       const kind = q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain' ? 'needed' : q.kind;
       const again = checkPricingClaims(text, pm).find(x => x.kind === kind && (kind === 'needed' || x.price === q.price));
       const value = again && (kind === 'needed' ? again.price : again.stated);
-      if (again && value !== undefined && !atOwn(value) && !namesClaim(text)) return `restated at ${value}: "${again.span}"`;
+      if (again && value !== undefined && !atOwn(value) && !namesClaim(figs, text)) return `restated at ${value}: "${again.span}"`;
     }
     if (step) {
-      const again = findStepSpans(text, step as never).find(x => !caseFigures.some(f => same(x.value, f)));
-      if (again && !atOwn(again.value) && !namesClaim(text)) return `restated at ${again.value}: "${again.span}"`;
+      const itsOwn = (x: { value: number; span: string }) => boundFigures(x.span).some(f => same(f.value, x.value) && !f.operand && !bindingOf(f).other);
+      const again = findStepSpans(text, step as never).filter(itsOwn).find(x => !caseFigures.some(f => same(x.value, f)));
+      if (again && !atOwn(again.value) && !namesClaim(figs, text)) return `restated at ${again.value}: "${again.span}"`;
     }
   }
   return null;
