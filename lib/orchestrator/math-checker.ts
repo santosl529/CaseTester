@@ -429,6 +429,17 @@ function otherYearBase(c: CheckerClaim, ctx: VetContext): string | null {
   return null;
 }
 
+// A money figure or range as the candidate said it, written as money: "$" and
+// separators on each figure, the step's scale after ("8 to 9" → "$8 to $9 million").
+// null when a figure doesn't read cleanly (final review I1, 20 Oct: never "$NaN").
+const CLEAN_FIGURE = /^(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?$/;
+function moneyAsSaid(said: string, scale: string): string | null {
+  const m = said.trim().match(/^\$?\s?(\d[\d,]*(?:\.\d+)?)(?:\s*(to|-|–)\s*\$?\s?(\d[\d,]*(?:\.\d+)?))?$/);
+  if (!m || !CLEAN_FIGURE.test(m[1]) || (m[3] !== undefined && !CLEAN_FIGURE.test(m[3]))) return null;
+  const money = (n: string) => `$${Number(n.replace(/,/g, '')).toLocaleString('en-US', { maximumFractionDigits: 6 })}`;
+  return m[3] === undefined ? `${money(m[1])}${scale}` : `${money(m[1])}${m[2] === 'to' ? ' to ' : m[2]}${money(m[3])}${scale}`;
+}
+
 // Lorenzo, 13 Oct: code writes the correction from its own figure for the
 // quantity the checker names, naming the quantity and its input ("A 10% price
 // rise lifts margin about 8.5 points, not 5.") — the checker's arithmetic is
@@ -482,7 +493,9 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
         const theirNumber = noScale ? parseFloat((theirs.match(FIGURE)?.[0] ?? '').replace(/,/g, '')) : NaN;
         const inUnits = noScale && theirNumber >= 1000;
         const closer = ratio ? `${shown} times` : inUnits ? `$${Math.round(at.value * 1e6).toLocaleString('en-US')}` : noScale ? `$${shown} million` : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}${million}` : `${shown}${unit}`;
-        const notX = ratio ? theirs : inUnits ? (theirs.includes('$') ? theirs : `$${theirs}`) : noScale && theirs.includes('$') ? `${theirs} million` : usd && !HAS_UNIT.test(theirs) ? `$${Number(bare.replace(/,/g, '')).toLocaleString('en-US', { maximumFractionDigits: 6 })}${million}` : bare;
+        // A bare range ("8 to 9", "8.5-9") is reformatted only when both ends read cleanly ("$8 to $9 million"),
+        // else kept as said; a single figure gets separators ("$8800000" → "$8,800,000") (final review I1, 20 Oct).
+        const notX = ratio ? theirs : inUnits ? (moneyAsSaid(theirs, '') ?? (theirs.includes('$') ? theirs : `$${theirs}`)) : noScale && theirs.includes('$') ? `${theirs} million` : usd && !HAS_UNIT.test(theirs) ? moneyAsSaid(bare, million) ?? bare : bare;
         return `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${notX}.`;
       }
       default: return null;

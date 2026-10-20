@@ -36,6 +36,18 @@ describe('million scale: a "$" with no scale word still gets "million" on both s
   it.each([['$8.8M', '$8.8M'], ['$8.8 million', '$8.8 million']])('"%s" keeps its own form', (v, form) => expect(say(v)).toMatch(new RegExp(`is about .*, not ${form.replace('$', '\\$').replace('.', '\\.')}\\.$`)));
 });
 
+describe('final review I1: a bare range at a money step is never "$NaN"; a bare unit figure gets separators', () => {
+  const say = (v: string) => codeCorrection(checkerClaim(v, { codeQuantity: step('launch_costs_total') }), { value: 9, index: 0 }, noVet('launch-001'))!.line;
+  it('"8 to 9" keeps its range, each end as money with the scale after', () => expect(say('8 to 9')).toMatch(/is about \$9 million, not \$8 to \$9 million\.$/));
+  it('"8.5-9" keeps its range', () => expect(say('8.5-9')).toMatch(/is about \$9 million, not \$8\.5-\$9 million\.$/));
+  it('no line says NaN', () => { for (const v of ['8 to 9', '8.5-9', '8.5 – 9', '8,800,000 to 9,000,000']) expect(say(v)).not.toMatch(/NaN/); });
+  it('"8800000" (no separators) reads "$8,800,000", like the closer', () => expect(say('8800000')).toMatch(/is about \$9,000,000, not \$8,800,000\.$/));
+  it('a bare range at unit scale gets "$" on each end', () => {
+    const w = codeCorrection(checkerClaim('11000 to 12000', { codeQuantity: step('lakeport_contribution_fy2023') }), { value: 4200, index: 0 }, noVet('prof-002'))!;
+    expect(w.line).toMatch(/is about \$4,200, not \$11,000 to \$12,000\.$/);
+  });
+});
+
 describe('Quillpath Marcus 13:3: a ratio is said in times', () => {
   const said = 'Starter standalone: 40% cancelled in 12 months, call it 4% a month, a ~25-month life. 25 × $30 = $750 on $300 CAC = 2.5x. Fails — that\'s the CFO\'s number.';
   const base = checkerClaim('$750; 2.5x', {
