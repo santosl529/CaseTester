@@ -28,6 +28,41 @@ describe('isQuestionForm', () => {
   });
 });
 
+// Final review I4 (f0fbaf8..5f73bc8): recall on common data asks, and two statements
+// read as questions. what's/where's/how's + a determiner or noun; a wh-word + auxiliary
+// + a determiner or noun; how much / how long only when inverted (no subject pronoun
+// before the auxiliary). A pseudo-cleft ("What was clear is…", "What's driving it is…")
+// stays a statement.
+describe('final review I4: question form', () => {
+  it.each([
+    "What's the revenue",
+    "What's driving margin",
+    'What was revenue in 2024',
+    'How did sales change',
+    'Is the revenue growing',
+    "Where's the cost data",
+    'So whats the margin trend',
+    'How much does it cost per bag',
+    'How long will the contracts run',
+    'How much revenue did they make last year',
+    'What does COGS include',
+  ])('question form: %s', s => expect(isQuestionForm(s)).toBe(true));
+
+  it.each([
+    'How much we charge will decide it.',
+    'How long it takes depends on the contracts.',
+    'What was clear is that margins fell.',
+    "What's driving margin is the bean cost.",
+    "What's interesting is the labor line.",
+    "What's more, the margins fell.",
+    // b28–b35 candidates' own (scanned over 39,177 sentences): a pseudo-cleft with a colon.
+    "What's missing: product and channel mix.",
+    "What's driving a 16-point COGS jump: either input cost inflation — green coffee and dairy have both spiked — or they haven't raised menu prices to pass it through.",
+    'Had the prices risen, volume would have dropped.',
+    'Do the math on the stores first.',
+  ])('not a question: %s', s => expect(isQuestionForm(s)).toBe(false));
+});
+
 describe('matchAskDetections, held branch without "?"', () => {
   const detection = { what: 'total sales', ledgerItemIds: ['sales_total'] };
   const mk = (text: string) => ({ text, isHeld: () => true, itemNames: () => ['total sales'], caseNames: ['Brew & Bean'] });

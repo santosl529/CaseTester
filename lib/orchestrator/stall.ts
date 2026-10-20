@@ -163,15 +163,37 @@ export function isQuestionSentence(sentence: string): boolean {
 // "do it" / "could be" / "what we need" / "what would make me change course:
 // one, …" are statements (the auxiliary needs a subject after it). A sentence ending in
 // "?" keeps today's rule (isQuestionSentence).
+//
+// Final review I4 (round 5b fix wave): recall on the common data asks — what's /
+// where's / how's + a determiner or a data noun ("What's the revenue", "Where's the
+// cost data") or an -ing word ("What's driving margin"); a wh-word + auxiliary + a
+// bare data noun ("What was revenue in 2024", "How did sales change"); an auxiliary
+// + a determiner ("Is the revenue growing"; not "do the", "have the", "had the": an
+// imperative or a conditional). How much / how long / how often only when inverted —
+// an auxiliary before any subject pronoun ("How much does it cost", "How much revenue
+// did they make"; not "How much we charge will decide it.", "How long it takes depends
+// on the contracts."). A pseudo-cleft is a statement: a wh-word + noun or -ing word
+// with a later "is"/"was" or a colon or dash ("What's driving margin is the bean cost.",
+// "What's missing: product and channel mix." — 40 such sentences in b28–b35).
 const FORM_FILLERS = '(?:(?:so|and|uh|um|okay|ok|yeah|sorry|also)[,.]?\\s+)*';
-const WH_INVERSION = '(?:what|what\'s|how|why|where|when|who)\\s+(?:(?:is|are|was|were|am|do|does|did|can|could|would|should|has|have|had|will)\\s+(?:i|we|you|they|it|he|she|there|that|this|these|those|the|a|an|my|our|your|his|her|their)|many|much|long|often|about)\\b';
+const AUX = '(?:is|are|was|were|am|do|does|did|can|could|would|should|has|have|had|will)';
+const DETERMINER = '(?:the|a|an|my|our|your|his|her|its|their|this|that|these|those|any|each|every|some)';
+const SUBJECT_PRONOUN = '(?:i|we|you|they|it|he|she)';
+const WH_INVERSION = `(?:what|how|why|where|when|who)\\s+(?:${AUX}\\s+(?:${SUBJECT_PRONOUN}|there|that|this|these|those|the|a|an|my|our|your|his|her|their)|many|about)\\b`;
+const HOW_AMOUNT = `how\\s+(?:much|long|often)\\s+(?:(?!${SUBJECT_PRONOUN}\\b)[^\\s]+\\s+){0,5}?${AUX}\\b`;
+const WH_CONTRACTED_DET = `(?:what|where|how)['’]?s\\s+${DETERMINER}\\b`;
 const WH_WHICH = 'which\\s+(?:one|ones|of|\\w+\\s+(?:is|are|was|were|do|does|did|should|would|can|could|has|have))\\b';
-const AUX_SUBJECT = '(?:(?:do|did|can|could|would|should|will|have|has|is|are|was|were)\\s+(?:we|i|you|they|there)|does\\s+(?:it|he|she|that|this|there|the)|is\\s+(?:it|that|this)|are\\s+(?:these|those)|can\\s+(?:it|that|this)|could\\s+(?:it|that|this))\\b';
-const QUESTION_FORM = new RegExp(`^\\s*${FORM_FILLERS}(?:${WH_INVERSION}|${WH_WHICH}|${AUX_SUBJECT})`, 'i');
+const AUX_SUBJECT = `(?:(?:do|did|can|could|would|should|will|have|has|is|are|was|were)\\s+(?:we|i|you|they|there)|does\\s+(?:it|he|she|that|this|there|the)|is\\s+(?:it|that|this)|are\\s+(?:these|those)|can\\s+(?:it|that|this)|could\\s+(?:it|that|this)|(?:is|are|was|were|did|does|has)\\s+${DETERMINER})\\b`;
+const QUESTION_FORM = new RegExp(`^\\s*${FORM_FILLERS}(?:${WH_INVERSION}|${HOW_AMOUNT}|${WH_CONTRACTED_DET}|${WH_WHICH}|${AUX_SUBJECT})`, 'i');
+// A wh-word + a bare noun or -ing word: a question unless a copula follows (a pseudo-cleft).
+const NOUN = DATA_NOUN.source;
+const WH_BARE = new RegExp(`^\\s*${FORM_FILLERS}(?:(?:what|where|how)['’]?s\\s+(?:${NOUN}|[a-z]+ing\\b)|(?:what|how|why|where|when|who)\\s+${AUX}\\s+${NOUN})(.*)$`, 'i');
 export function isQuestionForm(sentence: string): boolean {
   const s = sentence.trim();
   if (s.endsWith('?')) return isQuestionSentence(s);
-  return QUESTION_FORM.test(s);
+  if (QUESTION_FORM.test(s)) return true;
+  const bare = WH_BARE.exec(s);
+  return bare !== null && !/\b(?:is|was|are|were)\b|[:—–]/i.test(bare[bare.length - 1] ?? '');
 }
 
 function isDataRequest(text: string): boolean {
