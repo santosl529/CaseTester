@@ -154,10 +154,11 @@ except where the fix applies) and a prof-001 wave.
 | pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2) | not met (35): 1 interviewer false statement (code's "LTV/CAC is about $2", a unit slip, judgement), report 0, **0 refusals**; 5 hollow deferrals in 4 runs (every mapped check verdict); close, stages and firm moderate ≤ 2 met (Marcus 2, Marisol 2). Round 5 built from these (E3 ratio unit, E5, E6, E7, D6); no new wave | no |
 | launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2) | not met (35): 2 serious false refusals of distribution (`retailer_support` never mapped for "store count / distribution rate", judgement) + 1 scale slip ("$9, not 8.8"), report 0; asks unanswered (2) + 1 hollow deferral; close, stages and firm moderate ≤ 2 met (Marisol 2, Tyler 2). Round 5 built from these (D2, D4, D5, E3, E6, A4, A5); no new wave | no |
 
-**Next (20 Oct, after round 5):** Lorenzo ruled on the B1 + B2 list; round 5 is built on `engine-asks` and free-proved, not merged or deployed (PRD §16, round 5).
+**Next (20 Oct, after round 5b):** Lorenzo reviewed round 5; round 5b (his review) is built on `engine-asks`, reviewed and proved, not merged or deployed (PRD §16, round 5b).
 - The own-quantity hotfix is on `main` 9be93ca and deployed (Vercel + LiveKit agent stv9i6rgY6yS; PRD §16); the prof-001 voice smoke is Lorenzo's.
-- **Round 5:** D1–D5 and D7 covers, D6 exhibit notes, E1–E7 (E5 as a, b, d; E6 at figure level) and A1–A5, A7; proof `Case Interview Runs/replays/2026-10-20/engine-asks/r5-final.md` (prof-001: 0 regressions under the recorded rulings, R7 flagged; new cases: 137 lines, no regression found; F1/F3/F4 0); live Haiku check $0.0749, 0 wrong releases, 9 releases or restates that don't answer the ask (`r5-haiku-check.md`). The controller's round-5 rulings are proposed, awaiting him.
-- **Next: Lorenzo's go for B1′, B2′ and the prof-001 pre-merge wave** (each paid, one wave at a time, with a cap). The grades are unchanged until a wave runs.
+- **Round 5:** D1–D5 and D7 covers, D6 exhibit notes, E1–E7 (E5 as a, b, d; E6 at figure level) and A1–A5, A7; proof `r5-final.md`. His approvals (20 Oct): the E6 binder rules, the row fix in his wording, the E7 co-occurrence rule, the count rule, controller rulings 2 and 4–17.
+- **Round 5b:** R7 reversed, the 13:0 redo credit in the report, E5 partial answers and the check's own prompt (masked lines), question form for the held-question rule, the suite. Free replay vs r5-final2: only b33 and b35q Marisol changed, all intended; F1/F3/F4 0. Haiku reruns ($0.1886): 0 wrong releases, 0 false refusals, 0 hollow deferrals, **5 bare partial answers** (Haiku labelling a near item full) — the bar is not met (`Case Interview Runs/replays/2026-10-20/engine-asks/r5b-haiku-check.md`).
+- **Next: Lorenzo's ruling on the bare partials** (a stronger check model, an engine guard, or accept) and I5; then his go for B1′ + B2′ (cap $40, logging the check's cost and added latency per session) and the prof-001 pre-merge wave (each paid, one wave at a time). The grades are unchanged until a wave runs.
 - A′ is skipped.
 
 ## Shared-engine gaps that affect new cases (PRD §15)
@@ -367,3 +368,11 @@ group beats a more specific cover. Others:
   recorded verdicts (`REPLAY_CHECKS` for a live check's). A tighter matcher can
   fail on real redos: E6's first binder turned 7 prof-001 redos into stale
   probes; prove a stale-check change on the false closes and on the real redos.
+- 20 Oct, engine-asks round 5b (two Haiku check runs, $0.1886): the ask check
+  sees only each item's label and its line with every figure masked, never the
+  exhibit. Write each ledger line so it says what it holds and for which period
+  even with its figures hidden (#66: Haiku took plan_cac's single CAC as an
+  answer to a CAC-trend ask). A check model's full / partial labels need a live sample:
+  the replay serves recorded verdicts, and Haiku's labels changed run to run
+  (#36, #63, #66). Check a small model's reply format live too: prose around
+  the JSON gave 16 nulls, and prose after it 15 calls over 1.5 s.
