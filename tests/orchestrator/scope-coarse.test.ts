@@ -191,8 +191,8 @@ describe('prof-001: a split ask mapped to change items (topic siblings, not coar
 });
 
 // A finer ask the model answered with only an exhibit (4b, 13 Oct; Marcus 71a04add
-// t12): the exhibit is its coarse answer — handed over, the finer cut refused
-// beside it, unchecked; an exhibit already on screen goes nowhere, so the ask is checked.
+// t12): refused unchecked, as before E1 — beside the exhibit when it is handed
+// over (logged `scope_coarse`), alone when the exhibit is already on screen.
 describe('a finer ask backed by an exhibit', () => {
   const ASK = { what: 'the split within the non-bean input costs', itemIds: ['exhibit-a'], explicit: true, respond: 'release' as const };
   it('the exhibit handed over this turn: "I don\'t have …" beside it, no check', async () => {
@@ -209,5 +209,55 @@ describe('a finer ask backed by an exhibit', () => {
     expect(d.exhibit).toBeNull();
     expect(classify).not.toHaveBeenCalled();
     expect(renderDataLines(d, 's')).toEqual([`I don't have ${ASK.what}.`]);
+  });
+});
+
+// Review finding (task 44 fix round 3): a coarse ask's refusal must not pull in a
+// siblings-only ask the coverage step remapped to held items — "I don't have the
+// split within the non-bean input costs …" beside its own price-change lines or deferral.
+describe('a coarse ask beside a siblings-only ask the coverage step remapped', () => {
+  const ASKS = [
+    { what: 'number of stores by region', itemIds: ['stores_count'], explicit: true, respond: 'release' as const },
+    { what: 'the split within the non-bean input costs', itemIds: ['non_bean_input_change'], explicit: true, respond: 'release' as const },
+  ];
+  const TEXT = 'Could I get the number of stores by region, and the split within the non-bean input costs?';
+  it('pressure test satisfied: the store count with "I don\'t have number of stores by region."; the price changes released, not refused', async () => {
+    const p = plan('prof-001', TEXT);
+    const d = await turnDataChecked(p, turn(ASKS));
+    expect(d.refusals).toEqual(['number of stores by region']);
+    expect(d.releases.map(r => r.id)).toEqual(['stores_count', 'bean_price_change', 'non_bean_input_change']);
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(/I don't have the split within the non-bean/);
+    expect(classify).not.toHaveBeenCalled();
+  });
+  it('pressure test open: the price changes held by the gate are not also refused', async () => {
+    const p = plan('prof-001', TEXT, { flags: { pressureTest: { state: 'awaiting', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: false, structureAsked: false, awaitingReplies: 0 } } });
+    const d = await turnDataChecked(p, turn(ASKS));
+    expect(d.refusals).toEqual(['number of stores by region']);
+    expect(d.releases.map(r => r.id)).toEqual(['stores_count']);
+    expect(d.gatedIds).toEqual(['bean_price_change', 'non_bean_input_change']);
+    const said = renderDataLines(d, 's').join(' ');
+    expect(said).not.toMatch(/I don't have the split within the non-bean/);
+    expect(said).toMatch(/coffee bean price change/);
+  });
+});
+
+// Review Focus 1, the release cap: a coarse item over the cap is not deferred
+// out loud for an ask that didn't name it; the ask goes to the check.
+describe('a coarse item over the release cap', () => {
+  it('three releases first, then "COGS by month": cogs_pct not released or promised; the ask checked', async () => {
+    const p = plan('prof-001', 'Could I get total revenue, the average ticket, menu price changes and COGS by month?');
+    classify.mockResolvedValueOnce([]);
+    const d = await turnDataChecked(p, turn([
+      { what: 'total revenue', itemIds: ['revenue_total'], explicit: true, respond: 'release' },
+      { what: 'average ticket', itemIds: ['avg_ticket'], explicit: true, respond: 'release' },
+      { what: 'menu price changes', itemIds: ['menu_price_change'], explicit: true, respond: 'release' },
+      { what: 'COGS by month', itemIds: ['cogs_pct'], explicit: true, respond: 'release' },
+    ]));
+    expect(d.releases.map(r => r.id)).toEqual(['revenue_total', 'avg_ticket', 'menu_price_change']);
+    expect(d.defers).toEqual([]);
+    expect(classify).toHaveBeenCalledTimes(1);
+    expect(d.refusals).toEqual(['COGS by month']);
+    expect(acted(p, 'scope_coarse')).toHaveLength(0);
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(/COGS is 58%|come back to/);
   });
 });

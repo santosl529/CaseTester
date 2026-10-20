@@ -82,11 +82,15 @@ export function wrapUpTurn(plan: ModelPlan): boolean {
 // a timeout or error, use the named deferral, never a refusal." Item-less
 // releases (a code-written turn's detections among them) go through it too.
 // An ask a finer-cut scope rule emptied (it matched an item that can't answer
-// it) keeps that coarse item (Lorenzo, 20 Oct, round 5 E1; batch 34 Aldermoor
-// Marisol t14, Jasmine t4): released under every gate with "I don't have <the
-// ask>." for the finer cut; with no coarse item going out it is checked like
-// any other refusal (turnData, `scope_coarse`). This reverses the round-2
-// exception that refused it unchecked.
+// it) keeps that coarse item — one that holds the asked quantity at a coarser
+// cut (Lorenzo, 20 Oct, round 5 E1; batch 34 Aldermoor Marisol t14, Jasmine t4):
+// released under every gate with "I don't have <the ask>." for the finer cut
+// (turnData, `scope_coarse`). Coarse items all out already (said, or on a shown
+// exhibit): the refusal alone, unchecked (4b stands). Coarse items held (release
+// order, pressure-test gate, cap): checked like any other refusal. An ask emptied
+// only of topic siblings (a change item asked for a split, `changeForSplit`) or a
+// finer ask backed only by an exhibit: refused unchecked, as before E1 (the
+// controller's rulings, 20 Oct). This reverses the round-2 exception elsewhere.
 // Round-3 ruling 5 (Lorenzo, 19 Oct; batch 28 Marisol t8, batch 30 Anika t6):
 // "Code refuses only when the check says the case doesn't hold it." Any ledger
 // item the check finds is a named deferral, whether or not the scope rules or
@@ -454,6 +458,9 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // don't (not in the ledger, waiting on the release order, over the cap) are
   // taken off the ask — no deferral is said for data the ask didn't name — and
   // the turn decided again: an ask left with none goes to the check below.
+  // Once is enough: narrowing only removes ids that went nowhere, so it frees no
+  // release slot they held, can't change the exhibit chosen (an id it covers went
+  // out, so it stays), and restates nothing new — every id left goes out again.
   const wentOut = (id: string) => decisions.releases.some(x => x.id === id)
     || decisions.exhibit?.id === id || Boolean(decisions.exhibit?.covers.includes(id));
   if ([...coarseAsks].some(r => requests.includes(r) && !r.itemIds.every(wentOut))) {
@@ -484,8 +491,12 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const scopeRefused = new Set([...scopeCoarse.map(x => x.what), ...outAlready.map(x => x.what), ...siblingsOnly]);
   if (scopeCoarse.length > 0) {
     const firstAt = (w: string) => requests.findIndex(r => r.what === w);
-    decisions.refusals = [...new Set([...decisions.refusals, ...scopeRefused])].sort((a, b) => firstAt(a) - firstAt(b));
-    decisions.requests = decisions.requests.flatMap(d => (coarseAsks.has(d.request) && scopeRefused.has(d.request.what) && d.ledgerItemIds.length > 0
+    // Only the coarse asks' own finer cuts join the refusals: an ask emptied of
+    // siblings that the coverage step remapped to held items is not refused (it
+    // would contradict its own release or deferral).
+    const coarseWhats = new Set(scopeCoarse.map(x => x.what));
+    decisions.refusals = [...new Set([...decisions.refusals, ...coarseWhats])].sort((a, b) => firstAt(a) - firstAt(b));
+    decisions.requests = decisions.requests.flatMap(d => (coarseAsks.has(d.request) && coarseWhats.has(d.request.what) && d.ledgerItemIds.length > 0
       ? [d, { request: { ...d.request, itemIds: [] }, response: 'refuse' as const, ledgerItemIds: [] }] : [d]));
     plan.ctx.checks.act('scope_coarse', 'an ask a scope rule emptied keeps its coarse items: given, and the finer cut refused beside them', { asks: scopeCoarse });
   }
