@@ -694,3 +694,16 @@ describe('promises say the item, not its catalog label', () => {
     expect(decisionRows(labelled)[0].what).toBe('Coffee bean price change over 2 years');
   });
 });
+
+describe('a one-off cost ask (Lorenzo, 20 Oct; batch 34 Aldermoor Marisol t23)', () => {
+  const optionA = getCaseById('entry-001').dataLedger.find(i => i.id === 'option_a')!;
+  it('is outside an item that states only an annual figure', () => {
+    expect(outsideAskScope('Do we know the one-off cost to stand up the US team, separate from the $80M annual?', optionA)).toBe(true);
+    expect(outsideAskScope('the upfront cost of the US team', optionA)).toBe(true);
+    expect(outsideAskScope('the monthly setup cost', { label: 'Plan cost', value: 'The plan costs $20 a month.' })).toBe(true);
+  });
+  it('keeps the annual ask and an item that states a one-off figure', () => {
+    expect(outsideAskScope('the annual selling cost', optionA)).toBe(false);
+    expect(outsideAskScope('the one-off cost', { label: 'Plan cost', value: 'The plan costs $20 a month plus a one-off $500 setup fee.' })).toBe(false);
+  });
+});

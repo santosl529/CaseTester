@@ -140,9 +140,18 @@ export function splitOfItem(what: string, item: { label: string }, names: string
 // of scope of an item unless the item's value itself says where the figure comes from.
 const SAYS_BASIS = /\b(?:based on|comes? from|derived from|benchmark(?:ed)? (?:on|against))\b/i;
 
+// A one-off cost ask (Lorenzo, 20 Oct; batch 34 Aldermoor Marisol t23, "the
+// one-off cost to stand up the US team, separate from the $80M annual" got
+// Option A's annual line restated): a finer cut of an item whose value states
+// only an annual or monthly figure and no one-off wording of its own.
+const ONE_OFF_ASK = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up)\s+(?:costs?|fees?|spend|expenses?|investment|capex)\b|\b(?:costs?|spend|investment)\s+(?:to|of|for)\s+(?:stand(?:ing)?[- ]up|set(?:ting)?[- ]up|start(?:ing)?[- ]up)\b/i;
+const RECURRING_VALUE = /\b(?:annual|annually|yearly|a year|per year|each year|a month|per month|monthly)\b/i;
+const ONE_OFF_VALUE = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up|launch costs?)\b/i;
+
 export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = []): boolean {
   const ask = what.toLowerCase();
   if (BASIS.test(ask) && !SAYS_BASIS.test(item.value ?? '')) return true;
+  if (ONE_OFF_ASK.test(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
   const head = HEAD_NOUN(item.label);
   if (!head) return false;
   const label = item.label.toLowerCase();
