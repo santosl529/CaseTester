@@ -378,41 +378,78 @@ export function askCheckCatalog(items: readonly Pick<LedgerItem, 'id' | 'label' 
 
 export function buildAskCheckPrompt(what: string, catalog: AskCheckItem[]): string {
   const lines = catalog.length > 0 ? catalog.map(c => `- ${c.id}: ${c.label} — ${c.line}`).join('\n') : '- (none)';
-  return `Check one data request a candidate made in a mock case interview against the case's data.
+  return `Check a candidate's data request in a mock case interview against the case's data.
 
 REQUEST: "${what}"
 
-Map the request to the item(s) that hold the answer to what was asked; an item on the same topic that doesn't hold it is no mapping. If none holds it, no items.
-Per mapped item:
-- "answers": "full" when its line answers the request; "partial" when it holds only the nearest data, not the asked part.
-- "missing" (with "partial" only): the asked part it lacks, in the ask's own words, no numbers.
+Map the request to the item(s) that hold the answer to what was asked; an item on the same topic that doesn't hold it is no mapping.
+Per item:
+- "answers": "full" when its line answers the request; "partial" only when the asked part is absent from the line. A line that gives the asked quantity for the asked period is "full", however it is worded.
+- "missing" (with "partial" only): the asked part it lacks, in the ask's own words, no numbers; it names something the line does not state.
+A price or revenue item never answers a cost ask, and a cost item never answers a price or revenue ask.
 
-Examples from other interviews:
-- Aldermoor, "whether any US player has an existing Corlan's franchise": option_b (the partner, an established US drug company) is closer than company_size (Aldermoor's own size).
+Examples (other cases):
+- Aldermoor, "whether any US player has an existing Corlan's franchise": option_b (a US partner) is closer than company_size.
 - Quillpath, "the Starter cohort beyond the cohort table's last month": cohort_notes, not the table (starter_cohort).
 - Quillpath, "churn for upgraded customers measured from their upgrade date": cohort_notes ("upgraded customers then behave like Pro customers"), not upgrade_timing.
 - Brew & Bean, "operating margin over the period": cogs_pct, labor_pct, overhead_pct answer it in full (the exhibit shows margin by year).
 
-CASE DATA (id: label — its line as the interviewer says it, figures hidden as "#"):
+CASE DATA (id: label — its line, figures hidden as "#"):
 ${lines}
 
-Reply with ONLY this JSON (an empty list if no item holds it):
+Reply with ONLY this JSON (empty list if no item holds it):
 {"items":[{"id":"...","answers":"full|partial","missing":"..."}]}`;
 }
 
 // Words that carry no content of their own in a `missing` phrase.
 const FUNCTION_WORDS = new Set(`the and for any are was were has have had its it's their there this that these those with from into onto about over under
 than then what which who whom whose when where whether how why our your his her they them not but nor yet also just very
-data`.split(/\s+/));
+data versus across`.split(/\s+/));
 const missingStem = (w: string) => { const s = w.replace(/(?:ies|es|s|'s)$/, ''); return s.length >= 3 ? s : w; };
-const contentStems = (t: string) => (t.toLowerCase().replace(/[’']s\b/g, '').match(/[a-z]+/g) ?? [])
-  .filter(w => w.length >= 3 && !FUNCTION_WORDS.has(w)).map(missingStem);
-// A `missing` phrase is said aloud: no digit, and nothing the candidate didn't ask.
-function validMissing(missing: string, what: string): boolean {
-  if (!missing.trim() || /\d/.test(missing)) return false;
-  const asked = new Set(contentStems(what));
-  const words = contentStems(missing);
-  return words.length > 0 && words.every(w => asked.has(w));
+// Content tokens: words of 3+ letters and figure tokens ("fy2025", "6"), function words aside.
+// A hyphenated word is one token ("week-by-week" is not "eight-week").
+const contentTokens = (t: string) => (t.toLowerCase().replace(/[’']s\b/g, '').match(/[a-z0-9]+(?:-[a-z0-9]+)*/g) ?? [])
+  .filter(w => (w.length >= 3 || /\d/.test(w)) && !FUNCTION_WORDS.has(w)).map(w => (/\d/.test(w) ? w : missingStem(w)));
+
+// A `missing` phrase is said aloud, in the ask's own text (Task 56 fix round 2,
+// r5b-haiku-pre #27 "volume used, and waste or portioning changes", #33 "versus two
+// years ago", #37 "breakdown by category"): a span of the ask, with no digit, that
+// starts at the ask's start or after a list break (a comma, "and", "or", "plus",
+// "including", "as well as") and not at a preposition. Returned as the ask writes it
+// (its capitals); null: not one — the caller says the ask's own words.
+const LIST_BREAK = /(?:^|,|;|\band|\bor|\bplus|\bincluding|\bas well as|&)\s*$/i;
+const BAD_START = /^(?:versus|vs\.?|per|by|for|of|in|on|at|to|from|with|and|or|including|plus|than|over|across|between|since|within)\b/i;
+export function missingSpan(missing: string, what: string): string | null {
+  const m = missing.replace(/\s+/g, ' ').trim();
+  const ask = what.replace(/\s+/g, ' ').trim();
+  if (!m || /\d/.test(m) || BAD_START.test(m) || contentTokens(m).length === 0) return null;
+  const lower = ask.toLowerCase(), needle = m.toLowerCase();
+  for (let at = lower.indexOf(needle); at !== -1; at = lower.indexOf(needle, at + 1)) {
+    const before = ask.slice(0, at);
+    const wordStart = at === 0 || /[\s,;(—–-]$/.test(before);
+    if (wordStart && LIST_BREAK.test(before.trimEnd() === '' ? '' : before)) return ask.slice(at, at + m.length);
+  }
+  return null;
+}
+
+// Whether a line states a phrase: every content word and figure token of the phrase
+// is in it (Task 56 fix round 2, the controller's ruling: a `missing` part the item's
+// own line states is no missing part — r5b-haiku-pre #49/#50). Server-side: the line
+// is the ledger value, figures included.
+export function statedIn(phrase: string, line: string): boolean {
+  const said = new Set(contentTokens(line));
+  const words = contentTokens(phrase);
+  return words.length > 0 && words.every(w => said.has(w));
+}
+
+// A figure token the items' lines state is not missing: dropped from a pair in the
+// phrase ("the fare trend across FY2024 and FY2025", FY2025 on the Lakeport line →
+// "the fare trend across FY2024"). Only when exactly one of the pair is stated.
+export function dropStatedFigures(phrase: string, lines: string[]): string {
+  const said = new Set(lines.flatMap(contentTokens));
+  const stated = (tok: string) => said.has(tok.toLowerCase());
+  return phrase.replace(/\b([A-Za-z]*\d[\w.]*)\s*(?:,|\band\b|\bor\b|&|\bversus\b|\bvs\.?)\s*([A-Za-z]*\d[\w.]*)\b/g,
+    (whole, a: string, b: string) => (stated(a) && !stated(b) ? b : stated(b) && !stated(a) ? a : whole));
 }
 
 // The first balanced JSON object in a reply that parses and holds an `items` list —
@@ -453,7 +490,7 @@ export function parseAskCheckResponse(raw: string, what: string, catalog: AskChe
     // Absent or unknown = full: the release as before E5's partial form.
     if (e.answers !== 'partial') { items.push({ id: e.id, answers: 'full' }); continue; }
     const missing = typeof e.missing === 'string' ? e.missing.trim() : '';
-    items.push({ id: e.id, answers: 'partial', missing: validMissing(missing, what) ? missing : what });
+    items.push({ id: e.id, answers: 'partial', missing: missingSpan(missing, what) ?? what });
   }
   return { items };
 }

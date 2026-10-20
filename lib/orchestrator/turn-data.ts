@@ -8,7 +8,7 @@ import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
 import { findFalseRefusals, groupItemsAsked, coverageOf, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
-import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, type DetectedDataRequest } from './data-requests';
+import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingSpan, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, WANT_ASK_PHASES } from './request-signal';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal } from './data-ledger';
@@ -152,7 +152,7 @@ export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: 
 export type CheckedAsk =
   | { kind: 'named' }
   | { kind: 'refuse' }
-  | { kind: 'items'; ids: string[] }
+  | { kind: 'items'; ids: string[]; missing?: string[] }
   | { kind: 'coarse'; ids: string[]; missing?: string };
 export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict): CheckedAsk {
   if (v.mapped === null) return { kind: 'named' };
@@ -160,13 +160,31 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
   const ids = v.ids.filter(id => ledger.items.some(i => i.id === id));
   if (!v.mapped || ids.length === 0) return { kind: 'refuse' };
   const partial = new Set(v.partial ?? []);
+  // A partial's refusal as said: figures the mapped items' lines state dropped, a plan name kept (fix round 2).
+  const lines = ids.map(id => ledger.items.find(i => i.id === id)!.value);
+  const said = (m: string) => refusalPhrase(dropStatedFigures(m, lines), plan);
   const inScope = ids.filter(id => !v.outOfScope.includes(id) && !partial.has(id));
   const notOut = inScope.filter(id => !ledger.revealed.has(id));
-  if (inScope.length > 0) return { kind: 'items', ids: notOut.length > 0 ? notOut : inScope };
+  if (inScope.length > 0) {
+    // Mixed full + partial (fix round 2, the controller's ruling; r5b-haiku-pre #18):
+    // the full items decide as before, and each partial item's missing part is
+    // refused beside them; the partial item itself is not given.
+    const refused = [...new Set(ids.filter(id => partial.has(id)).flatMap(id => (v.missing?.[id] !== undefined ? [said(v.missing[id])] : [])))];
+    return { kind: 'items', ids: notOut.length > 0 ? notOut : inScope, ...(refused.length > 0 ? { missing: refused } : {}) };
+  }
   const coarse = ids.filter(id => !changeForSplit(what, ledger.items.find(i => i.id === id)!));
   if (coarse.length === 0) return { kind: 'refuse' };
   const missing = coarse.filter(id => partial.has(id)).map(id => v.missing?.[id]).find(m => m !== undefined);
-  return { kind: 'coarse', ids: coarse, ...(missing !== undefined ? { missing } : {}) };
+  return { kind: 'coarse', ids: coarse, ...(missing !== undefined ? { missing: said(missing) } : {}) };
+}
+
+// A refusal phrase led by one of the case's names, not possessive ("Starter cohort
+// beyond month 12"): "data on the Starter cohort …" — a sentence's lower-casing would
+// read the plan name as a common word (fix round 2, r5b-haiku-pre #64).
+function refusalPhrase(m: string, plan: ModelPlan): string {
+  const [first = '', next = ''] = m.trim().split(/\s+/);
+  const names = new Set(properNames(plan.state.caseData.sttKeyterms));
+  return names.has(first) && /^[a-z]/.test(next) ? `data on the ${m.trim()}` : m;
 }
 
 const DECIDED: Record<CheckedAsk['kind'], string> = {
@@ -201,8 +219,25 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     const ids = found === null ? [] : [...new Set(found.items.map(f => f.id))];
     const mapped = found === null ? null : ids.length > 0;
     const outOfScope = ids.filter(id => answersAsk(plan, what, id) === false);
-    const partial = (found?.items ?? []).filter(f => f.answers === 'partial').map(f => f.id);
-    const missing = Object.fromEntries((found?.items ?? []).flatMap(f => (f.answers === 'partial' && f.missing !== undefined ? [[f.id, f.missing]] : [])));
+    // A partial's missing part, checked again here (a replayed or recorded verdict
+    // isn't parsed): a span of the ask from a list break, else the ask's own words;
+    // one the item's own line states is no missing part — the item is full when its
+    // line states the whole ask too, else the ask's words (fix round 2, the
+    // controller's ruling; r5b-haiku-pre #49/#50, #33). The line is the ledger value,
+    // server-side only.
+    const valueOf = (id: string) => plan.state.ledger.items.find(i => i.id === id)?.value ?? '';
+    const partial: string[] = [];
+    const missing: Record<string, string> = {};
+    for (const f of found?.items ?? []) {
+      if (f.answers !== 'partial') continue;
+      let m = missingSpan(f.missing ?? what, what) ?? what;
+      if (statedIn(m, valueOf(f.id))) {
+        if (statedIn(what, valueOf(f.id))) continue;   // the line answers the ask: full
+        m = what;
+      }
+      partial.push(f.id);
+      missing[f.id] = m;
+    }
     const verdict: CheckVerdict = { mapped, ids, outOfScope, partial, missing };
     const decision = decideCheckedAsk(plan, what, verdict);
     // `found` keeps its old shape, so a replay reads old and new records alike (lib/eval/recorded-checks.ts).
@@ -648,19 +683,24 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // A partial answer's refusal (E5 partial): the asked part the coarse item lacks, said for the ask.
   const missingOf = new Map<string, string>();
   if (checked) {
-    const applied: { what: string; kind: string; ids: string[]; missing?: string }[] = [];
+    const applied: { what: string; kind: string; ids: string[]; missing?: string | string[] }[] = [];
     requests = requests.flatMap(r => {
       const c = r.explicit && r.itemIds.length === 0 ? checked.get(r.what) : undefined;
       if (!c || c.kind === 'named') return [r];
       checkedAsks.add(r.what);
-      applied.push({ what: r.what, kind: c.kind, ids: c.kind === 'refuse' ? [] : c.ids, ...(c.kind === 'coarse' && c.missing !== undefined ? { missing: c.missing } : {}) });
+      applied.push({ what: r.what, kind: c.kind, ids: c.kind === 'refuse' ? [] : c.ids, ...(c.kind !== 'refuse' && c.missing !== undefined ? { missing: c.missing } : {}) });
       if (c.kind === 'refuse') return [{ ...r, respond: 'release' as const }];
       if (c.kind === 'coarse') {
         coarseOf.set(r.what, c.ids);
         if (c.missing !== undefined) missingOf.set(r.what, c.missing);
         return [{ ...r, respond: 'release' as const }];
       }
-      return c.ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label, respond: 'release' as const }));
+      // A mixed verdict's partial parts: refused beside the items, never checked again.
+      for (const m of c.missing ?? []) checkedAsks.add(m);
+      return [
+        ...c.ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label, respond: 'release' as const })),
+        ...(c.missing ?? []).map(m => ({ ...r, itemIds: [] as string[], what: m, respond: 'release' as const })),
+      ];
     });
     if (applied.length > 0) plan.ctx.checks.act('checked_ask', 'the check\'s mapping of an unmatched ask, decided by code', { asks: applied });
   }
