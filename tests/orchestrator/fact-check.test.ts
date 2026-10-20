@@ -215,4 +215,8 @@ describe('"fixed cost breakdown" is no cover (Lorenzo, 19 Oct; engine-asks round
     const got = coverageOf('the FY2023 versus FY2025 cost breakdown', fb3).items;
     expect(got).toEqual(expect.arrayContaining(['fuel_prices', 'unit_costs', 'network_totals', 'fixed_costs']));
   });
+  it('a bare "the cost breakdown" (b22 Larkspur Marcus t1: "the cost breakdown and average fare trend") still reaches the four items', () => {
+    expect(coverageOf('the cost breakdown and average fare trend', fb3).items).toEqual(expect.arrayContaining(['fuel_prices', 'unit_costs', 'network_totals', 'fixed_costs']));
+    expect(coverageOf('the fixed cost breakdown', fb3).items).toEqual([]);
+  });
 });

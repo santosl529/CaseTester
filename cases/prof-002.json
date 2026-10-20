@@ -1581,6 +1581,9 @@
         "year-over-year cost breakdown",
         "cost breakdown by year",
         "overall cost breakdown",
+        "the cost breakdown",
+        "a cost breakdown",
+        "full cost breakdown",
         "total cost breakdown"
       ],
       "unit_costs": [
@@ -1595,6 +1598,9 @@
         "year-over-year cost breakdown",
         "cost breakdown by year",
         "overall cost breakdown",
+        "the cost breakdown",
+        "a cost breakdown",
+        "full cost breakdown",
         "total cost breakdown"
       ],
       "demand": [
@@ -1633,6 +1639,9 @@
         "year-over-year cost breakdown",
         "cost breakdown by year",
         "overall cost breakdown",
+        "the cost breakdown",
+        "a cost breakdown",
+        "full cost breakdown",
         "total cost breakdown"
       ],
       "fixed_costs": [
@@ -1644,6 +1653,9 @@
         "year-over-year cost breakdown",
         "cost breakdown by year",
         "overall cost breakdown",
+        "the cost breakdown",
+        "a cost breakdown",
+        "full cost breakdown",
         "total cost breakdown"
       ],
       "lakeport_seats_load": [

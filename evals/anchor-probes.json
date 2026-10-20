@@ -20,5 +20,6 @@
   { "case": "launch-001", "source": "probe: the shelf price", "what": "the retail price", "expect": { "items": ["bag_price"], "refused": false } },
   { "case": "launch-001", "source": "probe: flavor-level sales aren't held", "what": "flavor-level sales", "expect": { "items": [], "refused": true } },
   { "case": "launch-001", "source": "probe: store counts aren't held", "what": "the number of stores", "expect": { "items": [], "refused": true } },
-  { "case": "prof-002", "source": "probe: the case holds no split of the $20M fixed cost (b22 Larkspur Omar t14)", "what": "the fixed cost breakdown", "expect": { "items": [], "refused": true } }
+  { "case": "prof-002", "source": "probe: the case holds no split of the $20M fixed cost (b22 Larkspur Omar t14)", "what": "the fixed cost breakdown", "expect": { "items": [], "refused": true } },
+  { "case": "prof-002", "source": "probe: a bare cost breakdown ask keeps its four items (b22 Larkspur Marcus t1)", "what": "the cost breakdown", "expect": { "items": ["fixed_costs", "unit_costs", "fuel_prices", "network_totals"], "refused": false } }
 ]
