@@ -163,7 +163,7 @@ export function buildVerifierPrompt(
 
 Mark a claim UNSUPPORTED only when the transcript factually contradicts it — above all:
 - omission claims ("the candidate never mentioned / failed to propose X") when the candidate actually said X anywhere in the transcript;
-- mischaracterizations of what the candidate said or asked;
+- mischaracterizations of what the candidate said or asked. Check every statement that the candidate said, never said, claimed, raised or asked something against the quoted turns. A statement the transcript contradicts is unsupported. Read a conditional ("if we're priced above…") as a conditional, not a claim;
 - descriptions of moments that did not happen;
 - ERROR claims ("miscalculated X", "arithmetic error", "wrong figure for Y", "tighten your math on Z") when the candidate's figure was actually right: recompute it from the numbers in the transcript, and treat anything listed under FIGURES VERIFIED CORRECT IN CODE as correct;
 - claims that rest on a candidate turn listed under INTERVIEWER ERRORS AND EXCLUSIONS, or that cite an interviewer error as the candidate's mistake.
@@ -171,7 +171,7 @@ Lean SUPPORTED on matters of judgment or severity — you are checking facts, no
 
 Two kinds of claim are checked on facts alone:
 - [betterResponse] claims are the words a great candidate would have said. Mark one UNSUPPORTED when it states a figure or fact that the case data or the transcript contradicts (recompute it from the numbers in the transcript), or a figure listed under FIGURES NOT FOUND IN THE CASE DATA that cannot be derived from the transcript's figures. A hypothetical or estimate stated as such ("if we assume 5%", "say 100,000 passengers", "roughly") is fine.
-- [wentWell] claims are strengths. Judge only the facts a point states (a figure, a turn reference, what the candidate said or did), and mark it UNSUPPORTED only when the transcript contradicts one of them. Adjectives and judgments ("proactively", "clearly", "strong") are not checked.
+- [wentWell] claims are strengths. Judge only the facts a point states (a figure, a turn reference, what the candidate said, claimed, raised, asked or did), and mark it UNSUPPORTED only when the transcript contradicts one of them. Adjectives and judgments ("proactively", "clearly", "strong") are not checked.
 
 ${buildVerifierFacts(mathResults, marksSection)}${hints ? `\n\n${hints}` : ''}
 

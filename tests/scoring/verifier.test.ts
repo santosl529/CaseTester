@@ -151,6 +151,27 @@ describe('Better answers and strengths as claims', () => {
   });
 });
 
+describe('verifier checks what the candidate said (E4)', () => {
+  const mk = (id: number, dimension: string, text: string) => ({ id, dimension, section: 'improvements', index: 0, text }) as never;
+  const claims = [
+    mk(1, 'problem_structuring', '...and the 12-month turnaround question also surfaced only then.'),
+    mk(2, 'data_exhibit', "You then held it against the survey by claiming Kelvexa is 'priced above the incumbent' when $8,000 is below Nimbrel's $9,000"),
+  ];
+  const transcript = "[CANDIDATE turn 9]: Nimbrel nets $9,000; we're at $8,000. If we're priced above the incumbent, payers put us behind a step edit and that 20% share forecast doesn't materialize.";
+  it('carries the said/never-said rule and the conditional rule', () => {
+    const prompt = buildVerifierPrompt(claims, transcript);
+    expect(prompt).toContain('Check every statement that the candidate said, never said, claimed, raised or asked something against the quoted turns.');
+    expect(prompt).toContain('A statement the transcript contradicts is unsupported.');
+    expect(prompt).toContain("Read a conditional (\"if we're priced above…\") as a conditional, not a claim");
+  });
+  it('renders both B1 claims with the transcript turn', () => {
+    const prompt = buildVerifierPrompt(claims, transcript);
+    expect(prompt).toContain('12-month turnaround question also surfaced only then');
+    expect(prompt).toContain("claiming Kelvexa is 'priced above the incumbent'");
+    expect(prompt).toContain("If we're priced above the incumbent, payers put us behind a step edit");
+  });
+});
+
 describe('buildVerifierFacts (error-claim verifier, v4.3)', () => {
   it('lists span-checked correct figures only, plus the interviewer-error marks', () => {
     const facts = buildVerifierFacts([
