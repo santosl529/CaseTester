@@ -55,6 +55,7 @@ vi.mock('@/lib/agent/models/factory', async () => {
 });
 
 const { runTurn } = await import('@/lib/orchestrator/session-runner');
+const { lineKey } = await import('@/lib/orchestrator/math-checker-live');
 
 const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'menu_price_change', 'bean_price_change', 'non_bean_input_change'];
 // A claim no deterministic check reads (a code flag on it would dedupe the checker's).
@@ -394,10 +395,17 @@ describe('a closed error said again in the final recommendation: one flag', () =
     const memory = (extra: Row = {}) => ({ mathChecker: { handled: ['3:0', '5:0'], keys: { [KEY]: { figures: [40], since: 3 }, [ROOT]: { figures: [38], since: 1 } }, closed: [KEY, ROOT],
       corrected: { [ROOT]: { line: CORRECTION, figure: '16' }, [KEY]: { line: CORRECTION } }, ...extra } });
     it('the re-correction heard: its key and every key whose line it said word for word are restated', async () => {
-      atRecommendation({ events: corrected, flags: memory() });
+      atRecommendation({ events: corrected, flags: memory({ said: { [lineKey(CORRECTION)]: 1 } }) });
       const r = await replyThenNext(REC, 'about 40 points');
       expect(r.interviewerText).toMatch(/^COGS rose 16 points/);
       expect(((store.session.flagsJsonb as Row).mathChecker as Row).restated).toEqual(expect.arrayContaining([KEY, ROOT]));
+      // …and its line counted (the controller's ruling on concern 1): said once before, now twice.
+      expect(((store.session.flagsJsonb as Row).mathChecker as Row).said).toEqual({ [lineKey(CORRECTION)]: 2 });
+    });
+    it('its line said twice already (per line, whatever the keys): no re-correction', async () => {
+      atRecommendation({ events: corrected, flags: memory({ said: { [lineKey(CORRECTION)]: 2 } }) });
+      const r = await replyThenNext(REC, 'about 40 points');
+      expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
     });
     it('its key restated already: no re-correction', async () => {
       atRecommendation({ events: corrected, flags: memory({ restated: [KEY] }) });

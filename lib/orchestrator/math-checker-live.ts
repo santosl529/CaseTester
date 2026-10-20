@@ -361,6 +361,9 @@ export type CorrectedRoot = { line: string; figure?: string };
 // quotes, dashes and spacing aside — a paraphrase is not the vetted line.
 const lineForm = (t: string) => t.toLowerCase().replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-')
   .replace(/[^a-z0-9%$.,'\- ]+/g, ' ').replace(/(?<!\d)[.,]|[.,](?!\d)/g, ' ').replace(/\s+/g, ' ').trim();
+// A delivered line's count key (the controller's ruling on Task 19's concern 1, 19 Oct: Lorenzo's "a correction is
+// said at most twice in total", per line as well as per key): case, quotes, dashes and spacing aside.
+export const lineKey = (line: string) => lineForm(line);
 export function lineHeard(text: string, line: string): boolean {
   if (line.trim() === '') return false;
   if (lineForm(text).includes(lineForm(line))) return true;
@@ -405,6 +408,7 @@ export type CheckerPlanInput = {
   closed?: string[];                  // keys past Rule 14: corrected once, or left for the report
   corrected?: Record<string, CorrectedRoot>; // the closed keys a delivered correction or conversion closed, with its line (ruling 1)
   restated?: string[];                // …and those whose correction was restated once since
+  said?: Record<string, number>;      // each correction line delivered (correction, conversion, restatement, 13 Oct), by lineKey: times said
   stepProbes?: Record<string, number>; // probes spent on each step this interview (STEP_PROBE_CAP)
   held?: string;                      // a line a due stage question held back (Settle): raised first, and it doesn't expire
   // The final answers the close waits on (close-hold.ts; Lorenzo, 16 Oct): their
@@ -674,6 +678,9 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // A closed root a delivered correction closed, not restated yet (ruling 1): its correction is said once more, on
   // the first claim built on it — keyed by the root, so the others built on it ride on that line; after it, the report.
   const restated = new Set(p.restated ?? []);
+  // A line said twice already is not said again, whichever selection carries it — a correction, a restatement (the
+  // controller's ruling on Task 19's concern 1): report-only, its key closed.
+  const saidTwice = (line: string) => (p.said?.[lineKey(line)] ?? 0) >= 2;
   for (const e of all) {
     const first = direct.get(e.id);
     if (!first) continue;
@@ -682,12 +689,14 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (closed.has(first) || closed.has(root)) {
       // An old or malformed record with no line restates nothing: a closed input (Task 18 review).
       const fix = p.corrected?.[root]?.line?.trim() ? p.corrected[root] : undefined;
-      if (fix && !restated.has(root)) {
+      if (fix && !restated.has(root) && !saidTwice(fix.line)) {
         if (eligible.some(x => x.key === root && x.restate)) built.push({ e, root });
         else eligible.push({ ...e, key: root, restate: { line: fix.line, ...(fix.figure ? { figure: fix.figure } : {}), own: e.key } });
         continue;
       }
-      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', fix ? `built on a corrected input (${root}) — restated once already; left for the report` : `built on a closed input (${root})`, undefined, e.key), root });
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', !fix ? `built on a closed input (${root})`
+        : restated.has(root) ? `built on a corrected input (${root}) — restated once already; left for the report`
+          : `built on a corrected input (${root}) — its correction was already said twice; left for the report`, undefined, e.key), root });
       handled.add(e.id);
     } else built.push({ e, root });
   }
@@ -745,8 +754,17 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const action = recomputeAction({ errorClass: changes(entry) ? 'case_breaking' : 'minor' } as RecomputeFlag, attempt, p.underTimePressure && !isFinal(entry));
     if (action === 'shed') { decisions.push(decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key)); handled.add(id); continue; }
     // Two probes on the step already: a correction code can write is said (it is no probe); else the report.
+    // A correction whose line was said twice already: the report, its key closed.
+    const spentLine = (s: CheckerSelection) => {
+      if (!saidTwice(s.line)) return false;
+      decisions.push(decision(id, n, c, 'unresolved', 'its correction was already said twice — left for the report', s.line, key));
+      handled.add(id);
+      closedNow.push(key);
+      return true;
+    };
     if ((p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
       const corrected = correction(id, n, c, key, attempt);
+      if (corrected && spentLine(corrected)) continue;
       if (corrected) { selected = corrected; continue; }
       decisions.push(decision(id, n, c, 'unresolved', `two probes on this step already (${stepOfKey(key)}) — left for the report`, undefined, key));
       handled.add(id);
@@ -755,6 +773,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     }
     if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', line: neutralProbe(c.probeLine, p.phraseUses, p.seed ?? ''), derived: [], claim: c }; continue; }
     const corrected = correction(id, n, c, key, attempt);
+    if (corrected && spentLine(corrected)) continue;
     if (corrected) { selected = corrected; continue; }
     // Code can't compute it: the pointer probe is the second attempt.
     if (c.pointerLine && (attempt === 2 || p.underTimePressure)) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'pointer', line: c.pointerLine, derived: [], claim: c }; continue; }
@@ -961,7 +980,7 @@ export function closedErrorAgreed(p: {
 // restated already, or whose correction is a restated key's line word for word, has had it said twice: no
 // re-correction (the next closed key may still have one). The re-correction heard restates its key and every key whose
 // line it said (restatedBy; Settle books it).
-export type SaidTwice = { restated?: string[]; corrected?: Record<string, CorrectedRoot> };
+export type SaidTwice = { restated?: string[]; corrected?: Record<string, CorrectedRoot>; said?: Record<string, number> };
 export const restatedBy = (key: string, line: string, corrected: Record<string, CorrectedRoot> = {}) =>
   [...new Set([key, ...Object.keys(corrected).filter(k => corrected[k].line === line)])];
 export function closedErrorRestated(text: string, closed: string[], keys: Record<string, CheckerKeyEntry>, rows: CheckerRow[], spent: SaidTwice = {}): ClosedRestatement | null {
@@ -979,6 +998,8 @@ export function closedErrorRestated(text: string, closed: string[], keys: Record
     const hit = said.find(s => units.has(s.unit) && figures.some(f => same(s.value, f)));
     const correction = flags.find(d => d.outcome === 'correct')?.line ?? null;
     if (hit && (spent.restated ?? []).some(r => r === key || (correction !== null && spent.corrected?.[r]?.line === correction))) continue;
+    // …and per line (the controller's ruling on Task 19's concern 1): that line said twice already, by any key.
+    if (hit && correction !== null && (spent.said?.[lineKey(correction)] ?? 0) >= 2) continue;
     if (hit) return { key, said: hit.text, correction };
   }
   return null;

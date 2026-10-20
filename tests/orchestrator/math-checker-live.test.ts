@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, gateCodeFindings, gateOutcomesOf, codeFlagRefs, rootOf, caseNumbersOf,
+  checkerKey, isStale, modelProbed, planCheckerFlags, startMathCheck, formatCheckerHint, liveCheckerConfig, closedErrorRestated, lineKey, gateCodeFindings, gateOutcomesOf, codeFlagRefs, rootOf, caseNumbersOf,
   MATH_CHECKER_CATEGORY, type CheckerRow, type CheckerPlanInput, type VerdictPayload,
 } from '@/lib/orchestrator/math-checker-live';
 import type { CheckerClaim, VettedClaim } from '@/lib/orchestrator/math-checker';
@@ -619,6 +619,10 @@ describe('a closed error in the recommendation: the same unit, never a bare numb
       expect(closedErrorRestated(TEXT, [k40, k48], keys, rows, { restated: [k40] })).toMatchObject({ key: k48 });
       expect(closedErrorRestated(TEXT, [k40], keys, rows, { restated: [k40] })).toBeNull();
     });
+    it('its line said twice already (per line): skipped', () => {
+      expect(closedErrorRestated(TEXT, [k40, k48], keys, rows, { said: { [lineKey(L)]: 2 } })).toMatchObject({ key: k48 });
+      expect(closedErrorRestated(TEXT, [k40, k48], keys, rows, { said: { [lineKey(L)]: 1 } })).toMatchObject({ key: k40 });
+    });
     it("another key restated with the same line (b29: the root's restatement covered \"~40 points\"): skipped", () => {
       const spent = { restated: ['cogs_dollar_impact@38'], corrected: { 'cogs_dollar_impact@38': { line: L, figure: '16' } } };
       expect(closedErrorRestated(TEXT, [k40, k48], keys, rows, spent)).toMatchObject({ key: k48 });
@@ -1071,6 +1075,28 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       const p = run([sales('600,000 × $2,000 = $1.2 billion', '$1.2 billion')], { ...closedNet, corrected: { 'net_price@2000': { line, figure: '320' } } });
       expect(p.selected).toMatchObject({ id: '17:0', action: 'restate', line, derived: ['320'] });
       expect(p.selected?.line).not.toMatch(/\$1\.2 million|\$320 billion/);
+    });
+    // The controller's ruling on Task 19's concern 1 (19 Oct; Lorenzo's "a correction is said at most twice in total"):
+    // counted per line as well as per key — a line said twice already is not said again, whichever selection carries it.
+    describe('per line: a line said twice already is not said again', () => {
+      const twice = { said: { [lineKey(NET_LINE)]: 2 } };
+      it('a new flag whose own correction is that line: not said — report-only, its key closes', () => {
+        const p = run([net], { attempts: { 'net_price@2000': 1 }, ...twice });
+        expect(p.selected).toBeNull();
+        expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', key: 'net_price@2000', line: NET_LINE, reason: 'its correction was already said twice — left for the report' })]);
+        expect(p.handledNow).toContain('17:0');
+        expect(p.closedNow).toContain('net_price@2000');
+        // Said once so far: said.
+        expect(run([net], { attempts: { 'net_price@2000': 1 }, said: { [lineKey(NET_LINE)]: 1 } }).selected).toMatchObject({ id: '17:0', action: 'correct', line: NET_LINE });
+      });
+      it('the count is by the line as said (case, quotes and spacing aside)', () => {
+        expect(run([net], { attempts: { 'net_price@2000': 1 }, said: { [lineKey(`  ${NET_LINE.toUpperCase()} `)]: 2 } }).selected).toBeNull();
+      });
+      it('a restatement whose line was said twice (by another key\'s identical correction): not said — report-only', () => {
+        const p = run([sales('40,000 × $2,000 = $80 million', '$80 million')], { ...closedNet, corrected, ...twice });
+        expect(p.selected).toBeNull();
+        expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'unresolved', root: 'net_price@2000', reason: 'built on a corrected input (net_price@2000) — its correction was already said twice; left for the report' })]);
+      });
     });
     it('a minor claim under time pressure is shed, as a minor flag is', () => {
       const p = run([sales('40,000 × $2,000 = $80 million', '$80 million', { changesConclusion: false })], { ...closedNet, corrected, underTimePressure: true });

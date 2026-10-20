@@ -33,7 +33,7 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, correctsNow, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot } from './math-checker-live';
 import { theirFigure } from './own-quantity';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
@@ -93,7 +93,8 @@ export type CheckerLinePlan = {
 // corrected: the closed keys a delivered correction (or conversion) closed, with the line said and its figure; restated: those whose
 // correction was said once more for a later claim on the wrong value (Lorenzo, 19 Oct, round-2 ruling 1). Both optional:
 // an older session's flags read as no live correction recorded (built on a closed input, as before).
-export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[]; corrected?: Record<string, CorrectedRoot>; restated?: string[] };
+// said: each correction line delivered, by lineKey — a line said twice is not said again (the controller's ruling on Task 19's concern 1).
+export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[]; corrected?: Record<string, CorrectedRoot>; restated?: string[]; said?: Record<string, number> };
 // The gate's memory (flags.codeGate): findings decided, and those held back on a stage turn (re-gated, exempt from the wait).
 type CodeGateMemory = { handled?: string[]; held?: string[] };
 // A stage the model's question may ask, and whether it is due (Lorenzo, 15 Oct): a due one wins over a checker probe.
@@ -661,7 +662,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
     candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer, rank,
-    convertedFigures: checkerMemory.convertedFigures, corrected: checkerMemory.corrected, restated: checkerMemory.restated,
+    convertedFigures: checkerMemory.convertedFigures, corrected: checkerMemory.corrected, restated: checkerMemory.restated, said: checkerMemory.said,
     phraseUses: flags.phraseUses as PhraseUses | undefined, seed: `${ctx.sessionId}:${ctx.nextTurnIndex}`, codeFigures,
     // The gate's decisions, earlier turns' (by turn) then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
     gateOutcomes: gateOutcomesOf(checkerRows, gate.decisions),
@@ -846,7 +847,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const closedRec = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag && wrapUps > 0
     ? closedErrorAgreed({
       rows: checkerRows, candidateTurnIndex: ctx.nextTurnIndex, recReply: recReplyAt, closed: closedKeys, keys: checkerPlan.keys,
-      restated: checkerMemory.restated, corrected: checkerMemory.corrected,
+      restated: checkerMemory.restated, corrected: checkerMemory.corrected, said: checkerMemory.said,
       messages: [...turnRows.filter(t => t.role === 'candidate').map(t => ({ index: t.turnIndex, text: t.text })), { index: ctx.nextTurnIndex, text: candidateText }],
     })
     : null;
@@ -1084,11 +1085,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const correctedAfter = { ...(checkerMemory.corrected ?? {}), ...correctedNow };
   // A key the restatement corrected word for word (covers) has had that line said: it is restated too, never restated on its own later (review fix 1).
   const restatedAfter = [...new Set([...(checkerMemory.restated ?? []), ...(checkerUsed?.action === 'restate' ? [checkerUsed.key, ...coveredNow.map(c => c.key)] : [])])];
-  const fixesKept = { ...(checkerMemory.corrected && Object.keys(checkerMemory.corrected).length ? { corrected: checkerMemory.corrected } : {}), ...(checkerMemory.restated?.length ? { restated: checkerMemory.restated } : {}) };
+  // The line said (a correction, a conversion, a restatement) counted once more (the controller's ruling on Task 19's concern 1).
+  const saidLine = checkerUsed && correctsNow(checkerUsed) ? lineKey(checkerUsed.line) : null;
+  const saidAfter = saidLine ? { ...checkerMemory.said, [saidLine]: (checkerMemory.said?.[saidLine] ?? 0) + 1 } : checkerMemory.said ?? {};
+  const fixesKept = { ...(checkerMemory.corrected && Object.keys(checkerMemory.corrected).length ? { corrected: checkerMemory.corrected } : {}), ...(checkerMemory.restated?.length ? { restated: checkerMemory.restated } : {}),
+    ...(checkerMemory.said && Object.keys(checkerMemory.said).length ? { said: checkerMemory.said } : {}) };
   if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held || convertedFigure !== undefined
-    || Object.keys(correctedNow).length > 0 || restatedAfter.length !== (checkerMemory.restated ?? []).length) {
+    || Object.keys(correctedNow).length > 0 || restatedAfter.length !== (checkerMemory.restated ?? []).length || saidLine !== null) {
     flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}), ...(heldAfter ? { held: heldAfter } : {}), ...(convertedAfter.length ? { convertedFigures: convertedAfter } : {}),
-      ...(Object.keys(correctedAfter).length ? { corrected: correctedAfter } : {}), ...(restatedAfter.length ? { restated: restatedAfter } : {}) };
+      ...(Object.keys(correctedAfter).length ? { corrected: correctedAfter } : {}), ...(restatedAfter.length ? { restated: restatedAfter } : {}), ...(Object.keys(saidAfter).length ? { said: saidAfter } : {}) };
   }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.

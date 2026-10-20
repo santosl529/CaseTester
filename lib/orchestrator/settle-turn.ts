@@ -39,7 +39,7 @@ import { derivePhase, type TurnMove } from './progress';
 import { turnDataChecked, pressureTestOutcomeNow } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
-import { lineHeard, correctsNow, restatedBy, type CorrectedRoot } from './math-checker-live';
+import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
 import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim, dropAckOpening } from './stream-turn';
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
@@ -847,9 +847,12 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     // t20): its key, and every key whose line it said word for word, are restated — no restatement after it.
     const recMath = kind === 'rec_math_probe' ? state.recMathProbe : null;
     const reCorrected = recMath && 'closed' in recMath && recMath.action === 'correct' ? recMath.closed : null;
-    const memory = flags.mathChecker as { restated?: string[]; corrected?: Record<string, CorrectedRoot> } | undefined;
-    const restatedNow = reCorrected?.correction && h.heardContains(reCorrected.correction) ? restatedBy(reCorrected.key, reCorrected.correction, memory?.corrected) : [];
-    const mathCheckerSaved = restatedNow.length > 0 ? { mathChecker: { ...memory, restated: [...new Set([...(memory?.restated ?? []), ...restatedNow])] } } : {};
+    // Its line counted once more too (per line: the controller's ruling on Task 19's concern 1).
+    const memory = flags.mathChecker as { restated?: string[]; corrected?: Record<string, CorrectedRoot>; said?: Record<string, number> } | undefined;
+    const reSaid = reCorrected?.correction && h.heardContains(reCorrected.correction) ? reCorrected.correction : null;
+    const restatedNow = reSaid && reCorrected ? restatedBy(reCorrected.key, reSaid, memory?.corrected) : [];
+    const mathCheckerSaved = reSaid ? { mathChecker: { ...memory, restated: [...new Set([...(memory?.restated ?? []), ...restatedNow])],
+      said: { ...memory?.said, [lineKey(reSaid)]: (memory?.said?.[lineKey(reSaid)] ?? 0) + 1 } } } : {};
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held
     // are put to the interviewer next turn — once; then they lapse (logged).
     const closed = (st: string | undefined) => st === 'satisfied' || st === 'waived';

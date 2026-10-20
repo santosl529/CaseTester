@@ -86,7 +86,11 @@ function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outco
   if (has('undelivered')) return 'Not raised in the interview (another line took the question).';
   // Built on another wrong figure (Lorenzo, 19 Oct, §15 o): the input's outcome, said as it went.
   const built = outcomes.find(d => d.outcome === 'derived' || (d.outcome === 'unresolved' && /^built on a (?:closed|corrected) input/.test(d.reason)));
-  if (built) return builtText(built.root ?? /^built on (?:a (?:closed|corrected) input \()?([^ )']+)/.exec(built.reason)?.[1], all);
+  // …whose correction was already said twice: not again (the controller's ruling on Task 19's concern 1).
+  const spent = built && /already said twice/.test(built.reason) ? '; that correction had already been said twice, so it was not said again.' : '';
+  if (built) return `${builtText(built.root ?? /^built on (?:a (?:closed|corrected) input \()?([^ )']+)/.exec(built.reason)?.[1], all)}${spent}`;
+  const twice = outcomes.find(d => d.outcome === 'unresolved' && /already said twice/.test(d.reason));
+  if (twice) return `Not corrected again: its correction had already been said twice in the interview: "${twice.line}"`;
   // Past Rule 14 (Lorenzo, 13 Oct): probed twice with nothing code could correct, or a restatement of an error already handled.
   const unresolved = has('unresolved');
   if (unresolved && /restated after the flag closed/.test(unresolved.reason)) return 'Restated after it had been probed or corrected.';

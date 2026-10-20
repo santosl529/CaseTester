@@ -14,7 +14,7 @@ const { checkMathClaims } = vi.hoisted(() => ({ checkMathClaims: vi.fn(() => new
 vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims }));
 
 import { planTurn, type TurnReads } from '@/lib/orchestrator/plan-turn';
-import { planCheckerFlags } from '@/lib/orchestrator/math-checker-live';
+import { planCheckerFlags, lineKey } from '@/lib/orchestrator/math-checker-live';
 import { getCaseById } from '@/lib/cases/loader';
 import { pendingFinalChecks } from '@/lib/orchestrator/close-hold';
 import type { VettedClaim } from '@/lib/orchestrator/math-checker';
@@ -67,6 +67,17 @@ describe('a landed verdict on a model turn', () => {
     const p = modelState(planTurn(withVerdict(analysis({ recomputeAttempts: { 'pricing:gain@5': 1 } }), [verdict(3)]), 'Next I would look at competitors.', deps()));
     expect(p.state.recomputeHint).toContain('"A 10% price rise lifts margin about 8.5 points, not 5."');
     expect(p.state.derivedValueTexts).toContain('8.5');
+    // Counted per line (the controller's ruling on Task 19's concern 1): booked with the line, undone with it.
+    const said = { [lineKey('A 10% price rise lifts margin about 8.5 points, not 5.')]: 1 };
+    expect((p.ctx.flags.mathChecker as { said: Record<string, number> }).said).toEqual(said);
+    expect(p.state.checkerLine?.undo.mathChecker.said).toBeUndefined();
+  });
+  it('past the probe, its line said twice already: not said — report-only, the key closed', () => {
+    const line = 'A 10% price rise lifts margin about 8.5 points, not 5.';
+    const p = modelState(planTurn(withVerdict(analysis({ recomputeAttempts: { 'pricing:gain@5': 1 }, mathChecker: { handled: [], said: { [lineKey(line)]: 2 } } }), [verdict(3)]), 'Next I would look at competitors.', deps()));
+    expect(p.state.recomputeHint ?? '').not.toContain(line);
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '3:0', outcome: 'unresolved', reason: 'its correction was already said twice — left for the report' }) }));
+    expect((p.ctx.flags.mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
   });
 
   // Lorenzo, 13 Oct (Larkspur review, item 1): a deterministic flag past its

@@ -75,6 +75,18 @@ describe('the judge reads the checker\'s flags and what became of them', () => {
       expect(s).toContain(`turn 5: "x" — WRONG (conceptual; changes the conclusion): about 16 by the checker. ${lead}, which the interview corrected: "${LINE}"`);
       expect(s).not.toContain('Not raised in the interview (');
     });
+    // The controller's ruling on Task 19's concern 1 (19 Oct): a line said twice already is not said again — the report says so.
+    it('its own correction already said twice: report-only, and the report says why', () => {
+      const LINE = 'Net price is about $8,000, not $2,000.';
+      const s = formatCheckerSection([verdict(3, [claim()]), flag('3:0', 'unresolved', { key: 'net_price@2000', line: LINE, reason: 'its correction was already said twice — left for the report' })]);
+      expect(s).toContain(`Not corrected again: its correction had already been said twice in the interview: "${LINE}"`);
+    });
+    it('built on a root whose correction was already said twice: the root\'s correction, and why not again', () => {
+      const LINE = 'Net price is about $8,000, not $2,000.';
+      const s = formatCheckerSection([verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]), flag('3:0', 'correct', { key: 'net_price@2000', line: LINE }),
+        flag('5:0', 'unresolved', { key: 'peak_net_sales@80', root: 'net_price@2000', reason: 'built on a corrected input (net_price@2000) — its correction was already said twice; left for the report' })]);
+      expect(s).toContain(`${lead}, which the interview corrected: "${LINE}"; that correction had already been said twice, so it was not said again.`);
+    });
     it('…a root with no live correction: the plain text, as before', () => {
       const s = formatCheckerSection([verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]), flag('3:0', 'probe', { key: 'net_price@2000' }),
         flag('5:0', 'expired', { key: 'peak_net_sales@80', root: 'net_price@2000' })]);
