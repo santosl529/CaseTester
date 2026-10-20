@@ -236,3 +236,9 @@ group beats a more specific cover. Others:
   the replacement on the words those asks use ("the cost breakdown") and replay
   them. Ordering choices (where a restatement ranks) move other probes; prove
   each candidate ordering on the corpus before picking one.
+- 19 Oct, engine-asks round-2 rulings (Lorenzo): a restatement repeats the
+  original correction line word for word (a new "not X" can contradict the units
+  fix); a correction is said at most twice in all; only item-backed deferrals hold
+  the model's figure question; every deferral at a close is "We won't get to <ask>
+  today." ("…that today." for a long or list label); code refuses an unmatched ask
+  only when the small-model check says the case doesn't hold it.
