@@ -4,6 +4,7 @@
 // verdict for the same ask at the same turn, else for the same ask at the run's
 // nearest other turn, else none (null: no verdict, as before). The ask is matched
 // exactly — the replay asks with the model's own `what`, as the run did. Free.
+import { readFileSync } from 'node:fs';
 import type { DetectedDataRequest } from '@/lib/orchestrator/data-requests';
 import type { CheckDecision } from '@/lib/orchestrator/check-log';
 
@@ -24,4 +25,24 @@ export function recordedCheckVerdict(checks: RecordedCheck[], turnIndex: number,
     ?? [...same].sort((a, b) => Math.abs(a.turnIndex - turnIndex) - Math.abs(b.turnIndex - turnIndex) || a.turnIndex - b.turnIndex)[0];
   if (!hit || hit.found === null) return null;
   return hit.found.map(f => ({ what: f.what, ledgerItemIds: f.ids, response: 'none' as const, explicit: true }));
+}
+
+// REPLAY_CHECKS=<path to a JSON array of {run, turn, what, ids}>: verdicts that
+// override the recorded ones (round 5, the live Haiku check replayed in full turn
+// context). `run` is matched as a substring of the replayed run's file path; `what`
+// exactly; the nearest `turn` wins. ids [] = the check found no item; null = no
+// verdict (a timeout or failure). undefined from `overrideVerdict` = no entry here,
+// so the caller falls back to the recorded lookup.
+export type CheckOverride = { run: string; turn: number; what: string; ids: string[] | null };
+
+export function loadCheckOverrides(path: string | undefined): CheckOverride[] {
+  return path ? (JSON.parse(readFileSync(path, 'utf8')) as CheckOverride[]) : [];
+}
+
+export function overrideVerdict(overrides: CheckOverride[], runFile: string, turnIndex: number, what: string): DetectedDataRequest[] | null | undefined {
+  const same = overrides.filter(o => o.what === what && runFile.includes(o.run));
+  const hit = [...same].sort((a, b) => Math.abs(a.turn - turnIndex) - Math.abs(b.turn - turnIndex) || a.turn - b.turn)[0];
+  if (!hit) return undefined;
+  if (hit.ids === null) return null;
+  return hit.ids.length === 0 ? [] : [{ what, ledgerItemIds: hit.ids, response: 'none' as const, explicit: true }];
 }

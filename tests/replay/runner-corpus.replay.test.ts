@@ -30,7 +30,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
-import { recordedChecks, recordedCheckVerdict, type RecordedCheck } from '@/lib/eval/recorded-checks';
+import { recordedChecks, recordedCheckVerdict, loadCheckOverrides, overrideVerdict, type RecordedCheck } from '@/lib/eval/recorded-checks';
 
 type Row = Record<string, unknown>;
 // The replay's clock for the checker: rows land when it reaches them.
@@ -73,10 +73,14 @@ let detections: unknown[] = [];
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async (p: { interviewerText: string | null; candidateText: string }) => {
   if (!(p.interviewerText === null && p.candidateText !== turnText)) return detections;
   const ask = /^Could I get ([\s\S]*)\?$/.exec(p.candidateText)?.[1];
-  return ask === undefined ? null : recordedCheckVerdict(runChecks, savedTurnIndex, ask);
+  if (ask === undefined) return null;
+  const over = overrideVerdict(checkOverrides, currentRunFile, savedTurnIndex, ask);   // REPLAY_CHECKS, else the recorded verdict
+  return over !== undefined ? over : recordedCheckVerdict(runChecks, savedTurnIndex, ask);
 } }));
 let turnText = '';
 let runChecks: RecordedCheck[] = [];
+const checkOverrides = loadCheckOverrides(process.env.REPLAY_CHECKS);
+let currentRunFile = '';
 let savedTurnIndex = -1;
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
 let modelTurn: ModelTurn | null = null;
@@ -148,6 +152,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
   store.revealed = []; store.exhibits = []; store.events = [];
   replayIndex.clear();
   runChecks = recordedChecks(saved);
+  currentRunFile = file;
   const records: TurnRecord[] = [];
   let diverged = 0;
   for (const [k, r] of saved.entries()) {

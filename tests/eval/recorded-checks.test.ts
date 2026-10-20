@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { recordedChecks, recordedCheckVerdict } from '@/lib/eval/recorded-checks';
+import { recordedChecks, recordedCheckVerdict, overrideVerdict, loadCheckOverrides } from '@/lib/eval/recorded-checks';
 
 // Batch 35 Quillpath, Marcus (24) t17 and t27, as their turn file logged them.
 const T17 = { check: 'itemless_defer', decision: 'act' as const, reason: 'mapped to a ledger item: a named deferral', detail: { what: 'Starter cohort beyond month 12', mapped: true, found: [{ what: 'Starter cohort status data beyond month 12 (covering retention, upgrades, and cancellations past the initial 12-month period)', ids: ['starter_cohort', 'cohort_notes'] }], latencyMs: 1119 } };
@@ -31,4 +31,24 @@ describe('the replay serves the run\'s recorded check verdicts', () => {
     expect(recordedCheckVerdict(checks, 25, 'a timed-out ask')).toBeNull();
     expect(recordedCheckVerdict([], 3, 'anything')).toBeNull();
   });
+});
+
+describe('REPLAY_CHECKS overrides the recorded verdicts', () => {
+  const file = 'test runs/batch-28/10-sofia-the-unit-confuser/live-run-x.json';
+  const over = [
+    { run: '10-sofia', turn: 4, what: 'competitor pricing', ids: [] as string[] | null },
+    { run: '10-sofia', turn: 10, what: 'competitor pricing', ids: ['bean_price_change'] },
+    { run: '10-sofia', turn: 4, what: 'whether the 6% includes unusual charges', ids: null },
+  ];
+  it('serves the entry for the run and exact ask, the nearest turn; [] is no item, null no verdict', () => {
+    expect(overrideVerdict(over, file, 4, 'competitor pricing')).toEqual([]);
+    expect(overrideVerdict(over, file, 9, 'competitor pricing')?.[0].ledgerItemIds).toEqual(['bean_price_change']);
+    expect(overrideVerdict(over, file, 4, 'whether the 6% includes unusual charges')).toBeNull();
+  });
+  it('undefined (fall back to the recorded lookup) for another run or another ask', () => {
+    expect(overrideVerdict(over, 'test runs/batch-28/24-marcus/live-run-x.json', 4, 'competitor pricing')).toBeUndefined();
+    expect(overrideVerdict(over, file, 4, 'competitor')).toBeUndefined();
+    expect(overrideVerdict([], file, 4, 'competitor pricing')).toBeUndefined();
+  });
+  it('loads nothing when REPLAY_CHECKS is unset', () => { expect(loadCheckOverrides(undefined)).toEqual([]); });
 });
