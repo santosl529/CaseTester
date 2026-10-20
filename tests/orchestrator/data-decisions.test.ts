@@ -188,6 +188,14 @@ describe('spoken lists lower-case the first letter of each item', () => {
     expect(renderDataLines(decideData(base({ requests: [req({ what, itemIds: [] })] })), 's')).toEqual([`I don't have ${spoken}.`]);
   });
 
+  // b32 Larkspur Marisol t18 (round 5 Task 49 fix round 1): "Hold that thought on
+  // Whether Larkspur has sufficient crew capacity…" — a question word is no name.
+  it('a leading question word is lower-cased even before a name', () => {
+    const what = 'Whether Larkspur has sufficient crew capacity to operate 10,000 additional flights';
+    const d = decideData(base({ requests: [req({ what, itemIds: ['bean_price_change'], respond: 'defer' })] }));   // deferred by name (prof-001's item stands in)
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to whether Larkspur has sufficient crew capacity to operate 10,000 additional flights shortly."]);
+  });
+
   it('applies to refusals, deferrals and offers, and keeps the logged what as declared', () => {
     const d = decideData(base({ requests: [
       req({ what: 'Pilot elasticity results', itemIds: [] }), req({ what: 'Competitor pricing actions', itemIds: [] }),

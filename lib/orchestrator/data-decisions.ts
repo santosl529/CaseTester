@@ -421,12 +421,16 @@ export function decideData(p: {
 // classifier's capital). Kept as written when its first word looks like an
 // acronym ("COGS", "NPS"), carries a digit ("Q3"), has an inner capital
 // ("McKinsey"), or opens a capitalised name ("Brew & Bean", "Blue Bottle").
-// The logged `what` is never changed.
+// A question word is never a name (round 5 Task 49 fix round 1; b32 Larkspur
+// Marisol t18: "Hold that thought on Whether Larkspur has sufficient crew
+// capacity…"). The logged `what` is never changed.
+const QUESTION_WORD = /^(?:whether|if|how|what|when|where|which|who|why)$/i;
 function spokenWhat(what: string): string {
   const words = what.trim().split(/\s+/);
   const first = words[0] ?? '';
   const letters = first.replace(/[^A-Za-z]/g, '');
   const next = words.slice(1).find(w => /[A-Za-z]/.test(w)) ?? '';
+  if (QUESTION_WORD.test(first)) return what.charAt(0).toLowerCase() + what.slice(1);
   const keep = !/^[A-Z]/.test(first)
     || /\d/.test(first)
     || (letters.length >= 2 && letters === letters.toUpperCase())

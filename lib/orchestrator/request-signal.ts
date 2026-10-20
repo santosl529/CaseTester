@@ -168,17 +168,21 @@ const contentWords = (t: string) => new Set((t.toLowerCase().match(/[a-z]+/g) ??
 // "How long Kelvexa's US exclusivity/patent protection lasts" (`patents`, held:
 // to 2038) — the answer never reached him. With `held`, a detection the asking
 // sentences don't cover is still kept when an item it maps to is held (in the
-// ledger, not yet out) and a question of the message names it (a content word
-// in common). A statement ("I'd want that definition settled before the board
-// meets.") is no question: still dropped. The close doesn't pass `held`
-// (session-runner.ts codeWrittenAsks).
-export type HeldAsks = { text: string; isHeld: (id: string) => boolean };
+// ledger, not yet out) and a real question of the message (ends in "?", opens
+// like a question) shares a content word with that item's own names — its
+// label, spoken name or the case's names for it — other than the case's proper
+// names (the client, the product, places: "Kelvexa" alone is no match; fix
+// round 1, controller). A statement ("I'd want that definition settled before
+// the board meets.") is no question: still dropped. The close doesn't pass
+// `held` (session-runner.ts codeWrittenAsks).
+export type HeldAsks = { text: string; isHeld: (id: string) => boolean; itemNames: (id: string) => string[]; caseNames: string[] };
 export function matchAskDetections<T extends { what: string; ledgerItemIds?: string[] }>(sentences: string[], detections: T[], held?: HeldAsks): { kept: T[]; dropped: T[] } {
   const split = coveredAsks(sentences, detections);
   if (!held || split.dropped.length === 0) return split;
-  const questions = contentWords(askSentencesOf(held.text).filter(isQuestionSentence).join(' '));
-  const keep = new Set<T>([...split.kept, ...split.dropped.filter(d =>
-    (d.ledgerItemIds ?? []).some(held.isHeld) && [...contentWords(d.what)].some(w => questions.has(w)))]);
+  const proper = contentWords(held.caseNames.join(' '));
+  const questions = [...contentWords(askSentencesOf(held.text).filter(isQuestionSentence).join(' '))].filter(w => !proper.has(w));
+  const named = (id: string) => { const names = contentWords(held.itemNames(id).join(' ')); return questions.some(w => names.has(w)); };
+  const keep = new Set<T>([...split.kept, ...split.dropped.filter(d => (d.ledgerItemIds ?? []).some(id => held.isHeld(id) && named(id)))]);
   return { kept: detections.filter(d => keep.has(d)), dropped: detections.filter(d => !keep.has(d)) };
 }
 function coveredAsks<T extends { what: string }>(sentences: string[], detections: T[]): { kept: T[]; dropped: T[] } {

@@ -464,8 +464,14 @@ export function codeWrittenAsks(plan: ModelPlan, detected: DetectedDataRequest[]
   const { ctx, state } = plan;
   const sentences = addressedAskSentences(ctx.candidateText, ctx.currentPhase, { closing: state.kind === 'close' });
   const goodbye = state.kind === 'close' || state.kind === 'close_wait';
-  const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit),
-    goodbye ? undefined : { text: ctx.candidateText, isHeld: id => canReveal(state.ledger, id) });
+  const c = state.caseData;
+  const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit), goodbye ? undefined : {
+    text: ctx.candidateText,
+    isHeld: id => canReveal(state.ledger, id),
+    itemNames: id => { const item = c.dataLedger.find(i => i.id === id); return item ? [item.label, item.spoken ?? '', ...(c.factAnchors?.names[id] ?? [])] : []; },
+    // The case's proper names (sttKeyterms: the client, products, places) name no item on their own.
+    caseNames: c.sttKeyterms.filter(t => /^[A-Z]/.test(t)),
+  });
   return { sentences, kept, dropped };
 }
 

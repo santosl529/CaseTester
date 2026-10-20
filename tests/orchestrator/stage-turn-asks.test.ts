@@ -6,9 +6,10 @@
 // dropped the classifier's detection (`code_written_requests`: sentences [],
 // dropped "How long Kelvexa's US exclusivity/patent protection lasts" →
 // `patents`, held: "protected by patents until 2038"). Now a detection whose item
-// is held and that a question of the message names is kept; and the data line no
-// longer pushes the brainstorm to a later turn (settle-turn.ts): the stage's ask
-// follows it in the same turn. A statement ("I'd want …") is still dropped.
+// is held and that a real question names by the item's own names is kept. The
+// data line still moves the brainstorm a turn (batch 21 D8) except under time
+// pressure, where the stage's ask follows it in the same turn (fix round 1,
+// controller). A statement ("I'd want …") is still dropped.
 // Messages verbatim from the run records; the detections as recorded there.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import type { DetectedDataRequest } from '@/lib/orchestrator/data-requests';
@@ -52,8 +53,8 @@ const BRAINSTORM_ASK = 'If Aldermoor builds its own team, how could it reduce th
 const usage = { model: '', actualModels: [] as string[], inputTokens: 0, outputTokens: 0, cacheReadTokens: 0, cacheWriteTokens: 0, apiCalls: 0 };
 const outcome = (turn: ModelTurn): ModelOutcome => ({ turn, validation: null, modelCallStart: 0, modelLatencyMs: 0, distressWaitMs: 0, turnUsage: usage, delivered: [], undeliveredRevealIds: [] });
 
-function plan(text: string, revealed: string[], kind: TurnKind, phase: 'EXHIBIT' | 'RECOMMENDATION', elapsedMs: number): ModelPlan {
-  const p = planTurn(readsFixture({ phase, caseId: 'entry-001', revealed, elapsedMs }), text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+function plan(text: string, revealed: string[], kind: TurnKind, phase: 'EXHIBIT' | 'RECOMMENDATION' | 'BRAINSTORM', elapsedMs: number, caseId = 'entry-001'): ModelPlan {
+  const p = planTurn(readsFixture({ phase, caseId, revealed, elapsedMs }), text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
   if (p.kind !== 'model') throw new Error('expected a model plan');
   p.state.distress = Promise.resolve(null);
   p.state.kind = kind;
@@ -67,7 +68,9 @@ function plan(text: string, revealed: string[], kind: TurnKind, phase: 'EXHIBIT'
   p.state.shownExhibitIds = new Set(['exhibit-1', 'exhibit-2', 'exhibit-3']);
   return p;
 }
-const tyler = (revealed = TYLER_REVEALED) => plan(TYLER_T21, revealed, 'stage_brainstorm', 'EXHIBIT', 1_026_755);
+// entry-001 runs 25 minutes; t21 came at 17:07 — not under time pressure (the last 90 s).
+const tyler = (revealed = TYLER_REVEALED, elapsedMs = 1_026_755) => plan(TYLER_T21, revealed, 'stage_brainstorm', 'EXHIBIT', elapsedMs);
+const HURRIED_MS = 1_500_000 - 60_000;
 const checkOf = (p: ModelPlan, name: string) => p.ctx.checks.entries.find(c => c.check === name);
 
 beforeEach(() => { saved.session = {}; });
@@ -80,14 +83,24 @@ describe('a stage turn answers a held-data ask (Tyler t21 → t22)', () => {
     expect(asks.dropped).toEqual([]);
   });
 
-  it('t22 says the patents line, then the brainstorm ask — in the same turn, and the stage counts as asked', async () => {
+  it('t22 says the patents line, then a question about it; the brainstorm waits a turn (batch 21 D8)', async () => {
     const p = tyler();
     const { kept } = codeWrittenAsks(p, [PATENTS]);
     const s = await settleTurn(p, outcome(codeWrittenTurn(p, kept)));
     expect(s.newReveals).toEqual(['patents']);
-    expect(s.spokenText).toMatch(/Kelvexa is protected by patents until 2038\./);
-    expect(s.spokenText.endsWith(BRAINSTORM_ASK)).toBe(true);
-    expect(s.spokenText.indexOf('2038')).toBeLessThan(s.spokenText.indexOf(BRAINSTORM_ASK));
+    expect(s.spokenText.startsWith('Kelvexa is protected by patents until 2038. ')).toBe(true);
+    expect(s.spokenText).not.toContain(BRAINSTORM_ASK);
+    expect(checkOf(p, 'stage_hold')).toMatchObject({ decision: 'pass', detail: { owed: 'brainstorm', kind: 'stage_brainstorm' } });
+    await s.persist({ firstSegmentMs: null, streamed: false });
+    expect((saved.session.flagsJsonb as Row).stagesEnforced).not.toMatchObject({ brainstorm: true });
+  });
+
+  it('under time pressure: the patents line, then the brainstorm ask in the same turn — the stage counts as asked', async () => {
+    const p = tyler(TYLER_REVEALED, HURRIED_MS);
+    const { kept } = codeWrittenAsks(p, [PATENTS]);
+    const s = await settleTurn(p, outcome(codeWrittenTurn(p, kept)));
+    expect(s.newReveals).toEqual(['patents']);
+    expect(s.spokenText).toBe(`Kelvexa is protected by patents until 2038. ${BRAINSTORM_ASK}`);
     expect(checkOf(p, 'stage_hold')).toMatchObject({ decision: 'act', detail: { kind: 'stage_brainstorm' } });
     await s.persist({ firstSegmentMs: null, streamed: false });
     expect((saved.session.flagsJsonb as Row).stagesEnforced).toMatchObject({ brainstorm: true });
@@ -116,5 +129,25 @@ describe('a held item in a want, not a question, is still dropped (Marcus t19)',
     const s = await settleTurn(p, outcome(codeWrittenTurn(p, asks.kept)));
     expect(s.spokenText).toBe(BRAINSTORM_ASK);
     expect(s.newReveals).toEqual([]);
+  });
+});
+
+// Fix round 1: Larkspur Marcus (batch 34 Larkspur 24, 3ac59856) t23 asks no
+// question — "I'd ask what's corporate overhead versus facilities…" is a want —
+// so a held item it mentions is not released on a brainstorm stage turn.
+describe('a message with no question releases nothing (Larkspur Marcus t23)', () => {
+  const MARCUS_LARKSPUR_T23 = "A few levers beyond the redeployment.\n\nFirst, the four uncontested routes. No rival nonstop there, and they're thin — Westhaven contributes $3.8M on 2,000 flights, about $1,900 a flight. A modest fare or extras increase there carries much less volume risk than on contested routes. Even $5 per passenger across 60 passengers times 8,000 uncontested flights is about $2.4M.\n\nSecond, phase the switch rather than flipping both routes at once. Start one new route, validate the 70% load, then move the second — so if the planning estimates are soft we haven't stranded 5,000 flights of capacity.\n\nThird, extras. $20 a head is low; bags and seat selection are the one place we can price without being compared head-to-head on fare.\n\nFourth, the $20M fixed. It's flat across both years and nobody's touched it — I'd ask what's corporate overhead versus facilities and whether any is addressable.\n\nAnd I'd keep a ramp-up allowance in year one — new routes rarely hit planning loads on day one.";
+  const REVEALED = ['competitor_costs', 'route_results_lakeport', 'route_results_port_avery', 'route_results_other', 'network_totals', 'fixed_costs', 'lakeport_seats_load', 'lakeport_fare', 'extras_revenue', 'lakeport_variable_cost', 'competitor_entry', 'new_routes_plan', 'new_routes_cost_flights', 'new_routes_context', 'port_avery_per_flight'];
+  // What a classifier could make of it: the new routes' ramp-up (its names share "ramp", "load", "new route"
+  // with the message) and the fleet ("stranded … capacity"), both held.
+  const RAMPUP: DetectedDataRequest = { what: 'How long new routes take to reach planning loads (ramp-up)', ledgerItemIds: ['new_route_rampup'], response: 'none', explicit: true };
+  const FLEET: DetectedDataRequest = { what: 'Whether the fleet has spare capacity for the new routes', ledgerItemIds: ['fleet'], response: 'none', explicit: true };
+  it('held items, no question: dropped, and the turn says only the brainstorm ask', async () => {
+    const p = plan(MARCUS_LARKSPUR_T23, REVEALED, 'stage_brainstorm', 'BRAINSTORM', 1_120_513, 'prof-002');
+    const asks = codeWrittenAsks(p, [RAMPUP, FLEET]);
+    expect(asks.kept).toEqual([]);
+    const s = await settleTurn(p, outcome(codeWrittenTurn(p, asks.kept)));
+    expect(s.newReveals).toEqual([]);
+    expect(s.spokenText).toBe("What else could Larkspur do to make sure it's profitable in the first year?");
   });
 });
