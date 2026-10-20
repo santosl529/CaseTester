@@ -45,6 +45,7 @@ export type GateContext = {
   flaggedThisTurn: boolean;
   flagged?: number[];              // figures a check flagged wrong this turn
   closed?: number[];               // figures of a checker flag past Rule 14: not asked about again
+  closedInputs?: number[];         // misread inputs corrected or left for the report (E7): not probed again
   converted?: number[];            // figures a conversion closed (own-quantity.ts): never negated ("not 38")
   candidateFigures?: number[];     // the figures the candidate derived (math-talk.ts)
   openItems: OpenRequestItem[];
@@ -182,7 +183,7 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // Doubt on the candidate's math only with a flag behind it (probe-guard.ts):
   // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
   const challenge = challengeVerdict(sentence, {
-    verified: g.verified, alreadyProbed: g.alreadyProbed, flaggedThisTurn: g.flaggedThisTurn, flagged: g.flagged, closed: g.closed, candidateFigures: g.candidateFigures,
+    verified: g.verified, alreadyProbed: g.alreadyProbed, flaggedThisTurn: g.flaggedThisTurn, flagged: g.flagged, closed: g.closed, closedInputs: g.closedInputs, candidateFigures: g.candidateFigures,
   }, new Set(), opts.previous);
   if (challenge && !('explainKey' in challenge)) return challenge.test === 'unsupported_challenge' ? 'unsupported_challenge' : 'probe_guard';
   if (withholdAssumptionChallenges(sentence, g.openItems).withheld.length > 0) return 'assumption_guard';
@@ -227,6 +228,7 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     flaggedThisTurn: state.recomputeFlags.length > 0,
     flagged: state.flaggedFigures,
     closed: state.closedFigures,
+    closedInputs: state.closedInputs,
     converted: state.convertedFigures,
     candidateFigures: state.candidateFigures,
     openItems: state.openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })),

@@ -28,10 +28,24 @@ export type ChallengeContext = {
   verified: VerifiedFigure[];        // this candidate turn's verified figures, then the previous turn's
   flagged?: number[];                // figures a check flagged as wrong this turn
   closed?: number[];                 // figures of a flag past Rule 14 (corrected, or left for the report): never asked about again
+  closedInputs?: number[];           // misread inputs corrected or left for the report (E7): never probed again — the data's own figures, quoted freely
   flaggedThisTurn: boolean;          // any flag fired this turn: an unattributed doubt may be about it
   candidateFigures?: number[];       // the figures the candidate derived (math-talk.ts candidateFiguresOf)
   alreadyProbed: Set<string>;        // step ids / "fig:<n>" keys given an explain probe earlier
 };
+
+// E7: a question that puts a figure of the data back to them as theirs — "you used 21.5% for Starter… walk me
+// through where each came from" (Marisol t6), "Where does 40% come from, and which plan's figure is it?" (her t12, the
+// model's own): a probe on a misread input, though it names no working.
+export const PUTS_INPUT_BACK = /\byou(?:'ve| have)?\s+(?:used|said|took|take|had|put|got|read|picked|chose|assumed|applied|mentioned|plugged in)\b|\bwhere\b[^?]*\bcomes? from\b|\bwhich (?:plan|row|cohort|line|column|segment|group)\b|\bhow did you (?:get|arrive|land|come)\b/i;
+// A sentence that probes one of the inputs: its working asked for, doubted, or put back to them in a question
+// (`asks`: the turn asks something). Returns the input, or undefined.
+export function inputProbed(sentence: string, inputs: number[], candidateFigures: number[], previous?: string, asks = sentence.trim().endsWith('?')): number | undefined {
+  if (inputs.length === 0) return undefined;
+  const talk = classifyMathTalk(sentence, [...candidateFigures, ...inputs], previous);
+  if (talk.kind === 'none' && !(asks && PUTS_INPUT_BACK.test(sentence))) return undefined;
+  return talk.figures.find(f => inputs.some(x => same(f, x)));
+}
 
 function sentencesOf(text: string): string[] {
   return text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
@@ -60,6 +74,11 @@ export function challengeVerdict(sentence: string, ctx: ChallengeContext, probed
   // A flag past Rule 14: the case moved on (Lorenzo, 13 Oct; Jordan 099f33e9).
   const closedFig = talk.figures.find(f => (ctx.closed ?? []).some(x => same(f, x)));
   if (closedFig !== undefined) return { sentence, figure: closedFig, test: 'closed_to_report' };
+  // E7 (Lorenzo, 20 Oct; b35q Marisol): a misread input corrected by its row fix, or left for the report, takes no
+  // third probe — the model's own included ("Show me how you got to 40%."). A figure of the data, so only a probe on it
+  // is withheld — its working asked for, doubted, or put back to them as theirs in a question — never a quote of it.
+  const input = inputProbed(sentence, ctx.closedInputs ?? [], candidateFigures, previous);
+  if (input !== undefined) return { sentence, figure: input, test: 'closed_to_report' };
   if (talk.kind === 'none') return null;
   const named = verified.find(v => mentions(sentence, v));
 

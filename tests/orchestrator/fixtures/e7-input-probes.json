@@ -1,0 +1,790 @@
+{
+ "b35q-marisol-087451cb-t11": {
+  "source": "b35q-on replay r5-46b of test runs/batch-35-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-087451cb; rows: the vetted verdicts landed before t11 and the flag rows of t7 and t9; memory: flags.mathChecker, recomputeAttempts, stepProbes and inputProbes after t9 (the t7 and t9 plans, carried as plan-turn does on a heard line)",
+  "caseId": "pricing-001",
+  "candidateTurnIndex": 11,
+  "candidateText": "Same formula. Pro's twelve-month cancellation figure is 40%, so 1 / 0.40 = 2.5. Check: 0.40 × 2.5 = 1.00. So 2.5 years of expected life, which is 30 months.\n\nThen LTV = 30 months × $80 monthly margin = $2,400. CAC is $1,200, so the ratio is $2,400 / $1,200 = 2.0.\n\nSo Pro sits below the board's three-times bar while Starter sits above it. That's the opposite of what the CFO is claiming, and it's worth pressure-testing before we go further — the gap is driven mostly by the CAC difference, $1,200 for a salesperson-led demo versus $300 self-serve. Pro would need either a materially cheaper sales motion or a longer life to clear 3x.\n\nOne thing I'd want: do we know how Pro's CAC has moved since January 2025? If the sales team is now chasing fewer Pro deals, $1,200 may be rising.",
+  "revealedIds": [
+   "pro_cohort",
+   "starter_cohort",
+   "plan_prices_costs",
+   "plan_cac",
+   "ltv_definition",
+   "new_customers_by_plan"
+  ],
+  "turnRows": [
+   {
+    "turnIndex": 0,
+    "role": "interviewer",
+    "text": "Our client is Quillpath, a US software company. It sells cloud software that small home-services businesses — plumbers, landscapers, cleaners — use to schedule jobs, send quotes and get paid. Customers pay monthly and can cancel at any time. For years Quillpath sold one plan, Pro, at $100 a month. In January 2025 it launched a cheaper Starter plan at $40 a month, with fewer features and a single user. New customers per month nearly tripled. Quillpath's board has a rule: each type of customer should be worth at least three times what it costs to acquire. The CFO says Starter fails that test and wants to shut it down; the head of growth wants to keep it. The CEO has asked us what Quillpath should do with the Starter plan.\n\nHow would you like to approach this? Feel free to take a moment to gather your thoughts first."
+   },
+   {
+    "turnIndex": 1,
+    "role": "candidate",
+    "text": "Let me lay out how I'd attack this. The board rule is basically an LTV-to-CAC test, so I'd break it into three buckets.\n\nFirst, the value side for Starter: what a Starter customer pays per month, and how long they stay — so monthly revenue times gross margin times expected lifetime, which is driven by the churn rate.\n\nSecond, the cost side: what it costs to acquire a Starter customer — sales and marketing spend per new Starter signup. Starter is self-serve-ish presumably, so CAC might be lower than Pro's.\n\nThird, the cross-effects the CFO might be missing: do Starter customers upgrade to Pro over time, and is Starter cannibalizing Pro signups that would have come anyway?\n\nCould I start with the value side — do we have the churn rates and the CAC for each plan?"
+   },
+   {
+    "turnIndex": 2,
+    "role": "interviewer",
+    "text": "Understood. I'll come back to churn rates and CAC for each plan shortly. Before any data: your structure covers Starter's own LTV-to-CAC and the cross-effects with Pro. Is that MECE, or is something missing from how you'd answer the CEO's question about what to do with the plan?"
+   },
+   {
+    "turnIndex": 3,
+    "role": "candidate",
+    "text": "Fair push — I think I'm missing two things.\n\nOne, cost to serve, not just cost to acquire. Starter customers still file support tickets and consume hosting; if a $40 customer costs nearly as much to support as a $100 one, that crushes the margin and the LTV side. So I'd want gross margin by plan, not just revenue.\n\nTwo, my structure implicitly frames this as keep-or-kill, which is binary. The real answer space is wider: reprice Starter, change the feature gating so upgrading to Pro is more attractive, shift the acquisition mix to cheaper channels to lower CAC, or limit Starter to segments where it doesn't cannibalize. Shutting down is just one branch.\n\nSo: Starter economics, cross-effects on Pro, cost to serve, and then the menu of actions. Can we start with churn and CAC by plan?"
+   },
+   {
+    "turnIndex": 4,
+    "role": "interviewer",
+    "text": "Right, a wider action menu. On what you asked about earlier: Of the 1,050 Pro customers who signed up in January–March 2025, 98.0% were still on Pro after month 1, 94.1% after month 3, 88.6% after month 6 and 78.5% after month 12, so 2.0%, 5.9%, 11.4% and 21.5% had cancelled by those months. Of the 3,000 Starter customers who signed up in January–March 2025, 94% were still on Starter after month 1, 82% after month 3, 65% after month 6 and 40% after month 12; by those months 1%, 5%, 11% and 20% had upgraded to Pro and were still customers, and 5%, 13%, 24% and 40% had cancelled. Here's an exhibit: Quillpath — Economics of each plan ($ per customer). With those figures in front of you, how would you use them to test Starter against the board's three-times rule?"
+   },
+   {
+    "turnIndex": 5,
+    "role": "candidate",
+    "text": "Let me work the lifetime first, then multiply by margin.\n\nMargins per month: Pro is $100 − $20 = $80. Starter is $40 − $10 = $30.\n\nFor Starter, the churn figure I'll use is 21.5% — that's the clean cancellation rate we have. Average lifetime is roughly 1 divided by churn, so 1 / 0.215 ≈ 4.65 months. LTV = 4.65 × $30 ≈ $140. Against a $300 CAC that's a ratio of about 0.47 — well under 3. So the CFO is right that it fails, and it fails badly, not marginally.\n\nFor Pro, the comparable cancellation figure is 40%, so lifetime ≈ 1 / 0.40 = 2.5 months, LTV = 2.5 × $80 = $200 against $1,200 CAC — ratio 0.17.\n\nThat's striking: on these numbers Pro looks worse than Starter, which flips the CFO's argument.\n\nDo we have monthly new-signup counts by plan since launch, so I can see if the mix is still shifting?"
+   },
+   {
+    "turnIndex": 6,
+    "role": "interviewer",
+    "text": "Mm-hm. An exhibit for you — Quillpath — New customers per month, by plan (average per month). Before we go there: you used 21.5% for Starter and 40% for Pro. Walk me through where each of those came from in the cohort data."
+   },
+   {
+    "turnIndex": 7,
+    "role": "candidate",
+    "text": "Sure. 21.5% is the twelve-month cancellation figure from the Starter cohort — it's the cleanest full-year read we have, so I used it as the annual churn for Starter. And 40% is the corresponding twelve-month cancellation number on the Pro side, so I used that for Pro.\n\nI'll flag one thing I glossed over: those are twelve-month cumulative figures, and I divided one into them as if they were monthly rates. If I treat them as annual instead, Starter's lifetime is about 1 / 0.215 ≈ 4.65 years, so LTV ≈ 4.65 × 12 × $30 ≈ $1,675 against $300 CAC — a ratio over 5. And Pro at 1 / 0.40 = 2.5 years gives 2.5 × 12 × $80 = $2,400 against $1,200, a ratio of 2.0.\n\nOn that reading Starter passes the three-times rule comfortably and Pro is the plan that fails. Either way, Starter beats Pro."
+   },
+   {
+    "turnIndex": 8,
+    "role": "interviewer",
+    "text": "Right, you caught the monthly versus annual mix-up yourself. You said “4.65” — what were the steps in that calculation?"
+   },
+   {
+    "turnIndex": 9,
+    "role": "candidate",
+    "text": "Yes — it's the standard lifetime approximation: if a fixed fraction of customers cancels each period, average lifetime is 1 divided by that fraction. So for Starter, 1 / 0.215 = 4.65. The arithmetic: 0.215 × 4 = 0.86, 0.215 × 4.65 ≈ 1.00, so 4.65 periods. Since 21.5% is the twelve-month cancellation figure, the period is a year, so 4.65 years, or about 56 months.\n\nSame method for Pro: 1 / 0.40 = 2.5 years, 30 months.\n\nI'd caveat that the approximation assumes a constant rate, and the Starter cohort data isn't constant — cancellations are front-loaded, 5% in month 1 alone. So the true lifetime is probably shorter than 4.65 years. But directionally Starter still clears 3x with a lot of room, and Pro at 2.0x is the one in trouble."
+   },
+   {
+    "turnIndex": 10,
+    "role": "interviewer",
+    "text": "Understood. You mentioned “2.5” — take me through the math there."
+   }
+  ],
+  "rows": [
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 1,
+    "payloadJsonb": {
+     "candidateTurnIndex": 1,
+     "latencyMs": 1440,
+     "model": "claude-sonnet-5-5",
+     "claims": [],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 3,
+    "payloadJsonb": {
+     "candidateTurnIndex": 3,
+     "latencyMs": 1597,
+     "model": "claude-sonnet-5-5",
+     "claims": [],
+     "codeFlags": [],
+     "stamps": []
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 5,
+    "payloadJsonb": {
+     "candidateTurnIndex": 5,
+     "latencyMs": 8899,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "starter_margin",
+        "target": null
+       },
+       "flag": false,
+       "span": "Pro is $100 − $20 = $80. Starter is $40 − $10 = $30.",
+       "unit": "$/month",
+       "probe": "",
+       "verdict": "correct",
+       "hintLine": null,
+       "quantity": "monthly gross margins",
+       "vetNotes": [],
+       "errorType": null,
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "100-20=80; 40-10=30",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": null,
+       "candidateValue": "Pro $80, Starter $30",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": false
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "starter_churn",
+        "target": null
+       },
+       "flag": true,
+       "span": "the churn figure I'll use is 21.5% ... 1 / 0.215 ≈ 4.65 months",
+       "unit": "% per month",
+       "probe": "You used 21.5% as Starter's cancellation rate. Which cohort and period does that figure come from, and is it a monthly rate?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Starter monthly churn and lifetime",
+       "vetNotes": [
+        "probe withheld (leads: names cohort, doe, not in the claim): You used 21.5% as Starter's cancellation rate. Which cohort and period does that figure come from, and is it a monthly rate?"
+       ],
+       "errorType": "misquote",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "21.5% is Pro's 12-month cancelled share, not Starter's. Starter monthly churn is 5% (month 1 cancelled), lifetime 20 months.",
+       "assumptions": "Uses the 21.5% figure as Starter churn",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 5,
+       "candidateValue": "21.5% churn, 4.65 months",
+       "correctionLine": "Starter monthly cancellation rate is about 5%, not 21.5%.",
+       "correctionFigure": "5",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "starter_ltv",
+        "target": null
+       },
+       "flag": true,
+       "span": "LTV = 4.65 × $30 ≈ $140. Against a $300 CAC that's a ratio of about 0.47",
+       "unit": "$",
+       "probe": "You got Starter LTV of about $140 and a ratio of 0.47. What lifetime and churn base is that resting on?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Starter LTV and LTV/CAC",
+       "vetNotes": [
+        "probe withheld (provenance/truth): You got Starter LTV of about $140 and a ratio of 0.47. What lifetime and churn base is that resting on?",
+        "correction withheld (provenance/truth): Starter standalone lifetime value at $40 is about $600, not $140."
+       ],
+       "errorType": "conceptual",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Correct Starter LTV = $30 × 20 = $600; ratio 600/300 = 2.0×, not 0.47.",
+       "assumptions": "Given their own churn; arithmetic is consistent with it, but the churn input is wrong",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 600,
+       "candidateValue": "$140; 0.47",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "pro_ltv",
+        "target": null
+       },
+       "flag": true,
+       "span": "the comparable cancellation figure is 40%, so lifetime ≈ 2.5 months, LTV = 2.5 × $80 = $200 against $1,200 CAC — ratio 0.17",
+       "unit": "$",
+       "probe": "You used 40% as Pro's cancellation rate. Which cohort and period does that come from, and is it a monthly rate?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Pro churn, LTV and ratio",
+       "vetNotes": [
+        "probe withheld (leads: names cohort, doe, not in the claim): You used 40% as Pro's cancellation rate. Which cohort and period does that come from, and is it a monthly rate?"
+       ],
+       "errorType": "misquote",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "40% is Starter's 12-month cancelled share. Pro monthly churn is 2%, lifetime 50 months, LTV $4,000, ratio about 3.3×.",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 4000,
+       "candidateValue": "40%, 2.5 months, $200, 0.17",
+       "correctionLine": "Pro lifetime value is about 4,000%, not 40%.",
+       "correctionFigure": "4000",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "pro_ratio",
+        "target": null
+       },
+       "flag": false,
+       "span": "on these numbers Pro looks worse than Starter, which flips the CFO's argument",
+       "unit": "x",
+       "probe": "You conclude Pro looks worse than Starter. What cancellation rates and time period sit behind that comparison?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Pro vs Starter LTV/CAC comparison",
+       "vetNotes": [
+        "flag dropped — no figure of theirs to check"
+       ],
+       "errorType": "conceptual",
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Pro ratio is about 3.3× versus Starter 2.0× standalone, so Pro is better, not worse.",
+       "assumptions": "",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 3.3,
+       "candidateValue": "Pro worse than Starter",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true,
+       "ratio": true
+      }
+     ],
+     "codeFlags": [],
+     "stamps": [
+      {
+       "stepId": "pro_margin",
+       "value": 80,
+       "span": "Margins per month: Pro is $100 − $20 = $80"
+      },
+      {
+       "stepId": "arith:$40 - $10",
+       "value": 30,
+       "span": "Starter is $40 − $10 = $30."
+      },
+      {
+       "stepId": "arith:1 / 0.215",
+       "value": 4.65,
+       "span": "Average lifetime is roughly 1 divided by churn, so 1 / 0.215 ≈ 4.65 months."
+      },
+      {
+       "stepId": "arith:4.65 × $30",
+       "value": 140,
+       "span": "LTV = 4.65 × $30 ≈ $140."
+      },
+      {
+       "stepId": "arith:1 / 0.40",
+       "value": 2.5,
+       "span": "For Pro, the comparable cancellation figure is 40%, so lifetime ≈ 1 / 0.40 = 2.5 months, LTV = 2.5 × $80 = $200 against $1,200 CAC — ratio 0.17."
+      },
+      {
+       "stepId": "arith:1 / 0.40",
+       "value": 150,
+       "span": "For Pro, the comparable cancellation figure is 40%, so lifetime ≈ 1 / 0.40 = 2.5 months, LTV = 2.5 × $80 = $200 against $1,200 CAC — ratio 0.17."
+      },
+      {
+       "stepId": "arith:1 / 0.40",
+       "value": 250,
+       "span": "For Pro, the comparable cancellation figure is 40%, so lifetime ≈ 1 / 0.40 = 2.5 months, LTV = 2.5 × $80 = $200 against $1,200 CAC — ratio 0.17."
+      },
+      {
+       "stepId": "arith:2.5 × $80",
+       "value": 200,
+       "span": "For Pro, the comparable cancellation figure is 40%, so lifetime ≈ 1 / 0.40 = 2.5 months, LTV = 2.5 × $80 = $200 against $1,200 CAC — ratio 0.17."
+      }
+     ]
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 7,
+    "payloadJsonb": {
+     "candidateTurnIndex": 7,
+     "latencyMs": 9825,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "21.5% is the twelve-month cancellation figure from the Starter cohort",
+       "unit": "%",
+       "probe": "You said 21.5% is the twelve-month cancellation figure from the Starter cohort. Which row of the cohort data does that come from?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "source of Starter 12-month cancellation figure",
+       "vetNotes": [
+        "probe withheld (leads: names doe, not in the claim): You said 21.5% is the twelve-month cancellation figure from the Starter cohort. Which row of the cohort data does that come from?",
+        "no correction: code computes nothing for none"
+       ],
+       "errorType": "misquote",
+       "probeLine": "Walk me through how you got to 21.5%.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Starter 12-month cancellation is 40%; 21.5% is the Pro figure. The candidate swapped the plans.",
+       "assumptions": "Starter cohort: 40% cancelled by month 12; 21.5% is Pro's 12-month cancellation",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 40,
+       "candidateValue": "21.5%",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "none",
+        "price": null,
+        "stepId": null,
+        "target": null
+       },
+       "flag": true,
+       "span": "40% is the corresponding twelve-month cancellation number on the Pro side",
+       "unit": "%",
+       "probe": "You said 40% is the twelve-month cancellation on the Pro side. Which cohort row and month does that come from?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Pro 12-month cancellation",
+       "vetNotes": [
+        "probe withheld (leads: names doe, not in the claim): You said 40% is the twelve-month cancellation on the Pro side. Which cohort row and month does that come from?",
+        "no correction: code computes nothing for none"
+       ],
+       "errorType": "misquote",
+       "probeLine": "Walk me through how you got to 40%.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Pro 12-month cancellation is 21.5%; 40% is Starter's.",
+       "assumptions": "Pro cohort: 78.5% still on Pro at month 12",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 21.5,
+       "candidateValue": "40%",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "starter_ltv",
+        "target": null
+       },
+       "flag": true,
+       "span": "Starter's lifetime is about 1 / 0.215 ≈ 4.65 years, so LTV ≈ 4.65 × 12 × $30 ≈ $1,675 against $300 CAC — a ratio over 5",
+       "unit": "$",
+       "probe": "You get a Starter LTV of about $1,675 and a ratio over 5. What churn rate is that resting on, and what does the Starter cohort show?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Starter LTV and LTV/CAC treating cumulative figure as annual churn",
+       "vetNotes": [
+        "probe withheld (leads: names churn, doe, cohort, not in the claim): You get a Starter LTV of about $1,675 and a ratio over 5. What churn rate is that resting on, and what does the Starter cohort show?"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Arithmetic given assumption is right: 4.65×12×30≈1674, ratio 5.6. But the input is wrong: Starter's 12-month cancellation is 40%, and monthly churn is 5%, so standalone LTV is $30×20=$600, ratio 2.0.",
+       "assumptions": "Candidate's own assumption of 21.5% annual churn for Starter",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 600,
+       "candidateValue": "$1,675; ratio >5",
+       "correctionLine": "Starter standalone lifetime value at $40 is about $600, not $1,675.",
+       "correctionFigure": "600",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "pro_ltv",
+        "target": null
+       },
+       "flag": true,
+       "span": "Pro at 1 / 0.40 = 2.5 years gives 2.5 × 12 × $80 = $2,400 against $1,200, a ratio of 2.0",
+       "unit": "$",
+       "probe": "You get Pro at $2,400 and a ratio of 2.0. Which cancellation figure is that built on, and where does it appear in the Pro cohort?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Pro LTV and LTV/CAC",
+       "vetNotes": [
+        "probe withheld (leads: names cancellation, doe, cohort, not in the claim): You get Pro at $2,400 and a ratio of 2.0. Which cancellation figure is that built on, and where does it appear in the Pro cohort?"
+       ],
+       "errorType": "conceptual",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Arithmetic given assumption is fine (2400, 2.0), but Pro's 12-month cancellation is 21.5% and monthly churn 2%, so LTV=$80×50=$4,000, ratio 3.3.",
+       "assumptions": "Candidate's assumed 40% annual churn for Pro",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 4000,
+       "candidateValue": "$2,400; ratio 2.0",
+       "correctionLine": "Pro lifetime value is about $4,000, not $2,400.",
+       "correctionFigure": "4000",
+       "changesConclusion": true
+      },
+      {
+       "pointer": "",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "starter_ratio",
+        "target": null
+       },
+       "flag": false,
+       "span": "On that reading Starter passes the three-times rule comfortably and Pro is the plan that fails.",
+       "unit": "x",
+       "probe": "You conclude Starter passes the three-times rule comfortably and Pro fails. How does that square with the monthly cancellation you can read from each cohort?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Which plan passes the 3x rule",
+       "vetNotes": [
+        "flag dropped — code computes 2: theirs 2 is within tolerance"
+       ],
+       "errorType": "conceptual",
+       "probeLine": null,
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Starter standalone ratio is 2.0 (fails), Pro is 3.3 (passes). Conclusion reversed.",
+       "assumptions": "Case data",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 2,
+       "candidateValue": "Starter passes (>5), Pro fails (2.0)",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true,
+       "ratio": true
+      }
+     ],
+     "codeFlags": [],
+     "stamps": [
+      {
+       "stepId": "starter_ratio",
+       "value": 2,
+       "span": "And Pro at 1 / 0.40 = 2.5 years gives 2.5 × 12 × $80 = $2,400 against $1,200, a ratio of 2.0"
+      },
+      {
+       "stepId": "starter_ratio_with_upgrades",
+       "value": 4.65,
+       "span": "If I treat them as annual instead, Starter's lifetime is about 1 / 0.215 ≈ 4.65 years, so LTV ≈ 4.65 × 12 × $30 ≈ $1,675 against $300 CAC — a ratio over 5"
+      },
+      {
+       "stepId": "arith:4.65 × 12 × $30",
+       "value": 1675,
+       "span": "If I treat them as annual instead, Starter's lifetime is about 1 / 0.215 ≈ 4.65 years, so LTV ≈ 4.65 × 12 × $30 ≈ $1,675 against $300 CAC — a ratio over 5."
+      },
+      {
+       "stepId": "arith:1 / 0.40",
+       "value": 2.5,
+       "span": "And Pro at 1 / 0.40 = 2.5 years gives 2.5 × 12 × $80 = $2,400 against $1,200, a ratio of 2.0."
+      },
+      {
+       "stepId": "arith:1 / 0.40",
+       "value": 150,
+       "span": "And Pro at 1 / 0.40 = 2.5 years gives 2.5 × 12 × $80 = $2,400 against $1,200, a ratio of 2.0."
+      },
+      {
+       "stepId": "arith:1 / 0.40",
+       "value": 250,
+       "span": "And Pro at 1 / 0.40 = 2.5 years gives 2.5 × 12 × $80 = $2,400 against $1,200, a ratio of 2.0."
+      },
+      {
+       "stepId": "arith:2.5 × 12 × $80",
+       "value": 2400,
+       "span": "And Pro at 1 / 0.40 = 2.5 years gives 2.5 × 12 × $80 = $2,400 against $1,200, a ratio of 2.0."
+      }
+     ]
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "verdict",
+    "turnIndex": 9,
+    "payloadJsonb": {
+     "candidateTurnIndex": 9,
+     "latencyMs": 15515,
+     "model": "claude-sonnet-5-5",
+     "claims": [
+      {
+       "pointer": "How does that lifetime fit with the 40% of Starter customers who had cancelled by month 12 in the cohort data?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "starter_churn",
+        "target": null
+       },
+       "flag": true,
+       "span": "Since 21.5% is the twelve-month cancellation figure, the period is a year, so 4.65 years, or about 56 months.",
+       "unit": "months",
+       "probe": "You said Starter lifetime is 4.65 years, or about 56 months. Which row of the cohort data does the 21.5% come from, and what period is it over?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Starter expected lifetime",
+       "vetNotes": [
+        "probe withheld (leads: names lifetime, cohort, doe, not in the claim): You said Starter lifetime is 4.65 years, or about 56 months. Which row of the cohort data does the 21.5% come from, and what period is it over?",
+        "probe only: code computes 5, the checker said 20",
+        "pointer withheld (leads: names doe, lifetime, cancelled, cohort, not in the claim): How does that lifetime fit with the 40% of Starter customers who had cancelled by month 12 in the cohort data?"
+       ],
+       "errorType": "wrong_base",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "21.5% is the Pro 12-month cancellation, not Starter's. Starter cancels 5% a month (the 1% who upgraded did not leave), so lifetime = 1 / 5% = 20 months.",
+       "assumptions": "Lifetime = 1 / monthly cancellation rate, per the case's LTV definition.",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 20,
+       "candidateValue": "4.65 years (~56 months)",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      },
+      {
+       "pointer": "How does a 30-month Pro lifetime fit with only 21.5% of Pro customers having cancelled by month 12?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "pro_ltv",
+        "target": null
+       },
+       "flag": true,
+       "span": "Same method for Pro: 1 / 0.40 = 2.5 years, 30 months.",
+       "unit": "months",
+       "probe": "You said Pro lifetime is 2.5 years, or 30 months. Which cohort row does the 40% come from, and how does it compare with Pro's month-1 cancellation?",
+       "verdict": "error",
+       "hintLine": null,
+       "quantity": "Pro expected lifetime",
+       "vetNotes": [
+        "probe withheld (leads: names lifetime, cohort, doe, not in the claim): You said Pro lifetime is 2.5 years, or 30 months. Which cohort row does the 40% come from, and how does it compare with Pro's month-1 cancellation?",
+        "probe only: code computes 4000 / 4444, the checker said 50",
+        "pointer withheld (leads: names doe, lifetime, cancelled, not in the claim): How does a 30-month Pro lifetime fit with only 21.5% of Pro customers having cancelled by month 12?"
+       ],
+       "errorType": "wrong_base",
+       "probeLine": "Walk me through that calculation.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "40% is the Starter 12-month cancellation, not Pro's. Pro cancels 2% a month, so lifetime = 1 / 2% = 50 months.",
+       "assumptions": "Lifetime = 1 / monthly cancellation rate.",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 50,
+       "candidateValue": "2.5 years (30 months)",
+       "correctionLine": null,
+       "correctionFigure": null,
+       "changesConclusion": true
+      },
+      {
+       "pointer": "How does that fit with the 2.0% of Pro customers who cancelled in month 1 in the cohort data?",
+       "actualShare": null,
+       "codeQuantity": {
+        "kind": "step",
+        "price": null,
+        "stepId": "pro_ratio",
+        "target": null
+       },
+       "flag": true,
+       "span": "Pro at 2.0x is the one in trouble.",
+       "unit": "x",
+       "probe": "You put Pro at 2.0x LTV to CAC. What lifetime and monthly cancellation rate sit behind the $2,400 lifetime value you divided by $1,200?",
+       "verdict": "error",
+       "hintLine": "You put Pro at 2.0x LTV to CAC. What lifetime and monthly cancellation rate sit behind the $2,400 lifetime value you divided by $1,200?",
+       "quantity": "Pro LTV/CAC",
+       "vetNotes": [
+        "probe withheld (leads: names ltv, cac, cancellation, divided, not in the claim): You put Pro at 2.0x LTV to CAC. What lifetime and monthly cancellation rate sit behind the $2,400 lifetime value you divided by $1,200?",
+        "hint kept for the second probe"
+       ],
+       "errorType": "wrong_base",
+       "probeLine": "Walk me through how you got to 2.0x.",
+       "confidence": "high",
+       "correctLow": null,
+       "derivation": "Pro LTV = $80 × 50 months = $4,000; $4,000 / $1,200 ≈ 3.3x, which passes the 3x rule.",
+       "assumptions": "Case data: Pro margin $80 a month, Pro CAC $1,200.",
+       "correctHigh": null,
+       "pointerLine": null,
+       "correctValue": 3.3,
+       "candidateValue": "2.0x",
+       "correctionLine": "Pro LTV/CAC is about 3.3 times, not 2.0 times.",
+       "correctionFigure": "3.3",
+       "changesConclusion": true,
+       "ratio": true
+      }
+     ],
+     "codeFlags": [],
+     "stamps": [
+      {
+       "stepId": "starter_churn",
+       "value": 5,
+       "span": "I'd caveat that the approximation assumes a constant rate, and the Starter cohort data isn't constant — cancellations are front-loaded, 5% in month 1 alone"
+      },
+      {
+       "stepId": "arith:1 / 0.215",
+       "value": 4.65,
+       "span": "So for Starter, 1 / 0.215 = 4.65."
+      },
+      {
+       "stepId": "arith:0.215 × 4",
+       "value": 0.86,
+       "span": "The arithmetic: 0.215 × 4 = 0.86, 0.215 × 4.65 ≈ 1.00, so 4.65 periods."
+      },
+      {
+       "stepId": "arith:0.215 × 4",
+       "value": -14,
+       "span": "The arithmetic: 0.215 × 4 = 0.86, 0.215 × 4.65 ≈ 1.00, so 4.65 periods."
+      },
+      {
+       "stepId": "arith:0.215 × 4",
+       "value": 86,
+       "span": "The arithmetic: 0.215 × 4 = 0.86, 0.215 × 4.65 ≈ 1.00, so 4.65 periods."
+      },
+      {
+       "stepId": "arith:0.215 × 4.65",
+       "value": 1,
+       "span": "The arithmetic: 0.215 × 4 = 0.86, 0.215 × 4.65 ≈ 1.00, so 4.65 periods."
+      },
+      {
+       "stepId": "arith:1 / 0.40",
+       "value": 2.5,
+       "span": "Same method for Pro: 1 / 0.40 = 2.5 years, 30 months."
+      },
+      {
+       "stepId": "arith:1 / 0.40",
+       "value": 150,
+       "span": "Same method for Pro: 1 / 0.40 = 2.5 years, 30 months."
+      },
+      {
+       "stepId": "arith:1 / 0.40",
+       "value": 250,
+       "span": "Same method for Pro: 1 / 0.40 = 2.5 years, 30 months."
+      }
+     ]
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 7,
+    "payloadJsonb": {
+     "id": "5:2",
+     "candidateTurnIndex": 5,
+     "outcome": "stale",
+     "reason": "restated at 1675: \"so LTV ≈ 4.65 × 12 × $30 ≈ $1,675 against $300 CAC\"",
+     "span": "LTV = 4.65 × $30 ≈ $140. Against a $300 CAC that's a ratio of about 0.47",
+     "candidateValue": "$140; 0.47",
+     "key": "starter_ltv@140",
+     "changesConclusion": true
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 7,
+    "payloadJsonb": {
+     "id": "5:1",
+     "candidateTurnIndex": 5,
+     "outcome": "probe",
+     "reason": "attempt 1",
+     "span": "the churn figure I'll use is 21.5% ... 1 / 0.215 ≈ 4.65 months",
+     "candidateValue": "21.5% churn, 4.65 months",
+     "key": "starter_churn@21.5",
+     "changesConclusion": true,
+     "line": "You said “4.65” — walk me through that calculation."
+    }
+   },
+   {
+    "category": "math_checker",
+    "subtype": "flag",
+    "turnIndex": 9,
+    "payloadJsonb": {
+     "id": "5:3",
+     "candidateTurnIndex": 5,
+     "outcome": "probe",
+     "reason": "attempt 1",
+     "span": "the comparable cancellation figure is 40%, so lifetime ≈ 2.5 months, LTV = 2.5 × $80 = $200 against $1,200 CAC — ratio 0.17",
+     "candidateValue": "40%, 2.5 months, $200, 0.17",
+     "key": "pro_ltv@40",
+     "changesConclusion": true,
+     "line": "You said “2.5” — walk me through that calculation."
+    }
+   }
+  ],
+  "mathChecker": {
+   "handled": [
+    "5:2",
+    "5:1",
+    "5:3"
+   ],
+   "keys": {
+    "starter_churn@21.5": {
+     "figures": [
+      4.65
+     ],
+     "since": 5
+    },
+    "pro_ltv@40": {
+     "figures": [
+      2.5,
+      200,
+      0.17
+     ],
+     "since": 5
+    }
+   }
+  },
+  "attempts": {
+   "starter_churn@21.5": 1,
+   "pro_ltv@40": 1
+  },
+  "stepProbes": {
+   "starter_churn": 1,
+   "pro_ltv": 1
+  },
+  "inputProbes": {
+   "input:21.5": [
+    8
+   ],
+   "input:40": [
+    10
+   ]
+  }
+ }
+}

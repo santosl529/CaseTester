@@ -34,7 +34,7 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, INPUT_KEY, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot } from './math-checker-live';
 import { theirFigure } from './own-quantity';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
@@ -88,7 +88,8 @@ export type CheckerLinePlan = {
   quote?: CheckerSelection['quote'];   // a late probe's quote of its claim: the heard check reads the model's line by it (round-4 ruling 4)
   wasHeld?: boolean;   // held back once already by a due stage: not held again
   final?: boolean;     // in the final answers, a rider's included (ruling 4): heard, it is the root's one extra probe there (close-hold.ts)
-  undo: { attempt: number | undefined; step: string | null; mathChecker: CheckerMemory };
+  // input (E7): the input this line was booked to in flags.inputProbes, and the turn it was booked as.
+  undo: { attempt: number | undefined; step: string | null; input?: { key: string; turn: number }; mathChecker: CheckerMemory };
 };
 // flags.mathChecker. held: a line a due stage question held back (Settle), until it is raised or decided.
 // convertedFigures: the figures a conversion closed (own-quantity.ts) — a case figure too ("10 points of COGS"), which no key keeps.
@@ -655,6 +656,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Verdicts on earlier messages that have landed: Rule 14 flags, one a turn
   // (decided here; delivered once the turn kind is known, below).
   const checkerMemory = (flags.mathChecker as Partial<CheckerMemory> | undefined) ?? {};
+  // E7: the turns code's lines on each misread input were said on (math-checker-live.ts INPUT_PROBE_CAP).
+  const inputProbes: Record<string, number[]> = { ...((flags.inputProbes as Record<string, number[]> | undefined) ?? {}) };
   const checkerHandled = checkerMemory.handled ?? [];
   const heldLine = checkerMemory.held && !checkerHandled.includes(checkerMemory.held) ? checkerMemory.held : undefined;
   const candidateIndexes = [...turnRows.filter(t => t.role === 'candidate').map(t => t.turnIndex), ctx.nextTurnIndex];
@@ -665,7 +668,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     rows: checkerRows,
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
-    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, held: heldLine, finalAnswer, rank,
+    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, inputProbes, held: heldLine, finalAnswer, rank,
     convertedFigures: checkerMemory.convertedFigures, corrected: checkerMemory.corrected, restated: checkerMemory.restated, said: checkerMemory.said,
     phraseUses: flags.phraseUses as PhraseUses | undefined, seed: `${ctx.sessionId}:${ctx.nextTurnIndex}`, codeFigures,
     // The gate's decisions, earlier turns' (by turn) then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
@@ -1054,7 +1057,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The correction is said once: its flag closes after this turn.
   // A conversion closes its whole step (Lorenzo, 17 Oct).
   const coveredNow = checkerUsed?.covers ?? [];
-  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key, ...(checkerUsed.converted ? [convertedMarker(checkerUsed.key)] : [])] : []), ...coveredNow.map(c => c.key)])];
+  // A row fix closes every input it corrects (E7).
+  const inputsFixed = checkerUsed?.action === 'correct' ? checkerUsed.inputs ?? [] : [];
+  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key, ...(checkerUsed.converted ? [convertedMarker(checkerUsed.key)] : [])] : []), ...coveredNow.map(c => c.key), ...inputsFixed])];
+  // The misread inputs closed — by a row fix, this turn's too, or to the report: no probe on them from the model either (probe-guard.ts).
+  const closedInputs = closedAfter.filter(k => k.startsWith(INPUT_KEY)).map(k => Number(k.slice(INPUT_KEY.length)));
   const leftForReport = checkerDecisions.filter(d => d.outcome === 'unresolved' && closedKeys.includes(d.key));
   if (kind === 'model' && leftForReport.length > 0) {
     recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${leftForReport.map(d => `"${d.candidateValue}"`).join(', ')} has been probed twice and goes in the written report. Don't ask about it again — move the case on.`].filter(Boolean).join('\n\n');
@@ -1085,6 +1092,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const correctedNow = {
     ...(checkerUsed?.action === 'correct' ? { [checkerUsed.key]: { line: checkerUsed.line, ...(checkerUsed.derived[0] ? { figure: checkerUsed.derived[0] } : {}) } } : {}),
     ...Object.fromEntries(coveredNow.map(c => [c.key, { line: c.line, ...(c.claim.correctionFigure ? { figure: c.claim.correctionFigure } : {}) }])),
+    // …and the inputs a row fix corrects, with the message it was decided on: a claim on one said by then was covered by it.
+    ...Object.fromEntries(inputsFixed.map(k => [k, { line: checkerUsed!.line, at: ctx.nextTurnIndex }])),
   };
   const correctedAfter = { ...(checkerMemory.corrected ?? {}), ...correctedNow };
   // A key the restatement corrected word for word (covers) has had that line said: it is restated too, never restated on its own later (review fix 1).
@@ -1111,6 +1120,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   if (checkerUsed && !correctsNow(checkerUsed)) probedSteps.add(stepOfKey(checkerUsed.key));
   for (const s of probedSteps) stepProbes[s] = (stepProbes[s] ?? 0) + 1;
   if (probedSteps.size > 0) flags.stepProbes = stepProbes;
+  // E7: code's probe, pointer or hint on a claim of a misread input, counted for the input by the turn it is said on.
+  const inputBooked = checkerUsed && !correctsNow(checkerUsed) && checkerUsed.input ? { key: checkerUsed.input, turn: ctx.nextTurnIndex + 1 } : undefined;
+  if (inputBooked) flags.inputProbes = { ...inputProbes, [inputBooked.key]: [...new Set([...(inputProbes[inputBooked.key] ?? []), inputBooked.turn])] };
   // On a model turn the line is the model's to say: Settle checks the delivered
   // text holds it, says it itself if the model left it out, and undoes this
   // booking if it still isn't heard — the flag then stays pending (Lorenzo, 15
@@ -1126,7 +1138,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       id: checkerUsed.id, key: checkerUsed.key, action: checkerUsed.action, line: checkerUsed.line, ...(checkerUsed.quote ? { quote: checkerUsed.quote } : {}), ...(checkerUsed.id === heldLine ? { wasHeld: true } : {}),
       ...(ratingOf(checkerUsed).final.length > 0 ? { final: true } : {}),
       undo: {
-        attempt: attemptBeforeChecker, step: checkerStepOwn,
+        attempt: attemptBeforeChecker, step: checkerStepOwn, ...(inputBooked ? { input: inputBooked } : {}),
         mathChecker: { handled: handledUndo, ...(Object.keys(keysUndo).length ? { keys: keysUndo } : {}), ...(closedKeys.length ? { closed: closedKeys } : {}), ...(heldLine ? { held: heldLine } : {}), ...convertedKept, ...fixesKept },
       },
     };
@@ -1221,7 +1233,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, stageCodeLines, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, closedInputs, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, stageCodeLines, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, deferChecks: new Map<string, Promise<CheckVerdict>>(), requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

@@ -251,7 +251,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // the figure when that is still allowed, otherwise a plain next question.
   const challengeCtx = {
     verified: [...verifiedNow, ...verifiedPrev], alreadyProbed: explainProbedBefore, flaggedThisTurn: recomputeFlags.length > 0,
-    flagged: state.flaggedFigures, closed: state.closedFigures, candidateFigures,
+    flagged: state.flaggedFigures, closed: state.closedFigures, closedInputs: state.closedInputs, candidateFigures,
   };
   const mathWithheld = withheld.filter(w => w.field === 'question' && (w.reason === 'probe_guard' || w.reason === 'unsupported_challenge'));
   let challengeReplacement: string | null = null;
@@ -633,6 +633,13 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       const steps = { ...(flags.stepProbes as Record<string, number> | undefined) };
       steps[checkerLine.undo.step] = Math.max(0, (steps[checkerLine.undo.step] ?? 1) - 1);
       flags.stepProbes = steps;
+    }
+    // …and the input it was counted for (E7): that turn is no probe of it.
+    if (checkerLine.undo.input) {
+      const { key, turn } = checkerLine.undo.input;
+      const inputs = { ...(flags.inputProbes as Record<string, number[]> | undefined) };
+      inputs[key] = (inputs[key] ?? []).filter(t => t !== turn);
+      flags.inputProbes = inputs;
     }
     for (const e of ctx.events) {
       // …and the flags it corrected word for word (by: its id) — not corrected after all.

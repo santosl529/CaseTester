@@ -27,7 +27,8 @@ import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts
 import { checkPricingClaims, pricingAnswers, pricingValues } from './pricing-check';
 import { changeFigures } from './numeric-provenance';
 import { classifyMathTalk } from './math-talk';
-import { frameOfClaim, framedCorrection, claimWindow, readingsOf, rightOnSome, theirFigure } from './own-quantity';
+import { inputProbed } from './probe-guard';
+import { frameOfClaim, framedCorrection, claimWindow, readingsOf, rightOnSome, theirFigure, dataFigure, rowFix, onItsOwnRow, figureUnits } from './own-quantity';
 
 export const MATH_CHECKER_CATEGORY = 'math_checker';
 // Lorenzo, 13 Oct (approved): 30 s — the slowest call in the evaluation took
@@ -128,6 +129,15 @@ export const stepOfKey = (key: string) => (key.includes('@') ? key.slice(0, key.
 // A step a conversion closed, kept with the closed keys (Lorenzo, 17 Oct): "converted:<step>".
 export const CONVERTED = 'converted:';
 export const convertedMarker = (key: string) => `${CONVERTED}${stepOfKey(key)}`;
+// Lorenzo, 20 Oct (E7, serious; b35q Marisol 087451cb: "the same probe 3+ times: t6, t12, t18"): a misread input — a
+// figure of the data the candidate took for another quantity (own-quantity.ts dataFigure: her 21.5%, Pro's share
+// cancelled by month 12, as Starter's annual churn; 40%, Starter's, as Pro's) — collects every probe on it or on a claim
+// built on it, by code or by the model. At two, the next line on it is its correction through own-quantity framing —
+// the row fix (rowFix) — or, with no true line, the report: never a third probe. Its key in closed/corrected is
+// "input:<figure>"; code's lines on it are counted by turn in flags.inputProbes (plan-turn), beside flags.stepProbes.
+export const INPUT_PROBE_CAP = 2;
+export const INPUT_KEY = 'input:';
+export const inputKey = (figure: number) => `${INPUT_KEY}${figure}`;
 
 // A word quantity is a figure for telling restatements apart: "roughly half",
 // "about half of the damage", "half" are one claim (they carry no number, or
@@ -476,7 +486,9 @@ export type CheckerOutcome = 'probe' | 'correct' | 'converted' | 'pointer' | 'hi
 // revenue, not 38." put a "not X" on 38, true as growth on its own base): "The
 // restatement must repeat the original correction line verbatim, never a new
 // "X, not Y" template" — a correction's line, or a conversion's.
-export type CorrectedRoot = { line: string; figure?: string };
+// at (E7, an input's row fix): the message the correction was decided on — a claim on the input from that message or
+// earlier was said before the candidate heard it, and the correction covered it.
+export type CorrectedRoot = { line: string; figure?: string; at?: number };
 
 // Whether the delivered text holds the checker's line (Lorenzo, 15 Oct): case,
 // quotes, dashes and spacing aside — a paraphrase is not the vetted line.
@@ -526,6 +538,9 @@ export type CheckerSelection = {
   framing?: string;   // how the candidate framed the figure, for the log
   // Claims built on this line's root, 'derived' on it: handled only if the line is used and heard (plan-turn, settle-turn).
   riders?: { id: string; candidateTurnIndex: number; claim: VettedClaim }[];
+  // E7: the input a probe, pointer or hint is on (booked in flags.inputProbes), and the inputs a row fix corrects (closed with it).
+  input?: string;
+  inputs?: string[];
   // A restatement's: flags waiting whose own correction is the line it says, word for word — corrected by it (booked only if it is said).
   covers?: { id: string; candidateTurnIndex: number; key: string; claim: VettedClaim; line: string }[];
   // The highest rating among the claims riding on it, its own included — the close hold reads it, not the root's own
@@ -549,6 +564,7 @@ export type CheckerPlanInput = {
   restated?: string[];                // …and those whose correction was restated once since
   said?: Record<string, number>;      // each correction line delivered (correction, conversion, restatement, 13 Oct), by lineKey: times said
   stepProbes?: Record<string, number>; // probes spent on each step this interview (STEP_PROBE_CAP)
+  inputProbes?: Record<string, number[]>; // the interviewer turns code's lines on each input were said on (INPUT_PROBE_CAP)
   held?: string;                      // a line a due stage question held back (Settle): raised first, and it doesn't expire
   // The final answers the close waits on (close-hold.ts; Lorenzo, 16 Oct): their
   // flags are raised before any other, never shed under time pressure, never expired.
@@ -912,6 +928,75 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       eligible.push({ id, n: v.candidateTurnIndex, c, key, figs, codeProbed: codeFlag !== undefined && codeSaid(v, codeFlag) });
     });
   }
+  // E7: each flagged claim's misread input — its own figure when that is a figure of the data (dataFigure), else a
+  // known input's figure carried in its span, as written or as a fraction ("1 / 0.215" → 21.5), stated no later than
+  // the claim, else the input of an earlier claim with the same figure in the same unit (a derived figure restated:
+  // "$2,400" again) or whose figure it carries. Never a claim that uses the figure for its own row (onItsOwnRow: after the fix, "Starter: 1 / 0.40").
+  const ordered = [...flaggedSoFar].sort((a, b) => a.n - b.n);
+  const inputOf = new Map<string, number>();
+  const ownsInput = new Set<string>();
+  const inputSince = new Map<number, number>();   // an input's figure → the message it was first stated in
+  const inputUnit = new Map<number, string>();    // …and the unit she said it in ("21.5%"): a claim built on it may not write it ("1 / 0.215")
+  const headOfClaim = (c: VettedClaim) => { const h = theirFigure(c); return h === undefined || caseNumbers.some(x => same(x, h)) ? null : { value: h, unit: figureUnits(c.candidateValue, h)[0] ?? '' }; };
+  for (const f of ordered) {
+    const own = dataFigure(f.c, vetCtx);
+    if (own !== null) {
+      const unit = figureUnits(f.c.candidateValue, own)[0] ?? figureUnits(f.c.span, own)[0] ?? '';
+      if (onItsOwnRow(own, f.c, vetCtx, unit)) continue;
+      inputOf.set(f.id, own);
+      ownsInput.add(f.id);
+      if (![...inputSince.keys()].some(x => same(x, own))) { inputSince.set(own, f.n); inputUnit.set(own, unit); }
+      continue;
+    }
+    const carried = numbersOf(normalizeNumberWords(`${f.c.span} ${f.c.candidateValue}`)).flatMap(x => (x > 0 && x < 1 ? [x, Math.round(x * 1e6) / 1e4] : [x]));
+    const head = headOfClaim(f.c);
+    const restated = head && ordered.find(g => g.n <= f.n && g.id !== f.id && inputOf.has(g.id) && !ownsInput.has(g.id)
+      && (() => { const h = headOfClaim(g.c); return h !== null && same(h.value, head.value) && h.unit === head.unit; })());
+    // …or a figure of an earlier claim on an input, not the data's: "$30 × 56 months ≈ $1,675 … ≈ 5.6x" is built on
+    // her "4.65 years (~56 months)", itself on 21.5 (rootOf's link, one input down).
+    const via = ordered.find(g => g.n <= f.n && g.id !== f.id && inputOf.has(g.id)
+      && idFigsOf(g.c).some(x => !caseNumbers.some(y => same(x, y)) && carried.some(y => same(y, x))));
+    const F = [...inputSince].find(([x, since]) => since <= f.n && carried.some(y => same(y, x)))?.[0]
+      ?? (restated ? inputOf.get(restated.id) : undefined) ?? (via ? inputOf.get(via.id) : undefined);
+    if (F !== undefined && !onItsOwnRow(F, f.c, vetCtx, inputUnit.get(F))) inputOf.set(f.id, F);
+  }
+  const inputKeyOf = (e: { id: string }) => { const F = inputOf.get(e.id); return F === undefined ? null : inputKey(F); };
+  // The interviewer turns that probed an input: code's lines on it (flags.inputProbes), and every turn since it was
+  // first stated whose own words ask about it — its figure doubted, its working asked for, or put back to them with a
+  // question ("you used 21.5% for Starter and 40% for Pro. Walk me through where each of those came from", Marisol t6)
+  // — or about a figure of a claim built on it (probesOf; a case figure there names the data, not the claim).
+  const inputTurns = (F: number): Set<number> => {
+    const since = inputSince.get(F) ?? Infinity;
+    const chain = [...new Set(ordered.filter(f => inputOf.get(f.id) === F).flatMap(f => idFigsOf(f.c)))].filter(x => !same(x, F) && !caseNumbers.some(y => same(x, y)));
+    const turns = new Set(p.inputProbes?.[inputKey(F)] ?? []);
+    for (const t of p.turnRows) {
+      if (t.role !== 'interviewer' || t.turnIndex <= since || turns.has(t.turnIndex)) continue;
+      const own = interviewerOwnWords(t.text, ledgerValues);
+      const all = sentencesOf(own);
+      const asks = /\?|\b(?:walk|talk|take) me through\b|\bexplain\b|\btell me how\b|\bshow me how\b/i.test(own);
+      const onF = all.some((x, i) => inputProbed(x, [F], p.candidateFigures, all[i - 1], asks) !== undefined);
+      if (onF || probesOf(chain, [own], p.candidateFigures) > 0) turns.add(t.turnIndex);
+    }
+    return turns;
+  };
+  // The input's correction: the row fix, read on the claim or — the first that has one — on another claim of the input,
+  // its own claims first. It corrects every input whose figure it states (a swap: one line for both).
+  const inputCorrection = (e: { id: string; n: number; c: VettedClaim }, attempt: number): CheckerSelection | null => {
+    const F = inputOf.get(e.id);
+    if (F === undefined) return null;
+    const others = ordered.filter(f => f.id !== e.id && inputOf.get(f.id) === F);
+    const claims = [...(ownsInput.has(e.id) ? [e] : []), ...others.filter(f => ownsInput.has(f.id)), ...(ownsInput.has(e.id) ? [] : [e]), ...others.filter(f => !ownsInput.has(f.id))];
+    for (const x of claims) {
+      const fix = rowFix(F, x.c, vetCtx, inputUnit.get(F));
+      if (!fix) continue;
+      const inputs = [...new Set([inputKey(F), ...[...inputSince.keys()].filter(k => fix.pair.some(y => same(k, y))).map(inputKey)])];
+      return { id: e.id, candidateTurnIndex: e.n, key: inputKey(F), attempt, action: 'correct', line: fix.line, derived: [], claim: e.c, framing: fix.note, inputs };
+    }
+    return null;
+  };
+  // A claim whose own figure is a misread of the data is corrected only by the row fix — "not 21.5%" against a figure
+  // right on its own row is never said (Lorenzo, 20 Oct, Review Focus 6).
+  const correctionOf = (id: string, n: number, c: VettedClaim, key: string, attempt: number) => (ownsInput.has(id) ? inputCorrection({ id, n, c }, attempt) : correction(id, n, c, key, attempt));
   // A claim built on another error's figure yields to it (rootOf): the probe
   // follows the input. The flag is the key, so a claim restating a figure
   // another claim of its key built on the input is built on it too (Marisol
@@ -942,24 +1027,39 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // A line said twice already is not said again, whichever selection carries it — a correction, a restatement (the
   // controller's ruling on Task 19's concern 1): report-only, its key closed.
   const saidTwice = (line: string) => (p.said?.[lineKey(line)] ?? 0) >= 2;
+  const onClosedRoot = (e: typeof all[number], root: string) => {
+    // An old or malformed record with no line restates nothing: a closed input (Task 18 review).
+    const fix = p.corrected?.[root]?.line?.trim() ? p.corrected[root] : undefined;
+    // E7: said before the input's correction was heard — that correction covered it.
+    if (fix?.at !== undefined && e.n <= fix.at) {
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `built on a corrected input (${root}) — said before its correction, which covered it`, undefined, e.key), root });
+      handled.add(e.id);
+      return;
+    }
+    if (fix && !restated.has(root) && !saidTwice(fix.line)) {
+      if (eligible.some(x => x.key === root && x.restate)) built.push({ e, root });
+      else eligible.push({ ...e, key: root, restate: { line: fix.line, ...(fix.figure ? { figure: fix.figure } : {}), own: e.key } });
+      return;
+    }
+    decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', !fix ? `built on a closed input (${root})`
+      : restated.has(root) ? `built on a corrected input (${root}) — restated once already; left for the report`
+        : `built on a corrected input (${root}) — its correction was already said twice; left for the report`, undefined, e.key), root });
+    handled.add(e.id);
+  };
   for (const e of all) {
+    // E7: a claim on a misread input that was corrected or left for the report goes as a claim on a closed root does.
+    const im = inputKeyOf(e);
+    if (im && closed.has(im)) {
+      eligible.splice(eligible.indexOf(e), 1);
+      onClosedRoot(e, im);
+      continue;
+    }
     const first = direct.get(e.id);
     if (!first) continue;
     const root = rootFrom(first);
     eligible.splice(eligible.indexOf(e), 1);
-    if (closed.has(first) || closed.has(root)) {
-      // An old or malformed record with no line restates nothing: a closed input (Task 18 review).
-      const fix = p.corrected?.[root]?.line?.trim() ? p.corrected[root] : undefined;
-      if (fix && !restated.has(root) && !saidTwice(fix.line)) {
-        if (eligible.some(x => x.key === root && x.restate)) built.push({ e, root });
-        else eligible.push({ ...e, key: root, restate: { line: fix.line, ...(fix.figure ? { figure: fix.figure } : {}), own: e.key } });
-        continue;
-      }
-      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', !fix ? `built on a closed input (${root})`
-        : restated.has(root) ? `built on a corrected input (${root}) — restated once already; left for the report`
-          : `built on a corrected input (${root}) — its correction was already said twice; left for the report`, undefined, e.key), root });
-      handled.add(e.id);
-    } else built.push({ e, root });
+    if (closed.has(first) || closed.has(root)) onClosedRoot(e, root);
+    else built.push({ e, root });
   }
   for (const r of reopened) if (!eligible.some(e => e.key === r.key)) eligible.push({ id: r.id, n: r.n, c: r.c, key: r.key, figs: r.figs });
   // A raised, open root with no claim here comes back on its latest claim (one with a correction first).
@@ -1024,8 +1124,20 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       closedNow.push(key);
       return true;
     };
+    // E7: two probes on the claim's input already — the next line on it is the input's correction, else the report.
+    const im = inputKeyOf(entry);
+    if (im && closedNow.includes(im)) { decisions.push({ ...decision(id, n, c, 'unresolved', `built on a closed input (${im})`, undefined, key), root: im }); handled.add(id); continue; }
+    if (im && inputTurns(inputOf.get(id)!).size >= INPUT_PROBE_CAP) {
+      const fixed = inputCorrection(entry, attempt);
+      if (fixed && spentLine(fixed)) continue;
+      if (fixed) { selected = fixed; continue; }
+      decisions.push(decision(id, n, c, 'unresolved', `two probes on its input (${im}) already, and no true correction code can write — left for the report`, undefined, key));
+      handled.add(id);
+      closedNow.push(key, im);
+      continue;
+    }
     if ((p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
-      const corrected = correction(id, n, c, key, attempt);
+      const corrected = correctionOf(id, n, c, key, attempt);
       if (corrected && spentLine(corrected)) continue;
       if (corrected) { selected = corrected; continue; }
       decisions.push(decision(id, n, c, 'unresolved', `two probes on this step already (${stepOfKey(key)}) — left for the report`, undefined, key));
@@ -1036,7 +1148,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     // Said on the turn after this message: quoted unless right after the claim (ruling 4, quoteLateProbe).
     const asked = (l: string) => withProbeOpener(lateProbe(l, c, messageOf(n), { claim: n, spoken: p.candidateTurnIndex + 1 }, caseFigures), p.phraseUses, `${p.seed ?? ''}:${id}`);
     if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', ...asked(neutralProbe(c.probeLine, p.phraseUses, p.seed ?? '')), derived: [], claim: c }; continue; }
-    const corrected = correction(id, n, c, key, attempt);
+    const corrected = correctionOf(id, n, c, key, attempt);
     if (corrected && spentLine(corrected)) continue;
     if (corrected) { selected = corrected; continue; }
     // Code can't compute it: the pointer probe is the second attempt.
@@ -1055,14 +1167,30 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // The claims built on a root said now ride on its line (booked only if the line is used — plan-turn);
   // on a root closed this turn they go to the report with it; the rest wait.
   const riders: NonNullable<CheckerSelection['riders']> = [];
+  // E7: a probe on a claim of an input is booked to the input (flags.inputProbes, plan-turn).
+  if (selected && !correctsNow(selected)) { const im = inputKeyOf(selected); if (im) selected = { ...selected, input: im }; }
   for (const { e, root } of built) {
-    if (selected?.key === root) {
+    if (selected?.key === root || (selected?.inputs ?? []).includes(root)) {
       decisions.push({ ...decision(e.id, e.n, e.c, 'derived', restating ? `built on ${root}'s figure — rides on its restated correction` : `built on ${root}'s figure — the probe follows the input`, undefined, e.key), root });
       riders.push({ id: e.id, candidateTurnIndex: e.n, claim: e.c });
     } else if (closedNow.includes(root)) {
       decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `built on a closed input (${root})`, undefined, e.key), root });
       handled.add(e.id);
     } else waiting.push(e);
+  }
+  // E7: the claims waiting on an input the row fix corrects ride on it; on an input closed this turn they go to the report.
+  for (const w of [...waiting]) {
+    const im = inputKeyOf(w);
+    if (!im || w.restate || w.carried || w.id === selected?.id) continue;
+    if ((selected?.inputs ?? []).includes(im)) {
+      waiting.splice(waiting.indexOf(w), 1);
+      decisions.push({ ...decision(w.id, w.n, w.c, 'derived', `on ${im}, corrected now — rides on the row fix`, undefined, w.key), root: im });
+      riders.push({ id: w.id, candidateTurnIndex: w.n, claim: w.c });
+    } else if (closedNow.includes(im)) {
+      waiting.splice(waiting.indexOf(w), 1);
+      decisions.push({ ...decision(w.id, w.n, w.c, 'unresolved', `built on a closed input (${im})`, undefined, w.key), root: im });
+      handled.add(w.id);
+    }
   }
   if (selected && riders.length > 0) selected = { ...selected, riders };
   if (selected) { const s = selected; selected = { ...s, rating: ratingOf({ n: s.candidateTurnIndex, c: s.claim, key: s.key }) }; }

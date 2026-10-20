@@ -309,6 +309,113 @@ export function framedCorrection(c: CheckerClaim & { correctionLine: string | nu
   return { line: c.correctionLine, derived: [figure], converted: false, note: `wrong on their own quantity (${frame.quantity}); no wording on it` };
 }
 
+// ── a misread of the data (Lorenzo, 20 Oct, E7; b35q Marisol 087451cb) ──────
+// The candidate's figure is a figure of the data, said in the data's unit: "21.5%" — Pro's share cancelled by month 12
+// — read as Starter's annual churn. Their own quantity is then a row of the data, and the one line true on their reading
+// is the row fix — which row each figure belongs to, in the data's own figures (FR-4) — never "about 5%, not 21.5%"
+// against her annual reading. Lorenzo: "If code can't write a true line, it goes to the report."
+
+// The units a figure is written with in a text: '%', '$', 'x' (a ratio), or '' (bare).
+export function figureUnits(text: string, figure: number): string[] {
+  const t = normalizeNumberWords(text);
+  const out: string[] = [];
+  for (const m of t.matchAll(/\d[\d,]*(?:\.\d+)?/g)) {
+    if (Math.abs(parseFloat(m[0].replace(/,/g, '')) - figure) > 1e-9) continue;
+    const after = t.slice(m.index! + m[0].length, m.index! + m[0].length + 10);
+    const before = t.slice(Math.max(0, m.index! - 2), m.index!);
+    out.push(/^\s?%|^\s*percent\b/i.test(after) ? '%' : /\$\s?$/.test(before) ? '$' : /^\s*(?:x\b|×|times\b)/i.test(after) ? 'x' : '');
+  }
+  return out;
+}
+
+// The case's texts the candidate has: the prompt and the revealed ledger lines.
+const dataTexts = (ctx: VetContext) => [ctx.caseData.prompt, ...ctx.caseData.dataLedger.filter(d => ctx.revealedIds.includes(d.id)).map(d => d.value)];
+
+// The claim's own figure when it is a figure of the data, said in the data's unit — a percent or money as the data
+// writes it, or a bare figure of 100 or more (a count) — else null. A ratio ("2.0x") is never one: it is computed.
+export function dataFigure(c: CheckerClaim, ctx: VetContext): number | null {
+  const f = theirFigure(c);
+  if (f === undefined) return null;
+  const unit = unitOf(c, f);
+  if (unit === 'x') return null;
+  const data = dataTexts(ctx).flatMap(t => figureUnits(t, f));
+  return (unit !== '' ? data.includes(unit) : Math.abs(f) >= 100 && data.includes('')) ? f : null;
+}
+
+// A cell holding a figure only ("21.5", "$1,200", "40%"); any other cell is a label.
+const CELL_FIGURE = /^\s*\$?\s?-?\d[\d,]*(?:\.\d+)?\s?%?\s*$/;
+const cellValue = (t: string) => parseFloat(t.replace(/[$,%\s]/g, ''));
+// A label as spoken: no parentheticals ("Pro (1,050 at sign-up)" → "Pro").
+const cleanLabel = (s: string) => s.replace(/\s*\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+// Lower-cased at its start unless the first word is an acronym ("Cancelled" → "cancelled", "CAC" stays).
+const lowerStart = (s: string) => (/^[A-Z]{2,}\b/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
+
+// The row fix, from the case's exhibits (the cells of an exhibit whose ledger items are out, or that is shown): the
+// candidate's figure in one cell, and the cell one coordinate apart from it — the same column and every label but one
+// ("Pro" → "Starter" in the Cohort column), or the same row in another column — whose differing label the claim's
+// quantity names while it doesn't name the figure's own ("source of Starter 12-month cancellation figure": Starter, not
+// Pro). Both figures said with their owners, in exhibit order: "The cancelled figure at month 12 is 21.5% for Pro and
+// 40% for Starter." One such pair only, every figure in it already out to the candidate (FR-4) — else null.
+type RowPair = { line: string; pair: [number, number]; note: string; namesFigure: boolean; namesOther: boolean };
+// `unit`: the unit the input was said in (its own claim's); by default the claim's — a claim built on it may not write it.
+const unitOf = (c: CheckerClaim, figure: number) => figureUnits(c.candidateValue, figure)[0] ?? figureUnits(c.span, figure)[0] ?? '';
+function rowPairs(figure: number, c: CheckerClaim, ctx: VetContext, unit = unitOf(c, figure)): RowPair[] {
+  const q = c.codeQuantity;
+  const step = q.kind === 'step' ? ctx.caseData.mathSteps.find(s => s.id === q.stepId) : undefined;
+  const quantity = [c.quantity, step?.quantity ?? ''].join(' ');
+  const names = (label: string) => label !== '' && new RegExp(`(?<![\\w])${esc(label)}(?![\\w])`, 'i').test(quantity);
+  const written = unit;
+  const out: RowPair[] = [];
+  for (const ex of ctx.caseData.exhibits) {
+    const covers = (ex as { coversLedgerItems?: string[] }).coversLedgerItems ?? [];
+    if (!covers.some(id => ctx.revealedIds.includes(id)) && !ctx.shownExhibitIds.includes(ex.id)) continue;
+    const rows = ex.data.map(r => Object.entries(r).map(([k, v]) => [k, String(v ?? '')] as const));
+    const columns = [...new Set(rows.flatMap(r => r.map(([k]) => k)))];
+    const labels = (i: number) => Object.fromEntries(rows[i].filter(([, v]) => !CELL_FIGURE.test(v)));
+    const cells = rows.flatMap((r, i) => r.filter(([, v]) => CELL_FIGURE.test(v)).map(([col, text]) => ({ row: i, col, text, value: cellValue(text) })));
+    const fmt = (x: { text: string }) => (/[%$]/.test(x.text) || written !== '%' ? x.text.trim() : `${x.text.trim()}%`);
+    // A cell's own unit, when it writes one, is the candidate's ("$40", the Starter price, is no "40%").
+    const unitOk = (t: string) => { const u = t.includes('%') ? '%' : t.includes('$') ? '$' : ''; return u === '' || written === '' || u === written; };
+    for (const x of cells.filter(y => Math.abs(y.value - figure) < 1e-9 && unitOk(y.text))) {
+      for (const y of cells.filter(z => Math.abs(z.value - figure) > 1e-9)) {
+        let own: [string, string]; let shared: string;
+        if (y.row === x.row && y.col !== x.col) {
+          own = [cleanLabel(x.col), cleanLabel(y.col)];
+          shared = `The ${lowerStart(Object.values(labels(x.row)).map(cleanLabel).join(' '))}`;
+        } else if (y.col === x.col && y.row !== x.row) {
+          const lx = labels(x.row), ly = labels(y.row);
+          const keys = [...new Set([...Object.keys(lx), ...Object.keys(ly)])];
+          const apart = keys.filter(k => cleanLabel(lx[k] ?? '') !== cleanLabel(ly[k] ?? ''));
+          if (apart.length !== 1) continue;
+          own = [cleanLabel(lx[apart[0]] ?? ''), cleanLabel(ly[apart[0]] ?? '')];
+          const rest = keys.filter(k => k !== apart[0]).map(k => cleanLabel(lx[k] ?? '')).filter(Boolean).join(' ');
+          shared = `The ${rest ? `${lowerStart(rest)} figure` : 'figure'} at ${lowerStart(cleanLabel(x.col))}`;
+        } else continue;
+        if (!own[0] || !own[1]) continue;
+        const xFirst = x.row < y.row || (x.row === y.row && columns.indexOf(x.col) < columns.indexOf(y.col));
+        const [a, b, oa, ob] = xFirst ? [x, y, own[0], own[1]] : [y, x, own[1], own[0]];
+        out.push({
+          line: `${shared} is ${fmt(a)} for ${oa} and ${fmt(b)} for ${ob}.`, pair: [figure, y.value],
+          note: `a misread of the data: ${figure} is ${own[0]}'s, the claim is about ${own[1]}'s (${ex.id})`, namesFigure: names(own[0]), namesOther: names(own[1]),
+        });
+      }
+    }
+  }
+  return out;
+}
+export function rowFix(figure: number, c: CheckerClaim, ctx: VetContext, unit?: string): { line: string; pair: [number, number]; note: string } | null {
+  const known = numbersOf(dataTexts(ctx).join(' '));
+  const fixes = new Map(rowPairs(figure, c, ctx, unit)
+    // FR-4: only figures already out to the candidate.
+    .filter(r => r.namesOther && !r.namesFigure && numbersOf(r.line).every(n => known.some(k => Math.abs(k - n) < 1e-9)))
+    .map(r => [r.line, { line: r.line, pair: r.pair, note: r.note }]));
+  return fixes.size === 1 ? [...fixes.values()][0] : null;
+}
+// The claim uses the figure for its own row (her later "Starter: 1 / 0.40" — Starter's 40%, read right): no misread.
+export function onItsOwnRow(figure: number, c: CheckerClaim, ctx: VetContext, unit?: string): boolean {
+  return rowPairs(figure, c, ctx, unit).some(r => r.namesFigure && !r.namesOther);
+}
+
 // The window a claim is read in: its sentence and the one before, then the next two messages.
 export function claimWindow(span: string, message: string, later: string[]): string {
   const sentences = sentencesOf(message);
