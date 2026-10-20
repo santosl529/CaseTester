@@ -537,20 +537,36 @@ const PREFILL_MODELS: ReadonlySet<string> = new Set(['claude-haiku-4-5']);
 export function askCheckPrefill(model: string): string | null {
   return PREFILL_MODELS.has(model) ? ASK_CHECK_PREFILL : null;
 }
-// A prefilled reply put back together: the model's text continues the prefill.
-export const withAskPrefill = (text: string, prefill: string = ASK_CHECK_PREFILL) => prefill + text;
+// The prefilled reply ends at its JSON's end (Task 56 fix round 4, the second paid
+// run: 15 of 68 calls wrote a correct `{"items":[]}` and then a prose explanation,
+// median 133 output tokens, 1.6–2.6 s, over the live check's 1.5 s cap). "]}" can
+// only close the items list and the object: an item object ends in "}" then "," or
+// "]", and a catalog id holds no "]}". One inside a `missing` string cuts the reply
+// mid-string, and the parse fails safe to null.
+const ASK_CHECK_STOP = ']}';
+export function askCheckStopSequences(model: string): string[] | null {
+  return PREFILL_MODELS.has(model) ? [ASK_CHECK_STOP] : null;
+}
+// A prefilled reply put back together: the model's text continues the prefill, and a
+// stop sequence that ended it is put back (the API returns the matched sequence in
+// `stop_sequence`, not in the text; appended only when the text doesn't already end
+// with it, so the reply is whole either way).
+export const withAskPrefill = (text: string, prefill: string = ASK_CHECK_PREFILL, stopped: string | null = null) =>
+  prefill + text + (stopped !== null && !text.endsWith(stopped) ? stopped : '');
 
 // The check: same model as the detection classifier, usage logged as 'data_request'
 // ($/case, PRD §13). Null on failure (the caller's named deferral). onRaw: the reply's
-// whole text (prefill put back), for evaluation scripts.
+// whole text (prefill and stop sequence put back), for evaluation scripts.
 export async function classifyAsk(params: { what: string; catalog: AskCheckItem[]; onUsage?: OnUsage; model?: string; onRaw?: (text: string) => void }): Promise<AskCheckResult | null> {
   const client = anthropicClient();
   const model = params.model ?? DATA_REQUEST_MODEL_ID;
   const prefill = askCheckPrefill(model);
+  const stops = askCheckStopSequences(model);
   try {
     const response = await client.messages.create({
       model,
       ...backgroundRequest(model, 512, { jsonSchema: askCheckSchema(params.catalog) }),
+      ...(stops !== null ? { stop_sequences: stops } : {}),
       messages: [
         { role: 'user', content: buildAskCheckPrompt(params.what, params.catalog) },
         ...(prefill !== null ? [{ role: 'assistant' as const, content: prefill }] : []),
@@ -559,7 +575,8 @@ export async function classifyAsk(params: { what: string; catalog: AskCheckItem[
     params.onUsage?.({ component: 'data_request', model, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens });
     const block = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
     if (!block && prefill === null) return null;
-    const text = prefill !== null ? withAskPrefill(block?.text ?? '', prefill) : block!.text;
+    const stopped = response.stop_reason === 'stop_sequence' ? response.stop_sequence : null;
+    const text = prefill !== null ? withAskPrefill(block?.text ?? '', prefill, stopped) : block!.text;
     params.onRaw?.(text);
     return parseAskCheckResponse(text, params.what, params.catalog);
   } catch (err) {
