@@ -22,9 +22,15 @@ Data asked for that the case holds but not yet: the deferral. {x} = what was ask
 
 ### wont_get_to
 
-The small-model check's named deferral on a wrap-up or close turn (Lorenzo's line, one version). {x} = what was asked.
+Every deferral on a wrap-up or close turn (Lorenzo's line, one version). {x} = what was asked.
 
 1. We won't get to {x} today.
+
+### wont_get_to_that
+
+A deferral on a wrap-up or close turn whose ask is long (more than 8 words as said) or a list (Lorenzo's line, one version).
+
+1. We won't get to that today.
 
 ### refuse
 

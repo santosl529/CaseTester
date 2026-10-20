@@ -8,6 +8,7 @@ import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim } from '@/lib/orchestrator/math-checker';
 import { checkerClaim, landed } from './helpers/checker-claim';
 import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
+import { INITIAL_STALL_STATE } from '@/lib/orchestrator/stall';
 
 // These tests pin the ledger's own data lines: prof-001's pre-written versions
 // are off here (DATA_LINE_VARIANTS=0; on by default since 18 Oct).
@@ -871,6 +872,19 @@ describe('the question agrees with what code delivered (fact checks F4)', () => 
     }));
     expect(r.interviewerText).not.toContain(FIG_Q);
     expect(withheldFor('undelivered_figures')).toHaveLength(1);
+  });
+
+  // Round-3 ruling 4 (Lorenzo, 19 Oct): on a wrap-up turn the gate's hold is "We won't
+  // get to … today." — it holds nothing, so the figure question stays.
+  it('the gate\'s hold after the recommendation is "We won\'t get to … today." and holds nothing', async () => {
+    seed({ phase: 'WRAP', revealed: COST, flags: { stall: { ...INITIAL_STALL_STATE, recommendationDelivered: true } } });
+    const r = await say('Beans are the lever.', T({
+      say: 'Mm-hm.', requests: [{ what: 'bean price change', itemIds: ['bean_price_change'], explicit: true, respond: 'release' }], question: FIG_Q,
+    }));
+    expect(r.interviewerText).toContain("We won't get to bean price change today.");
+    expect(r.interviewerText).not.toMatch(/I'll come back to|bit later/);
+    expect(r.interviewerText).toContain(FIG_Q);
+    expect(withheldFor('undelivered_figures')).toHaveLength(0);
   });
 
   it('a true claim stays: the figure went out this turn', async () => {

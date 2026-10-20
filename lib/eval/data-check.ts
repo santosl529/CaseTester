@@ -23,7 +23,7 @@ import { poolPattern, slotOf } from '@/lib/orchestrator/phrasing';
 export type DataFlag = { rule: 'D1' | 'D3' | 'D9'; sub: string; items: string[]; text: string };
 
 // Code's lines in any of their variants (phrasing.ts, 17 Oct).
-export const DEFER = new RegExp(`\\b(?:I'll come back to|I'll share|once we've settled|shortly)\\b|${poolPattern('defer', 'wont_get_to', 'gate_defer').source}`, 'i');
+export const DEFER = new RegExp(`\\b(?:I'll come back to|I'll share|once we've settled|shortly)\\b|${poolPattern('defer', 'wont_get_to', 'wont_get_to_that', 'gate_defer').source}`, 'i');
 const REFUSE = new RegExp(`\\b(?:I don't have|isn't something I have|not something (?:I|we) have|we don't have|that's not in the case)\\b|${poolPattern('refuse').source}`, 'i');
 export const EARLIER = new RegExp(`\\bOn what you asked for\\b|${poolPattern('earlier', 'restate').source}`, 'i');
 
@@ -91,6 +91,8 @@ export function checkDataTurn(t: CorpusTurn, fb: FactBase, opts: { openBefore?: 
   for (const id of idsNamed(wordsText, fb)) if (known.has(id)) answeredIds.add(id);
   const refusedSomething = REFUSE.test(dataText) || REFUSE.test(wordsText) || /\b(?:not something|isn't something|outside (?:the|what)|beyond (?:the|what) (?:case|data))\b/i.test(wordsText);
   const deferredSomething = DEFER.test(dataText);
+  // "We won't get to that today." names no item: it answers every ask it was said for (round-3 ruling 4).
+  const wontGetToThat = poolPattern('wont_get_to_that').test(dataText);
   for (const a of asks) {
     // A procedural question or a line of the candidate's structure isn't a data ask.
     if (PROCEDURAL.test(a) || !DATA_ASK.test(a)) continue;
@@ -102,7 +104,7 @@ export function checkDataTurn(t: CorpusTurn, fb: FactBase, opts: { openBefore?: 
     // Any one of the items an ask names answered counts (a group asks for its parts).
     // Data the candidate already has needs no new line unless they ask for it again ("remind me", "again").
     const reAsk = /\b(?:remind|again|repeat)\b/i.test(a);
-    if (!ids.some(id => answeredIds.has(id) || (t.revealedBefore.includes(id) && !reAsk))) {
+    if (!wontGetToThat && !ids.some(id => answeredIds.has(id) || (t.revealedBefore.includes(id) && !reAsk))) {
       out.push({ rule: 'D9', sub: 'unanswered', items: ids, text: a.slice(0, 200) });
     }
   }

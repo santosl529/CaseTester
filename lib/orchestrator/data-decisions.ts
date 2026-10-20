@@ -12,7 +12,7 @@ import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import type { RequestResponse } from './data-requests';
 import { canReveal, type DataLedger } from './data-ledger';
-import { phrase, versionIndex, type PhraseUses } from './phrasing';
+import { phrase, line, versionIndex, type PhraseUses } from './phrasing';
 import { BASIS } from './fact-check';
 import { dataLineVersions } from '@/lib/cases/loader';
 import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
@@ -218,8 +218,10 @@ export type DataDecisions = {
   // turnDataChecked) that makes each a named deferral or a refusal (Lorenzo, 19 Oct;
   // engine-asks R1). Nothing is said for them until then.
   unmatchedDefers: string[];
-  // The check's named deferrals on a wrap-up or close turn: "We won't get to <ask>
-  // today." (Lorenzo, 19 Oct, round-2 ruling 3; set by turnDataChecked).
+  // Every deferral on a wrap-up or close turn: "We won't get to <ask> today."
+  // (Lorenzo, 19 Oct, round-2 ruling 3: the check's named deferrals, set by
+  // turnDataChecked; round-3 ruling 4: item-backed, gate and over-cap ones too, set
+  // by decideData). Nothing is held for them: `defers` and `gateDefers` stay empty there.
   wontGetTo?: string[];
   // Which of `defers` are the check's item-less named deferrals: they hold no ledger
   // item, so they hold no data (Lorenzo, 19 Oct, round-3 ruling 3; set by turnDataChecked).
@@ -228,7 +230,9 @@ export type DataDecisions = {
   // Rule 6 option 4 (v4.11): code's correction of a misquoted revealed figure,
   // spoken first in the data line (set by turn-data.ts on model turns).
   correction?: { item: string; items?: string[]; text: string } | null;
-  requests: { request: DeclaredRequest; response: RequestResponse; ledgerItemIds: string[] }[];
+  // wontGetTo: a deferral said as "We won't get to … today." — logged so the queue
+  // doesn't promise it again (plan-turn.ts promisedRows); still asked-but-unanswered.
+  requests: { request: DeclaredRequest; response: RequestResponse; ledgerItemIds: string[]; wontGetTo?: true }[];
 };
 
 // The deferrals that hold a ledger item: the check's item-less named deferrals hold no data.
@@ -251,6 +255,7 @@ export function decideData(p: {
   candidateText: string;           // the candidate's message: a mention is offered only when it states a need for the item
   cap?: number;
   groups?: string[][];              // items asked as one group: the cap never splits one
+  wrapUp?: boolean;                 // a wrap-up or close turn (turn-data.ts wrapUpTurn): every deferral is "We won't get to …"
 }): DataDecisions {
   const cap = p.cap ?? RELEASE_CAP;
   // A group already going out completes past the cap; nothing else does.
@@ -290,6 +295,8 @@ export function decideData(p: {
   const offers: string[] = [];
   const unmatchedDefers: string[] = [];
   const decided: DataDecisions['requests'] = [];
+  // The requests a deferral line is said for.
+  const deferSaid = new Set<DeclaredRequest>();
 
   const available = (id: string) => itemById.has(id) && canReveal(p.ledger, id) && !releasing.has(id);
   // What a promise says: an ask worded as an item's catalog label is said as the
@@ -345,7 +352,7 @@ export function decideData(p: {
       releases.push({ id, value: itemById.get(id)!.value, earlier: openIds.has(id) });
       releasing.add(id);
     }
-    if (heldOver) defers.push(promised(r, ledgerIds));
+    if (heldOver) { defers.push(promised(r, ledgerIds)); deferSaid.add(r); }
     decidedAt.push({ at, d: { request: r, response: heldOver ? 'defer' : 'release', ledgerItemIds: ledgerIds } });
   });
 
@@ -363,6 +370,7 @@ export function decideData(p: {
       if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(promised(r, ledgerIds));
     } else if (held.some(available) && !partlyReleased) {
       (p.gateHeld?.has(r.what) ? gateDefers : defers).push(promised(r, ledgerIds));
+      deferSaid.add(r);
     }
     decidedAt.push({ at, d: held.length === 0 && ledgerIds.length > 0
       ? { request: r, response: 'release', ledgerItemIds: ledgerIds }
@@ -376,6 +384,17 @@ export function decideData(p: {
 
   // Earlier asks first, so the lead-in introduces them together.
   releases.sort((a, b) => Number(b.earlier) - Number(a.earlier));
+  // A wrap-up or close turn (Lorenzo, 19 Oct, round-3 ruling 4: "Close turns: all
+  // deferrals, item-backed included, become "We won't get to <ask> today.""): every
+  // deferral line — the model's, over the cap, the release order's, the gate's —
+  // is said as one; the case won't come back to them, so nothing is held.
+  if (p.wrapUp && defers.length + gateDefers.length > 0) {
+    return {
+      releases, restates, exhibit, refusals, defers: [], gateDefers: [], unmatchedDefers, offers,
+      wontGetTo: [...asGroup(defers), ...asGroup(gateDefers)],
+      requests: decided.map(x => (x.response === 'defer' && deferSaid.has(x.request) ? { ...x, wontGetTo: true as const } : x)),
+    };
+  }
   return { releases, restates, exhibit, refusals, defers: asGroup(defers), gateDefers: asGroup(gateDefers), unmatchedDefers, offers, requests: decided };
 }
 
@@ -456,6 +475,18 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
   return `${items.slice(0, -1).join(', ')}${serial} ${conj} ${items.at(-1)}${items === u ? '' : tail}`;
 };
 
+// "We won't get to <ask> today."; "…that today." for a long label (more than 8
+// words as said) or a list — two or more asks (a group among them), or a label
+// with a comma or an "and" (Lorenzo, 19 Oct, round-3 ruling 4; the controller's
+// definitions; batch 32 Larkspur Marcus / Marisol t28).
+const WONT_GET_TO_WORDS = 8;
+function wontGetToLine(whats: string[], uses: PhraseUses | undefined, seed: string): string {
+  const what = joinWhat(whats, 'and');
+  // Two asks or more are joined with "and" (joinWhat), so the joined text tells.
+  const list = /,|\sand\s/i.test(what);
+  return list || what.split(/\s+/).length > WONT_GET_TO_WORDS ? line('wont_get_to_that', uses, seed) : phrase('wont_get_to', what, uses, seed);
+}
+
 // The spoken data lines, in order: releases (earlier asks under one lead-in),
 // the exhibit handover, refusals, deferrals, offers — each with what it
 // carries, so voice bookkeeping can tell which sentence a release is in
@@ -481,7 +512,7 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or'), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });
-  if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: phrase('wont_get_to', joinWhat(d.wontGetTo, 'and'), uses, seed) });
+  if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed) });
   if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and'), uses, seed) });
   if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and'), uses, seed) });
   return parts;
@@ -492,6 +523,6 @@ export function renderDataLines(d: DataDecisions, seed: string, uses?: PhraseUse
 }
 
 // The turn's data_request rows (scoring reads these shapes; spec §9).
-export function decisionRows(d: DataDecisions): { what: string; ledgerItemIds: string[]; response: RequestResponse; explicit: boolean }[] {
-  return d.requests.map(x => ({ what: x.request.what, ledgerItemIds: x.ledgerItemIds, response: x.response, explicit: x.request.explicit }));
+export function decisionRows(d: DataDecisions): { what: string; ledgerItemIds: string[]; response: RequestResponse; explicit: boolean; wontGetTo?: true }[] {
+  return d.requests.map(x => ({ what: x.request.what, ledgerItemIds: x.ledgerItemIds, response: x.response, explicit: x.request.explicit, ...(x.wontGetTo ? { wontGetTo: true as const } : {}) }));
 }

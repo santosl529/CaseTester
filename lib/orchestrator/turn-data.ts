@@ -58,7 +58,8 @@ export type TurnData = DataDecisions & { gatedIds: string[]; basisCut?: Record<s
 // Wrap-up and close turns (Lorenzo, 19 Oct, round-2 ruling 3): the code-written
 // close, close wait, grace ask and time warning, and any turn of the
 // recommendation or wrap phase once the recommendation is in. A named deferral
-// there is "We won't get to <ask> today." — the case won't come back to it.
+// there is "We won't get to <ask> today." — the case won't come back to it; so is
+// every other deferral there (round-3 ruling 4: decideData's `wrapUp`).
 // Code's recommendation ask too (controller, 19 Oct; batch 32 Larkspur Marcus t28).
 const WRAP_UP_KINDS: ReadonlySet<string> = new Set(['close', 'close_wait', 'grace_ask', 'time_warning', 'rec_ask']);
 export function wrapUpTurn(plan: ModelPlan): boolean {
@@ -137,6 +138,8 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
   d.unmatchedDefers.forEach((w, i) => (held[i] ? defers : refusals).push(w));
   const refused = new Set(refusals);
   const wrapUp = wrapUpTurn(plan) && defers.length > 0;
+  // Said "We won't get to …" at a wrap-up: logged as such, like decideData's (round-3 ruling 4).
+  const wont = new Set(wrapUp ? defers : []);
   return {
     ...d,
     unmatchedDefers: [],
@@ -144,7 +147,9 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     ...(!wrapUp && defers.length > 0 ? { itemlessDefers: defers } : {}),
     ...(wrapUp ? { wontGetTo: [...(d.wontGetTo ?? []), ...defers] } : {}),
     refusals: [...d.refusals, ...refusals],
-    requests: d.requests.map(r => (r.response === 'defer' && r.ledgerItemIds.length === 0 && refused.has(r.request.what) ? { ...r, response: 'refuse' as const } : r)),
+    requests: d.requests.map(r => (r.response !== 'defer' || r.ledgerItemIds.length > 0 ? r
+      : refused.has(r.request.what) ? { ...r, response: 'refuse' as const }
+        : wont.has(r.request.what) ? { ...r, wontGetTo: true as const } : r)),
   };
 }
 
@@ -392,6 +397,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     // Oct; batch 25 Jasmine f4fcab5b t5, Owen d3db78c0 t5: the menu prices took a
     // slot and the third COGS item was deferred).
     groups: askedGroups,
+    wrapUp: wrapUpTurn(plan),
   });
   // Lorenzo, 19 Oct (R1, "don't add code-spoken refusals without the check";
   // round-2 ruling 2, every unmatched ask): an item-less ask code would refuse

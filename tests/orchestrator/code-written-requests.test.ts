@@ -150,8 +150,9 @@ describe('corpus final messages at the close', () => {
   });
 
   // Round-2 rulings 2 and 3 (Lorenzo, 19 Oct): the item-less asks go through
-  // the check; one it maps to an item is "We won't get to … today." at the close.
-  it('Nikhil at the close, the check mapping the item-less asks: "We won\'t get to … today."', async () => {
+  // the check; one it maps to an item is "We won't get to … today." at the close —
+  // two of them are a list: "We won't get to that today." (round-3 ruling 4).
+  it('Nikhil at the close, the check mapping the item-less asks: "We won\'t get to that today."', async () => {
     atClose();
     detected = CORPUS.nikhil.detected;
     checkVerdict = [det('competitor pricing', ['menu_price_change'])];
@@ -159,7 +160,8 @@ describe('corpus final messages at the close', () => {
     expect(turnKind()).toBe('close');
     expect(new Set(revealed())).toEqual(new Set(['menu_price_change', 'avg_ticket']));
     expect(r.interviewerText).not.toMatch(/I don't have/);
-    expect(r.interviewerText).toMatch(/We won't get to (regional demographics and competitor price points|competitor price points and regional demographics) today\./);
+    expect(r.interviewerText).toContain("We won't get to that today.");
+    expect(r.interviewerText).not.toMatch(/regional demographics|competitor price points/);
     expect(r.ended).toBe(true);
   });
 

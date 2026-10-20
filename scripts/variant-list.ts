@@ -11,7 +11,8 @@ import { getCaseById } from '@/lib/cases/loader';
 // When each pool is said, in a line.
 const WHEN: Record<PhrasePool, string> = {
   defer: 'Data asked for that the case holds but not yet: the deferral. {x} = what was asked.',
-  wont_get_to: 'The small-model check\'s named deferral on a wrap-up or close turn (Lorenzo\'s line, one version). {x} = what was asked.',
+  wont_get_to: 'Every deferral on a wrap-up or close turn (Lorenzo\'s line, one version). {x} = what was asked.',
+  wont_get_to_that: 'A deferral on a wrap-up or close turn whose ask is long (more than 8 words as said) or a list (Lorenzo\'s line, one version).',
   refuse: 'Data the case doesn\'t hold. {x} = what was asked.',
   exhibit: 'Handing over an exhibit. {x} = its title.',
   restate: 'A fact already given, asked for again. {x} = the ledger line.',

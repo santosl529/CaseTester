@@ -24,10 +24,16 @@ export const PHRASE_POOLS = {
     'Hold that thought on {x} — we\'ll come back to it shortly.',
     'That\'s for a little later — we\'ll come back to {x}.',
   ],
-  // A named deferral on a wrap-up or close turn (turn-data.ts wrapUpTurn): the
-  // case won't get back to it. Lorenzo's words, one variant (19 Oct, round-2 ruling 3).
+  // A deferral on a wrap-up or close turn (turn-data.ts wrapUpTurn): the case
+  // won't get back to it. Lorenzo's words, one variant (19 Oct, round-2 ruling 3;
+  // every deferral there, item-backed included: round-3 ruling 4).
   wont_get_to: [
     'We won\'t get to {x} today.',
+  ],
+  // …when what was asked is long (more than 8 words as said) or a list (two or
+  // more asks, a comma, an "and"): Lorenzo's words, one variant (19 Oct, round-3 ruling 4).
+  wont_get_to_that: [
+    'We won\'t get to that today.',
   ],
   // …and what the case doesn't hold.
   refuse: [

@@ -40,8 +40,9 @@ import { stripCopiedCheckIn } from '@/lib/orchestrator/audit';
 import { getCaseById } from '@/lib/cases/loader';
 
 // A pool Lorenzo worded himself as one line (19 Oct, round-2 ruling 3: "We won't
-// get to <ask> today."): no versions, no line said before the brief — its own block below.
-const ONE_LINE: PhrasePool[] = ['wont_get_to'];
+// get to <ask> today."; round-3 ruling 4: "…that today." for a long or list ask):
+// no versions, no line said before the brief — their own blocks below.
+const ONE_LINE: PhrasePool[] = ['wont_get_to', 'wont_get_to_that'];
 const POOLS = (Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => !ONE_LINE.includes(p));
 const before = BEFORE as Record<string, string[]>;
 const versions = (p: PhrasePool) => PHRASE_POOLS[p] as readonly string[];
@@ -215,6 +216,26 @@ describe('a one-line pool (wont_get_to)', () => {
     expect(poolPattern('wont_get_to').test(said)).toBe(true);
     expect(slotOf('wont_get_to', said)).toBe('the cost breakdown');
     expect(recordPhraseUses(said, {}).wont_get_to).toEqual([0]);
+  });
+  it('reads as a deferral (an ask answered), not the close, a refusal or a delivery', () => {
+    expect(DEFER.test(said)).toBe(true);
+    expect(hasCloseCue(said)).toBe(false);
+    expect(isClosingTurn(said)).toBe(false);
+    expect(findFalseRefusals(said, fb)).toEqual([]);
+    expect(isDeliveryClaim(said)).toBe(false);
+    expect(vetoReason(said, gate)).toBe('data_talk');
+  });
+});
+
+describe('a one-line pool (wont_get_to_that)', () => {
+  const said = PHRASE_POOLS.wont_get_to_that[0];
+  it('is one line, said every time', () => {
+    expect(PHRASE_POOLS.wont_get_to_that).toEqual(["We won't get to that today."]);
+    expect(phrase('wont_get_to_that', '', { wont_get_to_that: [0, 0, 0] }, 'a:1')).toBe(said);
+  });
+  it('the evaluators find it and record it', () => {
+    expect(poolPattern('wont_get_to_that').test(said)).toBe(true);
+    expect(recordPhraseUses(said, {}).wont_get_to_that).toEqual([0]);
   });
   it('reads as a deferral (an ask answered), not the close, a refusal or a delivery', () => {
     expect(DEFER.test(said)).toBe(true);

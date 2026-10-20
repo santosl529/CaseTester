@@ -36,7 +36,7 @@ import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers }
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnDataChecked, pressureTestOutcomeNow } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
@@ -316,8 +316,9 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   }
   // Only item-backed deferrals hold the model's figure question: the check's item-less
   // named deferrals hold no data (Lorenzo, 19 Oct, round-3 ruling 3; batch 31 Sofia t10's
-  // math probe was withheld), and "We won't get to" lines are not counted either.
-  const heldThisTurn = decisions.gatedIds.length > 0 || itemBackedDefers(decisions).length > 0 || decisions.gateDefers.length > 0;
+  // math probe was withheld), and "We won't get to" lines are not counted either —
+  // on a wrap-up turn every deferral is one, the gate's included (round-3 ruling 4).
+  const heldThisTurn = (decisions.gatedIds.length > 0 && !wrapUpTurn(plan)) || itemBackedDefers(decisions).length > 0 || decisions.gateDefers.length > 0;
   if (!codeWritten && kind !== 'rec_ask' && !figuresOut && refersToFigures(question)
     && (heldThisTurn || Object.keys(revealedValues(ledger)).length === 0)) {
     withheld.push({ sentence: question, reason: 'undelivered_figures', field: 'question' });
@@ -861,7 +862,9 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const closed = (st: string | undefined) => st === 'satisfied' || st === 'waived';
     const heldUnmapped = !closed(ptPrev.state) && closed(ptSaved.state)
       ? [...new Set(state.dataRequestRows
-        .filter(r => r.subtype === 'defer' && ((r.payloadJsonb as { ledgerItemIds?: string[] }).ledgerItemIds ?? []).length === 0)
+        .filter(r => r.subtype === 'defer' && ((r.payloadJsonb as { ledgerItemIds?: string[] }).ledgerItemIds ?? []).length === 0
+          // Not one the candidate heard "We won't get to … today." for (round-3 ruling 4).
+          && (r.payloadJsonb as { wontGetTo?: boolean }).wontGetTo !== true)
         .map(r => (r.payloadJsonb as { what?: string }).what ?? '').filter(Boolean))]
       : [];
     const unmappedToResolveSaved = heldUnmapped.length > 0 ? heldUnmapped : [];

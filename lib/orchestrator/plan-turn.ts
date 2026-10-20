@@ -4,7 +4,7 @@
 // both are written at commit (settle-turn.ts). The distress and data-request
 // classifiers start here, in parallel with the model call that follows.
 import type { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
-import { formatOpenRequestsHint, formatUnmappedHint } from './data-requests';
+import { formatOpenRequestsHint, formatUnmappedHint, promisedRows } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
 import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
@@ -414,7 +414,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // recommendation ask (settle-turn.ts).
   const catalog = caseData.dataLedger.map(d => ({ id: d.id, label: labelWithPeriod(d) }));
   const dataRequestRows = dataRequestEventRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb }));
-  const openDataRequests = summarizeDataRequests(dataRequestRows, catalog, Object.keys(revealedValues(ledger))).requestedUnanswered;
+  // Less what the candidate heard "We won't get to … today." for (round-3 ruling 4): not promised.
+  const openDataRequests = summarizeDataRequests(promisedRows(dataRequestRows), catalog, Object.keys(revealedValues(ledger))).requestedUnanswered;
   const unmappedToResolve = (flags.unmappedToResolve as string[] | undefined) ?? [];
   const openDataRequestsHint = [formatOpenRequestsHint(openDataRequests), formatUnmappedHint(unmappedToResolve)].filter(Boolean).join('\n') || undefined;
 

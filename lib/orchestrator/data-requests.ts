@@ -43,6 +43,9 @@ export type DetectedDataRequest = {
   // price and cups" released the average ticket unasked. A mention gets an
   // offer, never a release; only explicit asks count as requested data.
   explicit: boolean;
+  // Deferred as "We won't get to … today." at a wrap-up or close (round-3 ruling 4):
+  // not promised — out of the open-requests queue (promisedRows) — but still asked.
+  wontGetTo?: true;
 };
 
 export type DataRequestEvent = {
@@ -55,6 +58,7 @@ export type DataRequestEvent = {
     interviewerTurnIndex: number;
     revealedByNow: boolean; // every covered item released — deterministic, from revealed_data, not the model's say-so
     explicit: boolean;
+    wontGetTo?: true;
   };
 };
 
@@ -155,8 +159,33 @@ export function toDataRequestEvents(
       revealedByNow: r.ledgerItemIds.length > 0 && r.ledgerItemIds.every(id => ctx.revealedIds.has(id)),
       explicit: r.explicit,
       ...(r.unheardResponse ? { unheardResponse: r.unheardResponse } : {}),
+      ...(r.wontGetTo ? { wontGetTo: true as const } : {}),
     },
   }));
+}
+
+// The rows the open-requests queue is read from (plan-turn.ts): an item the
+// candidate heard "We won't get to … today." for is not promised — dropped from
+// every row up to that turn, so only an ask after it puts it back (Lorenzo, 19
+// Oct, round-3 ruling 4). The report reads every row: it is still asked-but-unanswered.
+type RequestRow = { subtype: string; turnIndex: number | null; payloadJsonb: unknown };
+const idsOf = (r: RequestRow) => ((r.payloadJsonb as { ledgerItemIds?: unknown } | null)?.ledgerItemIds);
+export function promisedRows<R extends RequestRow>(rows: R[]): R[] {
+  const closedAt = new Map<string, number>();
+  for (const r of rows) {
+    const ids = idsOf(r);
+    // Heard only: an unheard answer is logged as 'none' (heard.ts heardRequestRows).
+    if (r.subtype !== 'defer' || r.turnIndex === null || (r.payloadJsonb as { wontGetTo?: unknown } | null)?.wontGetTo !== true || !Array.isArray(ids)) continue;
+    for (const id of ids) if (typeof id === 'string') closedAt.set(id, Math.max(closedAt.get(id) ?? -Infinity, r.turnIndex));
+  }
+  if (closedAt.size === 0) return rows;
+  return rows.flatMap(r => {
+    const ids = idsOf(r);
+    if (!Array.isArray(ids) || ids.length === 0 || r.turnIndex === null) return [r];
+    const kept = ids.filter(id => typeof id !== 'string' || r.turnIndex! > (closedAt.get(id) ?? -Infinity));
+    if (kept.length === ids.length) return [r];
+    return kept.length > 0 ? [{ ...r, payloadJsonb: { ...(r.payloadJsonb as object), ledgerItemIds: kept } }] : [];
+  });
 }
 
 // ── Classified markers + scoring-time backfill ──────────────────────────────
