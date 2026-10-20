@@ -192,6 +192,8 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const checkerRows = markEvents.filter(e => e.category === 'math_checker');
   const caseNumbers = caseNumbersOf(caseData, revealedIds);
   const verification = dropCheckerStamps(verifyCandidateTurns(transcript, caseData, revealedBefore), checkerRows, caseNumbers);
+  // A redo the interview never read — after a flag closed — credited in the record, figure-bound (Lorenzo, 20 Oct, round-5b job 2).
+  const checkerRedo = { candidateTurns: transcript.filter(t => t.role === 'candidate').map(t => ({ turnIndex: t.turnIndex, text: t.text })), caseData, revealedIds };
   const marks = [
     ...buildInterviewerMarks(
       transcript,
@@ -204,7 +206,7 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   if (marks.length > 0) console.warn('[score] interviewer-error marks:', JSON.stringify(marks.map(m => [m.kind, m.interviewerTurn])));
 
   const rawRubric = await runJudge(
-    transcript, caseData, revealedIds, mathResults, [interventionSummary, stageSection, formatClaimChecksSection(verification), formatCheckerSection(checkerRows)].filter(Boolean).join('\n\n'), dataCoverage,
+    transcript, caseData, revealedIds, mathResults, [interventionSummary, stageSection, formatClaimChecksSection(verification), formatCheckerSection(checkerRows, checkerRedo)].filter(Boolean).join('\n\n'), dataCoverage,
     formatInterviewerMarksSection(marks),
     u => logUsage({ ...u }),
   );

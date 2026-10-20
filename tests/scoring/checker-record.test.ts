@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { formatCheckerSection, checkerFlaggedFigures, dropCheckerStamps } from '@/lib/scoring/checker-record';
+import { formatCheckerSection, checkerFlaggedFigures, dropCheckerStamps, type CheckerEventRow } from '@/lib/scoring/checker-record';
 import { buildChallengeMarks, type TurnVerification } from '@/lib/scoring/challenge-marks';
 import type { VettedClaim } from '@/lib/orchestrator/math-checker';
 import { getCaseById } from '@/lib/cases/loader';
+import B33R from './fixtures/checker-redo-b33-marisol.json';
 
 const claim = (over: Partial<VettedClaim> = {}): VettedClaim => ({
   span: 'the whole 18-point margin decline sits in COGS', quantity: 'q', candidateValue: 'the whole 18 points', assumptions: '',
@@ -149,5 +150,73 @@ describe('deterministic first, in scoring too', () => {
     expect(without.map(m => m.kind)).toEqual(['unsupported_challenge']);
     const withChecker = buildChallengeMarks(turns, prof, none, undefined, checkerFlaggedFigures([verdict(3, [claim({ candidateValue: '18 points in COGS', actualShare: null })])]));
     expect(withChecker).toEqual([]);
+  });
+});
+
+// Lorenzo, 20 Oct (round-5b job 2): "13:0: the report credits a later redo of a claim already left for the report."
+// b33 Marisol 31e33506 (fixtures/checker-redo-b33-marisol.json): 13:0 ("0.25 × 58 = 14.5 points of revenue sitting in beans
+// today") closed `unresolved` at message 15, restated after its flag closed; her t19 redoes it to the right figure, 10.5.
+// The credit is figure-bound (as E6 binds, isStale): the right figure stated for another quantity credits nothing.
+describe('a later redo of a claim the interview closed (b33 Marisol 31e33506)', () => {
+  const prof = getCaseById('prof-001');
+  const rows = B33R.rows as CheckerEventRow[];
+  const turns = B33R.candidateTurns;
+  const T19 = 'So beans were 0.25 × 42 = 10.5 points of revenue.';
+  const lineOf = (s: string, span: string) => s.split('\n').find(l => l.includes(`"${span}"`))!;
+  const S13_0 = '0.25 × 58 = 14.5 points of revenue sitting in beans today';
+  const section = (candidateTurns: { turnIndex: number; text: string }[], over: CheckerEventRow[] = rows) =>
+    formatCheckerSection(over, { candidateTurns, caseData: prof, revealedIds: B33R.revealedIds });
+  it('13:0, restated after its flag closed, is credited with her t19 redo — her sentence quoted', () => {
+    const l = lineOf(section(turns), S13_0);
+    expect(l.endsWith(`The candidate redid it correctly later (turn 19): "${T19}"`)).toBe(true);
+    expect(l).not.toContain('Restated after it had been probed or corrected.');
+  });
+  // (Its probe at t11 reads first: "Probed; not corrected." — the line as it stood; the redo is added after it.)
+  it('9:0, probed and left for the report, keeps what happened and gains the redo', () => {
+    const l = lineOf(section(turns), 'beans are 0.25 × 58 = 14.5 points. The other inputs are the remaining 43.5 points.');
+    expect(l.endsWith(`Probed; not corrected. The candidate redid it correctly later (turn 19): "${T19}"`)).toBe(true);
+  });
+  it('with no later redo, the text is unchanged', () => {
+    const before = formatCheckerSection(rows);
+    expect(lineOf(before, S13_0)).toContain('Restated after it had been probed or corrected.');
+    expect(lineOf(section(turns.filter(t => t.turnIndex !== 19)), S13_0)).toBe(lineOf(before, S13_0));
+  });
+  it('the right figure stated for another quantity credits nothing (figure-bound)', () => {
+    const other = turns.map(t => (t.turnIndex === 19 ? { turnIndex: 19, text: 'So the other inputs added 10.5 points.' } : t));
+    const l = lineOf(section(other), S13_0);
+    expect(l).toContain('Restated after it had been probed or corrected.');
+    expect(l).not.toContain('redid it');
+  });
+  it('only a message after the decision counts (the live read covered those up to it)', () => {
+    const t19 = turns.find(t => t.turnIndex === 19)!;
+    const early = [{ turnIndex: 15, text: t19.text }, ...turns.filter(t => t.turnIndex !== 15 && t.turnIndex !== 19)];
+    expect(lineOf(section(early), S13_0)).toContain('Restated after it had been probed or corrected.');
+  });
+  it('a withdrawal is no redo', () => {
+    const withdrawn = turns.map(t => (t.turnIndex === 19 ? { turnIndex: 19, text: 'Scratch that, the 14.5 was wrong.' } : t));
+    expect(lineOf(section(withdrawn), S13_0)).not.toContain('redid it');
+  });
+  it('a claim corrected, or since revised, is unchanged', () => {
+    const corrected = lineOf(section(turns), 'Beans are 5.8 points of the 16-point COGS increase.');
+    expect(corrected).toContain("Corrected: \"Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8.\"");
+    expect(corrected).not.toContain('redid it');
+    const staleRows = rows.map(r => ((r.payloadJsonb as { id?: string }).id === '13:0' ? { ...r, payloadJsonb: { ...(r.payloadJsonb as object), outcome: 'stale', reason: 'withdrawn: "x"' } } : r));
+    const stale = lineOf(section(turns, staleRows), S13_0);
+    expect(stale).toContain('The candidate revised or withdrew it since.');
+    expect(stale).not.toContain('redid it');
+  });
+});
+
+// Task 54's review: a claim built on a root probed and left for the report, which then waited and ended unsaid, reads
+// what became of the root — not a bare "Not raised in the interview (…)".
+describe('built on a root left for the report, ended unsaid', () => {
+  const lead = 'Not raised on its own: it is built on an earlier wrong figure of theirs';
+  it.each(['shed', 'expired', 'unresolved_at_close'])('%s: the root was probed and left for this report', outcome => {
+    const s = formatCheckerSection([verdict(3, [claim()]), verdict(5, [claim({ span: 'x' })]),
+      flag('3:0', 'probe', { key: 'net_price@2000' }),
+      flag('3:0', 'unresolved', { key: 'net_price@2000', reason: 'attempt 2: no correction code can write, no pointer — left for the report' }),
+      flag('5:0', outcome, { key: 'peak_net_sales@80', root: 'net_price@2000' })]);
+    expect(s).toContain(`turn 5: "x" — WRONG (conceptual; changes the conclusion): about 16 by the checker. ${lead}, which was probed and left for this report.`);
+    expect(s).not.toContain('Not raised in the interview (');
   });
 });
