@@ -53,7 +53,7 @@ const versions = (p: PhrasePool) => PHRASE_POOLS[p] as readonly string[];
 const ASK = 'which branch would you start with, and why?';
 const SLOT: Partial<Record<PhrasePool, string>> = {
   defer: 'the cost breakdown', refuse: 'the cost breakdown', exhibit: 'Brew & Bean Cost Structure Over Time',
-  restate: 'Menu prices have not changed in two years.', correct_one: 'COGS is 58% of revenue today, up from 42% two years ago.',
+  restate_exhibit: 'Menu prices have not changed in two years.', restate: 'Menu prices have not changed in two years.', correct_one: 'COGS is 58% of revenue today, up from 42% two years ago.',
   correct_two: 'COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable.',
   wrap_up: 'walk me through how you got to 38%.', gate_defer: 'the cost breakdown', offer: 'the cost breakdown',
   before_data: ASK, reask_more: ASK, reask_answer: ASK, reask_back: ASK, concrete: "name one thing your structure doesn't cover yet.",

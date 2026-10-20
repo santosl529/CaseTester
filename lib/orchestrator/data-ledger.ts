@@ -12,10 +12,13 @@ export type LedgerItem = {
 export type DataLedger = {
   items: LedgerItem[];
   revealed: Set<string>;
+  // Revealed items that so far came out only on an exhibit, never said (a release or restate
+  // line): their restatement leads with "As the exhibit shows" (Lorenzo, 20 Oct, D6).
+  exhibitOnly?: Set<string>;
 };
 
 export function createLedger(items: LedgerItem[]): DataLedger {
-  return { items, revealed: new Set() };
+  return { items, revealed: new Set(), exhibitOnly: new Set() };
 }
 
 // Resolve a model-provided identifier to a canonical item id. The model
@@ -55,9 +58,18 @@ export function markExhibitReveals(ledger: DataLedger, exhibit: { coversLedgerIt
   for (const id of exhibit.coversLedgerItems ?? []) {
     if (!canReveal(ledger, id)) continue;
     ledger.revealed.add(id);
+    (ledger.exhibitOnly ??= new Set()).add(id);
     newlyRevealed.push(id);
   }
   return newlyRevealed;
+}
+
+// How a revealed row's source reads: only a row saved as 'exhibit' is exhibit-only;
+// rows saved before the column existed have none and read as said.
+export const REVEAL_SOURCE_EXHIBIT = 'exhibit';
+export function restoreReveal(ledger: DataLedger, row: { ledgerItemId: string; source?: string | null }): void {
+  reveal(ledger, row.ledgerItemId);
+  if (row.source === REVEAL_SOURCE_EXHIBIT) (ledger.exhibitOnly ??= new Set()).add(row.ledgerItemId);
 }
 
 export function revealedValues(ledger: DataLedger): Record<string, string> {

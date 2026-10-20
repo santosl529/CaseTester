@@ -7,7 +7,7 @@ import { isClosingTurn, asksRecommendationAsk } from '@/lib/orchestrator/spoken-
 import { renderDataLines } from '@/lib/orchestrator/data-decisions';
 
 // The data-line pools of item 4a (17 Oct); every pool joins them with brief B (18 Oct).
-const POOLS = ['defer', 'refuse', 'exhibit', 'restate', 'earlier', 'correct_one', 'correct_two', 'wrap_up'] as PhrasePool[];
+const POOLS = ['defer', 'refuse', 'exhibit', 'restate', 'restate_exhibit', 'earlier', 'correct_one', 'correct_two', 'wrap_up'] as PhrasePool[];
 const ALL = Object.keys(PHRASE_POOLS) as PhrasePool[];
 
 describe('the pools', () => {

@@ -25,7 +25,7 @@ export type DataFlag = { rule: 'D1' | 'D3' | 'D9'; sub: string; items: string[];
 // Code's lines in any of their variants (phrasing.ts, 17 Oct).
 export const DEFER = new RegExp(`\\b(?:I'll come back to|I'll share|once we've settled|shortly)\\b|${poolPattern('defer', 'wont_get_to', 'wont_get_to_that', 'gate_defer').source}`, 'i');
 const REFUSE = new RegExp(`\\b(?:I don't have|isn't something I have|not something (?:I|we) have|we don't have|that's not in the case)\\b|${poolPattern('refuse').source}`, 'i');
-export const EARLIER = new RegExp(`\\bOn what you asked for\\b|${poolPattern('earlier', 'restate').source}`, 'i');
+export const EARLIER = new RegExp(`\\bOn what you asked for\\b|${poolPattern('earlier', 'restate', 'restate_exhibit').source}`, 'i');
 
 // Items a text names (prompt facts aside; "as a percent of revenue" names no revenue ask).
 const idsNamed = (text: string, fb: FactBase) => new Set(nameHits(text, fb, { groups: true })

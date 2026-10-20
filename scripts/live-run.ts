@@ -33,13 +33,14 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
+import { exhibitAsText } from '@/lib/eval/exhibit-text';
 import { sessions, sessionTurns, sessionEvents, scores, analyticsEvents, revealedData, exhibitsShown } from '@/db/schema';
 import { probeIntents, judgeProbeAnswer, EARLY_PHASES, INITIAL_PRESSURE_TEST, type PressureTestState } from '@/lib/orchestrator/pressure-test';
 import { summarizeCheckEvents } from '@/lib/orchestrator/check-log';
 import { candidateSystem, personaDataAsk } from '@/lib/eval/simulator-prompt';
 import { getCaseById } from '@/lib/cases/loader';
 import { startSession } from '@/lib/orchestrator/start-session';
-import { runTurn, runSilence, type ExhibitDisplay } from '@/lib/orchestrator/session-runner';
+import { runTurn, runSilence } from '@/lib/orchestrator/session-runner';
 import { SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS, SILENCE_PAUSE_MAX_MS } from '@/lib/orchestrator/silence';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import type { Phase } from '@/lib/orchestrator/state-machine';
@@ -205,7 +206,7 @@ async function seedSession(sessionId: string): Promise<void> {
     session: { startedAt: string; flagsJsonb: { moves?: Record<string, string> } };
     turns: { turnIndex: number; role: string; text: string; timestampMs: number }[];
     events: { category: string; subtype: string; turnIndex: number | null; phase: string; payloadJsonb: Record<string, unknown> }[];
-    revealed: { ledgerItemId: string; revealedAtMs: number }[];
+    revealed: { ledgerItemId: string; revealedAtMs: number; source?: string | null }[];
     analytics: { eventType: string; createdAt: string; payloadJsonb: Record<string, unknown> }[];
   };
   const src = JSON.parse(readFileSync(path.join(dir, readdirSync(dir).find(f => f.endsWith('.json'))!), 'utf8')) as Src;
@@ -216,7 +217,7 @@ async function seedSession(sessionId: string): Promise<void> {
   const turns = src.turns.filter(t => t.turnIndex > 0 && t.turnIndex <= through);
   if (turns.length) await db.insert(sessionTurns).values(turns.map(t => ({ sessionId, turnIndex: t.turnIndex, role: t.role, text: t.text, timestampMs: t.timestampMs + shift })));
   const revealed = src.revealed.filter(r => r.revealedAtMs <= cut.timestampMs);
-  if (revealed.length) await db.insert(revealedData).values(revealed.map(r => ({ sessionId, ledgerItemId: r.ledgerItemId, revealedAtMs: r.revealedAtMs + shift })));
+  if (revealed.length) await db.insert(revealedData).values(revealed.map(r => ({ sessionId, ledgerItemId: r.ledgerItemId, revealedAtMs: r.revealedAtMs + shift, source: r.source ?? null })));
   const shown = src.analytics.filter(a => a.eventType === 'exhibit_shown' && new Date(a.createdAt).getTime() <= cut.timestampMs);
   if (shown.length) await db.insert(exhibitsShown).values(shown.map(a => ({ sessionId, exhibitId: a.payloadJsonb.exhibitId as string, shownAtMs: new Date(a.createdAt).getTime() + shift })));
   const events = src.events.filter(e => e.category === 'data_request' && (e.payloadJsonb.interviewerTurnIndex as number) <= through);
@@ -272,15 +273,6 @@ async function candidateReply(client: Anthropic, transcript: Line[]): Promise<st
     if (err instanceof SimulatorReplyError) console.error(`[live-run] ${err.message}`);
     throw err;
   }
-}
-
-// The app renders exhibits in a panel beside the chat; a text-only simulated
-// candidate sees none of it, so hand it the same data as a plain table. Run
-// 58cb8061 lost three turns to "nothing is coming through" without this.
-function exhibitAsText(exhibit: ExhibitDisplay): string {
-  const columns = [...new Set(exhibit.data.flatMap(row => Object.keys(row)))];
-  const rows = exhibit.data.map(row => columns.map(c => String(row[c] ?? '')).join(' | '));
-  return `[Exhibit shown: ${exhibit.title}]\n${columns.join(' | ')}\n${rows.join('\n')}`;
 }
 
 function clock(ms: number): string {

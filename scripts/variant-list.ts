@@ -16,6 +16,7 @@ const WHEN: Record<PhrasePool, string> = {
   refuse: 'Data the case doesn\'t hold. {x} = what was asked.',
   exhibit: 'Handing over an exhibit. {x} = its title.',
   restate: 'A fact already given, asked for again. {x} = the ledger line.',
+  restate_exhibit: 'A fact that so far came out only on an exhibit, asked for again. {x} = the ledger line.',
   earlier: 'Before data asked for earlier and released now (the stage reached).',
   correct_one: 'Before a misquoted figure\'s correction. {x} = the ledger line.',
   correct_two: 'Before two misquoted figures\' corrections. {x} = the ledger lines.',

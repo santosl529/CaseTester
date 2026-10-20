@@ -62,6 +62,16 @@ A fact already given, asked for again. {x} = the ledger line.
 4. That's one we've covered: {x}
 5. Repeating what I said before: {x}
 
+### restate_exhibit
+
+A fact that so far came out only on an exhibit, asked for again. {x} = the ledger line.
+
+1. As the exhibit shows: {x}
+2. The exhibit has this — {x}
+3. Again, from the exhibit: {x}
+4. That's on the exhibit: {x}
+5. Reading the exhibit again: {x}
+
 ### earlier
 
 Before data asked for earlier and released now (the stage reached).

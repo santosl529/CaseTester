@@ -59,6 +59,15 @@ export const PHRASE_POOLS = {
     'That\'s one we\'ve covered: {x}',
     'Repeating what I said before: {x}',
   ],
+  // A fact that so far came out only on an exhibit, said again: the lead-in
+  // names where it came from (Lorenzo, 20 Oct, D6).
+  restate_exhibit: [
+    'As the exhibit shows: {x}',
+    'The exhibit has this — {x}',
+    'Again, from the exhibit: {x}',
+    'That\'s on the exhibit: {x}',
+    'Reading the exhibit again: {x}',
+  ],
   // An earlier ask released once its stage is reached.
   earlier: [
     'On what you asked about earlier:',

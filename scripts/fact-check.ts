@@ -90,7 +90,7 @@ export function checkRun(run: CorpusRun): Flag[] {
       // A correction line delivers the item's figure too ("Given the corrected figure, …").
       // A correction or a restatement ("As I mentioned: …") delivers its figures too.
       deliveredNow: t.releasedNow.length > 0 || !!t.exhibitNow || t.segments.some(s => poolPattern('correct_one', 'correct_two').test(s.text))
-        || t.segments.some(s => s.kind === 'data' && poolPattern('earlier', 'restate').test(s.text)),
+        || t.segments.some(s => s.kind === 'data' && poolPattern('earlier', 'restate', 'restate_exhibit').test(s.text)),
       deliveredPrev: false, refusedNow: t.segments.some(s => /\bI don't have\b/i.test(s.text) || poolPattern('refuse').test(s.text)),
       deferredNow: t.segments.some(s => s.kind === 'data' && (/\b(?:I'll share .* once we've settled|I can share .* if you'd like|Let's settle your structure before)\b/.test(s.text) || poolPattern('defer', 'gate_defer', 'offer', 'unmapped_defer').test(s.text))),
     };

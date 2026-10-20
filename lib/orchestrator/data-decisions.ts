@@ -209,7 +209,7 @@ export function heldForOrder(id: string, exhibits: ExhibitInfo[], shown: Set<str
 
 export type DataDecisions = {
   releases: { id: string; value: string; earlier: boolean }[];
-  restates: { id: string; value: string }[];  // explicit re-asks of data already revealed: said again, never re-booked
+  restates: { id: string; value: string; exhibit?: boolean }[];  // explicit re-asks of data already revealed: said again, never re-booked
   exhibit: { id: string; title: string; covers: string[] } | null;
   refusals: string[];     // what, for explicit asks the case doesn't hold
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
@@ -344,7 +344,7 @@ export function decideData(p: {
     for (const id of ledgerIds) {
       if (covered.has(id)) continue;
       if (restatable(id)) {
-        if (restates.length < cap) { restates.push({ id, value: itemById.get(id)!.value }); restating.add(id); }
+        if (restates.length < cap) { restates.push({ id, value: itemById.get(id)!.value, ...(p.ledger.exhibitOnly?.has(id) ? { exhibit: true } : {}) }); restating.add(id); }
         continue;
       }
       if (!available(id)) continue;
@@ -508,7 +508,13 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: phrase('earlier', '', uses, seed) });
   for (const r of d.releases) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
   // Restated values carry no ids: nothing is booked as a new reveal.
-  d.restates.forEach((r, i) => { const v = dataLine(r.value, uses, seed); parts.push({ kind: 'restate', ids: [], text: i === 0 ? phrase('restate', v, uses, seed) : v }); });
+  // The lead-in names where the item came from: what was said ("As I mentioned"), what only an exhibit showed ("As the exhibit shows").
+  const saidFirst = [...d.restates.filter(r => !r.exhibit), ...d.restates.filter(r => r.exhibit)];
+  saidFirst.forEach((r, i) => {
+    const v = dataLine(r.value, uses, seed);
+    const lead = i === 0 || Boolean(r.exhibit) !== Boolean(saidFirst[i - 1].exhibit);
+    parts.push({ kind: 'restate', ids: [], text: lead ? phrase(r.exhibit ? 'restate_exhibit' : 'restate', v, uses, seed) : v });
+  });
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or'), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });

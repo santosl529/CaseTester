@@ -9,10 +9,10 @@ import type { CloseHoldMemory } from './close-hold';
 import type { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { logDataRequestClassification } from './data-request-log';
 import type { DetectedDataRequest } from './data-requests';
-import { reveal, revealedValues, markExhibitReveals } from './data-ledger';
+import { reveal, revealedValues, markExhibitReveals, REVEAL_SOURCE_EXHIBIT } from './data-ledger';
 import { auditTurn, auditTurnStyle } from './audit';
 import { changeFigures } from './numeric-provenance';
 import { withholdMathChallenges, challengeVerdict } from './probe-guard';
@@ -823,7 +823,12 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const underTimePressure = isUnderTimePressure(elapsedMs, TOTAL_CASE_MS);
     const loadShedLoggedThisTurn = underTimePressure && !flags.loadShedLogged;
     const advancedThisTurn = phaseSaved !== currentPhase && !endedSaved;
-    const revealedRowsNew = [...bookedReveals, ...exhibitRevealsSaved].map(itemId => ({ sessionId, ledgerItemId: itemId, revealedAtMs: now }));
+    const revealedRowsNew = [
+      ...bookedReveals.map(itemId => ({ sessionId, ledgerItemId: itemId, revealedAtMs: now, source: 'said' })),
+      ...exhibitRevealsSaved.map(itemId => ({ sessionId, ledgerItemId: itemId, revealedAtMs: now, source: REVEAL_SOURCE_EXHIBIT })),
+    ];
+    // An exhibit-only item the line above said again has been said now: it reads as said from here on.
+    const nowSaid = decisions.restates.filter(r => r.exhibit).map(r => r.id);
     // What happened this turn, stage by stage (stage-evidence.ts) — from what
     // the candidate got, never from the move label.
     const stageAskedSaved = qHeard ? stageAsked : undefined;
@@ -889,6 +894,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
         }).then(() => undefined)
         : Promise.resolve(),
       revealedRowsNew.length > 0 ? db.insert(revealedData).values(revealedRowsNew) : Promise.resolve(),
+      nowSaid.length > 0 ? db.update(revealedData).set({ source: 'said' }).where(and(eq(revealedData.sessionId, sessionId), inArray(revealedData.ledgerItemId, nowSaid))) : Promise.resolve(),
       exhibitSaved ? db.insert(exhibitsShown).values({ sessionId, exhibitId: exhibitSaved.id, shownAtMs: now }) : Promise.resolve(),
       // Rule 13: log the assist event (scoring input — "assisted ≠ covered") —
       // only a delivered rung is an assist; an undelivered decision is logged

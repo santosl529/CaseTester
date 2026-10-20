@@ -7,7 +7,7 @@ import type { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents
 import { formatOpenRequestsHint, formatUnmappedHint, promisedRows } from './data-requests';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
-import { createLedger, reveal, revealedValues, labelWithPeriod } from './data-ledger';
+import { createLedger, restoreReveal, revealedValues, labelWithPeriod } from './data-ledger';
 import { checkCandidateMath, formatRecomputeHint, recordAttempts, formatVerifiedHint, recomputeAction, flagSpeaks, attemptKey, recMathLine, type RecomputeAttempts, type RecomputeFlag, type RecomputeAction, type VerifiedFigure } from './recompute';
 import { candidateFiguresOf } from './math-talk';
 import { changeFigures } from './numeric-provenance';
@@ -406,7 +406,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const ledger = createLedger(caseData.dataLedger as any);
   for (const r of revealedRows) {
-    try { reveal(ledger, r.ledgerItemId); } catch { /* ignore */ }
+    try { restoreReveal(ledger, r); } catch { /* ignore */ }
   }
 
   // Rule 11 deferral tracking: ledger data the candidate asked for (logged by

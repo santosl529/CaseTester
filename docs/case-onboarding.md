@@ -330,3 +330,10 @@ group beats a more specific cover. Others:
   8.8", "LTV/CAC is about $2", and "$210" for "$210k". A probe chain on figures
   that all trace to one misread input (Quillpath Marisol, 9 probes) needs the
   input corrected, not each figure probed.
+- Exhibit notes (20 Oct, D6, Lorenzo): real candidates see an exhibit's notes under the
+  table (chat and voice room alike), so the simulator must too — `exhibitAsText` appends
+  `Note: <notes>`; notes stay notes, never moved into rows. A case's exhibit must carry the
+  figures and key words of every ledger item it covers (cells, title or notes;
+  `tests/cases/consistency.test.ts`). A restatement names where the item came from: "As I
+  mentioned" if it was said, "As the exhibit shows" if it only came out on an exhibit
+  (`restate_exhibit` pool; the source is saved with each revealed row, none reads as said).
