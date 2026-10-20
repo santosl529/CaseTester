@@ -102,6 +102,43 @@ describe('Stream: the refusal waits for the requests, then is withheld', () => {
   });
 });
 
+// Final review M1 (20 Oct), the reviewer's probe: no Guard B cue, a refusal-shaped sentence
+// followed by an ordinary one. The ordinary sentence waits behind the held one (order kept)
+// until every declaration has closed, so the gate judges the refusal against the ramp release
+// — Stream withholds it and goes on, rather than switching to the buffer as a false refusal.
+describe('Stream: the sentences after a held refusal wait behind it (final review M1)', () => {
+  const traced = async (say: string, requests: ModelTurn['requests']) => {
+    const plan = planTurn(
+      readsFixture({ phase: 'BRAINSTORM', caseId: 'prof-002' }), 'Here is my recommendation, on the ramp as it stands.',
+      { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} },
+    );
+    if (plan.kind !== 'model') throw new Error('model plan expected');
+    plan.state.distress = Promise.resolve(null);
+    const turn: ModelTurn = { move: 'recommendation', say, requests, exhibit: null, rescueItem: null, question: 'What is your recommendation to the CEO?' };
+    const log: string[] = [];
+    async function* events() { for await (const e of eventsFromTurn(Promise.resolve(turn))) { log.push(e.type === 'field' ? `field:${e.key}` : e.type); yield e; } }
+    const got: Segment[] = [];
+    const out = await streamTurnSegments(events(), plan, async seg => { got.push(seg); log.push(`${seg.kind}:${seg.text}`); }, { isDelivered: { value: false } });
+    return { got, out, log, said: got.filter(x => x.kind === 'say').map(x => x.text) };
+  };
+  const SAY = `Understood. ${TYLER} First, the fleet is fixed.`;
+  it('the refusal is withheld, the next sentence is said after it was judged, the ramp line goes out, no buffer switch', async () => {
+    const { got, out, log, said } = await traced(SAY, RAMP);
+    expect(said).toEqual(['Understood.', 'First, the fleet is fixed.']);
+    expect(out.kind === 'done' && out.bufferSwitch).toBeFalsy();
+    expect(got.some(x => x.kind === 'data' && x.revealIds.includes('new_route_rampup'))).toBe(true);
+    // "First, …" waited for every declaration (requests, exhibit, rescue_item), then went out before the data line.
+    expect(log.indexOf('say:First, the fleet is fixed.')).toBeGreaterThan(log.indexOf('field:rescue_item'));
+    expect(log.indexOf('say:First, the fleet is fixed.')).toBeLessThan(log.findIndex(x => x.startsWith('data:')));
+  });
+  it('a turn with no held sentence: first content before the requests close, as before', async () => {
+    const { log, said } = await traced('Understood. First, the fleet is fixed.', RAMP);
+    expect(said).toEqual(['Understood.', 'First, the fleet is fixed.']);
+    expect(log.indexOf('say:Understood.')).toBeLessThan(log.indexOf('field:requests'));
+    expect(log.indexOf('say:First, the fleet is fixed.')).toBeLessThan(log.indexOf('field:requests'));
+  });
+});
+
 // Round 5 Task 45, fix round 1 (controller): Stream judges the held refusal against
 // the checked decisions — the item-less ask the small-model check maps to the ramp
 // item releases it this turn, so the refusal is withheld, not a false refusal.

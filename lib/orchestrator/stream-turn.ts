@@ -313,6 +313,13 @@ export async function streamTurnSegments(
   // Guard B (7 Oct): on an explicit ask, say waits for the declarations so a
   // regeneration (interviewer.ts) can still happen with nothing delivered.
   const holdForRequests = state.requestCues.length > 0;
+  // A say sentence that refuses or defers an item waits until every declaration
+  // has closed (what this turn releases, the exhibit handed over and its covers),
+  // and the say sentences after it wait behind it, in order — the next ordinary
+  // sentence never flushes it early (final review M1, 20 Oct).
+  let heldRefusal = false;
+  const refusalShaped = (text: string) => g.facts !== undefined && refusedItemIds(text, g.facts.fb).length > 0;
+  const judgeable = () => closed.has('requests') && (!heldRefusal || DECLARATIONS.every(k => closed.has(k)));
 
   const send = async (kind: SegmentKind, text: string, revealIds: string[], exhibitId?: string) => {
     try {
@@ -338,8 +345,9 @@ export async function streamTurnSegments(
       // turn's data line releases: the requests have closed by now (it was held).
       // The checked decisions, the data line's own (round 5 Task 45: the small-model
       // check's verdict can release an item; cached on the plan, shared with Settle).
+      // Every turn with such a sentence, declared requests or not: the message's own asks count (Task 50).
       let gate = g;
-      if (g.facts && fields.requests.length + (fields.exhibit ? 1 : 0) > 0 && refusedItemIds(p.text, g.facts.fb).length > 0) {
+      if (g.facts && refusedItemIds(p.text, g.facts.fb).length > 0) {
         await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
         const d = await turnDataChecked(plan, withAsks(fields, await messageAsks(plan, fields.requests, opts.onUsage)), opts.onUsage);
         gate = { ...g, facts: { ...g.facts, releasedNow: new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]) } };
@@ -382,6 +390,7 @@ export async function streamTurnSegments(
       fields = { requests: [], exhibit: null, rescueItem: null };
       closed = new Set();
       dataLineQueued = false;
+      heldRefusal = false;
       continue;
     }
     if (e.type === 'done') { turn = e.turn; validation = e.validation; modelDoneAt = Date.now(); mark('model_done'); break; }
@@ -394,16 +403,18 @@ export async function streamTurnSegments(
     else if (e.key === 'rescue_item') fields = { ...fields, rescueItem: typeof e.value === 'string' ? e.value : null };
     if (e.type === 'field') closed.add(e.key);
     // Guard B: held say sentences go out once the requests have closed (a
-    // regeneration before then drops them with the draft).
-    if (e.type === 'field' && e.key === 'requests' && verdict !== undefined && !stops()) await flushQueue();
+    // regeneration before then drops them with the draft) — every declaration,
+    // when a refusal-shaped sentence is among them.
+    if (e.type === 'field' && (DECLARATIONS as readonly string[]).includes(e.key) && judgeable() && verdict !== undefined && !stops()) await flushQueue();
     if (!p && !dataLineQueued && closed.has('say') && DECLARATIONS.every(k => closed.has(k))) {
       dataLineQueued = true;
       p = { kind: 'data_line' };
     }
     if (!p) continue;
-    if (verdict === undefined) { queue.push(p); mark('held_for_distress'); continue; } // D1: hold until the verdict
     // …and so is a sentence that refuses or defers an item, whatever the cue: a release for it may be declared (Task 39).
-    if (p.kind === 'sentence' && !closed.has('requests') && (holdForRequests || (g.facts && refusedItemIds(p.text, g.facts.fb).length > 0))) { queue.push(p); mark('held_for_requests'); continue; }
+    if (p.kind === 'sentence' && !closed.has('requests') && refusalShaped(p.text)) heldRefusal = true;
+    if (verdict === undefined) { queue.push(p); mark('held_for_distress'); continue; } // D1: hold until the verdict
+    if (p.kind === 'sentence' && !judgeable() && (holdForRequests || heldRefusal)) { queue.push(p); mark('held_for_requests'); continue; }
     if (stops()) continue;
     await flushQueue();
     await handle(p);
