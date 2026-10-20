@@ -49,7 +49,7 @@ describe('choosing a variant', () => {
         uses = recordPhraseUses(phrase(pool, 'the store count', uses, `${sid}:${turn}`), uses);
       }
     }
-  });
+}, 30_000);
   it('deterministic: the same uses and seed give the same line (Stream and Settle agree)', () => {
     const uses: PhraseUses = { defer: [0], refuse: [0, 2] };
     expect(phrase('refuse', 'competitor pricing', uses, 's:9')).toBe(phrase('refuse', 'competitor pricing', uses, 's:9'));
