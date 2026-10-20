@@ -53,14 +53,21 @@ const REVENUE_UNITS = /^\s*(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\
 // A unit right after a figure, and points in particular.
 const UNIT_AT = /^\s*(?:-|\s)?(?:%|percent(?:age)?\b|points?\b|pp\b|pts\b)/i;
 const POINTS_AT = /^\s*(?:-|\s)?(?:percentage\s+)?(?:points?|pp|pts)\b/i;
-// Of an N-point change ("5.8 points of the 16-point COGS increase", "of the COGS
-// line's 16-point increase"): N, read against the base line's change.
-const nPointOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:the\\s+|that\\s+|an?\\s+)?(?:(?:${names})(?:\\s+line)?['’]s\\s+)?(\\d+(?:\\.\\d+)?)[-\\s]?(?:percentage[-\\s])?points?\\b`, 'i');
-// The base named by the figure's own phrase: the object of its "of / in (the)",
-// after at most three plain words (no change word, no punctuation), and not
-// itself the head of a change ("COGS inflation", "the COGS line's increase").
-const CHANGE_WORDS = 'increases?|increasing|increased|rises?|rising|rose|growth|grow(?:s|ing)?|grew|jumps?|jumped|inflation|inflat(?:es|ed|ing)|changes?|chang(?:ed|ing)|drops?|declines?|fall|falls|up|down';
-const strictBaseOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*(?:of|in)\\s+(?:the\\s+|that\\s+|its\\s+|their\\s+|our\\s+)?(?:(?!(?:${CHANGE_WORDS}|revenue|sales|margin)\\b)(?:\\d+(?:\\.\\d+)?(?:-[a-z]+)?|[a-z][a-z'’-]*)\\s+){0,3}?(?:${names})\\b(?!['’]s\\b|\\s+line['’]s\\b|\\s+(?:${CHANGE_WORDS})\\b)`, 'i');
+// Of N points ("5.8 points of the 16-point COGS increase", "of the COGS line's
+// 16-point increase", "5.8 of the 16 points COGS went up", "of the 42 points of
+// COGS"): N and what follows it, read against the base line's change and levels.
+const nPointOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:the\\s+|that\\s+|an?\\s+)?(?:(?:${names})(?:\\s+line)?['’]s\\s+)?(\\d+(?:\\.\\d+)?)[-\\s]?(?:percentage[-\\s])?points?\\b([\\s\\S]*)`, 'i');
+// The base named by the figure's own phrase, by an allowlist (controller ruling,
+// Task 27 review, 20 Oct): "of" (or "in … terms"), then only the words below, the
+// base (longest alias first), at most one noun that is still the base's level,
+// then the phrase's end. Anything else is no base established.
+const BASE_BEFORE = `(?:(?:the|old|current|today['’]s|total|prior|our|its|two\\s+years\\s+ago['’]s)\\s+){0,3}`;
+const BASE_NOUN = '(?:\\s+(?:line|base|spend|costs|terms|share|bill))?';
+const PHRASE_END = `(?=\\s*(?:[.;:!?)]|$)|\\s*[—–]|\\s+-\\s|,(?!\\s*(?:which|that)\\b))`;
+const strictBaseOf = (names: string) => {
+  const alt = names.split('|').sort((a, b) => b.length - a.length).join('|');
+  return new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*(?:of\\s+${BASE_BEFORE}(?:${alt})${BASE_NOUN}|in\\s+${BASE_BEFORE}(?:${alt})\\s+terms)${PHRASE_END}`, 'i');
+};
 
 // What follows each place their figure is said in the window: the unit and what it is "of".
 function tailsOf(window: string, figure: number): { tail: string; before: string }[] {
@@ -125,9 +132,18 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
     // 37.5-point COGS increase" is no such change.
     const bases = inRevenuePoints(st) ? basesOf(ctx, st) : [];
     const changes = bases.flatMap(b => (b.current !== undefined && b.prior !== undefined && b.current !== b.prior ? [Math.abs(b.current - b.prior)] : []));
-    const nPoint = bases.length > 0 ? nPointOf(bases.map(b => b.names).join('|')) : null;
-    const ofRevenueChange = (tail: string) => { const m = nPoint?.exec(tail); return !!m && changes.some(n => agrees(parseFloat(m[1]), n)); };
-    const revenuePart = (tail: string) => ofRevenueChange(tail) && POINTS_AT.test(tail);
+    // Of the base line's level in revenue points, named as the base's: "of the 42 points of COGS" (Task 27 review, 20 Oct).
+    const levels = bases.flatMap(b => [b.current, b.prior].filter((x): x is number => x !== undefined));
+    const allNames = bases.map(b => b.names).join('|');
+    const nPoint = bases.length > 0 ? nPointOf(allNames) : null;
+    const ofRevenueChange = (tail: string) => {
+      const m = nPoint?.exec(tail);
+      if (!m) return false;
+      const n = parseFloat(m[1]);
+      return changes.some(x => agrees(n, x)) || (levels.some(x => agrees(n, x)) && new RegExp(`^\\s*(?:of\\s+(?:the\\s+)?)?(?:${allNames})\\b`, 'i').test(m[2]));
+    };
+    // In points, or with no unit of its own ("5.8 of the 16 points"); a percent of it is a share.
+    const revenuePart = (tail: string) => ofRevenueChange(tail) && (POINTS_AT.test(tail) || !UNIT_AT.test(tail));
     const revenueSaid = tails.some(t => !NOT_BEFORE.test(t.before) && (REVENUE_UNITS.test(t.tail) || revenuePart(t.tail)));
     if (inRevenuePoints(st) && value !== null && !revenueSaid) {
       for (const b of bases) {

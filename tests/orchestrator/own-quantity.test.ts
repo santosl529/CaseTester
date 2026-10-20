@@ -218,9 +218,53 @@ describe('batch 33 Marisol 31e33506: her 5.8 was revenue points — the revenue-
     "I'm saying it's 12 points of the 37.5 percent. increasing COGS.",
   ])('%s — no revenue "not 12"', w => {
     const c = beans('12 points', w);
-    const line = lineFor(c, w)?.line ?? '';
-    expect(line).not.toMatch(/in points of revenue, is about 4\.2 points, not 12/);
-    expect(line === NO_NOT || /^In COGS terms/.test(line)).toBe(true);
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  // The allowlist (controller ruling, Task 27 review, 20 Oct): only the base's level after it, only
+  // the / old / current / today's / total / prior / our / its / two years ago's before it.
+  it.each([
+    'Beans are 5.8 points of the COGS delta.',
+    'Beans are 5.8 points of the COGS move.',
+    'Beans are 5.8 points of the COGS hike.',
+    'Beans are 5.8 points of the COGS spike.',
+    'Beans are 5.8 points of the COGS bump.',
+    'Beans are 5.8 points of the COGS gap.',
+    'Beans are 5.8 points of the COGS run-up.',
+    'Beans are 5.8 points of COGS going up.',
+    'Beans are 5.8 points of the extra COGS.',
+    'Beans are 5.8 points of the additional COGS.',
+    'Beans are 5.8 points of the incremental COGS.',
+    'Beans are 5.8 points of the higher COGS.',
+    'Beans are 5.8 points of the uh COGS.',
+    'Beans are 5.8 points of the COGS line increase.',
+    'Beans are 5.8 points in COGS.',
+    'Beans are 5.8 points of COGS, which went up 16 points.',
+  ])('"%s" — not on the allowlist: code\'s figure, no "not 5.8"', w => {
+    const c = beans('5.8 points', w.replace(/\.$/, '').toLowerCase());
+    expect(lineFor(c, w)).toMatchObject({ line: NO_NOT, converted: false });
+  });
+  it.each([
+    ['5.8 points', 'Beans are 5.8 points of the 16 points of COGS.'],
+    ['5.8', 'Beans are 5.8 of the 16 points COGS went up.'],
+    ['5.8 points', 'Beans are 5.8 points of the 58 points of COGS.'],
+    ['5.8 points', 'Beans are 5.8 points of the 42 points of COGS.'],
+    ['5.8 points', 'Beans are 5.8 points of revenue.'],
+    ['5.8 points', 'Beans are 5.8 points of margin.'],
+    ['5.8 points', 'Beans are five point eight points of the sixteen point COGS increase.'],
+    ['5.8 points', 'Beans are 5.8 points of the 16-point COGS increase. That is 5.8 points of COGS.'],
+  ])('%s: "%s" — revenue points: the checker\'s line, "not 5.8"', (v, w) => {
+    const c = beans(v, w.split('. ')[0].replace(/\.$/, '').toLowerCase());
+    expect(lineFor(c, w)).toMatchObject({ line: REVENUE_LINE, converted: false });
+  });
+  it.each([
+    ['5.8 points', 'Beans are 5.8 points of COGS.', 'about 10 points, not 5.8.'],
+    ['15 points', 'Beans are 15 points of COGS.', 'about 10 points, not 15.'],
+    ['15%', 'Beans are 15% of the COGS base.', 'about 10%, not 15.'],
+    ['15 points', 'Beans are 15 points of the old COGS.', 'about 10 points, not 15.'],
+    ['5.8 points', 'Beans are 5.8 points of the COGS line — most of the jump.', 'about 10 points, not 5.8.'],
+  ])('%s: "%s" — on the allowlist: the "In COGS terms" line', (v, w, end) => {
+    const c = beans(v, w.replace(/\.$/, '').toLowerCase());
+    expect(lineFor(c, w)?.line).toBe(`In COGS terms, bean inflation's contribution to the COGS increase is ${end}`);
   });
   it('"5.8 points of the COGS line\'s 16-point increase" is revenue points: the checker\'s line (the b33 t14 shape)', () => {
     const c = beans('5.8 points', "beans are 5.8 points of the cogs line's 16-point increase");
@@ -244,7 +288,7 @@ describe('batch 33 Marisol 31e33506: her 5.8 was revenue points — the revenue-
   });
   it('every mention with a unit names COGS: the "In COGS terms" line stays', () => {
     const c = beans('15 points of COGS', 'beans add 15 points of COGS');
-    const w = 'Beans add 15 points of COGS. So 15 percent of COGS is beans.';
+    const w = 'Beans add 15 points of COGS. So beans are 15 percent of COGS.';
     expect(lineFor(c, w)?.line).toBe("In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 15.");
   });
 });
