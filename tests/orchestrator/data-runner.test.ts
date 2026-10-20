@@ -101,7 +101,7 @@ async function say(text: string, model?: ModelTurn) {
 beforeEach(() => { modelQueue.length = 0; prompts.length = 0; classified.length = 0; judgeVerdict = null; distressVerdict = () => ({ label: 'none', reason: '' }); });
 
 describe('a qualified re-ask is not answered with the unqualified figures', () => {
-  it('Tyler t19 (batch 18): "the variable-versus-fixed split within COGS and labor" at the close → declined by name, with the coarse lines (E1)', async () => {
+  it('Tyler t19 (batch 18): "the variable-versus-fixed split within COGS and labor" at the close → declined by name, not "As I mentioned: COGS is 58%…"', async () => {
     seed({ phase: 'RECOMMENDATION', elapsedMin: 14, coverage: ALL_COVERED, revealed: fx['tyler-t19'].revealed, exhibits: ['exhibit-a'],
       turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'Inputs drove it.' }, { role: 'interviewer', text: "What's your recommendation to the client?" },
         { role: 'candidate', text: 'Raise prices 10%.' }, { role: 'interviewer', text: "What's the biggest risk to that recommendation, and how would you test for it?" }],
@@ -111,8 +111,8 @@ describe('a qualified re-ask is not answered with the unqualified figures', () =
     classified.push([{ what: 'Variable-versus-fixed cost split within COGS and labor', ledgerItemIds: ['cogs_pct', 'labor_pct'], explicit: true, response: 'release' }]);
     const r = await say(fx['tyler-t19'].candidate);
     expect(r.ended).toBe(true);
-    // Round 5 E1 (Lorenzo, 20 Oct): the coarse lines go with the refusal of the finer cut.
-    expect(r.interviewerText).toMatch(/As I mentioned: COGS is 58% of revenue today, up from 42% two years ago\. Labor is 22% of revenue, and it’s been stable\. I don't have variable-versus-fixed cost split within COGS and labor\./);
+    expect(r.interviewerText).toMatch(/I don't have variable-versus-fixed cost split within COGS and labor\./);
+    expect(r.interviewerText).not.toMatch(/As I mentioned|COGS is 58%/);
     expect(r.interviewerText).not.toMatch(/That's (our )?time/);      // the case ended because it was done, not at time-up
   });
 

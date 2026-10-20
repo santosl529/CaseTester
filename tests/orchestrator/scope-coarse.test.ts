@@ -101,23 +101,38 @@ describe('an ask the scope rule empties keeps its coarse item (E1), without D1\'
 });
 
 // B1 Aldermoor Marisol t23 (Task 42's one-off cut, carried here): option_a is on
-// Exhibit 3, already shown — said again from the exhibit, with the one-off cost refused.
+// Exhibit 3, already shown.
 const MARISOL_T23 = "That came from the version where I had the royalty reversed. I'd computed Option B as $400M × 70% = $280M to Aldermoor, and Option A as $320M − $80M = $240M, so $280M − $240M = $40M in B's favour.\n\nThat's wrong on the premise. With the royalty read correctly, Option B gives Aldermoor $400M × 30% = $120M, and Option A gives $240M. So the gap is $240M − $120M = $120M, and it runs the other way — A beats B by $120M on what Aldermoor keeps.\n\nThe $40M number should be struck.\n\nThe one thing that still favours B is timing: six months versus 12–18, so B reaches peak sooner and we bank revenue a year earlier. But on an annual peak basis A is twice as good, and with patents to 2038 we have thirteen years to amortise the build. Do we know the one-off cost to stand up the US team, separate from the $80M annual?";
 const MARISOL_T23_ASK = { what: 'One-off cost to stand up the US team under Option A, separate from the $80M annual cost', itemIds: ['option_a'], explicit: true, respond: 'release' as const };
-const OPTION_A = "Option A is building Aldermoor's own US team of about 60 specialist sales reps, an insurer-access team and patient support: Aldermoor receives 100% of US net sales, its annual US selling costs are $80 million, the expected peak share is 20% of eligible patients, and launch is 12–18 months away.";
 
 describe('a coarse item already out, or held back', () => {
-  it('Marisol t23: option_a on Exhibit 3 → "As the exhibit shows:" its line, and the one-off cost refused', async () => {
+  // Controller ruling on E1 (20 Oct): Lorenzo's 13 Oct 4b stands — a coarse item
+  // already out (said, or on a shown exhibit) is not said again; the finer cut is
+  // refused alone, unchecked (the answer is in front of the candidate).
+  it('Marisol t23: option_a already on Exhibit 3 → the one-off cost refused alone; no restate, no check', async () => {
     const revealed = ['survey_design', 'reasons_to_prescribe', 'barriers_to_prescribing', 'option_a', 'option_b', 'option_shared', 'funnel_rates', 'patents', 'insurance_coverage', 'us_adults', 'peak_share_forecast', 'net_sales_definition', 'kelvexa_pricing'];
     const p = plan('entry-001', MARISOL_T23, { revealed, shown: ['exhibit-2', 'exhibit-1', 'exhibit-3'], flags: { exhibitOnly: ['option_a', 'option_b', 'option_shared'] } });
     const d = await turnDataChecked(p, turn([MARISOL_T23_ASK]));
     expect(d.releases).toEqual([]);
-    expect(d.restates.map(r => [r.id, r.exhibit])).toEqual([['option_a', true]]);
+    expect(d.restates).toEqual([]);
     expect(classify).not.toHaveBeenCalled();
-    expect(renderDataLines(d, 's')).toEqual([
-      `As the exhibit shows: ${OPTION_A}`,
-      "I don't have one-off cost to stand up the US team under Option A, separate from the $80M annual cost.",
-    ]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have one-off cost to stand up the US team under Option A, separate from the $80M annual cost."]);
+    expect(acted(p, 'scope_coarse').map(e => e.detail)).toEqual([{ alreadyOut: [{ what: MARISOL_T23_ASK.what, ids: ['option_a'] }] }]);
+  });
+  it('every coarse item already said (prof-001, both price changes out) → the refusal alone, no check call', async () => {
+    const p = plan('prof-001', SOFIA_T17_TEXT(), { phase: 'BRAINSTORM', revealed: ['bean_share_of_cogs', 'menu_price_change', 'cogs_pct', 'labor_pct', 'overhead_pct', 'bean_price_change', 'non_bean_input_change'], shown: ['exhibit-a'] });
+    const d = await turnDataChecked(p, turn([{ what: 'the current COGS split by category', itemIds: ['bean_price_change', 'non_bean_input_change'], explicit: true, respond: 'release' }]));
+    expect(classify).not.toHaveBeenCalled();
+    expect(d.restates).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have the current COGS split by category."]);
+  });
+  it('one coarse item out, one not: the one not yet out is released, the other not said again', async () => {
+    const p = plan('prof-001', SOFIA_T17_TEXT(), { phase: 'BRAINSTORM', revealed: ['bean_share_of_cogs', 'menu_price_change', 'cogs_pct', 'labor_pct', 'overhead_pct', 'bean_price_change'], shown: ['exhibit-a'] });
+    const d = await turnDataChecked(p, turn([{ what: 'the current COGS split by category', itemIds: ['bean_price_change', 'non_bean_input_change'], explicit: true, respond: 'release' }]));
+    expect(classify).not.toHaveBeenCalled();
+    expect(d.releases.map(r => r.id)).toEqual(['non_bean_input_change']);
+    expect(d.restates).toEqual([]);
+    expect(d.refusals).toEqual(['the current COGS split by category']);
   });
   // Review Focus 1: a fix that releases more never releases what the case holds back.
   it('Marisol t23 before Exhibit 1 is out: option_a waits on the release order → not released; the ask is checked', async () => {
@@ -156,6 +171,7 @@ describe('a coarse item already out, or held back', () => {
 // COGS split by category" mapped to the two price changes, which the split rule
 // drops; refused whole today ("Unfortunately, I don't have the current COGS split
 // by category."). The model's own question was "With those input price figures, …".
+function SOFIA_T17_TEXT() { return SOFIA_T17; }
 const SOFIA_T17 = "The margin drop is a COGS problem, almost entirely. COGS went from 42% to 58% of revenue — 16 points — and overhead added 2. Labor held flat at 22. That's the full 18-point decline from 24% to 6%, with nothing left unexplained.\n\nAnd the reason it flowed straight to the bottom line is that menu prices haven't moved in two years. So every dollar of input inflation was absorbed rather than passed through. Revenue grew 15%, but that's volume or new stores, not price — so they're selling more units at progressively worse unit margins, which actually makes the problem worse as they scale.\n\nTo pin it down I'd need three things: the current COGS split by category, to see if it's beans specifically or broad-based; waste and spoilage, to separate market inflation from operational leakage; and the store-level distribution of margin, to see if this is all 200 locations or a concentrated subset. The category split is the highest-value ask.";
 describe('prof-001: a finer-cut ask from the corpus', () => {
   it('b31 Sofia t17: both price-change lines, then "I don\'t have the current COGS split by category."', async () => {
@@ -185,12 +201,11 @@ describe('a finer ask backed by an exhibit', () => {
     expect(classify).not.toHaveBeenCalled();
     expect(acted(p, 'scope_coarse').map(e => e.detail)).toEqual([{ asks: [{ what: ASK.what, ids: ['exhibit-a'] }] }]);
   });
-  it('the exhibit already shown: the ask is checked', async () => {
+  it('the exhibit already shown: the refusal alone, no check (its answer is on screen)', async () => {
     const p = plan('prof-001', 'Do we have the split within that non-bean bucket?', { revealed: ['bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change', 'cogs_pct', 'labor_pct', 'overhead_pct'], shown: ['exhibit-a'] });
-    classify.mockResolvedValueOnce([]);
     const d = await turnDataChecked(p, turn([ASK]));
     expect(d.exhibit).toBeNull();
-    expect(classify).toHaveBeenCalledTimes(1);
-    expect(d.refusals).toEqual([ASK.what]);
+    expect(classify).not.toHaveBeenCalled();
+    expect(renderDataLines(d, 's')).toEqual([`I don't have ${ASK.what}.`]);
   });
 });

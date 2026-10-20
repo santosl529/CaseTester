@@ -10,7 +10,7 @@ import { findFalseRefusals, groupItemsAsked, coverageOf, BASIS } from './fact-ch
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests } from './data-requests';
 import { askingSentences } from './request-signal';
-import { revealedValues } from './data-ledger';
+import { revealedValues, canReveal } from './data-ledger';
 import type { OnUsage } from '@/lib/llm-usage';
 
 export function caseResolver(plan: ModelPlan): (raw: string) => string | null {
@@ -339,13 +339,23 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // After the pressure test, nothing is premature: a declared deferral is
   // released (or refused, when the case doesn't hold the data).
   if (satisfied) requests = requests.map(r => (r.respond === 'defer' ? { ...r, respond: 'release' as const } : r));
-  // An explicit release a scope rule emptied gets its coarse items back (E1):
-  // released under every gate below and in decideData, the finer cut refused
-  // beside them. A declared deferral stays item-less: the check decides it.
+  // An explicit release a scope rule emptied gets back its coarse items not yet
+  // revealed (E1): released under every gate below and in decideData, the finer
+  // cut refused beside them. One whose coarse items are all out already (said, or
+  // on a shown exhibit) is refused alone, unchecked: the answer is in front of the
+  // candidate (controller ruling on E1, 20 Oct: Lorenzo's 13 Oct 4b stands — "As I
+  // mentioned" only for a re-ask of the same item; Marcus 71a04add t12, batch 18
+  // Tyler t19). A declared deferral stays item-less: the check decides it.
   const coarseAsks = new Set<DeclaredRequest>();
+  const alreadyOut: { what: string; ids: string[] }[] = [];
   requests = requests.map(r => {
-    const ids = r.explicit && r.respond === 'release' && r.itemIds.length === 0 ? coarseOf.get(r.what) : undefined;
-    if (!ids) return r;
+    const all = r.explicit && r.respond === 'release' && r.itemIds.length === 0 ? coarseOf.get(r.what) : undefined;
+    if (!all) return r;
+    const ids = all.filter(id => canReveal(ledger, id));
+    if (ids.length === 0) {
+      if (all.every(id => ledger.revealed.has(id))) alreadyOut.push({ what: r.what, ids: all });
+      return r;
+    }
     const back = { ...r, itemIds: ids };
     coarseAsks.add(back);
     return back;
@@ -425,12 +435,12 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     wrapUp: wrapUpTurn(plan),
   });
   let decisions = decide(requests);
-  // E1 (Lorenzo, 20 Oct): a coarse item goes out when it is released, restated
-  // (already out) or shown on the exhibit handed over this turn. Those that
+  // E1 (Lorenzo, 20 Oct): a coarse item goes out when it is released or shown
+  // on the exhibit handed over this turn. Those that
   // don't (not in the ledger, waiting on the release order, over the cap) are
   // taken off the ask — no deferral is said for data the ask didn't name — and
   // the turn decided again: an ask left with none goes to the check below.
-  const wentOut = (id: string) => decisions.releases.some(x => x.id === id) || decisions.restates.some(x => x.id === id)
+  const wentOut = (id: string) => decisions.releases.some(x => x.id === id)
     || decisions.exhibit?.id === id || Boolean(decisions.exhibit?.covers.includes(id));
   if ([...coarseAsks].some(r => requests.includes(r) && !r.itemIds.every(wentOut))) {
     requests = requests.map(r => {
@@ -450,9 +460,14 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     if (coarseAsks.has(r) && r.itemIds.length > 0 && r.itemIds.some(wentOut)) scopeCoarse.push({ what: r.what, ids: r.itemIds });
   }
   for (const [what, ids] of exhibitBacked) {
-    if (decisions.refusals.includes(what) && ids.some(wentOut)) scopeCoarse.push({ what, ids });
+    if (!decisions.refusals.includes(what)) continue;
+    if (ids.some(wentOut)) scopeCoarse.push({ what, ids });
+    // Its exhibit already on screen: the refusal alone, like an ask whose coarse items are all out.
+    else if (ids.every(id => state.shownExhibitIds.has(id))) alreadyOut.push({ what, ids });
   }
-  const scopeRefused = new Set(scopeCoarse.map(x => x.what));
+  const outAlready = alreadyOut.filter(x => decisions.refusals.includes(x.what));
+  if (outAlready.length > 0) plan.ctx.checks.act('scope_coarse', 'an ask a scope rule emptied whose coarse items are already out: the finer cut refused alone, unchecked', { alreadyOut: outAlready });
+  const scopeRefused = new Set([...scopeCoarse, ...outAlready].map(x => x.what));
   if (scopeCoarse.length > 0) {
     const firstAt = (w: string) => requests.findIndex(r => r.what === w);
     decisions.refusals = [...new Set([...decisions.refusals, ...scopeRefused])].sort((a, b) => firstAt(a) - firstAt(b));
@@ -468,8 +483,9 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // emptied (Larkspur Marisol t27; since round-3 ruling 5 a mapping back to the
   // items the rule cut is a named deferral too — basisCut is only logged). An
   // ask the finer-cut scope rules emptied is refused unchecked only beside its
-  // coarse item (E1, `scope_coarse`, above); with none going out it is checked
-  // like the rest (round 5 reverses the round-2 exception).
+  // coarse item, or when its coarse items are all out already (E1, `scope_coarse`,
+  // above); one whose coarse items are held is checked like the rest (round 5
+  // reverses the round-2 exception).
   const toCheck = decisions.refusals.filter(w => !scopeRefused.has(w));
   if (toCheck.length > 0) {
     const checking = new Set(toCheck);
