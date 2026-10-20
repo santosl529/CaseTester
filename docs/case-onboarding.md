@@ -149,16 +149,16 @@ except where the fix applies) and a prof-001 wave.
 | Case | Clock | Authored | Fact audit | Anchors | Waves | Bar | Listed |
 |---|---|---|---|---|---|---|---|
 | prof-001 Brew & Bean | 20 | yes | yes | tuned over batches 18–31 | 20–31; 33 (engine-asks wave A) | **met** (batch 31, `main`); not met on `engine-asks` (33): 1 serious false statement (code's own-quantity line, pre-existing), 1 report error, 1 close over a false-stale flag, 1 ask ignored, 4 same-opening pairs (phrasing is advisory since 19 Oct). Round-4 fixes built on `engine-asks`; the free proof is clean (`r4-final.md`). One prof-001 wave runs right before the merge | **yes** |
-| prof-002 Larkspur | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 22, 32, 34 (B1) | not met (34): 1 interviewer + 1 report false statement (both judgement, none serious; 0 false refusals, 32 had 3), asks unanswered (2 swallowed by probe turns, 1 half) + 2 hollow deferrals; firm moderate ≤ 2 met | no |
-| entry-001 Aldermoor | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; brainstorm after Exh 3 | 32, 34 (B1) | not met (34): 2 serious false refusals of the treatment picture (`request_scope`, judgement) + 1 report error, asks unanswered + 4 hollow deferrals; stages and firm moderate ≤ 2 met | no |
-| pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
-| launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
+| prof-002 Larkspur | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 22, 32, 34 (B1) | not met (34): 1 interviewer + 1 report false statement (both judgement, none serious; Tyler t22 false per Lorenzo's provisional call; 0 false refusals, 32 had 3), asks unanswered (2 swallowed by probe turns, 1 half) + 1 hollow deferral; firm moderate ≤ 2 met (re-graded under the 20 Oct rules: Raj 1, Marisol 2, Marcus 1) | no |
+| entry-001 Aldermoor | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; brainstorm after Exh 3 | 32, 34 (B1) | not met (34): 2 serious false refusals of the treatment picture (`request_scope`; settled serious under the 20 Oct rule 1) + 1 report error, asks unanswered + 3 hollow deferrals; **firm moderate ≤ 2 not met** after the re-grade (Marisol 3); stages met | no |
+| pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2) | not met (35): 1 interviewer false statement (code's "LTV/CAC is about $2", a unit slip, judgement), report 0, **0 refusals**; 5 hollow deferrals in 4 runs (every mapped check verdict); close, stages and firm moderate ≤ 2 met (Marcus 2, Marisol 2) | no |
+| launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2) | not met (35): 2 serious false refusals of distribution (`retailer_support` never mapped for "store count / distribution rate", judgement) + 1 scale slip ("$9, not 8.8"), report 0; asks unanswered (2) + 1 hollow deferral; close, stages and firm moderate ≤ 2 met (Marisol 2, Tyler 2) | no |
 
-**Next (20 Oct):** round 4 of the engine-asks bundle is built and free-proved. It applies Lorenzo's rulings 1–7 on wave A: own-quantity reads the base the candidate named; the stale check, late probes, the leads check and probe openers are fixed; the rest are logs. Free proof: `Case Interview Runs/replays/2026-10-19/engine-asks/r4-final.md`, with 0 prof-001 regressions, 0 new false corrections, and 30 prof-001 lines changed, all of them the fixed lines.
-- Next is the own-quantity hotfix branch off `main` (Task 35, ruling 2; not merged, pushed or deployed).
-- **B1 ran and is graded (20 Oct, batch 34, $13.80 of $20):** both cases fail the bar on false statements and on asks; stages, closes and firm moderates are met (`Case Interview Runs/test runs/batch-34-larkspur/hand-grading.md`, `…/batch-34-aldermoor/hand-grading.md`; PRD §16). Fix proposals await his ruling.
-- A′ is skipped. prof-001 gets one wave right before the merge.
-- **B2 (pricing-001 + launch-001) awaits Lorenzo's go.**
+**Next (20 Oct):** the engine-asks bundle's new-case waves have both run; nothing is built from them yet.
+- The own-quantity hotfix is on `main` 9be93ca and deployed (Vercel + LiveKit agent stv9i6rgY6yS; PRD §16); the prof-001 voice smoke is Lorenzo's.
+- **B1 (batch 34) and B2 (batch 35, $14.58 of $20) are graded**, B1 re-graded under Lorenzo's two 20 Oct rules (a refusal is serious when a ledger item answers the ask in any form; a hollow deferral is one firm moderate per ask). All four new cases fail the bar on false statements and on asks; closes and stages are met; entry-001 also fails firm moderate ≤ 2 after the re-grade (`Case Interview Runs/test runs/batch-34-*/hand-grading.md`, `…/batch-35-*/hand-grading.md`; PRD §16).
+- **Next: one sorted list of every B1 + B2 finding goes to Lorenzo before anything is built** (case data first, free; then shared engine, serious first; then the bar lines; the rest logged).
+- A′ is skipped. B3 / prof-001 gets one wave right before the merge, on his go.
 
 ## Shared-engine gaps that affect new cases (PRD §15)
 
@@ -319,3 +319,14 @@ group beats a more specific cover. Others:
   was asked: the small-model check's generous mapping and its timeouts made 6
   hollow deferrals in 10 runs. Code probe and stage turns can swallow the
   candidate's ask; grade every ask the turn after a code line.
+- 20 Oct, B2 (batch 35, pricing-001 + launch-001): the small-model check maps an
+  ask to an item near it, not one that holds it — 6 of 6 mapped verdicts became
+  hollow deferrals (10 of 13 with B1), three of them to data already said or on
+  screen. Grade a named deferral against what the item holds beyond what's out.
+  Audit covers for the "how many / store count / distribution" forms of every
+  reach item: launch-001's `retailer_support` was never mapped, so two
+  candidates were told "I don't have … distribution rate". Check code lines for
+  units and scale: a bare candidate figure ("8.8") or a ratio gave "$9, not
+  8.8", "LTV/CAC is about $2", and "$210" for "$210k". A probe chain on figures
+  that all trace to one misread input (Quillpath Marisol, 9 probes) needs the
+  input corrected, not each figure probed.
