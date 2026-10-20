@@ -388,7 +388,15 @@ export function lineHeard(text: string, line: string): boolean {
   if (lineForm(text).includes(lineForm(line))) return true;
   // A correction said without its period lead-in ("From today's 6% margin, …") is heard: code saying the whole line again would say it twice.
   const core = line.replace(/^From today's \d+(?:\.\d+)?% margin,\s*/i, '');
-  return core !== line && lineForm(text).includes(lineForm(core));
+  if (core !== line) return lineForm(text).includes(lineForm(core));
+  // A late probe's quote (round-4 ruling 4): the probe as written, after a sentence of the model's own that puts the
+  // claim to them — its figure or three of its words — is heard too (b32 Marisol 6e5a1c90 t24: "earlier you said
+  // getting extras to $30 on the four stable routes is … = $4.8M. What were the steps in that calculation?").
+  const q = QUOTED_PROBE.exec(line);
+  if (!q) return false;
+  const said = splitSentences(text);
+  const at = said.findIndex(s => lineForm(s).includes(lineForm(q[2])));
+  return at >= 0 && mentions(said.slice(Math.max(0, at - 1), at + 1).join(' '), q[1], '');
 }
 export type CheckerDecision = {
   id: string; candidateTurnIndex: number; outcome: CheckerOutcome; reason: string;
@@ -477,6 +485,67 @@ export function neutralProbe(vetted: string, uses: PhraseUses | undefined, seed:
   if (vetted === PHRASE_POOLS.probe_there[0]) return line('probe_there', uses, seed);
   const m = NEUTRAL_GOT_TO.exec(vetted);
   return m ? phrase('probe_got_to', m[1], uses, seed) : vetted;
+}
+
+// Lorenzo, 19 Oct (round-4 ruling 4; b33 Blake cb23e17b t22: "Walk me through how you got there." arrived two turns
+// after his t19 claim, behind the follow-up question, so "there" pointed at his first-step answer): a bare probe — one
+// naming no figure and no words of its claim — said later than the turn right after the claim (message n is answered
+// on turn n + 1) quotes the claim, in the candidate's own words (FR-4): its span as they wrote it. The checker's
+// verdict lands a turn late, so each probe, pointer and hint it selects is said on n + 3 at the earliest.
+export function quoteLateProbe(line: string, c: Pick<CheckerClaim, 'span' | 'candidateValue'>, message: string, at: { claim: number; spoken: number }): string {
+  if (at.spoken <= at.claim + 1 || namesClaim(line, c)) return line;
+  const quote = claimQuote(c, message)?.replace(/[\s.,;:—–-]+$/, '');
+  if (!quote) return line;
+  return `You said “${quote}” — ${/^[A-Z][a-z]/.test(line) ? line[0].toLowerCase() + line.slice(1) : line}`;
+}
+const QUOTED_PROBE = /^You said “([\s\S]+)” — ([\s\S]+)$/;
+const tokensOf = (t: string) => lineForm(t).split(' ').filter(Boolean);
+// A figure of the claim, or three of its words in a row.
+function mentions(text: string, span: string, value: string): boolean {
+  const figs = numbersOf(`${span} ${value}`);
+  if (numbersOf(text).some(x => figs.some(y => same(x, y)))) return true;
+  const words = tokensOf(span);
+  const said = ` ${tokensOf(text).join(' ')} `;
+  return words.some((_, i) => i + 3 <= words.length && said.includes(` ${words.slice(i, i + 3).join(' ')} `));
+}
+// …or the claim put to them in the checker's words, opening a sentence ("You said about half of the COGS pressure is
+// masked…", b29 Jordan ea27d1f6 t12) — not "how you got there", nor "the overhead you mentioned".
+const PUT_TO_THEM = /(?:^|[.?!]\s+)(?:earlier,?\s+)?you(?:'ve| have)? (?:said|say|put|had|got|total|totalled|applied|multiplied|mentioned|wrote|used|estimated|assumed|called|sized|took|gave)\b/i;
+const namesClaim = (line: string, c: Pick<CheckerClaim, 'span' | 'candidateValue'>) => PUT_TO_THEM.test(line) || mentions(line, c.span, c.candidateValue);
+const ELLIPSIS = /\s*(?:\.{3}|…)\s*/g;
+const splitSentences = (t: string) => t.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+// The text as the candidate wrote it, dashes, quotes and spacing aside; null if it isn't theirs.
+function verbatim(part: string, message: string): string | null {
+  const alt = (ch: string) => /[-–—−]/.test(ch) ? '[-–—−]' : /['‘’]/.test(ch) ? "['‘’]" : /["“”]/.test(ch) ? '["“”]' : ch.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const words = part.trim().split(/\s+/).map(w => [...w].map(alt).join(''));
+  return words.length > 0 ? new RegExp(words.join('\\s+'), 'i').exec(message)?.[0] ?? null : null;
+}
+// What the probe quotes: the span's sentence holding the claimed figure (else its last), each part of it around an
+// ellipsis as written; else the candidate's sentence holding the longest run of its words (three or more, with a figure
+// of it when it has one); else nothing.
+function claimQuote(c: Pick<CheckerClaim, 'span' | 'candidateValue'>, message: string): string | null {
+  const own = numbersOf(c.candidateValue);
+  const pieces = splitSentences(c.span.replace(ELLIPSIS, ' … '));
+  const piece = pieces.find(s => numbersOf(s).some(x => own.some(y => same(x, y)))) ?? pieces.at(-1);
+  if (!piece) return null;
+  const parts = piece.split(ELLIPSIS).filter(s => s.trim());
+  const found = parts.map(s => verbatim(s, message));
+  if (found.length > 0 && found.every(Boolean)) return found.join(' … ');
+  const want = tokensOf(piece);
+  const figs = numbersOf(piece);
+  let best: { s: string; run: number } | null = null;
+  for (const s of splitSentences(message)) {
+    if (figs.length > 0 && !numbersOf(s).some(x => figs.some(y => same(x, y)))) continue;
+    const have = tokensOf(s);
+    let run = 0;
+    for (let i = 0; i < want.length; i++) for (let j = 0; j < have.length; j++) {
+      let k = 0;
+      while (i + k < want.length && j + k < have.length && want[i + k] === have[j + k]) k++;
+      run = Math.max(run, k);
+    }
+    if (run >= 3 && (!best || run > best.run)) best = { s, run };
+  }
+  return best?.s ?? null;
 }
 
 export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
@@ -790,15 +859,17 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       closedNow.push(key);
       continue;
     }
-    if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', line: neutralProbe(c.probeLine, p.phraseUses, p.seed ?? ''), derived: [], claim: c }; continue; }
+    // Said on the turn after this message: quoted unless right after the claim (ruling 4, quoteLateProbe).
+    const asked = (l: string) => quoteLateProbe(l, c, messageOf(n), { claim: n, spoken: p.candidateTurnIndex + 1 });
+    if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', line: asked(neutralProbe(c.probeLine, p.phraseUses, p.seed ?? '')), derived: [], claim: c }; continue; }
     const corrected = correction(id, n, c, key, attempt);
     if (corrected && spentLine(corrected)) continue;
     if (corrected) { selected = corrected; continue; }
     // Code can't compute it: the pointer probe is the second attempt.
-    if (c.pointerLine && (attempt === 2 || p.underTimePressure)) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'pointer', line: c.pointerLine, derived: [], claim: c }; continue; }
+    if (c.pointerLine && (attempt === 2 || p.underTimePressure)) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'pointer', line: asked(c.pointerLine), derived: [], claim: c }; continue; }
     // Else the hint (Lorenzo, 13 Oct, Step-4 rulings): a component they raised
     // earlier, named only in a second probe — never the first.
-    if (c.hintLine && attempt === 2) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'hint', line: c.hintLine, derived: [], claim: c }; continue; }
+    if (c.hintLine && attempt === 2) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'hint', line: asked(c.hintLine), derived: [], claim: c }; continue; }
     // Past Rule 14 with nothing code can say: the report has it, and the case moves on.
     decisions.push(decision(id, n, c, 'unresolved', `attempt ${attempt}: no correction code can write${c.pointerLine || c.hintLine ? ', second probe already used' : ', no pointer'} — left for the report`, undefined, key));
     handled.add(id);

@@ -93,7 +93,8 @@ describe('a verdict lands on the next turn as a Rule 14 flag', () => {
     const noCorrection = { correctionLine: null, correctionFigure: null };
     const withPointer = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted({ ...noCorrection, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
     expect(withPointer.selected?.action).toBe('pointer');
-    expect(withPointer.selected?.line).toBe('How does that fit with labor at 22% of revenue?');
+    // Said two turns after the claim, it quotes it (round-4 ruling 4).
+    expect(withPointer.selected?.line).toBe('You said “A 10% price increase recovers about 5 points” — how does that fit with labor at 22% of revenue?');
     const neither = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted(noCorrection)])] }));
     expect(neither.selected).toBeNull();
     expect(neither.decisions).toEqual([expect.objectContaining({ id: '3:0', outcome: 'unresolved' })]);
@@ -1185,5 +1186,97 @@ describe('ruling 1 on the evidence: b28 Jordan t19, b29 Jordan t9', () => {
       } });
       expect(p.decisions).toEqual(expect.arrayContaining([expect.objectContaining({ outcome: 'unresolved', reason: `built on a closed input (${root})` })]));
     }
+  });
+});
+
+// Lorenzo, 19 Oct (round-4 ruling 4; b33 Blake cb23e17b t22: "Walk me through how you got there." two turns after
+// his t19 claim, behind the follow-up question, so "there" pointed at his first-step answer): a bare probe said later
+// than the turn right after its claim quotes the claim — in the candidate's own words.
+import { quoteLateProbe } from '@/lib/orchestrator/math-checker-live';
+describe('a bare probe said later than the turn right after its claim quotes the claim (round-4 ruling 4)', () => {
+  const BLAKE_T19 = "The single biggest risk is that the price increase doesn't stick — that volume falls more than I've assumed. My whole recommendation rests on a 2–3% volume loss against a 10–12% price increase, and that number is a benchmark, not something we've tested on this customer base. If elasticity is actually closer to one, I lose the entire margin recovery and I've also lost traffic, which is much harder to win back than price is to roll back.\n\nMitigation is the pilot. Three to five markets, representative mix of urban and suburban, run it for eight to twelve weeks, measure transaction counts and ticket size against matched control stores. If volume holds, roll national. If it doesn't, I shift weight onto procurement and the non-dairy surcharge, which don't carry the same traffic risk.\n\nThe second-order risk is that input costs keep climbing eight points a year, in which case pricing is a treadmill and the real fix is contract hedging.";
+  const BLAKE_T21 = 'Start with the elasticity pilot, this quarter. Pick five markets, a representative urban-suburban mix, put through a 10% increase on the core espresso and latte lineup, and hold matched control stores flat.';
+  const elasticity = vetted({
+    span: 'If elasticity is actually closer to one, I lose the entire margin recovery', quantity: 'margin recovery at unit elasticity',
+    candidateValue: 'entire margin recovery lost at elasticity of about 1', correctValue: null, correctLow: null, correctHigh: null, changesConclusion: false,
+    codeQuantity: { kind: 'breakeven', stepId: null, price: 12, target: null }, probeLine: 'Walk me through how you got there.', correctionLine: null, correctionFigure: null,
+  });
+  const blake = (over: Partial<CheckerPlanInput> = {}) => input({
+    rows: [verdictRow(19, [elasticity])],
+    turnRows: [
+      { turnIndex: 19, role: 'candidate', text: BLAKE_T19 },
+      { turnIndex: 20, role: 'interviewer', text: 'Before we wrap up — you said a 10–12% price increase recovers roughly 6 to 7 points of margin. How did you get that, and what base did you apply the increase to?' },
+    ],
+    candidateText: BLAKE_T21, candidateTurnIndex: 21, candidateFigures: [2, 3, 10, 12, 6, 7],
+    ...over,
+  });
+  const QUOTED = 'You said “If elasticity is actually closer to one, I lose the entire margin recovery” — walk me through how you got there.';
+  it('b33 Blake t19 → t22: the probe quotes his t19 claim, in his words — the selection, its decision and the model\'s hint', () => {
+    const p = planCheckerFlags(blake());
+    expect(p.selected).toMatchObject({ id: '19:0', action: 'probe', line: QUOTED });
+    expect(p.decisions).toContainEqual(expect.objectContaining({ id: '19:0', outcome: 'probe', line: QUOTED }));
+    expect(formatCheckerHint(p.selected!)).toContain(`"${QUOTED}"`);
+    expect(lineHeard(`Quick question before we wrap up — ${QUOTED.charAt(0).toLowerCase()}${QUOTED.slice(1)}`, p.selected!.line)).toBe(true);
+  });
+  it('a probe said on the turn right after its claim may stay bare', () => {
+    expect(quoteLateProbe('Walk me through how you got there.', elasticity, BLAKE_T19, { claim: 19, spoken: 20 })).toBe('Walk me through how you got there.');
+    expect(quoteLateProbe('Walk me through how you got there.', elasticity, BLAKE_T19, { claim: 19, spoken: 22 })).toBe(QUOTED);
+  });
+  it('a probe that already quotes the claim — its figure or its words — is kept as it is', () => {
+    const drafted = 'Before we wrap up — you said a 10–12% price increase recovers roughly 6 to 7 points of margin. How did you get that?';
+    const gain = vetted({ span: 'A 10–12% price increase on a flat cost base recovers roughly 6 to 7 points of margin', candidateValue: '6 to 7 points' });
+    expect(quoteLateProbe(drafted, gain, BLAKE_T19, { claim: 17, spoken: 22 })).toBe(drafted);
+    expect(quoteLateProbe('Show me how you got to 5.8 points.', vetted({ span: 'beans up 40%, so 14.5 × 0.40 = 5.8 points of increase', candidateValue: '5.8 points' }), '', { claim: 9, spoken: 12 }))
+      .toBe('Show me how you got to 5.8 points.');
+    expect(quoteLateProbe('You said the pricing assumption is where the case lives. What net price are you using?',
+      vetted({ span: 'So the pricing assumption, not the share assumption, is where the case lives.', candidateValue: 'price assumption is decisive' }), '', { claim: 19, spoken: 22 }))
+      .toBe('You said the pricing assumption is where the case lives. What net price are you using?');
+  });
+  it('a drafted probe that puts the claim to them in its own words ("You said …") already quotes it (b29 Jordan ea27d1f6 t12)', () => {
+    const drafted = 'You said about half of the COGS pressure is masked by labor leverage. What change in labor as a share of revenue does that rest on?';
+    const half = vetted({ span: 'roughly half of it is being masked by operating leverage on labor', candidateValue: 'about half' });
+    expect(quoteLateProbe(drafted, half, 'I think roughly half of it is being masked by operating leverage on labor.', { claim: 7, spoken: 12 })).toBe(drafted);
+  });
+  it('heard: the bare probe after a sentence of the model\'s own that puts the claim to them — its figure or three of its words (b32 Marisol 6e5a1c90 t24)', () => {
+    const line = 'You said “Getting that to $30 on the four stable routes is 8,000 flights × 60 passengers × $10 = $4.8M” — what were the steps in that calculation?';
+    expect(lineHeard('Got it. Of the risks you listed, which one could most undermine this recommendation? And earlier you said getting extras to $30 on the four stable routes is 8,000 flights × 60 passengers × $10 = $4.8M. What were the steps in that calculation?', line)).toBe(true);
+    expect(lineHeard(`Got it. ${line}`, line)).toBe(true);
+    // The bare probe alone, or the claim named only sentences before it: not the line.
+    expect(lineHeard('Got it. What were the steps in that calculation?', line)).toBe(false);
+    expect(lineHeard('You mentioned $4.8M from extras. Fair enough. Let\'s move on to the risks. What were the steps in that calculation?', line)).toBe(false);
+    expect(lineHeard('Earlier you said it gets back toward the high teens. What were the steps in that calculation?', line)).toBe(false);
+  });
+  it('the second probes too: a bare pointer said later quotes the claim', () => {
+    const p = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null, pointerLine: 'How does that fit with labor at 22% of revenue?' })])] }));
+    expect(p.selected).toMatchObject({ action: 'pointer', line: 'You said “A 10% price increase recovers about 5 points” — how does that fit with labor at 22% of revenue?' });
+  });
+  it('a span joined by an ellipsis: each part as they said it (b31 Marisol t13)', () => {
+    const msg = 'My recommendation: Brew & Bean should take a targeted menu price increase of roughly 14%, led by procurement renegotiation on the non-bean inputs. That alone should recover most of the 18 points.  The logic: footprint is flat at 200 stores.';
+    const c = vetted({ span: 'a targeted menu price increase of roughly 14% ... That alone should recover most of the 18 points.', candidateValue: 'most of the 18 points (more than 9)' });
+    expect(quoteLateProbe('Walk me through that calculation.', c, msg, { claim: 13, spoken: 16 }))
+      .toBe('You said “a targeted menu price increase of roughly 14% … That alone should recover most of the 18 points” — walk me through that calculation.');
+  });
+  it('a span of two sentences: the one holding the claimed figure', () => {
+    const msg = 'Beans I sized at 14.5 points. So non-bean inputs are 42 − 14.5 = 27.5 points. That is the bigger bucket.';
+    const c = vetted({ span: 'Beans I sized at 14.5 points. So non-bean inputs are 42 − 14.5 = 27.5 points.', candidateValue: '27.5 points' });
+    expect(quoteLateProbe('How did you do that calculation?', c, msg, { claim: 11, spoken: 14 }))
+      .toBe('You said “So non-bean inputs are 42 − 14.5 = 27.5 points” — how did you do that calculation?');
+  });
+  it('a span not in their words (b28 Jordan t11): the sentence of theirs it was drawn from', () => {
+    const msg = "It's based on the exhibit read plus the compounding logic. COGS goes 42, 50, 58 — two 8-point steps, but the second one lands on a base already compressed to 15 points of margin, so I'm weighting it roughly double. That gets me to the high-30s, call it 38 to 40 points of effective pressure, against an 18-point actual decline.  The offset I'm assuming is operating leverage on the fixed base.";
+    const c = vetted({ span: 'COGS is more than fully responsible against an 18-point actual decline', candidateValue: 'more than 100% (38-40 vs 18)' });
+    expect(quoteLateProbe('Can you show me that calculation step by step?', c, msg, { claim: 11, spoken: 14 }))
+      .toBe('You said “That gets me to the high-30s, call it 38 to 40 points of effective pressure, against an 18-point actual decline” — can you show me that calculation step by step?');
+  });
+  it('nothing of theirs to quote: the line stays as vetted — never words they didn\'t say (FR-4)', () => {
+    const c = vetted({ span: 'the margin fully recovers at a 20% price rise', candidateValue: 'full recovery at 20%' });
+    expect(quoteLateProbe('Walk me through that calculation.', c, 'I think pricing is the main lever here.', { claim: 5, spoken: 8 })).toBe('Walk me through that calculation.');
+    // …nor a sentence of theirs sharing fewer than three of its words in a row.
+    const loose = vetted({ span: 'the margin fully recovers once prices move', candidateValue: 'full recovery' });
+    expect(quoteLateProbe('Walk me through how you got there.', loose, 'Prices move slowly in this market. I think pricing is the main lever.', { claim: 5, spoken: 8 })).toBe('Walk me through how you got there.');
+  });
+  it('a bare hint said later quotes the claim too', () => {
+    const p = planCheckerFlags(input({ attempts: { 'pricing:gain@5': 1 }, rows: [verdictRow(3, [vetted({ correctionLine: null, correctionFigure: null, hintLine: 'How does that sit with the overhead you mentioned?' })])] }));
+    expect(p.selected).toMatchObject({ action: 'hint', line: 'You said “A 10% price increase recovers about 5 points” — how does that sit with the overhead you mentioned?' });
   });
 });

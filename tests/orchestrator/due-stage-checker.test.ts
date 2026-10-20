@@ -13,7 +13,9 @@ import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checke
 import { anyVariant, fill, PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 // The neutral probes vary (brief B rulings, 18 Oct): any version of the line, as said.
 const lowerFirst = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
-const CALC_WRAP_UPS = PHRASE_POOLS.probe_calc.map(a => `Before we wrap up — ${lowerFirst(a)}`);
+// Said turns after its t17 claim, the bare probe quotes the claim in his words (round-4 ruling 4).
+const QUOTE_17_1 = 'you said “The 16 points is what survived that dilution … which is why the net decline is only 18” — ';
+const CALC_WRAP_UPS = PHRASE_POOLS.probe_calc.map(a => `Before we wrap up — ${QUOTE_17_1}${lowerFirst(a)}`);
 const saysGotTo = (text: string, x: string) => PHRASE_POOLS.probe_got_to.some(v => text.includes(fill(v, x)));
 
 type Row = Record<string, unknown>;
@@ -355,7 +357,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     // The redo holds nothing; t17's other flag gets its own one probe; then the close.
     const r23 = await runTurn('s1', 'It is still forty points, I think.');
     // The session's second wrap-up probe: its lead varies (phrasing.ts), the probe doesn't.
-    expect(PHRASE_POOLS.probe_calc.some(a => new RegExp(`^(?:${anyVariant('wrap_up', lowerFirst(a)).source})$`).test(r23.interviewerText))).toBe(true);
+    expect(PHRASE_POOLS.probe_calc.some(a => new RegExp(`^(?:${anyVariant('wrap_up', `${QUOTE_17_1}${lowerFirst(a)}`).source})$`).test(r23.interviewerText))).toBe(true);
     expect((flags().closeHold as Row).probed).toHaveLength(2);
     at(18.6);
     const r25 = await runTurn('s1', 'Sixteen plus two is the eighteen.');
