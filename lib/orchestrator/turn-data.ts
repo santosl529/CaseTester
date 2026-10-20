@@ -5,7 +5,7 @@
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
-import { decideData, exactResolver, labelMatch, outsideAskScope, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
+import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
 import { findFalseRefusals, groupItemsAsked, coverageOf, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests } from './data-requests';
@@ -246,6 +246,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // model handed over is backed by that exhibit (`exhibitBacked`).
   const coarseOf = new Map<string, string[]>();
   const exhibitBacked = new Map<string, string[]>();
+  // Asks emptied of topic siblings only (no coarse item): refused unchecked, as before E1.
+  const siblingsOnly = new Set<string>();
   const basisCut: Record<string, string[]> = {};
   requests = requests.flatMap(r => {
     // An item the case's own `covers` names for the ask is in its scope (Marisol
@@ -278,12 +280,23 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     if (out.length > 0) scoped.push({ what: r.what, ids: out });
     if (r.explicit && out.length > 0 && kept.itemIds.length === 0) {
       if (BASIS.test(r.what)) { basisEmptied.add(r.what); basisCut[r.what] = [...new Set([...(basisCut[r.what] ?? []), ...out])]; }
-      else coarseOf.set(r.what, [...new Set([...(coarseOf.get(r.what) ?? []), ...out])]);
+      else {
+        // Only an item that holds the asked quantity at a coarser cut is a coarse
+        // item; a change item asked for a split is a sibling, never given for it.
+        // An ask with no coarse item is refused as before, unchecked: the replay
+        // has no verdict for a new check, and no verdict is a named deferral
+        // (controller ruling, 20 Oct, replay r5-44: b31 Sofia t17).
+        const coarse = out.filter(id => !changeForSplit(r.what, ledger.items.find(i => i.id === id)!));
+        if (coarse.length > 0) coarseOf.set(r.what, [...new Set([...(coarseOf.get(r.what) ?? []), ...coarse])]);
+        else siblingsOnly.add(r.what);
+      }
     }
     // A finer ask the case doesn't hold is refused (4b), even beside an exhibit the
-    // model handed over for it — the exhibit is its coarse answer (E1).
+    // model handed over for it — unchecked, as before E1 (a group-level split: the
+    // controller's ruling, 20 Oct); `scope_coarse` logs it when the exhibit goes out.
     if (r.explicit && finerAsks.has(r.what) && kept.itemIds.length > 0 && !kept.itemIds.some(id => ledger.items.some(i => i.id === id))) {
       exhibitBacked.set(r.what, kept.itemIds);
+      siblingsOnly.add(r.what);
       return [kept, { ...r, itemIds: [] }];
     }
     return [out.length === 0 ? r : kept];
@@ -324,6 +337,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
       }
       // What nothing covers of an ask a scope rule emptied is still that ask's finer cut.
       if (cov.rest && coarseOf.has(r.what)) coarseOf.set(cov.rest, coarseOf.get(r.what)!);
+      if (cov.rest && siblingsOnly.has(r.what)) siblingsOnly.add(cov.rest);
       return [
         ...covIds.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label })),
         ...(cov.rest ? [{ ...r, what: cov.rest, itemIds: [] as string[] }] : []),
@@ -467,7 +481,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   }
   const outAlready = alreadyOut.filter(x => decisions.refusals.includes(x.what));
   if (outAlready.length > 0) plan.ctx.checks.act('scope_coarse', 'an ask a scope rule emptied whose coarse items are already out: the finer cut refused alone, unchecked', { alreadyOut: outAlready });
-  const scopeRefused = new Set([...scopeCoarse, ...outAlready].map(x => x.what));
+  const scopeRefused = new Set([...scopeCoarse.map(x => x.what), ...outAlready.map(x => x.what), ...siblingsOnly]);
   if (scopeCoarse.length > 0) {
     const firstAt = (w: string) => requests.findIndex(r => r.what === w);
     decisions.refusals = [...new Set([...decisions.refusals, ...scopeRefused])].sort((a, b) => firstAt(a) - firstAt(b));

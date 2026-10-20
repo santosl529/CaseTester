@@ -148,6 +148,14 @@ const ONE_OFF_ASK = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up
 const RECURRING_VALUE = /\b(?:annual|annually|yearly|a year|per year|each year|a month|per month|monthly)\b/i;
 const ONE_OFF_VALUE = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up|launch costs?)\b/i;
 
+// A change item asked for a split (the clause in outsideAskScope below): a topic
+// sibling of the ask, not the asked quantity at a coarser cut — E1 doesn't give it
+// as a coarse item (controller ruling, 20 Oct, replay r5-44: b31 Sofia t17 "the
+// current COGS split by category" mapped to the two input price changes).
+export function changeForSplit(what: string, item: { label: string }): boolean {
+  return new RegExp(String.raw`\b${SPLIT_WORDS}\b`, 'i').test(what) && CHANGE_LABEL.test(item.label) && !MOVEMENT_ASK.test(what);
+}
+
 export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = []): boolean {
   const ask = what.toLowerCase();
   if (BASIS.test(ask) && !SAYS_BASIS.test(item.value ?? '')) return true;
@@ -163,7 +171,7 @@ export function outsideAskScope(what: string, item: { label: string; value?: str
   // change item ("price change of the other inputs") is in scope only when the
   // ask also asks about movement ("…and how each moved", "the price trend").
   // Batch 18: "the split of COGS by input" released the 37.5% price change in 7 runs.
-  if (new RegExp(String.raw`\b${SPLIT_WORDS}\b`, 'i').test(ask) && CHANGE_LABEL.test(label) && !MOVEMENT_ASK.test(ask)) return true;
+  if (changeForSplit(ask, item)) return true;
   const cut = CUT.exec(ask);
   // "total or per store" asks for either: the uncut figure is in scope.
   if (cut && !/\b(?:total|overall|in total)\s+(?:or|and)\b|\b(?:or|and)\s+(?:in\s+)?total\b/.test(ask)) {

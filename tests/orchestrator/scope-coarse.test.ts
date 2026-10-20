@@ -119,20 +119,23 @@ describe('a coarse item already out, or held back', () => {
     expect(renderDataLines(d, 's')).toEqual(["I don't have one-off cost to stand up the US team under Option A, separate from the $80M annual cost."]);
     expect(acted(p, 'scope_coarse').map(e => e.detail)).toEqual([{ alreadyOut: [{ what: MARISOL_T23_ASK.what, ids: ['option_a'] }] }]);
   });
-  it('every coarse item already said (prof-001, both price changes out) → the refusal alone, no check call', async () => {
-    const p = plan('prof-001', SOFIA_T17_TEXT(), { phase: 'BRAINSTORM', revealed: ['bean_share_of_cogs', 'menu_price_change', 'cogs_pct', 'labor_pct', 'overhead_pct', 'bean_price_change', 'non_bean_input_change'], shown: ['exhibit-a'] });
-    const d = await turnDataChecked(p, turn([{ what: 'the current COGS split by category', itemIds: ['bean_price_change', 'non_bean_input_change'], explicit: true, respond: 'release' }]));
+  // prof-001: "COGS and labor by month" — a cut neither line has; both lines hold the asked quantity whole.
+  const BY_MONTH_BOTH = { what: 'COGS and labor by month', itemIds: ['cogs_pct', 'labor_pct'], explicit: true, respond: 'release' as const };
+  it('every coarse item already said → the refusal alone, no check call', async () => {
+    const p = plan('prof-001', 'Do we have COGS and labor by month?', { revealed: ['cogs_pct', 'labor_pct'] });
+    const d = await turnDataChecked(p, turn([BY_MONTH_BOTH]));
     expect(classify).not.toHaveBeenCalled();
+    expect(d.releases).toEqual([]);
     expect(d.restates).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual(["I don't have the current COGS split by category."]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have COGS and labor by month."]);
   });
   it('one coarse item out, one not: the one not yet out is released, the other not said again', async () => {
-    const p = plan('prof-001', SOFIA_T17_TEXT(), { phase: 'BRAINSTORM', revealed: ['bean_share_of_cogs', 'menu_price_change', 'cogs_pct', 'labor_pct', 'overhead_pct', 'bean_price_change'], shown: ['exhibit-a'] });
-    const d = await turnDataChecked(p, turn([{ what: 'the current COGS split by category', itemIds: ['bean_price_change', 'non_bean_input_change'], explicit: true, respond: 'release' }]));
+    const p = plan('prof-001', 'Do we have COGS and labor by month?', { revealed: ['cogs_pct'] });
+    const d = await turnDataChecked(p, turn([BY_MONTH_BOTH]));
     expect(classify).not.toHaveBeenCalled();
-    expect(d.releases.map(r => r.id)).toEqual(['non_bean_input_change']);
+    expect(d.releases.map(r => r.id)).toEqual(['labor_pct']);
     expect(d.restates).toEqual([]);
-    expect(d.refusals).toEqual(['the current COGS split by category']);
+    expect(d.refusals).toEqual(['COGS and labor by month']);
   });
   // Review Focus 1: a fix that releases more never releases what the case holds back.
   it('Marisol t23 before Exhibit 1 is out: option_a waits on the release order → not released; the ask is checked', async () => {
@@ -168,23 +171,22 @@ describe('a coarse item already out, or held back', () => {
 });
 
 // prof-001, from the replay corpus: batch 31 Sofia e0f7d46c t17 — "the current
-// COGS split by category" mapped to the two price changes, which the split rule
-// drops; refused whole today ("Unfortunately, I don't have the current COGS split
-// by category."). The model's own question was "With those input price figures, …".
-function SOFIA_T17_TEXT() { return SOFIA_T17; }
+// COGS split by category" mapped to the two input price changes, which the
+// split-vs-change rule drops. They are topic siblings of the ask, not the asked
+// quantity at a coarser cut (controller ruling, 20 Oct, replay r5-44): today's
+// line stays — the refusal alone, nothing released, no check (the replay has no
+// verdict for a new check, and no verdict is a named deferral).
 const SOFIA_T17 = "The margin drop is a COGS problem, almost entirely. COGS went from 42% to 58% of revenue — 16 points — and overhead added 2. Labor held flat at 22. That's the full 18-point decline from 24% to 6%, with nothing left unexplained.\n\nAnd the reason it flowed straight to the bottom line is that menu prices haven't moved in two years. So every dollar of input inflation was absorbed rather than passed through. Revenue grew 15%, but that's volume or new stores, not price — so they're selling more units at progressively worse unit margins, which actually makes the problem worse as they scale.\n\nTo pin it down I'd need three things: the current COGS split by category, to see if it's beans specifically or broad-based; waste and spoilage, to separate market inflation from operational leakage; and the store-level distribution of margin, to see if this is all 200 locations or a concentrated subset. The category split is the highest-value ask.";
-describe('prof-001: a finer-cut ask from the corpus', () => {
-  it('b31 Sofia t17: both price-change lines, then "I don\'t have the current COGS split by category."', async () => {
+describe('prof-001: a split ask mapped to change items (topic siblings, not coarse items)', () => {
+  it('b31 Sofia t17: "I don\'t have the current COGS split by category." alone — no release, no check', async () => {
     const p = plan('prof-001', SOFIA_T17, { phase: 'BRAINSTORM', revealed: ['bean_share_of_cogs', 'menu_price_change', 'cogs_pct', 'labor_pct', 'overhead_pct'], shown: ['exhibit-a'] });
     const d = await turnDataChecked(p, turn([{ what: 'the current COGS split by category', itemIds: ['bean_price_change', 'non_bean_input_change'], explicit: true, respond: 'release' }]));
+    expect(acted(p, 'request_scope')).toHaveLength(1);
     expect(classify).not.toHaveBeenCalled();
-    expect(d.releases.map(r => r.id)).toEqual(['bean_price_change', 'non_bean_input_change']);
-    // Each ledger line may be said in one of its checked versions (cases/variants).
-    const lines = renderDataLines(d, 's');
-    expect(lines).toHaveLength(3);
-    expect(lines[0]).toMatch(/coffee bean costs .*40%/i);
-    expect(lines[1]).toMatch(/dairy, packaging, and food.*37\.5%/);
-    expect(lines[2]).toBe("I don't have the current COGS split by category.");
+    expect(d.releases).toEqual([]);
+    expect(d.restates).toEqual([]);
+    expect(acted(p, 'scope_coarse')).toHaveLength(0);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have the current COGS split by category."]);
   });
 });
 
