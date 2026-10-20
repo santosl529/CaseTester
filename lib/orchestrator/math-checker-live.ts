@@ -28,7 +28,7 @@ import { checkPricingClaims, pricingAnswers, pricingValues } from './pricing-che
 import { changeFigures } from './numeric-provenance';
 import { classifyMathTalk } from './math-talk';
 import { inputProbed } from './probe-guard';
-import { frameOfClaim, framedCorrection, claimWindow, readingsOf, rightOnSome, theirFigure, dataFigure, rowFix, onItsOwnRow, figureUnits } from './own-quantity';
+import { frameOfClaim, framedCorrection, claimWindow, readingsOf, rightOnSome, theirFigure, dataFigure, rowFix, onItsOwnRow, figureUnits, figuresIn, unitsAgree } from './own-quantity';
 
 export const MATH_CHECKER_CATEGORY = 'math_checker';
 // Lorenzo, 13 Oct (approved): 30 s — the slowest call in the evaluation took
@@ -137,7 +137,12 @@ export const convertedMarker = (key: string) => `${CONVERTED}${stepOfKey(key)}`;
 // "input:<figure>"; code's lines on it are counted by turn in flags.inputProbes (plan-turn), beside flags.stepProbes.
 export const INPUT_PROBE_CAP = 2;
 export const INPUT_KEY = 'input:';
-export const inputKey = (figure: number) => `${INPUT_KEY}${figure}`;
+// Keyed with the unit she said it in (review I2): "input:21.5%", "input:$1200", "input:350".
+export const inputKey = (figure: number, unit: string) => `${INPUT_KEY}${unit === '$' ? '$' : ''}${figure}${unit === '%' ? '%' : ''}`;
+export function parseInputKey(key: string): { figure: number; unit: string } | null {
+  const m = new RegExp(`^${INPUT_KEY}(\\$?)(-?\\d+(?:\\.\\d+)?)(%?)$`).exec(key);
+  return m ? { figure: Number(m[2]), unit: m[1] ? '$' : m[3] ? '%' : '' } : null;
+}
 
 // A word quantity is a figure for telling restatements apart: "roughly half",
 // "about half of the damage", "half" are one claim (they carry no number, or
@@ -929,68 +934,79 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     });
   }
   // E7: each flagged claim's misread input — its own figure when that is a figure of the data (dataFigure), else a
-  // known input's figure carried in its span, as written or as a fraction ("1 / 0.215" → 21.5), stated no later than
-  // the claim, else the input of an earlier claim with the same figure in the same unit (a derived figure restated:
-  // "$2,400" again) or whose figure it carries. Never a claim that uses the figure for its own row (onItsOwnRow: after the fix, "Starter: 1 / 0.40").
+  // known input's figure carried in its span in its unit, or as a fraction ("1 / 0.215" → 21.5%), stated no later than
+  // the claim, else the input of an earlier claim it restates (same head figure, same unit: "$2,400" again) or whose
+  // figure it carries in that figure's unit ("Pro at 2.0x" on her "ratio 2.0"; the case's "2.0%" is another figure —
+  // review I3). Never a claim that uses the figure for its own row (onItsOwnRow: after the fix, "Starter: 1 / 0.40").
+  // An input is keyed by its figure and unit ("input:21.5%", "input:$1200").
   const ordered = [...flaggedSoFar].sort((a, b) => a.n - b.n);
-  const inputOf = new Map<string, number>();
+  const inputOf = new Map<string, string>();
   const ownsInput = new Set<string>();
-  const inputSince = new Map<number, number>();   // an input's figure → the message it was first stated in
-  const inputUnit = new Map<number, string>();    // …and the unit she said it in ("21.5%"): a claim built on it may not write it ("1 / 0.215")
-  const headOfClaim = (c: VettedClaim) => { const h = theirFigure(c); return h === undefined || caseNumbers.some(x => same(x, h)) ? null : { value: h, unit: figureUnits(c.candidateValue, h)[0] ?? '' }; };
+  const inputSince = new Map<string, number>();   // an input → the message it was first stated in
+  const dataTexts = [p.caseData.prompt, ...p.caseData.dataLedger.filter(d => p.revealedIds.includes(d.id)).map(d => d.value)];
+  const isData = (x: { value: number; unit: string }) => dataTexts.some(t => figuresIn(t).some(y => same(y.value, x.value) && unitsAgree(y.unit, x.unit)));
+  // A claim's own figures as written in its value, less the input code computes from and a bare one-digit count ("3 steps").
+  const ownAt = (c: VettedClaim) => { const input = boundInput(c); return figuresIn(c.candidateValue).filter(x => (input === null || !same(x.value, input)) && !(x.unit === '' && /^\d$/.test(x.raw))); };
+  const headAt = (c: VettedClaim) => { const h = ownAt(c)[0]; return h === undefined || isData(h) ? null : h; };
   for (const f of ordered) {
     const own = dataFigure(f.c, vetCtx);
     if (own !== null) {
       const unit = figureUnits(f.c.candidateValue, own)[0] ?? figureUnits(f.c.span, own)[0] ?? '';
       if (onItsOwnRow(own, f.c, vetCtx, unit)) continue;
-      inputOf.set(f.id, own);
+      const k = inputKey(own, unit);
+      inputOf.set(f.id, k);
       ownsInput.add(f.id);
-      if (![...inputSince.keys()].some(x => same(x, own))) { inputSince.set(own, f.n); inputUnit.set(own, unit); }
+      if (!inputSince.has(k)) inputSince.set(k, f.n);
       continue;
     }
-    const carried = numbersOf(normalizeNumberWords(`${f.c.span} ${f.c.candidateValue}`)).flatMap(x => (x > 0 && x < 1 ? [x, Math.round(x * 1e6) / 1e4] : [x]));
-    const head = headOfClaim(f.c);
+    const carried = figuresIn(`${f.c.span} ${f.c.candidateValue}`).flatMap(x => (x.value > 0 && x.value < 1 ? [x, { ...x, value: Math.round(x.value * 1e6) / 1e4, unit: '%' }] : [x]));
+    const head = headAt(f.c);
     const restated = head && ordered.find(g => g.n <= f.n && g.id !== f.id && inputOf.has(g.id) && !ownsInput.has(g.id)
-      && (() => { const h = headOfClaim(g.c); return h !== null && same(h.value, head.value) && h.unit === head.unit; })());
-    // …or a figure of an earlier claim on an input, not the data's: "$30 × 56 months ≈ $1,675 … ≈ 5.6x" is built on
-    // her "4.65 years (~56 months)", itself on 21.5 (rootOf's link, one input down).
+      && (() => { const h = headAt(g.c); return h !== null && same(h.value, head.value) && unitsAgree(h.unit, head.unit); })());
+    // …or a figure of an earlier claim on an input, not one of the data's in its unit: "$30 × 56 months ≈ $1,675 … ≈
+    // 5.6x" is built on her "4.65 years (~56 months)", itself on 21.5 (rootOf's link, one input down).
     const via = ordered.find(g => g.n <= f.n && g.id !== f.id && inputOf.has(g.id)
-      && idFigsOf(g.c).some(x => !caseNumbers.some(y => same(x, y)) && carried.some(y => same(y, x))));
-    const F = [...inputSince].find(([x, since]) => since <= f.n && carried.some(y => same(y, x)))?.[0]
+      && ownAt(g.c).some(x => !isData(x) && carried.some(y => same(y.value, x.value) && unitsAgree(y.unit, x.unit))));
+    const k = [...inputSince].find(([key, since]) => { const i = parseInputKey(key)!; return since <= f.n && carried.some(y => same(y.value, i.figure) && y.unit === i.unit); })?.[0]
       ?? (restated ? inputOf.get(restated.id) : undefined) ?? (via ? inputOf.get(via.id) : undefined);
-    if (F !== undefined && !onItsOwnRow(F, f.c, vetCtx, inputUnit.get(F))) inputOf.set(f.id, F);
+    if (k !== undefined && !onItsOwnRow(parseInputKey(k)!.figure, f.c, vetCtx, parseInputKey(k)!.unit)) inputOf.set(f.id, k);
   }
-  const inputKeyOf = (e: { id: string }) => { const F = inputOf.get(e.id); return F === undefined ? null : inputKey(F); };
+  const inputKeyOf = (e: { id: string }) => inputOf.get(e.id) ?? null;
   // The interviewer turns that probed an input: code's lines on it (flags.inputProbes), and every turn since it was
-  // first stated whose own words ask about it — its figure doubted, its working asked for, or put back to them with a
+  // first stated whose own words ask about it — its figure in its unit doubted, its working asked for, or put back to them with a
   // question ("you used 21.5% for Starter and 40% for Pro. Walk me through where each of those came from", Marisol t6)
   // — or about a figure of a claim built on it (probesOf; a case figure there names the data, not the claim).
-  const inputTurns = (F: number): Set<number> => {
-    const since = inputSince.get(F) ?? Infinity;
-    const chain = [...new Set(ordered.filter(f => inputOf.get(f.id) === F).flatMap(f => idFigsOf(f.c)))].filter(x => !same(x, F) && !caseNumbers.some(y => same(x, y)));
-    const turns = new Set(p.inputProbes?.[inputKey(F)] ?? []);
+  const inputTurns = (key: string): Set<number> => {
+    const input = parseInputKey(key)!;
+    const since = inputSince.get(key) ?? Infinity;
+    const onIt = ordered.filter(f => inputOf.get(f.id) === key);
+    const chain = [...new Set(onIt.flatMap(f => idFigsOf(f.c)))].filter(x => !same(x, input.figure) && !caseNumbers.some(y => same(x, y)));
+    // …and its claims' own figures in their units, data-coincident ones too ("2.0x" is not the case's "2.0%").
+    const chainAt = onIt.flatMap(f => ownAt(f.c)).filter(x => !isData(x)).map(x => ({ figure: x.value, unit: x.unit }));
+    const turns = new Set(p.inputProbes?.[key] ?? []);
     for (const t of p.turnRows) {
       if (t.role !== 'interviewer' || t.turnIndex <= since || turns.has(t.turnIndex)) continue;
       const own = interviewerOwnWords(t.text, ledgerValues);
       const all = sentencesOf(own);
       const asks = /\?|\b(?:walk|talk|take) me through\b|\bexplain\b|\btell me how\b|\bshow me how\b/i.test(own);
-      const onF = all.some((x, i) => inputProbed(x, [F], p.candidateFigures, all[i - 1], asks) !== undefined);
+      const onF = all.some((x, i) => inputProbed(x, [input, ...chainAt], p.candidateFigures, all[i - 1], asks) !== undefined);
       if (onF || probesOf(chain, [own], p.candidateFigures) > 0) turns.add(t.turnIndex);
     }
     return turns;
   };
   // The input's correction: the row fix, read on the claim or — the first that has one — on another claim of the input,
-  // its own claims first. It corrects every input whose figure it states (a swap: one line for both).
+  // its own claims first. It corrects every input whose figure it states in its unit (a swap: one line for both).
   const inputCorrection = (e: { id: string; n: number; c: VettedClaim }, attempt: number): CheckerSelection | null => {
-    const F = inputOf.get(e.id);
-    if (F === undefined) return null;
-    const others = ordered.filter(f => f.id !== e.id && inputOf.get(f.id) === F);
+    const key = inputOf.get(e.id);
+    if (key === undefined) return null;
+    const input = parseInputKey(key)!;
+    const others = ordered.filter(f => f.id !== e.id && inputOf.get(f.id) === key);
     const claims = [...(ownsInput.has(e.id) ? [e] : []), ...others.filter(f => ownsInput.has(f.id)), ...(ownsInput.has(e.id) ? [] : [e]), ...others.filter(f => !ownsInput.has(f.id))];
     for (const x of claims) {
-      const fix = rowFix(F, x.c, vetCtx, inputUnit.get(F));
+      const fix = rowFix(input.figure, x.c, vetCtx, input.unit);
       if (!fix) continue;
-      const inputs = [...new Set([inputKey(F), ...[...inputSince.keys()].filter(k => fix.pair.some(y => same(k, y))).map(inputKey)])];
-      return { id: e.id, candidateTurnIndex: e.n, key: inputKey(F), attempt, action: 'correct', line: fix.line, derived: [], claim: e.c, framing: fix.note, inputs };
+      const inputs = [...new Set([key, ...[...inputSince.keys()].filter(k => { const i = parseInputKey(k)!; return i.unit === input.unit && fix.pair.some(y => same(i.figure, y)); })])];
+      return { id: e.id, candidateTurnIndex: e.n, key, attempt, action: 'correct', line: fix.line, derived: [], claim: e.c, framing: fix.note, inputs };
     }
     return null;
   };
@@ -1127,7 +1143,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     // E7: two probes on the claim's input already — the next line on it is the input's correction, else the report.
     const im = inputKeyOf(entry);
     if (im && closedNow.includes(im)) { decisions.push({ ...decision(id, n, c, 'unresolved', `built on a closed input (${im})`, undefined, key), root: im }); handled.add(id); continue; }
-    if (im && inputTurns(inputOf.get(id)!).size >= INPUT_PROBE_CAP) {
+    if (im && inputTurns(im).size >= INPUT_PROBE_CAP) {
       const fixed = inputCorrection(entry, attempt);
       if (fixed && spentLine(fixed)) continue;
       if (fixed) { selected = fixed; continue; }

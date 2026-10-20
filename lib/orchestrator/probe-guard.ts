@@ -1,6 +1,7 @@
 import { normalizeNumberWords } from '@/lib/number-words';
 import type { VerifiedFigure } from './recompute';
 import { classifyMathTalk } from './math-talk';
+import { figuresIn, unitsAgree } from './own-quantity';
 
 // Challenges to the candidate's math, decided by what code verified
 // (docs/interviewer-behavior.md Rule 2; round-3 fixes, 11 Oct 2026). Before a
@@ -28,7 +29,7 @@ export type ChallengeContext = {
   verified: VerifiedFigure[];        // this candidate turn's verified figures, then the previous turn's
   flagged?: number[];                // figures a check flagged as wrong this turn
   closed?: number[];                 // figures of a flag past Rule 14 (corrected, or left for the report): never asked about again
-  closedInputs?: number[];           // misread inputs corrected or left for the report (E7): never probed again — the data's own figures, quoted freely
+  closedInputs?: InputFigure[];      // misread inputs corrected or left for the report (E7), with their units: never probed again — the data's own figures, quoted freely
   flaggedThisTurn: boolean;          // any flag fired this turn: an unattributed doubt may be about it
   candidateFigures?: number[];       // the figures the candidate derived (math-talk.ts candidateFiguresOf)
   alreadyProbed: Set<string>;        // step ids / "fig:<n>" keys given an explain probe earlier
@@ -38,13 +39,19 @@ export type ChallengeContext = {
 // through where each came from" (Marisol t6), "Where does 40% come from, and which plan's figure is it?" (her t12, the
 // model's own): a probe on a misread input, though it names no working.
 export const PUTS_INPUT_BACK = /\byou(?:'ve| have)?\s+(?:used|said|took|take|had|put|got|read|picked|chose|assumed|applied|mentioned|plugged in)\b|\bwhere\b[^?]*\bcomes? from\b|\bwhich (?:plan|row|cohort|line|column|segment|group)\b|\bhow did you (?:get|arrive|land|come)\b/i;
-// A sentence that probes one of the inputs: its working asked for, doubted, or put back to them in a question
-// (`asks`: the turn asks something). Returns the input, or undefined.
-export function inputProbed(sentence: string, inputs: number[], candidateFigures: number[], previous?: string, asks = sentence.trim().endsWith('?')): number | undefined {
-  if (inputs.length === 0) return undefined;
-  const talk = classifyMathTalk(sentence, [...candidateFigures, ...inputs], previous);
+// A figure bound to another quantity named right after it ("a 40% margin", "$40 price"): not the input (review I2).
+const OTHER_QUANTITY = /^\s*(?:(?:a|per)\s+month\s+)?(?:gross\s+|net\s+|monthly\s+|annual\s+)?(?:margins?|prices?|revenues?|costs?|ltv|cac|lifetimes?|ratios?|payback|profits?|growth|discounts?|increases?|decreases?|rises?|drops?|uplift|conversion|share of|months?|years?|weeks?|days?|customers?|sign-?ups?|stores?|units?)\b/i;
+// A sentence that probes one of the inputs: its figure, in the input's unit and not bound to another quantity, with its
+// working asked for, doubted, or put back to them in a question (`asks`: the turn asks something). Returns the figure.
+export type InputFigure = { figure: number; unit: string };
+export function inputProbed(sentence: string, inputs: InputFigure[], candidateFigures: number[], previous?: string, asks = sentence.trim().endsWith('?')): number | undefined {
+  // In its unit, or bare ("which of those two progressions, 2.0, 5.9, 11.4, 21.5 and 5, 13, 24, 40, belongs to which
+  // plan", b35q Marisol t20, the model's own): never in another unit ("$40" is the price, not the 40%).
+  const named = figuresIn(sentence).filter(x => !OTHER_QUANTITY.test(x.rest) && inputs.some(i => same(x.value, i.figure) && (unitsAgree(x.unit, i.unit) || x.unit === '')));
+  if (named.length === 0) return undefined;
+  const talk = classifyMathTalk(sentence, [...candidateFigures, ...named.map(x => x.value)], previous);
   if (talk.kind === 'none' && !(asks && PUTS_INPUT_BACK.test(sentence))) return undefined;
-  return talk.figures.find(f => inputs.some(x => same(f, x)));
+  return talk.figures.find(f => named.some(x => same(f, x.value)));
 }
 
 function sentencesOf(text: string): string[] {

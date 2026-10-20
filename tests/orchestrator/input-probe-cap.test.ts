@@ -32,6 +32,7 @@ type Fixture = {
   stepProbes: Record<string, number>; inputProbes: Record<string, number[]>;
 };
 const F = EVIDENCE['b35q-marisol-087451cb-t11'] as unknown as Fixture;
+const T23_5 = (EVIDENCE['b35q-marisol-087451cb-23:5'] as unknown as { claim: VettedClaim }).claim;
 const claimOf = (id: string): VettedClaim => {
   const [n, i] = id.split(':').map(Number);
   const v = F.rows.find(r => r.subtype === 'verdict' && (r.payloadJsonb as VerdictPayload).candidateTurnIndex === n)!.payloadJsonb as VerdictPayload;
@@ -89,32 +90,37 @@ describe('Quillpath Marisol 087451cb at t11: the third probe on her input is its
   it('the caps are two', () => { expect(INPUT_PROBE_CAP).toBe(2); expect(STEP_PROBE_CAP).toBe(2); });
   it('21.5 probed at t6 (the model: "you used 21.5% for Starter and 40% for Pro") and t8 (code: "4.65", built on it): t12 says the row fix, not "How did you arrive at 21.5%?"', () => {
     const p = planAt();
-    expect(p.selected).toMatchObject({ id: '7:0', action: 'correct', key: 'input:21.5', line: ROW_FIX });
-    expect(p.selected?.inputs).toEqual(['input:21.5', 'input:40']);
+    expect(p.selected).toMatchObject({ id: '7:0', action: 'correct', key: 'input:21.5%', line: ROW_FIX });
+    expect(p.selected?.inputs).toEqual(['input:21.5%', 'input:40%']);
     expect(p.decisions.find(d => d.id === '7:0')).toMatchObject({ outcome: 'correct', line: ROW_FIX });
     expect(p.decisions.filter(d => d.line && probesInput(d.line))).toEqual([]);
   });
   it('40 (probed at t6 and t10, "2.5") is corrected by the same line: its claims ride on it, none is probed a third time (t18 "Show me how you got to 40%" never comes)', () => {
     const p = planAt();
-    expect(p.selected?.riders?.map(r => r.id).sort()).toEqual(['7:1', '7:3', '9:0', '9:1']);
-    for (const id of ['7:1', '7:3', '9:0', '9:1']) expect(p.decisions.find(d => d.id === id)).toMatchObject({ outcome: 'derived' });
+    // 9:2 "Pro at 2.0x is the one in trouble." rides too: its 2.0x is 7:3's "ratio 2.0" (on 1 / 0.40), not the case's "2.0%" (review I3).
+    expect(p.selected?.riders?.map(r => r.id).sort()).toEqual(['7:1', '7:3', '9:0', '9:1', '9:2']);
+    for (const id of ['7:1', '7:3', '9:0', '9:1', '9:2']) expect(p.decisions.find(d => d.id === id)).toMatchObject({ outcome: 'derived' });
     expect(p.waiting.map(w => w.id)).not.toContain('7:1');
   });
   it("the model's own probe counts: with t6 a plain question, 21.5 has had one probe (t8) — the probe goes out, booked to the input", () => {
     const turnRows = F.turnRows.map(t => (t.turnIndex === 6 ? { ...t, text: 'Mm-hm. What does that tell you about the two plans?' } : t));
     const p = planAt({ turnRows });
-    expect(p.selected).toMatchObject({ id: '7:0', action: 'probe', input: 'input:21.5' });
+    expect(p.selected).toMatchObject({ id: '7:0', action: 'probe', input: 'input:21.5%' });
+  });
+  it('a probe on another figure in another unit is not counted: t6 about "21.5 months" leaves 21.5% with one probe (review I2)', () => {
+    const turnRows = F.turnRows.map(t => (t.turnIndex === 6 ? { ...t, text: 'Mm-hm. How did you get to 21.5 months?' } : t));
+    expect(planAt({ turnRows }).selected).toMatchObject({ id: '7:0', action: 'probe', input: 'input:21.5%' });
   });
   it("code's own line counts when it names no figure: t8 said bare, booked in flags.inputProbes", () => {
     const turnRows = F.turnRows.map(t => (t.turnIndex === 8 ? { ...t, text: 'Right. Walk me through that calculation.' } : t));
-    expect(planAt({ turnRows }).selected).toMatchObject({ action: 'correct', key: 'input:21.5', line: ROW_FIX });
+    expect(planAt({ turnRows }).selected).toMatchObject({ action: 'correct', key: 'input:21.5%', line: ROW_FIX });
     expect(planAt({ turnRows, inputProbes: {} }).selected).toMatchObject({ action: 'probe' });
   });
   it('with no true line possible, the flag goes to the report — and no third probe on 21.5% or 40% is said', () => {
     const p = planAt({ caseData: noExhibits as never });
     expect(p.selected === null || !probesInput(p.selected.line)).toBe(true);
-    expect(p.decisions.find(d => d.id === '7:0')).toMatchObject({ outcome: 'unresolved', reason: expect.stringMatching(/two probes on its input \(input:21\.5\) already.*left for the report/) });
-    expect(p.closedNow).toEqual(expect.arrayContaining(['checker:21.5%', 'input:21.5', 'input:40']));
+    expect(p.decisions.find(d => d.id === '7:0')).toMatchObject({ outcome: 'unresolved', reason: expect.stringMatching(/two probes on its input \(input:21\.5%\) already.*left for the report/) });
+    expect(p.closedNow).toEqual(expect.arrayContaining(['checker:21.5%', 'input:21.5%', 'input:40%']));
     for (const id of ['7:1', '7:3', '9:0', '9:1']) expect(p.decisions.find(d => d.id === id)).toMatchObject({ outcome: 'unresolved' });
   });
 });
@@ -145,38 +151,89 @@ describe('Review Focus 6: her own claim corrected at its second attempt is the r
 });
 
 describe('after the row fix: a claim on the input said before it was covered; one said after hears it once more, then the report', () => {
-  const corrected = { 'input:21.5': { line: ROW_FIX, at: 11 }, 'input:40': { line: ROW_FIX, at: 11 } };
+  const corrected = { 'input:21.5%': { line: ROW_FIX, at: 11 }, 'input:40%': { line: ROW_FIX, at: 11 } };
   const after = (over: Partial<CheckerPlanInput> = {}) => planAt({
-    candidateTurnIndex: 13, handled: [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3'], closed: ['input:21.5', 'input:40'], corrected, said: { [ROW_FIX.toLowerCase().replace(/\.$/, '')]: 1 },
+    candidateTurnIndex: 13, handled: [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3'], closed: ['input:21.5%', 'input:40%'], corrected, said: { [ROW_FIX.toLowerCase().replace(/\.$/, '')]: 1 },
     turnRows: [...F.turnRows, { turnIndex: 11, role: 'candidate', text: F.candidateText }, { turnIndex: 12, role: 'interviewer', text: `Got it. ${ROW_FIX} Where does that leave your analysis?` }],
     candidateText: 'Got it.', ...over,
   });
-  it('9:0 and 9:1 (t9, before the fix was heard at t12): covered by it, for the report', () => {
+  it('9:0, 9:1 and 9:2 "2.0x" (t9, before the fix was heard at t12): covered by it, for the report — no t14 "What steps got you to 2.0x?"', () => {
     const p = after();
-    for (const id of ['9:0', '9:1']) expect(p.decisions.find(d => d.id === id)).toMatchObject({ outcome: 'unresolved', reason: expect.stringMatching(/said before its correction, which covered it/) });
+    for (const id of ['9:0', '9:1', '9:2']) expect(p.decisions.find(d => d.id === id)).toMatchObject({ outcome: 'unresolved', reason: expect.stringMatching(/said before its correction, which covered it/) });
     expect(p.selected === null || !probesInput(p.selected.line)).toBe(true);
   });
   it('the same claims said after the fix: its line once more (ruling 1), never a probe', () => {
-    const p = after({ corrected: { 'input:21.5': { line: ROW_FIX, at: 8 }, 'input:40': { line: ROW_FIX, at: 8 } } });
+    const p = after({ corrected: { 'input:21.5%': { line: ROW_FIX, at: 8 }, 'input:40%': { line: ROW_FIX, at: 8 } } });
     expect(p.selected).toMatchObject({ action: 'restate', line: ROW_FIX });
   });
 });
 
 describe("a claim on no misread input: today's behavior", () => {
-  // Her 2.0x (9:2, Pro LTV/CAC — a ratio, no figure of the data) after a probe: Rule 14's correction, as before (its
-  // own-quantity framing: no quantity stated with it, wrong on every reading — code's figure without "not X").
-  it('9:2 "2.0x" after a probe: its own correction at attempt 2', () => {
-    const p = planAt({ handled: [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3', '9:0', '9:1'], attempts: { ...F.attempts, 'pro_ratio@2': 1 }, candidateTurnIndex: 13 });
-    expect(p.selected).toMatchObject({ id: '9:2', action: 'correct', key: 'pro_ratio@2', line: 'Pro LTV/CAC is about 3.3 times.' });
+  // Her t23 "Pro's margin is only 2.7x Starter's" (23:5, a margin ratio — no figure of the data, nothing of 21.5 or 40),
+  // placed beside her t9 claims: after one probe, Rule 14's second attempt as before (no correction code can write, no
+  // pointer — the report), with no input booked or capped.
+  it('"2.7x" after a probe: attempt 2, as today', () => {
+    const rows = F.rows.map(r => (r.subtype === 'verdict' && (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 9
+      ? { ...r, payloadJsonb: { ...(r.payloadJsonb as VerdictPayload), claims: [...(r.payloadJsonb as VerdictPayload).claims, T23_5] } } : r));
+    const p = planAt({ rows, handled: [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3', '9:0', '9:1', '9:2'], attempts: { ...F.attempts, 'checker:2.7x': 1 }, candidateTurnIndex: 13 });
+    expect(p.selected).toBeNull();
+    expect(p.decisions.find(d => d.id === '9:3')).toMatchObject({ outcome: 'unresolved', key: 'checker:2.7x', reason: 'attempt 2: no correction code can write, no pointer — left for the report' });
+  });
+  it('…and with no probe yet: its probe, not booked to any input', () => {
+    const rows = F.rows.map(r => (r.subtype === 'verdict' && (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 9
+      ? { ...r, payloadJsonb: { ...(r.payloadJsonb as VerdictPayload), claims: [...(r.payloadJsonb as VerdictPayload).claims, T23_5] } } : r));
+    const p = planAt({ rows, handled: [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3', '9:0', '9:1', '9:2'], candidateTurnIndex: 13 });
+    expect(p.selected).toMatchObject({ id: '9:3', action: 'probe' });
     expect(p.selected?.input).toBeUndefined();
   });
 });
 
+describe('review fix round 1', () => {
+  // C1 (FR-4): Pro's cohort out, Starter's not — the Starter price "$40 a month" is no "40%".
+  it('C1: Starter\'s 40% not out (only the "$40" price is) — no row fix naming it', () => {
+    expect(rowFix(21.5, claimOf('7:0'), ctxOf(['pro_cohort', 'plan_prices_costs', 'plan_cac', 'ltv_definition']))).toBeNull();
+    // …and in the planner: the claim goes to the report, never "…and 40% for Starter".
+    const p = planAt({ revealedIds: ['pro_cohort', 'plan_prices_costs', 'plan_cac', 'ltv_definition'] });
+    expect(p.decisions.map(d => d.line ?? '')).not.toContainEqual(expect.stringMatching(/40% for Starter/));
+  });
+  // I1: a computed Starter LTV that equals Pro's CAC is no misread of the CAC row; its own correction stands.
+  const LTV = { ...claimOf('7:2'), span: "So Starter's LTV is 40 months × $30 = $1,200", candidateValue: '$1,200', quantity: 'Starter standalone LTV at $40',
+    codeQuantity: { kind: 'step' as const, stepId: 'starter_ltv', price: null, target: null }, correctionLine: 'Starter standalone lifetime value at $40 is about $600, not $1,200.', correctionFigure: '600' };
+  it('I1: "40 months × $30 = $1,200" (a result) is no figure of the data', () => {
+    expect(dataFigure(LTV, ctxOf())).toBeNull();
+    // …even when it names the data's own words for $1,200: computed, not read.
+    const cac = { ...LTV, span: "Starter's cost to acquire a customer = $360,000 / 300 = $1,200", quantity: 'Starter cost to acquire a customer', codeQuantity: { kind: 'none' as const, stepId: null, price: null, target: null } };
+    expect(dataFigure(cac, ctxOf())).toBeNull();
+    expect(dataFigure({ ...cac, span: "Starter's cost to acquire a customer is $1,200" }, ctxOf())).toBe(1200);
+  });
+  it('I1: "Starter\'s LTV is $1,200" (read, but the data\'s $1,200 is a cost to acquire) is none either', () => {
+    expect(dataFigure({ ...LTV, span: "Starter's LTV is $1,200" }, ctxOf())).toBeNull();
+  });
+  it('I1: in the planner its true correction is said, not the CAC row fix', () => {
+    const rows = F.rows.map(r => (r.subtype === 'verdict' && (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 9
+      ? { ...r, payloadJsonb: { ...(r.payloadJsonb as VerdictPayload), claims: [...(r.payloadJsonb as VerdictPayload).claims, { ...LTV, span: "Starter's LTV is $1,200" }] } } : r));
+    const p = planAt({ rows, handled: [...F.mathChecker.handled, '7:0', '7:1', '7:2', '7:3', '9:0', '9:1', '9:2'], attempts: { ...F.attempts, 'starter_ltv@1200': 1 }, candidateTurnIndex: 13 });
+    expect(p.selected).toMatchObject({ id: '9:3', action: 'correct', line: LTV.correctionLine });
+    expect(p.selected?.line).not.toMatch(/cost to acquire/);
+  });
+  // I2: probes on another 40 stay spoken once input:40% is closed.
+  const ctx = { verified: [], alreadyProbed: new Set<string>(), flaggedThisTurn: false, candidateFigures: [40], closedInputs: [{ figure: 21.5, unit: '%' }, { figure: 40, unit: '%' }] };
+  it.each([
+    'How did you get to 40 months of lifetime?',
+    'Walk me through how you got a 40% margin on Starter.',
+    'You said $40 — is that price or margin?',
+  ])('I2: "%s" is not a probe on the closed 40%%', sentence => {
+    const v = challengeVerdict(sentence, ctx);
+    expect(v && 'test' in v ? v.test : null).not.toBe('closed_to_report');
+  });
+});
+
 describe("the model's own probe on a closed input is withheld (probe-guard.ts); a quote of the data is not", () => {
-  const ctx = { verified: [], alreadyProbed: new Set<string>(), flaggedThisTurn: false, candidateFigures: [4.65, 2.5], closedInputs: [21.5, 40] };
+  const ctx = { verified: [], alreadyProbed: new Set<string>(), flaggedThisTurn: false, candidateFigures: [4.65, 2.5], closedInputs: [{ figure: 21.5, unit: '%' }, { figure: 40, unit: '%' }] };
   it.each([
     'Show me how you got to 40%.',                                             // her t18 (code's probe, recorded as the model's say)
     "Where does 40% come from, and which plan's figure is it?",                // her t12, the model's own question
+    'Look back at the cohort data: which of those two progressions, 2.0, 5.9, 11.4, 21.5 and 5, 13, 24, 40, belongs to which plan, and what does that do to your Pro and Starter comparison?', // her t20, the model's own (bare figures)
     'How did you arrive at 21.5%?',
   ])('"%s" → closed_to_report', s => {
     expect(challengeVerdict(s, ctx)).toMatchObject({ test: 'closed_to_report' });
@@ -202,10 +259,10 @@ describe('the input count is booked by the turn the line is said on, and undone 
     plan.state.requiredExhibit = undefined;
     plan.state.analysisOwed = false;
     plan.state.owedStage = undefined;
-    plan.state.checkerLine = { id: '5:1', key: 'starter_churn@21.5', action: 'probe', line: LINE, undo: { attempt: undefined, step: 'starter_churn', input: { key: 'input:21.5', turn: 8 }, mathChecker: { handled: [] } } };
+    plan.state.checkerLine = { id: '5:1', key: 'starter_churn@21.5', action: 'probe', line: LINE, undo: { attempt: undefined, step: 'starter_churn', input: { key: 'input:21.5%', turn: 8 }, mathChecker: { handled: [] } } };
     plan.ctx.flags.mathChecker = { handled: ['5:1'] };
     plan.ctx.flags.stepProbes = { starter_churn: 1 };
-    plan.ctx.flags.inputProbes = { 'input:21.5': [8] };
+    plan.ctx.flags.inputProbes = { 'input:21.5%': [8] };
     plan.state.recomputeAttempts['starter_churn@21.5'] = 1;
     plan.state.flaggedFigures = [...plan.state.flaggedFigures, 4.65];
     return plan;
@@ -214,13 +271,13 @@ describe('the input count is booked by the turn the line is said on, and undone 
     const plan = planWith('satisfied');
     const s = await settleTurn(plan, outcome(T({ say: 'Right.', question: LINE })));
     expect(s.spokenText).toContain(LINE);
-    expect(plan.ctx.flags.inputProbes).toEqual({ 'input:21.5': [8] });
+    expect(plan.ctx.flags.inputProbes).toEqual({ 'input:21.5%': [8] });
   });
   it('another of code\'s lines takes the question: the booking is undone', async () => {
     const plan = planWith('awaiting');
     const s = await settleTurn(plan, outcome(T({ say: 'Right.', question: 'What drove it?' })));
     expect(s.spokenText).not.toContain(LINE);
-    expect(plan.ctx.flags.inputProbes).toEqual({ 'input:21.5': [] });
+    expect(plan.ctx.flags.inputProbes).toEqual({ 'input:21.5%': [] });
     expect((plan.ctx.flags.stepProbes as Record<string, number>).starter_churn).toBe(0);
   });
 });

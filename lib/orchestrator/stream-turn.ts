@@ -45,7 +45,7 @@ export type GateContext = {
   flaggedThisTurn: boolean;
   flagged?: number[];              // figures a check flagged wrong this turn
   closed?: number[];               // figures of a checker flag past Rule 14: not asked about again
-  closedInputs?: number[];         // misread inputs corrected or left for the report (E7): not probed again
+  closedInputs?: { figure: number; unit: string }[];   // misread inputs corrected or left for the report (E7): not probed again
   converted?: number[];            // figures a conversion closed (own-quantity.ts): never negated ("not 38")
   candidateFigures?: number[];     // the figures the candidate derived (math-talk.ts)
   openItems: OpenRequestItem[];
