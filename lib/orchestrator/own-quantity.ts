@@ -49,7 +49,9 @@ const firstUnit = (st: Step | undefined) => (Array.isArray(st?.unit) ? st?.unit[
 const inRevenuePoints = (st: Step | undefined) => /\b(?:points|share|percent) of revenue\b/i.test(st?.quantity ?? '');
 
 // Revenue (or margin) units right after a figure: code's unit on a revenue-points step.
-const REVENUE_UNITS = /^\s*(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\s*(?:of\s+(?:total\s+)?(?:revenue|sales)|(?:of|off)\s+(?:the\s+)?margin)\b|^\s*(?:revenue|margin)\s+points?\b/i;
+// Points of revenue growth are another base (controller ruling, Task 27 re-review, 20 Oct).
+const REVENUE_CHANGE = String.raw`(?!\s+(?:growth|increases?|changes?|rises?|jumps?|declines?|drops?|falls?)\b)`;
+const REVENUE_UNITS = new RegExp(String.raw`^\s*(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\s*(?:of\s+(?:total\s+)?(?:revenue|sales)\b${REVENUE_CHANGE}|(?:of|off)\s+(?:the\s+)?margin\b)|^\s*(?:revenue|margin)\s+points?\b`, 'i');
 // A unit right after a figure, and points in particular.
 const UNIT_AT = /^\s*(?:-|\s)?(?:%|percent(?:age)?\b|points?\b|pp\b|pts\b)/i;
 const POINTS_AT = /^\s*(?:-|\s)?(?:percentage\s+)?(?:points?|pp|pts)\b/i;
@@ -62,7 +64,8 @@ const nPointOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:ag
 // base (longest alias first), at most one noun that is still the base's level,
 // then the phrase's end. Anything else is no base established.
 const BASE_BEFORE = `(?:(?:the|old|current|today['’]s|total|prior|our|its|two\\s+years\\s+ago['’]s)\\s+){0,3}`;
-const BASE_NOUN = '(?:\\s+(?:line|base|spend|costs|terms|share|bill))?';
+// No "share": "the COGS share" is COGS as a share of revenue, and points of it are revenue points (Task 27 re-review, 20 Oct).
+const BASE_NOUN = '(?:\\s+(?:line|base|spend|costs|terms|bill))?';
 const PHRASE_END = `(?=\\s*(?:[.;:!?)]|$)|\\s*[—–]|\\s+-\\s|,(?!\\s*(?:which|that)\\b))`;
 const strictBaseOf = (names: string) => {
   const alt = names.split('|').sort((a, b) => b.length - a.length).join('|');
@@ -70,12 +73,18 @@ const strictBaseOf = (names: string) => {
 };
 
 // What follows each place their figure is said in the window: the unit and what it is "of".
-function tailsOf(window: string, figure: number): { tail: string; before: string }[] {
-  const out: { tail: string; before: string }[] = [];
+// `sentence`: the rest of its sentence, the figure left out — up to the next capitalised
+// sentence, so an STT run-on ("of cogs. like out of the 58") stays one sentence.
+type Tail = { tail: string; before: string; sentence: string };
+function tailsOf(window: string, figure: number): Tail[] {
+  const out: Tail[] = [];
+  const breaks = [...window.matchAll(/[.!?](?=\s+[A-Z])|\n/g)].map(b => b.index!);
   for (const m of window.matchAll(/\d[\d,]*(?:\.\d+)?/g)) {
     if (Math.abs(parseFloat(m[0].replace(/,/g, '')) - figure) > 1e-9) continue;
     const at = m.index! + m[0].length;
-    out.push({ tail: window.slice(at, at + 70), before: window.slice(Math.max(0, m.index! - 40), m.index!) });
+    const from = Math.max(-1, ...breaks.filter(i => i < m.index!)) + 1;
+    const to = Math.min(window.length, ...breaks.filter(i => i >= at));
+    out.push({ tail: window.slice(at, at + 70), before: window.slice(Math.max(0, m.index! - 40), m.index!), sentence: `${window.slice(from, m.index!)} ${window.slice(at, to)}` });
   }
   return out;
 }
@@ -168,8 +177,13 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
         // batch 33 Marisol 31e33506 t14). Otherwise neither base is established:
         // code's figure with no "not X" — the conversion when it is right on a
         // reading (controller ruling, Task 27 review, 19 Oct).
+        // A mention whose sentence also carries the base line's change or level in
+        // revenue points ("5.8 points of COGS, out of the 16-point increase", "of the
+        // COGS line, up from 42") establishes no base (controller ruling, Task 27
+        // re-review, 20 Oct).
         const strict = strictBaseOf(b.names);
-        if (attached) return tails.some(t => strict.test(t.tail)) && tails.filter(t => UNIT_AT.test(t.tail) && !NOT_BEFORE.test(t.before)).every(t => strict.test(t.tail))
+        const onBaseOnly = (t: Tail) => strict.test(t.tail) && !numbersOf(t.sentence).some(n => [...changes, ...levels].some(x => agrees(n, x)));
+        if (attached) return tails.some(onBaseOnly) && tails.filter(t => UNIT_AT.test(t.tail) && !NOT_BEFORE.test(t.before)).every(onBaseOnly)
           ? { kind: 'own_wrong', quantity, value: onBase }
           : unstated();
       }
@@ -204,7 +218,7 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
 
 // The step's unit, said with their figure: a bare unit, "of revenue", or the quantity's own noun.
 // Returns what showed it (logged), or null.
-function codeUnitSaid(tails: { tail: string; before: string }[], unit: string | undefined, st: Step | undefined, opts: { barePoints: boolean }): string | null {
+function codeUnitSaid(tails: Tail[], unit: string | undefined, st: Step | undefined, opts: { barePoints: boolean }): string | null {
   const ofOther = (t: string) => /^\s*(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\s*(?:of|in)\s+(?!(?:the\s+)?(?:total\s+)?(?:revenue|sales|margin)\b)/i.test(t);
   const words = quantityWords(st?.quantity ?? '');
   for (const { tail, before } of tails) {
@@ -221,7 +235,7 @@ function codeUnitSaid(tails: { tail: string; before: string }[], unit: string | 
 }
 
 // A margin quantity named: in the claim's sentence or right after the figure.
-function marginSaid(c: CheckerClaim, text: string, tails: { tail: string; before: string }[]): boolean {
+function marginSaid(c: CheckerClaim, text: string, tails: Tail[]): boolean {
   const span = normalizeNumberWords(c.span).toLowerCase().split(/\s*(?:\.\.\.|…)\s*/)[0].slice(0, 30);
   const sentence = sentencesOf(text).find(s => s.toLowerCase().includes(span)) ?? normalizeNumberWords(c.span);
   const m = /\bmargins?\b/i.exec(sentence);
