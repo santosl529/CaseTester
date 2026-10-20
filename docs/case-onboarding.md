@@ -149,16 +149,16 @@ except where the fix applies) and a prof-001 wave.
 | Case | Clock | Authored | Fact audit | Anchors | Waves | Bar | Listed |
 |---|---|---|---|---|---|---|---|
 | prof-001 Brew & Bean | 20 | yes | yes | tuned over batches 18–31 | 20–31; 33 (engine-asks wave A) | **met** (batch 31, `main`); not met on `engine-asks` (33): 1 serious false statement (code's own-quantity line, pre-existing), 1 report error, 1 close over a false-stale flag, 1 ask ignored, 4 same-opening pairs (phrasing is advisory since 19 Oct). Round-4 fixes built on `engine-asks`; the free proof is clean (`r4-final.md`). One prof-001 wave runs right before the merge | **yes** |
-| prof-002 Larkspur | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 22, 32 | not met: 3 false refusals, 2 report errors (32) | no |
-| entry-001 Aldermoor | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; brainstorm after Exh 3 | 32 | not met: stage owed, moderates (32) | no |
+| prof-002 Larkspur | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 22, 32, 34 (B1) | not met (34): 1 interviewer + 1 report false statement (both judgement, none serious; 0 false refusals, 32 had 3), asks unanswered (2 swallowed by probe turns, 1 half) + 2 hollow deferrals; firm moderate ≤ 2 met | no |
+| entry-001 Aldermoor | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; brainstorm after Exh 3 | 32, 34 (B1) | not met (34): 2 serious false refusals of the treatment picture (`request_scope`, judgement) + 1 report error, asks unanswered + 4 hollow deferrals; stages and firm moderate ≤ 2 met | no |
 | pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
 | launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
 
 **Next (20 Oct):** round 4 of the engine-asks bundle is built and free-proved. It applies Lorenzo's rulings 1–7 on wave A: own-quantity reads the base the candidate named; the stale check, late probes, the leads check and probe openers are fixed; the rest are logs. Free proof: `Case Interview Runs/replays/2026-10-19/engine-asks/r4-final.md`, with 0 prof-001 regressions, 0 new false corrections, and 30 prof-001 lines changed, all of them the fixed lines.
 - Next is the own-quantity hotfix branch off `main` (Task 35, ruling 2; not merged, pushed or deployed).
-- Then **B1** (prof-002 + entry-001, 5 runs each, the onboarding personas, scored, cap $20, dry run first), authorized by Lorenzo after a clean round-4 proof. Stop after B1 and grade.
+- **B1 ran and is graded (20 Oct, batch 34, $13.80 of $20):** both cases fail the bar on false statements and on asks; stages, closes and firm moderates are met (`Case Interview Runs/test runs/batch-34-larkspur/hand-grading.md`, `…/batch-34-aldermoor/hand-grading.md`; PRD §16). Fix proposals await his ruling.
 - A′ is skipped. prof-001 gets one wave right before the merge.
-- B2 (pricing-001 + launch-001) waits for his go.
+- **B2 (pricing-001 + launch-001) awaits Lorenzo's go.**
 
 ## Shared-engine gaps that affect new cases (PRD §15)
 
@@ -310,3 +310,12 @@ group beats a more specific cover. Others:
   variant" the ruling doesn't name is a new false line. A replay reuses the
   model's recorded `say`, so a changed code line can sit beside the old one (b33
   Marisol t14). Read such a line as an artifact before counting a new "not X".
+- 20 Oct, B1 (batch 34, prof-002 + entry-001): the anchor audit worked — 0
+  false refusals on prof-002 (batch 32: 3) — but a scope rule can make a new
+  one: `request_scope` read "treatment mix" / "breakdown by drug class" as finer
+  than `current_treatment` and refused the whole ask, so two candidates never
+  heard of the incumbent drug. Audit covers for "mix / breakdown / split by"
+  forms of every landscape item. A named deferral needs an item that holds what
+  was asked: the small-model check's generous mapping and its timeouts made 6
+  hollow deferrals in 10 runs. Code probe and stage turns can swallow the
+  candidate's ask; grade every ask the turn after a code line.
