@@ -1576,14 +1576,26 @@
       "fuel_prices": [
         "did fuel prices rise",
         "fuel price changes",
-        "cost breakdown"
+        "fuel cost breakdown",
+        "fy2023 versus fy2025 cost breakdown",
+        "year-over-year cost breakdown",
+        "cost breakdown by year",
+        "overall cost breakdown",
+        "total cost breakdown"
       ],
       "unit_costs": [
         "did costs per flight change",
         "did labor costs rise",
         "cost inflation",
         "did wages rise",
-        "cost breakdown"
+        "unit cost breakdown",
+        "cost per flight breakdown",
+        "per-flight cost breakdown",
+        "fy2023 versus fy2025 cost breakdown",
+        "year-over-year cost breakdown",
+        "cost breakdown by year",
+        "overall cost breakdown",
+        "total cost breakdown"
       ],
       "demand": [
         "did demand fall",
@@ -1616,13 +1628,23 @@
       "network_totals": [
         "did the number of flights change",
         "contribution decline",
-        "cost breakdown"
+        "cost breakdown by route",
+        "fy2023 versus fy2025 cost breakdown",
+        "year-over-year cost breakdown",
+        "cost breakdown by year",
+        "overall cost breakdown",
+        "total cost breakdown"
       ],
       "fixed_costs": [
         "did fixed costs rise",
         "fixed cost trend",
         "did overhead change",
-        "cost breakdown"
+        "cost breakdown by route",
+        "fy2023 versus fy2025 cost breakdown",
+        "year-over-year cost breakdown",
+        "cost breakdown by year",
+        "overall cost breakdown",
+        "total cost breakdown"
       ],
       "lakeport_seats_load": [
         "how many passengers on lakeport",

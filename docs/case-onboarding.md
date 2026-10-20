@@ -173,6 +173,7 @@ group beats a more specific cover. Others:
 - *(m) built on engine-asks (not merged):* reports' "Better" answers and the facts of strengths are fact-checked: `auditBetterFigures` lists figures no case value or one operation of two explains, the verifier gets them as hints, and an unsupported Better answer is blanked (moment stays) or an unsupported strength dropped;
 - *(l) the caveat floor covers only needs_work: built on engine-asks (not merged):* any assessed dimension with no quote in wentWell or needsWork is now not assessed, whatever its rating and caveat (R4); a strong overall is re-capped against the dimensions still assessed;
 - (k) literal `\uXXXX` appears in the interviewer's text. *Built on engine-asks (not merged): `decodeLiteralEscapes` decodes `\uXXXX` (exactly four hex digits) in the streamed sentences and fields and in the final parsed turn, before any guard reads it.*
+- a bare "cost breakdown" cover on prof-002 withheld the true "I don't have the fixed cost breakdown" (b22 Omar t14). *Built on engine-asks (not merged): case data only; the bare phrase is replaced by phrases naming what each item holds (fuel, unit, per-flight, a period-wide or by-route breakdown), so "fixed cost breakdown" covers nothing.*
 - "say before stage" isn't supported.
 - a quote with the figure before its quantity ("the $77 million annual selling
   cost", Aldermoor Tyler t17) isn't read — not now (Lorenzo, 19 Oct); a widening

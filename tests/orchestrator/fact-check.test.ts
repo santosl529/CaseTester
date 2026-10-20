@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { getCaseById } from '@/lib/cases/loader';
 import {
-  factBaseFor, buildFactBase, findFalseFacts, findCandidateMisquotes, findFalseRefusals, findUndeliveredClaims, findEchoes, echoesOf,
+  factBaseFor, buildFactBase, findFalseFacts, findCandidateMisquotes, findFalseRefusals, findUndeliveredClaims, findEchoes, echoesOf, coverageOf,
 } from '@/lib/orchestrator/fact-check';
 
 const fb = buildFactBase(getCaseById('prof-001') as never);
@@ -203,5 +203,16 @@ describe('F3 reads covers (Lorenzo, 19 Oct; engine-asks task 3)', () => {
   });
   it('without covers the same refusal flags nothing', () => {
     expect(findFalseRefusals(ask, fb2, new Set())).toEqual([]);
+  });
+});
+
+describe('"fixed cost breakdown" is no cover (Lorenzo, 19 Oct; engine-asks round-2 task 15; b22 Larkspur Omar t14)', () => {
+  const fb3 = factBaseFor(getCaseById('prof-002') as never);
+  it('"I don\'t have the fixed cost breakdown" is not an F3 flag: the case holds no split of the $20M', () => {
+    expect(findFalseRefusals('A broad list of levers. I don\'t have the fixed cost breakdown. With that in hand, which lever would you recommend?', fb3, new Set(), { covers: true })).toEqual([]);
+  });
+  it('a period-wide cost breakdown still reaches the items it was written for', () => {
+    const got = coverageOf('the FY2023 versus FY2025 cost breakdown', fb3).items;
+    expect(got).toEqual(expect.arrayContaining(['fuel_prices', 'unit_costs', 'network_totals', 'fixed_costs']));
   });
 });
