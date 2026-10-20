@@ -13,6 +13,7 @@
 // Plan stays free of writes: startMathCheck returns the job, and the runner
 // writes its row once the turn is accepted (session-runner.ts).
 import { line, phrase, PHRASE_POOLS, type PhraseUses } from './phrasing';
+import { dataLineVersions } from '@/lib/cases/loader';
 import { mathCheckerConfig, type MathCheckerConfig } from '@/lib/models';
 import type { OnUsage } from '@/lib/llm-usage';
 import { normalizeNumberWords } from '@/lib/number-words';
@@ -348,6 +349,25 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
 export function modelProbed(c: CheckerClaim, interviewerTexts: string[], candidateFigures: number[]): boolean {
   return probesOf(figuresOf(c), interviewerTexts, candidateFigures) > 0;
 }
+// The interviewer's own words in a turn: code's data lines taken out (controller,
+// 20 Oct, round 5 Task 45 fix round 2; replay r5-45b, b35 Hollis Bay Marisol t24:
+// the restated sampling line — "$1.5 million … 500,000 … 3 bags" — beside the
+// turn's question was read as a probe of her 3x claim and spent its attempt). A
+// ledger line said as a release or a restate (its own wording or a pre-written
+// version), and each sentence that is a data-line frame (a restate lead-in, the
+// exhibit handover, a refusal, a deferral, an offer) is code's, not a probe.
+const DATA_LINE_POOLS = ['earlier', 'restate', 'restate_exhibit', 'exhibit', 'refuse', 'defer', 'gate_defer', 'wont_get_to', 'wont_get_to_that', 'offer'] as const;
+const DATA_LINE_FRAMES: RegExp[] = DATA_LINE_POOLS.flatMap(k => (PHRASE_POOLS[k] as readonly string[]).map(t => new RegExp(`^${t.trim()
+  .split(/\{[xX]\}/).map(part => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s*')).join('[\\s\\S]*')}$`, 'i')));
+export function interviewerOwnWords(text: string, ledgerValues: readonly string[]): string {
+  let own = text;
+  for (const v of ledgerValues) {
+    // A line break where it was: its lead-in ("As the exhibit shows:") ends there, not in the model's next sentence.
+    for (const said of [v, ...(dataLineVersions(v)?.versions ?? [])]) if (said.trim()) own = own.split(said).join('\n');
+  }
+  return sentencesOf(own).map(x => x.trim()).filter(x => x && !DATA_LINE_FRAMES.some(f => f.test(x))).join(' ');
+}
+
 // How many interviewer turns probed one of these figures: asked for the
 // working on it, doubted it, or asked a question about it ("Why would the
 // exposure be 40 points rather than 16?" — Jordan t12, about the figure).
@@ -627,6 +647,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
   // …and the prompt's changes ("18 points" from 24% to 6%): a figure the claim cites, never its own (a late probe's quote).
   const caseFigures = [...caseNumbers, ...numbersOf(changeFigures([p.caseData.prompt]).join(' '))];
+  const ledgerValues = p.caseData.dataLedger.map(i => i.value);
   const keys: Record<string, CheckerKeyEntry> = { ...(p.keys ?? {}) };
   const closed = new Set(p.closed ?? []);
   const closedNow: string[] = [];
@@ -645,7 +666,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const questionedBefore = (id: string, c: CheckerClaim, m: number) => {
     if (delivered.some(x => x.at === m - 2 && (x.d.id === id || x.d.key === checkerKey(c)))) return true;
     const line = [...p.turnRows].reverse().find(t => t.role === 'interviewer' && t.turnIndex < m)?.text;
-    return line !== undefined && probesOf(ownFigures(c, caseNumbers), [line], p.candidateFigures) > 0;
+    return line !== undefined && probesOf(ownFigures(c, caseNumbers), [interviewerOwnWords(line, ledgerValues)], p.candidateFigures) > 0;
   };
   // Misreads code corrects (Lorenzo, 14 Oct; batch 24, Tyler 4228be02's COGS
   // "about 54%"): one error with its framings — a claim whose sentence states
@@ -907,7 +928,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     // own — since it was first stated (the stored counter, or the interviewer
     // turns that asked about its figures, whichever is more).
     const since = keys[key]?.since ?? n;
-    const interviewerSince = p.turnRows.filter(t => t.role === 'interviewer' && t.turnIndex > since).map(t => t.text);
+    // The interviewer's own words only: code's data lines are no probe (interviewerOwnWords).
+    const interviewerSince = p.turnRows.filter(t => t.role === 'interviewer' && t.turnIndex > since).map(t => interviewerOwnWords(t.text, ledgerValues));
     // A claim code flagged was probed by code: it comes back only as the correction.
     const probed = Math.max(p.attempts[key] ?? 0, probesOf(keys[key]?.figures ?? claimFigures(c), interviewerSince, p.candidateFigures), codeProbed ? 1 : 0);
     const attempt = probed + 1;
