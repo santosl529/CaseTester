@@ -30,6 +30,9 @@ describe('Hollis Bay Tyler 9:1: the million scale carries to both sides', () => 
 describe('million scale: a "$" with no scale word still gets "million" on both sides (reviewer, fix round 2)', () => {
   const say = (v: string) => codeCorrection(checkerClaim(v, { codeQuantity: step('launch_costs_total') }), { value: 9, index: 0 }, noVet('launch-001'))!.line;
   it('"$8.8" at a million-scale step', () => expect(say('$8.8')).toMatch(/is about \$9 million, not \$8\.8 million\.$/));
+  it('"$8,800,000" (STT) is already in units: both sides in units', () => expect(say('$8,800,000')).toMatch(/is about \$9,000,000, not \$8,800,000\.$/));
+  it('"$8.8 mil" keeps its form, no "mil million"', () => expect(say('$8.8 mil')).toMatch(/is about \$9 mil, not \$8\.8 mil\.$/));
+  it('"8.8mm" keeps its form, no "mm million"', () => expect(say('8.8mm')).toMatch(/is about \$?9mm, not 8\.8mm\.$/));
   it.each([['$8.8M', '$8.8M'], ['$8.8 million', '$8.8 million']])('"%s" keeps its own form', (v, form) => expect(say(v)).toMatch(new RegExp(`is about .*, not ${form.replace('$', '\\$').replace('.', '\\.')}\\.$`)));
 });
 

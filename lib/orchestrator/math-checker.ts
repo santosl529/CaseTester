@@ -348,10 +348,10 @@ function spokenFigure(x: number): string {
 
 const FIGURE = /\d[\d,]*(?:\.\d+)?(?:\s*%?\s*(?:to|-|–)\s*\d[\d,]*(?:\.\d+)?)?/;
 // A figure as said, with its unit: "10–12%", "5 points", "10 percentage points", "$70 million".
-const FIGURE_SAID = /(?:\$\s?)?\d[\d,]*(?:\.\d+)?(?:\s*%?\s*(?:to|-|–)\s*\d[\d,]*(?:\.\d+)?)?(?:\s?%|\s+(?:percentage\s+)?points?\b|\s+percent\b|\s?(?:million|billion|m|bn|k)\b)?/gi;
+const FIGURE_SAID = /(?:\$\s?)?\d[\d,]*(?:\.\d+)?(?:\s*%?\s*(?:to|-|–)\s*\d[\d,]*(?:\.\d+)?)?(?:\s?%|\s+(?:percentage\s+)?points?\b|\s+percent\b|\s?(?:million|billion|mil|mm|mn|m|bn|k)\b)?/gi;
 // A ratio said with x or times: "2.5x", "2.5 times" (a ratio step, unit 'ratio').
 export const RATIO_SAID = /(\d[\d,]*(?:\.\d+)?)\s*(?:x|×|times)\b/gi;
-const HAS_UNIT = /[%$]|\bpercent|\bpoints?\b|\b(?:million|billion)\b|\d\s*(?:m|bn|k)\b/i;
+const HAS_UNIT = /[%$]|\bpercent|\bpoints?\b|\b(?:million|billion|mil)\b|\d\s*(?:m|mm|mn|bn|k)\b/i;
 
 // The unit of the quantity, for a figure the candidate said without one.
 function unitOf(c: CheckerClaim, ctx: VetContext): string {
@@ -477,9 +477,12 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
         // The "not X" side carries the same unit and scale as the figure code speaks (Lorenzo, 20 Oct: "about $9 million, not $8.8 million").
         const million = usd && st?.scale === 'million' ? ' million' : '';
         // "$8.8" at a million-scale step has a $ but no scale: both sides get " million" (reviewer, 20 Oct).
-        const noScale = million !== '' && !/\b(?:million|billion)\b|\d\s*(?:m|bn|k)\b|[%]|point|percent/i.test(theirs);
-        const closer = ratio ? `${shown} times` : noScale ? `$${shown} million` : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}${million}` : `${shown}${unit}`;
-        const notX = ratio ? theirs : noScale && theirs.includes('$') ? `${theirs} million` : usd && !HAS_UNIT.test(theirs) ? `$${Number(bare.replace(/,/g, '')).toLocaleString('en-US', { maximumFractionDigits: 6 })}${million}` : bare;
+        const noScale = million !== '' && !/\b(?:million|billion|mil)\b|\d\s*(?:m|mm|mn|bn|k)\b|[%]|point|percent/i.test(theirs);
+        // Already in units ("$8,800,000", as speech-to-text writes it): both sides in units, no "million" (20 Oct).
+        const theirNumber = noScale ? parseFloat((theirs.match(FIGURE)?.[0] ?? '').replace(/,/g, '')) : NaN;
+        const inUnits = noScale && theirNumber >= 1000;
+        const closer = ratio ? `${shown} times` : inUnits ? `$${Math.round(at.value * 1e6).toLocaleString('en-US')}` : noScale ? `$${shown} million` : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}${million}` : `${shown}${unit}`;
+        const notX = ratio ? theirs : inUnits ? (theirs.includes('$') ? theirs : `$${theirs}`) : noScale && theirs.includes('$') ? `${theirs} million` : usd && !HAS_UNIT.test(theirs) ? `$${Number(bare.replace(/,/g, '')).toLocaleString('en-US', { maximumFractionDigits: 6 })}${million}` : bare;
         return `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${notX}.`;
       }
       default: return null;
