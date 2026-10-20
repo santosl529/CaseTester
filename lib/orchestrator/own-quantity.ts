@@ -53,9 +53,12 @@ const REVENUE_UNITS = /^\s*(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\
 // A unit right after a figure, and points in particular.
 const UNIT_AT = /^\s*(?:-|\s)?(?:%|percent(?:age)?\b|points?\b|pp\b|pts\b)/i;
 const POINTS_AT = /^\s*(?:-|\s)?(?:percentage\s+)?(?:points?|pp|pts)\b/i;
-// A part of an N-point change or of a share base's change ("5.8 points of the
-// 16-point COGS increase", "26% of the COGS increase"): not of the base itself.
-const changePartOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:the\\s+|that\\s+|an?\\s+)?(?:\\d+(?:\\.\\d+)?[-\\s]?(?:percentage[-\\s])?points?\\b|(?:${names})\\s+(?:increase|rise|growth|jump)\\b)`, 'i');
+// Of an N-point change ("5.8 points of the 16-point COGS increase"): N, read against the base line's change.
+const N_POINT_OF = /^\s*(?:-|\s)?(?:%|percent(?:age)?(?:\s+points?)?|points?|pp|pts)?\s*of\s+(?:the\s+|that\s+|an?\s+)?(\d+(?:\.\d+)?)[-\s]?(?:percentage[-\s])?points?\b/i;
+// Of the base line's change, no size ("10 points of the COGS increase", "of COGS growth"): names no base.
+const baseChangeOf = (names: string) => new RegExp(`^\\s*(?:-|\\s)?(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:the\\s+|that\\s+|an?\\s+)?(?:${names})\\s+(?:increase|rise|growth|jump)\\b`, 'i');
+// The clause a mention is in: up to a sentence end or ", which" / ", and".
+const clauseOf = (tail: string) => tail.split(/[.!?](?=\s|$)|;|,\s*(?:which|and)\b/i)[0];
 
 // What follows each place their figure is said in the window: the unit and what it is "of".
 function tailsOf(window: string, figure: number): { tail: string; before: string }[] {
@@ -112,13 +115,16 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
     const st = ctx.caseData.mathSteps.find(s => s.id === q.stepId) as Step | undefined;
     const value = codeValueOf(c);
     const unit = firstUnit(st);
-    // On a share-base step, points of a part of the change ("5.8 points of the
-    // 16-point COGS increase") are revenue points, and revenue points said with
-    // their figure anywhere ("5.8 points of revenue") win over a COGS reading
-    // (Lorenzo, 19 Oct, round 4 ruling 1; batch 33 Marisol 31e33506 t11/t13).
+    // On a share-base step, points of the base line's change said with its size
+    // in revenue points ("5.8 points of the 16-point COGS increase", N = 58 − 42
+    // within rounding) are revenue points, and revenue points said with their
+    // figure anywhere ("5.8 points of revenue") win over a COGS reading (Lorenzo,
+    // 19 Oct, round 4 ruling 1; batch 33 Marisol 31e33506 t11/t13). "Of the
+    // 37.5-point COGS increase" is no such change.
     const bases = inRevenuePoints(st) ? basesOf(ctx, st) : [];
-    const changePart = bases.length > 0 ? changePartOf(bases.map(b => b.names).join('|')) : null;
-    const revenuePart = (tail: string) => changePart !== null && changePart.test(tail) && POINTS_AT.test(tail);
+    const changes = bases.flatMap(b => (b.current !== undefined && b.prior !== undefined && b.current !== b.prior ? [Math.abs(b.current - b.prior)] : []));
+    const ofRevenueChange = (tail: string) => { const m = N_POINT_OF.exec(tail); return m !== null && changes.some(n => agrees(parseFloat(m[1]), n)); };
+    const revenuePart = (tail: string) => ofRevenueChange(tail) && POINTS_AT.test(tail);
     const revenueSaid = tails.some(t => !NOT_BEFORE.test(t.before) && (REVENUE_UNITS.test(t.tail) || revenuePart(t.tail)));
     if (inRevenuePoints(st) && value !== null && !revenueSaid) {
       for (const b of bases) {
@@ -127,10 +133,11 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
         const onBase = value / level * 100;
         // Their figure with the base attached ("10 points of the 37.5 percent. increasing COGS"),
         // or their units named for the base anywhere ("I was saying in points of COGS").
-        // A part of the change ("of the 16-point COGS increase") names no base.
+        // A part of the base line's change ("of the 16-point COGS increase", "of the COGS increase") names no base.
+        const baseChange = baseChangeOf(b.names);
         const namesBase = (tail: string) => new RegExp(`^\\s*(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*(?:of|in)\\s+(?:the\\s+)?(?:[^?!]{0,40}?\\s)?(?:${b.names})\\b`, 'i').test(tail)
           && !new RegExp(`^\\s*(?:%|percent(?:age)?(?:\\s+points?)?|points?|pp|pts)?\\s*of\\s+(?:total\\s+)?(?:revenue|sales)\\b`, 'i').test(tail)
-          && !changePart!.test(tail);
+          && !ofRevenueChange(tail) && !baseChange.test(tail);
         const attached = tails.some(t => namesBase(t.tail));
         const named = [...text.matchAll(new RegExp(`\\b(?:points?|percent|%)\\s+of\\s+(?:the\\s+)?(?:${b.names})\\b(?!\\s+(?:as|is|was|were)\\b)|\\bin\\s+(?:${b.names})\\s+terms\\b|\\bon\\s+an?\\s+(?:${b.names})\\s+base\\b`, 'gi'))]
           .some(m => !NOT_BEFORE.test(text.slice(Math.max(0, m.index! - 30), m.index!)));
@@ -141,9 +148,9 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
         if ((attached || named || ofIncrease) && agrees(theirs, onBase)) return { kind: 'own_right', quantity, value: onBase };
         if (ofIncrease && share !== undefined && agrees(theirs, share)) return { kind: 'own_right', quantity: `a share of the ${b.name} increase`, value: share };
         // "In COGS terms … not X" only when every mention of their figure with a
-        // unit names the base; otherwise the checker's revenue-terms line (Lorenzo,
-        // 19 Oct, round 4 ruling 1; batch 33 Marisol 31e33506 t14).
-        if (attached) return tails.filter(t => UNIT_AT.test(t.tail) && !NOT_BEFORE.test(t.before)).every(t => namesBase(t.tail))
+        // unit names the base in its own clause; otherwise the checker's
+        // revenue-terms line (Lorenzo, 19 Oct, round 4 ruling 1; batch 33 Marisol 31e33506 t14).
+        if (attached) return tails.filter(t => UNIT_AT.test(t.tail) && !NOT_BEFORE.test(t.before)).every(t => namesBase(clauseOf(t.tail)))
           ? { kind: 'own_wrong', quantity, value: onBase }
           : { kind: 'code', basis: `another mention of their figure names no ${b.name} base` };
       }
@@ -152,7 +159,7 @@ export function frameOfClaim(c: CheckerClaim & { correctionFigure?: string | nul
     // reading (Lorenzo, 17 Oct, ruling c): on a share-base step it is ambiguous — the 9ccf0836 shape.
     const basis = codeUnitSaid(tails, unit, st, { barePoints: !(inRevenuePoints(st) && basesOf(ctx, st).length > 0) });
     if (basis) return { kind: 'code', basis };
-    if (tails.some(t => !NOT_BEFORE.test(t.before) && revenuePart(t.tail))) return { kind: 'code', basis: 'points of a part of the change (revenue points)' };
+    if (tails.some(t => !NOT_BEFORE.test(t.before) && revenuePart(t.tail))) return { kind: 'code', basis: 'points of the N-point change (revenue points)' };
     return unstated();
   }
   if (q.kind === 'needed_for_gain' || q.kind === 'needed_for_margin') {

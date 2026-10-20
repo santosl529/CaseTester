@@ -164,13 +164,43 @@ describe('batch 33 Marisol 31e33506: her 5.8 was revenue points — the revenue-
     expect(frameOfClaim(c, w, ctx).kind).toBe('code');
     expect(lineFor(c, w)?.line).toBe("Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 10.");
   });
-  it('"5.8 points of the COGS increase" (no N) is revenue points too', () => {
+  // Controller ruling (19 Oct, Task 27 review): Lorenzo's words only — the N-point form with N the COGS change (16).
+  it('"5.8 points of the COGS increase" (no N) names no base: code\'s figure, no "not 5.8"', () => {
     const c = beans('5.8 points', 'beans are 5.8 points of the COGS increase');
-    expect(lineFor(c, 'Beans are 5.8 points of the COGS increase.')?.line).toBe(REVENUE_LINE);
+    expect(lineFor(c, 'Beans are 5.8 points of the COGS increase.')).toMatchObject({ line: "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points.", converted: false });
+  });
+  it.each([
+    'Beans are 10 points of the COGS increase.',
+    'Beans are 10 points of COGS growth.',
+    'Beans are 10 points of the COGS rise.',
+    'Beans are 10 points of the 37.5-point COGS increase.',
+  ])('%s — right on the COGS-growth reading: the conversion, no "not 10"', w => {
+    const c = beans('10 points', w.replace(/\.$/, '').toLowerCase());
+    expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'own_right', quantity: 'points of COGS' });
+    expect(lineFor(c, w)).toMatchObject({ line: "In revenue terms, that's about 4.2 points.", converted: true });
   });
   it('"26% of the COGS increase" names no COGS base: right as a share of the increase — the conversion line', () => {
     const c = beans('26%', 'beans are about 26% of the COGS increase');
     const w = 'Beans are about 26% of the COGS increase.';
+    expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'unstated', rightOn: { quantity: 'a share of the COGS increase' } });
+    expect(lineFor(c, w)).toMatchObject({ line: "In revenue terms, that's about 4.2 points.", converted: true });
+  });
+  // The guard reads each mention's own clause.
+  it.each([
+    'Beans are 5.8 points of increase, which is most of the COGS jump.',
+    'Beans are 5.8 points of increase. COGS went from 42 to 58.',
+    'Beans are 5.8 points of increase. I meant 5.8 points of COGS.',
+  ])('%s — a mention names no COGS base in its own clause: no "In COGS terms" line', w => {
+    const c = beans('5.8 points', 'beans are 5.8 points of increase');
+    expect(lineFor(c, w)?.line).not.toMatch(/In COGS terms/);
+  });
+  it('"5.8 points of COGS": the "In COGS terms" line', () => {
+    const c = beans('5.8 points of COGS', 'beans are 5.8 points of COGS');
+    expect(lineFor(c, 'Beans are 5.8 points of COGS.')?.line).toBe("In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 5.8.");
+  });
+  it('"26% of the 16-point COGS increase" names no COGS base: right as a share — the conversion line', () => {
+    const c = beans('26%', 'beans are about 26% of the 16-point COGS increase');
+    const w = 'Beans are about 26% of the 16-point COGS increase.';
     expect(frameOfClaim(c, w, ctx)).toMatchObject({ kind: 'unstated', rightOn: { quantity: 'a share of the COGS increase' } });
     expect(lineFor(c, w)).toMatchObject({ line: "In revenue terms, that's about 4.2 points.", converted: true });
   });
