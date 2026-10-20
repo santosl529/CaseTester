@@ -477,7 +477,7 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
         // The "not X" side carries the same unit and scale as the figure code speaks (Lorenzo, 20 Oct: "about $9 million, not $8.8 million").
         const million = usd && st?.scale === 'million' ? ' million' : '';
         const closer = ratio ? `${shown} times` : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}${million}` : `${shown}${unit}`;
-        const notX = ratio ? theirs : million && !HAS_UNIT.test(theirs) ? `$${bare}${million}` : bare;
+        const notX = ratio ? theirs : usd && !HAS_UNIT.test(theirs) ? `$${Number(bare.replace(/,/g, '')).toLocaleString('en-US', { maximumFractionDigits: 6 })}${million}` : bare;
         return `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${notX}.`;
       }
       default: return null;

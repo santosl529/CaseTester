@@ -8,6 +8,7 @@ import { checkerKey, lateProbe, claimFigures } from '@/lib/orchestrator/math-che
 import { figureAsWritten } from '@/lib/orchestrator/recompute';
 import { findStepSpans } from '@/lib/scoring/math-spans';
 import { checkerClaim } from './helpers/checker-claim';
+import { framedCorrection } from '@/lib/orchestrator/own-quantity';
 
 const step = (stepId: string): CheckerClaim['codeQuantity'] => ({ kind: 'step', stepId, price: null, target: null });
 const noVet = (caseId: string, candidateTexts: string[] = []): VetContext => ({ caseData: getCaseById(caseId), revealedIds: [], shownExhibitIds: [], candidateTexts });
@@ -82,4 +83,35 @@ describe('prof-001 correction lines are byte-identical (points, percent, price r
   it('points: a 10% price rise lifts margin', () => expect(line('5 points', { kind: 'gain', stepId: null, price: 10, target: null }, 8.5)).toBe('A 10% price rise lifts margin about 8.5 points, not 5.'));
   it('percent: an 18% price rise takes margin to', () => expect(line('12%', { kind: 'new_margin', stepId: null, price: 18, target: null }, 20)).toBe('An 18% price rise takes margin to about 20%, not 12%.'));
   it('price rise: recovering 16 points', () => expect(line('38%', { kind: 'needed_for_gain', stepId: null, price: null, target: 16 }, 20.5)).toBe('Recovering 16 points of margin takes about a 20.5% price rise, not 38%.'));
+});
+
+describe('a bare not-X takes the unit for money and ratio, never for percent or points (controller ruling, 20 Oct)', () => {
+  const prof = noVet('prof-001');
+  it('a bare percent stays bare', () => {
+    const w = codeCorrection(checkerClaim('11', { codeQuantity: { kind: 'new_margin', stepId: null, price: 18, target: null } }), { value: 20, index: 0 }, prof)!;
+    expect(w.line).toBe('An 18% price rise takes margin to about 20%, not 11.');
+  });
+  it('a bare points figure stays bare', () => {
+    const w = codeCorrection(checkerClaim('5', { codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null } }), { value: 8.5, index: 0 }, prof)!;
+    expect(w.line).toBe('A 10% price rise lifts margin about 8.5 points, not 5.');
+  });
+  it('a bare money figure at unit scale gets "$" and separators', () => {
+    const w = codeCorrection(checkerClaim('11429', { codeQuantity: step('lakeport_contribution_fy2023') }), { value: 4200, index: 0 }, noVet('prof-002'))!;
+    expect(w.line).toMatch(/is about \$4,200, not \$11,429\.$/);
+  });
+});
+
+describe('Quillpath Marcus 13:3 through framedCorrection', () => {
+  const ctx = noVet('pricing-001', ['25 × $30 = $750 on $300 CAC = 2.5x.']);
+  const c = checkerClaim('$750; 2.5x', { span: '25 × $30 = $750 on $300 CAC = 2.5x', codeQuantity: step('starter_ratio'), correctValue: 2 });
+  const w = codeCorrection(c, { value: 2, index: 0 }, ctx)!;
+  const flagged = { ...c, correctionLine: w.line, correctionFigure: w.figure };
+  it('code\'s quantity stated: the line, "not 2.5 times" kept', () => {
+    const r = framedCorrection(flagged, { kind: 'code', basis: 'test' } as never, ctx)!;
+    expect(r.line).toBe('Starter standalone LTV/CAC is about 2 times, not 2.5 times.');
+  });
+  it('right on another reading or unstated: "not X" stripped by own-quantity\'s regex, leaving "about 2 times."', () => {
+    const r = framedCorrection(flagged, { kind: 'unstated', rightOn: null } as never, ctx)!;
+    expect(r.line).toBe('Starter standalone LTV/CAC is about 2 times.');
+  });
 });
