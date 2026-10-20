@@ -408,8 +408,8 @@ const lowerStart = (s: string) => (/^[A-Z]{2,}\b/.test(s) ? s : s.charAt(0).toLo
 // candidate's figure in one cell, and the cell one coordinate apart from it — the same column and every label but one
 // ("Pro" → "Starter" in the Cohort column), or the same row in another column — whose differing label the claim's
 // quantity names while it doesn't name the figure's own ("source of Starter 12-month cancellation figure": Starter, not
-// Pro). Both figures said with their owners, in exhibit order: "The cancelled figure at month 12 is 21.5% for Pro and
-// 40% for Starter." One such pair only, every figure in it already out to the candidate (FR-4) — else null.
+// Pro). Both figures said with their owners, in exhibit order: "At month 12, 21.5% of Pro customers and 40% of Starter
+// customers had cancelled." (a row label with no verb phrase: "The … figure at month 12 is 21.5% for Pro and 40% for Starter.") One such pair only, every figure in it already out to the candidate (FR-4) — else null.
 type RowPair = { line: string; pair: [number, number]; note: string; namesFigure: boolean; namesOther: boolean; exhibit: string; cells: { value: number; unit: string }[] };
 // `unit`: the unit the input was said in (its own claim's); by default the claim's — a claim built on it may not write it.
 const unitOf = (c: CheckerClaim, figure: number) => figureUnits(c.candidateValue, figure)[0] ?? figureUnits(c.span, figure)[0] ?? '';
@@ -434,7 +434,7 @@ function rowPairs(figure: number, c: CheckerClaim, ctx: VetContext, unit = unitO
     const unitOfCell = (t: string) => cellUnit(t) || written;
     for (const x of cells.filter(y => Math.abs(y.value - figure) < 1e-9 && unitOk(y.text))) {
       for (const y of cells.filter(z => Math.abs(z.value - figure) > 1e-9)) {
-        let own: [string, string]; let shared: string;
+        let own: [string, string]; let shared: string; let state = '';
         if (y.row === x.row && y.col !== x.col) {
           own = [cleanLabel(x.col), cleanLabel(y.col)];
           shared = `The ${lowerStart(Object.values(labels(x.row)).map(cleanLabel).join(' '))}`;
@@ -446,12 +446,19 @@ function rowPairs(figure: number, c: CheckerClaim, ctx: VetContext, unit = unitO
           own = [cleanLabel(lx[apart[0]] ?? ''), cleanLabel(ly[apart[0]] ?? '')];
           const rest = keys.filter(k => k !== apart[0]).map(k => cleanLabel(lx[k] ?? '')).filter(Boolean).join(' ');
           shared = `The ${rest ? `${lowerStart(rest)} figure` : 'figure'} at ${lowerStart(cleanLabel(x.col))}`;
+          // A row label that is one past-tense word ("Cancelled") is the state the cohorts are in: "had cancelled".
+          if (/^[A-Za-z]+ed$/.test(rest)) state = `had ${rest.toLowerCase()}`;
         } else continue;
         if (!own[0] || !own[1]) continue;
         const xFirst = x.row < y.row || (x.row === y.row && columns.indexOf(x.col) < columns.indexOf(y.col));
         const [a, b, oa, ob] = xFirst ? [x, y, own[0], own[1]] : [y, x, own[1], own[0]];
+        // Lorenzo's wording (20 Oct): "At month 12, 21.5% of Pro customers and 40% of Starter customers had cancelled."
+        // Any label that gives no verb phrase (or a cell with no %) keeps the plain "The … figure at … is … for …" form.
+        const sentence = state && /%/.test(fmt(a)) && /%/.test(fmt(b))
+          ? `At ${lowerStart(cleanLabel(x.col))}, ${fmt(a)} of ${oa} customers and ${fmt(b)} of ${ob} customers ${state}.`
+          : `${shared} is ${fmt(a)} for ${oa} and ${fmt(b)} for ${ob}.`;
         out.push({
-          line: `${shared} is ${fmt(a)} for ${oa} and ${fmt(b)} for ${ob}.`, pair: [figure, y.value],
+          line: sentence, pair: [figure, y.value],
           note: `a misread of the data: ${figure} is ${own[0]}'s, the claim is about ${own[1]}'s (${ex.id})`, namesFigure: names(own[0]), namesOther: names(own[1]),
           exhibit: ex.id, cells: [x, y].map(z => ({ value: z.value, unit: unitOfCell(z.text) })),
         });

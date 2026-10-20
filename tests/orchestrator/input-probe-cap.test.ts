@@ -58,11 +58,11 @@ const planAt = (over: Partial<CheckerPlanInput> = {}) => planCheckerFlags({
   caseData: pricing as never, revealedIds: F.revealedIds, ...over,
 });
 // The row fix: which row each figure belongs to, in the data's own figures (exhibit-2's cells; both released at t4).
-const ROW_FIX = 'The cancelled figure at month 12 is 21.5% for Pro and 40% for Starter.';
+const ROW_FIX = 'At month 12, 21.5% of Pro customers and 40% of Starter customers had cancelled.';
 // Her annual reading corrected as a monthly rate — false on her own reading (Review Focus 6).
 const NOT_X = /about 5%, not 21\.5%/;
 // A probe on one of her two inputs, in any of code's versions or the model's.
-const probesInput = (line: string) => /21\.5|\b40%/.test(line) && !/ for Pro and /.test(line);
+const probesInput = (line: string) => /21\.5|\b40%/.test(line) && !/ of Pro customers and /.test(line);
 // The pricing case without the cohort exhibit: no cell to place her figures in, so no true line.
 const noExhibits = { ...pricing, exhibits: pricing.exhibits.filter(e => e.id !== 'exhibit-2') };
 
@@ -80,6 +80,10 @@ describe('the row fix (own-quantity.ts): her own quantity is a row of the data',
   it('the other half of the swap ("40% is the corresponding twelve-month cancellation number on the Pro side") gives the same line', () => {
     expect(claimOf('7:1').span).toBe('40% is the corresponding twelve-month cancellation number on the Pro side');
     expect(rowFix(40, claimOf('7:1'), ctxOf())?.line).toBe(ROW_FIX);
+  });
+  it('a row label that is no verb phrase falls back to the plain form ("Left within a year" row)', () => {
+    const odd = { ...pricing, exhibits: pricing.exhibits.map(e => e.id !== 'exhibit-2' ? e : { ...e, data: e.data.map(r => (r as Record<string, string>).Status === 'Cancelled' ? { ...r, Status: 'Left within a year' } : r) }) };
+    expect(rowFix(21.5, claimOf('7:0'), ctxOf(F.revealedIds, odd as never))?.line).toBe('The left within a year figure at month 12 is 21.5% for Pro and 40% for Starter.');
   });
   it('the Starter price "$40" is no "40%"; with no cohort cells there is no line', () => {
     expect(rowFix(40, claimOf('7:1'), ctxOf(F.revealedIds, noExhibits as never))).toBeNull();
