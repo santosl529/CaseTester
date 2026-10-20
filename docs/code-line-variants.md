@@ -572,6 +572,16 @@ The checker's neutral probe of a claim with no figures. First use by seed.
 4. What got you there?
 5. Talk me through how you got there.
 
+### probe_opener
+
+The lead-in of a checker probe that opens "You said" (a late probe quoting the claim, or the checker's own line); only these words vary. "You put it at" / "You had" are used only before the claim's own figure; before a quoted clause or the checker's own words, the first three.
+
+1. You said
+2. You mentioned
+3. Earlier you said
+4. You put it at
+5. You had
+
 ### check_in
 
 Text mode: the check-in after a minute of silence (once a silence), before the question on the table.

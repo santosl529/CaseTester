@@ -43,7 +43,9 @@ import { getCaseById } from '@/lib/cases/loader';
 // get to <ask> today."; round-3 ruling 4: "…that today." for a long or list ask):
 // no versions, no line said before the brief — their own blocks below.
 const ONE_LINE: PhrasePool[] = ['wont_get_to', 'wont_get_to_that'];
-const POOLS = (Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => !ONE_LINE.includes(p));
+// A lead-in, not a line (19 Oct, round-4 ruling 6): the words that open a checker probe's "You said …" — its own block.
+const FRAGMENT: PhrasePool[] = ['probe_opener'];
+const POOLS = (Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => !ONE_LINE.includes(p) && !FRAGMENT.includes(p));
 const before = BEFORE as Record<string, string[]>;
 const versions = (p: PhrasePool) => PHRASE_POOLS[p] as readonly string[];
 
@@ -79,6 +81,16 @@ const TERM_CLASSES: [string, RegExp][] = [
   ['store', /\bstores?\b/i], ['evidence', /\bevidence\b/i], ['option', /\boptions?\b/i],
 ];
 const termsOf = (t: string) => TERM_CLASSES.filter(([, re]) => re.test(t)).map(([k]) => k).sort().join(',');
+
+describe('probe_opener: the lead-in of a "You said …" probe', () => {
+  it('five distinct lead-ins, the original first; the echo-probe reader reads each with a claim after it', () => {
+    const vs = versions('probe_opener');
+    expect(vs).toHaveLength(5);
+    expect(new Set(vs).size).toBe(5);
+    expect(vs[0]).toBe('You said');
+    for (const v of vs) expect(ECHO_PROBE.test(`${v} “5 points” — walk me through that.`), v).toBe(true);
+  });
+});
 
 describe('every pool has five versions', () => {
   it.each(POOLS)('%s: five distinct versions, the lines said before among them, one slot where they had one', pool => {

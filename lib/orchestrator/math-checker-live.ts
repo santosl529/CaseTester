@@ -383,9 +383,13 @@ const lineForm = (t: string) => t.toLowerCase().replace(/[‘’]/g, "'").replac
 // A delivered line's count key (the controller's ruling on Task 19's concern 1, 19 Oct: Lorenzo's "a correction is
 // said at most twice in total", per line as well as per key): case, quotes, dashes and spacing aside.
 export const lineKey = (line: string) => lineForm(line);
+// A probe opener's variants read as "you said" (probe_opener): the model saying the line with another lead-in is the same line.
+const OPENER_VARIANTS = /(^| )(?:you mentioned|earlier you said|you put it at|you had)(?= )/g;
+const asYouSaid = (t: string) => t.replace(OPENER_VARIANTS, '$1you said');
 export function lineHeard(text: string, line: string, quote?: ProbeQuote): boolean {
   if (line.trim() === '') return false;
   if (lineForm(text).includes(lineForm(line))) return true;
+  if (asYouSaid(lineForm(text)).includes(asYouSaid(lineForm(line)))) return true;
   // A correction said without its period lead-in ("From today's 6% margin, …") is heard: code saying the whole line again would say it twice.
   const core = line.replace(/^From today's \d+(?:\.\d+)?% margin,\s*/i, '');
   if (core !== line) return lineForm(text).includes(lineForm(core));
@@ -507,6 +511,19 @@ export function lateProbe(line: string, c: Pick<CheckerClaim, 'span' | 'candidat
   const q = claimQuote(c, message, caseNumbers);
   if (!q) return { line };
   return { line: `You said “${q.text}” — ${/^[A-Z][a-z]/.test(line) ? line[0].toLowerCase() + line.slice(1) : line}`, quote: { bare: line, figure: q.figure, words: c.span } };
+}
+// Lorenzo, 19 Oct (round-4 ruling 6; b33 Marisol: two consecutive checker lines both opened "You said …"): the leading
+// "You said" of a probe line — code's late quote ("You said “…” — …") or the checker's own line — rotates through
+// probe_opener. Wording only: the rest of the line is byte-identical. "You put it at" and "You had" read only before the
+// claim's own figure ("You put it at “$4.8M” — …"); before a quoted clause or the checker's own words (unknown) the first
+// three (PROBE_OPENER_CLAUSE) are used.
+export const PROBE_OPENER_CLAUSE = 3;
+export function withProbeOpener<T extends { line: string; quote?: ProbeQuote }>(r: T, uses: PhraseUses | undefined, seed: string): T {
+  if (!/^You said\b/.test(r.line)) return r;
+  const figureForm = r.quote !== undefined && r.quote.figure !== null && r.line.startsWith('You said “');
+  const clause = PHRASE_POOLS.probe_opener.slice(0, PROBE_OPENER_CLAUSE) as readonly string[];
+  const opener = line('probe_opener', uses, seed, figureForm ? undefined : v => clause.includes(v));
+  return { ...r, line: opener + r.line.slice('You said'.length) };
 }
 export const quoteLateProbe = (...a: Parameters<typeof lateProbe>): string => lateProbe(...a).line;
 const tokensOf = (t: string) => lineForm(t).split(' ').filter(Boolean);
@@ -913,7 +930,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       continue;
     }
     // Said on the turn after this message: quoted unless right after the claim (ruling 4, quoteLateProbe).
-    const asked = (l: string) => lateProbe(l, c, messageOf(n), { claim: n, spoken: p.candidateTurnIndex + 1 }, caseFigures);
+    const asked = (l: string) => withProbeOpener(lateProbe(l, c, messageOf(n), { claim: n, spoken: p.candidateTurnIndex + 1 }, caseFigures), p.phraseUses, `${p.seed ?? ''}:${id}`);
     if (action === 'probe' && c.probeLine) { selected = { id, candidateTurnIndex: n, key, attempt, action: 'probe', ...asked(neutralProbe(c.probeLine, p.phraseUses, p.seed ?? '')), derived: [], claim: c }; continue; }
     const corrected = correction(id, n, c, key, attempt);
     if (corrected && spentLine(corrected)) continue;

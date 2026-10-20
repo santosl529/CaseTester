@@ -913,7 +913,7 @@ export function echoesOf(m: MisquoteFlag, fb: FactBase): Echo[] {
 }
 
 // Read on the text with code's neutral probes as their original (phrasing.ts asOriginalProbe).
-export const ECHO_PROBE = /\b(?:walk me through|how (?:did|do) you get|how you got|where does|where did|check (?:that|your|the)|recheck|points of what|you said|you're using|you used|your figure|is that right|does that match|against the exhibit|what does the exhibit)\b/i;
+export const ECHO_PROBE = /\b(?:walk me through|how (?:did|do) you get|how you got|where does|where did|check (?:that|your|the)|recheck|points of what|you said|you mentioned|you put it at|you're using|you used|your figure|is that right|does that match|against the exhibit|what does the exhibit)\b/i;
 
 // F1 echo: the interviewer repeating a still-uncorrected misquote as a fact
 // ("16 of the 19 points" after the candidate's "19-point COGS increase").

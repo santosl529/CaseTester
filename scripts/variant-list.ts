@@ -51,6 +51,7 @@ const WHEN: Record<PhrasePool, string> = {
   probe_got_to: 'The checker\'s neutral probe of a figure (chosen when code selects the flag; also the wrap-up probe\'s ask). {x} = the candidate\'s figure.',
   probe_calc: 'The checker\'s neutral probe of a calculation with no figure of theirs to name.',
   probe_there: 'The checker\'s neutral probe of a claim with no figures.',
+  probe_opener: 'The lead-in of a checker probe that opens "You said" (a late probe quoting the claim, or the checker\'s own line); only these words vary. "You put it at" / "You had" are used only before the claim\'s own figure; before a quoted clause or the checker\'s own words, the first three.',
   check_in: 'Text mode: the check-in after a minute of silence (once a silence), before the question on the table.',
   voice_check_in: 'Voice: the soft check-in after VOICE_CHECKIN_MS (90s) with no candidate speech and nothing playing — once a silence, again after the candidate speaks; interruptible; no clock pause, no session end.',
   pause: 'Text mode: the technical pause after three minutes (again on a later silence while pause budget is left). {x} = the limit, e.g. "5 minutes".',

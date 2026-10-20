@@ -357,7 +357,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     // The redo holds nothing; t17's other flag gets its own one probe; then the close.
     const r23 = await runTurn('s1', 'It is still forty points, I think.');
     // The session's second wrap-up probe: its lead varies (phrasing.ts), the probe doesn't.
-    expect(PHRASE_POOLS.probe_calc.some(a => new RegExp(`^(?:${anyVariant('wrap_up', `${QUOTE_17_1}${lowerFirst(a)}`).source})$`).test(r23.interviewerText))).toBe(true);
+    expect(PHRASE_POOLS.probe_calc.some(a => new RegExp(`^(?:${anyVariant('wrap_up', `${QUOTE_17_1}${lowerFirst(a)}`).source})$`).test(r23.interviewerText.replace(/(?:you mentioned|earlier you said) “/i, 'you said “')))).toBe(true);   // the opener rotates too (round-4 ruling 6)
     expect((flags().closeHold as Row).probed).toHaveLength(2);
     at(18.6);
     const r25 = await runTurn('s1', 'Sixteen plus two is the eighteen.');

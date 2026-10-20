@@ -1192,7 +1192,7 @@ describe('ruling 1 on the evidence: b28 Jordan t19, b29 Jordan t9', () => {
 // Lorenzo, 19 Oct (round-4 ruling 4; b33 Blake cb23e17b t22: "Walk me through how you got there." two turns after
 // his t19 claim, behind the follow-up question, so "there" pointed at his first-step answer): a bare probe said later
 // than the turn right after its claim quotes the claim — in the candidate's own words.
-import { quoteLateProbe, lateProbe, QUOTE_WORDS } from '@/lib/orchestrator/math-checker-live';
+import { quoteLateProbe, lateProbe, withProbeOpener, QUOTE_WORDS } from '@/lib/orchestrator/math-checker-live';
 import { changeFigures } from '@/lib/orchestrator/numeric-provenance';
 describe('a bare probe said later than the turn right after its claim quotes the claim (round-4 ruling 4)', () => {
   const BLAKE_T19 = "The single biggest risk is that the price increase doesn't stick — that volume falls more than I've assumed. My whole recommendation rests on a 2–3% volume loss against a 10–12% price increase, and that number is a benchmark, not something we've tested on this customer base. If elasticity is actually closer to one, I lose the entire margin recovery and I've also lost traffic, which is much harder to win back than price is to roll back.\n\nMitigation is the pilot. Three to five markets, representative mix of urban and suburban, run it for eight to twelve weeks, measure transaction counts and ticket size against matched control stores. If volume holds, roll national. If it doesn't, I shift weight onto procurement and the non-dairy surcharge, which don't carry the same traffic risk.\n\nThe second-order risk is that input costs keep climbing eight points a year, in which case pricing is a treadmill and the real fix is contract hedging.";
@@ -1333,5 +1333,73 @@ describe('a bare probe said later than the turn right after its claim quotes the
       expect(lineHeard('Right — the 18-point drop is what we\'re explaining. Can you show me that calculation step by step?', p.line, p.quote)).toBe(false);
       expect(lineHeard('Earlier you said all 18 points of margin loss trace to COGS. Can you show me that calculation step by step?', p.line, p.quote)).toBe(true);
     });
+  });
+});
+
+// Lorenzo, 19 Oct (round-4 ruling 6; b33 Marisol: two consecutive checker lines both opened "You said …"): only the
+// leading "You said" of a probe line rotates; the quote and the rest of the line stay byte-identical.
+describe('probe opener variants (wording only)', () => {
+  const OPENERS = PHRASE_POOLS.probe_opener as readonly string[];
+  const FIGURE = '“5 points” — which cost lines did you include?';
+  const quoted = (uses?: PhraseUses, seed = 's:5') => {
+    const p = planCheckerFlags(input({ rows: [verdictRow(3, [vetted({ probeLine: 'Which cost lines did you include?' })])], phraseUses: uses, seed }));
+    return p.selected!;
+  };
+  it('the first use is "You said"; the quote and the rest are byte-identical whichever opener', () => {
+    expect(quoted().line).toBe(`You said ${FIGURE}`);
+    let uses: PhraseUses = {};
+    for (let t = 0; t < 12; t++) {
+      const l = quoted(uses, `s:${t}`).line;
+      expect(l.replace(/^(?:You (?:said|mentioned|put it at|had)|Earlier you said)/, '')).toBe(` ${FIGURE}`);
+      uses = recordPhraseUses(l, uses);
+    }
+  });
+  it('variants rotate: no opener again within its last 3 uses, and every opener comes up', () => {
+    let uses: PhraseUses = {};
+    const seen: string[] = [];
+    for (let t = 0; t < 20; t++) {
+      const l = quoted(uses, `s:${t}`).line;
+      const opener = OPENERS.find(o => l.startsWith(`${o} “`))!;
+      expect(opener).toBeDefined();
+      expect(seen.slice(-3)).not.toContain(opener);
+      seen.push(opener);
+      uses = recordPhraseUses(l, uses);
+    }
+    expect(new Set(seen)).toEqual(new Set(OPENERS));
+  });
+  it('before a quoted clause, or the checker\'s own line, only the first three are used (they read grammatically)', () => {
+    const clause = { line: 'You said “…closer to one, I lose the entire margin recovery” — walk me through that.', quote: { bare: 'walk me through that.', figure: null, words: 'x' } };
+    const own = { line: 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?' };
+    const seen = new Set<string>();
+    for (let t = 0; t < 40; t++) for (const r of [clause, own]) {
+      const out = withProbeOpener(r, { probe_opener: [t % 5] }, `k:${t}`);
+      const opener = OPENERS.find(o => out.line.startsWith(o))!;
+      expect(OPENERS.slice(0, 3)).toContain(opener);
+      expect(out.line.slice(opener.length)).toBe(r.line.slice('You said'.length));
+      seen.add(opener);
+    }
+    expect(seen.size).toBe(3);
+  });
+  it('only a leading "You said" changes; any other line is untouched', () => {
+    for (const l of ['Walk me through that calculation.', 'Earlier you said 5 points. Why?', 'So you said it.', 'You said']) {
+      if (l === 'You said') continue;
+      expect(withProbeOpener({ line: l }, { probe_opener: [0] }, 'k').line).toBe(l);
+    }
+  });
+  it('the heard check accepts every variant, said by the model or written by code', () => {
+    for (const o of OPENERS) {
+      const sel = quoted({ probe_opener: [OPENERS.indexOf(o) === 0 ? 1 : 0] }, 's:1');   // any chosen line
+      const l = `${o} ${FIGURE}`;
+      expect(lineHeard(`Okay. ${l}`, l, sel.quote)).toBe(true);
+      expect(lineHeard(`Okay. ${l}`, `You said ${FIGURE}`, sel.quote)).toBe(true);   // the model's lead-in differs from code's line
+      expect(lineHeard(`Okay. You said ${FIGURE}`, l, sel.quote)).toBe(true);
+      expect(lineHeard(`Okay. ${o} “4 points” — which cost lines did you include?`, l, sel.quote)).toBe(false);   // another figure: not the line
+    }
+    const own = 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?';
+    for (const o of OPENERS.slice(0, 3)) {
+      const l = o + own.slice('You said'.length);
+      expect(lineHeard(`Mm. ${own}`, l)).toBe(true);
+      expect(lineHeard(`Mm. ${l}`, own)).toBe(true);
+    }
   });
 });

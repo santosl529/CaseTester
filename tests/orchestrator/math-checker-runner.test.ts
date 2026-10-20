@@ -172,7 +172,8 @@ describe('in place of the close, code says the checker\'s line', () => {
     store.events.push({ sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: 7, phase: 'RECOMMENDATION', payloadJsonb: { candidateTurnIndex: 7, latencyMs: 9000, model: 'claude-sonnet-5-5', claims, codeFlags: [], stamps: [] } });
     const r = await runTurn('s1', 'The biggest risk is volume loss; I would pilot it first.');
     expect(r.ended).toBe(false);
-    expect(r.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS. Which cost lines did you look at to get there?');
+    // The opener rotates after an earlier "You said" in the session (round-4 ruling 6); the rest is the vetted line.
+    expect(r.interviewerText).toMatch(/Before we wrap up — (?:you said|you mentioned|earlier you said) the whole 18 points sits in COGS\. Which cost lines did you look at to get there\?/);
     // A final answer's hold (Lorenzo, 16 Oct): its own memory, the once-a-case counter untouched.
     expect((store.session.flagsJsonb as Row).recMathProbed).toBe(false);
     expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: [{ key: 'checker:the whole 18 points', at: 9 }], probeTurns: [9] });
@@ -269,7 +270,7 @@ describe('a final answer not yet checked: the stage\'s follow-up, not the close'
     await flush(); await flush();
     const r11 = await runTurn('s1', 'I would pilot it in 20 stores and watch traffic weekly.');
     expect(r11.ended).toBe(false);
-    expect(r11.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS.');
+    expect(r11.interviewerText).toMatch(/Before we wrap up — (?:you said|you mentioned|earlier you said) the whole 18 points sits in COGS\./);
     // The redo of code's probe holds nothing and is not waited on: the close.
     const r13 = await runTurn('s1', 'Still the whole 18 points, I think.');
     expect(r13.ended).toBe(true);

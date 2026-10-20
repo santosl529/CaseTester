@@ -434,6 +434,18 @@ export const PHRASE_POOLS = {
     'What got you there?',
     'Talk me through how you got there.',
   ],
+  // math-checker-live.ts withProbeOpener: the lead-in of a checker probe that opens "You said" (code's quoted late
+  // probe, "You said “<quote>” — …", or the checker's own line). Only these words vary; the quote and the rest of the
+  // line stay byte-identical (Lorenzo, 19 Oct, round-4 ruling 6; b33 Marisol: two consecutive checker lines both
+  // opened "You said"). The last two read only before a figure ("You put it at “$4.8M”"), so a quoted clause or the
+  // checker's own line (what follows is unknown) takes the first three; see PROBE_OPENER_CLAUSE.
+  probe_opener: [
+    'You said',
+    'You mentioned',
+    'Earlier you said',
+    'You put it at',
+    'You had',
+  ],
   // silence.ts (text mode): the check-in, once a silence — again after the next silence;
   // the question on the table follows it.
   check_in: [
