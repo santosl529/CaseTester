@@ -144,23 +144,21 @@ except where the fix applies) and a prof-001 wave.
 
 | Case | Clock | Authored | Fact audit | Anchors | Waves | Bar | Listed |
 |---|---|---|---|---|---|---|---|
-| prof-001 Brew & Bean | 20 | yes | yes | tuned over batches 18–31 | 20–31 | **met** (batch 31) | **yes** |
+| prof-001 Brew & Bean | 20 | yes | yes | tuned over batches 18–31 | 20–31; 33 (engine-asks wave A) | **met** (batch 31, `main`); not met on `engine-asks` (33): 1 serious false statement (code's own-quantity line, pre-existing), 1 report error, 1 close over a false-stale flag, 1 ask ignored, 4 same-opening pairs | **yes** |
 | prof-002 Larkspur | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 22, 32 | not met: 3 false refusals, 2 report errors (32) | no |
 | entry-001 Aldermoor | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; brainstorm after Exh 3 | 32 | not met: stage owed, moderates (32) | no |
 | pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
 | launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | — | — | no |
 
-**Next (19 Oct):** the shared-engine bundle, round 2 and round 3 (Lorenzo's
-rulings 1–7 on the round-2 proof) are built on branch `engine-asks` (HEAD
-b2285d4; not merged or deployed; plans `docs/superpowers/plans/2026-10-19-engine-asks.md`,
-`…-round2.md`, `…-round3.md`). The round-3 free proof is done (r2-final →
-r3-final: prof-001 2 decisions, 8 slice-lines, every change intended, 0
-regressions — `Case Interview Runs/replays/2026-10-19/engine-asks/r3-final.md`)
-and the live Haiku check on the 34 prof-001 asks found 0 wrong releases
-(`r3-haiku-check.md`, $0.04). Both conditions of Lorenzo's go hold, so wave A
-(prof-001, 10 runs, batch 31's personas, Tyler/Marisol/Jasmine scored, cap $10)
-is next, graded, then stop before B1 (prof-002 + entry-001, cap $20) and B2
-(pricing-001 + launch-001, cap $20), each on his go.
+**Next (19 Oct):** wave A of the engine-asks bundle (batch 33, prof-001, 10
+runs, 6feb4d5, $6.20 of $10) is graded — not met: Marisol t14's misframed
+conversion line (serious; `own-quantity.ts`, unchanged since batch 31, only
+prof-001 has share bases), a Tyler report figure, Blake's false-stale close,
+Marisol t19's ignored ask, 4 same-opening pairs; firm moderates 2 (batch 31: 4);
+the small-model check 7 calls, 0 hollow deferrals, 0 wrong releases
+(`Case Interview Runs/test runs/batch-33/hand-grading.md`; fix proposals in PRD
+§16, awaiting his ruling). **B1 (prof-002 + entry-001, cap $20) awaits Lorenzo's
+go**, then B2 (pricing-001 + launch-001, cap $20), each on his go.
 
 ## Shared-engine gaps that affect new cases (PRD §15)
 
@@ -271,3 +269,10 @@ group beats a more specific cover. Others:
   rule that acts on the verdict (ruling 5: 0 replay changes); a cents-level live
   run of the check on the corpus asks can (33 refused, 8 deferred, 0 wrong
   releases).
+- 19 Oct, batch 33 (engine-asks wave A): a code-written line can be false even
+  when its figure is a true case value — "about 10 points, not 5.8" was right on
+  COGS's own base, wrong on the candidate's (revenue points), and she built her
+  recommendation on it. fact-check's F1/F3/F4 don't test which quantity a
+  correction is on; read every code correction against the candidate's own
+  words. A stale reading can fire on the same figure used as another quantity
+  ("10" in "a 10–12% price increase").
