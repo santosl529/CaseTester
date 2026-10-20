@@ -460,13 +460,19 @@ function rowPairs(figure: number, c: CheckerClaim, ctx: VetContext, unit = unitO
   }
   return out;
 }
-// FR-4 (review C1, fix round 1): each cell's figure is out to the candidate — its exhibit is shown, or a released line
-// states it in its unit (Starter's "40%" is not out because the Starter price "$40 a month" is) — and any other figure
-// in the line (a label's "month 12") is in a released line.
+// FR-4 (review C1, fix round 1): each cell's figure is out to the candidate — and any other figure in the line (a
+// label's "month 12") is in a released line. A cell is out when its exhibit is (shown, or every item it covers
+// released), or when the released line of the cell's own item states it in its unit: the exhibit's items that state
+// the figure, every one of them released. A coincident figure in another released line is no licence (final review,
+// 20 Oct: Starter's "40%" is not out because the Starter price "$40 a month" is, nor because another line says "40%").
 export function rowFix(figure: number, c: CheckerClaim, ctx: VetContext, unit?: string): { line: string; pair: [number, number]; note: string } | null {
   const texts = dataTexts(ctx);
   const known = numbersOf(texts.join(' '));
-  const out = (r: RowPair, x: { value: number; unit: string }) => ctx.shownExhibitIds.includes(r.exhibit) || texts.some(t => figureUnits(t, x.value).includes(x.unit));
+  const coversOf = (id: string) => (ctx.caseData.exhibits.find(e => e.id === id) as { coversLedgerItems?: string[] } | undefined)?.coversLedgerItems ?? [];
+  const released = (id: string) => ctx.revealedIds.includes(id);
+  const exhibitOut = (id: string) => ctx.shownExhibitIds.includes(id) || (coversOf(id).length > 0 && coversOf(id).every(released));
+  const ownItems = (id: string, x: { value: number; unit: string }) => coversOf(id).filter(item => figureUnits(ctx.caseData.dataLedger.find(d => d.id === item)?.value ?? '', x.value).includes(x.unit));
+  const out = (r: RowPair, x: { value: number; unit: string }) => exhibitOut(r.exhibit) || (ownItems(r.exhibit, x).length > 0 && ownItems(r.exhibit, x).every(released));
   const fixes = new Map(rowPairs(figure, c, ctx, unit)
     .filter(r => r.namesOther && !r.namesFigure && r.cells.every(x => out(r, x))
       && numbersOf(r.line).every(n => r.cells.some(x => Math.abs(x.value - n) < 1e-9) || known.some(k => Math.abs(k - n) < 1e-9)))

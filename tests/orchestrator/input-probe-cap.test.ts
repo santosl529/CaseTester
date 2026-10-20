@@ -228,6 +228,27 @@ describe('fix round 2: a claim in the message that states the misread is on its 
   });
 });
 
+// Final review (20 Oct), Task 47 deferred minor → FR-4: a cell is out only when its exhibit is out (shown, or every
+// item it covers released) or its own item's released line states it — never because another released line happens
+// to say the same figure. A variant of pricing-001 whose market-growth line says "40%" (Starter's month-12 cell).
+const coincident = { ...pricing, dataLedger: pricing.dataLedger.map(d => (d.id === 'market_growth' ? { ...d, value: 'Demand for small-business software is growing about 40% a year.' } : d)) };
+const PRO_ONLY = ['pro_cohort', 'plan_prices_costs', 'plan_cac', 'ltv_definition', 'market_growth'];
+describe('the row fix states no cell of an unrevealed item (final review, FR-4)', () => {
+  it('exhibit-2 with only Pro\'s cohort out, "40%" said by another line: no line naming Starter\'s 40%', () => {
+    expect(rowFix(21.5, claimOf('7:0'), ctxOf(PRO_ONLY, coincident as never))).toBeNull();
+    const p = planAt({ caseData: coincident as never, revealedIds: PRO_ONLY });
+    expect(p.decisions.map(d => d.line ?? '')).not.toContainEqual(expect.stringMatching(/40% for Starter/));
+  });
+  it('each cell\'s own item out (the notes line still held): the row fix', () => {
+    expect(rowFix(21.5, claimOf('7:0'), ctxOf(['pro_cohort', 'starter_cohort', 'plan_prices_costs', 'plan_cac', 'ltv_definition']))?.line).toBe(ROW_FIX);
+  });
+  it('exhibit-2 shown: its cells are out; the planner knows the shown exhibits (vetCtx no longer passes [])', () => {
+    expect(rowFix(21.5, claimOf('7:0'), { ...ctxOf(PRO_ONLY, coincident as never), shownExhibitIds: ['exhibit-2'] })?.line).toBe(ROW_FIX);
+    expect(planAt({ caseData: coincident as never, revealedIds: PRO_ONLY, shownExhibitIds: ['exhibit-2'] }).selected).toMatchObject({ action: 'correct', line: ROW_FIX });
+    expect(planAt({ caseData: coincident as never, revealedIds: PRO_ONLY }).selected?.line).not.toBe(ROW_FIX);
+  });
+});
+
 describe('review fix round 1', () => {
   // C1 (FR-4): Pro's cohort out, Starter's not — the Starter price "$40 a month" is no "40%".
   it('C1: Starter\'s 40% not out (only the "$40" price is) — no row fix naming it', () => {

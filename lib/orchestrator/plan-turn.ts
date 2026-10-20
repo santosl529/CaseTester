@@ -668,7 +668,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     rows: checkerRows,
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
-    candidateFigures, caseData, revealedIds: revealedIdsNow, keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, inputProbes, held: heldLine, finalAnswer, rank,
+    candidateFigures, caseData, revealedIds: revealedIdsNow, shownExhibitIds: [...shownExhibitIds], keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, inputProbes, held: heldLine, finalAnswer, rank,
     convertedFigures: checkerMemory.convertedFigures, corrected: checkerMemory.corrected, restated: checkerMemory.restated, said: checkerMemory.said,
     phraseUses: flags.phraseUses as PhraseUses | undefined, seed: `${ctx.sessionId}:${ctx.nextTurnIndex}`, codeFigures,
     // The gate's decisions, earlier turns' (by turn) then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).

@@ -580,6 +580,8 @@ export type CheckerPlanInput = {
   underTimePressure: boolean;
   candidateFigures: number[];
   caseData: CheckerCase; revealedIds: string[];
+  // The exhibits shown so far (plan-turn): their cells are out to the candidate (the row fix, own-quantity.ts).
+  shownExhibitIds?: string[];
   // The session's recent lines and the turn's seed: a neutral probe is said in one of its versions (phrasing.ts).
   phraseUses?: PhraseUses; seed?: string;
   // The right figures code's line on a finding states (the gate's, plan-turn): a misquote the gate will hold dedupes nothing.
@@ -779,7 +781,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // The flagged claims so far, for a later "correct" verdict on their figures.
   const flaggedSoFar: { id: string; n: number; c: VettedClaim }[] = [];
   const idFigsOf = (c: CheckerClaim) => { const f = ownFigures(c, caseNumbers); return [...f, ...wordFigures(c.candidateValue).filter(w => !f.some(x => same(x, w)))]; };
-  const vetCtx: VetContext = { caseData: p.caseData, revealedIds: p.revealedIds, shownExhibitIds: [], candidateTexts: laterMessages(-1).map(x => x.text) };
+  const vetCtx: VetContext = { caseData: p.caseData, revealedIds: p.revealedIds, shownExhibitIds: p.shownExhibitIds ?? [], candidateTexts: laterMessages(-1).map(x => x.text) };
   const reopened: { id: string; n: number; c: VettedClaim; key: string; figs: number[] }[] = [];
   // Lorenzo, 17 Oct (session 9ccf0836, batch 30 Noor): "not X" only on code's
   // own quantity — read from the claim's sentence and the next two messages.
