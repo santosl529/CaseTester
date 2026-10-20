@@ -203,6 +203,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     });
   }
   // A model release the message never named, checked by the classifier on the message (Task 51).
+  // latencyMs is the classifier's own time — null when it hadn't answered (a timeout: waitMs ≈ 1500), not "no call".
   if (asked?.release) {
     const r = asked.release;
     checks.record('release_checked', r.withdrawn.length > 0, 'a model release the message never named, and no detection maps: withdrawn, the message\'s asks answered on their own', {

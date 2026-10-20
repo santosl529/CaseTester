@@ -186,19 +186,6 @@ export function matchAskDetections<T extends { what: string; ledgerItemIds?: str
   const keep = new Set<T>([...split.kept, ...split.dropped.filter(d => (d.ledgerItemIds ?? []).some(id => held.isHeld(id) && named(id)))]);
   return { kept: detections.filter(d => keep.has(d)), dropped: detections.filter(d => !keep.has(d)) };
 }
-// Whether a text shares a content word (stem match) with an item's own words — its
-// label, spoken name, the case's names (and covers) for it — the case's proper names
-// aside (Task 49's held-ask test; round 5 Task 51's release check). A proper name is
-// taken out as a name, not word by word: "Kelvexa" alone names no item, while
-// "beans" still names the bean items though the client is "Brew & Bean" (Task 51).
-const withoutNames = (text: string, caseNames: string[]) => [...caseNames].sort((a, b) => b.length - a.length)
-  .reduce((t, n) => t.replace(new RegExp(`(?<![a-z])${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'gi'), ' '), text);
-export function namesItem(text: string, itemWords: string[], caseNames: string[]): boolean {
-  const words = contentWords(withoutNames(itemWords.join(' '), caseNames));
-  return [...contentWords(withoutNames(text, caseNames))].some(w => words.has(w));
-}
-// A text with no naming word (the case's proper names aside): a pointer ("Can I see the data?").
-export const namesNothing = (text: string, caseNames: string[]) => contentWords(withoutNames(text, caseNames)).size === 0;
 function coveredAsks<T extends { what: string }>(sentences: string[], detections: T[]): { kept: T[]; dropped: T[] } {
   if (sentences.length === 0) return { kept: [], dropped: [...detections] };
   if (sentences.length === 1 && detections.length === 1 && cueAsk(sentences[0])) {
@@ -213,12 +200,30 @@ function coveredAsks<T extends { what: string }>(sentences: string[], detections
 
 // The case's proper names (sttKeyterms: the client, products, places) — they name no item on their own.
 export const properNames = (sttKeyterms: string[]) => sttKeyterms.filter(t => /^[A-Z]/.test(t));
-// A request's content words, the case's proper names aside (round 5 Task 50:
-// "Hollis Bay" is in the offer and in the ask it replaced — B2 Jasmine t5).
-const namingWords = (text: string, caseNames: string[]) => {
+// A text's naming words: its content words, the case's proper names aside — one rule
+// for every caller (round 5 Task 50: "Hollis Bay" is in the offer and in the ask it
+// replaced — B2 Jasmine t5; Task 49: "Kelvexa" alone names no item; Task 51 fix round
+// 1). A proper name is taken out as a whole phrase, and a word of one said alone
+// ("snacks" of "Hollis Bay Snacks", "bean" of "Brew & Bean") names nothing either —
+// unless `own` (an item's own label, spoken name and names, the proper names taken
+// out) uses it as a common noun: "beans" names the bean items ("coffee bean price
+// change"). The ask-to-declaration comparisons (namedBy) pass no `own`.
+const withoutNames = (text: string, caseNames: string[]) => [...caseNames].sort((a, b) => b.length - a.length)
+  .reduce((t, n) => t.replace(new RegExp(`(?<![a-z])${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'gi'), ' '), text);
+const namingWords = (text: string, caseNames: string[], own?: Set<string>) => {
   const proper = contentWords(caseNames.join(' '));
-  return new Set([...contentWords(text)].filter(w => !proper.has(w)));
+  return new Set([...contentWords(withoutNames(text, caseNames))].filter(w => !proper.has(w) || own?.has(w)));
 };
+// Whether a text names an item: a naming word (stem match) in common with the item's
+// own words — `own` (label, spoken name, the case's names for it) and `more` (its
+// covers, Task 51) — a word of a proper name only through `own`.
+export function namesItem(text: string, own: string[], caseNames: string[], more: string[] = []): boolean {
+  const ownWords = contentWords(withoutNames(own.join(' '), caseNames));
+  const words = new Set([...ownWords, ...contentWords(withoutNames(more.join(' '), caseNames))]);
+  return [...namingWords(text, caseNames, ownWords)].some(w => words.has(w));
+}
+// A text with no naming word: a pointer ("Can I see the data?").
+export const namesNothing = (text: string, caseNames: string[]) => namingWords(text, caseNames).size === 0;
 
 // Whether one declaration names an ask by its words: two of the ask's naming words
 // in its "what", or the ask's only one (round 5 Task 50, fix round 1: one shared

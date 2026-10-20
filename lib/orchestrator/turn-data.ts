@@ -356,8 +356,8 @@ export function uncheckedReleases(plan: ModelPlan, declared: DeclaredRequest[]):
     const id = resolve(raw);
     const item = id ? state.ledger.items.find(i => i.id === id) : undefined;
     if (!item || !canReveal(state.ledger, item.id) || open.has(item.id) || grouped.has(item.id)) return [];
-    const words = [item.label, item.spoken ?? '', ...(fb.quantities.find(q => q.id === item.id)?.names ?? []), ...(fb.covers.find(c => c.id === item.id)?.phrases ?? [])];
-    return namesItem(text, words, caseNames) ? [] : [{ what: r.what, raw, id: item.id }];
+    const own = [item.label, item.spoken ?? '', ...(fb.quantities.find(q => q.id === item.id)?.names ?? [])];
+    return namesItem(text, own, caseNames, fb.covers.find(c => c.id === item.id)?.phrases ?? []) ? [] : [{ what: r.what, raw, id: item.id }];
   }));
 }
 // The declarations without the releases the check withdrew; one left with no item is dropped.

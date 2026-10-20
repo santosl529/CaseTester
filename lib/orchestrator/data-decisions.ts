@@ -148,6 +148,17 @@ const ONE_OFF_ASK = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up
 const RECURRING_VALUE = /\b(?:annual|annually|yearly|a year|per year|each year|a month|per month|monthly)\b/i;
 const ONE_OFF_VALUE = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up|launch costs?)\b/i;
 
+// Whether a cost recurs (round 5 Task 51 fix round 1; B2 Hollis Bay Marisol a14ca044
+// t9, "whether the $3.0 million roasting line is truly a first-year-only cost or an
+// annual lease that recurs", "what marketing looks like in year two"): a finer cut of
+// an item whose value states only a first-year or one-off money figure and nothing on
+// recurrence — the case doesn't hold the answer, so it is "I don't have …", not the
+// item said again (Lorenzo's 13 Oct 4b: "As I mentioned" only for a re-ask of that item).
+const RECURRENCE_ASK = /\brecurs?\b|\brecurr\w*|\b(?:ongoing|year after year)\b|\bfirst[- ]year[- ]only\b|\b(?:in|for|into) (?:year (?:two|2|three|3)|the second year|later years|future years|subsequent years)\b/i;
+const FIRST_YEAR_VALUE = /\bfirst[- ]year\b|\byear[- ]one\b|\bone[- ](?:time|off)\b/i;
+const SAYS_RECURRENCE = /\b(?:ongoing|recurs?|recurr\w*|continu\w*|every year|each year|after the first year|in later years)\b/i;
+const firstYearOnly = (value: string) => /\$/.test(value) && FIRST_YEAR_VALUE.test(value) && !RECURRING_VALUE.test(value) && !SAYS_RECURRENCE.test(value);
+
 // A change item asked for a split (the clause in outsideAskScope below): a topic
 // sibling of the ask, not the asked quantity at a coarser cut — E1 doesn't give it
 // as a coarse item (controller ruling, 20 Oct, replay r5-44: b31 Sofia t17 "the
@@ -160,6 +171,7 @@ export function outsideAskScope(what: string, item: { label: string; value?: str
   const ask = what.toLowerCase();
   if (BASIS.test(ask) && !SAYS_BASIS.test(item.value ?? '')) return true;
   if (ONE_OFF_ASK.test(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
+  if (RECURRENCE_ASK.test(ask) && firstYearOnly(item.value ?? '')) return true;
   // A count asked of an item that states no figure (round 5 Task 50; fact-check.ts
   // COUNT_ASK): the item is the ask's coarse answer, not the count.
   if (item.value !== undefined && countFinerThan(ask, item.value)) return true;

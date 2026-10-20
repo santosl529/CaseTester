@@ -31,7 +31,7 @@ import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
 import { settleTurn, type ModelOutcome } from '@/lib/orchestrator/settle-turn';
 import { streamTurnSegments } from '@/lib/orchestrator/stream-turn';
 import { uncheckedReleases } from '@/lib/orchestrator/turn-data';
-import { namesItem, namesNothing } from '@/lib/orchestrator/request-signal';
+import { namesItem, namesNothing, matchAskDetections } from '@/lib/orchestrator/request-signal';
 import { eventsFromTurn } from '@/lib/agent/models/turn-events';
 import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
 import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
@@ -47,6 +47,8 @@ const T7_QUESTION = 'You said the fixed costs total $10.2 million. How did you d
 const GOALS = { what: "Hollis Bay's goals beyond year one, including year-two marketing and line costs", itemIds: ['longer_term_goals'], explicit: true, respond: 'release' as const };
 const T9_QUESTION = 'On revenue: you put break-even revenue at $20.4 million, about 7% of the business. What volume and cost base is that built on?';
 const T9_TURN: ModelTurn = { move: 'analysis', requests: [GOALS], exhibit: null, rescueItem: null, say: 'Got it.', question: T9_QUESTION };
+// The question as said in this test context (an existing filter cuts its lead-in).
+const T9_TAIL = 'What volume and cost base is that built on?';
 const T9_REVEALED = ['bag_price', 'variable_costs', 'launch_costs', 'recipe_cost'];
 // Her two asks, in her words.
 const LEASE = { what: 'whether the $3.0 million roasting line is truly a first-year-only cost or an annual lease that recurs', ledgerItemIds: ['launch_costs'], response: 'none' as const, explicit: true };
@@ -82,19 +84,24 @@ const messageCalls = () => calls.filter(c => !c.startsWith('Could I get '));
 beforeEach(() => { detected = []; checkVerdict = []; calls.length = 0; });
 
 describe('a model release the message never names is checked (A5)', () => {
-  it('Marisol t9: longer_term_goals is not released; her marketing ask is refused and the launch costs said again', async () => {
+  it('Marisol t9: longer_term_goals is not released; both her asks are refused (the case holds neither)', async () => {
     detected = [LEASE, MARKETING];
     const p = t9();
     expect(uncheckedReleases(p, T9_TURN.requests)).toEqual([{ what: GOALS.what, raw: 'longer_term_goals', id: 'longer_term_goals' }]);
     const s = await settleTurn(p, outcome(T9_TURN));
     expect(s.spokenText).not.toContain(GOALS_LINE);
     expect(s.spokenText).not.toMatch(/goals beyond year one/i);
-    expect(s.spokenText).toContain("I don't have data on what marketing looks like in year two.");
-    expect(s.spokenText).toMatch(pool('refuse'));
-    expect(s.spokenText).toContain(LAUNCH_LINE);   // her lease ask: the launch-cost line, said again (Task 45 a)
+    // Her lease ask asks whether the line's cost recurs; launch_costs states only the
+    // first-year figure: "I don't have …", not the launch costs said again (4b; the
+    // finer-cut scope rule, data-decisions.ts RECURRENCE_ASK).
+    expect(s.spokenText).not.toContain(LAUNCH_LINE);
+    expect(s.spokenText).not.toMatch(pool('restate'));
+    expect(s.spokenText).toBe(`Got it. I don't have data on ${LEASE.what} or data on ${MARKETING.what}. ${T9_TAIL}`);
     const decisions = checkOf(p, 'data_decisions')?.detail as { releases: string[]; refusals: string[] };
-    expect(decisions.releases).not.toContain('longer_term_goals');
-    expect(decisions.refusals).toEqual([MARKETING.what]);
+    expect(decisions.releases).toEqual([]);
+    expect(decisions.refusals).toEqual([LEASE.what, MARKETING.what]);
+    // The lease ask: its coarse item is out already — refused alone, unchecked (E1).
+    expect(checkOf(p, 'scope_coarse')).toMatchObject({ detail: { alreadyOut: [{ what: LEASE.what, ids: ['launch_costs'] }] } });
     expect(checkOf(p, 'release_checked')).toMatchObject({ decision: 'act', detail: { checked: [{ what: GOALS.what, id: 'longer_term_goals' }], confirmed: [], withdrawn: ['longer_term_goals'], classified: true } });
     const d = checkOf(p, 'release_checked')!.detail as { latencyMs: unknown; waitMs: unknown };
     expect(typeof d.latencyMs).toBe('number');
@@ -139,8 +146,10 @@ describe('a model release the message never names is checked (A5)', () => {
     const decisions = checkOf(p, 'data_decisions')?.detail as { releases: string[]; exhibit: string | null };
     expect(decisions.releases).toEqual([]);
     expect(decisions.exhibit).toBeNull();
-    expect(s.spokenText).toMatch(pool('gate_defer'));   // her lease ask: held by the gate, with the reason
+    // launch_costs (gated) is the lease ask's coarse item: the gate holds it, and the
+    // finer cut goes through the check — mapped to none here, so refused.
     expect(s.spokenText).not.toContain(LAUNCH_LINE);
+    expect(s.spokenText).toContain(`I don't have data on ${LEASE.what}`);
     // longer_term_goals is neither released nor promised.
     expect(s.spokenText).not.toContain(GOALS_LINE);
     expect(s.spokenText).not.toMatch(/goals beyond year one/i);
@@ -227,6 +236,25 @@ describe('the word test (request-signal.ts namesItem, namesNothing)', () => {
   it('a proper name is taken out as a name: "beans" still names the bean items, "Brew & Bean" alone does not', () => {
     expect(namesItem('Beans are the lever.', ['Coffee bean price change over 2 years'], CLIENT)).toBe(true);
     expect(namesItem('Brew & Bean is the client.', ['Coffee bean price change over 2 years'], CLIENT)).toBe(false);
+  });
+  // Fix round 1 (review): one proper-name rule for every caller — a word of a proper
+  // name said alone ("snacks" of "Hollis Bay Snacks") names an item only through the
+  // item's own label / spoken name / names, never through its covers.
+  const HB = ['Hollis Bay', 'Hollis Bay Snacks'];
+  const comp = launch.dataLedger.find(i => i.id === 'competition_general')!;
+  const compOwn = [comp.label, comp.spoken ?? '', ...(launch.factAnchors?.names.competition_general ?? [])];
+  const compCovers = launch.factAnchors?.covers?.competition_general ?? [];
+  it('"snacks" alone names no item through its covers (competition_general: "who else sells chickpea snacks")', () => {
+    expect(compCovers).toContain('who else sells chickpea snacks');
+    expect(namesItem('And the snacks?', compOwn, HB, compCovers)).toBe(false);
+    expect(namesItem('Hollis Bay Snacks?', compOwn, HB, compCovers)).toBe(false);
+    // A common word of its covers still names it.
+    expect(namesItem('Is there a dominant brand?', compOwn, HB, compCovers)).toBe(true);
+  });
+  it('Task 49 regression: a held-item detection is not kept on "snacks" alone', () => {
+    const detection = { what: 'who the competitors are', ledgerItemIds: ['competition_general'] };
+    const held = { text: 'And the snacks?', isHeld: () => true, itemNames: () => compOwn, caseNames: HB };
+    expect(matchAskDetections([], [detection], held)).toEqual({ kept: [], dropped: [detection] });
   });
   it('a pointer names nothing: the model, reading the conversation, resolves it — no check', () => {
     expect(namesNothing('Can I see the data?', CLIENT)).toBe(true);
