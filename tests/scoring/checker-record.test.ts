@@ -192,6 +192,11 @@ describe('a later redo of a claim the interview closed (b33 Marisol 31e33506)', 
     const early = [{ turnIndex: 15, text: t19.text }, ...turns.filter(t => t.turnIndex !== 15 && t.turnIndex !== 19)];
     expect(lineOf(section(early), S13_0)).toContain('Restated after it had been probed or corrected.');
   });
+  // Fix round 1: the sentence quoted is the one whose figure is bound to the claim's quantity, not the first with the number.
+  it('the sentence quoted is the one the redo is bound in', () => {
+    const two = turns.map(t => (t.turnIndex === 19 ? { turnIndex: 19, text: 'The other inputs added 10.5 points. Beans were 0.25 × 42 = 10.5.' } : t));
+    expect(lineOf(section(two), S13_0).endsWith('The candidate redid it correctly later (turn 19): "Beans were 0.25 × 42 = 10.5."')).toBe(true);
+  });
   it('a withdrawal is no redo', () => {
     const withdrawn = turns.map(t => (t.turnIndex === 19 ? { turnIndex: 19, text: 'Scratch that, the 14.5 was wrong.' } : t));
     expect(lineOf(section(withdrawn), S13_0)).not.toContain('redid it');

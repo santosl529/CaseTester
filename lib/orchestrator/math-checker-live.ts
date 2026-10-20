@@ -765,6 +765,9 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const delivered = p.rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag')
     .map(r => ({ at: r.turnIndex, d: r.payloadJsonb as CheckerDecision }))
     .filter(x => ['probe', 'pointer', 'hint', 'correct', 'converted', 'restate'].includes(x.d.outcome));
+  // The keys an earlier turn left for the report (an expired claim built on one records it as its root, for the report).
+  const leftForReportKeys = new Set(p.rows.filter(r => (r.category ?? MATH_CHECKER_CATEGORY) === MATH_CHECKER_CATEGORY && r.subtype === 'flag')
+    .map(r => r.payloadJsonb as CheckerDecision).filter(d => d.outcome === 'unresolved' && /left for the report/.test(d.reason)).map(d => d.key));
   const laterMessages = (n: number) => [...p.turnRows.filter(t => t.role === 'candidate' && t.turnIndex > n).map(t => ({ text: t.text, index: t.turnIndex })), { text: p.candidateText, index: p.candidateTurnIndex }];
   // Did the interviewer line just before message m question this claim — code's checker line on it, or the model asking about its own figures?
   const questionedBefore = (id: string, c: CheckerClaim, m: number) => {
@@ -916,7 +919,9 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
         // Built on a root a live correction closed (a restatement it never got): its root, for the report (round-2 final review, Minor 2).
         const root = rootOf(c.span, flagKeyFor(c, idFigsOf(c), keys), keys, caseNumbers);
         const restating = root !== null && closed.has(root) && Boolean(p.corrected?.[root]?.line?.trim());
-        decisions.push({ ...decision(id, v.candidateTurnIndex, c, 'expired', `${later.length} messages since the claim`), ...(restating ? { root: root! } : {}) });
+        // …or one left for the report (Task 55 fix round 1, controller's ruling): recorded only — no line, no other effect.
+        const leftForReport = root !== null && (leftForReportKeys.has(root) || (closed.has(root) && p.corrected?.[root] === undefined));
+        decisions.push({ ...decision(id, v.candidateTurnIndex, c, 'expired', `${later.length} messages since the claim`), ...(restating || leftForReport ? { root: root! } : {}) });
         handled.add(id);
         return;
       }

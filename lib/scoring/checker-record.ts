@@ -135,7 +135,10 @@ function laterRedo(f: Flagged, rows: CheckerEventRow[], redo: RedoContext): stri
     const m = RIGHT_STATED.exec(isStale(f.claim, [t.text], redo.caseData, redo.revealedIds) ?? '');
     if (!m) continue;
     const v = Number(m[1].replace(/,/g, ''));
-    const sentence = sentencesSaid(t.text).find(x => numbersOf(x).some(n => same(n, v)));
+    // The sentence the redo is bound in: the one isStale credits on its own (figure-binding.ts binds within a
+    // sentence), not the first that holds the number ("The other inputs added 10.5 points. Beans were … = 10.5.").
+    const holding = sentencesSaid(t.text).filter(x => numbersOf(x).some(n => same(n, v)));
+    const sentence = holding.find(x => RIGHT_STATED.test(isStale(f.claim, [x], redo.caseData, redo.revealedIds) ?? '')) ?? holding[0];
     if (sentence) return `The candidate redid it correctly later (turn ${t.turnIndex}): "${sentence}"`;
   }
   return null;

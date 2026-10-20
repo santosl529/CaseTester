@@ -1198,6 +1198,28 @@ describe('the correction follows the wrong input (entry-001, Aldermoor Marisol)'
       expect(p.selected).toBeNull();
       expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'expired', root: 'net_price@2000' })]);
     });
+    // Task 55 fix round 1 (controller's ruling): one built on a root left for the report records that root too — the
+    // report says the root was probed and left for it (checker-record.ts), not "Not raised in the interview".
+    describe('one built on a root left for the report that waited past CHECKER_MAX_WAIT_MESSAGES: expired, with its root', () => {
+      const late = { candidateTurnIndex: 23,
+        turnRows: [{ turnIndex: 17, role: 'candidate', text: T17 }, { turnIndex: 18, role: 'interviewer', text: 'Go on.' }, { turnIndex: 19, role: 'candidate', text: 'Ideas.' }, { turnIndex: 20, role: 'interviewer', text: 'Go on.' }, { turnIndex: 21, role: 'candidate', text: 'More ideas.' }, { turnIndex: 22, role: 'interviewer', text: 'Go on.' }],
+        candidateText: 'Still more ideas.' };
+      const claims = [sales('40,000 × $2,000 = $80 million', '$80 million')];
+      it('the root closed with no correction', () => {
+        const p = run(claims, { ...closedNet, ...late });
+        expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'expired', root: 'net_price@2000' })]);
+      });
+      it('the root\'s own decision "left for the report" in the rows', () => {
+        const left = { category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: 9, payloadJsonb: { id: '7:0', candidateTurnIndex: 7, outcome: 'unresolved', key: 'net_price@2000', reason: 'attempt 2: no correction code can write, no pointer — left for the report' } } as unknown as CheckerRow;
+        const p = run(claims, { keys: closedNet.keys, ...late, rows: [verdictRow(17, claims), left] });
+        expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'expired', root: 'net_price@2000' })]);
+      });
+      it('a root still open: no root recorded', () => {
+        const p = run(claims, { keys: closedNet.keys, ...late });
+        expect(p.decisions).toEqual([expect.objectContaining({ id: '17:0', outcome: 'expired' })]);
+        expect(p.decisions[0].root).toBeUndefined();
+      });
+    });
     it('a waiting flag whose own correction is another line is not covered', () => {
       const other = vetted({ span: 'eligible pool of 300,000', quantity: 'eligible patients', candidateValue: '300,000', correctValue: 200000, codeQuantity: step('eligible_patients'),
         correctionLine: 'Eligible patients is about 200,000, not 300,000.', correctionFigure: '200000' });
