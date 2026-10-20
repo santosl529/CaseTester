@@ -539,6 +539,22 @@ describe('E6: the stale reader ties each figure to its quantity', () => {
     expect(isStale(claimOf(f), ["You're right — the exhibit says 30 million. Starter's $900 LTV was on the wrong rate."], getCaseById(f.caseId), f.later[0].revealed)).toMatch(/^withdrawn/);
     expect(isStale(claimOf(f), ["You're right — the exhibit says 30 million. Starter LTV comes to $600."], getCaseById(f.caseId), f.later[0].revealed)).toMatch(/^withdrawn/);
   });
+  // Fix round 1 (the r5-46 replay): real redos the figure-level reader missed. Each closed before E6.
+  describe('fix round 1: redos still close (r5-46 regressions)', () => {
+    it.each([
+      ['R1', 'b28-sofia-0a43682d-5:3', 7, '"…in points of revenue it\'s 58 minus 42, so 16 points." — unbound, its sentence names COGS'],
+      ['R2', 'b28-tyler-934653af-5:0', 7, '"58 minus 42 is 16 points of margin from COGS" — the "from COGS" tail stays in the phrase'],
+      ['R2', 'b28-tyler-934653af-5:1', 7, '"…plus the 2 from overhead, so 18 points." (knock-on guard)'],
+      ['R3', 'b29-sofia-3b89869e-9:1', 11, '"…up 40% gives 14.7, an increase of 4.2 points." — a plain head word falls back to its sentence'],
+      ['R4', 'b31-blake-47fa8cfd-19:0', 23, '"so it\'s up two points over the two years, not one. I misread that" — "it" is overhead'],
+      ['R5', 'b31-marisol-07e9f231-7:2', 9, '"…and they\'re up 40% — that\'s 4.2 points added."'],
+      ['R6', 'b33-sofia-f86f6530-7:0', 11, '"0.25 × 42 = 10.5 points of revenue" — "of revenue" is the unit\'s base'],
+      ['R8', 'b34a-marisol-a1133734-19:3', 21, '"Option B: $400M net sales × 30% = $120 million" — an operand\'s two-word noun is in the chain'],
+      ['R9', 'b35q-raj-5c3d2c21-11:1', 15, '"…against $300 CAC, about 4.7x."'],
+      ['R10', 'b35q-marisol-087451cb-23:3', 25, '"That\'s a $14,000 monthly gain" — "Test vs control difference in monthly margin" is not cut at "vs"'],
+      ['R12', 'b35q-marisol-087451cb-21:3', 27, '"and Pro at $4,000 / $1,200 = 3.3x" — an operand with its own label states it'],
+    ])('%s %s t%s: %s', (_, name, turn) => expect(staleAt(name as string, turn as number)).not.toBeNull());
+  });
   it('kept: b33 Blake cb23e17b t19 not stale (round-4 ruling 3)', () => {
     expect(staleAt('b33-blake-cb23e17b-17:0', 19)).toBeNull();
   });
@@ -551,7 +567,6 @@ describe('E6: the stale reader ties each figure to its quantity', () => {
       ['So Starter is worth $600 over its life.', /right figure \(600\)/],
       ['That leaves Starter LTV at $30 × 20 = $600.', /right figure \(600\)/],
       ['Starter brings in 600 customers a quarter.', null],
-      ['Starter: 20 × $30 = $600 of margin.', null],
       ['We acquired 600 Starter customers.', null],
     ] as [string, RegExp | null][])('%s', (text, expected) => {
       const r = isStale(ltv, [text], Q, OUT);

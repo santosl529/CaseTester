@@ -251,11 +251,11 @@ const FROM_PRICE = new Set(['gain', 'new_margin', 'breakeven']);
 const BASE_CUE = /\b(?:scal(?:e|ed|ing)|rebas\w*|re-?based|(?:today'?s|current|this year'?s|the new|the old|two years ago'?s?|prior) (?:revenue|base|dollars)|old[- ]dollar|in old dollars|index|times 1\.\d+|× ?1\.\d+|on (?:a|the) base of)\b/i;
 
 // A phrase's words, singular ("costs" → cost), and its head noun: the last word
-// before "of"/"per" ("contribution per flight" → contribution), else the last.
+// before "of"/"per"/"from" ("contribution per flight" → contribution), else the last.
 const stemsOf = (t: string) => (t.toLowerCase().match(/[a-z]+/g) ?? []).map(w => (w.length > 3 && w.endsWith('s') && !/(?:ss|is|us)$/.test(w) ? w.slice(0, -1) : w));
 function headNounOf(phrase: string): string {
   const ws = phrase.split(/\s+/);
-  const j = ws.findIndex(w => /^(?:of|per)$/i.test(w));
+  const j = ws.findIndex(w => /^(?:of|per|from)$/i.test(w));
   return stemsOf((j > 0 ? ws.slice(0, j) : ws).at(-1) ?? '').at(-1) ?? '';
 }
 
@@ -316,7 +316,9 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
   // The checker's quantity less its conditions — what it is computed with or at
   // ("net margin effect of an 8% price rise with 8% volume loss": the volume loss
   // is an input, b30 Blake 01daac8b; "Starter standalone LTV at $60": a price).
-  const quantity = c.quantity.split(/\s+(?:with|at|from|by|given|assuming|if|under|versus|vs\.?)\s+/i)[0];
+  // A comparison is the quantity, not a condition ("Test vs control difference in
+  // monthly margin", b35q Marisol 087451cb 23:3; fix round 1).
+  const quantity = c.quantity.split(/\s+(?:with|at|from|by|given|assuming|if|under)\s+/i)[0];
   const subject = quantityWords(quantity);
   // By its head noun ("600 Starter customers" is customers, not Starter LTV), or —
   // when the head is a plain word ("the COGS gap", "labor dollars") — by its other words.
@@ -339,14 +341,26 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
   const sameQuantity = byCode(quantity);
   // own: bound to the claim's quantity; other: bound to another; none: to no quantity.
   type Binding = { checker: boolean; code: boolean; other: boolean };
+  // A figure tied to no quantity falls back to its sentence — the pre-E6 rule
+  // (fix round 1 on the r5-46 replay: "…so 16 points", "an increase of 4.2
+  // points", "that's 4.2 points added", "10.5 points of revenue", "…CAC, about
+  // 4.7x" were real redos): bound when the sentence names the claim's quantity
+  // by the checker's words, code's kind words or the step's cues. Never for an
+  // operand, or a figure bound to another quantity.
+  const bySentence = (x: string): Binding => {
+    const ch = subject.size > 0 && [...quantityWords(x)].some(w => subject.has(w));
+    const co = (KIND_CUE[q.kind]?.test(x) ?? false) || cues.some(cue => cueNames(x, cue));
+    return { checker: ch || (co && sameQuantity), code: ch || co, other: false };
+  };
   const bindingOf = (f: BoundFigure): Binding => {
     if (f.pronoun) {
       // "it"/"that" refers back to the claim when the claim's own figure was just said (Aldermoor Tyler t13).
-      const back = numbersOf(f.lead).some(atOwn);
-      return { checker: back, code: back, other: false };
+      return numbersOf(f.lead).some(atOwn) ? { checker: true, code: true, other: false } : bySentence(f.sentence);
     }
     const ch = byChecker(f.phrase), co = byCode(f.phrase);
-    return { checker: ch || (co && sameQuantity), code: ch || co, other: !ch && !co && quantityWords(f.phrase).size > 0 };
+    const other = !ch && !co && quantityWords(f.phrase).size > 0;
+    if (!ch && !co && !other && !f.operand) return bySentence(f.sentence);
+    return { checker: ch || (co && sameQuantity), code: ch || co, other };
   };
   // The figure is a right figure stated for the claim's own quantity.
   const statedRight = (f: BoundFigure, pool: number[]) => {
@@ -372,8 +386,10 @@ export function isStale(c: CheckerClaim, later: (string | LaterMessage)[], caseD
       return WITHDRAWN.test(concession) ? `withdrawn: "${concession}"` : `revised: "${concession}"`;
     }
     // An operand is an input of arithmetic, not the quantity stated (Larkspur
-    // Marisol 6e5a1c90 t19: "8,000 flights × 60 passengers × $10 = $4.8M" is no $10M of route contribution).
-    const stated = figs.find(f => !f.operand && notInput(f.value) && statedRight(f, rightToCheck));
+    // Marisol 6e5a1c90 t19: "8,000 flights × 60 passengers × $10 = $4.8M" is no
+    // $10M of route contribution) — unless its own phrase names the claim's
+    // quantity ("Pro at $4,000 / $1,200 = 3.3x" states Pro's LTV; b35q Marisol 21:3).
+    const stated = figs.find(f => (!f.operand || f.phrase !== '') && notInput(f.value) && statedRight(f, rightToCheck));
     if (stated !== undefined) return `the right figure (${stated.value}) stated since`;
     if (NEEDED_KINDS.has(q.kind)) {
       const prices = [...priceAnswers(text), ...factorFigures(text)].filter(n => !own.some(x => same(n, x)));

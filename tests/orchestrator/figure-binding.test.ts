@@ -9,7 +9,7 @@ const at = (text: string, value: number) => boundFigures(text).filter(f => f.val
 describe('the phrase after the figure', () => {
   it('Quillpath Marisol t31: "$900 of CAC saved on 600 customers" — 600 is customers, $900 is CAC', () => {
     const t = "Two, the CFO's test understates Starter because it ignores upgrades: 20% of the cohort is on Pro by month 12, acquired for $300 instead of $1,200, which is $900 of CAC saved on 600 customers from one quarter's cohort, about $540,000.";
-    expect(at(t, 600)[0].phrase).toBe('customers');
+    expect(at(t, 600)[0].phrase).toBe("customers from one quarter's cohort");   // the head noun: customers
     expect(at(t, 900)[0].phrase).toBe('CAC saved');
   });
   it('Hollis Bay Tyler t13: "about $4.5 million of first-year profit"; "$9.0 million of first-year launch costs"', () => {

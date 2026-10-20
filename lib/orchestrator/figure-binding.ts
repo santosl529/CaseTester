@@ -17,7 +17,7 @@ import { normalizeNumberWords } from '@/lib/number-words';
 
 export type BoundFigure = {
   value: number;
-  phrase: string;      // the quantity phrase it modifies; '' when none
+  phrase: string;      // the quantity phrase it modifies ('' when none); an operand's: the noun after it, else its own label ("Pro at $4,000 /")
   operand: boolean;    // an input of arithmetic, not a quantity stated
   pronoun: boolean;    // bound to "it"/"that"/"this"
   lead: string;        // for a pronoun: the sentence before and its own sentence up to the pronoun
@@ -46,9 +46,9 @@ equaling makes make made making of up down by now still already grew grow grows 
 go went gone going gets get got getting takes take took taken taking holds hold held sits sit sat lands land landed works work worked out totals totaled
 totalled nets netted leaves leave left brings bring brought puts put reaches reach reached hits hit clears clear cleared stays stay stayed drops drop dropped
 climbs climb climbed jumps jumped within under over above below more less me us them him her nearer near some maybe perhaps probably likely say said
-says think thought means mean meant shows show showed gave`.split(/\s+/));
-// Words inside a phrase ("contribution per flight", "share of revenue").
-const JOIN = new Set(['of', 'per']);
+says think thought means mean meant shows show showed gave rising falling growing increasing declining dropping climbing`.split(/\s+/));
+// Words inside a phrase ("contribution per flight", "share of revenue", "margin from COGS").
+const JOIN = new Set(['of', 'per', 'from']);
 const PRONOUN = new Set(['it', "it's", 'that', "that's", 'this']);
 // Scale and unit words in an arithmetic chain read backwards ("8.6 million × $1.50 = $12.9 million").
 const UNIT_WORDS = new Set(['million', 'billion', 'thousand', 'm', 'mm', 'mn', 'bn', 'k', 'points', 'point', 'percent', 'percentage', 'pp', 'pts', 'x', 'times', 'plus', 'minus', 'less']);
@@ -65,9 +65,29 @@ function phraseAfter(rest: string): string {
   for (const t of s.trim().split(/\s+/)) {
     const w = t.replace(/[,;:.!?)"”]+$/, '');
     const l = lower(w);
-    if (!WORD.test(w) || STOP.has(l) || LINK.has(l) || (words.length === 0 && (/ed$/.test(l) || JOIN.has(l)))) break;
+    if (!WORD.test(w)) break;
+    if (words.length > 0 && JOIN.has(l)) { words.push(w); if (w !== t) break; continue; }
+    if (STOP.has(l) || LINK.has(l) || (words.length === 0 && (/ed$/.test(l) || JOIN.has(l)))) break;
     words.push(w);
-    if (w !== t || words.length >= 4) break;   // punctuation ends it
+    if (w !== t || words.length >= 5) break;   // punctuation ends it
+  }
+  while (words.length > 0 && JOIN.has(lower(words[words.length - 1]))) words.pop();
+  return words.join(' ');
+}
+
+// An operand's own label ("Pro at $4,000 / $1,200 = 3.3x", b35q Marisol 21:3): at most
+// three words, joined to it by "at" or a colon. A chain's name right before its first
+// operand ("fixed costs $3.0 + …", "LTV $50 / 0.074") names the result, not the operand.
+function labelOf(before: string): string {
+  const toks = [...before.matchAll(/\$?\d+(?:,\d{3})*(?:\.\d+)?%?|[a-z][a-z'’]*(?:-[a-z0-9]+)*|\S/gi)].map(m => m[0]);
+  let i = toks.length - 1;
+  if (i < 0 || !(lower(toks[i]) === 'at' || toks[i] === ':')) return '';
+  i--;
+  const words: string[] = [];
+  for (; i >= 0 && words.length < 3; i--) {
+    const l = lower(toks[i]);
+    if (!WORD.test(toks[i]) || STOP.has(l) || LINK.has(l) || UNIT_WORDS.has(l)) break;
+    words.unshift(toks[i]);
   }
   return words.join(' ');
 }
@@ -81,10 +101,19 @@ function phraseBefore(before: string): { phrase: string; pronoun: boolean; lead:
     const l = lower(t);
     const isFig = (k: number) => k >= 0 && /^\$?\d/.test(toks[k]?.[0] ?? '');
     const isOp = (k: number) => /^[×*/÷+=≈~−^-]$/.test(toks[k]?.[0] ?? '') || /^(?:plus|minus|times|less)$/i.test(toks[k]?.[0] ?? '');
-    // An operand's own noun in the chain — after it ("8,000 flights × 60 passengers × $10")
-    // or before it ("COGS 16 points plus overhead 2 points equals 18") — is part of the chain.
-    const chain = isFig(i) || /^[×*/÷+=≈~−^()-]$/.test(t) || UNIT_WORDS.has(l)
-      || (words.length === 0 && ((isFig(i - 1) && isOp(i + 1)) || (isOp(i - 1) && isFig(i + 1))));
+    // A figure, over its scale word ("$400M net sales": "$400", "M").
+    const figAt = (k: number) => { let j = k; while (j >= 0 && UNIT_WORDS.has(lower(toks[j][0]))) j--; return isFig(j); };
+    // An operand's own noun in the chain, of up to three words — after it ("8,000 flights ×
+    // 60 passengers × $10", "$400M net sales × 30%") or before it ("COGS 16 points plus
+    // overhead 2 points equals 18") — is part of the chain.
+    if (words.length === 0 && WORD.test(t) && !UNIT_WORDS.has(l)) {
+      let k = i;
+      while (k - 1 >= 0 && i - (k - 1) < 3 && WORD.test(toks[k - 1][0]) && !UNIT_WORDS.has(lower(toks[k - 1][0])) && !STOP.has(lower(toks[k - 1][0])) && !LINK.has(lower(toks[k - 1][0]))) k--;
+      const run = (from: number) => (figAt(from - 1) && isOp(i + 1)) || (isOp(from - 1) && isFig(i + 1));
+      const at = [i, ...Array.from({ length: i - k }, (_, d) => i - d - 1)].find(run);
+      if (at !== undefined) { i = at; continue; }
+    }
+    const chain = isFig(i) || /^[×*/÷+=≈~−^()-]$/.test(t) || UNIT_WORDS.has(l);
     if (chain || t === ':') { if (words.length > 0) break; continue; }   // a label's colon: "Total increase: 4.2 plus 11.8 is 16.0"
     if (!WORD.test(t)) break;
     if (words.length === 0 && PRONOUN.has(l)) return { phrase: '', pronoun: true, lead: before.slice(0, toks[i].index) };
@@ -111,7 +140,7 @@ export function boundFigures(text: string): BoundFigure[] {
     rest = rest.slice(RATE.exec(rest)?.[0].length ?? 0);
     const operand = OP_AFTER.test(rest) || OP_BEFORE.test(before);
     const after = phraseAfter(rest);
-    if (after || operand) return [{ value, phrase: after, operand, pronoun: false, lead: '', sentence } satisfies BoundFigure];
+    if (after || operand) return [{ value, phrase: after || (operand ? labelOf(before) : ''), operand, pronoun: false, lead: '', sentence } satisfies BoundFigure];
     const b = phraseBefore(before);
     return [{ value, phrase: b.phrase, operand, pronoun: b.pronoun, lead: b.pronoun ? `${sentences[i - 1] ?? ''} ${b.lead}` : '', sentence } satisfies BoundFigure];
   }));
