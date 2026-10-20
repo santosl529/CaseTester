@@ -8,7 +8,7 @@ import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
 import { findFalseRefusals, groupItemsAsked, coverageOf, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
-import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingSpan, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
+import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, WANT_ASK_PHASES } from './request-signal';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal } from './data-ledger';
@@ -169,7 +169,10 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
     // Mixed full + partial (fix round 2, the controller's ruling; r5b-haiku-pre #18):
     // the full items decide as before, and each partial item's missing part is
     // refused beside them; the partial item itself is not given.
-    const refused = [...new Set(ids.filter(id => partial.has(id)).flatMap(id => (v.missing?.[id] !== undefined ? [said(v.missing[id])] : [])))];
+    // Never the whole ask beside a full item (fix round 3: it would refuse the part just
+    // answered): a partial whose missing part didn't hold (checkAsk's fallback) gets no refusal.
+    const whole = (m: string) => m.replace(/\s+/g, ' ').trim().toLowerCase() === what.replace(/\s+/g, ' ').trim().toLowerCase();
+    const refused = [...new Set(ids.filter(id => partial.has(id)).flatMap(id => (v.missing?.[id] !== undefined && !whole(v.missing[id]) ? [said(v.missing[id])] : [])))];
     return { kind: 'items', ids: notOut.length > 0 ? notOut : inScope, ...(refused.length > 0 ? { missing: refused } : {}) };
   }
   const coarse = ids.filter(id => !changeForSplit(what, ledger.items.find(i => i.id === id)!));
@@ -230,7 +233,7 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     const missing: Record<string, string> = {};
     for (const f of found?.items ?? []) {
       if (f.answers !== 'partial') continue;
-      let m = missingSpan(f.missing ?? what, what) ?? what;
+      let m = missingPart(f.missing ?? what, what) ?? what;
       if (statedIn(m, valueOf(f.id))) {
         if (statedIn(what, valueOf(f.id))) continue;   // the line answers the ask: full
         m = what;

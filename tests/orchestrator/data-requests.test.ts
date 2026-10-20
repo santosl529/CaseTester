@@ -296,14 +296,17 @@ describe('the ask check (classifyAsk): catalog, prompt and parser', () => {
     expect(parse({ items: [{ id: 'cogs_pct' }, { id: 'bean_share_of_cogs', answers: 'mostly' }] }))
       .toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'full' }] });
   });
-  it('a partial keeps its `missing` when it is a span of the ask (no digit), said in the ask\'s own text', () => {
-    expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: 'COGS today' }] }, 'coffee beans as a share of COGS today'))
-      .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: WHAT }] });   // "COGS today" is not a span of it: the ask
-    expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: 'Coffee Beans as a share of COGS' }] }))
-      .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: 'coffee beans as a share of COGS' }] });
+  it('a partial keeps its `missing`: a span of the ask between list boundaries (the ask\'s text), or words all the ask\'s (as written)', () => {
+    expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: 'Coffee Beans as a share of COGS today' }] }))
+      .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: WHAT }] });
+    expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: "coffee beans' share of COGS today" }] }))
+      .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: "coffee beans' share of COGS today" }] });
+    // A piece of the ask cut before its end ("… of COGS" without "today") is a truncation: the ask.
+    expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: 'coffee beans as a share of COGS' }] }))
+      .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: WHAT }] });
   });
   it('`missing` with a digit, a content word not in the ask, or none at all → the ask\'s own words', () => {
-    for (const missing of ['the 2025 bean share', "today's bean share at 58%", 'the current-period bean share', 'bean share by region', "coffee beans' share of COGS today", '', undefined]) {
+    for (const missing of ['the 2025 bean share', "today's bean share at 58%", 'the current-period bean share', 'bean share by region', '', undefined]) {
       expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', ...(missing === undefined ? {} : { missing }) }] }), String(missing))
         .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: WHAT }] });
     }
@@ -373,10 +376,21 @@ describe('a partial\'s missing part: a span of the ask, from a list break', () =
   it('#37 Noor t6: "breakdown by category" (cut after "cost", no article) → the whole ask', () => {
     expect(missingOf('the cost breakdown by category for both years', 'breakdown by category')).toBe('the cost breakdown by category for both years');
   });
-  it('kept from a list break: #42 after "including", #21 after "and", #65 at the ask\'s start', () => {
+  it('kept, a span from list break to list break: #42 after "including", #21 after "and", to the ask\'s end', () => {
     expect(missingOf('the partner deal terms, including royalty step-downs and rights reversion', 'royalty step-downs and rights reversion')).toBe('royalty step-downs and rights reversion');
     expect(missingOf('bean sourcing and contract terms', 'contract terms')).toBe('contract terms');
-    expect(missingOf('week-by-week sign-ups within the price test', 'week-by-week sign-ups')).toBe('week-by-week sign-ups');
+    expect(missingOf('the partner deal terms, including royalty step-downs and rights reversion', 'the partner deal terms')).toBe('the partner deal terms');
+  });
+  // Fix round 3 (the controller's ruling): a span must also END at a list boundary or
+  // the ask's end; a span cut mid-phrase is a truncation, not the ask's part.
+  it('a span that stops mid-phrase → the ask: "the cost break" in "the cost breakdown …", "Starter churn" in "Starter churn beyond month 12", #65 "week-by-week sign-ups"', () => {
+    expect(missingOf('the cost breakdown by category for both years', 'the cost break')).toBe('the cost breakdown by category for both years');
+    expect(missingOf('Starter churn beyond the first year', 'Starter churn')).toBe('Starter churn beyond the first year');
+    expect(missingOf('week-by-week sign-ups within the price test', 'week-by-week sign-ups')).toBe('week-by-week sign-ups within the price test');
+  });
+  it('else a phrase whose content words all come from the ask, not opening at a preposition, as the check wrote it: #18 "current bean contracting terms"', () => {
+    expect(missingOf('current waste rates and bean contracting terms', 'current bean contracting terms')).toBe('current bean contracting terms');
+    expect(missingOf('current waste rates and bean contracting terms', 'versus bean contracting terms')).toBe('current waste rates and bean contracting terms');
   });
 });
 
@@ -404,7 +418,10 @@ describe('the ask check prompt: round 2 rules', () => {
   it('"missing" names something the line does not state, copied from the ask', () => {
     expect(prompt).toMatch(/"missing" .*names something the line does not state/);
   });
-  it('a price or revenue item never answers a cost ask, nor a cost item a price or revenue ask', () => {
-    expect(prompt).toMatch(/A price or revenue item never answers a cost ask, and a cost item never answers a price or revenue ask/);
+  // Fix round 3: "price" alone would cut prof-001's cost items whose labels say price
+  // ("Coffee bean price change over 2 years", "Price change of the other inputs …").
+  it('a selling-price or revenue item (what customers pay) never answers a cost ask, and vice versa', () => {
+    expect(prompt).toMatch(/A selling-price or revenue item \(what customers pay\) never answers a cost ask, and vice versa/);
+    expect(prompt).not.toMatch(/A price or revenue item/);
   });
 });

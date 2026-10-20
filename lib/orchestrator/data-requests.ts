@@ -386,7 +386,7 @@ Map the request to the item(s) that hold the answer to what was asked; an item o
 Per item:
 - "answers": "full" when its line answers the request; "partial" only when the asked part is absent from the line. A line that gives the asked quantity for the asked period is "full", however it is worded.
 - "missing" (with "partial" only): the asked part it lacks, in the ask's own words, no numbers; it names something the line does not state.
-A price or revenue item never answers a cost ask, and a cost item never answers a price or revenue ask.
+A selling-price or revenue item (what customers pay) never answers a cost ask, and vice versa.
 
 Examples (other cases):
 - Aldermoor, "whether any US player has an existing Corlan's franchise": option_b (a US partner) is closer than company_size.
@@ -411,25 +411,38 @@ const missingStem = (w: string) => { const s = w.replace(/(?:ies|es|s|'s)$/, '')
 const contentTokens = (t: string) => (t.toLowerCase().replace(/[’']s\b/g, '').match(/[a-z0-9]+(?:-[a-z0-9]+)*/g) ?? [])
   .filter(w => (w.length >= 3 || /\d/.test(w)) && !FUNCTION_WORDS.has(w)).map(w => (/\d/.test(w) ? w : missingStem(w)));
 
-// A `missing` phrase is said aloud, in the ask's own text (Task 56 fix round 2,
-// r5b-haiku-pre #27 "volume used, and waste or portioning changes", #33 "versus two
-// years ago", #37 "breakdown by category"): a span of the ask, with no digit, that
-// starts at the ask's start or after a list break (a comma, "and", "or", "plus",
-// "including", "as well as") and not at a preposition. Returned as the ask writes it
-// (its capitals); null: not one — the caller says the ask's own words.
-const LIST_BREAK = /(?:^|,|;|\band|\bor|\bplus|\bincluding|\bas well as|&)\s*$/i;
+// A `missing` phrase is said aloud ("I don't have <missing>."), so it is checked
+// (Task 56 fix rounds 2 and 3, the controller's rulings; r5b-haiku-pre #27 "volume
+// used, and waste or portioning changes", #33 "versus two years ago", #37 "breakdown
+// by category"). No digit, and not opening at a preposition; then, in order:
+//   (a) a span of the ask that starts and ends at a list boundary (the ask's start or
+//       end, a comma, "and", "or", "plus", "including", "as well as"): said in the
+//       ask's own text (its capitals);
+//   (b) not a piece of the ask at all, its content words all the ask's ("current bean
+//       contracting terms" for "current waste rates and bean contracting terms"): said
+//       as the check wrote it. A piece of the ask cut mid-phrase ("the cost break",
+//       "Starter churn" of "Starter churn beyond month 12") is a truncation, not (b).
+// Else null: the caller says the ask's own words (one partial) or nothing (beside a
+// full item, turn-data.ts decideCheckedAsk).
+const START_BREAK = /(?:^|,|;|\band|\bor|\bplus|\bincluding|\bas well as|&)\s*$/i;
+const END_BREAK = /^\s*(?:$|,|;|and\b|or\b|plus\b|including\b|as well as\b|&)/i;
 const BAD_START = /^(?:versus|vs\.?|per|by|for|of|in|on|at|to|from|with|and|or|including|plus|than|over|across|between|since|within)\b/i;
-export function missingSpan(missing: string, what: string): string | null {
+const contentStems = (t: string) => (t.toLowerCase().replace(/[’']s\b/g, '').match(/[a-z]+/g) ?? [])
+  .filter(w => w.length >= 3 && !FUNCTION_WORDS.has(w)).map(missingStem);
+export function missingPart(missing: string, what: string): string | null {
   const m = missing.replace(/\s+/g, ' ').trim();
   const ask = what.replace(/\s+/g, ' ').trim();
   if (!m || /\d/.test(m) || BAD_START.test(m) || contentTokens(m).length === 0) return null;
   const lower = ask.toLowerCase(), needle = m.toLowerCase();
-  for (let at = lower.indexOf(needle); at !== -1; at = lower.indexOf(needle, at + 1)) {
-    const before = ask.slice(0, at);
-    const wordStart = at === 0 || /[\s,;(—–-]$/.test(before);
-    if (wordStart && LIST_BREAK.test(before.trimEnd() === '' ? '' : before)) return ask.slice(at, at + m.length);
+  const at0 = lower.indexOf(needle);
+  for (let at = at0; at !== -1; at = lower.indexOf(needle, at + 1)) {
+    if (START_BREAK.test(ask.slice(0, at)) && END_BREAK.test(ask.slice(at + m.length))) return ask.slice(at, at + m.length);
   }
-  return null;
+  if (at0 !== -1) return null;   // a piece of the ask cut mid-phrase
+  if (/[^\p{L}\s'’,&-]/u.test(m)) return null;   // (b) is words only: no stray symbols ("COGS } today")
+  const asked = new Set(contentStems(ask));
+  const words = contentStems(m);
+  return words.length > 0 && words.every(w => asked.has(w)) ? m : null;
 }
 
 // Whether a line states a phrase: every content word and figure token of the phrase
@@ -490,7 +503,7 @@ export function parseAskCheckResponse(raw: string, what: string, catalog: AskChe
     // Absent or unknown = full: the release as before E5's partial form.
     if (e.answers !== 'partial') { items.push({ id: e.id, answers: 'full' }); continue; }
     const missing = typeof e.missing === 'string' ? e.missing.trim() : '';
-    items.push({ id: e.id, answers: 'partial', missing: missingSpan(missing, what) ?? what });
+    items.push({ id: e.id, answers: 'partial', missing: missingPart(missing, what) ?? what });
   }
   return { items };
 }

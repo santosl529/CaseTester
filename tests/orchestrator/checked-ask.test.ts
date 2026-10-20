@@ -305,7 +305,8 @@ describe('E5 partial: the check maps the ask to an item holding only the nearest
     expect(d.releases).toEqual([]);
     expect(d.exhibit).toBeNull();
     expect(d.defers).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual(["I don't have week-by-week sign-ups."]);
+    // "week-by-week sign-ups" stops mid-phrase in the ask (fix round 3): the ask's own words.
+    expect(renderDataLines(d, 's')).toEqual(["I don't have week-by-week sign-ups within the price test."]);
     expect(renderDataLines(d, 's').join(' ')).not.toMatch(NO_FIGURE);
   });
   it('mixed full + partial (Tyler t11): the full item decides as today (cohort_notes, out: restated); the partial one (upgrade_timing) is not given, its missing part refused (fix round 2)', async () => {
@@ -314,7 +315,8 @@ describe('E5 partial: the check maps the ask to an item holding only the nearest
     const d = await turnDataChecked(p, turn(TYLER));
     expect(d.restates.map(r => r.id)).toEqual(['cohort_notes']);
     expect(d.releases).toEqual([]);
-    expect(d.refusals).toEqual(['churn for upgraded customers']);
+    // "churn for upgraded customers" stops mid-phrase in the ask: no valid part, so no refusal beside the full item (fix round 3).
+    expect(d.refusals).toEqual([]);
     expect(renderDataLines(d, 's').join(' ')).not.toContain(value('upgrade_timing'));
   });
   it('#12 Fiona t4: all full (the cost shares answer operating margin by year) → released with the exhibit, no refusal', async () => {
@@ -353,8 +355,11 @@ describe('decideCheckedAsk with partial answers', () => {
   it('partial only → coarse with its missing part; mixed → the full items, and the partial\'s missing part; a partial sibling (a change item asked for a split) → refused', () => {
     expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['upgrade_timing'], outOfScope: [], partial: ['upgrade_timing'], missing: { upgrade_timing: 'x' } }))
       .toEqual({ kind: 'coarse', ids: ['upgrade_timing'], missing: 'x' });
-    expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['upgrade_timing', 'price_test_notes'], outOfScope: [], partial: ['upgrade_timing'], missing: { upgrade_timing: 'x' } }))
-      .toEqual({ kind: 'items', ids: ['price_test_notes'], missing: ['x'] });
+    expect(decideCheckedAsk(p(), 'x and y', { mapped: true, ids: ['upgrade_timing', 'price_test_notes'], outOfScope: [], partial: ['upgrade_timing'], missing: { upgrade_timing: 'y' } }))
+      .toEqual({ kind: 'items', ids: ['price_test_notes'], missing: ['y'] });
+    // Never the whole ask beside a full item (fix round 3).
+    expect(decideCheckedAsk(p(), 'x and y', { mapped: true, ids: ['upgrade_timing', 'price_test_notes'], outOfScope: [], partial: ['upgrade_timing'], missing: { upgrade_timing: 'x and y' } }))
+      .toEqual({ kind: 'items', ids: ['price_test_notes'] });
     // Out of scope and partial both coarse; the partial's missing part speaks.
     expect(decideCheckedAsk(p(), 'x', { mapped: true, ids: ['price_test_results', 'upgrade_timing'], outOfScope: ['price_test_results'], partial: ['upgrade_timing'], missing: { upgrade_timing: 'y' } }))
       .toEqual({ kind: 'coarse', ids: ['price_test_results', 'upgrade_timing'], missing: 'y' });
@@ -380,13 +385,34 @@ describe('fix round 2: a mixed full + partial verdict refuses the partial\'s mis
     const d = await turnDataChecked(p, turn(SOFIA_B30_T14));
     expect(d.restates.map(r => r.id)).toEqual(['bean_price_change']);
     expect(d.releases).toEqual([]);
-    // "current bean contracting terms" is not a span of the ask: the ask's own words.
-    expect(d.refusals).toEqual(['current waste rates and bean contracting terms']);
+    // "current bean contracting terms": its content words are the ask's (fix round 3, rule b).
+    expect(d.refusals).toEqual(['current bean contracting terms']);
     const lines = renderDataLines(d, 's');
     expect(lines).toHaveLength(2);
-    expect(lines[1]).toContain('current waste rates and bean contracting terms');
+    expect(lines[1]).toContain('current bean contracting terms');
     expect(lines.join(' ')).not.toMatch(/25% of COGS/);   // the partial item itself is not said
-    expect(acted(p, 'checked_ask')[0].detail).toMatchObject({ asks: [{ kind: 'items', ids: ['bean_price_change'], missing: ['current waste rates and bean contracting terms'] }] });
+    expect(acted(p, 'checked_ask')[0].detail).toMatchObject({ asks: [{ kind: 'items', ids: ['bean_price_change'], missing: ['current bean contracting terms'] }] });
+  });
+});
+
+// Fix round 3 (the re-review of 1a6ae23; controller's ruling): in a mixed verdict a
+// partial whose missing part fails validation gets no refusal — never the whole ask
+// beside a full item, which would refuse the part just answered.
+describe('fix round 3: a mixed verdict never refuses the whole ask', () => {
+  const WHAT = 'the bean price change and current waste rates';
+  // In a turn this wording never reaches the check (the coverage step maps "bean price change" first),
+  // so the check and its decision are called directly, on Sofia (b30) t14's plan.
+  const decide = async (partialMissing: string) => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'bean_price_change', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'partial', missing: partialMissing }] });
+    const p = planOf(SOFIA_B30_T14);
+    return decideCheckedAsk(p, WHAT, await checkAsk(p, WHAT));
+  };
+  it('"the bean price change and current waste rates": bean_price_change full, bean_share_of_cogs partial "waste rates" (cut mid-phrase) → bean_price_change, no refusal', async () => {
+    expect(await decide('waste rates')).toEqual({ kind: 'items', ids: ['bean_price_change'] });
+  });
+  it('… the partial\'s missing part the whole ask → no refusal either; a valid one ("current waste rates") is refused', async () => {
+    expect(await decide(WHAT)).toEqual({ kind: 'items', ids: ['bean_price_change'] });
+    expect(await decide('current waste rates')).toEqual({ kind: 'items', ids: ['bean_price_change'], missing: ['current waste rates'] });
   });
 });
 
