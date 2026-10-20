@@ -52,7 +52,8 @@ export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfi
   return { satisfied, waiving, nothingMissing };
 }
 
-// basisCut: per ask the BASIS rule emptied, the items it cut (fix-wave 1, below).
+// basisCut: per ask the BASIS rule emptied, the items it cut (fix-wave 1, below);
+// logged only — a mapping to them is a named deferral (round-3 ruling 5).
 export type TurnData = DataDecisions & { gatedIds: string[]; basisCut?: Record<string, string[]> };
 
 // Wrap-up and close turns (Lorenzo, 19 Oct, round-2 ruling 3): the code-written
@@ -399,9 +400,9 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // goes through the same check as an item-less deferral (turnDataChecked)
   // instead of being refused at once: named deferral, or refused when it maps to
   // none. That includes an ask the model mapped to an item and the BASIS rule
-  // emptied (Larkspur Marisol t27; mapping back only to the items the rule cut is
-  // "none" — basisCut; controller's proposal, 19 Oct). Asks the finer-cut scope
-  // rules emptied (refuseNow) are refused as before.
+  // emptied (Larkspur Marisol t27; since round-3 ruling 5 a mapping back to the
+  // items the rule cut is a named deferral too — basisCut is only logged). Asks
+  // the finer-cut scope rules emptied (refuseNow) are refused as before.
   const toCheck = decisions.refusals.filter(w => !refuseNow.has(w));
   if (toCheck.length > 0) {
     const checking = new Set(toCheck);
