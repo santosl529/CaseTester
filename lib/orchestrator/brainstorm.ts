@@ -37,9 +37,10 @@ export function brainstormRequired(c: CaseBrainstorm): boolean {
 
 const STOP = new Set(['a', 'an', 'the', 'of', 'to', 'and', 'or', 'if', 'it', 'its', 'is', 'are', 'be', 'do', 'does', 'did', 'what', 'how',
   'could', 'would', 'should', 'can', 'in', 'on', 'for', 'with', 'them', 'they', 'their', 'that', 'this', 'you', 'your', 'we', 'our', 'say', 'so', 'now']);
-const contentWords = (s: string) => new Set((s.toLowerCase().replace(/[’']s\b/g, '').match(/[a-z][a-z-]*/g) ?? [])
+const contentWordList = (s: string) => (s.toLowerCase().replace(/[’']s\b/g, '').match(/[a-z][a-z-]*/g) ?? [])
   .filter(w => !STOP.has(w))
-  .map(w => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w)));
+  .map(w => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w));
+const contentWords = (s: string) => new Set(contentWordList(s));
 
 // The case's ask, in the interviewer's words: one question sentence that holds
 // most of the ask's content words (light rewording and a lead-in pass; an
@@ -57,13 +58,29 @@ export function asksCaseBrainstorm(text: string, asks: string[]): boolean {
 // could Larkspur do" the grammar knows; a generic "what else could it do?" in
 // an analysis question is not it).
 export function asksOwnBrainstorm(text: string, asks: string[]): boolean {
-  const sentences = text.split(/(?<=[.?!])\s+/).filter(s => s.trim().endsWith('?'));
+  const sentences = text.split(/(?<=[.?!])\s+/).map(s => s.trim()).filter(Boolean);
   return asks.some(a => {
     const want = contentWords(a);
     if (want.size === 0) return false;
-    return sentences.some(s => {
+    const cover = (got: Set<string>) => [...want].filter(w => got.has(w)).length / want.size;
+    // The ask's question clause ("how could it reduce the risk of a slow start"
+    // in "If Aldermoor builds its own team, how could …"): its first content
+    // word is the verb the interviewer must still ask for.
+    const clause = contentWordList(a.split(/[,—–:]/).pop() ?? a);
+    const verb = clause.length > 1 ? clause[0] : undefined;
+    return sentences.some((s, i) => {
+      if (!s.endsWith('?')) return false;
       const got = contentWords(s);
-      return [...want].filter(w => got.has(w)).length / want.size >= CASE_ASK_OVERLAP;
+      if (cover(got) >= CASE_ASK_OVERLAP) return true;
+      // A lead-in sentence before the question carries the case's setting
+      // ("Suppose Aldermoor builds its own US team. How could it reduce the
+      // risk of a slow start, …?"; B1 Raj t18, Marcus t14: the lead-in held
+      // the subject, so the question alone fell short). The question itself
+      // must still ask for the clause's verb and half of its words — a topic
+      // question ("What are the risks of a slow start?") has no "reduce".
+      if (i === 0 || verb === undefined || !got.has(verb)) return false;
+      if (clause.filter(w => got.has(w)).length / clause.length < 0.5) return false;
+      return cover(new Set([...got, ...contentWords(sentences[i - 1])])) >= CASE_ASK_OVERLAP;
     });
   });
 }

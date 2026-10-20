@@ -93,3 +93,27 @@ describe("word overlap only for asks the generic grammar doesn't know", () => {
       recommendationDelivered: false, pressureTest: INITIAL_PRESSURE_TEST, candidateFigures: 0 }).brainstorm.delivered).toBe(true);
   });
 });
+
+// Task 43 (round 5, A7): B1 Aldermoor — the model's reworded brainstorm ask was
+// not credited because its lead-in ("Suppose Aldermoor builds its own US team.")
+// was a separate sentence, so the question alone fell under the overlap; code's
+// stage turn then re-asked the case's ask word for word (Raj t18 -> t20, Marcus t14 -> t20).
+describe('a reworded case ask with its lead-in sentence', () => {
+  const asks = () => brainstormAsks(getCaseById('entry-001'));
+  const stage = (question: string, brainstormDue?: boolean) => updateStages(undefined, { turnIndex: 18, candidateText: 'Okay.', question, exhibitShown: false, released: false,
+    recAsked: false, recommendationDelivered: false, pressureTest: INITIAL_PRESSURE_TEST, candidateFigures: 0, brainstormAsks: asks(), brainstormDue, move: 'brainstorm' }).brainstorm.delivered;
+
+  it.each([
+    ['Raj t18', 'Suppose Aldermoor builds its own US team. How could it reduce the risk of a slow start, given the barriers the specialists named?'],
+    ['Marcus t14', 'Suppose Aldermoor chooses to build its own US team, which keeps the economics but means a slow start. What could it do to reduce that risk?'],
+  ])('credits %s', (_n, q) => {
+    expect(stage(q)).toBe(true);
+  });
+  it('a question that only mentions the topic is not it', () => {
+    expect(stage('What are the risks of a slow start?')).toBe(false);
+    expect(stage('Suppose Aldermoor builds its own US team. What are the risks of a slow start?')).toBe(false);
+  });
+  it('waits for the exhibits: a paraphrase before Exhibit 3 does not count', () => {
+    expect(stage('Suppose Aldermoor builds its own US team. How could it reduce the risk of a slow start, given the barriers the specialists named?', false)).toBe(false);
+  });
+});
