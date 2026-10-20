@@ -570,8 +570,9 @@ export function askCheckStopSequences(model: string): string[] | null {
 export const withAskPrefill = (text: string, prefill: string = ASK_CHECK_PREFILL, stopped: string | null = null) =>
   prefill + text + (stopped !== null && !text.endsWith(stopped) ? stopped : '');
 
-// The check: same model as the detection classifier, usage logged as 'data_request'
-// ($/case, PRD §13). Null on failure (the caller's named deferral). onRaw: the reply's
+// The check: same model as the detection classifier, usage logged as 'ask_check' — its
+// own component, apart from the classifier's 'data_request' ($/case, PRD §13; final
+// review I3). Null on failure (the caller's named deferral). onRaw: the reply's
 // whole text (prefill and stop sequence put back), for evaluation scripts.
 export async function classifyAsk(params: { what: string; catalog: AskCheckItem[]; onUsage?: OnUsage; model?: string; onRaw?: (text: string) => void }): Promise<AskCheckResult | null> {
   const client = anthropicClient();
@@ -588,7 +589,7 @@ export async function classifyAsk(params: { what: string; catalog: AskCheckItem[
         ...(prefill !== null ? [{ role: 'assistant' as const, content: prefill }] : []),
       ],
     } as Anthropic.MessageCreateParamsNonStreaming);
-    params.onUsage?.({ component: 'data_request', model, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens });
+    params.onUsage?.({ component: 'ask_check', model, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens });
     const block = response.content.find((b): b is Anthropic.TextBlock => b.type === 'text');
     if (!block && prefill === null) return null;
     const stopped = response.stop_reason === 'stop_sequence' ? response.stop_sequence : null;

@@ -4,7 +4,9 @@
 // nothing in tests). Raw tokens + model id are logged, not dollars: pricing
 // changes out-of-band, so cost is computed at analysis time from the tokens.
 export type LlmUsage = {
-  component: 'interviewer' | 'judge' | 'verifier' | 'coverage' | 'data_request' | 'reconcile' | 'distress' | 'hint_check' | 'opener' | 'probe_judge' | 'structure_judge' | 'conduct' | 'math_checker';
+  // 'ask_check': the item-less ask check (turn-data.ts checkAsk → classifyAsk), apart from
+  // 'data_request' (the message classifier, post-turn, scoring) for its cost per session.
+  component: 'interviewer' | 'judge' | 'verifier' | 'coverage' | 'data_request' | 'ask_check' | 'reconcile' | 'distress' | 'hint_check' | 'opener' | 'probe_judge' | 'structure_judge' | 'conduct' | 'math_checker';
   model: string;        // the model requested
   // The model the API says answered (response.model). Differs from `model`
   // when a server-side fallback re-ran the request on another model. Recorded
@@ -20,6 +22,10 @@ export type LlmUsage = {
   // Reasoning tokens, where the provider reports them — already counted in
   // outputTokens (Cerebras/OpenAI completion_tokens_details).
   reasoningTokens?: number;
+  // The ask check only: the ask it checked, and `late` when the call settled after the
+  // turn stopped waiting (its 1.5 s cap) — spent all the same, logged on settling.
+  ask?: string;
+  late?: true;
 };
 
 export type OnUsage = (usage: LlmUsage) => void;

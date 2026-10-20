@@ -86,3 +86,14 @@ describe('classifyAsk: the stop sequence at the JSON\'s end (claude-haiku-4-5)',
     expect(raw).toEqual(['{"items":[{"id":"cogs_pct","answers":"full"}']);
   });
 });
+
+// Final review I3: the check's usage is its own component ('ask_check'), not the message
+// classifier's and post-turn's 'data_request', so its cost per session can be read apart.
+describe('classifyAsk: usage logged as its own component', () => {
+  it('onUsage gets component "ask_check" with the call\'s tokens', async () => {
+    create.mockResolvedValueOnce(stoppedReply('{"id":"cogs_pct","answers":"full"}'));
+    const rows: unknown[] = [];
+    await classifyAsk({ what: 'COGS today', catalog, model: 'claude-haiku-4-5', onUsage: u => rows.push(u) });
+    expect(rows).toEqual([{ component: 'ask_check', model: 'claude-haiku-4-5', inputTokens: 700, outputTokens: 20 }]);
+  });
+});

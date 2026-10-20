@@ -242,18 +242,26 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
   const run = (async (): Promise<CheckVerdict> => {
     const t0 = Date.now();
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeout = new Promise<null>(r => { timer = setTimeout(() => r(null), DEFER_CHECK_TIMEOUT_MS); });
+    const TIMED_OUT = Symbol('timed out');
+    const timeout = new Promise<typeof TIMED_OUT>(r => { timer = setTimeout(() => r(TIMED_OUT), DEFER_CHECK_TIMEOUT_MS); });
     // The check's own prompt (classifyAsk, round 5b Task 56): the ask, and the
     // case's items with their labels and masked lines (built once per case). Usage
-    // is logged as 'data_request' ($/case, PRD §13) and kept on the record below.
+    // is logged as 'ask_check' with the ask ($/case, PRD §13) and kept on the record
+    // below. A call the turn stopped waiting for still costs its tokens: its usage row
+    // goes out when it settles, marked `late` (final review I3) — the record, written
+    // at the cap, says `timedOut`, and its latencyMs is the added latency.
     let usage: LlmUsage | undefined;
-    const found = await Promise.race([
+    let waited = false;
+    const raced = await Promise.race([
       classifyAsk({
         what, catalog: askCheckCatalog(plan.state.caseData.dataLedger),
-        onUsage: u => { usage = u; onUsage?.(u); },
+        onUsage: u => { const row: LlmUsage = { ...u, ask: what, ...(waited ? { late: true as const } : {}) }; usage = row; onUsage?.(row); },
       }).catch(() => null),
       timeout,
     ]).finally(() => clearTimeout(timer));
+    waited = true;
+    const timedOut = raced === TIMED_OUT;
+    const found = timedOut ? null : raced;
     const ids = found === null ? [] : [...new Set(found.items.map(f => f.id))];
     const mapped = found === null ? null : ids.length > 0;
     const outOfScope = ids.filter(id => answersAsk(plan, what, id) === false);
@@ -281,7 +289,7 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     // `found` keeps its old shape, so a replay reads old and new records alike (lib/eval/recorded-checks.ts).
     plan.ctx.checks.record('itemless_defer', mapped !== false, DECIDED[decision.kind],
       { what, mapped, found: found === null ? null : [{ what, ids }], decision: decision.kind, ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}),
-        ...(partial.length > 0 ? { partial, missing } : {}), latencyMs: Date.now() - t0, ...(usage ? usageDetail(usage) : {}) });
+        ...(partial.length > 0 ? { partial, missing } : {}), latencyMs: Date.now() - t0, ...(timedOut ? { timedOut } : {}), ...(usage ? usageDetail(usage) : {}) });
     // A partial part no refusal says (final review I5, for Lorenzo's ruling; M6): the
     // ask, the item, Haiku's own `missing` and the part as checked, so a wave counts them.
     for (const x of decision.kind === 'items' || decision.kind === 'coarse' ? decision.dropped ?? [] : []) {

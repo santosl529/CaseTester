@@ -339,7 +339,7 @@ describe('E5 partial: the check maps the ask to an item holding only the nearest
   });
   it('the check record carries the call\'s tokens and cost, for the per-session check cost', async () => {
     ask.mockImplementationOnce(async (q: { onUsage?: (u: unknown) => void }) => {
-      q.onUsage?.({ component: 'data_request', model: 'claude-haiku-4-5', inputTokens: 1200, outputTokens: 40 });
+      q.onUsage?.({ component: 'ask_check', model: 'claude-haiku-4-5', inputTokens: 1200, outputTokens: 40 });
       return BEAN_PARTIAL;
     });
     const p = planOf(SOFIA_T8);
@@ -564,5 +564,49 @@ describe('final review M6: a partial part the case holds is not refused', () => 
     const p = planOf(SOFIA_B30_T14);
     expect(decideCheckedAsk(p, 'current waste rates and bean contracting terms', { mapped: true, ids: ['bean_share_of_cogs', 'bean_price_change'], outOfScope: [], partial: ['bean_share_of_cogs', 'bean_price_change'], missing: { bean_share_of_cogs: 'current waste rates', bean_price_change: 'bean contracting terms' } }))
       .toEqual({ kind: 'coarse', ids: ['bean_share_of_cogs', 'bean_price_change'], missing: ['current waste rates', 'bean contracting terms'] });
+  });
+});
+
+// Final review I3 (Lorenzo: "log the classifier's cost and added latency per session"):
+// a call the turn stopped waiting for (the 1.5 s cap) still costs its tokens, which
+// arrive after the record was written. The usage row carries the ask, and `late` when
+// it settles after the cap; the record says it timed out, and its latencyMs is the
+// added latency (the cap).
+describe('final review I3: the check\'s cost and added latency per session', () => {
+  it('a call that settles before the cap: one usage row ("ask_check", the ask, not late); the record carries its tokens and cost', async () => {
+    ask.mockImplementationOnce(async (q: { onUsage?: (u: unknown) => void }) => {
+      q.onUsage?.({ component: 'ask_check', model: 'claude-haiku-4-5', inputTokens: 1200, outputTokens: 40 });
+      return BEAN_PARTIAL;
+    });
+    const rows: Record<string, unknown>[] = [];
+    const p = planOf(SOFIA_T8);
+    await turnDataChecked(p, turn(SOFIA_T8), u => rows.push(u as unknown as Record<string, unknown>));
+    expect(rows).toEqual([{ component: 'ask_check', model: 'claude-haiku-4-5', inputTokens: 1200, outputTokens: 40, ask: 'coffee beans as a share of COGS today' }]);
+    expect(acted(p, 'itemless_defer')[0].detail).not.toHaveProperty('timedOut');
+  });
+  it('a call that times out: the named deferral at the cap; its usage, arriving later, is logged as a late row for the same ask', async () => {
+    let settle: (() => void) | undefined;
+    ask.mockImplementationOnce((q: { onUsage?: (u: unknown) => void }) => new Promise(r => {
+      settle = () => { q.onUsage?.({ component: 'ask_check', model: 'claude-haiku-4-5', inputTokens: 1300, outputTokens: 150 }); r(BEAN_PARTIAL); };
+    }));
+    const rows: Record<string, unknown>[] = [];
+    const p = planOf(SOFIA_T8);
+    vi.useFakeTimers();
+    try {
+      let d: Awaited<ReturnType<typeof turnDataChecked>> | null = null;
+      void turnDataChecked(p, turn(SOFIA_T8), u => rows.push(u as unknown as Record<string, unknown>)).then(x => { d = x; });
+      await vi.advanceTimersByTimeAsync(1500);
+      expect(d!.defers).toEqual(['coffee beans as a share of COGS today']);
+      const rec = p.ctx.checks.entries.filter(e => e.check === 'itemless_defer')[0].detail as Record<string, unknown>;
+      expect(rec).toMatchObject({ what: 'coffee beans as a share of COGS today', mapped: null, timedOut: true });
+      expect(rec.latencyMs).toBeGreaterThanOrEqual(1500);
+      expect(rec).not.toHaveProperty('inputTokens');
+      expect(rows).toEqual([]);
+      settle!();
+      await vi.advanceTimersByTimeAsync(0);
+      expect(rows).toEqual([{ component: 'ask_check', model: 'claude-haiku-4-5', inputTokens: 1300, outputTokens: 150, ask: 'coffee beans as a share of COGS today', late: true }]);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
