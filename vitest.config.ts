@@ -5,7 +5,9 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
-    // Cap workers: at full parallelism on a loaded machine, slow tests timed out (round 5b).
+    // Full parallelism on a loaded machine timed out slow tests at the 5 s default (e.g. phrasing.test.ts and
+    // code-line-variants.test.ts 'last 3 uses'): cap workers and give every test 20 s of headroom.
+    testTimeout: 20_000,
     maxWorkers: '50%',
     include: ['tests/**/*.test.ts'],
   },

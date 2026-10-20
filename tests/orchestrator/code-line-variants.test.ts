@@ -215,7 +215,7 @@ describe('the last-3 rule', () => {
         uses = recordPhraseUses(phrase(pool, SLOT[pool] ?? '', uses, `${sid}:${turn}`), uses);
       }
     }
-}, 30_000);
+  }, 30_000);
 });
 
 describe('a one-line pool (wont_get_to)', () => {
