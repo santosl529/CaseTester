@@ -14,7 +14,8 @@
 // the ask lacks, no figure the ask lacks (the caller also checks the candidate said it).
 import { contentStems } from './data-requests';
 
-export type Qualifier = { kind: 'period' | 'scope' | 'topic'; text: string };
+// `at`: where a period or scope sits in the ask (spaces collapsed), so a period said in two conjuncts is each one's own.
+export type Qualifier = { kind: 'period' | 'scope' | 'topic'; text: string; at?: number };
 // `years`: the years the item's periods stand for when its line names none (qualifierItems).
 // `anyYear`: the case names no compared years and the line no year, so no asked year can be ruled out (fix round 2).
 export type QualifierItem = { id: string; label: string; value: string; years?: string[]; anyYear?: true };
@@ -71,9 +72,14 @@ const nounsOf = (t: string) => stems(t).filter(w => !QUALIFIER_WORDS.has(w) && !
 const LIST_BREAK = /\s*(?:,(?!\d)|;|&|\bas well as\b|\bincluding\b|\bplus\b|\band\b|\bor\b)\s*/gi;
 const QUESTION = /^(?:whether|if|how|what|which|when|where|why)\b/i;
 const OPEN_CLAUSE = /\b(?:between|where|which|that|who|whether|if)\b/i;
+const normalized = (what: string) => what.replace(/\s+/g, ' ').trim();
+type ConjunctSpan = { text: string; at: number; end: number };
 function conjuncts(what: string): string[] {
-  const ask = what.replace(/\s+/g, ' ').trim();
-  if (QUESTION.test(ask)) return [ask];
+  return conjunctSpans(what).map(c => c.text);
+}
+function conjunctSpans(what: string): ConjunctSpan[] {
+  const ask = normalized(what);
+  if (QUESTION.test(ask)) return [{ text: ask, at: 0, end: ask.length }];
   const inParens = (i: number) => (ask.slice(0, i).match(/\(/g)?.length ?? 0) > (ask.slice(0, i).match(/\)/g)?.length ?? 0);
   const pieces: { at: number; end: number }[] = [];
   let last = 0;
@@ -96,11 +102,15 @@ function conjuncts(what: string): string[] {
     if (prev && (!nouns(p) || !nouns(prev))) prev.end = p.end;   // a piece with no noun phrase of its own joins its neighbour
     else out.push({ ...p });
   }
-  return out.map(x => ask.slice(x.at, x.end).trim());
+  return out.map(x => {
+    const raw = ask.slice(x.at, x.end);
+    const at = x.at + (raw.length - raw.trimStart().length);
+    return { text: raw.trim(), at, end: at + raw.trim().length };
+  });
 }
 
 export function askQualifiers(what: string): Qualifier[] {
-  const qs: Qualifier[] = spans(what).map(s => ({ kind: s.kind, text: s.text }));
+  const qs: Qualifier[] = spans(normalized(what)).map(s => ({ kind: s.kind, text: s.text, at: s.at }));
   const parts = conjuncts(what);
   if (parts.length >= 2) qs.push(...parts.map(text => ({ kind: 'topic' as const, text })));
   return qs;
@@ -110,8 +120,9 @@ export function askQualifiers(what: string): Qualifier[] {
 const YEARS = (t: string) => new Set([...t.matchAll(/\b(?:(?:FY|CY)\s?'?)?(\d{4}|\d{2})\b/gi)]
   .filter(m => m[1].length === 4 || /^(?:FY|CY)/i.test(m[0])).map(m => (m[1].length === 2 ? `20${m[1]}` : m[1])));
 // A change the line states: a from/to, a rise or fall, a level held steady ("no material
-// changes", "the same six routes as in FY2023"; fix round 2), or two periods.
-const CHANGE = /\bfrom\s+\$?\d[^.;]{0,40}?\bto\s+\$?\d|\bno (?:material |real |significant |major )?changes?\b|\bthe same\b[^.;]{0,60}\bas\b|\b(?:did not|didn['’]t|does not|doesn['’]t) (?:materially )?change\b(?! with)|\b(?:up|down)\s+(?:from\b|about\s+\$?\d|\$?\d|slightly|sharply)|\b(?:rose|fell|grew|declined|dropped|increased|decreased|doubled|halved)\b|\b(?:has|have|hasn['’]t|haven['’]t)\s+(?:not\s+)?(?:been\s+)?(?:changed|stable|flat|steady)\b|\b(?:stayed|remained)\s+(?:roughly\s+)?(?:steady|flat|stable|the same)\b|\bunchanged\b|\bflat\b|\bstable\b|\b(?:trends?|trajectory|over time|year[-\s]over[-\s]year)\b|\(covers (?:the current and prior period|the change over the period)\)/i;
+// changes", "the same six routes as in FY2023" — "the same as" a period, not a comparison
+// such as "about the same as Larkspur's current fares"; fix rounds 2 and 3), or two periods.
+const CHANGE = /\bfrom\s+\$?\d[^.;]{0,40}?\bto\s+\$?\d|\bno (?:material |real |significant |major )?changes?\b|\bthe same\b[^.;]{0,60}?\bas (?:in |of |at )?(?:(?:FY|CY)\s?\d{2,4}|(?:19|20)\d{2}|last year|before|then|(?:two|\d+) years ago|the (?:prior|previous) (?:year|period))|\b(?:did not|didn['’]t|does not|doesn['’]t) (?:materially )?change\b(?! with)|\b(?:up|down)\s+(?:from\b|about\s+\$?\d|\$?\d|slightly|sharply)|\b(?:rose|fell|grew|declined|dropped|increased|decreased|doubled|halved)\b|\b(?:has|have|hasn['’]t|haven['’]t)\s+(?:not\s+)?(?:been\s+)?(?:changed|stable|flat|steady)\b|\b(?:stayed|remained)\s+(?:roughly\s+)?(?:steady|flat|stable|the same)\b|\bunchanged\b|\bflat\b|\bstable\b|\b(?:trends?|trajectory|over time|year[-\s]over[-\s]year)\b|\(covers (?:the current and prior period|the change over the period)\)/i;
 // A series over time is a trend too (fix round 2): "after month 1, … month 3, … month 12", "by quarter".
 const SERIES = /\b(?:month to month|month by month|quarter by quarter|year by year|by (?:month|quarter|year)|each (?:month|quarter|year))\b/i;
 const seriesPoints = (t: string) => new Set([...t.matchAll(/\b(?:month|quarter|week|year)s?\s+(\d+)/gi)].map(m => m[1])).size;
@@ -124,12 +135,12 @@ const statesNow = (t: string) => /\b(?:today|current(?:ly)?|now|this year|still)
 // controller's ruling): a market's size or demand, the category's prices, a typical or
 // average figure from past launches.
 const SCOPE_SYNONYMS: Record<string, RegExp> = {
-  industry: /\b(?:industry|industry-wide|typical(?:ly)?|often|usually|category|sector|market|overall|demand|competing|competitors?)\b/i,
-  market: /\b(?:market|industry|category|sector|competing|competitors?|demand|patients|adults|eligible|total|overall|size)\b/i,
+  industry: /\b(?:industry|industry-wide|typical(?:ly)?|often|category|sector|market|overall|demand|competing|competitors?)\b/i,
+  market: /\b(?:market|industry|category|sector|competing|competitors?|demand|patients|eligible)\b/i,
   // A named rival with no "competitor" word on its line: "the current standard" (Aldermoor's Nimbrel), "a low-cost
   // airline", "other brands", "How Kelvexa compares with Nimbrel" — read leniently: a missed guard leaves Haiku's verdict; a false one refuses held data.
   competitor: /\b(?:competitors?|competitive|competition|competing|rivals?|standard|low-cost|other (?:airlines?|brands?|players?|companies|drugs?)|brands|compare[sd]? with|versus)\b/i,
-  benchmark: /\b(?:benchmarks?|industry|typical(?:ly)?|average|comparable|historical|often|usually)\b|\b(?:past|previous|prior|last)\s+(?:\w+\s+)?launches\b/i,
+  benchmark: /\b(?:benchmarks?|industry|typical(?:ly)?|average|comparable|historical|often)\b|\b(?:past|previous|prior|last)\s+(?:\w+\s+)?launches\b/i,
 };
 function statesScope(q: string, t: string): boolean {
   const w = q.toLowerCase();
@@ -143,7 +154,10 @@ function statesPeriod(q: string, t: string, years: Set<string>): boolean {
     const year = q.match(/\d{4}/)?.[0];
     const date = year ? `(?:(?:FY|CY)\\s?)?${year}\\b` : 'launch\\w*';
     const sinceSaid = new RegExp(`\\bsince\\b[^.;]{0,24}\\b${date}`, 'i').test(t);
-    return sinceSaid || (new RegExp(`\\b${date}`, 'i').test(t) && statesTrend(t));
+    // The asked year among the item's years (its periods, the case's) on a line that states a change or covers
+    // two periods: "since FY2023" on network totals that "fell from $200.0M to $176.0M" (fix round 3).
+    const yearHeld = year !== undefined && years.has(year) && (statesTrend(t) || years.size >= 2);
+    return sinceSaid || yearHeld || (new RegExp(`\\b${date}`, 'i').test(t) && statesTrend(t));
   }
   const beyond = /^(?:beyond|after|past)\s+(?:the\s+)?(month|week|year)\s+(\d+)/i.exec(q);
   if (beyond) {
@@ -190,14 +204,17 @@ function commonStems(caseLines: readonly CaseLine[]): Set<string> {
 // A period or scope inside one conjunct of two or more is judged on the items that state
 // that conjunct (fix round 2, the controller's ruling on finding 5), when any does.
 const lineOf = (i: QualifierItem) => `${i.label} — ${i.value}`;
-const conjunctsOf = (q: Qualifier, cs: string[]) => cs.filter(c => c.toLowerCase().includes(q.text.toLowerCase()));
+// The conjunct a qualifier sits in: by its place in the ask, else by its words.
+const inConjunct = (q: Qualifier, c: ConjunctSpan) => (q.at !== undefined ? q.at >= c.at && q.at < c.end : c.text.toLowerCase().includes(q.text.toLowerCase()));
+const conjunctsOf = (q: Qualifier, cs: ConjunctSpan[]) => cs.filter(c => inConjunct(q, c)).map(c => c.text);
 export function unmetQualifiers(what: string, itemLines: QualifierItem[], caseLines: readonly CaseLine[] = []): Qualifier[] {
   const common = commonStems(caseLines);
-  const cs = conjuncts(what);
+  const spansOf = conjunctSpans(what);
+  const cs = spansOf.map(c => c.text);
   const texts = itemLines.map(i => ({ i, t: lineOf(i), years: new Set([...YEARS(`${i.label} ${i.value}`), ...(i.years ?? [])]), anyYear: i.anyYear === true }));
   const judged = (q: Qualifier) => {
     if (q.kind === 'topic' || cs.length < 2) return texts;
-    const own = conjunctsOf(q, cs).flatMap(c => texts.filter(x => statesTopic(c, x.t, common)));
+    const own = conjunctsOf(q, spansOf).flatMap(c => texts.filter(x => statesTopic(c, x.t, common)));
     return own.length > 0 ? own : texts;
   };
   const met = (q: Qualifier) => judged(q).some(({ t, years, anyYear }) => (q.kind === 'topic' ? statesTopic(q.text, t, common) : q.kind === 'scope' ? statesScope(q.text, t)
@@ -213,7 +230,8 @@ export function unmetQualifiers(what: string, itemLines: QualifierItem[], caseLi
 // refused with it), and the items stating no conjunct; the rest keep Haiku's label.
 export function guardedItems(what: string, itemLines: QualifierItem[], unmet: Qualifier[], caseLines: readonly CaseLine[] = []): string[] {
   const all = itemLines.map(i => i.id);
-  const cs = conjuncts(what);
+  const spansOf = conjunctSpans(what);
+  const cs = spansOf.map(c => c.text);
   if (unmet.length === 0) return [];
   if (cs.length < 2) return all;
   const common = commonStems(caseLines);
@@ -221,7 +239,7 @@ export function guardedItems(what: string, itemLines: QualifierItem[], unmet: Qu
   const missing = new Set(unmet.filter(q => q.kind === 'topic').map(q => q.text));
   const out = new Set(itemLines.filter(i => !cs.some(c => statesTopic(c, lineOf(i), common))).map(i => i.id));
   for (const q of unmet.filter(x => x.kind !== 'topic')) {
-    const own = conjunctsOf(q, cs);
+    const own = conjunctsOf(q, spansOf);
     if (own.length === 0) return all;
     for (const c of own.filter(x => !missing.has(x))) {
       const s = stating(c);
@@ -293,6 +311,7 @@ function partOf(c: string, unmet: Qualifier[]): string {
     else if (/cohorts?$/i.test(q.text) && pre.length === 0) pre.push(`${q.text}${/s$/i.test(q.text) ? '\'' : '\'s'}`);
     else return verbatim;
   }
+  let pluralised = false;
   if (years.length > 0 && trendWord.test(h)) {
     // "FY2024 fares", not "FY2024 fare trend": one year has no trend.
     const base = h.replace(trendWord, '');
@@ -300,23 +319,32 @@ function partOf(c: string, unmet: Qualifier[]): string {
     const many = plural(last);
     if (!many) return verbatim;
     h = `${base.slice(0, base.length - last.length)}${many}`;
+    pluralised = true;
   }
-  // The ask's article when nothing goes before the head ("the fleet since FY2023"; fix round 2).
-  const lead = years.length === 0 && pre.length === 0 ? head.article : '';
-  return [lead, years.join(' and '), ...pre, h, ...post].filter(Boolean).join(' ');
+  // The years after a possessive opening the head ("the competitor's FY2023 fares"; fix round 3).
+  const [first, ...after] = h.split(' ');
+  const possessive = years.length > 0 && after.length > 0 && /['’]s$|s['’]$/.test(first);
+  const body = possessive ? [first, years.join(' and '), ...pre, after.join(' ')] : [years.join(' and '), ...pre, h];
+  // The ask's article ("the fleet since FY2023", "the FY2024 Lakeport load factor"; fix rounds 2 and 3) — not before
+  // a possessive cohort ("later cohorts' …") or a head made plural ("FY2024 fares").
+  const lead = pre.length === 0 && !pluralised ? head.article : '';
+  return [lead, ...body, ...post].filter(Boolean).join(' ');
 }
 
 // The refusal's parts, one per conjunct with an unmet qualifier, in the ask's order.
 export function guardParts(what: string, unmet: Qualifier[]): string[] {
   if (unmet.length === 0) return [];
-  const cs = conjuncts(what);
+  const spansOf = conjunctSpans(what);
+  const cs = spansOf.map(c => c.text);
   const asked = new Set(stems(what));
   const figs = (t: string): string[] => t.match(/\d+/g) ?? [];
   // A part with a word or figure the ask lacks is never said: the conjunct instead.
   const fromAsk = (p: string) => stems(p).every(w => asked.has(w)) && figs(p).every(f => figs(what).includes(f));
   const parts: string[] = [];
-  for (const c of cs) {
-    const own = unmet.filter(q => (q.kind === 'topic' ? q.text === c : c.toLowerCase().includes(q.text.toLowerCase())));
+  for (const span of spansOf) {
+    const c = span.text;
+    const own = unmet.filter(q => (q.kind === 'topic' ? q.text === c : inConjunct(q, span)))
+      .filter((q, i, xs) => xs.findIndex(x => x.kind === q.kind && x.text.toLowerCase() === q.text.toLowerCase()) === i);   // said once ("since FY2023" twice; fix round 3)
     if (own.length === 0) continue;
     const made = partOf(c, cs.length >= 2 ? own : own.filter(q => q.kind !== 'topic'));
     const p = fromAsk(made) ? made : c;
@@ -387,7 +415,8 @@ export function qualifierItems(items: readonly YearItem[], ledger: readonly Year
       ...(prior && (span || k.has('prior') || k.has('both') || k.has('change')) ? [prior] : []),
       ...(current && (span || k.has('current') || k.has('both') || k.has('change')) ? [current] : []),
     ];
-    const anyYear = !prior && !current && YEARS(i.value).size === 0;
+    // Only on a line with no today/current/now marker ("…on Starter at $40 today" rules out 2024; fix round 3).
+    const anyYear = !prior && !current && YEARS(i.value).size === 0 && !/\b(?:today|current(?:ly)?|now)\b/i.test(i.value);
     return { id: i.id, label: label(i), value: i.value, ...(years.length > 0 ? { years } : {}), ...(anyYear ? { anyYear: true as const } : {}) };
   });
 }

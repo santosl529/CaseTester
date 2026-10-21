@@ -257,3 +257,50 @@ describe('fix round 2: a period judged on its own conjunct\'s items', () => {
     expect(guardRefusal(what, unmet)).toBe('the FY2024 load factor');
   });
 });
+
+// Task 61 fix round 3 (Opus re-review of 856195f..88da114; the controller's rulings).
+describe('fix round 3', () => {
+  const ledger = (caseId: string) => getCaseById(caseId).dataLedger;
+  const items = (caseId: string, ids: string[]) => qualifierItems(ids.map(id => ledger(caseId).find(i => i.id === id)!), ledger(caseId), i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]));
+  const unmetOf = (caseId: string, what: string, ids: string[]) => texts(unmetQualifiers(what, items(caseId, ids), ledger(caseId)));
+  it.each([
+    // 1: "since FY2023" on a line spanning FY2023→FY2025 with no year in its text
+    ['prof-002', 'how network revenue has moved since FY2023', ['network_totals']],
+    ['prof-002', 'Port Avery revenue since FY2023', ['route_results_port_avery']],
+    ['prof-002', 'the Port Avery fare since FY2023', ['port_avery_per_flight']],
+    ['prof-002', 'fuel prices since FY2023', ['fuel_prices']],
+    ['prof-002', 'demand since FY2023', ['demand']],
+    // 2: still met via "eligible"/"patients"
+    ['entry-001', "the US market for Corlan's disease", ['funnel_rates', 'us_adults']],
+    // 3: a line with no today/current/now marker waives an asked year in a case with no compared years
+    ['pricing-001', 'Pro CAC in 2025', ['plan_cac']],
+  ] as [string, string, string[]][])('stays full: %s "%s"', (caseId, what, ids) => {
+    expect(unmetOf(caseId, what, ids)).toEqual([]);
+  });
+  it.each([
+    // 2: "usually" is no benchmark; total/overall/size/adults are no market
+    ['pricing-001', 'industry upgrade benchmarks', ['upgrade_timing'], ['scope:industry', 'scope:benchmarks']],
+    ['pricing-001', 'market demand for Starter', ['new_customers_by_plan'], ['scope:market']],
+    ['prof-001', 'market share in the coffee market', ['revenue_total'], ['scope:market']],
+    // 3: a line saying "today" rules out 2024
+    ['pricing-001', 'Starter customers at the end of 2024', ['existing_starter_customers'], ['period:2024']],
+    // 4: "the same as Larkspur's current fares" is a comparison, not a change over time
+    ['prof-002', "how the competitor's fares have changed", ['competitor_costs'], ['period:have changed']],
+    ['prof-002', "the competitor's cost per seat since FY2023", ['competitor_costs'], ['period:since FY2023']],
+  ] as [string, string, string[], string[]][])('flags: %s "%s"', (caseId, what, ids, unmet) => {
+    expect(unmetOf(caseId, what, ids)).toEqual(unmet);
+  });
+  it('5: the ask\'s article stays when a year goes before the head; after a possessive the year follows it', () => {
+    expect(guardRefusal('the Lakeport load factor in FY2024', [{ kind: 'period', text: 'FY2024' }])).toBe('the FY2024 Lakeport load factor');
+    expect(guardRefusal("the competitor's fares in FY2023", [{ kind: 'period', text: 'FY2023' }])).toBe("the competitor's FY2023 fares");
+    expect(guardRefusal('the fare trend across FY2024 and FY2025', [{ kind: 'period', text: 'FY2024' }])).toBe('FY2024 fares');
+  });
+  it('6: a period said in two conjuncts is said once per part', () => {
+    const what = "fuel prices since FY2023 and the competitor's costs since FY2023";
+    const parts = guardParts(what, unmetQualifiers(what, items('prof-002', ['fuel_prices', 'competitor_costs']), ledger('prof-002')));
+    expect(parts.every(p => (p.match(/since FY2023/g) ?? []).length === 1)).toBe(true);
+    expect(parts).toEqual(["the competitor's costs since FY2023"]);
+    // The same period handed twice with no place in the ask: said once.
+    expect(guardRefusal('fuel prices since FY2023', [{ kind: 'period', text: 'since FY2023' }, { kind: 'period', text: 'since FY2023' }])).toBe('fuel prices since FY2023');
+  });
+});
