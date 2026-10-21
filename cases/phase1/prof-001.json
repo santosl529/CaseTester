@@ -113,5 +113,16 @@
       "steps": ["non_bean_points_added"],
       "items": ["non_bean_input_change"]
     }
-  ]
+  ],
+  "mustReach": [],
+  "proposed": {
+    "mustReach": [
+      {
+        "item": "non_bean_input_change",
+        "before": "recommendation",
+        "why": "b31 Sofia e0f7d46c t21: recommended a bean procurement reset ('hedging on beans, which were the largest COGS line') never having heard that dairy, packaging and food are up about as much as beans (hand grade b31, fault 3, firm moderate: the input price changes never offered; her own t19 said a broad-based split would change the cost lever). b28 Blake 32f0a72b t21: 'take price … and pair it with hedging their bean supply', resting on his untested green-coffee prior with the bean share and both price changes held (hand grade b28, borderline)."
+      }
+    ],
+    "note": "Lorenzo's ruling: none unless a graded run shows a recommendation contradicted by a fact the candidate never heard. Two prof-001 runs in b28-b33 qualify (above); both recommendations lean on beans as the cost fix, which the other-input price change contradicts. Proposed only, never merged. Caveats: Blake is persona 19 'the data ignorer', who declined the offered data (t13), so a must-reach would hand him what the persona exists to skip; Sofia's miss was the engine's (she asked for the split twice and the price changes were never offered). bean_share_of_cogs (Blake lacked it too) is not proposed: Sofia had it and still erred."
+  }
 }

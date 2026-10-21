@@ -227,5 +227,16 @@
       "steps": ["matching_share"],
       "items": ["option_a", "option_b"]
     }
-  ]
+  ],
+  "mustReach": [],
+  "proposed": {
+    "mustReach": [
+      {
+        "item": "nimbrel",
+        "before": "exhibit-2",
+        "why": "Proposed: the candidate never hears what the US standard therapy is, yet Exhibit 2 rates Kelvexa against 'current options' and the coverage line names Nimbrel. Missed in 4 of 15 Aldermoor runs, never released through the end of the run (recommendation included): b32 Jasmine (40, 6544aa01; Exhibit 2 at t8); b34 Jasmine (40, 4e89a7cc; Exhibit 2 at t6; hand grade: serious false refusal t4, never heard of Nimbrel); b34 Marisol (57, a1133734; Exhibit 2 at t14, 'Nimbrel is covered by most plans' at t16 to a candidate never told what Nimbrel is, hand grade; serious false refusal t14); b36 Jasmine (40, 6bbc2163; Exhibit 2 at t8). Late in a fifth: b36 Marisol (57, 6f57da6e; Exhibit 2 at t12, the coverage line naming Nimbrel at t14, nimbrel only at t16; hand grade notes the recurrence)."
+      }
+    ],
+    "note": "Lorenzo's ruling (22 Oct): Aldermoor must-reach goes in proposed only, with its justifying runs. One proposal: nimbrel before exhibit-2. Alternative if he prefers the Hollis Bay/Quillpath form: nimbrel before recommendation (same evidence; it would not fix the coverage line naming Nimbrel first). current_treatment is not proposed separately: the nimbrel line already says it is the standard advanced therapy most patients use. insurance_coverage and pipeline were often never released, but no grading shows a recommendation hurt by their absence, so neither is proposed."
+  }
 }

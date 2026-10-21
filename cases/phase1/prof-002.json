@@ -236,5 +236,12 @@
       "steps": ["rampup_per_flight", "rampup_operating_profit"],
       "items": ["new_route_rampup", "new_routes_plan", "new_routes_cost_flights"]
     }
+  ],
+  "mustReach": [
+    {
+      "item": "competitor_costs",
+      "before": "exhibit-3",
+      "why": "Missed before Exhibit 3 in b32 Raj (b17c59e1; Exhibit 3 at t18, competitor_costs never out), b32 Jasmine (5fa81cec; Exhibit 3 at t12, never out), b36 Jasmine (bbf78ab8; Exhibit 3 at t10, never out — hand grade: firm, competitor never told) and b38 Marisol (f80d981c; Exhibit 3 at t14, never out — hand grade t9→t10 firm, her competitor wants ignored; proposed there for must-reach since the can't-win-a-fare-war point rests on it)."
+    }
   ]
 }

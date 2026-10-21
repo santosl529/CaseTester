@@ -220,5 +220,12 @@
       "steps": ["churn_breakeven_at_60", "upgrade_breakeven_at_60"],
       "items": ["price_test_notes"]
     }
+  ],
+  "mustReach": [
+    {
+      "item": "why_pro_fell",
+      "before": "recommendation",
+      "why": "Never released before the recommendation in 8 of the 10 Quillpath runs: b35 Raj 5c3d2c21 (rec asked t23), b35 Marcus 7e69eda5 (rec stage t27), b35 Jasmine fcd7dce7 (rec stage t9), b35 Marisol 087451cb (rec asked t27), b37 Raj e08c362a (rec asked t25), b37 Marcus eb8d7576 (rec asked t29), b37 Jasmine 3376e5fe (rec stage t7), b37 Tyler a2a5921b (rec asked t19); each sized cannibalization as the whole Pro drop without the evidence that Pro marketing, sales and demos were unchanged. Only b35 Tyler (t17) and b37 Marisol (t19) got it, both on asking."
+    }
   ]
 }

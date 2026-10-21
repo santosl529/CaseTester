@@ -41,3 +41,24 @@ describe.each(IDS)('the %s overlay', id => {
     expect(o.definitions.length).toBeGreaterThan(0);
   });
 });
+
+// Contract §1 "Must-reach entries to author" (Lorenzo's list); Aldermoor and Brew & Bean only proposed.
+describe('must-reach', () => {
+  const merged = (id: string) => applyPhase1Overlay(raw(id), overlay(id), { ENGINE_SWITCHES: `${id}=mustReachPhase1` }).mustReach ?? [];
+  it('merges Lorenzo\'s entries under mustReachPhase1, at most 3 a case, each with its runs', () => {
+    expect(merged('prof-002').map(m => [m.item, m.before])).toEqual([['competitor_entry', 'exhibit-3'], ['new_route_rampup', 'recommendation'], ['competitor_costs', 'exhibit-3']]);
+    expect(merged('launch-001').map(m => [m.item, m.before])).toEqual([['retailer_support', 'recommendation'], ['cannibalization', 'recommendation']]);
+    expect(merged('pricing-001').map(m => [m.item, m.before])).toEqual([['why_pro_fell', 'recommendation']]);
+    for (const id of ['prof-002', 'launch-001', 'pricing-001']) for (const m of overlay(id).mustReach) expect(m.why).toMatch(/b3\d/);
+  });
+  it('Aldermoor and Brew & Bean: proposals only, never merged', () => {
+    for (const id of ['entry-001', 'prof-001']) {
+      expect(overlay(id).mustReach).toEqual([]);
+      expect(merged(id)).toEqual(raw(id).mustReach ?? []);
+      for (const m of overlay(id).proposed?.mustReach ?? []) { expect(m.why).toMatch(/b\d\d \w+/); expect(m.why).toMatch(/[0-9a-f]{8}/); expect(m.why).toMatch(/\bt\d+/); }
+    }
+  });
+  it('with mustReachPhase1 off, the case\'s own must-reach only', () => {
+    for (const id of IDS) expect(applyPhase1Overlay(raw(id), overlay(id), {}).mustReach).toEqual(raw(id).mustReach);
+  });
+});

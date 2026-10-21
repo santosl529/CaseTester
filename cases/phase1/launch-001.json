@@ -213,5 +213,17 @@
       "steps": ["sampling_breakeven_bags"],
       "items": ["sampling_program"]
     }
+  ],
+  "mustReach": [
+    {
+      "item": "retailer_support",
+      "before": "recommendation",
+      "why": "Never heard before the recommendation in b35 Marcus 70a06d70 (rec asked t22), b35 Jasmine 984d9066 (t20), b35 Tyler 52951de8 (t20), b37 Marcus ddbb070b (t22; hand grade: distribution became his biggest risk, same ask refused at b35 t10 and dropped at b37 t10), b37 Marisol 7f6c40ea (t28), b37 Tyler 442e37ff (t18)."
+    },
+    {
+      "item": "cannibalization",
+      "before": "recommendation",
+      "why": "Never heard before the recommendation in b35 Raj 01b805d6 (rec asked t18, line out only at t28), b35 Marcus 70a06d70 (t22), b35 Jasmine 984d9066 (t20), b35 Marisol a14ca044 (t24), b35 Tyler 52951de8 (t20), b37 Marisol 7f6c40ea (t28; hand grade: made cannibalization her biggest risk at t31 without ever hearing the line)."
+    }
   ]
 }
