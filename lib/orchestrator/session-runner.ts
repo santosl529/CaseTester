@@ -504,7 +504,7 @@ export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[]
           : state.kind === 'stage_exhibit' ? line('stage_exhibit_q', uses, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? analysisAskLine(state.caseData.analysisCore.ask, state.recommendationInPlay)
             : state.kind === 'rec_revision' ? line(state.recommendationReceived ? 'rec_revision' : 'analysis_revision', uses, seed)
-              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed, uses)
+              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed, uses, { answer: ctx.candidateText, skipAnswered: switchOn(state.caseData, 'closeWaitMitigation') })
               : recMath?.action === 'correct' ? line(state.recommendationReceived ? 'rec_math_revision' : 'analysis_revision', uses, seed)
               : recMath ? recLine('probe')
             : phrase('stall_lead', restateOnTable(state.lastQuestion ?? ''), uses, seed);

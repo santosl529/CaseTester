@@ -14,6 +14,8 @@
 // seed before they had a memory (and a line said once a session keeps its
 // variety across sessions).
 
+import { normalizeNumberWords } from '@/lib/number-words';
+
 export const PHRASE_POOLS = {
   // data-decisions.ts: what was asked, held for later. The slot is never a verb's subject:
   // what was asked is often plural ("menu price changes").
@@ -673,4 +675,15 @@ export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, e
     if (said.length > 0) out[pool] = [...(out[pool] ?? []), ...said].slice(-PHRASE_MEMORY);
   }
   return out;
+}
+
+// 4.8 (Phase 1, `closeWaitMitigation`): close_wait's follow-ups (close-hold.ts closeWaitLine) name no figure, so a
+// turn that said one is no probe of a figure — "Six months in, how would you know it was working?" was read as a
+// probe of a candidate's 6 (b31 Sofia e0f7d46c t24, replay with the switch on: the claim's report line became "Probed
+// twice"), in either spelling. The caller passes switchOn(case, 'closeWaitMitigation'); off, the text is unchanged.
+export const CLOSE_WAIT_POOLS = ['after_risk', 'first_step', 'measure'] as const;
+export function withoutCloseWaitLines(text: string): string {
+  return CLOSE_WAIT_POOLS.flatMap(p => [...(PHRASE_POOLS[p] as readonly string[]), ...(RETIRED_POOLS[p] ?? [])])
+    .flatMap(v => [v, normalizeNumberWords(v)]) // the turn rows hold "6 months in"
+    .reduce((t, v) => t.split(v).join(' '), text);
 }

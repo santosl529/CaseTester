@@ -106,8 +106,25 @@ export function pendingFinalChecks(p: {
 // Read off the last question: already asked how to guard against it; already asked what comes first.
 export const CLOSE_WAIT_MITIGATED = /\b(?:mitigat\w*|guard against|protect against|de-?risk)\b/i;
 export const CLOSE_WAIT_FIRST = /\bfirst\b/i;
-export function closeWaitLine(lastQuestion: string, seed: string, uses?: PhraseUses): string {
-  if (asksRiskQuestion(lastQuestion, true) && !CLOSE_WAIT_MITIGATED.test(lastQuestion)) return line('after_risk', uses, seed);
-  if (!CLOSE_WAIT_FIRST.test(lastQuestion)) return line('first_step', uses, seed);
+// 4.8 (Phase 1, `closeWaitMitigation`; Lorenzo, 22 Oct: "close_wait: don't ask for a mitigation if the candidate's last
+// answer already gave one (action words: phase / stage / pilot / test / trigger / validate / hedge…), or if the last
+// question already asked what they'd do."). Batches 34–38: the follow-up re-asked what the answer had just said (b37
+// Hollis Bay Marcus t25 "I'd mitigate by locking retailer commitments … and staging marketing" → "How would you guard
+// against that?"; b37 Quillpath Marisol t31 "Protection: roll $60 out to a fraction of traffic … Gate full rollout …";
+// b36 Aldermoor Raj t33, Tyler t21 and Marisol t25 — the last two re-asked by the first-step line). The same
+// answer often says what comes first too, so with the switch on the first-step line is skipped as well when the
+// answer has sequencing words ("first", "start with", "next steps", "before committing") or the last question asked
+// what they'd do; the measure line is then asked (controller's reading, proposed — it is a re-ask too when the answer
+// already named its metric or checkpoint; no other line exists).
+export const CLOSE_WAIT_ACTION = /\b(?:phas(?:e|ed|es|ing)|stag(?:e|ed|es|ing)|pilot\w*|test(?:s|ed|ing)?|trigger\w*|validat\w*|hedg\w*|mitigat\w*|guard(?:s|ed|ing)?|de-?risk\w*|protect\w*|gat(?:e|ed|es|ing)|checkpoint\w*|tripwire\w*|stagger\w*|sequenc\w*|roll\s+(?:it\s+|\S+\s+)?out|rollout|go\/no-go|next\s+steps?|first\s+step|what\s+i'?d\s+do|i'?d\s+(?:start|lock|negotiate|renegotiate|launch|cap|cut|stop|pull|redeploy))\b/i;
+export const CLOSE_WAIT_ASKED_DO = /\bwhat\s+(?:would|should|could)\s+(?:you|they|the\s+client|\w+)\s+do\b|\bhow\s+would\s+you\s+(?:handle|respond|address|manage|deal\s+with|mitigate|protect|guard|hedge|de-?risk|reduce)\b|\bwhat\s+would\s+you\s+put\s+in\s+place\b|\bnext\s+steps?\b/i;
+export const CLOSE_WAIT_SAID_FIRST = /\b(?:first|start(?:s|ing)?(?:\s+with)?|begin\w*|next\s+steps?|in\s+order|immediately|right\s+now|tomorrow|before\s+(?:committing|launch\w*|the\s+vote|rolling|we|any))\b/i;
+export function closeWaitLine(lastQuestion: string, seed: string, uses?: PhraseUses, o: { answer?: string; skipAnswered?: boolean } = {}): string {
+  const skip = o.skipAnswered === true;
+  const answer = o.answer ?? '';
+  const mitigated = skip && (CLOSE_WAIT_ACTION.test(answer) || CLOSE_WAIT_ASKED_DO.test(lastQuestion));
+  if (asksRiskQuestion(lastQuestion, true) && !CLOSE_WAIT_MITIGATED.test(lastQuestion) && !mitigated) return line('after_risk', uses, seed);
+  const saidFirst = skip && (CLOSE_WAIT_SAID_FIRST.test(answer) || CLOSE_WAIT_ASKED_DO.test(lastQuestion));
+  if (!CLOSE_WAIT_FIRST.test(lastQuestion) && !saidFirst) return line('first_step', uses, seed);
   return line('measure', uses, seed);
 }
