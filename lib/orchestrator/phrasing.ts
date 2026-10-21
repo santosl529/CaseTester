@@ -498,6 +498,16 @@ export const PHRASE_POOLS = {
     'We\'ve gotten through what I wanted to. Thank you for working through the case; your written report will follow.',
     'I have what I need. Thanks for working through it — your written report will follow.',
   ],
+  // 4.10 (Phase 1, `ackRotation`): the model's opening acknowledgment, rotated (rotateOpeningAck below). Bare
+  // acknowledgments only: the prompt's own ("Mm-hm.", "Got it.", "Understood."; system.ts) and "I see." — no "Right."
+  // (read as a verdict after a correction, b38 Marisol t18) and no "Okay." (the prompt: "at most now and then").
+  // Four, the fewest the last-3 rule allows.
+  ack: [
+    'Understood.',
+    'Mm-hm.',
+    'Got it.',
+    'I see.',
+  ],
   close_unresolved: [
     'We\'ll stop there. Thanks for working through the case — your written report will follow.',
     'Let\'s stop there. Thanks for working through the case — your written report will follow.',
@@ -657,10 +667,11 @@ export function asOriginalProbe(text: string): string {
 
 // The session's uses after a turn that said \`spoken\`: each variant heard, by pool, the last PHRASE_MEMORY kept.
 // \`extra\`: pools outside the registry heard too (a case's data-line versions, by "data:<itemId>").
-export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, extra?: Record<string, readonly string[]>): PhraseUses {
+// The `ack` pool is recorded only with `o.ack` (the case's `ackRotation`): off, the uses are as before.
+export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, extra?: Record<string, readonly string[]>, o: { ack?: boolean } = {}): PhraseUses {
   const out: PhraseUses = { ...(uses ?? {}) };
   const pools: [keyof PhraseUses, readonly string[]][] = [
-    ...(Object.keys(PHRASE_POOLS) as PhrasePool[]).map(p => [p, PHRASE_POOLS[p]] as [keyof PhraseUses, readonly string[]]),
+    ...(Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => p !== 'ack' || o.ack === true).map(p => [p, PHRASE_POOLS[p]] as [keyof PhraseUses, readonly string[]]),
     ...Object.entries(extra ?? {}).map(([k, vs]) => [k as keyof PhraseUses, vs] as [keyof PhraseUses, readonly string[]]),
   ];
   for (const [pool, vs] of pools) {
@@ -686,4 +697,19 @@ export function withoutCloseWaitLines(text: string): string {
   return CLOSE_WAIT_POOLS.flatMap(p => [...(PHRASE_POOLS[p] as readonly string[]), ...(RETIRED_POOLS[p] ?? [])])
     .flatMap(v => [v, normalizeNumberWords(v)]) // the turn rows hold "6 months in"
     .reduce((t, v) => t.split(v).join(' '), text);
+}
+
+// 4.10 (Phase 1, `ackRotation`; Lorenzo, 22 Oct: "Acknowledgments: run the model's opening acknowledgment through the
+// phrase-pool rotation, so \"Understood.\" stops repeating."; b38 Larkspur: "Understood." opened 28 of 75 interviewer
+// turns, 12 consecutive pairs). The model's say opens on a sentence of acknowledgment words only ("Understood.",
+// "Got it.", "Okay, got it.", "Right.") — that sentence is replaced by the `ack` pool's variant for this turn (the
+// session's last 3 uses never again; the first use is "Understood."). A sentence that comments ("Understood, that
+// fills the gaps.") or says anything else is the model's and stays. Stream and Settle call this with the same seed
+// and uses, so both say the same words. Split as the say's sentences are (turn-events.ts).
+const ACK_ONLY = /^(?:okay|ok|understood|got it|mm-?hm+|i see|right|sure|alright|all right)(?:[,.!]\s*(?:okay|ok|understood|got it|mm-?hm+|i see|right|sure|alright|all right))*[.!]?$/i;
+export const isAckOnly = (sentence: string) => ACK_ONLY.test(sentence.trim());
+export function rotateOpeningAck(say: string, uses: PhraseUses | undefined, seed: string): string {
+  const [first, ...rest] = say.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (first === undefined || !isAckOnly(first)) return say;
+  return [line('ack', uses, seed), ...rest].join(' ');
 }

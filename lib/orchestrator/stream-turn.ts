@@ -11,7 +11,8 @@ import { growthProbeOnRatio, growthProbeUnchecked } from './growth-probe';
 import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
 import { normalizeNumberWords } from '@/lib/number-words';
-import { poolPattern, type PhraseUses } from './phrasing';
+import { poolPattern, rotateOpeningAck, type PhraseUses } from './phrasing';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
 import { NEUTRAL_TURN } from '@/lib/agent/models/turn-events';
 import type { ModelPlan } from './plan-turn';
@@ -318,6 +319,8 @@ export async function streamTurnSegments(
   // and the say sentences after it wait behind it, in order — the next ordinary
   // sentence never flushes it early (final review M1, 20 Oct).
   let heldRefusal = false;
+  let firstSentenceSeen = false;
+  const ackOn = switchOn(plan.state.caseData, 'ackRotation');
   const refusalShaped = (text: string) => g.facts !== undefined && refusedItemIds(text, g.facts.fb).length > 0;
   const judgeable = () => closed.has('requests') && (!heldRefusal || DECLARATIONS.every(k => closed.has(k)));
 
@@ -391,13 +394,17 @@ export async function streamTurnSegments(
       closed = new Set();
       dataLineQueued = false;
       heldRefusal = false;
+      firstSentenceSeen = false;
       continue;
     }
     if (e.type === 'done') { turn = e.turn; validation = e.validation; modelDoneAt = Date.now(); mark('model_done'); break; }
     if (e.type === 'sentence') mark('model_first_sentence');
     else mark(`model_${e.key}_closed`);
     let p: Pending | null = null;
-    if (e.type === 'sentence') p = { kind: 'sentence', text: e.text };
+    // 4.10 (`ackRotation`): the say's opening acknowledgment through the pool rotation (phrasing.ts rotateOpeningAck;
+    // Settle renders the same words from the same seed and uses).
+    if (e.type === 'sentence') p = { kind: 'sentence', text: !firstSentenceSeen && ackOn ? rotateOpeningAck(e.text, plan.ctx.flags.phraseUses as PhraseUses | undefined, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`) : e.text };
+    if (e.type === 'sentence') firstSentenceSeen = true;
     else if (e.key === 'requests') fields = { ...fields, requests: toRequests(e.value) };
     else if (e.key === 'exhibit') fields = { ...fields, exhibit: typeof e.value === 'string' ? e.value : null };
     else if (e.key === 'rescue_item') fields = { ...fields, rescueItem: typeof e.value === 'string' ? e.value : null };
