@@ -19,8 +19,8 @@ vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<obje
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
 
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
-import { turnDataChecked, answerGate } from '@/lib/orchestrator/turn-data';
-import { renderDataLines } from '@/lib/orchestrator/data-decisions';
+import { turnDataChecked, answerGate, decideCheckedAsk } from '@/lib/orchestrator/turn-data';
+import { renderDataLines, decisionRows } from '@/lib/orchestrator/data-decisions';
 import { unmetQualifiers, askQualifiers, gateReading } from '@/lib/orchestrator/ask-qualifiers';
 import { tagsAgree } from '@/lib/orchestrator/item-tags';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
@@ -29,6 +29,7 @@ import { getCaseById } from '@/lib/cases/loader';
 import { readsFixture } from './fixtures/turn-reads';
 import { askVia } from './fixtures/ask-check';
 import { taggedFactBase } from './fixtures/tagged-cases';
+import { GATE_CORPUS } from './fixtures/gate-corpus';
 
 const SATISFIED = { state: 'satisfied', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false };
 type Fx = { caseId: string; text: string; requests: DeclaredRequest[]; phase: Phase; revealed: string[]; shown: string[] };
@@ -139,8 +140,8 @@ describe('the answer gate on the check\'s verdicts (in place of the qualifier gu
     const p = plan(RAJ_B36A_T11);
     const d = await turnDataChecked(p, turn(RAJ_B36A_T11));
     expect(d.releases.map(r => r.id)).toEqual(['trial_comparison']);
-    // funnel_rates, out already and "full" by the check, is restated as the check mapped it; the forecast's part is said beside it.
-    expect(d.restates.map(r => r.id)).toEqual(['funnel_rates']);
+    // Fix round 1 (F3): the drop leaves only funnel_rates, out already ("full" by the check) — not restated; the refusal alone.
+    expect(d.restates).toEqual([]);
     expect(renderDataLines(d, 's').join(' ')).not.toContain(value('entry-001', 'peak_share_forecast'));
     expect(d.refusals).toEqual(['advanced therapy usage among the eligible patients']);
     expect(acts(p, 'itemless_defer')[0].detail).toMatchObject({ tagDropped: ['peak_share_forecast'], guard: { said: ['advanced therapy usage among the eligible patients'] } });
@@ -178,7 +179,8 @@ describe('the answer gate on the model\'s mapped asks', () => {
     expect(d.refusals).toEqual([]);
     expect(acts(p, 'answer_gate')).toEqual([]);
   });
-  it('no new check call: the model maps row 10\'s ask to the chickpea costs — dropped, both parts refused, checkAsk never called', async () => {
+  // Fix round 1 (F1): no topic test on the model's mapping — the chickpea costs go on the entity ("chip", no client word), the ask refused whole.
+  it('no new check call: the model maps row 10\'s ask to the chickpea costs — dropped (entity), the ask refused, checkAsk never called', async () => {
     const fx: Fx = { ...MARCUS_B37H_T5, requests: [req('chip cost of goods and gross margin over the last few years', ['variable_costs'])] };
     const p = plan(fx);
     const d = await turnDataChecked(p, turn(fx));
@@ -187,8 +189,8 @@ describe('the answer gate on the model\'s mapped asks', () => {
     expect(d.releases).toEqual([]);
     expect(d.exhibit).toBeNull();
     expect(d.unmatchedDefers).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual(["I don't have chip cost of goods or gross margin over the last few years."]);
-    expect(acts(p, 'answer_gate')[0].detail).toEqual({ asks: [{ what: 'chip cost of goods and gross margin over the last few years', path: 'mapped', refuse: ['chip cost of goods', 'gross margin over the last few years'], drop: ['variable_costs'], partial: [] }] });
+    expect(renderDataLines(d, 's')).toEqual(["I don't have chip cost of goods and gross margin over the last few years."]);
+    expect(acts(p, 'answer_gate')[0].detail).toEqual({ asks: [{ what: 'chip cost of goods and gross margin over the last few years', path: 'mapped', refuse: ['chip cost of goods and gross margin over the last few years'], drop: ['variable_costs'], partial: [] }] });
   });
   it('a model-mapped entity mismatch: "the entrant\'s flights per day" mapped to Larkspur\'s network totals — dropped, refused, unchecked', async () => {
     const fx: Fx = { ...MARISOL_B36L_T11, requests: [req('how many flights a day the entrant runs on each route', ['network_totals'])] };   // the model's mapping constructed
@@ -207,14 +209,22 @@ describe('the answer gate on the model\'s mapped asks', () => {
     expect(d.refusals).toEqual([]);
     expect(acts(p, 'answer_gate')[0].detail).toMatchObject({ asks: [{ path: 'mapped', drop: ['lakeport_fare'], refuse: [] }] });
   });
-  it('a group step\'s per-item asks are gated under the ask they came from: "the per-flight economics, and the pilot headcount" — the second topic refused', async () => {
-    const fx: Fx = { ...MARISOL_B36L_T11, text: 'Do we have the per-flight economics, and the pilot headcount?', requests: [req('the per-flight economics, and the pilot headcount', ['lakeport_fare'])] };   // constructed
+  it('a group step\'s per-item asks are gated under the ask they came from: "the per-flight economics in FY2024" — the period read, the lines out → the refusal alone', async () => {
+    const fx: Fx = { ...MARISOL_B36L_T11, text: 'Do we have the per-flight economics in FY2024?', requests: [req('the per-flight economics in FY2024', ['lakeport_fare'])] };   // constructed
     const p = plan(fx);
     const d = await turnDataChecked(p, turn(fx));
     expect(ask).not.toHaveBeenCalled();
     expect(acts(p, 'request_group')).toHaveLength(1);
-    expect(d.refusals).toEqual(['the pilot headcount']);
-    expect(acts(p, 'answer_gate')[0].detail).toMatchObject({ asks: [{ what: 'the per-flight economics, and the pilot headcount', path: 'mapped', refuse: ['the pilot headcount'] }] });
+    expect(d.restates).toEqual([]);
+    expect(d.refusals).toHaveLength(1);
+    expect(acts(p, 'answer_gate')[0].detail).toMatchObject({ asks: [{ what: 'the per-flight economics in FY2024', path: 'mapped' }] });
+  });
+  it('fix round 1 (F1): no topic test off the check — "the per-flight economics, and the pilot headcount" mapped by the model: no refusal from the gate', async () => {
+    const fx: Fx = { ...MARISOL_B36L_T11, text: 'Do we have the per-flight economics, and the pilot headcount?', requests: [req('the per-flight economics, and the pilot headcount', ['lakeport_fare'])] };   // constructed
+    const p = plan(fx);
+    const d = await turnDataChecked(p, turn(fx));
+    expect(d.refusals).toEqual([]);
+    expect(acts(p, 'answer_gate')).toEqual([]);
   });
   it('a period unmet on a model-mapped item not yet out: its line, and the period part refused beside it (E1)', async () => {
     const fx = asked('prof-002', 'the Hub–Lakeport fare in FY2024', ['lakeport_fare'], FARE_READY);
@@ -359,5 +369,77 @@ describe('untagged prof-001: no gate, decisions as before', () => {
     expect(c.factAnchors?.tags).toBeUndefined();
     const d = await turnDataChecked(p, turn(fx));
     expect(d.refusals).toEqual(['industry benchmarks']);
+  });
+});
+
+// Task 70 fix round 1 (the review and the controller's interim replay, r6-t70 vs r6-t69).
+describe('fix round 1', () => {
+  // F1 (controller ruling, 21 Oct): the topic test runs on the Haiku check's verdicts only.
+  it.each(GATE_CORPUS.map(f => [f.tag, f.keep, f] as const))('F1 %s: %s kept, no gate refusal', async (_tag, keep, f) => {
+    const fx: Fx = { caseId: f.caseId, phase: f.phase as Phase, revealed: f.revealed, shown: [], text: f.text, requests: f.requests.map(r => req(r.what, r.itemIds)) };
+    const p = plan(fx);
+    const d = await turnDataChecked(p, turn(fx));
+    const gate = acts(p, 'answer_gate').flatMap(e => (e.detail as { asks: { drop: string[]; partial: string[]; refuse: string[] }[] }).asks);
+    expect(gate.flatMap(g => [...g.drop, ...g.partial])).not.toContain(keep);
+    expect(gate.flatMap(g => g.refuse)).toEqual([]);
+    expect(decisionRows(d).flatMap(r => r.ledgerItemIds)).toContain(keep);
+    expect(ask).not.toHaveBeenCalled();
+  });
+  // F2: a missing topic beside full items is refused on the check path (round 5c's guard), nothing dropped or partial.
+  const RAJ_B34A_T17: Fx = {
+    caseId: 'entry-001', phase: 'BRAINSTORM', shown: ['exhibit-1', 'exhibit-2', 'exhibit-3'],
+    revealed: ['us_adults', 'funnel_rates', 'peak_share_forecast', 'kelvexa_pricing', 'option_a', 'option_b', 'option_shared', 'nimbrel', 'trial_comparison', 'survey_design', 'reasons_to_prescribe', 'barriers_to_prescribing'],
+    text: "Running both: Build gives 200,000 × 20% × $8,000 = $320 million net sales, less $80 million selling costs = $240 million to Aldermoor. Partner gives 200,000 × 25% × $8,000 = $400 million net sales, of which we keep 30% = $120 million, with no costs.\n\nSo build is worth roughly twice as much to Aldermoor — $240m versus $120m — and it's the only option that clears the board's $300 million net sales test on the client's own P&L. The partner delivers more patients but we only book the royalty.\n\nThe trade is risk and time: build costs $80 million a year from day one, takes 12–18 months, and the 20% share depends on us solving exactly the two barriers the survey flagged. Partner is faster and capital-light but caps the upside and cedes the US relationship permanently.\n\nOne thing I'd want: what's the partner deal term, and does the royalty step down or do we get rights back?",
+    requests: [req('the partner deal terms, including royalty step-downs and rights reversion')],
+  };
+  it('F2 b34a Raj t17: the check maps option_b (out); the missing topic is refused as on the untagged case', async () => {
+    const run = async (tagged: boolean) => {
+      classify.mockResolvedValueOnce({ items: [{ id: 'option_b', answers: 'full' }] });
+      const p = plan(RAJ_B34A_T17);
+      if (!tagged) p.state.factBase = taggedFactBase('entry-001', { tags: null });
+      return { d: await turnDataChecked(p, turn(RAJ_B34A_T17)), p };
+    };
+    const untagged = await run(false);
+    const tagged = await run(true);
+    expect(untagged.d.refusals.join(' ')).toMatch(/royalty step-downs/i);
+    expect(tagged.d.refusals).toEqual(untagged.d.refusals);
+    expect(renderDataLines(tagged.d, 's')).toEqual(renderDataLines(untagged.d, 's'));
+    expect(acts(tagged.p, 'itemless_defer')[0].detail).toMatchObject({ guard: { ids: [] } });
+  });
+  // F3: b36a Raj t11 (above): the drop leaves funnel_rates only, out already — the refusal alone.
+  it('F3 b36a Raj t11: no restatement of the out sibling; the refusal and the trial line only', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'funnel_rates', answers: 'full' }, { id: 'peak_share_forecast', answers: 'full' }] });
+    const d = await turnDataChecked(plan(RAJ_B36A_T11), turn(RAJ_B36A_T11));
+    expect(renderDataLines(d, 's')).toEqual([value('entry-001', 'trial_comparison'), "I don't have advanced therapy usage among the eligible patients."]);
+  });
+  it('a tag part said whole beside a full item not yet out: funnel_rates released, the forecast\'s part refused beside it', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'funnel_rates', answers: 'full' }, { id: 'peak_share_forecast', answers: 'full' }] });
+    const d = await turnDataChecked(plan({ ...RAJ_B36A_T11, revealed: ['nimbrel', 'current_treatment'] }), turn(RAJ_B36A_T11));
+    expect(d.releases.map(r => r.id)).toEqual(['funnel_rates', 'trial_comparison']);
+    expect(d.refusals).toEqual(['advanced therapy usage among the eligible patients']);
+  });
+  it('F3 is the gate\'s: the forecast out already too, funnel_rates still restated (no drop left a sibling not yet out)', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'funnel_rates', answers: 'full' }, { id: 'peak_share_forecast', answers: 'full' }] });
+    const d = await turnDataChecked(plan({ ...RAJ_B36A_T11, revealed: [...RAJ_B36A_T11.revealed, 'peak_share_forecast'] }), turn(RAJ_B36A_T11));
+    expect(d.restates.map(r => r.id)).toEqual(['funnel_rates']);
+  });
+  it('a vetoed gate part on the check path is credited to its own item (nimbrel), not the first drop (patents)', () => {
+    const p = plan(RAJ_B36A_T13);
+    p.state.factBase = taggedFactBase('entry-001', { covers: { pipeline: ['late-stage oral competitors'] } });   // a fixture cover: the part names held data
+    // The verdict as the gate records it (the coverage step would have covered this part first: decided directly).
+    const parts = ["Nimbrel's patent expiry", 'late-stage oral competitors'];
+    const c = decideCheckedAsk(p, "Nimbrel's patent expiry and late-stage oral competitors", { mapped: false, ids: [], outOfScope: [], partial: [], missing: {},
+      guard: { unmet: [], parts, ids: [], drop: ['patents', 'nimbrel'], said: [parts[0]], of: { [parts[0]]: 'patents', [parts[1]]: 'nimbrel' } } });
+    expect(c).toEqual({ kind: 'refuse', missing: ["Nimbrel's patent expiry"], dropped: [{ id: 'nimbrel', missing: 'late-stage oral competitors', why: 'false_refusal' }] });
+  });
+  it('the ramp a line states meets a trend (r6): "takes 6–12 months to reach … in the first year"', () => {
+    const ramp = { id: 'new_route_rampup', label: 'How long new routes take to mature', value: value('prof-002', 'new_route_rampup') };
+    expect(unmetQualifiers('how new routes build toward 70% over time', [ramp], [], { r6: true })).toEqual([]);
+    expect(unmetQualifiers('how new routes build toward 70% over time', [{ ...ramp, value: 'New routes reach a 70% load factor.' }], [], { r6: true }).map(q => q.text)).toEqual(['over time']);
+  });
+  it('an entity\'s item meets a competitor or benchmark scope (r6): Nimbrel\'s net price is the benchmark', () => {
+    const nimbrel = { id: 'nimbrel', label: 'Nimbrel', value: 'Its net price is about $9,000 per patient per year.' };
+    expect(unmetQualifiers('a net price benchmark for current treatment', [{ ...nimbrel, other: true }], [], { r6: true })).toEqual([]);
+    expect(unmetQualifiers('a net price benchmark for current treatment', [nimbrel], [], { r6: true }).map(q => q.text)).toEqual(['benchmark']);
   });
 });

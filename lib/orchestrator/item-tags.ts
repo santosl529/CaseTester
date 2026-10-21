@@ -31,12 +31,19 @@ function says(text: string, word: string): boolean {
 // one of Larkspur's client words (Task 69). Client words are read outside it.
 const ASK_FRAME = /\b(?:do|does|did|can|could|would|will|should|shall|may|might|have)\s+(?:we|i|you)\b|\b(?:we|i)(?:'d|\s+would)\s+(?:want|need|like)\b|\b(?:we|i)\s+(?:want|need)\s+to\s+(?:know|see|understand|check)\b/gi;
 
+// A comparison names its other side, not whose figure is asked (Task 70 fix round 1; b35
+// Hollis Bay Marcus t1 "what price point they're targeting versus the chips" asks the chickpea
+// price): what follows versus / compared with / relative to / against / than, to the clause's
+// end, names nobody.
+const COMPARED = /\b(?:versus|vs\.?|compared (?:with|to)|relative to|against|than)\s+[^,;:?.!—–()]{0,40}?(?=[,;:?.!—–()]|\s+(?:and|or|but)\s|$)/gi;
+
 // The entities a text names, by id; 'client' when a client word appears.
 export function entitiesNamed(text: string, fb: FactBase): string[] {
   const t = fb.tags;
   if (!t) return [];
-  const out = t.entities.filter(e => e.words.some(w => says(text, w))).map(e => e.id);
-  const unframed = text.replace(ASK_FRAME, ' ');
+  const asked = text.replace(COMPARED, ' ');
+  const out = t.entities.filter(e => e.words.some(w => says(asked, w))).map(e => e.id);
+  const unframed = asked.replace(ASK_FRAME, ' ');
   if (t.clientWords.some(w => says(unframed, w))) out.push('client');
   return out;
 }

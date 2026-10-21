@@ -57,7 +57,10 @@ describe('tagsAgree', () => {
 describe('entitiesNamed', () => {
   it('the entities a text names, and the client', () => {
     expect(entitiesNamed("the entrant's flights a day", larkspur)).toEqual(['competitor']);
-    expect(entitiesNamed("Do we know our fares versus the low-cost carrier's?", larkspur)).toEqual(['competitor', 'client']);
+    // Task 70 fix round 1: a comparison's other side names nobody — "our fares versus the low-cost carrier's" asks Larkspur's fares.
+    expect(entitiesNamed("Do we know our fares versus the low-cost carrier's?", larkspur)).toEqual(['client']);
+    expect(entitiesNamed("Do we know the low-cost carrier's fares?", larkspur)).toEqual(['competitor']);
+    expect(entitiesNamed("what price point they're targeting versus the chips?", hollis)).toEqual([]);
     expect(entitiesNamed('chip volume for the chickpea line', hollis)).toEqual(['chips', 'client']);
     expect(entitiesNamed('roasted chickpeas', hollis)).toEqual(['client']);
     expect(entitiesNamed('how chickpeas sell', hollis)).toEqual(['client']);           // a plural of a client word

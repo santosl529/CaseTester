@@ -861,6 +861,14 @@ describe('Task 61 fix round 1: a missing second topic leaves the items answering
     expect(lines).toMatch(/fare/i);
     expect(lines).not.toMatch(/\d/);
   });
+  // Task 70 fix round 1 (F2): the check maps the fare alone — nothing dropped or partial; the answer gate still refuses the missing topic.
+  it('#52, the check mapping only the fare (tagged): the fare released, then "I don\'t have passengers flown."', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'lakeport_fare', answers: 'full' }] });
+    const p = planOf(TYLER_B34L_T1, { phase: 'ANALYSIS', revealed: RAJ_B34L_T13.revealed });
+    const d = await turnDataChecked(p, turn(TYLER_B34L_T1));
+    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ decision: 'items', guard: { parts: ['passengers flown'], ids: [] } });
+    expect(renderDataLines(d, 's')).toEqual([ledgerValue('prof-002', 'lakeport_fare'), "I don't have passengers flown."]);
+  });
   it('#52, the pressure test answered and the route results out (the fare\'s release order met): the fare released, then "I don\'t have passengers flown."', async () => {
     classify.mockResolvedValueOnce(TYLER_52);
     const p = planOf(TYLER_B34L_T1, { phase: 'ANALYSIS', revealed: RAJ_B34L_T13.revealed });
