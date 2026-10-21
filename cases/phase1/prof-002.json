@@ -2,89 +2,239 @@
   "caseId": "prof-002",
   "items": {
     "op_profit_definition": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["what operating profit includes", "which costs sit in operating profit", "whether profit is before interest and taxes"],
       "covers": ["operating profit definition", "definition of operating profit", "what operating profit includes", "how operating profit is defined", "interest and taxes", "profit before interest", "costs included in operating profit"]
     },
     "geography": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["where the airline flies", "whether any routes are international", "the markets the network serves"],
       "covers": ["where larkspur flies", "us domestic flights", "domestic network", "outside the us", "which markets larkspur serves", "domestic or international", "overseas routes"]
     },
     "fleet": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level"]},
+      "askPhrases": ["the size and type of the fleet", "whether the aircraft are owned or leased", "seats per aircraft", "whether the fleet changed"],
       "covers": ["fleet size", "how many aircraft", "how many planes", "seats per aircraft", "aircraft type", "regional jets", "fleet composition", "size of the fleet"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
+    "routes_schedule": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level"]},
+      "askPhrases": ["whether routes were added or dropped", "the number of flights on each route over time", "whether the schedule changed"]
+    },
     "fuel_prices": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend"]},
+      "askPhrases": ["how fuel prices moved", "the fuel price trend over the period", "whether fuel got more expensive"],
       "covers": ["jet fuel prices", "fuel price trend", "did fuel get more expensive", "fuel prices over the period"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "unit_costs": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend"]},
+      "askPhrases": ["whether wages or crew costs changed", "costs per flight over time", "cost inflation in the cost base"],
       "covers": ["pilot wages", "crew wages"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "demand": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend"]},
+      "askPhrases": ["overall air travel demand in the airline's cities", "whether the market grew or shrank", "the demand trend"],
       "covers": ["air travel demand", "overall demand", "demand trend", "demand softening", "is demand down", "decline in demand", "demand weakness"]
     },
     "one_time_charges": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["one-off"]},
+      "askPhrases": ["whether the loss includes one-time charges", "restructuring charges or impairments", "whether the loss is recurring"],
       "covers": ["one-time charges", "one-off charges", "one-time items", "non-recurring items", "special items", "asset write-offs", "exceptional items", "one-off costs"]
     },
     "competition_general": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["which other airlines serve the hub cities", "competition from larger airlines", "connecting itineraries offered by other carriers"],
       "covers": ["larger airlines", "legacy airlines", "other airlines at the hub", "competition on the four", "competition on the other routes", "network carriers", "one-stop competition"]
     },
     "route_results_lakeport": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["total", "trend"]},
+      "askPhrases": ["Hub–Lakeport revenue and contribution in each year", "how the Lakeport route performed", "flights a year on Lakeport"],
       "covers": ["lakeport revenue", "lakeport contribution", "lakeport results", "revenue on lakeport", "contribution on lakeport", "lakeport profitability", "how lakeport performed", "lakeport losses"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "route_results_port_avery": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["total", "trend"]},
+      "askPhrases": ["Hub–Port Avery revenue and contribution in each year", "how the Port Avery route performed", "flights a year on Port Avery"],
       "covers": ["port avery revenue", "port avery contribution", "port avery results", "revenue on port avery", "contribution on port avery", "port avery profitability", "how port avery performed", "port avery losses"],
-      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"],
+      "misquote": {"names": ["port avery revenue", "revenue on port avery"], "kind": "level"}
     },
     "route_results_other": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["total", "trend"]},
+      "askPhrases": ["results on the other routes", "revenue and contribution on Cedar Bluff, Granite Falls, Millbrook and Westhaven", "how the routes outside Lakeport and Port Avery performed"],
       "covers": ["results on the other routes", "results on the four", "revenue on the other routes", "contribution on the other routes", "contribution on the four", "contribution per flight on the four", "cedar bluff revenue", "millbrook revenue", "granite falls revenue", "westhaven revenue", "results on cedar bluff"]
     },
     "network_totals": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["total", "trend"]},
+      "askPhrases": ["network revenue and contribution in each year", "total flights across the network", "the year-over-year network totals"],
       "covers": ["flights flown", "flight count", "network revenue", "network contribution", "total contribution", "network results"]
     },
     "fixed_costs": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["total", "recurring"]},
+      "askPhrases": ["fixed costs in each year", "aircraft leases, hub facilities and overhead", "whether fixed costs changed"],
       "covers": ["fixed cost breakdown", "hub facilities", "corporate overhead", "hub costs", "overhead costs"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "lakeport_seats_load": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level"]},
+      "askPhrases": ["seats per Lakeport flight", "the Lakeport load factor in each year", "passengers per Lakeport flight"],
       "covers": ["lakeport load", "load factor on lakeport", "lakeport seats per flight", "seats on lakeport", "lakeport passenger count", "passengers carried on lakeport", "lakeport passengers per flight", "how full lakeport flights are"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "lakeport_fare": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level", "trend"]},
+      "askPhrases": ["the average Lakeport fare in each year", "how Lakeport fares moved", "the Lakeport ticket price"],
       "covers": ["lakeport fare", "average fare on lakeport", "lakeport ticket price", "lakeport yield"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "extras_revenue": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level"]},
+      "askPhrases": ["revenue from bags, seats and snacks", "extras revenue per passenger", "ancillary revenue beyond the fare"],
       "covers": ["extras revenue", "ancillary revenue", "extras per passenger", "ancillary per passenger", "bag fees", "seat selection fees", "ticket versus ancillary", "ticket and ancillary"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "lakeport_variable_cost": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["split", "level"]},
+      "askPhrases": ["the variable cost of a Lakeport flight", "fuel, crew, maintenance and fees per Lakeport flight", "whether Lakeport costs per flight changed"],
       "covers": ["lakeport variable cost", "lakeport cost per flight", "variable cost on lakeport", "cost per flight on lakeport", "lakeport fuel cost", "lakeport crew cost", "lakeport flight cost"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "competitor_entry": {
+      "tags": {"entity": "competitor", "period": ["historical", "current"], "quantityKind": ["level"]},
+      "askPhrases": ["what changed on the problem routes", "what is behind the results on those routes", "who flies the problem routes now"],
       "covers": ["competitor entry", "competitive entry", "did a competitor enter", "who entered", "carrier entered", "what changed on the problem routes", "what happened on those routes", "driving the fare decline", "why did fare collapse"]
     },
     "competitor_costs": {
+      "tags": {"entity": "competitor", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["the competitor's cost per seat", "the competitor's fares", "how the competitor's costs compare with Larkspur's", "what drives the competitor's cost base"],
       "covers": ["competitor cost per seat", "low-cost carrier's costs", "low-cost carrier's fare", "cost disadvantage", "lcc fare"]
     },
     "connecting_passengers": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["split"]},
+      "askPhrases": ["passengers connecting at the hub on the contested routes", "local versus connecting traffic", "how much traffic feeds other Larkspur flights"],
       "covers": ["connecting traffic", "local versus connecting", "hub feed", "connecting share", "transfer passengers"]
     },
-    "new_route_rampup": {"covers": ["maturity curve", "ramp curve", "how long new routes take"]},
-    "aircraft_leases": {"covers": ["lease terms", "lease expiry", "lease exit cost", "early lease return", "stranded fixed cost"]},
+    "new_route_rampup": {
+      "tags": {"entity": "client", "period": ["forecast"], "quantityKind": ["trend"]},
+      "askPhrases": ["how long new routes take to fill", "first-year load factor on a new route", "the ramp-up of a new route"],
+      "covers": ["maturity curve", "ramp curve", "how long new routes take"]
+    },
+    "aircraft_leases": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["recurring"]},
+      "askPhrases": ["aircraft lease terms", "whether aircraft can be returned early", "whether the fleet can shrink"],
+      "covers": ["lease terms", "lease expiry", "lease exit cost", "early lease return", "stranded fixed cost"]
+    },
     "port_avery_per_flight": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level", "trend"]},
+      "askPhrases": ["Port Avery's fare, load factor and extras", "the variable cost of a Port Avery flight", "Port Avery per-flight economics"],
       "covers": ["port avery per-flight", "port avery load", "load factor on port avery", "port avery variable cost", "port avery cost per flight", "port avery average fare", "port avery fare"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "new_routes_plan": {
+      "tags": {"entity": "client", "period": ["forecast"], "quantityKind": ["level"]},
+      "askPhrases": ["planning estimates for the new routes", "expected fare and load factor on Ashford and Brookhaven", "seats and extras on the new routes"],
       "covers": ["new routes planning estimates", "planning estimate for the new routes", "new route assumptions", "fare on brookhaven", "load factor on ashford", "load factor on brookhaven", "seats on the new routes", "extras on the new routes", "new route economics"]
     },
     "new_routes_cost_flights": {
+      "tags": {"entity": "client", "period": ["forecast"], "quantityKind": ["level", "total"]},
+      "askPhrases": ["variable cost per flight on the new routes", "how many flights the new routes would run", "where the aircraft time for the new routes comes from"],
       "covers": ["flights per year on the new routes", "flights on the new routes", "planned frequency", "new route frequency", "cost per flight on ashford", "variable cost on ashford", "variable cost on brookhaven"]
     },
     "new_routes_context": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["competition on Ashford and Brookhaven", "whether fixed costs change with new routes", "nonstop service on the new routes"],
       "covers": ["incumbent competition", "competition on the new routes", "competitive presence on the new routes", "anyone flying nonstop"]
     }
-  }
+  },
+  "steps": {
+    "lakeport_contribution_fy2023": {"dependsOn": ["lakeport_passengers"]},
+    "lakeport_contribution_fy2025": {"dependsOn": ["lakeport_passengers"]},
+    "fare_cut_per_flight": {"dependsOn": ["lakeport_passengers"]},
+    "lakeport_annual_check": {"dependsOn": ["lakeport_contribution_fy2023", "lakeport_contribution_fy2025"]},
+    "breakeven_fare": {"dependsOn": ["lakeport_passengers"]},
+    "new_routes_annual": {"dependsOn": ["new_route_contribution_per_flight"]},
+    "network_improvement": {"dependsOn": ["new_routes_annual"]},
+    "new_operating_profit": {"dependsOn": ["network_improvement"]},
+    "rampup_operating_profit": {"dependsOn": ["rampup_per_flight"]}
+  },
+  "exhibits": {
+    "exhibit-1": {
+      "summary": "The route table has flights, revenue and contribution for each route in both years, with network totals, fixed costs and operating profit."
+    },
+    "exhibit-2": {
+      "summary": "The Lakeport flight table has seats, load factor, fare, extras and each variable cost line for one flight in both years."
+    },
+    "exhibit-3": {
+      "summary": "The new-route table has the planning estimates per flight for the proposed routes: seats, load factor, fare, extras, variable cost and flights per year."
+    }
+  },
+  "definitions": [
+    {
+      "term": "passengers per flight",
+      "text": "Passengers per flight are the seats per flight times the load factor.",
+      "steps": ["lakeport_passengers"],
+      "items": ["lakeport_seats_load"]
+    },
+    {
+      "term": "contribution per flight",
+      "text": "Contribution per flight is the passengers times the fare plus extras per passenger, less the flight's variable cost.",
+      "steps": ["lakeport_contribution_fy2023", "lakeport_contribution_fy2025", "new_route_contribution_per_flight", "rampup_per_flight"],
+      "items": ["lakeport_fare", "extras_revenue", "lakeport_variable_cost", "port_avery_per_flight", "new_routes_plan", "new_routes_cost_flights"]
+    },
+    {
+      "term": "annual route contribution",
+      "text": "A route's annual contribution is its contribution per flight times its flights per year.",
+      "steps": ["lakeport_annual_check", "new_routes_annual"],
+      "items": ["route_results_lakeport", "new_routes_cost_flights"]
+    },
+    {
+      "term": "contribution",
+      "text": "Contribution is route revenue less the variable costs of flying: fuel, crew, maintenance, and landing and airport fees.",
+      "items": ["route_results_lakeport", "route_results_port_avery", "route_results_other", "network_totals"]
+    },
+    {
+      "term": "operating profit",
+      "text": "Operating profit is total contribution less fixed costs: aircraft leases, hub facilities and corporate overhead.",
+      "steps": ["op_profit_swing", "new_operating_profit"],
+      "items": ["op_profit_definition", "fixed_costs", "network_totals"]
+    },
+    {
+      "term": "fare cut per flight",
+      "text": "The revenue a fare cut costs each flight is the fare reduction times the passengers per flight.",
+      "steps": ["fare_cut_per_flight"],
+      "items": ["lakeport_fare", "lakeport_seats_load"]
+    },
+    {
+      "term": "breakeven fare",
+      "text": "The breakeven fare is the flight's variable cost divided by its passengers, less the extras per passenger.",
+      "steps": ["breakeven_fare"],
+      "items": ["lakeport_variable_cost", "lakeport_seats_load", "extras_revenue"]
+    },
+    {
+      "term": "breakeven load factor",
+      "text": "The breakeven load factor is the share of seats that must be filled for fare plus extras per passenger to cover the flight's variable cost.",
+      "steps": ["breakeven_load_factor"],
+      "items": ["lakeport_variable_cost", "lakeport_fare", "extras_revenue"]
+    },
+    {
+      "term": "profit concentration",
+      "text": "The contested routes' share of contribution is their combined prior-year contribution divided by the network's.",
+      "steps": ["profit_concentration"],
+      "items": ["route_results_lakeport", "route_results_port_avery", "network_totals"]
+    },
+    {
+      "term": "network improvement",
+      "text": "The gain from redeploying is the new routes' annual contribution plus the losses removed by exiting the contested routes.",
+      "steps": ["network_improvement", "new_operating_profit"],
+      "items": ["new_routes_plan", "new_routes_cost_flights", "route_results_lakeport", "route_results_port_avery"]
+    },
+    {
+      "term": "first-year contribution on a new route",
+      "text": "First-year contribution per flight on a new route uses the first-year load factor in place of the planned one.",
+      "steps": ["rampup_per_flight", "rampup_operating_profit"],
+      "items": ["new_route_rampup", "new_routes_plan", "new_routes_cost_flights"]
+    }
+  ]
 }
