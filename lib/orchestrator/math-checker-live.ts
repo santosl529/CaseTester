@@ -144,6 +144,89 @@ export function parseInputKey(key: string): { figure: number; unit: string } | n
   return m ? { figure: Number(m[2]), unit: m[1] ? '$' : m[3] ? '%' : '' } : null;
 }
 
+// ── step roots (round 6 Task 72) ────────────────────────────────────────────
+// Lorenzo, 21 Oct, round 6 (the step-check ruling; audit M1–M2, b37 Quillpath Raj e08c362a and Marcus eb8d7576: eight
+// checker and code lines on figures built on a misread Starter lifetime, the one correction on a derived figure; the
+// 14-month lifetime probed three times under other keys): "The deterministic step check may, without the checker
+// agreeing: link derived claims to the flagged root and stop probing them; ask one neutral input question at the root
+// (for example, "Which row did you use for cancellations?"). It may NOT voice a correction without the checker's
+// agreement." On a case whose steps declare `dependsOn` or `inputQuestion` (pricing-001; prof-001 declares neither):
+//   - a deterministic step flag (`recompute_report_only` or `recompute`) on a root step R — one with an input question,
+//     or one other steps depend on — with the candidate's value v registers the root `step:R@v` (plan-turn.ts,
+//     flags.stepRoots): its figures are v and the span's own wrong figures (13.5 months beside $405) — not a case
+//     figure, not any step's right answer (the $30 margin), not a one-digit count ("3x");
+//   - a checker or code flag on a step that depends on R (dependsOn, transitively), or whose span carries a root figure
+//     (not its own), or that is built (rootOf) on a claim already linked, is linked: not probed, left for the report —
+//     "built on <R>'s <v>, flagged by the step check" (planCheckerFlags; its key closed: no later probe on its figures);
+//   - the root gets one neutral question, the step's input question, in the checker probe's slot (plan-turn.ts);
+//   - never a correction: a correction of R or of a linked claim still needs the checker's flag (the 16 Oct gate).
+// A flag on a step that depends on a root, or carrying a root's figure, is linked to that root, never a root of its
+// own (b37q Raj t33: starter_ratio_with_upgrades at 13.5). Several roots: the latest registered by the claim's message.
+export type StepRoot = { step: string; value: number; figures: number[]; since: number; span?: string; linked?: string[] };
+export const STEP_ROOT = 'step:';
+export const stepRootKey = (step: string, value: number) => `${STEP_ROOT}${attemptKey({ stepId: step, candidateValue: value })}`;
+type RootStepDef = { id: string; answer: number; altAnswers?: number[]; dependsOn?: string[]; inputQuestion?: string };
+const rootStepsOf = (c: { mathSteps: unknown[] }) => c.mathSteps as RootStepDef[];
+// The case opts in by declaring either field on any step.
+export function stepRootsDeclared(c: { mathSteps: unknown[] }): boolean {
+  return rootStepsOf(c).some(st => (st.dependsOn?.length ?? 0) > 0 || st.inputQuestion !== undefined);
+}
+// The steps computed from `id`, transitively.
+export function stepDependents(c: { mathSteps: unknown[] }, id: string): Set<string> {
+  const out = new Set<string>();
+  const add = (x: string) => { for (const st of rootStepsOf(c)) if ((st.dependsOn ?? []).includes(x) && !out.has(st.id)) { out.add(st.id); add(st.id); } };
+  add(id);
+  return out;
+}
+// A root step: one with an input question, or one others depend on.
+export function isRootStep(c: { mathSteps: unknown[] }, id: string): boolean {
+  return rootStepsOf(c).some(st => st.id === id && st.inputQuestion !== undefined) || stepDependents(c, id).size > 0;
+}
+export function inputQuestionOf(c: { mathSteps: unknown[] }, id: string): string | undefined {
+  return rootStepsOf(c).find(st => st.id === id)?.inputQuestion;
+}
+// The root a claim is linked to — by the step its key names, or a root figure its span carries (not its own) — or null.
+export function stepRootOf(p: { c: { mathSteps: unknown[] }; roots: Record<string, StepRoot>; key: string; span: string; own: number[]; n: number; caseFigures: number[] }): string | null {
+  const step = stepOfKey(p.key);
+  const carried = numbersOf(normalizeNumberWords(p.span)).filter(x => !p.caseFigures.some(y => same(x, y)) && !p.own.some(y => same(x, y)));
+  // A claim of the root itself — its step at its figure (b37q Raj 33:0, "$30 a month, times expected 13.5 months on plan
+  // = $405") — is not linked to it: the checker probes or corrects it as always.
+  const hits = Object.entries(p.roots).filter(([, r]) => !(step === r.step && p.own.some(x => same(x, r.value)))
+    && ((step !== r.step && stepDependents(p.c, r.step).has(step)) || carried.some(x => r.figures.some(y => same(x, y)))));
+  if (hits.length === 0) return null;
+  const by = hits.filter(([, r]) => r.since <= p.n).sort((a, b) => b[1].since - a[1].since);
+  return (by[0] ?? [...hits].sort((a, b) => a[1].since - b[1].since)[0])[0];
+}
+// A root's figures: v, and the span's wrong figures (above).
+export function stepRootFigures(c: { mathSteps: unknown[] }, value: number, span: string, caseFigures: number[]): number[] {
+  const right = rootStepsOf(c).flatMap(st => [st.answer, ...(st.altAnswers ?? [])]);
+  const extra = numbersOf(normalizeNumberWords(span)).filter(x => !same(x, value) && !caseFigures.some(y => same(x, y))
+    && !right.some(y => same(x, y)) && !(Number.isInteger(x) && Math.abs(x) < 10));
+  return [value, ...extra.filter((x, i) => extra.findIndex(y => same(x, y)) === i)];
+}
+// This message's step flags against the roots so far: a new root, or a flag linked to one (logged only).
+export function registerStepRoots(c: { mathSteps: unknown[] }, roots: Record<string, StepRoot>, flags: Pick<RecomputeFlag, 'stepId' | 'candidateValue' | 'span' | 'kind'>[], n: number, caseFigures: number[]): { roots: Record<string, StepRoot>; registered: string[]; linked: { key: string; root: string }[] } {
+  const out = { ...roots };
+  const registered: string[] = [];
+  const linked: { key: string; root: string }[] = [];
+  for (const f of flags) {
+    if ((f.kind ?? 'step') !== 'step') continue;
+    const key = attemptKey(f);
+    const root = stepRootOf({ c, roots: out, key, span: f.span, own: [f.candidateValue], n, caseFigures });
+    if (root && root !== stepRootKey(f.stepId, f.candidateValue)) { linked.push({ key, root }); continue; }
+    const rk = stepRootKey(f.stepId, f.candidateValue);
+    if (!isRootStep(c, f.stepId) || out[rk]) continue;
+    out[rk] = { step: f.stepId, value: f.candidateValue, figures: stepRootFigures(c, f.candidateValue, f.span, caseFigures), since: n, span: f.span };
+    registered.push(rk);
+  }
+  return { roots: out, registered, linked };
+}
+export const stepRootReason = (r: StepRoot) => `built on ${r.step}'s ${r.value}, flagged by the step check`;
+// The root's input question as the interviewer model reads it: a probe, said as written — never a correction or a figure.
+export function formatRootQuestionHint(line: string): string {
+  return `MATH CHECK (the step check, in code, on an earlier figure of theirs):\n- Ask this, once, as written — "${line}" — and nothing else about it. Do not correct it, say any figure, or do arithmetic.`;
+}
+
 // A word quantity is a figure for telling restatements apart: "roughly half",
 // "about half of the damage", "half" are one claim (they carry no number, or
 // only a case figure).
@@ -595,6 +678,9 @@ export type CheckerPlanInput = {
   // the gate released it — said by code; one ruled derived, not_rated, stale, expired or
   // disagreeing leaves the checker's claim standing (engine-asks final review, 19 Oct).
   gateOutcomes?: Record<string, GateOutcome>;
+  // The step check's roots (round 6 Task 72; plan-turn's flags.stepRoots, this message's included): claims linked to one
+  // are left for the report, never probed. Absent or empty (prof-001): as before.
+  stepRoots?: Record<string, StepRoot>;
 };
 export type CheckerPlan = {
   selected: CheckerSelection | null;  // at most one a turn
@@ -606,6 +692,7 @@ export type CheckerPlan = {
   droppedStamps: (StampRef & { candidateTurnIndex: number })[];
   keys: Record<string, CheckerKeyEntry>; // the registry, this turn's flags added
   closedNow: string[];                // keys closed this turn (left for the report)
+  stepLinked?: Record<string, string>; // keys linked to a step root this turn → the root (round 6 Task 72)
 };
 
 const decision = (id: string, n: number, c: VettedClaim, outcome: CheckerOutcome, reason: string, line?: string, key = checkerKey(c)): CheckerDecision => ({
@@ -935,7 +1022,10 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       const idFigs = [...ownFigs, ...wordFigures(c.candidateValue).filter(w => !ownFigs.some(x => same(x, w)))];
       const key = flagKeyFor(c, idFigs, keys);
       if (closed.has(key)) {
-        decisions.push(decision(id, v.candidateTurnIndex, c, 'unresolved', 'restated after the flag closed (corrected, or left for the report)', undefined, key));
+        // A key a step root linked (round 6 Task 72): restated, it stays linked — the root's reason, for the report.
+        const linkedTo = Object.entries(p.stepRoots ?? {}).find(([, r]) => (r.linked ?? []).includes(key));
+        decisions.push(linkedTo ? { ...decision(id, v.candidateTurnIndex, c, 'unresolved', stepRootReason(linkedTo[1]), undefined, key), root: linkedTo[0] }
+          : decision(id, v.candidateTurnIndex, c, 'unresolved', 'restated after the flag closed (corrected, or left for the report)', undefined, key));
         handled.add(id);
         return;
       }
@@ -944,6 +1034,38 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       flaggedFigures.push(...figs);
       eligible.push({ id, n: v.candidateTurnIndex, c, key, figs, codeProbed: codeFlag !== undefined && codeSaid(v, codeFlag) });
     });
+  }
+  // Step roots (round 6 Task 72; Lorenzo, 21 Oct, the step-check ruling, above): a claim on a step built on a root the
+  // step check flagged, carrying a root figure, or built (rootOf) on a claim linked already — this turn's or an earlier
+  // turn's (the roots' `linked`) — is left for the report, unprobed, its key closed. Before the selection: never probed,
+  // never a rider, never its own correction. A claim of the root itself (R at its own figure) is not linked: the checker
+  // probes or corrects it as always, the root's input question counted as its first probe (plan-turn).
+  const stepLinked: Record<string, string> = {};
+  const roots = p.stepRoots ?? {};
+  if (Object.keys(roots).length > 0) {
+    const linkedBefore = new Map(Object.entries(roots).flatMap(([rk, r]) => (r.linked ?? []).map(k => [k, rk] as const)));
+    const linkOf = (e: typeof eligible[number]): string | null => {
+      const direct = stepRootOf({ c: p.caseData, roots, key: e.key, span: e.c.span, own: idFigsOf(e.c), n: e.n, caseFigures: caseNumbers });
+      if (direct) return direct;
+      const on = rootOf(e.c.span, e.key, keys, caseNumbers);
+      return on ? stepLinked[on] ?? linkedBefore.get(on) ?? null : null;
+    };
+    for (let changed = true; changed;) {
+      changed = false;
+      for (const e of eligible) {
+        if (stepLinked[e.key]) continue;
+        const root = linkOf(e);
+        if (root) { stepLinked[e.key] = root; changed = true; }
+      }
+    }
+    for (const e of [...eligible]) {
+      const root = stepLinked[e.key];
+      if (!root) continue;
+      eligible.splice(eligible.indexOf(e), 1);
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', stepRootReason(roots[root]), undefined, e.key), root });
+      handled.add(e.id);
+      if (!closedNow.includes(e.key)) closedNow.push(e.key);
+    }
   }
   // E7: each flagged claim's misread input — its own figure when that is a figure of the data (dataFigure), else a
   // known input's figure carried in its span in its unit, or as a fraction ("1 / 0.215" → 21.5%), stated no later than
@@ -1316,6 +1438,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   return {
     selected, waiting: pending.map(w => { const root = rootOfWaiting(w); return { id: w.id, candidateTurnIndex: w.n, claim: w.c, ...(root ? { root } : {}) }; }), decisions, flaggedFigures: [...new Set(flaggedFigures)], droppedStamps,
     handledNow: [...handled].filter(id => !p.handled.includes(id)), keys, closedNow,
+    ...(Object.keys(stepLinked).length > 0 ? { stepLinked } : {}),
   };
 }
 
@@ -1490,6 +1613,8 @@ export function closedErrorRestated(text: string, closed: string[], keys: Record
   for (const key of closed) {
     // A conversion closed it: the candidate was right on their own quantity, or stated none — no error to raise again.
     if (key.startsWith(CONVERTED) || flagRows.some(d => d.key === key && d.outcome === 'converted')) continue;
+    // Linked to a step root (round 6 Task 72): never probed — not in the recommendation either.
+    if (flagRows.some(d => d.key === key && d.root?.startsWith(STEP_ROOT))) continue;
     const figures = keys[key]?.figures ?? [];
     // In a unit the claim was said in — never a bare number (Larkspur: "two separate effects" matched "$2M").
     const flags = flagRows.filter(d => d.key === key);

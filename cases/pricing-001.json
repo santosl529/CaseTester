@@ -312,6 +312,7 @@
     },
     {
       "id": "pro_ltv",
+      "inputQuestion": "Which row of the Pro cohort table did you use for cancellations?",
       "description": "Pro LTV = $80 × 50 months (1 ÷ 2%) = $4,000",
       "answer": 4000,
       "tolerance": 400,
@@ -339,6 +340,7 @@
     },
     {
       "id": "starter_ltv",
+      "inputQuestion": "Which row of the Starter cohort table did you use for cancellations?",
       "description": "Starter standalone LTV = $30 × 20 months (1 ÷ 5%) = $600",
       "answer": 600,
       "tolerance": 60,
@@ -397,6 +399,7 @@
     },
     {
       "id": "starter_ratio",
+      "dependsOn": ["starter_ltv"],
       "description": "Starter standalone LTV/CAC = $600 ÷ $300 = 2.0×",
       "answer": 2.0,
       "tolerance": 0.1,
@@ -442,6 +445,7 @@
     },
     {
       "id": "starter_value_with_upgrades",
+      "dependsOn": ["starter_ltv"],
       "description": "Starter value per sign-up including upgrades = $600 + 20% × $4,000 = $1,400",
       "answer": 1400,
       "tolerance": 50,
@@ -470,6 +474,7 @@
     },
     {
       "id": "starter_ratio_with_upgrades",
+      "dependsOn": ["starter_ltv"],
       "description": "Starter LTV/CAC including upgrades = $1,400 ÷ $300 ≈ 4.7×",
       "answer": 4.7,
       "tolerance": 0.1,
@@ -492,6 +497,7 @@
     },
     {
       "id": "starter_net_value",
+      "dependsOn": ["starter_ltv"],
       "description": "Starter net value per sign-up = $1,400 − $300 = $1,100",
       "answer": 1100,
       "tolerance": 50,
@@ -592,6 +598,7 @@
     },
     {
       "id": "value_with_starter",
+      "dependsOn": ["starter_ltv"],
       "description": "Value of a month of sign-ups with Starter, including upgrades = 350 × $2,800 + 1,000 × $1,100 = $2.08M (CFO standalone view: $1.28M)",
       "answer": 2.08,
       "tolerance": 0.05,
@@ -629,6 +636,7 @@
     },
     {
       "id": "starter_value_added",
+      "dependsOn": ["starter_ltv"],
       "description": "Value Starter adds per month of sign-ups = $2.08M − $1.40M = +$0.68M",
       "answer": 0.68,
       "tolerance": 0.03,
@@ -660,6 +668,7 @@
     },
     {
       "id": "cannibalization_breakeven",
+      "dependsOn": ["starter_ltv"],
       "description": "Pro sign-ups Starter could take before it stopped creating value = $1.1M ÷ $2,800 ≈ 390 a month",
       "answer": 390,
       "tolerance": 5,
@@ -689,6 +698,7 @@
     },
     {
       "id": "starter_value_at_60",
+      "dependsOn": ["starter_ltv"],
       "description": "Starter net value per sign-up at $60 = $50 × 20 + $800 − $300 = $1,500",
       "answer": 1500,
       "tolerance": 50,
@@ -716,6 +726,7 @@
     },
     {
       "id": "value_at_60",
+      "dependsOn": ["starter_ltv"],
       "description": "Value of a month of sign-ups at $60 = 400 × $2,800 + 800 × $1,500 = $1.12M + $1.20M = $2.32M",
       "answer": 2.32,
       "tolerance": 0.05,
@@ -745,6 +756,7 @@
     },
     {
       "id": "uplift_at_60",
+      "dependsOn": ["starter_ltv"],
       "description": "$60 adds $2.32M − $2.08M = +$0.24M per month of sign-ups (+12%)",
       "answer": 0.24,
       "tolerance": 0.02,
@@ -777,6 +789,7 @@
     },
     {
       "id": "churn_breakeven_at_60",
+      "dependsOn": ["starter_ltv"],
       "description": "$60 beats $40 unless Starter churn rises above ~7% a month ($50 × 14 + $800 = $1,500 → lifetime 14 months → 1/14 ≈ 7.1%)",
       "answer": 7,
       "tolerance": 0.3,
@@ -802,6 +815,7 @@
     },
     {
       "id": "upgrade_breakeven_at_60",
+      "dependsOn": ["starter_ltv"],
       "description": "$60 beats $40 unless upgrades fall below 12.5% ($1,000 + u × $4,000 = $1,500)",
       "answer": 12.5,
       "tolerance": 0.3,

@@ -34,7 +34,8 @@ import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
-import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, parseInputKey, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot } from './math-checker-live';
+import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, parseInputKey, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot,
+  stepRootsDeclared, registerStepRoots, stepRootOf, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot } from './math-checker-live';
 import { theirFigure } from './own-quantity';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
@@ -90,6 +91,8 @@ export type CheckerLinePlan = {
   final?: boolean;     // in the final answers, a rider's included (ruling 4): heard, it is the root's one extra probe there (close-hold.ts)
   // input (E7): the input this line was booked to in flags.inputProbes, and the turn it was booked as.
   undo: { attempt: number | undefined; step: string | null; input?: { key: string; turn: number }; mathChecker: CheckerMemory };
+  // The step check's input question at a root (round 6 Task 72): its step — undone from flags.stepRootAsked if not heard; never held for a stage.
+  stepRoot?: string;
 };
 // flags.mathChecker. held: a line a due stage question held back (Settle), until it is raised or decided.
 // convertedFigures: the figures a conversion closed (own-quantity.ts) — a case figure too ("10 points of COGS"), which no key keeps.
@@ -504,7 +507,24 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // A step a conversion closed (own-quantity.ts; Lorenzo, 17 Oct) takes no more of code's probes either.
   const convertedSteps = new Set(((flags.mathChecker as Partial<CheckerMemory> | undefined)?.closed ?? []).filter(k => k.startsWith(CONVERTED)).map(k => k.slice(CONVERTED.length)));
   const cappedFlags = recomputeFlags.filter(f => wouldProbe(f) && ((stepProbes[f.stepId] ?? 0) >= STEP_PROBE_CAP || convertedSteps.has(f.stepId)));
-  const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f));
+  // Step roots (round 6 Task 72; math-checker-live.ts stepRootOf — Lorenzo, 21 Oct, the step-check ruling): this
+  // message's deterministic step flags, live or report-only, register a root or are linked to one; a released code flag
+  // linked to a root says nothing (like a capped one). A case whose steps declare no dependsOn or inputQuestion
+  // (prof-001): none of this runs, no check row.
+  const rootsOn = stepRootsDeclared(caseData);
+  const rootFigures = rootsOn ? caseNumbersOf(caseData, revealedIdsNow) : [];
+  const rooted = rootsOn
+    ? registerStepRoots(caseData, (flags.stepRoots as Record<string, StepRoot> | undefined) ?? {}, [...candidateMath.flags, ...candidateMath.reportOnly], ctx.nextTurnIndex, rootFigures)
+    : null;
+  const stepRoots: Record<string, StepRoot> = rooted?.roots ?? {};
+  const rootLinkedFlags = rootsOn ? recomputeFlags.filter(f => !cappedFlags.includes(f)
+    && stepRootOf({ c: caseData, roots: stepRoots, key: attemptKey(f), span: f.span, own: [f.candidateValue], n: fromOf(f), caseFigures: rootFigures }) !== null) : [];
+  const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f) && !rootLinkedFlags.includes(f));
+  if (rooted) {
+    checks.record('step_root', rooted.registered.length + rooted.linked.length + rootLinkedFlags.length > 0, 'the step check\'s roots: registered, and the flags linked to one (not probed)', {
+      registered: rooted.registered, linked: rooted.linked, codeLinked: rootLinkedFlags.map(f => ({ key: attemptKey(f), span: f.span })),
+    });
+  }
   checks.record('step_probe_cap', cappedFlags.length > 0, 'two probes on the step already — no probe', {
     capped: cappedFlags.map(f => ({ step: f.stepId, value: f.candidateValue, span: f.span })),
   });
@@ -619,7 +639,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // on them stays licensed (Maya, batch 18 v3: "16 divided by 18 is 1.6%" at
   // t20, re-raised at t24).
   let flaggedFigures = [...new Set([...((flags.flaggedFigures as number[] | undefined) ?? []), ...liveFlags.map(f => f.candidateValue)])]
-    .filter(v => !cappedFlags.some(f => f.candidateValue === v));
+    .filter(v => !cappedFlags.some(f => f.candidateValue === v) && !rootLinkedFlags.some(f => f.candidateValue === v));
   // The figures the candidate derived (their numbers less the case's own):
   // what a challenge to "the candidate's math" can be about (math-talk.ts).
   const candidateFigures = candidateFiguresOf(
@@ -675,6 +695,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     phraseUses: flags.phraseUses as PhraseUses | undefined, seed: `${ctx.sessionId}:${ctx.nextTurnIndex}`, codeFigures,
     // The gate's decisions, earlier turns' (by turn) then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
     gateOutcomes: gateOutcomesOf(checkerRows, gate.decisions),
+    ...(rootsOn ? { stepRoots } : {}),
   };
   let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
@@ -1065,8 +1086,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The misread inputs closed — by a row fix, this turn's too, or to the report: no probe on them from the model either (probe-guard.ts).
   const closedInputs = closedAfter.flatMap(k => { const i = parseInputKey(k); return i ? [i] : []; });
   const leftForReport = checkerDecisions.filter(d => d.outcome === 'unresolved' && closedKeys.includes(d.key));
-  if (kind === 'model' && leftForReport.length > 0) {
-    recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${leftForReport.map(d => `"${d.candidateValue}"`).join(', ')} has been probed twice and goes in the written report. Don't ask about it again — move the case on.`].filter(Boolean).join('\n\n');
+  // A claim linked to a step root (round 6 Task 72) was never probed: said so, and not to be asked about either.
+  const linkedLeft = leftForReport.filter(d => d.root?.startsWith(STEP_ROOT));
+  const probedLeft = leftForReport.filter(d => !linkedLeft.includes(d));
+  if (kind === 'model' && probedLeft.length > 0) {
+    recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${probedLeft.map(d => `"${d.candidateValue}"`).join(', ')} has been probed twice and goes in the written report. Don't ask about it again — move the case on.`].filter(Boolean).join('\n\n');
+  }
+  if (kind === 'model' && linkedLeft.length > 0) {
+    recomputeHint = [recomputeHint, `LEFT FOR THE REPORT: ${linkedLeft.map(d => `"${d.candidateValue}"`).join(', ')} is built on an earlier figure of theirs that a check already found wrong, and goes in the written report. Don't ask about it — move the case on.`].filter(Boolean).join('\n\n');
   }
   if (kind === 'close') {
     // A claim built on another error carries its root: the report says what became of it (round-2 final review, Minor 2).
@@ -1115,9 +1142,49 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       ...(Object.keys(correctedAfter).length ? { corrected: correctedAfter } : {}), ...(restatedAfter.length ? { restated: restatedAfter } : {}), ...(Object.keys(saidAfter).length ? { said: saidAfter } : {}),
       ...(Object.keys(derivedOnceAfter).length ? { derivedOnce: derivedOnceAfter } : {}) };
   }
+  // The step roots with the claims linked this turn (round 6 Task 72): kept with the session (flags.stepRoots).
+  if (rootsOn) {
+    const linkedNow = Object.entries(checkerPlan.stepLinked ?? {});
+    const rootsAfter: Record<string, StepRoot> = Object.fromEntries(Object.entries(stepRoots).map(([rk, r]) => {
+      const add = linkedNow.filter(([, to]) => to === rk).map(([k]) => k).filter(k => !(r.linked ?? []).includes(k));
+      return [rk, add.length > 0 ? { ...r, linked: [...(r.linked ?? []), ...add] } : r];
+    }));
+    if (JSON.stringify(rootsAfter) !== JSON.stringify(flags.stepRoots ?? {})) flags.stepRoots = rootsAfter;
+  }
+  // The step check's one input question at a root (round 6 Task 72; Lorenzo, 21 Oct: "ask one neutral input question at
+  // the root (for example, "Which row did you use for cancellations?")"; b37q Raj e08c362a t11 → t12): the root step's
+  // input question, said as a probe in the checker probe's slot — a model turn with no checker line, no code math line
+  // and no misquote correction (one math line a turn), not under time pressure (Rule 15 sheds probes) — and under its
+  // rules: the step's probe cap (it is a probe on R), a root no more than CHECKER_MAX_WAIT_MESSAGES messages old, heard or
+  // undone (Settle; never held for a due stage), its key's attempt counted, so the checker's own next line on the root
+  // is its second — the correction, with the checker's flag. Once per root step an interview (flags.stepRootAsked:
+  // Marcus's two starter_ltv roots, t15 $900 and t17 $420, share one question). No figure, no correction, ever.
+  const askedSteps = (flags.stepRootAsked as string[] | undefined) ?? [];
+  const rootAsk = rootsOn && kind === 'model' && !checkerUsed && checkerInput.currentFlags.length === 0 && misquote === null && !underTimePressure
+    ? Object.entries(flags.stepRoots as Record<string, StepRoot> | undefined ?? stepRoots).sort((a, b) => a[1].since - b[1].since)
+      .find(([, r]) => inputQuestionOf(caseData, r.step) !== undefined && !askedSteps.includes(r.step) && (stepProbes[r.step] ?? 0) < STEP_PROBE_CAP
+        && !convertedSteps.has(r.step) && !closedKeys.includes(attemptKey({ stepId: r.step, candidateValue: r.value }))
+        && candidateIndexes.filter(i => i > r.since).length <= CHECKER_MAX_WAIT_MESSAGES)
+    : undefined;
+  let rootLine: CheckerLinePlan | null = null;
+  if (rootAsk) {
+    const [rk, r] = rootAsk;
+    const key = attemptKey({ stepId: r.step, candidateValue: r.value });
+    const line = inputQuestionOf(caseData, r.step)!;
+    const attemptBefore = recomputeAttempts[key];
+    recomputeAttempts[key] = (attemptBefore ?? 0) + 1;
+    flags.stepRootAsked = [...askedSteps, r.step];
+    recomputeHint = [recomputeHint, formatRootQuestionHint(line)].filter(Boolean).join('\n\n');
+    ctx.events.push({ category: 'math_checker', subtype: 'flag', payload: {
+      id: rk, candidateTurnIndex: r.since, outcome: 'probe', reason: `the step check's input question at its root (${r.step} at ${r.value}): once, no figure, no correction`,
+      span: r.span ?? '', candidateValue: String(r.value), key, changesConclusion: false, line, root: rk,
+    } });
+    rootLine = { id: rk, key, action: 'probe', line, stepRoot: r.step,
+      undo: { attempt: attemptBefore, step: r.step, mathChecker: (flags.mathChecker as CheckerMemory | undefined) ?? { handled: checkerHandled } } };
+  }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.
-  const probedSteps = new Set<string>();
+  const probedSteps = new Set<string>(rootAsk ? [rootAsk[1].step] : []);
   if (kind === 'model') for (const f of liveFlags) if (wouldProbe(f)) probedSteps.add(f.stepId);
   if (kind === 'rec_math_probe' && recMathProbe?.action === 'probe') {
     if ('flag' in recMathProbe && recMathProbe.flag.kind !== 'unit') probedSteps.add(recMathProbe.flag.stepId);
@@ -1150,6 +1217,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       },
     };
   }
+  if (!checkerLine && rootLine) checkerLine = rootLine;
   checks.record('math_checker', checkerUsed !== null, checkerUsed ? `checker flag delivered: ${checkerUsed.action}` : 'no checker flag delivered', {
     started: Boolean(checkerConfig && statesQuantitativeClaim(candidateText)), selected: sel?.id ?? null, used: checkerUsed?.id ?? null,
     decisions: checkerDecisions.map(d => ({ id: d.id, outcome: d.outcome, reason: d.reason })), waiting: checkerPlan.waiting.map(w => w.id),

@@ -102,6 +102,15 @@ const MathStepSchema = z.object({
   // candidate's claim in these terms). Server-only like the rest.
   quantity: z.string().optional(),
   timeframe: z.enum(['current', 'prior', 'change']).optional(),
+  // Step roots (round 6 Task 72; Lorenzo, 21 Oct, the step-check ruling: "The deterministic step check may, without the
+  // checker agreeing: link derived claims to the flagged root and stop probing them; ask one neutral input question at
+  // the root (for example, "Which row did you use for cancellations?"). It may NOT voice a correction without the
+  // checker's agreement."; audit M1–M2, b37 Quillpath Raj and Marcus). dependsOn: the steps this one is computed from — a
+  // claim on a step that depends (transitively) on a step the deterministic check flagged is linked to that root, not
+  // probed. inputQuestion: the root's one neutral question, said by code as a probe — no figure, no arithmetic, no
+  // lead (math-checker-live.ts stepRootOf, plan-turn.ts). A case whose steps declare neither (prof-001) is unchanged.
+  dependsOn: z.array(z.string()).optional(),
+  inputQuestion: z.string().min(5).optional(),
 });
 
 // Stages an exhibit's `after` may name besides earlier exhibits (13 Oct).
@@ -322,6 +331,17 @@ export const CaseSchema = z.object({
       ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'inputs', j], message: `Unknown ledger item "${id}"` });
     }
   }));
+  // Step roots (round 6 Task 72): known steps, no cycle; the input question asks — no figure, no arithmetic (FR-4).
+  const stepIds = new Set(c.mathSteps.map(st => st.id));
+  const cyclic = (id: string, seen: string[]): boolean => seen.includes(id)
+    || (c.mathSteps.find(st => st.id === id)?.dependsOn ?? []).some(d => cyclic(d, [...seen, id]));
+  c.mathSteps.forEach((step, i) => {
+    (step.dependsOn ?? []).forEach((id, j) => {
+      if (!stepIds.has(id) || id === step.id) ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'dependsOn', j], message: `Unknown math step "${id}"` });
+    });
+    if ((step.dependsOn ?? []).some(d => stepIds.has(d) && d !== step.id && cyclic(d, [step.id]))) ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'dependsOn'], message: `"${step.id}" depends on itself` });
+    if (step.inputQuestion !== undefined && (/\d/.test(step.inputQuestion) || !step.inputQuestion.trim().endsWith('?'))) ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'inputQuestion'], message: 'An input question asks, with no figure in it' });
+  });
   c.shareBases.forEach((b, i) => {
     if (!ledgerIds.has(b.item)) ctx.addIssue({ code: 'custom', path: ['shareBases', i, 'item'], message: `Unknown ledger item "${b.item}"` });
   });

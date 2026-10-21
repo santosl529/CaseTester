@@ -10,7 +10,7 @@
 //     (dedupe) are theirs, and left out here.
 import { numbersOf, type CheckerCase, type VettedClaim } from '@/lib/orchestrator/math-checker';
 import type { VerdictPayload, CheckerDecision } from '@/lib/orchestrator/math-checker-live';
-import { claimFigures, isStale } from '@/lib/orchestrator/math-checker-live';
+import { claimFigures, isStale, STEP_ROOT } from '@/lib/orchestrator/math-checker-live';
 import type { TurnVerification } from './challenge-marks';
 
 const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
@@ -85,6 +85,10 @@ function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outco
   // Said once more for this claim, built on a root corrected live (ruling 1) — whatever line took the question on an earlier try.
   const restate = has('restate');
   if (restate) return builtText(restate.root, all, true);
+  // Linked to a step root (round 6 Task 72; Lorenzo, 21 Oct, the step-check ruling): built on a figure the deterministic
+  // step check found wrong — not probed in the interview, left for this report.
+  const linked = outcomes.find(d => d.outcome === 'unresolved' && d.root?.startsWith(STEP_ROOT));
+  if (linked) return `Not raised on its own: ${linked.reason} — left for this report.`;
   if (has('stale')) return 'The candidate revised or withdrew it since.';
   if (has('pointer')) return 'Probed twice (the second time against the data); not corrected.';
   if (has('hint')) return 'Probed twice (the second time with a hint); not corrected.';

@@ -678,7 +678,9 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   if (checkerLine && !checkerHeard) {
     if (checkerLine.undo.attempt === undefined) delete recomputeAttempts[checkerLine.key];
     else recomputeAttempts[checkerLine.key] = checkerLine.undo.attempt;
-    flags.mathChecker = { ...checkerLine.undo.mathChecker, ...(heldForStage ? { held: checkerLine.id } : {}) };
+    flags.mathChecker = { ...checkerLine.undo.mathChecker, ...(heldForStage && !checkerLine.stepRoot ? { held: checkerLine.id } : {}) };
+    // The step check's input question not heard (round 6 Task 72): not asked — it may go on a later turn, within its wait.
+    if (checkerLine.stepRoot) flags.stepRootAsked = ((flags.stepRootAsked as string[] | undefined) ?? []).filter(st => st !== checkerLine.stepRoot);
     if (checkerLine.undo.step) {
       const steps = { ...(flags.stepProbes as Record<string, number> | undefined) };
       steps[checkerLine.undo.step] = Math.max(0, (steps[checkerLine.undo.step] ?? 1) - 1);
