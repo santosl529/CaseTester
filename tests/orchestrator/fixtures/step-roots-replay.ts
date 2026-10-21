@@ -7,7 +7,7 @@
 //   replay: planCheckerFlags message by message with its own memory chained (handled, keys, closed, attempts, step
 //     probes, the roots and their links), the selection booked on model turns as heard, the root's input question booked
 //     where plan-turn would ask it. The interviewer's words are the run's (a probe the run said still counts).
-import { planCheckerFlags, gateOutcomesOf, lineKey, registerStepRoots, caseNumbersOf, stepOfKey, correctsNow, inputQuestionOf, STEP_PROBE_CAP, CHECKER_MAX_WAIT_MESSAGES, type CheckerDecision, type CheckerPlan, type CheckerPlanInput, type CheckerRow, type StepRoot, type CheckerKeyEntry } from '@/lib/orchestrator/math-checker-live';
+import { planCheckerFlags, gateOutcomesOf, lineKey, registerStepRoots, stepRootEnds, caseNumbersOf, stepOfKey, correctsNow, inputQuestionOf, STEP_PROBE_CAP, CHECKER_MAX_WAIT_MESSAGES, type CheckerDecision, type CheckerPlan, type CheckerPlanInput, type CheckerRow, type StepRoot, type CheckerKeyEntry } from '@/lib/orchestrator/math-checker-live';
 import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 import { isUnderTimePressure } from '@/lib/orchestrator/pacing';
 import { caseTotalMs } from '@/lib/orchestrator/state-machine';
@@ -22,15 +22,23 @@ export const RAJ = RUNS.raj as unknown as Run;
 export const MARCUS = RUNS.marcus as unknown as Run;
 const TOTAL = caseTotalMs(pricing);
 
-const text = (r: Run, t: number) => r.turns.find(x => x.turnIndex === t)!.text;
+// Past the run's last message (a probe of a later turn): a plain reply.
+const text = (r: Run, t: number) => r.turns.find(x => x.turnIndex === t)?.text ?? 'Thanks.';
 const figuresBefore = (r: Run, t: number) => candidateFiguresOf(r.turns.filter(x => x.role === 'candidate' && x.turnIndex <= t).map(x => x.text), [pricing.prompt]);
 const ATTEMPT = /attempt (\d+)/;
 
+// The deterministic endings of a message (plan-turn's stepRootEnds; the run's report-only flags — its verified figures
+// aren't in the records), applied before the message registers its own roots.
+function withEnds(roots: Record<string, StepRoot>, rec: Rec, n: number): Record<string, StepRoot> {
+  const ends = stepRootEnds(pricing, roots, rec.reportOnly.map(f => ({ stepId: f.stepId, value: f.candidateValue, span: f.span })), n);
+  return Object.fromEntries(Object.entries(roots).map(([rk, x]) => [rk, ends[rk] !== undefined ? { ...x, endedAt: ends[rk] } : x]));
+}
 // The step check's roots up to message T (registered in order, as plan-turn does).
 export function rootsUpTo(r: Run, t: number): Record<string, StepRoot> {
   let roots: Record<string, StepRoot> = {};
   for (const n of Object.keys(r.records).map(Number).sort((a, b) => a - b).filter(n => n <= t)) {
     const rec = r.records[n];
+    roots = withEnds(roots, rec, n);
     roots = registerStepRoots(pricing, roots, rec.reportOnly, n, caseNumbersOf(pricing, rec.revealed)).roots;
   }
   return roots;
@@ -50,7 +58,7 @@ export function atTurn(r: Run, t: number, over: Partial<CheckerPlanInput> = {}):
     if (['probe', 'pointer', 'hint'].includes(d.outcome)) stepProbes[stepOfKey(d.key)] = (stepProbes[stepOfKey(d.key)] ?? 0) + 1;
     if (d.outcome === 'correct' || (d.outcome === 'unresolved' && /left for the report/.test(d.reason))) closed.add(d.key);
   }
-  const rec = r.records[String(t)];
+  const rec = r.records[String(t)] ?? r.records[String(Math.max(...Object.keys(r.records).map(Number)))];
   return planCheckerFlags({
     rows: before, handled, turnRows: r.turns.filter(x => x.turnIndex < t), candidateText: text(r, t), candidateTurnIndex: t,
     currentFlags: [], attempts, keys: Object.fromEntries(Object.entries(r.keys).filter(([, e]) => e.since < t)), closed: [...closed], stepProbes,
@@ -82,14 +90,21 @@ export function replay(r: Run, opts: { roots?: boolean } = {}): ReplayTurn[] {
   for (const t of candidates) {
     const rec = r.records[String(t)];
     if (!rec) continue;
-    if (withRoots) roots = registerStepRoots(pricing, roots, rec.reportOnly, t, caseNumbersOf(pricing, rec.revealed)).roots;
-    const plan = planCheckerFlags({
+    if (withRoots) roots = registerStepRoots(pricing, withEnds(roots, rec, t), rec.reportOnly, t, caseNumbersOf(pricing, rec.revealed), new Set([...closed, ...Object.keys(corrected)])).roots;
+    // plan-turn's input question: once per step, within the probe cap and the wait, not under time pressure.
+    const due = () => Object.entries(roots).sort((a, b) => a[1].since - b[1].since).find(([, x]) => inputQuestionOf(pricing, x.step) !== undefined && !asked.includes(x.step)
+      && (stepProbes[x.step] ?? 0) < STEP_PROBE_CAP && !closed.has(attemptKey({ stepId: x.step, candidateValue: x.value }))
+      && candidates.filter(i => i > x.since && i <= t).length <= CHECKER_MAX_WAIT_MESSAGES && !isUnderTimePressure(rec.elapsedMs, TOTAL));
+    const input: CheckerPlanInput = {
       rows: [...verdicts, ...gates, ...flagRows], handled, gateOutcomes: gateOutcomesOf(gates.filter(x => (x.turnIndex ?? 0) <= t), []), turnRows: r.turns.filter(x => x.turnIndex < t), candidateText: text(r, t), candidateTurnIndex: t,
       currentFlags: [], attempts: { ...attempts }, keys, closed: [...closed], corrected, said, derivedOnce: { ...derivedOnce }, stepProbes: { ...stepProbes },
       underTimePressure: isUnderTimePressure(rec.elapsedMs, TOTAL), candidateFigures: figuresBefore(r, t),
       caseData: pricing as never, revealedIds: rec.revealed, shownExhibitIds: rec.shown, seed: `${r.sessionId}:${t}`, ...(withRoots ? { stepRoots: roots } : {}),
-    });
+    };
+    let plan = planCheckerFlags(input);
     const model = rec.kind === 'model';
+    // Fix round 2: a due root question goes before a linked claim's own correction (plan-turn's holdLinked re-plan).
+    if (withRoots && model && plan.selected?.onceRoot?.startsWith('step:') && due()) plan = planCheckerFlags({ ...input, holdLinked: true });
     const sel = model ? plan.selected : null;
     const decided = plan.decisions.filter(d => !plan.selected || d.id !== plan.selected.id || model);
     for (const d of decided) flagRows.push({ category: 'math_checker', subtype: 'flag', turnIndex: t, payloadJsonb: d });
@@ -97,6 +112,7 @@ export function replay(r: Run, opts: { roots?: boolean } = {}): ReplayTurn[] {
     keys = plan.keys;
     for (const k of plan.closedNow) closed.add(k);
     for (const [k, to] of Object.entries(plan.stepLinked ?? {})) roots[to] = { ...roots[to], linked: [...new Set([...(roots[to].linked ?? []), k])] };
+    for (const [rk, at] of Object.entries(plan.stepRootEnded ?? {})) if (roots[rk].endedAt === undefined || at < roots[rk].endedAt!) roots[rk] = { ...roots[rk], endedAt: at };
     let rootAsked: string | null = null;
     if (sel) {
       if (sel.action !== 'restate') attempts[sel.key] = sel.attempt;
@@ -106,10 +122,7 @@ export function replay(r: Run, opts: { roots?: boolean } = {}): ReplayTurn[] {
         if (sel.onceRoot) derivedOnce[sel.onceRoot] = sel.id;
       }
     } else if (withRoots && model) {
-      // plan-turn's input question: the checker slot free, once per step, within the probe cap and the wait.
-      const next = Object.entries(roots).sort((a, b) => a[1].since - b[1].since).find(([, x]) => inputQuestionOf(pricing, x.step) !== undefined && !asked.includes(x.step)
-        && (stepProbes[x.step] ?? 0) < STEP_PROBE_CAP && !closed.has(attemptKey({ stepId: x.step, candidateValue: x.value }))
-        && candidates.filter(i => i > x.since && i <= t).length <= CHECKER_MAX_WAIT_MESSAGES && !isUnderTimePressure(rec.elapsedMs, TOTAL));
+      const next = due();
       if (next) {
         const k = attemptKey({ stepId: next[1].step, candidateValue: next[1].value });
         attempts[k] = (attempts[k] ?? 0) + 1;

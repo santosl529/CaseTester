@@ -20,7 +20,7 @@ vi.mock('@/db/client', () => ({
 }));
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
 
-import { registerStepRoots, stepRootsDeclared, stepRootOf, stepRootFigures, lineKey, caseNumbersOf, closedErrorRestated, STEP_PROBE_CAP, type CheckerDecision, type CheckerRow, type StepRoot, type VerdictPayload } from '@/lib/orchestrator/math-checker-live';
+import { registerStepRoots, stepRootsDeclared, stepRootOf, stepRootFigures, stepRootEnds, lineKey, caseNumbersOf, closedErrorRestated, STEP_PROBE_CAP, type CheckerDecision, type CheckerRow, type StepRoot, type VerdictPayload } from '@/lib/orchestrator/math-checker-live';
 import { formatCheckerSection } from '@/lib/scoring/checker-record';
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
 import { settleTurn, type ModelOutcome } from '@/lib/orchestrator/settle-turn';
@@ -234,13 +234,13 @@ describe('the whole interview, message by message (chained memory)', () => {
     const p = atTurn(RAJ, 19, { stepRoots: rootsUpTo(RAJ, 19), said: { [lineKey(line)]: 1 } });
     expect(decisionOf(p.decisions, '17:1')).toMatchObject({ outcome: 'unresolved', reason: `${LINKED_405} — its own correction was said once already; left for the report`, line });
   });
-  it('Marcus: one derived correction on starter_ltv — t22\'s 1.4x (17:1) comes first, so the $920 one goes to the report; no probe on a linked claim; the lifetime probed twice at most', () => {
+  it('Marcus: the input question first (t22, fix round 2: ahead of the linked 1.4x correction), then the one derived correction — "$1,100, not $920" (t28); no probe on a linked claim; the lifetime probed twice at most', () => {
     const turns = replay(MARCUS);
-    expect(derivedOn(turns, /^step:starter_ltv@/).map(d => d.id)).toEqual(['17:1']);
-    const t23 = turns.find(x => x.t === 23)!;
-    expect(decisionOf(t23.plan.decisions, '21:1')).toMatchObject({ outcome: 'unresolved', reason: "built on starter_ltv's 420, flagged by the step check — one correction per root, said already (17:1); left for the report" });
-    // The input question: the slot taken by a line on every model turn while the root was fresh — not asked.
-    expect(lines(MARCUS).filter(l => / root: /.test(l))).toEqual([]);
+    expect(lines(MARCUS).filter(l => / root: /.test(l))).toEqual([`t21 root: ${STARTER_Q}`]);
+    // 17:1's own correction waited for the question, then expired unsaid (three messages): not decided at t21.
+    expect(decisionOf(turns.find(x => x.t === 21)!.plan.decisions, '17:1')).toBeUndefined();
+    expect(derivedOn(turns, /^step:starter_ltv@/).map(d => d.id)).toEqual(['25:0']);
+    expect(lines(MARCUS)).toContain('t27 correct: Starter net value per sign-up at $40 is about $1,100, not $920.');
     const starterProbes = turns.filter(x => x.kind === 'model' && (x.rootAsked || (x.plan.selected && PROBES.includes(x.plan.selected.action) && x.plan.selected.key.startsWith('starter_ltv@'))));
     expect(starterProbes.length).toBeLessThanOrEqual(STEP_PROBE_CAP);
     const linked = new Set(turns.flatMap(x => x.plan.decisions.filter(d => d.root?.startsWith('step:')).map(d => d.key)));
@@ -249,6 +249,95 @@ describe('the whole interview, message by message (chained memory)', () => {
   });
   it('without the roots the replay links nothing (the run\'s own logic)', () => {
     for (const r of [RAJ, MARCUS]) expect(replay(r, { roots: false }).flatMap(x => x.plan.decisions.filter(d => d.root?.startsWith('step:')))).toEqual([]);
+  });
+});
+
+// Fix round 2 (controller ruling, 21 Oct; the review's probe): a root links by dependency only while it stands — not once
+// the candidate states R outside v's tolerance, a dependent claim's span carries R's right answer, or the root key is
+// corrected or closed. Linking by figure stays.
+describe('a root stops linking by dependency once it no longer stands', () => {
+  const roots405 = (): Record<string, StepRoot> => ({ [RAJ_ROOT]: { step: 'starter_ltv', value: 405, figures: [405, 13.5], since: 11 } });
+  const of = (key: string, span: string, own: number[], n: number, over: { roots?: Record<string, StepRoot>; closed?: Set<string> } = {}) =>
+    stepRootOf({ c: pricing, roots: over.roots ?? roots405(), key, span, own, n, caseFigures: [30, 300, 800, 4000], closed: over.closed });
+  it('the review\'s t41: "So $600 plus $800 is $1,400, minus $300 CAC gives $1,200 net." carries starter_ltv\'s right answer — not linked', () => {
+    expect(of('starter_net_value@1200', 'So $600 plus $800 is $1,400, minus $300 CAC gives $1,200 net.', [1200], 41)).toBeNull();
+    // …a dependent slip that doesn't carry it is linked, as before.
+    expect(of('starter_net_value@1200', 'So $1,400 minus $200 gives $1,200 net.', [1200], 41)).toBe(RAJ_ROOT);
+  });
+  it('the root key corrected or closed: no dependency link; a span carrying the root\'s own figure still links', () => {
+    const closed = new Set(['starter_ltv@405']);
+    expect(of('uplift_at_60@0.4', 'At $60, $2.48M minus $2.08M is $0.4M uplift.', [0.4], 45, { closed })).toBeNull();
+    expect(of('uplift_at_60@0.4', 'At $60, $2.48M minus $2.08M is $0.4M uplift.', [0.4], 45)).toBe(RAJ_ROOT);
+    expect(of('starter_net_value@1105', 'the $405 plus $800, minus $300 CAC, is $905, so $1,105 with the fee', [1105], 45, { closed })).toBe(RAJ_ROOT);
+  });
+  it('ended at message 37: a claim from before still links by dependency, one from then on does not', () => {
+    const roots = { [RAJ_ROOT]: { ...roots405()[RAJ_ROOT], endedAt: 37 } };
+    expect(of('uplift_at_60@175', 'the $60 test points to another $175k a month on top', [175], 35, { roots })).toBe(RAJ_ROOT);
+    expect(of('uplift_at_60@175', 'the $60 test points to another $175k a month on top', [175], 39, { roots })).toBeNull();
+  });
+  it('stepRootEnds: R stated outside v\'s tolerance (the right $600, or another revision) or a dependent span with R\'s answer ends it; R within tolerance doesn\'t', () => {
+    const ends = (stated: { stepId: string; value?: number; span: string }[]) => stepRootEnds(pricing, roots405(), stated, 37);
+    expect(ends([{ stepId: 'starter_ltv', value: 600, span: 'Starter LTV is $30 × 20 = $600' }])).toEqual({ [RAJ_ROOT]: 37 });
+    expect(ends([{ stepId: 'starter_ltv', value: 500, span: 'call it $500 of LTV' }])).toEqual({ [RAJ_ROOT]: 37 });
+    expect(ends([{ stepId: 'starter_ltv', value: 410, span: 'about $410 of LTV' }])).toEqual({});
+    expect(ends([{ stepId: 'starter_net_value', value: 1100, span: '$600 + $800 − $300 = $1,100' }])).toEqual({ [RAJ_ROOT]: 37 });
+    expect(ends([{ stepId: 'starter_net_value', value: 1100, span: '$1,400 − $300 = $1,100' }])).toEqual({});
+  });
+  it('Raj, the root corrected at t36 ("$600, not $405"): t39\'s fresh uplift_at_60 slip ("another $175k a month") is the checker\'s again — linked before', () => {
+    const closed = [...new Set(RAJ.rows.filter(x => x.subtype === 'flag').map(x => (x.payloadJsonb as CheckerDecision)).filter(d => d.outcome === 'correct').map(d => d.key)), 'starter_ltv@405'];
+    const corrected = { 'starter_ltv@405': { line: 'Starter standalone lifetime value at $40 is about $600, not $405.' } };
+    const after = atTurn(RAJ, 41, { stepRoots: rootsUpTo(RAJ, 39), closed, corrected });
+    expect(after.selected).toMatchObject({ id: '39:2', action: 'probe' });
+    expect(decisionOf(after.decisions, '39:2')).toMatchObject({ outcome: 'probe' });
+    expect(decisionOf(after.decisions, '39:2')?.root).toBeUndefined();
+    // Standing (not corrected): linked — never probed; its own correction, the root's one derived correction.
+    const standing = decisionOf(atTurn(RAJ, 41, { stepRoots: rootsUpTo(RAJ, 39) }).decisions, '39:2');
+    expect(standing).toMatchObject({ root: RAJ_ROOT });
+    expect(PROBES).not.toContain(standing?.outcome);
+  });
+  it('a checker claim on a dependent step carrying $600 ends the root from its message (Raj 39:0 rewritten to "$600 standalone plus $800")', () => {
+    const v39 = RAJ.rows.find(x => x.subtype === 'verdict' && (x.payloadJsonb as VerdictPayload).candidateTurnIndex === 39)!;
+    const claims = (v39.payloadJsonb as VerdictPayload).claims.map((c, i) => (i === 0 ? { ...c, span: 'about $600 standalone plus $800 is $1,400 per sign-up against $300 CAC' } : c));
+    const rows = RAJ.rows.map(x => (x === v39 ? { ...x, payloadJsonb: { ...(x.payloadJsonb as VerdictPayload), claims } } : x));
+    const p = atTurn({ ...RAJ, rows }, 41, { stepRoots: rootsUpTo(RAJ, 39) });
+    expect(p.stepRootEnded).toEqual({ [RAJ_ROOT]: 39 });
+    expect(decisionOf(p.decisions, '39:2')?.root).toBeUndefined();
+  });
+});
+
+describe('through plan-turn: the candidate states the root step right — its dependency links end (flags.stepRoots endedAt)', () => {
+  it('"Starter LTV is $30 × 20 = $600" after the $405 root: ended at this message', () => {
+    const roots = { [RAJ_ROOT]: { step: 'starter_ltv', value: 405, figures: [405, 13.5], since: 1, linked: ['starter_value_with_upgrades@1205'] } };
+    const reads = readsFixture({ phase: 'EXHIBIT', caseId: 'pricing-001', revealed: RAJ.records['19'].revealed, elapsedMs: RAJ.records['11'].elapsedMs,
+      flags: { pressureTest: { ...INITIAL_PRESSURE_TEST, state: 'satisfied', satisfiedAt: 3 }, stepRoots: roots, stepRootAsked: ['starter_ltv'] } });
+    const p = planTurn(reads, 'Starter cancellation is 5% a month, so the lifetime is 20 months and Starter LTV is $30 × 20 = $600.', { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
+    expect(p.ctx.checks.entries.find(c => c.check === 'step_root')).toMatchObject({ detail: { ended: [RAJ_ROOT] } });
+    expect(p.ctx.flags.stepRoots).toMatchObject({ [RAJ_ROOT]: { endedAt: 3, linked: ['starter_value_with_upgrades@1205'] } });
+  });
+});
+
+describe('the root\'s question first (fix round 2): a linked claim\'s own correction waits for it', () => {
+  it('planCheckerFlags holdLinked: Raj t19\'s 17:1 correction held — not decided, still waiting', () => {
+    const p = atTurn(RAJ, 19, { stepRoots: rootsUpTo(RAJ, 19), holdLinked: true });
+    expect(p.selected).toBeNull();
+    expect(decisionOf(p.decisions, '17:1')).toBeUndefined();
+    expect(p.waiting.map(w => w.id)).toEqual(expect.arrayContaining(['17:1', '17:2']));
+  });
+  it('through plan-turn: the question takes the slot from 17:1\'s correction; asked already, the correction goes', () => {
+    const v17 = RAJ.rows.find(x => x.subtype === 'verdict' && (x.payloadJsonb as VerdictPayload).candidateTurnIndex === 17)!;
+    const row = { ...v17, id: 'ev', sessionId: 's1', phase: 'ANALYSIS', turnIndex: 1, payloadJsonb: { ...(v17.payloadJsonb as VerdictPayload), candidateTurnIndex: 1, claims: [claimOf(RAJ, '17:1')] } };
+    const roots = { [RAJ_ROOT]: { step: 'starter_ltv', value: 405, figures: [405, 13.5], since: 1 } };
+    const at = (flags: Record<string, unknown>) => {
+      const reads = readsFixture({ phase: 'EXHIBIT', caseId: 'pricing-001', revealed: RAJ.records['19'].revealed, elapsedMs: RAJ.records['11'].elapsedMs,
+        flags: { pressureTest: { ...INITIAL_PRESSURE_TEST, state: 'satisfied', satisfiedAt: 3 }, stepRoots: roots, ...flags } });
+      return planTurn({ ...reads, checkerEventRows: [row] } as never, 'Got it.', { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
+    };
+    const first = at({});
+    expect(first.state.kind).toBe('model');
+    expect(first.state.checkerLine).toMatchObject({ id: RAJ_ROOT, line: STARTER_Q });
+    expect(first.ctx.checks.entries.find(c => c.check === 'step_root_first')).toMatchObject({ decision: 'act', detail: { held: ['1:0'] } });
+    const later = at({ stepRootAsked: ['starter_ltv'] });
+    expect(later.state.checkerLine).toMatchObject({ id: '1:0', action: 'correct', line: 'Starter value per sign-up including upgrades, at $40, is about $1,400, not $1,205.' });
   });
 });
 

@@ -176,6 +176,9 @@ function statedAsResult(candidateText: string, figure: number): boolean {
 }
 
 const ASKS_RECOMMENDATION = new Set(['rec_ask', 'grace_ask', 'time_warning']);
+// A must-reach item said after other data lines at a point only Settle sees (round 6 Task 72, fix round 2).
+export const MUST_REACH_LEAD_EXHIBIT = 'One more thing before the exhibit:';
+export const MUST_REACH_LEAD_REC = 'Before your recommendation:';
 
 export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Settled> {
   const { ctx, state } = plan;
@@ -655,7 +658,11 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     }).recommendation;
     const late = mustReachItems(plan, { exhibit: heldForExhibit?.id ?? null, recommendation: recAskedNow }, decisions);
     if (late.length > 0) {
-      dataParts.push(...renderDataLineParts({ releases: late, restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], requests: [] }, seed, phraseUses));
+      const parts = renderDataLineParts({ releases: late, restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], requests: [] }, seed, phraseUses);
+      // Not first in the line (fix round 2, controller ruling, 21 Oct; b36 Larkspur Jasmine: it followed "On what you
+      // asked about earlier: …"): a short lead, so it doesn't read as part of what the candidate asked.
+      if (dataParts.length > 0) parts[0] = { ...parts[0], text: `${late[0].mustReach === 'recommendation' ? MUST_REACH_LEAD_REC : MUST_REACH_LEAD_EXHIBIT} ${parts[0].text}` };
+      dataParts.push(...parts);
       dataLines = dataParts.map(p => p.text);
       decisions.releases = [...decisions.releases, ...late];
     }

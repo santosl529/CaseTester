@@ -35,7 +35,7 @@ import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
 import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, parseInputKey, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot,
-  stepRootsDeclared, registerStepRoots, stepRootOf, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot } from './math-checker-live';
+  stepRootsDeclared, registerStepRoots, stepRootOf, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot } from './math-checker-live';
 import { theirFigure } from './own-quantity';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
@@ -513,16 +513,26 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // (prof-001): none of this runs, no check row.
   const rootsOn = stepRootsDeclared(caseData);
   const rootFigures = rootsOn ? caseNumbersOf(caseData, revealedIdsNow) : [];
+  // Fix round 2 (controller ruling, 21 Oct; math-checker-live.ts stepRootEnds): this message's step figures — flagged or
+  // verified — end a root's dependency links when they state R outside v's tolerance or a dependent step carrying R's
+  // right answer; so does the root key closed or corrected (stepRootOf's `closed`).
+  const memoryNow = (flags.mathChecker as Partial<CheckerMemory> | undefined) ?? {};
+  const closedRoots = new Set([...(memoryNow.closed ?? []), ...Object.keys(memoryNow.corrected ?? {})]);
+  const rootsBefore = (flags.stepRoots as Record<string, StepRoot> | undefined) ?? {};
+  const stated = [...candidateMath.flags.filter(f => (f.kind ?? 'step') === 'step').map(f => ({ stepId: f.stepId, value: f.candidateValue, span: f.span })),
+    ...candidateMath.reportOnly.map(f => ({ stepId: f.stepId, value: f.candidateValue, span: f.span })), ...candidateMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span }))];
+  const endsNow = rootsOn ? stepRootEnds(caseData, rootsBefore, stated, ctx.nextTurnIndex) : {};
+  const rootsStanding = Object.fromEntries(Object.entries(rootsBefore).map(([rk, r]) => [rk, endsNow[rk] !== undefined ? { ...r, endedAt: endsNow[rk] } : r]));
   const rooted = rootsOn
-    ? registerStepRoots(caseData, (flags.stepRoots as Record<string, StepRoot> | undefined) ?? {}, [...candidateMath.flags, ...candidateMath.reportOnly], ctx.nextTurnIndex, rootFigures)
+    ? registerStepRoots(caseData, rootsStanding, [...candidateMath.flags, ...candidateMath.reportOnly], ctx.nextTurnIndex, rootFigures, closedRoots)
     : null;
   const stepRoots: Record<string, StepRoot> = rooted?.roots ?? {};
   const rootLinkedFlags = rootsOn ? recomputeFlags.filter(f => !cappedFlags.includes(f)
-    && stepRootOf({ c: caseData, roots: stepRoots, key: attemptKey(f), span: f.span, own: [f.candidateValue], n: fromOf(f), caseFigures: rootFigures }) !== null) : [];
+    && stepRootOf({ c: caseData, roots: stepRoots, key: attemptKey(f), span: f.span, own: [f.candidateValue], n: fromOf(f), caseFigures: rootFigures, closed: closedRoots }) !== null) : [];
   const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f) && !rootLinkedFlags.includes(f));
   if (rooted) {
     checks.record('step_root', rooted.registered.length + rooted.linked.length + rootLinkedFlags.length > 0, 'the step check\'s roots: registered, and the flags linked to one (not probed)', {
-      registered: rooted.registered, linked: rooted.linked, codeLinked: rootLinkedFlags.map(f => ({ key: attemptKey(f), span: f.span })),
+      registered: rooted.registered, linked: rooted.linked, codeLinked: rootLinkedFlags.map(f => ({ key: attemptKey(f), span: f.span })), ...(Object.keys(endsNow).length > 0 ? { ended: Object.keys(endsNow) } : {}),
     });
   }
   checks.record('step_probe_cap', cappedFlags.length > 0, 'two probes on the step already — no probe', {
@@ -983,6 +993,22 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // time is up); anything left at the close goes to the report. On other
   // code-written turns it waits.
   let sel = checkerPlan.selected;
+  // The step check's root due its input question (round 6 Task 72; below): a root step with an input question not asked
+  // yet, under the step cap, not closed, at most CHECKER_MAX_WAIT_MESSAGES messages old.
+  const askedSteps = (flags.stepRootAsked as string[] | undefined) ?? [];
+  const rootDue = () => Object.entries(stepRoots).sort((a, b) => a[1].since - b[1].since)
+    .find(([, r]) => inputQuestionOf(caseData, r.step) !== undefined && !askedSteps.includes(r.step) && (stepProbes[r.step] ?? 0) < STEP_PROBE_CAP
+      && !convertedSteps.has(r.step) && !closedKeys.includes(attemptKey({ stepId: r.step, candidateValue: r.value }))
+      && candidateIndexes.filter(i => i > r.since).length <= CHECKER_MAX_WAIT_MESSAGES);
+  const rootSlotFree = rootsOn && kind === 'model' && checkerInput.currentFlags.length === 0 && misquote === null && !underTimePressure;
+  // Fix round 2 (controller ruling, 21 Oct: "a fresh root's input question takes precedence over a linked claim's derived
+  // correction (root first)"; b37q Marcus: the 1.4x correction took the slot at t22 and the question never went): the
+  // checker plan again with the linked claims held — they wait, undecided — and the question goes unless another line is due.
+  if (rootSlotFree && sel?.onceRoot?.startsWith(STEP_ROOT) && rootDue()) {
+    checkerPlan = planCheckerFlags({ ...checkerInput, holdLinked: true });
+    sel = checkerPlan.selected;
+    checks.act('step_root_first', 'a root\'s input question is due: the linked claims\' own corrections wait', { held: checkerPlan.waiting.map(w => w.id) });
+  }
   // A line a due stage held back holds the close too (Lorenzo, 15 Oct; batch 26
   // Jordan 6bd9edf3 t19 → t21), whether or not it changes the conclusion: at
   // most once an interview (flags.heldCloseHold, apart from recMathProbed), not
@@ -1145,9 +1171,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The step roots with the claims linked this turn (round 6 Task 72): kept with the session (flags.stepRoots).
   if (rootsOn) {
     const linkedNow = Object.entries(checkerPlan.stepLinked ?? {});
+    const endedNow = checkerPlan.stepRootEnded ?? {};
     const rootsAfter: Record<string, StepRoot> = Object.fromEntries(Object.entries(stepRoots).map(([rk, r]) => {
       const add = linkedNow.filter(([, to]) => to === rk).map(([k]) => k).filter(k => !(r.linked ?? []).includes(k));
-      return [rk, add.length > 0 ? { ...r, linked: [...(r.linked ?? []), ...add] } : r];
+      const ended = endedNow[rk] !== undefined && (r.endedAt === undefined || endedNow[rk] < r.endedAt) ? { endedAt: endedNow[rk] } : {};
+      return [rk, add.length > 0 || 'endedAt' in ended ? { ...r, ...ended, ...(add.length > 0 ? { linked: [...(r.linked ?? []), ...add] } : {}) } : r];
     }));
     if (JSON.stringify(rootsAfter) !== JSON.stringify(flags.stepRoots ?? {})) flags.stepRoots = rootsAfter;
   }
@@ -1159,13 +1187,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // undone (Settle; never held for a due stage), its key's attempt counted, so the checker's own next line on the root
   // is its second — the correction, with the checker's flag. Once per root step an interview (flags.stepRootAsked:
   // Marcus's two starter_ltv roots, t15 $900 and t17 $420, share one question). No figure, no correction, ever.
-  const askedSteps = (flags.stepRootAsked as string[] | undefined) ?? [];
-  const rootAsk = rootsOn && kind === 'model' && !checkerUsed && checkerInput.currentFlags.length === 0 && misquote === null && !underTimePressure
-    ? Object.entries(flags.stepRoots as Record<string, StepRoot> | undefined ?? stepRoots).sort((a, b) => a[1].since - b[1].since)
-      .find(([, r]) => inputQuestionOf(caseData, r.step) !== undefined && !askedSteps.includes(r.step) && (stepProbes[r.step] ?? 0) < STEP_PROBE_CAP
-        && !convertedSteps.has(r.step) && !closedKeys.includes(attemptKey({ stepId: r.step, candidateValue: r.value }))
-        && candidateIndexes.filter(i => i > r.since).length <= CHECKER_MAX_WAIT_MESSAGES)
-    : undefined;
+  const rootAsk = rootSlotFree && !checkerUsed ? rootDue() : undefined;
   let rootLine: CheckerLinePlan | null = null;
   if (rootAsk) {
     const [rk, r] = rootAsk;

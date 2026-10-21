@@ -94,8 +94,10 @@ describe('b36 Larkspur Jasmine bbf78ab8 t9 → t10: Exhibit 3 handed over, the c
     const at = s.spokenText.indexOf(COMPETITOR);
     expect(at).toBeGreaterThan(0);
     expect(at).toBeLessThan(s.spokenText.indexOf(EXHIBIT_3));
-    // The streamed data line (the unit-costs release) is untouched; the volunteered line follows it.
+    // The streamed data line (the unit-costs release) is untouched; the volunteered line follows it, with a short lead
+    // (fix round 2: not read as part of what she asked).
     expect(s.spokenText.indexOf(valueOf('unit_costs'))).toBeLessThan(at);
+    expect(s.spokenText).toContain(`${valueOf('unit_costs')} One more thing before the exhibit: ${COMPETITOR}`);
     expect(s.exhibitId).toBe('exhibit-3');
     expect(s.newReveals).toEqual(expect.arrayContaining(['unit_costs', 'competitor_entry']));
     expect(checkOf(p, 'must_reach')).toMatchObject({ decision: 'act', detail: { items: [{ item: 'competitor_entry', before: 'exhibit-3' }] } });
@@ -196,6 +198,17 @@ describe('the model\'s own recommendation ask (stage-evidence.ts reads it)', () 
     const at = s.spokenText.indexOf(RAMPUP);
     expect(at).toBeGreaterThan(0);
     expect(at).toBeLessThan(s.spokenText.indexOf(T.turn.question));
+    // After the turn's own data line (the new routes' competition, asked for): a short lead (fix round 2).
+    expect(s.spokenText).toContain(`Before your recommendation: ${RAMPUP}`);
+    expect(s.spokenText.indexOf(valueOf('new_routes_context'))).toBeLessThan(s.spokenText.indexOf('Before your recommendation:'));
+  });
+  it('first in the data line (the same turn with no ask of its own): no lead', async () => {
+    const p = plan({ ...T, owedStage: null });
+    p.state.brainstormDue = true;
+    p.state.requiredExhibit = undefined;
+    const s = await settleTurn(p, outcome({ ...T.turn, requests: [] }));
+    expect(s.spokenText).toContain(RAMPUP);
+    expect(s.spokenText).not.toContain('Before your recommendation:');
   });
   it('the same question held for the owed brainstorm (as in the run): no recommendation ask, nothing', async () => {
     const p = plan(T);
