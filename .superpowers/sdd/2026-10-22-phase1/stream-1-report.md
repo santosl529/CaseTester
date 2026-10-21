@@ -154,7 +154,7 @@ Fault bank:
 8. b35q Tyler t6 "How did you get to $80?": the grading says the model asked it; the turn record shows code's probe-guard line. Recorded as code's.
 9. b35h's borderline refusals (Tyler t8, Marisol t20) and b37h Raj t16 are asserted as "release the coarse item" (Lorenzo had the covers built), not "don't refuse".
 10. Replayability: a fault is not replayable when the fix needs the model's own words, a timed-out or re-run check, or a re-run checker verdict (contract §4.3); b33 Marisol t14 is not replayable because the wrong sentence sits in the saved model output.
-11. The harness replays one run per vitest process (55 processes, 8 at a time) rather than one per slice — the same replay, finer-grained, faster.
+11. The harness replays one run per vitest process (54 processes, 8 at a time) rather than one per slice — the same replay, finer-grained, faster.
 12. b38l's verdicts are converted from the run records into the output dir, since the corpus has no b38l verdict file; the phase-1 proof script may build its own.
 
 Haiku labels:
