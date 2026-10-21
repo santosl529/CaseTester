@@ -79,7 +79,7 @@
     },
     "survey_design": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
-      "askPhrases": ["how the shopper survey was run", "who was surveyed", "how to read answers that add up past the total"],
+      "askPhrases": ["how the shopper survey was run", "who was surveyed", "how to read questions where shoppers could pick more than one answer"],
       "covers": ["survey sample size", "who was surveyed", "survey methodology", "how the survey was run", "number of survey respondents", "one response per household", "more than one answer", "where the survey was fielded"]
     },
     "planning_assumptions": {
@@ -95,7 +95,7 @@
       "coverExcludes": ["chip", "potato chip"]
     },
     "cannibalization": {
-      "tags": {"entity": "chips", "period": ["current"], "quantityKind": ["level"]},
+      "tags": {"entity": "chips", "period": ["forecast", "current"], "quantityKind": ["level"]},
       "askPhrases": ["whether the new line takes sales from the chips", "how many chickpea purchases replace a chip bag", "overlap between the new line and the chip business"],
       "covers": ["impact on chip sales", "switching from our chips", "chip sales lost", "replace chip purchases", "chip cannibalization", "effect on the chip business", "overlap with chip buyers", "incremental or cannibalized", "cannibalize the core business"]
     },

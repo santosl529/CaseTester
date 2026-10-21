@@ -63,3 +63,14 @@ describe('must-reach', () => {
     for (const id of IDS) expect(applyPhase1Overlay(raw(id), overlay(id), {}).mustReach).toEqual(raw(id).mustReach);
   });
 });
+
+// Review (22 Oct): round 6's authored lineage on pricing-001 stays as it is; stepLineage changes nothing there.
+describe('step lineage', () => {
+  it('pricing-001 keeps the case\'s own dependsOn under stepLineage', () => {
+    expect(overlay('pricing-001').steps).toEqual({});
+    expect(applyPhase1Overlay(raw('pricing-001'), overlay('pricing-001'), { ENGINE_SWITCHES: 'pricing-001=stepLineage' }).mathSteps).toEqual(raw('pricing-001').mathSteps);
+  });
+  it('entry-001: the net price feeds Option B\'s net sales and the matching share', () => {
+    for (const s of ['option_b_net_sales', 'matching_share']) expect(overlay('entry-001').steps[s].dependsOn).toContain('net_price');
+  });
+});

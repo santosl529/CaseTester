@@ -103,9 +103,9 @@
     },
     {
       "term": "other inputs as a share of revenue",
-      "text": "Other inputs' share of revenue today is their earlier share, COGS less beans, scaled up by their price change; menu prices are flat, so cost shares move with input prices.",
+      "text": "Other inputs' share of revenue today is their earlier share, COGS less beans, scaled up by their price change.",
       "steps": ["non_bean_points_now"],
-      "items": ["non_bean_input_change", "menu_price_change"]
+      "items": ["non_bean_input_change"]
     },
     {
       "term": "other inputs' contribution",

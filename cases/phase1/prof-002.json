@@ -143,7 +143,7 @@
       "covers": ["flights per year on the new routes", "flights on the new routes", "planned frequency", "new route frequency", "cost per flight on ashford", "variable cost on ashford", "variable cost on brookhaven"]
     },
     "new_routes_context": {
-      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "tags": {"entity": "client", "period": ["forecast", "current"], "quantityKind": ["level"]},
       "askPhrases": ["competition on Ashford and Brookhaven", "whether fixed costs change with new routes", "nonstop service on the new routes"],
       "covers": ["competition on the new routes", "competitive presence on the new routes"]
     }

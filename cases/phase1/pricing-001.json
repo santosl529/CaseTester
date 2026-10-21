@@ -74,7 +74,7 @@
     },
     "price_test_results": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level", "split"]},
-      "askPhrases": ["sign-ups at each tested Starter price", "how demand responds to a higher Starter price", "Pro sign-ups during the price test"],
+      "askPhrases": ["sign-ups at each tested Starter price", "how demand responds to the tested Starter price", "Pro sign-ups during the price test"],
       "covers": ["price test results by group", "test group sign-ups", "price test control versus test", "sign-ups at the higher price", "demand at the test price", "price test outcome"]
     },
     "price_test_notes": {
@@ -89,7 +89,7 @@
     },
     "why_pro_fell": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level"]},
-      "askPhrases": ["what else could explain the drop in Pro sign-ups", "whether Pro marketing or sales changed", "what explains the change in Pro sign-ups"],
+      "askPhrases": ["what else could explain the Pro sign-up numbers", "whether Pro marketing or sales changed", "what explains the change in Pro sign-ups"],
       "covers": ["why pro sign-ups dropped", "what caused the pro decline", "did pro marketing spend change", "did the sales team change", "did anything else change for pro", "were pro buyers trading down"]
     },
     "buyer_profile": {
@@ -112,23 +112,6 @@
       "askPhrases": ["how many customers are on Starter today", "whether a new price would hit existing customers", "grandfathering current Starter customers"],
       "covers": ["current starter base", "how many customers are on starter", "grandfather existing customers", "price change for existing customers", "apply to new customers only"]
     }
-  },
-  "steps": {
-    "pro_ratio": {"dependsOn": ["pro_ltv"]},
-    "starter_ratio": {"dependsOn": ["starter_ltv"]},
-    "starter_value_with_upgrades": {"dependsOn": ["starter_ltv", "upgrade_rate", "pro_ltv"]},
-    "starter_ratio_with_upgrades": {"dependsOn": ["starter_value_with_upgrades"]},
-    "starter_net_value": {"dependsOn": ["starter_value_with_upgrades"]},
-    "pro_net_value": {"dependsOn": ["pro_ltv"]},
-    "value_pro_only": {"dependsOn": ["pro_net_value"]},
-    "value_with_starter": {"dependsOn": ["pro_net_value", "starter_net_value"]},
-    "starter_value_added": {"dependsOn": ["value_with_starter", "value_pro_only"]},
-    "cannibalization_breakeven": {"dependsOn": ["starter_net_value", "pro_net_value"]},
-    "starter_value_at_60": {"dependsOn": ["starter_ltv", "upgrade_rate", "pro_ltv"]},
-    "value_at_60": {"dependsOn": ["starter_value_at_60", "pro_net_value"]},
-    "uplift_at_60": {"dependsOn": ["value_at_60", "value_with_starter"]},
-    "churn_breakeven_at_60": {"dependsOn": ["starter_ltv"]},
-    "upgrade_breakeven_at_60": {"dependsOn": ["starter_ltv", "pro_ltv"]}
   },
   "exhibits": {
     "exhibit-1": {

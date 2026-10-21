@@ -116,13 +116,13 @@
       "coverExcludes": ["nimbrel"]
     },
     "option_a": {
-      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level", "recurring"]},
+      "tags": {"entity": "client", "period": ["forecast", "current"], "quantityKind": ["level", "recurring"]},
       "askPhrases": ["the terms of building Aldermoor's own US team", "the annual selling costs of going alone", "the expected share and timing of a self-launch"],
       "covers": ["option a terms", "build option", "building our own team", "own us team", "annual selling costs", "cost of a us salesforce", "go it alone"],
       "coverExcludes": ["nimbrel"]
     },
     "option_b": {
-      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "tags": {"entity": "client", "period": ["forecast", "current"], "quantityKind": ["level"]},
       "askPhrases": ["the terms of partnering with a US company", "the royalty Aldermoor would receive", "the expected share and timing with a partner"],
       "covers": ["option b terms", "partner option", "royalty rate", "royalty on us net sales", "partnership terms", "licensing deal", "partnering with a us company"],
       "coverExcludes": ["nimbrel"]
@@ -141,9 +141,9 @@
     "breakeven_share": {"dependsOn": ["breakeven_patients", "eligible_patients"]},
     "diagnosis_upside": {"dependsOn": ["peak_net_sales"]},
     "option_a_profit": {"dependsOn": ["peak_net_sales"]},
-    "option_b_net_sales": {"dependsOn": ["eligible_patients"]},
+    "option_b_net_sales": {"dependsOn": ["eligible_patients", "net_price"]},
     "option_b_profit": {"dependsOn": ["option_b_net_sales"]},
-    "matching_share": {"dependsOn": ["option_b_profit", "eligible_patients"]}
+    "matching_share": {"dependsOn": ["option_b_profit", "eligible_patients", "net_price"]}
   },
   "exhibits": {
     "exhibit-1": {
