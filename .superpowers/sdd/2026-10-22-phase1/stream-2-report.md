@@ -271,3 +271,83 @@ The compact prompt arm (`system-compact.ts`, an experiment) is not changed.
 - **coverExcludes need a reader** in fact-check.ts (Stream 4's file) for the exclusion words to mean anything.
 - **No free replay was run.** The lead's gate covers it.
 - **Under `*=phase1`, prof-001 gets `tagMatching`** (contract Q4). The tagMatching view shows 15 more gains than literal matching, all sentence forms of the same COGS and menu asks, all judged correct.
+
+## Review fixes (22 Oct, one round)
+
+These supersede the numbers and calls above where they differ.
+
+| Commit | Task | Change |
+|---|---|---|
+| 6917701c | 2 | The lint flags a cover inside another item's cover after the fold (section 1b, "new" or "at BASE"), and the overlay test requires no new one. The reverse forecast rule is relaxed: an item tagged `['forecast', 'current']` needn't be in `factAnchors.tags.forecast`; a forecast-only one still must. |
+| 8d5004f9 | 1 | Covers narrowed (below). |
+| f61f001a | 3 | askPhrases, a definition, tags and lineage (below). |
+| 1946fbd7 | 5 | Comment in `lib/agent/prompts/system-compact.ts`. |
+
+**T1, covers**
+
+Dropped or qualified:
+- prof-002:
+  - `new_routes_context`: dropped "anyone flying nonstop", "incumbent competition".
+  - `network_totals`: "flights flown" → "network flight count"; "total contribution" → "total network contribution"; "flight count" dropped.
+  - `fleet`: "how many planes" → "how many planes larkspur has"; "seats per aircraft" and "regional jets" dropped.
+  - `competitor_costs`: "cost disadvantage" → "our cost disadvantage".
+  - `fixed_costs`: "hub costs" → "hub facility costs".
+- launch-001 `bag_price`: "what shoppers pay" dropped; "shelf / retail price per bag" and "price point per bag" now start with "our".
+- prof-001 `menu_price_change`: dropped "have prices gone up", "did they raise prices".
+- pricing-001:
+  - `cohort_notes`: dropped "how churn has moved", "does churn change over time".
+  - `price_test_results`: "control versus test" → "price test control versus test".
+- entry-001 `option_shared`: dropped "shared assumptions".
+
+The covers behind the lint's unsure gains were all dropped, conservatively. There were three, not two:
+- pricing-001 "starter monthly churn";
+- prof-001 "cogs as a percent of revenue";
+- prof-002 "port avery variable cost".
+
+The three containments the new check found were resolved by dropping the overlay phrase:
+- pricing-001 "starter installed base", inside base "installed base";
+- launch-001 "conversion assumptions", inside base "basis for conversion assumptions";
+- prof-001 "bean inflation", inside "non-bean inflation", because the fold splits the hyphen.
+
+Lint after the fixes: 0 wrong, 0 unsure, 0 new collisions, 0 new containments in every view.
+
+| view | changed asks | gains (all judged "answers") |
+|---|---|---|
+| prof-001 | 152 | 153 |
+| prof-001 (tagMatching on) | 166 | 167 |
+| prof-002 | 101 | 104 |
+| entry-001 | 99 | 99 |
+| launch-001 | 11 | 11 |
+| pricing-001 | 31 | 33 |
+
+Unmapped model asks that gain an item are now 5 asks, 7 gains:
+- lost: b32 Larkspur Marisol t1 (`network_totals`, by the narrowed "network flight count");
+- b38 Larkspur Marisol t1 keeps `extras_revenue` only;
+- pricing b37 Jasmine t1 keeps `plan_cac` and `pro_cohort`, and loses `starter_cohort`.
+
+**T3, data**
+- askPhrases:
+  - pricing `why_pro_fell`: "what else could explain the Pro sign-up numbers";
+  - pricing `price_test_results`: "how demand responds to the tested Starter price";
+  - launch `survey_design`: "how to read questions where shoppers could pick more than one answer".
+- prof-001 definition "other inputs as a share of revenue": the "menu prices are flat" clause is removed, along with its `menu_price_change` item ref.
+- Tags `['forecast', 'current']`: entry `option_a`, `option_b`; launch `cannibalization`; prof-002 `new_routes_context`.
+- dependsOn:
+  - pricing-001's `steps` are removed from the overlay, so round 6's authored lineage stands under `stepLineage` (tested). This replaces judgement call 6.
+  - entry-001 `option_b_net_sales` and `matching_share` now include `net_price`.
+  - **Proposed case edit for Lorenzo** (not made): pricing-001 `churn_breakeven_at_60` would need `pro_ltv` in its `dependsOn`.
+
+**T5.** The compact prompt arm (`system-compact.ts`, an experiment) does not render `ctx.askPhrases`. Only the full prompt shows them; a comment there says so.
+
+**Totals after the fixes**
+
+| case | overlay covers | merged per item | items under 10 |
+|---|---|---|---|
+| prof-001 | 103 | 10–20 | none |
+| prof-002 | 163 | 8–21 | `connecting_passengers` 8 |
+| entry-001 | 145 | 7–13 | `us_adults` 7, `option_shared` 8 |
+| launch-001 | 160 | 10–15 | none |
+| pricing-001 | 151 | 9–14 | `cohort_notes` 9, `existing_starter_customers` 9 |
+| **all** | **722** | | 5 items |
+
+dependsOn entries: prof-001 3, prof-002 9, entry-001 9, launch-001 9, pricing-001 0 (round 6's 12 stand).
