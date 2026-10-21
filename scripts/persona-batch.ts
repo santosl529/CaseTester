@@ -16,7 +16,8 @@
 import { spawn, type ChildProcess } from 'node:child_process';
 import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { checkCostOf, checkCostMarkdown, checkCostLine, totalCheckCost, findRunJsons } from '@/lib/eval/check-cost';
 import { planWave, markWaveResults, loadManifest, saveManifest, fileHash, assertBatchOpen, type PersonaEntry } from '@/lib/eval/batch-manifest';
 import { evalInterviewer, type ModelCheck } from '@/lib/eval/model-guard';
 import { liveRunArgs, findRunDir, scoresPersona, parseScoreIds, waveEstimate } from '@/lib/eval/wave-commands';
@@ -125,6 +126,12 @@ async function main() {
   const mismatched = results.filter(r => r.failure === 'model_mismatch');
   for (const r of results.filter(x => x.failure === 'harness')) console.error(`[wave] #${r.runNumber} persona ${r.personaId}: partial run (harness) — ${r.harnessError}`);
   console.log(`[wave] done: ${results.filter(r => r.status === 'done').length} ok, ${results.filter(r => r.status === 'failed').length} failed`);
+  try {
+    const rows = findRunJsons(waveDir).map(f => ({ id: path.relative(RUNS, path.dirname(f)), summary: checkCostOf(JSON.parse(readFileSync(f, "utf8"))) }));
+    const md = checkCostMarkdown(rows);
+    writeFileSync(path.join(BATCH_DIR, `check-cost-${wave}.md`), md);
+    console.log(`[wave] ${checkCostLine(totalCheckCost(rows.map(r => r.summary)))}`);
+  } catch (e) { console.error(`[wave] check-cost report skipped: ${e instanceof Error ? e.message : e}`); }
   if (mismatched.length > 0) {
     console.error(`[wave] EVALUATION FAILED — interviewer model mismatch in ${mismatched.length} run(s): ${mismatched.map(r => `#${r.runNumber} ${r.interviewer?.problems.join('; ')}`).join(' | ')}`);
     process.exitCode = 2;
