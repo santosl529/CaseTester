@@ -304,3 +304,24 @@ describe('fix round 3', () => {
     expect(guardRefusal('fuel prices since FY2023', [{ kind: 'period', text: 'since FY2023' }, { kind: 'period', text: 'since FY2023' }])).toBe('fuel prices since FY2023');
   });
 });
+
+// Task 61 fix round 4 (the controller's rulings).
+describe('fix round 4', () => {
+  const ledger = (caseId: string) => getCaseById(caseId).dataLedger;
+  const items = (caseId: string, ids: string[]) => qualifierItems(ids.map(id => ledger(caseId).find(i => i.id === id)!), ledger(caseId), i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]));
+  const refusal = (caseId: string, what: string, ids: string[]) => guardRefusal(what, unmetQualifiers(what, items(caseId, ids), ledger(caseId)));
+  it('a company\'s own average is no benchmark: the refusal names the benchmark', () => {
+    expect(refusal('prof-002', 'fare benchmarks', ['lakeport_fare'])).toBe('fare benchmarks');
+    expect(refusal('prof-001', 'average ticket benchmarks', ['avg_ticket'])).toBe('average ticket benchmarks');
+    expect(refusal('prof-001', 'revenue per store benchmarks', ['revenue_per_store'])).toBe('revenue per store benchmarks');
+    expect(refusal('entry-001', 'discount benchmarks', ['kelvexa_pricing'])).toBe('discount benchmarks');
+  });
+  it('… while past launches still meet it, and #36 still flags', () => {
+    expect(unmetQualifiers('benchmarks from past launches', items('launch-001', ['planning_assumptions']), ledger('launch-001'))).toEqual([]);
+    expect(refusal('prof-001', 'industry input cost inflation benchmarks', ['non_bean_input_change', 'bean_price_change'])).toBe('industry benchmarks');
+  });
+  it('"a" before a period that opens with a vowel sound is "an": "an FY2024 load factor"', () => {
+    expect(guardRefusal('a load factor in FY2024', [{ kind: 'period', text: 'FY2024' }])).toBe('an FY2024 load factor');
+    expect(guardRefusal('a fare in 2024', [{ kind: 'period', text: '2024' }])).toBe('a 2024 fare');
+  });
+});

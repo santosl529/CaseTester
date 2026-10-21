@@ -140,7 +140,8 @@ const SCOPE_SYNONYMS: Record<string, RegExp> = {
   // A named rival with no "competitor" word on its line: "the current standard" (Aldermoor's Nimbrel), "a low-cost
   // airline", "other brands", "How Kelvexa compares with Nimbrel" — read leniently: a missed guard leaves Haiku's verdict; a false one refuses held data.
   competitor: /\b(?:competitors?|competitive|competition|competing|rivals?|standard|low-cost|other (?:airlines?|brands?|players?|companies|drugs?)|brands|compare[sd]? with|versus)\b/i,
-  benchmark: /\b(?:benchmarks?|industry|typical(?:ly)?|average|comparable|historical|often)\b|\b(?:past|previous|prior|last)\s+(?:\w+\s+)?launches\b/i,
+  // "average" only beside industry/market/typical/comparable: a company's own average is no benchmark (fix round 4).
+  benchmark: /\b(?:benchmarks?|industry|typical(?:ly)?|comparable|historical|often)\b|\b(?:past|previous|prior|last)\s+(?:\w+\s+)?launches\b|\baverage\b(?=.*\bmarket\b)|\bmarket\b(?=.*\baverage\b)/i,
 };
 function statesScope(q: string, t: string): boolean {
   const w = q.toLowerCase();
@@ -290,11 +291,13 @@ function partOf(c: string, unmet: Qualifier[]): string {
     const noun = words.at(-1)!;
     const mods = unmet.filter(q => !noun.toLowerCase().startsWith(q.text.toLowerCase())).map(q => q.text);
     if (mods.length > 0) return [...mods, noun].join(' ');   // "industry benchmarks", the benchmark itself met or not
-    const before = words.at(-2);
-    if (!before) return verbatim;
+    // The words before it, a scope word aside ("Competitor pricing benchmark" → "pricing benchmarks";
+    // "revenue per store benchmarks"; fix round 4).
+    const before = words.slice(0, -1).filter(w => !SCOPE_WORD.test(w));
+    if (before.length === 0) return verbatim;
     // The ask's first word loses its sentence capital ("Velocity benchmark (…)" → "velocity benchmarks").
-    const said = head.at === 0 && words.length === 2 && /^[A-Z][a-z]+$/.test(before) ? before.toLowerCase() : before;
-    return `${said} ${/s$/i.test(noun) ? noun : `${noun}s`}`;
+    if (head.at === 0 && before[0] === words[0] && /^[A-Z][a-z]+$/.test(before[0])) before[0] = before[0].toLowerCase();
+    return `${before.join(' ')} ${/s$/i.test(noun) ? noun : `${noun}s`}`;
   }
   // The head and the qualifiers must be the whole ask: other content after the head
   // ("coffee beans as a share | of COGS today") would be lost — the conjunct instead.
@@ -327,8 +330,19 @@ function partOf(c: string, unmet: Qualifier[]): string {
   const body = possessive ? [first, years.join(' and '), ...pre, after.join(' ')] : [years.join(' and '), ...pre, h];
   // The ask's article ("the fleet since FY2023", "the FY2024 Lakeport load factor"; fix rounds 2 and 3) — not before
   // a possessive cohort ("later cohorts' …") or a head made plural ("FY2024 fares").
-  const lead = pre.length === 0 && !pluralised ? head.article : '';
-  return [lead, ...body, ...post].filter(Boolean).join(' ');
+  const article = pre.length === 0 && !pluralised ? head.article : '';
+  const words = [...body, ...post].filter(Boolean).join(' ');
+  // "a" or "an" by the sound of the word now after it ("an FY2024 load factor"; fix round 4).
+  const lead = /^an?$/i.test(article) ? `${article[0]}${vowelSound(words) ? 'n' : ''}` : article;
+  return [lead, words].filter(Boolean).join(' ');
+}
+// Whether a word opens with a vowel sound: a letter said as a name in an acronym or code
+// ("FY2024", "LTV": "eff", "ell"), 8, 11, 18, or a vowel ("uni-", "use", "eu-", "one" aside).
+function vowelSound(t: string): boolean {
+  const w = t.split(' ')[0] ?? '';
+  if (/^(?:[A-Z]{2,}|[A-Z]{1,2}\d)/.test(w)) return 'AEFHILMNORSX'.includes(w[0]);
+  if (/^\d/.test(w)) return /^(?:8|11|18)/.test(w);
+  return /^[aeiou]/i.test(w) && !/^(?:uni|use|usu|eu|one|once)/i.test(w);
 }
 
 // The refusal's parts, one per conjunct with an unmet qualifier, in the ask's order.
