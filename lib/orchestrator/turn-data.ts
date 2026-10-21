@@ -10,7 +10,7 @@ import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSp
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, WANT_ASK_PHASES } from './request-signal';
-import { tagsAgree, askGroups } from './item-tags';
+import { tagsAgree, askGroups, askClauses } from './item-tags';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
 import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, type Qualifier } from './ask-qualifiers';
@@ -92,7 +92,10 @@ function askSentence(plan: ModelPlan, what: string, sentences?: string[]): strin
 function tagTextFor(plan: ModelPlan, what: string, id: string, sentence?: string): { text: string; part: string } {
   const { factBase, ledger, caseData } = plan.state;
   const ask = what.trim();
-  const whole = { text: sentence ? `${ask}\n${sentence}` : ask, part: ask };
+  // The sentence's clause that matches the ask (68b item 6): its entity and current markers only; none matching, the sentence.
+  const clauses = sentence ? askClauses(sentence) : [];
+  const clause = sentence && clauses.length > 1 ? askSentenceFor(ask, clauses, properNames(caseData.sttKeyterms)) ?? sentence : sentence;
+  const whole = { text: clause ? `${ask}\n${clause}` : ask, part: ask };
   const groups = askGroups(ask);
   if (groups.length < 2) return whole;
   const spans = coverSpans(ask, factBase, id);
@@ -116,9 +119,26 @@ function coverGateMiss(plan: ModelPlan, what: string, id: string, sentence: stri
   const t = tagsAgree(tagTextFor(plan, what, id, sentence).text, id, factBase);
   if (!t.agree) return t.why ?? 'entity';
   const item = ledger.items.find(i => i.id === id);
-  // A cut the matched cover phrase itself carries cuts nothing (fix round 2; ruling 7, 15 Oct).
-  return scope && item && outsideAskScope(what, item, factBase.quantities.find(q => q.id === id)?.names ?? [], { count: false, spans: coverSpans(what, factBase, id) }) ? 'scope' : null;
+  if (!scope || !item) return null;
+  // A cut the matched cover phrase itself carries cuts nothing (fix round 2; ruling 7, 15 Oct). The
+  // scope rules read the list entry the cover sits in, not the whole ask (Task 70 fix round 2, 68b
+  // item 1: b35 Hollis Bay Jasmine t10 "store count, distribution rate and bags per store per week"
+  // — the per-store cut is the third entry's, not the store count's).
+  const entry = coverEntry(what, id, factBase);
+  return outsideAskScope(entry, item, factBase.quantities.find(q => q.id === id)?.names ?? [], { count: false, spans: coverSpans(entry, factBase, id) }) ? 'scope' : null;
 }
+// The list entry (item-tags.ts askGroups) an item's cover phrase sits in; the whole ask when the
+// phrase isn't in it (a hit through the candidate's sentence) or the ask is one entry.
+function coverEntry(what: string, id: string, fb: ModelPlan['state']['factBase']): string {
+  const ask = what.trim();
+  const groups = askGroups(ask);
+  if (groups.length < 2) return what;
+  const spans = coverSpans(ask, fb, id);
+  const own = groups.filter(g => spans.some(sp => sp.start < g.end && sp.end > g.start));
+  return own.length === 0 ? what : ask.slice(own[0].start, own.at(-1)!.end);
+}
+
+const PROPER_ADJECTIVES = ['European', 'American', 'US', 'EU', 'UK', 'Canadian', 'Asian'];
 
 // Wrap-up and close turns (Lorenzo, 19 Oct, round-2 ruling 3): the code-written
 // close, close wait, grace ask and time warning, and any turn of the
@@ -273,29 +293,34 @@ export function answerGate(plan: ModelPlan, what: string, ids: string[], sentenc
   const lines = caseData.dataLedger;
   const labelOf = (i: (typeof items)[number]) => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]);
   const states = (p: string, i: (typeof items)[number]) => statesAsked(p, { label: labelOf(i), value: i.value }, lines);
-  // An entity's item is the comparator: it meets a competitor or benchmark scope (fix round 1).
-  const owned = new Set((factBase.tags?.entities ?? []).flatMap(e => e.items));
+  // A rival entity's item is the comparator: it meets a competitor or benchmark scope (fix round 1;
+  // fix round 2, controller ruling: rival entities only — launch-001's chips are the client's own business).
+  const owned = new Set((factBase.tags?.entities ?? []).filter(e => e.rival === true).flatMap(e => e.items));
   const qitems = qualifierItems(items, lines, i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0])).map(q => (owned.has(q.id) ? { ...q, other: true as const } : q));
   let read = gateReading(what, qitems, lines, { topics: opts.topics !== false });
   if (unsaidFigures(plan, read.parts)) read = { unmet: [], parts: [], partial: [], topicDrop: [] };
   const tagged: { id: string; why: 'entity' | 'forecast'; part: string }[] = [];
+  // Items kept only because their line names the asked entity (68b item 5): partial, their part refused beside them.
+  const lineOnly: { id: string; part: string }[] = [];
   if (opts.tags !== false) {
     for (const i of items) {
       const tt = tagTextFor(plan, what, i.id, sentence);
       const t = tagsAgree(tt.text, i.id, factBase);
       if (!t.agree) tagged.push({ id: i.id, why: t.why ?? 'entity', part: tt.part });
+      else if (t.coarse) lineOnly.push({ id: i.id, part: tt.part });
     }
   }
   const drop = [...new Set([...tagged.map(x => x.id), ...read.topicDrop])];
   const kept = items.filter(i => !drop.includes(i.id));
   const tagParts = [...new Set(tagged.map(x => x.part))].filter(p => !kept.some(i => states(p, i)));
-  const parts = mergeParts(read.parts, tagParts, what);
-  const partial = parts.length > 0 ? read.partial.filter(id => !drop.includes(id)) : [];
+  const lineParts = [...new Set(lineOnly.map(x => x.part))];
+  const parts = mergeParts(read.parts, [...tagParts, ...lineParts], what);
+  const partial = parts.length > 0 ? [...new Set([...read.partial, ...lineOnly.map(x => x.id)])].filter(id => !drop.includes(id)) : [];
   if (drop.length === 0 && partial.length === 0 && parts.length === 0) return null;
   // The items each part is about: a tag part's own; a qualifier part's partial or topic-dropped items that state it, else all of them.
   const pool = items.filter(i => partial.includes(i.id) || read.topicDrop.includes(i.id));
   const partIds = (p: string) => {
-    const own = tagged.filter(x => x.part === p).map(x => x.id);
+    const own = [...tagged, ...lineOnly].filter(x => x.part === p).map(x => x.id);
     if (own.length > 0) return own;
     const st = pool.filter(i => states(p, i));
     return (st.length > 0 ? st : pool).map(i => i.id);
@@ -303,7 +328,7 @@ export function answerGate(plan: ModelPlan, what: string, ids: string[], sentenc
   const refuse = parts.map(part => ({ part, ids: partIds(part) }));
   // A partial item stating no part goes with the first qualifier part (fix round 1: never given whole beside its own refusal).
   const lone = partial.filter(id => !refuse.some(r => r.ids.includes(id)));
-  const first = refuse.find(r => !tagParts.includes(r.part));
+  const first = refuse.find(r => !tagParts.includes(r.part) && !lineParts.includes(r.part));
   if (first && lone.length > 0) first.ids = [...first.ids, ...lone];
   return { refuse, drop, partial, unmet: read.unmet, tagDropped: tagged.map(({ id, why }) => ({ id, why })), said: parts.filter(p => tagParts.includes(p)) };
 }
@@ -1040,7 +1065,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // refused, unchecked (audit row 20: "I don't have Kelvexa's European net price").
   // A failing match beside one that passes is dropped (logged): the rest answers the ask.
   const regionRefused = new Set<string>();
-  const coverGate: { what: string; deferred?: { id: string; why: 'entity' | 'forecast' | 'scope' }[]; kept?: string[]; excluded?: { what: string; why: 'entity' | 'region' }[] }[] = [];
+  const coverGate: { what: string; deferred?: { id: string; why: 'entity' | 'forecast' | 'scope' }[]; kept?: string[]; named?: string[]; excluded?: { what: string; why: 'entity' | 'region' }[] }[] = [];
   requests = requests.flatMap(r => {
     // Declared release or defer alike: after the pressure test a deferral becomes a release (below).
     if (!r.explicit || r.itemIds.length > 0 || gateMade.has(r.what)) return [r];
@@ -1064,6 +1089,18 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
           coarse = coarse.map(c => ({ what: c.what, ids: c.ids.filter(id => !out.has(id)) })).filter(c => c.ids.length > 0);
           const kept = [...covIds, ...coarse.flatMap(c => c.ids), ...cov.promptFacts];
           coverGate.push({ what: r.what, deferred, ...(kept.length > 0 ? { kept } : {}) });
+          // Task 70 fix round 2 (68b item 2; E5 d; b34 Aldermoor Jasmine t2 "current treatment breakdown by
+          // drug class", before the pressure test): items whose covers only miss on scope answer coarsely; held
+          // before the pressure test, the deferral names them and books them ("I'll come back to the current US
+          // treatment"), never the finer cut the case doesn't hold.
+          const scopeOnly = deferred.every(x => x.why === 'scope') && deferred.every(x => !coarse.some(c => c.ids.includes(x.id)));
+          if (kept.length === 0 && scopeOnly && !satisfied) {
+            const held = [...new Set(deferred.map(x => x.id))];
+            coverGate.at(-1)!.named = held;
+            // What nothing covers goes on as at BASE (the item-less path).
+            return [...held.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label, respond: 'defer' as const })),
+              ...(cov.plain ? [{ ...r, what: cov.plain, itemIds: [] as string[] }] : [])];
+          }
           if (kept.length === 0) { coverVetoed.add(r.what); return [r]; }
         }
       }
@@ -1342,5 +1379,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     decisions.restates.push({ id: p.id, value: p.value });
     decisions.requests.push({ request: p.request, response: 'clarify', ledgerItemIds: [] });
   }
-  return { ...decisions, correction, gatedIds, ...(basisEmptied.size > 0 ? { basisCut } : {}), ...(coverVetoed.size > 0 ? { coverDeferred: [...coverVetoed] } : {}) };
+  // Proper adjectives and names keep their capital in a line (Task 70 fix round 2, 68b item 3; tagged cases only).
+  const properWords = fb.answerGate ? [...PROPER_ADJECTIVES, ...properNames(state.caseData.sttKeyterms)] : undefined;
+  return { ...decisions, correction, gatedIds, ...(basisEmptied.size > 0 ? { basisCut } : {}), ...(coverVetoed.size > 0 ? { coverDeferred: [...coverVetoed] } : {}), ...(properWords ? { properWords } : {}) };
 }

@@ -1248,6 +1248,7 @@
       "entities": [
         {
           "id": "nimbrel",
+          "rival": true,
           "words": [
             "Nimbrel"
           ],

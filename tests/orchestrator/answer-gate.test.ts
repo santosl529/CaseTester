@@ -30,6 +30,10 @@ import { readsFixture } from './fixtures/turn-reads';
 import { askVia } from './fixtures/ask-check';
 import { taggedFactBase } from './fixtures/tagged-cases';
 import { GATE_CORPUS } from './fixtures/gate-corpus';
+import { GATE_68B } from './fixtures/gate-68b';
+import { entitiesNamed } from '@/lib/orchestrator/item-tags';
+import { coverageDetail } from '@/lib/orchestrator/fact-check';
+import { CaseSchema } from '@/lib/cases/schema';
 
 const SATISFIED = { state: 'satisfied', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false };
 type Fx = { caseId: string; text: string; requests: DeclaredRequest[]; phase: Phase; revealed: string[]; shown: string[] };
@@ -441,5 +445,126 @@ describe('fix round 1', () => {
     const nimbrel = { id: 'nimbrel', label: 'Nimbrel', value: 'Its net price is about $9,000 per patient per year.' };
     expect(unmetQualifiers('a net price benchmark for current treatment', [{ ...nimbrel, other: true }], [], { r6: true })).toEqual([]);
     expect(unmetQualifiers('a net price benchmark for current treatment', [nimbrel], [], { r6: true }).map(q => q.text)).toEqual(['benchmark']);
+  });
+});
+
+// Task 70 fix round 2 (the re-review, and Task 68b from the controller's interim replays).
+describe('fix round 2', () => {
+  // A (controller ruling): the comparator scope rule is for rival entities only — Hollis Bay's chips are its own business.
+  it.each([
+    ['the competitive landscape for chips', 'why_now'],
+    ['competitor benchmarks for chip sales', 'why_now'],
+    ['a benchmark for cannibalization', 'cannibalization'],
+  ])('A: launch-001 "%s" → %s, its line and the refusal beside it (E1), as before fix round 1', async (what, id) => {
+    const fx = asked('launch-001', what, [id], { phase: 'ANALYSIS' });
+    const p = plan(fx);
+    const d = await turnDataChecked(p, turn(fx));
+    expect(d.releases.map(r => r.id)).toEqual([id]);
+    expect(d.refusals).toHaveLength(1);
+    expect(acts(p, 'answer_gate')[0].detail).toMatchObject({ asks: [{ path: 'mapped', partial: [id] }] });
+  });
+  it('A: the rival flag — prof-002\'s competitor and entry-001\'s Nimbrel are rivals, launch-001\'s chips are not; the schema checks it', () => {
+    expect(getCaseById('prof-002').factAnchors!.tags!.entities.map(e => e.rival)).toEqual([true]);
+    expect(getCaseById('entry-001').factAnchors!.tags!.entities.map(e => e.rival)).toEqual([true]);
+    expect(getCaseById('launch-001').factAnchors!.tags!.entities.map(e => e.rival)).toEqual([undefined]);
+    const c = getCaseById('launch-001');
+    const withTags = (entities: unknown) => ({ ...c, factAnchors: { ...c.factAnchors!, tags: { ...c.factAnchors!.tags!, entities } } });
+    expect(CaseSchema.safeParse(withTags([{ ...c.factAnchors!.tags!.entities[0], rival: 'yes' }])).success).toBe(false);
+    expect(CaseSchema.safeParse(withTags([{ ...c.factAnchors!.tags!.entities[0], rivals: true }])).success).toBe(false);
+    expect(CaseSchema.safeParse(withTags([{ ...c.factAnchors!.tags!.entities[0], rival: true }])).success).toBe(true);
+  });
+  // B: the comparator's other side names no other entity, but the client wherever it is said; it stops at a line break.
+  it('B: "how Nimbrel compares against Kelvexa in trials" and "chip sales versus the chickpea line" name both sides', () => {
+    const aldermoor = taggedFactBase('entry-001');
+    const hollis = taggedFactBase('launch-001');
+    expect(entitiesNamed('how Nimbrel compares against Kelvexa in trials', aldermoor)).toEqual(['nimbrel', 'client']);
+    expect(tagsAgree('how Nimbrel compares against Kelvexa in trials', 'trial_comparison', aldermoor)).toMatchObject({ agree: true });
+    expect(entitiesNamed('chip sales versus the chickpea line', hollis)).toEqual(['chips', 'client']);
+    expect(entitiesNamed("what price point they're targeting versus the chips?", hollis)).toEqual([]);
+    expect(entitiesNamed("the price point versus our\nthe low-cost carrier's fares", taggedFactBase('prof-002'))).toEqual(['competitor', 'client']);
+  });
+  it('68b-6 in the coverage step: a sentence hit is read in its own clause — the competitor in the other clause excludes nothing', () => {
+    const p2 = taggedFactBase('prof-002');
+    const sentence = 'Do we have average fare by route, and whether a competitor entered on any of the six?';
+    expect(coverageDetail('the fare picture', p2, { sentence }).items).toEqual(expect.arrayContaining(['lakeport_fare', 'port_avery_per_flight']));
+  });
+  it('B: the coverage step\'s entity read gains no exclusion from the comparator (a client item stays covered)', () => {
+    const p2 = taggedFactBase('prof-002');
+    expect(coverageDetail('average fare by route versus the entrant', p2).items).toEqual(expect.arrayContaining(['lakeport_fare', 'port_avery_per_flight']));
+    expect(coverageDetail('average fare by route versus the entrant', p2).dropped).toEqual([]);
+  });
+  // C: a ramp line meets a forward or ramp trend only.
+  it('C: the ramp line meets "over time" / "build", never growth or the last few years', () => {
+    const ramp = { id: 'new_route_rampup', label: 'How long new routes take to mature', value: value('prof-002', 'new_route_rampup') };
+    expect(unmetQualifiers('how new routes build toward 70% over time', [ramp], [], { r6: true })).toEqual([]);
+    expect(unmetQualifiers('the ramp trend on new routes', [ramp], [], { r6: true })).toEqual([]);
+    expect(unmetQualifiers('load factor growth on new routes', [ramp], [], { r6: true }).map(q => q.text)).toEqual(['growth']);
+    expect(unmetQualifiers('how new route load factors grew over the last few years', [ramp], [], { r6: true }).map(q => q.text)).toEqual(['grew', 'over the last few years']);
+    expect(unmetQualifiers('the new route load factor trend', [ramp], [], { r6: true }).map(q => q.text)).toEqual(['trend']);
+    // A past trend with a ramp word is still past.
+    expect(unmetQualifiers('how fast new routes ramped up over the last few years', [ramp], [], { r6: true }).map(q => q.text)).toEqual(['over the last few years']);
+  });
+
+  // D: Task 68b, each from its turn as it ran.
+  const run68b = async (key: string) => {
+    const f = GATE_68B[key];
+    const p = planTurn(readsFixture({ caseId: f.caseId, phase: f.phase as Phase, revealed: f.revealed, flags: { pressureTest: f.pressureTest } }), f.text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    for (const id of f.shown) p.state.shownExhibitIds.add(id);
+    return { p, d: await turnDataChecked(p, { requests: f.requests, exhibit: null, rescueItem: null }) };
+  };
+  it('68b-1 b35h Jasmine t10: the scope reads the covered entry — retailer_support released for "store count"; only "bags per store per week" goes on', async () => {
+    const { p, d } = await run68b('D1');
+    expect(d.releases.map(r => r.id)).toEqual(['retailer_support']);
+    expect(acts(p, 'cover_gate')).toEqual([]);
+    expect(acts(p, 'cover_deferred')).toEqual([]);
+    expect(ask.mock.calls.map(c => (c[0] as { what: string }).what)).toEqual(['bags per store per week']);
+  });
+  it('68b-2 b34a Jasmine t2 (before the pressure test): the covered item deferred by its name and booked, not the finer cut', async () => {
+    const { p, d } = await run68b('D2');
+    const lines = renderDataLines(d, 's');
+    expect(lines).toContain("I'll come back to current US treatment shortly.");
+    expect(lines.join(' ')).not.toMatch(/come back to[^.]*drug class/);
+    expect(decisionRows(d).filter(r => r.response === 'defer').map(r => r.ledgerItemIds)).toContainEqual(['current_treatment']);
+    expect(acts(p, 'cover_gate')[0].detail).toMatchObject({ asks: [{ named: ['current_treatment'] }] });
+    expect(acts(p, 'cover_deferred')).toEqual([]);
+    // What nothing covers goes on as at BASE: the item-less check (here mocked to none: refused).
+    expect(ask.mock.calls.map(c => (c[0] as { what: string }).what)).toEqual(["US prevalence of Corlan's disease"]);
+    expect(lines).toContain("I don't have US prevalence of Corlan's disease.");
+  });
+  it('68b-3 is tagged-only: prof-001 lines lower-case the first word as before (no proper words)', async () => {
+    const fx = asked('prof-001', 'European store counts');
+    const p = plan(fx);
+    const d = await turnDataChecked(p, turn(fx));
+    expect(d.properWords).toBeUndefined();
+    expect(renderDataLines(d, 's')).toEqual(["I don't have european store counts."]);
+  });
+  it('68b-3 b36a Marcus t6: "European" keeps its capital in the refusal', async () => {
+    const { d } = await run68b('D3');
+    expect(renderDataLines(d, 's')[0]).toMatch(/^I don't have European net price per patient per year/);
+  });
+  it('68b-4 b36l Jasmine t2: a period-only entry joins its neighbour — the rest reads "average fare, FY2023 vs FY2025"', async () => {
+    const { p } = await run68b('D4');
+    expect(acts(p, 'refusal_covered')[0].detail).toMatchObject({ covered: [{ ids: ['network_totals'], rest: 'average fare, FY2023 vs FY2025' }] });
+    expect(coverageDetail('total departures and average fare, FY2023 vs FY2025', taggedFactBase('prof-002')).rest).toBe('average fare, FY2023 vs FY2025');
+  });
+  it('68b-5 b34a Marcus t10: insurance_coverage names Nimbrel on its own line — kept, E1: its line and the share refused', async () => {
+    const { d } = await run68b('D5');
+    expect(d.releases.map(r => r.id)).toEqual(['insurance_coverage']);
+    expect(d.refusals).toEqual(['the share of covered lives where Nimbrel has exclusive or preferred status']);
+    expect(tagsAgree('the share of covered lives where Nimbrel has exclusive or preferred status', 'insurance_coverage', taggedFactBase('entry-001'))).toEqual({ agree: true, coarse: true });
+    expect(tagsAgree("Nimbrel's patent expiry", 'patents', taggedFactBase('entry-001'))).toEqual({ agree: false, why: 'entity' });
+  });
+  it('68b-6 b34l Marisol t6: the competitor is the other clause\'s — the route results go on Exhibit 1, nothing deferred', async () => {
+    const { p, d } = await run68b('D6');
+    expect(d.exhibit?.id).toBe('exhibit-1');
+    expect(d.defers).toEqual([]);
+    expect(acts(p, 'answer_gate')).toEqual([]);
+  });
+  it('68b-6 b36a Raj t11 still: "currently" sits in the clause matching the ask — the forecast dropped', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'funnel_rates', answers: 'full' }, { id: 'peak_share_forecast', answers: 'full' }] });
+    const p = plan(RAJ_B36A_T11);
+    await turnDataChecked(p, turn(RAJ_B36A_T11));
+    expect(acts(p, 'itemless_defer')[0].detail).toMatchObject({ tagDropped: ['peak_share_forecast'] });
   });
 });

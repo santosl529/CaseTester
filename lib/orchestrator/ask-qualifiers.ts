@@ -18,8 +18,9 @@ import { contentStems } from './data-requests';
 export type Qualifier = { kind: 'period' | 'scope' | 'topic'; text: string; at?: number };
 // `years`: the years the item's periods stand for when its line names none (qualifierItems).
 // `anyYear`: the case names no compared years and the line no year, so no asked year can be ruled out (fix round 2).
-// `other` (round 6, tagged cases): the item is another company's or product's (an entity's in the
-// case's tags) — it is the comparator itself, so it meets a competitor or benchmark scope.
+// `other` (round 6, tagged cases): the item is a rival's (an entity marked `rival` in the case's
+// tags: Larkspur's entrant, Aldermoor's Nimbrel) — the comparator itself, so it meets a competitor
+// or benchmark scope (Task 70 fix rounds 1 and 2; never the client's own other business, the chips).
 export type QualifierItem = { id: string; label: string; value: string; years?: string[]; anyYear?: true; other?: true };
 
 const MONTHS = 'January|February|March|April|May|June|July|August|September|October|November|December|Jan|Feb|Mar|Apr|Jun|Jul|Aug|Sept?|Oct|Nov|Dec';
@@ -239,11 +240,20 @@ export function unmetQualifiers(what: string, itemLines: QualifierItem[], caseLi
     const year = tiedYear(q);
     if (year) return datedPointsIn(t, year) >= 2;
     // Task 70 fix round 1 (b36 Larkspur Raj t17 "how quickly new routes ramp up … or builds toward it over time"): a line
-    // stating how long a level takes to reach, or the first year's level, states the ramp asked for.
-    if (opts.r6 && TREND_ONE.test(q.text) && RAMP.test(t)) return true;
+    // stating how long a level takes to reach, or the first year's level, states the ramp asked for — a forward or ramp
+    // trend only (fix round 2): never growth, "grew", "over the last few years", a past trend.
+    if (opts.r6 && TREND_ONE.test(q.text) && rampAsked(q, spansOf, what) && RAMP.test(t)) return true;
     return (anyYear && YEAR_ONLY.test(q.text)) || statesPeriod(q.text, t, years);
   });
   return askQualifiers(what, opts.r6).filter(q => !met(q));
+}
+// A ramp asked: the trend is "over time" or a trajectory, or its conjunct says ramp / build / reach / mature — and is no past trend.
+const PAST_TREND = /\b(?:growth|grew|grown|over\s+(?:the\s+)?(?:last|past|recent)|in\s+recent\s+years|year[-\s]over[-\s]year|(?:has|have)\s+(?:moved|changed))\b/i;
+function rampAsked(q: Qualifier, cs: ConjunctSpan[], what: string): boolean {
+  const own = cs.filter(c => inConjunct(q, c));
+  const t = own.length > 0 ? own.map(c => c.text).join(' ') : normalized(what);
+  if (PAST_TREND.test(q.text) || PAST_TREND.test(t)) return false;
+  return /^(?:over time|trajectory)$/i.test(q.text) || /\b(?:ramp\w*|build\w*|reach\w*|matur\w*)\b/i.test(t);
 }
 const RAMP = /\b(?:takes?|took|taking)\s+(?:about\s+|around\s+|roughly\s+)?\d+(?:\s*[–-]\s*\d+)?\s+(?:weeks?|months?|quarters?|years?)\s+to\b|\b(?:in|during)\s+(?:the\s+)?first\s+(?:year|month|quarter|weeks?)\b/i;
 // The one year a trend is tied to (round 6, row 15): its conjunct names one year, said as the

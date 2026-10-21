@@ -62,7 +62,7 @@ export type FactBase = {
   tags?: CaseTags;                        // round 6: the case's item tags (item-tags.ts)
   answerGate: boolean;                    // tags present: round 6's cover matching and gate are on (Task 68)
 };
-export type CaseTags = { clientWords: string[]; entities: { id: string; words: string[]; items: string[] }[]; forecast: string[] };
+export type CaseTags = { clientWords: string[]; entities: { id: string; rival?: boolean; words: string[]; items: string[] }[]; forecast: string[] };
 
 type CaseInput = {
   prompt: string;
@@ -753,13 +753,15 @@ const CLAUSE_END = /[,;:?.!—–]|\s(?:and|or|but)\s/g;
 const COUNT_WORDS = new Set(['how', 'many', 'number', 'count', 'total', 'the', 'a', 'an', 'of']);
 const regionsIn = (t: string) => new Set([...t.matchAll(REGION)].map(m => (/^(?:europe|european|eu)$/i.test(m[0]) ? 'europe' : m[0].toLowerCase())));
 
+// A list entry of period words only: years, FY/CY years, "vs"/"versus", "both years", "today"/"now", "two years ago".
+const PERIOD_ONLY = /^(?:(?:(?:FY|CY)\s?'?\d{2,4}|(?:19|20)\d{2}|vs\.?|versus|to|and|both years|each year|today|now|this year|(?:two|2) years ago|a year ago|last year|the|in|for)[\s,]*)+$/i;
 type CoverHit = { cover: FactBase['covers'][number]; start: number; end: number };
 // `dropped` (fix round 1, controller ruling, 21 Oct): the list entries left uncovered only
 // because (b) or (c) dropped every hit on them — `entity` when any was another company's,
 // else `region`. The coverage step (turn-data.ts) answers them without the check: no
 // model call BASE didn't make. `plain`: the rest without them.
 export type CoverageDetail = Coverage & { dropped: { what: string; why: 'entity' | 'region' }[]; plain: string | null };
-function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: CoverHit, lower: string) => boolean = () => true): CoverageDetail {
+function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: CoverHit, lower: string) => boolean = () => true, opts: { sentence?: boolean } = {}): CoverageDetail {
   const text = what.trim();
   const lower = lc(text);
   const question = /^(?:whether|if|how|why|which|what|when|where|who|is|are|was|were|do|does|did)\b/i.test(text) || text.endsWith('?');
@@ -773,6 +775,16 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
       at = (m.index ?? 0) + m[0].length;
     }
     entries.push({ text: text.slice(at), start: at, end: text.length });
+    // Task 70 fix round 2 (68b item 4; b36 Larkspur Jasmine t2 "total departures and average fare,
+    // FY2023 vs FY2025"): an entry of period words only is its neighbour's period, so the rest reads
+    // "average fare, FY2023 vs FY2025". Tagged cases only.
+    if (folded) {
+      for (let i = entries.length - 1; i > 0; i--) {
+        if (!PERIOD_ONLY.test(entries[i].text.trim())) continue;
+        entries[i - 1] = { start: entries[i - 1].start, end: entries[i].end, text: text.slice(entries[i - 1].start, entries[i].end) };
+        entries.splice(i, 1);
+      }
+    }
   }
   let hits: CoverHit[];
   if (!folded) {
@@ -786,9 +798,10 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
   // controller ruling C3, 21 Oct: an entity named in one conjunct applies only to the items
   // answering that conjunct — the entry with the bare entries after it, item-tags.ts askGroups;
   // Task 68 read the whole ask when the entry named nobody).
-  const groups = folded ? askGroups(text) : [];
+  // The candidate's sentence (d) is read by its list pieces (Task 70 fix round 2, 68b item 6), each hit in its own.
+  const groups = folded ? askGroups(text, { list: opts.sentence === true }) : [];
   const dropWhy = (h: CoverHit, entry: { text: string; start: number; end: number }): 'entity' | 'region' | null => {
-    const ask = groups.find(g => entry.start >= g.start && entry.start < g.end)?.text ?? entry.text;
+    const ask = groups.find(g => h.start >= g.start && h.start < g.end)?.text ?? groups.find(g => entry.start >= g.start && entry.start < g.end)?.text ?? entry.text;
     if (tagsAgree(ask, h.cover.id, fb).why === 'entity') return 'entity';
     const asked = regionsIn(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end));
     if (asked.size === 0) return null;
@@ -867,7 +880,7 @@ export function coverageDetail(what: string, fb: FactBase, opts: { sentence?: st
   const sentence = opts.sentence?.trim();
   if (!fb.answerGate || !sentence) return own;
   const asked = new Set(coverTokens(lc(what)).map(t => t.w).filter(w => !COVER_STOP.has(w)));
-  const said = coverageIn(sentence, fb, true, (h, lower) => coverTokens(lower.slice(h.start, h.end)).some(t => asked.has(t.w)));
+  const said = coverageIn(sentence, fb, true, (h, lower) => coverTokens(lower.slice(h.start, h.end)).some(t => asked.has(t.w)), { sentence: true });
   const items = [...new Set([...own.items, ...said.items])];
   if (own.items.length + own.promptFacts.length + own.coarse.length > 0) return { ...own, items };
   const ids = [...new Set(said.coarse.flatMap(c => c.ids))];

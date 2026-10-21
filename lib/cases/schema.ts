@@ -273,9 +273,13 @@ export const CaseSchema = z.object({
     //     in no entity are the client's); the items stating a forecast, plan or
     //     estimate. Present = the case opts into round 6's cover matching and gate
     //     (fact-check.ts coverageOf, item-tags.ts tagsAgree); prof-001 has none.
+    //     `rival` (Task 70 fix round 2, controller ruling, 21 Oct): the entity competes with
+    //     the client (Larkspur's entrant, Aldermoor's Nimbrel) — its items are the comparator
+    //     and meet a competitor or benchmark scope. Not the client's own other business
+    //     (Hollis Bay's chips).
     tags: z.object({
       clientWords: z.array(z.string().min(2)),
-      entities: z.array(z.object({ id: z.string().min(1), words: z.array(z.string().min(2)).min(1), items: z.array(z.string()) })),
+      entities: z.array(z.object({ id: z.string().min(1), rival: z.boolean().optional(), words: z.array(z.string().min(2)).min(1), items: z.array(z.string()) }).strict()),
       forecast: z.array(z.string()),
     }).optional(),
   }).optional(),

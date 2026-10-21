@@ -10,7 +10,7 @@ export type Tags = NonNullable<FactBase['tags']>;
 export const TAGS: Record<string, Tags> = {
   'prof-002': {
     clientWords: ['Larkspur', 'our', 'we'],
-    entities: [{ id: 'competitor', words: ['entrant', 'competitor', 'competitors', 'low-cost airline', 'low-cost carrier', 'rival', 'the other airline', 'new carrier'], items: ['competitor_entry', 'competitor_costs'] }],
+    entities: [{ id: 'competitor', rival: true, words: ['entrant', 'competitor', 'competitors', 'low-cost airline', 'low-cost carrier', 'rival', 'the other airline', 'new carrier'], items: ['competitor_entry', 'competitor_costs'] }],
     forecast: ['new_routes_plan', 'new_routes_cost_flights', 'new_route_rampup'],
   },
   'launch-001': {
@@ -20,7 +20,7 @@ export const TAGS: Record<string, Tags> = {
   },
   'entry-001': {
     clientWords: ['Kelvexa', 'Aldermoor'],
-    entities: [{ id: 'nimbrel', words: ['Nimbrel'], items: ['nimbrel', 'current_treatment'] }],
+    entities: [{ id: 'nimbrel', rival: true, words: ['Nimbrel'], items: ['nimbrel', 'current_treatment'] }],
     forecast: ['peak_share_forecast', 'peak_timing'],
   },
 };

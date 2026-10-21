@@ -33,9 +33,11 @@ const ASK_FRAME = /\b(?:do|does|did|can|could|would|will|should|shall|may|might|
 
 // A comparison names its other side, not whose figure is asked (Task 70 fix round 1; b35
 // Hollis Bay Marcus t1 "what price point they're targeting versus the chips" asks the chickpea
-// price): what follows versus / compared with / relative to / against / than, to the clause's
-// end, names nobody.
-const COMPARED = /\b(?:versus|vs\.?|compared (?:with|to)|relative to|against|than)\s+[^,;:?.!—–()]{0,40}?(?=[,;:?.!—–()]|\s+(?:and|or|but)\s|$)/gi;
+// price): another entity named after versus / compared with / relative to / against / than, to the
+// clause's end, is the comparison's other side, not whose figure is asked. The client stays named
+// wherever it is said (fix round 2: "how Nimbrel compares against Kelvexa in trials", "chip sales
+// versus the chickpea line" name both sides).
+const COMPARED = /\b(?:versus|vs\.?|compared (?:with|to)|relative to|against|than)\s+[^,;:?.!—–()\n]{0,40}?(?=[,;:?.!—–()\n]|\s+(?:and|or|but)\s|$)/gi;
 
 // The entities a text names, by id; 'client' when a client word appears.
 export function entitiesNamed(text: string, fb: FactBase): string[] {
@@ -43,7 +45,7 @@ export function entitiesNamed(text: string, fb: FactBase): string[] {
   if (!t) return [];
   const asked = text.replace(COMPARED, ' ');
   const out = t.entities.filter(e => e.words.some(w => says(asked, w))).map(e => e.id);
-  const unframed = asked.replace(ASK_FRAME, ' ');
+  const unframed = text.replace(ASK_FRAME, ' ');
   if (t.clientWords.some(w => says(unframed, w))) out.push('client');
   return out;
 }
@@ -65,16 +67,24 @@ const asksCurrent = (text: string) => CURRENT.test(text.replace(NOT_A_PERIOD, ' 
 //     answered by the competitor's cost line, "our" notwithstanding;
 //   forecast — the ask carries a current marker and the item states a forecast:
 //     "currently on an advanced therapy" is not the forecast peak share (row 18).
-export function tagsAgree(askText: string, itemId: string, fb: FactBase): { agree: boolean; why?: 'entity' | 'forecast' } {
+// `coarse`: it agrees only because its line names the asked entity (68b item 5) — it answers the ask
+// coarsely, not as that entity's own figure: E1's form (the answer gate makes it partial).
+export function tagsAgree(askText: string, itemId: string, fb: FactBase): { agree: boolean; why?: 'entity' | 'forecast'; coarse?: true } {
   const t = fb.tags;
   if (!t) return { agree: true };
   const named = entitiesNamed(askText, fb);
   const own = t.entities.filter(e => e.items.includes(itemId)).map(e => e.id);
-  const owners = own.length > 0 ? own : ['client'];
-  const others = named.filter(n => n !== 'client' && !owners.includes(n));
-  if (others.length > 0 && !named.some(n => owners.includes(n))) return { agree: false, why: 'entity' };
+  // An entity the item's own label or line names is the item's too (Task 70 fix round 2, controller
+  // ruling, 68b item 5: b34 Aldermoor Marcus t10 "the share of covered lives where Nimbrel has exclusive
+  // or preferred status" — "…Nimbrel is covered by most plans…" answers it in part).
+  const line = fb.ledger.find(l => l.id === itemId);
+  const lineNames = line ? t.entities.filter(e => e.words.some(w => says(`${line.label ?? ''} ${line.value}`, w))).map(e => e.id) : [];
+  const base = own.length > 0 ? own : ['client'];
+  const excluded = (owners: string[]) => named.some(n => n !== 'client' && !owners.includes(n)) && !named.some(n => owners.includes(n));
+  const coarse = excluded(base);
+  if (coarse && excluded([...base, ...lineNames])) return { agree: false, why: 'entity' };
   if (t.forecast.includes(itemId) && asksCurrent(askText)) return { agree: false, why: 'forecast' };
-  return { agree: true };
+  return coarse ? { agree: true, coarse: true } : { agree: true };
 }
 
 // The ask's entity groups (round 6 Task 70; controller ruling C3, 21 Oct: "on a list ask,
@@ -89,6 +99,14 @@ const ownPhrase = (t: string) => {
   return content.length >= 2 || (content.length === 1 && /^(?:the|a|an)\s/i.test(t.trim()));
 };
 export type AskGroup = { text: string; start: number; end: number };
+// The clauses of a candidate's asking sentence (Task 70 fix round 2, 68b item 6: b34 Larkspur Marisol
+// t6 "Do we have the route-level split of that $176M, and whether a competitor entered on any of the
+// six?" — the competitor is the second clause's): split at ", and" / ", or" / ", but", "; ", "?",
+// " and whether" / " or whether" / ", whether".
+const CLAUSE_BREAK = /\s*(?:[,;]\s*(?:and|or|but)\s+(?=whether\b|if\b|what\b|how\b|do\b|does\b|is\b|are\b|any\b|the\b|a\b|an\b|\w)|;\s*|\?\s*|\s+(?:and|or)\s+(?=whether\b)|,\s*(?=whether\b))/gi;
+export function askClauses(sentence: string): string[] {
+  return sentence.split(CLAUSE_BREAK).map(c => c.trim()).filter(c => /[a-z]/i.test(c));
+}
 // `list`: a question split as a list too (the candidate's sentence, read beside a list ask).
 export function askGroups(what: string, opts: { list?: boolean } = {}): AskGroup[] {
   const text = what.trim();

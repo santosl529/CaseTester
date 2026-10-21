@@ -290,6 +290,10 @@ export type DataDecisions = {
   // item, so they hold no data (Lorenzo, 19 Oct, round-3 ruling 3; set by turnDataChecked).
   itemlessDefers?: string[];
   offers: string[];       // what, for passing mentions of data the case holds
+  // Proper adjectives and names said as written when they open an ask in a line (Task 70 fix
+  // round 2, 68b item 3: "I don't have European net price…", not "european"); set by turnData
+  // on tagged cases only — a fixed list and the case's proper names.
+  properWords?: string[];
   // Rule 6 option 4 (v4.11): code's correction of a misquoted revealed figure,
   // spoken first in the data line (set by turn-data.ts on model turns).
   correction?: { item: string; items?: string[]; text: string } | null;
@@ -498,7 +502,8 @@ function nounPhrase(what: string): string {
   }
   return what;
 }
-function spokenWhat(raw: string): string {
+const NO_PROPER: ReadonlySet<string> = new Set();
+function spokenWhat(raw: string, proper: ReadonlySet<string> = NO_PROPER): string {
   const what = nounPhrase(raw);
   const words = what.trim().split(/\s+/);
   const first = words[0] ?? '';
@@ -510,7 +515,8 @@ function spokenWhat(raw: string): string {
     || (letters.length >= 2 && letters === letters.toUpperCase())
     || /[A-Z]/.test(first.slice(1))
     || /^[A-Z][a-z]+['’]s$/.test(first)   // a possessive name: "Kelvexa's", "Larkspur's"
-    || /^[A-Z]/.test(next);
+    || /^[A-Z]/.test(next)
+    || proper.has(letters.toLowerCase());
   return keep ? what : what.charAt(0).toLowerCase() + what.slice(1);
 }
 
@@ -562,9 +568,9 @@ export function spokenItemName(label: string): string {
 // data on whether load factor would fall …", not "I don't have whether …"; fix
 // round 2); a deferral keeps it ("I'll come back to whether …").
 const QUESTION_START = /^(?:whether|if|how|what(?!['’]s)|when|where|which|who|why)\b/i;
-const joinWhat = (whats: string[], conj: 'and' | 'or', refusal = false) => {
+const joinWhat = (whats: string[], conj: 'and' | 'or', refusal = false, proper: ReadonlySet<string> = NO_PROPER) => {
   const inList = new Set(whats).size > 1;
-  const u = [...new Set(whats.map(w => spokenWhat(speakable(w, conj, inList))).map(w => (refusal && QUESTION_START.test(w) ? `data on ${w}` : w)))];
+  const u = [...new Set(whats.map(w => spokenWhat(speakable(w, conj, inList), proper)).map(w => (refusal && QUESTION_START.test(w) ? `data on ${w}` : w)))];
   if (u.length <= 1) return u[0] ?? '';
   // A suffix every item shares is said once: "COGS and labor as a percent of revenue".
   const tail = / as a (?:percent|share) of revenue$/i.exec(u[0])?.[0];
@@ -580,8 +586,8 @@ const joinWhat = (whats: string[], conj: 'and' | 'or', refusal = false) => {
 // with a comma or an "and" (Lorenzo, 19 Oct, round-3 ruling 4; the controller's
 // definitions; batch 32 Larkspur Marcus / Marisol t28).
 const WONT_GET_TO_WORDS = 8;
-function wontGetToLine(whats: string[], uses: PhraseUses | undefined, seed: string): string {
-  const what = joinWhat(whats, 'and');
+function wontGetToLine(whats: string[], uses: PhraseUses | undefined, seed: string, proper: ReadonlySet<string> = NO_PROPER): string {
+  const what = joinWhat(whats, 'and', false, proper);
   // Two asks or more are joined with "and" (joinWhat), so the joined text tells.
   const list = /,|\sand\s/i.test(what);
   return list || what.split(/\s+/).length > WONT_GET_TO_WORDS ? line('wont_get_to_that', uses, seed) : phrase('wont_get_to', what, uses, seed);
@@ -616,11 +622,12 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
     parts.push({ kind: 'restate', ids: [], text: lead ? phrase(r.exhibit ? 'restate_exhibit' : 'restate', v, uses, seed) : v });
   });
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
-  if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true), uses, seed) });
-  if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });
-  if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed) });
-  if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and'), uses, seed) });
-  if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and'), uses, seed) });
+  const proper: ReadonlySet<string> = d.properWords ? new Set(d.properWords.map(w => w.toLowerCase())) : NO_PROPER;
+  if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });
+  if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and', false, proper), uses, seed) });
+  if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed, proper) });
+  if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and', false, proper), uses, seed) });
+  if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and', false, proper), uses, seed) });
   return parts;
 }
 
