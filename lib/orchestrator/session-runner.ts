@@ -460,11 +460,14 @@ export const ANALYSIS_REVISION_QUESTIONS = PHRASE_POOLS.analysis_revision;
 // questions are often the candidate thinking aloud (Jordan 15ad9d8e t25: "Did a
 // competitor promote into those markets?"), and an answer comes too late to use:
 // only addressed asks are answered there, as before.
+// Before the goodbye a question naming an item not yet out is an asking sentence too (round 6 Task 71,
+// audit row 17; request-signal.ts namesLedgerLabel): the labels of the items not yet out.
 export function codeWrittenAsks(plan: ModelPlan, detected: DetectedDataRequest[] | null): { sentences: string[]; kept: DetectedDataRequest[]; dropped: DetectedDataRequest[] } {
   const { ctx, state } = plan;
-  const sentences = addressedAskSentences(ctx.candidateText, ctx.currentPhase, { closing: state.kind === 'close' });
   const goodbye = state.kind === 'close' || state.kind === 'close_wait';
   const c = state.caseData;
+  const ledger = goodbye ? undefined : { labels: c.dataLedger.filter(i => canReveal(state.ledger, i.id)).map(i => i.label), caseNames: properNames(c.sttKeyterms) };
+  const sentences = addressedAskSentences(ctx.candidateText, ctx.currentPhase, { closing: state.kind === 'close', ledger, wantIs: state.factBase.answerGate });
   const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit), goodbye ? undefined : {
     text: ctx.candidateText,
     isHeld: id => canReveal(state.ledger, id),

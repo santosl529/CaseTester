@@ -633,6 +633,10 @@ export const BASIS = new RegExp([
   String.raw`\bmethodology\b`,
   String.raw`\bassumptions?\s+behind\b`,
   String.raw`\bhow\s+(?:was|were)\b.{0,40}?\b(?:estimated|derived|calculated)\b`,
+  // The subject first (round 6 Task 71, audit row 13; b37 Hollis Bay Tyler 442e37ff t17, "how the
+  // 500,000 household estimate was derived" restated both lines); "how many / how much … were
+  // estimated" asks the figure, not its basis.
+  String.raw`\bhow\b(?!\s+(?:many|much)\b).{0,40}?\b(?:was|were)\s+(?:estimated|derived|calculated)\b`,
   String.raw`\bevidence\s+(?:for|behind)\b`,
 ].join('|'), 'i');
 // A count ask (round 5 Task 50, A4; Lorenzo, 20 Oct: B2 Hollis Bay Jasmine t5

@@ -740,3 +740,55 @@ describe('a one-off cost ask (Lorenzo, 20 Oct; batch 34 Aldermoor Marisol t23)',
     expect(outsideAskScope('the one-time cost on top of the annual selling cost', optionA)).toBe(true);
   });
 });
+
+// Round 6 Task 71 (the audit's code-only fixes, docs/superpowers/plans/2026-10-21-data-path-audit.md;
+// Lorenzo, 21 Oct, round 6: "4. The audit's 12 code-only rule fixes."). The asks verbatim from the runs.
+describe('Task 71: the scope rules the audit found missing', () => {
+  const item = (caseId: string, id: string) => getCaseById(caseId).dataLedger.find(i => i.id === id)!;
+  // Row 8, b36 Larkspur Marcus a7d9f44e t19 → t20: "What I'd want to know is the launch cost — marketing,
+  // station setup, crew basing at the two new cities." The check mapped it to the new routes' recurring
+  // line, restated at t20.
+  it('row 8: a launch-cost ask is a one-off ask — the new routes\' recurring line is out of its scope', () => {
+    expect(outsideAskScope('launch costs for the new routes', item('prof-002', 'new_routes_cost_flights'))).toBe(true);
+    // Hollis Bay's own launch costs say "launch costs" (ONE_OFF_VALUE): still in scope.
+    expect(outsideAskScope('first-year launch costs', item('launch-001', 'launch_costs'))).toBe(false);
+    expect(outsideAskScope('launch costs and the price point', item('launch-001', 'launch_costs'))).toBe(false);
+  });
+  // Row 14, b37 Quillpath Tyler a2a5921b t5 → t6: "Do we have the split of Starter sign-ups by source —
+  // paid versus organic?" mapped to signup_channels, whose line says how each plan signs up.
+  it('row 14: a cut by source is a cut the sign-up item doesn\'t have', () => {
+    expect(outsideAskScope('the split of Starter sign-ups by source', item('pricing-001', 'signup_channels'))).toBe(true);
+    expect(outsideAskScope('sign-ups by sources', { label: 'Sign-ups by source' })).toBe(false);   // a label that carries the cut
+  });
+  // Row 21, b36 Aldermoor Marcus c518221e t23 → t24: "Do we have the $80 million split by rep cost versus
+  // market access?" — Option A's line states the $80 million once, and no parts of it.
+  it('row 21: a split of a figure the item states as one amount is out of its scope', () => {
+    const optionA = item('entry-001', 'option_a');
+    expect(outsideAskScope('the split of the $80 million between rep cost and market access', optionA)).toBe(true);
+    expect(outsideAskScope('the $80M split by rep cost versus market access', optionA)).toBe(true);
+    expect(outsideAskScope('the $80 million: rep cost versus market access', optionA)).toBe(true);
+    // A line that states the parts answers the split; a figure the line doesn't state isn't this rule's.
+    const parts = { label: 'Selling costs', value: 'Annual US selling costs are $80 million: $50 million for the reps and $30 million for market access.' };
+    expect(outsideAskScope('the split of the $80 million between rep cost and market access', parts)).toBe(false);
+    expect(outsideAskScope('the split of the $90 million between rep cost and market access', optionA)).toBe(false);
+    // Not a split of the figure: the figure asked about as a whole.
+    expect(outsideAskScope('whether the $80 million holds flat over time', optionA)).toBe(false);
+  });
+});
+
+// Round 6 Task 71 (audit row 16; b37 Quillpath Marcus eb8d7576 t9 → t10, graded borderline): "I can share
+// plan economics … if you'd like." for a cue and one label word, "plan". On a tagged case (`strict`) the
+// need clause names two distinctive label words, the case's proper names aside, or the spoken name.
+describe('Task 71: the offer gate on a tagged case', () => {
+  const MARCUS = 'First, it\'s a monthly number and the comparison that matters is lifetime, so I\'d need to multiply by expected tenure on each plan, and tenure probably differs — a Starter customer may churn faster, which makes the gap worse than $60 a month.';
+  const LABEL = 'Plan economics: monthly price and cost to serve, Pro and Starter';
+  const strict = { spoken: 'the plan economics', caseNames: ['Quillpath', 'Starter', 'Pro', 'LTV', 'CAC'] };
+  it('row 16: one label word ("plan", "Starter" a plan name) is no need on a tagged case; untagged, as before', () => {
+    expect(mentionStatesNeed(MARCUS, LABEL, strict)).toBe(false);
+    expect(mentionStatesNeed(MARCUS, LABEL)).toBe(true);
+  });
+  it('two label words or the spoken name are', () => {
+    expect(mentionStatesNeed("I'd want the monthly cost to serve on each plan.", LABEL, strict)).toBe(true);
+    expect(mentionStatesNeed('I still need the plan economics.', LABEL, strict)).toBe(true);
+  });
+});

@@ -19,7 +19,7 @@ vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<obje
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
 
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
-import { turnDataChecked, answerGate, decideCheckedAsk } from '@/lib/orchestrator/turn-data';
+import { turnDataChecked, answerGate, decideCheckedAsk, startMessageAsks } from '@/lib/orchestrator/turn-data';
 import { renderDataLines, decisionRows } from '@/lib/orchestrator/data-decisions';
 import { unmetQualifiers, askQualifiers, gateReading } from '@/lib/orchestrator/ask-qualifiers';
 import { tagsAgree } from '@/lib/orchestrator/item-tags';
@@ -31,6 +31,7 @@ import { askVia } from './fixtures/ask-check';
 import { taggedFactBase } from './fixtures/tagged-cases';
 import { GATE_CORPUS } from './fixtures/gate-corpus';
 import { GATE_68B } from './fixtures/gate-68b';
+import { AUDIT_T71 } from './fixtures/audit-t71';
 import { entitiesNamed } from '@/lib/orchestrator/item-tags';
 import { coverageDetail } from '@/lib/orchestrator/fact-check';
 import { CaseSchema } from '@/lib/cases/schema';
@@ -566,5 +567,102 @@ describe('fix round 2', () => {
     const p = plan(RAJ_B36A_T11);
     await turnDataChecked(p, turn(RAJ_B36A_T11));
     expect(acts(p, 'itemless_defer')[0].detail).toMatchObject({ tagDropped: ['peak_share_forecast'] });
+  });
+});
+
+// Round 6 Task 71 (the audit's code-only fixes; Lorenzo, 21 Oct, round 6: "4. The audit's 12 code-only
+// rule fixes"; docs/superpowers/plans/2026-10-21-data-path-audit.md Part 3). Each turn verbatim from the
+// runs (fixtures/audit-t71.ts); the check's mapping as recorded (`itemless_defer` found).
+describe('Task 71: the audit\'s code-only fixes, through the turn', () => {
+  const run71 = async (key: string, found?: { items: { id: string; answers: string }[] }, o: { kind?: string } = {}) => {
+    const f = AUDIT_T71[key];
+    const p = planTurn(readsFixture({ caseId: f.caseId, phase: f.phase as Phase, revealed: f.revealed, flags: { pressureTest: f.pressureTest } }), f.text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    for (const id of f.shown) p.state.shownExhibitIds.add(id);
+    p.state.kind = (o.kind ?? f.kind) as typeof p.state.kind;
+    if (found) classify.mockResolvedValueOnce(found);
+    return { p, d: await turnDataChecked(p, { requests: f.requests, exhibit: null, rescueItem: null }) };
+  };
+  it('row 8, b36l Marcus t19 (rec_ask): the launch cost is out of the recurring line\'s scope — refused alone, nothing restated', async () => {
+    const { d } = await run71('F1', { items: [{ id: 'new_routes_cost_flights', answers: 'full' }] });
+    expect(d.restates).toEqual([]);
+    expect(d.releases).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have launch costs for the new routes."]);
+  });
+  it('row 13, b37h Tyler t17 (rec_ask): a basis ask — neither line restated, the basis refused', async () => {
+    const { d } = await run71('F3', { items: [{ id: 'planning_assumptions', answers: 'full' }, { id: 'survey_design', answers: 'full' }] });
+    expect(d.restates).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have data on how the 500,000 household estimate was derived."]);
+  });
+  it('row 14, b37q Tyler t5: E1 — how customers sign up, and the split by source refused beside it', async () => {
+    const { p, d } = await run71('F4');
+    expect(d.releases.map(r => r.id)).toEqual(['signup_channels']);
+    expect(d.refusals).toEqual(['the split of Starter sign-ups by source']);
+    expect(renderDataLines(d, 's')).toEqual([value('pricing-001', 'signup_channels'), "I don't have the split of Starter sign-ups by source."]);
+    expect(acts(p, 'scope_coarse')).toHaveLength(1);
+    expect(ask).not.toHaveBeenCalled();
+  });
+  it('row 16, b37q Marcus t9: "I\'d need to multiply by expected tenure on each plan" is no need for the plan economics — no offer', async () => {
+    const { d } = await run71('F5');
+    expect(d.offers).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual([]);
+  });
+  it.each([
+    ['the spoken name', 'To settle it, I still need the plan economics.'],
+    ['two label words', 'Whether this holds depends on the monthly cost to serve on each plan.'],
+  ])('row 16 keeps a need that says %s (tagged): offered', async (_, text) => {
+    const f = AUDIT_T71.F5;
+    const p = planTurn(readsFixture({ caseId: f.caseId, phase: f.phase as Phase, revealed: f.revealed, flags: { pressureTest: f.pressureTest } }), text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    const d = await turnDataChecked(p, { requests: f.requests, exhibit: null, rescueItem: null });
+    expect(d.offers).toEqual(['plan economics: monthly price and cost to serve for Pro and Starter']);
+  });
+  it('row 6, b36l Tyler t5: the passenger-count mention an asking sentence names is released, not offered', async () => {
+    const { p, d } = await run71('F6');
+    // Asked with the fare, it goes out on the Hub–Lakeport exhibit that shows both (Rule 10's covering exhibit).
+    expect(d.exhibit).toMatchObject({ id: 'exhibit-2' });
+    expect(d.exhibit?.covers).toEqual(expect.arrayContaining(['lakeport_fare', 'lakeport_seats_load']));
+    expect(decisionRows(d).find(r => r.what === 'load factor on Lakeport and Port Avery')).toMatchObject({ explicit: true, response: 'release' });
+    expect(d.offers).toEqual([]);
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(/I can share/);
+    expect(acts(p, 'mention_asked')[0].detail).toEqual({ asks: [{ what: 'load factor on Lakeport and Port Avery', ids: ['lakeport_seats_load'] }] });
+  });
+  it('row 21, b36a Marcus t23: a split of the $80 million — Option A\'s line is not restated; the split refused alone', async () => {
+    const { d } = await run71('F8', { items: [{ id: 'option_a', answers: 'full' }] });
+    expect(d.restates).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have the split of the $80 million between rep cost and market access."]);
+  });
+  it('row 11, b37h Marcus t9 (launch-001, tagged): "What I\'d want is …" starts the message classifier', async () => {
+    const text = "Noted, I'll assume we don't have it. What I'd want is distribution math: how many stores Hollis Bay can get the line into, and velocity — bags per store per week.";
+    const p = planTurn(readsFixture({ caseId: 'launch-001', phase: 'EXHIBIT', revealed: [], flags: { pressureTest: SATISFIED } }), text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    const asks = await startMessageAsks(p);
+    expect(asks?.sentences).toEqual(["What I'd want is distribution math: how many stores Hollis Bay can get the line into, and velocity — bags per store per week."]);
+    expect(classify).toHaveBeenCalledTimes(1);
+  });
+  // X1 (controller ruling, 21 Oct): a cover vetoed only on scope, on a turn after the pressure test — b34a
+  // Jasmine t2's ask as it ran (68b item 2), the pressure test satisfied: E1's form, not the named deferral.
+  it('X1: a cover vetoed only on scope after the pressure test — the item\'s line and "I don\'t have <the cut>", unchecked', async () => {
+    const f = GATE_68B.D2;
+    const p = planTurn(readsFixture({ caseId: f.caseId, phase: f.phase as Phase, revealed: f.revealed, flags: { pressureTest: SATISFIED } }), f.text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    const d = await turnDataChecked(p, { requests: f.requests, exhibit: null, rescueItem: null });
+    expect(d.releases.map(r => r.id)).toEqual(['current_treatment']);
+    const lines = renderDataLines(d, 's');
+    expect(lines).toEqual([value('entry-001', 'current_treatment'), "I don't have current treatment breakdown by drug class or US prevalence of Corlan's disease."]);
+    expect(lines.join(' ')).not.toMatch(/come back to/);
+    expect(acts(p, 'cover_deferred')).toEqual([]);
+    // Only what nothing covers goes to the check, as at BASE; the cut never does.
+    expect(ask.mock.calls.map(c => (c[0] as { what: string }).what)).toEqual(["US prevalence of Corlan's disease"]);
+  });
+  it('X1: the item out already — the cut refused alone, unchecked', async () => {
+    const f = GATE_68B.D2;
+    const p = planTurn(readsFixture({ caseId: f.caseId, phase: f.phase as Phase, revealed: ['current_treatment'], flags: { pressureTest: SATISFIED } }), f.text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    const d = await turnDataChecked(p, { requests: f.requests, exhibit: null, rescueItem: null });
+    expect(d.releases).toEqual([]);
+    expect(d.restates).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have current treatment breakdown by drug class or US prevalence of Corlan's disease."]);
+    expect(ask.mock.calls.map(c => (c[0] as { what: string }).what)).not.toContain('current treatment breakdown by drug class');
   });
 });

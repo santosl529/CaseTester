@@ -96,12 +96,12 @@ describe('an explicit ask the model replaced gets its own answer (A4)', () => {
     const [line, rest] = [data.slice(0, WHY_NOW.length), data.slice(WHY_NOW.length + 1)];
     expect(line).toBe(WHY_NOW);
     expect(WHY_NOW).toMatch(/^Chip sales are flat/);
-    const refusal = rest.slice(0, rest.indexOf(' I can share'));
-    expect(refusal).toMatch(REFUSE);
-    expect(refusal).toBe(`I don't have ${BAGS_SAID}.`);
-    expect(rest.slice(refusal.length + 1)).toMatch(pool('offer'));
-    expect(rest).toContain(OFFER.what);
-    expect(checkOf(p, 'data_decisions')).toMatchObject({ detail: { releases: ['why_now'], refusals: [BAGS.what], offers: [OFFER.what] } });
+    // Round 6 Task 71 (audit row 16): on a tagged case "bags" alone is no stated need for the planning
+    // assumptions (one label word) — the model's offer is not said; her ask is answered as before.
+    expect(rest).toMatch(REFUSE);
+    expect(rest).toBe(`I don't have ${BAGS_SAID}.`);
+    expect(rest).not.toMatch(pool('offer'));
+    expect(checkOf(p, 'data_decisions')).toMatchObject({ detail: { releases: ['why_now'], refusals: [BAGS.what], offers: [] } });
     expect(checkOf(p, 'scope_coarse')).toMatchObject({ detail: { asks: [{ what: BAGS.what, ids: ['why_now'] }] } });
     expect(checkOf(p, 'uncovered_asks')).toMatchObject({ decision: 'act', detail: { open: ["One thing I'd want: how many bags of chips does Hollis Bay sell a year?"], answered: [BAGS.what] } });
     // Decided by the case's cover, not the small-model check.
@@ -114,7 +114,7 @@ describe('an explicit ask the model replaced gets its own answer (A4)', () => {
     const s = await settleTurn(p, outcome(T6_TURN));
     const data = dataOf(s.spokenText, T6_TURN.say, T6_QUESTION);
     expect(data.startsWith(WHY_NOW)).toBe(true);
-    expect(checkOf(p, 'data_decisions')).toMatchObject({ detail: { releases: ['why_now'], refusals: [BAGS.what], offers: [OFFER.what] } });
+    expect(checkOf(p, 'data_decisions')).toMatchObject({ detail: { releases: ['why_now'], refusals: [BAGS.what], offers: [] } });   // Task 71: no offer
   });
 
   it('streamed: Stream and Settle say the same data line, and the message is classified once', async () => {
@@ -160,7 +160,8 @@ describe('an explicit ask the model replaced gets its own answer (A4)', () => {
     const offer = { what: 'the planning assumptions on households, conversion and bags per household', itemIds: ['planning_assumptions'], explicit: false, respond: 'defer' as const };
     const s = await settleTurn(p, outcome({ ...T6_TURN, requests: [offer] }));
     expect(s.spokenText).toContain(WHY_NOW);
-    expect(checkOf(p, 'data_decisions')).toMatchObject({ detail: { releases: ['why_now'], refusals: [BAGS.what], offers: [offer.what] } });
+    // Task 71 (audit row 16): "bags" alone is no stated need on a tagged case — the offer is not said either.
+    expect(checkOf(p, 'data_decisions')).toMatchObject({ detail: { releases: ['why_now'], refusals: [BAGS.what], offers: [] } });
   });
 
   // Fix round 1 (review): coverage is decided per detection, and one shared word is no cover.
@@ -204,7 +205,9 @@ describe('an explicit ask the model replaced gets its own answer (A4)', () => {
     const p = t5();
     const s = await settleTurn(p, outcome(T6_TURN));
     expect(s.spokenText).not.toContain('Chip sales are flat');
-    expect(s.spokenText).toContain(OFFER.what);
+    // The model's own line, its offer not said on this tagged case (Task 71, audit row 16).
+    expect(s.spokenText).toContain(T6_QUESTION);
+    expect(s.spokenText).not.toContain(OFFER.what);
     expect(checkOf(p, 'uncovered_asks')).toMatchObject({ decision: 'pass', detail: { timedOut: true, classified: false } });
   }, 5000);
 

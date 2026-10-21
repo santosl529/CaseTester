@@ -155,9 +155,11 @@ export function verifiedFromChecks(claims: ArithmeticClaim[], unitVerified: Unit
 // The figure as the candidate wrote it ("1.6%", "43.3 points", "$20 million"),
 // for a neutral request for the working. Read from the flag's own span where
 // there is one, so another figure of the same value isn't picked up.
+// A ".0" before the scale is kept with it (round 6 Task 71, audit M3; b37 Hollis Bay Tyler 442e37ff t5:
+// "$9.0M" read "How did you get to $9?").
 export function figureAsWritten(text: string, figure: number): string {
   const n = String(figure).replace('.', '\\.');
-  const m = new RegExp(`(?:\\$\\s?)?(?<![\\d.])${n}(?:\\s?%|\\s+(?:percentage\\s+)?points?|\\s+percent|\\s?(?:million|billion|thousand|m|bn|k)\\b)?`, 'i').exec(text);
+  const m = new RegExp(`(?:\\$\\s?)?(?<![\\d.])${n}(?:\\s?%|\\s+(?:percentage\\s+)?points?|\\s+percent|(?:\\.0+)?\\s?(?:million|billion|thousand|m|bn|k)\\b)?`, 'i').exec(text);
   return m ? m[0] : String(figure);
 }
 

@@ -107,11 +107,16 @@ describe('the tag gate on the coverage step (R1)', () => {
     expect(ask).not.toHaveBeenCalled();
     expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'patents', why: 'entity' }] }] });
   });
-  it('a scope miss on a covered item (a one-off cost of an annual line): deferred, not released', async () => {
+  // Round 6 Task 71 (controller ruling X1, 21 Oct): after the pressure test a cover vetoed only on scope
+  // gets E1's form — the item's line and "I don't have <the cut>.", unchecked — not the named deferral.
+  // Option A's line waits on its exhibit (the release order): the cut refused alone, unchecked.
+  it('a scope miss on a covered item (a one-off cost of an annual line), after the pressure test: E1\'s form — the cut refused, no deferral (X1)', async () => {
     const p = plan('entry-001', 'What would the one-off cost of building a team be?', taggedFactBase('entry-001'));
     const d = await turnDataChecked(p, turn('the one-off cost of building a team'));
     expect(d.releases).toEqual([]);
-    expect(d.defers).toEqual(['the one-off cost of building a team']);
+    expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ coarse: [{ what: 'the one-off cost of building a team', ids: ['option_a'] }] }] });
+    expect(d.refusals).toEqual(['the one-off cost of building a team']);
+    expect(d.defers).toEqual([]);
     expect(ask).not.toHaveBeenCalled();
     expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'option_a', why: 'scope' }] }] });
   });
@@ -160,13 +165,15 @@ describe('the gate\'s scope on covers_added, R3\'s cover exemption and the check
     await turnDataChecked(p, turn(ONE_OFF, ['option_b']));
     expect(acts(p, 'covers_added')).toEqual([]);
   });
-  it('R3: a mapped item its cover names but the one-off cut rules out is not exempt — dropped from the ask, never given or booked', async () => {
+  it('R3: a mapped item its cover names but the one-off cut rules out is not exempt — dropped from the ask, then E1\'s coarse item (X1)', async () => {
     const p = plan('entry-001', 'What would the one-off cost of building a team be?', taggedFactBase('entry-001'));
     const d = await turnDataChecked(p, turn(ONE_OFF, ['option_a']));
     expect(acts(p, 'request_scope')[0]?.detail).toEqual({ scoped: [{ what: ONE_OFF, ids: ['option_a'] }] });
-    // Emptied, the ask meets the coverage step's gate: the named deferral, unchecked.
-    expect(d.requests.flatMap(r => r.ledgerItemIds)).toEqual([]);
-    expect(d.itemlessDefers).toEqual([ONE_OFF]);
+    // Emptied, the ask meets the coverage step's gate: after the pressure test, E1's form (X1), unchecked —
+    // Option A's line waits on its exhibit, so the cut is refused alone.
+    expect(d.releases).toEqual([]);
+    expect(d.refusals).toEqual([ONE_OFF]);
+    expect(d.itemlessDefers).toBeUndefined();
     expect(ask).not.toHaveBeenCalled();
   });
   it('the check\'s scope (answersAsk): a cover hit failing the gate doesn\'t force the item in', async () => {
@@ -203,20 +210,35 @@ describe('ruling 7 on a tagged case: a cut inside the matched cover phrase keeps
     expect(ask).not.toHaveBeenCalled();
     expect(acts(p, 'cover_gate')).toEqual([]);
   });
-  it('a cut outside the phrase ("… by market") still scopes the item out: deferred, not released', async () => {
+  it('a cut outside the phrase ("… by market") still scopes the item out: E1 — the line and the cut refused (X1)', async () => {
     const what = "Kelvexa's US price per patient per year by market";
     const p = plan('entry-001', `What is ${what}?`, taggedFactBase('entry-001'));
     const d = await turnDataChecked(p, turn(what));
-    expect(d.releases).toEqual([]);
-    expect(d.itemlessDefers).toEqual([what]);
+    expect(d.releases.map(r => r.id)).toEqual(['kelvexa_pricing']);
+    expect(d.refusals).toEqual([what]);
     expect(ask).not.toHaveBeenCalled();
     expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'kelvexa_pricing', why: 'scope' }] }] });
   });
-  it('a split outside the phrase ("the split of" fuel price changes) still scopes the item out', async () => {
+  it('a split outside the phrase ("the split of" fuel price changes) still scopes the item out — E1: the line and the split refused (X1)', async () => {
     const p = plan('prof-002', 'Can I see the split of fuel price changes?', taggedFactBase('prof-002'));
     const d = await turnDataChecked(p, turn('the split of fuel price changes'));
-    expect(d.releases).toEqual([]);
+    expect(d.releases.map(r => r.id)).toEqual(['fuel_prices']);
+    expect(d.refusals).toEqual(['the split of fuel price changes']);
+    expect(ask).not.toHaveBeenCalled();
     expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'fuel_prices', why: 'scope' }] }] });
+  });
+});
+
+// Round 6 Task 71 X1: a change item asked for a split is a sibling, never E1's coarse item (E1's ruling,
+// 20 Oct): the fuel trend line is not given for a split of the fuel cost breakdown; the cut refused alone.
+describe('X1 keeps E1\'s sibling rule', () => {
+  it('"the split of the fuel cost breakdown": no fuel trend line, the ask refused alone, unchecked', async () => {
+    const p = plan('prof-002', 'Can I see the split of the fuel cost breakdown?', taggedFactBase('prof-002'));
+    const d = await turnDataChecked(p, turn('the split of the fuel cost breakdown'));
+    expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'fuel_prices', why: 'scope' }], coarse: [{ what: 'the split of the fuel cost breakdown', ids: [] }] }] });
+    expect(d.releases).toEqual([]);
+    expect(d.refusals).toEqual(['the split of the fuel cost breakdown']);
+    expect(ask).not.toHaveBeenCalled();
   });
 });
 

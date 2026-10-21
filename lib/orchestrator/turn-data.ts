@@ -9,7 +9,7 @@ import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit,
 import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
-import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, WANT_ASK_PHASES } from './request-signal';
+import { askingSentences, addressedAskSentences, lateAskSentences, requestSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, saysItemName, WANT_ASK_PHASES } from './request-signal';
 import { tagsAgree, askGroups, askClauses } from './item-tags';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
@@ -640,7 +640,7 @@ export function probeTurn(plan: ModelPlan): boolean {
 }
 function messageAskSentences(plan: ModelPlan): string[] {
   const { ctx, state } = plan;
-  return WANT_ASK_PHASES.includes(ctx.currentPhase) ? addressedAskSentences(ctx.candidateText, ctx.currentPhase)
+  return WANT_ASK_PHASES.includes(ctx.currentPhase) ? addressedAskSentences(ctx.candidateText, ctx.currentPhase, { wantIs: state.factBase.answerGate })
     : lateAskSentences(ctx.candidateText, ctx.currentPhase, [state.caseData.prompt, ...Object.values(revealedValues(state.ledger))]);
 }
 // The classifier on the message: one call per turn, shared through the plan.
@@ -804,6 +804,37 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     const id = labelMatch(r.what, ledger.items);
     return id ? { ...r, itemIds: [id] } : r;
   });
+  // A mention the candidate asked for (round 6 Task 71, audit row 6, the offer half; b36 Larkspur Tyler
+  // 4e91d638 t5: "I'd want to know fares and passenger counts specifically on Lakeport and Port Avery." —
+  // the model declared the Lakeport load line `explicit: false`, and code offered it): on a tagged case an
+  // item of an `explicit: false` declaration that an asking sentence of the message names — says one of
+  // its names whole (request-signal.ts saysItemName: its label, spoken name, the case's names and covers
+  // for it, the case's proper names aside; namesItem's one shared word would promote b35 Hollis Bay
+  // Jasmine t5's offer of the planning assumptions, a different item, Task 50's ruling) — is asked:
+  // released under every gate, not offered (`mention_asked`). The sentences:
+  // the message's addressed ones (messageAskSentences) and, before the brainstorm, guard B's explicit-cue
+  // ones (requestSentences) — the addressed ones miss Tyler's (", I'd want to know …" reads as
+  // self-answered). Not a bare stated need: b37 Quillpath Marcus t9's "I'd need to multiply by expected
+  // tenure on each plan" (audit row 16) names "plan" and asks for nothing. Untagged prof-001 offers as before.
+  if (state.factBase.answerGate && state.kind === 'model') {
+    const early = WANT_ASK_PHASES.includes(ctx.currentPhase) ? requestSentences(ctx.candidateText) : [];
+    const said = [...new Set([...messageAskSentences(plan), ...early])].join(' ');
+    const caseNames = properNames(state.caseData.sttKeyterms);
+    const fbn = state.factBase;
+    const asked: { what: string; ids: string[] }[] = [];
+    requests = requests.flatMap(r => {
+      if (r.explicit || !said) return [r];
+      const named = r.itemIds.filter(id => {
+        const item = ledger.items.find(i => i.id === id);
+        return item !== undefined && saysItemName(said, [item.label, item.spoken ?? '', ...(fbn.quantities.find(q => q.id === id)?.names ?? []), ...(fbn.covers.find(c => c.id === id)?.phrases ?? [])], caseNames);
+      });
+      if (named.length === 0) return [r];
+      asked.push({ what: r.what, ids: named });
+      const rest = r.itemIds.filter(id => !named.includes(id));
+      return [{ ...r, itemIds: named, explicit: true }, ...(rest.length > 0 ? [{ ...r, itemIds: rest }] : [])];
+    });
+    if (asked.length > 0) plan.ctx.checks.act('mention_asked', 'a mention an addressed asking sentence names: asked, not offered', { asks: asked });
+  }
   // An ask that names a group of items (the case's factAnchors groups: "what's
   // inside COGS", "COGS breakdown by input", "the cost breakdown") is answered
   // with every item of the group the case holds (Phase 3, Lorenzo: a COGS-by-
@@ -1065,7 +1096,9 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // refused, unchecked (audit row 20: "I don't have Kelvexa's European net price").
   // A failing match beside one that passes is dropped (logged): the rest answers the ask.
   const regionRefused = new Set<string>();
-  const coverGate: { what: string; deferred?: { id: string; why: 'entity' | 'forecast' | 'scope' }[]; kept?: string[]; named?: string[]; excluded?: { what: string; why: 'entity' | 'region' }[] }[] = [];
+  const coverGate: { what: string; deferred?: { id: string; why: 'entity' | 'forecast' | 'scope' }[]; kept?: string[]; named?: string[]; coarse?: { what: string; ids: string[] }[]; excluded?: { what: string; why: 'entity' | 'region' }[] }[] = [];
+  // X1 (Task 71): the cut of an ask whose covers missed only on scope, after the pressure test — refused unchecked.
+  const scopeVetoed = new Set<string>();
   requests = requests.flatMap(r => {
     // Declared release or defer alike: after the pressure test a deferral becomes a release (below).
     if (!r.explicit || r.itemIds.length > 0 || gateMade.has(r.what)) return [r];
@@ -1099,6 +1132,26 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
             coverGate.at(-1)!.named = held;
             // What nothing covers goes on as at BASE (the item-less path).
             return [...held.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label, respond: 'defer' as const })),
+              ...(cov.plain ? [{ ...r, what: cov.plain, itemIds: [] as string[] }] : [])];
+          }
+          // Satisfied (round 6 Task 71, controller ruling X1, 21 Oct): E1's form, not the hollow named
+          // deferral — each item's line and "I don't have <the cut>." for the list entry its cover sits in,
+          // the refusal unchecked (it joins the scope refusals, never the check). An item out already: the
+          // refusal alone (4b); one held by the release order or the cap: the refusal alone too. A change
+          // item asked for a split is a sibling, never a coarse item (E1's ruling): its entry refused alone.
+          if (kept.length === 0 && scopeOnly) {
+            const byEntry = new Map<string, string[]>();
+            for (const id of new Set(deferred.map(x => x.id))) {
+              const entry = coverEntry(r.what, id, fb).trim();
+              const coarse = !changeForSplit(entry, ledger.items.find(i => i.id === id)!);
+              byEntry.set(entry, [...(byEntry.get(entry) ?? []), ...(coarse ? [id] : [])]);
+            }
+            coverGate.at(-1)!.coarse = [...byEntry].map(([what, ids]) => ({ what, ids }));
+            for (const [entry, ids] of byEntry) {
+              if (ids.length > 0) coarseOf.set(entry, [...new Set([...(coarseOf.get(entry) ?? []), ...ids])]);
+              scopeVetoed.add(entry);
+            }
+            return [...[...byEntry.keys()].map(entry => ({ ...r, what: entry, itemIds: [] as string[], respond: 'release' as const })),
               ...(cov.plain ? [{ ...r, what: cov.plain, itemIds: [] as string[] }] : [])];
           }
           if (kept.length === 0) { coverVetoed.add(r.what); return [r]; }
@@ -1296,6 +1349,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     // slot and the third COGS item was deferred).
     groups: askedGroups,
     wrapUp: wrapUpTurn(plan),
+    // A tagged case's offer gate (round 6 Task 71, audit row 16): two label words or the spoken name.
+    ...(state.factBase.answerGate ? { need: { caseNames: properNames(state.caseData.sttKeyterms) } } : {}),
   });
   let decisions = decide(requests);
   // E1 (Lorenzo, 20 Oct): a coarse item goes out when it is released or shown
@@ -1333,7 +1388,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   }
   const outAlready = alreadyOut.filter(x => decisions.refusals.includes(x.what));
   if (outAlready.length > 0) plan.ctx.checks.act('scope_coarse', 'an ask a scope rule emptied whose coarse items are already out: the finer cut refused alone, unchecked', { alreadyOut: outAlready });
-  const scopeRefused = new Set([...scopeCoarse.map(x => x.what), ...outAlready.map(x => x.what), ...siblingsOnly]);
+  const scopeRefused = new Set([...scopeCoarse.map(x => x.what), ...outAlready.map(x => x.what), ...siblingsOnly, ...scopeVetoed]);
   if (scopeCoarse.length > 0) {
     const firstAt = (w: string) => requests.findIndex(r => r.what === w);
     // Only the coarse asks' own finer cuts join the refusals: an ask emptied of

@@ -43,6 +43,13 @@ const ADDRESSED_CUES: RegExp[] = [
   /\bany\s+(data|numbers|figures|information)\s+on\b/i,
 ];
 const WANT_CUE = CUES.find(([label]) => label === "I'd want the")![1];
+// "(What) I'd want is …" too, on a tagged case (round 6 Task 71, audit row 11; b37 Hollis Bay Marcus
+// ddbb070b t9: "What I'd want is distribution math: how many stores Hollis Bay can get the line into …"
+// asked nothing, and the turn answered with an offer). `wantIs` (the callers pass the case's
+// `answerGate`): prof-001's b29 Blake t3 "One thing I would want is the menu-price history …" would
+// start a classifier call its replay never made. Guard B's cue list (explicitRequestCues) is unchanged:
+// this only makes the sentence an asking sentence, so the message's classifier reads it.
+const WANT_IS = /\b(?:i'?d|i\s+would)\s+want\s+is\b/i;
 // Before the brainstorm "I'd want the…" is usually an ask; later it is usually
 // a next step (plan-turn.ts, guard B) — unless the sentence is a question.
 export const WANT_ASK_PHASES: Phase[] = ['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', 'EXHIBIT'];
@@ -81,10 +88,32 @@ const sameFigure = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.01, M
 // ("Do you want me to work from 25%?" — prof-001 Tyler, batch 28 t15).
 const PROCEED_Q = /^\W*(?:(?:and|so|ok(?:ay)?|then)\b,?\s+)?(?:do you want|would you (?:like|prefer)|should (?:i|we)|shall (?:i|we)|want me to|is that (?:ok|okay|fine|right|correct)|does that (?:work|sound))/i;
 
-function asksAddressed(sentence: string, phase: Phase, given: number[] = []): boolean {
+// A question that names an item not yet out, on a code-written turn (round 6 Task 71, audit row 17; b37
+// Quillpath Marisol 084e7508 t15 → t16, code's exhibit turn: "So I'd want to pressure-test that: are
+// those upgraders people who'd have bought Pro directly anyway?" — no cue, no data noun, so the turn
+// dropped the classifier's detection). The question is the sentence, or what follows its last colon
+// ("…: are those …?"); it names the item by a content word of its label — the case's proper names aside
+// ("Pro" alone names nothing), a stem or a prefix of five letters or more ("upgraders" / "upgrade") — and
+// is not about how to proceed. Only code-written turns pass the labels (session-runner.ts codeWrittenAsks):
+// they classify every message already, so this adds no model call.
+export type LedgerNouns = { labels: string[]; caseNames: string[] };
+const sameWord = (a: string, b: string) => a === b || (Math.min(a.length, b.length) >= 5 && (a.startsWith(b) || b.startsWith(a)));
+function namesLedgerLabel(sentence: string, ledger: LedgerNouns): boolean {
+  const colon = sentence.lastIndexOf(':');
+  const question = isQuestionForm(sentence) ? sentence : colon >= 0 && isQuestionForm(sentence.slice(colon + 1).trim()) ? sentence.slice(colon + 1).trim() : null;
+  if (question === null || PROCEED_Q.test(question)) return false;
+  const asked = [...namingWords(question, ledger.caseNames)];
+  return ledger.labels.some(label => [...namingWords(label, ledger.caseNames)].some(w => asked.some(a => sameWord(a, w))));
+}
+
+type AskOpts = { closing?: boolean; given?: number[]; ledger?: LedgerNouns; wantIs?: boolean };
+function asksAddressed(sentence: string, phase: Phase, o: AskOpts = {}): boolean {
+  const given = o.given ?? [];
   if (selfAnswered(sentence)) return false; // "Do we know X, I would assume so": answered by the candidate, no "?"
   if (cueAsk(sentence)) return true;
-  if (WANT_CUE.test(sentence) && (WANT_ASK_PHASES.includes(phase) || sentence.endsWith('?') || isQuestionForm(sentence))) return true;
+  const want = WANT_CUE.test(sentence) || (o.wantIs === true && WANT_IS.test(sentence));
+  if (want && (WANT_ASK_PHASES.includes(phase) || sentence.endsWith('?') || isQuestionForm(sentence))) return true;
+  if (o.ledger && namesLedgerLabel(sentence, o.ledger)) return true;
   if (!isQuestionForm(sentence)) return false;
   if (PROCEED_Q.test(sentence)) return isDataNoun(sentence);
   // A question naming a figure the candidate was given: "does the $80 million hold flat…?"
@@ -114,12 +143,14 @@ function rhetorical(sentences: string[], i: number): boolean {
 // list that follows one. At the close, a rhetorical question is none.
 // "1. Store count" would split after "1.": numbered lines become "1) …".
 const askSentencesOf = (text: string) => sentencesOf(text.replace(/(^|\n)\s*(\d+)[.)]\s+/g, '$1$2) '));
-export function addressedAskSentences(text: string, phase: Phase, opts: { closing?: boolean; given?: number[] } = {}): string[] {
+// `ledger`: the labels of the items not yet out, on a code-written turn (namesLedgerLabel above);
+// `wantIs`: "I'd want is …" is a want (WANT_IS above; tagged cases).
+export function addressedAskSentences(text: string, phase: Phase, opts: AskOpts = {}): string[] {
   const out: string[] = [];
   let inAsk = false;
   const sentences = askSentencesOf(text);
   sentences.forEach((s, i) => {
-    inAsk = (asksAddressed(s, phase, opts.given) && !(opts.closing && rhetorical(sentences, i))) || (inAsk && LIST_ITEM.test(s));
+    inAsk = (asksAddressed(s, phase, opts) && !(opts.closing && rhetorical(sentences, i))) || (inAsk && LIST_ITEM.test(s));
     if (inAsk) out.push(s);
   });
   return out;
@@ -222,6 +253,15 @@ export function namesItem(text: string, own: string[], caseNames: string[], more
   const ownWords = contentWords(withoutNames(own.join(' '), caseNames));
   const words = new Set([...ownWords, ...contentWords(withoutNames(more.join(' '), caseNames))]);
   return [...namingWords(text, caseNames, ownWords)].some(w => words.has(w));
+}
+// Whether a text says one of an item's names whole (round 6 Task 71, audit row 6): every naming word of
+// one of its phrases — label, spoken name, the case's names and covers for it — the case's proper names
+// aside ("lakeport passengers" is said by "passenger counts … on Lakeport"). Stricter than namesItem: one
+// shared word is not enough ("bags" is in the planning assumptions' label and in b35 Hollis Bay Jasmine
+// t5's "how many bags of chips …", a different item — round 5 Task 50's ruling).
+export function saysItemName(text: string, phrases: string[], caseNames: string[]): boolean {
+  const said = namingWords(text, caseNames);
+  return phrases.some(ph => { const words = [...namingWords(ph, caseNames)]; return words.length > 0 && words.every(w => said.has(w)); });
 }
 // A text with no naming word: a pointer ("Can I see the data?").
 export const namesNothing = (text: string, caseNames: string[]) => namingWords(text, caseNames).size === 0;

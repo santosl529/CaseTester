@@ -97,6 +97,18 @@ describe('quotes keep their suffix', () => {
   });
 });
 
+// Round 6 Task 71 (audit M3; b37 Hollis Bay Tyler 442e37ff t5 → t6, verbatim): code's replacement
+// question read "How did you get to $9?" — his "$9.0M" with the scale dropped.
+describe('Task 71 M3: a figure written with ".0" before its scale keeps the scale', () => {
+  const TYLER_B37H_T5 = "Let me set it up. Variable cost per bag: ingredients you said $0.75, packaging $0.30, roasting labor and energy $0.30, freight $0.20. That's 0.75 + 0.30 + 0.50 — sorry, 0.30 plus 0.20 is 0.50 — so 1.55 per bag total variable.\n\nPrice we receive is $3.00, so contribution margin is 3.00 − 1.55 = $1.45 a bag. That's just under half the revenue, which is healthy.\n\nFixed launch costs: roasting line $3.0M, marketing $4.5M, shelf fees $1.5M = $9.0M. Recipe development I'd exclude — $1.2M already spent, sunk, shouldn't drive a go/no-go.\n\nBreak-even volume = 9.0 / 1.45 ≈ 6.2 million bags.\n\nIn revenue that's about 6.2 × $3.00 ≈ $18.6M to Hollis Bay, so roughly 6% of current sales.\n\nDo we have a sense of how many bags of chips Hollis Bay moves a year? That'd tell me whether 6.2 million is a stretch for our distribution.";
+  it('"$9.0M" with figure 9 is "$9.0M"', () => {
+    expect(figureAsWritten(TYLER_B37H_T5, 9)).toBe('$9.0M');
+    expect(figureAsWritten('The total is $3.00 million.', 3)).toBe('$3.00 million');
+    // Without a scale the figure reads as before.
+    expect(figureAsWritten('Break-even volume = 9.0 / 1.45', 9)).toBe('9');
+  });
+});
+
 describe('prof-001 correction lines are byte-identical (points, percent, price rise)', () => {
   const ctx = noVet('prof-001');
   const line = (candidateValue: string, codeQuantity: CheckerClaim['codeQuantity'], value: number) =>

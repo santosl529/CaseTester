@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { getCaseById } from '@/lib/cases/loader';
 import {
-  factBaseFor, buildFactBase, findFalseFacts, findCandidateMisquotes, findFalseRefusals, findUndeliveredClaims, findEchoes, echoesOf, coverageOf,
+  factBaseFor, buildFactBase, findFalseFacts, findCandidateMisquotes, findFalseRefusals, findUndeliveredClaims, findEchoes, echoesOf, coverageOf, BASIS,
 } from '@/lib/orchestrator/fact-check';
+import { outsideAskScope } from '@/lib/orchestrator/data-decisions';
 
 const fb = buildFactBase(getCaseById('prof-001') as never);
 const COST_LINES = ['cogs_pct', 'labor_pct', 'overhead_pct'];
@@ -241,5 +242,24 @@ describe('"fixed cost breakdown" is no cover (Lorenzo, 19 Oct; engine-asks round
   it('a bare "the cost breakdown" (b22 Larkspur Marcus t1: "the cost breakdown and average fare trend") still reaches the four items', () => {
     expect(coverageOf('the cost breakdown and average fare trend', fb3).items).toEqual(expect.arrayContaining(['fuel_prices', 'unit_costs', 'network_totals', 'fixed_costs']));
     expect(coverageOf('the fixed cost breakdown', fb3).items).toEqual([]);
+  });
+});
+
+// Round 6 Task 71 (audit row 13; b37 Hollis Bay Tyler 442e37ff t17 → t18): "I'd want to know how that
+// 500,000 was estimated — is it from a comparable past launch?" — the model's `what` puts the subject
+// first, so BASIS ("how was/were … derived") didn't read it and both items' lines were restated.
+describe('Task 71: BASIS reads a basis ask with its subject first', () => {
+  it('row 13: "how the 500,000 household estimate was derived" is a basis ask; neither line says its basis', () => {
+    expect(BASIS.test('how the 500,000 household estimate was derived')).toBe(true);
+    expect(BASIS.test('how the churn figures were calculated')).toBe(true);
+    expect(BASIS.test('how was the 70% load factor estimated')).toBe(true);   // as before
+    // A count is no basis ask (Decisions, Task 71): "how many … were estimated" asks the figure.
+    expect(BASIS.test('how many households were estimated to buy')).toBe(false);
+    expect(BASIS.test('how much revenue was estimated for year one')).toBe(false);
+    expect(BASIS.test('how the price changed over two years')).toBe(false);
+    const launch = getCaseById('launch-001').dataLedger;
+    for (const id of ['planning_assumptions', 'survey_design']) {
+      expect(outsideAskScope('how the 500,000 household estimate was derived', launch.find(i => i.id === id)!)).toBe(true);
+    }
   });
 });

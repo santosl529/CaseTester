@@ -38,6 +38,7 @@ import { codeWrittenAsks, codeWrittenTurn } from '@/lib/orchestrator/session-run
 import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { readsFixture } from './fixtures/turn-reads';
+import { AUDIT_T71 } from './fixtures/audit-t71';
 
 // Tyler fc5eb050 t21, verbatim.
 const TYLER_T21 = "That changes the answer materially. If two more assets are coming to the same specialist audience, the $83 million selling cost isn't a Kelvexa cost — it's a platform cost amortised across three products. The second and third launches then ride a salesforce that's already in place, with no royalty leakage. Under Option B we'd be handing 70% of the economics to a partner and, worse, handing them the relationships with exactly the specialists our pipeline needs.\n\nSo the pipeline tips me toward building, provided Kelvexa alone clears the bar — which at $320 million it just does.\n\nThe honest risk is the 12–18 month delay against an eight-year incumbent, and the 41% \"no local support\" barrier biting hardest in year one when we're least credible.\n\nA middle path worth sizing: co-promote with a partner for the first two or three years to buy speed and access, with a pre-agreed option to take the product in-house once our own team is stood up for the pipeline launches. Do we know whether Kelvexa's US exclusivity runs long enough to make a build pay back?";
@@ -149,5 +150,27 @@ describe('a message with no question releases nothing (Larkspur Marcus t23)', ()
     const s = await settleTurn(p, outcome(codeWrittenTurn(p, asks.kept)));
     expect(s.newReveals).toEqual([]);
     expect(s.spokenText).toBe("What else could Larkspur do to make sure it's profitable in the first year?");
+  });
+});
+
+// Round 6 Task 71 (audit row 17; b37 Quillpath Marisol 084e7508 t15 → t16, code's exhibit stage turn,
+// graded borderline): "So I'd want to pressure-test that: are those upgraders people who'd have bought
+// Pro directly anyway?" — `code_written_requests` dropped the classifier's detection (sentences []).
+// The message and the detection as recorded (its ids from the turn's data_request row).
+describe('Task 71: a code-written turn reads a question naming an item not yet out', () => {
+  const T71 = AUDIT_T71.F7;
+  const UPGRADERS: DetectedDataRequest = { what: 'Whether Starter customers who upgrade to Pro would have signed up for Pro directly instead', ledgerItemIds: ['buyer_profile', 'starter_cohort'], response: 'none', explicit: true };
+  const marisol = (kind: TurnKind = 'stage_exhibit') => {
+    const p = plan(T71.text, T71.revealed, kind, 'EXHIBIT', 737_799, 'pricing-001');
+    p.state.shownExhibitIds = new Set(T71.shown);
+    return p;
+  };
+  it('row 17: the question is an asking sentence, and the detection is kept', () => {
+    const asks = codeWrittenAsks(marisol(), [UPGRADERS]);
+    expect(asks.sentences).toEqual(["So I'd want to pressure-test that: are those upgraders people who'd have bought Pro directly anyway?"]);
+    expect(asks.kept).toEqual([UPGRADERS]);
+  });
+  it('at the goodbye only addressed asks count, as before', () => {
+    expect(codeWrittenAsks(marisol('close'), [UPGRADERS])).toMatchObject({ sentences: [], kept: [] });
   });
 });

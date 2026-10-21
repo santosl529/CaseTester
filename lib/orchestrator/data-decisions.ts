@@ -63,17 +63,29 @@ const GENERIC_LABEL_WORDS = new Set(['price', 'change', 'cost', 'revenue', 'perc
 const NEED_CUE = /\b(?:i'?d (?:want|need|check|look|ask|pull|get|like)|i (?:want|need)|we'?d need|do we (?:have|know)|is there|can (?:i|we) (?:get|see)|would (?:want|need)|whether|needs? to (?:know|see|check)|still need|data on|data to confirm|i (?:haven't|have not) (?:been given|seen|got|had)|i don't think i've (?:been given|seen|got|had)|unless i missed|next steps?|to (?:confirm|verify|check)|worth (?:checking|confirming|verifying|knowing|pulling|getting|a look at))\b/i;
 const stemWord = (w: string) => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w);
 const contentWords = (s: string) => (s.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).map(stemWord);
-export function mentionStatesNeed(candidateText: string, label: string): boolean {
+// `strict` (round 6 Task 71, audit row 16; tagged cases — decideData's `need`): b37 Quillpath Marcus
+// eb8d7576 t9 → t10 heard "I can share plan economics …" for "I'd need to multiply by expected tenure on
+// each plan" — the cue and one label word, "plan". On a tagged case the need clause names two distinctive
+// words of the label, the case's proper names aside ("Starter", "Pro"), or says the item's spoken name.
+// prof-001 keeps the 12 Oct rule (its examples name one word: "I'd check milk and dairy first").
+export type NeedStrict = { spoken?: string; caseNames: string[] };
+export function mentionStatesNeed(candidateText: string, label: string, strict?: NeedStrict): boolean {
   // Four letters as said ("cogs" names the COGS line, though it stems to "cog").
+  const proper = new Set(contentWords((strict?.caseNames ?? []).join(' ')));
   const named = new Set((label.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).filter(w => w.length >= 4).map(stemWord)
-    .filter(w => !GENERIC_LABEL_WORDS.has(w) && !LABEL_IGNORED.has(w)));
-  if (named.size === 0) return false;
+    .filter(w => !GENERIC_LABEL_WORDS.has(w) && !LABEL_IGNORED.has(w) && !proper.has(w)));
+  const spoken = strict?.spoken?.toLowerCase().replace(/^(?:the|a|an)\s+/, '').trim();
+  if (named.size === 0 && !spoken) return false;
   // The item is what the need is for: named after the cue, in the same clause
   // — not in a subordinate one ("I'd check dairy and packaging first … even
   // though beans rose faster" is no need for the bean figure; batch 20 R25 t24).
   return candidateText.split(/(?<=[.?!])\s+|\n+/).some(s => s.split(/\b(?:even though|although|though|since|because|while|whereas|but)\b/i).some(clause => {
     const cue = NEED_CUE.exec(clause);
-    return cue !== null && contentWords(clause.slice(cue.index)).some(w => named.has(w));
+    if (cue === null) return false;
+    const need = clause.slice(cue.index);
+    const hits = new Set(contentWords(need).filter(w => named.has(w)));
+    if (!strict) return hits.size > 0;
+    return hits.size >= 2 || (spoken !== undefined && spoken.length > 0 && need.toLowerCase().includes(spoken));
   }));
 }
 
@@ -117,7 +129,9 @@ const HEAD_NOUN = (label: string) => label.toLowerCase().replace(/[^a-z0-9% ]+/g
 // "the variable cost per flight" alone name a cost line, not a cut (Lorenzo,
 // 13 Oct; Larkspur, Marcus 27c2d0fb t22: "what sits inside the fixed costs,
 // including aircraft leases" lost the aircraft-leases item and was refused).
-const CUT = /\b(?:per|by|for each)\s+(pound|lb|gallon|sku|product|store|location|region|market|month|quarter|week|day|daypart|channel|customer|segment|supplier|year)s?\b|\b(variable|fixed)\b(?=[\s-]*(?:(?:versus|vs\.?|and|or|\/|to)[\s-]*(?:fixed|variable)\b|(?:portion|part|share|component|element|piece)s?\b))|\b(?:is|are|was|were)\s+(?:mostly\s+|largely\s+|partly\s+)?(variable|fixed)\b/i;
+// "By source" (round 6 Task 71, audit row 14; b37 Quillpath Tyler a2a5921b t5, "the split of Starter
+// sign-ups by source — paid versus organic?" got how each plan signs up, as if it were the split).
+const CUT = /\b(?:per|by|for each)\s+(pound|lb|gallon|sku|product|store|location|region|market|month|quarter|week|day|daypart|channel|customer|segment|supplier|year|source)s?\b|\b(variable|fixed)\b(?=[\s-]*(?:(?:versus|vs\.?|and|or|\/|to)[\s-]*(?:fixed|variable)\b|(?:portion|part|share|component|element|piece)s?\b))|\b(?:is|are|was|were)\s+(?:mostly\s+|largely\s+|partly\s+)?(variable|fixed)\b/i;
 // Words the case's own cover phrase carries (round 6 Task 68 fix round 2; Lorenzo, 15 Oct,
 // batch-25 ruling 7, "transaction volume per store": the case's own phrase carrying the cut
 // means the item answers it): the spans of a cover match in the ask. A scope rule fires only
@@ -159,7 +173,10 @@ const SAYS_BASIS = /\b(?:based on|comes? from|derived from|benchmark(?:ed)? (?:o
 // one-off cost to stand up the US team, separate from the $80M annual" got
 // Option A's annual line restated): a finer cut of an item whose value states
 // only an annual or monthly figure and no one-off wording of its own.
-const ONE_OFF_ASK = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up)\s+(?:costs?|fees?|spend|expenses?|investment|capex)\b|\b(?:costs?|spend|investment)\s+(?:to|of|for)\s+(?:stand(?:ing)?[- ]up|set(?:ting)?[- ]up|start(?:ing)?[- ]up)\b/i;
+// "Launch" costs too (round 6 Task 71, audit row 8; b36 Larkspur Marcus a7d9f44e t19, "the launch cost —
+// marketing, station setup, crew basing at the two new cities" got the new routes' "5,000 flights a year"
+// line restated): Hollis Bay's own launch costs say "launch costs" (ONE_OFF_VALUE), so they stay in scope.
+const ONE_OFF_ASK = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up|launch)\s+(?:costs?|fees?|spend|expenses?|investment|capex)\b|\b(?:costs?|spend|investment)\s+(?:to|of|for)\s+(?:stand(?:ing)?[- ]up|set(?:ting)?[- ]up|start(?:ing)?[- ]up)\b/i;
 const RECURRING_VALUE = /\b(?:annual|annually|yearly|a year|per year|each year|a month|per month|monthly)\b/i;
 const ONE_OFF_VALUE = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up|launch costs?)\b/i;
 // An ask for both cuts ("setup cost and ongoing cost of building our own team"):
@@ -184,6 +201,41 @@ const FIRST_YEAR_VALUE = /\bfirst[- ]year\b|\byear[- ]one\b|\bone[- ](?:time|off
 const SAYS_RECURRENCE = /\b(?:ongoing|recurs?|recurr\w*|continu\w*|every year|each year|after the first year|in later years)\b/i;
 const firstYearOnly = (value: string) => /\$/.test(value) && FIRST_YEAR_VALUE.test(value) && !RECURRING_VALUE.test(value) && !SAYS_RECURRENCE.test(value);
 
+// A split of a stated figure (round 6 Task 71, audit row 21; b36 Aldermoor Marcus c518221e t23, "Do we
+// have the $80 million split by rep cost versus market access?" got Option A's line restated — the split
+// rule keys on the label's head noun, "entry"): a split, breakdown or "versus" ask of a money figure
+// ("the split of the $80 million", "the $80M split", "the $80 million: rep cost versus market access")
+// is out of scope of an item whose line states that figure once and no parts of it (two or more of the
+// line's other amounts summing to it). Money only: a percent's split ("a split of that 58 by category",
+// prof-001) is the group's, as before.
+const MONEY = /\$\s?(\d[\d,]*(?:\.\d+)?)(?:\s?(million|billion|thousand|bn|m|k)\b)?/gi;
+const SCALE: Record<string, number> = { million: 1e6, m: 1e6, billion: 1e9, bn: 1e9, thousand: 1e3, k: 1e3 };
+const amountsIn = (t: string) => [...t.matchAll(MONEY)].map(m => ({ start: m.index!, end: m.index! + m[0].length, amount: parseFloat(m[1].replace(/,/g, '')) * (SCALE[(m[2] ?? '').toLowerCase()] ?? 1) }));
+const sameAmount = (a: number, b: number) => Math.abs(a - b) <= Math.abs(b) * 0.005;
+const SPLIT_BEFORE = new RegExp(String.raw`\b${SPLIT_WORDS}\s+(?:of|in|within|inside)\s+(?:the\s+|that\s+|this\s+)?$`, 'i');
+const SPLIT_AFTER = new RegExp(String.raw`^\s+(?:[\w-]+\s+){0,2}?${SPLIT_WORDS}\b`, 'i');
+const VERSUS_AFTER = /^\s*(?::|\b(?:by|between|into|across)\b)[^.?!$]{0,40}?\b(?:versus|vs\.?)(?=\s|$)/i;
+// Whether some two or more of the amounts sum to the figure.
+function partsOf(amounts: number[], figure: number): boolean {
+  const xs = amounts.slice(0, 12);
+  for (let mask = 1; mask < 1 << xs.length; mask++) {
+    if ((mask & (mask - 1)) === 0) continue;   // one amount is no split
+    const sum = xs.reduce((t, x, i) => (mask & (1 << i) ? t + x : t), 0);
+    if (sameAmount(sum, figure)) return true;
+  }
+  return false;
+}
+export function splitOfFigure(what: string, value: string, spans: readonly AskSpan[] = []): boolean {
+  const stated = amountsIn(value);
+  return amountsIn(what).some(f => {
+    if (spans.some(sp => f.start >= sp.start && f.end <= sp.end)) return false;
+    const asked = SPLIT_BEFORE.test(what.slice(0, f.start)) || SPLIT_AFTER.test(what.slice(f.end)) || VERSUS_AFTER.test(what.slice(f.end));
+    if (!asked) return false;
+    const same = stated.filter(x => sameAmount(x.amount, f.amount));
+    return same.length === 1 && !partsOf(stated.filter(x => !same.includes(x)).map(x => x.amount), f.amount);
+  });
+}
+
 // A change item asked for a split (the clause in outsideAskScope below): a topic
 // sibling of the ask, not the asked quantity at a coarser cut — E1 doesn't give it
 // as a coarse item (controller ruling, 20 Oct, replay r5-44: b31 Sofia t17 "the
@@ -203,6 +255,7 @@ export function outsideAskScope(what: string, item: { label: string; value?: str
   if (has(BASIS) && !SAYS_BASIS.test(item.value ?? '')) return true;
   if (has(ONE_OFF_ASK) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
   if (has(RECURRENCE_ASK) && firstYearOnly(item.value ?? '')) return true;
+  if (splitOfFigure(what, item.value ?? '', spans)) return true;
   // A count asked of an item that states no figure (round 5 Task 50; fact-check.ts
   // COUNT_ASK): the item is the ask's coarse answer, not the count.
   if (opts.count !== false && item.value !== undefined && countFinerThan(ask, item.value)) return true;
@@ -323,6 +376,7 @@ export function decideData(p: {
   cap?: number;
   groups?: string[][];              // items asked as one group: the cap never splits one
   wrapUp?: boolean;                 // a wrap-up or close turn (turn-data.ts wrapUpTurn): every deferral is "We won't get to …"
+  need?: { caseNames: string[] };   // a tagged case: the offer gate's stricter need (mentionStatesNeed `strict`, round 6 Task 71)
 }): DataDecisions {
   const cap = p.cap ?? RELEASE_CAP;
   // A group already going out completes past the cap; nothing else does.
@@ -434,7 +488,7 @@ export function decideData(p: {
     const partlyReleased = held.length < ledgerIds.length;
     if (!r.explicit) {
       const offerable = held.filter(id => available(id) && !covered.has(id) && !orderHeld(id))
-        .filter(id => mentionStatesNeed(p.candidateText, itemById.get(id)?.label ?? ''));
+        .filter(id => mentionStatesNeed(p.candidateText, itemById.get(id)?.label ?? '', p.need ? { spoken: itemById.get(id)?.spoken, caseNames: p.need.caseNames } : undefined));
       if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(promised(r, ledgerIds));
     } else if (held.some(available) && !partlyReleased) {
       (p.gateHeld?.has(r.what) ? gateDefers : defers).push(promised(r, ledgerIds));

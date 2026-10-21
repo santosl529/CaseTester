@@ -172,3 +172,46 @@ describe('matchAskDetections with held items', () => {
     expect(matchAskDetections([], [misnamed], held(['kelvexa_pricing'], TYLER)).kept).toEqual([]);
   });
 });
+
+// Round 6 Task 71 (the audit's code-only fixes; Lorenzo, 21 Oct, round 6).
+describe('Task 71: asking sentences the request reader missed', () => {
+  // Row 11, b37 Hollis Bay Marcus ddbb070b t9 → t10, verbatim: "want is" failed the WANT cue (it needed
+  // ":" or "the / a / to know…" after "want"), so no asking sentence, no classifier, and only an offer.
+  const MARCUS_B37H_T9 = "Noted, I'll assume we don't have it. What I'd want is distribution math: how many stores Hollis Bay can get the line into, and velocity — bags per store per week. If you get, say, 10,000 stores at 12 bags a week, that's 10,000 × 12 × 52 ≈ 6.2 million bags, so you'd just clear it. So the question is really whether the $1.5M in shelf fees buys enough doors.\n\nBut I'd frame that as an execution variable, not a go/no-go. Six million bags is about 6% of their existing revenue base through channels they already own, with an existing salesforce and retailer relationships — that's reachable.\n\nSo I'd hold where I started: launch. Price the chickpeas at the premium end, since every quarter of price lowers breakeven volume by roughly 15%, and take pricing on the core chip line to fund the $9M. That's the plan I'd bring the CEO.";
+  const tagged = (t: string, phase: string) => addressedAskSentences(t, phase as never, { wantIs: true });
+  it('row 11: on a tagged case "What I\'d want is …" is an asking sentence before the brainstorm', () => {
+    expect(tagged(MARCUS_B37H_T9, 'EXHIBIT')).toEqual(["What I'd want is distribution math: how many stores Hollis Bay can get the line into, and velocity — bags per store per week."]);
+    expect(tagged("The one number I'd want is the store count.", 'ANALYSIS')).toEqual(["The one number I'd want is the store count."]);
+    // Late in the case a want is a next step, as before; guard B's cue list is unchanged.
+    expect(tagged("What I'd want is a pilot in two regions.", 'RECOMMENDATION')).toEqual([]);
+    expect(explicitRequestCues("What I'd want is distribution math: how many stores Hollis Bay can get the line into.")).toEqual([]);
+    // Not a want: "what I'd want to stress is …".
+    expect(tagged("What I'd want to stress is the timing.", 'EXHIBIT')).toEqual([]);
+  });
+  it('row 11 is tagged-only: prof-001\'s b29 Blake t3 sentence asks nothing on an untagged case, as before', () => {
+    const BLAKE = "One thing I would want is the menu-price history — whether they've taken any price in two years.";
+    expect(asks(MARCUS_B37H_T9, 'EXHIBIT')).toEqual([]);
+    expect(asks(BLAKE, 'STRUCTURE')).toEqual([]);
+    expect(tagged(BLAKE, 'STRUCTURE')).toEqual([BLAKE]);
+  });
+
+  // Row 17, b37 Quillpath Marisol 084e7508 t15 → t16 (a stage_exhibit turn), verbatim: "I'd want to
+  // pressure-test that: are those upgraders …?" — no cue, no data noun; code's turn dropped the detection.
+  const MARISOL_B37Q_T15 = "I'd already corrected that one — the $900 was divided by the $40 price, which was wrong, because LTV is built on gross margin, not revenue. The right figure is $900 ÷ $30 margin = 30 months. Same error on Pro: $3,600 ÷ $80 = 45 months, not the 36 I originally said.\n\nAnd now that I have the real lifetimes, I can check those against the hurdles directly. Starter lasts about 20 months on its plan, versus 30 months needed — short on a standalone basis, consistent with the CFO. Pro lasts about 50 months against 45 needed, so Pro clears on its own.\n\nThe whole decision sits on the upgrade question. The 20% who move to Pro are worth $800 per Starter signup, which more than covers the $300 gap. So I'd want to pressure-test that: are those upgraders people who'd have bought Pro directly anyway?";
+  const QUILLPATH_NAMES = ['Quillpath', 'Starter', 'Pro', 'LTV', 'CAC', 'churn'];
+  // The labels of the items not yet out at t15 (the record's unrevealedItems).
+  const UNRELEASED = ['The product', 'Difference between the plans', 'How customers sign up', 'What "worth three times the acquisition cost" means', 'Company size', 'Market growth', 'What the CEO cares about',
+    'Starter price test results: sign-ups per month at each test price', 'Price test notes: costs unchanged, churn and upgrades not yet measurable', 'When customers upgrade', 'Why Pro sign-ups fell',
+    "Competitors' entry-plan prices", 'How the price test worked', 'Existing Starter customers'];
+  it('row 17: on a code-written turn a question naming an unreleased item\'s label word is an asking sentence', () => {
+    const ledger = { labels: UNRELEASED, caseNames: QUILLPATH_NAMES };
+    expect(addressedAskSentences(MARISOL_B37Q_T15, 'EXHIBIT')).toEqual([]);
+    expect(addressedAskSentences(MARISOL_B37Q_T15, 'EXHIBIT', { ledger })).toEqual(["So I'd want to pressure-test that: are those upgraders people who'd have bought Pro directly anyway?"]);
+    // A statement naming the word is no question; a question naming no label word asks nothing; a
+    // plan name alone ("Pro") names no item; a question about how to proceed is not an ask.
+    expect(addressedAskSentences('The upgraders matter most here.', 'EXHIBIT', { ledger })).toEqual([]);
+    expect(addressedAskSentences('Are those people who would have bought anyway?', 'EXHIBIT', { ledger })).toEqual([]);
+    expect(addressedAskSentences('Is Pro better?', 'EXHIBIT', { ledger })).toEqual([]);
+    expect(addressedAskSentences('Should I use the upgrade rate from the cohort?', 'EXHIBIT', { ledger })).toEqual([]);
+  });
+});
