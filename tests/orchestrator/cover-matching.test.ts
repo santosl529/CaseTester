@@ -45,13 +45,19 @@ describe('normalized matching (tagged cases)', () => {
 
 describe('the candidate\'s asking sentence (tagged cases)', () => {
   const SENTENCE = 'Do we have a sense of how many bags of chips Hollis Bay moves a year?';
+  // The covers as the ask ran, before Task 69 added "chip bag volume" to why_now.
+  const hollisRan = taggedFactBase('launch-001', { without: { why_now: ['chip bag volume', 'annual chip volume'] } });
   it('row 12, Hollis Bay Tyler t5: the model\'s "annual chip bag volume" misses; the sentence\'s "bags of chips" reaches why_now — at the coarser cut, worded from the model\'s ask', () => {
-    const cov = coverageOf('annual chip bag volume', hollis, { sentence: SENTENCE });
+    const cov = coverageOf('annual chip bag volume', hollisRan, { sentence: SENTENCE });
     expect([...cov.items, ...cov.coarse.flatMap(c => c.ids)]).toContain('why_now');
     expect(cov).toEqual({ items: [], promptFacts: [], rest: null, coarse: [{ what: 'annual chip bag volume', ids: ['why_now'] }] });
   });
   it('without the sentence the model\'s ask is uncovered, as before', () => {
-    expect(coverageOf('annual chip bag volume', hollis)).toEqual({ items: [], promptFacts: [], rest: 'annual chip bag volume', coarse: [] });
+    expect(coverageOf('annual chip bag volume', hollisRan)).toEqual({ items: [], promptFacts: [], rest: 'annual chip bag volume', coarse: [] });
+  });
+  it('with Task 69\'s cover "chip bag volume" the model\'s ask itself reaches why_now, whole (its words carry no count)', () => {
+    expect(coverageOf('annual chip bag volume', hollis, { sentence: SENTENCE })).toEqual({ items: ['why_now'], promptFacts: [], rest: null, coarse: [] });
+    expect(coverageOf('annual chip bag volume', hollis)).toEqual({ items: ['why_now'], promptFacts: [], rest: null, coarse: [] });
   });
   it('a sentence hit sharing no word with the model\'s ask is another ask\'s: not joined', () => {
     expect(coverageOf("the competitor's prices", hollis, { sentence: SENTENCE }).coarse).toEqual([]);

@@ -729,6 +729,15 @@ function phraseSpans(toks: CoverToken[], phrase: string): { start: number; end: 
   }
   return out;
 }
+// The cover lint's view (scripts/cover-lint.ts, Task 69): a phrase as (a) folds it, and
+// where a phrase sits in a text — folded as on a tagged case, or literal as on an untagged one.
+export const foldCoverPhrase = (phrase: string) => foldedPhrase(lc(phrase)).join(' ');
+export function coverPhraseSpans(text: string, phrase: string, folded: boolean): { start: number; end: number }[] {
+  const lower = lc(text);
+  if (folded) return phraseSpans(coverTokens(lower), lc(phrase));
+  return [...lower.matchAll(new RegExp(`(?<![a-z])${lc(phrase).replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'))]
+    .map(m => ({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }));
+}
 // Words that carry no topic: a sentence hit must share another with the model's ask (d).
 const COVER_STOP = new Set(['the', 'a', 'an', 'of', 'for', 'on', 'in', 'to', 'and', 'or', 'how', 'many', 'much', 'what', 'is', 'are', 'do', 'doe', 'did', 'we', 'you', 'our', 'their', 'it', 'its', 'any', 'by', 'per', 'with', 'from', 'at', 'thi', 'that', 'there', 'have', 'has', 'be', 'can', 'could', 'would', 'will', 'data', 'year']);
 const REGION = /\b(?:europe(?:an)?|eu|uk|canada|asia|international)\b/gi;

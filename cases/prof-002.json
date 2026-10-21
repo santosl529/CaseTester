@@ -1498,6 +1498,37 @@
         "new routes context"
       ]
     },
+    "tags": {
+      "clientWords": [
+        "Larkspur",
+        "our",
+        "we"
+      ],
+      "entities": [
+        {
+          "id": "competitor",
+          "words": [
+            "entrant",
+            "competitor",
+            "competitors",
+            "low-cost airline",
+            "low-cost carrier",
+            "rival",
+            "the other airline",
+            "new carrier"
+          ],
+          "items": [
+            "competitor_entry",
+            "competitor_costs"
+          ]
+        }
+      ],
+      "forecast": [
+        "new_routes_plan",
+        "new_routes_cost_flights",
+        "new_route_rampup"
+      ]
+    },
     "covers": {
       "competitor_costs": [
         "aircraft size",
@@ -1601,7 +1632,10 @@
         "the cost breakdown",
         "a cost breakdown",
         "full cost breakdown",
-        "total cost breakdown"
+        "total cost breakdown",
+        "cost per seat mile",
+        "cost per available seat mile",
+        "casm trend"
       ],
       "demand": [
         "did demand fall",
@@ -1642,7 +1676,8 @@
         "the cost breakdown",
         "a cost breakdown",
         "full cost breakdown",
-        "total cost breakdown"
+        "total cost breakdown",
+        "total departures"
       ],
       "fixed_costs": [
         "did fixed costs rise",
@@ -1669,7 +1704,9 @@
         "fare and the variable cost",
         "fare and cost per flight",
         "fares and costs per flight",
-        "fare and variable cost"
+        "fare and variable cost",
+        "average fare by route",
+        "fare by route"
       ],
       "extras_revenue": [
         "revenue beyond the fare",
@@ -1734,7 +1771,9 @@
         "fare and the variable cost",
         "fare and cost per flight",
         "fares and costs per flight",
-        "fare and variable cost"
+        "fare and variable cost",
+        "average fare by route",
+        "fare by route"
       ],
       "new_routes_plan": [
         "expected load factor on new routes",

@@ -1235,6 +1235,34 @@
     ],
     "directions": {},
     "drivers": [],
+    "tags": {
+      "clientWords": [
+        "chickpea",
+        "the line",
+        "the new line",
+        "roasted",
+        "the snack"
+      ],
+      "entities": [
+        {
+          "id": "chips",
+          "words": [
+            "chip",
+            "chips",
+            "chip business",
+            "potato chips"
+          ],
+          "items": [
+            "why_now",
+            "cannibalization"
+          ]
+        }
+      ],
+      "forecast": [
+        "planning_assumptions",
+        "sampling_program"
+      ]
+    },
     "covers": {
       "product": [
         "how many flavors",
@@ -1270,7 +1298,9 @@
         "chip volume trend",
         "chip business's volume",
         "declining base",
-        "bags of chips"
+        "bags of chips",
+        "chip bag volume",
+        "annual chip volume"
       ],
       "competition_general": [
         "is there a dominant brand",

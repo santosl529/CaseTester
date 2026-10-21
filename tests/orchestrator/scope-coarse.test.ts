@@ -95,7 +95,10 @@ describe('an ask the scope rule empties keeps its coarse item (E1), without D1\'
     const d = await turnDataChecked(p, turn([MARISOL_T13_ASK], 'exhibit-2'));
     expect(acted(p, 'request_scope')).toHaveLength(0);
     expect(acted(p, 'scope_coarse')).toHaveLength(0);
-    expect(d.releases.map(r => r.id)).toEqual(['current_treatment']);
+    // Round 6 (Task 69 tagged entry-001): her asking sentence "Do we have the competitor mix
+    // across the treated pool?" meets "competitor mix", a cover on both items since BASE, and
+    // covers_added gives nimbrel too — its line answers it (most patients on an advanced therapy use it).
+    expect(d.releases.map(r => r.id)).toEqual(['current_treatment', 'nimbrel']);
     expect(d.refusals).toEqual([]);
   });
 });

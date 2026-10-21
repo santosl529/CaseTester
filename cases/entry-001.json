@@ -1240,6 +1240,28 @@
     ],
     "directions": {},
     "drivers": [],
+    "tags": {
+      "clientWords": [
+        "Kelvexa",
+        "Aldermoor"
+      ],
+      "entities": [
+        {
+          "id": "nimbrel",
+          "words": [
+            "Nimbrel"
+          ],
+          "items": [
+            "nimbrel",
+            "current_treatment"
+          ]
+        }
+      ],
+      "forecast": [
+        "peak_share_forecast",
+        "peak_timing"
+      ]
+    },
     "covers": {
       "kelvexa_product": [
         "is kelvexa approved in the us",

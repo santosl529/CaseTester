@@ -6,7 +6,7 @@
 // list is still refused. The three refusals the scan found: Raj 55d12d38 t7,
 // Omar 9bbf41bc t9, Maya b0b28d36 t8.
 import { describe, it, expect } from 'vitest';
-import { factBaseFor, buildFactBase, coverageOf, statesNoFigure } from '@/lib/orchestrator/fact-check';
+import { factBaseFor, buildFactBase, coverageOf, coverageDetail, statesNoFigure } from '@/lib/orchestrator/fact-check';
 import { outsideAskScope } from '@/lib/orchestrator/data-decisions';
 import { CaseSchema } from '@/lib/cases/schema';
 import { getCaseById } from '@/lib/cases/loader';
@@ -38,8 +38,21 @@ describe('what covers an ask', () => {
   it('prof-002: "the revenue split between fares and volume" — the same flights, and the prompt\'s planes-as-full fact', () => {
     expect(coverageOf('the revenue split between fares and volume', p2)).toEqual({ items: ['routes_schedule'], promptFacts: ['planes_as_full'], rest: null, coarse: [] });
   });
-  it('a phrase across a list keeps the rest of the list: "fares and volume, and the competitor\'s schedule"', () => {
-    expect(coverageOf("the revenue split between fares and volume, and the competitor's schedule", p2)).toEqual({ items: ['routes_schedule'], promptFacts: ['planes_as_full'], rest: "the competitor's schedule", coarse: [] });
+  it('a phrase across a list keeps the rest of the list: "fares and volume, and the competitor\'s schedule" (untagged, as at BASE)', () => {
+    const fa = { ...getCaseById('prof-002').factAnchors! };
+    delete fa.tags;
+    const untagged = buildFactBase({ ...getCaseById('prof-002'), factAnchors: fa } as never);
+    expect(coverageOf("the revenue split between fares and volume, and the competitor's schedule", untagged)).toEqual({ items: ['routes_schedule'], promptFacts: ['planes_as_full'], rest: "the competitor's schedule", coarse: [] });
+  });
+  // Round 6 (Task 69 tagged prof-002): the entries "fares" and "volume" name nobody, so the
+  // entity exclusion reads the whole ask (Task 68 decision 11), which names only the competitor:
+  // Larkspur's own lines are dropped and the two entries named-deferred. No b28–b37 model ask
+  // mixes the two (cover lint, 2b); a concern in the Task 69 report, awaiting a ruling.
+  it('tagged: a list that names the competitor in another entry drops the client items it covers', () => {
+    const d = coverageDetail("the revenue split between fares and volume, and the competitor's schedule", p2);
+    expect(d.items).toEqual([]);
+    expect(d.dropped).toEqual([{ what: 'the revenue split between fares', why: 'entity' }, { what: 'volume', why: 'entity' }]);
+    expect(d.plain).toBe("the competitor's schedule");
   });
   it.each([
     ['prof-001', 'what the menu includes, drinks only or food too'],   // Maya c1b79f9e t4: the case doesn't hold it (Lorenzo)

@@ -1379,6 +1379,13 @@
     ],
     "directions": {},
     "drivers": [],
+    "tags": {
+      "clientWords": [
+        "Quillpath"
+      ],
+      "entities": [],
+      "forecast": []
+    },
     "covers": {
       "product": [
         "who the software is for",
