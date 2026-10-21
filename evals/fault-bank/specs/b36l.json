@@ -1,0 +1,627 @@
+[
+ {
+  "id": "b36l-tyler-t12-avoidable-fixed",
+  "kind": "fault",
+  "p": "64",
+  "turn": 12,
+  "sev": "serious",
+  "cls": "false_refusal",
+  "note": "\"I don't have avoidable fixed cost by route.\" The check mapped fixed_costs partial (whole ask missing, already out) → scope_coarse refused alone. aircraft_leases (\"leased through 2030, so returning them early is not an option\") answers the avoidable part for leases, which he named; it never reached him. Lorenzo (21 Oct): serious.",
+  "src": "batch-36-larkspur/hand-grading.md; lorenzo-ruling-2026-10-21",
+  "a": [
+   {
+    "kind": "release",
+    "item": "aircraft_leases",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-marisol-t12-unasked-release",
+  "kind": "fault",
+  "p": "57",
+  "turn": 12,
+  "sev": "serious",
+  "cls": "unasked_release",
+  "note": "\"how many flights a day the entrant runs on each route\" — the check mapped it to 8 items as full; the only one not out went: new_routes_cost_flights (Exhibit 3 data), handing her the case's fix (exit + redeploy 5,000 flights); she took it at t13. The entrant's flights-a-day got no \"I don't have\". Lorenzo (21 Oct): serious (hands over the solution).",
+  "src": "batch-36-larkspur/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked or wrong-mapping releases)",
+  "a": [
+   {
+    "kind": "release",
+    "item": "new_routes_cost_flights",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "flights|a day|frequency",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-marcus-t6-casm",
+  "kind": "fault",
+  "p": "24",
+  "turn": 6,
+  "sev": "false",
+  "cls": "false_refusal",
+  "note": "\"I don't have cost per seat mile trend.\" (check: maps to none) — unit_costs (no material changes to wages or other costs per flight) and fuel_prices (roughly flat) answer it. Lorenzo (21 Oct): false, not serious. Round 6 added the CASM cover.",
+  "src": "batch-36-larkspur/hand-grading.md; lorenzo-ruling-2026-10-21",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "seat mile",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b36l-jasmine-t2-departures",
+  "kind": "fault",
+  "p": "40",
+  "turn": 2,
+  "sev": "false",
+  "cls": "false_refusal",
+  "note": "\"I don't have total departures and average fare, FY2023 vs FY2025.\" (check: maps to none) — network_totals and routes_schedule hold total departures; the average-fare half is true. Lorenzo (21 Oct): false, not serious. Round 6 added the \"total departures\" cover.",
+  "src": "batch-36-larkspur/hand-grading.md; lorenzo-ruling-2026-10-21",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "departures",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b36l-tyler-t6-port-avery-half",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "bare_partial",
+  "note": "\"I'd want to know fares and passenger counts specifically on Lakeport and Port Avery. Do we have average fare by route?\" — the Lakeport fare, three Exhibit 1 lines restated, and \"I can share load factor … if you'd like\"; Port Avery's fare and load (port_avery_per_flight) never released in his run. Round 6 added \"fare by route\" covers on both routes.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "port_avery_per_flight",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b36l-tyler-t18-stress-test",
+  "kind": "fault",
+  "p": "64",
+  "turn": 18,
+  "sev": "firm",
+  "cls": "ignored_ask",
+  "note": "\"Can we stress-test demand on Ashford and Brookhaven?\" — no request signal; the model went to the brainstorm. new_route_rampup (60% first-year load) is the case's stress test, never released in his run. Lorenzo (21 Oct): accept as residual for now (must-reach now volunteers the ramp before the recommendation).",
+  "src": "batch-36-larkspur/hand-grading.md; lorenzo-ruling-2026-10-21 (accepted residual)",
+  "a": [
+   {
+    "kind": "release",
+    "item": "new_route_rampup",
+    "must": true,
+    "scope": {
+     "fromTurn": 18,
+     "toTurn": 20
+    }
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-marcus-t20-launch-cost",
+  "kind": "fault",
+  "p": "24",
+  "turn": 20,
+  "sev": "firm",
+  "cls": "restatement",
+  "note": "\"What I'd want to know is the launch cost — marketing, station setup, crew basing\" → \"As the exhibit shows: Variable cost on the new routes …\" (check: new_routes_cost_flights full). Launch costs aren't held; a refusal was owed. Round 6 audit fix: \"launch costs\" refused.",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "new_routes_cost_flights",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "launch cost",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-jasmine-t8-competitor-never",
+  "kind": "fault",
+  "p": "40",
+  "turn": 8,
+  "sev": "firm",
+  "cls": "ignored_ask",
+  "note": "Her t7 confirm-list (\"that the entrant is a low-cost carrier with a structurally lower cost base, how many seats a day it added …\") got no request signal; competitor_entry and competitor_costs never reached her, and Exhibit 3 (the fix) went out at t10. Lorenzo's 21 Oct ruling made competitor_entry a must-reach before Exhibit 3 (prof-002).",
+  "a": [
+   {
+    "kind": "release",
+    "item": "competitor_entry",
+    "must": true,
+    "scope": {
+     "fromTurn": 8,
+     "toTurn": 10
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-raj-t14-load-at-140",
+  "kind": "fault",
+  "p": "07",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"whether Larkspur's 75% would hold at, say, $140?\" got a restatement of Lakeport's 75% (message classifier mapping); no \"I don't have how load factor would respond to a fare rise\".",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "load",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-raj-t20-fixed-split",
+  "kind": "fault",
+  "p": "07",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"Do we have a fixed-cost breakdown — how much of the $20M is aircraft leases we could defer?\" → aircraft_leases (the defer half), no \"I don't have the split of the $20M\". Also \"How do you read those numbers?\" after a line with no figures.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "split|breakdown",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-raj-t30-close-reask",
+  "kind": "fault",
+  "p": "07",
+  "turn": 30,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t29 \"What I'd do is reduce the attractiveness of following us … And I'd set a trigger\".",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "mitigation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-tyler-t6-long-restatement",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "\"As the exhibit shows: On Hub–Lakeport …\" — about 120 words of Exhibit 1 (on screen) in answer to a fare ask (request_group → restate cap 3).",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "route_results_lakeport",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-tyler-t8-misquote-125",
+  "kind": "fault",
+  "p": "64",
+  "turn": 8,
+  "sev": "borderline",
+  "cls": "misquote_uncorrected",
+  "note": "His t7 \"you said the fare fell from $200 to about $125\" (the interviewer said $120): the checker rated the span correct (correctValue 120) and the misquote check didn't fire; healed at t15 by Exhibit 2.",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$120",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The fix (contract 3.4: a flat ledger correction needs the checker to rate the span an error) can't fire on a recorded \"correct\" verdict, and a re-run checker is a live call. Wave: on prof-002, a Tyler-type misquote of a revealed fare gets one flat correction; the auditor (misquote_uncorrected) and the hand grade see it.",
+  "stream": 3
+ },
+ {
+  "id": "b36l-tyler-t20-dangling-quote",
+  "kind": "fault",
+  "p": "64",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Understood. You said roughly 800,000 passengers a year across the network. What's your recommendation to the client?\" — the model's say with an empty question, and code appended the recommendation ask; reads as a probe (800,000 near-right).",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You said roughly 800,000 passengers",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-tyler-t24-close-reask",
+  "kind": "fault",
+  "p": "64",
+  "turn": 24,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t23 \"What I'd do: de-risk before committing the full fleet …\".",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "mitigation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-marisol-t12-dangling-figure",
+  "kind": "fault",
+  "p": "57",
+  "turn": 12,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "The model's \"Given that, you said recovering even part of the $4,800 …\" was withheld (grading); \"Walk me through how you got that figure …\" then lands right after the new-routes line, so \"that figure\" reads as the interviewer's $9,200.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "^Walk me through how you got that figure|\\. Walk me through how you got that figure",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-marisol-t10-stale-probe",
+  "kind": "fault",
+  "p": "57",
+  "turn": 10,
+  "sev": "borderline",
+  "cls": "stale_probe",
+  "note": "\"Earlier you said Lakeport was around $160 in FY2023 after applying a 33% decline to $120. Which base did you apply the 33% to?\" — at t9 she had already used Exhibit 2's \"$200 to $120, down 40%\". Borderline: she hadn't acknowledged the method error.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$160",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b36l-marisol-t4-fare-half",
+  "kind": "fault",
+  "p": "57",
+  "turn": 4,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"can I get departures and average fare for FY2023 versus FY2025?\" — departures came (routes_schedule + Exhibit 1); the fare got nothing (no network average held; route fares came t6 and t8).",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "fare",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-marcus-t12-seats-sub-ask",
+  "kind": "fault",
+  "p": "24",
+  "turn": 12,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "One of four sub-asks without a word: \"how many seats a day have they added\" (not held; the model never declared it).",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "seats|a day",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The model never declared the sub-ask, so code had nothing to refuse (round 6's entrant-flights refusal needs a declaration). Wave: on prof-002, each part of a multi-part competitor ask gets a release or a refusal (Marcus, Dana the data-heavy asker); the auditor (bare_partial) and the hand grade see it.",
+  "stream": 4
+ },
+ {
+  "id": "b36l-marcus-t18-question-passed",
+  "kind": "fault",
+  "p": "24",
+  "turn": 18,
+  "sev": "borderline",
+  "cls": "ignored_ask",
+  "note": "\"What stops the same low-cost carrier following us there?\" passed over by the brainstorm question. Nothing held; a reasoning question.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "follow|enter",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "An answer would be the model's words. Wave: a direct reasoning question to the interviewer gets acknowledged before the stage question; the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b36l-jasmine-t6-deferral-renames",
+  "kind": "fault",
+  "p": "40",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Fuel prices have been roughly flat over the period. I'll come back to fuel and crew rate changes between the years shortly.\" — a deferral re-naming what it just answered (unit_costs delivered at t10, not hollow).",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "fuel",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36l-marisol-report-11000",
+  "kind": "fault",
+  "p": "57",
+  "turn": 10,
+  "sev": "false",
+  "cls": "report_false",
+  "note": "Report, Quantitative ⚠️: \"…and Port Avery's $11,000 cost was applied to Lakeport's revenue. Each was corrected only when the interviewer probed.\" The $11,000 error was never probed (flag closed stale at t9); she redid it herself.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "Each was corrected only when the interviewer probed",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report claims about who caught an error match the transcript; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b36l-report-borderlines",
+  "kind": "fault",
+  "p": "64",
+  "turn": 24,
+  "sev": "borderline",
+  "cls": "report_false",
+  "note": "Report borderlines: Tyler's Communication ⚠️ \"Turns 23 and 25 largely repeated the same mitigations\" blames him for the code close re-ask; Marisol's top improvement lists two errors never caught as caught (\"the $11,000 cost … the 30% cost gap\"). Two report items, one record (on Tyler's run).",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "largely repeated the same mitigations",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: a report doesn't fault a repeat the interviewer asked for; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b36l-raj-t8-true-refusal",
+  "kind": "correct",
+  "p": "07",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I don't have total passengers flown and average fare per passenger.\" True (no network totals of either).",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "passengers",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-marcus-t12-true-refusal",
+  "kind": "correct",
+  "p": "24",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I'm afraid I don't have quarter-by-quarter fares and passengers since entry.\" True; the fare and cost halves got competitor_costs.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "quarter",
+    "must": true
+   },
+   {
+    "kind": "release",
+    "item": "competitor_costs",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-marcus-t16-leases",
+  "kind": "correct",
+  "p": "24",
+  "turn": 16,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "\"are the aircraft leases escapable or redeployable?\" → aircraft_leases (batch 34's firm t14 fixed).",
+  "a": [
+   {
+    "kind": "release",
+    "item": "aircraft_leases",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-tyler-t8-probe",
+  "kind": "correct",
+  "p": "64",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Probe on his $44M misquote (\"Where did the $44 million come from?\").",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$44 million",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-marisol-t6-unit-probe",
+  "kind": "correct",
+  "p": "57",
+  "turn": 6,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Unit probe on \"$8,400 per passenger\" (batch 34's challenge_on_verified block gone).",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$8,400",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-marisol-t26-wrapup",
+  "kind": "correct",
+  "p": "57",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Wrap-up probe on 8,500 flights.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "8,500",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-jasmine-t24-wrapup",
+  "kind": "correct",
+  "p": "40",
+  "turn": 24,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Wrap-up probe on her loose \"60% erases the gain\".",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "60%",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-raj-t26-probe",
+  "kind": "correct",
+  "p": "07",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "\"You said about one more point of load factor clears zero in year one. How did you size that …?\" — right (a quarter point is enough).",
+  "a": [
+   {
+    "kind": "probe",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-marcus-t26-wrapup",
+  "kind": "correct",
+  "p": "24",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Wrap-up probe on his \"$160 … 72%\"; he corrected at t27.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$160",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36l-jasmine-t26-close",
+  "kind": "correct",
+  "p": "40",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed with all stages done.",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ }
+]

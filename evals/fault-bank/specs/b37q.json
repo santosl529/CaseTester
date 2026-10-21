@@ -1,0 +1,706 @@
+[
+ {
+  "id": "b37q-raj-chain-405",
+  "kind": "fault",
+  "p": "07",
+  "turn": 18,
+  "sev": "serious",
+  "cls": "probe_chain",
+  "note": "Root: t11 Starter lifetime from the \"Still on Starter\" row (7.4% exit, 13.5 months, $405) — the checker rated it correct. Eight checker lines followed on figures built on it (t18 $2,800, t20 $1.21m, t22 $790k, t28 $620,000, t30 $675, t32 $905,000 — replacing the model's risk question —, t34 a derived correction, t36 $405), the input never corrected (18 minutes). Lorenzo (21 Oct): serious. His step-check ruling: the step check may link derived claims to the root and stop probing them, and ask one neutral input question at the root; it may not voice a correction without the checker. Round 6's proof: M2 improved, not caught.",
+  "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (probe chains; step check)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "\\brow\\b[^?]*\\?|cancell?ations?[^?]*\\?",
+    "must": true,
+    "scope": {
+     "fromTurn": 18,
+     "toTurn": 22
+    }
+   },
+   {
+    "kind": "probe",
+    "figure": "$905,000",
+    "must": false,
+    "scope": {
+     "turn": 32
+    }
+   },
+   {
+    "kind": "probe",
+    "figure": "$405",
+    "must": false,
+    "scope": {
+     "turn": 36
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37q-marcus-chain-14-months",
+  "kind": "fault",
+  "p": "24",
+  "turn": 18,
+  "sev": "serious",
+  "cls": "probe_chain",
+  "note": "Root: t13 \"about 7% a month, average tenure ~14 months … ≈ $420\" (combined exit rate). t18 probe (attempt 1), t22 hint (attempt 2), t24 the root probed a third time under the $920 key, t28 $1,880 (built on $920), t30 a derived correction (\"$1,100, not $920\"); the input never corrected. Lorenzo (21 Oct): serious.",
+  "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (probe chains)",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$920",
+    "must": false,
+    "scope": {
+     "turn": 24
+    }
+   },
+   {
+    "kind": "probe",
+    "figure": "$1,880",
+    "must": false,
+    "scope": {
+     "turn": 28
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37q-jasmine-chain-400",
+  "kind": "fault",
+  "p": "40",
+  "turn": 14,
+  "sev": "firm",
+  "cls": "probe_chain",
+  "note": "Root: \"$30 contribution ÷ 7.5% monthly exit ≈ 13 months → ~$400\". Three probes in three turns: t12 \"What steps got you to 4x?\", t14 \"…Walk me through how you got to 1.3x.\", t16 (the model, naming the error). Lorenzo (21 Oct): firm (a ladder that ends in the input's correction).",
+  "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (probe chains)",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "1.3x",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37q-tyler-t6-paid-organic",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "bare_partial",
+  "note": "\"Do we have the split of Starter sign-ups by source — paid versus organic?\" → signup_channels (the sign-up process), not the split, which the case doesn't hold; \"I don't have the paid versus organic split\" was owed. The model named the item; no check, no guard.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "paid|organic",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-tyler-t8-misquote-288",
+  "kind": "fault",
+  "p": "64",
+  "turn": 8,
+  "sev": "firm",
+  "cls": "misquote_uncorrected",
+  "note": "His t7 \"you had it at $288\" (CAC is $300; never said): code's checker probe \"What steps got you to 4%?\" replaced the model's catch (\"You said Starter's acquisition cost was $288 — where did that figure come from?\"); the misquote check found nothing at t7 and dropped it at t31 on the checker's \"correct\". \"$288 to acquire\" is in his final answer. Contract 3.4: the probe guard never replaces a model question that catches a misquote.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "\\$288",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37q-tyler-t18-trend-restated",
+  "kind": "fault",
+  "p": "64",
+  "turn": 18,
+  "sev": "firm",
+  "cls": "restatement",
+  "note": "\"Do we know whether Pro sign-ups were already trending down through 2024, before Starter launched?\" → \"As the exhibit shows: New customers per month were 500 Pro in 2024 …\"; the guard judged \"trend\" met by the two-year rule. The trend within 2024 got no word.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "trend|2024",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-marisol-t14-repeated-probe",
+  "kind": "fault",
+  "p": "57",
+  "turn": 14,
+  "sev": "firm",
+  "cls": "stale_probe",
+  "note": "\"You mentioned 22.5 months for Starter. What monthly amount did you divide the $900 by …?\" — at t11 she had fixed it (\"$900 ÷ $30 = 30 months, not 22.5\"; checker correct). She: \"I'd already corrected that one\".",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "22.5",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37q-marcus-t32-rec-reask",
+  "kind": "fault",
+  "p": "24",
+  "turn": 32,
+  "sev": "firm",
+  "cls": "rec_reask",
+  "note": "Code's time_warning \"We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?\" straight after his t31 full answer (recommendation, risk, next steps); recommendationReceived stayed false. Contract 4.9.",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "recommendation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-marisol-t16-question-dropped",
+  "kind": "fault",
+  "p": "57",
+  "turn": 16,
+  "sev": "firm",
+  "cls": "ignored_ask",
+  "note": "\"are those upgraders people who'd have bought Pro directly anyway?\" → the stage-exhibit turn; code_written_requests dropped it; she re-asked at t17 and got why_pro_fell + upgrade_timing at t18. Graded borderline; Lorenzo (21 Oct): a whole direct question dropped with no word is firm, even if answered after a re-ask.",
+  "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (dropped question firm)",
+  "a": [
+   {
+    "kind": "release",
+    "item": "why_pro_fell",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-marcus-t10-offer",
+  "kind": "fault",
+  "p": "24",
+  "turn": 10,
+  "sev": "firm",
+  "cls": "unasked_offer",
+  "note": "\"I can share plan economics: monthly price and cost to serve for Pro and Starter if you'd like.\" (an item label as the offer; he took it). Lorenzo (21 Oct): firm.",
+  "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "I can share plan economics",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-tyler-report-gross-net",
+  "kind": "fault",
+  "p": "64",
+  "turn": 26,
+  "sev": "false",
+  "cls": "report_false",
+  "note": "Report, Quant ⚠️: \"a total of $1,400 per sign-up, and $1,500 at $60\" puts a gross figure beside a net one. Lorenzo (21 Oct): a report basis slip is false, not serious; accept as residual for now.",
+  "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (report basis slip; accepted residual)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "\\$1,400 per sign-up, and \\$1,500 at \\$60",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report figures keep one basis per comparison (pricing-001 Tyler); the hand grade's report read sees it.",
+  "stream": "none"
+ },
+ {
+  "id": "b37q-raj-t8-churn-half",
+  "kind": "fault",
+  "p": "07",
+  "turn": 8,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"Do we have the churn rate and CAC for each plan?\" → Exhibit 1 only; the churn half got no word for one turn (Exhibit 2 at t10 on re-ask).",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-2",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-raj-t14-unasked-restated",
+  "kind": "fault",
+  "p": "07",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "He asked only for Pro-equivalent churn for upgraded customers; request_group added pro_cohort and starter_cohort to cohort_notes — a 189-word turn reading out both rows of Exhibit 2 (on screen).",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "starter_cohort",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-raj-t14-test-passed",
+  "kind": "fault",
+  "p": "07",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"With that in hand, the Starter test is passed on the combined view.\" — true (4.7×), but it closed the model's own t12 probe on an unresolved defence of the 13.5 months.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "the Starter test is passed",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "The model's own sentence. Wave: no line that closes an open probe by passing a test (pricing-001 Raj-type); the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b37q-raj-t16-demo-coarse",
+  "kind": "fault",
+  "p": "07",
+  "turn": 16,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"whether Starter sign-ups ever requested a Pro demo first\" → signup_channels (check, full): answers it coarsely, no \"I don't have\" for prior demo requests.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "demo",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-raj-t38-rec-reask",
+  "kind": "fault",
+  "p": "07",
+  "turn": 38,
+  "sev": "borderline",
+  "cls": "rec_reask",
+  "note": "The recommendation asked a second time (t26, t38; recommendationReceived stayed false); defensible after ten probe turns.",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "recommendation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-tyler-t12-false-stale-12",
+  "kind": "fault",
+  "p": "64",
+  "turn": 12,
+  "sev": "borderline",
+  "cls": "missed_error",
+  "note": "The $12/$22 cost-to-serve misread probed once (t10), then dropped by a false stale close at t13 (\"Fair — let me redo it.\" withdrew the churn, not the margin); the $28 margin and $3,900 Pro LTV reached his final answer.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$28",
+    "must": true,
+    "scope": {
+     "fromTurn": 14,
+     "toTurn": 20
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37q-tyler-t32-rec-reask",
+  "kind": "fault",
+  "p": "64",
+  "turn": 32,
+  "sev": "borderline",
+  "cls": "rec_reask",
+  "note": "\"Only a little time left — what's your bottom-line recommendation, and what's the biggest risk to it?\" after t25/t29; defensible after the t30 correction.",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "recommendation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-marisol-t8-share-coarse",
+  "kind": "fault",
+  "p": "57",
+  "turn": 8,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"Do we have the share of Starter signups that would otherwise have bought Pro?\" — release_checked withdrew why_pro_fell (the closest answer); she got volumes and buyer profile, no word that the share isn't held. why_pro_fell came at t18.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "why_pro_fell",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-marisol-t32-close-reask",
+  "kind": "fault",
+  "p": "57",
+  "turn": 32,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"How would you guard against that?\" after her t31 \"Protection: roll $60 out to a fraction of traffic …\".",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "mitigation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-marisol-t22-30-percent",
+  "kind": "fault",
+  "p": "57",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "wrong_figure",
+  "note": "The model's \"…and trade-downs were only 30% of Starter sign-ups against the 500 Pro baseline.\" Read literally false (150 of 1,000 is 15%); with \"against the 500 Pro baseline\" it is the intended true point. Borderline false statement.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "30% of Starter sign-ups",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "The model's own sentence; no check reads it. Wave: shares in interviewer lines name their base (pricing-001); the auditor (wrong_figure) and the hand grade see it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b37q-marcus-t6-month-to-month",
+  "kind": "fault",
+  "p": "24",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"how has Pro's new-customer volume moved month to month since January?\" → the two averages, no \"I don't have month-by-month volumes\" (model-named item, no guard).",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "month",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-marcus-t22-overlap",
+  "kind": "fault",
+  "p": "24",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "\"are they disproportionately the 150 who would have bought Pro anyway?\" → upgrade_timing (fair coarse answer) plus the full starter_cohort line restated as the hint's set-up; no \"I don't have the overlap\".",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "starter_cohort",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-marcus-t28-doubled-line",
+  "kind": "fault",
+  "p": "24",
+  "turn": 28,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Earlier you said \"$1,880\" for the loss on each customer who moved from Pro to Starter. Earlier you said “$1,880” — what were the steps …?\" — the model's say kept its first sentence after question_in_say withheld the second; code then appended its probe.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "Earlier you said[^?]*Earlier you said",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37q-jasmine-t4-cac-stall",
+  "kind": "fault",
+  "p": "40",
+  "turn": 4,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "CAC asked at t1: deferred at t2 (two deferral lines naming it), t4 \"Hold that thought …\", offered at t6 as if unasked, delivered at t8 after \"Yes, send CAC.\"",
+  "a": [
+   {
+    "kind": "release",
+    "item": "plan_cac",
+    "must": true,
+    "scope": {
+     "fromTurn": 4,
+     "toTurn": 6
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-jasmine-t20-stale-correction",
+  "kind": "fault",
+  "p": "40",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "stale_correction",
+  "note": "\"Starter standalone LTV/CAC is about 2 times.\" — she had said \"so 2x\" at t17 and used $600 at t19; the 1.3× flag wasn't closed by her redo. True, no \"not X\".",
+  "a": [
+   {
+    "kind": "correction",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37q-jasmine-t24-contradiction",
+  "kind": "fault",
+  "p": "40",
+  "turn": 24,
+  "sev": "borderline",
+  "cls": "rec_reask",
+  "note": "\"Your recommendation to keep Starter and raise it to $60 is noted. Based on what you have, what would you tell the CEO to do?\" — the model's say and code's rec_ask question contradict each other.",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "recommendation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37q-marisol-report-upgrade-flow",
+  "kind": "fault",
+  "p": "57",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "report_false",
+  "note": "Report, Data ⚠️ / Judgment ⚠️: \"netted a one-year upgrade flow against monthly lost sign-ups\" — in steady state monthly cohorts give ≈200 upgrades a month, so her monthly flow is right.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "one-year upgrade flow",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report criticisms of flows check steady-state arithmetic; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b37q-tyler-t12-root-correction",
+  "kind": "correct",
+  "p": "64",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "\"Starter monthly cancellation rate is about 5%, not 4%.\" — the root, attempt 2.",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "4%",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37q-tyler-t30-correction",
+  "kind": "correct",
+  "p": "64",
+  "turn": 30,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "\"Upgrade rate below which $60 stops beating $40 is about 12.5%, not 10%.\" True against his t29. On the base the correction comes one turn earlier (t28).",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "12.5%",
+    "must": true,
+    "scope": {
+     "fromTurn": 28,
+     "toTurn": 30
+    }
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37q-jasmine-t8-cac",
+  "kind": "correct",
+  "p": "40",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "correct_deferral",
+  "note": "The deferred CAC delivered (\"On what you asked about earlier: The cost to acquire …\").",
+  "a": [
+   {
+    "kind": "release",
+    "item": "plan_cac",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37q-marisol-t18-why-pro-fell",
+  "kind": "correct",
+  "p": "57",
+  "turn": 18,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Her re-ask → why_pro_fell + upgrade_timing.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "why_pro_fell",
+    "must": true
+   },
+   {
+    "kind": "release",
+    "item": "upgrade_timing",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37q-raj-t10-cohort",
+  "kind": "correct",
+  "p": "07",
+  "turn": 10,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Churn re-ask → Exhibit 2.",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-2",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37q-marcus-t6-volumes",
+  "kind": "correct",
+  "p": "24",
+  "turn": 6,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Pro volume ask → new_customers_by_plan (coarse, the case's averages).",
+  "a": [
+   {
+    "kind": "release",
+    "item": "new_customers_by_plan",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37q-jasmine-t28-close",
+  "kind": "correct",
+  "p": "40",
+  "turn": 28,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed with all stages done.",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37q-raj-t8-exhibit",
+  "kind": "correct",
+  "p": "07",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Plan-economics ask → Exhibit 1.",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-1",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ }
+]

@@ -1,0 +1,409 @@
+[
+ {
+  "id": "b35q-marcus-t22-ratio-dollar",
+  "kind": "fault",
+  "p": "24",
+  "turn": 22,
+  "sev": "false",
+  "cls": "wrong_figure",
+  "note": "Code's correction \"Starter standalone LTV/CAC is about $2.\" — a ratio given a dollar sign (true: 2.0×). Lorenzo: unit/scale slips in code lines are false, not serious.",
+  "src": "batch-35-quillpath/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 1)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "LTV/CAC is about \\$",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b35q-tyler-t28-dropped-k",
+  "kind": "fault",
+  "p": "64",
+  "turn": 28,
+  "sev": "false",
+  "cls": "wrong_figure",
+  "note": "Code's wrap-up probe \"You put it at “$210”\" for his \"$210k\" (the quote dropped the k). Lorenzo: \"$210\" for $210k counts — a false statement, not serious. Baseline finding (contract base e51a4841): the turn is now code's correction \"Extra value per month of sign-ups at $60 vs. $40 is about $0.24k, not $210k.\" — a new scale slip ($0.24M said as $0.24k; true ≈ $240k), so the record still fails.",
+  "src": "batch-35-quillpath/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 1)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "“\\$210”",
+    "must": false
+   },
+   {
+    "kind": "says",
+    "pattern": "\\$0\\.24k",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b35q-marisol-t6-probe-chain",
+  "kind": "fault",
+  "p": "57",
+  "turn": 6,
+  "sev": "serious",
+  "cls": "probe_chain",
+  "note": "Nine probe turns on one misread (the two cohort rows swapped: Pro's 21.5% read as Starter's) before the first correction (t26, 20:19): t6, t8 \"4.65\", t10 \"2.5\", t12 \"21.5%\", t14, t18, t20, t24, then t26. Lorenzo: serious (the same probe 3+ times). E7's row fix (approved wording \"At month 12, 21.5% of Pro customers and 40% of Starter customers had cancelled.\") should come by the third probe.",
+  "src": "batch-35-quillpath/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 2; E7 approved round 5b)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "21\\.5% of Pro customers and 40% of Starter customers",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 14
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b35q-raj-t12-hollow",
+  "kind": "fault",
+  "p": "07",
+  "turn": 12,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"I'll come back to upgrade rates for later cohorts shortly.\" The check mapped it to starter_cohort, cohort_notes, upgrade_timing; the case holds only the January–March cohort; nothing came back.",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "later cohorts",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "later cohorts|cohort",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35q-marcus-t18-hollow-on-screen",
+  "kind": "fault",
+  "p": "24",
+  "turn": 18,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"Do we have the cohort beyond month 12 — months 18 or 24?\" → \"On starter cohort beyond month 12: we'll get there in a bit.\" Exhibit 2 (on screen since t14) carries the coarse answer in its note (cancellations steady; very few upgrade after month 12); nothing more was said.",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "month 12",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35q-marcus-t28-hollow-out-of-scope",
+  "kind": "fault",
+  "p": "24",
+  "turn": 28,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"Hold that thought on week-by-week sign-ups within the price test — we'll come back to it shortly.\" The check mapped price_test_results and marked it out of scope; code still deferred. Never answered.",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "week-by-week",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "week",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35q-marisol-t12-hollow-held",
+  "kind": "fault",
+  "p": "57",
+  "turn": 12,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"On how Pro's CAC has moved since January 2025: we'll get there in a bit.\" (mapped plan_cac, already out). Exhibit 1's note (acquisition cost \"does not change with volume\") and why_pro_fell answer it; nothing re-said it.",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "CAC",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35q-tyler-t12-hollow-answered",
+  "kind": "fault",
+  "p": "64",
+  "turn": 12,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"That's for a little later — we'll come back to churn for upgraded customers measured from their upgrade date.\" (mapped upgrade_timing, cohort_notes). At t8 the interviewer had already said \"upgraded customers then behave like Pro customers\".",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "upgraded customers",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35q-raj-t22-doubled-line",
+  "kind": "fault",
+  "p": "07",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "The data line doubled: the model's say paraphrased price_test_notes, then code's \"As I mentioned: Starter's cost to serve ($10 a month) and acquisition cost ($300) are the same at either price …\", then a probe. (Lorenzo's D6: exhibits listed items they don't show — the cause of \"As I mentioned\" for lines never said.) Baseline finding: on the base the lead-in is \"As the exhibit shows:\" (D6) but the line is still doubled after the model's paraphrase.",
+  "src": "batch-35-quillpath/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 4, D6)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "(?:As I mentioned|As the exhibit shows|Again, from the exhibit|That's on the exhibit|The exhibit has this|Reading the exhibit again): Starter's cost to serve",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35q-raj-t36-rec-reask",
+  "kind": "fault",
+  "p": "07",
+  "turn": 36,
+  "sev": "borderline",
+  "cls": "rec_reask",
+  "note": "The recommendation asked a second time (t24, t36) by code's time warning.",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "recommendation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35q-marcus-t4-same-item-stall",
+  "kind": "fault",
+  "p": "24",
+  "turn": 4,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "Starter cancellation rates deferred three times (t2 \"I'll come back to…\", t4 \"That's for a little later…\", t6) before the cohort came at t8. Delivered, so not hollow (the b29 Marcus same-item stall).",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "cancellation",
+    "must": false,
+    "scope": {
+     "fromTurn": 4,
+     "toTurn": 6
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35q-marisol-t32-close-over-false",
+  "kind": "fault",
+  "p": "57",
+  "turn": 32,
+  "sev": "borderline",
+  "cls": "missed_error",
+  "note": "Her false \"$900 LTV, 3.0x\" stood in her final recommendation, unresolved at the time-up close (met as worded); Lorenzo's ruling 3: the stale reader closed that flag falsely on her t31 \"600 customers\" (E6). Doubt: at 24:59 a probe may not have had time either way.",
+  "src": "batch-35-quillpath/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 3)",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$900",
+    "must": true,
+    "scope": {
+     "fromTurn": 32,
+     "toTurn": 32
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b35q-tyler-t6-probe-correct-figure",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "false_correction",
+  "note": "\"How did you get to $80?\" — a probe on a correct figure ($100 − $20); nothing was flagged on it. The turn record shows code's probe_guard line, not the model's (the model asked what the exhibit says about retention) — the grading's \"the model probed\" is corrected here.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$80",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b35q-raj-t14-correction",
+  "kind": "correct",
+  "p": "07",
+  "turn": 14,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "\"Starter standalone lifetime value at $40 is about $600, not $400.\" Right.",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$600",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35q-marisol-t26-correction",
+  "kind": "correct",
+  "p": "57",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "\"Pro lifetime value is about $4,000, not $2,400.\" Right.",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$4,000",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35q-tyler-t8-misquote-correction",
+  "kind": "correct",
+  "p": "64",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "His $320 CAC misquote corrected flat (\"To correct one figure: the cost to acquire one new customer is $1,200 for Pro … $300 for Starter …\").",
+  "a": [
+   {
+    "kind": "correction",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35q-tyler-t12-row-probe",
+  "kind": "correct",
+  "p": "64",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "The model's probe on his 81.5% misread (\"Your Pro cohort row shows 78.5% …\"). The base asks the row question as code's input question (round 6 step roots) instead of the model's figure; either is correct.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "78\\.5%|\\brow\\b",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35q-raj-t12-root-probe",
+  "kind": "correct",
+  "p": "07",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Probe on his 7.5% / 13 months / $400 Starter lifetime (corrected t14).",
+  "a": [
+   {
+    "kind": "probe",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35q-marcus-t8-deferral-delivered",
+  "kind": "correct",
+  "p": "24",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "correct_deferral",
+  "note": "The deferred Starter cohort delivered (\"Here's what you asked for earlier: …\").",
+  "a": [
+   {
+    "kind": "release",
+    "item": "starter_cohort",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35q-marcus-t6-deferral-delivered",
+  "kind": "correct",
+  "p": "24",
+  "turn": 6,
+  "sev": "correct",
+  "cls": "correct_deferral",
+  "note": "The deferred CAC delivered (\"On what you asked about earlier: The cost to acquire …\").",
+  "a": [
+   {
+    "kind": "release",
+    "item": "plan_cac",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35q-tyler-t32-close",
+  "kind": "correct",
+  "p": "64",
+  "turn": 32,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed after both wrap-up probes were spent.",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ }
+]

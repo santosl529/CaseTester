@@ -1,0 +1,609 @@
+[
+ {
+  "id": "b36a-raj-t12-wrong-release",
+  "kind": "fault",
+  "p": "07",
+  "turn": 12,
+  "sev": "firm",
+  "cls": "wrong_release",
+  "note": "His t11 \"what share of the 200,000 are currently on an advanced therapy versus untreated for severity?\" — the check mapped funnel_rates and peak_share_forecast and code released \"Aldermoor's forecast is that Kelvexa reaches 20% …\" (Kelvexa's future share, not current advanced-therapy use); no \"I don't have\". The case doesn't hold that share. Lorenzo (21 Oct): firm (next data in sequence).",
+  "src": "batch-36-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked or wrong-mapping releases)",
+  "a": [
+   {
+    "kind": "release",
+    "item": "peak_share_forecast",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "advanced therapy",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-raj-t14-nimbrel-patent",
+  "kind": "fault",
+  "p": "07",
+  "turn": 14,
+  "sev": "firm",
+  "cls": "bare_partial",
+  "note": "\"Do we have Nimbrel's patent expiry and any oral competitors in late-stage trials?\" → \"Kelvexa is protected by patents until 2038. I don't have late-stage oral competitors.\" The qualifier guard treated patents as a full answer to Nimbrel's expiry (no entity qualifier); Nimbrel's expiry got no word.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "Nimbrel",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-marcus-t6-european-price",
+  "kind": "fault",
+  "p": "24",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "bare_partial",
+  "note": "\"Do we have Kelvexa's current European net price per patient per year? … And what are the EU manufacturing costs per unit?\" — refusal_covered turned the refusal into kelvexa_pricing (US) with rest null; no \"I don't have Kelvexa's European net price.\" He noticed at t15.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "European",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-marcus-t24-split-restated",
+  "kind": "fault",
+  "p": "24",
+  "turn": 24,
+  "sev": "firm",
+  "cls": "restatement",
+  "note": "\"Do we have the $80 million split by rep cost versus market access?\" → \"As the exhibit shows: Option A is …\" (check → option_a). The case holds no split; \"I don't have the split of the $80 million\" was owed (Lorenzo, batch 34: a restatement as the answer is firm).",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "option_a",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "split",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-marisol-t6-growth-restated",
+  "kind": "fault",
+  "p": "57",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "restatement",
+  "note": "\"how the eligible pool has grown over the last few years?\" → us_adults + \"As I mentioned: In the patient funnel …\" (check → funnel_rates); no \"I don't have growth in the eligible pool\". The guard's period grammar misses \"grown … over the last few years\". Marcus t10 got the same ask refused truly.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "grow|growth",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-raj-t14-offer",
+  "kind": "fault",
+  "p": "07",
+  "turn": 14,
+  "sev": "firm",
+  "cls": "unasked_offer",
+  "note": "\"I can share Kelvexa US pricing, rebates and time on treatment if you'd like. With that in hand, what would you conclude …\" — an offer, then a question assuming the data. Graded borderline; set firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (named for Quillpath Marcus t10; applied to the b36–b38 offers here — judgement call).",
+  "src": "batch-36-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "I can share Kelvexa US pricing",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-marcus-t8-offer",
+  "kind": "fault",
+  "p": "24",
+  "turn": 8,
+  "sev": "firm",
+  "cls": "unasked_offer",
+  "note": "\"I can share Kelvexa's forecast peak share if you'd like. With that in hand, how does the forecast peak share compare …\". Graded borderline; firm under the 21 Oct offer ruling (judgement call, as Raj t14). Doubt: the turn record shows the model declared peak_share_forecast as a release of his ask.",
+  "src": "batch-36-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "I can share Kelvexa's forecast peak share",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-raj-t14-refusal-wording",
+  "kind": "fault",
+  "p": "07",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "The guard's refusal \"I don't have late-stage oral competitors.\" — true, but a bare noun phrase that reads as \"there are none\".",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "I don't have late-stage oral competitors\\.",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-raj-t34-close-reask",
+  "kind": "fault",
+  "p": "07",
+  "turn": 34,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t33 \"What I'd do: make the cost structure variable…\".",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "mitigation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-tyler-t24-close-reask",
+  "kind": "fault",
+  "p": "64",
+  "turn": 24,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"What's the first step you'd want the client to take?\" after his t21 \"Next steps: validate share … and shortlist partners.\"",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "mitigation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-marisol-t30-close-reask",
+  "kind": "fault",
+  "p": "57",
+  "turn": 30,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"What would you have the client do first?\" after her t25 \"What I'd do: before committing, get Aldermoor's actual rebate quotes…\".",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "mitigation",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-marcus-t6-eu-manufacturing",
+  "kind": "fault",
+  "p": "24",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "\"I don't have EU manufacturing cost per unit.\" True of the per-unit figure, but option_shared holds the coarse answer (product cost small and similar); it is gated to Exhibit 3, on screen from t20 — borderline by the refined rule 1.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "EU manufacturing",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "The coarse answer is gated to Exhibit 3, so a code release would be a gated release; no Phase 1 rule decides between refusing a finer cut and pointing at a gated item. Wave: entry-001 asks for product cost get a true finer-cut refusal that doesn't read as \"none\" (Marcus); the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b36a-marcus-t22-non-answer",
+  "kind": "fault",
+  "p": "24",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Take that definition, and treat your own comparison as it stands.\" — to \"Which definition of the bar does the board actually mean?\"; he took it as licence (t23 \"A clears the bar at $320 million and B doesn't\"). Not counted as approving wrong work.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "treat your own comparison as it stands",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "The model's own sentence. Wave: no line that reads as endorsing the candidate's reading of a definition (entry-001 net-sales gate, Marcus or Jasmine); the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b36a-marcus-t26-unprobed-flag",
+  "kind": "fault",
+  "p": "24",
+  "turn": 26,
+  "sev": "borderline",
+  "cls": "missed_error",
+  "note": "Bar \"close over an unprobed flag\" not met (judgement): his t23 \"A clears the bar at $320 million and B doesn't\" (error) closed unresolved_at_close with 3 minutes left; his t25 restated it, the checker raised no claim on t25, and the one follow-up (t26) went to mitigation. Graded as a bar miss, not a counted fault; recorded as borderline.",
+  "a": [
+   {
+    "kind": "probe",
+    "must": true,
+    "scope": {
+     "fromTurn": 26
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b36a-tyler-t6-diagnosis-trend",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"how the diagnosis rate has been trending over the last few years?\" got diagnosis_gap with no \"I don't have the trend\"; the model named the item, so neither the check nor the guard ran.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "trend",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b36a-tyler-misquotes-socratic",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "misquote_uncorrected",
+  "note": "Both misquotes (1.5% prevalence t6; $8,650 for Nimbrel t12) got a Socratic model probe, not code's flat correction (persona Rule 6 option 4); code's misquote check dropped misquote:nimbrel at t13 (\"error/high — no flag\"). He self-corrected both. One item.",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "1.6%",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 6
+    }
+   },
+   {
+    "kind": "correction",
+    "figure": "$9,000",
+    "must": true,
+    "scope": {
+     "fromTurn": 12,
+     "toTurn": 14
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b36a-marisol-t14-nimbrel-unintroduced",
+  "kind": "fault",
+  "p": "57",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Nimbrel is covered by most plans\" before she had been told what Nimbrel is (the nimbrel line came at t16; current_treatment never reached her). Batch 34 Marisol t16 again.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "nimbrel",
+    "must": true,
+    "scope": {
+     "fromTurn": 2,
+     "toTurn": 14
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b36a-jasmine-t14-fragment-quote",
+  "kind": "fault",
+  "p": "40",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "Code's checker line quotes a fragment and asks for a calculation that doesn't exist: \"You said “…the only option where reported US net sales clear the board's $300M gate — a…” — how did you do that calculation?\"",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "“…[^”]*…”",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b36a-jasmine-t24-second-key",
+  "kind": "fault",
+  "p": "40",
+  "turn": 24,
+  "sev": "borderline",
+  "cls": "repeated_probe",
+  "note": "Her B-fails-the-gate claim probed by code at t14 and again at t24 under a second key, then the model's t26 hypothetical; three differing questions, the third led her right — not \"the same probe 3+ times\". Minor grammar: \"royalties that doesn't count\".",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "royalties that doesn't count",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b36a-jasmine-t28-reask-work",
+  "kind": "fault",
+  "p": "40",
+  "turn": 28,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"How did you get to the $240 million versus $120 million comparison on pure economics?\" asks again for work she had shown at t11 (and stated at t27).",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$240 million",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "The model's own question on a correct figure. Wave: no request to redo shown, correct work (Jasmine-type early finishers on entry-001); the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b36a-marcus-report-quote-timing",
+  "kind": "fault",
+  "p": "24",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "report_false",
+  "note": "Report, Business Judgment ⚠️: \"kept insisting price carried the case after the US data showed Kelvexa's $8,000 net was below Nimbrel's $9,000\" — its first evidence quote is from t5, before either price was given (the claim holds on the t11 quote).",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "Which is exactly my point — the price is what carries this",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report evidence quotes come after the facts they are said to contradict; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b36a-jasmine-t4-coarse-refusal",
+  "kind": "correct",
+  "p": "40",
+  "turn": 4,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "scope_coarse: \"I don't have the trend in the treated population since 2022.\" with Exhibit 1 (the coarse item given, the finer cut refused beside it).",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "trend",
+    "must": true
+   },
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-1",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36a-marcus-t10-true-refusal",
+  "kind": "correct",
+  "p": "24",
+  "turn": 10,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"Year-over-year growth in the eligible pool — that's not something I have.\" True.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "growth",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36a-tyler-t10-true-refusal",
+  "kind": "correct",
+  "p": "64",
+  "turn": 10,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I don't have the European share curve.\" True.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "European",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36a-marisol-t14-coverage",
+  "kind": "correct",
+  "p": "57",
+  "turn": 14,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "\"what share of US patients sit with payers that require prior authorization?\" → insurance_coverage (\"usually\" answers the share coarsely).",
+  "a": [
+   {
+    "kind": "release",
+    "item": "insurance_coverage",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36a-raj-t24-option-b",
+  "kind": "correct",
+  "p": "07",
+  "turn": 24,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "His t23 partner ask → Exhibit 3.",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-3",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36a-tyler-t12-misquote-probe",
+  "kind": "correct",
+  "p": "64",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "The model's probe on his $8,650 Nimbrel misquote; he self-corrected at t13.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$8,650",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36a-marisol-t2-deferral",
+  "kind": "correct",
+  "p": "57",
+  "turn": 2,
+  "sev": "correct",
+  "cls": "correct_deferral",
+  "note": "Prevalence deferred at t2 and delivered at t4.",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "prevalence",
+    "must": true
+   },
+   {
+    "kind": "release",
+    "item": "funnel_rates",
+    "must": true,
+    "scope": {
+     "fromTurn": 4,
+     "toTurn": 4
+    }
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36a-tyler-t26-close",
+  "kind": "correct",
+  "p": "64",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed with all stages done.",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36a-marisol-t8-exhibit",
+  "kind": "correct",
+  "p": "57",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Funnel ask → Exhibit 1.",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-1",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b36a-tyler-t16-exhibit",
+  "kind": "correct",
+  "p": "64",
+  "turn": 16,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Entry-options exhibit after the survey (brainstorm after Exhibit 3).",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-3",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ }
+]
