@@ -254,14 +254,20 @@ export function namesItem(text: string, own: string[], caseNames: string[], more
   const words = new Set([...ownWords, ...contentWords(withoutNames(more.join(' '), caseNames))]);
   return [...namingWords(text, caseNames, ownWords)].some(w => words.has(w));
 }
-// Whether a text says one of an item's names whole (round 6 Task 71, audit row 6): every naming word of
-// one of its phrases — label, spoken name, the case's names and covers for it — the case's proper names
-// aside ("lakeport passengers" is said by "passenger counts … on Lakeport"). Stricter than namesItem: one
-// shared word is not enough ("bags" is in the planning assumptions' label and in b35 Hollis Bay Jasmine
-// t5's "how many bags of chips …", a different item — round 5 Task 50's ruling).
-export function saysItemName(text: string, phrases: string[], caseNames: string[]): boolean {
-  const said = namingWords(text, caseNames);
-  return phrases.some(ph => { const words = [...namingWords(ph, caseNames)]; return words.length > 0 && words.every(w => said.has(w)); });
+// Whether one sentence says one of an item's names whole (round 6 Task 71, audit row 6; fix round 1):
+// every word of one of its phrases — label, spoken name, the case's names and covers for it — its
+// proper names included ("lakeport passengers" needs "Lakeport" and "passenger": b36 Larkspur Tyler
+// t5's "… fares and passenger counts specifically on Lakeport and Port Avery."), a phrase of two such
+// words at least, each sentence on its own. With the proper names stripped, about 120 of prof-002's
+// phrases were one word ("lakeport load" → "load"), the one-shared-word test round 5 Task 50 ruled out:
+// "Since load factor is roughly flat overall, …" named the ramp-up line ("load in the first year").
+// Every word of the phrase but a few function words is required — the generic ones too: "first-year
+// load factor" is not said by "load factor".
+const NAME_FILLER = new Set(['the', 'a', 'an', 'of', 'on', 'in', 'at', 'to', 'and', 'or', 'for', 'is', 'are', 'its', 'their', 'our', 'how', 'what', 'many', 'much', 'does', 'do']);
+const phraseWords = (t: string) => new Set((t.toLowerCase().match(/[a-z]+/g) ?? []).filter(w => !NAME_FILLER.has(w)).map(stem));
+export function saysItemName(sentences: string[], phrases: string[]): boolean {
+  const names = phrases.map(ph => [...phraseWords(ph)]).filter(words => words.length >= 2);
+  return sentences.some(s => { const said = phraseWords(s); return names.some(words => words.every(w => said.has(w))); });
 }
 // A text with no naming word: a pointer ("Can I see the data?").
 export const namesNothing = (text: string, caseNames: string[]) => namingWords(text, caseNames).size === 0;

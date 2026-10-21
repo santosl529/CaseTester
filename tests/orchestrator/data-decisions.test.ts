@@ -791,4 +791,11 @@ describe('Task 71: the offer gate on a tagged case', () => {
     expect(mentionStatesNeed("I'd want the monthly cost to serve on each plan.", LABEL, strict)).toBe(true);
     expect(mentionStatesNeed('I still need the plan economics.', LABEL, strict)).toBe(true);
   });
+  it('fix round 1: a label acronym said as written is a need (tagged); lower-case or untagged, as before', () => {
+    const CAC = 'Customer acquisition cost (CAC), Pro and Starter';
+    const caseNames = ['Quillpath', 'Starter', 'Pro', 'LTV', 'CAC'];
+    expect(mentionStatesNeed('Next steps: get CAC by plan, confirm the 3x test on the $1,530 figure.', CAC, { spoken: 'the acquisition cost per customer', caseNames })).toBe(true);
+    expect(mentionStatesNeed('Next steps: get cac by plan.', CAC, { spoken: 'the acquisition cost per customer', caseNames })).toBe(false);
+    expect(mentionStatesNeed('Next steps: get CAC by plan.', CAC)).toBe(false);
+  });
 });

@@ -808,8 +808,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // 4e91d638 t5: "I'd want to know fares and passenger counts specifically on Lakeport and Port Avery." —
   // the model declared the Lakeport load line `explicit: false`, and code offered it): on a tagged case an
   // item of an `explicit: false` declaration that an asking sentence of the message names — says one of
-  // its names whole (request-signal.ts saysItemName: its label, spoken name, the case's names and covers
-  // for it, the case's proper names aside; namesItem's one shared word would promote b35 Hollis Bay
+  // its names whole in one sentence (request-signal.ts saysItemName: its label, spoken name, the case's
+  // names and covers for it, proper names included, two words at least; namesItem's one shared word would promote b35 Hollis Bay
   // Jasmine t5's offer of the planning assumptions, a different item, Task 50's ruling) — is asked:
   // released under every gate, not offered (`mention_asked`). The sentences:
   // the message's addressed ones (messageAskSentences) and, before the brainstorm, guard B's explicit-cue
@@ -818,15 +818,14 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // tenure on each plan" (audit row 16) names "plan" and asks for nothing. Untagged prof-001 offers as before.
   if (state.factBase.answerGate && state.kind === 'model') {
     const early = WANT_ASK_PHASES.includes(ctx.currentPhase) ? requestSentences(ctx.candidateText) : [];
-    const said = [...new Set([...messageAskSentences(plan), ...early])].join(' ');
-    const caseNames = properNames(state.caseData.sttKeyterms);
+    const said = [...new Set([...messageAskSentences(plan), ...early])];
     const fbn = state.factBase;
     const asked: { what: string; ids: string[] }[] = [];
     requests = requests.flatMap(r => {
-      if (r.explicit || !said) return [r];
+      if (r.explicit || said.length === 0) return [r];
       const named = r.itemIds.filter(id => {
         const item = ledger.items.find(i => i.id === id);
-        return item !== undefined && saysItemName(said, [item.label, item.spoken ?? '', ...(fbn.quantities.find(q => q.id === id)?.names ?? []), ...(fbn.covers.find(c => c.id === id)?.phrases ?? [])], caseNames);
+        return item !== undefined && saysItemName(said, [item.label, item.spoken ?? '', ...(fbn.quantities.find(q => q.id === id)?.names ?? []), ...(fbn.covers.find(c => c.id === id)?.phrases ?? [])]);
       });
       if (named.length === 0) return [r];
       asked.push({ what: r.what, ids: named });

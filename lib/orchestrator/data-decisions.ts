@@ -75,7 +75,11 @@ export function mentionStatesNeed(candidateText: string, label: string, strict?:
   const named = new Set((label.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).filter(w => w.length >= 4).map(stemWord)
     .filter(w => !GENERIC_LABEL_WORDS.has(w) && !LABEL_IGNORED.has(w) && !proper.has(w)));
   const spoken = strict?.spoken?.toLowerCase().replace(/^(?:the|a|an)\s+/, '').trim();
-  if (named.size === 0 && !spoken) return false;
+  // A label's acronym (all capitals, three letters or more: CAC, LTV, COGS), said as written, names the item
+  // on its own (Task 71 fix round 1, controller replay: b37 Quillpath Jasmine t5, "Next steps: get CAC by
+  // plan, …", lost the acquisition-cost offer — "CAC" is short and a case name, so no word of it counted).
+  const acronyms = strict ? (label.match(/\b[A-Z]{3,}\b/g) ?? []) : [];
+  if (named.size === 0 && !spoken && acronyms.length === 0) return false;
   // The item is what the need is for: named after the cue, in the same clause
   // — not in a subordinate one ("I'd check dairy and packaging first … even
   // though beans rose faster" is no need for the bean figure; batch 20 R25 t24).
@@ -85,7 +89,8 @@ export function mentionStatesNeed(candidateText: string, label: string, strict?:
     const need = clause.slice(cue.index);
     const hits = new Set(contentWords(need).filter(w => named.has(w)));
     if (!strict) return hits.size > 0;
-    return hits.size >= 2 || (spoken !== undefined && spoken.length > 0 && need.toLowerCase().includes(spoken));
+    return hits.size >= 2 || (spoken !== undefined && spoken.length > 0 && need.toLowerCase().includes(spoken))
+      || acronyms.some(a => new RegExp(`\\b${a}\\b`).test(need));
   }));
 }
 

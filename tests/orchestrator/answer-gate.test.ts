@@ -627,6 +627,23 @@ describe('Task 71: the audit\'s code-only fixes, through the turn', () => {
     expect(renderDataLines(d, 's').join(' ')).not.toMatch(/I can share/);
     expect(acts(p, 'mention_asked')[0].detail).toEqual({ asks: [{ what: 'load factor on Lakeport and Port Avery', ids: ['lakeport_seats_load'] }] });
   });
+  // Fix round 1 (review I1): a one-word name phrase ("load in the first year" → "load") names nothing on
+  // its own — the reviewer's probe: Tyler t5 verbatim with a mention of the ramp-up line.
+  it('fix round 1: "Since load factor is roughly flat overall, …" doesn\'t ask for the ramp-up line — it stays a mention', async () => {
+    const f = AUDIT_T71.F6;
+    const p = planTurn(readsFixture({ caseId: f.caseId, phase: f.phase as Phase, revealed: f.revealed, flags: { pressureTest: f.pressureTest } }), f.text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    for (const id of f.shown) p.state.shownExhibitIds.add(id);
+    const rampup = req('how long new routes take to ramp up', ['new_route_rampup'], { explicit: false });
+    const d = await turnDataChecked(p, { requests: [...f.requests, rampup], exhibit: null, rescueItem: null });
+    expect(d.releases.map(r => r.id)).not.toContain('new_route_rampup');
+    expect(acts(p, 'mention_asked')[0].detail).toEqual({ asks: [{ what: 'load factor on Lakeport and Port Avery', ids: ['lakeport_seats_load'] }] });
+  });
+  // Fix round 1 (controller replay): a label's acronym said as written is a need on its own (tagged).
+  it('fix round 1, b37q Jasmine t5: "Next steps: get CAC by plan, …" keeps the acquisition-cost offer', async () => {
+    const { d } = await run71('F5J');
+    expect(d.offers).toEqual(['the acquisition cost per customer']);   // said by its spoken name
+  });
   it('row 21, b36a Marcus t23: a split of the $80 million — Option A\'s line is not restated; the split refused alone', async () => {
     const { d } = await run71('F8', { items: [{ id: 'option_a', answers: 'full' }] });
     expect(d.restates).toEqual([]);

@@ -5,7 +5,7 @@
 // Ines debc9b60 t25, default-candidate 72925a9c t15) and it missed plain asks
 // ("What was the store count two years ago?").
 import { describe, it, expect } from 'vitest';
-import { addressedAskSentences, matchAskDetections, explicitRequestCues } from '@/lib/orchestrator/request-signal';
+import { addressedAskSentences, matchAskDetections, explicitRequestCues, saysItemName } from '@/lib/orchestrator/request-signal';
 
 const asks = (t: string, phase = 'RECOMMENDATION') => addressedAskSentences(t, phase as never);
 
@@ -214,4 +214,19 @@ describe('Task 71: asking sentences the request reader missed', () => {
     expect(addressedAskSentences('Is Pro better?', 'EXHIBIT', { ledger })).toEqual([]);
     expect(addressedAskSentences('Should I use the upgrade rate from the cohort?', 'EXHIBIT', { ledger })).toEqual([]);
   });
+});
+
+// Task 71 fix round 1 (review I1): saysItemName needs a phrase of two words or more, proper names
+// included, in one sentence.
+describe('saysItemName', () => {
+  const SEATS = ['Hub–Lakeport seats per flight and load factor', "Hub–Lakeport's seats and load factor", 'lakeport load', 'lakeport passengers', 'how many passengers on lakeport'];
+  const TYLER = ['Since load factor is roughly flat overall, I\'d want to know fares and passenger counts specifically on Lakeport and Port Avery.', 'Do we have average fare by route?'];
+  it('b36l Tyler t5: "lakeport passengers" said by "passenger counts … on Lakeport"', () => expect(saysItemName(TYLER, SEATS)).toBe(true));
+  it('a one-word phrase names nothing ("load", "fares"); a phrase\'s generic words are required ("first-year load factor")', () => {
+    expect(saysItemName(TYLER, ['load', 'fares'])).toBe(false);
+    expect(saysItemName(TYLER, ['first-year load factor', 'load in the first year'])).toBe(false);
+    expect(saysItemName(TYLER, ['load factor'])).toBe(true);
+  });
+  it('the proper name is required: "passenger counts" alone is not "lakeport passengers"', () => expect(saysItemName(['What are the passenger counts on Port Avery?'], SEATS)).toBe(false));
+  it('per sentence: words split across two sentences don\'t make a name', () => expect(saysItemName(['How about Lakeport?', 'And passenger counts?'], ['lakeport passengers'])).toBe(false));
 });
