@@ -1156,14 +1156,25 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // A derived claim's own correction selected (R7 reversed): the root it was built on, for its decision.
   let onceRoot: string | null = null;
   const waiting = [...eligible];
-  // A key that goes to the report this turn, with no line said: the claims built on it take its place in the queue, each
-  // for its own correction once (R7 reversed, onceEntry) — they were raised through it, with its rating. None → the report.
-  const toReport = (...ks: string[]) => {
+  // A key that goes to the report this turn, with no line said: the claims built on it join the queue, each for its own
+  // correction once (R7 reversed, onceEntry), in the queue's order (final review M3: a minor derived correction never takes
+  // the turn from a conclusion-changing claim still waiting). None → the report. A key whose correction was said twice
+  // already (`lineSaid`) went to the report with a code line: Lorenzo's condition ("without a code line") isn't met, so the
+  // claims built on it go to the report as onClosedRoot's "already said twice" (final review M1).
+  const toReport = (ks: string[], lineSaid = false) => {
     closedNow.push(...ks);
     const freed = built.filter(b => ks.includes(b.root));
     for (const b of freed) built.splice(built.indexOf(b), 1);
-    const next = freed.flatMap(({ e, root }) => { const once = onceEntry(e, root); return once ? [once] : []; }).sort(order);
-    waiting.unshift(...next);
+    if (lineSaid) {
+      for (const { e, root } of freed) {
+        decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `built on a corrected input (${root}) — its correction was already said twice; left for the report`, undefined, e.key), root });
+        handled.add(e.id);
+      }
+      return;
+    }
+    // Ahead of their equals (a stable sort): raised through the root, they keep its place among claims of the same rank.
+    waiting.unshift(...freed.flatMap(({ e, root }) => { const once = onceEntry(e, root); return once ? [once] : []; }).sort(order));
+    waiting.sort(order);
   };
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
     const entry = waiting.shift()!;
@@ -1185,6 +1196,14 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       onceRoot = root;
       continue;
     }
+    // E7: a claim on an input closed this turn with no line said: its own correction once (R7 reversed), through the
+    // queue's once path — the same time-pressure shed, the root on its record (final review M2) — else the report.
+    const im = inputKeyOf(entry);
+    if (im && closedNow.includes(im)) {
+      const once = onceEntry(entry, im);
+      if (once) waiting.unshift(once);
+      continue;
+    }
     // Every probe of the error counts — code's, the checker's and the model's
     // own — since it was first stated (the stored counter, or the interviewer
     // turns that asked about its figures, whichever is more).
@@ -1202,24 +1221,17 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       if (!saidTwice(s.line)) return false;
       decisions.push(decision(id, n, c, 'unresolved', 'its correction was already said twice — left for the report', s.line, key));
       handled.add(id);
-      toReport(key);
+      toReport([key], true);
       return true;
     };
     // E7: two probes on the claim's input already — the next line on it is the input's correction, else the report.
-    const im = inputKeyOf(entry);
-    // …on an input closed this turn with no line said: its own correction once (R7 reversed), else the report.
-    if (im && closedNow.includes(im)) {
-      const once = onceEntry(entry, im);
-      if (once) { selected = once.once.sel; onceRoot = im; }
-      continue;
-    }
     if (im && inputTurns(im).size >= INPUT_PROBE_CAP) {
       const fixed = inputCorrection(entry, attempt);
       if (fixed && spentLine(fixed)) continue;
       if (fixed) { selected = fixed; continue; }
       decisions.push(decision(id, n, c, 'unresolved', `two probes on its input (${im}) already, and no true correction code can write — left for the report`, undefined, key));
       handled.add(id);
-      toReport(key, im);
+      toReport([key, im]);
       continue;
     }
     if ((p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
@@ -1228,7 +1240,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       if (corrected) { selected = corrected; continue; }
       decisions.push(decision(id, n, c, 'unresolved', `two probes on this step already (${stepOfKey(key)}) — left for the report`, undefined, key));
       handled.add(id);
-      toReport(key);
+      toReport([key]);
       continue;
     }
     // Said on the turn after this message: quoted unless right after the claim (ruling 4, quoteLateProbe).
@@ -1245,7 +1257,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     // Past Rule 14 with nothing code can say: the report has it, and the case moves on.
     decisions.push(decision(id, n, c, 'unresolved', `attempt ${attempt}: no correction code can write${c.pointerLine || c.hintLine ? ', second probe already used' : ', no pointer'} — left for the report`, undefined, key));
     handled.add(id);
-    toReport(key);
+    toReport([key]);
   }
   const restating = selected?.action === 'restate';
   if (selected && !restating) decisions.push({ ...decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,

@@ -120,3 +120,40 @@ describe('R7 reversed: a claim built on a root left for the report gets its own 
     });
   });
 });
+
+// Final review M1–M3 (f0fbaf8..5f73bc8), on the same b33 Marisol plan at t13.
+const editClaim = (rs: CheckerRow[], turn: number, i: number, patch: Partial<VettedClaim>) => rs.map(r => {
+  const v = r.payloadJsonb as VerdictPayload;
+  return v.candidateTurnIndex !== turn || !v.claims ? r : { ...r, payloadJsonb: { ...v, claims: v.claims.map((c, j) => (j === i ? { ...c, ...patch } as VettedClaim : c)) } };
+});
+describe('final review M1: a root whose correction was said twice goes to the report with a code line — its derived claims go to the report too', () => {
+  // 9:0 given a vetted correction (its root line), said twice already: spentLine sends 9:0 to the report.
+  const ROOT_LINE = 'Beans two years ago were about 10.5 points of revenue, not 14.5.';
+  const withLine = editClaim(atT13.rows, 9, 0, { correctionLine: ROOT_LINE, correctionFigure: '10.5' });
+  it('the line is 9:0\'s correction (said at t13 when not yet said)', () => {
+    expect(plan(13, { ...atT13, rows: withLine }).selected).toMatchObject({ id: '9:0', action: 'correct', line: ROOT_LINE });
+  });
+  it('said twice: 9:0 to the report, and 11:0 to the report as "already said twice" — not its own correction', () => {
+    const p = plan(13, { ...atT13, rows: withLine, said: { [lineKey(ROOT_LINE)]: 2 } });
+    expect(p.decisions.find(d => d.id === '9:0')).toMatchObject({ outcome: 'unresolved', reason: 'its correction was already said twice — left for the report' });
+    expect(p.selected?.id).not.toBe('11:0');
+    expect(p.decisions.filter(d => d.id === '11:0')).toEqual([expect.objectContaining({ outcome: 'unresolved', root: ROOT,
+      reason: `built on a corrected input (${ROOT}) — its correction was already said twice; left for the report` })]);
+    expect(p.handledNow).toContain('11:0');
+  });
+});
+
+describe('final review M3: a freed derived claim joins the queue in its order — a minor one never takes the turn from a conclusion-changing claim', () => {
+  // 9:0 conclusion-changing (so it is tried before 11:1), 11:0 minor, 11:1 conclusion-changing.
+  const rs = editClaim(editClaim(editClaim(atT13.rows, 9, 0, { changesConclusion: true }), 11, 0, { changesConclusion: false }), 11, 1, { changesConclusion: true });
+  it('9:0 to the report; 11:1 (conclusion-changing) is this turn\'s line, 11:0\'s own correction waits', () => {
+    const p = plan(13, { ...atT13, rows: rs });
+    expect(p.decisions.find(d => d.id === '9:0')).toMatchObject({ outcome: 'unresolved' });
+    expect(p.selected).toMatchObject({ id: '11:1', action: 'probe' });
+    expect(p.waiting.map(w => w.id)).toContain('11:0');
+  });
+  it('with 11:0 conclusion-changing as recorded, it still goes first (age)', () => {
+    const p = plan(13, { ...atT13, rows: editClaim(atT13.rows, 11, 1, { changesConclusion: true }) });
+    expect(p.selected).toMatchObject({ id: '11:0', action: 'correct', line: LINE_4_2 });
+  });
+});

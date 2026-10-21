@@ -147,6 +147,26 @@ describe('Quillpath Marisol 087451cb at t11: the third probe on her input is its
   });
 });
 
+// Final review M2: a claim on an input closed this turn went to its own correction directly, past the queue's once
+// path. It now goes through that path: under time pressure a minor one is shed with the root on its record (the report
+// then says what became of the root, Task 55), and one with no true line goes to the report as "built on a closed input".
+describe('final review M2: a claim on an input closed this turn takes the once path', () => {
+  const minorBut = (ids: string[]) => F.rows.map(r => (r.subtype !== 'verdict' ? r : { ...r, payloadJsonb: { ...(r.payloadJsonb as VerdictPayload),
+    claims: (r.payloadJsonb as VerdictPayload).claims.map((c, i) => ({ ...c, changesConclusion: ids.includes(`${(r.payloadJsonb as VerdictPayload).candidateTurnIndex}:${i}`) })) } }));
+  it('under time pressure, the roots (7:0, 7:1) conclusion-changing and left for the report: 7:3 "$2,400" (minor) is shed with its root, never said', () => {
+    const p = planAt({ caseData: noExhibits as never, underTimePressure: true, rows: minorBut(['7:0', '7:1']) });
+    expect(p.decisions.find(d => d.id === '7:1')).toMatchObject({ outcome: 'unresolved', reason: expect.stringMatching(/left for the report/) });
+    expect(p.selected).toBeNull();
+    expect(p.decisions.find(d => d.id === '7:3')).toMatchObject({ outcome: 'shed', root: 'input:40%' });
+    // No true line of its own (Starter churn 21.5): the report, built on the closed input.
+    expect(p.decisions.find(d => d.id === '9:0')).toMatchObject({ outcome: 'unresolved', root: 'input:21.5%', reason: 'built on a closed input (input:21.5%)' });
+  });
+  it('without time pressure: unchanged — 7:3 is corrected once (the case above)', () => {
+    const p = planAt({ caseData: noExhibits as never, rows: minorBut(['7:0', '7:1']) });
+    expect(p.selected).toMatchObject({ id: '7:3', action: 'correct', line: 'Pro lifetime value is about $4,000, not $2,400.' });
+  });
+});
+
 describe('Review Focus 6: her own claim corrected at its second attempt is the row fix, never "about 5%, not 21.5%"', () => {
   // t5 "For Starter, the churn figure I'll use is 21.5% — that's the clean cancellation rate we have. … 1 / 0.215 ≈ 4.65 months"
   // (5:1, starter_churn): the vetted correction is "Starter monthly cancellation rate is about 5%, not 21.5%." — false on her
