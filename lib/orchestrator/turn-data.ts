@@ -11,7 +11,7 @@ import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSp
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, requestSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, saysItemName, WANT_ASK_PHASES } from './request-signal';
-import { tagsAgree, askGroups, askClauses } from './item-tags';
+import { tagsAgree, askGroups, askClauses, askTags, itemTagsAgree } from './item-tags';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
 import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, askQualifiers, type Qualifier } from './ask-qualifiers';
@@ -239,7 +239,9 @@ function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
 // asked part each lacks (`missing`, validated: no digit, the ask's own words).
 // `guard` (round 5c Task 61): the qualifiers of the ask no mapped item states, the
 // refusal's parts, and the mapped items it makes partial (qualifierGuard below).
-export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: string[]; partial: string[]; missing: Record<string, string>; guard?: QualifierGuard };
+// `tagDeferred` (Phase 1 4.3, haikuTagGate): the check's full items whose item tags disagree with the ask, when taking
+// them off would leave no item or make a refusal — the verdict is then no verdict (the named deferral), holding none.
+export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: string[]; partial: string[]; missing: Record<string, string>; guard?: QualifierGuard; tagDeferred?: string[] };
 // `drop` (round 6 Task 70, the answer gate on a tagged case): the check's items the gate took
 // off — not in `ids`, never given; `said`: the gate's tag parts, said even when one is the whole ask.
 // `of` (fix round 1): each gate part's own item, credited in its `partial_dropped` record.
@@ -426,12 +428,12 @@ const noncheckTags = (): { tags?: false; defer?: true } => (tagsOnNoncheckPaths(
 export type DroppedPart = { id: string; missing: string; why: 'whole_ask' | 'false_refusal' };
 // `refuse` with `missing` (round 6 Task 70): the answer gate dropped every mapped item; its parts are the refusal.
 export type CheckedAsk =
-  | { kind: 'named' }
+  | { kind: 'named'; tagDeferred?: string[] }
   | { kind: 'refuse'; missing?: string[]; dropped?: DroppedPart[] }
   | { kind: 'items'; ids: string[]; missing?: string[]; dropped?: DroppedPart[] }
   | { kind: 'coarse'; ids: string[]; missing?: string[]; dropped?: DroppedPart[] };
 export function decideCheckedAsk(plan: ModelPlan, what: string, v0: CheckVerdict): CheckedAsk {
-  if (v0.mapped === null) return { kind: 'named' };
+  if (v0.mapped === null) return v0.tagDeferred ? { kind: 'named', tagDeferred: v0.tagDeferred } : { kind: 'named' };
   const { ledger } = plan.state;
   const ids = v0.ids.filter(id => ledger.items.some(i => i.id === id));
   const gateDrop = v0.guard?.drop ?? [];
@@ -593,12 +595,18 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
       missing[f.id] = m;
     }
     const guard = found === null ? null : plan.state.factBase.answerGate ? gateGuard(what, gate, ids, missing) : qualifierGuard(plan, what, ids, missing);
-    const verdict: CheckVerdict = { mapped, ids, outOfScope, partial, missing, ...(guard ? { guard } : {}) };
+    let verdict: CheckVerdict = { mapped, ids, outOfScope, partial, missing, ...(guard ? { guard } : {}) };
+    // Phase 1 4.3: the check's full items through the item-tag gate (haikuTagGate, below).
+    const tagGate = found !== null && switchOn(plan.state.caseData, 'haikuTagGate') ? haikuTagGate(plan, what, verdict) : null;
+    if (tagGate) {
+      verdict = tagGate.verdict;
+      plan.ctx.checks.act('haiku_tag_gate', 'the check\'s full items whose item tags disagree with the ask: never released, never refused — taken off, or the ask deferred by its words', { what, gated: tagGate.gated, deferred: verdict.tagDeferred !== undefined });
+    }
     const decision = decideCheckedAsk(plan, what, verdict);
     // `found` keeps its old shape, so a replay reads old and new records alike (lib/eval/recorded-checks.ts).
     plan.ctx.checks.record('itemless_defer', mapped !== false, DECIDED[decision.kind],
       { what, mapped, found: found === null ? null : [{ what, ids }], decision: decision.kind, ...(tagDropped.length > 0 ? { tagDropped } : {}), ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}), ...(outOfScopeRules ? { outOfScopeRules } : {}),
-        ...(partial.length > 0 ? { partial, missing } : {}), ...(guard ? { guard } : {}), latencyMs: Date.now() - t0, ...(timedOut ? { timedOut } : {}), ...(usage ? usageDetail(usage) : {}) });
+        ...(partial.length > 0 ? { partial, missing } : {}), ...(guard ? { guard } : {}), ...(tagGate ? { tagGate: tagGate.gated } : {}), latencyMs: Date.now() - t0, ...(timedOut ? { timedOut } : {}), ...(usage ? usageDetail(usage) : {}) });
     if (gate) plan.ctx.checks.act('answer_gate', 'an ask whose mapped items don\'t answer a part of it: those items not given, the part refused unchecked (a period or scope unmet: E1\'s form)', { asks: [{ what, path: 'check', refuse: guard?.parts ?? [], drop: gate.drop, partial: gate.partial }] });
     // A partial part no refusal says (final review I5, for Lorenzo's ruling; M6): the
     // ask, the item, Haiku's own `missing` and the part as checked, so a wave counts them.
@@ -611,6 +619,35 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
   })();
   cache.set(what, run);
   return run;
+}
+
+// The item-tag gate on the check's positives (Phase 1 4.3, `haikuTagGate`; Lorenzo, 22 Oct: "Haiku positives: must pass
+// the tag gate (entity, period, quantityKind against the ask). A mismatch defers; it never releases and never refuses.";
+// item-tags.ts askTags / itemTagsAgree). A positive is an item the check calls full that the ask's scope rules keep — the
+// ones `items` would give (a partial or out-of-scope item is already a coarse item, E1). Read after round 6's answer gate,
+// so its entity and forecast refusals on the check path stand. Those whose tags disagree are taken off the verdict when
+// what's left decides the same way with no more refused; otherwise the verdict becomes no verdict — the named deferral in
+// the ask's words, holding no item, tracked open until delivered or "We won't get to …" (the gated items its own: they
+// don't answer it). An item with no tags (every case until Stream 2's overlays) agrees with every ask: nothing changes.
+function haikuTagGate(plan: ModelPlan, what: string, v: CheckVerdict): { verdict: CheckVerdict; gated: { id: string; why: 'entity' | 'period' | 'kind' }[] } | null {
+  const { factBase, caseData } = plan.state;
+  const full = v.ids.filter(id => !v.outOfScope.includes(id) && !v.partial.includes(id) && !(v.guard?.ids ?? []).includes(id));
+  if (full.length === 0) return null;
+  const sentence = askSentenceFor(what, askingSentences(plan.ctx.candidateText, plan.ctx.currentPhase), properNames(caseData.sttKeyterms)) ?? '';
+  const ask = askTags(what, sentence, factBase);
+  const gated = full.flatMap(id => {
+    const t = itemTagsAgree(ask, caseData.dataLedger.find(i => i.id === id)?.tags);
+    return t.agree ? [] : [{ id, why: t.why ?? 'entity' as const }];
+  });
+  if (gated.length === 0) return null;
+  const off = new Set(gated.map(g => g.id));
+  const keep = (ids: string[]) => ids.filter(id => !off.has(id));
+  const v2: CheckVerdict = { ...v, ids: keep(v.ids), outOfScope: keep(v.outOfScope), partial: keep(v.partial), ...(v.guard ? { guard: { ...v.guard, ids: keep(v.guard.ids) } } : {}) };
+  const before = decideCheckedAsk(plan, what, v);
+  const after = v2.ids.length > 0 ? decideCheckedAsk(plan, what, v2) : null;
+  const saidBefore = new Set(before.kind === 'named' ? [] : before.missing ?? []);
+  const same = after !== null && after.kind === before.kind && after.kind !== 'refuse' && after.kind !== 'named' && (after.missing ?? []).every(m => saidBefore.has(m));
+  return { verdict: same ? v2 : { ...v, mapped: null, tagDeferred: [...off] }, gated };
 }
 
 // turnData, with the item-less asks resolved (async: the check above). Every
@@ -662,6 +699,9 @@ async function turnDataDecided(plan: ModelPlan, turn: Pick<ModelTurn, 'requests'
   const wrapUp = wrapUpTurn(plan) && defers.length > 0;
   // Task 76 (a): the deferrals to track (tagged cases only; said "I'll come back to …" — on a wrap-up turn they are "We won't get to …" already).
   const opened = plan.state.factBase.answerGate && !wrapUp ? defers.filter(w => vetoed.has(w) || tagVetoed.has(w)).map(w => ({ what: w, ids: d.deferredItems?.[w] ?? [] })) : [];
+  // Phase 1 4.3: an ask the item-tag gate deferred (no verdict, holding no item) is tracked too, on any case.
+  const tagGated = (w: string) => { const c = decided.get(w); return c?.kind === 'named' ? c.tagDeferred : undefined; };
+  if (!wrapUp && tracksDeferrals(plan)) for (const w of defers) { const ids = tagGated(w); if (ids && !opened.some(o => o.what === w)) opened.push({ what: w, ids }); }
   // Said "We won't get to …" at a wrap-up: logged as such, like decideData's (round-3 ruling 4).
   const wont = new Set(wrapUp ? defers : []);
   return {

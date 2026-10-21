@@ -126,3 +126,51 @@ export function askGroups(what: string, opts: { list?: boolean } = {}): AskGroup
   }
   return out.length > 0 ? out : [{ text, start: 0, end: text.length }];
 }
+
+// ---- The item-tag gate on the check's positives (Phase 1 4.3, `haikuTagGate`) ----
+// Lorenzo, 22 Oct: "Haiku positives: must pass the tag gate (entity, period, quantityKind against the ask). A mismatch
+// defers; it never releases and never refuses." The item's tags are the overlay's (contract §1, `items[id].tags` on the
+// ledger item: `entity` — "client" or an entity id; `period` — forecast / current / historical; `quantityKind` — total,
+// split, level, trend, one-off, recurring; arrays, so an item that states "from 42% to 58%" is historical, current and
+// a trend). The ask's are read by code, each only from wording that says it plainly — an ask that says none of them
+// constrains nothing, and an item without tags agrees with every ask:
+//   entity — entitiesNamed (above): the ask names another company and not the item's (one-directional, as tagsAgree:
+//     client words never exclude another entity's item);
+//   period — forecast ("forecast", "projected", "expected to", "going forward", "next year", "at peak"), current
+//     (asksCurrent, above) and historical ("historically", "in the past", "over the last …", "… years ago", "since
+//     2022") markers: the item states none of the periods the ask names;
+//   quantityKind — split ("split", "breakdown", "mix", "composition", "by type / category / segment / source /
+//     channel"), trend ("trend", "trajectory", "over time", "grew", "growth", "year over year", "since"), one-off
+//     ("one-off", "one-time", "upfront", "setup", "launch cost"), recurring ("recurring", "recurs", "ongoing", "every
+//     year" — not "annual" or "per year", which name a rate: "net price per patient per year", "total annual revenue")
+//     and total ("in total", "total number / count", "altogether", "across all"): the item has none of the kinds the
+//     ask names. A level is no marker (every figure is one).
+// Entity and the period are read from the model's words and the candidate's sentence (as tagsAgree); the quantity kind
+// from the model's words only (a sentence carries the candidate's other clauses).
+export type ItemTags = { entity: string; period: readonly string[]; quantityKind: readonly string[] };
+const FORECAST = /\b(?:forecast(?:s|ed)?|projected|projections?|expected to|will (?:be|reach|have)|going forward|in the future|next (?:year|few years|five years)|at peak|peak (?:share|sales|year|revenue))\b/i;
+const HISTORICAL = /\b(?:historical(?:ly)?|history|in the past|over the (?:last|past)\b|(?:last|previous|prior) (?:year|years|quarter)|years? ago|used to|since (?:19|20)\d\d)\b/i;
+const KINDS: [string, RegExp][] = [
+  ['split', /\b(?:split|splits|breakdown|broken (?:down|out)|break[- ]?down|mix|composition|makeup|make-up|by (?:type|category|categories|segment|source|channel|component))\b/i],
+  ['trend', /\b(?:trend(?:s|ed|ing)?|trajector(?:y|ies)|over time|grew|growth|year[- ]over[- ]year|since (?:19|20)\d\d|since (?:launch|entry|then))\b/i],
+  ['one-off', /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up costs?|start-?up costs?|launch costs?)\b/i],
+  ['recurring', /\b(?:recurr(?:ing|ent|s|ed)?|recurs|ongoing|year after year|every year)\b/i],
+  ['total', /\b(?:in total|total (?:number|count)|altogether|across all|network[- ]wide|company[- ]wide)\b/i],
+];
+export function askTags(words: string, sentence: string, fb: FactBase): { entities: string[]; periods: string[]; kinds: string[] } {
+  const both = sentence ? `${words}\n${sentence}` : words;
+  const periods = [
+    ...(FORECAST.test(both) ? ['forecast'] : []),
+    ...(asksCurrent(words) || (sentence !== '' && asksCurrent(sentence)) ? ['current'] : []),
+    ...(HISTORICAL.test(both) ? ['historical'] : []),
+  ];
+  return { entities: entitiesNamed(both, fb), periods, kinds: KINDS.filter(([, re]) => re.test(words)).map(([k]) => k) };
+}
+export function itemTagsAgree(ask: { entities: string[]; periods: string[]; kinds: string[] }, tags: ItemTags | undefined): { agree: boolean; why?: 'entity' | 'period' | 'kind' } {
+  if (!tags) return { agree: true };
+  const others = ask.entities.filter(e => e !== 'client');
+  if (others.length > 0 && !others.includes(tags.entity) && !ask.entities.includes(tags.entity)) return { agree: false, why: 'entity' };
+  if (ask.periods.length > 0 && !ask.periods.some(p => tags.period.includes(p))) return { agree: false, why: 'period' };
+  if (ask.kinds.length > 0 && !ask.kinds.some(k => tags.quantityKind.includes(k))) return { agree: false, why: 'kind' };
+  return { agree: true };
+}
