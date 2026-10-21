@@ -37,7 +37,7 @@ import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers }
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems, openDeferrals, resolveDeferrals } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems, openDeferrals, resolveDeferrals, tracksDeferrals } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
@@ -737,7 +737,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // the E5 stop sequence (delivered, or "We won't get to that"), never left hollow"; turn-data.ts resolveDeferrals):
   // code's item-less named deferrals on a tagged case stay open in flags.openDeferrals until delivered or said "We won't
   // get to …" on the first wrap-up turn — each resolved once, logged; whether heard or not, as flags.mustReach.
-  if (state.factBase.answerGate) {
+  if (tracksDeferrals(plan)) {
     // Booked deliveries only (fix round 1, the review's minor): the reveals booked, the lines restated, the exhibit shown.
     const tracked = resolveDeferrals(openDeferrals(plan), decisions, nextTurnIndex + 1, [...newReveals, ...decisions.restates.map(r => r.id), ...exhibitReveals]);
     for (const r of tracked.resolved) checks.act('deferral_resolved', r.how === 'delivered' ? 'a tracked deferral delivered: nothing more said'
