@@ -50,6 +50,17 @@ const WANT_CUE = CUES.find(([label]) => label === "I'd want the")![1];
 // start a classifier call its replay never made. Guard B's cue list (explicitRequestCues) is unchanged:
 // this only makes the sentence an asking sentence, so the message's classifier reads it.
 const WANT_IS = /\b(?:i'?d|i\s+would)\s+want\s+is\b/i;
+// 4.6 (Phase 1, `wantCueBroad`; Lorenzo, 22 Oct: "The want cue: accept \"I'd want / I'd need / I'd confirm\" plus any
+// noun phrase (their / its / a breakdown…). Keep the classifier's share at about 2% of turns or less."). b38 Larkspur
+// Marisol t9: "On the competitor: I'd want their cost per seat, their frequency on each route, …" failed WANT_CUE (it
+// reads only "the / a / an / some / any / to see…" after the verb), so no asking sentence, no classifier, and
+// `competitor_costs` never reached her. A noun phrase is anything but an infinitive ("I'd want to look at the whole
+// business" is a framework), an object pronoun ("I'd want them to confirm"), a stretch of time ("four to six weeks"),
+// or arithmetic ("I'd need revenue of 94 divided by 0.76"); "(what) I'd want next / now is …" and row 11's
+// "(what) I'd want is …" are wants too. Phase rules as WANT_CUE: before the brainstorm, or a question.
+const WANT_BROAD = /\b(?:i'?d|i\s+would)\s+(?:also\s+|still\s+|first\s+|really\s+|mainly\s+|then\s+|probably\s+|definitely\s+)?(?:want|need|confirm)\b(?!\s+(?:to|you|us|me|him|them|it|help|(?:more\s+)?time|(?:a|one|another|some|more)\s+(?:minute|moment|second|sec|bit)|(?:one|two|three|four|five|six|seven|eight|nine|ten|a\s+few|several|a\s+couple(?:\s+of)?)\s+(?:to\s+\w+\s+)?(?:days?|weeks?|months?|quarters?|years?))\b)(?!\s*[\d(.?!,;]|\s*$)/i;
+const ARITHMETIC = /[=×÷]|\bdivided\s+by\b|\bmultipl(?:y|ied)\b|\d\s*[x*/]\s*\(?\d/i;
+const wantBroad = (sentence: string) => WANT_BROAD.test(sentence) && !ARITHMETIC.test(sentence);
 // Before the brainstorm "I'd want the…" is usually an ask; later it is usually
 // a next step (plan-turn.ts, guard B) — unless the sentence is a question.
 export const WANT_ASK_PHASES: Phase[] = ['INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS', 'EXHIBIT'];
@@ -106,12 +117,13 @@ function namesLedgerLabel(sentence: string, ledger: LedgerNouns): boolean {
   return ledger.labels.some(label => [...namingWords(label, ledger.caseNames)].some(w => asked.some(a => sameWord(a, w))));
 }
 
-type AskOpts = { closing?: boolean; given?: number[]; ledger?: LedgerNouns; wantIs?: boolean };
+// `wantBroad`: 4.6's cue (WANT_BROAD above; the caller passes switchOn(case, 'wantCueBroad')).
+type AskOpts = { closing?: boolean; given?: number[]; ledger?: LedgerNouns; wantIs?: boolean; wantBroad?: boolean };
 function asksAddressed(sentence: string, phase: Phase, o: AskOpts = {}): boolean {
   const given = o.given ?? [];
   if (selfAnswered(sentence)) return false; // "Do we know X, I would assume so": answered by the candidate, no "?"
   if (cueAsk(sentence)) return true;
-  const want = WANT_CUE.test(sentence) || (o.wantIs === true && WANT_IS.test(sentence));
+  const want = WANT_CUE.test(sentence) || (o.wantIs === true && WANT_IS.test(sentence)) || (o.wantBroad === true && wantBroad(sentence));
   if (want && (WANT_ASK_PHASES.includes(phase) || sentence.endsWith('?') || isQuestionForm(sentence))) return true;
   if (o.ledger && namesLedgerLabel(sentence, o.ledger)) return true;
   if (!isQuestionForm(sentence)) return false;
