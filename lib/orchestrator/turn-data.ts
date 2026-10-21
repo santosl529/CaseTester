@@ -12,7 +12,7 @@ import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog,
 import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, WANT_ASK_PHASES } from './request-signal';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
-import { unmetQualifiers, guardParts, mergeParts, qualifierItems, itemsStatingTopics, type Qualifier } from './ask-qualifiers';
+import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
 import { costOf } from '@/lib/llm-pricing';
 
@@ -133,17 +133,18 @@ export type QualifierGuard = { unmet: Qualifier[]; parts: string[]; ids: string[
 // denies a mapped line. Its parts are the ask's words; a figure in them must be one a
 // candidate turn said (the post-turn audit allows those), else no guard. The check's own
 // valid missing parts it doesn't cover join them (mergeParts).
-// Which items it makes partial (fix round 1, the controller's ruling on b34l Tyler t2 /
-// #52: "A missing second topic is not a gap in the items that answer the other topics"):
-// an unmet period or scope, every mapped item; a missing topic alone, only the items
-// stating none of the ask's conjuncts — one that states its own keeps Haiku's label, so a
-// full one goes through every gate (a held one deferred by its name and booked) and the
-// missing topic is refused beside it (decideCheckedAsk's mixed path).
+// Which items it makes partial (ask-qualifiers.ts guardedItems; fix rounds 1 and 2, the
+// controller's rulings on b34l Tyler t2 / #52 and the review's finding 5): one conjunct,
+// every mapped item; two or more, the items answering the conjunct an unmet period or
+// scope sits in, and those answering no conjunct — the rest keep Haiku's label, so a full
+// one goes through every gate (a held one deferred by its name and booked) and the
+// missing part is refused beside it (decideCheckedAsk's mixed path).
 function qualifierGuard(plan: ModelPlan, what: string, ids: string[], missing: Record<string, string>): QualifierGuard | null {
   const items = ids.flatMap(id => plan.state.ledger.items.filter(i => i.id === id));
   if (items.length === 0) return null;
   const ledger = plan.state.caseData.dataLedger;
-  const unmet = unmetQualifiers(what, qualifierItems(items, ledger, i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0])), ledger);
+  const qitems = qualifierItems(items, ledger, i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]));
+  const unmet = unmetQualifiers(what, qitems, ledger);
   const own = guardParts(what, unmet);
   if (own.length === 0) return null;
   const figs = (t: string) => [...t.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => m[0].replace(/,/g, ''));
@@ -151,12 +152,7 @@ function qualifierGuard(plan: ModelPlan, what: string, ids: string[], missing: R
   if (own.some(p => figs(p).some(f => !said.has(f)))) return null;
   const norm = (m: string) => m.replace(/\s+/g, ' ').trim().toLowerCase();
   const extra = ids.flatMap(id => (missing[id] !== undefined && norm(missing[id]) !== norm(what) ? [missing[id]] : []));
-  const qitems = qualifierItems(items, ledger, i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]));
-  // A period or scope inside a missing topic ("current" of "current waste rates") is that topic's, refused with it.
-  const topics = unmet.filter(q => q.kind === 'topic').map(q => q.text.toLowerCase());
-  const topicOnly = topics.length > 0 && unmet.every(q => q.kind === 'topic' || topics.some(t => t.includes(q.text.toLowerCase())));
-  const stating = topicOnly ? new Set(itemsStatingTopics(what, qitems, ledger)) : new Set<string>();
-  return { unmet, parts: mergeParts(own, extra, what), ids: ids.filter(id => !stating.has(id)) };
+  return { unmet, parts: mergeParts(own, extra, what), ids: guardedItems(what, qitems, unmet, ledger) };
 }
 
 // What code does with a verdict (Lorenzo, 20 Oct, round 5 E5: "build (a) and
@@ -223,6 +219,8 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
     return false;
   };
   const withDropped = <T extends object>(d: T) => (dropped.length > 0 ? { ...d, dropped } : d);
+  // A guarded ask says the guard's parts; Haiku's own whole-ask partial is still logged (fix round 2, finding 6).
+  if (v.guard) for (const id of (v.partial ?? []).filter(x => ids.includes(x))) if (whole(v.missing?.[id] ?? what)) dropped.push({ id, missing: v.missing?.[id] ?? what, why: 'whole_ask' });
   const inScope = ids.filter(id => !v.outOfScope.includes(id) && !partial.has(id));
   const notOut = inScope.filter(id => !ledger.revealed.has(id));
   if (inScope.length > 0) {
@@ -338,7 +336,7 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     // ask, the item, Haiku's own `missing` and the part as checked, so a wave counts them.
     for (const x of decision.kind === 'items' || decision.kind === 'coarse' ? decision.dropped ?? [] : []) {
       const raw = found?.items.find(f => f.id === x.id)?.missing;
-      plan.ctx.checks.act('partial_dropped', x.why === 'whole_ask' ? 'a partial beside a full item whose missing part did not hold: no refusal for it'
+      plan.ctx.checks.act('partial_dropped', x.why === 'whole_ask' ? 'a partial whose missing part did not hold (beside a full item, or replaced by the qualifier guard\'s parts): no refusal for it'
         : 'a partial\'s missing part a ledger item or the prompt covers: not refused', { what, item: x.id, missing: raw ?? null, checked: x.missing, why: x.why, decision: decision.kind });
     }
     return verdict;

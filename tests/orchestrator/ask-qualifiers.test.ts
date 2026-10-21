@@ -7,7 +7,7 @@
 // The asks are the second Haiku run's verbatim (r5b-haiku-check.md, haiku5b2-verdicts.json);
 // the lines are the ledger's own (server-side, unmasked).
 import { describe, it, expect } from 'vitest';
-import { askQualifiers, unmetQualifiers, guardRefusal, guardParts, mergeParts, qualifierItems } from '@/lib/orchestrator/ask-qualifiers';
+import { askQualifiers, unmetQualifiers, guardRefusal, guardParts, mergeParts, qualifierItems, guardedItems } from '@/lib/orchestrator/ask-qualifiers';
 import { contentStems } from '@/lib/orchestrator/data-requests';
 import { labelWithPeriod } from '@/lib/orchestrator/data-ledger';
 import { getCaseById } from '@/lib/cases/loader';
@@ -175,5 +175,85 @@ describe('mergeParts: the check\'s own valid parts beside the guard\'s', () => {
     expect(mergeParts(['royalty step-downs', 'rights reversion'], ['royalty step-downs and rights reversion'], what)).toEqual(['royalty step-downs', 'rights reversion']);
     expect(mergeParts(['rights reversion'], ['royalty step-downs and rights reversion'], what)).toEqual(['royalty step-downs and rights reversion']);
     expect(mergeParts(['a velocity benchmark'], ['store count'], 'store count and a velocity benchmark')).toEqual(['store count', 'a velocity benchmark']);
+  });
+});
+
+// Task 61 fix round 2 (Opus review of d154476..856195f; the reviewer's repro asks and the controller's rulings):
+// a line that states the period, the trend or the scope keeps the item full.
+describe('fix round 2: lines that state the period, trend or scope stay full', () => {
+  const ledger = (caseId: string) => getCaseById(caseId).dataLedger;
+  const items = (caseId: string, ids: string[]) => qualifierItems(ids.map(id => ledger(caseId).find(i => i.id === id)!), ledger(caseId), i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]));
+  const FULL: [string, string, string[]][] = [
+    // 1a: "since FY…" read with its prefix
+    ['prof-002', 'the fleet since FY2023', ['fleet']],
+    ['prof-002', 'changes to the route network since FY2023', ['routes_schedule']],
+    // 1b: "no material changes", "the same … as in <period>"
+    ['prof-002', 'how wages have changed', ['unit_costs']],
+    ['prof-002', 'whether costs per flight have changed', ['unit_costs']],
+    ['prof-002', 'wage trend', ['unit_costs']],
+    ['prof-002', 'the trend in wages and costs per flight', ['unit_costs']],
+    // 1c: a series over months
+    ['pricing-001', 'Pro retention over time', ['pro_cohort']],
+    ['pricing-001', 'Starter churn over time', ['starter_cohort']],
+    ['pricing-001', 'Starter upgrade rates over time', ['starter_cohort']],
+    ['pricing-001', 'cancellation rates over time', ['pro_cohort', 'starter_cohort']],
+    // 1d: a from→to line with no timeframes takes the case's two periods
+    ['prof-002', 'FY2025 revenue on the other four routes', ['route_results_other']],
+    ['prof-002', 'revenue on the other routes in FY2023 and FY2025', ['route_results_other']],
+    ['prof-002', 'the fleet in FY2025', ['fleet']],
+    // a case that names no compared years and a line that names no year: no asked year can be ruled out
+    ['pricing-001', 'Pro CAC in 2025', ['plan_cac']],
+    // 2: scopes the line already carries
+    ['launch-001', 'market prices for chickpea snacks', ['competitor_prices']],
+    ['launch-001', 'Competitor pricing data to understand current market positioning', ['competitor_prices']],
+    ['pricing-001', 'Competitor pricing data to understand current market positioning', ['competitor_prices']],
+    ['entry-001', "the US market for Corlan's disease", ['funnel_rates', 'us_adults']],
+    ['prof-002', 'industry demand', ['demand']],
+    ['prof-002', 'the market demand trend', ['demand']],
+    ['launch-001', 'benchmarks from past launches', ['planning_assumptions']],
+    ['launch-001', 'conversion benchmarks', ['planning_assumptions', 'survey_reliability']],
+    ['launch-001', 'industry pricing for chickpea snacks', ['competitor_prices']],
+    ['entry-001', 'industry benchmarks for time to coverage', ['insurance_coverage']],   // "new drugs often take 12–18 months"
+    // a one-noun piece of its own only when an article leads it: "historical trend" stays with "current"
+    ['prof-001', 'Labor as a percentage of revenue, current and historical trend', ['labor_pct']],
+  ];
+  it.each(FULL)('%s "%s" → no unmet qualifier', (caseId, what, ids) => {
+    expect(texts(unmetQualifiers(what, items(caseId, ids), ledger(caseId)))).toEqual([]);
+  });
+  it('#36 "industry input cost inflation benchmarks" stays flagged: the company\'s own cost lines carry no market, industry or benchmark word', () => {
+    expect(texts(unmetQualifiers('industry input cost inflation benchmarks', items('prof-001', ['non_bean_input_change', 'bean_price_change']), ledger('prof-001')))).toEqual(['scope:industry', 'scope:benchmarks']);
+  });
+  it('true gaps stay flagged: the revenue trend on a current-only line, current bean prices on a change-only line', () => {
+    expect(texts(unmetQualifiers('revenue trend', items('prof-001', ['revenue_total']), ledger('prof-001')))).toEqual(['period:trend']);
+    expect(texts(unmetQualifiers('current bean prices', items('prof-001', ['bean_price_change']), ledger('prof-001')))).toEqual(['period:current']);
+  });
+  it('3: a benchmark head keeps the noun before it ("velocity benchmarks", "pricing benchmarks"), never a bare "benchmark"', () => {
+    expect(guardRefusal('Competitor pricing benchmark', [{ kind: 'scope', text: 'benchmark' }])).toBe('pricing benchmarks');
+    expect(guardRefusal('Velocity benchmark (sales rate per store or per unit of shelf space)', [{ kind: 'scope', text: 'benchmark' }])).toBe('velocity benchmarks');
+    expect(guardRefusal('industry input cost inflation benchmarks', [{ kind: 'scope', text: 'industry' }, { kind: 'scope', text: 'benchmarks' }])).toBe('industry benchmarks');
+    expect(guardRefusal('industry benchmarks for time to coverage', [{ kind: 'scope', text: 'industry' }])).toBe('industry benchmarks');
+  });
+  it('4: a phrase built on the head keeps the ask\'s article when nothing goes before the head', () => {
+    expect(guardRefusal('the fleet since FY2023', [{ kind: 'period', text: 'since FY2023' }])).toBe('the fleet since FY2023');
+    expect(guardRefusal('the fare trend across FY2024 and FY2025', [{ kind: 'period', text: 'FY2024' }])).toBe('FY2024 fares');
+  });
+});
+
+describe('fix round 2: a period per conjunct', () => {
+  it('"the FY2024 fare and the current load factor" is two conjuncts; FY2024 is judged on the fare\'s items only', () => {
+    expect(texts(askQualifiers('the FY2024 fare and the current load factor')).filter(t => t.startsWith('topic'))).toEqual(['topic:the FY2024 fare', 'topic:the current load factor']);
+  });
+});
+
+describe('fix round 2: a period judged on its own conjunct\'s items', () => {
+  const ledger = getCaseById('prof-002').dataLedger;
+  const items = (ids: string[]) => qualifierItems(ids.map(id => ledger.find(i => i.id === id)!), ledger, i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]));
+  it('"the FY2024 load factor and the competitor\'s entry": FY2024 is on the entry\'s line, not the load factor\'s → unmet, and only the load factor item partial', () => {
+    const what = "the FY2024 load factor and the competitor's entry";
+    const its = items(['lakeport_seats_load', 'competitor_entry']);
+    const unmet = unmetQualifiers(what, its, ledger);
+    expect(texts(unmet)).toEqual(['period:FY2024']);
+    expect(guardedItems(what, its, unmet, ledger)).toEqual(['lakeport_seats_load']);
+    expect(guardRefusal(what, unmet)).toBe('the FY2024 load factor');
   });
 });
