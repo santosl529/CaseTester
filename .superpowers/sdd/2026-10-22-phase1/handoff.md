@@ -62,9 +62,19 @@ Review-driven fixes: four risky cover families dropped or qualified, the `why_pr
 
 **Its review returned: approve with fixes on 4.6, 4.8, 4.9 and 4.11; approve on 4.10.** It confirmed switch-off identity independently, re-deriving the b38l slice itself, and walked every interleaving of the claim: **two report rows are not possible**. Required fixes before merge are listed below.
 
-### Stream 3 — math (part-built, not reviewed)
+### Stream 3 — math (tasks 1–3 done, 4–7 owed, not reviewed)
 
-Tasks 1 (`worksheet`) and 2 (`staleProbeDrop`) committed; task 3 (`rootLineage`) part-built. Tasks 4–7 owed. See `stream-3-report.md` for the intended approach per task, the files in flight, and the replay commands.
+Committed: bb2fbda5 task 1 (`worksheet`), 65404519 task 2 (`staleProbeDrop`), 3ed763eb task 3 (`rootLineage`) plus the scale slip fix, c7b6037c its resumption report. 5,195 tests pass, tsc and eslint clean.
+
+**Replay evidence over 26 slices (free).** Switches off: 0 changed lines after tasks 1 and 2, and **exactly 1** after task 3 — the scale fix itself (b35q Tyler t28 "about $0.24k, not $210k" → "about $0.24 million, not $210k"). prof-001 identical throughout. `*=worksheet` 0/0, and `*=stepLineage` with the overlays present 0/0, so the root-expansion requirement holds.
+- `*=worksheet,staleProbeDrop`: 11 drops, each classified — 7 fixed (including both b38 Marisol firm faults, the t16 stale probe and the t24 stale correction), 3 neutral, 1 replay artifact. **0 new false corrections.**
+- `*=rootLineage`: 13 changed lines, each lineage's chain of derived corrections collapsing into one root correction prefixed by the case's definition — **including b37q Marcus, PRD §15's M2 root corrected for the first time.**
+
+**Owed:** tasks 4–7; finishing the turn-by-turn classification of the `rootLineage` arm's 88 changed decisions; re-running the `stepLineage,rootLineage` arm against the committed revision; then its high-effort review. Its report names these as the first resumption steps.
+
+Q1 is built as approved, with extra guards that the root's value is still the candidate's and not withdrawn. Q5 is unspent: the command for the lead is in its report §4, to be checked against `scripts/eval-math-checker.ts`'s real flags when task 7 is built. **The scale slip is fixed and deliberately ungated** (`codeCorrection` in `math-checker.ts`), with tests.
+
+Judgement calls for Lorenzo: the worksheet trusts code's step bindings only on a case whose binding is validated (`stepFlagsLive`); "instead of X" counts as a withdrawal only in the candidate's own redo; "built on a withdrawn figure" is stale only for a misread of the data they fixed; the root is probed once, not twice, before code corrects it.
 
 ### Stream 4a — data path (done and replayed, not reviewed)
 
@@ -90,11 +100,12 @@ Two judgement calls change behaviour if Lorenzo rules otherwise: **J5** — one 
 
 ## What remains, in order
 
-1. **Stream 3:** tasks 3–7, its free replay, then its high-effort review.
+1. **Stream 3:** tasks 4–7, the unfinished `rootLineage` classification and the re-run arm, then its high-effort review.
 2. **Stream 4a:** its high-effort review (its replay is done).
 3. **Stream 4b:** the required fixes above, in one round.
 3. **Merges into `phase1`:** Stream 1, then Stream 3, then Stream 4a and 4b. Run the fault bank after each merge, with switches off and with `*=phase1`, and report what changed.
-4. **Known merge conflict:** Stream 4b carries `main`'s scoring claim, so `scoring-claim.ts`, `score-session.ts` and the score route will conflict when `phase1` later meets `main`. Take the `phase1` version; it contains main's.
+4. **A test that resolves itself at merge:** on Stream 3's branch, `tests/cases/phase1-contract.test.ts` "today's cases load unchanged" fails when Stream 2's overlays are copied in, because the overlay always attaches the descriptive fields. Stream 2's review fix already handles this, and the test passes on `phase1` with the overlays merged — so it needs nothing beyond the merge. Expect conflicts between Streams 3, 4a and 4b in `turn-data.ts`, `phrasing.ts` and `math-checker-live.ts` (Stream 4b gated 4 lines in Stream 3's `math-checker-live.ts`).
+5. **Known merge conflict:** Stream 4b carries `main`'s scoring claim, so `scoring-claim.ts`, `score-session.ts` and the score route will conflict when `phase1` later meets `main`. Take the `phase1` version; it contains main's.
 5. **The gate** (contract §6): every replayable fault record passing with `*=phase1`; every correct record passing both ways; 0 new false refusals, wrong releases or false corrections across b28–b38; prof-001 identical with switches off on the 21 standard slices; latency and model calls reported; tokens per stream, merge and review reported.
 6. **The $3 live definitions re-check** (Lorenzo's Q5), run by the lead at the gate, under `LLM_BUDGET_USD`.
 7. **Stop and ask.** The wave needs Lorenzo's explicit go even if the gate holds: 31 runs, $50 hard cap, `ENGINE_SWITCHES='*=phase1'`, graded auditor → hand → his blind second grade.
