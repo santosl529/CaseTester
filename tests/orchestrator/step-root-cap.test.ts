@@ -29,6 +29,7 @@ import { CaseSchema } from '@/lib/cases/schema';
 import { getCaseById } from '@/lib/cases/loader';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import { readsFixture } from './fixtures/turn-reads';
+import { checkCandidateMath } from '@/lib/orchestrator/recompute';
 import { RAJ, MARCUS, pricing, rootsUpTo, atTurn, replay, type Run } from './fixtures/step-roots-replay';
 import RUNS from './fixtures/step-roots-b37q.json';
 
@@ -275,9 +276,12 @@ describe('a root stops linking by dependency once it no longer stands', () => {
     expect(of('uplift_at_60@175', 'the $60 test points to another $175k a month on top', [175], 35, { roots })).toBe(RAJ_ROOT);
     expect(of('uplift_at_60@175', 'the $60 test points to another $175k a month on top', [175], 39, { roots })).toBeNull();
   });
-  it('stepRootEnds: R stated outside v\'s tolerance (the right $600, or another revision) or a dependent span with R\'s answer ends it; R within tolerance doesn\'t', () => {
+  it('stepRootEnds: R restated at another WRONG value, or a dependent span with R\'s answer, ends it; R within v\'s tolerance or at the right answer doesn\'t (proof finding)', () => {
     const ends = (stated: { stepId: string; value?: number; span: string }[]) => stepRootEnds(pricing, roots405(), stated, 37);
-    expect(ends([{ stepId: 'starter_ltv', value: 600, span: 'Starter LTV is $30 × 20 = $600' }])).toEqual({ [RAJ_ROOT]: 37 });
+    // The right answer restated, by itself (b37q Marcus t19's hypothetical "LTV around $600"): nothing ends.
+    expect(ends([{ stepId: 'starter_ltv', value: 600, span: 'Starter LTV is $30 × 20 = $600' }])).toEqual({});
+    expect(ends([{ stepId: 'starter_ltv', value: 650, span: 'call it $650 of LTV' }])).toEqual({});
+    // A different wrong value: outside both $405's and $600's tolerance ($60).
     expect(ends([{ stepId: 'starter_ltv', value: 500, span: 'call it $500 of LTV' }])).toEqual({ [RAJ_ROOT]: 37 });
     expect(ends([{ stepId: 'starter_ltv', value: 410, span: 'about $410 of LTV' }])).toEqual({});
     expect(ends([{ stepId: 'starter_net_value', value: 1100, span: '$600 + $800 − $300 = $1,100' }])).toEqual({ [RAJ_ROOT]: 37 });
@@ -322,14 +326,34 @@ describe('a root stops linking by dependency once it no longer stands', () => {
   });
 });
 
-describe('through plan-turn: the candidate states the root step right — its dependency links end (flags.stepRoots endedAt)', () => {
-  it('"Starter LTV is $30 × 20 = $600" after the $405 root: ended at this message', () => {
-    const roots = { [RAJ_ROOT]: { step: 'starter_ltv', value: 405, figures: [405, 13.5], since: 1, linked: ['starter_value_with_upgrades@1205'] } };
+describe('through plan-turn: a new wrong value on the root step ends its dependency links; the right answer alone does not', () => {
+  const roots = { [RAJ_ROOT]: { step: 'starter_ltv', value: 405, figures: [405, 13.5], since: 1, linked: ['starter_value_with_upgrades@1205'] } };
+  const planAt = (text: string) => {
     const reads = readsFixture({ phase: 'EXHIBIT', caseId: 'pricing-001', revealed: RAJ.records['19'].revealed, elapsedMs: RAJ.records['11'].elapsedMs,
       flags: { pressureTest: { ...INITIAL_PRESSURE_TEST, state: 'satisfied', satisfiedAt: 3 }, stepRoots: roots, stepRootAsked: ['starter_ltv'] } });
-    const p = planTurn(reads, 'Starter cancellation is 5% a month, so the lifetime is 20 months and Starter LTV is $30 × 20 = $600.', { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
-    expect(p.ctx.checks.entries.find(c => c.check === 'step_root')).toMatchObject({ detail: { ended: [RAJ_ROOT] } });
-    expect(p.ctx.flags.stepRoots).toMatchObject({ [RAJ_ROOT]: { endedAt: 3, linked: ['starter_value_with_upgrades@1205'] } });
+    return planTurn(reads, text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
+  };
+  it('"Starter LTV is $30 × 20 = $600" after the $405 root: verified, and the root stands (adoption shows through (b) or (c))', () => {
+    const p = planAt('Starter cancellation is 5% a month, so the lifetime is 20 months and Starter LTV is $30 × 20 = $600.');
+    expect(p.state.verifiedNow.map(v => [v.stepId, v.value])).toContainEqual(['starter_ltv', 600]);
+    expect((p.ctx.checks.entries.find(c => c.check === 'step_root')?.detail as { ended?: string[] } | undefined)?.ended).toBeUndefined();
+    expect((p.ctx.flags.stepRoots as Record<string, StepRoot>)[RAJ_ROOT].endedAt).toBeUndefined();
+  });
+  it('"…about 16 months on plan × $30 = roughly $480 LTV" (Raj\'s t11 wording, another lifetime): a new wrong value — the $405 root ends here, and $480 is a root of its own', () => {
+    const p = planAt('Starter standalone: 0.40 = (1−x)^12 → x ≈ 6% monthly exit from Starter, so about 16 months on plan × $30 = roughly $480 LTV.');
+    expect(p.ctx.checks.entries.find(c => c.check === 'step_root')).toMatchObject({ detail: { ended: [RAJ_ROOT], registered: ['step:starter_ltv@480'] } });
+    expect(p.ctx.flags.stepRoots).toMatchObject({ [RAJ_ROOT]: { endedAt: 3, linked: ['starter_value_with_upgrades@1205'] }, 'step:starter_ltv@480': { value: 480, since: 3 } });
+  });
+});
+
+describe('b37q Marcus t19 (the proof finding): the right answer as a hypothetical keeps the $420 root', () => {
+  it('t19 states starter_ltv at $600 ("LTV around $600") while keeping 14 months — verified, and the root stands after it', () => {
+    const t19 = MARCUS.turns.find(t => t.turnIndex === 19)!.text;
+    expect(t19).toContain('LTV around $600');
+    expect(checkCandidateMath(t19, pricing, MARCUS.records['19'].revealed).verified.map(v => [v.stepId, v.value])).toContainEqual(['starter_ltv', 600]);
+    expect(rootsUpTo(MARCUS, 29)['step:starter_ltv@420'].endedAt).toBeUndefined();
+    // …so t21's $920 links to it by dependency.
+    expect(atTurn(MARCUS, 23, { stepRoots: rootsUpTo(MARCUS, 23) }).waiting).toEqual(expect.arrayContaining([expect.objectContaining({ id: '21:1', root: 'step:starter_ltv' })]));
   });
 });
 

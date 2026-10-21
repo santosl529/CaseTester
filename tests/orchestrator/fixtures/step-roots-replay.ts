@@ -11,7 +11,7 @@ import { planCheckerFlags, gateOutcomesOf, lineKey, registerStepRoots, stepRootE
 import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 import { isUnderTimePressure } from '@/lib/orchestrator/pacing';
 import { caseTotalMs } from '@/lib/orchestrator/state-machine';
-import { attemptKey } from '@/lib/orchestrator/recompute';
+import { attemptKey, checkCandidateMath } from '@/lib/orchestrator/recompute';
 import { getCaseById } from '@/lib/cases/loader';
 import RUNS from './step-roots-b37q.json';
 
@@ -27,10 +27,11 @@ const text = (r: Run, t: number) => r.turns.find(x => x.turnIndex === t)?.text ?
 const figuresBefore = (r: Run, t: number) => candidateFiguresOf(r.turns.filter(x => x.role === 'candidate' && x.turnIndex <= t).map(x => x.text), [pricing.prompt]);
 const ATTEMPT = /attempt (\d+)/;
 
-// The deterministic endings of a message (plan-turn's stepRootEnds; the run's report-only flags — its verified figures
-// aren't in the records), applied before the message registers its own roots.
-function withEnds(roots: Record<string, StepRoot>, rec: Rec, n: number): Record<string, StepRoot> {
-  const ends = stepRootEnds(pricing, roots, rec.reportOnly.map(f => ({ stepId: f.stepId, value: f.candidateValue, span: f.span })), n);
+// The deterministic endings of a message (plan-turn's stepRootEnds on the run's report-only flags and the message's
+// verified figures, recomputed: checkCandidateMath), applied before the message registers its own roots.
+function withEnds(roots: Record<string, StepRoot>, rec: Rec, n: number, message: string): Record<string, StepRoot> {
+  const verified = checkCandidateMath(message, pricing, rec.revealed).verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span }));
+  const ends = stepRootEnds(pricing, roots, [...rec.reportOnly.map(f => ({ stepId: f.stepId, value: f.candidateValue, span: f.span })), ...verified], n);
   return Object.fromEntries(Object.entries(roots).map(([rk, x]) => [rk, ends[rk] !== undefined ? { ...x, endedAt: ends[rk] } : x]));
 }
 // The step check's roots up to message T (registered in order, as plan-turn does).
@@ -38,7 +39,7 @@ export function rootsUpTo(r: Run, t: number): Record<string, StepRoot> {
   let roots: Record<string, StepRoot> = {};
   for (const n of Object.keys(r.records).map(Number).sort((a, b) => a - b).filter(n => n <= t)) {
     const rec = r.records[n];
-    roots = withEnds(roots, rec, n);
+    roots = withEnds(roots, rec, n, text(r, n));
     roots = registerStepRoots(pricing, roots, rec.reportOnly, n, caseNumbersOf(pricing, rec.revealed)).roots;
   }
   return roots;
@@ -90,7 +91,7 @@ export function replay(r: Run, opts: { roots?: boolean } = {}): ReplayTurn[] {
   for (const t of candidates) {
     const rec = r.records[String(t)];
     if (!rec) continue;
-    if (withRoots) roots = registerStepRoots(pricing, withEnds(roots, rec, t), rec.reportOnly, t, caseNumbersOf(pricing, rec.revealed), new Set([...closed, ...Object.keys(corrected)])).roots;
+    if (withRoots) roots = registerStepRoots(pricing, withEnds(roots, rec, t, text(r, t)), rec.reportOnly, t, caseNumbersOf(pricing, rec.revealed), new Set([...closed, ...Object.keys(corrected)])).roots;
     // plan-turn's input question: once per step, within the probe cap and the wait, not under time pressure.
     const due = () => Object.entries(roots).sort((a, b) => a[1].since - b[1].since).find(([, x]) => inputQuestionOf(pricing, x.step) !== undefined && !asked.includes(x.step)
       && (stepProbes[x.step] ?? 0) < STEP_PROBE_CAP && !closed.has(attemptKey({ stepId: x.step, candidateValue: x.value }))

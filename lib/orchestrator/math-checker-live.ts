@@ -199,7 +199,7 @@ export function carriesRightOf(c: { mathSteps: unknown[] }, step: string, span: 
 // Fix round 2 (controller ruling, 21 Oct; the review's probe: starter_net_value@1200 at t41, "$600 plus $800 is $1,400,
 // minus $300 CAC gives $1,200 net" — an independent slip on the corrected $600 — was linked to starter_ltv@405 and
 // silenced): a root links by dependency only while it stands. It stops, from the message it happens in, once the
-// candidate states step R at a value outside v's tolerance (near the answer, or another revision: stepRootEnds, in
+// candidate states step R at another wrong value — outside v's tolerance and the right answer's (stepRootEnds, in
 // plan-turn, from the deterministic check), a dependent claim's span carries R's right answer (stepRootEnds here, and
 // planCheckerFlags on the checker's claims), or the root key is corrected or closed (`closed`). Linking by figure — a
 // span carrying v or a linked figure (rootOf) — stays.
@@ -207,9 +207,16 @@ export function stepRootEnds(c: { mathSteps: unknown[] }, roots: Record<string, 
   const ends: Record<string, number> = {};
   for (const [rk, r] of Object.entries(roots)) {
     if (r.endedAt !== undefined) continue;
-    const tol = rootStepsOf(c).find(x => x.id === r.step)?.tolerance ?? 0;
+    const st = rootStepsOf(c).find(x => x.id === r.step);
+    const tol = st?.tolerance ?? 0;
     const deps = stepDependents(c, r.step);
-    if (stated.some(x => (x.stepId === r.step && x.value !== undefined && Math.abs(x.value - r.value) > tol)
+    // Rule (a) on a new WRONG value only (the controller's ruling on the r6-final replay, 21 Oct: b37q Marcus t19's
+    // "pure cancellation is closer to 4-5% … LTV around $600" — the right answer as a hypothetical, while he kept his 14
+    // months — ended the $420 root and M2 went uncaught): outside v's tolerance and the right answer's. That value's own
+    // flag registers its own root. The right answer restated ends nothing by itself; adoption shows through (c) or (b).
+    const right = st ? [st.answer, ...(st.altAnswers ?? [])] : [];
+    const wrongAgain = (x: number) => Math.abs(x - r.value) > tol && !right.some(a => Math.abs(x - a) <= tol);
+    if (stated.some(x => (x.stepId === r.step && x.value !== undefined && wrongAgain(x.value))
       || (deps.has(x.stepId) && carriesRightOf(c, r.step, x.span)))) ends[rk] = n;
   }
   return ends;
