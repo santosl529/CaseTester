@@ -266,6 +266,18 @@ export const CaseSchema = z.object({
       parts: z.array(z.object({ names: z.array(z.string().min(2)).min(1), value: z.number() })).min(2),
     })).default([]),
     covers: z.record(z.string(), z.array(z.string().min(3)).min(1)).default({}),
+    //   tags — round 6 (Lorenzo, 21 Oct: "It may release the matched item only if
+    //     the item's tags (company; forecast vs current; quantity) also agree with
+    //     the ask"): the words that name the client's own product or business in an
+    //     ask; each other company or product (its words, the items about it — items
+    //     in no entity are the client's); the items stating a forecast, plan or
+    //     estimate. Present = the case opts into round 6's cover matching and gate
+    //     (fact-check.ts coverageOf, item-tags.ts tagsAgree); prof-001 has none.
+    tags: z.object({
+      clientWords: z.array(z.string().min(2)),
+      entities: z.array(z.object({ id: z.string().min(1), words: z.array(z.string().min(2)).min(1), items: z.array(z.string()) })),
+      forecast: z.array(z.string()),
+    }).optional(),
   }).optional(),
   // Pricing math (lib/orchestrator/pricing-check.ts, 12 Oct): the cost lines a
   // price change leaves fixed in dollars at flat volume (their current shares
@@ -367,6 +379,13 @@ export const CaseSchema = z.object({
       if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'groups', i, 'items', j], message: `Unknown ledger item "${id}"` });
     }));
     for (const id of Object.keys(f.covers)) if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'covers', id], message: `Unknown ledger item or prompt fact "${id}"` });
+    if (f.tags) {
+      f.tags.entities.forEach((e, i) => {
+        if (e.id === 'client' || f.tags!.entities.findIndex(x => x.id === e.id) !== i) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'tags', 'entities', i, 'id'], message: `Entity id "${e.id}" is reserved or repeated` });
+        e.items.forEach((id, j) => { if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'tags', 'entities', i, 'items', j], message: `Unknown ledger item or prompt fact "${id}"` }); });
+      });
+      f.tags.forecast.forEach((id, i) => { if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'tags', 'forecast', i], message: `Unknown ledger item or prompt fact "${id}"` }); });
+    }
     for (const id of Object.keys(f.directions)) if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'directions', id], message: `Unknown ledger item or prompt fact "${id}"` });
     f.drivers.forEach((d, i) => {
       if (!factIds.has(d.of)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'drivers', i, 'of'], message: `Unknown ledger item or prompt fact "${d.of}"` });

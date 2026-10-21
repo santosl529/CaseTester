@@ -211,7 +211,7 @@ export const properNames = (sttKeyterms: string[]) => sttKeyterms.filter(t => /^
 // change"). The ask-to-declaration comparisons (namedBy) pass no `own`.
 const withoutNames = (text: string, caseNames: string[]) => [...caseNames].sort((a, b) => b.length - a.length)
   .reduce((t, n) => t.replace(new RegExp(`(?<![a-z])${n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'gi'), ' '), text);
-const namingWords = (text: string, caseNames: string[], own?: Set<string>) => {
+export const namingWords = (text: string, caseNames: string[], own?: Set<string>) => {
   const proper = contentWords(caseNames.join(' '));
   return new Set([...contentWords(withoutNames(text, caseNames))].filter(w => !proper.has(w) || own?.has(w)));
 };

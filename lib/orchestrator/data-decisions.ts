@@ -177,14 +177,17 @@ export function changeForSplit(what: string, item: { label: string }): boolean {
   return new RegExp(String.raw`\b${SPLIT_WORDS}\b`, 'i').test(what) && CHANGE_LABEL.test(item.label) && !MOVEMENT_ASK.test(what);
 }
 
-export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = []): boolean {
+// `count: false` (round 6 Task 68): the count rule left to the case's covers — a cover
+// match's count is decided by coverageOf (a phrase that carries the count keeps the
+// item whole), so the tag gate on a covered item reads the other rules only.
+export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = [], opts: { count?: boolean } = {}): boolean {
   const ask = what.toLowerCase();
   if (BASIS.test(ask) && !SAYS_BASIS.test(item.value ?? '')) return true;
   if (ONE_OFF_ASK.test(ask) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
   if (RECURRENCE_ASK.test(ask) && firstYearOnly(item.value ?? '')) return true;
   // A count asked of an item that states no figure (round 5 Task 50; fact-check.ts
   // COUNT_ASK): the item is the ask's coarse answer, not the count.
-  if (item.value !== undefined && countFinerThan(ask, item.value)) return true;
+  if (opts.count !== false && item.value !== undefined && countFinerThan(ask, item.value)) return true;
   const head = HEAD_NOUN(item.label);
   if (!head) return false;
   const label = item.label.toLowerCase();

@@ -24,6 +24,7 @@ import { asOriginalProbe } from './phrasing';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { exhibitColumns, findMisquotes, SCALE, type QuoteAnchor } from './misquote';
 import { findCellMisquotes } from './cell-lookup';
+import { entitiesNamed, tagsAgree } from './item-tags';
 
 export type Unit = 'percent' | 'dollar' | 'count' | 'plain';
 type Direction = 'up' | 'down' | 'flat';
@@ -52,13 +53,16 @@ export type FactBase = {
   groups: { names: string[]; items: string[] }[];
   drivers: { of: string; total: number; parts: { names: string[]; value: number }[] }[];
   anchors: QuoteAnchor[];                 // quote anchors incl. prompt facts (F2)
-  ledger: { id: string; value: string; timeframes?: Record<string, string> }[];
+  ledger: { id: string; label?: string; value: string; timeframes?: Record<string, string> }[];
   promptLedger: { id: string; value: string; timeframes?: Record<string, string> }[];
   exhibits: { id: string; data: Record<string, unknown>[]; coversLedgerItems?: string[] }[];
   answers: number[];                      // every math step's answers (cell lookup: derived, never a misquote)
   ledgerLookupLive?: boolean;             // ledger-line misquotes corrected (else report-only)
   covers: { id: string; phrases: string[]; say?: string }[]; // asks a ledger item or prompt fact answers (say: a prompt fact's sentence)
+  tags?: CaseTags;                        // round 6: the case's item tags (item-tags.ts)
+  answerGate: boolean;                    // tags present: round 6's cover matching and gate are on (Task 68)
 };
+export type CaseTags = { clientWords: string[]; entities: { id: string; words: string[]; items: string[] }[]; forecast: string[] };
 
 type CaseInput = {
   prompt: string;
@@ -74,6 +78,7 @@ type CaseInput = {
     directions: Record<string, Direction>;
     drivers: { of: string; total: number; parts: { names: string[]; value: number }[] }[];
     covers?: Record<string, string[]>;
+    tags?: CaseTags;
   };
 };
 
@@ -167,6 +172,8 @@ export function buildFactBase(c: CaseInput): FactBase {
     answers: c.mathSteps.flatMap(s => [s.answer, ...(s.altAnswers ?? [])]),
     ledgerLookupLive: c.ledgerLookupLive,
     covers: Object.entries(fa.covers ?? {}).map(([id, phrases]) => ({ id, phrases: phrases.map(lc), say: fa.promptFacts.find(p => p.id === id)?.say })),
+    ...(fa.tags ? { tags: fa.tags } : {}),
+    answerGate: fa.tags !== undefined,
   };
 }
 
@@ -653,7 +660,73 @@ export function countFinerThan(what: string, value: string): boolean {
 export type Coverage = { items: string[]; promptFacts: string[]; rest: string | null; coarse: { what: string; ids: string[] }[] };
 const FURTHER_CUT_WORDS = /\b(?:broken (?:down|out) by|split by|by (?:customer|segment|type|age|income|loyalty|hour|day|time)\w*|segments?|cohorts?|per (?:day|hour|customer|week|month))\b/;
 const FURTHER_CUT = { test: (t: string) => FURTHER_CUT_WORDS.test(t) || BASIS.test(t) };
-export function coverageOf(what: string, fb: FactBase): Coverage {
+// Round 6 (Task 68; Lorenzo, 21 Oct: "Normalize matching before adding phrases:
+// plurals, a small synonym table ("how many" = "number of", "flights" =
+// "departures", and similar). Match the candidate's own sentence as well as the
+// model's rewording. … Add exclusion words where a confusion is known"). On a
+// tagged case (`fb.answerGate`, the case's `factAnchors.tags`) coverageOf
+//   (a) folds the ask and the phrases alike before matching: a word's plural or
+//       possessive ending (as labelWords, data-decisions.ts: "avoidable fixed cost"
+//       meets "avoidable fixed costs", audit row 1), and COVER_SYNONYMS ("number of
+//       stores" meets "how many stores", row 5). A hit keeps its span in the ask, so
+//       FURTHER_CUT, GLOBAL_FINER and the count rule read the words beside it;
+//   (b) drops a hit on an item another company owns, or the client's when the ask
+//       names only another company (item-tags.ts tagsAgree's entity verdict: "chip"
+//       is not a chickpea item; "the entrant's" is not Larkspur's);
+//   (c) drops a hit across a geography: the entry names a region outside the hit
+//       that the item's label and line don't (row 20, Aldermoor Marcus t5: "Kelvexa's
+//       current European net price per patient per year" got the US price);
+//   (d) reads `sentence`, the candidate's asking sentence for the ask, too (row 12,
+//       Hollis Bay Tyler t5: the model's "annual chip bag volume" missed "bags of
+//       chips"). Its items join the ask's; `rest` and `coarse` stay the model's ask's,
+//       so a refusal is worded from it — and when the model's ask matched nothing, the
+//       sentence's match answers it: no rest, a coarse entry in its words. A sentence
+//       hit that shares no content word with the model's ask is another ask's.
+// Untagged (prof-001), the match is literal and the sentence unread, as before.
+export const COVER_SYNONYMS: { from: string[]; to: string[]; unless?: (words: string[], at: number) => boolean }[] = [
+  // Not "a number of retailers" (COUNT_ASK: no count).
+  { from: ['number', 'of'], to: ['how', 'many'], unless: (w, at) => w[at - 1] === 'a' },
+  { from: ['count', 'of'], to: ['how', 'many'] },
+  { from: ['departure'], to: ['flight'] },
+  { from: ['door'], to: ['store'] },          // "locations" stays: a GLOBAL_FINER word
+  // A noun only: not "pricing the line", "we're pricing at".
+  { from: ['pricing'], to: ['price'], unless: (w, at) => /^(?:the|a|an|it|them|this|that|these|those|our|their|its|at|below|above|up|down)$/.test(w[at + 1] ?? '')
+    || /^(?:is|are|was|were|be|been|being|am|we're|they're|i'm|by)$/.test(w[at - 1] ?? '') },
+];
+const foldWord = (raw: string) => {
+  const w = raw.replace(/'s?$/, '');
+  if (w.length <= 3 || w.endsWith('ss')) return w;
+  if (/(?:ss|x|z|ch|sh)es$/.test(w)) return w.slice(0, -2);
+  return w.endsWith('s') ? w.slice(0, -1) : w;
+};
+type CoverToken = { w: string; start: number; end: number };
+// A lower-cased text's folded words, each with its span (a synonym's words share the span of what they replace).
+function coverTokens(lower: string): CoverToken[] {
+  const raw = [...lower.replace(/[‘’]/g, "'").matchAll(/[a-z0-9%$]+(?:'[a-z]+)?/g)].map(m => ({ w: foldWord(m[0]), start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }));
+  const words = raw.map(t => t.w);
+  const out: CoverToken[] = [];
+  for (let i = 0; i < raw.length; i++) {
+    const syn = COVER_SYNONYMS.find(x => x.from.every((f, k) => words[i + k] === f) && !x.unless?.(words, i));
+    if (!syn) { out.push(raw[i]); continue; }
+    const span = { start: raw[i].start, end: raw[i + syn.from.length - 1].end };
+    for (const w of syn.to) out.push({ w, ...span });
+    i += syn.from.length - 1;
+  }
+  return out;
+}
+const foldedPhrases = new Map<string, string[]>();
+const foldedPhrase = (p: string) => {
+  let f = foldedPhrases.get(p);
+  if (!f) { f = coverTokens(p).map(t => t.w); foldedPhrases.set(p, f); }
+  return f;
+};
+// Words that carry no topic: a sentence hit must share another with the model's ask (d).
+const COVER_STOP = new Set(['the', 'a', 'an', 'of', 'for', 'on', 'in', 'to', 'and', 'or', 'how', 'many', 'much', 'what', 'is', 'are', 'do', 'doe', 'did', 'we', 'you', 'our', 'their', 'it', 'its', 'any', 'by', 'per', 'with', 'from', 'at', 'thi', 'that', 'there', 'have', 'has', 'be', 'can', 'could', 'would', 'will', 'data', 'year']);
+const REGION = /\b(?:europe(?:an)?|eu|uk|canada|asia|international)\b/gi;
+const regionsIn = (t: string) => new Set([...t.matchAll(REGION)].map(m => (/^(?:europe|european|eu)$/i.test(m[0]) ? 'europe' : m[0].toLowerCase())));
+
+type CoverHit = { cover: FactBase['covers'][number]; start: number; end: number };
+function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: CoverHit, lower: string) => boolean = () => true): Coverage {
   const text = what.trim();
   const lower = lc(text);
   const question = /^(?:whether|if|how|why|which|what|when|where|who|is|are|was|were|do|does|did)\b/i.test(text) || text.endsWith('?');
@@ -668,8 +741,31 @@ export function coverageOf(what: string, fb: FactBase): Coverage {
     }
     entries.push({ text: text.slice(at), start: at, end: text.length });
   }
-  const hits = fb.covers.flatMap(c => c.phrases.flatMap(p => [...lower.matchAll(new RegExp(`(?<![a-z])${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'))]
-    .map(m => ({ cover: c, start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }))));
+  let hits: CoverHit[];
+  if (!folded) {
+    hits = fb.covers.flatMap(c => c.phrases.flatMap(p => [...lower.matchAll(new RegExp(`(?<![a-z])${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'))]
+      .map(m => ({ cover: c, start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }))));
+  } else {
+    const toks = coverTokens(lower);
+    hits = fb.covers.flatMap(c => c.phrases.flatMap(p => {
+      const f = foldedPhrase(p);
+      const out: CoverHit[] = [];
+      for (let i = 0; f.length > 0 && i + f.length <= toks.length; i++) {
+        if (f.every((w, k) => toks[i + k].w === w)) out.push({ cover: c, start: toks[i].start, end: toks[i + f.length - 1].end });
+      }
+      return out;
+    })).filter(h => keep(h, lower));
+  }
+  // (b) and (c), tagged cases only: the entry's own words name the company (else the whole ask's).
+  const tagged = (h: CoverHit, entry: { text: string; start: number; end: number }) => {
+    const ask = entitiesNamed(entry.text, fb).length > 0 ? entry.text : text;
+    if (tagsAgree(ask, h.cover.id, fb).why === 'entity') return false;
+    const asked = regionsIn(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end));
+    if (asked.size === 0) return true;
+    const item = fb.ledger.find(l => l.id === h.cover.id);
+    const own = regionsIn(item ? `${item.label ?? ''} ${item.value}` : `${fb.quantities.find(q => q.id === h.cover.id)?.names.join(' ') ?? ''} ${h.cover.say ?? ''}`);
+    return [...asked].every(r => own.has(r));
+  };
   const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
   const coarse: Coverage['coarse'] = [];
   for (const entry of entries.filter(e => e.text.trim())) {
@@ -679,7 +775,8 @@ export function coverageOf(what: string, fb: FactBase): Coverage {
     // Nor a further cut beside the phrase ("transaction counts broken down by
     // customer segment", "transactions per store per day" — 567bdb1 on the replay).
     const overlapping = hits.filter(h => h.start < entry.end && h.end > entry.start
-      && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end)));
+      && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end))
+      && (!folded || tagged(h, entry)));
     const covering = GLOBAL_FINER.test(lc(entry.text)) ? overlapping.filter(h => GLOBAL_FINER.test(lower.slice(h.start, h.end))) : overlapping;
     if (covering.length === 0) { left.push(entry.text.trim()); continue; }
     // A count asked of a figure-less item through a phrase that doesn't carry the
@@ -693,6 +790,18 @@ export function coverageOf(what: string, fb: FactBase): Coverage {
     for (const h of whole) (h.cover.say !== undefined ? promptFacts : items).push(h.cover.id);
   }
   return { items: [...new Set(items)], promptFacts: [...new Set(promptFacts)], rest: left.length ? left.join(' and ') : null, coarse };
+}
+export function coverageOf(what: string, fb: FactBase, opts: { sentence?: string } = {}): Coverage {
+  const own = coverageIn(what, fb, fb.answerGate);
+  const sentence = opts.sentence?.trim();
+  if (!fb.answerGate || !sentence) return own;
+  const asked = new Set(coverTokens(lc(what)).map(t => t.w).filter(w => !COVER_STOP.has(w)));
+  const said = coverageIn(sentence, fb, true, (h, lower) => coverTokens(lower.slice(h.start, h.end)).some(t => asked.has(t.w)));
+  const items = [...new Set([...own.items, ...said.items])];
+  if (own.items.length + own.promptFacts.length + own.coarse.length > 0) return { ...own, items };
+  const ids = [...new Set(said.coarse.flatMap(c => c.ids))];
+  if (items.length === 0 && ids.length === 0) return own;
+  return { items, promptFacts: [], rest: null, coarse: ids.length > 0 ? [{ what: what.trim(), ids }] : [] };
 }
 
 // The case items a sentence refuses or defers by name (same grammar and covers as the false-refusal veto), whatever was released.
