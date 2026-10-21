@@ -35,8 +35,11 @@ import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
 import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, parseInputKey, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot,
-  stepRootsDeclared, registerStepRoots, stepRootOf, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot } from './math-checker-live';
+  stepRootsDeclared, registerStepRoots, stepRootOf, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot, type VerdictPayload } from './math-checker-live';
 import { theirFigure } from './own-quantity';
+import { switchOn } from '@/lib/cases/engine-switches';
+import { foldTurn, EMPTY_WORKSHEET } from './worksheet';
+import type { Worksheet } from './worksheet-types';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
@@ -475,6 +478,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerConfig = extra.classify && ctx.background ? liveCheckerConfig() : null;
   const checkerRows = (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY);
   const gateMemory = (flags.codeGate as CodeGateMemory | undefined) ?? {};
+  // The worksheet (Phase 1 contract §2, Stream 3 task 1; the `worksheet` switch): this message's step bindings and
+  // pricing results, then every landed verdict's tagged claims, folded in by code — the latest value per quantity, the
+  // withdrawn figures. Code-side only (flags.worksheet); read by the stale drop, the root rules, the misquote rule.
+  const worksheetBefore = (flags.worksheet as Worksheet | undefined) ?? EMPTY_WORKSHEET;
+  const worksheet: Worksheet | null = switchOn(caseData, 'worksheet') ? foldTurn(worksheetBefore, {
+    caseData, turn: ctx.nextTurnIndex, text: candidateText, candidateMath, revealedIds: revealedIdsNow,
+    verdicts: checkerRows.filter(r => r.subtype === 'verdict').map(r => r.payloadJsonb as VerdictPayload).filter(v => v.candidateTurnIndex < ctx.nextTurnIndex),
+  }) : null;
+  if (worksheet && JSON.stringify(worksheet) !== JSON.stringify(worksheetBefore)) flags.worksheet = worksheet;
   // The figures a misquote's data line states, and the changes they imply ("58% today, up from 42%" → 16). A unit
   // line names its quantity and period, true on the base it names (Lorenzo, 16 Oct): the checker's flag is enough.
   const codeFigures = (f: CodeFinding): number[] | null => {
