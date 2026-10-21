@@ -1,0 +1,92 @@
+{
+ "run": "test runs/batch-38-larkspur-oct-21-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-701443f7.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 2,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Is that structure MECE — what overlaps, and what's missing? And which branch would you prioritize first, and why?",
+   "why": "Several distinct questions are stacked into one opening turn: MECE, overlaps, gaps, priority and rationale."
+  },
+  {
+   "turn": 8,
+   "class": "hollow_deferral",
+   "severity": "firm",
+   "quote": "I'll come back to average fare in each year shortly.",
+   "why": "The candidate asked for the network average fare in each year. No ledger item holds it, yet it was deferred and never refused. It later resurfaced only as Lakeport-specific fare data."
+  },
+  {
+   "turn": 10,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "On Hub-Lakeport average one-way fare in each year: we'll get there in a bit.",
+   "why": "This is a second deferral that renames the earlier network-fare ask as a Lakeport fare the candidate never asked about. It reads as dangling narration."
+  },
+  {
+   "turn": 12,
+   "class": "unasked_release",
+   "severity": "firm",
+   "quote": "An exhibit for you — Hub–Lakeport — Economics of one one-way flight, FY2023 vs. FY2025 ($).",
+   "why": "The candidate asked only about competitor entry and pricing. The Lakeport per-flight exhibit was handed over unrequested."
+  },
+  {
+   "turn": 12,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "what would you want to understand about why Larkspur's fares fell?",
+   "why": "This asks why fares fell immediately after releasing the line that explains it (Larkspur matched the competitor's fares), and it is bundled with a second question."
+  },
+  {
+   "turn": 14,
+   "class": "unasked_release",
+   "severity": "serious",
+   "quote": "Now, an exhibit: Proposed new routes — Planning estimates (average per flight across Hub–Ashford and Hub–Brookhaven).",
+   "why": "The candidate had asked about load factor and passenger mix and had never raised exiting routes or adding new ones. Pushing the new-routes exhibit hands over the solution path."
+  },
+  {
+   "turn": 14,
+   "class": "unasked_release",
+   "severity": "firm",
+   "quote": "Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years, while the average fare fell from $240 to $160.",
+   "why": "Port Avery per-flight economics were released without any ask."
+  },
+  {
+   "turn": 14,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "As the exhibit shows: A Hub–Lakeport flight has 80 seats and there are 2,000 of them a year, and the load factor was 75% in both FY2023 and FY2025.",
+   "why": "The candidate asked whether load factor or passenger mix (business-heavy) had shifted. Only the load factor already on screen was repeated, with no 'I don't have' for passenger mix."
+  },
+  {
+   "turn": 22,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Earlier you said \"× $200 - $9,200 = $400 per flight, so $1.4M, and we'd be roughly breakeven\"",
+   "why": "The quote is clipped and starts mid-expression ('× $200'), so it reads wrong."
+  },
+  {
+   "turn": 24,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "Then tell me the single biggest risk to your recommendation.",
+   "why": "The candidate had just listed risks in the recommendation (the unproven $180 fare and an entrant attacking a third route). This re-asks the risk stage, bundled with a math probe."
+  },
+  {
+   "turn": 26,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "If you had to guard against that, how would you do it?",
+   "why": "The candidate's last answer already gave a mitigation ('I'd pilot one route first')."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 15720,
+  "output": 4017,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 36958,
+ "usd": 0.14322
+}

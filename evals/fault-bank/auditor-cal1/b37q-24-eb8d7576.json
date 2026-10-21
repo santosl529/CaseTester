@@ -1,0 +1,92 @@
+{
+ "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-eb8d7576.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 4,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "What's missing from it, and which branch would you check first, and why?",
+   "why": "This stacks three questions in one tail."
+  },
+  {
+   "turn": 6,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "New customers per month were 500 Pro in 2024, before Starter launched, and 350 Pro plus 1,000 Starter — 1,350 in total — from January 2025 to June 2026.",
+   "why": "The candidate asked how Pro volume moved month to month. Only period averages were given, with no 'I don't have a month-by-month cut'."
+  },
+  {
+   "turn": 10,
+   "class": "unasked_offer",
+   "severity": "firm",
+   "quote": "I can share plan economics: monthly price and cost to serve for Pro and Starter if you'd like.",
+   "why": "The candidate had not asked for price or cost to serve, so this offers gated data unprompted."
+  },
+  {
+   "turn": 22,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Most upgrades are between months 3 and 9, usually when the business hires its first employee; very few are after month 12.",
+   "why": "The candidate asked whether upgraders are mainly the 150 would-be Pro buyers. Upgrade timing doesn't answer that, and no 'I don't have that split' was given."
+  },
+  {
+   "turn": 22,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: Of the 3,000 Starter customers who signed up in January–March 2025, 94% were still on Starter after month 1",
+   "why": "This repeats the Exhibit 2 data already on screen as part of the answer to an ask it doesn't address."
+  },
+  {
+   "turn": 22,
+   "class": "repeated_probe",
+   "severity": "firm",
+   "quote": "Which customers did you count as having left in that 40% still on Starter at month 12?",
+   "why": "In t19 the candidate had already said the 40% excludes upgraders and that 7% bundles cancellers and upgraders. This re-asks the same point with no new angle."
+  },
+  {
+   "turn": 24,
+   "class": "probe_chain",
+   "severity": "firm",
+   "quote": "You had \"$920\" as the net value of a Starter sign-up. What were the steps in that calculation, and in particular what lifetime and cancellation rate sit behind the Starter margin piece?",
+   "why": "This is the third probe (after t18 and t22, then t28) on the misread 7% churn / 14-month Starter lifetime, and the input was still not corrected. The $920 correction only came at t30, and the 5% / 20-month input was never stated."
+  },
+  {
+   "turn": 28,
+   "class": "ack_repetition",
+   "severity": "borderline",
+   "quote": "Earlier you said \"$1,880\" for the loss on each customer who moved from Pro to Starter.",
+   "why": "The acknowledgment and the tail say the same thing twice in one turn."
+  },
+  {
+   "turn": 30,
+   "class": "stage_missed",
+   "severity": "serious",
+   "quote": "Putting it all together, what would you recommend to the CEO, and what's the biggest risk to it?",
+   "why": "The interview moved to the recommendation without ever running the brainstorm stage, and the case ended without it."
+  },
+  {
+   "turn": 32,
+   "class": "rec_reask",
+   "severity": "firm",
+   "quote": "We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?",
+   "why": "The candidate had just given a recommendation, risk and next steps in t31."
+  },
+  {
+   "turn": 32,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?",
+   "why": "The candidate's $60 uplift of '$150–180k a month' (case: +$0.24M, built on the uncorrected 14-month lifetime) was never probed or corrected. The case closed with this wrong figure inside the recommendation."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 18084,
+  "output": 6340,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 61891,
+ "usd": 0.199136
+}

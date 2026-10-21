@@ -1,0 +1,78 @@
+{
+ "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-a2a5921b.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Most Pro customers have a demo with a salesperson first, while Starter customers sign up online on their own.",
+   "why": "The candidate asked for the split of Starter sign-ups by source (paid versus organic). The interviewer released the sign-up channel line, which does not answer that, and did not say it lacks a paid/organic split."
+  },
+  {
+   "turn": 6,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "With that, and the exhibit on your screen, what is Starter's total value per sign-up against its acquisition cost",
+   "why": "The candidate misread Pro's cost to serve as $22 (exhibit-1 says $20), giving a $78 margin and a $3,900 Pro LTV instead of $4,000. This flowed into the $780 upgrade value, which should be $800. No flat correction ever came."
+  },
+  {
+   "turn": 8,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "What steps got you to 4%?",
+   "why": "At t7 the candidate said \"you had it at $288\" for Starter CAC; exhibit-1 says $300. The interviewer never corrected it, and $288 was carried through every ratio and the final recommendation."
+  },
+  {
+   "turn": 12,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "Starter monthly cancellation rate is about 5%, not 4%.",
+   "why": "After probing the $28 margin, the candidate repeated that \"the exhibit lists Starter's cost to serve at $12\" (it is $10). The interviewer moved on to the churn correction and never corrected the $12, so the $28 margin and the $48 margin at $60 stood."
+  },
+  {
+   "turn": 18,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: New customers per month were 500 Pro in 2024, before Starter launched, and 350 Pro plus 1,000 Starter — 1,350 in total — from January 2025 to June 2026.",
+   "why": "The candidate asked whether Pro sign-ups were already trending down through 2024. The interviewer restated the exhibit line already on screen, which gives no within-2024 trend, and gave no refusal."
+  },
+  {
+   "turn": 20,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Now, an exhibit: Starter price test — New customers per month (eight-week test, August–September 2026). What do you take from this exhibit?",
+   "why": "The candidate stated wants for held data: whether Pro demo requests fell (why_pro_fell answers this), the profile of who buys each plan (buyer_profile), and competitor activity. The interviewer gave no release, refusal or deferral and moved straight to the next exhibit."
+  },
+  {
+   "turn": 28,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Right, a per-sign-up breakeven with a volume caveat.",
+   "why": "\"Right\" reads as approving the candidate's 10% breakeven, which is wrong (it should be 12.5%). The correction only came two turns later."
+  },
+  {
+   "turn": 28,
+   "class": "stage_missed",
+   "severity": "borderline",
+   "quote": "Of all the risks to your recommendation to keep Starter and move it to $60, which one is the biggest, and what would you do to guard against it?",
+   "why": "The candidate had already given risks and next steps (mitigation) in the t25 recommendation, so the risk question is largely re-asked."
+  },
+  {
+   "turn": 32,
+   "class": "rec_reask",
+   "severity": "firm",
+   "quote": "Only a little time left — what's your bottom-line recommendation, and what's the biggest risk to it?",
+   "why": "The recommendation was given at t25. The biggest risk and its guard were given at t29 and refined at t31, the turn just before, yet both were asked again."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 18210,
+  "output": 5810,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 58946,
+ "usd": 0.18904
+}

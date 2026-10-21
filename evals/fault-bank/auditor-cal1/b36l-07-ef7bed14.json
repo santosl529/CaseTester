@@ -1,0 +1,57 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-ef7bed14.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 8,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have total passengers flown and average fare per passenger.",
+   "why": "The case holds fares by route (Lakeport, Port Avery) and seats and load factor, so passengers per flight can be derived. These reached the candidate on Exhibit 2 two turns later, so the flat refusal was false."
+  },
+  {
+   "turn": 14,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: A Hub–Lakeport flight has 80 seats and there are 2,000 of them a year, and the load factor was 75% in both FY2023 and FY2025.",
+   "why": "The candidate asked whether the 75% load factor would hold at a $140 fare. The interviewer repeated the historical load-factor line already on Exhibit 2, which does not answer the hypothetical, and gave no 'I don't have that'."
+  },
+  {
+   "turn": 20,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "All nine aircraft are leased through 2030, so returning them early is not an option.",
+   "why": "The candidate asked for a breakdown of the $20M showing how much is aircraft leases. The lease-term line answers whether leases can be deferred, but the dollar split goes unanswered with no 'I don't have the breakdown'."
+  },
+  {
+   "turn": 20,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "How do you read those numbers?",
+   "why": "The released line is qualitative (lease term), not a set of numbers, so the question reads wrong."
+  },
+  {
+   "turn": 22,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "What else could Larkspur do to make sure it's profitable in the first year?",
+   "why": "At t21 the candidate claimed roughly $5 more per passenger is needed to clear the $0.2M gap; the right figure is about $0.83. That claim was never probed or corrected; only the load-factor claim was probed later."
+  },
+  {
+   "turn": 30,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you do to guard against that?",
+   "why": "In t29 the candidate had just answered what they would do about the competitor following (defensible pricing, loyalty, slots, a trigger). The follow-up re-asks the mitigation, which t28 had also already asked."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 16801,
+  "output": 3094,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 29546,
+ "usd": 0.129084
+}

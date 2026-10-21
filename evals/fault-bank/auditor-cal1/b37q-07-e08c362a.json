@@ -1,0 +1,85 @@
+{
+ "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-e08c362a.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Let's narrow it down.",
+   "why": "It says 'narrow it down' and then 'Let's move on' in the same turn. The two lines contradict each other and read confusingly."
+  },
+  {
+   "turn": 8,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "Here's an exhibit: Quillpath — Economics of each plan ($ per customer).",
+   "why": "The candidate asked for churn and CAC for each plan. Exhibit-1 gives CAC only. Churn gets no word: no release, refusal or deferral (it only came after a re-ask)."
+  },
+  {
+   "turn": 12,
+   "class": "wrong_figure",
+   "severity": "false",
+   "quote": "Starter's cancellations and its upgrades both count as leaving the plan.",
+   "why": "The case's method treats upgraders as not leaving: churn is 5%, not the combined exit rate. This line endorses the candidate's 7.4% combined-exit approach. It also frames the risk as an overstated lifetime, when the candidate's $405 actually understates it."
+  },
+  {
+   "turn": 14,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "Of the 1,050 Pro customers who signed up in January–March 2025, 98.0% were still on Pro after month 1, 94.1% after month 3, 88.6% after month 6 and 78.5% after month 12",
+   "why": "The candidate asked only whether upgraded customers churn like Pro, which the cohort note answers. The interviewer re-read the full Pro and Starter cohort lines already on screen in exhibit-2, which don't answer that ask."
+  },
+  {
+   "turn": 18,
+   "class": "probe_chain",
+   "severity": "serious",
+   "quote": "You said a $2,800 loss each time Pro becomes Starter. How did you get that figure?",
+   "why": "The misread input is Starter value of $405 on-plan / $1,205 total. It was probed through derived figures repeatedly: $2,800, $1.21m, $790k, $620k, $675, $905k. It was not corrected until t34. The $405 vs $600 on-plan figure and the $60 analysis built on it were never corrected."
+  },
+  {
+   "turn": 26,
+   "class": "stage_missed",
+   "severity": "serious",
+   "quote": "Based on what you have, what would you tell the CEO to do?",
+   "why": "The interviewer moved to the recommendation without ever administering a brainstorm stage. No ideas or options question was asked anywhere in the case."
+  },
+  {
+   "turn": 32,
+   "class": "repeated_probe",
+   "severity": "firm",
+   "quote": "You put it at “$905,000” — can you show me that calculation step by step?",
+   "why": "The candidate had just laid out the $905,000 steps in t29 (and $1,205 − $300 in t21 and t23). Re-asking for the same steps adds no new angle."
+  },
+  {
+   "turn": 34,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Walk me through the reasoning behind that.",
+   "why": "The dangling 'that' points at the interviewer's own corrected $1,400. The candidate is asked to justify the interviewer's figure, which invited the reverse-engineered $5,200 reasoning."
+  },
+  {
+   "turn": 36,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "Earlier you said “$405” — what were the steps in that calculation?",
+   "why": "The candidate's new claim that an upgrade is worth $4,000 + $1,200 = $5,200 was wrong. It fed the $1,655 cannibalization figure and was left unprobed and uncorrected."
+  },
+  {
+   "turn": 38,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "Only a little time left — what's your bottom-line recommendation, and what's the biggest risk to it?",
+   "why": "The recommendation was already given in t27. Asking for it again after the probe turns is a re-ask."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 18689,
+  "output": 6724,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 63536,
+ "usd": 0.209236
+}

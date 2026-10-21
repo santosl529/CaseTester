@@ -1,0 +1,78 @@
+{
+ "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-3376e5fe.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 2,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "I'll share Starter's monthly churn rate, pro cohort retention and the acquisition cost per customer once we've settled your structure.",
+   "why": "The candidate asked for churn, Pro churn, gross margin and CAC. Gross margin got no release, refusal or deferral; it only came after the candidate asked again at t5."
+  },
+  {
+   "turn": 2,
+   "class": "restatement",
+   "severity": "borderline",
+   "quote": "I'll come back to the acquisition cost per customer shortly. I'll share Starter's monthly churn rate, pro cohort retention and the acquisition cost per customer once we've settled your structure.",
+   "why": "The same CAC deferral is given twice in one turn."
+  },
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "I can share the acquisition cost per customer if you'd like.",
+   "why": "The candidate had already asked for CAC at t1, and it was deferred twice. Offering it as optional reads as if it was never asked for, instead of resolving the deferral."
+  },
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "You called the net gain roughly $780K a month before CAC. Those figures — what do they tell you?",
+   "why": "\"Those figures\" dangles: it is unclear whether it means the $780K just quoted or the cost data just released."
+  },
+  {
+   "turn": 12,
+   "class": "probe_chain",
+   "severity": "firm",
+   "quote": "What steps got you to 4x?",
+   "why": "There were three probes (t12 on 4x, t14 on 1.3x, t16 on the exit rate), all built on the same misread input: the 7.5% exit rate that counts upgraders as cancelling, giving the $400 standalone figure. That input was not corrected before the third probe."
+  },
+  {
+   "turn": 12,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "What steps got you to 4x?",
+   "why": "The t11 break-even (12.5% upgrade rate, built on the $400 standalone figure; the right figure is 7.5% using $600) was never probed or corrected. The candidate's tripwire of cutting Starter below ~13% stood when the case closed."
+  },
+  {
+   "turn": 20,
+   "class": "stale_correction",
+   "severity": "firm",
+   "quote": "Starter standalone LTV/CAC is about 2 times.",
+   "why": "The candidate had already corrected this to 2x at t17 (\"~$600, so 2x\") and used $600 again at t19."
+  },
+  {
+   "turn": 24,
+   "class": "rec_reask",
+   "severity": "firm",
+   "quote": "Your recommendation to keep Starter and raise it to $60 is noted. Based on what you have, what would you tell the CEO to do?",
+   "why": "The interviewer acknowledges the recommendation the candidate just gave, then asks for it again in the same turn."
+  },
+  {
+   "turn": 28,
+   "class": "stage_missed",
+   "severity": "serious",
+   "quote": "We've covered everything I wanted to. Thanks for working through the case — your written report will follow.",
+   "why": "No brainstorm stage was ever administered before the case closed."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 14029,
+  "output": 5263,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 54789,
+ "usd": 0.161376
+}

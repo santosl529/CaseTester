@@ -1,0 +1,43 @@
+{
+ "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-6bbc2163.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 14,
+   "class": "probe_chain",
+   "severity": "serious",
+   "quote": "You said “…the only option where reported US net sales clear the board's $300M gate — a…” — how did you do that calculation?",
+   "why": "The candidate wrongly claims Option B does not clear the gate; Kelvexa's US net sales under B are $400M. The interviewer probes this at t14, drops it at t16 after the error is repeated, probes again at t24 and a third time at t26, which recasts the gate as a hypothetical. It never states the gate base flatly, and the case closes with the misread uncorrected."
+  },
+  {
+   "turn": 20,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "What's your recommendation to the client?",
+   "why": "The candidate had already given the recommendation (build, with $240M vs $120M) at t11. It is re-asked after the brainstorm turns."
+  },
+  {
+   "turn": 28,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "How did you get to the $240 million versus $120 million comparison on pure economics?",
+   "why": "This challenges math the checker had already verified as correct, both at t11 and at t27."
+  },
+  {
+   "turn": 32,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "On that 12.5% breakeven, how did you get there, and does it hold if Option B's share also came in below the 25% expected?",
+   "why": "The 12.5% matching share was correct and matches the case's own figure. Asking how the candidate got there challenges right math."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 13697,
+  "output": 2967,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 30556,
+ "usd": 0.114128
+}

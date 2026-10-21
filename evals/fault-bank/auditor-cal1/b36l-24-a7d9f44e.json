@@ -1,0 +1,50 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-a7d9f44e.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have cost per seat mile trend.",
+   "why": "The ledger's unit_costs and fuel_prices items say costs per flight and fuel prices were flat, which coarsely answers the cost-trend ask. The answer only reached the candidate indirectly, through exhibit-1 at t8 and exhibit-2 at t14."
+  },
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Is that MECE, and what's missing? Specifically, what within revenue could you still be missing before you commit to pricing?",
+   "why": "Three questions are stacked into one turn."
+  },
+  {
+   "turn": 12,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "I'm afraid I don't have quarter-by-quarter fares and passengers since entry.",
+   "why": "The candidate also asked how many seats a day the entrant had added. That ask got no release, refusal or deferral."
+  },
+  {
+   "turn": 20,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: Variable cost on the new routes is estimated at $9,200 per flight, across 5,000 flights a year that would use the aircraft time freed by exiting Hub–Lakeport (2,000 flights) and Hub–Port Avery (3,000 flights).",
+   "why": "The candidate asked for launch costs (marketing, station setup, crew basing). The interviewer repeated an exhibit line that doesn't answer this and never said it doesn't have launch costs."
+  },
+  {
+   "turn": 26,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Before we wrap up — you said each passenger nets $160 toward the $9,200 variable cost.",
+   "why": "The candidate stated a want for O&D volume on each new city pair. It got no word, not even an 'I don't have that', before the case closed."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 17320,
+  "output": 3270,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 31544,
+ "usd": 0.13468
+}
