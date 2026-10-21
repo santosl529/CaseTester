@@ -20,7 +20,7 @@ vi.mock('@/db/client', () => ({
 }));
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
 
-import { registerStepRoots, stepRootsDeclared, stepRootOf, stepRootFigures, caseNumbersOf, closedErrorRestated, STEP_PROBE_CAP, type CheckerDecision, type CheckerRow, type StepRoot, type VerdictPayload } from '@/lib/orchestrator/math-checker-live';
+import { registerStepRoots, stepRootsDeclared, stepRootOf, stepRootFigures, lineKey, caseNumbersOf, closedErrorRestated, STEP_PROBE_CAP, type CheckerDecision, type CheckerRow, type StepRoot, type VerdictPayload } from '@/lib/orchestrator/math-checker-live';
 import { formatCheckerSection } from '@/lib/scoring/checker-record';
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
 import { settleTurn, type ModelOutcome } from '@/lib/orchestrator/settle-turn';
@@ -119,35 +119,47 @@ describe("Raj's derived lines t17–t35, one turn at a time (the run's own memor
     expect(claimOf(RAJ, '15:0').codeQuantity.kind).toBe('none');
     expect(at(17).selected).toMatchObject({ id: '15:0', action: 'probe' });
   });
-  it('t19 "$1,205" (17:1, starter_value_with_upgrades) — linked: a step built on starter_ltv', () => {
+  // Fix round 1 (controller ruling, 21 Oct: "Linking stops PROBES only. A checker-agreed correction on a linked claim still
+  // goes out under round 5c's ruling 3, one derived correction per root"): a linked claim is never probed; its own
+  // correction goes once per root step (derivedOnce `step:starter_ltv`) — the first that comes — the rest to the report.
+  const SAID_17_1 = { derivedOnce: { 'step:starter_ltv': '17:1' } };
+  const ONCE = /flagged by the step check — its own correction, once \(one per root\)/;
+  const SLOT_USED = "built on starter_ltv's 405, flagged by the step check — one correction per root, said already (17:1); left for the report";
+  it('t19 "$1,205" (17:1, starter_value_with_upgrades) — linked: not probed; its correction, the root\'s one derived correction, goes first: "$1,400, not $1,205"', () => {
     const p = at(19);
-    expect(p.selected).toBeNull();
-    expect(decisionOf(p.decisions, '17:1')).toMatchObject({ outcome: 'unresolved', reason: LINKED_405, root: RAJ_ROOT });
-    expect(p.closedNow).toContain('starter_value_with_upgrades@1205');
-    expect(p.stepLinked).toMatchObject({ 'starter_value_with_upgrades@1205': RAJ_ROOT });
+    expect(p.selected).toMatchObject({ id: '17:1', action: 'correct', line: 'Starter value per sign-up including upgrades, at $40, is about $1,400, not $1,205.', onceRoot: 'step:starter_ltv' });
+    expect(decisionOf(p.decisions, '17:1')).toMatchObject({ outcome: 'correct', reason: expect.stringMatching(ONCE), root: RAJ_ROOT });
+    expect(p.stepLinked).toMatchObject({ 'starter_value_with_upgrades@1205': RAJ_ROOT, 'starter_value_added@790': RAJ_ROOT });
+    // 17:2 ($790k) waits for its turn: neither probed nor decided.
+    expect(decisionOf(p.decisions, '17:2')).toBeUndefined();
+    expect(p.waiting.map(w => w.id)).toContain('17:2');
   });
-  it('t21 "$790k" (17:2, starter_value_added) — linked', () => {
-    expect(decisionOf(at(21).decisions, '17:2')).toMatchObject({ outcome: 'unresolved', reason: LINKED_405 });
-    expect(at(21).selected).toBeNull();
+  it('t21 "$790k" (17:2, starter_value_added) — linked; the root\'s correction said (t19): the report', () => {
+    expect(decisionOf(at(21, SAID_17_1).decisions, '17:2')).toMatchObject({ outcome: 'unresolved', reason: SLOT_USED, root: RAJ_ROOT });
+    expect(at(21, SAID_17_1).selected).toBeNull();
+    // …the slot free (as in the run's own memory), its own correction would go instead — never a probe.
+    expect(at(21).selected).toMatchObject({ id: '17:2', action: 'correct' });
   });
   it('t27 "$620,000" (23:0, starter_value_added) — linked; the turn\'s line goes to 25:2 "$940k" — not linked: its span ("Times 800 = $940k a month.") carries no root figure', () => {
-    const p = at(27);
-    expect(decisionOf(p.decisions, '23:0')).toMatchObject({ outcome: 'unresolved', reason: LINKED_405 });
+    const p = at(27, SAID_17_1);
+    expect(decisionOf(p.decisions, '23:0')).toMatchObject({ outcome: 'unresolved', reason: SLOT_USED });
     expect(p.selected).toMatchObject({ id: '25:2', action: 'probe' });
   });
   it('t29 "$675" (25:0, a claim on no step) — linked by the root\'s figure: "Starter LTV on plan = 50 × 13.5 ≈ $675"', () => {
     expect(claimOf(RAJ, '25:0').span).toBe('Starter LTV on plan = 50 × 13.5 ≈ $675');
-    expect(decisionOf(at(29).decisions, '25:0')).toMatchObject({ outcome: 'unresolved', reason: LINKED_405, root: RAJ_ROOT });
+    expect(decisionOf(at(29, SAID_17_1).decisions, '25:0')).toMatchObject({ outcome: 'unresolved', reason: SLOT_USED, root: RAJ_ROOT });
   });
-  it('t31 "$905,000" (29:1, starter_net_value) — linked', () => {
+  it('t31 "$905,000" (29:1, starter_net_value) — linked; no correction code can write: the report', () => {
     const p = at(31);
     expect(decisionOf(p.decisions, '29:1')).toMatchObject({ outcome: 'unresolved', reason: LINKED_405 });
-    expect(p.selected).toBeNull();
+    expect(p.decisions.filter(d => PROBES.includes(d.outcome))).toEqual([]);
+    expect(at(31, SAID_17_1).selected).toBeNull();
   });
-  it('t33 the correction "$1,400, not $1,205" (29:0, starter_value_with_upgrades) — linked: left for the report, never a correction from the step check', () => {
-    const p = at(33);
-    expect(decisionOf(p.decisions, '29:0')).toMatchObject({ outcome: 'unresolved', reason: LINKED_405 });
-    expect(p.selected).toBeNull();
+  it('t33 the correction "$1,400, not $1,205" (29:0) — the same derived correction: said once only, whichever comes first (t19 here)', () => {
+    expect(decisionOf(at(33, SAID_17_1).decisions, '29:0')).toMatchObject({ outcome: 'unresolved', reason: SLOT_USED });
+    expect(at(33, SAID_17_1).selected).toBeNull();
+    // …nothing said before (the run's own memory): it is the root's one derived correction.
+    expect(at(33).selected).toMatchObject({ id: '29:0', action: 'correct', onceRoot: 'step:starter_ltv' });
   });
   it('t35 "$405" (33:0, the root itself) — not linked: the checker\'s own line; after the t12 input question it is the second attempt, the correction — the checker\'s flag, not the step check\'s', () => {
     expect(at(35).selected).toMatchObject({ id: '33:0', action: 'probe' });
@@ -173,41 +185,62 @@ describe("Raj's derived lines t17–t35, one turn at a time (the run's own memor
 
 describe("Marcus's lines t23–t29 (the run's own memory, with the roots)", () => {
   const at = (t: number) => atTurn(MARCUS, t, { stepRoots: rootsUpTo(MARCUS, t) });
-  it('t23 "$920" (21:1, starter_net_value) — linked to t17\'s starter_ltv 420: not probed', () => {
+  it('t23 "$920" (21:1, starter_net_value) — linked to t17\'s starter_ltv 420: not probed (the run probed it: "Walk me through that calculation")', () => {
+    expect(atTurn(MARCUS, 23).selected).toMatchObject({ id: '21:1', action: 'probe' });
     const p = at(23);
-    expect(atTurn(MARCUS, 23).selected).toMatchObject({ id: '21:1', action: 'probe' });   // the run's line: "Walk me through that calculation"
-    expect(decisionOf(p.decisions, '21:1')).toMatchObject({ outcome: 'unresolved', reason: LINKED_420, root: 'step:starter_ltv@420' });
+    expect(p.decisions.filter(d => PROBES.includes(d.outcome) && d.id === '21:1')).toEqual([]);
+    expect(p.waiting).toEqual(expect.arrayContaining([expect.objectContaining({ id: '21:1', root: 'step:starter_ltv' })]));
     expect(decisionOf(p.decisions, '21:3')).toMatchObject({ outcome: 'unresolved', reason: LINKED_420 });
   });
   it('t23/t27 "$1,880" (21:2, a claim on no step) — not linked: its span ("a loss of ~$1,880 each, or about $282,000 a month") carries no root figure', () => {
     expect(at(23).selected).toMatchObject({ id: '21:2', action: 'probe' });
   });
-  it('t29 the correction "$1,100, not $920" (25:0, starter_net_value) — linked: left for the report', () => {
-    expect(atTurn(MARCUS, 29).selected).toMatchObject({ id: '25:0', action: 'correct' });
+  it('t29 the correction "Starter net value per sign-up at $40 is about $1,100, not $920." (25:0) — said: the root\'s one derived correction', () => {
     const p = at(29);
-    expect(decisionOf(p.decisions, '25:0')).toMatchObject({ outcome: 'unresolved', reason: LINKED_420 });
-    expect(p.selected).toBeNull();
+    expect(p.selected).toMatchObject({ id: '25:0', action: 'correct', line: 'Starter net value per sign-up at $40 is about $1,100, not $920.', onceRoot: 'step:starter_ltv' });
+    expect(decisionOf(p.decisions, '25:0')).toMatchObject({ outcome: 'correct', reason: expect.stringMatching(/^built on starter_ltv's 420, flagged by the step check — its own correction, once \(one per root\)/), root: 'step:starter_ltv@420' });
+    // …unless another derived correction on starter_ltv went first (both roots, $900 and $420, share the slot).
+    expect(decisionOf(atTurn(MARCUS, 29, { stepRoots: rootsUpTo(MARCUS, 29), derivedOnce: { 'step:starter_ltv': '17:1' } }).decisions, '25:0'))
+      .toMatchObject({ outcome: 'unresolved', reason: "built on starter_ltv's 420, flagged by the step check — one correction per root, said already (17:1); left for the report" });
   });
 });
 
 describe('the whole interview, message by message (chained memory)', () => {
   const lines = (r: Run) => replay(r).flatMap(x => [...(x.rootAsked ? [`t${x.t} root: ${x.rootAsked}`] : []), ...(x.said ? [`t${x.t} ${x.plan.selected!.action}: ${x.said}`] : [])]);
-  it('Raj: the input question at t12, once; no probe on a linked claim; the one correction is the checker\'s, on the root', () => {
+  const derivedOn = (turns: ReturnType<typeof replay>, root: RegExp) => turns.flatMap(x => (x.kind === 'model' && x.plan.selected?.action === 'correct' && x.plan.selected.onceRoot === 'step:starter_ltv'
+    ? x.plan.decisions.filter(d => d.id === x.plan.selected!.id && root.test(d.root ?? '')) : []));
+  it('Raj: the input question at t12, once; no probe on a linked claim; one derived correction on the root ($1,205, t20 — the first), plus the root\'s own (the checker\'s, t36)', () => {
     const turns = replay(RAJ);
     expect(lines(RAJ)).toEqual([
       `t11 root: ${STARTER_Q}`,
       't17 probe: You said a $2,800 loss each time Pro becomes Starter. How did you get that figure?',
+      't19 correct: Starter value per sign-up including upgrades, at $40, is about $1,400, not $1,205.',
       expect.stringMatching(/^t27 probe: .*\$940k/),
       expect.stringMatching(/^t29 probe: .*\$905k/),
       't35 correct: Starter standalone lifetime value at $40 is about $600, not $405.',
     ]);
     const linked = new Set(turns.flatMap(x => x.plan.decisions.filter(d => d.root === RAJ_ROOT).map(d => d.key)));
     expect(turns.flatMap(x => x.plan.decisions.filter(d => PROBES.includes(d.outcome) && linked.has(d.key)))).toEqual([]);
-    expect(turns.flatMap(x => x.plan.decisions.filter(d => d.outcome === 'correct' && x.kind === 'model').map(d => d.key))).toEqual(['starter_ltv@405']);
+    expect(derivedOn(turns, /^step:starter_ltv@405$/).map(d => d.id)).toEqual(['17:1']);
+    // The root's own correction is the checker's flag on 33:0 ("$405"), not linked, not the derived slot.
+    expect(turns.flatMap(x => x.plan.decisions.filter(d => d.outcome === 'correct' && x.kind === 'model').map(d => [d.id, d.key, d.root ?? null]))).toEqual([
+      ['17:1', 'starter_value_with_upgrades@1205', RAJ_ROOT], ['33:0', 'starter_ltv@405', null]]);
+    expect(claimOf(RAJ, '33:0').flag).toBe(true);
+    // The $1,205 corrected at t20 and said again (29:0, t33): a corrected key, restated — never a second correction.
+    expect(decisionOf(turns.find(x => x.t === 31)!.plan.decisions, '29:0')).toMatchObject({ outcome: 'unresolved', reason: 'restated after the flag closed (corrected, or left for the report)' });
   });
-  it('Marcus: the input question once (t21, the first model turn the checker slot is free); the lifetime probed twice at most; no probe on a linked claim', () => {
+  it('a linked claim whose correction line was said already (by another claim): the report, the line named', () => {
+    const line = 'Starter value per sign-up including upgrades, at $40, is about $1,400, not $1,205.';
+    const p = atTurn(RAJ, 19, { stepRoots: rootsUpTo(RAJ, 19), said: { [lineKey(line)]: 1 } });
+    expect(decisionOf(p.decisions, '17:1')).toMatchObject({ outcome: 'unresolved', reason: `${LINKED_405} — its own correction was said once already; left for the report`, line });
+  });
+  it('Marcus: one derived correction on starter_ltv — t22\'s 1.4x (17:1) comes first, so the $920 one goes to the report; no probe on a linked claim; the lifetime probed twice at most', () => {
     const turns = replay(MARCUS);
-    expect(lines(MARCUS).filter(l => / root: /.test(l))).toEqual([`t21 root: ${STARTER_Q}`]);
+    expect(derivedOn(turns, /^step:starter_ltv@/).map(d => d.id)).toEqual(['17:1']);
+    const t23 = turns.find(x => x.t === 23)!;
+    expect(decisionOf(t23.plan.decisions, '21:1')).toMatchObject({ outcome: 'unresolved', reason: "built on starter_ltv's 420, flagged by the step check — one correction per root, said already (17:1); left for the report" });
+    // The input question: the slot taken by a line on every model turn while the root was fresh — not asked.
+    expect(lines(MARCUS).filter(l => / root: /.test(l))).toEqual([]);
     const starterProbes = turns.filter(x => x.kind === 'model' && (x.rootAsked || (x.plan.selected && PROBES.includes(x.plan.selected.action) && x.plan.selected.key.startsWith('starter_ltv@'))));
     expect(starterProbes.length).toBeLessThanOrEqual(STEP_PROBE_CAP);
     const linked = new Set(turns.flatMap(x => x.plan.decisions.filter(d => d.root?.startsWith('step:')).map(d => d.key)));
@@ -320,10 +353,11 @@ describe('the input question through the turn (plan-turn.ts → settle-turn.ts):
 describe('the report and the recommendation re-flag', () => {
   const linkedRows: CheckerRow[] = [
     RAJ.rows.find(x => x.subtype === 'verdict' && (x.payloadJsonb as VerdictPayload).candidateTurnIndex === 17)!,
-    { category: 'math_checker', subtype: 'flag', turnIndex: 19, payloadJsonb: { ...atTurn(RAJ, 19, { stepRoots: rootsUpTo(RAJ, 19) }).decisions.find(d => d.id === '17:1')! } },
+    // 17:1 linked with the root's one derived correction said already: the report.
+    { category: 'math_checker', subtype: 'flag', turnIndex: 19, payloadJsonb: { ...atTurn(RAJ, 19, { stepRoots: rootsUpTo(RAJ, 19), derivedOnce: { 'step:starter_ltv': '15:9' } }).decisions.find(d => d.id === '17:1')! } },
   ];
   it('a linked claim: "built on starter_ltv\'s 405, flagged by the step check — left for this report"', () => {
-    expect(formatCheckerSection(linkedRows as Parameters<typeof formatCheckerSection>[0])).toContain(`Not raised on its own: ${LINKED_405} — left for this report.`);
+    expect(formatCheckerSection(linkedRows as Parameters<typeof formatCheckerSection>[0])).toContain(`Not raised on its own: ${LINKED_405} — one correction per root, said already (15:9) — left for this report.`);
   });
   it('a linked key said again in the recommendation is not flagged there (closedErrorRestated): it is never probed', () => {
     const keys = { 'starter_value_with_upgrades@1205': { figures: [1205], since: 17 } };

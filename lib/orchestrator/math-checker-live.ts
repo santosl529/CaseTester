@@ -156,8 +156,9 @@ export function parseInputKey(key: string): { figure: number; unit: string } | n
 //     flags.stepRoots): its figures are v and the span's own wrong figures (13.5 months beside $405) — not a case
 //     figure, not any step's right answer (the $30 margin), not a one-digit count ("3x");
 //   - a checker or code flag on a step that depends on R (dependsOn, transitively), or whose span carries a root figure
-//     (not its own), or that is built (rootOf) on a claim already linked, is linked: not probed, left for the report —
-//     "built on <R>'s <v>, flagged by the step check" (planCheckerFlags; its key closed: no later probe on its figures);
+//     (not its own), or that is built (rootOf) on a claim already linked, is linked: never probed; its own vetted
+//     correction (the checker's flag) goes once per root step (fix round 1: round 5c's ruling 3, derivedOnce), else it
+//     is left for the report — "built on <R>'s <v>, flagged by the step check" (planCheckerFlags; its key closed);
 //   - the root gets one neutral question, the step's input question, in the checker probe's slot (plan-turn.ts);
 //   - never a correction: a correction of R or of a linked claim still needs the checker's flag (the 16 Oct gate).
 // A flag on a step that depends on a root, or carrying a root's figure, is linked to that root, never a root of its
@@ -838,7 +839,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const flaggedFigures: number[] = [];
   const droppedStamps: CheckerPlan['droppedStamps'] = [];
   // once: a claim built on a root left for the report, eligible for its own correction once (R7 reversed, onClosedRoot).
-  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean; carried?: boolean; restate?: { line: string; figure?: string; own: string }; once?: { root: string; sel: CheckerSelection } }[] = [];
+  const eligible: { id: string; n: number; c: VettedClaim; key: string; figs: number[]; codeProbed?: boolean; carried?: boolean; restate?: { line: string; figure?: string; own: string }; once?: { root: string; sel: CheckerSelection }; linkedTo?: string }[] = [];
   const caseNumbers = caseNumbersOf(p.caseData, p.revealedIds);
   // …and the prompt's changes ("18 points" from 24% to 6%): a figure the claim cites, never its own (a late probe's quote).
   const caseFigures = [...caseNumbers, ...numbersOf(changeFigures([p.caseData.prompt]).join(' '))];
@@ -1023,7 +1024,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       const key = flagKeyFor(c, idFigs, keys);
       if (closed.has(key)) {
         // A key a step root linked (round 6 Task 72): restated, it stays linked — the root's reason, for the report.
-        const linkedTo = Object.entries(p.stepRoots ?? {}).find(([, r]) => (r.linked ?? []).includes(key));
+        // (One corrected — its derived correction said, fix round 1 — is a corrected key like any other.)
+        const linkedTo = p.corrected?.[key] ? undefined : Object.entries(p.stepRoots ?? {}).find(([, r]) => (r.linked ?? []).includes(key));
         decisions.push(linkedTo ? { ...decision(id, v.candidateTurnIndex, c, 'unresolved', stepRootReason(linkedTo[1]), undefined, key), root: linkedTo[0] }
           : decision(id, v.candidateTurnIndex, c, 'unresolved', 'restated after the flag closed (corrected, or left for the report)', undefined, key));
         handled.add(id);
@@ -1037,10 +1039,16 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   }
   // Step roots (round 6 Task 72; Lorenzo, 21 Oct, the step-check ruling, above): a claim on a step built on a root the
   // step check flagged, carrying a root figure, or built (rootOf) on a claim linked already — this turn's or an earlier
-  // turn's (the roots' `linked`) — is left for the report, unprobed, its key closed. Before the selection: never probed,
-  // never a rider, never its own correction. A claim of the root itself (R at its own figure) is not linked: the checker
-  // probes or corrects it as always, the root's input question counted as its first probe (plan-turn).
+  // turn's (the roots' `linked`) — is never probed (never a rider either). Fix round 1 (controller ruling, 21 Oct:
+  // "Linking stops PROBES only. A checker-agreed correction on a linked claim still goes out under round 5c's ruling 3,
+  // one derived correction per root"): it gets its own vetted correction, once per root step (p.derivedOnce, keyed
+  // `step:<R>` — both of Marcus's starter_ltv roots, t15 $900 and t17 $420, share one), through the queue's once path
+  // (below, after the closed-root pass); no true line, its line said already, or the root's one said → the report, its
+  // key closed. A claim of the root itself (R at its own figure) is not linked: the checker probes or corrects it as
+  // always, the root's input question counted as its first probe (plan-turn) — that correction is the root's own, not
+  // the derived one.
   const stepLinked: Record<string, string> = {};
+  const linkedOut: { e: typeof eligible[number]; root: string }[] = [];
   const roots = p.stepRoots ?? {};
   if (Object.keys(roots).length > 0) {
     const linkedBefore = new Map(Object.entries(roots).flatMap(([rk, r]) => (r.linked ?? []).map(k => [k, rk] as const)));
@@ -1062,9 +1070,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       const root = stepLinked[e.key];
       if (!root) continue;
       eligible.splice(eligible.indexOf(e), 1);
-      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', stepRootReason(roots[root]), undefined, e.key), root });
-      handled.add(e.id);
-      if (!closedNow.includes(e.key)) closedNow.push(e.key);
+      linkedOut.push({ e, root });
     }
   }
   // E7: each flagged claim's misread input — its own figure when that is a figure of the data (dataFigure), else a
@@ -1257,6 +1263,22 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (closed.has(first) || closed.has(root)) onClosedRoot(e, root);
     else built.push({ e, root });
   }
+  // The linked claims (fix round 1, above): each its own correction once per root step, else the report.
+  for (const { e, root } of linkedOut) {
+    const r = roots[root];
+    const slot = `${STEP_ROOT}${r.step}`;
+    const toReport = (why: string, line?: string) => {
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `${stepRootReason(r)}${why}`, line, e.key), root });
+      handled.add(e.id);
+      if (!closedNow.includes(e.key)) closedNow.push(e.key);
+    };
+    const by = p.derivedOnce?.[slot];
+    if (by !== undefined) { toReport(` — one correction per root, said already (${by}); left for the report`); continue; }
+    const sel = ownOnce(e);
+    if (!sel) { toReport(''); continue; }
+    if (saidOnce(sel)) { toReport(' — its own correction was said once already; left for the report', sel.line); continue; }
+    eligible.push({ ...e, once: { root: slot, sel }, linkedTo: root });
+  }
   for (const r of reopened) if (!eligible.some(e => e.key === r.key)) eligible.push({ id: r.id, n: r.n, c: r.c, key: r.key, figs: r.figs });
   // A raised, open root with no claim here comes back on its latest claim (one with a correction first).
   for (const root of new Set(built.map(b => b.root))) {
@@ -1288,6 +1310,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     || Number(Boolean(b.restate)) - Number(Boolean(a.restate)) || a.n - b.n;
   eligible.sort(order);
   let selected: CheckerSelection | null = null;
+  // The step root a linked claim's own correction is built on (fix round 1): its decision names it.
+  let selectedLinked: string | undefined;
   const waiting = [...eligible];
   // A key that goes to the report this turn, with no line said: the claims built on it join the queue, each for its own
   // correction once (R7 reversed, onceEntry), in the queue's order (final review M3: a minor derived correction never takes
@@ -1326,6 +1350,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       const { root, sel } = entry.once;
       if (p.underTimePressure && !isFinal(entry) && !changes(entry)) { decisions.push({ ...decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key), root }); handled.add(id); continue; }
       selected = { ...sel, onceRoot: root };
+      selectedLinked = entry.linkedTo;
       continue;
     }
     // E7: a claim on an input closed this turn with no line said: its own correction once (R7 reversed), through the
@@ -1395,7 +1420,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // A derived claim's own correction (R7 reversed): its decision names the root it was built on.
   const onceRoot = selected?.onceRoot;
   if (selected && !restating) decisions.push({ ...decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
-    `${onceRoot ? `built on a closed input (${onceRoot}) — its own correction, once; ` : ''}attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}${eligible.find(e => e.id === selected!.id && e.key === selected!.key)?.carried ? `; carried into ${riding(selected).map(d => d.id).join(', ')}` : ''}`, selected.line, selected.key), ...(onceRoot ? { root: onceRoot } : {}) });
+    `${selectedLinked ? `${stepRootReason(roots[selectedLinked])} — its own correction, once (one per root); ` : onceRoot ? `built on a closed input (${onceRoot}) — its own correction, once; ` : ''}attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}${eligible.find(e => e.id === selected!.id && e.key === selected!.key)?.carried ? `; carried into ${riding(selected).map(d => d.id).join(', ')}` : ''}`, selected.line, selected.key), ...(selectedLinked ? { root: selectedLinked } : onceRoot ? { root: onceRoot } : {}) });
   // The claims built on a root said now ride on its line (booked only if the line is used — plan-turn); the rest
   // wait. (Those on a root closed this turn left the queue with it: toReport.)
   const riders: NonNullable<CheckerSelection['riders']> = [];

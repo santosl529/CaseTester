@@ -7,7 +7,7 @@
 //   replay: planCheckerFlags message by message with its own memory chained (handled, keys, closed, attempts, step
 //     probes, the roots and their links), the selection booked on model turns as heard, the root's input question booked
 //     where plan-turn would ask it. The interviewer's words are the run's (a probe the run said still counts).
-import { planCheckerFlags, gateOutcomesOf, registerStepRoots, caseNumbersOf, stepOfKey, correctsNow, inputQuestionOf, STEP_PROBE_CAP, CHECKER_MAX_WAIT_MESSAGES, type CheckerDecision, type CheckerPlan, type CheckerPlanInput, type CheckerRow, type StepRoot, type CheckerKeyEntry } from '@/lib/orchestrator/math-checker-live';
+import { planCheckerFlags, gateOutcomesOf, lineKey, registerStepRoots, caseNumbersOf, stepOfKey, correctsNow, inputQuestionOf, STEP_PROBE_CAP, CHECKER_MAX_WAIT_MESSAGES, type CheckerDecision, type CheckerPlan, type CheckerPlanInput, type CheckerRow, type StepRoot, type CheckerKeyEntry } from '@/lib/orchestrator/math-checker-live';
 import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 import { isUnderTimePressure } from '@/lib/orchestrator/pacing';
 import { caseTotalMs } from '@/lib/orchestrator/state-machine';
@@ -74,6 +74,7 @@ export function replay(r: Run, opts: { roots?: boolean } = {}): ReplayTurn[] {
   const stepProbes: Record<string, number> = {};
   const corrected: Record<string, { line: string }> = {};
   const said: Record<string, number> = {};
+  const derivedOnce: Record<string, string> = {};
   const asked: string[] = [];
   let roots: Record<string, StepRoot> = {};
   const out: ReplayTurn[] = [];
@@ -84,7 +85,7 @@ export function replay(r: Run, opts: { roots?: boolean } = {}): ReplayTurn[] {
     if (withRoots) roots = registerStepRoots(pricing, roots, rec.reportOnly, t, caseNumbersOf(pricing, rec.revealed)).roots;
     const plan = planCheckerFlags({
       rows: [...verdicts, ...gates, ...flagRows], handled, gateOutcomes: gateOutcomesOf(gates.filter(x => (x.turnIndex ?? 0) <= t), []), turnRows: r.turns.filter(x => x.turnIndex < t), candidateText: text(r, t), candidateTurnIndex: t,
-      currentFlags: [], attempts: { ...attempts }, keys, closed: [...closed], corrected, said, stepProbes: { ...stepProbes },
+      currentFlags: [], attempts: { ...attempts }, keys, closed: [...closed], corrected, said, derivedOnce: { ...derivedOnce }, stepProbes: { ...stepProbes },
       underTimePressure: isUnderTimePressure(rec.elapsedMs, TOTAL), candidateFigures: figuresBefore(r, t),
       caseData: pricing as never, revealedIds: rec.revealed, shownExhibitIds: rec.shown, seed: `${r.sessionId}:${t}`, ...(withRoots ? { stepRoots: roots } : {}),
     });
@@ -100,7 +101,10 @@ export function replay(r: Run, opts: { roots?: boolean } = {}): ReplayTurn[] {
     if (sel) {
       if (sel.action !== 'restate') attempts[sel.key] = sel.attempt;
       if (!correctsNow(sel)) stepProbes[stepOfKey(sel.key)] = (stepProbes[stepOfKey(sel.key)] ?? 0) + 1;
-      else { closed.add(sel.key); corrected[sel.key] = { line: sel.line }; said[sel.line.toLowerCase()] = (said[sel.line.toLowerCase()] ?? 0) + 1; }
+      else {
+        closed.add(sel.key); corrected[sel.key] = { line: sel.line }; said[lineKey(sel.line)] = (said[lineKey(sel.line)] ?? 0) + 1;
+        if (sel.onceRoot) derivedOnce[sel.onceRoot] = sel.id;
+      }
     } else if (withRoots && model) {
       // plan-turn's input question: the checker slot free, once per step, within the probe cap and the wait.
       const next = Object.entries(roots).sort((a, b) => a[1].since - b[1].since).find(([, x]) => inputQuestionOf(pricing, x.step) !== undefined && !asked.includes(x.step)

@@ -88,7 +88,7 @@ function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outco
   // Linked to a step root (round 6 Task 72; Lorenzo, 21 Oct, the step-check ruling): built on a figure the deterministic
   // step check found wrong — not probed in the interview, left for this report.
   const linked = outcomes.find(d => d.outcome === 'unresolved' && d.root?.startsWith(STEP_ROOT));
-  if (linked) return `Not raised on its own: ${linked.reason} — left for this report.`;
+  if (linked) return `Not raised on its own: ${linked.reason.replace(/; left for the report$/, '')} — left for this report.`;
   if (has('stale')) return 'The candidate revised or withdrew it since.';
   if (has('pointer')) return 'Probed twice (the second time against the data); not corrected.';
   if (has('hint')) return 'Probed twice (the second time with a hint); not corrected.';
