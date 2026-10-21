@@ -153,12 +153,12 @@ The bank's provenance is sound, but as it stands the gate would report failures 
 ## Spend
 
 - **Money:** $3.62 in all, Stream 1's auditor calibration, of its $25 cap. Nothing else cost anything.
-- **Agent tokens, 2,433,980 at the pause** (Lorenzo's +2M cap, passed):
+- **Agent tokens, 3,154,658 at the pause** (Lorenzo's +2M cap, passed):
 
   | Stream | Build | Review |
   |---|---|---|
   | 2 — case data | 318,846 | 219,831 |
-  | 1 — evaluation | 651,219 | 352,000 approx. |
+  | 1 — evaluation | 651,219 | 163,141 |
   | 4a — data path | 590,136 | not started |
   | 4b — small fixes | 438,457 | 215,491 |
   | 3 — math | 557,537 | not started |
