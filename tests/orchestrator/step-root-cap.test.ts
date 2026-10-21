@@ -303,6 +303,23 @@ describe('a root stops linking by dependency once it no longer stands', () => {
     expect(p.stepRootEnded).toEqual({ [RAJ_ROOT]: 39 });
     expect(decisionOf(p.decisions, '39:2')?.root).toBeUndefined();
   });
+  // Task 72 re-review minor: only checker claims from the root's own message on end it — a right answer stated before
+  // the root registered can't end it at birth (the reviewer's probe: the same rewritten 39:0, the root's `since` at 40).
+  it('a dependent claim carrying $600 from before the root registered does not end it: a later dependent slip (n=45) still links', () => {
+    const v39 = RAJ.rows.find(x => x.subtype === 'verdict' && (x.payloadJsonb as VerdictPayload).candidateTurnIndex === 39)!;
+    const claims = (v39.payloadJsonb as VerdictPayload).claims.map((c, i) => (i === 0 ? { ...c, span: 'about $600 standalone plus $800 is $1,400 per sign-up against $300 CAC' } : c));
+    const rows = RAJ.rows.map(x => (x === v39 ? { ...x, payloadJsonb: { ...(x.payloadJsonb as VerdictPayload), claims } } : x));
+    const late: Record<string, StepRoot> = Object.fromEntries(Object.entries(rootsUpTo(RAJ, 39)).map(([k, r]) => [k, { ...r, since: 40 }]));
+    expect(Object.keys(late)).toEqual([RAJ_ROOT]);
+    const p = atTurn({ ...RAJ, rows }, 41, { stepRoots: late });
+    expect(p.stepRootEnded?.[RAJ_ROOT]).toBeUndefined();
+    const ended = p.stepRootEnded?.[RAJ_ROOT];
+    const roots = { [RAJ_ROOT]: { ...late[RAJ_ROOT], ...(ended !== undefined ? { endedAt: ended } : {}) } };
+    expect(stepRootOf({ c: pricing, roots, key: 'starter_net_value@1200', span: 'So $1,400 minus $200 gives $1,200 net.', own: [1200], n: 45, caseFigures: [30, 300, 800, 4000] })).toBe(RAJ_ROOT);
+    // The root's own message counts: registered at 39, the same claim ends it there.
+    const at39 = Object.fromEntries(Object.entries(late).map(([k, r]) => [k, { ...r, since: 39 }]));
+    expect(atTurn({ ...RAJ, rows }, 41, { stepRoots: at39 }).stepRootEnded).toEqual({ [RAJ_ROOT]: 39 });
+  });
 });
 
 describe('through plan-turn: the candidate states the root step right — its dependency links end (flags.stepRoots endedAt)', () => {

@@ -1090,7 +1090,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const stepRootEnded: Record<string, number> = {};
   const roots: Record<string, StepRoot> = Object.fromEntries(Object.entries(p.stepRoots ?? {}).map(([rk, r]) => {
     const deps = stepDependents(p.caseData, r.step);
-    const at = verdicts.flatMap(v => v.claims.filter(c => c.codeQuantity.kind === 'step' && deps.has(c.codeQuantity.stepId ?? '') && carriesRightOf(p.caseData, r.step, c.span))
+    // Only a claim from the root's own message on (Task 72 re-review minor): a right answer stated before R registered can't end it at birth.
+    const at = verdicts.filter(v => v.candidateTurnIndex >= r.since).flatMap(v => v.claims.filter(c => c.codeQuantity.kind === 'step' && deps.has(c.codeQuantity.stepId ?? '') && carriesRightOf(p.caseData, r.step, c.span))
       .map(() => v.candidateTurnIndex))[0];
     if (at === undefined || (r.endedAt !== undefined && r.endedAt <= at)) return [rk, r];
     stepRootEnded[rk] = at;
