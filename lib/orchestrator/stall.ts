@@ -195,9 +195,10 @@ const WH_BARE = new RegExp(`^\\s*${FORM_FILLERS}(?:(?:what|where|how)['’]?s\\s
 //     I would say yes because volume is flat." (", I would say / I'd assume / I think …", "yes because").
 // (b) A cleft: wh + a non-copula auxiliary, then a copula with no subordinator before it ("What do we do
 //     about the cost of beans is raise prices."); "What do we do if the price is 5" stays a question.
+// A cognition/report verb (know, think, tell, say, expect, believe, assume, guess, figure, see, mean) after the subject keeps a question ("How do we know the price is right").
 // "Can we assume the market is growing …" stays a question: it asks for confirmation.
 const SELF_ANSWER = /,\s*i\s+(?:would|'d|think|guess|assume|suppose|figure|believe)\b|,\s*i'd\b|\b(?:yes|no),?\s+because\b/i;
-const WH_AUX_CLEFT = /^\s*(?:(?:so|and|uh|um|okay|ok|yeah|sorry|also)[,.]?\s+)*(?:what|how|why|where|when|who)\s+(?:do|does|did|can|could|would|should|will|have|has)\b(?:(?!\b(?:if|when|because|whether|since|that|where|while)\b).)*?\b(?:is|was|are|were)\s+(?:to\s+)?[a-z]+/i;
+const WH_AUX_CLEFT = /^\s*(?:(?:so|and|uh|um|okay|ok|yeah|sorry|also)[,.]?\s+)*(?:what|how|why|where|when|who)\s+(?:do|does|did|can|could|would|should|will|have|has)\b(?!\s+\w+\s+(?:know|think|tell|say|expect|believe|assume|guess|figure|see|mean)\b)(?:(?!\b(?:if|when|because|whether|since|that|where|while)\b).)*?\b(?:is|was|are|were)\s+(?:to\s+)?[a-z]+/i;
 export const selfAnswered = (sentence: string) => !sentence.trim().endsWith('?') && SELF_ANSWER.test(sentence);
 export function isQuestionForm(sentence: string): boolean {
   const s = sentence.trim();

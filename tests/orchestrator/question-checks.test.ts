@@ -95,3 +95,15 @@ describe('question-shaped statements without a "?" (Review Focus 4)', () => {
     expect(isQuestionForm('Is the price the main driver here')).toBe(true);
   });
 });
+
+describe('the cleft guard spares cognition-verb questions', () => {
+  it.each([
+    'How do we know the price is right',
+    'Why do we think the margin is falling',
+    'How can we tell the market is growing',
+  ])('stays a question: %s', q => {
+    expect(isQuestionForm(q)).toBe(true);
+    expect(['question', 'data_request']).toContain(classifyTurn(q, null).kind);
+  });
+  it('the cleft stays a statement', () => expect(isQuestionForm('What do we do about the cost of beans is raise prices.')).toBe(false));
+});
