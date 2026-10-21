@@ -25,7 +25,7 @@ import { asOriginalProbe } from './phrasing';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { exhibitColumns, findMisquotes, SCALE, type QuoteAnchor } from './misquote';
 import { findCellMisquotes } from './cell-lookup';
-import { askGroups, tagsAgree } from './item-tags';
+import { askGroups, tagsAgree, entitiesNamed } from './item-tags';
 
 export type Unit = 'percent' | 'dollar' | 'count' | 'plain';
 type Direction = 'up' | 'down' | 'flat';
@@ -59,7 +59,7 @@ export type FactBase = {
   exhibits: { id: string; data: Record<string, unknown>[]; coversLedgerItems?: string[] }[];
   answers: number[];                      // every math step's answers (cell lookup: derived, never a misquote)
   ledgerLookupLive?: boolean;             // ledger-line misquotes corrected (else report-only)
-  covers: { id: string; phrases: string[]; say?: string }[]; // asks a ledger item or prompt fact answers (say: a prompt fact's sentence)
+  covers: { id: string; phrases: string[]; say?: string; excludes?: string[] }[]; // asks a ledger item or prompt fact answers (say: a prompt fact's sentence; excludes: Phase 1 coverExcludes)
   tags?: CaseTags;                        // round 6: the case's item tags (item-tags.ts)
   answerGate: boolean;                    // tags present: round 6's cover matching and gate are on (Task 68)
   coverNorm?: boolean;                    // Phase 1 4.5: coverNormalization on for this case (factBaseFor, per call)
@@ -68,7 +68,7 @@ export type CaseTags = { clientWords: string[]; entities: { id: string; rival?: 
 
 type CaseInput = {
   prompt: string;
-  dataLedger: { id: string; label?: string; value: string; timeframes?: Record<string, string> }[];
+  dataLedger: { id: string; label?: string; value: string; timeframes?: Record<string, string>; coverExcludes?: string[] }[];
   exhibits: { id: string; data: Record<string, unknown>[]; coversLedgerItems?: string[] }[];
   mathSteps: { answer: number; altAnswers?: number[]; cues: string[] }[];
   quoteAnchors: QuoteAnchor[];
@@ -173,7 +173,12 @@ export function buildFactBase(c: CaseInput): FactBase {
     anchors, ledger: c.dataLedger, promptLedger, exhibits: c.exhibits,
     answers: c.mathSteps.flatMap(s => [s.answer, ...(s.altAnswers ?? [])]),
     ledgerLookupLive: c.ledgerLookupLive,
-    covers: Object.entries(fa.covers ?? {}).map(([id, phrases]) => ({ id, phrases: phrases.map(lc), say: fa.promptFacts.find(p => p.id === id)?.say })),
+    covers: Object.entries(fa.covers ?? {}).map(([id, phrases]) => {
+      // Phase 1 (contract §1): the item's coverExcludes, attached by the overlay under `itemCovers` — words that stop a
+      // cover matching it (coverageIn below). Absent on every case without the overlay.
+      const excludes = c.dataLedger.find(d => d.id === id)?.coverExcludes;
+      return { id, phrases: phrases.map(lc), say: fa.promptFacts.find(p => p.id === id)?.say, ...(excludes?.length ? { excludes: excludes.map(lc) } : {}) };
+    }),
     ...(fa.tags ? { tags: fa.tags } : {}),
     answerGate: fa.tags !== undefined,
   };
@@ -870,6 +875,26 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     const toks = coverTokens(lc(line), norm);
     return !toks.some((t, i) => counted.has(t.w) && toks.slice(Math.max(0, i - 2), i).some(x => /\d/.test(x.w)));
   };
+  // Phase 1 (contract §1, the `itemCovers` data; Lorenzo, 21 Oct, round 6: "Add exclusion words where a confusion is
+  // known: "chip" excluded from chickpea items, "entrant/competitor" from Larkspur's own items"): an item's
+  // coverExcludes stop its covers matching an ask that names the excluded side — the word said in the hit's entry
+  // outside the hit itself, and no word of the item's own side (its entity, or the client's) said there. One-directional
+  // like tagsAgree's entity rule, so "how do our fuel prices compare with the entrant's" keeps the client's fuel line.
+  // The hit is dropped FURTHER_CUT's way: the entry is simply uncovered, so the ask goes on as it would with no cover
+  // (the model's mapping, then the check) — never a cover-vetoed deferral. Only with the overlay merged (itemCovers).
+  const ownSide = (id: string): string[] => {
+    const t = fb.tags;
+    if (!t) return [];
+    const own = t.entities.filter(e => e.items.includes(id)).map(e => e.id);
+    return own.length > 0 ? own : ['client'];
+  };
+  const excludedWord = (h: CoverHit, entry: { text: string; start: number; end: number }): boolean => {
+    const words = h.cover.excludes ?? [];
+    if (words.length === 0) return false;
+    const around = `${lower.slice(entry.start, h.start)} ${lower.slice(h.end, entry.end)}`;
+    if (!words.some(w => new RegExp(`(?<![a-z])${w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:'?s)?(?:es|s)?(?![a-z])`, 'i').test(around))) return false;
+    return !entitiesNamed(entry.text, fb).some(n => ownSide(h.cover.id).includes(n));
+  };
   const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
   const coarse: Coverage['coarse'] = [];
   const dropped: CoverageDetail['dropped'] = [];
@@ -886,7 +911,8 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     const near = hits.filter(h => h.start < entry.end && h.end > entry.start
       && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end))
       && !(h.syn && FINER_WORDS.test(lower.slice(0, h.start) + ' ' + lower.slice(h.end)))
-      && !(folded && totalNotHeld(h, entry)));
+      && !(folded && totalNotHeld(h, entry))
+      && !(folded && excludedWord(h, entry)));
     const why = folded ? near.map(h => dropWhy(h, entry)) : [];
     const overlapping = folded ? near.filter((_, i) => why[i] === null) : near;
     const covering = GLOBAL_FINER.test(lc(entry.text)) ? overlapping.filter(h => GLOBAL_FINER.test(lower.slice(h.start, h.end))) : overlapping;

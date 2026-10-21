@@ -119,3 +119,39 @@ describe('a cover the round-6 fold already matches is no synonym hit', () => {
     expect(coverageOf('results by route', fb, { sentence }).items).toContain('port_avery_per_flight');
   });
 });
+
+// The coverExcludes reader (contract §1, the `itemCovers` data; Lorenzo, 21 Oct: "Add exclusion words where a confusion
+// is known"). Stream 2's overlays give every item the excluded entity's words, which round 6's entity rule (tagsAgree,
+// coverageIn's dropWhy) already drops — so on today's data the reader changes nothing (see the stream report). It fires
+// on an exclusion word that is no entity word, and only when the ask names no word of the item's own side.
+describe('coverExcludes stop a cover matching', () => {
+  const larkspur = getCaseById('prof-002');
+  const withEx = (ex: Record<string, string[]>, covers: Record<string, string[]> = {}) => buildFactBase({
+    ...larkspur,
+    dataLedger: larkspur.dataLedger.map(d => (ex[d.id] ? { ...d, coverExcludes: ex[d.id] } : d)),
+    factAnchors: { ...larkspur.factAnchors!, covers: { ...larkspur.factAnchors!.covers, ...covers } },
+  } as never);
+  const EX = { fuel_prices: ['charter'] };
+  const COV = { fuel_prices: ['fuel price trend'] };
+  it('the excluded word in the entry: the hit is dropped, and the ask goes on uncovered', () => {
+    expect(coverageOf('the charter fuel price trend', withEx({}, COV)).items).toEqual(['fuel_prices']);
+    expect(coverageOf('the charter fuel price trend', withEx(EX, COV)).items).toEqual([]);
+    // Dropped FURTHER_CUT's way: the entry is just uncovered — no entity/region drop, so no cover-vetoed deferral.
+    expect(coverageOf('the charter fuel price trend', withEx(EX, COV)).rest).toBe('the charter fuel price trend');
+  });
+  it('the word inside the hit itself does not exclude it', () => {
+    expect(coverageOf('the fuel price trend', withEx({ fuel_prices: ['fuel'] }, COV)).items).toEqual(['fuel_prices']);
+  });
+  it('the ask naming the item\'s own side keeps it (one-directional, as tagsAgree)', () => {
+    expect(coverageOf("our charter fuel price trend versus the entrant's", withEx(EX, COV)).items).toEqual(['fuel_prices']);
+  });
+  it('another list entry\'s word does not exclude it', () => {
+    const fb = withEx(EX, COV);
+    expect(coverageOf('the fuel price trend, and the charter market', fb).items).toEqual(['fuel_prices']);
+  });
+  it('an untagged case reads no excludes (literal matching)', () => {
+    const brew = getCaseById('prof-001');
+    const fb = buildFactBase({ ...brew, dataLedger: brew.dataLedger.map(d => ({ ...d, coverExcludes: ['charter'] })) } as never);
+    expect(coverageOf('the charter store count', fb).items).toEqual(coverageOf('the charter store count', buildFactBase(brew as never)).items);
+  });
+});

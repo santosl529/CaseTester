@@ -41,7 +41,8 @@ function plan(text: string, o: { said?: string[]; summary?: boolean; revealed?: 
     { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
   if (p.kind !== 'model') throw new Error('expected a model plan');
   p.state.shownExhibitIds.add('exhibit-1');
-  if (o.summary) p.state.caseData = { ...p.state.caseData, exhibits: p.state.caseData.exhibits.map(e => (e.id === 'exhibit-1' ? { ...e, summary: SUMMARY } : e)) };
+  // The overlay (Stream 2) gives every exhibit a summary; `summary: false` clears them (a case with no overlay).
+  p.state.caseData = { ...p.state.caseData, exhibits: p.state.caseData.exhibits.map(e => (o.summary && e.id === 'exhibit-1' ? { ...e, summary: SUMMARY } : { ...e, summary: undefined })) };
   return p;
 }
 const turn = (requests: DeclaredRequest[]) => ({ requests, exhibit: null, rescueItem: null });
@@ -101,7 +102,7 @@ describe('b38 Tyler t24: elasticity on the four routes, mapped by the check to t
     expect(lines.join(' ')).not.toMatch(/\d/);
     expect(acted(p, 'restate_rules').map(e => e.detail)).toEqual([{ pointed: ['route_results_other'] }]);
   });
-  it('on, no summary (no overlay yet): the line, once', async () => {
+  it('on, an exhibit with no summary (a case with no overlay): the line, once', async () => {
     on();
     const p = plan(T23);
     const d = await turnDataChecked(p, turn([{ what: T23_WHAT, itemIds: [], explicit: true, respond: 'release' }]));

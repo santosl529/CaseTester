@@ -29,10 +29,11 @@ const EXTRAS = 'Extras revenue — bags, seat selection and snacks — was $20 p
 const LEVEL: ItemTags = { entity: 'client', period: ['historical', 'current'], quantityKind: ['level'] };
 
 const SATISFIED = { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } };
-function plan(text: string, o: { revealed?: string[]; tags?: Record<string, ItemTags> } = {}): ModelPlan {
+function plan(text: string, o: { revealed?: string[]; tags?: Record<string, ItemTags>; untagged?: true } = {}): ModelPlan {
   const p = planTurn(readsFixture({ caseId: 'prof-002', phase: 'BRAINSTORM', flags: SATISFIED, revealed: o.revealed }), text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
   if (p.kind !== 'model') throw new Error('expected a model plan');
-  if (o.tags) p.state.caseData = { ...p.state.caseData, dataLedger: p.state.caseData.dataLedger.map(i => (o.tags![i.id] ? { ...i, tags: o.tags![i.id] as NonNullable<typeof i.tags> } : i)) };
+  // The overlay (Stream 2) tags every item; a test that wants an untagged item clears it (`untagged`).
+  if (o.tags || o.untagged) p.state.caseData = { ...p.state.caseData, dataLedger: p.state.caseData.dataLedger.map(i => (o.tags?.[i.id] ? { ...i, tags: o.tags[i.id] as NonNullable<typeof i.tags> } : o.untagged ? { ...i, tags: undefined } : i)) };
   return p;
 }
 const req = (what: string, itemIds: string[] = []): DeclaredRequest => ({ what, itemIds, explicit: true, respond: 'release' });
@@ -63,9 +64,9 @@ describe('b38 Marcus t24: extras revenue by type', () => {
     expect(acted(p, 'haiku_tag_gate').map(e => e.detail)).toEqual([{ what: WHAT, gated: [{ id: 'extras_revenue', why: 'kind' }], deferred: true }]);
     expect((acted(p, 'itemless_defer')[0].detail as { tagGate?: unknown }).tagGate).toEqual([{ id: 'extras_revenue', why: 'kind' }]);
   });
-  it('on, the item with no tags (no overlay): today\'s restatement', async () => {
+  it('on, an item with no tags (a case with no overlay): today\'s restatement', async () => {
     on();
-    const p = plan(MARCUS_T23, { revealed: ['extras_revenue'] });
+    const p = plan(MARCUS_T23, { revealed: ['extras_revenue'], untagged: true });
     const d = await turnDataChecked(p, turn([req(WHAT)]));
     expect(d.restates.map(r => r.id)).toEqual(['extras_revenue']);
     expect(acted(p, 'haiku_tag_gate')).toEqual([]);
