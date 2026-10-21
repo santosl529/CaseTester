@@ -20,6 +20,7 @@
 // The numeric provenance audit checks that a number appears somewhere
 // allowed; F1 checks that it is attached to the right quantity (PRD §15, the
 // 8 Oct Qwen screen: "beans at 42% of COGS" passed because 42 is allowed).
+import { switchOn, type EngineSwitch } from '@/lib/cases/engine-switches';
 import { asOriginalProbe } from './phrasing';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { exhibitColumns, findMisquotes, SCALE, type QuoteAnchor } from './misquote';
@@ -61,6 +62,7 @@ export type FactBase = {
   covers: { id: string; phrases: string[]; say?: string }[]; // asks a ledger item or prompt fact answers (say: a prompt fact's sentence)
   tags?: CaseTags;                        // round 6: the case's item tags (item-tags.ts)
   answerGate: boolean;                    // tags present: round 6's cover matching and gate are on (Task 68)
+  coverNorm?: boolean;                    // Phase 1 4.5: coverNormalization on for this case (factBaseFor, per call)
 };
 export type CaseTags = { clientWords: string[]; entities: { id: string; rival?: boolean; words: string[]; items: string[] }[]; forecast: string[] };
 
@@ -179,9 +181,16 @@ export function buildFactBase(c: CaseInput): FactBase {
 
 // One fact base per case (cases are loaded once and never change at runtime).
 const factBases = new Map<string, FactBase>();
-export function factBaseFor(c: CaseInput & { id: string }): FactBase {
+// coverNormalization (Phase 1 4.5) is read per call, never cached with the case: the switch is the env's or the case's.
+const normBases = new Map<string, FactBase>();
+export function factBaseFor(c: CaseInput & { id: string; engine?: Partial<Record<EngineSwitch, boolean>> }): FactBase {
   let fb = factBases.get(c.id);
   if (!fb) { fb = buildFactBase(c); factBases.set(c.id, fb); }
+  if (switchOn(c, 'coverNormalization')) {
+    let nb = normBases.get(c.id);
+    if (!nb || nb.quantities !== fb.quantities) { nb = { ...fb, coverNorm: true }; normBases.set(c.id, nb); }
+    return nb;
+  }
   return fb;
 }
 
@@ -697,36 +706,53 @@ export const COVER_SYNONYMS: { from: string[]; to: string[]; unless?: (words: st
   { from: ['pricing'], to: ['price'], unless: (w, at) => /^(?:the|a|an|it|them|this|that|these|those|our|their|its|at|below|above|up|down)$/.test(w[at + 1] ?? '')
     || /^(?:is|are|was|were|be|been|being|am|we're|they're|i'm|by)$/.test(w[at - 1] ?? '') },
 ];
-const foldWord = (raw: string) => {
+// Phase 1 4.5 (`coverNormalization`; Lorenzo, 22 Oct: "Cover matching: finish normalization (plurals, a synonym table,
+// matching the candidate's own sentence as well as the model's rewording)"): on a tagged case with the switch on
+// (FactBase `coverNorm`, set per call by factBaseFor), the fold also takes "-ies" to "-y" ("categories", "strategies")
+// and PHASE1_SYNONYMS run before COVER_SYNONYMS — each from b38 Larkspur Tyler cee7d399 t1, "the split of the revenue
+// decline between passengers and average fare" (the case's covers "fare and volume", "volume and fare" were written for
+// that ask; graded false, judgement): a passenger count is the airline's volume, an average fare or a ticket price is
+// the fare. Both sides fold alike, so a synonym only adds matches between an ask and a cover. The candidate's sentence
+// is read as round 6 reads it (coverageDetail (d)), with the same fold. prof-001 is untagged: unchanged, unless
+// `tagMatching` gives it tags (contract §5, 4.5).
+export const PHASE1_SYNONYMS: typeof COVER_SYNONYMS = [
+  { from: ['average', 'fare'], to: ['fare'] },
+  { from: ['ticket', 'price'], to: ['fare'] },
+  { from: ['passenger'], to: ['volume'] },
+];
+const foldWord = (raw: string, norm = false) => {
   const w = raw.replace(/'s?$/, '');
   if (w.length <= 3 || w.endsWith('ss')) return w;
+  if (norm && w.length > 4 && w.endsWith('ies')) return `${w.slice(0, -3)}y`;
   if (/(?:ss|x|z|ch|sh)es$/.test(w)) return w.slice(0, -2);
   return w.endsWith('s') ? w.slice(0, -1) : w;
 };
-type CoverToken = { w: string; start: number; end: number };
+type CoverToken = { w: string; start: number; end: number; syn?: true };
 // A lower-cased text's folded words, each with its span (a synonym's words share the span of what they replace).
-function coverTokens(lower: string): CoverToken[] {
-  const raw = [...lower.replace(/[‘’]/g, "'").matchAll(/[a-z0-9%$]+(?:'[a-z]+)?/g)].map(m => ({ w: foldWord(m[0]), start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }));
+function coverTokens(lower: string, norm = false): CoverToken[] {
+  const raw = [...lower.replace(/[‘’]/g, "'").matchAll(/[a-z0-9%$]+(?:'[a-z]+)?/g)].map(m => ({ w: foldWord(m[0], norm), start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }));
   const words = raw.map(t => t.w);
   const out: CoverToken[] = [];
   for (let i = 0; i < raw.length; i++) {
-    const syn = COVER_SYNONYMS.find(x => x.from.every((f, k) => words[i + k] === f) && !x.unless?.(words, i));
+    const p1 = norm ? PHASE1_SYNONYMS.find(x => x.from.every((f, k) => words[i + k] === f)) : undefined;
+    const syn = p1 ?? COVER_SYNONYMS.find(x => x.from.every((f, k) => words[i + k] === f) && !x.unless?.(words, i));
     if (!syn) { out.push(raw[i]); continue; }
     const span = { start: raw[i].start, end: raw[i + syn.from.length - 1].end };
-    for (const w of syn.to) out.push({ w, ...span });
+    for (const w of syn.to) out.push({ w, ...span, ...(p1 ? { syn: true as const } : {}) });
     i += syn.from.length - 1;
   }
   return out;
 }
 const foldedPhrases = new Map<string, string[]>();
-const foldedPhrase = (p: string) => {
-  let f = foldedPhrases.get(p);
-  if (!f) { f = coverTokens(p).map(t => t.w); foldedPhrases.set(p, f); }
+const foldedPhrase = (p: string, norm = false) => {
+  const key = norm ? `\u0001${p}` : p;
+  let f = foldedPhrases.get(key);
+  if (!f) { f = coverTokens(p, norm).map(t => t.w); foldedPhrases.set(key, f); }
   return f;
 };
 // Where a phrase's folded words sit in a text's folded words.
-function phraseSpans(toks: CoverToken[], phrase: string): { start: number; end: number }[] {
-  const f = foldedPhrase(phrase);
+function phraseSpans(toks: CoverToken[], phrase: string, norm = false): { start: number; end: number }[] {
+  const f = foldedPhrase(phrase, norm);
   const out: { start: number; end: number }[] = [];
   for (let i = 0; f.length > 0 && i + f.length <= toks.length; i++) {
     if (f.every((w, k) => toks[i + k].w === w)) out.push({ start: toks[i].start, end: toks[i + f.length - 1].end });
@@ -759,7 +785,7 @@ const regionsIn = (t: string) => new Set([...t.matchAll(REGION)].map(m => (/^(?:
 
 // A list entry of period words only: years, FY/CY years, "vs"/"versus", "both years", "today"/"now", "two years ago".
 const PERIOD_ONLY = /^(?:(?:(?:FY|CY)\s?'?\d{2,4}|(?:19|20)\d{2}|vs\.?|versus|to|and|both years|each year|today|now|this year|(?:two|2) years ago|a year ago|last year|the|in|for)[\s,]*)+$/i;
-type CoverHit = { cover: FactBase['covers'][number]; start: number; end: number };
+type CoverHit = { cover: FactBase['covers'][number]; start: number; end: number; syn?: true };
 // `dropped` (fix round 1, controller ruling, 21 Oct): the list entries left uncovered only
 // because (b) or (c) dropped every hit on them — `entity` when any was another company's,
 // else `region`. The coverage step (turn-data.ts) answers them without the check: no
@@ -767,6 +793,7 @@ type CoverHit = { cover: FactBase['covers'][number]; start: number; end: number 
 // `ids` (round 6 Task 76): the dropped hits' items — an entity-excluded entry's deferral is tracked with them.
 export type CoverageDetail = Coverage & { dropped: { what: string; why: 'entity' | 'region'; ids: string[] }[]; plain: string | null };
 function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: CoverHit, lower: string) => boolean = () => true, opts: { sentence?: boolean } = {}): CoverageDetail {
+  const norm = folded && fb.coverNorm === true;
   const text = what.trim();
   const lower = lc(text);
   const question = /^(?:whether|if|how|why|which|what|when|where|who|is|are|was|were|do|does|did)\b/i.test(text) || text.endsWith('?');
@@ -796,8 +823,13 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     hits = fb.covers.flatMap(c => c.phrases.flatMap(p => [...lower.matchAll(new RegExp(`(?<![a-z])${p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'))]
       .map(m => ({ cover: c, start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }))));
   } else {
-    const toks = coverTokens(lower);
-    hits = fb.covers.flatMap(c => c.phrases.flatMap(p => phraseSpans(toks, p).map(sp => ({ cover: c, ...sp })))).filter(h => keep(h, lower));
+    const toks = coverTokens(lower, norm);
+    // A hit made by a Phase 1 synonym (4.5) is marked: it holds only without a finer word beside it (below). One the
+    // round-6 fold makes too (the same cover over the same words: "average fare by route" is a cover itself) is not.
+    const plain = norm ? coverTokens(lower) : toks;
+    const literal = (c: FactBase['covers'][number], sp: { start: number; end: number }) => c.phrases.some(p => phraseSpans(plain, p).some(x => x.start < sp.end && x.end > sp.start));
+    const bySyn = (c: FactBase['covers'][number], sp: { start: number; end: number }) => toks.some(t => t.syn && t.start >= sp.start && t.end <= sp.end) && !literal(c, sp);
+    hits = fb.covers.flatMap(c => c.phrases.flatMap(p => phraseSpans(toks, p, norm).map(sp => ({ cover: c, ...sp, ...(norm && bySyn(c, sp) ? { syn: true as const } : {}) })))).filter(h => keep(h, lower));
   }
   // (b) and (c), tagged cases only. The company is read in the entry's group (round 6 Task 70,
   // controller ruling C3, 21 Oct: an entity named in one conjunct applies only to the items
@@ -834,8 +866,8 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     const line = normalizeNumberWords(item ? `${item.label ?? ''} ${item.value}` : `${fb.promptLedger.find(p => p.id === h.cover.id)?.value ?? ''} ${h.cover.say ?? ''}`);
     if (TOTAL_STATED.test(line) && /\d/.test(line)) return false;
     // A figure on a word the phrase counts ("30 million households", "14,000 flights"): a stated total.
-    const counted = new Set(coverTokens(lower.slice(h.start, h.end)).map(t => t.w).filter(w => !COUNT_WORDS.has(w)));
-    const toks = coverTokens(lc(line));
+    const counted = new Set(coverTokens(lower.slice(h.start, h.end), norm).map(t => t.w).filter(w => !COUNT_WORDS.has(w)));
+    const toks = coverTokens(lc(line), norm);
     return !toks.some((t, i) => counted.has(t.w) && toks.slice(Math.max(0, i - 2), i).some(x => /\d/.test(x.w)));
   };
   const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
@@ -847,8 +879,13 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     // revenue per store answer it; Lorenzo, 15 Oct, batch-25 ruling 7).
     // Nor a further cut beside the phrase ("transaction counts broken down by
     // customer segment", "transactions per store per day" — 567bdb1 on the replay).
+    // A Phase 1 synonym's hit (4.5) also yields to the false-refusal veto's finer words anywhere else in the ask (a hit
+    // may span two list entries; FINER_WORDS: b22
+    // Larkspur Fiona b6b7fc3a t17, "price sensitivity of Lakeport passengers at a $200 fare", is no ask for the
+    // Lakeport seats and load line; b36 Marcus a7d9f44e t11, "quarter-by-quarter fares and passengers since entry").
     const near = hits.filter(h => h.start < entry.end && h.end > entry.start
       && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end))
+      && !(h.syn && FINER_WORDS.test(lower.slice(0, h.start) + ' ' + lower.slice(h.end)))
       && !(folded && totalNotHeld(h, entry)));
     const why = folded ? near.map(h => dropWhy(h, entry)) : [];
     const overlapping = folded ? near.filter((_, i) => why[i] === null) : near;
@@ -875,8 +912,9 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
 // tag gate's scope rules read no cut inside them — Lorenzo, 15 Oct, ruling 7). Positions
 // are the ask's own, as outsideAskScope reads it (lower-cased, same length).
 export function coverSpans(what: string, fb: FactBase, id: string): { start: number; end: number }[] {
-  const toks = coverTokens(lc(what));
-  return fb.covers.filter(c => c.id === id).flatMap(c => c.phrases.flatMap(p => phraseSpans(toks, p)));
+  const norm = fb.coverNorm === true;
+  const toks = coverTokens(lc(what), norm);
+  return fb.covers.filter(c => c.id === id).flatMap(c => c.phrases.flatMap(p => phraseSpans(toks, p, norm)));
 }
 // coverageOf with the entries (b) and (c) left uncovered (tagged cases; turn-data.ts's coverage step).
 // The model's ask matching nothing and its sentence's only hits dropped: the ask is that entry.
@@ -884,8 +922,9 @@ export function coverageDetail(what: string, fb: FactBase, opts: { sentence?: st
   const own = coverageIn(what, fb, fb.answerGate);
   const sentence = opts.sentence?.trim();
   if (!fb.answerGate || !sentence) return own;
-  const asked = new Set(coverTokens(lc(what)).map(t => t.w).filter(w => !COVER_STOP.has(w)));
-  const said = coverageIn(sentence, fb, true, (h, lower) => coverTokens(lower.slice(h.start, h.end)).some(t => asked.has(t.w)), { sentence: true });
+  const norm = fb.coverNorm === true;
+  const asked = new Set(coverTokens(lc(what), norm).map(t => t.w).filter(w => !COVER_STOP.has(w)));
+  const said = coverageIn(sentence, fb, true, (h, lower) => coverTokens(lower.slice(h.start, h.end), norm).some(t => asked.has(t.w)), { sentence: true });
   const items = [...new Set([...own.items, ...said.items])];
   if (own.items.length + own.promptFacts.length + own.coarse.length > 0) return { ...own, items };
   const ids = [...new Set(said.coarse.flatMap(c => c.ids))];
