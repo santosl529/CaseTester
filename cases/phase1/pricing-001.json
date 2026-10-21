@@ -60,12 +60,12 @@
     "starter_cohort": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend", "split"]},
       "askPhrases": ["what happens to Starter customers over their first year", "Starter cancellations and retention", "how many Starter customers move to Pro"],
-      "covers": ["starter churn rate", "starter monthly churn", "starter retention curve", "starter cohort status", "starter customers who cancel", "starter customer lifetime", "starter to pro conversion", "starter cancellations", "how long starter customers last"]
+      "covers": ["starter churn rate", "starter retention curve", "starter cohort status", "starter customers who cancel", "starter customer lifetime", "starter to pro conversion", "starter cancellations", "how long starter customers last"]
     },
     "cohort_notes": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend"]},
       "askPhrases": ["whether cancellation is steady month to month", "how upgraded customers behave afterward", "how finance values a Starter sign-up", "upgrades after the first year"],
-      "covers": ["do upgraded customers behave like pro", "churn after upgrade", "upgraded customer retention", "is churn constant month to month", "does churn change over time", "how churn has moved", "how upgrades are valued"]
+      "covers": ["do upgraded customers behave like pro", "churn after upgrade", "upgraded customer retention", "is churn constant month to month", "how upgrades are valued"]
     },
     "new_customers_by_plan": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend", "split", "total"]},
@@ -75,7 +75,7 @@
     "price_test_results": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level", "split"]},
       "askPhrases": ["sign-ups at each tested Starter price", "how demand responds to a higher Starter price", "Pro sign-ups during the price test"],
-      "covers": ["price test results by group", "test group sign-ups", "control versus test", "sign-ups at the higher price", "demand at the test price", "price test outcome"]
+      "covers": ["price test results by group", "test group sign-ups", "price test control versus test", "sign-ups at the higher price", "demand at the test price", "price test outcome"]
     },
     "price_test_notes": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
@@ -110,7 +110,7 @@
     "existing_starter_customers": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["total"]},
       "askPhrases": ["how many customers are on Starter today", "whether a new price would hit existing customers", "grandfathering current Starter customers"],
-      "covers": ["current starter base", "starter installed base", "how many customers are on starter", "grandfather existing customers", "price change for existing customers", "apply to new customers only"]
+      "covers": ["current starter base", "how many customers are on starter", "grandfather existing customers", "price change for existing customers", "apply to new customers only"]
     }
   },
   "steps": {

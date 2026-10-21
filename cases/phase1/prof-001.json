@@ -20,7 +20,7 @@
     "cogs_pct": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["split", "trend"]},
       "askPhrases": ["cost of goods sold as a share of revenue", "how COGS moved over the period", "COGS then and now"],
-      "covers": ["cogs as a percent of revenue", "cogs as a percentage of revenue", "cogs as a share of revenue", "cogs share of revenue", "cogs percentage", "cogs ratio", "cost of goods as a percent", "cost of goods sold as a percent", "cogs over time", "cogs trend", "cogs then and now", "cost of goods trend"]
+      "covers": ["cogs as a percentage of revenue", "cogs as a share of revenue", "cogs share of revenue", "cogs percentage", "cogs ratio", "cost of goods as a percent", "cost of goods sold as a percent", "cogs over time", "cogs trend", "cogs then and now", "cost of goods trend"]
     },
     "labor_pct": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["split", "trend"]},
@@ -35,7 +35,7 @@
     "bean_price_change": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend"]},
       "askPhrases": ["how coffee bean prices moved", "green coffee costs over the period", "the price of raw beans then and now"],
-      "covers": ["coffee bean price change", "bean price change", "bean price increase", "bean inflation", "green coffee prices", "coffee commodity prices", "arabica prices", "rise in bean prices", "bean cost inflation", "price of coffee beans", "coffee bean price trend", "raw coffee costs"],
+      "covers": ["coffee bean price change", "bean price change", "bean price increase", "green coffee prices", "coffee commodity prices", "arabica prices", "rise in bean prices", "bean cost inflation", "price of coffee beans", "coffee bean price trend", "raw coffee costs"],
       "coverExcludes": ["non-bean"]
     },
     "avg_ticket": {
@@ -46,7 +46,7 @@
     "menu_price_change": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend"]},
       "askPhrases": ["whether menu prices changed", "the chain's menu pricing history", "menu price changes over the period"],
-      "covers": ["menu price changes", "menu price increase", "menu prices changed", "raised menu prices", "menu price hikes", "did they raise prices", "have prices gone up", "price changes on the menu", "menu prices over time", "menu prices moved", "changed menu prices", "menu price movement"]
+      "covers": ["menu price changes", "menu price increase", "menu prices changed", "raised menu prices", "menu price hikes", "price changes on the menu", "menu prices over time", "menu prices moved", "changed menu prices", "menu price movement"]
     },
     "bean_share_of_cogs": {
       "tags": {"entity": "client", "period": ["historical"], "quantityKind": ["split"]},

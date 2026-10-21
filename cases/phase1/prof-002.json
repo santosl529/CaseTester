@@ -14,7 +14,7 @@
     "fleet": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level"]},
       "askPhrases": ["the size and type of the fleet", "whether the aircraft are owned or leased", "seats per aircraft", "whether the fleet changed"],
-      "covers": ["fleet size", "how many aircraft", "how many planes", "seats per aircraft", "aircraft type", "regional jets", "fleet composition", "size of the fleet"],
+      "covers": ["fleet size", "how many aircraft", "how many planes larkspur has", "aircraft type", "fleet composition", "size of the fleet"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "routes_schedule": {
@@ -69,12 +69,12 @@
     "network_totals": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["total", "trend"]},
       "askPhrases": ["network revenue and contribution in each year", "total flights across the network", "the year-over-year network totals"],
-      "covers": ["flights flown", "flight count", "network revenue", "network contribution", "total contribution", "network results"]
+      "covers": ["network flight count", "network revenue", "network contribution", "total network contribution", "network results"]
     },
     "fixed_costs": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["total", "recurring"]},
       "askPhrases": ["fixed costs in each year", "aircraft leases, hub facilities and overhead", "whether fixed costs changed"],
-      "covers": ["fixed cost breakdown", "hub facilities", "corporate overhead", "hub costs", "overhead costs"],
+      "covers": ["fixed cost breakdown", "hub facilities", "corporate overhead", "hub facility costs", "overhead costs"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "lakeport_seats_load": {
@@ -109,7 +109,7 @@
     "competitor_costs": {
       "tags": {"entity": "competitor", "period": ["current"], "quantityKind": ["level"]},
       "askPhrases": ["the competitor's cost per seat", "the competitor's fares", "how the competitor's costs compare with Larkspur's", "what drives the competitor's cost base"],
-      "covers": ["competitor cost per seat", "low-cost carrier's costs", "low-cost carrier's fare", "cost disadvantage", "lcc fare"]
+      "covers": ["competitor cost per seat", "low-cost carrier's costs", "low-cost carrier's fare", "our cost disadvantage", "lcc fare"]
     },
     "connecting_passengers": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["split"]},
@@ -129,7 +129,7 @@
     "port_avery_per_flight": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level", "trend"]},
       "askPhrases": ["Port Avery's fare, load factor and extras", "the variable cost of a Port Avery flight", "Port Avery per-flight economics"],
-      "covers": ["port avery per-flight", "port avery load", "load factor on port avery", "port avery variable cost", "port avery cost per flight", "port avery average fare", "port avery fare"],
+      "covers": ["port avery per-flight", "port avery load", "load factor on port avery", "port avery cost per flight", "port avery average fare", "port avery fare"],
       "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
     },
     "new_routes_plan": {
@@ -145,7 +145,7 @@
     "new_routes_context": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
       "askPhrases": ["competition on Ashford and Brookhaven", "whether fixed costs change with new routes", "nonstop service on the new routes"],
-      "covers": ["incumbent competition", "competition on the new routes", "competitive presence on the new routes", "anyone flying nonstop"]
+      "covers": ["competition on the new routes", "competitive presence on the new routes"]
     }
   },
   "steps": {

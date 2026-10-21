@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { CaseSchema } from '@/lib/cases/schema';
 import { Phase1OverlaySchema, applyPhase1Overlay, overlayProblems } from '@/lib/cases/phase1-overlay';
 import { foldCoverPhrase } from '@/lib/orchestrator/fact-check';
-import { collisions, phase1Views, tagProblems } from '@/scripts/phase1-cover-lint';
+import { collisions, containments, phase1Views, tagProblems } from '@/scripts/phase1-cover-lint';
 
 const IDS = ['prof-001', 'prof-002', 'entry-001', 'launch-001', 'pricing-001'];
 const raw = (id: string) => CaseSchema.parse(JSON.parse(readFileSync(`cases/${id}.json`, 'utf8')));
@@ -29,6 +29,7 @@ describe.each(IDS)('the %s overlay', id => {
   it('no phrase newly on two items in the merged view', () => {
     const { off, on } = phase1Views(raw(id), overlay(id), raw(id).factAnchors?.tags ? [] : ['tagMatching']);
     expect(collisions(id, on, off).filter(d => d.status === 'new')).toEqual([]);
+    expect(containments(on, off).filter(d => d.status === 'new')).toEqual([]);
   });
   it('every item has tags and askPhrases, agreeing with the case-level tags; every exhibit a summary', () => {
     const c = raw(id), o = overlay(id);

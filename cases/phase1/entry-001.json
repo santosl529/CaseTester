@@ -130,7 +130,7 @@
     "option_shared": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
       "askPhrases": ["the net price under both entry options", "product cost under both options", "what the entry options have in common"],
-      "covers": ["product cost", "cost of goods", "net price under both options", "price under each option", "unit cost of kelvexa", "cost to make kelvexa", "shared assumptions"],
+      "covers": ["product cost", "cost of goods", "net price under both options", "price under each option", "unit cost of kelvexa", "cost to make kelvexa"],
       "coverExcludes": ["nimbrel"]
     }
   },

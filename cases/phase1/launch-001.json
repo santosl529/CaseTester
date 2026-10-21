@@ -39,7 +39,7 @@
     "bag_price": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
       "askPhrases": ["the price Hollis Bay gets per bag", "what shoppers pay in stores", "how much the retailer keeps"],
-      "covers": ["price hollis bay gets", "wholesale price per bag", "planned price point", "price point per bag", "shelf price per bag", "what shoppers pay", "retail price per bag", "invoice price per bag", "price to the retailer"],
+      "covers": ["price hollis bay gets", "wholesale price per bag", "planned price point", "our price point per bag", "our shelf price per bag", "our retail price per bag", "invoice price per bag", "price to the retailer"],
       "coverExcludes": ["chip", "potato chip"]
     },
     "variable_costs": {
@@ -85,7 +85,7 @@
     "planning_assumptions": {
       "tags": {"entity": "client", "period": ["forecast", "current"], "quantityKind": ["level"]},
       "askPhrases": ["how many households shop where the line would be sold", "how survey intent converts into actual buyers", "how many bags a buying household buys in year one", "the assumptions from past launches"],
-      "covers": ["conversion rate assumptions", "conversion from intent to purchase", "households in our stores", "bags per household", "what share actually buy", "addressable households", "conversion assumptions", "expected year-one volume", "households shopping our stores"],
+      "covers": ["conversion rate assumptions", "conversion from intent to purchase", "households in our stores", "bags per household", "what share actually buy", "addressable households", "expected year-one volume", "households shopping our stores"],
       "coverExcludes": ["chip", "potato chip"]
     },
     "sampling_program": {
