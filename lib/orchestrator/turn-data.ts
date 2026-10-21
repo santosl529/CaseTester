@@ -5,7 +5,8 @@
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
-import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
+import { decideData, exactResolver, labelMatch, outsideAskScope, scopeRule, SPLIT_RULES, namedAsPart, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo, type ScopeRule } from './data-decisions';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
@@ -569,6 +570,9 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     const ids = foundIds.filter(id => !gateDrop.includes(id));
     const mapped = found === null ? null : ids.length > 0;
     const outOfScope = ids.filter(id => answersAsk(plan, what, id) === false);
+    // Phase 1 4.2 (`coarseKeepNamed`): which scope rule ruled each out, logged.
+    const ruleOf = (id: string) => { const item = plan.state.ledger.items.find(i => i.id === id); return item ? scopeRule(what, item, plan.state.factBase.quantities.find(q => q.id === id)?.names ?? []) : null; };
+    const outOfScopeRules = outOfScope.length > 0 && switchOn(plan.state.caseData, 'coarseKeepNamed') ? Object.fromEntries(outOfScope.map(id => [id, ruleOf(id)])) : null;
     // A partial's missing part, checked again here (a replayed or recorded verdict
     // isn't parsed): a span of the ask from a list break, else the ask's own words;
     // one the item's own line states is no missing part — the item is full when its
@@ -593,7 +597,7 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     const decision = decideCheckedAsk(plan, what, verdict);
     // `found` keeps its old shape, so a replay reads old and new records alike (lib/eval/recorded-checks.ts).
     plan.ctx.checks.record('itemless_defer', mapped !== false, DECIDED[decision.kind],
-      { what, mapped, found: found === null ? null : [{ what, ids }], decision: decision.kind, ...(tagDropped.length > 0 ? { tagDropped } : {}), ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}),
+      { what, mapped, found: found === null ? null : [{ what, ids }], decision: decision.kind, ...(tagDropped.length > 0 ? { tagDropped } : {}), ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}), ...(outOfScopeRules ? { outOfScopeRules } : {}),
         ...(partial.length > 0 ? { partial, missing } : {}), ...(guard ? { guard } : {}), latencyMs: Date.now() - t0, ...(timedOut ? { timedOut } : {}), ...(usage ? usageDetail(usage) : {}) });
     if (gate) plan.ctx.checks.act('answer_gate', 'an ask whose mapped items don\'t answer a part of it: those items not given, the part refused unchecked (a period or scope unmet: E1\'s form)', { asks: [{ what, path: 'check', refuse: guard?.parts ?? [], drop: gate.drop, partial: gate.partial }] });
     // A partial part no refusal says (final review I5, for Lorenzo's ruling; M6): the
@@ -1066,7 +1070,12 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // A qualified ask keeps its scope (v4.10): an item it can't answer — the
   // whole when a split of it was asked for, a cut it doesn't have — is not
   // what was requested, released or restated (data-decisions.ts).
-  const scoped: { what: string; ids: string[] }[] = [];
+  const scoped: { what: string; ids: string[]; rules?: Record<string, ScopeRule> }[] = [];
+  // Phase 1 4.2: the items the model itself named this turn, and every name of an item (label, spoken, the case's names).
+  const keepNamed = switchOn(state.caseData, 'coarseKeepNamed');
+  const modelNamed = new Set(keepNamed ? resolveRequests(turn.requests, resolve).filter(r => r.explicit).flatMap(r => r.itemIds) : []);
+  const itemNames = (id: string) => { const item = ledger.items.find(i => i.id === id); return item ? [item.label, item.spoken ?? '', ...namesOf(id)] : []; };
+  const keptNamed: { what: string; ids: string[] }[] = [];
   // Asks the BASIS rule emptied: checked like an item-less deferral before any refusal goes out.
   const basisEmptied = new Set<string>();
   // Asks the other scope rules emptied — they matched an item that can't answer
@@ -1108,10 +1117,24 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
         r = { ...r, itemIds: [...r.itemIds.filter(id => !cutOnly.includes(id)), ...added] };
       }
     }
-    const out = r.itemIds.filter(id => { const item = ledger.items.find(i => i.id === id); return item !== undefined && !coveredHere.has(id) && outsideAskScope(r.what, item, namesOf(id)); });
+    // Phase 1 4.2 (`coarseKeepNamed`; data-decisions.ts namedAsPart): a split rule never drops an item the model named
+    // when the ask names it as one side of the split asked (b38 Larkspur Jasmine t4); every rule that fired is logged.
+    const rules: Record<string, ScopeRule> = {};
+    const kept0: string[] = [];
+    const out = r.itemIds.filter(id => {
+      const item = ledger.items.find(i => i.id === id);
+      if (item === undefined || coveredHere.has(id)) return false;
+      if (!keepNamed) return outsideAskScope(r.what, item, namesOf(id));
+      const rule = scopeRule(r.what, item, namesOf(id));
+      if (rule === null) return false;
+      if (r.explicit && SPLIT_RULES.has(rule) && modelNamed.has(id) && namedAsPart([r.what, sentenceFor(r.what) ?? ''], itemNames(id))) { kept0.push(id); return false; }
+      rules[id] = rule;
+      return true;
+    });
+    if (kept0.length > 0) keptNamed.push({ what: r.what, ids: kept0 });
     if (out.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) finerAsks.add(r.what);
     const kept = { ...r, itemIds: r.itemIds.filter(id => !out.includes(id)) };
-    if (out.length > 0) scoped.push({ what: r.what, ids: out });
+    if (out.length > 0) scoped.push({ what: r.what, ids: out, ...(keepNamed ? { rules } : {}) });
     if (r.explicit && out.length > 0 && kept.itemIds.length === 0) {
       if (BASIS.test(r.what)) { basisEmptied.add(r.what); basisCut[r.what] = [...new Set([...(basisCut[r.what] ?? []), ...out])]; }
       else {
@@ -1136,6 +1159,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     return [out.length === 0 ? r : kept];
   });
   if (scoped.length > 0) plan.ctx.checks.act('request_scope', 'items outside a qualified ask dropped from it', { scoped });
+  if (keptNamed.length > 0) plan.ctx.checks.act('coarse_keep_named', 'a split rule would drop an item the model named that the ask names as one side of the split: kept', { asks: keptNamed });
   // ---- The answer gate (round 6 Task 70; answerGate above) ----
   // `gateMade`: the asks it writes (its parts; a named deferral) — the coverage step leaves
   // them; `gateRefused`: its refusals, said unchecked (never `toCheck`). `coverVetoed` (Task

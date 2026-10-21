@@ -254,36 +254,58 @@ export function changeForSplit(what: string, item: { label: string }, spans: rea
 // item whole), so the tag gate on a covered item reads the other rules only.
 // `spans` (fix round 2): the cover phrase's spans in the ask; words inside them cut nothing (matchOutside).
 export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = [], opts: { count?: boolean; spans?: readonly AskSpan[] } = {}): boolean {
+  return scopeRule(what, item, names, opts) !== null;
+}
+// Which scope rule puts the item outside the ask (Phase 1 4.2, `coarseKeepNamed`: Lorenzo, 22 Oct, "Log which scope
+// rule fired"; b38 Larkspur Jasmine 3f928012 t4's `extras_revenue` was ruled out and the grading couldn't tell by
+// which rule). The rules in outsideAskScope's order, the first that fires; null: in scope.
+export type ScopeRule = 'basis' | 'one_off' | 'recurrence' | 'split_of_figure' | 'count' | 'split_of_head' | 'split_of_item' | 'change_for_split' | 'cut';
+export function scopeRule(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = [], opts: { count?: boolean; spans?: readonly AskSpan[] } = {}): ScopeRule | null {
   const ask = what.toLowerCase();
   const spans = opts.spans ?? [];
   const has = (re: RegExp) => matchOutside(re, ask, spans) !== null;
-  if (has(BASIS) && !SAYS_BASIS.test(item.value ?? '')) return true;
-  if (has(ONE_OFF_ASK) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
-  if (has(RECURRENCE_ASK) && firstYearOnly(item.value ?? '')) return true;
-  if (splitOfFigure(what, item.value ?? '', spans)) return true;
+  if (has(BASIS) && !SAYS_BASIS.test(item.value ?? '')) return 'basis';
+  if (has(ONE_OFF_ASK) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return 'one_off';
+  if (has(RECURRENCE_ASK) && firstYearOnly(item.value ?? '')) return 'recurrence';
+  if (splitOfFigure(what, item.value ?? '', spans)) return 'split_of_figure';
   // A count asked of an item that states no figure (round 5 Task 50; fact-check.ts
   // COUNT_ASK): the item is the ask's coarse answer, not the count.
-  if (opts.count !== false && item.value !== undefined && countFinerThan(ask, item.value)) return true;
+  if (opts.count !== false && item.value !== undefined && countFinerThan(ask, item.value)) return 'count';
   const head = HEAD_NOUN(item.label);
-  if (!head) return false;
+  if (!head) return null;
   const label = item.label.toLowerCase();
   // A split of the item itself: "<split> of/within/inside <head>", "within <head>", "<head> <split>".
   const splitOfHead = new RegExp(String.raw`\b${SPLIT_WORDS}\s+(?:of|within|inside|in|for)\s+(?:the\s+)?(?:[\w&-]+\s+){0,3}?${head}\b|\b(?:within|inside)\s+(?:the\s+)?${head}\b|\b${head}\s+${SPLIT_WORDS}\b`, 'i');
-  if (has(splitOfHead) && !PART_LABEL.test(label)) return true;
-  if (splitOfItem(ask, item, names, spans)) return true;
+  if (has(splitOfHead) && !PART_LABEL.test(label)) return 'split_of_head';
+  if (splitOfItem(ask, item, names, spans)) return 'split_of_item';
   // A split / composition ask is about the parts, not how they moved: a
   // change item ("price change of the other inputs") is in scope only when the
   // ask also asks about movement ("…and how each moved", "the price trend").
   // Batch 18: "the split of COGS by input" released the 37.5% price change in 7 runs.
-  if (changeForSplit(ask, item, spans)) return true;
+  if (changeForSplit(ask, item, spans)) return 'change_for_split';
   const cut = matchOutside(CUT, ask, spans);
   // "total or per store" asks for either: the uncut figure is in scope.
   if (cut && !/\b(?:total|overall|in total)\s+(?:or|and)\b|\b(?:or|and)\s+(?:in\s+)?total\b/.test(ask)) {
     const dim = (cut[1] ?? cut[2] ?? cut[3] ?? '').toLowerCase();
-    if (dim === 'year') return Object.values(item.timeframes ?? {}).length === 0 && !/\byear/.test(label);
-    if (!label.includes(dim)) return true;
+    if (dim === 'year') return Object.values(item.timeframes ?? {}).length === 0 && !/\byear/.test(label) ? 'cut' : null;
+    if (!label.includes(dim)) return 'cut';
   }
-  return false;
+  return null;
+}
+
+// The ask names the item as one side of what it splits or compares (Phase 1 4.2, `coarseKeepNamed`; Lorenzo, 22 Oct:
+// "The coarse rule: never drop an item the model named when that item matches the ask"; b38 Larkspur Jasmine 3f928012
+// t3 → t4, "the ticket versus extras revenue split", mapped by the model to `extras_revenue` and ruled out by
+// `split_of_item` — "extras revenue split" read as a split of the extras line, though extras are one side of the split
+// asked). One of the item's names said right after "versus" / "vs", right before it, or as either side of
+// "between … and / or …", in the model's words or the candidate's sentence. Only a split rule is undone by it
+// (turn-data.ts): a cut, a basis, a one-off or a count the item lacks still rules it out.
+export const SPLIT_RULES: ReadonlySet<ScopeRule> = new Set(['split_of_head', 'split_of_item']);
+export function namedAsPart(texts: string[], names: string[]): boolean {
+  const esc = (x: string) => x.toLowerCase().trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  const ns = [...new Set(names.map(n => n.replace(/\s*\([^)]*\)\s*$/, '').trim()).filter(n => n.length >= 3))].map(esc);
+  const det = String.raw`(?:(?:the|our|their|its)\s+)?`;
+  return texts.some(t => ns.some(n => new RegExp(String.raw`\b(?:versus|vs\.?)\s+${det}${n}s?\b|\b${n}s?\s+(?:versus|vs\.?)(?=\s|$)|\bbetween\s+${det}${n}s?\s+(?:and|or)\b|\bbetween\s+[^,;:?.!]{1,60}?\s+(?:and|or)\s+${det}${n}s?\b`, 'i').test(t)));
 }
 
 export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[]; after?: string[]; requiresItems?: string[]; required?: boolean };
