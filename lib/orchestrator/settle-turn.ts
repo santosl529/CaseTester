@@ -738,7 +738,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // code's item-less named deferrals on a tagged case stay open in flags.openDeferrals until delivered or said "We won't
   // get to …" on the first wrap-up turn — each resolved once, logged; whether heard or not, as flags.mustReach.
   if (state.factBase.answerGate) {
-    const tracked = resolveDeferrals(openDeferrals(plan), decisions, nextTurnIndex + 1, exhibitReveals);
+    // Booked deliveries only (fix round 1, the review's minor): the reveals booked, the lines restated, the exhibit shown.
+    const tracked = resolveDeferrals(openDeferrals(plan), decisions, nextTurnIndex + 1, [...newReveals, ...decisions.restates.map(r => r.id), ...exhibitReveals]);
     for (const r of tracked.resolved) checks.act('deferral_resolved', r.how === 'delivered' ? 'a tracked deferral delivered: nothing more said'
       : r.how === 'wont_get_to' ? 'a tracked deferral said "We won\'t get to …" on the first wrap-up turn' : 'a tracked deferral\'s ask refused since: closed', r);
     if (tracked.open.length > 0 || flags.openDeferrals !== undefined) flags.openDeferrals = tracked.open;
@@ -757,6 +758,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       releases: decisions.releases.map(r => r.id), exhibit: decisions.exhibit?.id ?? null,
       refusals: decisions.refusals, defers: decisions.defers, offers: decisions.offers,
       ...(decisions.wontGetTo?.length ? { wontGetTo: decisions.wontGetTo } : {}),
+      ...(decisions.wontGetToNamed?.length ? { wontGetToNamed: decisions.wontGetToNamed } : {}),
     });
 
   // Phase and stages (progress.ts).

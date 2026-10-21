@@ -349,6 +349,9 @@ export type DataDecisions = {
   // Which of `defers` are the check's item-less named deferrals: they hold no ledger
   // item, so they hold no data (Lorenzo, 19 Oct, round-3 ruling 3; set by turnDataChecked).
   itemlessDefers?: string[];
+  // Tracked deferrals from earlier turns, closed on the first wrap-up turn (round 6 Task 76, fix round 1): each said by
+  // name, "We won't get to <ask> today." — never the bare "…that today." (turn-data.ts closeOpenDeferrals).
+  wontGetToNamed?: string[];
   offers: string[];       // what, for passing mentions of data the case holds
   // Proper adjectives and names said as written when they open an ask in a line (Task 70 fix
   // round 2, 68b item 3: "I don't have European net price…", not "european"); set by turnData
@@ -690,6 +693,7 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and', false, proper), uses, seed) });
   if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed, proper) });
+  for (const w of d.wontGetToNamed ?? []) parts.push({ kind: 'defers', ids: [], text: phrase('wont_get_to', joinWhat([w], 'and', false, proper), uses, seed) });
   if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and', false, proper), uses, seed) });
   if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and', false, proper), uses, seed) });
   return parts;

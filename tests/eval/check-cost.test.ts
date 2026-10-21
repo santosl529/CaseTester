@@ -123,6 +123,12 @@ describe('row 11\'s classifier call (cue want_is)', () => {
     expect(md).toMatch(/\| hollisbay\/04-marcus \| 2 \| \$\d+\.\d{4} \| 2025 \| 1210 \| 1 \| 820 \| 820 \| 20 \| 10\.0% \|/);
     expect(md).toMatch(/\| \*\*Total\*\* \| 3 \| .* \| 50 \| 6\.0% \|/);
   });
+  // Fix round 1 (the review's minors): the record is `probe_turn_requests` on a probe turn; a wait is clamped to 1.5 s.
+  it('row 11\'s wait on a probe turn counts too, and a reported wait past the 1.5 s cap is clamped', () => {
+    const probe = { category: 'check', subtype: 'probe_turn_requests', turnIndex: 11, payloadJsonb: { decision: 'act', detail: { cue: 'want_is', waitMs: 1503 } } };
+    const s = checkCostOf({ events: [probe, uncovered(13, { cue: 'want_is', waitMs: 700 })], analytics: [] }).wantIs;
+    expect(s.waited).toEqual({ turns: 2, sum: 2200, max: 1500 });
+  });
   it('a run with no tagged call reports zero calls (and no share without turns)', () => {
     expect(checkCostOf(run).wantIs).toMatchObject({ calls: 0, costUsd: 0, candidateTurns: 0 });
   });

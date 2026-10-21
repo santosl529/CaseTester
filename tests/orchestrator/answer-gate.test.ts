@@ -19,7 +19,7 @@ vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<obje
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
 
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
-import { turnDataChecked, answerGate, decideCheckedAsk, startMessageAsks, messageAsks } from '@/lib/orchestrator/turn-data';
+import { turnDataChecked, answerGate, decideCheckedAsk, startMessageAsks, messageAsks, tagsOnNoncheckPaths } from '@/lib/orchestrator/turn-data';
 import { renderDataLines, decisionRows } from '@/lib/orchestrator/data-decisions';
 import { unmetQualifiers, askQualifiers, gateReading } from '@/lib/orchestrator/ask-qualifiers';
 import { tagsAgree } from '@/lib/orchestrator/item-tags';
@@ -49,6 +49,7 @@ const acts = (p: ModelPlan, check: string) => p.ctx.checks.entries.filter(e => e
 const value = (caseId: string, id: string) => getCaseById(caseId).dataLedger.find(i => i.id === id)!.value;
 const req = (what: string, itemIds: string[] = [], o: Partial<DeclaredRequest> = {}): DeclaredRequest => ({ what, itemIds, explicit: true, respond: 'release', ...o });
 beforeEach(() => { classify.mockReset(); classify.mockImplementation(async () => []); ask.mockReset(); ask.mockImplementation(askVia(classify)); });
+afterEach(() => { vi.unstubAllEnvs(); });
 
 // b36 Larkspur Marisol 5907649a t11 → t12 (audit row 2): the check mapped "how many flights a day
 // the entrant runs on each route" to 8 Larkspur items "full" and the new routes' line went out.
@@ -187,6 +188,7 @@ describe('the answer gate on the model\'s mapped asks', () => {
   // Fix round 1 (F1): no topic test on the model's mapping — the chickpea costs go on the entity ("chip", no client word).
   // Task 76 (b) (Lorenzo, 21 Oct, round 6 rulings, 1: "a mismatch on those paths may defer, never refuse"): the ask deferred, not refused.
   it('no new check call: the model maps row 10\'s ask to the chickpea costs — dropped (entity), the ask deferred, checkAsk never called', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '1');   // Task 76 fix round 1: the tags off the check are off by default
     const fx: Fx = { ...MARCUS_B37H_T5, requests: [req('chip cost of goods and gross margin over the last few years', ['variable_costs'])] };
     const p = plan(fx);
     const d = await turnDataChecked(p, turn(fx));
@@ -201,6 +203,7 @@ describe('the answer gate on the model\'s mapped asks', () => {
     expect(acts(p, 'answer_gate')[0].detail).toEqual({ asks: [{ what: 'chip cost of goods and gross margin over the last few years', path: 'mapped', refuse: [], drop: ['variable_costs'], partial: [], defer: ['chip cost of goods and gross margin over the last few years'] }] });
   });
   it('a model-mapped entity mismatch: "the entrant\'s flights per day" mapped to Larkspur\'s network totals — dropped, deferred (Task 76 (b)), unchecked', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '1');   // Task 76 fix round 1: the tags off the check are off by default
     const fx: Fx = { ...MARISOL_B36L_T11, requests: [req('how many flights a day the entrant runs on each route', ['network_totals'])] };   // the model's mapping constructed
     const p = plan(fx);
     const d = await turnDataChecked(p, turn(fx));
@@ -212,6 +215,7 @@ describe('the answer gate on the model\'s mapped asks', () => {
     expect(acts(p, 'tag_deferred')[0].detail).toEqual({ asks: ['how many flights a day the entrant runs on each route'] });
   });
   it('a tag part a kept item states is answered by it: the Lakeport fare dropped for "the entrant\'s … fares", no refusal beside the competitor line', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '1');   // Task 76 fix round 1: the tags off the check are off by default
     const fx: Fx = { ...MARISOL_B36L_T11, requests: [req("the entrant's cost per seat and fares", ['competitor_costs', 'lakeport_fare'])] };   // the model's mapping constructed
     const p = plan(fx);
     const d = await turnDataChecked(p, turn(fx));
@@ -246,6 +250,7 @@ describe('the answer gate on the model\'s mapped asks', () => {
     expect(renderDataLines(d, 's')).toEqual([value('prof-002', 'lakeport_fare'), "I don't have the FY2024 Hub–Lakeport fare."]);
   });
   it('a gate part a cover names is not said (M6 veto, `partial_dropped` false_refusal); nothing left → the named deferral, unchecked', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '1');   // Task 76 fix round 1: the tags off the check are off by default
     // "chip volume" is why_now's cover, asked by the turn's other request: refusing it would refuse data the case holds.
     const fx: Fx = { ...MARCUS_B37H_T5, requests: [req('chip volume', ['variable_costs']), req('why now', ['why_now'])] };
     const p = plan(fx);
@@ -281,6 +286,7 @@ describe('the answer gate on the coverage step and the names remap', () => {
     expect(acts(p, 'partial_dropped')).toEqual([]);
   });
   it('R2: "the new routes plan today" names the plan lines — the two forecasts dropped (forecast), the context line given, unchecked', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '1');   // Task 76 fix round 1: the tags off the check are off by default
     const fx = asked('prof-002', 'the new routes plan today', [], FARE_READY);
     const p = plan(fx);
     const d = await turnDataChecked(p, turn(fx));
@@ -560,6 +566,7 @@ describe('fix round 2', () => {
   });
   // Task 76 (b): on the model's mapping (a non-check path) the line-only item is given whole, the share deferred, not refused.
   it('68b-5 b34a Marcus t10: insurance_coverage names Nimbrel on its own line — kept whole; the share deferred (Task 76 (b))', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '1');   // Task 76 fix round 1: the tags off the check are off by default
     const { d } = await run68b('D5');
     expect(d.releases.map(r => r.id)).toEqual(['insurance_coverage']);
     expect(d.refusals).toEqual([]);
@@ -700,8 +707,8 @@ describe('Task 71: the audit\'s code-only fixes, through the turn', () => {
 // check may run only if it adds 0 new false refusals and 0 wrong deferrals in the replay; if it adds any, leave those
 // paths as they are today; a mismatch on those paths may defer, never refuse."). Off the check — the model's mapped
 // asks, the names remap, the message's detections — an entity or forecast/current mismatch defers (tracked, Task 76
-// (a)); the check's verdicts are unchanged. One switch, TAGS_ON_NONCHECK_PATHS (on by default; "0" turns it off): off,
-// those paths read no tags, as at 14cafef (Task 69's head).
+// (a)); the check's verdicts are unchanged. One switch, TAGS_ON_NONCHECK_PATHS: "1" turns it on; off — the default since
+// fix round 1 (it added a wrong deferral in the replay) — those paths read no tags, as at 14cafef (Task 69's head).
 describe('Task 76 (b): tag mismatches defer, never refuse, off the check', () => {
   const SHARE = 'the share of covered lives where Nimbrel has exclusive or preferred status';
   const runD5 = async () => {
@@ -713,6 +720,7 @@ describe('Task 76 (b): tag mismatches defer, never refuse, off the check', () =>
   };
   afterEach(() => { vi.unstubAllEnvs(); });
   it('b34a Marcus t9 → t10, switch on: insurance_coverage given whole, no refusal of the share — the share deferred and tracked, unchecked', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '1');   // Task 76 fix round 1: the tags off the check are off by default
     expect(GATE_68B.D5.text).toMatch(/Do we know what share of covered lives Nimbrel has exclusive or preferred status on\?$/);
     const { p, d } = await runD5();
     expect(ask).not.toHaveBeenCalled();
@@ -728,8 +736,11 @@ describe('Task 76 (b): tag mismatches defer, never refuse, off the check', () =>
     expect(acts(p, 'answer_gate')[0].detail).toEqual({ asks: [{ what: SHARE, path: 'mapped', refuse: [], drop: [], partial: [], defer: [SHARE] }] });
     expect(acts(p, 'tag_deferred')[0].detail).toEqual({ asks: [SHARE] });
   });
-  it('… switch off: as at 14cafef — insurance_coverage given whole, nothing refused or deferred, no gate', async () => {
-    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '0');
+  // Fix round 1 (the controller, ruling 1 applied after the replay): off is the default — the switch added this wrong deferral.
+  it('… switch off, the default: as at 14cafef — insurance_coverage given whole, nothing refused or deferred, no gate', async () => {
+    expect(tagsOnNoncheckPaths()).toBe(false);
+    expect(tagsOnNoncheckPaths({ TAGS_ON_NONCHECK_PATHS: '0' })).toBe(false);
+    expect(tagsOnNoncheckPaths({ TAGS_ON_NONCHECK_PATHS: '1' })).toBe(true);
     const { p, d } = await runD5();
     expect(ask).not.toHaveBeenCalled();
     expect(d.releases.map(r => r.id)).toEqual(['insurance_coverage']);
@@ -780,11 +791,11 @@ describe('Task 76 (b): tag mismatches defer, never refuse, off the check', () =>
     ['transaction volume per store', ['avg_ticket']],
   ])('prof-001 "%s": the same decisions with the switch on and off, nothing tracked, nothing closed at a wrap-up', async (what, ids) => {
     const fx = asked('prof-001', what, ids as string[]);
-    const on = await turnDataChecked(plan(fx), turn(fx));
-    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '0');
-    classify.mockReset(); classify.mockImplementation(async () => []); ask.mockReset(); ask.mockImplementation(askVia(classify));
     const off = await turnDataChecked(plan(fx), turn(fx));
-    expect(off).toEqual(on);
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '1');
+    classify.mockReset(); classify.mockImplementation(async () => []); ask.mockReset(); ask.mockImplementation(askVia(classify));
+    const on = await turnDataChecked(plan(fx), turn(fx));
+    expect(on).toEqual(off);
     expect(on.deferralsOpened).toBeUndefined();
     expect(on.tagDeferred).toBeUndefined();
     const w = plan(fx);
@@ -792,7 +803,7 @@ describe('Task 76 (b): tag mismatches defer, never refuse, off the check', () =>
     w.ctx.flags.openDeferrals = [{ what, ids, turn: 1 }];
     expect((await turnDataChecked(w, turn(fx))).deferralsClosed).toBeUndefined();
   });
-  it.each([['on', undefined], ['off', '0']])('the check path is unchanged (switch %s): b36a Raj t13 still refuses "Nimbrel\'s patent expiry"', async (_, env) => {
+  it.each([['on', '1'], ['off', undefined]])('the check path is unchanged (switch %s): b36a Raj t13 still refuses "Nimbrel\'s patent expiry"', async (_, env) => {
     if (env) vi.stubEnv('TAGS_ON_NONCHECK_PATHS', env);
     classify.mockResolvedValueOnce({ items: [{ id: 'patents', answers: 'full' }, { id: 'nimbrel', answers: 'partial', missing: 'late-stage oral competitors' }] });
     const p = plan(RAJ_B36A_T13);

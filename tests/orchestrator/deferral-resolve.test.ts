@@ -93,48 +93,84 @@ describe('a cover-vetoed deferral is tracked as open', () => {
     const p = plan('My recommendation is to enter.', { kind: 'rec_ask', tags: false, flags: { openDeferrals: [{ what: RAJ_WHAT, ids: ['peak_share_forecast'], turn: 4 }] } });
     const d = await turnDataChecked(p, { requests: [], exhibit: null, rescueItem: null });
     expect(d.wontGetTo).toBeUndefined();
+    expect(d.wontGetToNamed).toBeUndefined();
     expect(renderDataLines(d, 's')).toEqual([]);
   });
 });
 
+// Fix round 1 (the review, Important): a deferral's own items are the ones whose cover or tags were vetoed — they don't
+// answer it, so releasing one later delivers nothing (Raj's current advanced-therapy usage isn't the peak-share
+// forecast). Its ids are kept for the log; it resolves by another item booked for its own words, a refusal of them, or
+// the wrap-up's named "We won't get to …".
+const TREATED_SAID = 'Do we know the current treatment mix among the eligible patients?';
 describe('(i) delivered later: resolved, nothing more said', () => {
-  it('a later turn releases its item: `deferral_resolved` delivered, no "won\'t get to", the open list empty', async () => {
+  it('a later turn releases its own vetoed item (the forecast): not delivered — still open, and named at the wrap-up', async () => {
     const { open } = await deferred();
     const p = plan(PEAK_SAID, { flags: { openDeferrals: open }, later: 1 });
     const s = await settleTurn(p, outcome(modelTurn([req(PEAK_WHAT)])));
     expect(s.newReveals).toEqual(['peak_share_forecast']);
-    expect(s.spokenText).toContain(PEAK);
-    expect(s.spokenText).not.toMatch(/won't get to|advanced therapy usage/);
-    expect(acts(p, 'deferral_resolved').map(a => a.detail)).toEqual([{ what: RAJ_WHAT, how: 'delivered', turn: p.ctx.nextTurnIndex + 1 }]);
-    expect(openOf(p)).toEqual([]);
-    // …and the wrap-up after it says nothing for it.
+    expect(acts(p, 'deferral_resolved')).toEqual([]);
+    expect(openOf(p)).toEqual(open);
     const w = plan('I recommend entering.', { kind: 'rec_ask', flags: { openDeferrals: openOf(p) }, revealed: ['peak_share_forecast'], later: 2 });
     const d = await turnDataChecked(w, { requests: [], exhibit: null, rescueItem: null });
-    expect(d.wontGetTo).toBeUndefined();
+    expect(renderDataLines(d, 's')).toEqual([WONT]);
   });
-  it('a later turn restates its item: delivered', async () => {
+  it('… nor restated: still open', async () => {
     const { open } = await deferred();
     const p = plan(PEAK_SAID, { flags: { openDeferrals: open }, revealed: ['peak_share_forecast'], later: 1 });
     await settleTurn(p, outcome(modelTurn([req(PEAK_WHAT)])));
-    expect(acts(p, 'deferral_resolved').map(a => a.detail)).toMatchObject([{ what: RAJ_WHAT, how: 'delivered' }]);
-    expect(openOf(p)).toEqual([]);
+    expect(acts(p, 'deferral_resolved')).toEqual([]);
+    expect(openOf(p)).toEqual(open);
   });
-  it('a later data line answering the same ask words (an item released for them): delivered', () => {
-    const o: OpenDeferral = { what: RAJ_WHAT, ids: [], turn: 4 };
+  it('a later turn books another item for the same ask words: `deferral_resolved` delivered, nothing more said', async () => {
+    const { open } = await deferred();
+    const p = plan(TREATED_SAID, { flags: { openDeferrals: open }, later: 1 });
+    const s = await settleTurn(p, outcome(modelTurn([req(RAJ_WHAT, ['current_treatment'])])));
+    expect(s.newReveals).toEqual(['current_treatment']);
+    expect(s.spokenText).not.toMatch(/won't get to|come back to/);
+    expect(acts(p, 'deferral_resolved').map(a => a.detail)).toEqual([{ what: RAJ_WHAT, how: 'delivered', turn: p.ctx.nextTurnIndex + 1 }]);
+    expect(openOf(p)).toEqual([]);
+    const w = plan('I recommend entering.', { kind: 'rec_ask', flags: { openDeferrals: openOf(p) }, revealed: ['current_treatment'], later: 2 });
+    expect(renderDataLines(await turnDataChecked(w, { requests: [], exhibit: null, rescueItem: null }), 's')).toEqual([]);
+  });
+  it('… restated for its words (out already): delivered too', async () => {
+    const { open } = await deferred();
+    const p = plan(TREATED_SAID, { flags: { openDeferrals: open }, revealed: ['current_treatment'], later: 1 });
+    await settleTurn(p, outcome(modelTurn([req(RAJ_WHAT, ['current_treatment'])])));
+    expect(acts(p, 'deferral_resolved').map(a => a.detail)).toMatchObject([{ what: RAJ_WHAT, how: 'delivered' }]);
+  });
+  it('… released but not delivered (the stream cut it: undeliveredRevealIds): not booked, still open', async () => {
+    const { open } = await deferred();
+    const p = plan(TREATED_SAID, { flags: { openDeferrals: open }, later: 1 });
+    const s = await settleTurn(p, { ...outcome(modelTurn([req(RAJ_WHAT, ['current_treatment'])])), undeliveredRevealIds: ['current_treatment'] });
+    expect(s.newReveals).toEqual([]);
+    expect(acts(p, 'deferral_resolved')).toEqual([]);
+    expect(openOf(p)).toEqual(open);
+  });
+  it('resolveDeferrals: delivery by words counts only a booked item outside the deferral\'s own set', () => {
+    const o: OpenDeferral = { what: RAJ_WHAT, ids: ['peak_share_forecast'], turn: 4 };
     const d = { releases: [{ id: 'funnel_rates', value: 'x', earlier: false }], restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], gatedIds: [],
       requests: [{ request: req(RAJ_WHAT, ['funnel_rates']), response: 'release' as const, ledgerItemIds: ['funnel_rates'] }] } as TurnData;
-    expect(resolveDeferrals([o], d, 8)).toEqual({ open: [], resolved: [{ what: RAJ_WHAT, how: 'delivered', turn: 8 }] });
+    expect(resolveDeferrals([o], d, 8, ['funnel_rates'])).toEqual({ open: [], resolved: [{ what: RAJ_WHAT, how: 'delivered', turn: 8 }] });
+    // Decided but not booked (fix round 1, the review's minor: Settle passes what was booked): not delivered.
+    expect(resolveDeferrals([o], d, 8, []).resolved).toEqual([]);
+    // Its own item, booked for its words: not delivered.
+    const own = { ...d, requests: [{ request: req(RAJ_WHAT, ['peak_share_forecast']), response: 'release' as const, ledgerItemIds: ['peak_share_forecast'] }] } as TurnData;
+    expect(resolveDeferrals([o], own, 8, ['peak_share_forecast']).resolved).toEqual([]);
+    // Another ask's release of an item outside its set: not its words, not delivered.
+    const other = { ...d, requests: [{ request: req('the funnel', ['funnel_rates']), response: 'release' as const, ledgerItemIds: ['funnel_rates'] }] } as TurnData;
+    expect(resolveDeferrals([o], other, 8, ['funnel_rates']).resolved).toEqual([]);
     // The same words only refused later: closed too — "won't get to" would contradict the refusal.
-    expect(resolveDeferrals([o], { ...d, releases: [], requests: [], refusals: [RAJ_WHAT] }, 8).resolved).toEqual([{ what: RAJ_WHAT, how: 'refused', turn: 8 }]);
+    expect(resolveDeferrals([o], { ...d, releases: [], requests: [], refusals: [RAJ_WHAT] }, 8, []).resolved).toEqual([{ what: RAJ_WHAT, how: 'refused', turn: 8 }]);
     // Nothing for it: still open. The turn that said it never resolves it.
-    expect(resolveDeferrals([o], { ...d, releases: [], requests: [] }, 8)).toEqual({ open: [o], resolved: [] });
-    expect(resolveDeferrals([o], d, 4)).toEqual({ open: [o], resolved: [] });
+    expect(resolveDeferrals([o], { ...d, releases: [], requests: [] }, 8, [])).toEqual({ open: [o], resolved: [] });
+    expect(resolveDeferrals([o], d, 4, ['funnel_rates'])).toEqual({ open: [o], resolved: [] });
   });
   it('deferred again in the same words: one open entry, the items merged, the first turn kept', () => {
     const o: OpenDeferral = { what: RAJ_WHAT, ids: ['peak_share_forecast'], turn: 4 };
     const d = { releases: [], restates: [], exhibit: null, refusals: [], defers: [RAJ_WHAT], gateDefers: [], unmatchedDefers: [], offers: [], gatedIds: [], requests: [],
       deferralsOpened: [{ what: RAJ_WHAT, ids: ['funnel_rates'] }] } as unknown as TurnData;
-    expect(resolveDeferrals([o], d, 8)).toEqual({ open: [{ what: RAJ_WHAT, ids: ['peak_share_forecast', 'funnel_rates'], turn: 4 }], resolved: [] });
+    expect(resolveDeferrals([o], d, 8, [])).toEqual({ open: [{ what: RAJ_WHAT, ids: ['peak_share_forecast', 'funnel_rates'], turn: 4 }], resolved: [] });
   });
 });
 
@@ -158,13 +194,23 @@ describe('(ii) never delivered: "We won\'t get to … today." once, on the first
     expect(cs.spokenText).not.toMatch(/won't get to/);
     expect(acts(c, 'deferral_resolved')).toEqual([]);
   });
-  it('two open ones: one line for both ("We won\'t get to that today.")', async () => {
+  // Fix round 1 (controller ruling): a carried deferral is named — never the bare "that", which in b34a Marcus t20 read
+  // as declining his t19 point about the board's definition.
+  it('b34a Marcus t10\'s share, carried to the wrap-up: named in full, never "We won\'t get to that today."', async () => {
+    const SHARE = 'the share of covered lives where Nimbrel has exclusive or preferred status';
+    const open: OpenDeferral[] = [{ what: SHARE, ids: [], turn: 11 }];
+    const w = plan('The board defines success as profitable share by year five, so I would still enter.', { kind: 'rec_ask', flags: { openDeferrals: open }, later: 8 });
+    const d = await turnDataChecked(w, { requests: [], exhibit: null, rescueItem: null });
+    expect(renderDataLines(d, 's')).toEqual([`We won't get to ${SHARE} today.`]);
+  });
+  it('two open ones: each named in its own line, never "that"', async () => {
     const open: OpenDeferral[] = [{ what: RAJ_WHAT, ids: ['peak_share_forecast'], turn: 4 }, { what: 'the payer mix by plan', ids: [], turn: 6 }];
     const w = plan('I think I have enough to recommend.', { kind: 'rec_ask', flags: { openDeferrals: open } });
     const d = await turnDataChecked(w, { requests: [], exhibit: null, rescueItem: null });
-    expect(d.wontGetTo).toEqual([RAJ_WHAT, 'the payer mix by plan']);
+    expect(d.wontGetToNamed).toEqual([RAJ_WHAT, 'the payer mix by plan']);
+    expect(d.wontGetTo).toBeUndefined();
     expect(d.deferralsClosed).toEqual(open);
-    expect(renderDataLines(d, 's')).toEqual(["We won't get to that today."]);
+    expect(renderDataLines(d, 's')).toEqual([WONT, "We won't get to the payer mix by plan today."]);
   });
   it('never on a turn that already says it in another form: asked again at the wrap-up — "won\'t get to" once', async () => {
     const open: OpenDeferral[] = [{ what: RAJ_WHAT, ids: ['peak_share_forecast'], turn: 4 }];
@@ -173,7 +219,7 @@ describe('(ii) never delivered: "We won\'t get to … today." once, on the first
     expect(d.wontGetTo).toEqual([RAJ_WHAT]);
     expect(d.deferralsClosed).toBeUndefined();
     expect(renderDataLines(d, 's')).toEqual([WONT]);
-    expect(resolveDeferrals(open, d, 9).resolved).toEqual([{ what: RAJ_WHAT, how: 'wont_get_to', turn: 9 }]);
+    expect(resolveDeferrals(open, d, 9, []).resolved).toEqual([{ what: RAJ_WHAT, how: 'wont_get_to', turn: 9 }]);
   });
   it('a deferral made on a wrap-up turn is "We won\'t get to …" there already: not tracked (never said again at the close)', async () => {
     const w = plan(RAJ_T11, { kind: 'rec_ask' });
@@ -188,16 +234,32 @@ describe('(ii) never delivered: "We won\'t get to … today." once, on the first
     const d = await turnDataChecked(w, { requests: [req(RAJ_WHAT)], exhibit: null, rescueItem: null });
     expect(d.refusals).toEqual([RAJ_WHAT]);
     expect(d.wontGetTo).toBeUndefined();
+    expect(d.wontGetToNamed).toBeUndefined();
     expect(renderDataLines(d, 's')).toEqual([`I don't have ${RAJ_WHAT}.`]);
-    expect(resolveDeferrals(open, d, 9).resolved).toEqual([{ what: RAJ_WHAT, how: 'refused', turn: 9 }]);
+    expect(resolveDeferrals(open, d, 9, []).resolved).toEqual([{ what: RAJ_WHAT, how: 'refused', turn: 9 }]);
   });
-  it('delivered on the wrap-up turn itself: released, no "won\'t get to"', async () => {
+  it('delivered on the wrap-up turn itself (another item for its words): released, no "won\'t get to"', async () => {
+    const open: OpenDeferral[] = [{ what: RAJ_WHAT, ids: ['peak_share_forecast'], turn: 4 }];
+    const w = plan(TREATED_SAID, { kind: 'rec_ask', flags: { openDeferrals: open } });
+    const d = await turnDataChecked(w, { requests: [req(RAJ_WHAT, ['current_treatment'])], exhibit: null, rescueItem: null });
+    expect(d.releases.map(r => r.id)).toEqual(['current_treatment']);
+    expect(d.wontGetToNamed).toBeUndefined();
+    expect(resolveDeferrals(open, d, 9, ['current_treatment']).resolved).toEqual([{ what: RAJ_WHAT, how: 'delivered', turn: 9 }]);
+  });
+  it('… or restated there for its words: no "won\'t get to"', async () => {
+    const open: OpenDeferral[] = [{ what: RAJ_WHAT, ids: ['peak_share_forecast'], turn: 4 }];
+    const w = plan(TREATED_SAID, { kind: 'rec_ask', flags: { openDeferrals: open }, revealed: ['current_treatment'] });
+    const d = await turnDataChecked(w, { requests: [req(RAJ_WHAT, ['current_treatment'])], exhibit: null, rescueItem: null });
+    expect(d.restates.map(r => r.id)).toEqual(['current_treatment']);
+    expect(d.wontGetToNamed).toBeUndefined();
+  });
+  it('its own vetoed item released on the wrap-up turn: released for its own ask, and the deferral still named', async () => {
     const open: OpenDeferral[] = [{ what: RAJ_WHAT, ids: ['peak_share_forecast'], turn: 4 }];
     const w = plan(PEAK_SAID, { kind: 'rec_ask', flags: { openDeferrals: open } });
     const d = await turnDataChecked(w, { requests: [req(PEAK_WHAT)], exhibit: null, rescueItem: null });
     expect(d.releases.map(r => r.id)).toEqual(['peak_share_forecast']);
-    expect(d.wontGetTo).toBeUndefined();
-    expect(resolveDeferrals(open, d, 9).resolved).toEqual([{ what: RAJ_WHAT, how: 'delivered', turn: 9 }]);
+    expect(renderDataLines(d, 's')).toEqual([PEAK, WONT]);
+    expect(resolveDeferrals(open, d, 9, ['peak_share_forecast']).resolved).toEqual([{ what: RAJ_WHAT, how: 'wont_get_to', turn: 9 }]);
   });
   it('a model turn of the recommendation phase once the recommendation is in is a wrap-up turn too', async () => {
     const open: OpenDeferral[] = [{ what: RAJ_WHAT, ids: ['peak_share_forecast'], turn: 4 }];
@@ -205,6 +267,6 @@ describe('(ii) never delivered: "We won\'t get to … today." once, on the first
     w.ctx.currentPhase = 'RECOMMENDATION';
     w.state.recommendationReceived = true;
     const d = await turnDataChecked(w, { requests: [], exhibit: null, rescueItem: null });
-    expect(d.wontGetTo).toEqual([RAJ_WHAT]);
+    expect(d.wontGetToNamed).toEqual([RAJ_WHAT]);
   });
 });

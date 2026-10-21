@@ -20,6 +20,8 @@ import { costOf } from '@/lib/llm-pricing';
 
 type Ev = { turnIndex?: number; category?: string; subtype?: string; payloadJsonb?: Record<string, unknown> };
 type An = { eventType?: string; payloadJsonb: Record<string, unknown> };
+// turn-data.ts ASK_WAIT_MS: the longest a turn waits on the message classifier (not imported: this module stays free of the orchestrator).
+const ASK_WAIT_MS = 1500;
 export type CheckCostRun = { events: Ev[]; analytics: An[]; turns?: { role?: string }[] };
 
 export type WantIsCost = { calls: number; costUsd: number; unpricedRows: number; latency: { sum: number; max: number; count: number }; waited: { turns: number; sum: number; max: number }; candidateTurns: number };
@@ -48,9 +50,14 @@ export function checkCostOf(run: CheckCostRun): CheckCost {
   for (const e of run.events ?? []) {
     if (e.category !== 'check') continue;
     if (e.subtype === 'partial_dropped') { s.partialDropped++; continue; }
-    if (e.subtype === 'uncovered_asks') {
+    // The same record is `probe_turn_requests` on a probe turn (settle-turn.ts; fix round 1, the review's minor). The wait
+    // is clamped to ASK_WAIT_MS as the turn caps it: a reported wait past the cap is timer slack, not added latency.
+    if (e.subtype === 'uncovered_asks' || e.subtype === 'probe_turn_requests') {
       const d = (e.payloadJsonb?.detail ?? {}) as Record<string, unknown>;
-      if (d.cue === 'want_is' && typeof d.waitMs === 'number' && d.waitMs > 0) { w.waited.turns++; w.waited.sum += d.waitMs; w.waited.max = Math.max(w.waited.max, d.waitMs); }
+      if (d.cue === 'want_is' && typeof d.waitMs === 'number' && d.waitMs > 0) {
+        const ms = Math.min(d.waitMs, ASK_WAIT_MS);
+        w.waited.turns++; w.waited.sum += ms; w.waited.max = Math.max(w.waited.max, ms);
+      }
       continue;
     }
     if (e.subtype !== 'itemless_defer') continue;

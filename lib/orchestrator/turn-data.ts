@@ -377,13 +377,15 @@ export function answerGate(plan: ModelPlan, what: string, ids: string[], sentenc
 
 // The tags off the check (round 6 Task 76 (b); Lorenzo, 21 Oct, round 6 rulings, 1: "On the other paths: the company
 // and forecast/current tag check may run only if it adds 0 new false refusals and 0 wrong deferrals in the replay; if
-// it adds any, leave those paths as they are today; a mismatch on those paths may defer, never refuse."). One switch,
-// on by default: the answer gate on the model's mapped asks (the message's detections among them) and the names remap
-// reads entity and forecast/current, and a mismatch defers (answerGate `defer`), tracked until it resolves. Off
-// (TAGS_ON_NONCHECK_PATHS=0; the controller's, after the replay): those paths read no tags, as at 14cafef (Task 69's
+// it adds any, leave those paths as they are today; a mismatch on those paths may defer, never refuse."). One switch:
+// on (TAGS_ON_NONCHECK_PATHS=1), the answer gate on the model's mapped asks (the message's detections among them) and
+// the names remap reads entity and forecast/current, and a mismatch defers (answerGate `defer`), tracked until it
+// resolves. Off — the default since Task 76 fix round 1 (controller, applying ruling 1 after the replay: it added a
+// wrong deferral, b34 Aldermoor Marcus t10 "Hold that thought on the share of covered lives where Nimbrel has
+// exclusive or preferred status" — data the case doesn't hold): those paths read no tags, as at 14cafef (Task 69's
 // head). Unchanged either way: the Haiku check's verdicts (tags, topic, refusals), and Task 68's cover gate on the
 // coverage step and covers_added (coverGateMiss, at 14cafef already; ruling 4: "Vetoed cover → deferral … fine").
-export const tagsOnNoncheckPaths = (env: Record<string, string | undefined> = process.env) => env.TAGS_ON_NONCHECK_PATHS?.trim() !== '0';
+export const tagsOnNoncheckPaths = (env: Record<string, string | undefined> = process.env) => env.TAGS_ON_NONCHECK_PATHS?.trim() === '1';
 const noncheckTags = (): { tags?: false; defer?: true } => (tagsOnNoncheckPaths() ? { defer: true } : { tags: false });
 
 // What code does with a verdict (Lorenzo, 20 Oct, round 5 E5: "build (a) and
@@ -678,12 +680,15 @@ async function turnDataDecided(plan: ModelPlan, turn: Pick<ModelTurn, 'requests'
 // check (Task 76 (b), `tag_deferred`) — hold no ledger item, so nothing followed them up. Each one said is tracked as
 // open in the session's flags (flags.openDeferrals: its ask words, the items it came from, the interviewer turn that
 // said it — no DB column) until:
-//   (i) delivered — a later turn releases, restates or shows one of its items, or its data line answers the same ask
-//       words (released or restated in them): resolved, nothing more said;
-//   (ii) the first wrap-up turn (wrapUpTurn / WRAP_UP_KINDS) with it still open — code says the existing "We won't get
-//       to <ask> today." / "We won't get to that today." (decideData's wontGetTo, wontGetToLine's rule) once for all the
-//       still-open ones; not for one that turn delivers, nor one it already says in another form (its words refused,
-//       deferred or "won't get to" there, or an item of it "won't get to").
+//   (i) delivered — a later turn's booked delivery (released, restated or shown) of an item NOT in its own set, for
+//       the same ask words: resolved, nothing more said. Its own items are the ones whose tags or cover were vetoed —
+//       they don't answer it (fix round 1, the review: the entrant's flights a day isn't "delivered" by Larkspur's
+//       network totals, Raj's current advanced-therapy usage by the peak-share forecast); its `ids` are kept for the log;
+//   (ii) the first wrap-up turn (wrapUpTurn / WRAP_UP_KINDS) with it still open — code says "We won't get to <ask>
+//       today." for each, named (fix round 1, controller ruling: never the bare "We won't get to that today.", which
+//       in b34a Marcus t20 read as declining his t19 point; the "that" form stays for decideData's same-turn list or
+//       long ask); not for one that turn delivers, nor one it already says in another form (its words refused,
+//       deferred or "won't get to" there).
 // A later refusal of the same words closes it too (the candidate has the answer; "won't get to" would contradict it).
 // Each resolves once: Settle (resolveDeferrals) drops it from the flags and logs `deferral_resolved` { what, how, turn },
 // so it is never said twice. Untagged (prof-001): nothing is tracked.
@@ -694,38 +699,40 @@ export function openDeferrals(plan: ModelPlan): OpenDeferral[] {
   return plan.state.factBase.answerGate ? (plan.ctx.flags.openDeferrals as OpenDeferral[] | undefined) ?? [] : [];
 }
 type DeferralReading = Pick<DataDecisions, 'releases' | 'restates' | 'exhibit' | 'requests' | 'refusals' | 'defers' | 'gateDefers' | 'wontGetTo'>;
-// Delivered by a turn's decisions: an item of it released, restated or shown (`shown`: an exhibit Settle hands over in
-// the question), or its own words released or restated.
-function deferralDelivered(o: OpenDeferral, d: DeferralReading, shown: readonly string[] = []): boolean {
-  const out = new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? []), ...shown]);
-  if (o.ids.some(id => out.has(id))) return true;
-  return d.requests.some(x => normAsk(x.request.what) === normAsk(o.what) && ((x.response === 'release' && x.ledgerItemIds.length > 0) || x.response === 'clarify'));
+// Delivered: a row for its own words whose delivered items (`out`: booked in Settle — fix round 1, the review's minor —
+// decided in Stream) include one outside its vetoed set; a prompt fact restated for them (`clarify`) answers them too.
+function deferralDelivered(o: OpenDeferral, d: Pick<DataDecisions, 'requests'>, out: ReadonlySet<string>): boolean {
+  return d.requests.some(x => normAsk(x.request.what) === normAsk(o.what)
+    && ((x.response === 'release' && x.ledgerItemIds.some(id => out.has(id) && !o.ids.includes(id))) || x.response === 'clarify'));
 }
-// Said "won't get to" this turn in another form: for its words, or for one of its items.
-function deferralWontNow(o: OpenDeferral, d: DeferralReading): boolean {
-  return (d.wontGetTo ?? []).some(w => normAsk(w) === normAsk(o.what)) || d.requests.some(x => x.wontGetTo === true && x.ledgerItemIds.some(id => o.ids.includes(id)));
-}
+const decidedOut = (d: DeferralReading) => new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]);
+// Said "won't get to" this turn in another form: for its own words.
+const deferralWontNow = (o: OpenDeferral, d: DeferralReading) => (d.wontGetTo ?? []).some(w => normAsk(w) === normAsk(o.what));
 const deferralRefusedNow = (o: OpenDeferral, d: DeferralReading) => d.refusals.some(w => normAsk(w) === normAsk(o.what));
 // Its words deferred again this turn (a promise said now: not closed beside it).
 const deferralDeferredNow = (o: OpenDeferral, d: DeferralReading) => [...d.defers, ...d.gateDefers].some(w => normAsk(w) === normAsk(o.what));
-// (ii): the first wrap-up turn says "We won't get to …" for the open ones left (Stream and Settle alike: turnDataChecked).
+// (ii): the first wrap-up turn says "We won't get to <ask> today." for each open one left, by name (`wontGetToNamed`;
+// Stream and Settle alike: turnDataChecked).
 function closeOpenDeferrals(plan: ModelPlan, d: TurnData): TurnData {
   if (!wrapUpTurn(plan)) return d;
-  const closing = openDeferrals(plan).filter(o => !deferralDelivered(o, d) && !deferralWontNow(o, d) && !deferralRefusedNow(o, d) && !deferralDeferredNow(o, d));
+  const out = decidedOut(d);
+  const closing = openDeferrals(plan).filter(o => !deferralDelivered(o, d, out) && !deferralWontNow(o, d) && !deferralRefusedNow(o, d) && !deferralDeferredNow(o, d));
   if (closing.length === 0) return d;
-  return { ...d, wontGetTo: [...(d.wontGetTo ?? []), ...closing.map(o => o.what)], deferralsClosed: closing };
+  return { ...d, wontGetToNamed: [...(d.wontGetToNamed ?? []), ...closing.map(o => o.what)], deferralsClosed: closing };
 }
 // Settle's bookkeeping for one turn (`turn`: the interviewer turn's index): each open deferral from an earlier turn
 // resolved by this turn's decisions — said "won't get to" here (deferralsClosed, or another form), delivered, or its
 // words refused — leaves the open list, once; the deferrals this turn says join it (one per ask words, items merged).
-export function resolveDeferrals(open: readonly OpenDeferral[], d: TurnData, turn: number, shown: readonly string[] = []): { open: OpenDeferral[]; resolved: DeferralResolved[] } {
+// `booked`: what the turn delivered (Settle: newReveals, restated ids, the exhibit's reveals).
+export function resolveDeferrals(open: readonly OpenDeferral[], d: TurnData, turn: number, booked: Iterable<string>): { open: OpenDeferral[]; resolved: DeferralResolved[] } {
+  const out = new Set(booked);
   const closed = new Set((d.deferralsClosed ?? []).map(o => normAsk(o.what)));
   const resolved: DeferralResolved[] = [];
   const left: OpenDeferral[] = [];
   for (const o of open) {
     const how = o.turn >= turn ? null
       : closed.has(normAsk(o.what)) ? 'wont_get_to' as const
-        : deferralDelivered(o, d, shown) ? 'delivered' as const
+        : deferralDelivered(o, d, out) ? 'delivered' as const
           : deferralWontNow(o, d) ? 'wont_get_to' as const
             : deferralRefusedNow(o, d) ? 'refused' as const : null;
     if (how) resolved.push({ what: o.what, how, turn });
