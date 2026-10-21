@@ -95,6 +95,20 @@ export function answersRecommendationAsk(text: string, kind: TurnKind): boolean 
   return COMMITS.test(text.replace(NEGATED_RECOMMENDATION, ' ')) || ACTION_LEAD.test(text.trim()) || FIRST_LEAD.test(text.trim()) || LEVER_LEAD.test(text.trim());
 }
 
+// 4.9 (Phase 1, `recommendationReceived`; Lorenzo, 22 Oct: "recommendationReceived: set it on a clear
+// recommendation."). Quillpath answers led on a verb neither list reads — b37 Marcus t31 "Keep Starter, and raise the
+// price to $60.", Raj t27, Tyler t25 ("Keep Starter — don't shut it down — and raise the price to $60."), b35 Raj
+// t25 "Keep Starter and reprice it to $60." — so the stage record had no recommendation and the time warning asked
+// for it again (Marcus t32). A clear recommendation: the message's first sentence, not a question, opens on what to
+// do (a decision verb, after "So," / "Bottom line:" / "My answer:"), not "Keep in mind…". The caller passes the
+// switch and reads it only on an analysis turn, in reply to a recommendation ask or in the synthesis phases.
+const CLEAR_REC_VERBS = "keep|stay with|stick with|enter|build|partner(?: with)?|license|launch|proceed(?: with)?|go ahead(?: with)?|exit|drop|kill|shut(?: \\w+)? down|expand|sell|acquire|invest(?: in)?|redeploy|raise|cut|reprice|approve|reject|pursue|don'?t (?:kill|drop|shut|exit|cut|launch|enter|build)";
+const CLEAR_REC = new RegExp(`^\\W*(?:(?:so|okay|ok|bottom line|my answer|my recommendation|recommendation)[:,—–-]?\\s+)?(?:${CLEAR_REC_VERBS})\\b(?!\\s+(?:in mind|going|track|an eye|it simple|in touch)\\b)`, 'i');
+export function clearRecommendation(text: string): boolean {
+  const first = sentencesOf(text)[0]?.trim() ?? '';
+  return first !== '' && !COMMIT_REFUSAL.test(text) && !first.endsWith('?') && !isQuestionForm(first) && CLEAR_REC.test(first);
+}
+
 export function isRecommendationStatement(text: string, kind: TurnKind): boolean {
   if (COMMIT_REFUSAL.test(text)) return false;
   if (LEVER_LEAD.test(text.trim())) return true;
