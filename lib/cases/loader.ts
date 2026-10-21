@@ -3,11 +3,13 @@ import path from 'path';
 import { CaseSchema, type Case } from './schema';
 import { DataLineVariantsSchema, checkDataLineVariants } from './data-line-variants';
 import { Phase1OverlaySchema, applyPhase1Overlay } from './phase1-overlay';
+import { assertNoEngineSwitchesInProduction } from './engine-switches';
 
 let _cache: Case[] | null = null;
 
 export function loadCases(): Case[] {
   if (_cache) return _cache;
+  assertNoEngineSwitchesInProduction();
 
   const casesDir = path.join(process.cwd(), 'cases');
   const files = fs.readdirSync(casesDir).filter(f => f.endsWith('.json'));

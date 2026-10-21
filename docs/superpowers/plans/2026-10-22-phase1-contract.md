@@ -369,3 +369,15 @@ Each is built as proposed until he rules:
 - **Q3 — Brew & Bean and Aldermoor must-reach.** Proposed entries only, until your ruling.
 - **Q4 — prof-001's Phase 1 includes round-6 matching.** Under `*=phase1`, prof-001 gets `tagMatching`, which turns round 6's matching and gate on for it for the first time (§15 "prof-001 is untagged"). Proposed: yes, since the wave tests it.
 - **Q5 — Definitions to the checker (3.7) aren't free-provable.** Recorded verdicts don't change. Proposed: judge 3.7 in the wave only. A live re-check of the math records (about 100 Sonnet calls, about $2) needs your go.
+
+### Lorenzo's rulings on Step 0 (22 Oct)
+
+- **D1 — approved.** The cover lint runs on the merged view (base plus overlay, through `applyPhase1Overlay` with `itemCovers` on), not on the overlay alone.
+- **D2 — approved, plus a guard.** In production mode (`NODE_ENV=production`) with `ENGINE_SWITCHES` set, the case loader refuses to start (`assertNoEngineSwitchesInProduction`).
+- **D3 and D4 — approved.**
+- **D5 — approved, if a retry can never write a second report.** The test proving it is shown at the gate.
+- **Q1 — approved.** No root correction unless the checker rated the root, or a claim in its lineage, an error. Otherwise two probes, then the report.
+- **Q2 — approved.** Every record judged in the wave is listed, with what in the wave would show it fixed (`evals/fault-bank/wave-judged.md`).
+- **Q3 — Brew & Bean must-reach: none,** unless a graded run shows a recommendation contradicted by a fact the candidate never heard. The Aldermoor proposals and their justifying runs go in the gate report.
+- **Q4 — approved under the switch for the wave.** prof-001 is reported as "round 6 + Phase 1", not Phase 1 alone.
+- **Q5 — approved.** The lead runs the live definitions re-check at the gate, with a $3 hard cap.

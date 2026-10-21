@@ -68,6 +68,14 @@ export function parseEngineSwitches(raw: string): Map<string, Map<EngineSwitch, 
   return out;
 }
 
+// Lorenzo's D2 guard (22 Oct): ENGINE_SWITCHES is for evaluation only. In production mode (NODE_ENV=production, as
+// on Vercel and `next start`) the case loader refuses to start with it set.
+export function assertNoEngineSwitchesInProduction(env: Env = process.env): void {
+  if (env.NODE_ENV === 'production' && env.ENGINE_SWITCHES?.trim()) {
+    throw new Error(`ENGINE_SWITCHES is set in production mode ("${env.ENGINE_SWITCHES}"): Phase 1 switches are for evaluation only — refusing to start`);
+  }
+}
+
 export function switchOn(c: CaseLike, name: EngineSwitch, env: Env = process.env): boolean {
   const raw = env.ENGINE_SWITCHES?.trim();
   if (raw) {

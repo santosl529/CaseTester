@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { switchOn, parseEngineSwitches, engineSwitchesOf, PHASE1_SWITCHES } from '@/lib/cases/engine-switches';
+import { switchOn, parseEngineSwitches, engineSwitchesOf, PHASE1_SWITCHES, assertNoEngineSwitchesInProduction } from '@/lib/cases/engine-switches';
 import { applyPhase1Overlay, Phase1OverlaySchema, overlayProblems } from '@/lib/cases/phase1-overlay';
 import { CaseSchema, noFigure } from '@/lib/cases/schema';
 import { getCaseById } from '@/lib/cases/loader';
@@ -25,6 +25,11 @@ describe('engine switches', () => {
   it('the env beats the case pin; the pin beats the default', () => {
     expect(switchOn({ id: 'x-001', engine: { worksheet: true } }, 'worksheet', {})).toBe(true);
     expect(switchOn({ id: 'x-001', engine: { worksheet: true } }, 'worksheet', { ENGINE_SWITCHES: 'x-001=-worksheet' })).toBe(false);
+  });
+  it('refuse to start in production mode with ENGINE_SWITCHES set (D2 guard)', () => {
+    expect(() => assertNoEngineSwitchesInProduction({ NODE_ENV: 'production', ENGINE_SWITCHES: '*=phase1' })).toThrow(/refusing to start/);
+    expect(() => assertNoEngineSwitchesInProduction({ NODE_ENV: 'production' })).not.toThrow();
+    expect(() => assertNoEngineSwitchesInProduction({ NODE_ENV: 'test', ENGINE_SWITCHES: '*=phase1' })).not.toThrow();
   });
   it('refuse an unknown name', () => {
     expect(() => parseEngineSwitches('*=wrokSheet')).toThrow(/unknown switch/);
