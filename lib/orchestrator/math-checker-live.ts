@@ -20,7 +20,7 @@ import { normalizeNumberWords } from '@/lib/number-words';
 import { findStepSpans, cueNames } from '@/lib/scoring/math-spans';
 import { boundFigures, type BoundFigure } from './figure-binding';
 import {
-  checkMathClaims, vetCheckerClaims, codeComputed, boundInput, numbersOf, quantityWords, RATIO_SAID,
+  checkMathClaims, vetCheckerClaims, codeComputed, codeCorrection, boundInput, numbersOf, quantityWords, RATIO_SAID,
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
 import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
@@ -223,7 +223,10 @@ export function stepRootEnds(c: { mathSteps: unknown[] }, roots: Record<string, 
 }
 // The root a claim is linked to — by the step its key names, or a root figure its span carries (not its own) — or null.
 // `closed`: the closed or corrected checker keys (a root's key "R@v" among them ends its dependency links).
-export function stepRootOf(p: { c: { mathSteps: unknown[] }; roots: Record<string, StepRoot>; key: string; span: string; own: number[]; n: number; caseFigures: number[]; closed?: ReadonlySet<string> }): string | null {
+// Phase 1 task 3 (rootLineage): whether a claim on a step built on root R, at the candidate's figures `own`, inherits R's
+// wrong value — the dependency link's test (lineageInherits). Absent: every dependent claim links, as round 6 built it.
+export type StepInherits = (r: StepRoot, step: string, own: number[], n: number) => boolean;
+export function stepRootOf(p: { c: { mathSteps: unknown[] }; roots: Record<string, StepRoot>; key: string; span: string; own: number[]; n: number; caseFigures: number[]; closed?: ReadonlySet<string>; inherits?: StepInherits }): string | null {
   const step = stepOfKey(p.key);
   const carried = numbersOf(normalizeNumberWords(p.span)).filter(x => !p.caseFigures.some(y => same(x, y)) && !p.own.some(y => same(x, y)));
   // By dependency only while the root stands (fix round 2, above).
@@ -232,7 +235,7 @@ export function stepRootOf(p: { c: { mathSteps: unknown[] }; roots: Record<strin
   // A claim of the root itself — its step at its figure (b37q Raj 33:0, "$30 a month, times expected 13.5 months on plan
   // = $405") — is not linked to it: the checker probes or corrects it as always.
   const hits = Object.entries(p.roots).filter(([, r]) => !(step === r.step && p.own.some(x => same(x, r.value)))
-    && ((step !== r.step && stepDependents(p.c, r.step).has(step) && stands(r)) || carried.some(x => r.figures.some(y => same(x, y)))));
+    && ((step !== r.step && stepDependents(p.c, r.step).has(step) && stands(r) && (p.inherits?.(r, step, p.own, p.n) ?? true)) || carried.some(x => r.figures.some(y => same(x, y)))));
   if (hits.length === 0) return null;
   const by = hits.filter(([, r]) => r.since <= p.n).sort((a, b) => b[1].since - a[1].since);
   return (by[0] ?? [...hits].sort((a, b) => a[1].since - b[1].since)[0])[0];
@@ -245,14 +248,14 @@ export function stepRootFigures(c: { mathSteps: unknown[] }, value: number, span
   return [value, ...extra.filter((x, i) => extra.findIndex(y => same(x, y)) === i)];
 }
 // This message's step flags against the roots so far: a new root, or a flag linked to one (logged only).
-export function registerStepRoots(c: { mathSteps: unknown[] }, roots: Record<string, StepRoot>, flags: Pick<RecomputeFlag, 'stepId' | 'candidateValue' | 'span' | 'kind'>[], n: number, caseFigures: number[], closed?: ReadonlySet<string>): { roots: Record<string, StepRoot>; registered: string[]; linked: { key: string; root: string }[] } {
+export function registerStepRoots(c: { mathSteps: unknown[] }, roots: Record<string, StepRoot>, flags: Pick<RecomputeFlag, 'stepId' | 'candidateValue' | 'span' | 'kind'>[], n: number, caseFigures: number[], closed?: ReadonlySet<string>, inherits?: StepInherits): { roots: Record<string, StepRoot>; registered: string[]; linked: { key: string; root: string }[] } {
   const out = { ...roots };
   const registered: string[] = [];
   const linked: { key: string; root: string }[] = [];
   for (const f of flags) {
     if ((f.kind ?? 'step') !== 'step') continue;
     const key = attemptKey(f);
-    const root = stepRootOf({ c, roots: out, key, span: f.span, own: [f.candidateValue], n, caseFigures, closed });
+    const root = stepRootOf({ c, roots: out, key, span: f.span, own: [f.candidateValue], n, caseFigures, closed, inherits });
     if (root && root !== stepRootKey(f.stepId, f.candidateValue)) { linked.push({ key, root }); continue; }
     const rk = stepRootKey(f.stepId, f.candidateValue);
     if (!isRootStep(c, f.stepId) || out[rk]) continue;
@@ -260,6 +263,26 @@ export function registerStepRoots(c: { mathSteps: unknown[] }, roots: Record<str
     registered.push(rk);
   }
   return { roots: out, registered, linked };
+}
+const HYPOTHETICAL_SPAN = /\b(?:would|could|might|if|suppose|say|assum\w*|closer to|nearer)\b/i;
+// Phase 1 task 3 (rootLineage; the Stream 2 review's finding, 22 Oct): the root is the step whose wrong value the derived
+// ones inherit. A claim on a dependent step D stays linked to root R at v by dependency — round 6's link, so a chain
+// built on the root waits for it (b37q Raj's eight lines on his $405) — unless the candidate shows D's error is their
+// own: a step between R and D (an intermediate dependent, built on R, that D is built on) stated at its right value
+// since the root, or R itself stated right in D's own message. Then D is an independent slip: not linked, probed as any
+// claim (prof-001: "other inputs are 43.3 points now … so they added 13 points" with the bean share at a wrong 14.5 —
+// the 43.3 is right, so the 13 is a slip of its own). An intermediate step flagged on such a slip registers as a root
+// of its own. (A propagation test — D's figure as what D gives on R's wrong value — was tried and dropped: pricing-001's
+// steps carry the lifetime error by its margin, not by the LTV, and Raj's $1,175 at $60 read as independent.)
+// `stated`: the step statements known (the checker's tagged claims, this message's bindings), with their message.
+export function lineageInherits(c: { mathSteps: unknown[] }, stated: { stepId: string; value: number; n: number }[]): StepInherits {
+  const steps = rootStepsOf(c);
+  const rightOn = (id: string, x: number) => { const st = steps.find(y => y.id === id); return st !== undefined && [st.answer, ...(st.altAnswers ?? [])].some(a => Math.abs(Math.abs(x) - Math.abs(a)) <= (st.tolerance ?? 0) + 1e-9); };
+  return (r, step, _own, n) => {
+    const between = [...stepDependents(c, r.step)].filter(id => id !== step && stepDependents(c, id).has(step));
+    return !stated.some(x => rightOn(x.stepId, x.value) && x.n <= n
+      && ((x.stepId === r.step && x.n === n) || (between.includes(x.stepId) && x.n >= r.since)));
+  };
 }
 export const stepRootReason = (r: StepRoot) => `built on ${r.step}'s ${r.value}, flagged by the step check`;
 // The root's input question as the interviewer model reads it: a probe, said as written — never a correction or a figure.
@@ -668,7 +691,10 @@ export type CheckerSelection = {
   // that root's one derived correction (flags.mathChecker.derivedOnce; Lorenzo, 20 Oct, ruling 3: one per root).
   onceRoot?: string;
   // Claims built on this line's root, 'derived' on it: handled only if the line is used and heard (plan-turn, settle-turn).
-  riders?: { id: string; candidateTurnIndex: number; claim: VettedClaim }[];
+  riders?: { id: string; candidateTurnIndex: number; claim: VettedClaim; key?: string }[];
+  // Phase 1 task 3: the step root this line corrects at the root (rootLineage) — its riders' keys close with it.
+  rootCorrection?: string;
+  rootClaimKey?: string;   // …and the key of the claim it was said on
   // E7: the input a probe, pointer or hint is on (booked in flags.inputProbes), and the inputs a row fix corrects (closed with it).
   input?: string;
   inputs?: string[];
@@ -728,6 +754,22 @@ export type CheckerPlanInput = {
   // chosen, why it is stale — the candidate has since stated a newer value for its quantity, or withdrawn its figure or
   // one it is built on — else null. A stale claim is dropped, logged `stale_drop`; the next one in the queue goes.
   staleDrop?: (e: { id: string; n: number; c: VettedClaim }) => string | null;
+  // Phase 1 task 3 (the `rootLineage` switch; plan-turn): the step check's roots by lineage (lineageOf, dependsOn).
+  rootLineage?: RootLineage;
+};
+// Lorenzo (Phase 1, Stream 3 task 3): "Roots, via dependsOn: probe only the root; at most 2 probes per lineage, then one
+// correction at the root, worded from the case's definition or ledger line; derived figures wait for their root."
+// His ruling on contract Q1: "no root correction unless the checker rated the root, or a claim in its lineage, an error.
+// Otherwise two probes, then the report." `probes`: the probes spent on a step's lineage — its members' step probes
+// summed (a step in no lineage: its own); `definitionOf`: the case's definition of a step (contract §1), the root
+// correction's first sentence.
+export type RootLineage = {
+  probes: (step: string) => number;
+  definitionOf?: (step: string) => string | undefined;
+  inherits?: StepInherits;
+  // Why the root's value is no longer theirs (a withdrawal in a message since: "not $12M") — the root correction is not
+  // said then. Read from the candidate's own words, so it holds with or without the worksheet (plan-turn).
+  rootStale?: (step: string, value: number, since: number) => string | null;
 };
 export type CheckerPlan = {
   selected: CheckerSelection | null;  // at most one a turn
@@ -1112,7 +1154,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   if (Object.keys(roots).length > 0) {
     const linkedBefore = new Map(Object.entries(roots).flatMap(([rk, r]) => (r.linked ?? []).map(k => [k, rk] as const)));
     const linkOf = (e: typeof eligible[number]): string | null => {
-      const direct = stepRootOf({ c: p.caseData, roots, key: e.key, span: e.c.span, own: idFigsOf(e.c), n: e.n, caseFigures: caseNumbers, closed: closedOrCorrected });
+      const direct = stepRootOf({ c: p.caseData, roots, key: e.key, span: e.c.span, own: idFigsOf(e.c), n: e.n, caseFigures: caseNumbers, closed: closedOrCorrected, inherits: p.rootLineage?.inherits });
       if (direct) return direct;
       const on = rootOf(e.c.span, e.key, keys, caseNumbers);
       return on ? stepLinked[on] ?? linkedBefore.get(on) ?? null : null;
@@ -1130,6 +1172,26 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       if (!root) continue;
       eligible.splice(eligible.indexOf(e), 1);
       linkedOut.push({ e, root });
+    }
+  }
+  // Task 3: a root corrected at the root (rootLineage; corrected[R@v].at, the message it was decided on) covers the
+  // lineage's claims said before the candidate heard it, and those of a message that still states R at v (b37q Marcus
+  // 25:0, "$920 is LTV minus CAC: $1,220 − $300", said beside "$30 × 14 ≈ $420"): one error, one count — to the report,
+  // never a second line. A later claim on a corrected root's step with R right is its own (round 6 fix round 2).
+  if (p.rootLineage) {
+    const fixed = Object.entries(p.stepRoots ?? {}).flatMap(([rk, r]) => {
+      const at = p.corrected?.[attemptKey({ stepId: r.step, candidateValue: r.value })]?.at;
+      return at === undefined ? [] : [{ rk, r, at, deps: stepDependents(p.caseData, r.step) }];
+    });
+    const statesRootAt = (n: number, r: StepRoot) => verdicts.some(v => v.candidateTurnIndex === n && v.claims.some(c => c.codeQuantity.kind === 'step' && c.codeQuantity.stepId === r.step && claimFigures(c).some(x => same(x, r.value))));
+    for (const e of [...eligible]) {
+      const step = e.c.codeQuantity.kind === 'step' ? e.c.codeQuantity.stepId ?? '' : '';
+      const hit = fixed.find(f => f.deps.has(step) && (e.n <= f.at || statesRootAt(e.n, f.r)));
+      if (!hit) continue;
+      eligible.splice(eligible.indexOf(e), 1);
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `${stepRootReason(hit.r)} — corrected at the root (message ${hit.at}); left for the report`, undefined, e.key), root: hit.rk });
+      handled.add(e.id);
+      if (!closedNow.includes(e.key)) closedNow.push(e.key);
     }
   }
   // E7: each flagged claim's misread input — its own figure when that is a figure of the data (dataFigure), else a
@@ -1307,6 +1369,65 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       : `built on a corrected input (${root}) — its correction was already said twice; left for the report`, undefined, e.key), root });
     handled.add(e.id);
   };
+  // Phase 1 task 3 (rootLineage): the one correction at a root R at v, for a claim linked to it — "worded from the case's
+  // definition or ledger line": the definition's sentence, then code's own correction of R (codeCorrection, the step's
+  // quantity named, "not v"). Said only (Q1) on the checker's error rating of R at v or of a lineage claim whose words
+  // carry v — evidence that v is the candidate's figure for R, not a false binding (b37q Tyler pro_ltv@288) — and after
+  // the lineage's first probe (its input question, or the checker's probe of R): "probe only the root" first. 'wait':
+  // not yet — the linked claim waits for its root (and expires to the report as any claim does). null: no root
+  // correction to say — the linked claim goes as before (its own correction once per root, or the report).
+  const rootCorrection = (rk: string, e: { id: string; n: number; c: VettedClaim; key: string }): CheckerSelection | 'wait' | null => {
+    const r = roots[rk];
+    const rl = p.rootLineage;
+    if (!rl || !r) return null;
+    const key = attemptKey({ stepId: r.step, candidateValue: r.value });
+    if (closedOrCorrected.has(key)) return null;
+    const st = rootStepsOf(p.caseData).find(x => x.id === r.step) as (RootStepDef & { unit?: string | string[] }) | undefined;
+    if (!st) return null;
+    // Q1 (Lorenzo, 22 Oct): the checker must have rated the root, or a claim in its lineage, an error — flagged or not.
+    const lineage = new Set([r.step, ...stepDependents(p.caseData, r.step)]);
+    const inLineage = (c: CheckerClaim) => c.codeQuantity.kind === 'step' && lineage.has(c.codeQuantity.stepId ?? '');
+    const evidence = e.c.verdict === 'error' ? { id: e.id }
+      : verdicts.flatMap(v => v.claims.map((c, i) => ({ id: `${v.candidateTurnIndex}:${i}`, c })))
+        .find(x => x.c.verdict === 'error' && inLineage(x.c));
+    if (!evidence) return null;
+    // The root's value still theirs: the latest of the checker's claims on R since the root (any rating) is at v — not
+    // a figure they have moved off (b37q Tyler a2a5921b: $700 at t5, "$28 margin × 20 = $560" at t13; "not $700" at t28
+    // would have corrected a figure he no longer held).
+    // A hypothetical doesn't count (b37q Marcus t19, "…which would put the pure-Starter lifetime nearer 20 months and LTV
+    // around $600", while he kept his 14 months — the controller's 21 Oct ruling on the r6-final replay).
+    const onR = verdicts.filter(v => v.candidateTurnIndex >= r.since).flatMap(v => v.claims.filter(c => c.codeQuantity.kind === 'step' && c.codeQuantity.stepId === r.step && !HYPOTHETICAL_SPAN.test(c.span)).map(c => ({ n: v.candidateTurnIndex, figs: claimFigures(c) })));
+    const latestOnR = onR.sort((a, b) => a.n - b.n).at(-1);
+    if (latestOnR && !latestOnR.figs.some(x => Math.abs(x - r.value) <= Math.max(st.tolerance ?? 0, Math.abs(r.value) * 0.02))) return null;
+    // …nor withdrawn in a message since (b38 Larkspur Marisol 19: "Across 5,000 flights: $10.0M, not $14.0M").
+    if (rl.rootStale?.(r.step, r.value, r.since)) return null;
+    // "Probe only the root" first: the lineage's first line is a probe at the root — its input question, or the checker's
+    // probe of R — and only then does code correct it. The cap (STEP_PROBE_CAP, counted across the lineage) stops a
+    // third probe; requiring the whole budget before the correction starved the chain on the replay (b37q Raj: one
+    // input question, then no step probe ever, so eight derived claims went to the report with no line at all).
+    if (rl.probes(r.step) < 1) return 'wait';
+    const unit = (Array.isArray(st.unit) ? st.unit[0] : st.unit) ?? '';
+    const v = r.value;
+    const said = unit === 'usd' ? `$${v.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : unit === 'percent' ? `${v}%` : unit === 'points' ? `${v} points` : unit === 'ratio' ? `${v}x` : String(v);
+    const claim: VettedClaim = { ...e.c, codeQuantity: { kind: 'step', stepId: r.step, price: null, target: null }, candidateValue: said, actualShare: null };
+    const written = codeCorrection(claim, { value: st.answer, index: 0 }, vetCtx);
+    if (!written) return null;
+    const definition = rl.definitionOf?.(r.step)?.trim();
+    const line = definition ? `${/[.!?]$/.test(definition) ? definition : `${definition}.`} ${written.line}` : written.line;
+    const sel: CheckerSelection = { id: e.id, candidateTurnIndex: e.n, key, attempt: (p.attempts[key] ?? 0) + 1, action: 'correct', line, derived: [written.figure], claim: { ...claim, correctionLine: line, correctionFigure: written.figure },
+      framing: `the root's correction (rootLineage): ${rk}, the checker's error on ${evidence.id}; ${rl.probes(r.step)} probe(s) on its lineage` };
+    if (saidOnce(sel)) return null;
+    // Booked as the root's one correction (derivedOnce, keyed step:R): one error, one count — a claim on the old root
+    // after it goes to the report.
+    return { ...sel, onceRoot: `${STEP_ROOT}${r.step}`, rootCorrection: rk, rootClaimKey: e.key };
+  };
+  // A selection that is the root's correction, by the root it corrects.
+  let rootCorrected: string | undefined;
+  // The definition's sentence before a root's own correction at the lineage cap (rootLineage).
+  const withDefinition = (s: CheckerSelection | null): CheckerSelection | null => {
+    const def = s && p.rootLineage?.definitionOf && isRootStep(p.caseData, stepOfKey(s.key)) ? p.rootLineage.definitionOf(stepOfKey(s.key))?.trim() : undefined;
+    return s && def ? { ...s, line: `${/[.!?]$/.test(def) ? def : `${def}.`} ${s.line}` } : s;
+  };
   for (const e of all) {
     // E7: a claim on a misread input that was corrected or left for the report goes as a claim on a closed root does.
     const im = inputKeyOf(e);
@@ -1322,21 +1443,25 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (closed.has(first) || closed.has(root)) onClosedRoot(e, root);
     else built.push({ e, root });
   }
-  // The linked claims (fix round 1, above): each its own correction once per root step, else the report.
+  // The linked claims (fix round 1, above): each its own correction once per root step, else the report. Task 3
+  // (rootLineage): the root's own correction instead, decided in the queue (rootCorrection) — so a linked claim with no
+  // line of its own still waits for its root, and the report keeps today's reasons when the root has nothing to say.
+  const linkedReport = (e: typeof eligible[number], root: string, why: string, line?: string) => {
+    decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `${stepRootReason(roots[root])}${why}`, line, e.key), root });
+    handled.add(e.id);
+    if (!closedNow.includes(e.key)) closedNow.push(e.key);
+  };
   for (const { e, root } of linkedOut) {
     const r = roots[root];
     const slot = `${STEP_ROOT}${r.step}`;
-    const toReport = (why: string, line?: string) => {
-      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `${stepRootReason(r)}${why}`, line, e.key), root });
-      handled.add(e.id);
-      if (!closedNow.includes(e.key)) closedNow.push(e.key);
-    };
     const by = p.derivedOnce?.[slot];
-    if (by !== undefined) { toReport(` — one correction per root, said already (${by}); left for the report`); continue; }
-    const sel = ownOnce(e);
-    if (!sel) { toReport(''); continue; }
-    if (saidOnce(sel)) { toReport(' — its own correction was said once already; left for the report', sel.line); continue; }
-    eligible.push({ ...e, once: { root: slot, sel }, linkedTo: root });
+    const sel = by === undefined ? ownOnce(e) : null;
+    const own = sel && !saidOnce(sel) ? { once: { root: slot, sel } } : {};
+    if (p.rootLineage) { eligible.push({ ...e, ...own, linkedTo: root }); continue; }
+    if (by !== undefined) { linkedReport(e, root, ` — one correction per root, said already (${by}); left for the report`); continue; }
+    if (!sel) { linkedReport(e, root, ''); continue; }
+    if (saidOnce(sel)) { linkedReport(e, root, ' — its own correction was said once already; left for the report', sel.line); continue; }
+    eligible.push({ ...e, ...own, linkedTo: root });
   }
   for (const r of reopened) if (!eligible.some(e => e.key === r.key)) eligible.push({ id: r.id, n: r.n, c: r.c, key: r.key, figs: r.figs });
   // A raised, open root with no claim here comes back on its latest claim (one with a correction first).
@@ -1416,6 +1541,20 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (closedNow.includes(key)) { decisions.push(decision(id, n, c, 'unresolved', 'its flag closed this turn', undefined, key)); handled.add(id); continue; }
     if (p.holdLinked && entry.linkedTo) { heldLinked.push(entry); continue; }
     // Its own correction once (R7 reversed): no Rule-14 probe; a minor one is shed under time pressure, as a flag is.
+    // Task 3 (rootLineage): a claim linked to a step root waits for its root — the root's one correction goes instead,
+    // said on this claim's turn; with nothing to say at the root, today's paths follow (its own correction, or the report).
+    if (entry.linkedTo) {
+      const atRoot = rootCorrection(entry.linkedTo, entry);
+      if (atRoot === 'wait') { heldLinked.push(entry); continue; }
+      if (atRoot) { selected = atRoot; selectedLinked = entry.linkedTo; rootCorrected = entry.linkedTo; continue; }
+      if (p.rootLineage && !entry.once) {
+        const by = p.derivedOnce?.[`${STEP_ROOT}${roots[entry.linkedTo].step}`];
+        const own = ownOnce(entry);
+        linkedReport(entry, entry.linkedTo, by !== undefined ? ` — one correction per root, said already (${by}); left for the report`
+          : own ? ' — its own correction was said once already; left for the report' : '', own?.line);
+        continue;
+      }
+    }
     if (entry.once) {
       const { root, sel } = entry.once;
       if (p.underTimePressure && !isFinal(entry) && !changes(entry)) { decisions.push({ ...decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key), root }); handled.add(id); continue; }
@@ -1461,11 +1600,17 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       toReport([key, im]);
       continue;
     }
-    if ((p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
-      const corrected = correctionOf(id, n, c, key, attempt);
+    if ((p.rootLineage ? p.rootLineage.probes(stepOfKey(key)) : p.stepProbes?.[stepOfKey(key)] ?? 0) >= STEP_PROBE_CAP) {
+      // Task 3: at the cap the correction goes at the lineage's root when there is one (its definition first), else at
+      // the claim itself, as before.
+      const ownRoot = p.rootLineage ? Object.keys(roots).find(rk => stepDependents(p.caseData, roots[rk].step).has(stepOfKey(key))) : undefined;
+      const atRoot = ownRoot ? rootCorrection(ownRoot, entry) : null;
+      if (atRoot && atRoot !== 'wait') { selected = atRoot; selectedLinked = ownRoot; rootCorrected = ownRoot; continue; }
+      const corrected = withDefinition(correctionOf(id, n, c, key, attempt));
       if (corrected && spentLine(corrected)) continue;
       if (corrected) { selected = corrected; continue; }
-      decisions.push(decision(id, n, c, 'unresolved', `two probes on this step already (${stepOfKey(key)}) — left for the report`, undefined, key));
+      decisions.push(decision(id, n, c, 'unresolved', p.rootLineage && p.rootLineage.probes(stepOfKey(key)) > (p.stepProbes?.[stepOfKey(key)] ?? 0)
+        ? `two probes on this step's lineage already (${stepOfKey(key)}) — left for the report` : `two probes on this step already (${stepOfKey(key)}) — left for the report`, undefined, key));
       handled.add(id);
       toReport([key]);
       continue;
@@ -1491,12 +1636,21 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // A derived claim's own correction (R7 reversed): its decision names the root it was built on.
   const onceRoot = selected?.onceRoot;
   if (selected && !restating) decisions.push({ ...decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
-    `${selectedLinked ? `${stepRootReason(roots[selectedLinked])} — its own correction, once (one per root); ` : onceRoot ? `built on a closed input (${onceRoot}) — its own correction, once; ` : ''}attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}${eligible.find(e => e.id === selected!.id && e.key === selected!.key)?.carried ? `; carried into ${riding(selected).map(d => d.id).join(', ')}` : ''}`, selected.line, selected.key), ...(selectedLinked ? { root: selectedLinked } : onceRoot ? { root: onceRoot } : {}) });
+    `${rootCorrected ? `${stepRootReason(roots[rootCorrected])} — the root's own correction, on this claim (rootLineage); ` : selectedLinked ? `${stepRootReason(roots[selectedLinked])} — its own correction, once (one per root); ` : onceRoot ? `built on a closed input (${onceRoot}) — its own correction, once; ` : ''}attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}${eligible.find(e => e.id === selected!.id && e.key === selected!.key)?.carried ? `; carried into ${riding(selected).map(d => d.id).join(', ')}` : ''}`, selected.line, selected.key), ...(selectedLinked ? { root: selectedLinked } : onceRoot ? { root: onceRoot } : {}) });
   // The claims built on a root said now ride on its line (booked only if the line is used — plan-turn); the rest
   // wait. (Those on a root closed this turn left the queue with it: toReport.)
   const riders: NonNullable<CheckerSelection['riders']> = [];
   // E7: a probe on a claim of an input is booked to the input (flags.inputProbes, plan-turn).
   if (selected && !correctsNow(selected)) { const im = inputKeyOf(selected); if (im) selected = { ...selected, input: im }; }
+  // Task 3: the claims waiting on a root its correction says now ride on it (booked only if the line is said).
+  if (selected && rootCorrected) {
+    for (const w of [...waiting]) {
+      if (w.linkedTo !== rootCorrected || w.id === selected.id) continue;
+      waiting.splice(waiting.indexOf(w), 1);
+      decisions.push({ ...decision(w.id, w.n, w.c, 'derived', `${stepRootReason(roots[rootCorrected])} — rides on the root's correction`, undefined, w.key), root: rootCorrected });
+      riders.push({ id: w.id, candidateTurnIndex: w.n, claim: w.c, key: w.key });
+    }
+  }
   for (const { e, root } of built) {
     if (selected?.key === root || (selected?.inputs ?? []).includes(root)) {
       decisions.push({ ...decision(e.id, e.n, e.c, 'derived', restating ? `built on ${root}'s figure — rides on its restated correction` : `built on ${root}'s figure — the probe follows the input`, undefined, e.key), root });
