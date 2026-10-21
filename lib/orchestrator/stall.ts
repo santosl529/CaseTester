@@ -109,8 +109,9 @@ function wordCount(s: string): number {
   return s.split(/\s+/).filter(Boolean).length;
 }
 
+// Round 5c Task 63: a question-form sentence counts too (voice STT drops the "?": "So what was the suite").
 function isQuestion(text: string): boolean {
-  return /\?/.test(text) || /^\s*(what|what'?s|how|why|which|who|when|where|do|does|is|are|can|could|would|should)\b/i.test(text);
+  return /\?/.test(text) || sentencesOf(text).some(isQuestionForm) || /^\s*(what|what'?s|how|why|which|who|when|where|do|does|is|are|can|could|would|should)\b/i.test(text);
 }
 
 const HEDGE_PATTERN = /\b(i (really )?(don'?t|do not) know|not sure|no idea|i'?m stuck|i am stuck|stuck|can you help|help me|give me a hint|i give up|i can'?t (do|figure|think)|no clue|i'?m lost|i am lost|blank|um+|uh+|hmm+)\b/i;
@@ -198,13 +199,13 @@ export function isQuestionForm(sentence: string): boolean {
 
 function isDataRequest(text: string): boolean {
   if (DATA_REQUEST_PHRASE.test(text)) return true;
-  return sentencesOf(text).some(s => isQuestionSentence(s) && DATA_NOUN.test(s));
+  return sentencesOf(text).some(s => isQuestionForm(s) && DATA_NOUN.test(s));
 }
 
 // Rule 13 v4.5: the budget counts only question-only turns. A sentence that is
 // not a question and has some substance (not "Okay." / "Sure.") is content.
 function hasSubstantiveStatement(text: string): boolean {
-  return sentencesOf(text).some(s => !isQuestionSentence(s) && wordCount(s) >= 4);
+  return sentencesOf(text).some(s => !isQuestionForm(s) && wordCount(s) >= 4);
 }
 
 // A turn is classified by its content, not its last sentence (Rule 13 v4.5).

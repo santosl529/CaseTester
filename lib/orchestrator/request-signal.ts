@@ -7,7 +7,7 @@
 // left to the model, as today.
 import type { Phase } from './state-machine';
 import { normalizeNumberWords } from '@/lib/number-words';
-import { DATA_NOUN, isQuestionForm, isQuestionSentence, sentencesOf } from './stall';
+import { DATA_NOUN, isQuestionForm, sentencesOf } from './stall';
 
 const CUES: [label: string, pattern: RegExp][] = [
   ['could I get', /\b(could|can|may)\s+(i|we)\s+(get|have|see)\b/i],
@@ -83,8 +83,8 @@ const PROCEED_Q = /^\W*(?:(?:and|so|ok(?:ay)?|then)\b,?\s+)?(?:do you want|would
 
 function asksAddressed(sentence: string, phase: Phase, given: number[] = []): boolean {
   if (cueAsk(sentence)) return true;
-  if (WANT_CUE.test(sentence) && (WANT_ASK_PHASES.includes(phase) || sentence.endsWith('?'))) return true;
-  if (!isQuestionSentence(sentence)) return false;
+  if (WANT_CUE.test(sentence) && (WANT_ASK_PHASES.includes(phase) || sentence.endsWith('?') || isQuestionForm(sentence))) return true;
+  if (!isQuestionForm(sentence)) return false;
   if (PROCEED_Q.test(sentence)) return isDataNoun(sentence);
   // A question naming a figure the candidate was given: "does the $80 million hold flat…?"
   return isDataNoun(sentence) || (given.length > 0 && numbersIn(sentence).some(n => given.some(g => sameFigure(n, g))));
@@ -102,9 +102,9 @@ const SELF_FRAME = /\b(?:i'?d (?:want|need) to know|i'?d ask|the (?:real |key )?
 const EITHER_OR = /,\s*or\b|\bor is\b|\bor are\b|\bor does\b|\bor do\b/i;
 function rhetorical(sentences: string[], i: number): boolean {
   const s = sentences[i];
-  if (!isQuestionSentence(s) || cueAsk(s)) return false;
+  if (!isQuestionForm(s) || cueAsk(s)) return false;
   const after = sentences.slice(i + 1);
-  if (after.length === 0 || after.every(x => isQuestionSentence(x))) return false;
+  if (after.length === 0 || after.every(x => isQuestionForm(x))) return false;
   return EITHER_OR.test(s) || SELF_FRAME.test(sentences[i - 1] ?? '');
 }
 
