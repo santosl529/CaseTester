@@ -484,6 +484,9 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
   md.push('## Rule 11 / v4.1 checks', '');
   md.push(`- Ledger items revealed: ${revealed.map(r => `\`${r.ledgerItemId}\``).join(', ') || 'none'}`);
   md.push(`- Force-released before the recommendation ask: ${forced.length ? '`' + JSON.stringify(forced) + '`' : 'none'}`);
+  // Must-reach items (round 6 Task 72): released unasked at their point.
+  const volunteered = interventions.filter(e => e.subtype === 'volunteered');
+  if (volunteered.length > 0) md.push(`- Volunteered by the interviewer (not asked for): ${volunteered.map(e => `\`${(e.payloadJsonb as { item?: string }).item}\`@${e.turnIndex}`).join(', ')}`);
   md.push(`- Scoring QA: \`${JSON.stringify(scoringQa ?? {})}\``);
   md.push(`- Assists / interventions: ${interventions.map(i => `${i.subtype}@${i.turnIndex}`).join(', ') || 'none'}`, '');
   md.push('| Candidate turn | Response | Ledger items | Asked for | Revealed by then |', '|---|---|---|---|---|');

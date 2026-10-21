@@ -1111,6 +1111,10 @@
     "minItems": 3,
     "ask": "Let's hold the recommendation for now: what's behind the swing from profit to loss, and what would you need to see to pin it down?"
   },
+  "mustReach": [
+    { "item": "competitor_entry", "before": "exhibit-3" },
+    { "item": "new_route_rampup", "before": "recommendation" }
+  ],
   "quoteAnchors": [
     {
       "item": "lakeport_fare",

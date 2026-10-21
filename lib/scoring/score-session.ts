@@ -13,7 +13,7 @@ import { runReconciliation } from './reconcile';
 import { checkMathSteps } from './deterministic';
 import { assembleReport } from './report';
 import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './assists';
-import { summarizeDataRequests } from './data-coverage';
+import { summarizeDataRequests, volunteeredItems } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
 import { formatCheckerSection, checkerFlaggedFigures, dropCheckerStamps } from './checker-record';
@@ -167,11 +167,15 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const dataRequestRows = await db.query.sessionEvents.findMany({
     where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
   });
-  const dataCoverage = summarizeDataRequests(
-    dataRequestRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb })),
-    catalog,
-    revealedIds,
-  );
+  const dataCoverage = {
+    ...summarizeDataRequests(
+      dataRequestRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb })),
+      catalog,
+      revealedIds,
+    ),
+    // Must-reach items the interviewer volunteered (round 6 Task 72): the judge doesn't credit asking for them.
+    volunteered: volunteeredItems(interventionRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb })), catalog),
+  };
   if (dataCoverage.requestedUnanswered.length > 0) {
     console.warn('[score] requested-but-unanswered ledger data (coverage gap):', JSON.stringify(dataCoverage.requestedUnanswered));
   }

@@ -329,7 +329,9 @@ export function heldForOrder(id: string, exhibits: ExhibitInfo[], shown: Set<str
 }
 
 export type DataDecisions = {
-  releases: { id: string; value: string; earlier: boolean }[];
+  // mustReach: a must-reach item code volunteered (round 6 Task 72; turn-data.ts mustReachItems) — the point it was due
+  // before (an exhibit id, or "recommendation"); said first, without the "earlier" lead-in: nobody asked for it.
+  releases: { id: string; value: string; earlier: boolean; mustReach?: string }[];
   restates: { id: string; value: string; exhibit?: boolean }[];  // explicit re-asks of data already revealed: said again, never re-booked
   exhibit: { id: string; title: string; covers: string[] } | null;
   refusals: string[];     // what, for explicit asks the case doesn't hold
@@ -669,9 +671,12 @@ function dataLine(value: string, uses: PhraseUses | undefined, seed: string): st
 export function renderDataLineParts(d: DataDecisions, seed: string, uses?: PhraseUses): DataLinePart[] {
   const parts: DataLinePart[] = [];
   if (d.correction) parts.push({ kind: 'correction', ids: [], text: d.correction.text });
-  const earlier = d.releases.filter(r => r.earlier);
+  // A must-reach item first, on its own (round 6 Task 72): the "earlier" lead-in would say the candidate asked for it.
+  for (const r of d.releases.filter(x => x.mustReach !== undefined)) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
+  const asked = d.releases.filter(r => r.mustReach === undefined);
+  const earlier = asked.filter(r => r.earlier);
   if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: phrase('earlier', '', uses, seed) });
-  for (const r of d.releases) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
+  for (const r of asked) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
   // Restated values carry no ids: nothing is booked as a new reveal.
   // The lead-in names where the item came from: what was said ("As I mentioned"), what only an exhibit showed ("As the exhibit shows").
   const saidFirst = [...d.restates.filter(r => !r.exhibit), ...d.restates.filter(r => r.exhibit)];

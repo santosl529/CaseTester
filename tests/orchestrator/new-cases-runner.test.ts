@@ -262,7 +262,8 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
     const r = await say('The risk is ramp-up; I would phase it.');
     expect(r.ended).toBe(false);
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
-    expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposed new routes/);
+    // Round 6 Task 72: the competitor (a must-reach item before Exhibit 3, never asked for) goes first.
+    expect(r.interviewerText).toMatch(/^Early in FY2024, a low-cost airline started nonstop flights[^.]*\. Here's an exhibit: Proposed new routes/);
     const next = await say('It adds about $11.8M.');
     expect(next.ended).toBe(true);
   });
@@ -270,7 +271,8 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
   it('under time pressure there is no hold: the next required exhibit goes out with the recommendation ask', async () => {
     seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 23.7, shown: ['exhibit-1'], revealed: CORE, flags: PT_SATISFIED });
     const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
-    expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. .*recommend.*biggest risk to it\?$/);   // the time warning is the ask here (with the risk since 15 Oct)
+    // The time warning is the ask here (with the risk since 15 Oct); the ramp-up (a must-reach item before the recommendation, round 6 Task 72) goes first.
+    expect(r.interviewerText).toMatch(/^New routes typically take 6–12 months[^.]*\. Here's an exhibit: Hub–Lakeport.*\(\$\)\. .*recommend.*biggest risk to it\?$/);
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
   });
 
@@ -278,7 +280,8 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
     const LOW = { structure: 20, quantitative: 20, dataExhibit: 20, judgment: 20, creativity: 20, synthesis: 20, communication: 20, pushback: 20 };   // code doesn't ask
     seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 23.9, coverage: LOW, shown: ['exhibit-1'], revealed: CORE, flags: { ...PT_SATISFIED, timeWarningFired: true } });
     const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
-    expect(r.interviewerText).toMatch(/^Here's an exhibit: Hub–Lakeport.*\(\$\)\. What's your recommendation to the CEO\?$/);
+    // The model's recommendation ask: the ramp-up first (round 6 Task 72).
+    expect(r.interviewerText).toMatch(/^New routes typically take 6–12 months[^.]*\. Here's an exhibit: Hub–Lakeport.*\(\$\)\. What's your recommendation to the CEO\?$/);
   });
 
   it('not at time-up: the close is not held', async () => {

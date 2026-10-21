@@ -37,7 +37,7 @@ import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers }
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
@@ -214,7 +214,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const decisions = await turnDataChecked(plan, withAsks(turn, asked), onUsage);
   const phraseUses = flags.phraseUses as PhraseUses | undefined;
   const dataParts = renderDataLineParts(decisions, seed, phraseUses);
-  const dataLines = dataParts.map(p => p.text);
+  let dataLines = dataParts.map(p => p.text);
   const gBase = gateContext(plan, decisions.releases.map(r => r.value), [...decisions.releases.map(r => r.id), ...(decisions.exhibit?.covers ?? []), ...decisions.restates.map(r => r.id)]);
   // What this turn's data line hands over, for the question's delivery claims.
   const g = gBase.facts ? { ...gBase, facts: { ...gBase.facts, delivery: {
@@ -644,6 +644,31 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   checks.record('vetoes', withheld.length > 0, 'sentences of the model\'s own withheld', { withheld });
   if (withheld.length > 0) console.warn('[runner] withheld:', JSON.stringify(withheld));
 
+  // Must-reach items due at a point only Settle sees (round 6 Task 72; turn-data.ts mustReachItems): the exhibit code
+  // hands over in the question (a held handover — b36 Larkspur Jasmine bbf78ab8 t10: her brainstorm was held for
+  // Exhibit 3), or the model's question as stage-evidence.ts reads it — the recommendation ask. Released at the end of
+  // the data line, so ahead of that exhibit and that question; the line streamed already is untouched (the prefix lock).
+  if (!ended) {
+    const recAskedNow = kind === 'model' && Boolean(question) && stageQuestions(question, {
+      move: modelQuestion ? turn.move : undefined, recOnTable: state.stages.recommendationAsked || state.recommendationReceived,
+      brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue,
+    }).recommendation;
+    const late = mustReachItems(plan, { exhibit: heldForExhibit?.id ?? null, recommendation: recAskedNow }, decisions);
+    if (late.length > 0) {
+      dataParts.push(...renderDataLineParts({ releases: late, restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], requests: [] }, seed, phraseUses));
+      dataLines = dataParts.map(p => p.text);
+      decisions.releases = [...decisions.releases, ...late];
+    }
+  }
+  // The must-reach items this turn volunteers (round 6 Task 72; Lorenzo, 21 Oct: "The report should note when an item
+  // was volunteered"): logged; never volunteered again (flags.mustReach, whether heard or not); the `volunteered`
+  // event for each one the candidate got (persist, below) — the judge doesn't credit them for asking it.
+  const volunteered = decisions.releases.filter(r => r.mustReach !== undefined);
+  if (volunteered.length > 0) {
+    checks.act('must_reach', 'a must-reach item the candidate never asked for, released at its point', { items: volunteered.map(r => ({ item: r.id, before: r.mustReach })) });
+    flags.mustReach = [...((flags.mustReach as string[] | undefined) ?? []), ...volunteered.map(r => r.id)];
+  }
+
   const spokenText = [say, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
 
   // Still not heard (a pressure-test step or another of code's lines took the
@@ -809,6 +834,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const h = applyHeard(heard, { spokenText, question, newReveals, dataParts, exhibitId: exhibit?.id });
     const qHeard = h.questionHeard;
     const bookedReveals = h.bookedReveals;
+    for (const v of volunteered) if (bookedReveals.includes(v.id)) ctx.events.push({ category: 'intervention', subtype: 'volunteered', payload: { item: v.id, before: v.mustReach } });
     const exhibitSaved = h.exhibitBooked ? exhibit : undefined;
     const exhibitRevealsSaved = exhibitSaved ? exhibitReveals : [];
     const endedSaved = ended && qHeard;

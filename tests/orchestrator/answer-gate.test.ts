@@ -586,8 +586,9 @@ describe('Task 71: the audit\'s code-only fixes, through the turn', () => {
   it('row 8, b36l Marcus t19 (rec_ask): the launch cost is out of the recurring line\'s scope — refused alone, nothing restated', async () => {
     const { d } = await run71('F1', { items: [{ id: 'new_routes_cost_flights', answers: 'full' }] });
     expect(d.restates).toEqual([]);
-    expect(d.releases).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual(["I don't have launch costs for the new routes."]);
+    // Round 6 Task 72: code's recommendation ask volunteers the ramp-up (a must-reach item), first; nothing else goes.
+    expect(d.releases).toEqual([expect.objectContaining({ id: 'new_route_rampup', mustReach: 'recommendation' })]);
+    expect(renderDataLines(d, 's')).toEqual([value('prof-002', 'new_route_rampup'), "I don't have launch costs for the new routes."]);
   });
   it('row 13, b37h Tyler t17 (rec_ask): a basis ask — neither line restated, the basis refused', async () => {
     const { d } = await run71('F3', { items: [{ id: 'planning_assumptions', answers: 'full' }, { id: 'survey_design', answers: 'full' }] });

@@ -203,6 +203,12 @@ export const CaseSchema = z.object({
     minItems: z.number().int().min(1).optional(),
     ask: z.string().min(1),
   }).optional(),
+  // Must-reach items (round 6 Task 72; Lorenzo, 21 Oct, round 6: "Code releases a case-declared item at a declared
+  // point if the candidate hasn't asked by then … The report should note when an item was volunteered."; audit row 9,
+  // b36 Larkspur Jasmine: Exhibit 3 at t10, the competitor never told). `before`: an exhibit id — released in the data
+  // line of the turn that hands that exhibit over, ahead of it — or "recommendation" — released before code's (or the
+  // model's) recommendation ask (turn-data.ts mustReachItems). Never on a close turn, never twice, past the release cap.
+  mustReach: z.array(z.object({ item: z.string(), before: z.string().min(1) }).strict()).optional(),
   // Voice (lib/voice/keyterms.ts; Lorenzo's brief, 17 Oct): the case's own
   // names and terms Flux is told to expect — the client, products, places —
   // beside the generic ones ("COGS", "MECE"). 9ccf0836 heard "Cogshare".
@@ -355,6 +361,10 @@ export const CaseSchema = z.object({
   });
   c.analysisCore?.items.forEach((id, i) => {
     if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['analysisCore', 'items', i], message: `Unknown ledger item "${id}"` });
+  });
+  (c.mustReach ?? []).forEach((m, i) => {
+    if (!ledgerIds.has(m.item)) ctx.addIssue({ code: 'custom', path: ['mustReach', i, 'item'], message: `Unknown ledger item "${m.item}"` });
+    if (m.before !== 'recommendation' && !c.exhibits.some(e => e.id === m.before)) ctx.addIssue({ code: 'custom', path: ['mustReach', i, 'before'], message: `"${m.before}" is neither an exhibit nor "recommendation"` });
   });
   if (c.pricingModel) {
     const pm = c.pricingModel;

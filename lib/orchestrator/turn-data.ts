@@ -140,6 +140,36 @@ function coverEntry(what: string, id: string, fb: ModelPlan['state']['factBase']
 
 const PROPER_ADJECTIVES = ['European', 'American', 'US', 'EU', 'UK', 'Canadian', 'Asian'];
 
+// Must-reach items (round 6 Task 72; Lorenzo, 21 Oct, round 6: "Must-reach mechanism. Code releases a case-declared
+// item at a declared point if the candidate hasn't asked by then. prof-002 only for now: competitor_entry before
+// Exhibit 3 (the network fix); new_route_rampup before the recommendation ask. The report should note when an item
+// was volunteered."; audit row 9, b36 Larkspur Jasmine bbf78ab8 t10: Exhibit 3 went out and the competitor was never
+// told). At a point — the exhibit this turn hands over, by any path (decideData's here; settle-turn.ts's held handover
+// in the question), or a recommendation ask (code's: rec_ask, time_warning, grace_ask, here; the model's question as
+// stage-evidence.ts reads it, in Settle) — each item due before it that isn't out: not revealed, not released, shown
+// or restated this turn, never volunteered before (flags.mustReach: never twice), not waiting on the release order.
+// Never on a close turn (nor its wait). Past the release cap: the case owes it. Released ahead of the exhibit and the
+// question (data-decisions.ts renders it first); Settle logs `must_reach` and the `volunteered` event. A case with no
+// `mustReach` (prof-001) gets nothing.
+export const MUST_REACH_REC_KINDS: ReadonlySet<string> = new Set(['rec_ask', 'time_warning', 'grace_ask']);
+export function mustReachItems(plan: ModelPlan, at: { exhibit?: string | null; recommendation?: boolean }, d: Pick<DataDecisions, 'releases' | 'exhibit' | 'restates'>): DataDecisions['releases'] {
+  const { state, ctx } = plan;
+  const due = state.caseData.mustReach ?? [];
+  if (due.length === 0 || state.kind === 'close' || state.kind === 'close_wait') return [];
+  const done = new Set((ctx.flags.mustReach as string[] | undefined) ?? []);
+  const exhibits: ExhibitInfo[] = state.caseData.exhibits.map(e => ({ id: e.id, title: e.title, coversLedgerItems: e.coversLedgerItems, after: e.after, requiresItems: e.requiresItems }));
+  const out: DataDecisions['releases'] = [];
+  for (const m of due) {
+    const point = m.before === 'recommendation' ? at.recommendation === true : (at.exhibit ?? null) === m.before;
+    if (!point || done.has(m.item) || state.ledger.revealed.has(m.item) || out.some(r => r.id === m.item)) continue;
+    if (d.releases.some(r => r.id === m.item) || d.restates.some(r => r.id === m.item) || Boolean(d.exhibit?.covers.includes(m.item))) continue;
+    if (heldForOrder(m.item, exhibits, state.shownExhibitIds, state.ledger, state.stagesOut)) continue;
+    const item = state.ledger.items.find(i => i.id === m.item);
+    if (item) out.push({ id: m.item, value: item.value, earlier: false, mustReach: m.before });
+  }
+  return out;
+}
+
 // Wrap-up and close turns (Lorenzo, 19 Oct, round-2 ruling 3): the code-written
 // close, close wait, grace ask and time warning, and any turn of the
 // recommendation or wrap phase once the recommendation is in. A named deferral
@@ -1435,5 +1465,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   }
   // Proper adjectives and names keep their capital in a line (Task 70 fix round 2, 68b item 3; tagged cases only).
   const properWords = fb.answerGate ? [...PROPER_ADJECTIVES, ...properNames(state.caseData.sttKeyterms)] : undefined;
+  // Must-reach items due at this turn's exhibit or code's recommendation ask (round 6 Task 72): first in the line.
+  const mustNow = mustReachItems(plan, { exhibit: decisions.exhibit?.id ?? null, recommendation: MUST_REACH_REC_KINDS.has(state.kind) }, decisions);
+  if (mustNow.length > 0) decisions.releases = [...decisions.releases, ...mustNow];
   return { ...decisions, correction, gatedIds, ...(basisEmptied.size > 0 ? { basisCut } : {}), ...(coverVetoed.size > 0 ? { coverDeferred: [...coverVetoed] } : {}), ...(properWords ? { properWords } : {}) };
 }
