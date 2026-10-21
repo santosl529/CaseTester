@@ -1,0 +1,666 @@
+{
+ "b33-07-t14-1": {
+  "ask": "historical price elasticity and competitor pricing",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b33-10-t10-1": {
+  "ask": "competitor pricing",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b33-15-t12-1": {
+  "ask": "waste or spoilage data by store",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b33-53-t6-1": {
+  "ask": "units sold per store",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": "Graded a true refusal (Fiona t5): prof-001 holds no unit volume."
+ },
+ "b33-54-t10-1": {
+  "ask": "customer price elasticity",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b33-57-t16-1": {
+  "ask": "green coffee spend by contract type",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b33-57-t16-2": {
+  "ask": "volume per store",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": "Judgement: no volume is held (true refusal); the store count would let her derive it (graded borderline, b33 Marisol t16)."
+ },
+ "b34a-07-t12-1": {
+  "ask": "Kelvexa's European share trajectory by year since 2022",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b34a-07-t18-1": {
+  "ask": "the partner deal terms, including royalty step-downs and rights reversion",
+  "verdict": "items",
+  "ids": [
+   "option_b"
+  ],
+  "label": "wrong_item",
+  "note": "option_b holds the royalty, not step-downs or reversion (hollow deferral, b34a Raj t18)."
+ },
+ "b34a-24-t2-1": {
+  "ask": "Kelvexa's net revenue per patient per year in Europe",
+  "verdict": "timeout",
+  "ids": [],
+  "label": "timeout",
+  "note": "1,502 ms at the 1.5 s cap: no verdict (a named deferral). The ask maps to no item."
+ },
+ "b34a-24-t4-1": {
+  "ask": "Kelvexa's net revenue per patient per year in Europe",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b34a-24-t6-1": {
+  "ask": "how Kelvexa's European net price has moved since the 2022 launch",
+  "verdict": "timeout",
+  "ids": [],
+  "label": "timeout",
+  "note": "1,502 ms at the cap: no verdict (hollow deferral, b34a Marcus t6). The ask maps to no item."
+ },
+ "b34a-40-t2-1": {
+  "ask": "US prevalence of Corlan's disease and current treatment breakdown by drug class",
+  "verdict": "out_of_scope",
+  "ids": [
+   "funnel_rates",
+   "current_treatment"
+  ],
+  "label": "partly_right",
+  "note": "funnel_rates and current_treatment are right, but current_treatment was marked out of scope (it answers the treatment breakdown coarsely; b34a Jasmine)."
+ },
+ "b34a-40-t4-1": {
+  "ask": "Kelvexa's European sales trajectory since 2022",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b34a-57-t28-1": {
+  "ask": "whether any US player has an existing Corlan's franchise",
+  "verdict": "items",
+  "ids": [
+   "company_size"
+  ],
+  "label": "wrong_item",
+  "note": "company_size is Aldermoor's own size; option_b (the established partner) and nimbrel answer it (b34a Marisol t28)."
+ },
+ "b34l-07-t14-1": {
+  "ask": "the fare trend across FY2024 and FY2025",
+  "verdict": "items",
+  "ids": [
+   "lakeport_fare"
+  ],
+  "label": "partly_right",
+  "note": "lakeport_fare gives FY2023 → FY2025 (a coarse trend); FY2024 isn't held — a partial labelled full (hollow, b34l Raj)."
+ },
+ "b34l-07-t16-1": {
+  "ask": "the fare trend across FY2024 and FY2025",
+  "verdict": "items",
+  "ids": [
+   "lakeport_fare"
+  ],
+  "label": "partly_right",
+  "note": "Same ask and verdict as #16."
+ },
+ "b34l-57-t30-1": {
+  "ask": "the cost disadvantage breakdown by labor and utilization",
+  "verdict": "items",
+  "ids": [
+   "unit_costs",
+   "lakeport_variable_cost",
+   "port_avery_per_flight"
+  ],
+  "label": "wrong_item",
+  "note": "Larkspur's own cost items for the competitor's cost gap (entity)."
+ },
+ "b34l-64-t2-1": {
+  "ask": "passengers flown and average fare, FY2023 versus FY2025",
+  "verdict": "items",
+  "ids": [
+   "network_totals",
+   "route_results_lakeport",
+   "route_results_port_avery",
+   "route_results_other",
+   "lakeport_fare"
+  ],
+  "label": "partly_right",
+  "note": "network_totals covers volume coarsely (flights); lakeport_fare is one route's fare for a network-fare ask. Delivered, not hollow (b34l Tyler t2)."
+ },
+ "b34l-64-t18-1": {
+  "ask": "contribution by departure time",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b35h-24-t6-1": {
+  "ask": "chip volume over time",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": "A finer cut (\"not just that revenue is flat\"); graded true (b35h Marcus t5)."
+ },
+ "b35h-24-t10-1": {
+  "ask": "store count and a velocity benchmark",
+  "verdict": "none",
+  "ids": [],
+  "label": "false_none",
+  "note": "retailer_support answers the store count / reach half (Lorenzo: serious, b35h Marcus t10)."
+ },
+ "b35h-40-t10-1": {
+  "ask": "store count, distribution rate and bags per store per week",
+  "verdict": "none",
+  "ids": [],
+  "label": "false_none",
+  "note": "retailer_support answers store count and distribution (Lorenzo: serious, b35h Jasmine t10)."
+ },
+ "b35h-57-t6-1": {
+  "ask": "category volume of chickpea snacks in the Northeast and Midwest",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b35h-57-t16-1": {
+  "ask": "a repeat rate for year-one buyers",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b35h-57-t20-1": {
+  "ask": "year-one volume versus forecast on past launches",
+  "verdict": "none",
+  "ids": [],
+  "label": "false_none",
+  "note": "Judgement: survey_reliability is the case's answer on the forecast's reliability (Lorenzo: borderline; he had the cover built, D5)."
+ },
+ "b35h-57-t24-1": {
+  "ask": "repeat rate for sampled households",
+  "verdict": "items",
+  "ids": [
+   "sampling_program"
+  ],
+  "label": "wrong_item",
+  "note": "sampling_program holds no repeat rate (hollow, b35h Marisol t24)."
+ },
+ "b35h-64-t8-1": {
+  "ask": "chip volume trend year over year",
+  "verdict": "none",
+  "ids": [],
+  "label": "false_none",
+  "note": "Judgement: why_now (\"chip sales are flat\", also in the prompt) answers the trend coarsely (Lorenzo: borderline; D4 cover built)."
+ },
+ "b35h-64-t22-1": {
+  "ask": "repeat-rate data from prior sampling programs",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b35q-07-t12-1": {
+  "ask": "upgrade rates for later cohorts",
+  "verdict": "items",
+  "ids": [
+   "starter_cohort",
+   "cohort_notes",
+   "upgrade_timing"
+  ],
+  "label": "wrong_item",
+  "note": "Only the January–March cohort is held; nothing on later cohorts (hollow, b35q Raj t12)."
+ },
+ "b35q-24-t18-1": {
+  "ask": "Starter cohort beyond month 12",
+  "verdict": "items",
+  "ids": [
+   "starter_cohort",
+   "cohort_notes"
+  ],
+  "label": "correct_item",
+  "note": "cohort_notes (Exhibit 2's note: rates steady, very few upgrades after month 12) is the coarse answer; code deferred instead of restating (b35q Marcus t18)."
+ },
+ "b35q-24-t28-1": {
+  "ask": "week-by-week sign-ups within the price test",
+  "verdict": "out_of_scope",
+  "ids": [
+   "price_test_results"
+  ],
+  "label": "partly_right",
+  "note": "Mapped to price_test_results and marked out of scope: in effect \"not held\" — the right outcome, given as a mapping (b35q Marcus t28)."
+ },
+ "b35q-57-t12-1": {
+  "ask": "how Pro's CAC has moved since January 2025",
+  "verdict": "items",
+  "ids": [
+   "plan_cac"
+  ],
+  "label": "correct_item",
+  "note": "plan_cac (\"does not change with volume\") answers it coarsely (b35q Marisol t12)."
+ },
+ "b35q-64-t12-1": {
+  "ask": "churn for upgraded customers measured from their upgrade date",
+  "verdict": "items",
+  "ids": [
+   "upgrade_timing",
+   "cohort_notes"
+  ],
+  "label": "correct_item",
+  "note": "cohort_notes says upgraded customers behave like Pro customers (b35q Tyler t12)."
+ },
+ "b36a-07-t12-1": {
+  "ask": "advanced therapy usage among the eligible patients",
+  "verdict": "items",
+  "ids": [
+   "funnel_rates",
+   "peak_share_forecast"
+  ],
+  "label": "wrong_item",
+  "note": "peak_share_forecast is Kelvexa's future share, not current advanced-therapy use; not held (b36a Raj t12, a wrong release)."
+ },
+ "b36a-07-t14-1": {
+  "ask": "Nimbrel's patent expiry and late-stage oral competitors",
+  "verdict": "items+partial",
+  "ids": [
+   "patents",
+   "nimbrel"
+  ],
+  "label": "wrong_item",
+  "note": "patents is Kelvexa's, not Nimbrel's; nimbrel holds no expiry; late-stage oral competitors aren't held (b36a Raj t14)."
+ },
+ "b36a-07-t24-1": {
+  "ask": "Whether a partner has approached Aldermoor",
+  "verdict": "items",
+  "ids": [
+   "option_b"
+  ],
+  "label": "correct_item",
+  "note": "option_b (an established US partner) answers it (Exhibit 3 shown, graded right)."
+ },
+ "b36a-24-t6-1": {
+  "ask": "EU manufacturing cost per unit",
+  "verdict": "none",
+  "ids": [],
+  "label": "false_none",
+  "note": "Judgement: option_shared holds the coarse answer (product cost small and similar), gated to Exhibit 3 (graded borderline, b36a Marcus t6)."
+ },
+ "b36a-24-t10-1": {
+  "ask": "year-over-year growth in the eligible pool",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b36a-24-t24-1": {
+  "ask": "the split of the $80 million between rep cost and market access",
+  "verdict": "items",
+  "ids": [
+   "option_a"
+  ],
+  "label": "wrong_item",
+  "note": "No split of the $80M is held; option_a labelled full (graded wrong, b36a Marcus t24)."
+ },
+ "b36a-40-t2-1": {
+  "ask": "US prevalence and pricing data",
+  "verdict": "items",
+  "ids": [
+   "funnel_rates",
+   "kelvexa_pricing"
+  ],
+  "label": "correct_item",
+  "note": ""
+ },
+ "b36a-40-t4-1": {
+  "ask": "the trend in the treated population since 2022",
+  "verdict": "coarse",
+  "ids": [
+   "funnel_rates"
+  ],
+  "label": "correct_item",
+  "note": "funnel_rates coarse with the whole trend missing: the right partial (refused correctly, b36a Jasmine t4)."
+ },
+ "b36a-57-t6-1": {
+  "ask": "growth in the eligible pool over recent years",
+  "verdict": "items",
+  "ids": [
+   "funnel_rates"
+  ],
+  "label": "wrong_item",
+  "note": "funnel_rates labelled full for a growth ask the case doesn't hold (b36a Marisol t6)."
+ },
+ "b36a-64-t10-1": {
+  "ask": "the European share curve",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b36l-07-t8-1": {
+  "ask": "total passengers flown and average fare per passenger",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": "No network passenger total or network average fare is held (graded true, b36l Raj t8)."
+ },
+ "b36l-24-t6-1": {
+  "ask": "cost per seat mile trend",
+  "verdict": "none",
+  "ids": [],
+  "label": "false_none",
+  "note": "unit_costs and fuel_prices answer a CASM trend (Lorenzo: false, not serious; b36l Marcus t6)."
+ },
+ "b36l-24-t12-1": {
+  "ask": "quarter-by-quarter fares and passengers since entry",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b36l-24-t20-1": {
+  "ask": "launch costs for the new routes",
+  "verdict": "items",
+  "ids": [
+   "new_routes_cost_flights"
+  ],
+  "label": "wrong_item",
+  "note": "Variable cost is not launch cost; launch costs aren't held (b36l Marcus t20)."
+ },
+ "b36l-40-t2-1": {
+  "ask": "total departures and average fare, FY2023 vs FY2025",
+  "verdict": "none",
+  "ids": [],
+  "label": "false_none",
+  "note": "Total departures are held (network_totals, routes_schedule); the average-fare half is a true none (Lorenzo: false, not serious; b36l Jasmine t2)."
+ },
+ "b36l-40-t2-2": {
+  "ask": "the cost lines for both years",
+  "verdict": "items+partial",
+  "ids": [
+   "fixed_costs",
+   "lakeport_variable_cost",
+   "port_avery_per_flight",
+   "new_routes_cost_flights"
+  ],
+  "label": "partly_right",
+  "note": "fixed_costs full is right, but the three variable-cost items answer the cost lines, not partially (graded: right not to refuse)."
+ },
+ "b36l-57-t12-1": {
+  "ask": "how many flights a day the entrant runs on each route",
+  "verdict": "items",
+  "ids": [
+   "routes_schedule",
+   "route_results_lakeport",
+   "route_results_port_avery",
+   "route_results_other",
+   "network_totals",
+   "lakeport_seats_load",
+   "port_avery_per_flight",
+   "new_routes_cost_flights"
+  ],
+  "label": "wrong_item",
+  "note": "Eight items labelled full for the entrant's flights a day, which the case doesn't hold (b36l Marisol t12, serious unasked release)."
+ },
+ "b36l-64-t12-1": {
+  "ask": "avoidable fixed cost by route",
+  "verdict": "coarse",
+  "ids": [
+   "fixed_costs"
+  ],
+  "label": "partly_right",
+  "note": "fixed_costs is the coarse item, but aircraft_leases answers the avoidable part and wasn't named (b36l Tyler t12, serious false refusal)."
+ },
+ "b37h-07-t12-1": {
+  "ask": "benchmark turns per store per week for a comparable new snack",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b37h-07-t16-1": {
+  "ask": "category size and growth for better-for-you snacks in the Northeast and Midwest",
+  "verdict": "none",
+  "ids": [],
+  "label": "false_none",
+  "note": "Judgement: growth is in the prompt and why_now; the size half is a true none (graded borderline, b37h Raj t16)."
+ },
+ "b37h-24-t6-1": {
+  "ask": "chip cost of goods and gross margin over the last few years",
+  "verdict": "coarse",
+  "ids": [
+   "variable_costs",
+   "bag_price"
+  ],
+  "label": "wrong_item",
+  "note": "The chickpea line's per-bag costs for a chip COGS ask (another product; b37h Marcus t6)."
+ },
+ "b37h-24-t8-1": {
+  "ask": "typical annual bag volume for a Hollis Bay chip SKU",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b37h-24-t14-1": {
+  "ask": "the split of the marketing budget between sampling and advertising",
+  "verdict": "out_of_scope",
+  "ids": [
+   "launch_costs"
+  ],
+  "label": "partly_right",
+  "note": "launch_costs is the coarse item, but sampling_program (the cost is in addition to the launch costs) is the answer (graded borderline)."
+ },
+ "b37h-57-t6-1": {
+  "ask": "typical new SKU volume per store per week",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b37h-57-t8-1": {
+  "ask": "a distribution estimate by number of stores",
+  "verdict": "out_of_scope",
+  "ids": [
+   "channels"
+  ],
+  "label": "wrong_item",
+  "note": "channels for a store-count ask that retailer_support answers (Lorenzo: serious, b37h Marisol t8)."
+ },
+ "b37h-57-t14-1": {
+  "ask": "better-for-you segment size in Hollis Bay's regions",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b37h-57-t20-1": {
+  "ask": "repeat purchase rate beyond year one",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b37h-57-t26-1": {
+  "ask": "repeat rates from past sampling programs",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b37h-57-t28-1": {
+  "ask": "the total number of stores carrying Hollis Bay",
+  "verdict": "out_of_scope",
+  "ids": [
+   "channels"
+  ],
+  "label": "correct_item",
+  "note": "channels coarse, out of scope: Hollis Bay's total store count isn't held (graded true, b37h Marisol t28)."
+ },
+ "b37h-64-t6-1": {
+  "ask": "annual chip bag volume",
+  "verdict": "items+partial",
+  "ids": [
+   "planning_assumptions",
+   "bag_price"
+  ],
+  "label": "wrong_item",
+  "note": "planning_assumptions full for Hollis Bay's chip volume (b37h Tyler t6, a wrong release)."
+ },
+ "b37h-64-t14-1": {
+  "ask": "repeat rates from past launches",
+  "verdict": "none",
+  "ids": [],
+  "label": "false_none",
+  "note": "Judgement: Exhibit 2's 3 bags per household from past launches is the case's repeat measure (graded borderline, b37h Tyler t14)."
+ },
+ "b37h-64-t18-1": {
+  "ask": "how the 500,000 household estimate was derived",
+  "verdict": "items",
+  "ids": [
+   "planning_assumptions",
+   "survey_design"
+  ],
+  "label": "wrong_item",
+  "note": "Neither item says how the 500,000 was estimated (b37h Tyler t18)."
+ },
+ "b37q-07-t16-1": {
+  "ask": "Whether Starter sign-ups ever requested a Pro demo first",
+  "verdict": "items",
+  "ids": [
+   "signup_channels"
+  ],
+  "label": "partly_right",
+  "note": "signup_channels answers coarsely (they sign up alone), labelled full (graded borderline, b37q Raj t16)."
+ },
+ "b37q-64-t18-1": {
+  "ask": "the 2024 trend in Pro sign-ups before Starter launched",
+  "verdict": "items",
+  "ids": [
+   "new_customers_by_plan"
+  ],
+  "label": "partly_right",
+  "note": "new_customers_by_plan is the 2024 average; the trend within 2024 isn't held — a partial labelled full (b37q Tyler t18, firm)."
+ },
+ "b38l-24-t14-1": {
+  "ask": "contribution from connecting passengers on onward legs",
+  "verdict": "coarse",
+  "ids": [
+   "connecting_passengers"
+  ],
+  "label": "correct_item",
+  "note": "connecting_passengers coarse, onward-leg contribution missing: refused truly (b38l Marcus t14)."
+ },
+ "b38l-24-t24-1": {
+  "ask": "extras revenue by type",
+  "verdict": "items",
+  "ids": [
+   "extras_revenue"
+  ],
+  "label": "partly_right",
+  "note": "extras_revenue is the coarse answer; \"by type\" isn't held — read as full (graded borderline, b38l Marcus t24)."
+ },
+ "b38l-40-t4-1": {
+  "ask": "the ticket versus extras revenue split",
+  "verdict": "out_of_scope",
+  "ids": [
+   "extras_revenue",
+   "lakeport_fare",
+   "port_avery_per_flight"
+  ],
+  "label": "partly_right",
+  "note": "extras_revenue answers the ancillary side but was marked out of scope (b38l Jasmine t4, false refusal)."
+ },
+ "b38l-57-t2-1": {
+  "ask": "the revenue split between tickets and ancillary, and the change in flights flown",
+  "verdict": "items",
+  "ids": [
+   "extras_revenue",
+   "network_totals"
+  ],
+  "label": "correct_item",
+  "note": ""
+ },
+ "b38l-57-t12-1": {
+  "ask": "Port Avery's fuel line",
+  "verdict": "items",
+  "ids": [
+   "route_results_port_avery",
+   "port_avery_per_flight"
+  ],
+  "label": "partly_right",
+  "note": "The route items are the coarse answer; no fuel split is held — read as full (graded borderline, b38l Marisol t12)."
+ },
+ "b38l-64-t2-1": {
+  "ask": "the split of the revenue decline between passengers and average fare",
+  "verdict": "coarse",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "lakeport_seats_load",
+   "route_results_lakeport",
+   "route_results_port_avery"
+  ],
+  "label": "partly_right",
+  "note": "The route items show fare down at steady load for the two routes, but the answering items (routes_schedule, network_totals: same flights) weren't named; all partial (b38l Tyler t2, false refusal)."
+ },
+ "b38l-64-t8-1": {
+  "ask": "the actual load factor",
+  "verdict": "items",
+  "ids": [
+   "lakeport_seats_load",
+   "port_avery_per_flight"
+  ],
+  "label": "correct_item",
+  "note": ""
+ },
+ "b38l-64-t14-1": {
+  "ask": "the business versus leisure fare mix on these two routes",
+  "verdict": "none",
+  "ids": [],
+  "label": "correct_none",
+  "note": ""
+ },
+ "b38l-64-t16-1": {
+  "ask": "frequency expansion or slot constraints on Cedar Bluff and Millbrook",
+  "verdict": "coarse",
+  "ids": [
+   "route_results_other"
+  ],
+  "label": "correct_item",
+  "note": "route_results_other coarse, frequency expansion missing: the answer gate refused it truly (b38l Tyler t16)."
+ },
+ "b38l-64-t24-1": {
+  "ask": "price elasticity on the four uncontested routes",
+  "verdict": "items",
+  "ids": [
+   "route_results_other"
+  ],
+  "label": "wrong_item",
+  "note": "route_results_other holds no elasticity (b38l Tyler t24)."
+ }
+}
