@@ -5,7 +5,7 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { switchOn, parseEngineSwitches, engineSwitchesOf, PHASE1_SWITCHES, assertNoEngineSwitchesInProduction } from '@/lib/cases/engine-switches';
 import { applyPhase1Overlay, Phase1OverlaySchema, overlayProblems } from '@/lib/cases/phase1-overlay';
-import { CaseSchema, noFigure } from '@/lib/cases/schema';
+import { CaseSchema, noFigure, type Case } from '@/lib/cases/schema';
 import { getCaseById } from '@/lib/cases/loader';
 import { FaultRecordSchema } from '@/lib/eval/fault-bank';
 
@@ -71,10 +71,17 @@ describe('the overlay', () => {
 });
 
 describe('today\'s cases', () => {
-  it('load unchanged with no overlay and no switches', () => {
+  it('load unchanged with no switches, but for the overlay\'s descriptive fields', () => {
+    // Contract §1: the descriptive fields (item tags, askPhrases, exhibit summaries, definitions) are always
+    // attached and read only by Phase 1 code behind its switch; everything else is the case file's.
+    const plain = (c: Case) => ({
+      ...c, definitions: undefined,
+      dataLedger: c.dataLedger.map(d => ({ ...d, tags: undefined, askPhrases: undefined })),
+      exhibits: c.exhibits.map(e => ({ ...e, summary: undefined })),
+    });
     for (const f of readdirSync('cases').filter(x => x.endsWith('.json'))) {
       const id = f.replace(/\.json$/, '');
-      expect(getCaseById(id)).toEqual(raw(id));
+      expect(plain(getCaseById(id))).toEqual(plain(raw(id)));
     }
   });
 });

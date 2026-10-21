@@ -1,0 +1,242 @@
+{
+  "caseId": "entry-001",
+  "items": {
+    "kelvexa_product": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["what Kelvexa is and who it treats", "how Kelvexa is taken", "whether Kelvexa is approved in the US", "where Kelvexa is sold today"],
+      "covers": ["what kelvexa treats", "when kelvexa was approved", "kelvexa's approval", "kelvexa's dosing", "how kelvexa is given"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "corlans_disease": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["what Corlan's disease is", "how serious the condition is", "how mild and severe cases are treated"],
+      "covers": ["what corlan's disease is", "symptoms of corlan's", "is the disease lifelong", "how the disease progresses", "corlan's disease background"]
+    },
+    "current_treatment": {
+      "tags": {"entity": "nimbrel", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["how moderate-to-severe patients are treated today", "the main therapy patients use now", "the competing treatment in the US"],
+      "covers": ["standard of care", "competitive set", "other advanced therapies", "how moderate-to-severe patients are treated"]
+    },
+    "company_size": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["how big Aldermoor is", "where Aldermoor sells today", "whether Aldermoor has US staff or a sales force"],
+      "covers": ["aldermoor's us presence", "how big is aldermoor", "size of aldermoor", "aldermoor's current revenue", "aldermoor's footprint", "does aldermoor operate in the us"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "net_sales_definition": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["what net sales means", "whether rebates come out of net sales", "how the board's threshold is measured"],
+      "covers": ["definition of net sales", "what net sales means", "how net sales are defined", "gross versus net", "what the threshold measures", "meaning of net sales", "net sales or royalty income"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "peak_timing": {
+      "tags": {"entity": "client", "period": ["forecast"], "quantityKind": ["level"]},
+      "askPhrases": ["when peak sales are expected", "how long Kelvexa takes to reach peak", "the ramp from launch to peak"],
+      "covers": ["time to peak", "years to peak", "when sales peak", "when peak is reached", "ramp to peak", "launch to peak", "how fast sales ramp"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "patents": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["how long Kelvexa is protected", "when generics could enter", "Kelvexa's US exclusivity"],
+      "covers": ["patent expiry", "patent life", "patent protection", "patent runway", "us exclusivity", "loss of exclusivity", "generic competition"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "supply": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["where Kelvexa is made", "whether Aldermoor can supply the US", "manufacturing capacity for a US launch"],
+      "covers": ["manufacturing capacity", "production capacity", "plant capacity", "supply the us", "us manufacturing", "make enough kelvexa"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "us_adults": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["total"]},
+      "askPhrases": ["the size of the US adult population", "the starting population for the patient funnel", "how many adults live in the US"],
+      "covers": ["us adult population", "number of us adults", "adult population", "adults in the us", "size of the us population"]
+    },
+    "funnel_rates": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["split"]},
+      "askPhrases": ["how common Corlan's disease is in the US", "the share of patients diagnosed and treated", "the moderate-to-severe share of treated patients", "the stages of the patient funnel"],
+      "covers": ["us prevalence", "prevalence of corlan's", "patient funnel", "share diagnosed", "share treated", "moderate-to-severe share", "treatment rate"]
+    },
+    "peak_share_forecast": {
+      "tags": {"entity": "client", "period": ["forecast"], "quantityKind": ["level"]},
+      "askPhrases": ["Aldermoor's forecast of Kelvexa's share at peak", "the share of eligible patients Kelvexa is expected to reach", "the uptake assumption behind the forecast"],
+      "covers": ["forecast peak share", "aldermoor's forecast share", "kelvexa's peak share", "aldermoor's share assumption", "uptake forecast", "penetration forecast", "forecast share of eligible patients"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "kelvexa_pricing": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["Kelvexa's US list price", "discounts and rebates to insurers", "Kelvexa's net price per patient per year", "how long patients stay on treatment"],
+      "covers": ["kelvexa's list price", "us list price", "discounts and rebates", "gross-to-net discount", "kelvexa's net price", "time on treatment"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "survey_design": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["who was surveyed and how", "how many answers each specialist could give", "why the survey shares add up as they do"],
+      "covers": ["survey sample", "who was surveyed", "sample size", "survey methodology", "how the survey was run", "specialists surveyed", "number of specialists surveyed"]
+    },
+    "reasons_to_prescribe": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["split"]},
+      "askPhrases": ["why specialists would prescribe Kelvexa", "what doctors like about Kelvexa", "the drivers of adoption among specialists"],
+      "covers": ["reasons to prescribe", "why doctors would prescribe", "drivers of adoption", "prescribing drivers", "what specialists value", "why specialists would choose kelvexa"]
+    },
+    "barriers_to_prescribing": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["split"]},
+      "askPhrases": ["what holds specialists back from prescribing", "the barriers to prescribing Kelvexa", "specialists' concerns about Kelvexa"],
+      "covers": ["barriers to prescribing", "reasons not to prescribe", "prescribing barriers", "obstacles to adoption", "why doctors would hesitate", "what stops doctors prescribing", "barriers to adoption"]
+    },
+    "nimbrel": {
+      "tags": {"entity": "nimbrel", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["what Nimbrel is and how it is given", "how established Nimbrel is", "Nimbrel's net price", "how widely Nimbrel is used"],
+      "covers": ["nimbrel's net price", "price of nimbrel", "nimbrel's dosing", "how nimbrel is given", "incumbent's price"]
+    },
+    "trial_comparison": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["how Kelvexa compares with Nimbrel in trials", "Kelvexa's efficacy and safety", "side effects compared with the current therapy"],
+      "covers": ["efficacy comparison", "clinical trial results", "head-to-head data", "safety profile", "kelvexa's efficacy", "comparative efficacy"]
+    },
+    "insurance_coverage": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["how US insurers cover advanced therapies", "prior approval requirements", "how long a new drug takes to win coverage"],
+      "covers": ["payer coverage", "formulary coverage", "insurer coverage", "prior authorization requirements", "time to broad coverage", "payer access"]
+    },
+    "specialist_concentration": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level", "total"]},
+      "askPhrases": ["which doctors treat these patients", "how concentrated prescribing is", "the size of the prescriber base"],
+      "covers": ["prescriber base", "how many prescribers", "concentration of prescribers", "how concentrated prescribing is", "specialists treating these patients", "target prescribers", "high-volume prescribers"]
+    },
+    "diagnosis_gap": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["why many patients are undiagnosed", "what delays diagnosis", "whether diagnosis could improve"],
+      "covers": ["undiagnosed patients", "why patients go undiagnosed"]
+    },
+    "pipeline": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["Aldermoor's other drugs in development", "whether a US team could sell more products", "Aldermoor's later launches for the same specialists"],
+      "covers": ["aldermoor's pipeline", "aldermoor's other drugs", "follow-on products", "other aldermoor products", "pipeline drugs", "future aldermoor launches", "aldermoor's drugs in development"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "option_a": {
+      "tags": {"entity": "client", "period": ["forecast", "current"], "quantityKind": ["level", "recurring"]},
+      "askPhrases": ["the terms of building Aldermoor's own US team", "the annual selling costs of going alone", "the expected share and timing of a self-launch"],
+      "covers": ["option a terms", "build option", "building our own team", "own us team", "annual selling costs", "cost of a us salesforce", "go it alone"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "option_b": {
+      "tags": {"entity": "client", "period": ["forecast", "current"], "quantityKind": ["level"]},
+      "askPhrases": ["the terms of partnering with a US company", "the royalty Aldermoor would receive", "the expected share and timing with a partner"],
+      "covers": ["option b terms", "partner option", "royalty rate", "royalty on us net sales", "partnership terms", "licensing deal", "partnering with a us company"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "option_shared": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["the net price under both entry options", "product cost under both options", "what the entry options have in common"],
+      "covers": ["product cost", "cost of goods", "net price under both options", "price under each option", "unit cost of kelvexa", "cost to make kelvexa"],
+      "coverExcludes": ["nimbrel"]
+    }
+  },
+  "steps": {
+    "peak_patients": {"dependsOn": ["eligible_patients"]},
+    "peak_net_sales": {"dependsOn": ["peak_patients", "net_price"]},
+    "breakeven_patients": {"dependsOn": ["net_price"]},
+    "breakeven_share": {"dependsOn": ["breakeven_patients", "eligible_patients"]},
+    "diagnosis_upside": {"dependsOn": ["peak_net_sales"]},
+    "option_a_profit": {"dependsOn": ["peak_net_sales"]},
+    "option_b_net_sales": {"dependsOn": ["eligible_patients", "net_price"]},
+    "option_b_profit": {"dependsOn": ["option_b_net_sales"]},
+    "matching_share": {"dependsOn": ["option_b_profit", "eligible_patients", "net_price"]}
+  },
+  "exhibits": {
+    "exhibit-1": {
+      "summary": "The funnel table steps from US adults through the disease, diagnosis, treatment and severity stages to eligible patients, with Aldermoor's forecast peak share and Kelvexa's list price, rebates and time on treatment."
+    },
+    "exhibit-2": {
+      "summary": "The specialist survey lists the reasons to prescribe Kelvexa and the barriers to prescribing it, each with the share of specialists naming it."
+    },
+    "exhibit-3": {
+      "summary": "The entry options table compares building Aldermoor's own US team with partnering: who sells, what Aldermoor receives, who pays the selling costs, the expected peak share and the time to launch."
+    }
+  },
+  "definitions": [
+    {
+      "term": "patients with the disease",
+      "text": "US adults times the share of adults who have Corlan's disease.",
+      "steps": ["patients_with_disease"],
+      "items": ["us_adults", "funnel_rates"]
+    },
+    {
+      "term": "eligible patients",
+      "text": "US adults with Corlan's disease who are diagnosed, treated with prescription medicine and moderate-to-severe; each funnel rate applies to the stage above it.",
+      "steps": ["eligible_patients"],
+      "items": ["us_adults", "funnel_rates"]
+    },
+    {
+      "term": "patients on Kelvexa at peak",
+      "text": "Eligible patients times Aldermoor's forecast peak share of eligible patients.",
+      "steps": ["peak_patients"],
+      "items": ["peak_share_forecast"]
+    },
+    {
+      "term": "net price",
+      "text": "Kelvexa's list price less the average discounts and rebates to insurers, per patient per year.",
+      "steps": ["net_price"],
+      "items": ["kelvexa_pricing", "option_shared"]
+    },
+    {
+      "term": "peak net sales",
+      "text": "Patients on Kelvexa at peak times the net price per patient per year; net sales are revenue after discounts and rebates.",
+      "steps": ["peak_net_sales"],
+      "items": ["net_sales_definition"]
+    },
+    {
+      "term": "patients needed for the threshold",
+      "text": "The board's peak sales threshold divided by the net price per patient per year.",
+      "steps": ["breakeven_patients"]
+    },
+    {
+      "term": "share needed for the threshold",
+      "text": "The patients needed to reach the board's threshold, as a share of eligible patients.",
+      "steps": ["breakeven_share"]
+    },
+    {
+      "term": "diagnosis upside",
+      "text": "Peak net sales scale in proportion to the diagnosis rate when the other funnel rates and the peak share stay the same.",
+      "steps": ["diagnosis_upside"],
+      "items": ["funnel_rates"]
+    },
+    {
+      "term": "Option A profit",
+      "text": "Under Option A Aldermoor keeps all US net sales and pays the annual US selling costs, so its profit at peak is peak net sales less those selling costs.",
+      "steps": ["option_a_profit"],
+      "items": ["option_a"]
+    },
+    {
+      "term": "Option B net sales",
+      "text": "Eligible patients times the expected peak share with a partner times the net price per patient per year.",
+      "steps": ["option_b_net_sales"],
+      "items": ["option_b", "option_shared"]
+    },
+    {
+      "term": "Option B profit",
+      "text": "Aldermoor's royalty rate times the US net sales under Option B; the partner pays the selling costs.",
+      "steps": ["option_b_profit"],
+      "items": ["option_b"]
+    },
+    {
+      "term": "matching share",
+      "text": "The share of eligible patients at which Option A's profit equals Option B's: Option B's profit plus Option A's selling costs, divided by the net price, as a share of eligible patients.",
+      "steps": ["matching_share"],
+      "items": ["option_a", "option_b"]
+    }
+  ],
+  "mustReach": [],
+  "proposed": {
+    "mustReach": [
+      {
+        "item": "nimbrel",
+        "before": "exhibit-2",
+        "why": "Proposed: the candidate never hears what the US standard therapy is, yet Exhibit 2 rates Kelvexa against 'current options' and the coverage line names Nimbrel. Missed in 4 of 15 Aldermoor runs, never released through the end of the run (recommendation included): b32 Jasmine (40, 6544aa01; Exhibit 2 at t8); b34 Jasmine (40, 4e89a7cc; Exhibit 2 at t6; hand grade: serious false refusal t4, never heard of Nimbrel); b34 Marisol (57, a1133734; Exhibit 2 at t14, 'Nimbrel is covered by most plans' at t16 to a candidate never told what Nimbrel is, hand grade; serious false refusal t14); b36 Jasmine (40, 6bbc2163; Exhibit 2 at t8). Late in a fifth: b36 Marisol (57, 6f57da6e; Exhibit 2 at t12, the coverage line naming Nimbrel at t14, nimbrel only at t16; hand grade notes the recurrence)."
+      }
+    ],
+    "note": "Lorenzo's ruling (22 Oct): Aldermoor must-reach goes in proposed only, with its justifying runs. One proposal: nimbrel before exhibit-2. Alternative if he prefers the Hollis Bay/Quillpath form: nimbrel before recommendation (same evidence; it would not fix the coverage line naming Nimbrel first). current_treatment is not proposed separately: the nimbrel line already says it is the standard advanced therapy most patients use. insurance_coverage and pipeline were often never released, but no grading shows a recommendation hurt by their absence, so neither is proposed."
+  }
+}

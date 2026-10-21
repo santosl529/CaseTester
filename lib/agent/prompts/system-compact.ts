@@ -40,6 +40,8 @@ const MATH_RULES = `MATH:
 
 const LATE_RULES = `RECOMMENDATION: once given, never ask for it again. Never state a recommendation or which lever to pull for the candidate — not as a summary or model answer, even with time running out.`;
 
+// Phase 1 contract 2.5: ctx.askPhrases (askPhrasesInPrompt) is not rendered here — only the full prompt
+// (system.ts) shows the items' askPhrases. This arm is an experiment, not production.
 export function buildCompactPromptParts(ctx: PromptContext): { stable: string; turn: string } {
   const phase = ctx.currentPhase;
   const stageRules = EARLY.includes(phase) ? STRUCTURE_RULES : MIDDLE.includes(phase) ? MATH_RULES : LATE_RULES;

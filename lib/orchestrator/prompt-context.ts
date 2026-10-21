@@ -3,7 +3,8 @@
 // (speculation.ts), so both see exactly the same thing.
 import type { PromptContext } from '@/lib/agent/prompts/system';
 import type { ModelPlan } from './plan-turn';
-import { revealedValues, unrevealedItems } from './data-ledger';
+import { revealedValues, unrevealedItems, labelWithPeriod } from './data-ledger';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { caseTotalMs } from './state-machine';
 import { turnNoteFor } from './turn-note';
 import { exhibitReady } from './data-decisions';
@@ -31,5 +32,9 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     turnNote: turnNoteFor(state.kind, ctx.acknowledged, { pressureTest: state.pressureTest.state, phase: ctx.currentPhase }),
     brainstorm: { ask: brainstormAsks(caseData)[0], required: brainstormRequired(caseData),
       after: (caseData.brainstorm?.after ?? []).map(id => caseData.exhibits.find(e => e.id === id)?.title).filter((t): t is string => Boolean(t)) },
+    // Phase 1 contract 2.5: the items' askPhrases, static for the case (the stable, cached prompt part).
+    ...(switchOn(caseData, 'askPhrasesInPrompt')
+      ? { askPhrases: caseData.dataLedger.filter(d => d.askPhrases?.length).map(d => ({ id: d.id, label: labelWithPeriod(d), phrases: d.askPhrases! })) }
+      : {}),
   };
 }
