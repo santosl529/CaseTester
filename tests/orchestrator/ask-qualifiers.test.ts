@@ -1,0 +1,179 @@
+// Round 5c Task 61, the qualifier guard (Lorenzo, 20 Oct, ruling 1): "Bare partials:
+// build an engine guard. If an ask names a qualifier the item's line doesn't contain
+// (a period: FY2024, "since <date>", "today/current", "beyond month N", "later/earlier
+// cohorts", "trend"; a scope: industry, competitor(s), market; or a second topic with
+// no item), that item counts as partial whatever Haiku labels it, and the refusal names
+// the qualifier ("I don't have FY2024 fares.", "I don't have industry benchmarks.")."
+// The asks are the second Haiku run's verbatim (r5b-haiku-check.md, haiku5b2-verdicts.json);
+// the lines are the ledger's own (server-side, unmasked).
+import { describe, it, expect } from 'vitest';
+import { askQualifiers, unmetQualifiers, guardRefusal, guardParts, mergeParts, qualifierItems } from '@/lib/orchestrator/ask-qualifiers';
+import { contentStems } from '@/lib/orchestrator/data-requests';
+import { labelWithPeriod } from '@/lib/orchestrator/data-ledger';
+import { getCaseById } from '@/lib/cases/loader';
+
+const lines = (caseId: string, ids: string[]) => ids.map(id => {
+  const i = getCaseById(caseId).dataLedger.find(x => x.id === id)!;
+  return { id, label: labelWithPeriod(i), value: i.value };
+});
+const texts = (qs: { kind: string; text: string }[]) => qs.map(q => `${q.kind}:${q.text}`);
+// The round-5b `missing` rule as the guard must keep it: no word the ask lacks, no figure the ask lacks.
+const fromAsk = (phrase: string, what: string) => {
+  const asked = new Set(contentStems(what));
+  const figs = (t: string): string[] => t.match(/\d+/g) ?? [];
+  return contentStems(phrase).every(w => asked.has(w)) && figs(phrase).every(f => figs(what).includes(f));
+};
+
+// The five bare partials of the second run, and the items Haiku mapped.
+const BARE = [
+  { n: 18, caseId: 'prof-001', what: 'current waste rates and bean contracting terms', ids: ['bean_price_change', 'bean_share_of_cogs'], said: 'current waste rates or bean contracting terms' },
+  { n: 36, caseId: 'prof-001', what: 'industry input cost inflation benchmarks', ids: ['non_bean_input_change', 'bean_price_change'], said: 'industry benchmarks' },
+  { n: 49, caseId: 'prof-002', what: 'the fare trend across FY2024 and FY2025', ids: ['lakeport_fare', 'port_avery_per_flight'], said: 'FY2024 fares' },
+  { n: 63, caseId: 'pricing-001', what: 'upgrade rates for later cohorts', ids: ['starter_cohort', 'cohort_notes'], said: "later cohorts' upgrade rates" },
+  { n: 66, caseId: 'pricing-001', what: "how Pro's CAC has moved since January 2025", ids: ['plan_cac'], said: "Pro's CAC since January 2025" },
+];
+
+describe('askQualifiers: what an ask names beyond its quantity', () => {
+  it('periods: a fiscal year, "since <date>", "current", "later cohorts", a trend', () => {
+    expect(texts(askQualifiers('the fare trend across FY2024 and FY2025'))).toEqual(['period:trend', 'period:FY2024', 'period:FY2025']);
+    expect(texts(askQualifiers("how Pro's CAC has moved since January 2025"))).toEqual(['period:has moved', 'period:since January 2025']);
+    expect(texts(askQualifiers('upgrade rates for later cohorts'))).toEqual(['period:later cohorts']);
+    expect(texts(askQualifiers('Starter cohort beyond month 12'))).toEqual(['period:beyond month 12']);
+    expect(texts(askQualifiers('COGS as a share of revenue today'))).toEqual(['period:today']);
+    expect(texts(askQualifiers('Q3 2024 sales'))).toEqual(['period:Q3 2024']);
+  });
+  it('scopes: industry, benchmark(s), competitor(s); "market share" is a quantity, not a scope', () => {
+    expect(texts(askQualifiers('industry input cost inflation benchmarks'))).toEqual(['scope:industry', 'scope:benchmarks']);
+    expect(texts(askQualifiers('competitor pricing'))).toEqual(['scope:competitor']);
+    expect(texts(askQualifiers("Kelvexa's market share in Europe"))).toEqual([]);
+  });
+  it('topics: each conjunct with its own content noun, when there are two or more', () => {
+    expect(texts(askQualifiers('current waste rates and bean contracting terms'))).toEqual(['period:current', 'topic:current waste rates', 'topic:bean contracting terms']);
+    expect(texts(askQualifiers('the partner deal terms, including royalty step-downs and rights reversion')))
+      .toEqual(['topic:the partner deal terms', 'topic:royalty step-downs', 'topic:rights reversion']);
+    // "FY2025" has no content noun of its own: one conjunct, no topic.
+    expect(askQualifiers('the fare trend across FY2024 and FY2025').some(q => q.kind === 'topic')).toBe(false);
+    // A question's alternatives are one ask.
+    expect(askQualifiers('whether the locations are company-owned or franchised')).toEqual([]);
+  });
+  it('true full asks name no qualifier: #12, #67', () => {
+    expect(askQualifiers('operating margin over the period')).toEqual([]);
+    expect(askQualifiers('churn for upgraded customers measured from their upgrade date')).toEqual([]);
+  });
+});
+
+describe('unmetQualifiers: the qualifiers no mapped item\'s line or label states', () => {
+  it.each(BARE)('#$n "$what" → unmet', ({ caseId, what, ids }) => {
+    expect(unmetQualifiers(what, lines(caseId, ids)).length).toBeGreaterThan(0);
+  });
+  it('#49: FY2025 and the trend are on the Lakeport line ("fell from $200 in FY2023 to $120 in FY2025"); FY2024 is on none', () => {
+    expect(texts(unmetQualifiers('the fare trend across FY2024 and FY2025', lines('prof-002', ['lakeport_fare', 'port_avery_per_flight'])))).toEqual(['period:FY2024']);
+  });
+  it('#66: a CAC that "does not change with volume" states no change over time, and no date', () => {
+    expect(texts(unmetQualifiers("how Pro's CAC has moved since January 2025", lines('pricing-001', ['plan_cac'])))).toEqual(['period:has moved', 'period:since January 2025']);
+  });
+  it('#18: neither topic is on either line', () => {
+    expect(texts(unmetQualifiers('current waste rates and bean contracting terms', lines('prof-001', ['bean_price_change', 'bean_share_of_cogs']))))
+      .toEqual(['period:current', 'topic:current waste rates', 'topic:bean contracting terms']);
+  });
+  it('#42: the deal terms are on Option B\'s line (partner, terms); the royalty step-downs and the rights reversion are not', () => {
+    expect(texts(unmetQualifiers('the partner deal terms, including royalty step-downs and rights reversion', lines('entry-001', ['option_b']))))
+      .toEqual(['topic:royalty step-downs', 'topic:rights reversion']);
+  });
+  it('a qualifier the line states is met: the asked period on the line, a trend the line states, the month beyond', () => {
+    expect(unmetQualifiers('the Lakeport fare in FY2025', lines('prof-002', ['lakeport_fare']))).toEqual([]);
+    expect(unmetQualifiers('COGS as a share of revenue today', lines('prof-001', ['cogs_pct']))).toEqual([]);
+    expect(unmetQualifiers('the COGS trend', lines('prof-001', ['cogs_pct']))).toEqual([]);
+    expect(unmetQualifiers('the menu price trend', lines('prof-001', ['menu_price_change']))).toEqual([]);   // "have not changed in two years"
+    expect(unmetQualifiers('Starter cohort beyond month 12', lines('pricing-001', ['starter_cohort', 'cohort_notes']))).toEqual([]);
+    expect(unmetQualifiers('competitor pricing', lines('pricing-001', ['competitor_prices']))).toEqual([]);
+    expect(unmetQualifiers("Kelvexa's European sales since 2022", lines('entry-001', ['kelvexa_product']))).toEqual([]);
+    expect(unmetQualifiers('current upgrade timing', lines('pricing-001', ['upgrade_timing']))).toEqual([]);   // no period on the item: current
+  });
+  it('a topic another mapped item states is met (#55 shape: one item per conjunct)', () => {
+    expect(unmetQualifiers('the Lakeport fare and the Port Avery fare', lines('prof-002', ['lakeport_fare', 'port_avery_per_flight']))).toEqual([]);
+  });
+});
+
+describe('guardRefusal: the qualifier and the ask\'s head noun, in the ask\'s own words', () => {
+  it.each(BARE)('#$n "$what" → "$said"', ({ caseId, what, ids, said }) => {
+    const phrase = guardRefusal(what, unmetQualifiers(what, lines(caseId, ids)));
+    expect(phrase).toBe(said);
+    expect(fromAsk(phrase, what)).toBe(true);
+  });
+  it('"current waste rates" alone, against the prior-period bean share → "current waste rates"', () => {
+    expect(guardRefusal('current waste rates', unmetQualifiers('current waste rates', lines('prof-001', ['bean_share_of_cogs'])))).toBe('current waste rates');
+  });
+  it('#13: both conjuncts, competitor pricing included ("Competitor pricing gets no word" in r5b)', () => {
+    const what = 'competitor pricing and price elasticity from past increases';
+    expect(guardParts(what, unmetQualifiers(what, lines('prof-001', ['menu_price_change'])))).toEqual(['competitor pricing', 'price elasticity from past increases']);
+  });
+  it('a period with no phrase form of its own, or a trend alone: the conjunct in the ask\'s words', () => {
+    const what = "Kelvexa's European sales trajectory since 2022";
+    expect(guardRefusal(what, unmetQualifiers(what, lines('entry-001', ['kelvexa_product'])))).toBe(what);
+  });
+  it('two years unmet → both before the noun ("FY2024 and FY2025 fares")', () => {
+    const what = 'the fare trend across FY2024 and FY2025';
+    expect(guardRefusal(what, [{ kind: 'period', text: 'FY2024' }, { kind: 'period', text: 'FY2025' }])).toBe('FY2024 and FY2025 fares');
+  });
+  it('nothing unmet → no phrase', () => {
+    expect(guardParts('upgrade rates for later cohorts', [])).toEqual([]);
+  });
+});
+
+// The corpus's model-mapped releases (b28–b35, 358 rows) read through the guard: wordings that
+// must not read as a missing topic or period (the guard is not on that path; the same words can
+// reach the check).
+describe('no false qualifier: periods, lists and figures in the ask', () => {
+  const ledger = (caseId: string) => getCaseById(caseId).dataLedger;
+  const items = (caseId: string, ids: string[]) => qualifierItems(ids.map(id => ledger(caseId).find(i => i.id === id)!), ledger(caseId), i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]));
+  it('a period phrase after a comma is no topic ("labor as a percent of revenue, both years"; b28 Sofia t3)', () => {
+    expect(askQualifiers('labor as a percent of revenue, both years')).toEqual([]);
+    expect(askQualifiers('labor as a percent of revenue, two years ago versus today').map(q => q.kind)).toEqual(['period']);
+    expect(askQualifiers('COGS as a percent of revenue, year one versus today').map(q => q.kind)).toEqual(['period']);
+  });
+  it('a list inside parentheses, after "between", inside a clause, or in a figure is one conjunct', () => {
+    expect(askQualifiers('the cost structure (COGS, labor and overhead as a share of revenue)')).toEqual([]);
+    expect(askQualifiers('the split between new-store and same-store revenue')).toEqual([]);
+    expect(askQualifiers('the share of covered lives where Nimbrel has exclusive or preferred status')).toEqual([]);
+    expect(askQualifiers('Payer interview data on willingness to cover Kelvexa at $10,000 list price')).toEqual([]);
+    // A question is one ask, its comma included (b34a Marisol t19).
+    expect(askQualifiers("how the board's threshold is defined, net sales versus what Aldermoor keeps")).toEqual([]);
+  });
+  it('a one-noun piece joins its neighbour ("the COGS breakdown by coffee, dairy and packaging"; "bean and dairy purchasing terms")', () => {
+    expect(askQualifiers('the COGS breakdown by coffee, dairy and packaging')).toEqual([]);
+    expect(texts(askQualifiers('bean and dairy purchasing terms, supplier count, and hedging'))).toEqual(['topic:bean and dairy purchasing terms', 'topic:supplier count, and hedging']);
+  });
+  it('the case\'s compared years stand for a line that names none (Larkspur network totals: FY2023 and FY2025)', () => {
+    expect(unmetQualifiers('total operating cost, FY2023 vs. FY2025', items('prof-002', ['network_totals']))).toEqual([]);
+    expect(texts(unmetQualifiers('the fare trend across FY2024 and FY2025', items('prof-002', ['port_avery_per_flight'])))).toEqual(['period:FY2024']);
+  });
+  it('words common to the case tell no topic apart: Nimbrel is "the current US standard of care" (b34a Raj t11)', () => {
+    const what = 'the competitive set and the current US standard of care';
+    expect(unmetQualifiers(what, items('entry-001', ['nimbrel']), ledger('entry-001'))).toEqual([]);
+    // … while "bean contracting terms" stays unmet ("bean" is on the bean lines, the contracting terms are not).
+    expect(texts(unmetQualifiers('current waste rates and bean contracting terms', items('prof-001', ['bean_price_change', 'bean_share_of_cogs']), ledger('prof-001'))))
+      .toEqual(['period:current', 'topic:current waste rates', 'topic:bean contracting terms']);
+  });
+  it('a competitor named without the word: "How Kelvexa compares with Nimbrel in trials" (b34a Raj t11)', () => {
+    expect(unmetQualifiers('how Kelvexa compares with competitors in clinical trials', items('entry-001', ['trial_comparison']))).toEqual([]);
+  });
+  it('"since launch" against "before and after Starter launched" (b35q Marisol t5)', () => {
+    expect(unmetQualifiers('monthly new-signup counts by plan since launch', items('pricing-001', ['new_customers_by_plan']))).toEqual([]);
+  });
+  it('a head phrase ends at its punctuation: "total departures, FY2023 vs FY2025" with FY2025 unmet → "FY2025 total departures"', () => {
+    const what = 'average fare and total departures, FY2023 vs FY2025';
+    const p = guardRefusal(what, [{ kind: 'period', text: 'FY2025' }]);
+    expect(p).toBe('FY2025 total departures');
+    expect(fromAsk(p, what)).toBe(true);
+  });
+});
+
+describe('mergeParts: the check\'s own valid parts beside the guard\'s', () => {
+  it('a part the guard\'s parts already say is not said again; one that adds words replaces those it covers; the ask\'s order', () => {
+    const what = 'the partner deal terms, including royalty step-downs and rights reversion';
+    expect(mergeParts(['royalty step-downs', 'rights reversion'], ['royalty step-downs and rights reversion'], what)).toEqual(['royalty step-downs', 'rights reversion']);
+    expect(mergeParts(['rights reversion'], ['royalty step-downs and rights reversion'], what)).toEqual(['royalty step-downs and rights reversion']);
+    expect(mergeParts(['a velocity benchmark'], ['store count'], 'store count and a velocity benchmark')).toEqual(['store count', 'a velocity benchmark']);
+  });
+});

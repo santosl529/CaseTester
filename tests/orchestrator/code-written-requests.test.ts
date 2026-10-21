@@ -162,10 +162,13 @@ describe('corpus final messages at the close', () => {
     const r = await runTurn('s1', CORPUS.nikhil.text);
     expect(turnKind()).toBe('close');
     expect(new Set(revealed())).toEqual(new Set(['bean_price_change', 'non_bean_input_change', 'avg_ticket']));
-    expect(r.interviewerText).not.toMatch(/I don't have|come back to/);
+    expect(r.interviewerText).not.toMatch(/come back to/);
     expect(r.interviewerText).toMatch(/40%/);
     expect(r.interviewerText).toContain("We won't get to historical response to any prior price move today.");
-    expect(r.interviewerText).not.toMatch(/regional demographics|competitor price points/i);
+    // Round 5c Task 61 (the qualifier guard): the input-cost lines don't state a competitor scope, so the mapped
+    // items are partial — released (E1), and the competitor ask refused in its own words.
+    expect(r.interviewerText).toContain("I don't have competitor price points.");
+    expect(r.interviewerText).not.toMatch(/regional demographics/i);
     expect(explicitRows().filter(e => (e.payloadJsonb as Row).wontGetTo === true).map(e => (e.payloadJsonb as Row).what)).toEqual(['Historical response to any prior price move']);
     expect(r.ended).toBe(true);
   });

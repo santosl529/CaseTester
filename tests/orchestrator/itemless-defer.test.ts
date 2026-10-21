@@ -20,7 +20,10 @@ import { renderDataLines } from '@/lib/orchestrator/data-decisions';
 import { readsFixture } from './fixtures/turn-reads';
 import { askVia } from './fixtures/ask-check';
 
-const WHAT = "Aldermoor's European Kelvexa sales trend since 2022";
+// An off-case ask the coverage step leaves unmatched; the check's mapping to cogs_pct is a
+// stand-in for the mechanics. Without "since 2022" since round 5c Task 61: that date is on no
+// mapped line, so the qualifier guard would make the item partial (pinned in checked-ask.test.ts).
+const WHAT = "Aldermoor's European Kelvexa sales trend";
 const SATISFIED = { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } };
 const plan = (flags: Record<string, unknown> = {}): ModelPlan => {
   const p = planTurn(readsFixture({ phase: 'STRUCTURE', flags }), `Could I get ${WHAT}?`,

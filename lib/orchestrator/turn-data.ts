@@ -11,7 +11,8 @@ import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNo
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, WANT_ASK_PHASES } from './request-signal';
 import { correctsNow } from './math-checker-live';
-import { revealedValues, canReveal } from './data-ledger';
+import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
+import { unmetQualifiers, guardParts, mergeParts, qualifierItems, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
 import { costOf } from '@/lib/llm-pricing';
 
@@ -117,7 +118,35 @@ function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
 // ledger items it found, those of them the ask's scope rules rule out, and those
 // the check says hold only the nearest data (`partial`, round 5b Task 56) with the
 // asked part each lacks (`missing`, validated: no digit, the ask's own words).
-export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: string[]; partial: string[]; missing: Record<string, string> };
+// `guard` (round 5c Task 61): the qualifiers of the ask no mapped item states, and the
+// refusal's parts (qualifierGuard below): every mapped item is then partial.
+export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: string[]; partial: string[]; missing: Record<string, string>; guard?: QualifierGuard };
+export type QualifierGuard = { unmet: Qualifier[]; parts: string[] };
+
+// The qualifier guard (round 5c Task 61; Lorenzo, 20 Oct, ruling 1: "If an ask names a
+// qualifier the item's line doesn't contain (a period …; a scope …; or a second topic
+// with no item), that item counts as partial whatever Haiku labels it, and the refusal
+// names the qualifier"; r5b-haiku-check #18, 36, 49/50, 63, 66). On the check's verdict
+// only — never on the model's own mapped requests or the message classifier's. Read from
+// the ask's words and the mapped items' labels and lines (ledger values, server-side;
+// ask-qualifiers.ts); a qualifier any mapped item states is met, so the refusal never
+// denies a mapped line. Its parts are the ask's words; a figure in them must be one a
+// candidate turn said (the post-turn audit allows those), else no guard. The check's own
+// valid missing parts it doesn't cover join them (mergeParts).
+function qualifierGuard(plan: ModelPlan, what: string, ids: string[], missing: Record<string, string>): QualifierGuard | null {
+  const items = ids.flatMap(id => plan.state.ledger.items.filter(i => i.id === id));
+  if (items.length === 0) return null;
+  const ledger = plan.state.caseData.dataLedger;
+  const unmet = unmetQualifiers(what, qualifierItems(items, ledger, i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0])), ledger);
+  const own = guardParts(what, unmet);
+  if (own.length === 0) return null;
+  const figs = (t: string) => [...t.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => m[0].replace(/,/g, ''));
+  const said = new Set([plan.ctx.candidateText, ...plan.state.turnRows.filter(t => t.role === 'candidate').map(t => t.text)].flatMap(figs));
+  if (own.some(p => figs(p).some(f => !said.has(f)))) return null;
+  const norm = (m: string) => m.replace(/\s+/g, ' ').trim().toLowerCase();
+  const extra = ids.flatMap(id => (missing[id] !== undefined && norm(missing[id]) !== norm(what) ? [missing[id]] : []));
+  return { unmet, parts: mergeParts(own, extra, what) };
+}
 
 // What code does with a verdict (Lorenzo, 20 Oct, round 5 E5: "build (a) and
 // (b). Not (c). Add (d): a deferral names the item it will deliver, not the
@@ -164,7 +193,8 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
   const { ledger } = plan.state;
   const ids = v.ids.filter(id => ledger.items.some(i => i.id === id));
   if (!v.mapped || ids.length === 0) return { kind: 'refuse' };
-  const partial = new Set(v.partial ?? []);
+  // A guarded ask (Task 61): every mapped item partial, the guard's parts refused.
+  const partial = new Set(v.guard ? ids : v.partial ?? []);
   // A partial's refusal as said: figures the mapped items' lines state dropped, a plan name kept (fix round 2).
   const lines = ids.map(id => ledger.items.find(i => i.id === id)!.value);
   const said = (m: string) => refusalPhrase(dropStatedFigures(m, lines), plan);
@@ -204,10 +234,10 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
   // b35h Marcus t9: only the first partial's part was said). The whole ask instead when
   // a coarse item is out of scope (it answers none of the ask), or a partial's part fell
   // back to the whole ask (checkAsk) — the ask's own words cover it.
-  const parts = coarse.filter(id => partial.has(id)).map(id => v.missing?.[id] ?? what);
+  const parts = v.guard ? v.guard.parts : coarse.filter(id => partial.has(id)).map(id => v.missing?.[id] ?? what);
   if (parts.length === 0) return { kind: 'coarse', ids: coarse };   // out of scope only: the ask, as before
   const wholeAsk = coarse.some(id => !partial.has(id)) || parts.some(whole);
-  const partIds = coarse.filter(id => partial.has(id));
+  const partIds = v.guard ? parts.map(m => coarse.find(id => v.missing?.[id] === m) ?? coarse[0]) : coarse.filter(id => partial.has(id));
   const said1 = wholeAsk ? [{ id: partIds[0], m: said(what) }]
     : parts.flatMap((m, i) => (parts.findIndex(x => norm(x) === norm(m)) === i ? [{ id: partIds[i], m: said(m) }] : []));
   // A part a ledger item covers is not said (M6); none left: the ask's own refusal, as before the rewrite.
@@ -284,12 +314,13 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
       partial.push(f.id);
       missing[f.id] = m;
     }
-    const verdict: CheckVerdict = { mapped, ids, outOfScope, partial, missing };
+    const guard = found === null ? null : qualifierGuard(plan, what, ids, missing);
+    const verdict: CheckVerdict = { mapped, ids, outOfScope, partial, missing, ...(guard ? { guard } : {}) };
     const decision = decideCheckedAsk(plan, what, verdict);
     // `found` keeps its old shape, so a replay reads old and new records alike (lib/eval/recorded-checks.ts).
     plan.ctx.checks.record('itemless_defer', mapped !== false, DECIDED[decision.kind],
       { what, mapped, found: found === null ? null : [{ what, ids }], decision: decision.kind, ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}),
-        ...(partial.length > 0 ? { partial, missing } : {}), latencyMs: Date.now() - t0, ...(timedOut ? { timedOut } : {}), ...(usage ? usageDetail(usage) : {}) });
+        ...(partial.length > 0 ? { partial, missing } : {}), ...(guard ? { guard } : {}), latencyMs: Date.now() - t0, ...(timedOut ? { timedOut } : {}), ...(usage ? usageDetail(usage) : {}) });
     // A partial part no refusal says (final review I5, for Lorenzo's ruling; M6): the
     // ask, the item, Haiku's own `missing` and the part as checked, so a wave counts them.
     for (const x of decision.kind === 'items' || decision.kind === 'coarse' ? decision.dropped ?? [] : []) {

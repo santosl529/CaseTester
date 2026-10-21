@@ -15,7 +15,9 @@ vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<obje
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
 
 import { planTurn, type ModelPlan, type TurnReads } from '@/lib/orchestrator/plan-turn';
-import { turnDataChecked, decideCheckedAsk, checkAsk } from '@/lib/orchestrator/turn-data';
+import { turnDataChecked, decideCheckedAsk, checkAsk, withAsks, type TurnAsks } from '@/lib/orchestrator/turn-data';
+import { auditTurn } from '@/lib/orchestrator/audit';
+import { revealedValues } from '@/lib/orchestrator/data-ledger';
 import { renderDataLines, decisionRows } from '@/lib/orchestrator/data-decisions';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import type { Phase } from '@/lib/orchestrator/state-machine';
@@ -93,14 +95,15 @@ describe('(a) the check maps the ask to an item already out → restated, never 
     expect(lines[1]).toContain(value('cohort_notes'));
     expect(lines.join(' ')).not.toMatch(/come back|get there|Starter cohort beyond month 12/);
   });
-  it('Marisol t11: plan_cac, on Exhibit 1, restated as the exhibit shows', async () => {
+  // Round 5c Task 61: the round-5 restate here was a bare partial (r5b-haiku-check #66) — plan_cac states no
+  // change since January 2025, so the guard makes it partial: out already, the refusal alone, never deferred.
+  it('Marisol t11: plan_cac, on Exhibit 1 — not restated: "I don\'t have Pro\'s CAC since January 2025." alone (Task 61)', async () => {
     classify.mockResolvedValueOnce(MARISOL.found);
     const p = plan(MARISOL, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] });
     const d = await turnDataChecked(p, turn(MARISOL));
-    expect(d.restates).toEqual([{ id: 'plan_cac', value: value('plan_cac'), exhibit: true }]);
+    expect(d.restates).toEqual([]);
     expect(d.defers).toEqual([]);
-    expect(renderDataLines(d, 's')).toHaveLength(1);
-    expect(renderDataLines(d, 's')[0]).toContain(value('plan_cac'));
+    expect(renderDataLines(d, 's')).toEqual(["I don't have Pro's CAC since January 2025."]);
   });
   // Controller ruling (20 Oct, fix round 1): (a) only on a pure re-ask — every
   // mapped item out. A mixed verdict answers with the new items alone.
@@ -124,37 +127,41 @@ describe('(a) the check maps the ask to an item already out → restated, never 
 });
 
 describe('(d) the check maps the ask to an item not yet out', () => {
-  it('Raj t11 (mixed): upgrade_timing released now; starter_cohort and cohort_notes, already said, not restated', async () => {
+  // Round 5c Task 61 (the qualifier guard): no mapped line states "later cohorts", so every item is partial —
+  // upgrade_timing's line goes (E1), the out items are not said again, and the later cohorts are refused.
+  it('Raj t11 (mixed): upgrade_timing released now; starter_cohort and cohort_notes, already said, not restated; "later cohorts\' upgrade rates" refused (Task 61)', async () => {
     classify.mockResolvedValueOnce(RAJ.found);
     const p = plan(RAJ, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition'] });
     const d = await turnDataChecked(p, turn(RAJ));
     expect(d.releases.map(r => r.id)).toEqual(['upgrade_timing']);
     expect(d.restates).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual([value('upgrade_timing')]);
+    expect(renderDataLines(d, 's')).toEqual([value('upgrade_timing'), "I don't have later cohorts' upgrade rates."]);
     expect(d.defers).toEqual([]);
-    expect(d.refusals).toEqual([]);
+    expect(d.refusals).toEqual(["later cohorts' upgrade rates"]);
     expect(renderDataLines(d, 's').join(' ')).not.toContain('upgrade rates for later cohorts');
   });
   // A gated item: the Starter cohort and its notes (ANALYSIS data) before the
   // structure is settled; upgrade_timing is clarifying data, never gated, so it goes.
+  // On Tyler t11's ask since Task 61 (Raj's names "later cohorts", which no line states:
+  // the guard's E1 form, pinned in the Task 61 tests); the same mapping.
   it('… before the pressure test is answered: the gated cohort items deferred by their names, booked, no figure; upgrade_timing still goes', async () => {
-    classify.mockResolvedValueOnce(RAJ.found);
-    const p = plan(RAJ, { pressureTest: AWAITING, revealed: [], shown: [], phase: 'STRUCTURE' });
-    const d = await turnDataChecked(p, turn(RAJ));
+    classify.mockResolvedValueOnce([{ ...RAJ.found[0], what: TYLER.ask.what }]);
+    const p = plan(TYLER, { pressureTest: AWAITING, revealed: [], shown: [], phase: 'STRUCTURE' });
+    const d = await turnDataChecked(p, turn(TYLER));
     expect(d.releases.map(r => r.id)).toEqual(['upgrade_timing']);
     expect(d.gatedIds).toEqual(['starter_cohort', 'cohort_notes']);
     expect(d.gateDefers).toEqual(["the Starter cohort's status", 'the notes on the cohorts']);
     expect(d.itemlessDefers).toBeUndefined();
     const line = renderDataLines(d, 's').at(-1)!;
     expect(line).toContain("the Starter cohort's status and the notes on the cohorts");
-    expect(line).not.toContain('upgrade rates for later cohorts');
+    expect(line).not.toContain(TYLER.ask.what);
     expect(line).not.toMatch(NO_FIGURE);
     expect(decisionRows(d).filter(r => r.response === 'defer').map(r => r.ledgerItemIds)).toEqual([['starter_cohort'], ['cohort_notes']]);
   });
   it('… held over the release cap: deferred by its spoken name ("I\'ll come back to when customers upgrade"), booked, no figure', async () => {
-    classify.mockResolvedValueOnce([{ what: 'upgrade rates for later cohorts', ledgerItemIds: ['why_pro_fell', 'buyer_profile', 'competitor_prices', 'upgrade_timing'], response: 'none', explicit: true }]);
-    const p = plan(RAJ);
-    const d = await turnDataChecked(p, turn(RAJ));
+    classify.mockResolvedValueOnce([{ what: TYLER.ask.what, ledgerItemIds: ['why_pro_fell', 'buyer_profile', 'competitor_prices', 'upgrade_timing'], response: 'none', explicit: true }]);
+    const p = plan(TYLER);
+    const d = await turnDataChecked(p, turn(TYLER));
     expect(d.releases.map(r => r.id)).toEqual(['why_pro_fell', 'buyer_profile', 'competitor_prices']);
     expect(d.defers).toEqual(['when customers upgrade']);
     expect(d.itemlessDefers).toBeUndefined();
@@ -170,10 +177,10 @@ describe('(d) the check maps the ask to an item not yet out', () => {
     expect(d.releases.map(r => r.id)).toEqual(['upgrade_timing']);
   });
   it('… on a wrap-up turn: "We won\'t get to when customers upgrade today." — not promised', async () => {
-    classify.mockResolvedValueOnce([{ what: 'upgrade rates for later cohorts', ledgerItemIds: ['why_pro_fell', 'buyer_profile', 'competitor_prices', 'upgrade_timing'], response: 'none', explicit: true }]);
-    const p = plan(RAJ);
+    classify.mockResolvedValueOnce([{ what: TYLER.ask.what, ledgerItemIds: ['why_pro_fell', 'buyer_profile', 'competitor_prices', 'upgrade_timing'], response: 'none', explicit: true }]);
+    const p = plan(TYLER);
     p.state.kind = 'close';
-    const d = await turnDataChecked(p, turn(RAJ));
+    const d = await turnDataChecked(p, turn(TYLER));
     expect(d.defers).toEqual([]);
     expect(renderDataLines(d, 's').at(-1)).toBe("We won't get to when customers upgrade today.");
     expect(decisionRows(d).find(r => r.ledgerItemIds.includes('upgrade_timing'))).toMatchObject({ response: 'defer', wontGetTo: true });
@@ -181,15 +188,16 @@ describe('(d) the check maps the ask to an item not yet out', () => {
 });
 
 // Final review (20 Oct), Review Focus 1 on the items path (Task 45): a check-mapped item the release order holds
-// back is deferred by its name and booked, never released. Raj's ask as the check might map it to the price test's
-// notes, on Exhibit 4, which waits on Exhibits 1-3 (only Exhibit 1 is shown).
+// back is deferred by its name and booked, never released. An ask as the check might map it to the price test's
+// notes, on Exhibit 4, which waits on Exhibits 1-3. Tyler t11's ask since Task 61 (Raj's names "later cohorts",
+// which the notes don't state: the guard's E1 form instead, the refusal alone).
 describe('(d) a mapped item held by the release order', () => {
-  const NOTES = [{ what: 'upgrade rates for later cohorts', ledgerItemIds: ['price_test_notes'], response: 'none', explicit: true }];
-  it('Raj t11 → price_test_notes, Exhibit 4 not ready: "I\'ll come back to the notes on the price test", booked, nothing released', async () => {
+  const NOTES = [{ what: TYLER.ask.what, ledgerItemIds: ['price_test_notes'], response: 'none', explicit: true }];
+  it('Tyler t11 → price_test_notes, Exhibit 4 not ready: "I\'ll come back to the notes on the price test", booked, nothing released', async () => {
     classify.mockResolvedValueOnce(NOTES);
-    const p = plan(RAJ);
-    const d = await turnDataChecked(p, turn(RAJ));
-    expect(acted(p, 'checked_ask').map(e => e.detail)).toEqual([{ asks: [{ what: 'upgrade rates for later cohorts', kind: 'items', ids: ['price_test_notes'] }] }]);
+    const p = plan(TYLER, { shown: ['exhibit-1'] });
+    const d = await turnDataChecked(p, turn(TYLER));
+    expect(acted(p, 'checked_ask').map(e => e.detail)).toEqual([{ asks: [{ what: TYLER.ask.what, kind: 'items', ids: ['price_test_notes'] }] }]);
     expect(d.releases).toEqual([]);
     expect(d.exhibit).toBeNull();
     expect(d.defers).toEqual(['the notes on the price test']);
@@ -379,19 +387,19 @@ const FARE_PARTIAL = { items: [
   { id: 'port_avery_per_flight', answers: 'partial', missing: 'the fare trend across FY2024 and FY2025' }] };
 
 describe('fix round 2: a mixed full + partial verdict refuses the partial\'s missing part', () => {
-  it('#18 Sofia (b30) t14: bean_price_change full (out: restated) and bean_share_of_cogs partial → the restate and "I don\'t have current waste rates and bean contracting terms."', async () => {
+  // Since round 5c Task 61 the guard decides this ask: neither topic ("current waste rates", "bean contracting
+  // terms") is on either line, so both items are partial; out already → the refusal alone, both topics named.
+  // Haiku's "current bean contracting terms" adds no word to the guard's parts, so it is not said again.
+  it('#18 Sofia (b30) t14: bean_price_change "full" and bean_share_of_cogs partial, both out → "I don\'t have current waste rates or bean contracting terms." alone (Task 61)', async () => {
     classify.mockResolvedValueOnce({ items: [{ id: 'bean_price_change', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'partial', missing: 'current bean contracting terms' }] });
     const p = planOf(SOFIA_B30_T14);
     const d = await turnDataChecked(p, turn(SOFIA_B30_T14));
-    expect(d.restates.map(r => r.id)).toEqual(['bean_price_change']);
+    expect(d.restates).toEqual([]);
     expect(d.releases).toEqual([]);
-    // "current bean contracting terms": its content words are the ask's (fix round 3, rule b).
-    expect(d.refusals).toEqual(['current bean contracting terms']);
+    expect(d.refusals).toEqual(['current waste rates', 'bean contracting terms']);
     const lines = renderDataLines(d, 's');
-    expect(lines).toHaveLength(2);
-    expect(lines[1]).toContain('current bean contracting terms');
-    expect(lines.join(' ')).not.toMatch(/25% of COGS/);   // the partial item itself is not said
-    expect(acted(p, 'checked_ask')[0].detail).toMatchObject({ asks: [{ kind: 'items', ids: ['bean_price_change'], missing: ['current bean contracting terms'] }] });
+    expect(lines).toEqual(["I don't have current waste rates or bean contracting terms."]);
+    expect(acted(p, 'checked_ask')[0].detail).toMatchObject({ asks: [{ kind: 'coarse', ids: ['bean_price_change', 'bean_share_of_cogs'], missing: ['current waste rates', 'bean contracting terms'] }] });
   });
 });
 
@@ -407,23 +415,28 @@ describe('fix round 3: a mixed verdict never refuses the whole ask', () => {
     const p = planOf(SOFIA_B30_T14);
     return decideCheckedAsk(p, WHAT, await checkAsk(p, WHAT));
   };
-  it('"the bean price change and current waste rates": bean_price_change full, bean_share_of_cogs partial "waste rates" (cut mid-phrase) → bean_price_change, no refusal', async () => {
-    expect(await decide('waste rates')).toEqual({ kind: 'items', ids: ['bean_price_change'], dropped: [{ id: 'bean_share_of_cogs', missing: WHAT, why: 'whole_ask' }] });
+  // Since round 5c Task 61 the guard reads this ask's second topic ("current waste rates", on neither line): both
+  // items partial (coarse), and "current waste rates" refused whatever Haiku's missing part — the fix-round-3 rule
+  // (no whole ask beside a full item) still holds for an unguarded verdict (decideCheckedAsk tests above).
+  it('"the bean price change and current waste rates": bean_price_change full, bean_share_of_cogs partial "waste rates" (cut mid-phrase) → coarse, "current waste rates" refused (Task 61)', async () => {
+    expect(await decide('waste rates')).toEqual({ kind: 'coarse', ids: ['bean_price_change', 'bean_share_of_cogs'], missing: ['current waste rates'] });
   });
-  it('… the partial\'s missing part the whole ask → no refusal either; a valid one ("current waste rates") is refused', async () => {
-    expect(await decide(WHAT)).toEqual({ kind: 'items', ids: ['bean_price_change'], dropped: [{ id: 'bean_share_of_cogs', missing: WHAT, why: 'whole_ask' }] });
-    expect(await decide('current waste rates')).toEqual({ kind: 'items', ids: ['bean_price_change'], missing: ['current waste rates'] });
+  it('… the partial\'s missing part the whole ask, or a valid one ("current waste rates") → the same', async () => {
+    expect(await decide(WHAT)).toEqual({ kind: 'coarse', ids: ['bean_price_change', 'bean_share_of_cogs'], missing: ['current waste rates'] });
+    expect(await decide('current waste rates')).toEqual({ kind: 'coarse', ids: ['bean_price_change', 'bean_share_of_cogs'], missing: ['current waste rates'] });
   });
 });
 
 describe('fix round 2: a missing part the item\'s line states is no missing part', () => {
-  it('#49 Raj (b34l) t13: the fares not yet out → both lines, and "I don\'t have the fare trend across FY2024." (FY2025 is on the Lakeport line)', async () => {
+  // Since round 5c Task 61 the guard's phrase replaces the whole-ask fallback: "FY2024 fares" (FY2025 and the
+  // trend are on the Lakeport line).
+  it('#49 Raj (b34l) t13: the fares not yet out → both lines, and "I don\'t have FY2024 fares." (FY2025 is on the Lakeport line)', async () => {
     classify.mockResolvedValueOnce(FARE_PARTIAL);
     const p = planOf(RAJ_B34L_T13);
     const d = await turnDataChecked(p, turn(RAJ_B34L_T13));
     expect(d.releases.map(r => r.id)).toEqual(['lakeport_fare', 'port_avery_per_flight']);
-    expect(d.refusals).toEqual(['the fare trend across FY2024']);
-    expect(renderDataLines(d, 's').at(-1)).toMatch(/the fare trend across FY2024\b(?! and)/i);
+    expect(d.refusals).toEqual(['FY2024 fares']);
+    expect(renderDataLines(d, 's').at(-1)).toBe("I don't have FY2024 fares.");
   });
   it('#50 Raj (b34l) t15: the fares already out → the refusal alone, FY2025 not named as missing', async () => {
     classify.mockResolvedValueOnce(FARE_PARTIAL);
@@ -431,7 +444,7 @@ describe('fix round 2: a missing part the item\'s line states is no missing part
     const d = await turnDataChecked(p, turn(RAJ_B34L_T13));
     expect(d.releases).toEqual([]);
     expect(d.restates).toEqual([]);
-    expect(d.refusals).toEqual(['the fare trend across FY2024']);
+    expect(d.refusals).toEqual(['FY2024 fares']);
     expect(renderDataLines(d, 's').join(' ')).not.toMatch(/FY2025/);
   });
   it('a partial whose missing part and whole ask the line states → full (released, no refusal)', async () => {
@@ -477,13 +490,17 @@ const B35H_55 = { items: [
   { id: 'planning_assumptions', answers: 'partial', missing: 'store count and a velocity benchmark' }] };
 
 describe('final review I1: a coarse verdict with two or more partials', () => {
-  it('#55 Marcus (b35h) t9: one partial\'s missing part is the whole ask → the whole ask refused, not "store count" alone', async () => {
+  // Since round 5c Task 61 the guard decides it: "a velocity benchmark" (a scope and a topic no line states) is
+  // refused; Haiku's "store count" joins the guard's parts, then the false-refusal veto drops it (the case holds a
+  // store count) — before, the whole ask was said, store count included.
+  it('#55 Marcus (b35h) t9: the guard\'s "a velocity benchmark" refused; "store count", which the case holds, vetoed (Task 61)', async () => {
     classify.mockResolvedValueOnce(B35H_55);
     const p = planOf(MARCUS_B35H_T9);
     const what = MARCUS_B35H_T9.ask.what;
     const v = await checkAsk(p, what);
-    expect(v).toMatchObject({ partial: ['channels', 'planning_assumptions'], missing: { channels: 'store count', planning_assumptions: what } });
-    expect(decideCheckedAsk(p, what, v)).toEqual({ kind: 'coarse', ids: ['channels', 'planning_assumptions'], missing: ['store count and a velocity benchmark'] });
+    expect(v).toMatchObject({ partial: ['channels', 'planning_assumptions'], missing: { channels: 'store count', planning_assumptions: what }, guard: { parts: ['store count', 'a velocity benchmark'] } });
+    expect(decideCheckedAsk(p, what, v)).toEqual({ kind: 'coarse', ids: ['channels', 'planning_assumptions'], missing: ['a velocity benchmark'],
+      dropped: [{ id: 'channels', missing: 'store count', why: 'false_refusal' }] });
   });
   it('two partials with valid parts → both parts, joined: {coarse, missing: ["x", "y"]}', () => {
     expect(decideCheckedAsk(plan(RAJ), 'x and y', { mapped: true, ids: ['upgrade_timing', 'price_test_notes'], outOfScope: [], partial: ['upgrade_timing', 'price_test_notes'], missing: { upgrade_timing: 'x', price_test_notes: 'y' } }))
@@ -512,24 +529,27 @@ describe('final review I1: a coarse verdict with two or more partials', () => {
 // (#18 waste rates, #49 FY2024). Each is now recorded (`partial_dropped`) with the ask,
 // the item and Haiku's raw `missing`, so a wave can count them.
 describe('final review I5: a dropped partial part is recorded', () => {
-  it('#49 Raj (b34l) t13, second run\'s verdict: lakeport_fare full, port_avery_per_flight partial (missing the whole ask) → no refusal, one partial_dropped record', async () => {
+  // Lorenzo's ruling on I5 (round 5c ruling 1, Task 61): the guard now refuses the qualifier these dropped
+  // parts lacked, so neither leaves a partial_dropped record; Haiku's own partial stays on the check record.
+  it('#49 Raj (b34l) t13, second run\'s verdict: lakeport_fare full, port_avery_per_flight partial (missing the whole ask) → both lines and "FY2024 fares" refused, no partial_dropped (Task 61)', async () => {
     classify.mockResolvedValueOnce({ items: [
       { id: 'lakeport_fare', answers: 'full' },
       { id: 'port_avery_per_flight', answers: 'partial', missing: 'the fare trend across FY2024 and FY2025' }] });
     const p = planOf(RAJ_B34L_T13);
     const d = await turnDataChecked(p, turn(RAJ_B34L_T13));
-    expect(d.releases.map(r => r.id)).toEqual(['lakeport_fare']);
-    expect(d.refusals).toEqual([]);   // behaviour unchanged
-    expect(acted(p, 'partial_dropped').map(e => e.detail)).toEqual([{
-      what: 'the fare trend across FY2024 and FY2025', item: 'port_avery_per_flight', missing: 'the fare trend across FY2024 and FY2025',
-      checked: 'the fare trend across FY2024 and FY2025', why: 'whole_ask', decision: 'items' }]);
+    expect(d.releases.map(r => r.id)).toEqual(['lakeport_fare', 'port_avery_per_flight']);
+    expect(d.refusals).toEqual(['FY2024 fares']);
+    expect(acted(p, 'partial_dropped')).toEqual([]);
+    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ partial: ['port_avery_per_flight'], missing: { port_avery_per_flight: 'the fare trend across FY2024 and FY2025' },
+      guard: { unmet: [{ kind: 'period', text: 'FY2024' }], parts: ['FY2024 fares'] } });
   });
-  it('#18 Sofia (b30) t14 shape: "waste rates" cut mid-phrase → Haiku\'s "waste rates" kept on the record beside the checked fallback', async () => {
+  it('#18 Sofia (b30) t14 shape: "waste rates" cut mid-phrase → the guard refuses "current waste rates"; no partial_dropped (Task 61)', async () => {
     const WHAT = 'the bean price change and current waste rates';
     classify.mockResolvedValueOnce({ items: [{ id: 'bean_price_change', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'partial', missing: 'waste rates' }] });
     const p = planOf(SOFIA_B30_T14);
     await checkAsk(p, WHAT);
-    expect(acted(p, 'partial_dropped').map(e => e.detail)).toEqual([{ what: WHAT, item: 'bean_share_of_cogs', missing: 'waste rates', checked: WHAT, why: 'whole_ask', decision: 'items' }]);
+    expect(acted(p, 'partial_dropped')).toEqual([]);
+    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ decision: 'coarse', guard: { parts: ['current waste rates'] } });
   });
   it('a refused part (valid) leaves no record', async () => {
     classify.mockResolvedValueOnce({ items: [{ id: 'bean_price_change', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'partial', missing: 'current bean contracting terms' }] });
@@ -549,7 +569,8 @@ describe('final review M6: a partial part the case holds is not refused', () => 
     classify.mockResolvedValueOnce({ items: [{ id: 'bean_price_change', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'partial', missing: 'the average ticket' }] });
     const p = planOf(SOFIA_B30_T14);
     const c = decideCheckedAsk(p, WHAT, await checkAsk(p, WHAT));
-    expect(c).toEqual({ kind: 'items', ids: ['bean_price_change'], dropped: [{ id: 'bean_share_of_cogs', missing: 'the average ticket', why: 'false_refusal' }] });
+    // Since Task 61 the guard reads both topics as on neither line (coarse); the veto still drops the ticket.
+    expect(c).toEqual({ kind: 'coarse', ids: ['bean_price_change', 'bean_share_of_cogs'], missing: ['current waste rates'], dropped: [{ id: 'bean_share_of_cogs', missing: 'the average ticket', why: 'false_refusal' }] });
     expect(acted(p, 'partial_dropped').map(e => e.detail)).toMatchObject([{ item: 'bean_share_of_cogs', missing: 'the average ticket', why: 'false_refusal' }]);
   });
   it('coarse: two partials, one part the ticket → only "current waste rates" refused', async () => {
@@ -608,5 +629,184 @@ describe('final review I3: the check\'s cost and added latency per session', () 
     } finally {
       vi.useRealTimers();
     }
+  });
+});
+
+// Round 5c Task 61, the qualifier guard (Lorenzo, 20 Oct, ruling 1): "If an ask names a
+// qualifier the item's line doesn't contain …, that item counts as partial whatever
+// Haiku labels it, and the refusal names the qualifier ("I don't have FY2024 fares.",
+// "I don't have industry benchmarks.")." The second Haiku run's replies verbatim
+// (haiku5b2-verdicts.json `raw`), the candidates' messages verbatim, the ledger as it stood.
+const FIONA_B31_T10 = { caseId: 'prof-001', text: "Revenue growth is 1.15; ticket is up 1.10, so transactions are up about 1.15/1.10 ≈ 1.045, roughly 5%. Store count flat, so this is all same-store: 5% more visits and 10% bigger baskets from attachment.\n\nThat actually pushes me off my pricing framing. I was treating \"prices didn't move\" as the cause — but it isn't. Revenue per store is up 15% with zero price action; the business is healthy on the demand side. The entire margin loss traces to input costs rising ~38-40%. Pricing is a lever, not a driver, and I'd be cautious leaning on it: the growth engine here is frequency and attachment, and a broad menu price hike is exactly what breaks both.\n\nSo the thing the data supports is the input cost side. Do we know anything about how they buy beans and dairy — spot versus contract, how many suppliers, any hedging? And has the industry seen the same 40%, or is Brew & Bean paying above market?", ask: { what: 'industry input cost inflation benchmarks', itemIds: [], explicit: true, respond: 'release' }, phase: 'ANALYSIS', revealed: ['menu_price_change', 'avg_ticket', 'stores_count', 'cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'non_bean_input_change', 'bean_price_change'], shown: [] as string[], found: [] };
+const RAJ_B34L_T15_TEXT = "Three things. One, demand: Westhaven earns $1,900 a flight at today's load factors. If I add frequency on an existing route, the incremental passengers are the marginal ones — I'd likely fill them only by discounting, so I'd dilute fare on the flights I already run. I'd want to know whether those four routes are demand-constrained or capacity-constrained today, ideally turn-away or booking-curve data.\n\nTwo, a new city: Westhaven's $1,900 is a mature route with an established base. A new destination ramps, and probably loses money year one — which matters a lot given the 12-month deadline.\n\nThree, cost comparability. Variable cost per flight ranges $9,000 to $11,000 here, mostly stage length and airport fees. A longer or more expensive airport changes the math.\n\nAnd since the leases are sunk through 2030, idling planes saves nothing — so the bar isn't \"earn $1,900,\" it's \"beat zero.\"";
+const RAW = {
+  18: { items: [{ id: 'bean_price_change', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'partial', missing: 'bean contracting terms' }] },
+  36: { items: [{ id: 'non_bean_input_change', answers: 'full' }, { id: 'bean_price_change', answers: 'full' }] },
+  49: { items: [{ id: 'lakeport_fare', answers: 'full' }, { id: 'port_avery_per_flight', answers: 'partial', missing: 'FY2025 fare trend for Port Avery' }] },
+  50: { items: [{ id: 'lakeport_fare', answers: 'full' }, { id: 'port_avery_per_flight', answers: 'full' }] },
+  63: { items: [{ id: 'starter_cohort', answers: 'full' }, { id: 'cohort_notes', answers: 'full' }] },
+  66: { items: [{ id: 'plan_cac', answers: 'full' }] },
+  12: { items: [{ id: 'cogs_pct', answers: 'full' }, { id: 'labor_pct', answers: 'full' }, { id: 'overhead_pct', answers: 'full' }] },
+  67: { items: [{ id: 'cohort_notes', answers: 'full', missing: '' }] },
+};
+const linesOf = (d: Awaited<ReturnType<typeof turnDataChecked>>) => renderDataLines(d, 's');
+const ledgerValue = (caseId: string, id: string) => getCaseById(caseId).dataLedger.find(i => i.id === id)!.value;
+
+describe('Task 61: the second run\'s bare partials — each item partial, the refusal naming the qualifier', () => {
+  it('#18 Sofia (b30) t14: both items out → "I don\'t have current waste rates or bean contracting terms." alone (was: the bean price restated, waste rates unmentioned)', async () => {
+    classify.mockResolvedValueOnce(RAW[18]);
+    const p = planOf(SOFIA_B30_T14);
+    const d = await turnDataChecked(p, turn(SOFIA_B30_T14));
+    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ decision: 'coarse', guard: { parts: ['current waste rates', 'bean contracting terms'] } });
+    expect(d.restates).toEqual([]);
+    expect(d.releases).toEqual([]);
+    expect(d.refusals).toEqual(['current waste rates', 'bean contracting terms']);
+    expect(linesOf(d)).toEqual(["I don't have current waste rates or bean contracting terms."]);
+  });
+  it('#36 Fiona (b31) t10: the company\'s input-cost changes, out → "I don\'t have industry benchmarks." alone (was: restated, no refusal)', async () => {
+    classify.mockResolvedValueOnce(RAW[36]);
+    const d = await turnDataChecked(planOf(FIONA_B31_T10), turn(FIONA_B31_T10));
+    expect(d.restates).toEqual([]);
+    expect(linesOf(d)).toEqual(["I don't have industry benchmarks."]);
+  });
+  it('#49 Raj (b34l) t13: the fares not yet out → both lines, and "I don\'t have FY2024 fares." (was: Lakeport alone, no word on FY2024)', async () => {
+    classify.mockResolvedValueOnce(RAW[49]);
+    const p = planOf(RAJ_B34L_T13);
+    const d = await turnDataChecked(p, turn(RAJ_B34L_T13));
+    expect(d.releases.map(r => r.id)).toEqual(['lakeport_fare', 'port_avery_per_flight']);
+    expect(d.refusals).toEqual(['FY2024 fares']);
+    expect(linesOf(d).at(-1)).toBe("I don't have FY2024 fares.");
+    expect(acted(p, 'partial_dropped')).toEqual([]);
+  });
+  it('#50 Raj (b34l) t15 (the model re-declared the pending ask; Lakeport out): Port Avery\'s line and the refusal; Lakeport not said again', async () => {
+    classify.mockResolvedValueOnce(RAW[50]);
+    const reads = readsFixture({ caseId: 'prof-002', phase: 'ANALYSIS', revealed: [...RAJ_B34L_T13.revealed, 'aircraft_leases', 'lakeport_fare'], flags: { pressureTest: SATISFIED },
+      extraTurns: [{ role: 'candidate', text: RAJ_B34L_T13.text }, { role: 'interviewer', text: "I'll come back to the fare trend across FY2024 and FY2025 shortly." }] });
+    const p = planTurn(reads, RAJ_B34L_T15_TEXT, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
+    const d = await turnDataChecked(p, turn(RAJ_B34L_T13));
+    expect(d.releases.map(r => r.id)).toEqual(['port_avery_per_flight']);
+    expect(d.restates).toEqual([]);
+    expect(linesOf(d)).toEqual([ledgerValue('prof-002', 'port_avery_per_flight'), "I don't have FY2024 fares."]);
+  });
+  it('#63 Raj (b35q) t11: the Jan–Mar cohort items, out → "I don\'t have later cohorts\' upgrade rates." alone (was: restated, no refusal)', async () => {
+    classify.mockResolvedValueOnce(RAW[63]);
+    const d = await turnDataChecked(plan(RAJ, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition'] }), turn(RAJ));
+    expect(d.restates).toEqual([]);
+    expect(d.releases).toEqual([]);
+    expect(linesOf(d)).toEqual(["I don't have later cohorts' upgrade rates."]);
+  });
+  it('#66 Marisol (b35q) t11: plan_cac on Exhibit 1 → "I don\'t have Pro\'s CAC since January 2025." alone (was: restated, no refusal)', async () => {
+    classify.mockResolvedValueOnce(RAW[66]);
+    const d = await turnDataChecked(plan(MARISOL, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] }), turn(MARISOL));
+    expect(d.restates).toEqual([]);
+    expect(linesOf(d)).toEqual(["I don't have Pro's CAC since January 2025."]);
+  });
+});
+
+describe('Task 61: true full answers stay full', () => {
+  it('#12 Fiona (b29) t4: "operating margin over the period" with the cost shares → released with the exhibit, no refusal', async () => {
+    classify.mockResolvedValueOnce(RAW[12]);
+    const p = planOf(FIONA_T4);
+    const d = await turnDataChecked(p, { requests: [FIONA_T4.ask as DeclaredRequest], exhibit: 'exhibit-a', rescueItem: null });
+    expect(d.refusals).toEqual([]);
+    expect(d.exhibit?.id).toBe('exhibit-a');
+    expect(acted(p, 'itemless_defer')[0].detail).not.toHaveProperty('guard');
+  });
+  it('#67 Tyler (b35q) t11: "churn for upgraded customers measured from their upgrade date" names no qualifier → cohort_notes restated, no refusal', async () => {
+    classify.mockResolvedValueOnce(RAW[67]);
+    const d = await turnDataChecked(plan(TYLER), turn(TYLER));
+    expect(d.restates.map(r => r.id)).toEqual(['cohort_notes']);
+    expect(d.refusals).toEqual([]);
+  });
+  it('the asked period on the line: a FY2025 fare ask against the FY2025 fare → full (released, no refusal)', async () => {
+    const what = 'the Lakeport fare in FY2025';
+    classify.mockResolvedValueOnce({ items: [{ id: 'lakeport_fare', answers: 'full' }] });
+    const p = planOf(RAJ_B34L_T13);
+    const v = await checkAsk(p, what);
+    expect(v.guard).toBeUndefined();
+    expect(decideCheckedAsk(p, what, v)).toEqual({ kind: 'items', ids: ['lakeport_fare'] });
+  });
+  it('#30 shape, the period on the line: "COGS as a share of revenue today" against cogs_pct ("58% of revenue today") → full', async () => {
+    const what = 'COGS as a share of revenue today';
+    classify.mockResolvedValueOnce({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+    const p = planOf(SOFIA_T8);
+    expect(decideCheckedAsk(p, what, await checkAsk(p, what))).toEqual({ kind: 'items', ids: ['cogs_pct'] });
+  });
+  it('#64 Marcus (b35q) t17: "Starter cohort beyond month 12" — cohort_notes states "after month 12" → both restated as before (Lorenzo\'s note)', async () => {
+    classify.mockResolvedValueOnce({ items: [{ id: 'starter_cohort', answers: 'full' }, { id: 'cohort_notes', answers: 'full' }] });
+    const d = await turnDataChecked(plan(MARCUS_T17, { exhibitOnly: ['cohort_notes', 'pro_cohort', 'plan_prices_costs', 'ltv_definition', 'new_customers_by_plan'] }), turn(MARCUS_T17));
+    expect(d.restates.map(r => r.id)).toEqual(['starter_cohort', 'cohort_notes']);
+    expect(d.refusals).toEqual([]);
+  });
+});
+
+describe('Task 61: a guard-made partial obeys E1', () => {
+  it('not yet out and releasable → its line, then the refusal (#49: both fare lines, then "I don\'t have FY2024 fares.")', async () => {
+    classify.mockResolvedValueOnce(RAW[49]);
+    const d = await turnDataChecked(planOf(RAJ_B34L_T13), turn(RAJ_B34L_T13));
+    expect(linesOf(d)).toEqual([ledgerValue('prof-002', 'lakeport_fare'), ledgerValue('prof-002', 'port_avery_per_flight'), "I don't have FY2024 fares."]);
+  });
+  it('… an item an exhibit holds (#63, the cohort items not yet out): the exhibit handed over, then the refusal', async () => {
+    classify.mockResolvedValueOnce(RAW[63]);
+    const p = plan(RAJ, { revealed: RAJ.revealed.filter(id => !['starter_cohort', 'cohort_notes', 'pro_cohort'].includes(id)) });
+    const d = await turnDataChecked(p, turn(RAJ));
+    expect(d.exhibit?.id).toBe('exhibit-2');
+    expect(d.refusals).toEqual(["later cohorts' upgrade rates"]);
+    expect(linesOf(d).at(-1)).toBe("I don't have later cohorts' upgrade rates.");
+  });
+  it('out already → the refusal alone, never a restate without it (#66)', async () => {
+    classify.mockResolvedValueOnce(RAW[66]);
+    const d = await turnDataChecked(plan(MARISOL), turn(MARISOL));
+    expect(d.restates).toEqual([]);
+    expect(linesOf(d)).toEqual(["I don't have Pro's CAC since January 2025."]);
+  });
+  it('gated (the pressure test not answered) → the refusal alone: not given, no deferral, no figure (#63)', async () => {
+    classify.mockResolvedValueOnce(RAW[63]);
+    const p = plan(RAJ, { pressureTest: AWAITING, revealed: [], shown: [], phase: 'STRUCTURE' });
+    const d = await turnDataChecked(p, turn(RAJ));
+    expect(d.releases).toEqual([]);
+    expect(d.defers).toEqual([]);
+    expect(d.gateDefers).toEqual([]);
+    expect(linesOf(d)).toEqual(["I don't have later cohorts' upgrade rates."]);
+  });
+});
+
+describe('Task 61: figures in the refusal are the candidate\'s', () => {
+  it('the post-turn number audit accepts "FY2024" in the refusal: the candidate said it ("how did fare fall over FY2024 versus FY2025?")', async () => {
+    classify.mockResolvedValueOnce(RAW[49]);
+    const p = planOf(RAJ_B34L_T13);
+    const d = await turnDataChecked(p, turn(RAJ_B34L_T13));
+    const refusal = linesOf(d).at(-1)!;
+    expect(refusal).toBe("I don't have FY2024 fares.");
+    const revealed = { ...revealedValues(p.state.ledger), ...Object.fromEntries(d.releases.map(r => [r.id, r.value])) };
+    expect(auditTurn(refusal, revealed, p.ctx.candidateText)).toEqual({ passed: true, unexplainedNumbers: [] });
+    // With nothing revealed and no candidate text the figure would be unexplained: the candidate's message carries it
+    // (here competitor_entry's line, "Early in FY2024, …", is out too).
+    expect(auditTurn(refusal, {}).unexplainedNumbers).toEqual(['2024']);
+    expect(auditTurn(refusal, {}, p.ctx.candidateText).passed).toBe(true);
+  });
+  it('a figure no candidate turn said → no guard: the verdict decides as Haiku gave it', async () => {
+    classify.mockResolvedValueOnce(RAW[49]);
+    const p = planOf({ ...RAJ_B34L_T13, text: RAJ_B34L_T15_TEXT });
+    const v = await checkAsk(p, RAJ_B34L_T13.ask.what);
+    expect(v.guard).toBeUndefined();
+    expect(decideCheckedAsk(p, RAJ_B34L_T13.ask.what, v)).toMatchObject({ kind: 'items', ids: ['lakeport_fare'] });
+  });
+});
+
+describe('Task 61: the guard is the check\'s alone', () => {
+  it('the model\'s own mapped request: released or restated as declared, no check, no refusal', async () => {
+    const fx = { ...MARISOL, ask: { ...MARISOL.ask, itemIds: ['plan_cac'] } };
+    const d = await turnDataChecked(plan(fx, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] }), turn(fx));
+    expect(ask).not.toHaveBeenCalled();
+    expect(d.refusals).toEqual([]);
+    expect(d.restates.map(r => r.id)).toEqual(['plan_cac']);
+  });
+  it('the message classifier\'s detection with an item (its asks join as mapped requests): no check, no refusal', async () => {
+    const asks = { sentences: [], detected: [], open: [], waited: false, fresh: [{ what: "how Pro's CAC has moved since January 2025", ledgerItemIds: ['plan_cac'], response: 'release', explicit: true }], covered: [], dropped: [] };
+    const t = withAsks({ requests: [] as DeclaredRequest[], exhibit: null, rescueItem: null }, asks as unknown as TurnAsks);
+    const d = await turnDataChecked(plan(MARISOL, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] }), t);
+    expect(ask).not.toHaveBeenCalled();
+    expect(d.refusals).toEqual([]);
   });
 });

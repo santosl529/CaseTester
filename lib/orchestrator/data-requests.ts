@@ -409,7 +409,7 @@ data versus across`.split(/\s+/));
 // I2: "fares" was "far" and "fare" "fare"): 's, then the plural (-ies → -y; -es after
 // ch/sh/x/z/ss; else -s, not after s, u or i: "class", "bus", "analysis"), then a
 // trailing e — each step only while 3 letters are left ("fees" → "fee", "fee" → "fee").
-const missingStem = (w: string) => {
+export const missingStem = (w: string) => {
   const step = (s: string, next: string) => (next.length >= 3 ? next : s);
   let s = w.replace(/['’]s$/, '');
   if (/ies$/.test(s)) s = step(s, `${s.slice(0, -3)}y`);
@@ -443,7 +443,7 @@ const contentTokens = (t: string) => (t.replace(/[’']s\b/g, '').match(/[A-Za-z
 const START_BREAK = /(?:^|,|;|\band|\bor|\bplus|\bincluding|\bas well as|&)\s*$/i;
 const END_BREAK = /^\s*(?:$|,|;|and\b|or\b|plus\b|including\b|as well as\b|&)/i;
 const BAD_START = /^(?:versus|vs\.?|per|by|for|of|in|on|at|to|from|with|and|or|including|plus|than|over|across|between|since|within)\b/i;
-const contentStems = (t: string) => (t.replace(/[’']s\b/g, '').match(/[A-Za-z]+/g) ?? [])
+export const contentStems = (t: string) => (t.replace(/[’']s\b/g, '').match(/[A-Za-z]+/g) ?? [])
   .filter(isContent).map(w => missingStem(w.toLowerCase()));
 export function missingPart(missing: string, what: string): string | null {
   const m = missing.replace(/\s+/g, ' ').trim();
