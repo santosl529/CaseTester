@@ -176,6 +176,50 @@ describe('the gate\'s scope on covers_added, R3\'s cover exemption and the check
   });
 });
 
+// Fix round 2 (Lorenzo, 15 Oct, batch-25 ruling 7, "transaction volume per store": the
+// case's own phrase carrying the cut means the item answers it — on every case): the
+// gate's scope rules read no cut, split or basis inside the matched cover phrase; one
+// outside it still scopes the item out (the one-off test above too).
+describe('ruling 7 on a tagged case: a cut inside the matched cover phrase keeps the item', () => {
+  it('"price per patient per year" (CUT "per year" inside the phrase): Kelvexa\'s pricing is released', async () => {
+    const what = "Kelvexa's US price per patient per year";
+    const p = plan('entry-001', `What is ${what}?`, taggedFactBase('entry-001'));
+    const d = await turnDataChecked(p, turn(what));
+    expect(d.releases.map(r => r.id)).toEqual(['kelvexa_pricing']);
+    expect(ask).not.toHaveBeenCalled();
+    expect(acts(p, 'cover_gate')).toEqual([]);
+  });
+  it('"current treatment mix" (the split word inside the phrase): the current treatment line is released', async () => {
+    const p = plan('entry-001', "What's the current treatment mix?", taggedFactBase('entry-001'));
+    const d = await turnDataChecked(p, turn('the current treatment mix'));
+    expect(d.releases.map(r => r.id)).toEqual(['current_treatment']);
+    expect(ask).not.toHaveBeenCalled();
+    expect(acts(p, 'cover_gate')).toEqual([]);
+  });
+  it('"how firm the 70%" (the basis words inside the phrase): the ramp-up line is released', async () => {
+    const p = plan('prof-002', 'How firm is the 70% load factor?', taggedFactBase('prof-002'));
+    const d = await turnDataChecked(p, turn('how firm the 70% is'));
+    expect(d.releases.map(r => r.id)).toEqual(['new_route_rampup']);
+    expect(ask).not.toHaveBeenCalled();
+    expect(acts(p, 'cover_gate')).toEqual([]);
+  });
+  it('a cut outside the phrase ("… by market") still scopes the item out: deferred, not released', async () => {
+    const what = "Kelvexa's US price per patient per year by market";
+    const p = plan('entry-001', `What is ${what}?`, taggedFactBase('entry-001'));
+    const d = await turnDataChecked(p, turn(what));
+    expect(d.releases).toEqual([]);
+    expect(d.itemlessDefers).toEqual([what]);
+    expect(ask).not.toHaveBeenCalled();
+    expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'kelvexa_pricing', why: 'scope' }] }] });
+  });
+  it('a split outside the phrase ("the split of" fuel price changes) still scopes the item out', async () => {
+    const p = plan('prof-002', 'Can I see the split of fuel price changes?', taggedFactBase('prof-002'));
+    const d = await turnDataChecked(p, turn('the split of fuel price changes'));
+    expect(d.releases).toEqual([]);
+    expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'fuel_prices', why: 'scope' }] }] });
+  });
+});
+
 // R4 (answersAsk): a check verdict's item the candidate's sentence covers, through the
 // gate, is in the ask's scope. Tyler t5's sentence (b37 Hollis Bay, audit row 12); the
 // count-carrying cover on why_now and the model's count ask are fixture stand-ins (a count

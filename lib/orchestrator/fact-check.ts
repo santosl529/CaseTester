@@ -720,6 +720,15 @@ const foldedPhrase = (p: string) => {
   if (!f) { f = coverTokens(p).map(t => t.w); foldedPhrases.set(p, f); }
   return f;
 };
+// Where a phrase's folded words sit in a text's folded words.
+function phraseSpans(toks: CoverToken[], phrase: string): { start: number; end: number }[] {
+  const f = foldedPhrase(phrase);
+  const out: { start: number; end: number }[] = [];
+  for (let i = 0; f.length > 0 && i + f.length <= toks.length; i++) {
+    if (f.every((w, k) => toks[i + k].w === w)) out.push({ start: toks[i].start, end: toks[i + f.length - 1].end });
+  }
+  return out;
+}
 // Words that carry no topic: a sentence hit must share another with the model's ask (d).
 const COVER_STOP = new Set(['the', 'a', 'an', 'of', 'for', 'on', 'in', 'to', 'and', 'or', 'how', 'many', 'much', 'what', 'is', 'are', 'do', 'doe', 'did', 'we', 'you', 'our', 'their', 'it', 'its', 'any', 'by', 'per', 'with', 'from', 'at', 'thi', 'that', 'there', 'have', 'has', 'be', 'can', 'could', 'would', 'will', 'data', 'year']);
 const REGION = /\b(?:europe(?:an)?|eu|uk|canada|asia|international)\b/gi;
@@ -752,14 +761,7 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
       .map(m => ({ cover: c, start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }))));
   } else {
     const toks = coverTokens(lower);
-    hits = fb.covers.flatMap(c => c.phrases.flatMap(p => {
-      const f = foldedPhrase(p);
-      const out: CoverHit[] = [];
-      for (let i = 0; f.length > 0 && i + f.length <= toks.length; i++) {
-        if (f.every((w, k) => toks[i + k].w === w)) out.push({ cover: c, start: toks[i].start, end: toks[i + f.length - 1].end });
-      }
-      return out;
-    })).filter(h => keep(h, lower));
+    hits = fb.covers.flatMap(c => c.phrases.flatMap(p => phraseSpans(toks, p).map(sp => ({ cover: c, ...sp })))).filter(h => keep(h, lower));
   }
   // (b) and (c), tagged cases only: the entry's own words name the company (else the whole ask's).
   const dropWhy = (h: CoverHit, entry: { text: string; start: number; end: number }): 'entity' | 'region' | null => {
@@ -802,6 +804,13 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
   }
   const plain = left.filter(l => !dropped.some(d => d.what === l));
   return { items: [...new Set(items)], promptFacts: [...new Set(promptFacts)], rest: left.length ? left.join(' and ') : null, coarse, dropped, plain: plain.length ? plain.join(' and ') : null };
+}
+// Where an item's cover phrases sit in an ask, folded as (a) reads them (fix round 2: the
+// tag gate's scope rules read no cut inside them — Lorenzo, 15 Oct, ruling 7). Positions
+// are the ask's own, as outsideAskScope reads it (lower-cased, same length).
+export function coverSpans(what: string, fb: FactBase, id: string): { start: number; end: number }[] {
+  const toks = coverTokens(lc(what));
+  return fb.covers.filter(c => c.id === id).flatMap(c => c.phrases.flatMap(p => phraseSpans(toks, p)));
 }
 // coverageOf with the entries (b) and (c) left uncovered (tagged cases; turn-data.ts's coverage step).
 // The model's ask matching nothing and its sentence's only hits dropped: the ask is that entry.

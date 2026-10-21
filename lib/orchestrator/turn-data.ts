@@ -6,7 +6,7 @@ import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema'
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
 import { decideData, exactResolver, labelMatch, outsideAskScope, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo } from './data-decisions';
-import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, BASIS } from './fact-check';
+import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, WANT_ASK_PHASES } from './request-signal';
@@ -99,7 +99,8 @@ function coverGateMiss(plan: ModelPlan, what: string, id: string, askText: strin
   const t = tagsAgree(askText, id, factBase);
   if (!t.agree) return t.why ?? 'entity';
   const item = ledger.items.find(i => i.id === id);
-  return scope && item && outsideAskScope(what, item, factBase.quantities.find(q => q.id === id)?.names ?? [], { count: false }) ? 'scope' : null;
+  // A cut the matched cover phrase itself carries cuts nothing (fix round 2; ruling 7, 15 Oct).
+  return scope && item && outsideAskScope(what, item, factBase.quantities.find(q => q.id === id)?.names ?? [], { count: false, spans: coverSpans(what, factBase, id) }) ? 'scope' : null;
 }
 
 // Wrap-up and close turns (Lorenzo, 19 Oct, round-2 ruling 3): the code-written

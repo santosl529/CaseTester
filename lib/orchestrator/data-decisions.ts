@@ -118,6 +118,21 @@ const HEAD_NOUN = (label: string) => label.toLowerCase().replace(/[^a-z0-9% ]+/g
 // 13 Oct; Larkspur, Marcus 27c2d0fb t22: "what sits inside the fixed costs,
 // including aircraft leases" lost the aircraft-leases item and was refused).
 const CUT = /\b(?:per|by|for each)\s+(pound|lb|gallon|sku|product|store|location|region|market|month|quarter|week|day|daypart|channel|customer|segment|supplier|year)s?\b|\b(variable|fixed)\b(?=[\s-]*(?:(?:versus|vs\.?|and|or|\/|to)[\s-]*(?:fixed|variable)\b|(?:portion|part|share|component|element|piece)s?\b))|\b(?:is|are|was|were)\s+(?:mostly\s+|largely\s+|partly\s+)?(variable|fixed)\b/i;
+// Words the case's own cover phrase carries (round 6 Task 68 fix round 2; Lorenzo, 15 Oct,
+// batch-25 ruling 7, "transaction volume per store": the case's own phrase carrying the cut
+// means the item answers it): the spans of a cover match in the ask. A scope rule fires only
+// on a match not wholly inside one, so "price per patient per year" doesn't cut its own item,
+// while "… by market" or "the one-off cost of building a team" still does. No spans, as before.
+export type AskSpan = { start: number; end: number };
+function matchOutside(re: RegExp, text: string, spans: readonly AskSpan[] = []): RegExpExecArray | null {
+  const g = new RegExp(re.source, re.flags.replace('g', '') + 'g');
+  for (let m = g.exec(text); m; m = g.exec(text)) {
+    const end = m.index + m[0].length;
+    if (!spans.some(sp => m!.index >= sp.start && end <= sp.end)) return m;
+    g.lastIndex = m.index + 1;   // an overlapping match that leaves the span still counts
+  }
+  return null;
+}
 const PART_LABEL = /\b(?:share|split|composition|breakdown|mix|component)\b/i;
 const CHANGE_LABEL = /\b(?:change|changes|growth|increase|inflation|trend)\b/i;
 const MOVEMENT_ASK = /\b(?:chang\w*|mov\w*|grow\w*|grew|increas\w*|inflat\w*|trend\w*|rose|risen|went up|over (?:time|the (?:two )?years)|year[- ]over[- ]year|both years|each year|price (?:trend|history|movement)|then (?:versus|vs\.?|and) now|(?:versus|vs\.?) (?:now|today)|before and after)\b/i;
@@ -128,11 +143,11 @@ const MOVEMENT_ASK = /\b(?:chang\w*|mov\w*|grow\w*|grew|increas\w*|inflat\w*|tre
 // <name>", "within <name>", "<name> <split>", the name right there — not a
 // list of parts ("breakdown of beans and other inputs"). An item that is
 // itself a part ("…share of COGS") answers a split.
-export function splitOfItem(what: string, item: { label: string }, names: string[] = []): boolean {
+export function splitOfItem(what: string, item: { label: string }, names: string[] = [], spans: readonly AskSpan[] = []): boolean {
   if (PART_LABEL.test(item.label)) return false;
   const esc = (x: string) => x.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const det = String.raw`(?:the\s+|that\s+|those\s+|this\s+)?`;
-  return names.map(esc).some(name => new RegExp(String.raw`(?:\b${SPLIT_WORDS}\s+(?:of|within|inside|in)\s+|\b(?:within|inside)\s+)${det}${name}\b(?!\s*(?:,|and\b|or\b|vs\.?|versus\b))|\b${name}\s+${SPLIT_WORDS}\b`, 'i').test(what));
+  return names.map(esc).some(name => matchOutside(new RegExp(String.raw`(?:\b${SPLIT_WORDS}\s+(?:of|within|inside|in)\s+|\b(?:within|inside)\s+)${det}${name}\b(?!\s*(?:,|and\b|or\b|vs\.?|versus\b))|\b${name}\s+${SPLIT_WORDS}\b`, 'i'), what, spans) !== null);
 }
 
 // A basis ask (Lorenzo, 19 Oct; batch 32 Larkspur Marisol t27, "Basis for the 70%
@@ -173,18 +188,21 @@ const firstYearOnly = (value: string) => /\$/.test(value) && FIRST_YEAR_VALUE.te
 // sibling of the ask, not the asked quantity at a coarser cut — E1 doesn't give it
 // as a coarse item (controller ruling, 20 Oct, replay r5-44: b31 Sofia t17 "the
 // current COGS split by category" mapped to the two input price changes).
-export function changeForSplit(what: string, item: { label: string }): boolean {
-  return new RegExp(String.raw`\b${SPLIT_WORDS}\b`, 'i').test(what) && CHANGE_LABEL.test(item.label) && !MOVEMENT_ASK.test(what);
+export function changeForSplit(what: string, item: { label: string }, spans: readonly AskSpan[] = []): boolean {
+  return matchOutside(new RegExp(String.raw`\b${SPLIT_WORDS}\b`, 'i'), what, spans) !== null && CHANGE_LABEL.test(item.label) && !MOVEMENT_ASK.test(what);
 }
 
 // `count: false` (round 6 Task 68): the count rule left to the case's covers — a cover
 // match's count is decided by coverageOf (a phrase that carries the count keeps the
 // item whole), so the tag gate on a covered item reads the other rules only.
-export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = [], opts: { count?: boolean } = {}): boolean {
+// `spans` (fix round 2): the cover phrase's spans in the ask; words inside them cut nothing (matchOutside).
+export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = [], opts: { count?: boolean; spans?: readonly AskSpan[] } = {}): boolean {
   const ask = what.toLowerCase();
-  if (BASIS.test(ask) && !SAYS_BASIS.test(item.value ?? '')) return true;
-  if (ONE_OFF_ASK.test(ask) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
-  if (RECURRENCE_ASK.test(ask) && firstYearOnly(item.value ?? '')) return true;
+  const spans = opts.spans ?? [];
+  const has = (re: RegExp) => matchOutside(re, ask, spans) !== null;
+  if (has(BASIS) && !SAYS_BASIS.test(item.value ?? '')) return true;
+  if (has(ONE_OFF_ASK) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
+  if (has(RECURRENCE_ASK) && firstYearOnly(item.value ?? '')) return true;
   // A count asked of an item that states no figure (round 5 Task 50; fact-check.ts
   // COUNT_ASK): the item is the ask's coarse answer, not the count.
   if (opts.count !== false && item.value !== undefined && countFinerThan(ask, item.value)) return true;
@@ -193,14 +211,14 @@ export function outsideAskScope(what: string, item: { label: string; value?: str
   const label = item.label.toLowerCase();
   // A split of the item itself: "<split> of/within/inside <head>", "within <head>", "<head> <split>".
   const splitOfHead = new RegExp(String.raw`\b${SPLIT_WORDS}\s+(?:of|within|inside|in|for)\s+(?:the\s+)?(?:[\w&-]+\s+){0,3}?${head}\b|\b(?:within|inside)\s+(?:the\s+)?${head}\b|\b${head}\s+${SPLIT_WORDS}\b`, 'i');
-  if (splitOfHead.test(ask) && !PART_LABEL.test(label)) return true;
-  if (splitOfItem(ask, item, names)) return true;
+  if (has(splitOfHead) && !PART_LABEL.test(label)) return true;
+  if (splitOfItem(ask, item, names, spans)) return true;
   // A split / composition ask is about the parts, not how they moved: a
   // change item ("price change of the other inputs") is in scope only when the
   // ask also asks about movement ("…and how each moved", "the price trend").
   // Batch 18: "the split of COGS by input" released the 37.5% price change in 7 runs.
-  if (changeForSplit(ask, item)) return true;
-  const cut = CUT.exec(ask);
+  if (changeForSplit(ask, item, spans)) return true;
+  const cut = matchOutside(CUT, ask, spans);
   // "total or per store" asks for either: the uncut figure is in scope.
   if (cut && !/\b(?:total|overall|in total)\s+(?:or|and)\b|\b(?:or|and)\s+(?:in\s+)?total\b/.test(ask)) {
     const dim = (cut[1] ?? cut[2] ?? cut[3] ?? '').toLowerCase();

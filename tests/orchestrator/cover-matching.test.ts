@@ -6,7 +6,8 @@
 // An untagged case (prof-001) matches as before. Asks are the audit's
 // (docs/superpowers/plans/2026-10-21-data-path-audit.md rows 1, 5, 12, 20).
 import { describe, it, expect } from 'vitest';
-import { coverageOf, factBaseFor } from '@/lib/orchestrator/fact-check';
+import { coverageOf, coverSpans, factBaseFor } from '@/lib/orchestrator/fact-check';
+import { outsideAskScope } from '@/lib/orchestrator/data-decisions';
 import { getCaseById } from '@/lib/cases/loader';
 import { taggedFactBase } from './fixtures/tagged-cases';
 
@@ -109,5 +110,53 @@ describe('untagged cases match as before', () => {
     expect(plain.answerGate).toBe(false);
     expect(coverageOf('a distribution estimate by number of stores', plain).items).toEqual([]);
     expect(coverageOf('annual chip bag volume', plain, { sentence: 'Do we have a sense of how many bags of chips Hollis Bay moves a year?' }).coarse).toEqual([]);
+  });
+});
+
+// Fix round 2 (Lorenzo, 15 Oct, ruling 7: the case's own phrase carrying the cut means the
+// item answers it): the tag gate's scope rules read the ask with the cover's spans.
+describe('coverSpans and the scope rules (ruling 7)', () => {
+  const scoped = (fb: ReturnType<typeof taggedFactBase>, what: string, id: string, spans = coverSpans(what, fb, id)) =>
+    outsideAskScope(what, fb.ledger.find(l => l.id === id)! as never, fb.quantities.find(q => q.id === id)?.names ?? [], { count: false, spans });
+  it('every cover phrase of the tagged cases, asked as it stands, is in its own item\'s scope', () => {
+    const missed = [larkspur, hollis, aldermoor].flatMap(fb => fb.covers.filter(c => fb.ledger.some(l => l.id === c.id))
+      .flatMap(c => c.phrases.filter(p => scoped(fb, p, c.id)).map(p => `${c.id}: ${p}`)));
+    expect(missed).toEqual([]);
+    // Without the spans, the scope rules alone rule some out (the round-1 regression).
+    expect(scoped(aldermoor, 'current treatment mix', 'current_treatment', [])).toBe(true);
+    expect(scoped(larkspur, 'how firm the 70%', 'new_route_rampup', [])).toBe(true);
+  });
+  it('spans are the folded matches, at the ask\'s own positions', () => {
+    expect(coverSpans("Kelvexa's US Price per Patients per year by market", aldermoor, 'kelvexa_pricing')).toEqual([{ start: 13, end: 40 }]);
+    expect(coverSpans("Kelvexa's US price per patient per year", aldermoor, 'current_treatment')).toEqual([]);   // another item's phrase
+  });
+  it('a cut outside the span still rules the item out, even after a cut the span carries', () => {
+    expect(scoped(aldermoor, "Kelvexa's US price per patient per year by market", 'kelvexa_pricing')).toBe(true);
+    expect(scoped(aldermoor, "Kelvexa's US price per patient per year", 'kelvexa_pricing')).toBe(false);
+  });
+  it('the one-off and recurrence rules read only words outside the spans too', () => {
+    const annual = { label: 'Option A team cost', value: '$80M a year' };
+    const all = (t: string) => [{ start: 0, end: t.length }];
+    const oneOff = 'one-off cost of the team';
+    expect(outsideAskScope(oneOff, annual, [], { count: false })).toBe(true);
+    expect(outsideAskScope(oneOff, annual, [], { count: false, spans: all(oneOff) })).toBe(false);
+    const firstYear = { label: 'Launch marketing', value: '$3.0M of marketing in the first year' };
+    const recurs = 'whether the marketing recurs';
+    expect(outsideAskScope(recurs, firstYear, [], { count: false })).toBe(true);
+    expect(outsideAskScope(recurs, firstYear, [], { count: false, spans: all(recurs) })).toBe(false);
+  });
+  it('a split of the item\'s head inside the spans cuts nothing; outside it, it does', () => {
+    const leases = { label: 'Aircraft leases', value: '$40M a year' };
+    expect(outsideAskScope('aircraft breakdown', leases, [], { count: false })).toBe(true);
+    expect(outsideAskScope('aircraft breakdown', leases, [], { count: false, spans: [{ start: 0, end: 18 }] })).toBe(false);
+  });
+  it('a match that leaves the span counts, even one overlapping a match inside it', () => {
+    const annual = { label: 'Option A team cost', value: '$80M a year' };
+    // "setup cost" is inside the span; "cost to set up" starts inside it and leaves it.
+    expect(outsideAskScope('setup cost to set up the team', annual, [], { count: false, spans: [{ start: 0, end: 10 }] })).toBe(true);
+  });
+  it('no spans: the scope rules as before (prof-001 "transaction volume per store" is still out of the ticket\'s scope)', () => {
+    const p1 = factBaseFor(getCaseById('prof-001') as never);
+    expect(outsideAskScope('transaction volume per store', p1.ledger.find(l => l.id === 'avg_ticket')! as never)).toBe(true);
   });
 });
