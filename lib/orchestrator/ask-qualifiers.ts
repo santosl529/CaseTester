@@ -32,15 +32,22 @@ const NOW = /\b(?:today|current(?:ly)?|now|this year)\b/gi;
 const COHORTS = /\b(?:later|earlier|newer|older|more recent|recent|subsequent)\s+cohorts?\b/gi;
 const TREND = /\b(?:trends?|trajectory|over time|year[-\s]over[-\s]year|(?:has|have)\s+(?:moved|changed))\b/gi;
 const PERIODS = [SINCE, BEYOND, FISCAL, QUARTER, YEAR, NOW, COHORTS, TREND];
+// Round 6 Task 70 (audit row 22, b36 Aldermoor Marisol t5 "growth in the eligible pool over
+// recent years": no qualifier read, the static funnel restated): growth and "over the last
+// few years" ask for a trend too. The answer gate's grammar, on tagged cases only (`r6`): a
+// grammar change that moved prof-001's replay would have to be scoped anyway (plan, Global
+// Constraints), and the gate is the tagged cases' guard.
+const TREND_R6 = /\b(?:trends?|trajectory|over time|year[-\s]over[-\s]year|(?:has|have)\s+(?:moved|changed)|growth|grew|grown|over\s+(?:the\s+)?(?:last|past|recent)\s+(?:few\s+)?years|in\s+recent\s+years)\b/gi;
+const PERIODS_R6 = [SINCE, BEYOND, FISCAL, QUARTER, YEAR, NOW, COHORTS, TREND_R6];
 // Scopes: whose figure (the industry's, competitors', the market's). "market share",
 // "market size" and "market growth" name a quantity, not a scope.
 const SCOPE = /\b(?:industry(?:-wide)?|competitors?|competitive|competition|market(?:-wide)?(?!\s+(?:share|size|sizing|growth))|benchmarks?)\b/gi;
 
 type Span = { kind: 'period' | 'scope'; text: string; at: number; end: number };
-function spans(what: string): Span[] {
+function spans(what: string, r6 = false): Span[] {
   const out: Span[] = [];
   const free = (a: number, b: number) => out.every(s => b <= s.at || a >= s.end);
-  for (const [kind, res] of [['period', PERIODS], ['scope', [SCOPE]]] as const) {
+  for (const [kind, res] of [['period', r6 ? PERIODS_R6 : PERIODS], ['scope', [SCOPE]]] as const) {
     for (const re of res) {
       for (const m of what.matchAll(re)) {
         const at = m.index ?? 0, end = at + m[0].length;
@@ -109,8 +116,8 @@ function conjunctSpans(what: string): ConjunctSpan[] {
   });
 }
 
-export function askQualifiers(what: string): Qualifier[] {
-  const qs: Qualifier[] = spans(normalized(what)).map(s => ({ kind: s.kind, text: s.text, at: s.at }));
+export function askQualifiers(what: string, r6 = false): Qualifier[] {
+  const qs: Qualifier[] = spans(normalized(what), r6).map(s => ({ kind: s.kind, text: s.text, at: s.at }));
   const parts = conjuncts(what);
   if (parts.length >= 2) qs.push(...parts.map(text => ({ kind: 'topic' as const, text })));
   return qs;
@@ -174,7 +181,8 @@ function statesPeriod(q: string, t: string, years: Set<string>): boolean {
   return false;
 }
 const YEAR_ONLY = /^(?:(?:FY|CY)\s?'?\d{2}(?:\d{2})?|(?:19|20)\d{2})$/i;
-const TREND_ONE = new RegExp(`^(?:${TREND.source})$`, 'i');
+// The round-6 forms too: a base reading never yields them (spans without `r6`), so base is unchanged.
+const TREND_ONE = new RegExp(`^(?:${TREND_R6.source})$`, 'i');
 const FISCAL_ONE = new RegExp(`^(?:${FISCAL.source})$`, 'i');
 const NOW_ONE = new RegExp(`^(?:${NOW.source})$`, 'i');
 // A topic is stated when one item's label + line has at least half its content words
@@ -208,7 +216,7 @@ const lineOf = (i: QualifierItem) => `${i.label} — ${i.value}`;
 // The conjunct a qualifier sits in: by its place in the ask, else by its words.
 const inConjunct = (q: Qualifier, c: ConjunctSpan) => (q.at !== undefined ? q.at >= c.at && q.at < c.end : c.text.toLowerCase().includes(q.text.toLowerCase()));
 const conjunctsOf = (q: Qualifier, cs: ConjunctSpan[]) => cs.filter(c => inConjunct(q, c)).map(c => c.text);
-export function unmetQualifiers(what: string, itemLines: QualifierItem[], caseLines: readonly CaseLine[] = []): Qualifier[] {
+export function unmetQualifiers(what: string, itemLines: QualifierItem[], caseLines: readonly CaseLine[] = [], opts: { r6?: boolean } = {}): Qualifier[] {
   const common = commonStems(caseLines);
   const spansOf = conjunctSpans(what);
   const cs = spansOf.map(c => c.text);
@@ -218,9 +226,35 @@ export function unmetQualifiers(what: string, itemLines: QualifierItem[], caseLi
     const own = conjunctsOf(q, spansOf).flatMap(c => texts.filter(x => statesTopic(c, x.t, common)));
     return own.length > 0 ? own : texts;
   };
-  const met = (q: Qualifier) => judged(q).some(({ t, years, anyYear }) => (q.kind === 'topic' ? statesTopic(q.text, t, common) : q.kind === 'scope' ? statesScope(q.text, t)
-    : (anyYear && YEAR_ONLY.test(q.text)) || statesPeriod(q.text, t, years)));
-  return askQualifiers(what).filter(q => !met(q));
+  // Round 6 (audit row 15, b37 Quillpath Tyler t17 "the 2024 trend in Pro sign-ups before Starter
+  // launched", met by "500 Pro in 2024 … from January 2025 to June 2026"): a trend tied to one year
+  // is met only by two or more dated points inside that year, never by two years on the line.
+  const tiedYear = (q: Qualifier) => (opts.r6 && q.kind === 'period' && TREND_ONE.test(q.text) ? yearTiedTo(q, spansOf, what) : null);
+  const met = (q: Qualifier) => judged(q).some(({ t, years, anyYear }) => {
+    if (q.kind === 'topic') return statesTopic(q.text, t, common);
+    if (q.kind === 'scope') return statesScope(q.text, t);
+    const year = tiedYear(q);
+    if (year) return datedPointsIn(t, year) >= 2;
+    return (anyYear && YEAR_ONLY.test(q.text)) || statesPeriod(q.text, t, years);
+  });
+  return askQualifiers(what, opts.r6).filter(q => !met(q));
+}
+// The one year a trend is tied to (round 6, row 15): its conjunct names one year, said as the
+// trend's own ("the 2024 trend") or its span ("through / throughout / during / within / in 2024").
+function yearTiedTo(q: Qualifier, cs: ConjunctSpan[], what: string): string | null {
+  const own = cs.filter(c => inConjunct(q, c));
+  const t = own.length > 0 ? own.map(c => c.text).join(' ') : normalized(what);
+  const ys = [...YEARS(t)];
+  if (ys.length !== 1) return null;
+  const y = ys[0];
+  const date = `(?:(?:FY|CY)\\s?'?(?:${y}|${y.slice(2)})|${y})\\b`;
+  const tied = new RegExp(`\\b(?:through|throughout|during|within|in)\\s+(?:the\\s+(?:fiscal\\s+)?year\\s+)?${date}|\\b${date}\\s+(?:trends?|trajectory|growth)\\b`, 'i');
+  return tied.test(t) ? y : null;
+}
+// Distinct dated points inside one year on a line: "March 2024", "Q3 2024", "Q3 FY2024".
+function datedPointsIn(t: string, year: string): number {
+  const re = new RegExp(`\\b(?:(${MONTHS})\\.?|(Q[1-4]))\\s+(?:of\\s+)?(?:(?:FY|CY)\\s?)?${year}\\b`, 'gi');
+  return new Set([...t.matchAll(re)].map(m => (m[1] ?? m[2]).slice(0, 3).toLowerCase())).size;
 }
 
 // The mapped items the guard makes partial. One conjunct (or a qualifier on no conjunct
@@ -250,6 +284,46 @@ export function guardedItems(what: string, itemLines: QualifierItem[], unmet: Qu
   return all.filter(id => out.has(id));
 }
 
+// The answer gate's reading of an ask (round 6 Task 70; Lorenzo, 21 Oct: "The guard on every
+// path that gives a data line … When it finds a topic unmet, refuse that part ("I don't have
+// <part>") rather than releasing the item as a coarse answer."): the round-5c guard's
+// qualifiers in the round-6 grammar, its refusal parts, and what becomes of each item —
+//   - `topicDrop`: a second topic no item states (two or more conjuncts), and the items
+//     stating no conjunct of the ask: they answer no part of it, so they are not given,
+//     restated or given as a coarse item (audit row 10, b37 Hollis Bay Marcus t5: the chickpea
+//     costs for "chip cost of goods … and how gross margin moved");
+//   - `partial`: the items an unmet period or scope makes partial, as the guard (guardedItems).
+// `topics: false` (the coverage step, the names remap): the case's covers or names decide the
+// topic — what nothing covers is the coverage step's own rest — so only a period or scope in a
+// conjunct a mapped item states is read, and only the items stating it are partial.
+export type GateReading = { unmet: Qualifier[]; parts: string[]; partial: string[]; topicDrop: string[] };
+export function gateReading(what: string, itemLines: QualifierItem[], caseLines: readonly CaseLine[], opts: { topics: boolean }): GateReading {
+  const spansOf = conjunctSpans(what);
+  const common = commonStems(caseLines);
+  const states = (c: string, i: QualifierItem) => statesTopic(c, lineOf(i), common);
+  const all = itemLines.map(i => i.id);
+  let unmet = unmetQualifiers(what, itemLines, caseLines, { r6: true });
+  if (!opts.topics) {
+    unmet = unmet.filter(q => q.kind !== 'topic');
+    if (spansOf.length >= 2) unmet = unmet.filter(q => { const own = conjunctsOf(q, spansOf); return own.length === 0 || own.some(c => itemLines.some(i => states(c, i))); });
+  }
+  if (unmet.length === 0) return { unmet, parts: [], partial: [], topicDrop: [] };
+  const parts = guardParts(what, unmet, true);
+  const stating = new Set(itemLines.filter(i => spansOf.some(c => states(c.text, i))).map(i => i.id));
+  const topicDrop = spansOf.length >= 2 && unmet.some(q => q.kind === 'topic') ? all.filter(id => !stating.has(id)) : [];
+  if (opts.topics) return { unmet, parts, partial: guardedItems(what, itemLines, unmet, caseLines).filter(id => !topicDrop.includes(id)), topicDrop };
+  const out = new Set<string>();
+  for (const q of unmet) {
+    const own = spansOf.length < 2 ? [] : conjunctsOf(q, spansOf);
+    for (const id of own.length === 0 ? all : own.flatMap(c => itemLines.filter(i => states(c, i)).map(i => i.id))) out.add(id);
+  }
+  return { unmet, parts, partial: all.filter(id => out.has(id)), topicDrop };
+}
+// Whether an item's label + line states a part of an ask (the guard's topic reading).
+export function statesAsked(part: string, item: { label: string; value: string }, caseLines: readonly CaseLine[] = []): boolean {
+  return statesTopic(part, lineOf(item as QualifierItem), commonStems(caseLines));
+}
+
 // ---- The refusal phrase ----
 const STOP = new Set('for of across since over in by from at on to with within beyond after past versus vs between during through has have had is are was were be been measured compared relative and or that which who'.split(' '));
 const LEAD = /^(?:(?:how|what|which|when|where|why)\s+(?:much\s+|many\s+)?)?((?:the|a|an|any|our|their|its|his|her|your)\s+)?/i;
@@ -275,7 +349,7 @@ const isScopeHead = (h: string) => /\bbenchmarks?$/i.test(h);
 
 // One conjunct's part: its unmet qualifiers on its head noun. A topic unmet, a trend
 // alone, or a form with no phrase of its own: the conjunct as the ask says it.
-function partOf(c: string, unmet: Qualifier[]): string {
+function partOf(c: string, unmet: Qualifier[], r6 = false): string {
   const verbatim = c.trim().replace(/[.?!]+$/, '').replace(/,\s+(and|or)\b/g, ' $1');   // "supplier count, and hedging": no comma before the joined word
   if (unmet.some(q => q.kind === 'topic') || unmet.every(q => TREND_ONE.test(q.text))) return verbatim;
   const head = headOf(verbatim);
@@ -302,7 +376,7 @@ function partOf(c: string, unmet: Qualifier[]): string {
   // The head and the qualifiers must be the whole ask: other content after the head
   // ("coffee beans as a share | of COGS today") would be lost — the conjunct instead.
   let rest = verbatim.slice(0, head.at) + ' ' + verbatim.slice(head.at + head.text.length);
-  for (const s of spans(verbatim)) rest = rest.replace(s.text, ' ');
+  for (const s of spans(verbatim, r6)) rest = rest.replace(s.text, ' ');
   if (contentStems(rest).length > 0) return verbatim;
   let h = head.text;
   const years: string[] = [], pre: string[] = [], post: string[] = [];
@@ -346,7 +420,7 @@ function vowelSound(t: string): boolean {
 }
 
 // The refusal's parts, one per conjunct with an unmet qualifier, in the ask's order.
-export function guardParts(what: string, unmet: Qualifier[]): string[] {
+export function guardParts(what: string, unmet: Qualifier[], r6 = false): string[] {
   if (unmet.length === 0) return [];
   const spansOf = conjunctSpans(what);
   const cs = spansOf.map(c => c.text);
@@ -360,7 +434,7 @@ export function guardParts(what: string, unmet: Qualifier[]): string[] {
     const own = unmet.filter(q => (q.kind === 'topic' ? q.text === c : inConjunct(q, span)))
       .filter((q, i, xs) => xs.findIndex(x => x.kind === q.kind && x.text.toLowerCase() === q.text.toLowerCase()) === i);   // said once ("since FY2023" twice; fix round 3)
     if (own.length === 0) continue;
-    const made = partOf(c, cs.length >= 2 ? own : own.filter(q => q.kind !== 'topic'));
+    const made = partOf(c, cs.length >= 2 ? own : own.filter(q => q.kind !== 'topic'), r6);
     const p = fromAsk(made) ? made : c;
     if (!parts.some(x => x.toLowerCase() === p.toLowerCase())) parts.push(p);
   }

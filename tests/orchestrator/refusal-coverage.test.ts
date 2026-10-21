@@ -44,15 +44,22 @@ describe('what covers an ask', () => {
     const untagged = buildFactBase({ ...getCaseById('prof-002'), factAnchors: fa } as never);
     expect(coverageOf("the revenue split between fares and volume, and the competitor's schedule", untagged)).toEqual({ items: ['routes_schedule'], promptFacts: ['planes_as_full'], rest: "the competitor's schedule", coarse: [] });
   });
-  // Round 6 (Task 69 tagged prof-002): the entries "fares" and "volume" name nobody, so the
-  // entity exclusion reads the whole ask (Task 68 decision 11), which names only the competitor:
-  // Larkspur's own lines are dropped and the two entries named-deferred. No b28–b37 model ask
-  // mixes the two (cover lint, 2b); a concern in the Task 69 report, awaiting a ruling.
-  it('tagged: a list that names the competitor in another entry drops the client items it covers', () => {
+  // Round 6 Task 70 (controller ruling C3, 21 Oct: "an entity named in one conjunct applies only
+  // to the items answering that conjunct"): the entries "fares" and "volume" name nobody and are
+  // read in their own group, so Larkspur's lines answer them; only the competitor's schedule is
+  // left, as on the untagged case. (Task 69 pinned the whole-ask drop: both client entries deferred.)
+  it('tagged: a list that names the competitor in another entry keeps the client items its own entries cover', () => {
     const d = coverageDetail("the revenue split between fares and volume, and the competitor's schedule", p2);
-    expect(d.items).toEqual([]);
-    expect(d.dropped).toEqual([{ what: 'the revenue split between fares', why: 'entity' }, { what: 'volume', why: 'entity' }]);
+    expect(d.items).toEqual(['routes_schedule']);
+    expect(d.promptFacts).toEqual(['planes_as_full']);
+    expect(d.dropped).toEqual([]);
+    expect(d.rest).toBe("the competitor's schedule");
     expect(d.plain).toBe("the competitor's schedule");
+  });
+  it('tagged: a bare entry is read with the entry before it — "the entrant\'s fares and costs" stays the entrant\'s', () => {
+    const fb = buildFactBase({ ...getCaseById('prof-002'), factAnchors: { ...getCaseById('prof-002').factAnchors!, covers: { ...getCaseById('prof-002').factAnchors!.covers, unit_costs: ['costs'] } } } as never);
+    expect(coverageDetail("the entrant's fares and costs", fb).items).not.toContain('unit_costs');
+    expect(coverageDetail("Larkspur's fares and costs", fb).items).toContain('unit_costs');
   });
   it.each([
     ['prof-001', 'what the menu includes, drinks only or food too'],   // Maya c1b79f9e t4: the case doesn't hold it (Lorenzo)

@@ -24,7 +24,7 @@ import { asOriginalProbe } from './phrasing';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { exhibitColumns, findMisquotes, SCALE, type QuoteAnchor } from './misquote';
 import { findCellMisquotes } from './cell-lookup';
-import { entitiesNamed, tagsAgree } from './item-tags';
+import { askGroups, tagsAgree } from './item-tags';
 
 export type Unit = 'percent' | 'dollar' | 'count' | 'plain';
 type Direction = 'up' | 'down' | 'flat';
@@ -782,9 +782,13 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     const toks = coverTokens(lower);
     hits = fb.covers.flatMap(c => c.phrases.flatMap(p => phraseSpans(toks, p).map(sp => ({ cover: c, ...sp })))).filter(h => keep(h, lower));
   }
-  // (b) and (c), tagged cases only: the entry's own words name the company (else the whole ask's).
+  // (b) and (c), tagged cases only. The company is read in the entry's group (round 6 Task 70,
+  // controller ruling C3, 21 Oct: an entity named in one conjunct applies only to the items
+  // answering that conjunct — the entry with the bare entries after it, item-tags.ts askGroups;
+  // Task 68 read the whole ask when the entry named nobody).
+  const groups = folded ? askGroups(text) : [];
   const dropWhy = (h: CoverHit, entry: { text: string; start: number; end: number }): 'entity' | 'region' | null => {
-    const ask = entitiesNamed(entry.text, fb).length > 0 ? entry.text : text;
+    const ask = groups.find(g => entry.start >= g.start && entry.start < g.end)?.text ?? entry.text;
     if (tagsAgree(ask, h.cover.id, fb).why === 'entity') return 'entity';
     const asked = regionsIn(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end));
     if (asked.size === 0) return null;

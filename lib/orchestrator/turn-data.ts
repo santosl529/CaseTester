@@ -10,10 +10,10 @@ import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSp
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, WANT_ASK_PHASES } from './request-signal';
-import { tagsAgree } from './item-tags';
+import { tagsAgree, askGroups } from './item-tags';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
-import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, type Qualifier } from './ask-qualifiers';
+import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
 import { costOf } from '@/lib/llm-pricing';
 
@@ -82,21 +82,38 @@ function askSentence(plan: ModelPlan, what: string, sentences?: string[]): strin
   if (!state.factBase.answerGate) return undefined;
   return askSentenceFor(what, sentences ?? askingSentences(ctx.candidateText, ctx.currentPhase), properNames(state.caseData.sttKeyterms));
 }
-// What tagsAgree reads for an ask: the model's words and the candidate's sentence for it (entity, forecast/current).
-function askTextFor(plan: ModelPlan, what: string, sentences?: string[]): string {
-  const s = askSentence(plan, what, sentences);
-  return s ? `${what}\n${s}` : what;
+// What tagsAgree reads for one item of an ask: the model's words and the candidate's
+// sentence for it (entity, forecast/current; controller ruling, 21 Oct). On a list ask, the
+// group the item answers (round 6 Task 70, controller ruling C3: "an entity named in one
+// conjunct applies only to the items answering that conjunct"; item-tags.ts askGroups) —
+// the group its cover phrase sits in, else the groups its line states — with the part of the
+// sentence that matches it; an item answering no group reads the whole ask and sentence.
+// `part`: the words a refusal for it says (the group, or the whole ask).
+function tagTextFor(plan: ModelPlan, what: string, id: string, sentence?: string): { text: string; part: string } {
+  const { factBase, ledger, caseData } = plan.state;
+  const ask = what.trim();
+  const whole = { text: sentence ? `${ask}\n${sentence}` : ask, part: ask };
+  const groups = askGroups(ask);
+  if (groups.length < 2) return whole;
+  const spans = coverSpans(ask, factBase, id);
+  let own = groups.filter(g => spans.some(sp => sp.start < g.end && sp.end > g.start));
+  const item = ledger.items.find(i => i.id === id);
+  if (own.length === 0 && item) own = groups.filter(g => statesAsked(g.text, { label: labelWithPeriod(item as Parameters<typeof labelWithPeriod>[0]), value: item.value }, caseData.dataLedger));
+  if (own.length === 0) return whole;
+  const part = ask.slice(own[0].start, own.at(-1)!.end).trim();
+  const said = sentence ? askSentenceFor(part, askGroups(sentence, { list: true }).map(g => g.text)) : undefined;
+  return { text: said ? `${part}\n${said}` : part, part };
 }
 // The tag gate on a cover-matched item (round 6 Task 68; fix round 1, controller ruling,
 // 21 Oct: on a tagged case it holds for every cover-matched id whatever path gives it —
 // the coverage step, covers_added, the scope rules' cover exemption (R3, answersAsk)):
-// tagsAgree on the ask and the candidate's sentence, then outsideAskScope (one-off,
-// recurrence, basis, cut; the count is coverageOf's, kept as today). Null: it passes;
+// tagsAgree on the ask and the candidate's sentence (per group, Task 70), then outsideAskScope
+// (one-off, recurrence, basis, cut; the count is coverageOf's, kept as today). Null: it passes;
 // always on an untagged case.
-function coverGateMiss(plan: ModelPlan, what: string, id: string, askText: string, scope = true): 'entity' | 'forecast' | 'scope' | null {
+function coverGateMiss(plan: ModelPlan, what: string, id: string, sentence: string | undefined, scope = true): 'entity' | 'forecast' | 'scope' | null {
   const { ledger, factBase } = plan.state;
   if (!factBase.answerGate) return null;
-  const t = tagsAgree(askText, id, factBase);
+  const t = tagsAgree(tagTextFor(plan, what, id, sentence).text, id, factBase);
   if (!t.agree) return t.why ?? 'entity';
   const item = ledger.items.find(i => i.id === id);
   // A cut the matched cover phrase itself carries cuts nothing (fix round 2; ruling 7, 15 Oct).
@@ -155,7 +172,8 @@ function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
   const item = ledger.items.find(i => i.id === id);
   if (!item) return true;
   // A cover hit counts only through the tag gate (fix round 1): one whose tags or scope disagree doesn't force it in.
-  if (coverageOf(what, factBase, { sentence: askSentence(plan, what) }).items.includes(id) && !coverGateMiss(plan, what, id, askTextFor(plan, what))) return true;
+  const sentence = askSentence(plan, what);
+  if (coverageOf(what, factBase, { sentence }).items.includes(id) && !coverGateMiss(plan, what, id, sentence)) return true;
   return !outsideAskScope(what, item, factBase.quantities.find(q => q.id === id)?.names ?? []);
 }
 
@@ -166,7 +184,9 @@ function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
 // `guard` (round 5c Task 61): the qualifiers of the ask no mapped item states, the
 // refusal's parts, and the mapped items it makes partial (qualifierGuard below).
 export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: string[]; partial: string[]; missing: Record<string, string>; guard?: QualifierGuard };
-export type QualifierGuard = { unmet: Qualifier[]; parts: string[]; ids: string[] };
+// `drop` (round 6 Task 70, the answer gate on a tagged case): the check's items the gate took
+// off — not in `ids`, never given; `said`: the gate's tag parts, said even when one is the whole ask.
+export type QualifierGuard = { unmet: Qualifier[]; parts: string[]; ids: string[]; drop?: string[]; said?: string[] };
 
 // The qualifier guard (round 5c Task 61; Lorenzo, 20 Oct, ruling 1: "If an ask names a
 // qualifier the item's line doesn't contain (a period …; a scope …; or a second topic
@@ -192,12 +212,84 @@ function qualifierGuard(plan: ModelPlan, what: string, ids: string[], missing: R
   const unmet = unmetQualifiers(what, qitems, ledger);
   const own = guardParts(what, unmet);
   if (own.length === 0) return null;
-  const figs = (t: string) => [...t.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => m[0].replace(/,/g, ''));
-  const said = new Set([plan.ctx.candidateText, ...plan.state.turnRows.filter(t => t.role === 'candidate').map(t => t.text)].flatMap(figs));
-  if (own.some(p => figs(p).some(f => !said.has(f)))) return null;
+  if (unsaidFigures(plan, own)) return null;
+  return { unmet, parts: mergeParts(own, checkMissingParts(what, ids, missing), what), ids: guardedItems(what, qitems, unmet, ledger) };
+}
+// A part with a figure no candidate turn said is never said (the guard's rule; FR-4).
+const figuresOf = (t: string) => [...t.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => m[0].replace(/,/g, ''));
+function unsaidFigures(plan: ModelPlan, parts: string[]): boolean {
+  const said = new Set([plan.ctx.candidateText, ...plan.state.turnRows.filter(t => t.role === 'candidate').map(t => t.text)].flatMap(figuresOf));
+  return parts.some(p => figuresOf(p).some(f => !said.has(f)));
+}
+// The check's own valid missing parts (not the whole ask), for the guard's parts to merge.
+function checkMissingParts(what: string, ids: string[], missing: Record<string, string>): string[] {
   const norm = (m: string) => m.replace(/\s+/g, ' ').trim().toLowerCase();
-  const extra = ids.flatMap(id => (missing[id] !== undefined && norm(missing[id]) !== norm(what) ? [missing[id]] : []));
-  return { unmet, parts: mergeParts(own, extra, what), ids: guardedItems(what, qitems, unmet, ledger) };
+  return ids.flatMap(id => (missing[id] !== undefined && norm(missing[id]) !== norm(what) ? [missing[id]] : []));
+}
+
+// The answer gate's verdict on the check's mapping as the guard's record (Task 70: it keeps its
+// shape and adds `drop`): its parts with the check's own valid missing parts merged, the items
+// it makes partial, those it dropped, and the tag parts said whole.
+function gateGuard(what: string, gate: GateVerdict | null, ids: string[], missing: Record<string, string>): QualifierGuard | null {
+  if (!gate) return null;
+  const own = gate.refuse.map(r => r.part);
+  const parts = own.length > 0 ? mergeParts(own, checkMissingParts(what, ids, missing), what) : [];
+  return { unmet: gate.unmet, parts, ids: gate.partial, ...(gate.drop.length > 0 ? { drop: gate.drop } : {}), ...(gate.said.length > 0 ? { said: gate.said } : {}) };
+}
+
+// The answer gate (round 6 Task 70; Lorenzo, 21 Oct: "The guard on every path that gives a
+// data line, not just the check's labels, with the company and forecast/current tags inside
+// it. When it finds a topic unmet, refuse that part ("I don't have <part>") rather than
+// releasing the item as a coarse answer."). On a tagged case (`factBase.answerGate`; null on
+// an untagged one — prof-001 decides as before), for one ask and the items a path maps it to:
+//   - the round-5c guard's reading in the round-6 grammar (ask-qualifiers.ts gateReading;
+//     period, scope and topic from the model's `what` only — controller ruling, 21 Oct);
+//   - tagsAgree per item on its group of the ask and the candidate's sentence (entity and
+//     forecast/current read from the sentence too; tagTextFor, ruling C3).
+// A topic unmet, an entity or a forecast mismatch: the items answering that part are dropped
+// (`drop`: not given, restated, or given as a coarse item) and the part refused. A period or
+// scope unmet: the items `partial` — E1's form, the line and the refusal when not out, the
+// refusal alone when out or held — as the guard. Every part is said unchecked (turnData's
+// `gateRefused`, never `toCheck`: no model call BASE didn't make) once the M6 covers veto
+// passes it. A tag part a kept item's line states is answered by it: not refused (the entrant's
+// "cost per seat and fares" beside the competitor line). `topics: false` (the coverage step,
+// the names remap): the covers or names decide the topic; `tags: false`: tagged already (R1's
+// coverGateMiss). Not run on forced or fulfilment releases (judged when first asked) or exhibits.
+export type AnswerGate = { refuse: { part: string; ids: string[] }[]; drop: string[]; partial: string[] };
+export type GateVerdict = AnswerGate & { unmet: Qualifier[]; tagDropped: { id: string; why: 'entity' | 'forecast' }[]; said: string[] };
+export function answerGate(plan: ModelPlan, what: string, ids: string[], sentence?: string, opts: { topics?: boolean; tags?: boolean } = {}): GateVerdict | null {
+  const { ledger, factBase, caseData } = plan.state;
+  if (!factBase.answerGate) return null;
+  const items = [...new Set(ids)].flatMap(id => ledger.items.filter(i => i.id === id));
+  if (items.length === 0) return null;
+  const lines = caseData.dataLedger;
+  const labelOf = (i: (typeof items)[number]) => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]);
+  const states = (p: string, i: (typeof items)[number]) => statesAsked(p, { label: labelOf(i), value: i.value }, lines);
+  let read = gateReading(what, qualifierItems(items, lines, i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0])), lines, { topics: opts.topics !== false });
+  if (unsaidFigures(plan, read.parts)) read = { unmet: [], parts: [], partial: [], topicDrop: [] };
+  const tagged: { id: string; why: 'entity' | 'forecast'; part: string }[] = [];
+  if (opts.tags !== false) {
+    for (const i of items) {
+      const tt = tagTextFor(plan, what, i.id, sentence);
+      const t = tagsAgree(tt.text, i.id, factBase);
+      if (!t.agree) tagged.push({ id: i.id, why: t.why ?? 'entity', part: tt.part });
+    }
+  }
+  const drop = [...new Set([...tagged.map(x => x.id), ...read.topicDrop])];
+  const kept = items.filter(i => !drop.includes(i.id));
+  const tagParts = [...new Set(tagged.map(x => x.part))].filter(p => !kept.some(i => states(p, i)));
+  const parts = mergeParts(read.parts, tagParts, what);
+  const partial = parts.length > 0 ? read.partial.filter(id => !drop.includes(id)) : [];
+  if (drop.length === 0 && partial.length === 0) return null;
+  // The items each part is about: a tag part's own; a qualifier part's partial or topic-dropped items that state it, else all of them.
+  const pool = items.filter(i => partial.includes(i.id) || read.topicDrop.includes(i.id));
+  const partIds = (p: string) => {
+    const own = tagged.filter(x => x.part === p).map(x => x.id);
+    if (own.length > 0) return own;
+    const st = pool.filter(i => states(p, i));
+    return (st.length > 0 ? st : pool).map(i => i.id);
+  };
+  return { refuse: parts.map(part => ({ part, ids: partIds(part) })), drop, partial, unmet: read.unmet, tagDropped: tagged.map(({ id, why }) => ({ id, why })), said: parts.filter(p => tagParts.includes(p)) };
 }
 
 // What code does with a verdict (Lorenzo, 20 Oct, round 5 E5: "build (a) and
@@ -235,20 +327,24 @@ function qualifierGuard(plan: ModelPlan, what: string, ids: string[], missing: R
 // beside a full item (`whole_ask`), or a ledger item or the prompt covers it
 // (`false_refusal`) — for checkAsk's `partial_dropped` record (final review I5, M6).
 export type DroppedPart = { id: string; missing: string; why: 'whole_ask' | 'false_refusal' };
+// `refuse` with `missing` (round 6 Task 70): the answer gate dropped every mapped item; its parts are the refusal.
 export type CheckedAsk =
   | { kind: 'named' }
-  | { kind: 'refuse' }
+  | { kind: 'refuse'; missing?: string[]; dropped?: DroppedPart[] }
   | { kind: 'items'; ids: string[]; missing?: string[]; dropped?: DroppedPart[] }
   | { kind: 'coarse'; ids: string[]; missing?: string[]; dropped?: DroppedPart[] };
-export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict): CheckedAsk {
-  if (v.mapped === null) return { kind: 'named' };
+export function decideCheckedAsk(plan: ModelPlan, what: string, v0: CheckVerdict): CheckedAsk {
+  if (v0.mapped === null) return { kind: 'named' };
   const { ledger } = plan.state;
-  const ids = v.ids.filter(id => ledger.items.some(i => i.id === id));
-  if (!v.mapped || ids.length === 0) return { kind: 'refuse' };
+  const ids = v0.ids.filter(id => ledger.items.some(i => i.id === id));
+  const gateDrop = v0.guard?.drop ?? [];
+  // A guard with no parts (the answer gate only dropped items): Haiku's partials decide, as with no guard.
+  const v: CheckVerdict = v0.guard && v0.guard.parts.length === 0 ? { ...v0, guard: undefined } : v0;
+  if ((!v.mapped || ids.length === 0) && !(gateDrop.length > 0 && v.guard)) return { kind: 'refuse' };
   // A guarded ask (Task 61): the items it makes partial join Haiku's, the guard's parts refused.
   const partial = new Set([...(v.partial ?? []), ...(v.guard?.ids ?? [])]);
   // A partial's refusal as said: figures the mapped items' lines state dropped, a plan name kept (fix round 2).
-  const lines = ids.map(id => ledger.items.find(i => i.id === id)!.value);
+  const lines = [...ids, ...gateDrop].flatMap(id => ledger.items.filter(i => i.id === id).map(i => i.value));
   const said = (m: string) => refusalPhrase(dropStatedFigures(m, lines), plan);
   const norm = (m: string) => m.replace(/\s+/g, ' ').trim().toLowerCase();
   const whole = (m: string) => norm(m) === norm(what);
@@ -264,6 +360,15 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
     return false;
   };
   const withDropped = <T extends object>(d: T) => (dropped.length > 0 ? { ...d, dropped } : d);
+  // Round 6 Task 70: every mapped item dropped by the answer gate (a topic, entity or forecast
+  // unmet; audit rows 2, 10, 18, 19): refused by the gate's parts, each through the M6 veto
+  // (the whole ask is no rewrite); none left — every part names data the case holds — the
+  // named deferral, holding no item: neither a line that doesn't answer nor a false refusal.
+  if (ids.length === 0 || !v.mapped) {
+    const parts = [...new Set(v.guard!.parts.flatMap(m => (whole(m) ? [said(m)] : keep(v.guard!.drop?.[0] ?? '', said(m)) ? [said(m)] : [])))];
+    if (parts.length === 0) return { kind: 'named' };
+    return withDropped({ kind: 'refuse' as const, missing: parts });
+  }
   // A guarded ask says the guard's parts; Haiku's own whole-ask partial is still logged (fix round 2, finding 6).
   if (v.guard) for (const id of (v.partial ?? []).filter(x => ids.includes(x))) if (whole(v.missing?.[id] ?? what)) dropped.push({ id, missing: v.missing?.[id] ?? what, why: 'whole_ask' });
   const inScope = ids.filter(id => !v.outOfScope.includes(id) && !partial.has(id));
@@ -279,7 +384,8 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
     const asked = v.guard ? v.guard.parts.map(m => ({ id: ids.find(id => v.missing?.[id] === m) ?? v.guard!.ids[0] ?? ids[0], m }))
       : ids.filter(id => partial.has(id)).map(id => ({ id, m: v.missing?.[id] ?? what }));
     const refused = [...new Set(asked.flatMap(({ id, m }) => {
-      if (whole(m)) { dropped.push({ id, missing: m, why: 'whole_ask' }); return []; }
+      // A gate tag part is said even when it is the whole ask: the items answering it are dropped (Task 70).
+      if (whole(m) && !v.guard?.said?.includes(m)) { dropped.push({ id, missing: m, why: 'whole_ask' }); return []; }
       return keep(id, said(m)) ? [said(m)] : [];
     }))];
     return withDropped({ kind: 'items' as const, ids: notOut.length > 0 ? notOut : inScope, ...(refused.length > 0 ? { missing: refused } : {}) });
@@ -352,10 +458,14 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     // ruling, 21 Oct; audit row 18: "currently on an advanced therapy" mapped to the forecast
     // peak share): one whose tags disagree is no answer — dropped (`tagDropped`); scope is the
     // verdict's own (outOfScope, below).
-    const fbTags = plan.state.factBase;
-    const askText = fbTags.answerGate ? askTextFor(plan, what) : what;
-    const tagDropped = found === null || !fbTags.answerGate ? [] : [...new Set(found.items.map(f => f.id))].filter(id => !tagsAgree(askText, id, fbTags).agree);
-    const ids = found === null ? [] : [...new Set(found.items.map(f => f.id))].filter(id => !tagDropped.includes(id));
+    // Round 6 Task 70: on a tagged case the answer gate reads the verdict in place of the
+    // qualifier guard (whose output it subsumes) — its tag drops are `tagDropped`, as Task 68
+    // logged them; its topic drops leave `ids` too, never given (audit row 10).
+    const foundIds = found === null ? [] : [...new Set(found.items.map(f => f.id))];
+    const gate = found === null ? null : answerGate(plan, what, foundIds, askSentence(plan, what));
+    const tagDropped = gate?.tagDropped.map(x => x.id) ?? [];
+    const gateDrop = gate?.drop ?? [];
+    const ids = foundIds.filter(id => !gateDrop.includes(id));
     const mapped = found === null ? null : ids.length > 0;
     const outOfScope = ids.filter(id => answersAsk(plan, what, id) === false);
     // A partial's missing part, checked again here (a replayed or recorded verdict
@@ -368,7 +478,7 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     const partial: string[] = [];
     const missing: Record<string, string> = {};
     for (const f of found?.items ?? []) {
-      if (f.answers !== 'partial' || tagDropped.includes(f.id)) continue;
+      if (f.answers !== 'partial' || gateDrop.includes(f.id)) continue;
       let m = missingPart(f.missing ?? what, what) ?? what;
       if (statedIn(m, valueOf(f.id))) {
         if (statedIn(what, valueOf(f.id))) continue;   // the line answers the ask: full
@@ -377,16 +487,17 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
       partial.push(f.id);
       missing[f.id] = m;
     }
-    const guard = found === null ? null : qualifierGuard(plan, what, ids, missing);
+    const guard = found === null ? null : plan.state.factBase.answerGate ? gateGuard(what, gate, ids, missing) : qualifierGuard(plan, what, ids, missing);
     const verdict: CheckVerdict = { mapped, ids, outOfScope, partial, missing, ...(guard ? { guard } : {}) };
     const decision = decideCheckedAsk(plan, what, verdict);
     // `found` keeps its old shape, so a replay reads old and new records alike (lib/eval/recorded-checks.ts).
     plan.ctx.checks.record('itemless_defer', mapped !== false, DECIDED[decision.kind],
       { what, mapped, found: found === null ? null : [{ what, ids }], decision: decision.kind, ...(tagDropped.length > 0 ? { tagDropped } : {}), ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}),
         ...(partial.length > 0 ? { partial, missing } : {}), ...(guard ? { guard } : {}), latencyMs: Date.now() - t0, ...(timedOut ? { timedOut } : {}), ...(usage ? usageDetail(usage) : {}) });
+    if (gate) plan.ctx.checks.act('answer_gate', 'an ask whose mapped items don\'t answer a part of it: those items not given, the part refused unchecked (a period or scope unmet: E1\'s form)', { asks: [{ what, path: 'check', refuse: guard?.parts ?? [], drop: gate.drop, partial: gate.partial }] });
     // A partial part no refusal says (final review I5, for Lorenzo's ruling; M6): the
     // ask, the item, Haiku's own `missing` and the part as checked, so a wave counts them.
-    for (const x of decision.kind === 'items' || decision.kind === 'coarse' ? decision.dropped ?? [] : []) {
+    for (const x of decision.kind === 'items' || decision.kind === 'coarse' || decision.kind === 'refuse' ? decision.dropped ?? [] : []) {
       const raw = found?.items.find(f => f.id === x.id)?.missing;
       plan.ctx.checks.act('partial_dropped', x.why === 'whole_ask' ? 'a partial whose missing part did not hold (beside a full item, or replaced by the qualifier guard\'s parts): no refusal for it'
         : 'a partial\'s missing part a ledger item or the prompt covers: not refused', { what, item: x.id, missing: raw ?? null, checked: x.missing, why: x.why, decision: decision.kind });
@@ -418,7 +529,8 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     if (fresh.length === 0) break;
     const verdicts = await Promise.all(fresh.map(w => checkAsk(plan, w, onUsage, d.basisCut?.[w])));
     fresh.forEach((w, i) => decided.set(w, decideCheckedAsk(plan, w, verdicts[i])));
-    if (!fresh.some(w => ['items', 'coarse'].includes(decided.get(w)!.kind))) break;
+    // A refusal by the answer gate's parts (Task 70) is decided again too, so its parts are said.
+    if (!fresh.some(w => { const c = decided.get(w)!; return c.kind === 'items' || c.kind === 'coarse' || (c.kind === 'refuse' && c.missing !== undefined); })) break;
     log.splice(at, logged);   // the pass decided again below logs its own checks
     at = log.length;
     d = turnData(plan, turn, decided);
@@ -672,8 +784,6 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const sentenceGroups = asking.map(s => groupItemsAsked(s, fbGroups).filter(inLedger)).filter(g => g.length > 0);
   // The candidate's asking sentence for an ask, read by coverageOf on tagged cases (round 6 Task 68).
   const sentenceFor = (what: string) => askSentence(plan, what, asking);
-  // What tagsAgree reads: the model's ask and the candidate's sentence for it (entity, forecast/current).
-  const askTextOf = (what: string) => askTextFor(plan, what, asking);
   const toCome = (r: DeclaredRequest, g: string[]) => g.filter(id => r.itemIds.includes(id) || !ledger.revealed.has(id));
   // Asked by another of the turn's requests: kept there, in the model's order.
   const askedThisTurn = new Set(requests.filter(r => r.explicit).flatMap(r => r.itemIds));
@@ -688,7 +798,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     requests = requests.map(r => {
       if (!r.explicit || r.itemIds.length === 0) return r;
       const added = coverageOf(r.what, fbGroups, { sentence: sentenceFor(r.what) }).items
-        .filter(id => inLedger(id) && !askedThisTurn.has(id) && !coverGateMiss(plan, r.what, id, askTextOf(r.what)));
+        .filter(id => inLedger(id) && !askedThisTurn.has(id) && !coverGateMiss(plan, r.what, id, sentenceFor(r.what)));
       if (added.length === 0) return r;
       coversAdded.push({ what: r.what, added });
       return { ...r, itemIds: [...r.itemIds, ...added] };
@@ -697,6 +807,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   }
   // The groups this turn asks for, whole: the release cap never splits one.
   const askedGroups: string[][] = [];
+  // A group step's per-item ask → the ask it came from (the answer gate reads that ask, Task 70).
+  const groupOrigin = new Map<string, string>();
   requests = requests.flatMap(r => {
     if (!r.explicit) return [r];
     const named = groupItemsAsked(r.what, fbGroups).filter(inLedger);
@@ -716,7 +828,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     // wording, which may carry a cut the case doesn't hold ("… and unit cost per pound").
     const ids = [...new Set([...r.itemIds, ...add])];   // the model's order, then what it left out
     const asks = ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)?.label ?? r.what }));
-    for (const a of asks) grouped.set(a.what, new Set(ids));
+    for (const a of asks) { grouped.set(a.what, new Set(ids)); groupOrigin.set(a.what, r.what); }
     return asks;
   });
   if (grouped.size > 0) plan.ctx.checks.record('request_group', true, 'asks naming a group of items — every item of it', { groups: [...grouped].map(([what, ids]) => ({ what, ids: [...ids] })) });
@@ -744,7 +856,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     // per-store cut had dropped; Lorenzo, 15 Oct, batch-25 ruling 7).
     const cov = coverageOf(r.what, fbGroups, { sentence: sentenceFor(r.what) });
     // Exempt from the scope rules only through the tag gate (fix round 1; untagged: every covered item).
-    const coveredHere = new Set(cov.items.filter(id => !coverGateMiss(plan, r.what, id, askTextOf(r.what))));
+    const coveredHere = new Set(cov.items.filter(id => !coverGateMiss(plan, r.what, id, sentenceFor(r.what))));
     // A per-store ask the covers answer whole (Lorenzo, 16 Oct; batch 27, Fiona
     // f4bd1da5 t9 "transaction volume per store" mapped to revenue per store and
     // the store count, Marcus 9cb2554f t15 to the ticket and revenue per store):
@@ -793,6 +905,86 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     return [out.length === 0 ? r : kept];
   });
   if (scoped.length > 0) plan.ctx.checks.act('request_scope', 'items outside a qualified ask dropped from it', { scoped });
+  // ---- The answer gate (round 6 Task 70; answerGate above) ----
+  // `gateMade`: the asks it writes (its parts; a named deferral) — the coverage step leaves
+  // them; `gateRefused`: its refusals, said unchecked (never `toCheck`). `coverVetoed` (Task
+  // 68, below): the named deferral in the ask's words, holding no item, no check.
+  const gateMade = new Set<string>();
+  const gateRefused = new Set<string>();
+  const coverVetoed = new Set<string>();
+  const gateLog: { what: string; path: string; refuse: string[]; drop: string[]; partial: string[] }[] = [];
+  const revealedAtGate = new Set(Object.keys(revealedValues(ledger)));
+  // A verdict's parts as said (figures the items' lines state dropped, a plan name kept, as the
+  // check's), each through the M6 covers veto (a part a cover or name says the case holds is not
+  // said: `partial_dropped` false_refusal) — the part's own partial items aside, given beside it or
+  // out already (E1: their line is the coarse answer, the part the finer cut it lacks); each kept
+  // part with the partial items it carries, each partial item on one part.
+  const gateParts = (what: string, g: GateVerdict, path: string): { part: string; partial: string[] }[] => {
+    const lines = g.refuse.flatMap(x => x.ids).flatMap(id => ledger.items.filter(i => i.id === id).map(i => i.value));
+    const given = new Set<string>();
+    const out: { part: string; partial: string[] }[] = [];
+    for (const x of g.refuse) {
+      const part = refusalPhrase(dropStatedFigures(x.part, lines), plan);
+      const beside = new Set([...revealedAtGate, ...x.ids.filter(id => g.partial.includes(id))]);
+      if (findFalseRefusals(`I don't have ${part}.`, state.factBase, beside, { covers: true }).length > 0) {
+        plan.ctx.checks.act('partial_dropped', 'an answer-gate part a ledger item or the prompt covers: not refused', { what, item: x.ids[0] ?? null, missing: null, checked: part, why: 'false_refusal', decision: `answer_gate:${path}` });
+        continue;
+      }
+      if (out.some(o => o.part.toLowerCase() === part.toLowerCase())) continue;
+      const partial = x.ids.filter(id => g.partial.includes(id) && !given.has(id));
+      for (const id of partial) given.add(id);
+      out.push({ part, partial });
+    }
+    return out;
+  };
+  // A gate part as an ask of its own: item-less, released (refused, or E1's coarse form with its partial items).
+  const gatePartAsk = (r: DeclaredRequest, p: { part: string; partial: string[] }): DeclaredRequest => {
+    gateMade.add(p.part);
+    gateRefused.add(p.part);
+    if (p.partial.length > 0) coarseOf.set(p.part, [...new Set([...(coarseOf.get(p.part) ?? []), ...p.partial])]);
+    return { ...r, what: p.part, itemIds: [], explicit: true, respond: 'release' };
+  };
+  if (state.factBase.answerGate) {
+    // Each explicit ask a path mapped to ledger items: the model's (after request_scope and
+    // request_group; the alias; covers_added), the message's detections (withAsks), a
+    // code-written turn's kept detections — read once in the words it was asked in (a group
+    // step's per-item asks by the ask they came from), with every item mapped to it.
+    const units = new Map<string, number[]>();
+    requests.forEach((r, i) => {
+      if (!r.explicit || !r.itemIds.some(inLedger)) return;
+      const origin = groupOrigin.get(r.what) ?? r.what;
+      units.set(origin, [...(units.get(origin) ?? []), i]);
+    });
+    const after = new Map<number, DeclaredRequest[]>();
+    const taken = new Map<number, Set<string>>();
+    for (const [origin, at] of units) {
+      const ids = [...new Set(at.flatMap(i => requests[i].itemIds.filter(inLedger)))];
+      const g = answerGate(plan, origin, ids, sentenceFor(origin));
+      if (!g) continue;
+      const parts = gateParts(origin, g, 'mapped');
+      const off = new Set([...g.drop, ...parts.flatMap(p => p.partial)]);
+      for (const i of at) taken.set(i, off);
+      const last = at[at.length - 1];
+      const base = requests[at[0]];
+      const left = at.some(i => requests[i].itemIds.some(id => !off.has(id)));
+      const extra = parts.map(p => gatePartAsk(base, p));
+      // Nothing left to give and no part to say (every part names data the case holds): the named deferral.
+      if (!left && extra.length === 0) {
+        gateMade.add(origin);
+        coverVetoed.add(origin);
+        extra.push({ ...base, what: origin, itemIds: [], respond: 'release' });
+      }
+      after.set(last, extra);
+      gateLog.push({ what: origin, path: 'mapped', refuse: parts.map(p => p.part), drop: g.drop, partial: parts.flatMap(p => p.partial) });
+    }
+    if (after.size > 0) {
+      requests = requests.flatMap((r, i) => {
+        const off = taken.get(i);
+        const kept = off ? { ...r, itemIds: r.itemIds.filter(id => !off.has(id)) } : r;
+        return [...(kept.itemIds.length > 0 || !off ? [kept] : []), ...(after.get(i) ?? [])];
+      });
+    }
+  }
   // No refusal names data the case holds (fact checks F3, 12 Oct; batch 20:
   // "I don't have what's inside COGS", "…COGS breakdown by input — beans, …",
   // "…coffee bean … shares of COGS, today and two years ago"; batch 18: "…the
@@ -824,13 +1016,12 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // coverageDetail `dropped`, entity). One left only with hits across a geography is
   // refused, unchecked (audit row 20: "I don't have Kelvexa's European net price").
   // A failing match beside one that passes is dropped (logged): the rest answers the ask.
-  const coverVetoed = new Set<string>();
   const regionRefused = new Set<string>();
   const coverGate: { what: string; deferred?: { id: string; why: 'entity' | 'forecast' | 'scope' }[]; kept?: string[]; excluded?: { what: string; why: 'entity' | 'region' }[] }[] = [];
   requests = requests.flatMap(r => {
     // Declared release or defer alike: after the pressure test a deferral becomes a release (below).
-    if (!r.explicit || r.itemIds.length > 0) return [r];
-    const ids = [...new Set(findFalseRefusals(`I don't have ${r.what}.`, fb, revealedNow).flatMap(f => f.items))]
+    if (!r.explicit || r.itemIds.length > 0 || gateMade.has(r.what)) return [r];
+    let ids = [...new Set(findFalseRefusals(`I don't have ${r.what}.`, fb, revealedNow).flatMap(f => f.items))]
       .filter(id => ledger.items.some(i => i.id === id));
     if (ids.length === 0) {
       const cov = coverageDetail(r.what, fb, { sentence: sentenceFor(r.what) });
@@ -840,8 +1031,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
       // given its coarse items E1's way below — the line and "I don't have <entry>.".
       let coarse = cov.coarse.map(c => ({ what: c.what, ids: c.ids.filter(id => ledger.items.some(i => i.id === id)) })).filter(c => c.ids.length > 0);
       if (fb.answerGate) {
-        const ask = askTextOf(r.what);
-        const why = (id: string, scope: boolean) => coverGateMiss(plan, r.what, id, ask, scope);
+        const sentence = sentenceFor(r.what);
+        const why = (id: string, scope: boolean) => coverGateMiss(plan, r.what, id, sentence, scope);
         const deferred = [...covIds.map(id => ({ id, why: why(id, true) })), ...coarse.flatMap(c => c.ids).map(id => ({ id, why: why(id, false) }))]
           .flatMap(x => (x.why ? [{ id: x.id, why: x.why }] : []));
         if (deferred.length > 0) {
@@ -853,8 +1044,20 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
           if (kept.length === 0) { coverVetoed.add(r.what); return [r]; }
         }
       }
+      // The answer gate on the covered items (Task 70; R1): the covers decide the topic and
+      // coverGateMiss the tags, so a period or scope a covered line doesn't state — the item
+      // E1's coarse form, its part refused beside it, unchecked.
+      const gateAsks: DeclaredRequest[] = [];
+      const g = covIds.length > 0 ? answerGate(plan, r.what, covIds, sentenceFor(r.what), { topics: false, tags: false }) : null;
+      if (g) {
+        const parts = gateParts(r.what, g, 'covered');
+        const off = new Set(parts.flatMap(p => p.partial));
+        covIds = covIds.filter(id => !off.has(id));
+        gateAsks.push(...parts.map(p => gatePartAsk(r, p)));
+        gateLog.push({ what: r.what, path: 'covered', refuse: parts.map(p => p.part), drop: [], partial: [...off] });
+      }
       const excluded = cov.dropped;
-      if (covIds.length === 0 && cov.promptFacts.length === 0 && coarse.length === 0 && excluded.length === 0) return [r];
+      if (covIds.length === 0 && cov.promptFacts.length === 0 && coarse.length === 0 && excluded.length === 0 && gateAsks.length === 0) return [r];
       if (excluded.length > 0) {
         coverGate.push({ what: r.what, excluded });
         for (const x of excluded) (x.why === 'entity' ? coverVetoed : regionRefused).add(x.what);
@@ -875,13 +1078,28 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
         ...(rest ? [{ ...r, what: rest, itemIds: [] as string[] }] : []),
         // An excluded entry: the named deferral (entity) or the refusal (region), both unchecked.
         ...excluded.map(x => ({ ...r, what: x.what, itemIds: [] as string[], ...(x.why === 'region' ? { respond: 'release' as const } : {}) })),
+        ...gateAsks,
       ];
     }
+    // The answer gate on the names remap (Task 70; R2): the names decide the topic; the tags and
+    // a period or scope are read. Nothing left and no part to say: the named deferral, unchecked.
+    const g = answerGate(plan, r.what, ids, sentenceFor(r.what), { topics: false });
+    const gateAsks: DeclaredRequest[] = [];
+    if (g) {
+      const parts = gateParts(r.what, g, 'remapped');
+      const off = new Set([...g.drop, ...parts.flatMap(p => p.partial)]);
+      ids = ids.filter(id => !off.has(id));
+      gateAsks.push(...parts.map(p => gatePartAsk(r, p)));
+      gateLog.push({ what: r.what, path: 'remapped', refuse: parts.map(p => p.part), drop: g.drop, partial: parts.flatMap(p => p.partial) });
+      if (ids.length === 0 && gateAsks.length === 0) { coverVetoed.add(r.what); return [r]; }
+    }
+    if (ids.length === 0) return gateAsks;
     remapped.push({ what: r.what, ids });
     // One ask per item, in its own label — a deferral must not promise the
     // finer cut the case doesn't hold ("bean cost per pound").
-    return ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label }));
+    return [...ids.map(id => ({ ...r, itemIds: [id], what: ledger.items.find(i => i.id === id)!.label })), ...gateAsks];
   });
+  if (gateLog.length > 0) plan.ctx.checks.act('answer_gate', 'an ask whose mapped items don\'t answer a part of it: those items not given, the part refused unchecked (a period or scope unmet: E1\'s form)', { asks: gateLog });
   if (coverGate.length > 0) plan.ctx.checks.act('cover_gate', 'a cover match whose item\'s tags or scope disagree with the ask: not given; an ask left with none goes to the check, and its "none" is the named deferral', { asks: coverGate });
   if (covered.length > 0) plan.ctx.checks.act('refusal_covered', 'an ask code would have refused is covered by a ledger item or the prompt', { covered });
   if (remapped.length > 0) plan.ctx.checks.act('refusal_remapped', 'an ask code would have refused names data the case holds — mapped to it', { remapped });
@@ -904,8 +1122,12 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
       const c = r.explicit && r.itemIds.length === 0 ? checked.get(r.what) : undefined;
       if (!c || c.kind === 'named') return [r];
       checkedAsks.add(r.what);
-      applied.push({ what: r.what, kind: c.kind, ids: c.kind === 'refuse' ? [] : c.ids, ...(c.kind !== 'refuse' && c.missing !== undefined ? { missing: c.missing } : {}) });
-      if (c.kind === 'refuse') return [{ ...r, respond: 'release' as const }];
+      applied.push({ what: r.what, kind: c.kind, ids: c.kind === 'refuse' ? [] : c.ids, ...(c.missing !== undefined ? { missing: c.missing } : {}) });
+      if (c.kind === 'refuse') {
+        // Refused by the answer gate's parts (Task 70): said unchecked, as the partial parts are.
+        if (c.missing !== undefined) missingOf.set(r.what, c.missing);
+        return [{ ...r, respond: 'release' as const }];
+      }
       if (c.kind === 'coarse') {
         coarseOf.set(r.what, c.ids);
         if (c.missing !== undefined) missingOf.set(r.what, c.missing);
@@ -1076,7 +1298,8 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // above); one whose coarse items are held is checked like the rest (round 5
   // reverses the round-2 exception).
   // A geography-excluded entry's refusal is unchecked (round 6 Task 68, fix round 1).
-  const toCheck = decisions.refusals.filter(w => !scopeRefused.has(w) && !checkedAsks.has(w) && !regionRefused.has(w));
+  // An answer-gate part is said unchecked too (round 6 Task 70: no model call BASE didn't make).
+  const toCheck = decisions.refusals.filter(w => !scopeRefused.has(w) && !checkedAsks.has(w) && !regionRefused.has(w) && !gateRefused.has(w));
   if (toCheck.length > 0) {
     const checking = new Set(toCheck);
     decisions.unmatchedDefers.push(...toCheck);

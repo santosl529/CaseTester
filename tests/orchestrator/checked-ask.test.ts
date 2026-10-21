@@ -25,6 +25,7 @@ import { getCaseById } from '@/lib/cases/loader';
 import { readsFixture } from './fixtures/turn-reads';
 import { askVia } from './fixtures/ask-check';
 import { recordedChecks, recordedCheckVerdict } from '@/lib/eval/recorded-checks';
+import { taggedFactBase } from './fixtures/tagged-cases';
 
 const RAJ = { text: "It flips the answer. The upgraders are effectively Pro customers acquired for $300 instead of $1,200.\n\nPer Starter sign-up: $400 of Starter margin, plus 20% × Pro LTV of $4,000 = $800. Total ≈ $1,200 against $300 CAC, so about 4x — comfortably above the board's 3.\n\nSo the CFO is measuring Starter as a standalone plan and treating an upgrade as churn, when it's actually the cheapest Pro acquisition channel Quillpath has. Note too that Starter's \"40% cancelled\" overstates damage because a chunk of the exits are upgrades.\n\nOne caution: the 20% is from a single Jan–March cohort only 12 months old, and that cohort is early adopters, likely the best-fit customers. Do we have upgrade rates for later cohorts — say the ones that signed up mid-2025 — to see if the rate is holding?", ask: {"what": "upgrade rates for later cohorts", "itemIds": [], "explicit": true, "respond": "release"}, phase: "EXHIBIT", revealed: ["cohort_notes", "board_rule_definition", "pro_cohort", "starter_cohort", "plan_prices_costs", "plan_cac", "ltv_definition"], shown: ["exhibit-1"], found: [{"what": "upgrade rates for later cohorts", "ledgerItemIds": ["starter_cohort", "cohort_notes", "upgrade_timing"], "response": "none", "explicit": true}] };
 const MARCUS_T17 = { text: "Honestly, I took 40% over 12 months and divided — that's 3.3% a month, and I rounded to 4% to be conservative. Then life = 1/0.04 = 25 months. That's a shortcut, and the exhibit says it's a bad one.\n\nTwo problems. First, a constant 3.3% monthly rate compounds, so you'd never actually hit exactly 40% cumulative — it's loose. Second, and bigger, the rate isn't constant. Cancellations by period are 5, then 8, then 11, then 16 — that's accelerating, not front-loaded. I said front-loaded a minute ago and that was wrong.\n\nIf anything the churn is getting worse month over month, which means extrapolating 25 months of life is probably too generous, and Starter's standalone value is below the $750 I quoted.\n\nDo we have the cohort beyond month 12 — months 18 or 24?\n\nThat said, the upgrade economics still carry it. Keep Starter, reprice.", ask: {"what": "Starter cohort beyond month 12", "itemIds": [], "explicit": true, "respond": "release"}, phase: "EXHIBIT", revealed: ["cohort_notes", "plan_cac", "pro_cohort", "new_customers_by_plan", "starter_cohort", "plan_prices_costs", "ltv_definition", "board_rule_definition"], shown: ["exhibit-3", "exhibit-1", "exhibit-2"], found: [{"what": "Starter cohort status data beyond month 12 (covering retention, upgrades, and cancellations past the initial 12-month period)", "ledgerItemIds": ["starter_cohort", "cohort_notes"], "response": "none", "explicit": true}] };
@@ -795,10 +796,16 @@ describe('Task 61: figures in the refusal are the candidate\'s', () => {
   });
 });
 
-describe('Task 61: the guard is the check\'s alone', () => {
+// Round 6 Task 70 changed these on a tagged case (pricing-001 is tagged since Task 69): the answer
+// gate runs on the model's mapped requests and the message's detections too, so plan_cac ("does not
+// change with volume": no change since January 2025 stated) is partial there, out already — the
+// refusal alone, unchecked. On an untagged case the guard is still the check's alone (the same
+// asks, the case's tags taken off).
+const untagged = (p: ModelPlan) => { p.state.factBase = taggedFactBase('pricing-001', { tags: null }); return p; };
+describe('Task 61: the guard is the check\'s alone (an untagged case)', () => {
   it('the model\'s own mapped request: released or restated as declared, no check, no refusal', async () => {
     const fx = { ...MARISOL, ask: { ...MARISOL.ask, itemIds: ['plan_cac'] } };
-    const d = await turnDataChecked(plan(fx, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] }), turn(fx));
+    const d = await turnDataChecked(untagged(plan(fx, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] })), turn(fx));
     expect(ask).not.toHaveBeenCalled();
     expect(d.refusals).toEqual([]);
     expect(d.restates.map(r => r.id)).toEqual(['plan_cac']);
@@ -806,9 +813,27 @@ describe('Task 61: the guard is the check\'s alone', () => {
   it('the message classifier\'s detection with an item (its asks join as mapped requests): no check, no refusal', async () => {
     const asks = { sentences: [], detected: [], open: [], waited: false, fresh: [{ what: "how Pro's CAC has moved since January 2025", ledgerItemIds: ['plan_cac'], response: 'release', explicit: true }], covered: [], dropped: [] };
     const t = withAsks({ requests: [] as DeclaredRequest[], exhibit: null, rescueItem: null }, asks as unknown as TurnAsks);
-    const d = await turnDataChecked(plan(MARISOL, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] }), t);
+    const d = await turnDataChecked(untagged(plan(MARISOL, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] })), t);
     expect(ask).not.toHaveBeenCalled();
     expect(d.refusals).toEqual([]);
+  });
+});
+describe('Task 70: on a tagged case the answer gate reads every mapped path', () => {
+  it('the model\'s own mapped request: plan_cac partial for "since January 2025", out already → the refusal alone, unchecked', async () => {
+    const fx = { ...MARISOL, ask: { ...MARISOL.ask, itemIds: ['plan_cac'] } };
+    const p = plan(fx, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] });
+    const d = await turnDataChecked(p, turn(fx));
+    expect(ask).not.toHaveBeenCalled();
+    expect(d.restates).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual(["I don't have Pro's CAC since January 2025."]);
+    expect(acted(p, 'answer_gate')[0].detail).toEqual({ asks: [{ what: "how Pro's CAC has moved since January 2025", path: 'mapped', refuse: ["Pro's CAC since January 2025"], drop: [], partial: ['plan_cac'] }] });
+  });
+  it('the message classifier\'s detection with an item: the same, unchecked', async () => {
+    const asks = { sentences: [], detected: [], open: [], waited: false, fresh: [{ what: "how Pro's CAC has moved since January 2025", ledgerItemIds: ['plan_cac'], response: 'release', explicit: true }], covered: [], dropped: [] };
+    const t = withAsks({ requests: [] as DeclaredRequest[], exhibit: null, rescueItem: null }, asks as unknown as TurnAsks);
+    const d = await turnDataChecked(plan(MARISOL, { exhibitOnly: ['plan_prices_costs', 'plan_cac', 'ltv_definition', 'new_customers_by_plan'] }), t);
+    expect(ask).not.toHaveBeenCalled();
+    expect(d.refusals).toEqual(["Pro's CAC since January 2025"]);
   });
 });
 
@@ -825,7 +850,8 @@ describe('Task 61 fix round 1: a missing second topic leaves the items answering
     classify.mockResolvedValueOnce(TYLER_52);
     const p = planOf(TYLER_B34L_T1, { pressureTest: AWAITING });
     const d = await turnDataChecked(p, turn(TYLER_B34L_T1));
-    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ decision: 'items', guard: { parts: ['passengers flown'], ids: ['network_totals', 'route_results_lakeport', 'route_results_port_avery', 'route_results_other'] } });
+    // Round 6 Task 70 (prof-002 tagged): the items stating no conjunct are the answer gate's `drop`, not partial — never given either way.
+    expect(acted(p, 'itemless_defer')[0].detail).toMatchObject({ decision: 'items', guard: { parts: ['passengers flown'], ids: [], drop: ['network_totals', 'route_results_lakeport', 'route_results_port_avery', 'route_results_other'] } });
     expect(d.releases).toEqual([]);
     expect(d.gatedIds).toEqual(['lakeport_fare']);
     expect(d.refusals).toEqual(['passengers flown']);
