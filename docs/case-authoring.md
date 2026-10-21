@@ -169,6 +169,9 @@ stores" keeps `retailer_support` whole; the count rule is proposed, awaiting
 Lorenzo). A one-off, upfront or setup cost asked of an item that states only an
 annual or monthly figure is a finer cut the same way. Add each batch ask
 verbatim, and a true-refusal probe per cover, to `evals/anchor-probes.json`.
+On a tagged case (round 6, below) the matcher also folds plurals and a few
+synonyms and reads the candidate's own sentence, so author the singular,
+"how many" form once.
 
 **`ledgerLookupLive` (13 Oct).** The exact lookup also reads ledger lines no
 exhibit shows, figure by figure, for the quantity named next to each
@@ -404,6 +407,115 @@ item in every case has one (consistency test).
 turn, before its figures are out (consistency test). A prompt-derivable step
 lists the ledger items that confirm it (prof-002's operating-profit swing:
 the network totals and fixed costs).
+
+## Covers on a tagged case (21 Oct, round 6)
+
+A case with `factAnchors.tags` (below) gets round 6's cover matching; prof-001
+has no tags and keeps the literal matcher. On a tagged case:
+
+- **The matcher folds before it matches**, the ask and the phrase alike:
+  plural and possessive endings, and `COVER_SYNONYMS` — "number of" / "count
+  of" → "how many", "departures" → "flights", "doors" → "stores", "pricing" →
+  "price" (as a noun). Don't author plural or synonym variants: "avoidable fixed
+  costs" already covers "avoidable fixed cost", and "how many stores" covers "a
+  distribution estimate by number of stores" (Hollis Bay Marisol t7, audit row 5).
+- **The candidate's asking sentence is matched too**, not only the model's
+  rewording, so a phrase can match an ask through the candidate's words.
+- **A hit is dropped** when its list entry names another entity and not the
+  item's own (the tags' entity words), when it names a region the item's label
+  and line don't (Europe, EU, UK, Canada, Asia, international), or when a count
+  is asked "in total" / "altogether" of an item whose line states no total.
+- **A matched item is released only if its tags and scope agree**; otherwise
+  the ask gets a named deferral with no small-model call.
+
+**Writing covers** (Lorenzo, 21 Oct: "Each must be multi-word and specific,
+with no bare "cost" or "flights"."):
+- Multi-word and specific: the thing asked for, as candidates say it ("cost per
+  seat mile", "total departures", "average fare by route"). Never a bare
+  "cost", "flights", "distribution" or "volume".
+- A phrase on two items only when the ask is answered by both (prof-002's
+  "average fare by route" on both route fares, listed in the lint's
+  `INTENDED_PAIRS`).
+- A phrase that already gives the coarse form through the candidate's sentence
+  doesn't need a cover: launch-001's "chip bag volume" was removed because it
+  released `why_now` whole, where the sentence path gives `why_now` + "I don't
+  have annual chip bag volume."
+- A modifier before a phrase isn't read ("fixed costs per available seat mile"
+  meets "cost per available seat mile"); keep that in mind for generic heads.
+
+**The cover lint** (free, no model calls):
+`npx tsx scripts/cover-lint.ts --runs "<main>/Case Interview Runs/test runs" --out <file.md>`.
+It lists every folded phrase shared by two items' covers (intended / at BASE /
+new), every candidate sentence and model-declared ask in the case's runs that a
+new or changed phrase matches (or an existing phrase newly matches through the
+fold), what the engine does with it and the `tagsAgree` verdict, every model ask
+whose coverage changes from BASE, and the count per phrase. Read every match and
+mark it "answers" or "doesn't"; narrow or remove a phrase with a match that
+doesn't answer before committing it.
+
+## `factAnchors.tags` — whose figure, and forecast or current (21 Oct, round 6)
+
+prof-002's block (entity words shortened):
+
+```json
+"tags": {
+  "clientWords": ["Larkspur", "our", "we"],
+  "entities": [{ "id": "competitor", "rival": true,
+                 "words": ["entrant", "competitor", "competitors", "low-cost carrier", "rival"],
+                 "items": ["competitor_entry", "competitor_costs"] }],
+  "forecast": ["new_routes_plan", "new_routes_cost_flights", "new_route_rampup"]
+}
+```
+
+- `clientWords`: the words that name the client's own business or product
+  (launch-001: "chickpea", "the line", "the new line", "roasted", "the snack").
+  They are read outside a question's frame ("Do we know …" names nobody).
+- `entities`: each other company or product the case talks about — the words
+  that name it and the items about it. Items in no entity are the client's.
+  `rival: true` for a competitor (prof-002's `competitor`, entry-001's
+  `nimbrel`); leave it off for something the client owns (launch-001's `chips`
+  is the client's own chip business). A rival's own item answers a competitor or
+  benchmark ask.
+- `forecast`: the items that state a forecast, plan or estimate. An ask with a
+  current marker (today, currently, now, this year) doesn't get them.
+- An ask naming another entity and no client word doesn't get the client's
+  items; an ask naming one entity doesn't get another entity's items. An item
+  whose own label or line names the asked entity counts as answering it
+  coarsely (its line plus "I don't have <the ask>").
+- Adding `tags` opts the case into round 6's matching and answer gate (period
+  and scope on every path; topic, entity and forecast on the small-model
+  check's verdicts). Ids must be ledger items or prompt facts; entity objects
+  are strict (an unknown key fails load). A case with no entity confusion still
+  gets an empty block (pricing-001: `entities: []`, `forecast: []`).
+
+## `mustReach` — items code volunteers (21 Oct, round 6)
+
+`mustReach: [{ "item": "<ledger id>", "before": "<exhibit id>" | "recommendation" }]`.
+For content the guide says the candidate must have before a point, whether or
+not they ask (prof-002: `competitor_entry` before `exhibit-3`, the network fix;
+`new_route_rampup` before `recommendation`). Code releases the item first in the
+data line on the turn that hands over that exhibit or asks for the
+recommendation, if it isn't out yet. The report notes it as volunteered and the
+judge doesn't credit the candidate for asking. Use it sparingly: it changes what
+every candidate hears, and so the comparability of waves. prof-002 is the only
+case with it.
+
+## Step roots: `dependsOn` and `inputQuestion` (21 Oct, round 6)
+
+- `dependsOn: ["<step id>"]` on a math step built on another step's result
+  (pricing-001: twelve Starter steps depend on `starter_ltv`). Read
+  transitively; unknown ids and cycles fail load.
+- `inputQuestion` on a root step: one neutral question about the input the
+  candidate may have misread ("Which row of the Starter cohort table did you
+  use for cancellations?"). It must end in "?" and carry no digit — no figure,
+  no arithmetic, no hint of the answer.
+- With either field, a deterministic step flag on the root (live or
+  report-only) links the derived claims built on it: they aren't probed one by
+  one, and the root gets the question once. Code never corrects from the step
+  flag alone; corrections still need the checker. Declare `dependsOn` only for
+  real derivations: a step listed as dependent goes quiet while its root stands.
+  pricing-001 is the only case with them; its step flags are report-only, so a
+  false binding can ask an unneeded question (PRD §15).
 
 ## Labels say what the item is (v4.10)
 

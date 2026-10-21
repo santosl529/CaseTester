@@ -42,8 +42,12 @@ Follow `case-authoring.md` rule by rule. Things batch 32 showed are easy to miss
 - **Brainstorm placement.** If the brainstorm ask presupposes a later exhibit
   ("If Aldermoor builds its own team…"), set `brainstorm.after` to that exhibit.
 - **Content the PDF says to give before a stage** (Larkspur: the competitor's
-  entry before the network fix) has no engine support yet; note it in
-  `interviewerNotes` and log it.
+  entry before the network fix): declare it in `mustReach` (round 6, 21 Oct;
+  `case-authoring.md`). Code volunteers it at that point and the report says so.
+- **Tags** (round 6): give the case a `factAnchors.tags` block — the client's
+  words, every other company or product as an entity (`rival` for a
+  competitor), the forecast items. Without it the case keeps the old literal
+  matcher and none of round 6's answer gate.
 - Start with `stepFlagsLive` off (report-only). Batch 22: step corrections on a
   new case produced about 19 false "It's closer to X, not Y" lines.
 
@@ -74,7 +78,12 @@ Follow `case-authoring.md` rule by rule. Things batch 32 showed are easy to miss
    cells in exhibits. Before splitting an anchor that covers two figures, test
    both ways: the pricing "Pro sign-ups" split created false flags on true
    statements, so it stayed shared.
-5. Known engine limits until PRD §15 (p) is fixed: quotes written with
+5. **Lint the covers** (`scripts/cover-lint.ts`, free): every shared phrase,
+   and every real ask a new or changed phrase matches, with what the engine
+   does with it. Mark each match "answers" or "doesn't" and fix the ones that
+   don't before the commit. Covers are multi-word and specific, never a bare
+   "cost" or "flights" (Lorenzo, 21 Oct).
+6. Known engine limits until PRD §15 (p) is fixed: quotes written with
    "million", and figures inside arithmetic, are never checked.
 
 ## Stage 4 — Free checks
@@ -148,18 +157,18 @@ except where the fix applies) and a prof-001 wave.
 
 | Case | Clock | Authored | Fact audit | Anchors | Waves | Bar | Listed |
 |---|---|---|---|---|---|---|---|
-| prof-001 Brew & Bean | 20 | yes | yes | tuned over batches 18–31 | 20–31; 33 (engine-asks wave A) | **met** (batch 31, `main`); not met on `engine-asks` (33): 1 serious false statement (code's own-quantity line, pre-existing), 1 report error, 1 close over a false-stale flag, 1 ask ignored, 4 same-opening pairs (phrasing is advisory since 19 Oct). Round-4 fixes built on `engine-asks`; the free proof is clean (`r4-final.md`). One prof-001 wave runs right before the merge. Round 5 (20 Oct) built; `r5-final.md`: 0 prof-001 regressions under the recorded rulings, R7 (b33 Marisol 11:0's true correction no longer said) flagged for Lorenzo. Rounds 5b and 5c built; r5c-final: 0 prof-001 changes vs r5b-final, fact-check identical | **yes** |
-| prof-002 Larkspur | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 22, 32, 34 (B1), 36 (B1′) | **not met (36, Claude's grade; Lorenzo's blind grade pending):** 3 interviewer false statements, all refusals of held data from the check's labels (Tyler t12 `aircraft_leases`, serious; Marcus t5 CASM trend; Jasmine t1 departures) + 1 report; 2 serious (Tyler t12; Marisol t12 unasked `new_routes_cost_flights` release by the check); firm moderate ≤ 2 met; hollow 0; the guard fired 0 times; 7 bare partials (5 outside the guard). Before, not met (34): 1 interviewer + 1 report false statement (both judgement, none serious; Tyler t22 false per Lorenzo's provisional call; 0 false refusals, 32 had 3), asks unanswered (2 swallowed by probe turns, 1 half) + 1 hollow deferral; firm moderate ≤ 2 met (re-graded under the 20 Oct rules: Raj 1, Marisol 2, Marcus 1). Round 5 built from these (D3, D7, E2, E4, E5, A1) | no |
-| entry-001 Aldermoor | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; brainstorm after Exh 3 | 32, 34 (B1), 36 (B1′) | **not met (36, Claude's grade; Lorenzo's blind grade pending):** 0 false statements (2 borderline), 0 serious (Raj t12 unasked `peak_share_forecast` release open), firm moderate 5 (max 2), hollow 0, stages met; fails on asks (5 with no word: bare partials through the check's mappings and `refusal_covered`) and a close over an unprobed flag (Marcus, judgement); the guard fired twice, both true. Before, not met (34): 2 serious false refusals of the treatment picture (`request_scope`; settled serious under the 20 Oct rule 1) + 1 report error, asks unanswered + 3 hollow deferrals; **firm moderate ≤ 2 not met** after the re-grade (Marisol 3); stages met. Round 5 built from these (D1, E1, E4, E5, E6, A2, A3, A7) | no |
-| pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2), 37 (B2′) | **not met (37, Claude's grade; Lorenzo's blind grade pending):** 0 false statements (3 borderline), 0 refusals, hollow 0 (35: 5); 2 serious + 1 judgement call — probe chains on a misread Starter lifetime (combined exit rate; derived claims carry no root link, so the input-probe cap misses them; the stale reader 7 false closes); Tyler 3 firm (fails ≤ 2); the recommendation asked twice (`recommendationReceived` false) in 3 runs; the guard fired 0 times. Before, not met (35): 1 interviewer false statement (code's "LTV/CAC is about $2", a unit slip, judgement), report 0, **0 refusals**; 5 hollow deferrals in 4 runs (every mapped check verdict); close, stages and firm moderate ≤ 2 met (Marcus 2, Marisol 2). Round 5 built from these (E3 ratio unit, E5, E6, E7, D6) | no |
-| launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2), 37 (B2′) | **not met (37, Claude's grade; Lorenzo's blind grade pending):** 2 interviewer false statements — Marisol t8 store-count refusal (`retailer_support` held; serious; the check's coarse label skips the covers veto — the batch-35 ask again) and Tyler t6 "How did you get to $9?" (scale); 3 open (Tyler t6, Marcus t6 unasked releases by the check; Marcus t10 dropped ask); firm moderate ≤ 2 met; hollow 0; the guard fired once, true; Marcus not scored (scoring stream terminated; re-score needs Lorenzo's OK). Before, not met (35): 2 serious false refusals of distribution (`retailer_support` never mapped for "store count / distribution rate", judgement) + 1 scale slip ("$9, not 8.8"), report 0; asks unanswered (2) + 1 hollow deferral; close, stages and firm moderate ≤ 2 met (Marisol 2, Tyler 2). Round 5 built from these (D2, D4, D5, E3, E6, A4, A5) | no |
+| prof-001 Brew & Bean | 20 | yes | yes | tuned over batches 18–31 | 20–31; 33 (engine-asks wave A) | **met** (batch 31, `main`); not met on `engine-asks` (33): 1 serious false statement (code's own-quantity line, pre-existing), 1 report error, 1 close over a false-stale flag, 1 ask ignored, 4 same-opening pairs (phrasing is advisory since 19 Oct). Round-4 fixes built on `engine-asks`; the free proof is clean (`r4-final.md`). One prof-001 wave runs right before the merge. Round 5 (20 Oct) built; `r5-final.md`: 0 prof-001 regressions under the recorded rulings, R7 (b33 Marisol 11:0's true correction no longer said) flagged for Lorenzo. Rounds 5b and 5c built; r5c-final: 0 prof-001 changes vs r5b-final, fact-check identical. Round 6 (21 Oct): prof-001 is untagged, so its data path is unchanged — r6-final: 0 changed checker decisions and 0 changed lines on b28–b31 and b33, on and off | **yes** |
+| prof-002 Larkspur | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; round 6 tags (`competitor`, rival) and covers (CASM, total departures, fare by route), linted | 22, 32, 34 (B1), 36 (B1′), 38 (round 6) | **38: [controller fills after grading].** Round 6 built from 36 (audit rows 1–4, 6, 8; must-reach `competitor_entry` before Exhibit 3 and `new_route_rampup` before the recommendation, row 9; row 7 a residual by Lorenzo's ruling); r6-final caught every deterministic row (Tyler t12 now hears the leases line; Marisol t12 the competitor line + the refusal of the entrant's flights). **Before, not met (36, Claude's grade; Lorenzo's 21 Oct rulings: Tyler t12 serious, Marisol t12 serious, Marcus t6 and Jasmine t2 false, not serious):** 3 interviewer false statements, all refusals of held data from the check's labels (Tyler t12 `aircraft_leases`, serious; Marcus t5 CASM trend; Jasmine t1 departures) + 1 report; 2 serious (Tyler t12; Marisol t12 unasked `new_routes_cost_flights` release by the check); firm moderate ≤ 2 met; hollow 0; the guard fired 0 times; 7 bare partials (5 outside the guard). Before, not met (34): 1 interviewer + 1 report false statement (both judgement, none serious; Tyler t22 false per Lorenzo's provisional call; 0 false refusals, 32 had 3), asks unanswered (2 swallowed by probe turns, 1 half) + 1 hollow deferral; firm moderate ≤ 2 met (re-graded under the 20 Oct rules: Raj 1, Marisol 2, Marcus 1). Round 5 built from these (D3, D7, E2, E4, E5, A1) | no |
+| entry-001 Aldermoor | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; brainstorm after Exh 3 | 32, 34 (B1), 36 (B1′) | **not met (36, Claude's grade; Lorenzo's blind grade pending):** 0 false statements (2 borderline), 0 serious (Raj t12 unasked `peak_share_forecast` release open), firm moderate 5 (max 2), hollow 0, stages met; fails on asks (5 with no word: bare partials through the check's mappings and `refusal_covered`) and a close over an unprobed flag (Marcus, judgement); the guard fired twice, both true. Before, not met (34): 2 serious false refusals of the treatment picture (`request_scope`; settled serious under the 20 Oct rule 1) + 1 report error, asks unanswered + 3 hollow deferrals; **firm moderate ≤ 2 not met** after the re-grade (Marisol 3); stages met. Round 5 built from these (D1, E1, E4, E5, E6, A2, A3, A7). Round 6 (21 Oct): tags (`nimbrel`, rival; forecast items), the geography veto and the answer gate on the check's verdicts; r6-final: audit rows 18–22 caught (Raj t12 "I don't have advanced therapy usage among the eligible patients."; Raj t14 Nimbrel's patents refused; Marcus t6 European price refused; Marcus t24 the $80M split refused; Marisol t6 pool growth refused); no wave on round 6 yet | no |
+| pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2), 37 (B2′) | **not met (37, Claude's grade; Lorenzo's blind grade pending):** 0 false statements (3 borderline), 0 refusals, hollow 0 (35: 5); 2 serious + 1 judgement call — probe chains on a misread Starter lifetime (combined exit rate; derived claims carry no root link, so the input-probe cap misses them; the stale reader 7 false closes); Tyler 3 firm (fails ≤ 2); the recommendation asked twice (`recommendationReceived` false) in 3 runs; the guard fired 0 times. Before, not met (35): 1 interviewer false statement (code's "LTV/CAC is about $2", a unit slip, judgement), report 0, **0 refusals**; 5 hollow deferrals in 4 runs (every mapped check verdict); close, stages and firm moderate ≤ 2 met (Marcus 2, Marisol 2). Round 5 built from these (E3 ratio unit, E5, E6, E7, D6). Round 6 (21 Oct): tags (no entities), step roots (`dependsOn` on twelve Starter steps, `inputQuestion` on `starter_ltv` and `pro_ltv`); r6-final: rows 14–17 caught (17 coarsely), M1 caught (Raj: input question, one derived correction, the root corrected — at most firm by Lorenzo's probe-chain rule), M2 improved, not caught (the checker rates 14 months correct; the step check may not correct; PRD §15); Lorenzo graded Raj and Marcus's chains serious, Jasmine's firm (21 Oct); no wave on round 6 yet | no |
+| launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2), 37 (B2′) | **not met (37, Claude's grade; Lorenzo's blind grade pending):** 2 interviewer false statements — Marisol t8 store-count refusal (`retailer_support` held; serious, Lorenzo 21 Oct; the batch-35 ask again — corrected 21 Oct: no cover matched the ask, the coverage step read it and found none, so the covers veto would have missed too) and Tyler t6 "How did you get to $9?" (scale); 3 open (Tyler t6, Marcus t6 unasked releases by the check; Marcus t10 dropped ask); firm moderate ≤ 2 met; hollow 0; the guard fired once, true; Marcus not scored (scoring stream terminated; re-score needs Lorenzo's OK). Before, not met (35): 2 serious false refusals of distribution (`retailer_support` never mapped for "store count / distribution rate", judgement) + 1 scale slip ("$9, not 8.8"), report 0; asks unanswered (2) + 1 hollow deferral; close, stages and firm moderate ≤ 2 met (Marisol 2, Tyler 2). Round 5 built from these (D2, D4, D5, E3, E6, A4, A5). Round 6 (21 Oct): tags (`chips` entity, client-owned, not a rival), the synonym fold ("number of stores" → "how many stores"), the in-total veto, the chip-bag covers removed; r6-final: rows 5, 10, 12, 13 and M3 caught, row 11 caught with a live classifier call (the store count instead of the survey offer); no wave on round 6 yet | no |
 
-**Next (20 Oct, after round 5c and waves B1′ + B2′):** round 5c (Lorenzo's round-5b review) is built on `engine-asks` at 29469ee, reviewed and proved, not merged or deployed; B1′ (batch 36) and B2′ (batch 37) ran on it ($28.30 of the $40 cap) and are graded by Claude (PRD §16, round 5c).
+**Next (21 Oct, after round 6):** round 6 is built on `engine-asks` at e51a4841 (be1217b..e51a4841), reviewed and proved free, not merged or deployed (PRD §5.4 "Round 6", "Step-check roots"; §16 21 Oct). One wave ran on it: batch-38 Larkspur — [controller fills after grading].
 - The own-quantity hotfix is on `main` 9be93ca and deployed (Vercel + LiveKit agent stv9i6rgY6yS; PRD §16); the prof-001 voice smoke is Lorenzo's.
-- **Rounds 5 and 5b:** see PRD §16 (covers D1–D7, E1–E7, A1–A5, A7; R7 reversed, the 13:0 credit, E5 partial answers and the check's own prompt, question form, the suite).
-- **Round 5c:** the qualifier guard (an ask's period, scope or second topic no mapped line states → partial, the refusal naming it), one derived correction per root, question form in every candidate-text check that gates an ask or a stage, the check-cost log. Replay r5c-final: 0 prof-001 changes vs r5b-final. Haiku rerun ($0.0824): 0 wrong releases, 0 false refusals, 0 hollow, 0 bare partials, 0 timeouts.
-- **Waves:** no case meets the bar (tracker). Hollow deferrals are gone (0; batches 34–35: 12). What's left comes from the check's labels and the paths the guard doesn't read: 4 false refusals (2 serious), 4 unasked releases by the check's mapping, 29 bare partials (19 outside the guard), and on Quillpath probe chains on an unlinked misread.
-- **Next: Lorenzo's blind second grade and rulings** (PRD §15 "After round 5c"), then a fix round on his picks, its free proof, and the prof-001 pre-merge wave (each paid wave on his go, one at a time).
+- **Rounds 5, 5b and 5c:** see PRD §16 (covers D1–D7, E1–E7, A1–A5, A7; E5 partial answers and the check's own prompt; the qualifier guard; one derived correction per root). Waves B1′ / B2′ (batches 36–37): no case met the bar; the faults came from the check's labels and the paths the guard didn't read.
+- **Data-path audit (21 Oct, free):** `docs/superpowers/plans/2026-10-21-data-path-audit.md` — the 22 B1′ / B2′ data faults and M1–M3 traced to their paths; the input to round 6.
+- **Round 6:** cover matching on tagged cases (plural and synonym fold, the candidate's sentence, entity / geography / in-total exclusions, the tag gate, cover-vetoed deferrals with no check call); `factAnchors.tags` on the four new cases; the answer gate (period and scope on every path; topic, entity and forecast on the check's verdicts; tags off the check behind `TAGS_ON_NONCHECK_PATHS`, off); deferrals that resolve ("We won't get to <ask> today." at the first wrap-up); the audit's code-only fixes; must-reach on prof-002; step-check roots on pricing-001. Proof r6-final2: 0 new false refusals, 0 new wrong releases, every deterministic audit fault caught except M2 (improved), prof-001 identical, no added check calls (row 11's classifier call on 0.15% of turns); live $0.0069.
+- **Next:** the batch-38 grade, then Lorenzo's rulings on PRD §15 "After round 6"; the prof-001 pre-merge wave stays owed before any merge (each paid wave on his go, one at a time).
 - A′ is skipped.
 
 ## Shared-engine gaps that affect new cases (PRD §15)
@@ -219,7 +228,21 @@ group beats a more specific cover. Others:
   near item, and E5 now releases or restates it — 9 non-answers in the live
   Haiku check (`r5-haiku-check.md`); R7 (rule (o) and a derived claim's own
   correction); b35q Marisol 7:2 (a figure's subject in the sentence before).
-- "say before stage" isn't supported.
+- *Round 6 (engine-asks, 21 Oct; built, not merged; PRD §5.4 "Round 6" and
+  "Step-check roots", §15 "After round 6", §16):* on tagged cases covers match
+  plurals, synonyms and the candidate's own sentence, and drop a hit across
+  another entity, a region or a total the line doesn't state; a matched item is
+  released only if its tags and scope agree, else a named deferral with no
+  check call, which resolves (delivered, refused, or "We won't get to <ask>
+  today." at the first wrap-up); the answer gate reads period and scope on every
+  path, and topic, entity and forecast on the check's verdicts; the audit's
+  code-only fixes; must-reach items (prof-002); step-check roots (pricing-001).
+  prof-001 is untagged and unchanged. **Still open (Lorenzo):** M2 (Quillpath
+  Marcus's chain) improved, not caught; report-only step flags asking the input
+  question on a false binding; the client-word entity direction; row 16's offer
+  trade; the tags off the check (off by default).
+- "say before stage" isn't supported. *(Round 6: `mustReach` covers items the
+  guide says to give before a stage.)*
 - a quote with the figure before its quantity ("the $77 million annual selling
   cost", Aldermoor Tyler t17) isn't read — not now (Lorenzo, 19 Oct, round-2 ruling 7); a widening
   of the quote grammar, needs the labelled set rechecked.
@@ -390,3 +413,26 @@ group beats a more specific cover. Others:
   partials inside vs outside the fix's reach. A probe chain on a misread input
   needs the derived claims linked to the root by the input figure; without the
   link the input-probe cap counts each claim fresh (Quillpath, 2 serious).
+- 21 Oct, data-path audit (free): trace each fault to the path that made it
+  and the checks on that path before picking a fix. "Run the covers veto
+  everywhere" would have caught 0 of 22: it already ran before every check-made
+  refusal, and the five false refusals were literal-match cover misses
+  ("avoidable fixed cost" vs "…costs", "number of stores" vs "how many
+  stores"). The 20 Oct lesson above misread Hollis Bay Marisol t8: the coarse
+  path does skip the covers veto, but no cover matched that ask, so the veto
+  would have missed too (Lorenzo had the PRD corrected, 21 Oct).
+- 21 Oct, round 6 (free proof r6-base → r6-final2, live $0.0069): looser
+  matching widens every cover at once, so lint each new match against the real
+  asks (`scripts/cover-lint.ts`). The fold made "the total number of stores"
+  meet "how many stores", a release that didn't answer (now the in-total
+  veto), and a phrase can newly match through the candidate's sentence. A noun
+  test for topics on the model's own mappings refused about 11 true answers
+  ("price point", "churn", "ramp"): it can't read synonyms, so it stays on the
+  small-model check's verdicts. Measure each widened path on the replay and
+  switch off what adds a wrong deferral (tags off the check: one, b34a Marcus
+  t10). Tag only real rivals as `rival` (launch-001's chips are the client's).
+  Prove a math rule on the real chains: a step root ended on a hypothetical
+  right answer ("LTV around $600") and Marcus's chain replayed as before. A
+  must-reach item changes what every candidate hears; compare waves with that
+  in mind.
+- 21 Oct, batch 38 (Larkspur, round 6): [controller fills after grading].
