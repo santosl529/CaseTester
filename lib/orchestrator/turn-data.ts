@@ -5,9 +5,9 @@
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
-import { decideData, exactResolver, labelMatch, outsideAskScope, scopeRule, SPLIT_RULES, namedAsPart, keyNouns, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo, type ScopeRule } from './data-decisions';
+import { decideData, spokenItemName, exactResolver, labelMatch, outsideAskScope, scopeRule, SPLIT_RULES, namedAsPart, keyNouns, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo, type ScopeRule } from './data-decisions';
 import { switchOn } from '@/lib/cases/engine-switches';
-import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, BASIS } from './fact-check';
+import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, requestSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, saysItemName, WANT_ASK_PHASES } from './request-signal';
@@ -17,6 +17,7 @@ import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
 import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, askQualifiers, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
 import { costOf } from '@/lib/llm-pricing';
+import { dataLineVersions } from '@/lib/cases/loader';
 
 export function caseResolver(plan: ModelPlan): (raw: string) => string | null {
   const { ledger, caseData } = plan.state;
@@ -1052,6 +1053,70 @@ export function withAsks<T extends Pick<ModelTurn, 'requests'>>(turn: T, asks: T
   return { ...turn, requests: [...withoutReleases(turn.requests, out), ...asks.fresh.map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }))] };
 }
 
+// ---- Restatements (Phase 1 4.1, `restateRules`) ----
+// Lorenzo, 22 Oct: "Restatements: if the asked thing is in an exhibit, point to it and give its one-line summary; read
+// a number only if that specific figure was asked; restate only the matched item's line, and never the same item twice
+// within 4 turns." (b38 Larkspur Tyler cee7d399 t22 / t24: the 90-word Exhibit 1 line restated twice in a row, first
+// beside the connecting share for "the revenue attributable to those connecting passengers on the onward legs").
+// For the ledger items a turn says again (decideData's restates), in this order:
+//   (1) matched — the ask names the item: one of its naming words (label, spoken name, the case's names; request-
+//       signal.ts namesItem, the case's proper names aside) or one of its covers, in the candidate's asking sentence for
+//       the ask (else the message's sentence sharing most words with it; the model's words when none does). When some
+//       restated items are matched and some aren't, only the matched are said; when none is, all are (nothing to tell
+//       them apart by);
+//   (2) never twice within four turns — an item whose line (or a pre-written version of it, or its exhibit's summary)
+//       an interviewer turn of the last four (grading numbering: t20 and t22 for t24) said is named, not said again
+//       ("I gave you <its spoken name> a moment ago.", `recentRestates`);
+//   (3) the exhibit pointer — an item on an exhibit already shown that has a summary (Stream 2's overlay) gets the
+//       summary in place of its line ("You'll find that on the exhibit — <summary>"), once per exhibit; its line is read
+//       only when the ask names it (a name said whole, or a proper name the item carries) and asks for a figure ("what was
+//       …", "how much", "the exact number"; not "remind me how … did").
+// Logged `restate_rules`. Off, or a restatement none of these touch: the line, as before. A said-earlier item's line is
+// still read when matched and not recent (the figure rule is read as the exhibit's: judgement, in the stream report).
+const FIGURE_ASK = /\bwhat(?:'s| (?:was|is|were|are))\b|\bhow (?:much|many|big|high|low|large)\b|\b(?:the )?(?:exact|precise|specific) (?:figure|number|amount|value)\b/i;
+const RESTATE_WINDOW = 4;
+function saidRecently(plan: ModelPlan, texts: string[]): boolean {
+  const { state, ctx } = plan;
+  const from = ctx.nextTurnIndex + 1 - RESTATE_WINDOW;
+  const said = state.turnRows.filter(t => t.role === 'interviewer' && t.turnIndex >= from).map(t => t.text);
+  return texts.some(x => x.length > 0 && said.some(t => t.includes(x)));
+}
+function restateRules(plan: ModelPlan, d: DataDecisions, groupOrigin: ReadonlyMap<string, string>, asking: string[]): void {
+  const { state } = plan;
+  const { caseData, factBase: fb, ledger } = state;
+  const caseNames = properNames(caseData.sttKeyterms);
+  const itemOf = (id: string) => ledger.items.find(i => i.id === id);
+  const own = (id: string) => { const i = itemOf(id); return i ? [i.label, i.spoken ?? '', ...(fb.quantities.find(q => q.id === id)?.names ?? [])] : []; };
+  const coversOf = (id: string) => fb.covers.find(c => c.id === id)?.phrases ?? [];
+  // The words each restated item was asked in: the candidate's sentence for the ask, else the model's (a group's own ask too).
+  const askTexts = (id: string) => [...new Set(d.requests.filter(x => x.ledgerItemIds.includes(id)).flatMap(x => [x.request.what, groupOrigin.get(x.request.what)].filter((w): w is string => !!w)))]
+    .map(w => askSentenceFor(w, asking, caseNames) ?? askSentenceFor(w, sentencesOf(plan.ctx.candidateText), caseNames) ?? w);
+  const named = (id: string) => askTexts(id).some(t => namesItem(t, own(id), caseNames, coversOf(id)) || coverageOf(t, fb).items.includes(id));
+  const ids = d.restates.map(r => r.id);
+  const matched = ids.filter(named);
+  const unmatched = matched.length > 0 ? ids.filter(id => !matched.includes(id)) : [];
+  const exhibitOf = (id: string) => caseData.exhibits.find(e => state.shownExhibitIds.has(e.id) && (e.coversLedgerItems ?? []).includes(id) && e.summary);
+  const linesOf = (id: string) => { const v = itemOf(id)?.value ?? ''; return [v, ...(dataLineVersions(v)?.versions ?? []), exhibitOf(id)?.summary ?? '']; };
+  const recent = ids.filter(id => !unmatched.includes(id) && saidRecently(plan, linesOf(id)));
+  // A proper name said in the ask that the item's own words carry too: one of the case's ("Port Avery"), or a one-word
+  // name of the item said capitalised ("Westhaven's contribution").
+  const esc = (n: string) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const lowerHas = (t: string, n: string) => new RegExp(`(?<![a-z])${esc(n.toLowerCase())}(?![a-z])`).test(t.toLowerCase());
+  const properNamed = (t: string, id: string) => caseNames.some(n => lowerHas(t, n) && own(id).some(w => lowerHas(w, n)))
+    || own(id).some(w => /^[a-z]{4,}$/.test(w) && new RegExp(`(?<![A-Za-z])${w.charAt(0).toUpperCase()}${esc(w.slice(1))}(?![a-z])`).test(t));
+  const figureAsked = (id: string) => askTexts(id).some(t => FIGURE_ASK.test(t) && (saysItemName([t], own(id)) || properNamed(t, id)));
+  const pointed: string[] = [];
+  d.restates = d.restates.flatMap(r => {
+    if (unmatched.includes(r.id) || recent.includes(r.id)) return [];
+    const e = exhibitOf(r.id);
+    if (!e || figureAsked(r.id)) return [r];
+    pointed.push(r.id);
+    return [{ ...r, pointer: /[.!?]$/.test(e.summary!.trim()) ? e.summary!.trim() : `${e.summary!.trim()}.` }];
+  });
+  if (recent.length > 0) d.recentRestates = [...new Set([...(d.recentRestates ?? []), ...recent.map(id => { const i = itemOf(id)!; return i.spoken ?? spokenItemName(i.label); })])];
+  if (unmatched.length + recent.length + pointed.length > 0) plan.ctx.checks.act('restate_rules', 'a restatement: only the items the ask names; none said within the last four turns (named instead); an exhibit\'s item pointed to with its summary', { ...(unmatched.length > 0 ? { unmatched } : {}), ...(recent.length > 0 ? { recent } : {}), ...(pointed.length > 0 ? { pointed } : {}) });
+}
+
 // `checked`: the check's decisions on this turn's unmatched asks (turnDataChecked's
 // second pass), applied once the coverage step has read every ask.
 export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, checked?: ReadonlyMap<string, CheckedAsk>): TurnData {
@@ -1753,8 +1818,16 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // the message — a code-written close or recommendation ask included (batch 20:
   // R21 and R47's corrections were decided at the close and never spoken).
   const correction = state.misquote ? { item: state.misquote.item, items: state.misquote.items, text: state.misquote.text } : null;
+  // Phase 1 4.1: the restatement rules on the ledger items said again (restateRules, below).
+  const restating = switchOn(state.caseData, 'restateRules');
+  if (restating && decisions.restates.length > 0) restateRules(plan, decisions, groupOrigin, asking);
   // A prompt fact that covers an ask is said again ("As I mentioned: …"); nothing is booked.
+  // 4.1: not one said within the last four turns — it is in the prompt too, so it is left out, not named.
   for (const p of promptRestates) {
+    if (restating && saidRecently(plan, [p.value])) {
+      plan.ctx.checks.act('restate_rules', 'a prompt fact said within the last four turns: not said again', { recent: [p.id] });
+      continue;
+    }
     decisions.restates.push({ id: p.id, value: p.value });
     decisions.requests.push({ request: p.request, response: 'clarify', ledgerItemIds: [] });
   }

@@ -17,6 +17,8 @@ const WHEN: Record<PhrasePool, string> = {
   exhibit: 'Handing over an exhibit. {x} = its title.',
   restate: 'A fact already given, asked for again. {x} = the ledger line.',
   restate_exhibit: 'A fact that so far came out only on an exhibit, asked for again. {x} = the ledger line.',
+  restate_pointer: 'Phase 1 (restateRules): a re-ask of data on an exhibit already out — pointed to. {x} = the exhibit\'s one-line summary.',
+  restate_recent: 'Phase 1 (restateRules): a re-ask of a line said within the last four turns — named, not said again. {x} = the item\'s spoken name.',
   earlier: 'Before data asked for earlier and released now (the stage reached).',
   correct_one: 'Before a misquoted figure\'s correction. {x} = the ledger line.',
   correct_two: 'Before two misquoted figures\' corrections. {x} = the ledger lines.',

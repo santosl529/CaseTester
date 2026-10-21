@@ -372,7 +372,10 @@ export type DataDecisions = {
   // mustReach: a must-reach item code volunteered (round 6 Task 72; turn-data.ts mustReachItems) — the point it was due
   // before (an exhibit id, or "recommendation"); said first, without the "earlier" lead-in: nobody asked for it.
   releases: { id: string; value: string; earlier: boolean; mustReach?: string }[];
-  restates: { id: string; value: string; exhibit?: boolean }[];  // explicit re-asks of data already revealed: said again, never re-booked
+  restates: { id: string; value: string; exhibit?: boolean; pointer?: string }[];  // explicit re-asks of data already revealed: said again, never re-booked
+  // Phase 1 4.1 (restateRules, turn-data.ts): `pointer` — the item is on an exhibit already out: its summary is said, not
+  // its line; `recentRestates` — re-asks of lines said within the last four turns, named and not said again.
+  recentRestates?: string[];
   exhibit: { id: string; title: string; covers: string[] } | null;
   refusals: string[];     // what, for explicit asks the case doesn't hold
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
@@ -722,12 +725,15 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   for (const r of asked) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
   // Restated values carry no ids: nothing is booked as a new reveal.
   // The lead-in names where the item came from: what was said ("As I mentioned"), what only an exhibit showed ("As the exhibit shows").
-  const saidFirst = [...d.restates.filter(r => !r.exhibit), ...d.restates.filter(r => r.exhibit)];
+  const saidFirst = [...d.restates.filter(r => !r.exhibit && !r.pointer), ...d.restates.filter(r => r.exhibit && !r.pointer)];
   saidFirst.forEach((r, i) => {
     const v = dataLine(r.value, uses, seed);
     const lead = i === 0 || Boolean(r.exhibit) !== Boolean(saidFirst[i - 1].exhibit);
     parts.push({ kind: 'restate', ids: [], text: lead ? phrase(r.exhibit ? 'restate_exhibit' : 'restate', v, uses, seed) : v });
   });
+  // Phase 1 4.1: one pointer per exhibit summary, then the recent re-asks by name.
+  for (const summary of [...new Set(d.restates.flatMap(r => (r.pointer ? [r.pointer] : [])))]) parts.push({ kind: 'restate', ids: [], text: phrase('restate_pointer', summary, uses, seed) });
+  if (d.recentRestates?.length) parts.push({ kind: 'restate', ids: [], text: phrase('restate_recent', joinWhat(d.recentRestates, 'and'), uses, seed) });
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   const proper: ReadonlySet<string> = d.properWords ? new Set(d.properWords.map(w => w.toLowerCase())) : NO_PROPER;
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });

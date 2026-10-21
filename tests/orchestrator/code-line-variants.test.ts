@@ -58,6 +58,7 @@ const SLOT: Partial<Record<PhrasePool, string>> = {
   wrap_up: 'walk me through how you got to 38%.', gate_defer: 'the cost breakdown', offer: 'the cost breakdown',
   before_data: ASK, reask_more: ASK, reask_answer: ASK, reask_back: ASK, concrete: "name one thing your structure doesn't cover yet.",
   got_to: '38%', probe_got_to: '38%', pause: '5 minutes', stall_lead: "The question on the table is how you'd size the margin gap.",
+  restate_pointer: 'It has revenue and contribution by route for both years.', restate_recent: 'the network totals',
 };
 const filled = (p: PhrasePool, v: string) => fill(v, SLOT[p] ?? '');
 const template = (v: string) => v.replace(/\{[xX]\}/g, ' ');
