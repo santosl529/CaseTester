@@ -5,6 +5,10 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
+vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
+vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
+vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null, judgeStructureGiven: async () => null }));
+vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims: () => new Promise(() => {}) }));
 import { addressedAskSentences, explicitRequestCues } from '@/lib/orchestrator/request-signal';
 import { codeWrittenAsks } from '@/lib/orchestrator/session-runner';
 import { startMessageAsks } from '@/lib/orchestrator/turn-data';
