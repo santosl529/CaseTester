@@ -236,4 +236,5 @@ function main() {
   console.log(`wrote ${outFile}`);
 }
 
-if (process.argv[1]?.endsWith('cover-lint.ts')) main();
+// Not when imported (scripts/phase1-cover-lint.ts also ends in cover-lint.ts).
+if (path.basename(process.argv[1] ?? '') === 'cover-lint.ts') main();
