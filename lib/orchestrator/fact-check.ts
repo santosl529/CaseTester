@@ -726,7 +726,12 @@ const REGION = /\b(?:europe(?:an)?|eu|uk|canada|asia|international)\b/gi;
 const regionsIn = (t: string) => new Set([...t.matchAll(REGION)].map(m => (/^(?:europe|european|eu)$/i.test(m[0]) ? 'europe' : m[0].toLowerCase())));
 
 type CoverHit = { cover: FactBase['covers'][number]; start: number; end: number };
-function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: CoverHit, lower: string) => boolean = () => true): Coverage {
+// `dropped` (fix round 1, controller ruling, 21 Oct): the list entries left uncovered only
+// because (b) or (c) dropped every hit on them — `entity` when any was another company's,
+// else `region`. The coverage step (turn-data.ts) answers them without the check: no
+// model call BASE didn't make. `plain`: the rest without them.
+export type CoverageDetail = Coverage & { dropped: { what: string; why: 'entity' | 'region' }[]; plain: string | null };
+function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: CoverHit, lower: string) => boolean = () => true): CoverageDetail {
   const text = what.trim();
   const lower = lc(text);
   const question = /^(?:whether|if|how|why|which|what|when|where|who|is|are|was|were|do|does|did)\b/i.test(text) || text.endsWith('?');
@@ -757,28 +762,34 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     })).filter(h => keep(h, lower));
   }
   // (b) and (c), tagged cases only: the entry's own words name the company (else the whole ask's).
-  const tagged = (h: CoverHit, entry: { text: string; start: number; end: number }) => {
+  const dropWhy = (h: CoverHit, entry: { text: string; start: number; end: number }): 'entity' | 'region' | null => {
     const ask = entitiesNamed(entry.text, fb).length > 0 ? entry.text : text;
-    if (tagsAgree(ask, h.cover.id, fb).why === 'entity') return false;
+    if (tagsAgree(ask, h.cover.id, fb).why === 'entity') return 'entity';
     const asked = regionsIn(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end));
-    if (asked.size === 0) return true;
+    if (asked.size === 0) return null;
     const item = fb.ledger.find(l => l.id === h.cover.id);
     const own = regionsIn(item ? `${item.label ?? ''} ${item.value}` : `${fb.quantities.find(q => q.id === h.cover.id)?.names.join(' ') ?? ''} ${h.cover.say ?? ''}`);
-    return [...asked].every(r => own.has(r));
+    return [...asked].every(r => own.has(r)) ? null : 'region';
   };
   const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
   const coarse: Coverage['coarse'] = [];
+  const dropped: CoverageDetail['dropped'] = [];
   for (const entry of entries.filter(e => e.text.trim())) {
     // A cut the case doesn't hold ("by store", "per item") isn't covered — unless the
     // case's own phrase carries it ("transaction volume per store": the ticket and
     // revenue per store answer it; Lorenzo, 15 Oct, batch-25 ruling 7).
     // Nor a further cut beside the phrase ("transaction counts broken down by
     // customer segment", "transactions per store per day" — 567bdb1 on the replay).
-    const overlapping = hits.filter(h => h.start < entry.end && h.end > entry.start
-      && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end))
-      && (!folded || tagged(h, entry)));
+    const near = hits.filter(h => h.start < entry.end && h.end > entry.start
+      && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end)));
+    const why = folded ? near.map(h => dropWhy(h, entry)) : [];
+    const overlapping = folded ? near.filter((_, i) => why[i] === null) : near;
     const covering = GLOBAL_FINER.test(lc(entry.text)) ? overlapping.filter(h => GLOBAL_FINER.test(lower.slice(h.start, h.end))) : overlapping;
-    if (covering.length === 0) { left.push(entry.text.trim()); continue; }
+    if (covering.length === 0) {
+      left.push(entry.text.trim());
+      if (overlapping.length === 0 && why.some(Boolean)) dropped.push({ what: entry.text.trim(), why: why.includes('entity') ? 'entity' : 'region' });
+      continue;
+    }
     // A count asked of a figure-less item through a phrase that doesn't carry the
     // count: covered only at a coarser cut (COUNT_ASK above).
     const atCoarseCut = (h: typeof covering[number]) => {
@@ -789,9 +800,12 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     if (whole.length === 0) { coarse.push({ what: entry.text.trim(), ids: [...new Set(covering.map(h => h.cover.id))] }); continue; }
     for (const h of whole) (h.cover.say !== undefined ? promptFacts : items).push(h.cover.id);
   }
-  return { items: [...new Set(items)], promptFacts: [...new Set(promptFacts)], rest: left.length ? left.join(' and ') : null, coarse };
+  const plain = left.filter(l => !dropped.some(d => d.what === l));
+  return { items: [...new Set(items)], promptFacts: [...new Set(promptFacts)], rest: left.length ? left.join(' and ') : null, coarse, dropped, plain: plain.length ? plain.join(' and ') : null };
 }
-export function coverageOf(what: string, fb: FactBase, opts: { sentence?: string } = {}): Coverage {
+// coverageOf with the entries (b) and (c) left uncovered (tagged cases; turn-data.ts's coverage step).
+// The model's ask matching nothing and its sentence's only hits dropped: the ask is that entry.
+export function coverageDetail(what: string, fb: FactBase, opts: { sentence?: string } = {}): CoverageDetail {
   const own = coverageIn(what, fb, fb.answerGate);
   const sentence = opts.sentence?.trim();
   if (!fb.answerGate || !sentence) return own;
@@ -800,8 +814,15 @@ export function coverageOf(what: string, fb: FactBase, opts: { sentence?: string
   const items = [...new Set([...own.items, ...said.items])];
   if (own.items.length + own.promptFacts.length + own.coarse.length > 0) return { ...own, items };
   const ids = [...new Set(said.coarse.flatMap(c => c.ids))];
-  if (items.length === 0 && ids.length === 0) return own;
-  return { items, promptFacts: [], rest: null, coarse: ids.length > 0 ? [{ what: what.trim(), ids }] : [] };
+  if (items.length === 0 && ids.length === 0) {
+    if (own.dropped.length > 0 || said.dropped.length === 0) return own;
+    return { ...own, dropped: [{ what: what.trim(), why: said.dropped.some(d => d.why === 'entity') ? 'entity' : 'region' }], plain: null };
+  }
+  return { items, promptFacts: [], rest: null, coarse: ids.length > 0 ? [{ what: what.trim(), ids }] : [], dropped: [], plain: null };
+}
+export function coverageOf(what: string, fb: FactBase, opts: { sentence?: string } = {}): Coverage {
+  const { items, promptFacts, rest, coarse } = coverageDetail(what, fb, opts);
+  return { items, promptFacts, rest, coarse };
 }
 
 // The case items a sentence refuses or defers by name (same grammar and covers as the false-refusal veto), whatever was released.
