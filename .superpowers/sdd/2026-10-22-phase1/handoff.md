@@ -50,6 +50,8 @@ Review-driven fixes: four risky cover families dropped or qualified, the `why_pr
 - **Personas** 65 Dana, 66 Remy, 67 Victor appended; their bands change the bands hash, so a new wave on an existing batch needs `--new-version`.
 - **Switch record** in the run header and batch manifest.
 - `evals/fault-bank/wave-judged.md` lists all 44 non-replayable records with what in the wave would show each fixed (Lorenzo's Q2 ruling).
+**Its review returned: approve on tasks 2 and 4 and the switch record; approve with fixes on tasks 1 and 3 — and do not run the gate before fixing the bank.** It verified independently: 5,174 tests pass, `check` 0 wrong of 310, `build` rebuilds byte-identically, `run` reproduces the committed baseline byte-identically in 30 s, and the Haiku table recomputes exactly. It read 75 fault and 31 correct records against the gradings: **run/turn mapping, state copies and severities were right in every sampled record, and no graded fault in b33–b38 lacks a record.** Provenance and coverage are solid. The problems are in the assertions and the gate accounting — see the section below.
+
 - **A bug found on the base, still open:** b35 Quillpath Tyler t28 — code says "about $0.24k, not $210k" where the truth is about $240k. A scale slip in a code-written correction. Sent to Stream 3.
 
 ### Stream 4b — small fixes (done, not merged)
@@ -86,6 +88,31 @@ Two judgement calls change behaviour if Lorenzo rules otherwise: **J5** — one 
 
 **Still owed:** its high-effort review.
 
+## Required before the first fault-bank gate run (from the Stream 1 review)
+
+The bank's provenance is sound, but as it stands the gate would report failures that are assertion artifacts and successes that are silence. Fix 1–5 and 14 before the first merge-time run; 8 needs Lorenzo.
+
+**Critical**
+1. **All 12 `close_wait_reask` records are unpassable by the planned 4.8 fix.** `STAGE.mitigation` (`fault-bank-assert.ts:43`) matches the whole close-wait family, so speaking another close-wait line still trips it — while one variant matches nothing, so the same fault would pass. Assert the specific pool line with `says`, or assert the `close_hold` decision.
+2. **The 2 b34l doubled-line records are unpassable.** The turn carries the model's own copy plus code's; removing code's still leaves a flagged restatement, so only total silence passes. Assert the doubling itself.
+3. **4 replayable fault records belong to streams Phase 1 won't touch** (3 `phase2`, 1 Lorenzo's accepted residual), so gate condition 1 is unmeetable by construction. Mark them non-replayable with a wave note, or have the gate exclude `phase2`/`none` explicitly and say so.
+4. **The summary table conflates diverged with fail** (`scripts/fault-bank.ts:202-206`): "96 pass / 3 fail / 4 diverged" — the 3 fails *are* 3 of the 4 diverged. Partition on `skipped` first, and state how diverged records are judged.
+5. **78 of 167 replayable fault records (47%) have no `must:true` assertion**, so a turn that says nothing or refuses greens them. Pair the owed positive on each — worst cases named in the review, including `b38l-tyler-t2-split-refusal`.
+14. **`--switches` is plumbed correctly but unproven**, because at the base there is no overlay to consume it. A typo'd switches string at merge time would silently produce switches-off results. Stamp `engineSwitchNames(case)` into the replay mirror header and assert it in `run`.
+
+**Important, for the same round**
+- **"51 fixed on the base" is overstated:** of 15 sampled, at least 4 are not fixes (a hollow deferral became a flat refusal; the M2 chain merely moved). Those should keep failing.
+- **A windowed `must:false` passes vacuously** when the window's turns don't exist in the replay — skip, don't pass.
+- **Records that the planned fixes cannot satisfy as written:** two misquote records demand flat corrections where 3.4 needs both an anchor match and a checker error verdict; `b38l-tyler-t20` demands a refusal where 4.3 mandates a deferral; 3 b33 records demand a release where 4.3/4.4/4.6 route to a deferral (accept deferral-then-release in a window); `b37h-marisol-ladders` and `b37h-marisol-t12-root-correction` are mutually exclusive.
+- **Loose assertions a non-fix satisfies:** `namesFigure` matches a bare number set with no unit, and three records are satisfied by a probe that doesn't correct.
+- **4 want-cue records may be unobservable in replay**, since the runner mocks the classifier to the saved detections. Confirm 4.6's cue is code-side, else move them to wave-judged.
+
+**Auditor (task 3)**
+- `input.ts:23` clips exhibit data at 1,500 chars, so `launch-001 exhibit-2` (1,743) silently loses rows — that is the case where `missed_error` recall is 50%. Raise the clip and re-check.
+- `ACTS` surfaces only checks that acted, so the auditor never sees what code **dropped** — exactly the evidence for `bare_partial`, its weakest class at 56% recall.
+
+**For Lorenzo (finding 8):** two failing `correct` records look like real base changes, not artifacts — `b35q-marisol-t26-correction` (a pending correction is dropped, never deferred, when code writes a rec ask) and `b34l-marisol-t26-probe` (the second brainstorm pulled forward, pre-empting a correct probe). These need a ruling, not dismissal. `b34a-tyler-t30-close` and the 11 diverged fault rows are genuine artifacts.
+
 ## Required before merging Stream 4b (from its review)
 
 1. **HIGH, a real bug — `clearRecommendation` false positives** (`stall.ts:105-108`). "Raise the question of whether…", "Exit would cost $40 million…", "Keep looking at the cost side first…", "Sell-through is down 12%…" and "Build cost is $40 million…" all return true, so any of them can set `recommendationDelivered` and open the end gate with no recommendation given. Fix: reject a match followed by a hyphen or a copula/auxiliary, extend the lookahead exclusions, or require a decision frame.
@@ -102,7 +129,8 @@ Two judgement calls change behaviour if Lorenzo rules otherwise: **J5** — one 
 
 1. **Stream 3:** tasks 4–7, the unfinished `rootLineage` classification and the re-run arm, then its high-effort review.
 2. **Stream 4a:** its high-effort review (its replay is done).
-3. **Stream 4b:** the required fixes above, in one round.
+3. **Stream 1:** the fault-bank fixes above, in one round, **before** the first gate run — the gate is only as good as the bank.
+4. **Stream 4b:** its required fixes, in one round.
 3. **Merges into `phase1`:** Stream 1, then Stream 3, then Stream 4a and 4b. Run the fault bank after each merge, with switches off and with `*=phase1`, and report what changed.
 4. **A test that resolves itself at merge:** on Stream 3's branch, `tests/cases/phase1-contract.test.ts` "today's cases load unchanged" fails when Stream 2's overlays are copied in, because the overlay always attaches the descriptive fields. Stream 2's review fix already handles this, and the test passes on `phase1` with the overlays merged — so it needs nothing beyond the merge. Expect conflicts between Streams 3, 4a and 4b in `turn-data.ts`, `phrasing.ts` and `math-checker-live.ts` (Stream 4b gated 4 lines in Stream 3's `math-checker-live.ts`).
 5. **Known merge conflict:** Stream 4b carries `main`'s scoring claim, so `scoring-claim.ts`, `score-session.ts` and the score route will conflict when `phase1` later meets `main`. Take the `phase1` version; it contains main's.
@@ -130,9 +158,9 @@ Two judgement calls change behaviour if Lorenzo rules otherwise: **J5** — one 
   | Stream | Build | Review |
   |---|---|---|
   | 2 — case data | 318,846 | 219,831 |
-  | 1 — evaluation | 651,219 | in flight at the pause |
+  | 1 — evaluation | 651,219 | 352,000 approx. |
   | 4a — data path | 590,136 | not started |
   | 4b — small fixes | 438,457 | 215,491 |
-  | 3 — math | part-spent | not started |
+  | 3 — math | 557,537 | not started |
 
   Merges and the lead's own work are not in the table; the three fault-bank runs and the 29-slice gate replay are still owed.
