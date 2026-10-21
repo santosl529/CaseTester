@@ -110,6 +110,7 @@ function wordCount(s: string): number {
 }
 
 // Round 5c Task 63: a question-form sentence counts too (voice STT drops the "?": "So what was the suite").
+// The older bare wh/auxiliary-start fallback below is still ORed in (looser: it also takes "what we need …").
 function isQuestion(text: string): boolean {
   return /\?/.test(text) || sentencesOf(text).some(isQuestionForm) || /^\s*(what|what'?s|how|why|which|who|when|where|do|does|is|are|can|could|would|should)\b/i.test(text);
 }
@@ -189,9 +190,19 @@ const QUESTION_FORM = new RegExp(`^\\s*${FORM_FILLERS}(?:${WH_INVERSION}|${HOW_A
 // A wh-word + a bare noun or -ing word: a question unless a copula follows (a pseudo-cleft).
 const NOUN = DATA_NOUN.source;
 const WH_BARE = new RegExp(`^\\s*${FORM_FILLERS}(?:(?:what|where|how)['’]?s\\s+(?:${NOUN}|[a-z]+ing\\b)|(?:what|how|why|where|when|who)\\s+${AUX}\\s+${NOUN})(.*)$`, 'i');
+// Round 5c Task 63 fix round 1 (no "?" only): two ways a question-shaped opening is still a statement.
+// (a) The candidate answers themselves after the question clause: "Is the price the main driver here,
+//     I would say yes because volume is flat." (", I would say / I'd assume / I think …", "yes because").
+// (b) A cleft: wh + a non-copula auxiliary, then a copula with no subordinator before it ("What do we do
+//     about the cost of beans is raise prices."); "What do we do if the price is 5" stays a question.
+// "Can we assume the market is growing …" stays a question: it asks for confirmation.
+const SELF_ANSWER = /,\s*i\s+(?:would|'d|think|guess|assume|suppose|figure|believe)\b|,\s*i'd\b|\b(?:yes|no),?\s+because\b/i;
+const WH_AUX_CLEFT = /^\s*(?:(?:so|and|uh|um|okay|ok|yeah|sorry|also)[,.]?\s+)*(?:what|how|why|where|when|who)\s+(?:do|does|did|can|could|would|should|will|have|has)\b(?:(?!\b(?:if|when|because|whether|since|that|where|while)\b).)*?\b(?:is|was|are|were)\s+(?:to\s+)?[a-z]+/i;
+export const selfAnswered = (sentence: string) => !sentence.trim().endsWith('?') && SELF_ANSWER.test(sentence);
 export function isQuestionForm(sentence: string): boolean {
   const s = sentence.trim();
   if (s.endsWith('?')) return isQuestionSentence(s);
+  if (selfAnswered(s) || WH_AUX_CLEFT.test(s)) return false;
   if (QUESTION_FORM.test(s)) return true;
   const bare = WH_BARE.exec(s);
   return bare !== null && !/\b(?:is|was|are|were)\b|[:—–]/i.test(bare[bare.length - 1] ?? '');

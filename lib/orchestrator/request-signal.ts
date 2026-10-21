@@ -7,7 +7,7 @@
 // left to the model, as today.
 import type { Phase } from './state-machine';
 import { normalizeNumberWords } from '@/lib/number-words';
-import { DATA_NOUN, isQuestionForm, sentencesOf } from './stall';
+import { DATA_NOUN, isQuestionForm, selfAnswered, sentencesOf } from './stall';
 
 const CUES: [label: string, pattern: RegExp][] = [
   ['could I get', /\b(could|can|may)\s+(i|we)\s+(get|have|see)\b/i],
@@ -82,6 +82,7 @@ const sameFigure = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.01, M
 const PROCEED_Q = /^\W*(?:(?:and|so|ok(?:ay)?|then)\b,?\s+)?(?:do you want|would you (?:like|prefer)|should (?:i|we)|shall (?:i|we)|want me to|is that (?:ok|okay|fine|right|correct)|does that (?:work|sound))/i;
 
 function asksAddressed(sentence: string, phase: Phase, given: number[] = []): boolean {
+  if (selfAnswered(sentence)) return false; // "Do we know X, I would assume so": answered by the candidate, no "?"
   if (cueAsk(sentence)) return true;
   if (WANT_CUE.test(sentence) && (WANT_ASK_PHASES.includes(phase) || sentence.endsWith('?') || isQuestionForm(sentence))) return true;
   if (!isQuestionForm(sentence)) return false;

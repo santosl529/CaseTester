@@ -3,6 +3,8 @@
 // turns in the 17-19 Oct exports). Sentences verbatim from those exports.
 import { describe, it, expect } from 'vitest';
 import { classifyTurn, evaluateStall, INITIAL_STALL_STATE } from '@/lib/orchestrator/stall';
+import { isQuestionForm } from '@/lib/orchestrator/stall';
+import { asksAboutAssessment } from '@/lib/orchestrator/spoken-close';
 import { addressedAskSentences } from '@/lib/orchestrator/request-signal';
 
 const UNPUNCTUATED = [
@@ -62,5 +64,34 @@ describe('addressedAskSentences reads the question form (ask detection)', () => 
     const t = "First I'd want to know what kind of drop it is. Is it transaction count falling, or is the same customer buying less. Those need different responses.";
     expect(addressedAskSentences(t, 'RECOMMENDATION', { closing: true })).toEqual([]);
     expect(addressedAskSentences(t, 'RECOMMENDATION').length).toBeGreaterThan(0);
+  });
+});
+
+describe('asksAboutAssessment reads the question form (report hand-off)', () => {
+  it.each(['How am I doing', 'How did I do', 'So how am I doing on this'])('asks: %s', t => expect(asksAboutAssessment(t)).toBe(true));
+  it('a statement is no ask', () => {
+    expect(asksAboutAssessment('I did my best on that one.')).toBe(false);
+    expect(asksAboutAssessment('How I did it was fine, I would say.')).toBe(false);
+  });
+});
+
+describe('question-shaped statements without a "?" (Review Focus 4)', () => {
+  const SELF = [
+    'Is the price the main driver here, I would say yes because volume is flat and costs are up.',
+    'Do we know the margin is falling because of costs, I would assume so and move on to pricing.',
+  ];
+  const CLEFT = 'What do we do about the cost of beans is raise prices.';
+  it.each([...SELF, CLEFT])('is no question and no ask: %s', t => {
+    expect(isQuestionForm(t)).toBe(false);
+    expect(addressedAskSentences(t, 'ANALYSIS')).toEqual([]);
+    expect(classifyTurn(t, null).kind).not.toBe('question');
+    expect(classifyTurn(t, null).kind).not.toBe('data_request');
+  });
+  it('"Can we assume ..." stays a question (an ask for confirmation)', () => {
+    expect(isQuestionForm('Can we assume the market is growing and look at the share of the client instead.')).toBe(true);
+  });
+  it('questions with an if-clause or a plain wh stay questions', () => {
+    expect(isQuestionForm('What do we do if the price is 5')).toBe(true);
+    expect(isQuestionForm('Is the price the main driver here')).toBe(true);
   });
 });
