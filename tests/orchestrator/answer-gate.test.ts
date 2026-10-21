@@ -9,7 +9,7 @@
 // prof-001: no gate. Fixtures: the candidate's message, the model's requests and the check's
 // mapping verbatim from batches 34, 36 and 37 (oct 20 runs 1-5; audit rows 2, 10, 15, 18, 19,
 // 22, docs/superpowers/plans/2026-10-21-data-path-audit.md), the ledger state as it stood.
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({ db: {} }));
@@ -19,7 +19,7 @@ vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<obje
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
 
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
-import { turnDataChecked, answerGate, decideCheckedAsk, startMessageAsks } from '@/lib/orchestrator/turn-data';
+import { turnDataChecked, answerGate, decideCheckedAsk, startMessageAsks, messageAsks } from '@/lib/orchestrator/turn-data';
 import { renderDataLines, decisionRows } from '@/lib/orchestrator/data-decisions';
 import { unmetQualifiers, askQualifiers, gateReading } from '@/lib/orchestrator/ask-qualifiers';
 import { tagsAgree } from '@/lib/orchestrator/item-tags';
@@ -184,8 +184,9 @@ describe('the answer gate on the model\'s mapped asks', () => {
     expect(d.refusals).toEqual([]);
     expect(acts(p, 'answer_gate')).toEqual([]);
   });
-  // Fix round 1 (F1): no topic test on the model's mapping — the chickpea costs go on the entity ("chip", no client word), the ask refused whole.
-  it('no new check call: the model maps row 10\'s ask to the chickpea costs — dropped (entity), the ask refused, checkAsk never called', async () => {
+  // Fix round 1 (F1): no topic test on the model's mapping — the chickpea costs go on the entity ("chip", no client word).
+  // Task 76 (b) (Lorenzo, 21 Oct, round 6 rulings, 1: "a mismatch on those paths may defer, never refuse"): the ask deferred, not refused.
+  it('no new check call: the model maps row 10\'s ask to the chickpea costs — dropped (entity), the ask deferred, checkAsk never called', async () => {
     const fx: Fx = { ...MARCUS_B37H_T5, requests: [req('chip cost of goods and gross margin over the last few years', ['variable_costs'])] };
     const p = plan(fx);
     const d = await turnDataChecked(p, turn(fx));
@@ -194,16 +195,21 @@ describe('the answer gate on the model\'s mapped asks', () => {
     expect(d.releases).toEqual([]);
     expect(d.exhibit).toBeNull();
     expect(d.unmatchedDefers).toEqual([]);
-    expect(renderDataLines(d, 's')).toEqual(["I don't have chip cost of goods and gross margin over the last few years."]);
-    expect(acts(p, 'answer_gate')[0].detail).toEqual({ asks: [{ what: 'chip cost of goods and gross margin over the last few years', path: 'mapped', refuse: ['chip cost of goods and gross margin over the last few years'], drop: ['variable_costs'], partial: [] }] });
+    expect(d.refusals).toEqual([]);
+    expect(d.itemlessDefers).toEqual(['chip cost of goods and gross margin over the last few years']);
+    expect(d.deferralsOpened).toEqual([{ what: 'chip cost of goods and gross margin over the last few years', ids: ['variable_costs'] }]);
+    expect(acts(p, 'answer_gate')[0].detail).toEqual({ asks: [{ what: 'chip cost of goods and gross margin over the last few years', path: 'mapped', refuse: [], drop: ['variable_costs'], partial: [], defer: ['chip cost of goods and gross margin over the last few years'] }] });
   });
-  it('a model-mapped entity mismatch: "the entrant\'s flights per day" mapped to Larkspur\'s network totals — dropped, refused, unchecked', async () => {
+  it('a model-mapped entity mismatch: "the entrant\'s flights per day" mapped to Larkspur\'s network totals — dropped, deferred (Task 76 (b)), unchecked', async () => {
     const fx: Fx = { ...MARISOL_B36L_T11, requests: [req('how many flights a day the entrant runs on each route', ['network_totals'])] };   // the model's mapping constructed
     const p = plan(fx);
     const d = await turnDataChecked(p, turn(fx));
     expect(ask).not.toHaveBeenCalled();
     expect(d.restates).toEqual([]);
-    expect(d.refusals).toEqual(['how many flights a day the entrant runs on each route']);
+    expect(d.refusals).toEqual([]);
+    expect(d.itemlessDefers).toEqual(['how many flights a day the entrant runs on each route']);
+    expect(d.deferralsOpened).toEqual([{ what: 'how many flights a day the entrant runs on each route', ids: ['network_totals'] }]);
+    expect(acts(p, 'tag_deferred')[0].detail).toEqual({ asks: ['how many flights a day the entrant runs on each route'] });
   });
   it('a tag part a kept item states is answered by it: the Lakeport fare dropped for "the entrant\'s … fares", no refusal beside the competitor line', async () => {
     const fx: Fx = { ...MARISOL_B36L_T11, requests: [req("the entrant's cost per seat and fares", ['competitor_costs', 'lakeport_fare'])] };   // the model's mapping constructed
@@ -249,6 +255,9 @@ describe('the answer gate on the model\'s mapped asks', () => {
     expect(d.refusals).toEqual([]);
     expect(d.itemlessDefers).toEqual(['chip volume']);
     expect(acts(p, 'partial_dropped')[0].detail).toMatchObject({ checked: 'chip volume', why: 'false_refusal', decision: 'answer_gate:mapped' });
+    // Task 76: its deferral part went through the same veto; the named deferral is tracked with the dropped item.
+    expect(d.deferralsOpened).toEqual([{ what: 'chip volume', ids: ['variable_costs'] }]);
+    expect(acts(p, 'tag_deferred')).toEqual([]);
   });
 });
 
@@ -549,10 +558,12 @@ describe('fix round 2', () => {
     expect(acts(p, 'refusal_covered')[0].detail).toMatchObject({ covered: [{ ids: ['network_totals'], rest: 'average fare, FY2023 vs FY2025' }] });
     expect(coverageDetail('total departures and average fare, FY2023 vs FY2025', taggedFactBase('prof-002')).rest).toBe('average fare, FY2023 vs FY2025');
   });
-  it('68b-5 b34a Marcus t10: insurance_coverage names Nimbrel on its own line — kept, E1: its line and the share refused', async () => {
+  // Task 76 (b): on the model's mapping (a non-check path) the line-only item is given whole, the share deferred, not refused.
+  it('68b-5 b34a Marcus t10: insurance_coverage names Nimbrel on its own line — kept whole; the share deferred (Task 76 (b))', async () => {
     const { d } = await run68b('D5');
     expect(d.releases.map(r => r.id)).toEqual(['insurance_coverage']);
-    expect(d.refusals).toEqual(['the share of covered lives where Nimbrel has exclusive or preferred status']);
+    expect(d.refusals).toEqual([]);
+    expect(d.itemlessDefers).toEqual(['the share of covered lives where Nimbrel has exclusive or preferred status']);
     expect(tagsAgree('the share of covered lives where Nimbrel has exclusive or preferred status', 'insurance_coverage', taggedFactBase('entry-001'))).toEqual({ agree: true, coarse: true });
     expect(tagsAgree("Nimbrel's patent expiry", 'patents', taggedFactBase('entry-001'))).toEqual({ agree: false, why: 'entity' });
   });
@@ -682,5 +693,157 @@ describe('Task 71: the audit\'s code-only fixes, through the turn', () => {
     expect(d.restates).toEqual([]);
     expect(renderDataLines(d, 's')).toEqual(["I don't have current treatment breakdown by drug class or US prevalence of Corlan's disease."]);
     expect(ask.mock.calls.map(c => (c[0] as { what: string }).what)).not.toContain('current treatment breakdown by drug class');
+  });
+});
+
+// Round 6 Task 76 (b) (Lorenzo, 21 Oct, round 6 rulings, 1: "On the other paths: the company and forecast/current tag
+// check may run only if it adds 0 new false refusals and 0 wrong deferrals in the replay; if it adds any, leave those
+// paths as they are today; a mismatch on those paths may defer, never refuse."). Off the check — the model's mapped
+// asks, the names remap, the message's detections — an entity or forecast/current mismatch defers (tracked, Task 76
+// (a)); the check's verdicts are unchanged. One switch, TAGS_ON_NONCHECK_PATHS (on by default; "0" turns it off): off,
+// those paths read no tags, as at 14cafef (Task 69's head).
+describe('Task 76 (b): tag mismatches defer, never refuse, off the check', () => {
+  const SHARE = 'the share of covered lives where Nimbrel has exclusive or preferred status';
+  const runD5 = async () => {
+    const f = GATE_68B.D5;
+    const p = planTurn(readsFixture({ caseId: f.caseId, phase: f.phase as Phase, revealed: f.revealed, flags: { pressureTest: f.pressureTest } }), f.text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    for (const id of f.shown) p.state.shownExhibitIds.add(id);
+    return { p, d: await turnDataChecked(p, { requests: f.requests, exhibit: null, rescueItem: null }) };
+  };
+  afterEach(() => { vi.unstubAllEnvs(); });
+  it('b34a Marcus t9 → t10, switch on: insurance_coverage given whole, no refusal of the share — the share deferred and tracked, unchecked', async () => {
+    expect(GATE_68B.D5.text).toMatch(/Do we know what share of covered lives Nimbrel has exclusive or preferred status on\?$/);
+    const { p, d } = await runD5();
+    expect(ask).not.toHaveBeenCalled();
+    expect(d.releases.map(r => r.id)).toEqual(['insurance_coverage']);
+    expect(d.refusals).toEqual([]);
+    expect(d.itemlessDefers).toEqual([SHARE]);
+    // The line-only item is given whole: the deferral holds no item of its own.
+    expect(d.deferralsOpened).toEqual([{ what: SHARE, ids: [] }]);
+    const lines = renderDataLines(d, 's');
+    expect(lines[0]).toBe(value('entry-001', 'insurance_coverage'));
+    expect(lines.join(' ')).not.toMatch(/I don't have/);
+    expect(lines.join(' ')).toMatch(/come back to the share of covered lives where Nimbrel has exclusive or preferred status/);
+    expect(acts(p, 'answer_gate')[0].detail).toEqual({ asks: [{ what: SHARE, path: 'mapped', refuse: [], drop: [], partial: [], defer: [SHARE] }] });
+    expect(acts(p, 'tag_deferred')[0].detail).toEqual({ asks: [SHARE] });
+  });
+  it('… switch off: as at 14cafef — insurance_coverage given whole, nothing refused or deferred, no gate', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '0');
+    const { p, d } = await runD5();
+    expect(ask).not.toHaveBeenCalled();
+    expect(d.releases.map(r => r.id)).toEqual(['insurance_coverage']);
+    expect(d.refusals).toEqual([]);
+    expect(d.defers).toEqual([]);
+    expect(d.deferralsOpened).toBeUndefined();
+    expect(acts(p, 'answer_gate')).toEqual([]);
+    expect(renderDataLines(d, 's')).toEqual([value('entry-001', 'insurance_coverage')]);
+  });
+  it('switch off: the model\'s entity mismatch is given as mapped (Larkspur\'s network totals restated), nothing deferred', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '0');
+    const fx: Fx = { ...MARISOL_B36L_T11, requests: [req('how many flights a day the entrant runs on each route', ['network_totals'])] };   // the model's mapping constructed
+    const p = plan(fx);
+    const d = await turnDataChecked(p, turn(fx));
+    expect(d.restates.map(r => r.id)).toEqual(['network_totals']);
+    expect(d.refusals).toEqual([]);
+    expect(d.defers).toEqual([]);
+  });
+  it('switch off: the names remap reads no forecast — "the new routes plan today" keeps the plan lines (Exhibit 3 shows them)', async () => {
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '0');
+    const fx = asked('prof-002', 'the new routes plan today', [], FARE_READY);
+    const p = plan(fx);
+    const d = await turnDataChecked(p, turn(fx));
+    expect(d.exhibit?.id).toBe('exhibit-3');   // all three plan lines asked: the exhibit that shows them
+    expect(d.exhibit?.covers).toEqual(expect.arrayContaining(['new_routes_plan', 'new_routes_cost_flights']));
+    expect(acts(p, 'answer_gate')).toEqual([]);
+  });
+  // The names remap always keeps the context line beside the plan lines (it states the ask), so the unit pins the mode.
+  it('answerGate\'s defer mode: a forecast mismatch is a deferral holding the mismatched item, not a refusal; off it, the refusal as before', () => {
+    const fx = asked('prof-002', 'the new routes plan currently', [], FARE_READY);
+    const p = plan(fx);
+    const deferred = answerGate(p, 'the new routes plan currently', ['new_routes_plan'], undefined, { topics: false, defer: true });
+    expect(deferred).toMatchObject({ refuse: [], drop: ['new_routes_plan'], defer: [{ part: 'the new routes plan currently', ids: ['new_routes_plan'] }] });
+    const refused = answerGate(p, 'the new routes plan currently', ['new_routes_plan'], undefined, { topics: false });
+    expect(refused).toMatchObject({ refuse: [{ part: 'the new routes plan currently', ids: ['new_routes_plan'] }], drop: ['new_routes_plan'], defer: [] });
+    // 68b-5's line-only item: given whole in defer mode (not partial), its part deferred holding no item.
+    const d5 = GATE_68B.D5;
+    const p5 = plan({ caseId: d5.caseId, text: d5.text, requests: d5.requests, phase: d5.phase as Phase, revealed: d5.revealed, shown: d5.shown });
+    const share = 'the share of covered lives where Nimbrel has exclusive or preferred status';
+    expect(answerGate(p5, share, ['insurance_coverage'], undefined, { topics: false, defer: true })).toMatchObject({ refuse: [], partial: [], drop: [], defer: [{ part: share, ids: [] }] });
+    expect(answerGate(p5, share, ['insurance_coverage'], undefined, { topics: false })).toMatchObject({ refuse: [{ part: share }], partial: ['insurance_coverage'], defer: [] });
+  });
+  // prof-001 (untagged) identical to BASE: the switch, the tracking and the wrap-up close never touch it.
+  it.each([
+    ['the competitor\'s store counts', ['stores_count']],
+    ['European store counts', []],
+    ['the current bean price forecast', ['bean_price_change']],
+    ['transaction volume per store', ['avg_ticket']],
+  ])('prof-001 "%s": the same decisions with the switch on and off, nothing tracked, nothing closed at a wrap-up', async (what, ids) => {
+    const fx = asked('prof-001', what, ids as string[]);
+    const on = await turnDataChecked(plan(fx), turn(fx));
+    vi.stubEnv('TAGS_ON_NONCHECK_PATHS', '0');
+    classify.mockReset(); classify.mockImplementation(async () => []); ask.mockReset(); ask.mockImplementation(askVia(classify));
+    const off = await turnDataChecked(plan(fx), turn(fx));
+    expect(off).toEqual(on);
+    expect(on.deferralsOpened).toBeUndefined();
+    expect(on.tagDeferred).toBeUndefined();
+    const w = plan(fx);
+    w.state.kind = 'rec_ask';
+    w.ctx.flags.openDeferrals = [{ what, ids, turn: 1 }];
+    expect((await turnDataChecked(w, turn(fx))).deferralsClosed).toBeUndefined();
+  });
+  it.each([['on', undefined], ['off', '0']])('the check path is unchanged (switch %s): b36a Raj t13 still refuses "Nimbrel\'s patent expiry"', async (_, env) => {
+    if (env) vi.stubEnv('TAGS_ON_NONCHECK_PATHS', env);
+    classify.mockResolvedValueOnce({ items: [{ id: 'patents', answers: 'full' }, { id: 'nimbrel', answers: 'partial', missing: 'late-stage oral competitors' }] });
+    const p = plan(RAJ_B36A_T13);
+    const d = await turnDataChecked(p, turn(RAJ_B36A_T13));
+    expect(d.releases).toEqual([]);
+    expect(renderDataLines(d, 's')).toContain("I don't have Nimbrel's patent expiry or late-stage oral competitors.");
+    expect(d.deferralsOpened).toBeUndefined();
+    expect(acts(p, 'itemless_defer')[0].detail).toMatchObject({ tagDropped: ['patents'] });
+  });
+});
+
+// Round 6 Task 76 (c) (Lorenzo, 21 Oct, round 6 rulings, 2: "Row 11's classifier call: allowed, as long as all three
+// hold … Report its cost and latency in the check-cost log."): the classifier's usage row on a message that asks only
+// through "(what) I'd want is" carries `cue: 'want_is'` and its latency; an addressed ask's call carries none.
+describe('Task 76 (c): row 11\'s classifier call is tagged', () => {
+  const ROW11 = "Noted, I'll assume we don't have it. What I'd want is distribution math: how many stores Hollis Bay can get the line into, and velocity — bags per store per week.";
+  const at = (caseId: string, text: string) => {
+    const p = planTurn(readsFixture({ caseId, phase: 'EXHIBIT', revealed: [], flags: { pressureTest: SATISFIED } }), text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    return p;
+  };
+  const withUsage = () => classify.mockImplementation(async (...args: unknown[]) => {
+    (args[0] as { onUsage?: (u: unknown) => void }).onUsage?.({ component: 'data_request', model: 'claude-haiku-4-5', inputTokens: 900, outputTokens: 80 });
+    return [];
+  });
+  it('b37h Marcus t9 (launch-001): the usage row tagged cue want_is, with the call\'s latency; the asks carry the cue', async () => {
+    withUsage();
+    const rows: Record<string, unknown>[] = [];
+    const asks = await startMessageAsks(at('launch-001', ROW11), u => rows.push(u));
+    expect(classify).toHaveBeenCalledTimes(1);
+    expect(rows).toEqual([expect.objectContaining({ component: 'data_request', cue: 'want_is', latencyMs: expect.any(Number) })]);
+    expect(asks?.cue).toBe('want_is');
+  });
+  it('an addressed ask starts the call untagged', async () => {
+    withUsage();
+    const rows: Record<string, unknown>[] = [];
+    const asks = await startMessageAsks(at('launch-001', 'Do we know how many stores Hollis Bay can get the line into?'), u => rows.push(u));
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).not.toHaveProperty('cue');
+    expect(asks?.cue).toBeUndefined();
+  });
+  it('untagged prof-001: "What I\'d want is …" asks nothing — no call, no cue', async () => {
+    withUsage();
+    const asks = await messageAsks(at('prof-001', "What I'd want is the store count by region."), []);
+    expect(classify).not.toHaveBeenCalled();
+    expect(asks?.cue).toBeUndefined();
+  });
+  it('the cue beside an addressed ask: not row 11\'s call (it fires without the cue)', async () => {
+    withUsage();
+    const rows: Record<string, unknown>[] = [];
+    await startMessageAsks(at('launch-001', `${ROW11} Do we know the retailer margin?`), u => rows.push(u));
+    expect(rows[0]).not.toHaveProperty('cue');
   });
 });

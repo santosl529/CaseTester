@@ -133,6 +133,8 @@ describe('an ask whose only cover hits were excluded', () => {
     expect(d.refusals).toEqual([]);
     expect(d.itemlessDefers).toEqual(["the entrant's avoidable fixed costs"]);
     expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ excluded: [{ what: "the entrant's avoidable fixed costs", why: 'entity' }] }] });
+    // Task 76 (a): tracked open with the excluded hit's item until it resolves.
+    expect(d.deferralsOpened).toEqual([{ what: "the entrant's avoidable fixed costs", ids: ['aircraft_leases'] }]);
   });
   it('the model\'s ask matching nothing, its sentence\'s only hit another company\'s (row 19, Raj t13): the named deferral, no check', async () => {
     // "patent expiry" a fixture cover on the Kelvexa patents line; the model's ask a stand-in that misses it.
@@ -140,6 +142,7 @@ describe('an ask whose only cover hits were excluded', () => {
     const d = await turnDataChecked(p, turn("Nimbrel's patent end date"));
     expect(ask).not.toHaveBeenCalled();
     expect(d.itemlessDefers).toEqual(["Nimbrel's patent end date"]);
+    expect(d.deferralsOpened).toEqual([{ what: "Nimbrel's patent end date", ids: ['patents'] }]);   // Task 76 (a): the sentence's excluded hit
   });
   it('row 20, Aldermoor Marcus t5 (geography): refused, unchecked — not the US price', async () => {
     const p = plan('entry-001', "Do we have Kelvexa's current European net price per patient per year?", taggedFactBase('entry-001'));

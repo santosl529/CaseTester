@@ -77,3 +77,53 @@ describe('check cost', () => {
     expect(checkCostLine(a)).toMatch(/3 calls.*late 1 rows.*1 timed out.*max 1503 ms.*partial_dropped 1/);
   });
 });
+
+// Round 6 Task 76 (c) (Lorenzo, 21 Oct, round 6 rulings, 2: "Row 11's classifier call: allowed, as long as all three
+// hold: it fires only on that cue; it fires on no more than ~2% of turns in the replay corpus; it adds no more than
+// 1.5 s on the turns where it fires. Report its cost and latency in the check-cost log."): the message classifier's
+// usage rows tagged `cue: 'want_is'` (turn-data.ts classifyMessage), and the turn's wait on `uncovered_asks`.
+describe('row 11\'s classifier call (cue want_is)', () => {
+  const uncovered = (turnIndex: number, detail: Record<string, unknown>) =>
+    ({ category: 'check', subtype: 'uncovered_asks', turnIndex, payloadJsonb: { decision: 'act', detail } });
+  const turns = (n: number) => Array.from({ length: n }, (_, i) => ({ role: i % 2 === 0 ? 'candidate' : 'interviewer' }));
+  const cueRun: CheckCostRun = {
+    events: [
+      uncovered(9, { sentences: ["What I'd want is distribution math: …"], cue: 'want_is', waitMs: 820, latencyMs: 815 }),
+      uncovered(15, { sentences: ["What I'd want is the velocity."], cue: 'want_is', waitMs: 0, latencyMs: null }),
+      uncovered(21, { sentences: ['Do we have the store count?'], waitMs: 600 }),   // an addressed ask: not row 11's
+    ],
+    analytics: [
+      usage({ component: 'data_request', cue: 'want_is', latencyMs: 815 }),
+      usage({ component: 'data_request', cue: 'want_is', latencyMs: 1210 }),
+      usage({ component: 'data_request' }),
+      usage({ component: 'ask_check' }),
+    ],
+    turns: turns(40),
+  };
+  it('counts the tagged calls, their cost and latency, and the turns waited with the wait (sum, max)', () => {
+    const s = checkCostOf(cueRun).wantIs;
+    const one = checkCostOf({ events: [], analytics: [usage({ component: 'data_request', cue: 'want_is' })] }).wantIs.costUsd;
+    expect(one).toBeGreaterThan(0);
+    expect(s.calls).toBe(2);
+    expect(s.costUsd).toBeCloseTo(2 * one, 10);
+    expect(s.latency).toEqual({ sum: 2025, max: 1210, count: 2 });
+    expect(s.waited).toEqual({ turns: 1, sum: 820, max: 820 });
+    expect(s.candidateTurns).toBe(20);
+  });
+  it('the check\'s own numbers are untouched by row 11\'s rows', () => {
+    expect(checkCostOf(cueRun)).toMatchObject({ calls: 0, usageRows: 1 });
+  });
+  it('totals add the sessions; the markdown reports the section with the share of candidate turns', () => {
+    const a = checkCostOf(cueRun);
+    const b = checkCostOf({ events: [], analytics: [usage({ component: 'data_request', cue: 'want_is', latencyMs: 400 })], turns: turns(60) });
+    const t = totalCheckCost([a, b]);
+    expect(t.wantIs).toMatchObject({ calls: 3, candidateTurns: 50, latency: { sum: 2425, max: 1210, count: 3 }, waited: { turns: 1, sum: 820, max: 820 } });
+    const md = checkCostMarkdown([{ id: 'hollisbay/04-marcus', summary: a }, { id: 'hollisbay/07-raj', summary: b }]);
+    expect(md).toContain("## Row 11's classifier call (cue want_is)");
+    expect(md).toMatch(/\| hollisbay\/04-marcus \| 2 \| \$\d+\.\d{4} \| 2025 \| 1210 \| 1 \| 820 \| 820 \| 20 \| 10\.0% \|/);
+    expect(md).toMatch(/\| \*\*Total\*\* \| 3 \| .* \| 50 \| 6\.0% \|/);
+  });
+  it('a run with no tagged call reports zero calls (and no share without turns)', () => {
+    expect(checkCostOf(run).wantIs).toMatchObject({ calls: 0, costUsd: 0, candidateTurns: 0 });
+  });
+});

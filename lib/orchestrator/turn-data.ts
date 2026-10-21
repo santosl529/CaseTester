@@ -59,7 +59,12 @@ export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfi
 // basisCut: per ask the BASIS rule emptied, the items it cut (fix-wave 1, below);
 // logged only; the check reads the ask's scope itself (decideCheckedAsk, round 5 E5 b).
 // coverDeferred: asks a cover match vetoed the refusal of (round 6 Task 68, the tag gate below): a check's "none" is their named deferral.
-export type TurnData = DataDecisions & { gatedIds: string[]; basisCut?: Record<string, string[]>; coverDeferred?: string[] };
+// tagDeferred (round 6 Task 76 (b)): an entity or forecast/current mismatch off the check, deferred in the part's words —
+// unchecked, holding no item, like coverDeferred. deferredItems: per such deferral (either kind), the items it came
+// from, kept while it is tracked (Task 76 (a): flags.openDeferrals). deferralsOpened: those this turn says ("I'll come
+// back to …"), to track; deferralsClosed: the tracked ones the first wrap-up turn says "We won't get to …" for.
+export type TurnData = DataDecisions & { gatedIds: string[]; basisCut?: Record<string, string[]>; coverDeferred?: string[]; tagDeferred?: string[];
+  deferredItems?: Record<string, string[]>; deferralsOpened?: { what: string; ids: string[] }[]; deferralsClosed?: OpenDeferral[] };
 
 // The candidate's asking sentence for an ask (round 6 Task 68; Lorenzo, 21 Oct: "Match
 // the candidate's own sentence as well as the model's rewording"): of the message's
@@ -314,8 +319,11 @@ function gateGuard(what: string, gate: GateVerdict | null, ids: string[], missin
 // reversion" refused beside the partner line). Not run on forced or fulfilment releases (judged
 // when first asked) or exhibits.
 export type AnswerGate = { refuse: { part: string; ids: string[] }[]; drop: string[]; partial: string[] };
-export type GateVerdict = AnswerGate & { unmet: Qualifier[]; tagDropped: { id: string; why: 'entity' | 'forecast' }[]; said: string[] };
-export function answerGate(plan: ModelPlan, what: string, ids: string[], sentence?: string, opts: { topics?: boolean; tags?: boolean } = {}): GateVerdict | null {
+// `defer` (round 6 Task 76, `opts.defer`: the non-check paths, TAGS_ON_NONCHECK_PATHS on): the tag parts — an entity
+// or forecast/current mismatch, and 68b-5's line-only agreement — as deferrals, never refusals; each with the
+// mismatched items it came from (a line-only item is given whole: none). Empty off it.
+export type GateVerdict = AnswerGate & { unmet: Qualifier[]; tagDropped: { id: string; why: 'entity' | 'forecast' }[]; said: string[]; defer: { part: string; ids: string[] }[] };
+export function answerGate(plan: ModelPlan, what: string, ids: string[], sentence?: string, opts: { topics?: boolean; tags?: boolean; defer?: boolean } = {}): GateVerdict | null {
   const { ledger, factBase, caseData } = plan.state;
   if (!factBase.answerGate) return null;
   const items = [...new Set(ids)].flatMap(id => ledger.items.filter(i => i.id === id));
@@ -344,9 +352,13 @@ export function answerGate(plan: ModelPlan, what: string, ids: string[], sentenc
   const kept = items.filter(i => !drop.includes(i.id));
   const tagParts = [...new Set(tagged.map(x => x.part))].filter(p => !kept.some(i => states(p, i)));
   const lineParts = [...new Set(lineOnly.map(x => x.part))];
-  const parts = mergeParts(read.parts, [...tagParts, ...lineParts], what);
-  const partial = parts.length > 0 ? [...new Set([...read.partial, ...lineOnly.map(x => x.id)])].filter(id => !drop.includes(id)) : [];
-  if (drop.length === 0 && partial.length === 0 && parts.length === 0) return null;
+  // Task 76 (b) (Lorenzo, 21 Oct, round 6 rulings, 1: "a mismatch on those paths may defer, never refuse"): off the
+  // check, the tag parts are deferred, and a line-only item (68b-5) is given whole with no refusal beside it.
+  const deferTags = opts.defer === true;
+  const parts = mergeParts(read.parts, deferTags ? [] : [...tagParts, ...lineParts], what);
+  const partial = parts.length > 0 ? [...new Set([...read.partial, ...(deferTags ? [] : lineOnly.map(x => x.id))])].filter(id => !drop.includes(id)) : [];
+  const defer = deferTags ? [...new Set([...tagParts, ...lineParts])].map(part => ({ part, ids: tagged.filter(x => x.part === part).map(x => x.id) })) : [];
+  if (drop.length === 0 && partial.length === 0 && parts.length === 0 && defer.length === 0) return null;
   // The items each part is about: a tag part's own; a qualifier part's partial or topic-dropped items that state it, else all of them.
   const pool = items.filter(i => partial.includes(i.id) || read.topicDrop.includes(i.id));
   const partIds = (p: string) => {
@@ -360,8 +372,19 @@ export function answerGate(plan: ModelPlan, what: string, ids: string[], sentenc
   const lone = partial.filter(id => !refuse.some(r => r.ids.includes(id)));
   const first = refuse.find(r => !tagParts.includes(r.part) && !lineParts.includes(r.part));
   if (first && lone.length > 0) first.ids = [...first.ids, ...lone];
-  return { refuse, drop, partial, unmet: read.unmet, tagDropped: tagged.map(({ id, why }) => ({ id, why })), said: parts.filter(p => tagParts.includes(p)) };
+  return { refuse, drop, partial, unmet: read.unmet, tagDropped: tagged.map(({ id, why }) => ({ id, why })), said: parts.filter(p => tagParts.includes(p)), defer };
 }
+
+// The tags off the check (round 6 Task 76 (b); Lorenzo, 21 Oct, round 6 rulings, 1: "On the other paths: the company
+// and forecast/current tag check may run only if it adds 0 new false refusals and 0 wrong deferrals in the replay; if
+// it adds any, leave those paths as they are today; a mismatch on those paths may defer, never refuse."). One switch,
+// on by default: the answer gate on the model's mapped asks (the message's detections among them) and the names remap
+// reads entity and forecast/current, and a mismatch defers (answerGate `defer`), tracked until it resolves. Off
+// (TAGS_ON_NONCHECK_PATHS=0; the controller's, after the replay): those paths read no tags, as at 14cafef (Task 69's
+// head). Unchanged either way: the Haiku check's verdicts (tags, topic, refusals), and Task 68's cover gate on the
+// coverage step and covers_added (coverGateMiss, at 14cafef already; ruling 4: "Vetoed cover → deferral … fine").
+export const tagsOnNoncheckPaths = (env: Record<string, string | undefined> = process.env) => env.TAGS_ON_NONCHECK_PATHS?.trim() !== '0';
+const noncheckTags = (): { tags?: false; defer?: true } => (tagsOnNoncheckPaths() ? { defer: true } : { tags: false });
 
 // What code does with a verdict (Lorenzo, 20 Oct, round 5 E5: "build (a) and
 // (b). Not (c). Add (d): a deferral names the item it will deliver, not the
@@ -592,6 +615,9 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
 // What's left unmatched: no verdict → the named deferral; else refused.
 const CHECK_PASSES = 3;
 export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage): Promise<TurnData> {
+  return closeOpenDeferrals(plan, await turnDataDecided(plan, turn, onUsage));
+}
+async function turnDataDecided(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage): Promise<TurnData> {
   const log = plan.ctx.checks.entries;
   let at = log.length;
   let d = turnData(plan, turn);
@@ -599,8 +625,8 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
   let logged = log.length - at;
   const decided = new Map<string, CheckedAsk>();
   for (let pass = 0; pass < CHECK_PASSES; pass++) {
-    // A cover-vetoed ask is never checked (fix round 1: no model call BASE didn't make).
-    const vetoedNow = new Set(d.coverDeferred ?? []);
+    // A cover-vetoed ask is never checked (fix round 1: no model call BASE didn't make); nor a tag deferral (Task 76).
+    const vetoedNow = new Set([...(d.coverDeferred ?? []), ...(d.tagDeferred ?? [])]);
     const fresh = d.unmatchedDefers.filter(w => !decided.has(w) && !vetoedNow.has(w));
     if (fresh.length === 0) break;
     const verdicts = await Promise.all(fresh.map(w => checkAsk(plan, w, onUsage, d.basisCut?.[w])));
@@ -618,11 +644,17 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
   // A cover-vetoed ask (round 6 Task 68, the tag gate in turnData) is the named deferral,
   // unchecked, holding no item — logged `cover_deferred`.
   const vetoed = new Set(d.coverDeferred ?? []);
+  const tagVetoed = new Set(d.tagDeferred ?? []);
   for (const w of d.unmatchedDefers) ((decided.get(w)?.kind ?? 'named') === 'named' ? defers : refusals).push(w);   // a vetoed ask is never decided: named
   const coverDeferred = d.unmatchedDefers.filter(w => vetoed.has(w));
   if (coverDeferred.length > 0) plan.ctx.checks.act('cover_deferred', 'a cover match vetoed the refusal: the named deferral in the ask\'s words, holding no item, no check', { asks: coverDeferred });
+  // Task 76 (b): an entity or forecast/current mismatch off the check — deferred, never refused, no check.
+  const tagDeferred = d.unmatchedDefers.filter(w => tagVetoed.has(w) && !vetoed.has(w));
+  if (tagDeferred.length > 0) plan.ctx.checks.act('tag_deferred', 'an entity or forecast/current mismatch off the check: the part deferred in its words, holding no item, no check', { asks: tagDeferred });
   const refused = new Set(refusals);
   const wrapUp = wrapUpTurn(plan) && defers.length > 0;
+  // Task 76 (a): the deferrals to track (tagged cases only; said "I'll come back to …" — on a wrap-up turn they are "We won't get to …" already).
+  const opened = plan.state.factBase.answerGate && !wrapUp ? defers.filter(w => vetoed.has(w) || tagVetoed.has(w)).map(w => ({ what: w, ids: d.deferredItems?.[w] ?? [] })) : [];
   // Said "We won't get to …" at a wrap-up: logged as such, like decideData's (round-3 ruling 4).
   const wont = new Set(wrapUp ? defers : []);
   return {
@@ -631,11 +663,80 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     defers: wrapUp ? d.defers : [...d.defers, ...defers],
     ...(!wrapUp && defers.length > 0 ? { itemlessDefers: defers } : {}),
     ...(wrapUp ? { wontGetTo: [...(d.wontGetTo ?? []), ...defers] } : {}),
+    ...(opened.length > 0 ? { deferralsOpened: opened } : {}),
     refusals: [...d.refusals, ...refusals],
     requests: d.requests.map(r => (r.response !== 'defer' || r.ledgerItemIds.length > 0 ? r
       : refused.has(r.request.what) ? { ...r, response: 'refuse' as const }
         : wont.has(r.request.what) ? { ...r, wontGetTo: true as const } : r)),
   };
+}
+
+// ---- Deferrals that resolve (round 6 Task 76 (a)) ----
+// Lorenzo, 21 Oct, round 6 rulings, 4: "Vetoed cover → deferral without a Haiku check: fine. The deferral must resolve
+// through the E5 stop sequence (delivered, or "We won't get to that"), never left hollow." Code's item-less named
+// deferrals on a tagged case — cover-vetoed or excluded-only (Task 68, `cover_deferred`) and tag mismatches off the
+// check (Task 76 (b), `tag_deferred`) — hold no ledger item, so nothing followed them up. Each one said is tracked as
+// open in the session's flags (flags.openDeferrals: its ask words, the items it came from, the interviewer turn that
+// said it — no DB column) until:
+//   (i) delivered — a later turn releases, restates or shows one of its items, or its data line answers the same ask
+//       words (released or restated in them): resolved, nothing more said;
+//   (ii) the first wrap-up turn (wrapUpTurn / WRAP_UP_KINDS) with it still open — code says the existing "We won't get
+//       to <ask> today." / "We won't get to that today." (decideData's wontGetTo, wontGetToLine's rule) once for all the
+//       still-open ones; not for one that turn delivers, nor one it already says in another form (its words refused,
+//       deferred or "won't get to" there, or an item of it "won't get to").
+// A later refusal of the same words closes it too (the candidate has the answer; "won't get to" would contradict it).
+// Each resolves once: Settle (resolveDeferrals) drops it from the flags and logs `deferral_resolved` { what, how, turn },
+// so it is never said twice. Untagged (prof-001): nothing is tracked.
+export type OpenDeferral = { what: string; ids: string[]; turn: number };
+export type DeferralResolved = { what: string; how: 'delivered' | 'wont_get_to' | 'refused'; turn: number };
+const normAsk = (w: string) => w.replace(/\s+/g, ' ').trim().toLowerCase();
+export function openDeferrals(plan: ModelPlan): OpenDeferral[] {
+  return plan.state.factBase.answerGate ? (plan.ctx.flags.openDeferrals as OpenDeferral[] | undefined) ?? [] : [];
+}
+type DeferralReading = Pick<DataDecisions, 'releases' | 'restates' | 'exhibit' | 'requests' | 'refusals' | 'defers' | 'gateDefers' | 'wontGetTo'>;
+// Delivered by a turn's decisions: an item of it released, restated or shown (`shown`: an exhibit Settle hands over in
+// the question), or its own words released or restated.
+function deferralDelivered(o: OpenDeferral, d: DeferralReading, shown: readonly string[] = []): boolean {
+  const out = new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? []), ...shown]);
+  if (o.ids.some(id => out.has(id))) return true;
+  return d.requests.some(x => normAsk(x.request.what) === normAsk(o.what) && ((x.response === 'release' && x.ledgerItemIds.length > 0) || x.response === 'clarify'));
+}
+// Said "won't get to" this turn in another form: for its words, or for one of its items.
+function deferralWontNow(o: OpenDeferral, d: DeferralReading): boolean {
+  return (d.wontGetTo ?? []).some(w => normAsk(w) === normAsk(o.what)) || d.requests.some(x => x.wontGetTo === true && x.ledgerItemIds.some(id => o.ids.includes(id)));
+}
+const deferralRefusedNow = (o: OpenDeferral, d: DeferralReading) => d.refusals.some(w => normAsk(w) === normAsk(o.what));
+// Its words deferred again this turn (a promise said now: not closed beside it).
+const deferralDeferredNow = (o: OpenDeferral, d: DeferralReading) => [...d.defers, ...d.gateDefers].some(w => normAsk(w) === normAsk(o.what));
+// (ii): the first wrap-up turn says "We won't get to …" for the open ones left (Stream and Settle alike: turnDataChecked).
+function closeOpenDeferrals(plan: ModelPlan, d: TurnData): TurnData {
+  if (!wrapUpTurn(plan)) return d;
+  const closing = openDeferrals(plan).filter(o => !deferralDelivered(o, d) && !deferralWontNow(o, d) && !deferralRefusedNow(o, d) && !deferralDeferredNow(o, d));
+  if (closing.length === 0) return d;
+  return { ...d, wontGetTo: [...(d.wontGetTo ?? []), ...closing.map(o => o.what)], deferralsClosed: closing };
+}
+// Settle's bookkeeping for one turn (`turn`: the interviewer turn's index): each open deferral from an earlier turn
+// resolved by this turn's decisions — said "won't get to" here (deferralsClosed, or another form), delivered, or its
+// words refused — leaves the open list, once; the deferrals this turn says join it (one per ask words, items merged).
+export function resolveDeferrals(open: readonly OpenDeferral[], d: TurnData, turn: number, shown: readonly string[] = []): { open: OpenDeferral[]; resolved: DeferralResolved[] } {
+  const closed = new Set((d.deferralsClosed ?? []).map(o => normAsk(o.what)));
+  const resolved: DeferralResolved[] = [];
+  const left: OpenDeferral[] = [];
+  for (const o of open) {
+    const how = o.turn >= turn ? null
+      : closed.has(normAsk(o.what)) ? 'wont_get_to' as const
+        : deferralDelivered(o, d, shown) ? 'delivered' as const
+          : deferralWontNow(o, d) ? 'wont_get_to' as const
+            : deferralRefusedNow(o, d) ? 'refused' as const : null;
+    if (how) resolved.push({ what: o.what, how, turn });
+    else left.push(o);
+  }
+  for (const x of d.deferralsOpened ?? []) {
+    const i = left.findIndex(o => normAsk(o.what) === normAsk(x.what));
+    if (i < 0) left.push({ what: x.what, ids: x.ids, turn });
+    else left[i] = { ...left[i], ids: [...new Set([...left[i].ids, ...x.ids])] };
+  }
+  return { open: left, resolved };
 }
 
 // ---- The message's asks the model left out (round 5 Tasks 48 and 50) ----
@@ -663,7 +764,8 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
 // self-questions filtered; Lorenzo, 19 Oct).
 const ASK_WAIT_MS = 1500;
 // latencyMs: the classifier call's own time; waitMs: how long the turn waited on it.
-export type MessageAsks = { sentences: string[]; detected: DetectedDataRequest[] | null; latencyMs?: number; waitMs?: number };
+// cue: 'want_is' when only row 11's cue made the message ask (wantIsOnly, below; Task 76 (c)).
+export type MessageAsks = { sentences: string[]; detected: DetectedDataRequest[] | null; latencyMs?: number; waitMs?: number; cue?: 'want_is' };
 export function probeTurn(plan: ModelPlan): boolean {
   const { checkerLine, kind } = plan.state;
   return kind === 'model' && checkerLine !== null && !correctsNow(checkerLine);
@@ -673,13 +775,27 @@ function messageAskSentences(plan: ModelPlan): string[] {
   return WANT_ASK_PHASES.includes(ctx.currentPhase) ? addressedAskSentences(ctx.candidateText, ctx.currentPhase, { wantIs: state.factBase.answerGate })
     : lateAskSentences(ctx.candidateText, ctx.currentPhase, [state.caseData.prompt, ...Object.values(revealedValues(state.ledger))]);
 }
+// Row 11's classifier call (round 6 Task 76 (c); Lorenzo, 21 Oct, round 6 rulings, 2: "Row 11's classifier call:
+// allowed, as long as all three hold: it fires only on that cue; it fires on no more than ~2% of turns in the replay
+// corpus; it adds no more than 1.5 s on the turns where it fires. Report its cost and latency in the check-cost log."):
+// a message that asks only through Task 71's "(what) I'd want is" cue (request-signal.ts WANT_IS; tagged cases, before
+// the brainstorm) — no addressed asking sentence without it. Its usage row carries `cue: 'want_is'` and the call's
+// latency; the turn's wait stays capped at ASK_WAIT_MS (heardAsks), logged on `uncovered_asks` (Settle).
+function wantIsOnly(plan: ModelPlan): boolean {
+  const { ctx, state } = plan;
+  return state.factBase.answerGate && WANT_ASK_PHASES.includes(ctx.currentPhase)
+    && addressedAskSentences(ctx.candidateText, ctx.currentPhase).length === 0
+    && addressedAskSentences(ctx.candidateText, ctx.currentPhase, { wantIs: true }).length > 0;
+}
 // The classifier on the message: one call per turn, shared through the plan.
 function classifyMessage(plan: ModelPlan, sentences: string[], onUsage?: OnUsage): Promise<MessageAsks> {
   const { state, ctx } = plan;
   if (state.messageAsks) return state.messageAsks;
   const t0 = Date.now();
-  state.messageAsks = classifyDataRequests({ candidateText: ctx.candidateText, interviewerText: null, catalog: state.catalog, onUsage })
-    .catch(() => null).then(detected => ({ sentences, detected, latencyMs: Date.now() - t0 }));
+  const cue = wantIsOnly(plan) ? 'want_is' as const : undefined;
+  const usage: OnUsage | undefined = cue && onUsage ? u => onUsage({ ...u, cue, latencyMs: Date.now() - t0 }) : onUsage;
+  state.messageAsks = classifyDataRequests({ candidateText: ctx.candidateText, interviewerText: null, catalog: state.catalog, onUsage: usage })
+    .catch(() => null).then(detected => ({ sentences, detected, latencyMs: Date.now() - t0, ...(cue ? { cue } : {}) }));
   return state.messageAsks;
 }
 // Started beside the model call when a sentence asks; a message with none is
@@ -700,7 +816,7 @@ function heardAsks(plan: ModelPlan, started: Promise<MessageAsks>): Promise<Mess
   let timer: ReturnType<typeof setTimeout> | undefined;
   const timeout = new Promise<null>(r => { timer = setTimeout(() => r(null), ASK_WAIT_MS); });
   state.messageAsksHeard = Promise.race([started, timeout]).finally(() => clearTimeout(timer))
-    .then(x => ({ ...(x ?? { sentences: messageAskSentences(plan), detected: null, timedOut: true as const }), waitMs: Date.now() - t0 }));
+    .then(x => ({ ...(x ?? { sentences: messageAskSentences(plan), detected: null, timedOut: true as const, ...(wantIsOnly(plan) ? { cue: 'want_is' as const } : {}) }), waitMs: Date.now() - t0 }));
   return state.messageAsksHeard;
 }
 
@@ -784,7 +900,8 @@ export async function messageAsks(plan: ModelPlan, declared: DeclaredRequest[], 
   const sentences = messageAskSentences(plan);
   const open = undeclaredSentences(sentences, declared.filter(r => r.explicit), caseNames);
   const checking = uncheckedReleases(plan, declared);
-  if (open.length === 0 && checking.length === 0) return { sentences, detected: null, open, waited: false, fresh: [], covered: [], dropped: [] };
+  const cue = wantIsOnly(plan) ? { cue: 'want_is' as const } : {};
+  if (open.length === 0 && checking.length === 0) return { sentences, detected: null, open, waited: false, fresh: [], covered: [], dropped: [], ...cue };
   const heard = await heardAsks(plan, checking.length > 0 ? classifyMessage(plan, sentences, onUsage) : started);
   const { detected, timedOut } = heard;
   const confirmed = detected === null ? checking.map(c => c.id) : checking.filter(c => detected.some(d => d.ledgerItemIds.includes(c.id))).map(c => c.id);
@@ -792,7 +909,8 @@ export async function messageAsks(plan: ModelPlan, declared: DeclaredRequest[], 
   const release: ReleaseOutcome | undefined = checking.length > 0
     ? { checked: checking, confirmed: [...new Set(confirmed)], withdrawn, classified: detected !== null, latencyMs: heard.latencyMs ?? null, waitMs: heard.waitMs ?? null }
     : undefined;
-  const base = { sentences, detected, open, waited: true, ...(timedOut ? { timedOut } : {}), ...(release ? { release } : {}) };
+  const base = { sentences, detected, open, waited: true, ...(timedOut ? { timedOut } : {}), ...(release ? { release } : {}), ...cue,
+    ...(heard.latencyMs !== undefined ? { latencyMs: heard.latencyMs } : {}), ...(heard.waitMs !== undefined ? { waitMs: heard.waitMs } : {}) };
   // Waited only for the check, and the release stands: no ask was left out.
   if (open.length === 0 && withdrawn.length === 0) return { ...base, fresh: [], covered: [], dropped: [] };
   const explicit = withoutReleases(declared, withdrawn).filter(r => r.explicit);
@@ -1018,7 +1136,11 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const gateMade = new Set<string>();
   const gateRefused = new Set<string>();
   const coverVetoed = new Set<string>();
-  const gateLog: { what: string; path: string; refuse: string[]; drop: string[]; partial: string[] }[] = [];
+  // Task 76: tag-mismatch deferrals off the check (answerGate `defer`), and every item-less deferral's items (tracking).
+  const tagDeferred = new Set<string>();
+  const deferredItems = new Map<string, string[]>();
+  const heldBy = (what: string, ids: string[]) => deferredItems.set(what, [...new Set([...(deferredItems.get(what) ?? []), ...ids.filter(inLedger)])]);
+  const gateLog: { what: string; path: string; refuse: string[]; drop: string[]; partial: string[]; defer?: string[] }[] = [];
   const revealedAtGate = new Set(Object.keys(revealedValues(ledger)));
   // A verdict's parts as said (figures the items' lines state dropped, a plan name kept, as the
   // check's), each through the M6 veto — findFalseRefusals with covers: a part naming a case item
@@ -1052,6 +1174,25 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     if (p.partial.length > 0) coarseOf.set(p.part, [...new Set([...(coarseOf.get(p.part) ?? []), ...p.partial])]);
     return { ...r, what: p.part, itemIds: [], explicit: true, respond: 'release' };
   };
+  // The tag parts to defer (Task 76 (b)), through the M6 cover reading the refused parts get (gateParts): a part naming
+  // data the case holds, beyond the items given beside it, is not promised (`partial_dropped`, as before Task 76: the
+  // unit left with nothing is the named deferral below).
+  const gateDefers = (what: string, g: GateVerdict, path: string, given: string[]): { part: string; ids: string[] }[] => {
+    const beside = new Set([...revealedAtGate, ...given]);
+    return g.defer.filter(x => {
+      if (findFalseRefusals(`I don't have ${x.part}.`, state.factBase, beside, { covers: true }).length === 0) return true;
+      plan.ctx.checks.act('partial_dropped', 'an answer-gate part a ledger item or the prompt covers: not refused', { what, item: x.ids[0] ?? null, missing: null, checked: x.part, why: 'false_refusal', decision: `answer_gate:${path}` });
+      return false;
+    });
+  };
+  // A tag part off the check as a deferral of its own (Task 76 (b)): item-less, unchecked (turnDataChecked: the named
+  // deferral, as a cover-vetoed ask), tracked with the mismatched items until it resolves (Task 76 (a)).
+  const gateDeferAsk = (r: DeclaredRequest, x: { part: string; ids: string[] }): DeclaredRequest => {
+    gateMade.add(x.part);
+    tagDeferred.add(x.part);
+    heldBy(x.part, x.ids);
+    return { ...r, what: x.part, itemIds: [], explicit: true, respond: 'defer' };
+  };
   if (state.factBase.answerGate) {
     // Each explicit ask a path mapped to ledger items: the model's (after request_scope and
     // request_group; the alias; covers_added), the message's detections (withAsks), a
@@ -1067,7 +1208,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     const taken = new Map<number, Set<string>>();
     for (const [origin, at] of units) {
       const ids = [...new Set(at.flatMap(i => requests[i].itemIds.filter(inLedger)))];
-      const g = answerGate(plan, origin, ids, sentenceFor(origin), { topics: false });
+      const g = answerGate(plan, origin, ids, sentenceFor(origin), { topics: false, ...noncheckTags() });
       if (!g) continue;
       const parts = gateParts(origin, g, 'mapped');
       const off = new Set([...g.drop, ...parts.flatMap(p => p.partial)]);
@@ -1075,15 +1216,17 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
       const last = at[at.length - 1];
       const base = requests[at[0]];
       const left = at.some(i => requests[i].itemIds.some(id => !off.has(id)));
-      const extra = parts.map(p => gatePartAsk(base, p));
+      const defers = gateDefers(origin, g, 'mapped', ids.filter(id => !off.has(id)));
+      const extra = [...parts.map(p => gatePartAsk(base, p)), ...defers.map(x => gateDeferAsk(base, x))];
       // Nothing left to give and no part to say (every part names data the case holds): the named deferral.
       if (!left && extra.length === 0) {
         gateMade.add(origin);
         coverVetoed.add(origin);
+        heldBy(origin, [...off]);
         extra.push({ ...base, what: origin, itemIds: [], respond: 'release' });
       }
       after.set(last, extra);
-      gateLog.push({ what: origin, path: 'mapped', refuse: parts.map(p => p.part), drop: g.drop, partial: parts.flatMap(p => p.partial) });
+      gateLog.push({ what: origin, path: 'mapped', refuse: parts.map(p => p.part), drop: g.drop, partial: parts.flatMap(p => p.partial), ...(defers.length > 0 ? { defer: defers.map(x => x.part) } : {}) });
     }
     if (after.size > 0) {
       requests = requests.flatMap((r, i) => {
@@ -1183,7 +1326,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
             return [...[...byEntry.keys()].map(entry => ({ ...r, what: entry, itemIds: [] as string[], respond: 'release' as const })),
               ...(cov.plain ? [{ ...r, what: cov.plain, itemIds: [] as string[] }] : [])];
           }
-          if (kept.length === 0) { coverVetoed.add(r.what); return [r]; }
+          if (kept.length === 0) { coverVetoed.add(r.what); heldBy(r.what, deferred.map(x => x.id)); return [r]; }
         }
       }
       // The answer gate on the covered items (Task 70; R1): the covers decide the topic and
@@ -1202,7 +1345,10 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
       if (covIds.length === 0 && cov.promptFacts.length === 0 && coarse.length === 0 && excluded.length === 0 && gateAsks.length === 0) return [r];
       if (excluded.length > 0) {
         coverGate.push({ what: r.what, excluded });
-        for (const x of excluded) (x.why === 'entity' ? coverVetoed : regionRefused).add(x.what);
+        for (const x of excluded) {
+          (x.why === 'entity' ? coverVetoed : regionRefused).add(x.what);
+          if (x.why === 'entity') heldBy(x.what, x.ids);
+        }
       }
       const rest = cov.plain;
       for (const c of coarse) coarseOf.set(c.what, [...new Set([...(coarseOf.get(c.what) ?? []), ...c.ids])]);
@@ -1225,15 +1371,16 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     }
     // The answer gate on the names remap (Task 70; R2): the names decide the topic; the tags and
     // a period or scope are read. Nothing left and no part to say: the named deferral, unchecked.
-    const g = answerGate(plan, r.what, ids, sentenceFor(r.what), { topics: false });
+    const g = answerGate(plan, r.what, ids, sentenceFor(r.what), { topics: false, ...noncheckTags() });
     const gateAsks: DeclaredRequest[] = [];
     if (g) {
       const parts = gateParts(r.what, g, 'remapped');
       const off = new Set([...g.drop, ...parts.flatMap(p => p.partial)]);
       ids = ids.filter(id => !off.has(id));
-      gateAsks.push(...parts.map(p => gatePartAsk(r, p)));
-      gateLog.push({ what: r.what, path: 'remapped', refuse: parts.map(p => p.part), drop: g.drop, partial: parts.flatMap(p => p.partial) });
-      if (ids.length === 0 && gateAsks.length === 0) { coverVetoed.add(r.what); return [r]; }
+      const defers = gateDefers(r.what, g, 'remapped', ids);
+      gateAsks.push(...parts.map(p => gatePartAsk(r, p)), ...defers.map(x => gateDeferAsk(r, x)));
+      gateLog.push({ what: r.what, path: 'remapped', refuse: parts.map(p => p.part), drop: g.drop, partial: parts.flatMap(p => p.partial), ...(defers.length > 0 ? { defer: defers.map(x => x.part) } : {}) });
+      if (ids.length === 0 && gateAsks.length === 0) { coverVetoed.add(r.what); heldBy(r.what, [...off]); return [r]; }
     }
     if (ids.length === 0) return gateAsks;
     remapped.push({ what: r.what, ids });
@@ -1468,5 +1615,6 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // Must-reach items due at this turn's exhibit or code's recommendation ask (round 6 Task 72): first in the line.
   const mustNow = mustReachItems(plan, { exhibit: decisions.exhibit?.id ?? null, recommendation: MUST_REACH_REC_KINDS.has(state.kind) }, decisions);
   if (mustNow.length > 0) decisions.releases = [...decisions.releases, ...mustNow];
-  return { ...decisions, correction, gatedIds, ...(basisEmptied.size > 0 ? { basisCut } : {}), ...(coverVetoed.size > 0 ? { coverDeferred: [...coverVetoed] } : {}), ...(properWords ? { properWords } : {}) };
+  return { ...decisions, correction, gatedIds, ...(basisEmptied.size > 0 ? { basisCut } : {}), ...(coverVetoed.size > 0 ? { coverDeferred: [...coverVetoed] } : {}),
+    ...(tagDeferred.size > 0 ? { tagDeferred: [...tagDeferred] } : {}), ...(deferredItems.size > 0 ? { deferredItems: Object.fromEntries(deferredItems) } : {}), ...(properWords ? { properWords } : {}) };
 }

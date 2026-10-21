@@ -37,7 +37,7 @@ import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers }
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems, openDeferrals, resolveDeferrals } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
@@ -203,6 +203,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     checks.record(probeTurn(plan) ? 'probe_turn_requests' : 'uncovered_asks', asked.fresh.length > 0, 'the message\'s asks no explicit declaration covers are answered', {
       sentences: asked.sentences, open: asked.open, classified: asked.waited ? asked.detected !== null : null, ...(asked.timedOut ? { timedOut: true } : {}),
       answered: asked.fresh.map(r => r.what), covered: asked.covered.map(r => r.what), dropped: asked.dropped.map(r => r.what),
+      // Row 11's call (round 6 Task 76 (c)): the cue, the classifier's own latency and the turn's wait (capped at 1.5 s).
+      ...(asked.cue ? { cue: asked.cue, waitMs: asked.waited ? asked.waitMs ?? null : 0, latencyMs: asked.latencyMs ?? null } : {}),
     });
   }
   // A model release the message never named, checked by the classifier on the message (Task 51).
@@ -730,6 +732,16 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const found = caseData.exhibits.find(e => e.id === exhibitId)!;
     exhibit = { id: found.id, title: found.title, chartType: found.chartType, data: found.data as Record<string, unknown>[], ...(found.notes ? { notes: found.notes } : {}) };
     exhibitReveals = markExhibitReveals(ledger, found);
+  }
+  // Deferrals that resolve (round 6 Task 76 (a); Lorenzo, 21 Oct, round 6 rulings, 4: "The deferral must resolve through
+  // the E5 stop sequence (delivered, or "We won't get to that"), never left hollow"; turn-data.ts resolveDeferrals):
+  // code's item-less named deferrals on a tagged case stay open in flags.openDeferrals until delivered or said "We won't
+  // get to …" on the first wrap-up turn — each resolved once, logged; whether heard or not, as flags.mustReach.
+  if (state.factBase.answerGate) {
+    const tracked = resolveDeferrals(openDeferrals(plan), decisions, nextTurnIndex + 1, exhibitReveals);
+    for (const r of tracked.resolved) checks.act('deferral_resolved', r.how === 'delivered' ? 'a tracked deferral delivered: nothing more said'
+      : r.how === 'wont_get_to' ? 'a tracked deferral said "We won\'t get to …" on the first wrap-up turn' : 'a tracked deferral\'s ask refused since: closed', r);
+    if (tracked.open.length > 0 || flags.openDeferrals !== undefined) flags.openDeferrals = tracked.open;
   }
   // Rule 6 option 4: the correction went out in the data line — booked once
   // per item, logged for scoring with what the candidate said.

@@ -764,7 +764,8 @@ type CoverHit = { cover: FactBase['covers'][number]; start: number; end: number 
 // because (b) or (c) dropped every hit on them — `entity` when any was another company's,
 // else `region`. The coverage step (turn-data.ts) answers them without the check: no
 // model call BASE didn't make. `plain`: the rest without them.
-export type CoverageDetail = Coverage & { dropped: { what: string; why: 'entity' | 'region' }[]; plain: string | null };
+// `ids` (round 6 Task 76): the dropped hits' items — an entity-excluded entry's deferral is tracked with them.
+export type CoverageDetail = Coverage & { dropped: { what: string; why: 'entity' | 'region'; ids: string[] }[]; plain: string | null };
 function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: CoverHit, lower: string) => boolean = () => true, opts: { sentence?: boolean } = {}): CoverageDetail {
   const text = what.trim();
   const lower = lc(text);
@@ -854,7 +855,7 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     const covering = GLOBAL_FINER.test(lc(entry.text)) ? overlapping.filter(h => GLOBAL_FINER.test(lower.slice(h.start, h.end))) : overlapping;
     if (covering.length === 0) {
       left.push(entry.text.trim());
-      if (overlapping.length === 0 && why.some(Boolean)) dropped.push({ what: entry.text.trim(), why: why.includes('entity') ? 'entity' : 'region' });
+      if (overlapping.length === 0 && why.some(Boolean)) dropped.push({ what: entry.text.trim(), why: why.includes('entity') ? 'entity' : 'region', ids: [...new Set(near.filter((_, i) => why[i] !== null).map(h => h.cover.id))] });
       continue;
     }
     // A count asked of a figure-less item through a phrase that doesn't carry the
@@ -890,7 +891,7 @@ export function coverageDetail(what: string, fb: FactBase, opts: { sentence?: st
   const ids = [...new Set(said.coarse.flatMap(c => c.ids))];
   if (items.length === 0 && ids.length === 0) {
     if (own.dropped.length > 0 || said.dropped.length === 0) return own;
-    return { ...own, dropped: [{ what: what.trim(), why: said.dropped.some(d => d.why === 'entity') ? 'entity' : 'region' }], plain: null };
+    return { ...own, dropped: [{ what: what.trim(), why: said.dropped.some(d => d.why === 'entity') ? 'entity' : 'region', ids: [...new Set(said.dropped.flatMap(d => d.ids))] }], plain: null };
   }
   return { items, promptFacts: [], rest: null, coarse: ids.length > 0 ? [{ what: what.trim(), ids }] : [], dropped: [], plain: null };
 }

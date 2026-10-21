@@ -1,6 +1,8 @@
 // scripts/check-cost-report.ts
 // The data-request check's cost and added latency per session and per batch (round 5c
-// Task 65). Free — reads run JSONs only.
+// Task 65). Free — reads run JSONs only. Round 6 Task 76 (c): a second table, row 11's classifier call (the message
+// classifier's usage rows tagged `cue: 'want_is'`) — calls, cost, latency, turns waited and the wait, and the share of
+// candidate turns (Lorenzo, 21 Oct, round 6 rulings, 2: ~2% of turns at most, 1.5 s at most where it fires).
 //
 //   npx tsx scripts/check-cost-report.ts <folder> [more folders...] [--out=<file>]
 //

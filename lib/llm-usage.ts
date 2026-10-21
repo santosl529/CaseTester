@@ -26,6 +26,11 @@ export type LlmUsage = {
   // turn stopped waiting (its 1.5 s cap) — spent all the same, logged on settling.
   ask?: string;
   late?: true;
+  // The message classifier ('data_request') started only because row 11's cue made a sentence ask (round 6 Task 76 (c);
+  // turn-data.ts classifyMessage): `cue: 'want_is'`, and the call's own latency — reported per session by
+  // lib/eval/check-cost.ts (Lorenzo, 21 Oct, round 6 rulings, 2).
+  cue?: 'want_is';
+  latencyMs?: number;
 };
 
 export type OnUsage = (usage: LlmUsage) => void;
