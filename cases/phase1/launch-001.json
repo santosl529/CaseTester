@@ -1,0 +1,79 @@
+{
+  "caseId": "launch-001",
+  "items": {
+    "product": {
+      "covers": ["flavor lineup", "what flavors are launching", "bag size and flavors", "protein content", "fat content", "package size", "ounces per bag"]
+    },
+    "channels": {
+      "covers": ["which retailers would carry it", "retail channels", "channel mix", "grocery and mass channels", "where the line is sold", "online or in stores"]
+    },
+    "manufacturing": {
+      "covers": ["manufacturing capacity", "production capacity", "co-packing setup", "co-packer option", "make it in-house", "production readiness", "lead time on the roasting line"]
+    },
+    "breakeven_definition": {
+      "covers": ["what counts as break even", "the board's hurdle", "board's approval criterion", "meaning of break even", "break even on what basis", "how the board defines break even", "year-one profit requirement"]
+    },
+    "why_now": {
+      "covers": ["chip sales growth", "state of the chip business", "core chip business trend", "retailer requests for healthier options", "what prompted the launch", "better-for-you snack growth"]
+    },
+    "competition_general": {
+      "covers": ["other chickpea snack brands", "who else is in the category", "how crowded the category is", "national brands in the category", "small better-for-you brands", "competitive set"]
+    },
+    "longer_term_goals": {
+      "covers": ["plans beyond the first year", "growth platform", "long-term vision for the line", "future better-for-you launches", "strategic goal of the line", "year two and beyond", "the line's long-term role"]
+    },
+    "bag_price": {
+      "covers": ["price hollis bay gets", "wholesale price per bag", "planned price point", "price point per bag", "shelf price per bag", "what shoppers pay", "retail price per bag", "invoice price per bag", "price to the retailer"],
+      "coverExcludes": ["chip", "potato chip"]
+    },
+    "variable_costs": {
+      "covers": ["ingredient cost per bag", "packaging cost per bag", "freight cost per bag", "roasting labor and energy", "cost of goods per bag", "per-bag cost structure", "production cost per bag", "unit cost per bag", "what each bag costs to make"],
+      "coverExcludes": ["chip", "potato chip"]
+    },
+    "launch_costs": {
+      "covers": ["fixed launch costs", "first-year fixed costs", "marketing and advertising spend", "slotting fees", "upfront launch investment", "launch marketing budget", "roasting line lease cost", "one-time launch costs", "fixed costs of the launch", "shelf fee cost"],
+      "coverExcludes": ["chip", "potato chip"]
+    },
+    "recipe_cost": {
+      "covers": ["sunk development costs", "recipe development spend", "development costs to date", "what was spent on the recipe", "costs already incurred", "spent last year on development", "product development spend"],
+      "coverExcludes": ["chip", "potato chip"]
+    },
+    "purchase_intent": {
+      "covers": ["purchase-intent split", "purchase intent results", "how many shoppers would buy", "survey intent to buy", "would buy at that price", "share of shoppers who would buy", "stated purchase intent", "intent at the shelf price"],
+      "coverExcludes": ["chip", "potato chip"]
+    },
+    "liked_most": {
+      "covers": ["what shoppers like about it", "top reasons to buy", "main selling points", "why shoppers would buy", "what draws shoppers", "most liked attributes", "biggest draw for shoppers"]
+    },
+    "hesitations": {
+      "covers": ["why shoppers hesitate", "reasons not to buy", "top objections", "barriers to purchase", "what holds shoppers back", "biggest barrier to trial", "is price a barrier"]
+    },
+    "survey_design": {
+      "covers": ["survey sample size", "who was surveyed", "survey methodology", "how the survey was run", "number of survey respondents", "one response per household", "more than one answer", "where the survey was fielded"]
+    },
+    "planning_assumptions": {
+      "covers": ["conversion rate assumptions", "conversion from intent to purchase", "households in our stores", "bags per household", "what share actually buy", "addressable households", "conversion assumptions", "expected year-one volume", "households shopping our stores"],
+      "coverExcludes": ["chip", "potato chip"]
+    },
+    "sampling_program": {
+      "covers": ["in-store sampling proposal", "tasting tables", "in-store tastings", "sampling plan cost", "cost of the sampling", "demo program in stores", "extra buyers from sampling", "sampling weekends"],
+      "coverExcludes": ["chip", "potato chip"]
+    },
+    "cannibalization": {
+      "covers": ["impact on chip sales", "switching from our chips", "chip sales lost", "replace chip purchases", "chip cannibalization", "effect on the chip business", "overlap with chip buyers", "incremental or cannibalized", "cannibalize the core business"]
+    },
+    "survey_reliability": {
+      "covers": ["is the survey representative", "source of the conversion rates", "track record of past launches", "how predictive the survey is"]
+    },
+    "taste_test": {
+      "covers": ["how people rated the taste", "consumer taste ratings", "tasting feedback", "do people like the flavor", "product test results", "blind taste results", "how it scored with tasters"]
+    },
+    "competitor_prices": {
+      "covers": ["competitor price points", "what competitors charge", "price of competing chickpea snacks", "competitor shelf prices", "how our price compares", "price relative to other brands", "competitive pricing", "rival brand prices", "price gap to competitors"]
+    },
+    "retailer_support": {
+      "covers": ["retailer commitment", "will retailers stock the line", "retail partner support", "listing agreements", "secured shelf space"],
+      "coverExcludes": ["chip", "potato chip"]
+    }
+  }
+}

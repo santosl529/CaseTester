@@ -1,0 +1,71 @@
+{
+  "caseId": "pricing-001",
+  "items": {
+    "product": {
+      "covers": ["who uses quillpath", "what quillpath sells", "what the product does", "quillpath's core product", "what kind of software", "which industries quillpath serves", "is quillpath us only", "type of businesses served"]
+    },
+    "plan_features": {
+      "covers": ["features in each plan", "what pro includes", "what starter lacks", "user limit on starter", "starter feature set", "pro feature set", "how the plans differ", "monthly or annual billing", "team scheduling on starter"]
+    },
+    "signup_channels": {
+      "covers": ["sales-led versus self-serve", "how starter customers sign up", "how pro customers sign up", "sign-up channel by plan", "sales demo for pro", "online sign-up for starter", "demo-led sales motion"]
+    },
+    "board_rule_definition": {
+      "covers": ["what the board's rule measures", "the board's three-times rule", "the three times test", "board's ltv to cac rule", "is the rule on gross margin", "what the rule compares"]
+    },
+    "company_size": {
+      "covers": ["how many paying customers", "total customer count", "size of the customer base", "how many customers quillpath has", "current customer count", "how big the business is", "scale of quillpath", "quillpath's customer base"]
+    },
+    "market_growth": {
+      "covers": ["how fast the market is growing", "market growth rate", "demand for small-business software", "industry growth rate", "is demand growing", "overall market demand", "growth in small-business software", "home-services software market"]
+    },
+    "ceo_goal": {
+      "covers": ["the ceo's objective", "what the ceo wants", "the decision criterion", "long-term value or ratio", "maximize long-term value", "what success looks like"]
+    },
+    "plan_prices_costs": {
+      "covers": ["cost to serve by plan", "starter gross margin", "pro gross margin", "monthly gross margin by plan", "unit economics by plan", "support cost per customer", "hosting cost per customer"]
+    },
+    "plan_cac": {
+      "covers": ["acquisition cost by plan", "customer acquisition cost by plan", "starter acquisition cost", "pro acquisition cost", "cost to acquire a customer", "sales and marketing cost per customer", "cost per new customer", "cac for each plan"]
+    },
+    "ltv_definition": {
+      "covers": ["how lifetime value is calculated", "how finance calculates ltv", "ltv calculation", "definition of lifetime value", "is ltv revenue or margin", "lifetime value method"]
+    },
+    "pro_cohort": {
+      "covers": ["pro monthly churn", "pro retention curve", "pro cohort retention", "how many pro customers cancel", "pro churn rate", "monthly cancellation rate for pro", "pro customer lifetime", "pro customers still on pro"]
+    },
+    "starter_cohort": {
+      "covers": ["starter churn rate", "starter monthly churn", "starter retention curve", "starter cohort status", "starter customers who cancel", "starter customer lifetime", "starter to pro conversion", "starter cancellations", "how long starter customers last"]
+    },
+    "cohort_notes": {
+      "covers": ["do upgraded customers behave like pro", "churn after upgrade", "upgraded customer retention", "is churn constant month to month", "does churn change over time", "how churn has moved", "how upgrades are valued"]
+    },
+    "new_customers_by_plan": {
+      "covers": ["new pro customers per month", "pro sign-ups before and after starter", "monthly sign-ups since launch", "pro new-customer volume", "pro adds per month", "share of sign-ups by plan"]
+    },
+    "price_test_results": {
+      "covers": ["price test results by group", "test group sign-ups", "control versus test", "sign-ups at the higher price", "demand at the test price", "price test outcome"]
+    },
+    "price_test_notes": {
+      "covers": ["cac in the price test", "acquisition cost at the higher price", "cost to serve in the test", "cancellation rate at the higher price", "upgrades at the higher price", "churn in the test group", "test group cac"]
+    },
+    "upgrade_timing": {
+      "covers": ["when starter customers upgrade", "timing of upgrades", "how soon customers upgrade", "upgrade trigger", "months to upgrade", "why businesses upgrade", "who the upgraders are"]
+    },
+    "why_pro_fell": {
+      "covers": ["why pro sign-ups dropped", "what caused the pro decline", "did pro marketing spend change", "did the sales team change", "did anything else change for pro", "were pro buyers trading down"]
+    },
+    "buyer_profile": {
+      "covers": ["starter customer profile", "pro customer profile", "one-person businesses", "multi-user businesses", "firm size by plan", "who buys starter", "who buys pro"]
+    },
+    "competitor_prices": {
+      "covers": ["competitor entry-plan prices", "competitive price range", "market price for entry plans", "price versus competitors", "rival entry plans", "competitor price points"]
+    },
+    "test_design": {
+      "covers": ["how the price test was run", "test methodology", "was the test random", "how the groups were split", "how long the price test lasted", "how visitors were assigned", "scaled to full traffic"]
+    },
+    "existing_starter_customers": {
+      "covers": ["current starter base", "starter installed base", "how many customers are on starter", "grandfather existing customers", "price change for existing customers", "apply to new customers only"]
+    }
+  }
+}

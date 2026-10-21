@@ -1,0 +1,90 @@
+{
+  "caseId": "prof-002",
+  "items": {
+    "op_profit_definition": {
+      "covers": ["operating profit definition", "definition of operating profit", "what operating profit includes", "how operating profit is defined", "interest and taxes", "profit before interest", "costs included in operating profit"]
+    },
+    "geography": {
+      "covers": ["where larkspur flies", "us domestic flights", "domestic network", "outside the us", "which markets larkspur serves", "domestic or international", "overseas routes"]
+    },
+    "fleet": {
+      "covers": ["fleet size", "how many aircraft", "how many planes", "seats per aircraft", "aircraft type", "regional jets", "fleet composition", "size of the fleet"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "fuel_prices": {
+      "covers": ["jet fuel prices", "fuel price trend", "did fuel get more expensive", "fuel prices over the period"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "unit_costs": {
+      "covers": ["pilot wages", "crew wages"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "demand": {
+      "covers": ["air travel demand", "overall demand", "demand trend", "demand softening", "is demand down", "decline in demand", "demand weakness"]
+    },
+    "one_time_charges": {
+      "covers": ["one-time charges", "one-off charges", "one-time items", "non-recurring items", "special items", "asset write-offs", "exceptional items", "one-off costs"]
+    },
+    "competition_general": {
+      "covers": ["larger airlines", "legacy airlines", "other airlines at the hub", "competition on the four", "competition on the other routes", "network carriers", "one-stop competition"]
+    },
+    "route_results_lakeport": {
+      "covers": ["lakeport revenue", "lakeport contribution", "lakeport results", "revenue on lakeport", "contribution on lakeport", "lakeport profitability", "how lakeport performed", "lakeport losses"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "route_results_port_avery": {
+      "covers": ["port avery revenue", "port avery contribution", "port avery results", "revenue on port avery", "contribution on port avery", "port avery profitability", "how port avery performed", "port avery losses"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "route_results_other": {
+      "covers": ["results on the other routes", "results on the four", "revenue on the other routes", "contribution on the other routes", "contribution on the four", "contribution per flight on the four", "cedar bluff revenue", "millbrook revenue", "granite falls revenue", "westhaven revenue", "results on cedar bluff"]
+    },
+    "network_totals": {
+      "covers": ["flights flown", "flight count", "network revenue", "network contribution", "total contribution", "network results"]
+    },
+    "fixed_costs": {
+      "covers": ["fixed cost breakdown", "hub facilities", "corporate overhead", "hub costs", "overhead costs"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "lakeport_seats_load": {
+      "covers": ["lakeport load", "load factor on lakeport", "lakeport seats per flight", "seats on lakeport", "lakeport passenger count", "passengers carried on lakeport", "lakeport passengers per flight", "how full lakeport flights are"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "lakeport_fare": {
+      "covers": ["lakeport fare", "average fare on lakeport", "lakeport ticket price", "lakeport yield"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "extras_revenue": {
+      "covers": ["extras revenue", "ancillary revenue", "extras per passenger", "ancillary per passenger", "bag fees", "seat selection fees", "ticket versus ancillary", "ticket and ancillary"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "lakeport_variable_cost": {
+      "covers": ["lakeport variable cost", "lakeport cost per flight", "variable cost on lakeport", "cost per flight on lakeport", "lakeport fuel cost", "lakeport crew cost", "lakeport flight cost"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "competitor_entry": {
+      "covers": ["competitor entry", "competitive entry", "did a competitor enter", "who entered", "carrier entered", "what changed on the problem routes", "what happened on those routes", "driving the fare decline", "why did fare collapse"]
+    },
+    "competitor_costs": {
+      "covers": ["competitor cost per seat", "low-cost carrier's costs", "low-cost carrier's fare", "cost disadvantage", "lcc fare"]
+    },
+    "connecting_passengers": {
+      "covers": ["connecting traffic", "local versus connecting", "hub feed", "connecting share", "transfer passengers"]
+    },
+    "new_route_rampup": {"covers": ["maturity curve", "ramp curve", "how long new routes take"]},
+    "aircraft_leases": {"covers": ["lease terms", "lease expiry", "lease exit cost", "early lease return", "stranded fixed cost"]},
+    "port_avery_per_flight": {
+      "covers": ["port avery per-flight", "port avery load", "load factor on port avery", "port avery variable cost", "port avery cost per flight", "port avery average fare", "port avery fare"],
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+    },
+    "new_routes_plan": {
+      "covers": ["new routes planning estimates", "planning estimate for the new routes", "new route assumptions", "fare on brookhaven", "load factor on ashford", "load factor on brookhaven", "seats on the new routes", "extras on the new routes", "new route economics"]
+    },
+    "new_routes_cost_flights": {
+      "covers": ["flights per year on the new routes", "flights on the new routes", "planned frequency", "new route frequency", "cost per flight on ashford", "variable cost on ashford", "variable cost on brookhaven"]
+    },
+    "new_routes_context": {
+      "covers": ["incumbent competition", "competition on the new routes", "competitive presence on the new routes", "anyone flying nonstop"]
+    }
+  }
+}

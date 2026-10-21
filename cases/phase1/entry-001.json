@@ -1,0 +1,87 @@
+{
+  "caseId": "entry-001",
+  "items": {
+    "kelvexa_product": {
+      "covers": ["what kelvexa treats", "when kelvexa was approved", "kelvexa's approval", "kelvexa's dosing", "how kelvexa is given"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "corlans_disease": {
+      "covers": ["what corlan's disease is", "symptoms of corlan's", "is the disease lifelong", "how the disease progresses", "corlan's disease background"]
+    },
+    "current_treatment": {
+      "covers": ["standard of care", "competitive set", "other advanced therapies", "how moderate-to-severe patients are treated"]
+    },
+    "company_size": {
+      "covers": ["aldermoor's us presence", "how big is aldermoor", "size of aldermoor", "aldermoor's current revenue", "aldermoor's footprint", "does aldermoor operate in the us"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "net_sales_definition": {
+      "covers": ["definition of net sales", "what net sales means", "how net sales are defined", "gross versus net", "what the threshold measures", "meaning of net sales", "net sales or royalty income"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "peak_timing": {
+      "covers": ["time to peak", "years to peak", "when sales peak", "when peak is reached", "ramp to peak", "launch to peak", "how fast sales ramp"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "patents": {
+      "covers": ["patent expiry", "patent life", "patent protection", "patent runway", "us exclusivity", "loss of exclusivity", "generic competition"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "supply": {
+      "covers": ["manufacturing capacity", "production capacity", "plant capacity", "supply the us", "us manufacturing", "make enough kelvexa"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "us_adults": {
+      "covers": ["us adult population", "number of us adults", "adult population", "adults in the us", "size of the us population"]
+    },
+    "funnel_rates": {
+      "covers": ["us prevalence", "prevalence of corlan's", "patient funnel", "share diagnosed", "share treated", "moderate-to-severe share", "treatment rate"]
+    },
+    "peak_share_forecast": {
+      "covers": ["forecast peak share", "aldermoor's forecast share", "kelvexa's peak share", "aldermoor's share assumption", "uptake forecast", "penetration forecast", "forecast share of eligible patients"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "kelvexa_pricing": {
+      "covers": ["kelvexa's list price", "us list price", "discounts and rebates", "gross-to-net discount", "kelvexa's net price", "time on treatment"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "survey_design": {
+      "covers": ["survey sample", "who was surveyed", "sample size", "survey methodology", "how the survey was run", "specialists surveyed", "number of specialists surveyed"]
+    },
+    "reasons_to_prescribe": {
+      "covers": ["reasons to prescribe", "why doctors would prescribe", "drivers of adoption", "prescribing drivers", "what specialists value", "why specialists would choose kelvexa"]
+    },
+    "barriers_to_prescribing": {
+      "covers": ["barriers to prescribing", "reasons not to prescribe", "prescribing barriers", "obstacles to adoption", "why doctors would hesitate", "what stops doctors prescribing", "barriers to adoption"]
+    },
+    "nimbrel": {
+      "covers": ["nimbrel's net price", "price of nimbrel", "nimbrel's dosing", "how nimbrel is given", "incumbent's price"]
+    },
+    "trial_comparison": {
+      "covers": ["efficacy comparison", "clinical trial results", "head-to-head data", "safety profile", "kelvexa's efficacy", "comparative efficacy"]
+    },
+    "insurance_coverage": {
+      "covers": ["payer coverage", "formulary coverage", "insurer coverage", "prior authorization requirements", "time to broad coverage", "payer access"]
+    },
+    "specialist_concentration": {
+      "covers": ["prescriber base", "how many prescribers", "concentration of prescribers", "how concentrated prescribing is", "specialists treating these patients", "target prescribers", "high-volume prescribers"]
+    },
+    "diagnosis_gap": {"covers": ["undiagnosed patients", "why patients go undiagnosed"]},
+    "pipeline": {
+      "covers": ["aldermoor's pipeline", "aldermoor's other drugs", "follow-on products", "other aldermoor products", "pipeline drugs", "future aldermoor launches", "aldermoor's drugs in development"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "option_a": {
+      "covers": ["option a terms", "build option", "building our own team", "own us team", "annual selling costs", "cost of a us salesforce", "go it alone"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "option_b": {
+      "covers": ["option b terms", "partner option", "royalty rate", "royalty on us net sales", "partnership terms", "licensing deal", "partnering with a us company"],
+      "coverExcludes": ["nimbrel"]
+    },
+    "option_shared": {
+      "covers": ["product cost", "cost of goods", "net price under both options", "price under each option", "unit cost of kelvexa", "cost to make kelvexa", "shared assumptions"],
+      "coverExcludes": ["nimbrel"]
+    }
+  }
+}
