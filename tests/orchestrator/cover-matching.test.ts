@@ -6,7 +6,7 @@
 // An untagged case (prof-001) matches as before. Asks are the audit's
 // (docs/superpowers/plans/2026-10-21-data-path-audit.md rows 1, 5, 12, 20).
 import { describe, it, expect } from 'vitest';
-import { coverageOf, coverSpans, factBaseFor } from '@/lib/orchestrator/fact-check';
+import { coverageOf, coverageDetail, coverSpans, factBaseFor } from '@/lib/orchestrator/fact-check';
 import { outsideAskScope } from '@/lib/orchestrator/data-decisions';
 import { getCaseById } from '@/lib/cases/loader';
 import { taggedFactBase } from './fixtures/tagged-cases';
@@ -45,19 +45,13 @@ describe('normalized matching (tagged cases)', () => {
 
 describe('the candidate\'s asking sentence (tagged cases)', () => {
   const SENTENCE = 'Do we have a sense of how many bags of chips Hollis Bay moves a year?';
-  // The covers as the ask ran, before Task 69 added "chip bag volume" to why_now.
-  const hollisRan = taggedFactBase('launch-001', { without: { why_now: ['chip bag volume', 'annual chip volume'] } });
   it('row 12, Hollis Bay Tyler t5: the model\'s "annual chip bag volume" misses; the sentence\'s "bags of chips" reaches why_now — at the coarser cut, worded from the model\'s ask', () => {
-    const cov = coverageOf('annual chip bag volume', hollisRan, { sentence: SENTENCE });
+    const cov = coverageOf('annual chip bag volume', hollis, { sentence: SENTENCE });
     expect([...cov.items, ...cov.coarse.flatMap(c => c.ids)]).toContain('why_now');
     expect(cov).toEqual({ items: [], promptFacts: [], rest: null, coarse: [{ what: 'annual chip bag volume', ids: ['why_now'] }] });
   });
   it('without the sentence the model\'s ask is uncovered, as before', () => {
-    expect(coverageOf('annual chip bag volume', hollisRan)).toEqual({ items: [], promptFacts: [], rest: 'annual chip bag volume', coarse: [] });
-  });
-  it('with Task 69\'s cover "chip bag volume" the model\'s ask itself reaches why_now, whole (its words carry no count)', () => {
-    expect(coverageOf('annual chip bag volume', hollis, { sentence: SENTENCE })).toEqual({ items: ['why_now'], promptFacts: [], rest: null, coarse: [] });
-    expect(coverageOf('annual chip bag volume', hollis)).toEqual({ items: ['why_now'], promptFacts: [], rest: null, coarse: [] });
+    expect(coverageOf('annual chip bag volume', hollis)).toEqual({ items: [], promptFacts: [], rest: 'annual chip bag volume', coarse: [] });
   });
   it('a sentence hit sharing no word with the model\'s ask is another ask\'s: not joined', () => {
     expect(coverageOf("the competitor's prices", hollis, { sentence: SENTENCE }).coarse).toEqual([]);
@@ -66,6 +60,50 @@ describe('the candidate\'s asking sentence (tagged cases)', () => {
     const cov = coverageOf('retailer margin and the planning figure', hollis, { sentence: 'Do we have the retailer margin and how many stores carry the planning figure?' });
     expect(cov.items).toEqual(['bag_price']);
     expect(cov.rest).toBe('the planning figure');
+  });
+});
+
+// Task 69 fix round 1 (controller ruling on C1, 21 Oct): a count asked "in total" beside a
+// cover phrase isn't covered by an item whose line states no total — a FURTHER_CUT-style veto
+// on tagged cases, so the ask flows as at BASE (the check, its own verdict), never cover-vetoed.
+describe('a count asked in total (tagged cases)', () => {
+  const T27_WHAT = 'the total number of stores carrying Hollis Bay';
+  const T27_SAID = 'Do we know how many stores carry Hollis Bay in total?';
+  it('b37 Hollis Bay Marisol t27: the model\'s ask and her sentence — no retailer_support, the whole ask left, nothing dropped', () => {
+    expect(coverageOf(T27_WHAT, hollis)).toEqual({ items: [], promptFacts: [], rest: T27_WHAT, coarse: [] });
+    expect(coverageOf(T27_WHAT, hollis, { sentence: T27_SAID })).toEqual({ items: [], promptFacts: [], rest: T27_WHAT, coarse: [] });
+    expect(coverageOf(T27_SAID, hollis).items).toEqual([]);
+    expect(coverageDetail(T27_WHAT, hollis, { sentence: T27_SAID }).dropped).toEqual([]);
+  });
+  it('b37 Hollis Bay Marisol t7 still reaches retailer_support (row 5)', () => {
+    expect(coverageOf('a distribution estimate by number of stores', hollis, { sentence: 'Do we have a distribution estimate — number of stores Hollis Bay can get into next spring?' }).items).toEqual(['retailer_support']);
+  });
+  it.each(['the total count of stores', 'how many stores altogether', 'a total count of how many stores'])('"%s": not covered', what => {
+    expect(coverageOf(what, hollis).items).toEqual([]);
+  });
+  it('"total" without a count is no veto: "how many stores" is the count, "total" names the phrase', () => {
+    expect(coverageOf('how many stores in the total footprint', hollis).items).toEqual(['retailer_support']);
+  });
+  it('"in total" with no count beside it is no veto', () => {
+    expect(coverageOf('distribution reach in total', hollis).items).toEqual(['retailer_support']);
+  });
+  it('a line saying "in total" with no figure states no total', () => {
+    const fb = taggedFactBase('launch-001');
+    fb.ledger = fb.ledger.map(l => (l.id === 'retailer_support' ? { ...l, label: 'Retailer support', value: 'The partners carry the line in all their stores in total.' } : l));
+    expect(coverageOf(T27_WHAT, fb).items).toEqual([]);
+  });
+  it('a line stating a total keeps the hit (its value, or its label)', () => {
+    const quill = taggedFactBase('pricing-001');
+    expect(coverageOf('how many total new customers in total', quill).items).toEqual(['new_customers_by_plan']);   // "1,350 in total"
+    const lark = taggedFactBase('prof-002', { covers: { network_totals: ['flights a year'] } });
+    expect(coverageOf('how many flights a year in total', lark).items).toEqual(['network_totals']);           // "Network totals"
+  });
+  it('a total the cover phrase itself carries is no veto (ruling 7)', () => {
+    const fb = taggedFactBase('launch-001', { covers: { retailer_support: ['total number of stores'] } });
+    expect(coverageOf(T27_WHAT, fb).items).toEqual(['retailer_support']);
+  });
+  it('untagged: unchanged — the literal phrase covers it', () => {
+    expect(coverageOf('how many stores in total', taggedFactBase('launch-001', { tags: null })).items).toEqual(['retailer_support']);
   });
 });
 

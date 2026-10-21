@@ -741,6 +741,13 @@ export function coverPhraseSpans(text: string, phrase: string, folded: boolean):
 // Words that carry no topic: a sentence hit must share another with the model's ask (d).
 const COVER_STOP = new Set(['the', 'a', 'an', 'of', 'for', 'on', 'in', 'to', 'and', 'or', 'how', 'many', 'much', 'what', 'is', 'are', 'do', 'doe', 'did', 'we', 'you', 'our', 'their', 'it', 'its', 'any', 'by', 'per', 'with', 'from', 'at', 'thi', 'that', 'there', 'have', 'has', 'be', 'can', 'could', 'would', 'will', 'data', 'year']);
 const REGION = /\b(?:europe(?:an)?|eu|uk|canada|asia|international)\b/gi;
+// (e) Task 69 fix round 1 (controller ruling, 21 Oct, on b37 Hollis Bay Marisol t27: "the
+// total number of stores carrying Hollis Bay" got "two largest retail partners … all their
+// stores"): a count asked in total — "the total number of", "total count of", "how many …
+// in total", "altogether" — and a line that states a total (the word, with a figure; its
+// label read too, as "Network totals").
+const TOTAL_ASKED = /\btotal(?=\s+(?:number|count)s?\b)|\bin\s+total\b|\baltogether\b/g;
+const TOTAL_STATED = /\b(?:totals?|altogether)\b/i;
 const regionsIn = (t: string) => new Set([...t.matchAll(REGION)].map(m => (/^(?:europe|european|eu)$/i.test(m[0]) ? 'europe' : m[0].toLowerCase())));
 
 type CoverHit = { cover: FactBase['covers'][number]; start: number; end: number };
@@ -782,6 +789,18 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     const own = regionsIn(item ? `${item.label ?? ''} ${item.value}` : `${fb.quantities.find(q => q.id === h.cover.id)?.names.join(' ') ?? ''} ${h.cover.say ?? ''}`);
     return [...asked].every(r => own.has(r)) ? null : 'region';
   };
+  // (e) A count asked in total beside the phrase, of an item whose line states no total:
+  // not covered — FURTHER_CUT's way, so the ask goes on as at BASE, never cover-vetoed.
+  const totalNotHeld = (h: CoverHit, entry: { start: number; end: number }): boolean => {
+    const asked = [...lower.slice(entry.start, entry.end).matchAll(TOTAL_ASKED)].some(m => {
+      const at = entry.start + (m.index ?? 0);
+      return at + m[0].length <= h.start || at >= h.end;
+    });
+    if (!asked || !COUNT_PHRASE.test(lower.slice(entry.start, entry.end))) return false;
+    const item = fb.ledger.find(l => l.id === h.cover.id);
+    const line = item ? `${item.label ?? ''} ${item.value}` : `${fb.promptLedger.find(p => p.id === h.cover.id)?.value ?? ''} ${h.cover.say ?? ''}`;
+    return !(TOTAL_STATED.test(line) && /\d/.test(normalizeNumberWords(line)));
+  };
   const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
   const coarse: Coverage['coarse'] = [];
   const dropped: CoverageDetail['dropped'] = [];
@@ -792,7 +811,8 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     // Nor a further cut beside the phrase ("transaction counts broken down by
     // customer segment", "transactions per store per day" — 567bdb1 on the replay).
     const near = hits.filter(h => h.start < entry.end && h.end > entry.start
-      && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end)));
+      && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end))
+      && !(folded && totalNotHeld(h, entry)));
     const why = folded ? near.map(h => dropWhy(h, entry)) : [];
     const overlapping = folded ? near.filter((_, i) => why[i] === null) : near;
     const covering = GLOBAL_FINER.test(lc(entry.text)) ? overlapping.filter(h => GLOBAL_FINER.test(lower.slice(h.start, h.end))) : overlapping;

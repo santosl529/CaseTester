@@ -53,7 +53,8 @@ describe('lintCase matches', () => {
   });
   it('says what the engine does with the sentence as an ask, and whether the tags agree', () => {
     const m = lint.matches.find(x => x.phrase === 'how many stores')!;
-    expect(m.engine).toBe('given');
+    // A count asked "in total" of a line stating no total: the phrase matches, the engine doesn't cover it (fix round 1).
+    expect(m.engine).toBe('not covered');
     expect(m.tags).toBe('agree');
     const chip = lintCase({ id: 'launch-001', caseData: launch({ why_now: ['chip volume', 'annual chip volume'] }), baseCovers: {}, turns: [turn('What is the annual chip volume of the chickpea line?')] });
     expect(chip.matches.find(x => x.phrase === 'annual chip volume')).toEqual(expect.objectContaining({ phrase: 'annual chip volume', engine: 'given', tags: 'agree' }));
@@ -62,7 +63,7 @@ describe('lintCase matches', () => {
     const t = { ...turn('Do we know how many stores carry Hollis Bay in total?', 27), asks: [{ what: 'the total number of stores carrying Hollis Bay', itemIds: [] }] };
     const l = lintCase({ id: 'launch-001', caseData: launch(covers), baseCovers: base, turns: [t] });
     // The candidate's own sentence says "how many stores": BASE's literal phrase, not listed; the model's ask meets it only folded.
-    expect(l.matches).toEqual([expect.objectContaining({ item: 'retailer_support', phrase: 'how many stores', kind: 'normalized', source: 'model', turnIndex: 27, sentence: 'the total number of stores carrying Hollis Bay', mapped: [], engine: 'given' })]);
+    expect(l.matches).toEqual([expect.objectContaining({ item: 'retailer_support', phrase: 'how many stores', kind: 'normalized', source: 'model', turnIndex: 27, sentence: 'the total number of stores carrying Hollis Bay', mapped: [], engine: 'not covered' })]);
   });
   it('a model ask the model already mapped to the item says so', () => {
     const t = { ...turn('Okay.', 9), asks: [{ what: 'annual chip volume', itemIds: ['why_now'] }] };
@@ -105,9 +106,10 @@ describe('lintCase matches', () => {
 describe('lintCase askChanges', () => {
   const covers = { why_now: ['bags of chips'], retailer_support: ['how many stores'] };
   it('lists a model ask whose items change, with the asking sentence the engine reads', () => {
-    const t = { ...turn('Fair. Do we know how many stores carry Hollis Bay in total?', 27), phase: 'RECOMMENDATION' as const, asks: [{ what: 'the total number of stores carrying Hollis Bay', itemIds: [] }] };
+    const said = 'Do we have a distribution estimate — number of stores Hollis Bay can get into next spring?';
+    const t = { ...turn(`Fair. ${said}`, 7), phase: 'ANALYSIS' as const, asks: [{ what: 'a distribution estimate by number of stores', itemIds: [] }] };
     const l = lintCase({ id: 'launch-001', caseData: launch(covers), baseCovers: covers, turns: [t] });
-    expect(l.askChanges).toEqual([{ run: 'batch-37-hollisbay/57-marisol', turnIndex: 27, what: 'the total number of stores carrying Hollis Bay', mapped: [], sentence: 'Do we know how many stores carry Hollis Bay in total?', before: [], after: ['retailer_support'], dropped: [] }]);
+    expect(l.askChanges).toEqual([{ run: 'batch-37-hollisbay/57-marisol', turnIndex: 7, what: 'a distribution estimate by number of stores', mapped: [], sentence: said, before: [], after: ['retailer_support'], dropped: [] }]);
   });
   it('the sentence alone can bring an item (row 12): the coarse form is marked', () => {
     const t = { ...turn('Do we have a sense of how many bags of chips Hollis Bay moves a year?', 5), asks: [{ what: 'annual chip bag volume', itemIds: [] }] };

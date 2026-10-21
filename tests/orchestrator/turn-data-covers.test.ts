@@ -276,3 +276,33 @@ describe('askSentenceFor', () => {
     expect(askSentenceFor('Lakeport load', ['How is Lakeport doing?', 'And the load factor?'], ['Lakeport'])).toBe('And the load factor?');
   });
 });
+
+// Task 69 fix round 1 (controller rulings on C1, C2): b37 Hollis Bay, as said.
+describe('launch-001 as the case holds it (Task 69 fix round 1)', () => {
+  const T27_SAID = "So the clean read: 500,000 households × 3 bags = 1.5 million bags.\n\nOne thing I'd want to flag — 500 stores over 10 weekends is a fairly narrow footprint. Do we know how many stores carry Hollis Bay in total? If it's several thousand, there may be room to scale this up.";
+  const T27_WHAT = 'the total number of stores carrying Hollis Bay';
+  it('Marisol t27: a count asked in total — not cover-matched; checked, and the check\'s refusal stands, as at BASE', async () => {
+    const p = plan('launch-001', T27_SAID, taggedFactBase('launch-001'));
+    const d = await turnDataChecked(p, turn(T27_WHAT));
+    expect(ask).toHaveBeenCalledTimes(1);
+    expect(d.releases).toEqual([]);
+    expect(d.refusals).toEqual([T27_WHAT]);
+    expect(d.itemlessDefers ?? []).toEqual([]);
+    expect(acts(p, 'cover_gate')).toEqual([]);
+    expect(acts(p, 'cover_deferred')).toEqual([]);
+  });
+  it('Marisol t7: "a distribution estimate by number of stores" still gives retailer_support, unchecked', async () => {
+    const p = plan('launch-001', 'Do we have a distribution estimate — number of stores Hollis Bay can get into next spring?', taggedFactBase('launch-001'));
+    const d = await turnDataChecked(p, turn('a distribution estimate by number of stores'));
+    expect(ask).not.toHaveBeenCalled();
+    expect(d.releases.map(r => r.id)).toEqual(['retailer_support']);
+    expect(d.refusals).toEqual([]);
+  });
+  it('Tyler t5: "annual chip bag volume" — why_now\'s line and the refusal of the count (the A4 coarse form)', async () => {
+    const p = plan('launch-001', 'Break-even volume = 9.0 / 1.45 ≈ 6.2 million bags. Do we have a sense of how many bags of chips Hollis Bay moves a year?', taggedFactBase('launch-001'));
+    const d = await turnDataChecked(p, turn('annual chip bag volume'));
+    expect(ask).not.toHaveBeenCalled();
+    expect(d.releases.map(r => r.id)).toEqual(['why_now']);
+    expect(d.refusals).toEqual(['annual chip bag volume']);
+  });
+});
