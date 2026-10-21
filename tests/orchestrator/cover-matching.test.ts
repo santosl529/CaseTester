@@ -84,8 +84,41 @@ describe('a count asked in total (tagged cases)', () => {
   it('"total" without a count is no veto: "how many stores" is the count, "total" names the phrase', () => {
     expect(coverageOf('how many stores in the total footprint', hollis).items).toEqual(['retailer_support']);
   });
+  // Fix round 2 (review): the count and the total are the hit's own, and only that hit is dropped;
+  // a figure on the counted noun in the line ("30 million households") is a stated total.
+  it('"How many households are there in total?": planning_assumptions\' "30 million households" states it — covered', () => {
+    expect(coverageOf('How many households are there in total?', hollis).items).toEqual(['planning_assumptions']);
+    expect(coverageOf('the total number of households', hollis).items).toEqual(['planning_assumptions']);
+  });
+  it('a total count in one part of a question drops only its own hit: the retailer margin is still covered', () => {
+    const cov = coverageOf('Do we know how many stores carry Hollis Bay in total, and what is the retailer margin?', hollis);
+    expect(cov.items).toEqual(['bag_price']);
+  });
+  it('prof-002: "How many flights in total, and what was the Lakeport fare cut?" keeps lakeport_fare', () => {
+    expect(coverageOf('How many flights in total, and what was the Lakeport fare cut?', larkspur).items).toContain('lakeport_fare');
+  });
+  it('a count elsewhere in the question is not the hit\'s: "how many weeks it took, and the distribution reach in total"', () => {
+    expect(coverageOf('how many weeks it took, and the distribution reach in total', hollis).items).toEqual(['retailer_support']);
+  });
+  it('the count and the total are read in the hit\'s clause only', () => {
+    expect(coverageOf('how many weeks, and distribution reach in total', hollis).items).toEqual(['retailer_support']);
+    expect(coverageOf('how many stores carry the line, and the retailer margin in total', hollis).items).toEqual(['bag_price', 'retailer_support']);
+  });
   it('"in total" with no count beside it is no veto', () => {
     expect(coverageOf('distribution reach in total', hollis).items).toEqual(['retailer_support']);
+  });
+  // retailer_support's line rewritten, to read each way a line can state a total.
+  const withLine = (label: string, value: string) => {
+    const fb = taggedFactBase('launch-001');
+    fb.ledger = fb.ledger.map(l => (l.id === 'retailer_support' ? { ...l, label, value } : l));
+    return fb;
+  };
+  it('"total" and a figure in the label or line state a total, wherever the figure sits', () => {
+    expect(coverageOf(T27_WHAT, withLine('Retailer support totals', 'The partners carry the line, 2 partners in all.')).items).toEqual(['retailer_support']);
+    expect(coverageOf(T27_WHAT, withLine('Retailer support', 'Two partners stock the line in all their stores, 2 partners in total.')).items).toEqual(['retailer_support']);
+  });
+  it('a figure after the counted noun is not its count: "all their stores from 2027" states no total', () => {
+    expect(coverageOf(T27_WHAT, withLine('Retailer support', 'The partners stock the line in all their stores from 2027.')).items).toEqual([]);
   });
   it('a line saying "in total" with no figure states no total', () => {
     const fb = taggedFactBase('launch-001');

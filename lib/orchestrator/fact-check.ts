@@ -748,6 +748,9 @@ const REGION = /\b(?:europe(?:an)?|eu|uk|canada|asia|international)\b/gi;
 // label read too, as "Network totals").
 const TOTAL_ASKED = /\btotal(?=\s+(?:number|count)s?\b)|\bin\s+total\b|\baltogether\b/g;
 const TOTAL_STATED = /\b(?:totals?|altogether)\b/i;
+// A clause's end inside an entry; the words a counted phrase counts with (folded).
+const CLAUSE_END = /[,;:?.!—–]|\s(?:and|or|but)\s/g;
+const COUNT_WORDS = new Set(['how', 'many', 'number', 'count', 'total', 'the', 'a', 'an', 'of']);
 const regionsIn = (t: string) => new Set([...t.matchAll(REGION)].map(m => (/^(?:europe|european|eu)$/i.test(m[0]) ? 'europe' : m[0].toLowerCase())));
 
 type CoverHit = { cover: FactBase['covers'][number]; start: number; end: number };
@@ -789,17 +792,29 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     const own = regionsIn(item ? `${item.label ?? ''} ${item.value}` : `${fb.quantities.find(q => q.id === h.cover.id)?.names.join(' ') ?? ''} ${h.cover.say ?? ''}`);
     return [...asked].every(r => own.has(r)) ? null : 'region';
   };
-  // (e) A count asked in total beside the phrase, of an item whose line states no total:
-  // not covered — FURTHER_CUT's way, so the ask goes on as at BASE, never cover-vetoed.
+  // (e) A count asked in total of the hit, of an item whose line states no total: not
+  // covered — FURTHER_CUT's way, so the ask goes on as at BASE, never cover-vetoed. The
+  // count and the total are the hit's own (fix round 2, review): in its clause, the count in
+  // the phrase or in the four words before it, the total beside it; only that hit is dropped.
   const totalNotHeld = (h: CoverHit, entry: { start: number; end: number }): boolean => {
-    const asked = [...lower.slice(entry.start, entry.end).matchAll(TOTAL_ASKED)].some(m => {
-      const at = entry.start + (m.index ?? 0);
+    const before = lower.slice(entry.start, h.start);
+    const clauseStart = entry.start + Math.max(0, ...[...before.matchAll(CLAUSE_END)].map(m => (m.index ?? 0) + m[0].length));
+    const pre = h.start - (lower.slice(clauseStart, h.start).match(/(?:\S+\s+){0,4}$/)?.[0].length ?? 0);
+    const after = lower.slice(h.end, entry.end).search(CLAUSE_END);
+    const clauseEnd = after < 0 ? entry.end : h.end + after;
+    if (!COUNT_PHRASE.test(lower.slice(pre, h.end))) return false;
+    const asked = [...lower.slice(pre, clauseEnd).matchAll(TOTAL_ASKED)].some(m => {
+      const at = pre + (m.index ?? 0);
       return at + m[0].length <= h.start || at >= h.end;
     });
-    if (!asked || !COUNT_PHRASE.test(lower.slice(entry.start, entry.end))) return false;
+    if (!asked) return false;
     const item = fb.ledger.find(l => l.id === h.cover.id);
-    const line = item ? `${item.label ?? ''} ${item.value}` : `${fb.promptLedger.find(p => p.id === h.cover.id)?.value ?? ''} ${h.cover.say ?? ''}`;
-    return !(TOTAL_STATED.test(line) && /\d/.test(normalizeNumberWords(line)));
+    const line = normalizeNumberWords(item ? `${item.label ?? ''} ${item.value}` : `${fb.promptLedger.find(p => p.id === h.cover.id)?.value ?? ''} ${h.cover.say ?? ''}`);
+    if (TOTAL_STATED.test(line) && /\d/.test(line)) return false;
+    // A figure on a word the phrase counts ("30 million households", "14,000 flights"): a stated total.
+    const counted = new Set(coverTokens(lower.slice(h.start, h.end)).map(t => t.w).filter(w => !COUNT_WORDS.has(w)));
+    const toks = coverTokens(lc(line));
+    return !toks.some((t, i) => counted.has(t.w) && toks.slice(Math.max(0, i - 2), i).some(x => /\d/.test(x.w)));
   };
   const items: string[] = [], promptFacts: string[] = [], left: string[] = [];
   const coarse: Coverage['coarse'] = [];

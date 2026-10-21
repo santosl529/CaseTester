@@ -277,9 +277,11 @@ describe('askSentenceFor', () => {
   });
 });
 
-// Task 69 fix round 1 (controller rulings on C1, C2): b37 Hollis Bay, as said.
+// Task 69 fix rounds 1–2 (controller rulings on C1, C2): b37 Hollis Bay, the candidate's turns verbatim.
+const T27_SAID = "Fair — it isn't. The 60% is a survey-intent-to-purchase conversion, and these 500,000 are already described as buying households, post-conversion. Applying it converts the same step twice. I withdraw it.\n\nSo the clean read: 500,000 households × 3 bags = 1.5 million bags × $1.50 contribution = $2.25 million, less $1.5 million program cost = $0.75 million net positive. It pays for itself and it directly attacks the 45% taste objection, which is the single biggest barrier in the survey.\n\nThat also moves the total case: 9 million bags plus 1.5 million is 10.5 million bags. Contribution $15.75 million, less $9 million launch costs, less $1.5 million sampling = $5.25 million first-year profit.\n\nOne thing I'd want to flag — 500 stores over 10 weekends is a fairly narrow footprint. Do we know how many stores carry Hollis Bay in total? If it's several thousand, there may be room to scale this up.";   // Marisol 7f6c40ea t27
+const T7_SAID = "On the price: $3.99 is what the bag actually transacts at, and it's the only price tied to a physical bag — the $3.00 is what Hollis Bay invoices on a shipment, which bundles the retailer's economics in. Since I'm building a per-bag contribution, I'd rather anchor on the per-bag figure the exhibit gives me and let the retailer's cut sit on the cost side, where it's already captured in the $1.5 million of shelf fees we pay them. Double-counting the retailer margin would understate contribution.\n\nOn recipe development: $1.2 million is a real cash outlay Hollis Bay made on this specific line. The board's test is whether the launch breaks even, and a line that doesn't recover its development spend hasn't broken even in any meaningful sense. If I strip it out, I'd be flattering the project by $1.2 million.\n\nSo I'll stay at roughly 4.1 million bags. Do we have a distribution estimate — number of stores Hollis Bay can get into next spring?";   // Marisol 7f6c40ea t7
+const HOLLIS_TYLER_T5 = "Let me set it up. Variable cost per bag: ingredients you said $0.75, packaging $0.30, roasting labor and energy $0.30, freight $0.20. That's 0.75 + 0.30 + 0.50 — sorry, 0.30 plus 0.20 is 0.50 — so 1.55 per bag total variable.\n\nPrice we receive is $3.00, so contribution margin is 3.00 − 1.55 = $1.45 a bag. That's just under half the revenue, which is healthy.\n\nFixed launch costs: roasting line $3.0M, marketing $4.5M, shelf fees $1.5M = $9.0M. Recipe development I'd exclude — $1.2M already spent, sunk, shouldn't drive a go/no-go.\n\nBreak-even volume = 9.0 / 1.45 ≈ 6.2 million bags.\n\nIn revenue that's about 6.2 × $3.00 ≈ $18.6M to Hollis Bay, so roughly 6% of current sales.\n\nDo we have a sense of how many bags of chips Hollis Bay moves a year? That'd tell me whether 6.2 million is a stretch for our distribution.";   // Tyler 64-tyler t5
 describe('launch-001 as the case holds it (Task 69 fix round 1)', () => {
-  const T27_SAID = "So the clean read: 500,000 households × 3 bags = 1.5 million bags.\n\nOne thing I'd want to flag — 500 stores over 10 weekends is a fairly narrow footprint. Do we know how many stores carry Hollis Bay in total? If it's several thousand, there may be room to scale this up.";
   const T27_WHAT = 'the total number of stores carrying Hollis Bay';
   it('Marisol t27: a count asked in total — not cover-matched; checked, and the check\'s refusal stands, as at BASE', async () => {
     const p = plan('launch-001', T27_SAID, taggedFactBase('launch-001'));
@@ -292,14 +294,14 @@ describe('launch-001 as the case holds it (Task 69 fix round 1)', () => {
     expect(acts(p, 'cover_deferred')).toEqual([]);
   });
   it('Marisol t7: "a distribution estimate by number of stores" still gives retailer_support, unchecked', async () => {
-    const p = plan('launch-001', 'Do we have a distribution estimate — number of stores Hollis Bay can get into next spring?', taggedFactBase('launch-001'));
+    const p = plan('launch-001', T7_SAID, taggedFactBase('launch-001'));
     const d = await turnDataChecked(p, turn('a distribution estimate by number of stores'));
     expect(ask).not.toHaveBeenCalled();
     expect(d.releases.map(r => r.id)).toEqual(['retailer_support']);
     expect(d.refusals).toEqual([]);
   });
   it('Tyler t5: "annual chip bag volume" — why_now\'s line and the refusal of the count (the A4 coarse form)', async () => {
-    const p = plan('launch-001', 'Break-even volume = 9.0 / 1.45 ≈ 6.2 million bags. Do we have a sense of how many bags of chips Hollis Bay moves a year?', taggedFactBase('launch-001'));
+    const p = plan('launch-001', HOLLIS_TYLER_T5, taggedFactBase('launch-001'));
     const d = await turnDataChecked(p, turn('annual chip bag volume'));
     expect(ask).not.toHaveBeenCalled();
     expect(d.releases.map(r => r.id)).toEqual(['why_now']);
