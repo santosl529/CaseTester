@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { PHASE1_SWITCHES } from './engine-switches';
 
 const PhaseSchema = z.enum([
   'INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS',
@@ -25,6 +26,10 @@ const SENTENCE_VERB_RE = new RegExp(
   'i',
 );
 
+// Phase 1 text that may be spoken or shown before reveal carries no figure (FR-4): digits or number words.
+const NUMBER_WORD = /\b(?:zero|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|forty|fifty|hundred|thousand|million|billion|half|quarter|percent)\b/i;
+export function noFigure(text: string): boolean { return !/\d/.test(text) && !NUMBER_WORD.test(text); }
+
 function isSpeakableSentence(value: string): boolean {
   return /[.!?]\s*$/.test(value.trim()) && SENTENCE_VERB_RE.test(value);
 }
@@ -43,6 +48,19 @@ const LedgerItemSchema = z.object({
   // name derived from the label can read badly or give the finding away
   // ("a new competitor"). Without it: spokenItemName(label).
   spoken: z.string().min(2).optional(),
+  // Phase 1 (docs/superpowers/plans/2026-10-22-phase1-contract.md §1). Authored in cases/phase1/<id>.json and
+  // attached at load (lib/cases/phase1-overlay.ts); read only by Phase 1 code behind its switch.
+  //   tags — what the item is about: whose (`client` or a factAnchors.tags entity id), which period, what kind of quantity.
+  //   askPhrases — 3–5 short "answers questions about…" phrases; shown to the model before reveal (askPhrasesInPrompt),
+  //     so no figure and nothing that gives the finding away.
+  //   coverExcludes — words that keep a cover from matching this item (chip vs chickpea), with itemCovers on.
+  tags: z.object({
+    entity: z.string().min(1),
+    period: z.array(z.enum(['forecast', 'current', 'historical'])).min(1),
+    quantityKind: z.array(z.enum(['total', 'split', 'level', 'trend', 'one-off', 'recurring'])).min(1),
+  }).strict().optional(),
+  askPhrases: z.array(z.string().min(3).refine(noFigure, 'no figure in an ask phrase')).min(3).max(5).optional(),
+  coverExcludes: z.array(z.string().min(2)).optional(),
 }).superRefine((item, ctx) => {
   if (!isSpeakableSentence(item.value)) {
     ctx.addIssue({
@@ -145,6 +163,9 @@ const ExhibitSchema = z.object({
   // under time pressure it goes out with the recommendation ask instead. A
   // required exhibit's `after` exhibits must be required too.
   required: z.boolean().optional(),
+  // Phase 1 (contract §1; restateRules): one line on what the table generally shows, no figures — said when an ask
+  // is answered by an exhibit already out ("Exhibit 2 has the route results by year.").
+  summary: z.string().min(5).refine(noFigure, 'no figure in an exhibit summary').optional(),
 });
 
 const RubricAnchorSchema = z.object({
@@ -217,7 +238,18 @@ export const CaseSchema = z.object({
   // b36 Larkspur Jasmine: Exhibit 3 at t10, the competitor never told). `before`: an exhibit id — released in the data
   // line of the turn that hands that exhibit over, ahead of it — or "recommendation" — released before code's (or the
   // model's) recommendation ask (turn-data.ts mustReachItems). Never on a close turn, never twice, past the release cap.
-  mustReach: z.array(z.object({ item: z.string(), before: z.string().min(1) }).strict()).optional(),
+  // Phase 1 (contract §1): at most 3 per case; `why` names the runs that missed the item (overlay entries need it).
+  mustReach: z.array(z.object({ item: z.string(), before: z.string().min(1), why: z.string().min(5).optional() }).strict()).max(3).optional(),
+  // Phase 1 (contract §1; rootLineage, checkerDefinitions): a quantity's one-line definition, no figures — the
+  // wording of a root correction and context for the live checker. Server-only.
+  definitions: z.array(z.object({
+    term: z.string().min(2),
+    text: z.string().min(5).refine(noFigure, 'no figure in a definition'),
+    steps: z.array(z.string()).optional(),
+    items: z.array(z.string()).optional(),
+  }).strict()).optional(),
+  // Phase 1 engine switches pinned by the case file (lib/cases/engine-switches.ts); absent = today's behaviour.
+  engine: z.partialRecord(z.enum(PHASE1_SWITCHES), z.boolean()).optional(),
   // Voice (lib/voice/keyterms.ts; Lorenzo's brief, 17 Oct): the case's own
   // names and terms Flux is told to expect — the client, products, places —
   // beside the generic ones ("COGS", "MECE"). 9ccf0836 heard "Cogshare".
@@ -385,6 +417,15 @@ export const CaseSchema = z.object({
   (c.mustReach ?? []).forEach((m, i) => {
     if (!ledgerIds.has(m.item)) ctx.addIssue({ code: 'custom', path: ['mustReach', i, 'item'], message: `Unknown ledger item "${m.item}"` });
     if (m.before !== 'recommendation' && !c.exhibits.some(e => e.id === m.before)) ctx.addIssue({ code: 'custom', path: ['mustReach', i, 'before'], message: `"${m.before}" is neither an exhibit nor "recommendation"` });
+  });
+  (c.definitions ?? []).forEach((d, i) => {
+    (d.steps ?? []).forEach((id, j) => { if (!stepIds.has(id)) ctx.addIssue({ code: 'custom', path: ['definitions', i, 'steps', j], message: `Unknown math step "${id}"` }); });
+    (d.items ?? []).forEach((id, j) => { if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['definitions', i, 'items', j], message: `Unknown ledger item "${id}"` }); });
+  });
+  // Item tags' entities: checked where the case has entity tags (prof-001's come with its overlay's factTags).
+  const entityIds = new Set(['client', ...(c.factAnchors?.tags?.entities.map(e => e.id) ?? [])]);
+  if (c.factAnchors?.tags) c.dataLedger.forEach((d, i) => {
+    if (d.tags && !entityIds.has(d.tags.entity)) ctx.addIssue({ code: 'custom', path: ['dataLedger', i, 'tags', 'entity'], message: `"${d.tags.entity}" is neither "client" nor a factAnchors.tags entity` });
   });
   if (c.pricingModel) {
     const pm = c.pricingModel;
