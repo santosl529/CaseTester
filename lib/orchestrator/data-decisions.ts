@@ -97,15 +97,18 @@ export function mentionStatesNeed(candidateText: string, label: string, strict?:
 // A text's key nouns (Phase 1 4.4, `refusalNounCheck`; contract §5: "a content noun after the stop list and plural
 // fold, using the one stemmer in data-decisions.ts"): its content words, stemmed (stemWord), three letters or more,
 // the case's proper names taken out whole ("Port Avery", "Larkspur"), and none of the stop list — function and
-// question words, the offer gate's generic label words ("cost", "revenue", "price", "share": every case has them) and
-// the words of a split, a period or an amount ("split", "breakdown", "year", "total", "number").
+// question words, the offer gate's generic label words ("cost", "revenue", "price", "share": every case has them), the
+// words of a split, a period or an amount ("split", "breakdown", "year", "total", "number"), and number words ("the four
+// uncontested routes": "four" names no topic).
 const KEY_STOP = new Set([...LABEL_IGNORED, ...GENERIC_LABEL_WORDS, ...`
   and the for are was how why who can did has had its our any all but not one two per via get got let see say ask yes
   about after again also been before between both breakdown broken composition decomposition detail could data does each
   either figure from have here into just know level like look many more most much need part same should show some split
   than that their them then there these they this those through total trend under very versu want were what when where
   whether which while will with would year your only mix makeup kind type way amount count line item exact actual
-  specific basis versus give tell share pull sense idea something anything number numbers`.split(/\s+/).filter(Boolean).map(stemWord)]);
+  specific basis versus give tell share pull sense idea something anything number numbers
+  three four five six seven eight nine ten eleven twelve twenty thirty forty fifty hundred thousand million billion half
+  first second third fourth fifth`.split(/\s+/).filter(Boolean).map(stemWord)]);
 export function keyNouns(text: string, caseNames: string[] = []): Set<string> {
   let t = text.toLowerCase().replace(/[‘’]/g, "'").replace(/'s\b/g, '');
   for (const n of [...caseNames].sort((a, b) => b.length - a.length)) t = t.replace(new RegExp(`(?<![a-z])${n.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'), ' ');

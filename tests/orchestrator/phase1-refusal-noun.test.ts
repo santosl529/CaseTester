@@ -262,3 +262,9 @@ describe('a period or scope in the deferred words: items sharing its nouns don\'
     expect(r.resolved).toEqual([]);
   });
 });
+
+describe('number words are no key nouns', () => {
+  it('"price elasticity on the four uncontested routes": elasticity, uncontested, route', () => {
+    expect([...keyNouns('price elasticity on the four uncontested routes')].sort()).toEqual(['elasticity', 'route', 'uncontested']);
+  });
+});

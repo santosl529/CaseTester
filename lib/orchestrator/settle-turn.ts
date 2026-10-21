@@ -37,7 +37,7 @@ import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers }
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems, openDeferrals, resolveDeferrals, tracksDeferrals } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems, openDeferrals, resolveDeferrals, tracksDeferrals, modelDeferrals } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
@@ -739,7 +739,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // get to …" on the first wrap-up turn — each resolved once, logged; whether heard or not, as flags.mustReach.
   if (tracksDeferrals(plan)) {
     // Booked deliveries only (fix round 1, the review's minor): the reveals booked, the lines restated, the exhibit shown.
-    const tracked = resolveDeferrals(openDeferrals(plan), decisions, nextTurnIndex + 1, [...newReveals, ...decisions.restates.map(r => r.id), ...exhibitReveals]);
+    // Phase 1 4.7 (turn-data.ts modelDeferrals): the model's own "I'll check what we have" opens a tracked deferral too.
+    const modelSaid = codeWritten ? [] : modelDeferrals(plan, decisions, turn.requests, [say, question]);
+    if (modelSaid.length > 0) checks.act('model_deferral', 'the model promised to check or come back to an ask this turn doesn\'t answer: tracked until delivered or "We won\'t get to …"', { asks: modelSaid });
+    const tracked = resolveDeferrals(openDeferrals(plan), modelSaid.length > 0 ? { ...decisions, deferralsOpened: [...(decisions.deferralsOpened ?? []), ...modelSaid] } : decisions, nextTurnIndex + 1, [...newReveals, ...decisions.restates.map(r => r.id), ...exhibitReveals]);
     for (const r of tracked.resolved) checks.act('deferral_resolved', r.how === 'delivered' ? 'a tracked deferral delivered: nothing more said'
       : r.how === 'wont_get_to' ? 'a tracked deferral said "We won\'t get to …" on the first wrap-up turn' : 'a tracked deferral\'s ask refused since: closed', r);
     if (tracked.open.length > 0 || flags.openDeferrals !== undefined) flags.openDeferrals = tracked.open;
