@@ -6,7 +6,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { CaseSchema } from '@/lib/cases/schema';
 import { Phase1OverlaySchema } from '@/lib/cases/phase1-overlay';
-import { phase1Views, excludedBy, askDiff, collisions, coverCounts, tagProblems, completeness, fullMergeProblem, renderPhase1Lint, applyJudgements, type AskTurn } from '@/scripts/phase1-cover-lint';
+import { phase1Views, excludedBy, askDiff, collisions, containments, coverCounts, tagProblems, completeness, fullMergeProblem, renderPhase1Lint, applyJudgements, type AskTurn } from '@/scripts/phase1-cover-lint';
 
 const raw = (id: string) => CaseSchema.parse(JSON.parse(readFileSync(`cases/${id}.json`, 'utf8')));
 const turn = (text: string, turnIndex: number, asks: { what: string; itemIds: string[] }[] = [], run = 'batch-37-hollisbay/57-marisol'): AskTurn => ({ run, turnIndex, text, phase: 'ANALYSIS', asks });
@@ -53,6 +53,17 @@ describe('collisions', () => {
   });
 });
 
+describe('containments', () => {
+  it('flags a cover inside another item\'s cover after the fold, new or at BASE', () => {
+    const o = Phase1OverlaySchema.parse({ caseId: 'launch-001', items: { planning_assumptions: { covers: ['conversion assumptions'] } } });
+    const { off, on } = phase1Views(raw('launch-001'), o);
+    expect(containments(on, off)).toEqual(expect.arrayContaining([
+      { inner: 'conversion assumptions', innerItem: 'planning_assumptions', outer: 'basis for conversion assumptions', outerItem: 'survey_reliability', status: 'new' },
+    ]));
+    expect(containments(off, off).every(c => c.status === 'at BASE')).toBe(true);
+  });
+});
+
 describe('askDiff', () => {
   const { off, on } = phase1Views(raw('launch-001'), overlay);
   it('lists a model ask that gains an item, with the overlay phrase that brought it, the model\'s mapping and the exclusion', () => {
@@ -87,6 +98,13 @@ describe('coverCounts', () => {
 });
 
 describe('tagProblems', () => {
+  it('a mixed forecast and current item needn\'t be in the forecast list; a forecast-only one must', () => {
+    const o = Phase1OverlaySchema.parse({ caseId: 'launch-001', items: {
+      launch_costs: { tags: { entity: 'client', period: ['forecast', 'current'], quantityKind: ['total'] } },
+      recipe_cost: { tags: { entity: 'client', period: ['forecast'], quantityKind: ['one-off'] } },
+    } });
+    expect(tagProblems(phase1Views(raw('launch-001'), o).on, o)).toEqual(['recipe_cost: period "forecast" only but not in factAnchors.tags.forecast']);
+  });
   it('an item in an entity\'s items has that entity; an item in forecast has the forecast period', () => {
     const { on } = phase1Views(raw('launch-001'), overlay);
     expect(tagProblems(on, overlay)).toEqual([

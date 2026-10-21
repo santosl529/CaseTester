@@ -5,7 +5,8 @@
 // the overlay, as loaded through applyPhase1Overlay with itemCovers on … Collisions and new matches must be
 // counted against the base covers too"). Free and deterministic: no model calls. Per case:
 //   (1) every phrase, folded as a tagged case folds it, on two items' covers in the merged view (base covers
-//       plus the overlay's) — "at BASE" when the same items shared it with itemCovers off, else "new";
+//       plus the overlay's) — "at BASE" when the same items shared it with itemCovers off, else "new"; and
+//       (1b) every cover inside another item's cover after the fold;
 //   (2) every ask in the case's b28–b38 runs whose coverage (fact-check.ts coverageDetail) changes from
 //       itemCovers off to on: each model-declared request (`requests[].what`, read with the candidate's asking
 //       sentence the engine picks, turn-data.ts askSentenceFor, on a tagged case) and each candidate asking or question
@@ -26,7 +27,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import path from 'node:path';
-import { buildFactBase, coverageDetail, coverPhraseSpans, sentencesOf, type FactBase } from '@/lib/orchestrator/fact-check';
+import { buildFactBase, coverageDetail, coverPhraseSpans, foldCoverPhrase, sentencesOf, type FactBase } from '@/lib/orchestrator/fact-check';
 import { tagsAgree } from '@/lib/orchestrator/item-tags';
 import { askingSentences, properNames } from '@/lib/orchestrator/request-signal';
 import { askSentenceFor } from '@/lib/orchestrator/turn-data';
@@ -59,6 +60,23 @@ export function excludedBy(text: string, excludes: string[]): string | null {
 
 export function collisions(id: string, on: Case, off: Case): Duplicate[] {
   return duplicatePhrases(id, on.factAnchors?.covers ?? {}, off.factAnchors?.covers ?? {}, {});
+}
+
+// A cover inside another item's cover, folded ("installed base" in "starter installed base"): an ask saying the
+// longer phrase meets both items. "at BASE" when both phrases were there with itemCovers off.
+export type Containment = { inner: string; innerItem: string; outer: string; outerItem: string; status: 'at BASE' | 'new' };
+export function containments(on: Case, off: Case): Containment[] {
+  const flat = (c: Case) => Object.entries(c.factAnchors?.covers ?? {}).flatMap(([item, ps]) => ps.map(p => ({ item, p, f: foldCoverPhrase(p).split(' ') })));
+  const offKeys = new Set(flat(off).map(x => `${x.item}|${x.f.join(' ')}`));
+  const all = flat(on);
+  const inside = (a: string[], b: string[]) => a.length < b.length && b.some((_, i) => a.every((w, k) => b[i + k] === w));
+  const out: Containment[] = [];
+  for (const a of all) for (const b of all) {
+    if (a.item === b.item || !inside(a.f, b.f)) continue;
+    const base = offKeys.has(`${a.item}|${a.f.join(' ')}`) && offKeys.has(`${b.item}|${b.f.join(' ')}`);
+    out.push({ inner: a.p, innerItem: a.item, outer: b.p, outerItem: b.item, status: base ? 'at BASE' : 'new' });
+  }
+  return out;
 }
 
 export type AskTurn = { run: string; turnIndex: number; text: string; phase?: Phase; asks?: { what: string; itemIds: string[] }[] };
@@ -124,7 +142,8 @@ export function tagProblems(c: Case, overlay: Phase1Overlay): string[] {
     const owner = t.entities.find(e => e.items.includes(id))?.id ?? 'client';
     if (x.tags.entity !== owner) out.push(owner === 'client' ? `${id}: tagged "${x.tags.entity}" but in no entity's items (the client's)` : `${id}: in entity "${owner}" but tagged "${x.tags.entity}"`);
     if (t.forecast.includes(id) && !x.tags.period.includes('forecast')) out.push(`${id}: in factAnchors.tags.forecast but its period has no "forecast"`);
-    if (!t.forecast.includes(id) && x.tags.period.includes('forecast')) out.push(`${id}: period "forecast" but not in factAnchors.tags.forecast`);
+    // A mixed item (['forecast', 'current']: a plan stated beside current facts) needn't be in the forecast list.
+    if (!t.forecast.includes(id) && x.tags.period.includes('forecast') && !x.tags.period.includes('current')) out.push(`${id}: period "forecast" only but not in factAnchors.tags.forecast`);
   }
   return out;
 }
@@ -163,7 +182,7 @@ export function applyJudgements(caseId: string, rows: AskRow[], judgements: Judg
   }) }));
 }
 
-export type CaseReport = { id: string; label?: string; collisions: Duplicate[]; rows: AskRow[]; counts: { item: string; phrase: string; count: number }[]; tagProblems: string[]; completeness: string[] };
+export type CaseReport = { id: string; label?: string; collisions: Duplicate[]; containments?: Containment[]; rows: AskRow[]; counts: { item: string; phrase: string; count: number }[]; tagProblems: string[]; completeness: string[] };
 const cell = (s: string) => s.replace(/\|/g, '\\|').replace(/\s*\n\s*/g, ' ');
 export function renderPhase1Lint(reports: CaseReport[], meta: { runs?: string; turns?: Record<string, number> } = {}): string {
   const name = (r: CaseReport) => r.label ?? r.id;
@@ -171,6 +190,8 @@ export function renderPhase1Lint(reports: CaseReport[], meta: { runs?: string; t
     `The merged view: each case with its overlay (cases/phase1/<id>.json) through applyPhase1Overlay, itemCovers off against on. Corpus: ${meta.runs ?? RUNS}, batches 28–38 — the interviewer model's declared requests (with the candidate's asking sentence the engine picks) and the candidate's asking and question sentences. Generated by scripts/phase1-cover-lint.ts.`, ''];
   out.push('## 1. Phrases on two items', '', '| case | phrase (folded) | items | status |', '|---|---|---|---|');
   for (const r of reports) for (const d of r.collisions) out.push(`| ${name(r)} | ${cell(d.phrase)} | ${d.items.join(', ')} | ${d.status} |`);
+  out.push('', '## 1b. A cover inside another item\'s cover', '', '| case | inner phrase | its item | outer phrase | its item | status |', '|---|---|---|---|---|---|');
+  for (const r of reports) for (const c of r.containments ?? []) out.push(`| ${name(r)} | ${cell(c.inner)} | ${c.innerItem} | ${cell(c.outer)} | ${c.outerItem} | ${c.status} |`);
   out.push('', '## 2. New matches', '', 'Each ask whose coverage changes with itemCovers on. gained: item ← overlay phrase(s); excl: a coverExcludes word in the ask (not read by today\'s matching); tags: tagsAgree on the merged case; verdict: the hand judgement.', '');
   for (const r of reports) {
     out.push(`### ${name(r)}${meta.turns ? ` (${meta.turns[r.id] ?? 0} candidate turns)` : ''}`, '');
@@ -225,7 +246,7 @@ export function loadTurns(runs: string, batch: RegExp = BATCH): Map<string, AskT
 export function lintPhase1Case(raw: Case, overlay: Phase1Overlay, turns: AskTurn[], judgements: Judgement[], also: EngineSwitch[] = [], label?: string): CaseReport {
   const { off, on } = phase1Views(raw, overlay, also);
   return {
-    id: raw.id, ...(label ? { label } : {}), collisions: collisions(raw.id, on, off),
+    id: raw.id, ...(label ? { label } : {}), collisions: collisions(raw.id, on, off), containments: containments(on, off),
     rows: applyJudgements(raw.id, askDiff(off, on, overlay, turns), judgements),
     counts: coverCounts(on, overlay, turns), tagProblems: tagProblems(on, overlay), completeness: [...[fullMergeProblem(raw, overlay)].filter((x): x is string => x !== null), ...completeness(on, overlay)],
   };
@@ -256,7 +277,7 @@ function main() {
   for (const r of reports) {
     const gains = r.rows.flatMap(x => x.gained);
     const by = (v: Verdict) => gains.filter(g => (g.verdict ?? 'unsure') === v).length;
-    console.log(`${r.label ?? r.id}: ${r.collisions.filter(d => d.status === 'new').length} new collisions (${r.collisions.length} in all), ${r.rows.length} changed asks, ${gains.length} gains — answers ${by('answers')}, wrong ${by('wrong')}, unsure ${by('unsure')}; lost ${r.rows.flatMap(x => x.lost).length}; tag problems ${r.tagProblems.length}`);
+    console.log(`${r.label ?? r.id}: ${r.collisions.filter(d => d.status === 'new').length} new collisions (${r.collisions.length} in all), ${(r.containments ?? []).filter(c => c.status === 'new').length} new containments, ${r.rows.length} changed asks, ${gains.length} gains — answers ${by('answers')}, wrong ${by('wrong')}, unsure ${by('unsure')}; lost ${r.rows.flatMap(x => x.lost).length}; tag problems ${r.tagProblems.length}`);
   }
   console.log(`wrote ${outDir}/${stem}.md`);
 }
