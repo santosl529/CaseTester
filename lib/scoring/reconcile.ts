@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { withStreamRetry } from './stream-retry';
 import { z } from 'zod';
 import type { RubricScores, FeedbackItem } from './judge';
 import { RUBRIC_DIMENSION_KEYS, CANDIDATE_REFERENCE_RULE, type RubricDimensionKey } from './rubric';
@@ -256,7 +257,7 @@ export async function runReconciliation(
   try {
     const client = anthropicClient();
     // Opus 5.5: thinking always on (adaptive); effort set explicitly.
-    const response = await client.beta.messages.stream({
+    const response = await withStreamRetry('reconcile', () => client.beta.messages.stream({
       model: RECONCILE_MODEL_ID,
       max_tokens: 16000,
       thinking: { type: 'adaptive' },
@@ -264,7 +265,7 @@ export async function runReconciliation(
       messages: [{ role: 'user', content: buildReconcilePrompt(items, gaps, dataCoverage.requestedNotInCase) }],
       betas: [FALLBACK_BETA],
       fallbacks: FALLBACKS,
-    }).finalMessage();
+    }).finalMessage());
     onUsage?.({
       component: 'reconcile',
       model: RECONCILE_MODEL_ID,
