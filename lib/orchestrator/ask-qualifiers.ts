@@ -164,13 +164,26 @@ const SCOPE_WORD = /^(?:industr|competit|market|benchmark)/i;
 // The qualifiers no mapped item states. A period or scope is met by any mapped item
 // that states it, a topic by any one mapped item: the refusal never denies what a
 // mapped line says. `caseLines`: every item of the case, for the words common to it.
-export function unmetQualifiers(what: string, itemLines: QualifierItem[], caseLines: readonly { label: string; value: string }[] = []): Qualifier[] {
+type CaseLine = { label: string; value: string };
+function commonStems(caseLines: readonly CaseLine[]): Set<string> {
   const seen = new Map<string, number>();
   for (const l of caseLines) for (const w of new Set(stems(`${l.label} ${l.value}`))) seen.set(w, (seen.get(w) ?? 0) + 1);
-  const common = new Set([...seen.entries()].filter(([, n]) => n >= 3).map(([w]) => w));
+  return new Set([...seen.entries()].filter(([, n]) => n >= 3).map(([w]) => w));
+}
+export function unmetQualifiers(what: string, itemLines: QualifierItem[], caseLines: readonly CaseLine[] = []): Qualifier[] {
+  const common = commonStems(caseLines);
   const texts = itemLines.map(i => ({ t: `${i.label} — ${i.value}`, years: new Set([...YEARS(`${i.label} ${i.value}`), ...(i.years ?? [])]) }));
   const met = (q: Qualifier) => texts.some(({ t, years }) => (q.kind === 'topic' ? statesTopic(q.text, t, common) : q.kind === 'scope' ? statesScope(q.text, t) : statesPeriod(q.text, t, years)));
   return askQualifiers(what).filter(q => !met(q));
+}
+
+// The mapped items whose label or line states one of the ask's conjuncts (two or more):
+// a missing second topic is no gap in them (Task 61 fix round 1, the controller's ruling).
+export function itemsStatingTopics(what: string, itemLines: QualifierItem[], caseLines: readonly CaseLine[] = []): string[] {
+  const cs = conjuncts(what);
+  if (cs.length < 2) return [];
+  const common = commonStems(caseLines);
+  return itemLines.filter(i => cs.some(c => statesTopic(c, `${i.label} — ${i.value}`, common))).map(i => i.id);
 }
 
 // ---- The refusal phrase ----

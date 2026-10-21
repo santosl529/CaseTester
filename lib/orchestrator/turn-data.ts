@@ -12,7 +12,7 @@ import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog,
 import { askingSentences, addressedAskSentences, lateAskSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, WANT_ASK_PHASES } from './request-signal';
 import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
-import { unmetQualifiers, guardParts, mergeParts, qualifierItems, type Qualifier } from './ask-qualifiers';
+import { unmetQualifiers, guardParts, mergeParts, qualifierItems, itemsStatingTopics, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
 import { costOf } from '@/lib/llm-pricing';
 
@@ -118,10 +118,10 @@ function answersAsk(plan: ModelPlan, what: string, id: string): boolean {
 // ledger items it found, those of them the ask's scope rules rule out, and those
 // the check says hold only the nearest data (`partial`, round 5b Task 56) with the
 // asked part each lacks (`missing`, validated: no digit, the ask's own words).
-// `guard` (round 5c Task 61): the qualifiers of the ask no mapped item states, and the
-// refusal's parts (qualifierGuard below): every mapped item is then partial.
+// `guard` (round 5c Task 61): the qualifiers of the ask no mapped item states, the
+// refusal's parts, and the mapped items it makes partial (qualifierGuard below).
 export type CheckVerdict = { mapped: boolean | null; ids: string[]; outOfScope: string[]; partial: string[]; missing: Record<string, string>; guard?: QualifierGuard };
-export type QualifierGuard = { unmet: Qualifier[]; parts: string[] };
+export type QualifierGuard = { unmet: Qualifier[]; parts: string[]; ids: string[] };
 
 // The qualifier guard (round 5c Task 61; Lorenzo, 20 Oct, ruling 1: "If an ask names a
 // qualifier the item's line doesn't contain (a period …; a scope …; or a second topic
@@ -133,6 +133,12 @@ export type QualifierGuard = { unmet: Qualifier[]; parts: string[] };
 // denies a mapped line. Its parts are the ask's words; a figure in them must be one a
 // candidate turn said (the post-turn audit allows those), else no guard. The check's own
 // valid missing parts it doesn't cover join them (mergeParts).
+// Which items it makes partial (fix round 1, the controller's ruling on b34l Tyler t2 /
+// #52: "A missing second topic is not a gap in the items that answer the other topics"):
+// an unmet period or scope, every mapped item; a missing topic alone, only the items
+// stating none of the ask's conjuncts — one that states its own keeps Haiku's label, so a
+// full one goes through every gate (a held one deferred by its name and booked) and the
+// missing topic is refused beside it (decideCheckedAsk's mixed path).
 function qualifierGuard(plan: ModelPlan, what: string, ids: string[], missing: Record<string, string>): QualifierGuard | null {
   const items = ids.flatMap(id => plan.state.ledger.items.filter(i => i.id === id));
   if (items.length === 0) return null;
@@ -145,7 +151,12 @@ function qualifierGuard(plan: ModelPlan, what: string, ids: string[], missing: R
   if (own.some(p => figs(p).some(f => !said.has(f)))) return null;
   const norm = (m: string) => m.replace(/\s+/g, ' ').trim().toLowerCase();
   const extra = ids.flatMap(id => (missing[id] !== undefined && norm(missing[id]) !== norm(what) ? [missing[id]] : []));
-  return { unmet, parts: mergeParts(own, extra, what) };
+  const qitems = qualifierItems(items, ledger, i => labelWithPeriod(i as Parameters<typeof labelWithPeriod>[0]));
+  // A period or scope inside a missing topic ("current" of "current waste rates") is that topic's, refused with it.
+  const topics = unmet.filter(q => q.kind === 'topic').map(q => q.text.toLowerCase());
+  const topicOnly = topics.length > 0 && unmet.every(q => q.kind === 'topic' || topics.some(t => t.includes(q.text.toLowerCase())));
+  const stating = topicOnly ? new Set(itemsStatingTopics(what, qitems, ledger)) : new Set<string>();
+  return { unmet, parts: mergeParts(own, extra, what), ids: ids.filter(id => !stating.has(id)) };
 }
 
 // What code does with a verdict (Lorenzo, 20 Oct, round 5 E5: "build (a) and
@@ -193,8 +204,8 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
   const { ledger } = plan.state;
   const ids = v.ids.filter(id => ledger.items.some(i => i.id === id));
   if (!v.mapped || ids.length === 0) return { kind: 'refuse' };
-  // A guarded ask (Task 61): every mapped item partial, the guard's parts refused.
-  const partial = new Set(v.guard ? ids : v.partial ?? []);
+  // A guarded ask (Task 61): the items it makes partial join Haiku's, the guard's parts refused.
+  const partial = new Set([...(v.partial ?? []), ...(v.guard?.ids ?? [])]);
   // A partial's refusal as said: figures the mapped items' lines state dropped, a plan name kept (fix round 2).
   const lines = ids.map(id => ledger.items.find(i => i.id === id)!.value);
   const said = (m: string) => refusalPhrase(dropStatedFigures(m, lines), plan);
@@ -221,8 +232,10 @@ export function decideCheckedAsk(plan: ModelPlan, what: string, v: CheckVerdict)
     // Never the whole ask beside a full item (fix round 3: it would refuse the part just
     // answered): a partial whose missing part didn't hold (checkAsk's fallback) gets no refusal.
     // Such a partial's part is logged (`partial_dropped`), the behaviour Lorenzo's to rule on (final review I5).
-    const refused = [...new Set(ids.filter(id => partial.has(id)).flatMap(id => {
-      const m = v.missing?.[id] ?? what;
+    // A guarded ask's parts (a missing topic beside the items answering the others; fix round 1).
+    const asked = v.guard ? v.guard.parts.map(m => ({ id: ids.find(id => v.missing?.[id] === m) ?? v.guard!.ids[0] ?? ids[0], m }))
+      : ids.filter(id => partial.has(id)).map(id => ({ id, m: v.missing?.[id] ?? what }));
+    const refused = [...new Set(asked.flatMap(({ id, m }) => {
       if (whole(m)) { dropped.push({ id, missing: m, why: 'whole_ask' }); return []; }
       return keep(id, said(m)) ? [said(m)] : [];
     }))];
