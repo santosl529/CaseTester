@@ -157,3 +157,41 @@ describe('final review M3: a freed derived claim joins the queue in its order �
     expect(p.selected).toMatchObject({ id: '11:0', action: 'correct', line: LINE_4_2 });
   });
 });
+
+// Ruling 3 (Lorenzo, 20 Oct, round-5b review): "Ruling 11 changed: one derived correction per root, not per derived
+// claim; the root's other derived claims go to the report." Keyed by the root (flags.mathChecker.derivedOnce: the root →
+// the claim its one correction went to, booked by plan-turn when the line is said). b33 Marisol's t14 line is the root's
+// first, so it stands; ruling 1's restatement and the root's own line are never silenced by it (Review Focus 3).
+describe('ruling 3: one derived correction per root (b33 Marisol 31e33506)', () => {
+  const PER_ROOT = `built on a closed input (${ROOT}) — one correction per root, said already (9:3); left for the report`;
+  it('t13: 11:0\'s "about 4.2 points, not 5.8" is unchanged — the root\'s first, its selection naming the root', () => {
+    const p = plan(13, atT13);
+    expect(p.selected).toMatchObject({ id: '11:0', key: OWN, action: 'correct', line: LINE_4_2, onceRoot: ROOT });
+  });
+  it('the root\'s one correction said already for another claim: 11:0 goes to the report as it closes (toReport), and 11:1\'s probe takes the turn', () => {
+    const p = plan(13, { ...atT13, derivedOnce: { [ROOT]: '9:3' } });
+    expect(p.selected).toMatchObject({ id: '11:1', action: 'probe' });
+    expect(p.decisions.filter(d => d.id === '11:0')).toEqual([expect.objectContaining({ outcome: 'unresolved', root: ROOT, reason: PER_ROOT })]);
+    expect(p.handledNow).toContain('11:0');
+  });
+  it('…and on a root closed on an earlier turn (onClosedRoot): the report too — the report text reads the root\'s outcome', () => {
+    const closed = { ...atT13, keys: { ...atT13.keys }, closed: [ROOT], derivedOnce: { [ROOT]: '9:3' } };
+    const p = plan(13, closed);
+    expect(p.selected?.id).not.toBe('11:0');
+    expect(p.decisions.filter(d => d.id === '11:0')).toEqual([expect.objectContaining({ outcome: 'unresolved', root: ROOT, reason: PER_ROOT })]);
+    const section = formatCheckerSection([...rows.map(r => ({ ...r, category: MATH_CHECKER_CATEGORY })), ...p.decisions.map(x => ({ category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: 13, payloadJsonb: x })),
+      { category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: 11, payloadJsonb: { id: '9:0', candidateTurnIndex: 9, outcome: 'unresolved', reason: 'attempt 2: no correction code can write, no pointer — left for the report', span: '', candidateValue: '', key: ROOT, changesConclusion: false } }]);
+    expect(section).toMatch(/"Beans are 5\.8 points of the 16-point COGS increase\." — WRONG[^\n]*which was probed and left for this report\. One correction built on that figure was said, on another claim; this one was left for this report \(one correction per root\)\./);
+  });
+  it('Review Focus 3: a root corrected live still has its correction said once more (ruling 1), whatever the record says', () => {
+    const ROOT_LINE = 'Beans two years ago were about 10.5 points of revenue, not 14.5.';
+    const q = plan(13, { ...atT13, closed: [ROOT], corrected: { [ROOT]: { line: ROOT_LINE, figure: '10.5' } }, derivedOnce: { [ROOT]: '9:3' } });
+    expect(q.selected).toMatchObject({ id: '11:0', key: ROOT, action: 'restate', line: ROOT_LINE });
+  });
+  it('Review Focus 3: the root\'s own correction is said, whatever the record says', () => {
+    const ROOT_LINE = 'Beans two years ago were about 10.5 points of revenue, not 14.5.';
+    const q = plan(13, { ...atT13, rows: editClaim(atT13.rows, 9, 0, { correctionLine: ROOT_LINE, correctionFigure: '10.5' }), derivedOnce: { [ROOT]: '9:3' } });
+    expect(q.selected).toMatchObject({ id: '9:0', action: 'correct', line: ROOT_LINE });
+    expect(q.selected?.onceRoot).toBeUndefined();
+  });
+});

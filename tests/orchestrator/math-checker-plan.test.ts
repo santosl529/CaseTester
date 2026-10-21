@@ -142,6 +142,26 @@ describe('a claim built on the flagged figure rides on its line', () => {
   });
 });
 
+// Ruling 3 (Lorenzo, 20 Oct, round-5b review): one derived correction per root. The root (3:0) went to the report with no
+// line said; the claim built on it (3:1) gets its own correction once, and the root's one is booked when the line is
+// said — flags.mathChecker.derivedOnce, by the root — and undone with it if it isn't heard.
+describe('ruling 3: the root\'s one derived correction is booked by the root', () => {
+  const built: VettedClaim = { ...flagged, span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', candidateValue: '11%', correctValue: 14.5, codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null },
+    probeLine: 'Walk me through how you got to 11%.', correctionLine: 'The new margin is about 14.5%, not 11%.', correctionFigure: '14.5' };
+  const closedRoot = { handled: ['3:0'], closed: ['pricing:gain@5'], keys: { 'pricing:gain@5': { figures: [5], since: 3 } } };
+  it('said: booked to the root (pricing:gain@5 → 3:1), never in the undo', () => {
+    const p = modelState(planTurn(withVerdict(analysis({ mathChecker: closedRoot }), [verdict(3, { claims: [flagged, built] })]), 'Next I would look at competitors.', deps()));
+    expect(p.state.checkerLine).toMatchObject({ id: '3:1', action: 'correct' });
+    expect((p.ctx.flags.mathChecker as { derivedOnce?: Record<string, string> }).derivedOnce).toEqual({ 'pricing:gain@5': '3:1' });
+    expect(p.state.checkerLine?.undo.mathChecker.derivedOnce).toBeUndefined();
+  });
+  it('an earlier record is kept, in the flags and the undo', () => {
+    const p = modelState(planTurn(withVerdict(analysis({ mathChecker: { ...closedRoot, derivedOnce: { 'other@1': '1:0' } } }), [verdict(3, { claims: [flagged, built] })]), 'Next I would look at competitors.', deps()));
+    expect((p.ctx.flags.mathChecker as { derivedOnce?: Record<string, string> }).derivedOnce).toEqual({ 'other@1': '1:0', 'pricing:gain@5': '3:1' });
+    expect(p.state.checkerLine?.undo.mathChecker.derivedOnce).toEqual({ 'other@1': '1:0' });
+  });
+});
+
 describe('the close holds one turn for an unresolved conclusion-changing flag', () => {
   const CORE = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change', 'menu_price_change'];
   const endReads = (o: { flags?: Record<string, unknown>; elapsedMs?: number } = {}) => readsFixture({

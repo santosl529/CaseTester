@@ -13,7 +13,8 @@ vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
 
-import { planCheckerFlags, INPUT_PROBE_CAP, STEP_PROBE_CAP, type CheckerPlanInput, type CheckerRow, type VerdictPayload } from '@/lib/orchestrator/math-checker-live';
+import { planCheckerFlags, lineKey, MATH_CHECKER_CATEGORY, INPUT_PROBE_CAP, STEP_PROBE_CAP, type CheckerPlan, type CheckerPlanInput, type CheckerRow, type VerdictPayload } from '@/lib/orchestrator/math-checker-live';
+import { formatCheckerSection } from '@/lib/scoring/checker-record';
 import { dataFigure, rowFix, onItsOwnRow } from '@/lib/orchestrator/own-quantity';
 import { challengeVerdict } from '@/lib/orchestrator/probe-guard';
 import { candidateFiguresOf } from '@/lib/orchestrator/math-talk';
@@ -144,6 +145,52 @@ describe('Quillpath Marisol 087451cb at t11: the third probe on her input is its
     expect(p.decisions.find(d => d.id === '7:3')).toMatchObject({ outcome: 'correct', root: 'input:40%', reason: expect.stringMatching(/^built on a closed input \(input:40%\) — its own correction, once/) });
     // "Pro at 2.0x is the one in trouble." has one of its own too: it waits for a later turn, on its input.
     expect(p.waiting).toEqual([expect.objectContaining({ id: '9:2', root: 'input:40%' })]);
+  });
+});
+
+// Ruling 3 (Lorenzo, 20 Oct, round-5b review): "Ruling 11 changed: one derived correction per root, not per derived
+// claim; the root's other derived claims go to the report." The b35q no-exhibit variant: at t11 21.5% and 40% go to the
+// report with no line said; 7:3 "$2,400" gets its own correction, and 9:2 "Pro at 2.0x is the one in trouble." waits
+// (both built on input:40%). Under ruling 11 9:2 got its own at t13 ("Pro LTV/CAC is about 3.3 times."); now it goes to
+// the report, naming its root.
+describe('ruling 3: one derived correction per root — the root\'s other derived claims go to the report (b35q Marisol, no cohort exhibit)', () => {
+  const t11 = planAt({ caseData: noExhibits as never });
+  const ONCE_LINE = 'Pro lifetime value is about $4,000, not $2,400.';
+  // Her t13 as recorded; t12 is the line said on the plan above.
+  const T13 = "21.5% came straight off the cohort table — it's the share that had cancelled by month 12 in the Starter cohort, the last column in that progression of 2.0%, 5.9%, 11.4%, 21.5%. I took that as Starter's annual cancellation rate and inverted it.\n\nAnd the 40% is the matching month-12 cancellation figure on the Pro side, from the 5%, 13%, 24%, 40% progression.\n\nOne nuance I'd add on Starter: the cohort data also shows upgrades to Pro, 20% by month 12. Those customers aren't lost — they move to an $80 margin. So Starter's true value is understated by looking at cancellations alone; part of the cohort graduates into the higher-margin plan, and the CAC for that Pro customer was effectively $300, not $1,200. That makes Starter look even better as an acquisition channel for Pro.";
+  const flagRows = (n: number, p: CheckerPlan) => p.decisions.map(d => ({ category: MATH_CHECKER_CATEGORY, subtype: 'flag', turnIndex: n, payloadJsonb: d }) as CheckerRow);
+  // What plan-turn books when 7:3's line is said: handled, its key and the closed inputs closed, the line counted, the root's one correction.
+  const at13 = (over: Partial<CheckerPlanInput> = {}) => planAt({
+    caseData: noExhibits as never, rows: [...F.rows, ...flagRows(11, t11)], handled: [...F.mathChecker.handled, ...t11.handledNow, '7:3'],
+    closed: [...t11.closedNow, 'pro_ltv@2400'], said: { [lineKey(ONCE_LINE)]: 1 }, attempts: { ...F.attempts, 'pro_ltv@2400': 1 },
+    turnRows: [...F.turnRows, { turnIndex: 11, role: 'candidate', text: F.candidateText }, { turnIndex: 12, role: 'interviewer', text: `Got it. ${ONCE_LINE}` }],
+    candidateText: T13, candidateTurnIndex: 13, ...over,
+  });
+  it('t11: 7:3 is the root\'s one derived correction, booked to it; 9:2 waits on the same root', () => {
+    expect(t11.selected).toMatchObject({ id: '7:3', action: 'correct', line: ONCE_LINE, onceRoot: 'input:40%' });
+    expect(t11.waiting).toEqual([expect.objectContaining({ id: '9:2', root: 'input:40%' })]);
+  });
+  it('t13, the root\'s one correction said (derivedOnce): 9:2 goes to the report, naming its root and "one correction per root" — no "about 3.3 times"', () => {
+    const p = at13({ derivedOnce: { 'input:40%': '7:3' } });
+    expect(p.selected?.id).not.toBe('9:2');
+    expect(p.decisions.filter(d => d.id === '9:2')).toEqual([expect.objectContaining({ outcome: 'unresolved', root: 'input:40%',
+      reason: 'built on a closed input (input:40%) — one correction per root, said already (7:3); left for the report' })]);
+    expect(p.decisions.some(d => d.line === 'Pro LTV/CAC is about 3.3 times.')).toBe(false);
+    expect(p.handledNow).toContain('9:2');
+  });
+  it('the record is per root: another root\'s correction leaves 9:2 its own (ruling 11\'s line)', () => {
+    const p = at13({ derivedOnce: { 'input:21.5%': '7:9' } });
+    expect(p.selected).toMatchObject({ id: '9:2', action: 'correct', line: 'Pro LTV/CAC is about 3.3 times.', onceRoot: 'input:40%' });
+  });
+  it('the report: 9:2 reads its root\'s outcome — probed twice and left for the report — and the one correction said on it', () => {
+    const p = at13({ derivedOnce: { 'input:40%': '7:3' } });
+    const section = formatCheckerSection([...F.rows, ...flagRows(11, t11), ...flagRows(13, p)].map(r => ({ ...r, category: MATH_CHECKER_CATEGORY })));
+    const line92 = section.split('\n').find(l => l.includes('"Pro at 2.0x is the one in trouble'))!;
+    expect(line92).toContain('Not raised on its own: it is built on an earlier wrong figure of theirs, which was probed and left for this report.');
+    expect(line92).toContain(`One correction built on that figure was said, on another claim: "${ONCE_LINE}"; this one was left for this report (one correction per root).`);
+    expect(line92).not.toMatch(/Corrected:|not raised in the interview either/);
+    // 7:3, the one said: corrected, by its line.
+    expect(section).toContain(`Corrected: "${ONCE_LINE}"`);
   });
 });
 

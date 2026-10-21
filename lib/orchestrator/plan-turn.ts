@@ -97,7 +97,9 @@ export type CheckerLinePlan = {
 // correction was said once more for a later claim on the wrong value (Lorenzo, 19 Oct, round-2 ruling 1). Both optional:
 // an older session's flags read as no live correction recorded (built on a closed input, as before).
 // said: each correction line delivered, by lineKey — a line said twice is not said again (the controller's ruling on Task 19's concern 1).
-export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[]; corrected?: Record<string, CorrectedRoot>; restated?: string[]; said?: Record<string, number> };
+// derivedOnce: the roots whose one derived correction was said (R7 reversed), each with the claim it went to — the
+// root's other derived claims go to the report (Lorenzo, 20 Oct, ruling 3: one per root).
+export type CheckerMemory = { handled: string[]; keys?: Record<string, CheckerKeyEntry>; closed?: string[]; held?: string; convertedFigures?: number[]; corrected?: Record<string, CorrectedRoot>; restated?: string[]; said?: Record<string, number>; derivedOnce?: Record<string, string> };
 // The gate's memory (flags.codeGate): findings decided, and those held back on a stage turn (re-gated, exempt from the wait).
 type CodeGateMemory = { handled?: string[]; held?: string[] };
 // A stage the model's question may ask, and whether it is due (Lorenzo, 15 Oct): a due one wins over a checker probe.
@@ -669,7 +671,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     handled: checkerHandled, turnRows, candidateText, candidateTurnIndex: ctx.nextTurnIndex,
     currentFlags: liveFlags.filter(f => flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))), codeLineThisTurn: misquote !== null, attempts: recomputeAttempts, underTimePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS),
     candidateFigures, caseData, revealedIds: revealedIdsNow, shownExhibitIds: [...shownExhibitIds], keys: checkerMemory.keys, closed: checkerMemory.closed, stepProbes, inputProbes, held: heldLine, finalAnswer, rank,
-    convertedFigures: checkerMemory.convertedFigures, corrected: checkerMemory.corrected, restated: checkerMemory.restated, said: checkerMemory.said,
+    convertedFigures: checkerMemory.convertedFigures, corrected: checkerMemory.corrected, restated: checkerMemory.restated, said: checkerMemory.said, derivedOnce: checkerMemory.derivedOnce,
     phraseUses: flags.phraseUses as PhraseUses | undefined, seed: `${ctx.sessionId}:${ctx.nextTurnIndex}`, codeFigures,
     // The gate's decisions, earlier turns' (by turn) then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
     gateOutcomes: gateOutcomesOf(checkerRows, gate.decisions),
@@ -1101,12 +1103,17 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The line said (a correction, a conversion, a restatement) counted once more (the controller's ruling on Task 19's concern 1).
   const saidLine = checkerUsed && correctsNow(checkerUsed) ? lineKey(checkerUsed.line) : null;
   const saidAfter = saidLine ? { ...checkerMemory.said, [saidLine]: (checkerMemory.said?.[saidLine] ?? 0) + 1 } : checkerMemory.said ?? {};
+  // A derived claim's own correction said (R7 reversed): its root's one (ruling 3) — undone with the line if it isn't heard.
+  const onceNow = checkerUsed && correctsNow(checkerUsed) && checkerUsed.onceRoot ? checkerUsed.onceRoot : null;
+  const derivedOnceAfter = onceNow ? { ...checkerMemory.derivedOnce, [onceNow]: checkerUsed!.id } : checkerMemory.derivedOnce ?? {};
   const fixesKept = { ...(checkerMemory.corrected && Object.keys(checkerMemory.corrected).length ? { corrected: checkerMemory.corrected } : {}), ...(checkerMemory.restated?.length ? { restated: checkerMemory.restated } : {}),
-    ...(checkerMemory.said && Object.keys(checkerMemory.said).length ? { said: checkerMemory.said } : {}) };
+    ...(checkerMemory.said && Object.keys(checkerMemory.said).length ? { said: checkerMemory.said } : {}),
+    ...(checkerMemory.derivedOnce && Object.keys(checkerMemory.derivedOnce).length ? { derivedOnce: checkerMemory.derivedOnce } : {}) };
   if (checkerHandledNow.length > 0 || keysChanged || closedAfter.length !== (checkerMemory.closed ?? []).length || heldAfter !== checkerMemory.held || convertedFigure !== undefined
-    || Object.keys(correctedNow).length > 0 || restatedAfter.length !== (checkerMemory.restated ?? []).length || saidLine !== null) {
+    || Object.keys(correctedNow).length > 0 || restatedAfter.length !== (checkerMemory.restated ?? []).length || saidLine !== null || onceNow !== null) {
     flags.mathChecker = { handled: [...checkerHandled, ...checkerHandledNow], ...(Object.keys(checkerKeys).length ? { keys: checkerKeys } : {}), ...(closedAfter.length ? { closed: closedAfter } : {}), ...(heldAfter ? { held: heldAfter } : {}), ...(convertedAfter.length ? { convertedFigures: convertedAfter } : {}),
-      ...(Object.keys(correctedAfter).length ? { corrected: correctedAfter } : {}), ...(restatedAfter.length ? { restated: restatedAfter } : {}), ...(Object.keys(saidAfter).length ? { said: saidAfter } : {}) };
+      ...(Object.keys(correctedAfter).length ? { corrected: correctedAfter } : {}), ...(restatedAfter.length ? { restated: restatedAfter } : {}), ...(Object.keys(saidAfter).length ? { said: saidAfter } : {}),
+      ...(Object.keys(derivedOnceAfter).length ? { derivedOnce: derivedOnceAfter } : {}) };
   }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.

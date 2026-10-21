@@ -541,6 +541,9 @@ export type CheckerSelection = {
   // quantity, or no quantity stated (own-quantity.ts): no "not X", and its step closes.
   converted?: boolean;
   framing?: string;   // how the candidate framed the figure, for the log
+  // A derived claim's own correction, once (R7 reversed): the root it is built on — booked, when the line is said, as
+  // that root's one derived correction (flags.mathChecker.derivedOnce; Lorenzo, 20 Oct, ruling 3: one per root).
+  onceRoot?: string;
   // Claims built on this line's root, 'derived' on it: handled only if the line is used and heard (plan-turn, settle-turn).
   riders?: { id: string; candidateTurnIndex: number; claim: VettedClaim }[];
   // E7: the input a probe, pointer or hint is on (booked in flags.inputProbes), and the inputs a row fix corrects (closed with it).
@@ -568,6 +571,7 @@ export type CheckerPlanInput = {
   corrected?: Record<string, CorrectedRoot>; // the closed keys a delivered correction or conversion closed, with its line (ruling 1)
   restated?: string[];                // …and those whose correction was restated once since
   said?: Record<string, number>;      // each correction line delivered (correction, conversion, restatement, 13 Oct), by lineKey: times said
+  derivedOnce?: Record<string, string>; // the roots whose one derived correction was said (ruling 3), with the claim it went to
   stepProbes?: Record<string, number>; // probes spent on each step this interview (STEP_PROBE_CAP)
   inputProbes?: Record<string, number[]>; // the interviewer turns code's lines on each input were said on (INPUT_PROBE_CAP)
   held?: string;                      // a line a due stage question held back (Settle): raised first, and it doesn't expire
@@ -1070,6 +1074,9 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // own-quantity framing (correctionOf: framedCorrection, or the row fix of a misread input), the checker's flag as
   // always; no probe, pointer or hint. No true line on their reading → the report, as before; its line said already
   // (on an earlier turn, for it or another claim) → the report: a derived claim's correction is said at most once.
+  // Ruling 3 (Lorenzo, 20 Oct, round-5b review: "Ruling 11 changed: one derived correction per root, not per derived
+  // claim; the root's other derived claims go to the report"): one per root — keyed by the root (p.derivedOnce, booked
+  // by plan-turn when the line is said, undone with it), so a root's other derived claims go to the report, on any turn.
   const ownOnce = (e: typeof all[number]): CheckerSelection | null => correctionOf(e.id, e.n, e.c, e.key, (p.attempts[e.key] ?? 0) + 1);
   const saidOnce = (s: CheckerSelection) => (p.said?.[lineKey(s.line)] ?? 0) >= 1;
   // …else the report: "built on a closed input" (no true line), or its own line already said.
@@ -1078,8 +1085,14 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
       : `built on a closed input (${root}) — its own correction was said once already; left for the report`, said?.line, e.key), root });
     handled.add(e.id);
   };
-  // …in the queue: the claim with its correction, ready for the selection.
+  // …in the queue: the claim with its correction, ready for the selection — unless its root's one was said already.
   const onceEntry = (e: typeof all[number], root: string) => {
+    const by = p.derivedOnce?.[root];
+    if (by !== undefined) {
+      decisions.push({ ...decision(e.id, e.n, e.c, 'unresolved', `built on a closed input (${root}) — one correction per root, said already (${by}); left for the report`, undefined, e.key), root });
+      handled.add(e.id);
+      return null;
+    }
     const sel = ownOnce(e);
     if (!sel || saidOnce(sel)) { builtToReport(e, root, sel ?? undefined); return null; }
     return { ...e, once: { root, sel } };
@@ -1153,8 +1166,6 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     || Number(Boolean(b.restate)) - Number(Boolean(a.restate)) || a.n - b.n;
   eligible.sort(order);
   let selected: CheckerSelection | null = null;
-  // A derived claim's own correction selected (R7 reversed): the root it was built on, for its decision.
-  let onceRoot: string | null = null;
   const waiting = [...eligible];
   // A key that goes to the report this turn, with no line said: the claims built on it join the queue, each for its own
   // correction once (R7 reversed, onceEntry), in the queue's order (final review M3: a minor derived correction never takes
@@ -1192,8 +1203,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     if (entry.once) {
       const { root, sel } = entry.once;
       if (p.underTimePressure && !isFinal(entry) && !changes(entry)) { decisions.push({ ...decision(id, n, c, 'shed', 'minor, under time pressure (Rule 15)', undefined, key), root }); handled.add(id); continue; }
-      selected = sel;
-      onceRoot = root;
+      selected = { ...sel, onceRoot: root };
       continue;
     }
     // E7: a claim on an input closed this turn with no line said: its own correction once (R7 reversed), through the
@@ -1260,6 +1270,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     toReport([key]);
   }
   const restating = selected?.action === 'restate';
+  // A derived claim's own correction (R7 reversed): its decision names the root it was built on.
+  const onceRoot = selected?.onceRoot;
   if (selected && !restating) decisions.push({ ...decision(selected.id, selected.candidateTurnIndex, selected.claim, selected.converted ? 'converted' : selected.action,
     `${onceRoot ? `built on a closed input (${onceRoot}) — its own correction, once; ` : ''}attempt ${selected.attempt}${selected.framing ? `; ${selected.converted ? 'a conversion: ' : ''}${selected.framing}` : ''}${eligible.find(e => e.id === selected!.id && e.key === selected!.key)?.carried ? `; carried into ${riding(selected).map(d => d.id).join(', ')}` : ''}`, selected.line, selected.key), ...(onceRoot ? { root: onceRoot } : {}) });
   // The claims built on a root said now ride on its line (booked only if the line is used — plan-turn); the rest

@@ -45,10 +45,15 @@ export function dropCheckerStamps(v: Map<number, TurnVerification>, rows: Checke
   return new Map([...v].map(([turn, x]) => [turn, { ...x, verified: x.verified.filter(s => !(flagged.get(turn) ?? []).some(n => same(n, s.value))) }]));
 }
 
+// The decisions on a root: on its key — or, for a misread input (E7, `input:…`), on the claims of it sent to the report
+// with it ("two probes on its input (input:40%) already, … — left for the report"; their key is the claim's own).
+const onRootOf = (root: string | undefined, all: CheckerDecision[]) => (root === undefined ? []
+  : all.filter(d => d.key === root || (root.startsWith('input:') && d.reason.includes(`its input (${root})`))));
+
 // A claim built on an earlier wrong figure (Lorenzo, 19 Oct, §15 o): what became of that input in the interview.
 // The root's correction said once more for this claim (Lorenzo, 19 Oct, round-2 ruling 1): `restated`.
 function builtText(root: string | undefined, all: CheckerDecision[], restated = false): string {
-  const onRoot = root === undefined ? [] : all.filter(d => d.key === root);
+  const onRoot = onRootOf(root, all);
   const fix = onRoot.find(d => d.outcome === 'correct' || d.outcome === 'converted');
   // A root a conversion closed was right on another quantity: not their error, so never "wrong" (round-3 ruling 1, Lorenzo,
   // 19 Oct: "not X" only on code's own quantity; Task 18 review). Its line, as said, on its right basis.
@@ -66,6 +71,13 @@ function builtText(root: string | undefined, all: CheckerDecision[], restated = 
 
 const RESTATED = 'Restated after it had been probed or corrected.';
 
+// One derived correction per root (Lorenzo, 20 Oct, ruling 3): another claim built on the same root had it — its line, as
+// said (that claim's own correction, once: a `correct` or `converted` decision naming the root).
+function perRoot(root: string | undefined, all: CheckerDecision[]): string {
+  const said = all.find(d => d.root === root && (d.outcome === 'correct' || d.outcome === 'converted') && /its own correction, once/.test(d.reason) && d.line);
+  return ` One correction built on that figure was said, on another claim${said ? `: "${said.line}"` : ''}; this one was left for this report (one correction per root).`;
+}
+
 function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outcomes): string {
   const has = (o: CheckerDecision['outcome']) => outcomes.find(d => d.outcome === o);
   const corrected = has('correct');
@@ -81,7 +93,7 @@ function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outco
   // that root: what became of it, not a bare "not raised" (round-2 final review, Minor 2; Lorenzo, 19 Oct, round-3 ruling 2).
   // So does one on a root probed and left for the report (round-5b Task 54's review).
   const unsaid = outcomes.find(d => ['expired', 'shed', 'unresolved_at_close'].includes(d.outcome) && d.root !== undefined
-    && all.some(r => r.key === d.root && (r.outcome === 'correct' || r.outcome === 'converted' || (r.outcome === 'unresolved' && /left for the report/.test(r.reason)))));
+    && onRootOf(d.root, all).some(r => r.outcome === 'correct' || r.outcome === 'converted' || (r.outcome === 'unresolved' && /left for the report/.test(r.reason))));
   if (unsaid) return builtText(unsaid.root, all);
   if (has('expired')) return 'Not raised in the interview (it waited behind other checks and expired).';
   if (has('shed')) return 'Not raised in the interview (minor, under time pressure).';
@@ -91,7 +103,10 @@ function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outco
   const built = outcomes.find(d => d.outcome === 'derived' || (d.outcome === 'unresolved' && /^built on a (?:closed|corrected) input/.test(d.reason)));
   // …whose correction was already said twice: not again (the controller's ruling on Task 19's concern 1).
   const spent = built && /already said twice/.test(built.reason) ? '; that correction had already been said twice, so it was not said again.' : '';
-  if (built) return `${builtText(built.root ?? /^built on (?:a (?:closed|corrected) input \()?([^ )']+)/.exec(built.reason)?.[1], all)}${spent}`;
+  if (built) {
+    const root = built.root ?? /^built on (?:a (?:closed|corrected) input \()?([^ )']+)/.exec(built.reason)?.[1];
+    return `${builtText(root, all)}${spent}${built.outcome === 'unresolved' && /one correction per root/.test(built.reason) ? perRoot(root, all) : ''}`;
+  }
   const twice = outcomes.find(d => d.outcome === 'unresolved' && /already said twice/.test(d.reason));
   if (twice) return `Not corrected again: its correction had already been said twice in the interview: "${twice.line}"`;
   // Past Rule 14 (Lorenzo, 13 Oct): probed twice with nothing code could correct, or a restatement of an error already handled.
