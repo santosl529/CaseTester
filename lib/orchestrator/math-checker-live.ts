@@ -724,6 +724,10 @@ export type CheckerPlanInput = {
   // Fix round 2 (controller ruling, 21 Oct: a fresh root's input question first): the linked claims' own corrections
   // wait this turn — not decided, still waiting (plan-turn plans again with this when the root's question is due).
   holdLinked?: boolean;
+  // Phase 1 task 2 (the `staleProbeDrop` switch; plan-turn, from the worksheet): before a probe or correction on a claim is
+  // chosen, why it is stale — the candidate has since stated a newer value for its quantity, or withdrawn its figure or
+  // one it is built on — else null. A stale claim is dropped, logged `stale_drop`; the next one in the queue goes.
+  staleDrop?: (e: { id: string; n: number; c: VettedClaim }) => string | null;
 };
 export type CheckerPlan = {
   selected: CheckerSelection | null;  // at most one a turn
@@ -1393,6 +1397,14 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   while (!selected && p.currentFlags.length === 0 && !p.codeLineThisTurn && waiting.length > 0) {
     const entry = waiting.shift()!;
     const { id, n, c, key, codeProbed } = entry;
+    // Phase 1 task 2: a probe or correction the candidate has overtaken since is not said (Lorenzo: "drop it if the
+    // worksheet holds a newer value for that quantity").
+    const stale = p.staleDrop?.({ id, n, c }) ?? null;
+    if (stale !== null) {
+      decisions.push({ ...decision(id, n, c, 'stale', `stale_drop: ${stale}`, undefined, entry.restate?.own ?? key), ...(entry.restate ? { root: key } : entry.once ? { root: entry.once.root } : {}) });
+      handled.add(id);
+      continue;
+    }
     // The root's correction once more (ruling 1): no Rule-14 attempt and no probe; a minor one is shed under time pressure, as a flag is.
     if (entry.restate) {
       const own = entry.restate.own;

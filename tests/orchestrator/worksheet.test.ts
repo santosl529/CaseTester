@@ -3,7 +3,7 @@
 // phrases ("not X", "instead of X", "earlier I said X", "throw that out") mark X withdrawn, not current."
 // Sentences are the candidates' own, verbatim from batches 33–38.
 import { describe, it, expect } from 'vitest';
-import { update, latest, hasNewerValue, isWithdrawn, lineageOf, findWithdrawals, statusOf, EMPTY_WORKSHEET } from '@/lib/orchestrator/worksheet';
+import { update, latest, hasNewerValue, isWithdrawn, lineageOf, findWithdrawals, statusOf, staleReason, EMPTY_WORKSHEET } from '@/lib/orchestrator/worksheet';
 import { getCaseById } from '@/lib/cases/loader';
 
 const prof2 = getCaseById('prof-002');
@@ -131,5 +131,62 @@ describe('lineageOf (3.3)', () => {
     const c = { mathSteps: [{ id: 'a' }, { id: 'b', dependsOn: ['a'] }, { id: 'c', dependsOn: ['b'] }, { id: 'd' }] };
     expect(lineageOf(c, 'c')).toEqual({ root: 'a', members: ['a', 'b', 'c'] });
     expect(lineageOf(c, 'd')).toEqual({ root: 'd', members: ['d'] });
+  });
+});
+
+describe('staleReason (3.2, every line that probes or corrects)', () => {
+  const t13 = 'And I had Port Avery\'s variable cost wrong too — it\'s $11,000 per flight, not $9,000.';
+  const ws = update(EMPTY_WORKSHEET, { turn: 13, text: t13, stepBindings: [] }, prof2);
+  const span11 = 'revenue per flight FY2025 is 60 × ($160 + $20) = $10,800, less $9,000 = $1,800 positive';
+  it('a claim built on a misread of the data, fixed in a later message (b38 Marisol 11:4: Lakeport\'s $9,000 for Port Avery\'s $11,000): stale', () => {
+    expect(ws.withdrawn).toEqual([expect.objectContaining({ value: 9000, replacement: 11000 })]);
+    expect(staleReason(ws, prof2, { n: 11, quantity: null, value: 1800, span: span11 }, [9000, 11000, 160, 20, 60]))
+      .toBe('built on 9000, withdrawn at message 13 ("not $9,000")');
+    expect(staleReason(ws, prof2, { n: 11, quantity: null, value: 1800, span: span11 }, [])).toBeNull();
+  });
+  it('…not a figure of their own they redo (b38 Tyler t21 "$10M, not $12M": his t19 "$12M plus $1.8M, about $13.8M" is still probed — the hand grade\'s call)', () => {
+    const w = update(EMPTY_WORKSHEET, { turn: 21, text: 'Across 5,000 flights that\'s $10M, not $12M.', stepBindings: [] }, prof2);
+    expect(staleReason(w, prof2, { n: 19, quantity: null, value: 13.8, span: 'exiting them and redeploying the aircraft swings us by $12M plus $1.8M, about $13.8M' }, [1.8, 5000])).toBeNull();
+  });
+  it('…nor a case figure withdrawn in another setting (b35q Marisol t29 "at $60 the Starter margin is $50, not $30": her t27 $30 at $40 stands)', () => {
+    const w = update(EMPTY_WORKSHEET, { turn: 29, text: 'First, at $60 the Starter margin is $50, not $30.', stepBindings: [] }, pricing);
+    expect(staleReason(w, pricing, { n: 27, quantity: null, value: 3, span: '1 / 0.40 = 2.5 years = 30 months, × $30 margin = $900 LTV against $300 CAC = 3.0x' }, [30, 40, 10, 60, 300])).toBeNull();
+  });
+  it('…in the same message: not (the sentence that withdraws it carries it)', () => {
+    expect(staleReason(ws, prof2, { n: 13, quantity: null, value: 200, span: t13 })).toBeNull();
+  });
+  it('its own figure withdrawn (a misquote taken back: b33 Tyler t9 "58%, not 61%"): stale', () => {
+    const w = update(EMPTY_WORKSHEET, { turn: 9, text: 'Got it, thanks — 58%, not 61%.', stepBindings: [] }, prof2);
+    expect(staleReason(w, prof2, { n: 5, quantity: null, value: 61, span: 'COGS went to 61%' })).toBe('61 withdrawn at message 9 ("not 61%")');
+  });
+  it('a newer value of its quantity: stale; nothing since: null', () => {
+    const w = update(update(EMPTY_WORKSHEET, { turn: 15, text: '', stepBindings: [{ stepId: 'network_improvement', value: 15.8, span: '$15.8M' }] }, prof2),
+      { turn: 21, text: '', stepBindings: [{ stepId: 'network_improvement', value: 11.8, span: '$11.8M' }] }, prof2);
+    expect(staleReason(w, prof2, { n: 15, quantity: 'step:network_improvement', value: 15.8, span: '$15.8M' })).toBe('step:network_improvement restated at 11.8 (message 21) since message 15');
+    expect(staleReason(w, prof2, { n: 21, quantity: 'step:network_improvement', value: 11.8, span: '$11.8M' })).toBeNull();
+  });
+});
+
+describe('a figure a hundred times off the step\'s answer is another quantity\'s, not a newer value', () => {
+  it('b32 Aldermoor Marisol t9: "2 million diagnosed" tagged as peak patients (answer 40,000) does not overtake her 200,000', () => {
+    const aldermoor = getCaseById('entry-001');
+    const ws = update(update(EMPTY_WORKSHEET, { turn: 7, text: '', stepBindings: [], checkerClaims: [{ quantity: 'step:peak_patients', value: 200000, span: 'gives 200,000 patients on Kelvexa at peak', rating: 'error' }] }, aldermoor),
+      { turn: 9, text: '', stepBindings: [], checkerClaims: [{ quantity: 'step:peak_patients', value: 2, span: 'Diagnosed: 50% → 2 million', rating: 'error' }] }, aldermoor);
+    expect(hasNewerValue(ws, 'step:peak_patients', 7, 200000, aldermoor)).toBe(false);
+    const redo = update(ws, { turn: 11, text: '', stepBindings: [], checkerClaims: [{ quantity: 'step:peak_patients', value: 40000, span: '40,000 patients at peak', rating: 'correct' }] }, aldermoor);
+    expect(hasNewerValue(redo, 'step:peak_patients', 7, 200000, aldermoor)).toBe(true);
+  });
+});
+
+describe('a value already stated in the probed message is no newer value', () => {
+  it('b32 Aldermoor Marisol t17: the $220M gap tagged as peak sales beside her $80M; her t19 "$80 million" again is not news', () => {
+    const aldermoor = getCaseById('entry-001');
+    const at17 = update(EMPTY_WORKSHEET, { turn: 17, text: '', stepBindings: [], checkerClaims: [
+      { quantity: 'step:peak_net_sales', value: 80, span: 'Peak revenue: 40,000 × $2,000 = $80 million.', rating: 'error' },
+      { quantity: 'step:peak_net_sales', value: 220, span: '$80 million against a $300 million bar, so we\'re short by $220 million', rating: 'error' }] }, aldermoor);
+    const at19 = update(at17, { turn: 19, text: '', stepBindings: [], checkerClaims: [{ quantity: 'step:peak_net_sales', value: 80, span: 'with peak at $80 million there\'s no headroom at all', rating: 'error' }] }, aldermoor);
+    expect(hasNewerValue(at19, 'step:peak_net_sales', 17, 220, aldermoor)).toBe(false);
+    const at27 = update(at19, { turn: 27, text: '', stepBindings: [], checkerClaims: [{ quantity: 'step:peak_net_sales', value: 320, span: 'So 40,000 × $8,000 = $320 million.', rating: 'correct' }] }, aldermoor);
+    expect(hasNewerValue(at27, 'step:peak_net_sales', 17, 220, aldermoor)).toBe(true);
   });
 });

@@ -130,7 +130,11 @@ const WITHDRAW_THAT = /\b(?:throw (?:that|it|this) out|scratch that|ignore (?:th
 const SENTENCES = /(?<=[.!?])\s+|\n+/;
 const FIGURE_ANY = /(-?\$?\s?\d[\d,]*(?:\.\d+)?)(\s?(?:%|percent\b|points?\b|k\b|m\b|mn\b|million\b|bn\b|billion\b|x\b))?/gi;
 
-export type Withdrawal = { value: number; unit: WorksheetUnit | null; phrase: string };
+// `replacement`: for "X, not Y", the figure said in Y's place — the last one before "not" in its clause ("it's $11,000
+// per flight, not $9,000").
+export type Withdrawal = { value: number; unit: WorksheetUnit | null; phrase: string; replacement?: number };
+// A withdrawn figure as the worksheet keeps it (the contract's WithdrawnFigure, with the replacement when said).
+export type Withdrawn = WithdrawnFigure & { replacement?: number };
 export function findWithdrawals(text: string): Withdrawal[] {
   const out: Withdrawal[] = [];
   for (const sentence of normalizeNumberWords(text).split(SENTENCES)) {
@@ -138,7 +142,11 @@ export function findWithdrawals(text: string): Withdrawal[] {
     for (const re of [...WITHDRAW_FIG, ...(own ? [INSTEAD] : [])]) {
       for (const m of sentence.matchAll(re)) {
         const value = num(m[1]);
-        if (Number.isFinite(value)) out.push({ value: Math.abs(value), unit: unitOfSaid(m[1], m[2] ?? ''), phrase: m[0].trim() });
+        if (!Number.isFinite(value)) continue;
+        const clause = re === WITHDRAW_FIG[0] ? sentence.slice(0, m.index).split(/[;:—–]|\s-\s/).at(-1) ?? '' : '';
+        const instead = [...clause.matchAll(FIGURE_ANY)].at(-1);
+        const replacement = instead ? Math.abs(num(instead[1])) : undefined;
+        out.push({ value: Math.abs(value), unit: unitOfSaid(m[1], m[2] ?? ''), phrase: m[0].trim(), ...(replacement !== undefined && Number.isFinite(replacement) ? { replacement } : {}) });
       }
     }
     for (const m of sentence.matchAll(WITHDRAW_THAT)) {
@@ -184,10 +192,10 @@ export function update(ws: Worksheet, input: WorksheetMessage, caseData: unknown
     });
   }
   if (withdrawals.length > 0) {
-    const added: WithdrawnFigure[] = withdrawals.map(w => {
+    const added: Withdrawn[] = withdrawals.map(w => {
       // The quantity it was withdrawn from, when code can tell: an entry that held it, by unit.
       const from = Object.values(out.entries).find(e => unitsFit(w.unit, e.unit) && allValues(e).some(v => v.turn <= input.turn && sameFigure(v.value, w.value)));
-      return { value: w.value, unit: w.unit, quantity: from?.quantity ?? null, turn: input.turn, phrase: w.phrase };
+      return { value: w.value, unit: w.unit, quantity: from?.quantity ?? null, turn: input.turn, phrase: w.phrase, ...(w.replacement !== undefined ? { replacement: w.replacement } : {}) };
     });
     out = { ...out, withdrawn: [...out.withdrawn, ...added.filter(a => !out.withdrawn.some(x => x.turn === a.turn && sameFigure(x.value, a.value)))] };
   }
@@ -215,11 +223,50 @@ export function hasNewerValue(ws: Worksheet, quantity: string, turn: number, val
   const probed = value ?? values.filter(v => v.turn === turn).at(-1)?.value;
   if (probed === undefined) return false;
   if (ws.withdrawn.some(w => w.turn >= turn && sameFigure(probed, w.value) && (w.quantity === null || w.quantity === quantity) && unitsFit(w.unit, e?.unit))) return true;
-  const later = values.filter(v => v.turn > turn);
+  // A figure a hundred times off the step's answer is another quantity's (checkCandidateMath's rule): no statement of it.
+  const id = stepIdOf(quantity);
+  const answer = id === null ? undefined : stepOf(caseData, id)?.answer;
+  const plausible = (v: WorksheetValue) => !answer || !v.value || Math.abs(Math.log10(Math.abs(v.value / answer))) < 2;
+  if (!plausible({ value: probed } as WorksheetValue)) return false;
+  const later = values.filter(v => v.turn > turn && plausible(v));
   if (later.length === 0) return false;
   const same = (v: WorksheetValue) => sameValue(caseData, quantity, v.value, probed);
+  // A value they had already stated in the probed message is no news (b32 Aldermoor Marisol 17:3: "$80 million against
+  // a $300 million bar, so we're short by $220 million", the $220M gap tagged as peak sales beside the $80M itself).
+  const saidThen = values.filter(v => v.turn === turn);
+  const fresh = (v: WorksheetValue) => !same(v) && !saidThen.some(a => sameValue(caseData, quantity, v.value, a.value));
   const lastProbed = Math.max(-Infinity, ...later.filter(same).map(v => v.turn));
-  return later.some(v => !same(v) && (v.turn > lastProbed || (v.turn === lastProbed && v.status === 'right')));
+  return later.some(v => fresh(v) && (v.turn > lastProbed || (v.turn === lastProbed && v.status === 'right')));
+}
+
+// 3.2's reason, for a probe or correction on a claim of message `n` — its quantity and figure when code knows them, and
+// the words it was said in: the candidate has since stated a newer value for the quantity; or withdrawn its figure (in
+// that message or later); or withdrawn, in a later message, a figure its words carry (b38 Larkspur Marisol 11:4, "less
+// $9,000 = $1,800 positive", then t13 "it's $11,000 per flight, not $9,000"). Null: not stale.
+export function staleReason(ws: Worksheet, caseData: unknown, item: { n: number; quantity: string | null; value?: number; span: string }, caseFigures: number[] = []): string | null {
+  const { n, quantity, value } = item;
+  if (quantity !== null && value !== undefined && hasNewerValue(ws, quantity, n, value, caseData)) {
+    const e = ws.entries[quantity];
+    const w = ws.withdrawn.find(x => x.turn >= n && sameFigure(value, x.value));
+    return w ? `${value} withdrawn at message ${w.turn} ("${w.phrase}")` : `${quantity} restated at ${e?.value} (message ${e?.turn}) since message ${n}`;
+  }
+  if (value !== undefined) {
+    const w = ws.withdrawn.find(x => x.turn >= n && sameFigure(value, x.value));
+    if (w) return `${value} withdrawn at message ${w.turn} ("${w.phrase}")`;
+  }
+  const carried = [...normalizeNumberWords(item.span).matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => parseFloat(m[0].replace(/,/g, '')))
+    .filter(x => value === undefined || !sameFigure(x, value));
+  // …only a misread of the data they have fixed: the figure and its replacement both figures of the case, one row for
+  // another (Marisol: Lakeport's $9,000 for Port Avery's $11,000). A figure of their own they redo ("$10M, not $12M",
+  // b38 Tyler t21) leaves the claims built on it to be probed — the hand grade's call on his t24 "$13.8M" probe — and a
+  // case figure withdrawn in another setting ("at $60 the Starter margin is $50, not $30", b35q Marisol t25) leaves
+  // its other uses alone.
+  const isCase = (x: number) => caseFigures.some(y => sameFigure(x, y));
+  for (const x of carried) {
+    const w = (ws.withdrawn as Withdrawn[]).find(y => y.turn > n && sameFigure(x, y.value) && isCase(y.value) && y.replacement !== undefined && isCase(y.replacement));
+    if (w) return `built on ${x}, withdrawn at message ${w.turn} ("${w.phrase}")`;
+  }
+  return null;
 }
 
 // 3.3: the root of a step's lineage through mathSteps[].dependsOn — up the first declared dependency to a step that
@@ -257,12 +304,19 @@ const CODE_PRICING: Record<string, string> = { gain: 'gain', new_margin: 'new_ma
 
 // The worksheet after this message: its own step bindings and pricing results (code's, as it arrives), then every
 // landed verdict's tagged claims (each at its own message; idempotent, so all are folded every turn).
+// Code's step bindings count only on a case whose binding is validated (`stepFlagsLive`: prof-001) — the same rule
+// that keeps the other cases' step flags report-only (Lorenzo, 13 Oct). Elsewhere the binder's figures are too loose to
+// say what the candidate holds: on the replay, b37q Marcus t15's "$900 / $30 = 30 months" bound as Starter LTV $900
+// would have dropped the probe of his 14-month lifetime (M2's real root); b32 Aldermoor Marisol t9's "2 million
+// diagnosed" bound as peak patients 2 would have dropped a true probe of her 200,000. There, the checker's tags and
+// code's pricing results fill it.
 export function foldTurn(ws: Worksheet, p: {
   caseData: unknown; turn: number; text: string; candidateMath: Pick<CandidateMath, 'flags' | 'reportOnly' | 'verified' | 'pricing'>;
   verdicts: Pick<VerdictPayload, 'candidateTurnIndex' | 'claims'>[]; revealedIds: string[];
 }): Worksheet {
   const known = (id: string) => stepOf(p.caseData, id) !== undefined;
-  const stepBindings = [
+  const live = Boolean((p.caseData as { stepFlagsLive?: boolean } | null)?.stepFlagsLive);
+  const stepBindings = !live ? [] : [
     ...[...p.candidateMath.flags.filter(f => (f.kind ?? 'step') === 'step'), ...p.candidateMath.reportOnly].map(f => ({ stepId: f.stepId, value: f.candidateValue, span: f.span })),
     ...p.candidateMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span })),
   ].filter(b => known(b.stepId));

@@ -38,10 +38,18 @@ describe('flags.worksheet', () => {
     vi.stubEnv('ENGINE_SWITCHES', '');
     expect(plan().ctx.flags.worksheet).toBeUndefined();
   });
-  it('switch on: the message\'s step binding (report-only starter_ltv 405, wrong against $600 ± $60) at its turn', () => {
+  it('switch on, prof-001 (its step binding validated, stepFlagsLive): the message\'s binding at its turn', () => {
+    vi.stubEnv('ENGINE_SWITCHES', 'prof-001=worksheet');
+    const reads = readsFixture({ phase: 'ANALYSIS', revealed: ['bean_share_of_cogs', 'cogs_pct'], flags: { pressureTest: PT } });
+    const p = planTurn(reads, 'Beans were 25% of COGS, so about 10.5 points of revenue.', { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
+    const ws = p.ctx.flags.worksheet as Worksheet;
+    expect(ws.entries['step:bean_share_of_revenue']).toEqual(expect.objectContaining({ value: 10.5, turn: 3, status: 'right', source: 'step_binding', unit: 'percent' }));
+    expect(ws.throughTurn).toBe(3);
+  });
+  it('switch on, pricing-001 (binding not validated: its step flags are report-only): no binding of the binder\'s — Raj\'s $405 is not taken', () => {
     vi.stubEnv('ENGINE_SWITCHES', 'pricing-001=worksheet');
     const ws = plan().ctx.flags.worksheet as Worksheet;
-    expect(ws.entries['step:starter_ltv']).toEqual(expect.objectContaining({ value: 405, turn: 3, status: 'wrong', source: 'step_binding', unit: 'usd' }));
+    expect(ws.entries['step:starter_ltv']).toBeUndefined();
     expect(ws.throughTurn).toBe(3);
   });
   it('switch on: a landed verdict\'s tagged claims fold in at their own message, never over a later value', () => {
@@ -56,6 +64,5 @@ describe('flags.worksheet', () => {
       expect(e, c.codeQuantity.stepId!).toBeDefined();
       expect([e, ...e.history].some(v => v.turn === 1 && v.source === 'checker')).toBe(true);
     }
-    expect(ws.entries['step:starter_ltv'].turn).toBe(3);
   });
 });

@@ -35,10 +35,10 @@ import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
 import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, parseInputKey, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot,
-  stepRootsDeclared, registerStepRoots, stepRootOf, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot, type VerdictPayload } from './math-checker-live';
+  stepRootsDeclared, registerStepRoots, stepRootOf, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot, type VerdictPayload, claimFigures } from './math-checker-live';
 import { theirFigure } from './own-quantity';
 import { switchOn } from '@/lib/cases/engine-switches';
-import { foldTurn, EMPTY_WORKSHEET } from './worksheet';
+import { foldTurn, staleReason, claimQuantity, EMPTY_WORKSHEET } from './worksheet';
 import type { Worksheet } from './worksheet-types';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
@@ -541,7 +541,22 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const stepRoots: Record<string, StepRoot> = rooted?.roots ?? {};
   const rootLinkedFlags = rootsOn ? recomputeFlags.filter(f => !cappedFlags.includes(f)
     && stepRootOf({ c: caseData, roots: stepRoots, key: attemptKey(f), span: f.span, own: [f.candidateValue], n: fromOf(f), caseFigures: rootFigures, closed: closedRoots }) !== null) : [];
-  const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f) && !rootLinkedFlags.includes(f));
+  // Phase 1 task 2 (the `staleProbeDrop` switch; Lorenzo: "Before any probe or correction is spoken: drop it if the
+  // worksheet holds a newer value for that quantity."): code's released flag, a checker line, a misquote correction or
+  // a root's input question the candidate has overtaken since — a newer value for its quantity, or its figure (or one
+  // its words carry) withdrawn — is dropped and logged (`stale_drop`). Without the worksheet there is nothing to read.
+  const staleOn = worksheet !== null && switchOn(caseData, 'staleProbeDrop');
+  // The figures the data they have states (the prompt, released lines, shown exhibits — as written, no changes derived
+  // from them): a misread of the data, fixed, drops the claims built on it (worksheet.ts staleReason).
+  const staleCaseFigures = staleOn ? numbersOf([caseData.prompt, ...caseData.dataLedger.filter(d => revealedIdsNow.includes(d.id)).map(d => d.value),
+    ...caseData.exhibits.filter(e => shownExhibitIds.has(e.id)).map(e => JSON.stringify(e.data))].join(' ')) : [];
+  const staleDrops: { kind: 'code' | 'checker' | 'misquote' | 'root_question'; id: string; reason: string }[] = [];
+  const staleOfFlag = (f: RecomputeFlag) => (staleOn ? staleReason(worksheet!, caseData, {
+    n: fromOf(f), quantity: (f.kind ?? 'step') === 'step' ? `step:${f.stepId}` : null, value: f.candidateValue, span: f.span,
+  }, staleCaseFigures) : null);
+  const staleCodeFlags = recomputeFlags.filter(f => !cappedFlags.includes(f) && !rootLinkedFlags.includes(f) && staleOfFlag(f) !== null);
+  for (const f of staleCodeFlags) staleDrops.push({ kind: 'code', id: attemptKey(f), reason: staleOfFlag(f)! });
+  const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f) && !rootLinkedFlags.includes(f) && !staleCodeFlags.includes(f));
   if (rooted) {
     checks.record('step_root', rooted.registered.length + rooted.linked.length + rootLinkedFlags.length > 0, 'the step check\'s roots: registered, and the flags linked to one (not probed)', {
       registered: rooted.registered, linked: rooted.linked, codeLinked: rootLinkedFlags.map(f => ({ key: attemptKey(f), span: f.span })), ...(Object.keys(endsNow).length > 0 ? { ended: Object.keys(endsNow) } : {}),
@@ -621,6 +636,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const perItem: { item: string; cited: string; sentence: string; n: number }[] = [];
   for (const r of gate.released) {
     if (r.finding.kind !== 'misquote' || wordingOf(r.finding.item) === undefined || perItem.some(x => x.item === (r.finding as { item: string }).item)) continue;
+    // Task 2: a misquote they have taken back since ("the exhibit says 58%, not 61%") is not corrected again.
+    const misquoteStale = staleOn ? staleReason(worksheet!, caseData, { n: r.candidateTurnIndex, quantity: null, value: numbersOf(r.finding.cited)[0], span: r.finding.cited }, staleCaseFigures) : null;
+    if (misquoteStale !== null) { staleDrops.push({ kind: 'misquote', id: r.id, reason: misquoteStale }); continue; }
     perItem.push({ item: r.finding.item, cited: r.finding.cited, sentence: r.finding.sentence, n: r.candidateTurnIndex });
   }
   // Whether message n replied to a recommendation ask (the interviewer turn before it).
@@ -718,6 +736,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     // The gate's decisions, earlier turns' (by turn) then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
     gateOutcomes: gateOutcomesOf(checkerRows, gate.decisions),
     ...(rootsOn ? { stepRoots } : {}),
+    ...(staleOn ? { staleDrop: (e: { n: number; c: VettedClaim }) => staleReason(worksheet!, caseData, { n: e.n, quantity: claimQuantity(e.c), value: claimFigures(e.c)[0], span: e.c.span }, staleCaseFigures) } : {}),
   };
   let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
@@ -1008,10 +1027,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The step check's root due its input question (round 6 Task 72; below): a root step with an input question not asked
   // yet, under the step cap, not closed, at most CHECKER_MAX_WAIT_MESSAGES messages old.
   const askedSteps = (flags.stepRootAsked as string[] | undefined) ?? [];
+  // Task 2: a root the candidate has restated at another value, or withdrawn, since takes no question.
+  const rootStale = (rk: string, r: StepRoot) => {
+    const why = staleOn ? staleReason(worksheet!, caseData, { n: r.since, quantity: `step:${r.step}`, value: r.value, span: r.span ?? '' }, staleCaseFigures) : null;
+    if (why !== null && !staleDrops.some(d => d.id === rk)) staleDrops.push({ kind: 'root_question', id: rk, reason: why });
+    return why !== null;
+  };
   const rootDue = () => Object.entries(stepRoots).sort((a, b) => a[1].since - b[1].since)
-    .find(([, r]) => inputQuestionOf(caseData, r.step) !== undefined && !askedSteps.includes(r.step) && (stepProbes[r.step] ?? 0) < STEP_PROBE_CAP
+    .find(([rk, r]) => inputQuestionOf(caseData, r.step) !== undefined && !askedSteps.includes(r.step) && (stepProbes[r.step] ?? 0) < STEP_PROBE_CAP
       && !convertedSteps.has(r.step) && !closedKeys.includes(attemptKey({ stepId: r.step, candidateValue: r.value }))
-      && candidateIndexes.filter(i => i > r.since).length <= CHECKER_MAX_WAIT_MESSAGES);
+      && candidateIndexes.filter(i => i > r.since).length <= CHECKER_MAX_WAIT_MESSAGES && !rootStale(rk, r));
   const rootSlotFree = rootsOn && kind === 'model' && checkerInput.currentFlags.length === 0 && misquote === null && !underTimePressure;
   // Fix round 2 (controller ruling, 21 Oct: "a fresh root's input question takes precedence over a linked claim's derived
   // correction (root first)"; b37q Marcus: the 1.4x correction took the slot at t22 and the question never went): the
@@ -1215,6 +1240,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     } });
     rootLine = { id: rk, key, action: 'probe', line, stepRoot: r.step,
       undo: { attempt: attemptBefore, step: r.step, mathChecker: (flags.mathChecker as CheckerMemory | undefined) ?? { handled: checkerHandled } } };
+  }
+  if (staleOn) {
+    const checkerStale = checkerDecisions.filter(d => d.outcome === 'stale' && d.reason.startsWith('stale_drop: ')).map(d => ({ kind: 'checker' as const, id: d.id, reason: d.reason.slice('stale_drop: '.length) }));
+    const all = [...staleDrops, ...checkerStale];
+    checks.record('stale_drop', all.length > 0, 'a probe or correction the candidate has overtaken since (the worksheet): dropped, not said', { dropped: all });
   }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.
