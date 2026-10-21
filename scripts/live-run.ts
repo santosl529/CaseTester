@@ -54,6 +54,7 @@ import { requireRunBudget, BudgetExceededError } from '@/lib/llm-budget';
 import { costOf, isPriced } from '@/lib/llm-pricing';
 import { writeTurnFile, type TurnFileHeader } from '@/lib/eval/turn-file';
 import { gitInfo } from '@/lib/eval/git-info';
+import { engineSwitchNames } from '@/lib/eval/batch-manifest';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID } from '@/lib/models';
 import { evalInterviewer, checkInterviewerModels, type ModelCheck } from '@/lib/eval/model-guard';
@@ -299,6 +300,7 @@ async function main() {
     interviewerConfig: EVAL?.config ?? null,
     persona: PERSONA ? { id: PERSONA.id, name: PERSONA.name, brief: PERSONA.brief } : null,
     sessionId, startedAt: new Date().toISOString(),
+    engineSwitches: engineSwitchNames(caseData),
   };
   console.log(`\n[interviewer · INTRO] ${openingText}`);
 

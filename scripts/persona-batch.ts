@@ -18,7 +18,7 @@ import { existsSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { readFileSync, writeFileSync } from 'node:fs';
 import { checkCostOf, checkCostMarkdown, checkCostLine, totalCheckCost, findRunJsons } from '@/lib/eval/check-cost';
-import { planWave, markWaveResults, loadManifest, saveManifest, fileHash, assertBatchOpen, type PersonaEntry } from '@/lib/eval/batch-manifest';
+import { planWave, engineSwitchNames, markWaveResults, loadManifest, saveManifest, fileHash, assertBatchOpen, type PersonaEntry } from '@/lib/eval/batch-manifest';
 import { evalInterviewer, type ModelCheck } from '@/lib/eval/model-guard';
 import { liveRunArgs, findRunDir, scoresPersona, parseScoreIds, waveEstimate } from '@/lib/eval/wave-commands';
 import { liveCheckerConfig } from '@/lib/orchestrator/math-checker-live';
@@ -85,9 +85,11 @@ async function main() {
     hashes: { bands: fileHash('evals/persona-bands.json'), severity: fileHash('evals/severity.md') },
     date: new Date(), batch: BATCH,
     models: { interviewer: interviewer.model, interviewerConfig: interviewer.config, scoring: SCORING_MODEL_ID, ...(caseId !== 'prof-001' ? { case: caseId } : {}) },
+    engineSwitches: engineSwitchNames(getCaseById(caseId)),
   });
   console.log(`[wave] ${wave}: ${entries.map(e => `#${e.runNumber}=persona ${e.personaId}${e.rerun ? ` (rerun ${e.rerun})` : ''}`).join(', ')} · version ${manifest.version} · commit ${git.commit.slice(0, 7)} · pace ${pace}`);
   console.log(`[wave] case: ${caseId}`);
+  console.log(`[wave] engine switches: ${entries[0]?.engineSwitches?.length ? entries[0].engineSwitches.join(', ') : 'none (today\'s behaviour)'}`);
   console.log(`[wave] interviewer: ${interviewer.config} = ${interviewer.model} (thinking ${interviewer.thinking}${interviewer.effort ? `, effort ${interviewer.effort}` : ''}, fallbacks ${interviewer.fallbacks ? 'on' : 'off'})`);
   const scoredRuns = entries.filter(e => scored(e.personaId));
   console.log(`[wave] scored: ${scoredRuns.length ? scoredRuns.map(e => `#${e.runNumber}=persona ${e.personaId}`).join(', ') : 'none'} · unscored: ${entries.length - scoredRuns.length}`);

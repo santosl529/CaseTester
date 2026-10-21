@@ -8,6 +8,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { CODE_PATHS } from './git-info';
 import type { ModelCheck } from './model-guard';
+import { engineSwitchesOf, PHASE1_SWITCHES } from '@/lib/cases/engine-switches';
 
 const CODE_PATHS_LABEL = CODE_PATHS.join(', ');
 
@@ -22,6 +23,8 @@ export type PersonaEntry = {
   failure?: string;
   /** The error that stopped a partial run (failure: harness). */
   harnessError?: string;
+  /** The Phase 1 engine switches on for the run's case when the wave was planned (contract §3); absent before 22 Oct. */
+  engineSwitches?: string[];
 };
 export type Manifest = {
   batch: string; version: string;
@@ -64,6 +67,8 @@ export function planWave(m: Manifest | null, p: {
   hashes?: { bands: string; severity: string };
   /** The batch the wave belongs to (default batch-18, the batch the tooling was built for). */
   batch?: string;
+  /** engineSwitchNames(case) for the wave's case (Phase 1 contract §3), stamped on every planned run. */
+  engineSwitches?: string[];
 }): { manifest: Manifest; wave: string; entries: PersonaEntry[] } {
   const batch = p.batch ?? 'batch-18';
   if (m && m.batch !== batch) throw new Error(`the manifest is ${m.batch}'s, not ${batch}'s`);
@@ -109,8 +114,14 @@ export function planWave(m: Manifest | null, p: {
     const done = manifest.runs.filter(r => r.version === manifest.version && r.personaId === personaId && r.status === 'done');
     return done.length ? Math.max(...done.map(r => r.rerun)) + 1 : 0;
   };
-  const entries: PersonaEntry[] = todo.map((personaId, i) => ({ personaId, runNumber: first + i, status: 'pending', wave, version: manifest.version, runDir: null, rerun: rerunOf(personaId) }));
+  const entries: PersonaEntry[] = todo.map((personaId, i) => ({ personaId, runNumber: first + i, status: 'pending', wave, version: manifest.version, runDir: null, rerun: rerunOf(personaId), engineSwitches: [...(p.engineSwitches ?? [])] }));
   return { manifest: { ...manifest, runs: [...manifest.runs, ...entries] }, wave, entries };
+}
+
+// The switches on for a case (engineSwitchesOf), as a list in contract order: the run header and the manifest record it.
+export function engineSwitchNames(c: { id: string; engine?: Record<string, boolean | undefined> }, env: Record<string, string | undefined> = process.env): string[] {
+  const on = engineSwitchesOf(c as Parameters<typeof engineSwitchesOf>[0], env);
+  return PHASE1_SWITCHES.filter(s => on[s]);
 }
 
 export function fileHash(p: string): string {

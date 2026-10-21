@@ -13,6 +13,8 @@ export type TurnFileHeader = {
   /** The declared evaluation interviewer (lib/models.ts INTERVIEWER_EVAL_CONFIGS); absent before 11 Oct. */
   interviewerConfig?: string | null;
   persona: { id: number; name: string; brief: string } | null; sessionId: string; startedAt: string;
+  /** The Phase 1 engine switches on for the case (engineSwitchesOf, contract §3); absent before 22 Oct. */
+  engineSwitches?: string[];
 };
 export type TurnFileEnd = {
   type: 'end'; ended: boolean; budgetStopped: boolean; scoring: string;
