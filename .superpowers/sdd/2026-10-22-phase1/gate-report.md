@@ -1,3 +1,31 @@
+# Phase 1 gate report — the gate is NOT yet met (updated 26 Oct, paused)
+
+**STATE AT THE PAUSE.** `phase1` is at ae0116d8: all five streams, the base fixes, the auditor re-calibration and
+the bank fixes are merged; 5,511 tests pass, typecheck and lint clean. Two preset changes landed on Lorenzo's
+rulings: `recommendationOpensGate` and `refusalNounCheck` both moved to `NON_PRESET_SWITCHES` — nameable, never on
+by default. Still owed: Stream 3's tasks 4–7 (branch `phase1-rest3`, stopped at a clean point with a resumption
+document), the $3 definitions re-check, and **the combined cross-stream replay, which is the gate's real test and
+has not been run.** Money spent in all: $7.20 ($3.62 auditor cal1, $3.58 cal2). The sections below are the earlier
+report; §2's bank figures are superseded by the table here.
+
+| Bank arm, final preset | Fault pass / counted | Correct pass / 96 |
+|---|---|---|
+| Switches off | 46 / 155 | 95 |
+| `*=phase1` | **65 / 155** | **95** |
+
+The one correct record failing in both arms is the known "Go on." replay artifact (`b34a-tyler-t30-close`), left
+labelled replayable pending Lorenzo's ruling. `true_refusal` is back to 19/19 and `close_wait_reask` to 11/12.
+
+Latency with every switch on: per-turn code time mean 31.7 → 34.4 ms, p95 121 → 138 ms, max 209 → 228 ms against
+the 1.5 s budget. No new live model call; ask-check calls fell 68 → 65; the want cue fires on 1.65% of interviewer
+turns.
+
+What the bank fixes caught, which justifies having done them: fix 3a pulled **seven** records out of `diverged`
+back into honest failure (including the escape the re-review predicted), and fix 4 stopped **four** records passing
+on silence — so the earlier "47 passing" was partly records hiding rather than passing.
+
+---
+
 # Phase 1 gate report (26 Oct 2026) — the gate is NOT yet met
 
 Written for Lorenzo. Branch `phase1` at bbf4c6b9. **No wave has run. Nothing is pushed, merged to `main` or deployed. $0 spent this session.**
