@@ -20,6 +20,8 @@ vi.mock('@/db/client', () => ({
 vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
 
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
+import * as planModule from '@/lib/orchestrator/plan-turn';
+import { WRAP_UP_PROBES } from '@/lib/orchestrator/close-hold';
 import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
 import { challengeVerdict } from '@/lib/orchestrator/probe-guard';
 import { gateCodeFindings, type GateDecision, type CheckerRow, type VerdictPayload } from '@/lib/orchestrator/math-checker-live';
@@ -202,5 +204,131 @@ describe('gateCodeFindings on t5, claim by claim', () => {
     expect(gate(claim({ flag: true, correctValue: 18 }), '').outcome).toBe('checker_disagrees');
     expect(gate(claim({ flag: true, correctValue: 18 }), ON).outcome).toBe('checker_disagrees');
     expect(gate(claim({ correctValue: 18 }), ON).outcome).toBe('not_rated');
+  });
+});
+
+// Lorenzo's pre-wave ruling 11 (26 Oct): "Name the misquoted input, never a result that's within tolerance.
+// 'Ingredients are $0.70, not $0.75.' — not a correction of the $1.45 contribution that is within 3%."
+// The two tolerance-edge turns are b37h 442e37ff t6 and b37q a2a5921b t12. On both, the checker's error-rated
+// claim is the RESULT built on the misquoted input, and its right figure is the result's — so `rightAgrees`
+// blocked the flat path and nothing was said. The relaxation is narrow: a misquote-typed error claim whose own
+// stated figure is within the checker's own tolerance band of its right figure. The spoken line is still code's
+// ledger line for the misquoted item, so it names the input and never the result.
+describe('ruling 11 — the result is within tolerance, the misquoted input is the fault', () => {
+  const row = TYLER.rows.find(r => (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 5)!;
+  const verdict = row.payloadJsonb as VerdictPayload;
+  const caseData = getCaseById('prof-002');
+  const gate = (claims: VerdictPayload['claims'], switches: string) => {
+    vi.stubEnv('ENGINE_SWITCHES', switches);
+    return gateCodeFindings({
+      rows: [{ ...row, payloadJsonb: { ...verdict, claims } } as CheckerRow], handled: [],
+      turnRows: TYLER.turns.filter(t => t.turnIndex < 7), candidateText: textOf(TYLER, 7), candidateTurnIndex: 7,
+      caseData, revealedIds: TYLER.records['7'].revealed,
+      codeFigures: f => (f.kind === 'misquote' ? [20] : null),
+    }).decisions[0];
+  };
+  const claim = (over: Partial<VerdictPayload['claims'][number]>) => [{ ...verdict.claims[0], ...over }, verdict.claims[1]];
+
+  // a2a5921b t12's shape: "$100 less $22 cost to serve is $78, times 50 is $3,900" — error/misquote, right 4,000,
+  // his own 3,900 inside the checker's 5% band, and 4,000 is no figure of the data line code would read out.
+  it('releases the input correction when the error-rated result sits inside the checker\'s own band', () => {
+    // Same shape, on this fixture's claim: his figure inside the checker's 5% band of a right figure that is
+    // none of code's line's (as 3,900 sits inside the band of 4,000, which is no figure of plan_prices_costs).
+    const edge = claim({ correctValue: 22, errorType: 'misquote' });
+    const d = gate(edge, ON);
+    expect(d.outcome).toBe('released');
+    expect(d.reason).toMatch(/within the checker's tolerance/);
+    expect(gate(edge, '').outcome).toBe('not_rated');     // nothing without the switch
+  });
+
+  it('still blocks a right figure that is simply another quantity (the b38 Marisol false correction)', () => {
+    // Her shape: a right figure that is her own derived quantity, far outside the band around her own figure —
+    // the agreement still blocks it, flagged or not.
+    expect(gate(claim({ correctValue: 11.8, errorType: 'misquote' }), ON).outcome).toBe('not_rated');
+    expect(gate(claim({ correctValue: 11.8, errorType: 'misquote', flag: true }), ON).outcome).toBe('checker_disagrees');
+  });
+
+  it('only a misquote-typed error: a conceptual or arithmetic error inside the band does not license it', () => {
+    for (const errorType of ['conceptual', 'arithmetic'] as const)
+      expect(gate(claim({ candidateValue: '$3,900', correctValue: 4000, errorType }), ON).outcome, errorType).toBe('not_rated');
+  });
+});
+
+// Lorenzo's pre-wave rulings 3 and 4 (26 Oct), behind `correctionRules`:
+//   3 — "Each item is corrected once, on every path." b32 Tyler 51b8cc22 was corrected on
+//       route_results_port_avery at t12, re-misquoted it at t27 and got the identical line at t28.
+//   4 — "No correction on the closing turn. If time is up, leave it for the written report." b38l Tyler cee7d399
+//       t32 prepends a ~70-word read-out of the four-route block to the goodbye to fix $3.6M → $3.8M, never names
+//       which figure was wrong, and the case ends.
+describe('rulings 3 and 4 — one correction per item, none at the goodbye', () => {
+  const STAGES_DONE = {
+    structure: { delivered: true, deliveredAt: 0 }, pressure_test: { delivered: true }, analysis: { delivered: true },
+    exhibit: { delivered: true }, brainstorm: { delivered: true },
+    recommendation: { delivered: true, asks: 1, outcome: 'answered' }, risk: { delivered: true }, pending: null,
+  };
+  const closePlan = (switches: string, flags: Record<string, unknown> = {}) => {
+    vi.stubEnv('ENGINE_SWITCHES', switches);
+    return plan(31, { graceAskFired: true, stageEvidence: STAGES_DONE, ...flags });
+  };
+  const misquoteOf = (p: ModelPlan) => (p.state as { misquote?: { item: string } | null }).misquote ?? null;
+
+  it('ruling 4: the closing turn says no correction, and logs what it held', () => {
+    const off = closePlan('prof-002=misquoteFlat');
+    expect(off.state.kind).toBe('close');
+    expect(misquoteOf(off)?.item).toBe('route_results_other');     // today: the close lifts the cap
+
+    const on = closePlan('prof-002=misquoteFlat,correctionRules');
+    expect(on.state.kind).toBe('close');
+    expect(misquoteOf(on)).toBeNull();
+    const chk = on.ctx.checks.entries.find(c => c.check === 'misquote');
+    expect((chk?.detail as { closeHeld?: string[] } | undefined)?.closeHeld).toContain('route_results_other');
+  });
+
+  it('ruling 3: once per item, on every path — the recommendation reply no longer bypasses the cap', () => {
+    const { correctsItemAgain, MISQUOTE_CORRECTIONS_PER_ITEM } = planModule;
+    expect(MISQUOTE_CORRECTIONS_PER_ITEM).toBe(2);
+    // Today: the reply to a recommendation ask corrects whatever its count, and the cap allows a second.
+    expect(correctsItemAgain({ timesCorrected: 1, recReply: true, onceOnly: false })).toBe(true);
+    expect(correctsItemAgain({ timesCorrected: 1, recReply: false, onceOnly: false })).toBe(true);
+    expect(correctsItemAgain({ timesCorrected: 2, recReply: false, onceOnly: false })).toBe(false);
+    // With the rule: once, on every path.
+    expect(correctsItemAgain({ timesCorrected: 0, recReply: false, onceOnly: true })).toBe(true);
+    expect(correctsItemAgain({ timesCorrected: 1, recReply: true, onceOnly: true })).toBe(false);
+    expect(correctsItemAgain({ timesCorrected: 1, recReply: false, onceOnly: true })).toBe(false);
+  });
+
+  it('an item already corrected is not corrected again on the close path either', () => {
+    const on = closePlan('prof-002=misquoteFlat', { misquoteCorrected: ['route_results_other'] });
+    expect(misquoteOf(on)?.item).toBe('route_results_other');       // today: the close lift ignores the record
+    const ruled = closePlan('prof-002=misquoteFlat,correctionRules', { misquoteCorrected: ['route_results_other'] });
+    expect(misquoteOf(ruled)).toBeNull();
+  });
+});
+
+// Lorenzo's pre-wave ruling 5 (26 Oct): "Keep WRAP_UP_PROBES at 2, and log it — when a correction or probe is
+// dropped because both wrap-up slots are spent, record that fact so the report can show it (b35q Marisol and
+// b35q Tyler both lost a correction this way)." The cap is unchanged; only the record is new.
+describe('ruling 5 — the wrap-up cap is logged when it bites', () => {
+  const STAGES_DONE = {
+    structure: { delivered: true, deliveredAt: 0 }, pressure_test: { delivered: true }, analysis: { delivered: true },
+    exhibit: { delivered: true }, brainstorm: { delivered: true },
+    recommendation: { delivered: true, asks: 1, outcome: 'answered' }, risk: { delivered: true }, pending: null,
+  };
+  const capCheck = (p: ModelPlan) => p.ctx.checks.entries.find(c => c.check === 'wrap_up_cap');
+
+  it('the cap stays at 2', () => {
+    expect(WRAP_UP_PROBES).toBe(2);
+  });
+
+  it('records the cap and what it kept back; passes quietly when a slot is left', () => {
+    vi.stubEnv('ENGINE_SWITCHES', 'prof-002=misquoteFlat');
+    const spent = plan(31, { graceAskFired: true, stageEvidence: STAGES_DONE, closeHold: { probeTurns: [25, 27] } });
+    const c = capCheck(spent);
+    expect(c?.detail).toMatchObject({ cap: 2, left: 0, spentOn: [25, 27] });
+    expect(c?.decision === 'act' ? (c.detail as { dropped: unknown[] }).dropped.length : 0).toBeGreaterThanOrEqual(0);
+
+    const left = plan(31, { graceAskFired: true, stageEvidence: STAGES_DONE, closeHold: { probeTurns: [25] } });
+    expect(capCheck(left)?.decision).toBe('pass');
+    expect(capCheck(left)?.detail).toMatchObject({ cap: 2, left: 1, dropped: [] });
   });
 });
