@@ -49,12 +49,18 @@ export function statusOf(c: unknown, quantity: string, value: number, revealedId
   const st = id === null ? undefined : stepOf(c, id);
   if (!st) return 'unchecked';
   if (revealedIds && (st.inputs ?? []).some(i => !revealedIds.includes(i))) return 'unchecked';
+  // A step that declares no unit (or no scale for money at scale) is a unit code can't read: "unchecked", as the
+  // contract lists it — code would be comparing a figure whose unit it is guessing (review minor).
+  if (st.unit === undefined) return 'unchecked';
   return [st.answer, ...(st.altAnswers ?? [])].some(a => Math.abs(Math.abs(value) - Math.abs(a)) <= st.tolerance + 1e-9) ? 'right' : 'wrong';
 }
+// The checker's own rating, where code has no calculation of its own (review minor: `checkerClaims[].rating` was dead).
+const ratedStatus = (status: WorksheetStatus, rating?: 'correct' | 'error' | 'unverifiable'): WorksheetStatus =>
+  (status !== 'unchecked' || rating === undefined || rating === 'unverifiable' ? status : rating === 'correct' ? 'right' : 'wrong');
 const UNITS: readonly WorksheetUnit[] = ['percent', 'points', 'usd', 'count', 'ratio'];
 function unitOf(c: unknown, quantity: string): WorksheetUnit {
   const id = stepIdOf(quantity);
-  if (id === null) return quantity.startsWith('pricing:needed') ? 'percent' : 'points';
+  if (id === null) return quantity.startsWith('pricing:needed') ? 'percent' : 'points';   // a needed price rise is a %
   const u = stepOf(c, id)?.unit;
   const first = Array.isArray(u) ? u[0] : u;
   return UNITS.includes(first as WorksheetUnit) ? first as WorksheetUnit : 'count';
@@ -92,7 +98,9 @@ function place(ws: Worksheet, quantity: string, v: WorksheetValue): Worksheet {
   if (!e) return { ...ws, entries: { ...ws.entries, [quantity]: { quantity, ...v, history: [] } } };
   if (allValues(e).some(x => isSameStatement(x, v))) return ws;
   let next: WorksheetEntry;
-  if (v.turn > e.turn) next = { quantity, ...v, history: [...e.history, valueOfEntry(e)] };
+  // …and at the same turn the checker's claim takes the binder's place (contract §2: the checker's claims "update or
+  // confirm the value said at their turn"; review minor — the binder used to win).
+  if (v.turn > e.turn || (v.turn === e.turn && v.source === 'checker' && e.source === 'step_binding')) next = { quantity, ...v, history: [...e.history, valueOfEntry(e)] };
   else {
     const history = [...e.history, v].sort((a, b) => a.turn - b.turn);
     next = { ...e, history };
@@ -124,7 +132,17 @@ const WITHDRAW_FIG: RegExp[] = [
 ];
 const INSTEAD = new RegExp(String.raw`\binstead of\s+(?:the\s+|my\s+|a\s+|an\s+)?${FIG}`, 'gi');
 const OWN_REDO = /\b(?:i|i'?d|i'?ve|my|me)\b[^.!?]*\b(?:used|use|using|had|took|should(?: have)?|meant|redo\w*|correct\w*|wrong|mistake|misread|slipped)\b/i;
+// …or said as a prescription, with no "I" in it (review I5: "Should be $11,000 instead of $9,000").
+const PRESCRIPTIVE = /\b(?:should (?:be|have been|read|use)|has to be|needs to be|the right (?:figure|number|value) is|it'?s actually|that'?s actually)\b/i;
 const HYPOTHETICAL = /\b(?:if|say|assum\w*|would|could|suppose|scenario|sensitivit\w*|what if|were to|might)\b/i;
+// A contrast, not a withdrawal: another subject owns the figure ("Lakeport is not $11,000 a flight, Port Avery is";
+// "not $9,000 for Port Avery but for Lakeport"). Review I5.
+const CONTRAST_AFTER = /^[^.!?]{0,40}?\b(?:but|whereas|while)\b|^[^.!?]{0,25}?,\s*[A-Z][\w–-]*(?:\s+[\w–-]+){0,3}\s+(?:is|are|was|were|does|do)\b/;
+// …and a figure named as the data's own is the right one, not the withdrawn one ("I used 75% … not the 70% on this
+// exhibit", b38 Larkspur Marisol t27 — her 75% is what goes, the 70% is what the exhibit says).
+const DATA_REF = /^[^.!?]{0,30}?\b(?:on (?:this|that|the) exhibit|in (?:this|that|the) exhibit|the exhibit (?:says|shows|has)|you (?:gave|said|showed|quoted)|we were given|the (?:data|table|prompt|case) (?:says|shows|has)?)\b/i;
+// The clauses of a sentence: "if" vetoes "instead of" only where it governs the figure's own clause (review I5).
+const CLAUSES = /[;:—–]|\s-\s|,\s*(?=(?:and|but|so|then|which|while|whereas)\b)/;
 // The figureless ones: the last figure said before them in the sentence is withdrawn ("= $405 — scratch that, $600").
 const WITHDRAW_THAT = /\b(?:throw (?:that|it|this) out|scratch that|ignore (?:that|this)|forget (?:that|this))\b/gi;
 const SENTENCES = /(?<=[.!?])\s+|\n+/;
@@ -132,21 +150,27 @@ const FIGURE_ANY = /(-?\$?\s?\d[\d,]*(?:\.\d+)?)(\s?(?:%|percent\b|points?\b|k\b
 
 // `replacement`: for "X, not Y", the figure said in Y's place — the last one before "not" in its clause ("it's $11,000
 // per flight, not $9,000").
-export type Withdrawal = { value: number; unit: WorksheetUnit | null; phrase: string; replacement?: number };
+export type Withdrawal = { value: number; unit: WorksheetUnit | null; phrase: string; replacement?: number; scenario?: true };
 // A withdrawn figure as the worksheet keeps it (the contract's WithdrawnFigure, with the replacement when said).
-export type Withdrawn = WithdrawnFigure & { replacement?: number };
+export type Withdrawn = WithdrawnFigure & { replacement?: number; scenario?: true };
 export function findWithdrawals(text: string): Withdrawal[] {
   const out: Withdrawal[] = [];
   for (const sentence of normalizeNumberWords(text).split(SENTENCES)) {
-    const own = OWN_REDO.test(sentence) && !HYPOTHETICAL.test(sentence);
+    const own = OWN_REDO.test(sentence) || PRESCRIPTIVE.test(sentence);
+    // A figure said under a condition the claim it would withdraw doesn't share ("at $60 the Starter margin is $50, not
+    // $30", b35q Marisol t25 — her $30 at $40 stands): marked, and the consumer decides (worksheet staleReason).
+    const scenario = /\b(?:if|at \$?\d|under|assuming|in the test|at the test price|scenario|sensitivit\w*)\b/i.test(sentence) ? { scenario: true as const } : {};
     for (const re of [...WITHDRAW_FIG, ...(own ? [INSTEAD] : [])]) {
       for (const m of sentence.matchAll(re)) {
         const value = num(m[1]);
         if (!Number.isFinite(value)) continue;
+        const after = sentence.slice((m.index ?? 0) + m[0].length);
+        if (re === WITHDRAW_FIG[0] && (CONTRAST_AFTER.test(after) || DATA_REF.test(after))) continue;
+        if (re === INSTEAD && HYPOTHETICAL.test(sentence.slice(0, m.index).split(CLAUSES).at(-1) ?? '')) continue;
         const clause = re === WITHDRAW_FIG[0] ? sentence.slice(0, m.index).split(/[;:—–]|\s-\s/).at(-1) ?? '' : '';
         const instead = [...clause.matchAll(FIGURE_ANY)].at(-1);
         const replacement = instead ? Math.abs(num(instead[1])) : undefined;
-        out.push({ value: Math.abs(value), unit: unitOfSaid(m[1], m[2] ?? ''), phrase: m[0].trim(), ...(replacement !== undefined && Number.isFinite(replacement) ? { replacement } : {}) });
+        out.push({ value: Math.abs(value), unit: unitOfSaid(m[1], m[2] ?? ''), phrase: m[0].trim(), ...scenario, ...(replacement !== undefined && Number.isFinite(replacement) ? { replacement } : {}) });
       }
     }
     for (const m of sentence.matchAll(WITHDRAW_THAT)) {
@@ -168,7 +192,11 @@ export function update(ws: Worksheet, input: WorksheetMessage, caseData: unknown
   // Withdrawals are read once per message, when it first arrives (a late checker verdict carries no text of its own).
   const fresh = input.turn > ws.throughTurn;
   const withdrawals = fresh ? findWithdrawals(input.text) : [];
-  const withdrawnHere = (value: number, unit: WorksheetUnit) => withdrawals.some(w => sameFigure(value, w.value) && unitsFit(w.unit, unit));
+  // Contract §2: a withdrawn X is never the current value — this message's withdrawals and every earlier one from the
+  // message on, so a late checker claim can't make a figure they took back current again (review I4; it also makes
+  // `update` idempotent).
+  const standing = [...ws.withdrawn, ...withdrawals.map(w => ({ ...w, turn: input.turn }))];
+  const withdrawnHere = (value: number, unit: WorksheetUnit) => standing.some(w => w.turn >= input.turn && sameFigure(value, w.value) && unitsFit(w.unit, unit));
   for (const b of input.stepBindings) {
     const quantity = stepQuantity(b.stepId);
     const unit = unitOf(caseData, quantity);
@@ -188,23 +216,52 @@ export function update(ws: Worksheet, input: WorksheetMessage, caseData: unknown
     if (withdrawnHere(c.value, unit)) continue;
     out = place(out, c.quantity, {
       value: c.value, unit, scale: scaleOf(caseData, c.quantity, unit), turn: input.turn, span: c.span, source: 'checker',
-      status: statusOf(caseData, c.quantity, c.value, input.revealedIds),
+      status: ratedStatus(statusOf(caseData, c.quantity, c.value, input.revealedIds), c.rating),
     });
   }
   if (withdrawals.length > 0) {
     const added: Withdrawn[] = withdrawals.map(w => {
       // The quantity it was withdrawn from, when code can tell: an entry that held it, by unit.
       const from = Object.values(out.entries).find(e => unitsFit(w.unit, e.unit) && allValues(e).some(v => v.turn <= input.turn && sameFigure(v.value, w.value)));
-      return { value: w.value, unit: w.unit, quantity: from?.quantity ?? null, turn: input.turn, phrase: w.phrase, ...(w.replacement !== undefined ? { replacement: w.replacement } : {}) };
+      return { value: w.value, unit: w.unit, quantity: from?.quantity ?? null, turn: input.turn, phrase: w.phrase, ...(w.scenario ? { scenario: w.scenario } : {}), ...(w.replacement !== undefined ? { replacement: w.replacement } : {}) };
     });
     out = { ...out, withdrawn: [...out.withdrawn, ...added.filter(a => !out.withdrawn.some(x => x.turn === a.turn && sameFigure(x.value, a.value)))] };
+    // …and a value they have just taken back stops being the current one: the entry falls back to its newest standing
+    // value, or goes (contract §2; review I4).
+    out = dropWithdrawn(out, added);
   }
   if (fresh) out = { ...out, throughTurn: input.turn };
   return out;
 }
 
+// The entries with every withdrawn value removed (a withdrawal at or after the value's own turn): the newest standing
+// value is current, and a quantity with none left has no entry (review I4).
+function dropWithdrawn(ws: Worksheet, added: Withdrawn[]): Worksheet {
+  const gone = (v: WorksheetValue) => added.some(w => w.turn >= v.turn && sameFigure(v.value, w.value) && unitsFit(w.unit, v.unit));
+  const entries: Record<string, WorksheetEntry> = {};
+  for (const [quantity, e] of Object.entries(ws.entries)) {
+    const kept = allValues(e).filter(v => !gone(v));
+    if (kept.length === allValues(e).length) { entries[quantity] = e; continue; }
+    const current = kept.at(-1);
+    if (current) entries[quantity] = { quantity, ...current, history: kept.slice(0, -1) };
+  }
+  return { ...ws, entries };
+}
+
 export function latest(ws: Worksheet, quantity: string): WorksheetEntry | undefined {
   return ws.entries[quantity];
+}
+
+// A withdrawal that covers `value` for `quantity`, from message `n` on (review I3): in a unit that fits the
+// quantity's, not bound to another quantity, and — for a figure of the DATA — only as a misread they fixed (its
+// replacement is a case figure too, and it was not said under a condition of its own). `caseFigures` empty: nothing
+// counts as the data's, so only the unit and quantity gates apply.
+export function coveringWithdrawal(ws: Worksheet, caseData: unknown, quantity: string | null, value: number, n: number, caseFigures: number[] = []): Withdrawn | undefined {
+  const isCase = (x: number) => caseFigures.some(y => sameFigure(x, y));
+  const unitHere = quantity !== null ? unitOf(caseData, quantity) : ws.entries[quantity ?? '']?.unit ?? null;
+  return (ws.withdrawn as Withdrawn[]).find(w => w.turn >= n && sameFigure(value, w.value)
+    && unitsFit(w.unit, unitHere) && (w.quantity === null || quantity === null || w.quantity === quantity)
+    && (!isCase(w.value) || (!w.scenario && w.replacement !== undefined && isCase(w.replacement))));
 }
 
 export function isWithdrawn(ws: Worksheet, value: number, unit?: WorksheetUnit | null, since = -Infinity): boolean {
@@ -222,7 +279,7 @@ export function hasNewerValue(ws: Worksheet, quantity: string, turn: number, val
   const values = e ? allValues(e) : [];
   const probed = value ?? values.filter(v => v.turn === turn).at(-1)?.value;
   if (probed === undefined) return false;
-  if (ws.withdrawn.some(w => w.turn >= turn && sameFigure(probed, w.value) && (w.quantity === null || w.quantity === quantity) && unitsFit(w.unit, e?.unit))) return true;
+  if (coveringWithdrawal(ws, caseData, quantity, probed, turn)) return true;
   // A figure a hundred times off the step's answer is another quantity's (checkCandidateMath's rule): no statement of it.
   const id = stepIdOf(quantity);
   const answer = id === null ? undefined : stepOf(caseData, id)?.answer;
@@ -245,13 +302,22 @@ export function hasNewerValue(ws: Worksheet, quantity: string, turn: number, val
 // $9,000 = $1,800 positive", then t13 "it's $11,000 per flight, not $9,000"). Null: not stale.
 export function staleReason(ws: Worksheet, caseData: unknown, item: { n: number; quantity: string | null; value?: number; span: string }, caseFigures: number[] = []): string | null {
   const { n, quantity, value } = item;
+  const isCase = (x: number) => caseFigures.some(y => sameFigure(x, y));
+  // A withdrawal that covers this figure (review I3): in a unit that fits the quantity's, not bound to another
+  // quantity, and — for a figure of the DATA (decision 6, extended) — only as a misread they fixed: its replacement is
+  // a case figure too and it was not said under a condition of its own ("at $60 the Starter margin is $50, not $30",
+  // b35q Marisol t25, leaves her $30 at $40 alone; "not a 3x" leaves a probe about $3.00 a household alone).
+  const covering = (x: number) => coveringWithdrawal(ws, caseData, quantity, x, n, caseFigures);
   if (quantity !== null && value !== undefined && hasNewerValue(ws, quantity, n, value, caseData)) {
     const e = ws.entries[quantity];
-    const w = ws.withdrawn.find(x => x.turn >= n && sameFigure(value, x.value));
-    return w ? `${value} withdrawn at message ${w.turn} ("${w.phrase}")` : `${quantity} restated at ${e?.value} (message ${e?.turn}) since message ${n}`;
+    const w = covering(value);
+    if (w) return `${value} withdrawn at message ${w.turn} ("${w.phrase}")`;
+    // …a newer value of its own, not a withdrawal these rules don't accept (review I3).
+    if (e && e.turn > n) return `${quantity} restated at ${e.value} (message ${e.turn}) since message ${n}`;
+    return null;
   }
   if (value !== undefined) {
-    const w = ws.withdrawn.find(x => x.turn >= n && sameFigure(value, x.value));
+    const w = covering(value);
     if (w) return `${value} withdrawn at message ${w.turn} ("${w.phrase}")`;
   }
   const carried = [...normalizeNumberWords(item.span).matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => parseFloat(m[0].replace(/,/g, '')))
@@ -261,9 +327,8 @@ export function staleReason(ws: Worksheet, caseData: unknown, item: { n: number;
   // b38 Tyler t21) leaves the claims built on it to be probed — the hand grade's call on his t24 "$13.8M" probe — and a
   // case figure withdrawn in another setting ("at $60 the Starter margin is $50, not $30", b35q Marisol t25) leaves
   // its other uses alone.
-  const isCase = (x: number) => caseFigures.some(y => sameFigure(x, y));
   for (const x of carried) {
-    const w = (ws.withdrawn as Withdrawn[]).find(y => y.turn > n && sameFigure(x, y.value) && isCase(y.value) && y.replacement !== undefined && isCase(y.replacement));
+    const w = (ws.withdrawn as Withdrawn[]).find(y => y.turn > n && sameFigure(x, y.value) && isCase(y.value) && !y.scenario && y.replacement !== undefined && isCase(y.replacement));
     if (w) return `built on ${x}, withdrawn at message ${w.turn} ("${w.phrase}")`;
   }
   return null;
@@ -297,7 +362,9 @@ export function claimQuantity(c: Pick<CheckerClaim, 'codeQuantity'>): string | n
   const q = c.codeQuantity;
   if (q.kind === 'step') return q.stepId ? stepQuantity(q.stepId) : null;
   if (q.kind === 'gain' || q.kind === 'new_margin' || q.kind === 'breakeven') return q.price === null ? null : `pricing:${q.kind}@${q.price}`;
-  if (q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain') return q.target === null ? null : `pricing:needed@${q.target}`;
+  // The two "needed" kinds are different quantities (the price rise for a margin, and for a gain): keyed apart
+  // (contract §2 lists the kind in the key; review minor).
+  if (q.kind === 'needed_for_margin' || q.kind === 'needed_for_gain') return q.target === null ? null : `pricing:${q.kind}@${q.target}`;
   return null;
 }
 const CODE_PRICING: Record<string, string> = { gain: 'gain', new_margin: 'new_margin', breakeven: 'breakeven', needed: 'needed' };

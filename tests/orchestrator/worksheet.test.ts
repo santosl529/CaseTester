@@ -3,7 +3,7 @@
 // phrases ("not X", "instead of X", "earlier I said X", "throw that out") mark X withdrawn, not current."
 // Sentences are the candidates' own, verbatim from batches 33–38.
 import { describe, it, expect } from 'vitest';
-import { update, latest, hasNewerValue, isWithdrawn, lineageOf, findWithdrawals, statusOf, staleReason, EMPTY_WORKSHEET } from '@/lib/orchestrator/worksheet';
+import { update, latest, hasNewerValue, isWithdrawn, lineageOf, findWithdrawals, statusOf, staleReason, claimQuantity, EMPTY_WORKSHEET } from '@/lib/orchestrator/worksheet';
 import { getCaseById } from '@/lib/cases/loader';
 
 const prof2 = getCaseById('prof-002');
@@ -188,5 +188,93 @@ describe('a value already stated in the probed message is no newer value', () =>
     expect(hasNewerValue(at19, 'step:peak_net_sales', 17, 220, aldermoor)).toBe(false);
     const at27 = update(at19, { turn: 27, text: '', stepBindings: [], checkerClaims: [{ quantity: 'step:peak_net_sales', value: 320, span: 'So 40,000 × $8,000 = $320 million.', rating: 'correct' }] }, aldermoor);
     expect(hasNewerValue(at27, 'step:peak_net_sales', 17, 220, aldermoor)).toBe(true);
+  });
+});
+
+// ── the Stream 3 review's fix round (22 Oct) ────────────────────────────────
+
+describe('I5: which "not X" and "instead of X" sentences withdraw a figure', () => {
+  it('a contrast withdraws nothing — another subject owns the figure', () => {
+    expect(findWithdrawals('Lakeport is not $11,000 a flight, Port Avery is.')).toEqual([]);
+    expect(findWithdrawals('That\'s not $9,000 but the Lakeport line.')).toEqual([]);
+  });
+  it('…nor does a figure named as the data\'s own (b38 Larkspur Marisol t27)', () => {
+    expect(findWithdrawals('Caught it — I used 75%, which is the contested routes\' load factor, not the 70% on this exhibit.').map(w => w.value)).toEqual([]);
+    expect(findWithdrawals('You\'re right — the exhibit says $80 million, not $77 million.').map(w => w.value)).toEqual([77]);
+  });
+  it('"instead of X" counts on a prescription as well as an "I" redo, and only "if" over its own clause vetoes it', () => {
+    expect(findWithdrawals('Should be $11,000 instead of $9,000.').map(w => w.value)).toEqual([9000]);
+    expect(findWithdrawals('I should have used $11,000 instead of $9,000.').map(w => w.value)).toEqual([9000]);
+    expect(findWithdrawals('Agreed that\'s the softest number in the chain — it\'s a forecast, and the whole thing fails if it\'s 18% instead of 20%.')).toEqual([]);
+    expect(findWithdrawals('If taste disappoints we get 1 bag, but I used $11,000 instead of $9,000 for Port Avery.').map(w => w.value)).toEqual([9000]);
+    // …"if" over the figure's own clause vetoes it, even in their own words.
+    expect(findWithdrawals('If I had used 18% instead of 20%, we would miss the bar.')).toEqual([]);
+  });
+});
+
+describe('I4: a withdrawn figure never becomes the current value (contract §2)', () => {
+  const q = 'step:starter_ltv';
+  it('a late checker claim of a withdrawn figure is not taken, and the fold stays idempotent', () => {
+    const at11 = update(EMPTY_WORKSHEET, { turn: 11, text: '', stepBindings: [], checkerClaims: [{ quantity: q, value: 405, span: '$405 LTV', rating: 'error' }] }, pricing);
+    expect(latest(at11, q)!.value).toBe(405);
+    const at13 = update(at11, { turn: 13, text: 'Starter LTV is $30 × 20 = $600, not $405.', stepBindings: [], checkerClaims: [] }, pricing);
+    expect(isWithdrawn(at13, 405, 'usd')).toBe(true);
+    expect(latest(at13, q)).toBeUndefined();
+    const late = update(at13, { turn: 11, text: '', stepBindings: [], checkerClaims: [{ quantity: q, value: 405, span: '$405 LTV', rating: 'error' }] }, pricing);
+    expect(latest(late, q)).toBeUndefined();
+    expect(update(late, { turn: 11, text: '', stepBindings: [], checkerClaims: [{ quantity: q, value: 405, span: '$405 LTV', rating: 'error' }] }, pricing)).toEqual(late);
+  });
+  it('an entry with a standing value falls back to it', () => {
+    const ws = update(update(EMPTY_WORKSHEET, { turn: 9, text: '', stepBindings: [], checkerClaims: [{ quantity: q, value: 600, span: '$600', rating: 'correct' }] }, pricing),
+      { turn: 11, text: '', stepBindings: [], checkerClaims: [{ quantity: q, value: 405, span: '$405', rating: 'error' }] }, pricing);
+    const after = update(ws, { turn: 13, text: 'Starter LTV is $600, not $405.', stepBindings: [] }, pricing);
+    expect(latest(after, q)).toEqual(expect.objectContaining({ value: 600, turn: 9 }));
+  });
+});
+
+describe('I3: a withdrawal only drops a probe about the same quantity, in its unit', () => {
+  const hollis = getCaseById('launch-001');
+  it('"not a 3x" (a ratio) leaves a probe about $3.00 a household alone (b35h Marisol t27, drop #7)', () => {
+    const ws = update(EMPTY_WORKSHEET, { turn: 27, text: 'Net $750,000, not a 3x return — it\'s about 1.5x on contribution.', stepBindings: [] }, hollis);
+    expect(ws.withdrawn.map(w => [w.value, w.unit])).toEqual(expect.arrayContaining([[3, 'ratio']]));
+    expect(staleReason(ws, hollis, { n: 23, quantity: 'step:sampling_contribution', value: 3, span: 'one bag\'s worth of price to acquire a three-bag buyer' }, [1.5, 3])).toBeNull();
+  });
+  it('a withdrawal in another unit covers nothing (its own figure, so the data rule doesn\'t apply)', () => {
+    const ws = update(EMPTY_WORKSHEET, { turn: 27, text: 'My ratio was wrong — it is 1.5x, not 3x.', stepBindings: [] }, hollis);
+    expect(ws.withdrawn.map(w => [w.value, w.unit])).toEqual([[3, 'ratio']]);
+    expect(staleReason(ws, hollis, { n: 23, quantity: 'step:sampling_contribution', value: 3, span: '$3.00 a household' })).toBeNull();
+    // …and the same withdrawal does cover a ratio claim.
+    expect(staleReason(ws, hollis, { n: 23, quantity: null, value: 3, span: 'a 3x return' })).toMatch(/3 withdrawn at message 27/);
+  });
+  it('a case figure withdrawn under a condition of its own leaves its other uses alone (b35q Marisol t25, drop #8)', () => {
+    const ws = update(EMPTY_WORKSHEET, { turn: 25, text: 'Also worth noting on your point about the price test: if cost to serve stays at $10, then at $60 the Starter margin is $50, not $30.', stepBindings: [] }, pricing);
+    expect(ws.withdrawn[0]).toMatchObject({ value: 30, scenario: true });
+    expect(staleReason(ws, pricing, { n: 23, quantity: null, value: 30, span: 'I\'ll apply the $30 Starter margin we were given, since that\'s the figure in the exhibit' }, [30, 50, 40, 60, 10])).toBeNull();
+  });
+  it('…and a figure of their own they withdraw still drops its probe (b33 Tyler t17)', () => {
+    const prof1 = getCaseById('prof-001');
+    const ws = update(EMPTY_WORKSHEET, { turn: 17, text: 'So it should be 15%, not 19%, over two years.', stepBindings: [] }, prof1);
+    expect(staleReason(ws, prof1, { n: 15, quantity: null, value: 19, span: 'revenue grew about 19% on volume alone' }, [15, 42, 58])).toMatch(/19 withdrawn at message 17/);
+  });
+});
+
+describe('the review\'s minors', () => {
+  it('statusOf is unchecked when the step declares no unit code can read', () => {
+    const noUnit = { mathSteps: [{ id: 's', answer: 10, tolerance: 1 }] };
+    expect(statusOf(noUnit, 'step:s', 10)).toBe('unchecked');
+    expect(statusOf({ mathSteps: [{ id: 's', answer: 10, tolerance: 1, unit: 'usd' }] }, 'step:s', 10)).toBe('right');
+  });
+  it('the checker\'s rating stands in where code has no calculation', () => {
+    const ws = update(EMPTY_WORKSHEET, { turn: 5, text: '', stepBindings: [], checkerClaims: [{ quantity: 'pricing:gain@10', value: 5, span: '5 points', rating: 'error' }] }, prof2);
+    expect(latest(ws, 'pricing:gain@10')).toEqual(expect.objectContaining({ status: 'wrong', source: 'checker' }));
+  });
+  it('at the same turn the checker takes the binder\'s place', () => {
+    const ws = update(EMPTY_WORKSHEET, { turn: 7, text: '', stepBindings: [{ stepId: 'network_improvement', value: 15.8, span: 'binder' }],
+      checkerClaims: [{ quantity: 'step:network_improvement', value: 15.9, span: 'checker', rating: 'error' }] }, prof2);
+    expect(latest(ws, 'step:network_improvement')).toEqual(expect.objectContaining({ source: 'checker', value: 15.9 }));
+  });
+  it('the two "needed" pricing kinds are keyed apart', () => {
+    expect(claimQuantity({ codeQuantity: { kind: 'needed_for_margin', stepId: null, price: null, target: 24 } })).toBe('pricing:needed_for_margin@24');
+    expect(claimQuantity({ codeQuantity: { kind: 'needed_for_gain', stepId: null, price: null, target: 24 } })).toBe('pricing:needed_for_gain@24');
   });
 });
