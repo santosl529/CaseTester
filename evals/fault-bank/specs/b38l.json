@@ -326,7 +326,7 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "misquote_uncorrected",
-  "note": "The $21M (t5, fixed costs) and $3.6M (t23/t29/t31, Westhaven; true $3.8M) misquotes never corrected: code's misquote check held corrections (misquote:fixed_costs, misquote:route_results_other) and code_gate dropped both (\"error/high — no flag\"). Contract 3.4: a flat correction when the checker rates the span an error, flag or not.",
+  "note": "The $21M (t5, fixed costs) misquote is corrected at t8 ($20.0M). The $3.6M Westhaven misquote (t23/t29/t31; true $3.8M) is NOT corrected aloud: Lorenzo's 26 Oct ruling 4 forbids a correction on the closing turn, so it is left for the written report. Re-graded 26 Oct to assert that ruled behaviour — before the ruling this record asserted the ~70-word read-out at the goodbye.",
   "a": [
    {
     "kind": "correction",
@@ -339,10 +339,9 @@
    },
    {
     "kind": "correction",
-    "figure": "$3.8M",
-    "must": true,
+    "must": false,
     "scope": {
-     "fromTurn": 24
+     "fromTurn": 32
     }
    }
   ],
