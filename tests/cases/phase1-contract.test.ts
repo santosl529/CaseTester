@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { switchOn, parseEngineSwitches, engineSwitchesOf, PHASE1_SWITCHES, assertNoEngineSwitchesInProduction } from '@/lib/cases/engine-switches';
+import { switchOn, parseEngineSwitches, engineSwitchesOf, PHASE1_SWITCHES, ALL_SWITCHES, NON_PRESET_SWITCHES, assertNoEngineSwitchesInProduction } from '@/lib/cases/engine-switches';
 import { applyPhase1Overlay, Phase1OverlaySchema, overlayProblems } from '@/lib/cases/phase1-overlay';
 import { CaseSchema, noFigure, type Case } from '@/lib/cases/schema';
 import { getCaseById } from '@/lib/cases/loader';
@@ -13,7 +13,7 @@ const raw = (id: string) => CaseSchema.parse(JSON.parse(readFileSync(`cases/${id
 
 describe('engine switches', () => {
   it('are off with no env and no pin', () => {
-    for (const s of PHASE1_SWITCHES) expect(switchOn({ id: 'prof-001' }, s, {})).toBe(false);
+    for (const s of ALL_SWITCHES) expect(switchOn({ id: 'prof-001' }, s, {})).toBe(false);
   });
   it('read the env per case after "*", the "phase1" preset and "-name"', () => {
     const env = { ENGINE_SWITCHES: '*=phase1; prof-001=-ackRotation' };
@@ -21,6 +21,15 @@ describe('engine switches', () => {
     expect(switchOn({ id: 'prof-001' }, 'ackRotation', env)).toBe(false);
     expect(switchOn({ id: 'prof-001' }, 'worksheet', env)).toBe(true);
     expect(Object.keys(engineSwitchesOf({ id: 'prof-002' }, env))).toHaveLength(PHASE1_SWITCHES.length);
+  });
+  // Lorenzo, 26 Oct: 4.9's wider reading is rejected — it removes post-recommendation pushback probes, a scored
+  // rubric dimension. The switch stays nameable for evidence but must never ride in on the preset.
+  it('the phase1 preset never turns on a non-preset switch', () => {
+    for (const s of NON_PRESET_SWITCHES) {
+      expect(PHASE1_SWITCHES as readonly string[]).not.toContain(s);
+      expect(switchOn({ id: 'prof-002' }, s, { ENGINE_SWITCHES: '*=phase1' })).toBe(false);
+      expect(switchOn({ id: 'prof-002' }, s, { ENGINE_SWITCHES: `*=phase1,${s}` })).toBe(true);
+    }
   });
   it('the env beats the case pin; the pin beats the default', () => {
     expect(switchOn({ id: 'x-001', engine: { worksheet: true } }, 'worksheet', {})).toBe(true);

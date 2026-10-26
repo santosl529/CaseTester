@@ -8,7 +8,7 @@ import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { CODE_PATHS } from './git-info';
 import type { ModelCheck } from './model-guard';
-import { engineSwitchesOf, PHASE1_SWITCHES } from '@/lib/cases/engine-switches';
+import { engineSwitchesOf, ALL_SWITCHES } from '@/lib/cases/engine-switches';
 
 const CODE_PATHS_LABEL = CODE_PATHS.join(', ');
 
@@ -121,7 +121,7 @@ export function planWave(m: Manifest | null, p: {
 // The switches on for a case (engineSwitchesOf), as a list in contract order: the run header and the manifest record it.
 export function engineSwitchNames(c: { id: string; engine?: Record<string, boolean | undefined> }, env: Record<string, string | undefined> = process.env): string[] {
   const on = engineSwitchesOf(c as Parameters<typeof engineSwitchesOf>[0], env);
-  return PHASE1_SWITCHES.filter(s => on[s]);
+  return ALL_SWITCHES.filter(s => on[s]);
 }
 
 export function fileHash(p: string): string {

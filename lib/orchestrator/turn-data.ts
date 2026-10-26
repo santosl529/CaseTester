@@ -16,7 +16,6 @@ import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
 import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, askQualifiers, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
-import { switchOn } from '@/lib/cases/engine-switches';
 import { costOf } from '@/lib/llm-pricing';
 import { dataLineVersions } from '@/lib/cases/loader';
 

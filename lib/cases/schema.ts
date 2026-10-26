@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { PHASE1_SWITCHES } from './engine-switches';
+import { ALL_SWITCHES } from './engine-switches';
 
 const PhaseSchema = z.enum([
   'INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS',
@@ -249,7 +249,7 @@ export const CaseSchema = z.object({
     items: z.array(z.string()).optional(),
   }).strict()).optional(),
   // Phase 1 engine switches pinned by the case file (lib/cases/engine-switches.ts); absent = today's behaviour.
-  engine: z.partialRecord(z.enum(PHASE1_SWITCHES), z.boolean()).optional(),
+  engine: z.partialRecord(z.enum(ALL_SWITCHES), z.boolean()).optional(),
   // Voice (lib/voice/keyterms.ts; Lorenzo's brief, 17 Oct): the case's own
   // names and terms Flux is told to expect — the client, products, places —
   // beside the generic ones ("COGS", "MECE"). 9ccf0836 heard "Cogshare".

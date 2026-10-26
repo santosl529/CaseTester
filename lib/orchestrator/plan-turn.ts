@@ -38,7 +38,6 @@ import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-che
 import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, parseInputKey, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot,
   stepRootsDeclared, registerStepRoots, stepRootOf, lineageInherits, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot, type VerdictPayload, claimFigures } from './math-checker-live';
 import { theirFigure } from './own-quantity';
-import { switchOn } from '@/lib/cases/engine-switches';
 import { foldTurn, staleReason, claimQuantity, lineageOf, findWithdrawals, EMPTY_WORKSHEET } from './worksheet';
 import type { Worksheet } from './worksheet-types';
 import { normalizeAsrTerms } from './asr-terms';

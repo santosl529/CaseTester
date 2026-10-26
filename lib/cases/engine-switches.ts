@@ -35,17 +35,18 @@ export const PHASE1_SWITCHES = [
   'modelDeferrals',      // 4.7: model-said deferrals registered for E5's stop sequence
   'closeWaitMitigation', // 4.8: no mitigation ask when the last answer or question already covered it
   'recommendationReceived', // 4.9: the time warning skips a fresh rec ask (the narrow reading: the stage record is untouched)
-  // 4.9's wider reading, Lorenzo's to rule (Stream 4b's review): a received recommendation goes into the stage
-  // record too, so the end gate sees it and the case can close. Five runs then close 3–8 minutes earlier and b34
-  // Aldermoor Jasmine loses eight post-recommendation pushback turns. Off on its own, and it rides on
-  // `recommendationReceived`. NOTE: `ENGINE_SWITCHES='*=phase1'` turns it ON — the gate and the wave want
-  // `'*=phase1,-recommendationOpensGate'` until he rules for the wider reading.
-  'recommendationOpensGate',
   'ackRotation',         // 4.10: the model's opening acknowledgment through the phrase-pool rotation
 ] as const;
 
-export type EngineSwitch = typeof PHASE1_SWITCHES[number];
-export const isEngineSwitch = (s: string): s is EngineSwitch => (PHASE1_SWITCHES as readonly string[]).includes(s);
+// Switches outside the `phase1` preset: nameable, never turned on by `*=phase1`. Lorenzo rejected 4.9's wider
+// reading on 26 Oct — a received recommendation opening the end gate removes post-recommendation pushback probes,
+// and pushback is a scored rubric dimension (five runs closed 3–8 minutes early; b34a Jasmine lost eight turns).
+// It stays nameable for evidence, never on by default.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate'] as const;
+export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
+
+export type EngineSwitch = typeof ALL_SWITCHES[number];
+export const isEngineSwitch = (s: string): s is EngineSwitch => (ALL_SWITCHES as readonly string[]).includes(s);
 
 type Env = Record<string, string | undefined>;
 type CaseLike = { id: string; engine?: Partial<Record<EngineSwitch, boolean>> };
@@ -96,5 +97,5 @@ export function switchOn(c: CaseLike, name: EngineSwitch, env: Env = process.env
 
 // Every switch's value for a case: the run header and the session flags record it.
 export function engineSwitchesOf(c: CaseLike, env: Env = process.env): Partial<Record<EngineSwitch, true>> {
-  return Object.fromEntries(PHASE1_SWITCHES.filter(s => switchOn(c, s, env)).map(s => [s, true]));
+  return Object.fromEntries(ALL_SWITCHES.filter(s => switchOn(c, s, env)).map(s => [s, true]));
 }
