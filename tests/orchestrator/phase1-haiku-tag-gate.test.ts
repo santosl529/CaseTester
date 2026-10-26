@@ -15,7 +15,7 @@ vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<obje
 vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<object>()), judgeProbeAnswer: async () => null }));
 
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
-import { turnDataChecked } from '@/lib/orchestrator/turn-data';
+import { turnDataChecked, resolveDeferrals, type TurnData } from '@/lib/orchestrator/turn-data';
 import { renderDataLines } from '@/lib/orchestrator/data-decisions';
 import { askTags, itemTagsAgree, type ItemTags } from '@/lib/orchestrator/item-tags';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
@@ -146,5 +146,35 @@ describe('the ask\'s tags, read by code', () => {
     expect(itemTagsAgree({ entities: [], periods: [], kinds: ['split'] }, tags)).toEqual({ agree: false, why: 'kind' });
     expect(itemTagsAgree({ entities: [], periods: [], kinds: ['trend'] }, tags)).toEqual({ agree: true });
     expect(itemTagsAgree({ entities: ['competitor'], periods: ['forecast'], kinds: ['split'] }, undefined)).toEqual({ agree: true });
+  });
+});
+
+// Review F4 (a): when the kept items still answer the ask, the gated ones are dropped silently — but recorded by their
+// ids alone (flags.openDeferrals, `silent`), so a later turn that delivers one is logged against this ask. Nothing is
+// said for them, then or at the wrap-up.
+describe('a silent drop is still recorded', () => {
+  it('on: the gated item is booked ids-only, nothing said', async () => {
+    on();
+    ask.mockImplementation(async () => ({ items: [{ id: 'fuel_prices', answers: 'full' }, { id: 'unit_costs', answers: 'full' }] }));
+    const p = plan('How have our airport charges and staffing moved over time?', { tags: {
+      fuel_prices: { entity: 'client', period: ['historical', 'current'], quantityKind: ['trend'] },
+      unit_costs: { entity: 'client', period: ['current'], quantityKind: ['level'] },
+    } });
+    const d = await turnDataChecked(p, turn([req('the trend in airport charges and staffing over time')]));
+    expect(d.releases.map(r => r.id)).toEqual(['fuel_prices']);
+    expect(d.deferralsOpened).toEqual([{ what: 'the trend in airport charges and staffing over time', ids: ['unit_costs'], silent: true }]);
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(/come back|won't get to/i);
+  });
+  it('a silent entry is never said at the wrap-up, and resolves when its item is delivered', async () => {
+    on();
+    const open = [{ what: 'the trend in airport charges and staffing over time', ids: ['unit_costs'], turn: 30, silent: true as const }];
+    const p = plan('I recommend exiting.', { tags: {} });
+    p.state.kind = 'rec_ask';
+    p.ctx.flags.openDeferrals = open;
+    const d = await turnDataChecked(p, turn([]));
+    expect(renderDataLines(d, 's').join(' ')).not.toMatch(/won't get to/i);
+    const none = { requests: [], refusals: [], defers: [], gateDefers: [], releases: [], restates: [], exhibit: null } as unknown as TurnData;
+    expect(resolveDeferrals(open, none, 34, ['unit_costs']).resolved).toEqual([{ what: open[0].what, how: 'delivered', turn: 34 }]);
+    expect(resolveDeferrals(open, none, 34, ['fuel_prices']).resolved).toEqual([]);
   });
 });
