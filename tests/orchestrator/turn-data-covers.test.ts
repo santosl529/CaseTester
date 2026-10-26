@@ -118,7 +118,7 @@ describe('the tag gate on the coverage step (R1)', () => {
     expect(d.refusals).toEqual(['the one-off cost of building a team']);
     expect(d.defers).toEqual([]);
     expect(ask).not.toHaveBeenCalled();
-    expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'option_a', why: 'scope' }] }] });
+    expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'option_a', why: 'scope', rule: 'one_off' }] }] });
   });
 });
 
@@ -238,7 +238,8 @@ describe('X1 keeps E1\'s sibling rule', () => {
   it('"the split of the fuel cost breakdown": no fuel trend line, the ask refused alone, unchecked', async () => {
     const p = plan('prof-002', 'Can I see the split of the fuel cost breakdown?', taggedFactBase('prof-002'));
     const d = await turnDataChecked(p, turn('the split of the fuel cost breakdown'));
-    expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'fuel_prices', why: 'scope' }], coarse: [{ what: 'the split of the fuel cost breakdown', ids: [] }] }] });
+    // Phase 1 review F6: the cover gate logs which scope rule fired, as request_scope does.
+    expect(acts(p, 'cover_gate')[0]?.detail).toMatchObject({ asks: [{ deferred: [{ id: 'fuel_prices', why: 'scope', rule: 'split_of_head' }], coarse: [{ what: 'the split of the fuel cost breakdown', ids: [] }] }] });
     expect(d.releases).toEqual([]);
     expect(d.refusals).toEqual(['the split of the fuel cost breakdown']);
     expect(ask).not.toHaveBeenCalled();

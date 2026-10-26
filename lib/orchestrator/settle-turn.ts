@@ -37,7 +37,7 @@ import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers }
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems, openDeferrals, resolveDeferrals } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems, openDeferrals, resolveDeferrals, tracksDeferrals, modelDeferrals } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
@@ -678,6 +678,18 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     flags.mustReach = [...((flags.mustReach as string[] | undefined) ?? []), ...volunteered.map(r => r.id)];
   }
 
+  // Phase 1 4.7 (review F7): a promise the model made on a wrap-up turn can never be followed, so the same turn says
+  // "We won't get to <ask> today." for it — hollow by construction otherwise (b38 Larkspur Marcus 316baba1 t24). Not on
+  // the close itself, which already says the case is over.
+  const wrapPromises = !codeWritten && !ended ? modelDeferrals(plan, decisions, turn.requests, [say, question], { wrapUp: true }) : [];
+  if (wrapPromises.length > 0) {
+    const whats = wrapPromises.map(x => x.what);
+    dataParts.push(...renderDataLineParts({ releases: [], restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], requests: [], wontGetToNamed: whats }, seed, phraseUses));
+    dataLines = dataParts.map(p => p.text);
+    decisions.wontGetTo = [...(decisions.wontGetTo ?? []), ...whats];
+    checks.act('model_deferral', 'the model promised to check or come back on a wrap-up turn: said "We won\'t get to … today." in the same breath', { asks: wrapPromises, wrapUp: true });
+  }
+
   const spokenText = [say, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
 
   // Still not heard (a pressure-test step or another of code's lines took the
@@ -737,9 +749,12 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // the E5 stop sequence (delivered, or "We won't get to that"), never left hollow"; turn-data.ts resolveDeferrals):
   // code's item-less named deferrals on a tagged case stay open in flags.openDeferrals until delivered or said "We won't
   // get to …" on the first wrap-up turn — each resolved once, logged; whether heard or not, as flags.mustReach.
-  if (state.factBase.answerGate) {
+  if (tracksDeferrals(plan)) {
     // Booked deliveries only (fix round 1, the review's minor): the reveals booked, the lines restated, the exhibit shown.
-    const tracked = resolveDeferrals(openDeferrals(plan), decisions, nextTurnIndex + 1, [...newReveals, ...decisions.restates.map(r => r.id), ...exhibitReveals]);
+    // Phase 1 4.7 (turn-data.ts modelDeferrals): the model's own "I'll check what we have" opens a tracked deferral too.
+    const modelSaid = codeWritten ? [] : modelDeferrals(plan, decisions, turn.requests, [say, question]);
+    if (modelSaid.length > 0) checks.act('model_deferral', 'the model promised to check or come back to an ask this turn doesn\'t answer: tracked until delivered or "We won\'t get to …"', { asks: modelSaid });
+    const tracked = resolveDeferrals(openDeferrals(plan), modelSaid.length > 0 ? { ...decisions, deferralsOpened: [...(decisions.deferralsOpened ?? []), ...modelSaid] } : decisions, nextTurnIndex + 1, [...newReveals, ...decisions.restates.map(r => r.id), ...exhibitReveals]);
     for (const r of tracked.resolved) checks.act('deferral_resolved', r.how === 'delivered' ? 'a tracked deferral delivered: nothing more said'
       : r.how === 'wont_get_to' ? 'a tracked deferral said "We won\'t get to …" on the first wrap-up turn' : 'a tracked deferral\'s ask refused since: closed', r);
     if (tracked.open.length > 0 || flags.openDeferrals !== undefined) flags.openDeferrals = tracked.open;

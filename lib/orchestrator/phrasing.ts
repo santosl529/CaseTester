@@ -68,6 +68,23 @@ export const PHRASE_POOLS = {
     'That\'s on the exhibit: {x}',
     'Reading the exhibit again: {x}',
   ],
+  // Phase 1 4.1 (restateRules): a re-ask of data on an exhibit already out — pointed to, with the exhibit's one-line
+  // summary (no figures; the case's overlay), not read again.
+  restate_pointer: [
+    'You\'ll find that on the exhibit — {x}',
+    'That one is on the exhibit you have: {x}',
+    'The exhibit already shows that — {x}',
+    'The exhibit you have covers that: {x}',
+    'That\'s covered on the exhibit — {x}',
+  ],
+  // …and a re-ask of a line said within the last four turns: named, not said again.
+  restate_recent: [
+    'I gave you {x} a moment ago.',
+    'We just went over {x}.',
+    'I covered {x} just now.',
+    '{X} came up a moment ago.',
+    'I went through {x} a moment ago.',
+  ],
   // An earlier ask released once its stage is reached.
   earlier: [
     'On what you asked about earlier:',

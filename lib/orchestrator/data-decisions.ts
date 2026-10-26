@@ -94,6 +94,29 @@ export function mentionStatesNeed(candidateText: string, label: string, strict?:
   }));
 }
 
+// A text's key nouns (Phase 1 4.4, `refusalNounCheck`; contract §5: "a content noun after the stop list and plural
+// fold, using the one stemmer in data-decisions.ts"): its content words, stemmed (stemWord), three letters or more,
+// the case's proper names taken out whole ("Port Avery", "Larkspur"), and none of the stop list — function and
+// question words, the offer gate's generic label words ("cost", "revenue", "price", "share": every case has them), the
+// words of a split, a period or an amount ("split", "breakdown", "year", "total", "number"), number words ("the four
+// uncontested routes": "four" names no topic) and the dimension words "time", "past", "beyond" and "new" (review F2:
+// "repeat rates from past launches" shares only "past" with a case line — a dimension, not a topic).
+const KEY_STOP = new Set([...LABEL_IGNORED, ...GENERIC_LABEL_WORDS, ...`
+  and the for are was how why who can did has had its our any all but not one two per via get got let see say ask yes
+  about after again also been before between both breakdown broken composition decomposition detail could data does each
+  either figure from have here into just know level like look many more most much need part same should show some split
+  than that their them then there these they this those through total trend under very versu want were what when where
+  whether which while will with would year your only mix makeup kind type way amount count line item exact actual
+  specific basis versus give tell share pull sense idea something anything number numbers
+  three four five six seven eight nine ten eleven twelve twenty thirty forty fifty hundred thousand million billion half
+  first second third fourth fifth
+  time past beyond new`.split(/\s+/).filter(Boolean).map(stemWord)]);
+export function keyNouns(text: string, caseNames: string[] = []): Set<string> {
+  let t = text.toLowerCase().replace(/[‘’]/g, "'").replace(/'s\b/g, '');
+  for (const n of [...caseNames].sort((a, b) => b.length - a.length)) t = t.replace(new RegExp(`(?<![a-z])${n.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'), ' ');
+  return new Set(contentWords(t).filter(w => w.length >= 3 && !KEY_STOP.has(w)));
+}
+
 export function labelMatch(what: string, items: { id: string; label: string; timeframes?: Record<string, string> }[]): string | null {
   const asked = new Set(labelWords(what));
   const hits = items.filter(i => {
@@ -254,36 +277,58 @@ export function changeForSplit(what: string, item: { label: string }, spans: rea
 // item whole), so the tag gate on a covered item reads the other rules only.
 // `spans` (fix round 2): the cover phrase's spans in the ask; words inside them cut nothing (matchOutside).
 export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = [], opts: { count?: boolean; spans?: readonly AskSpan[] } = {}): boolean {
+  return scopeRule(what, item, names, opts) !== null;
+}
+// Which scope rule puts the item outside the ask (Phase 1 4.2, `coarseKeepNamed`: Lorenzo, 22 Oct, "Log which scope
+// rule fired"; b38 Larkspur Jasmine 3f928012 t4's `extras_revenue` was ruled out and the grading couldn't tell by
+// which rule). The rules in outsideAskScope's order, the first that fires; null: in scope.
+export type ScopeRule = 'basis' | 'one_off' | 'recurrence' | 'split_of_figure' | 'count' | 'split_of_head' | 'split_of_item' | 'change_for_split' | 'cut';
+export function scopeRule(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = [], opts: { count?: boolean; spans?: readonly AskSpan[] } = {}): ScopeRule | null {
   const ask = what.toLowerCase();
   const spans = opts.spans ?? [];
   const has = (re: RegExp) => matchOutside(re, ask, spans) !== null;
-  if (has(BASIS) && !SAYS_BASIS.test(item.value ?? '')) return true;
-  if (has(ONE_OFF_ASK) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return true;
-  if (has(RECURRENCE_ASK) && firstYearOnly(item.value ?? '')) return true;
-  if (splitOfFigure(what, item.value ?? '', spans)) return true;
+  if (has(BASIS) && !SAYS_BASIS.test(item.value ?? '')) return 'basis';
+  if (has(ONE_OFF_ASK) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return 'one_off';
+  if (has(RECURRENCE_ASK) && firstYearOnly(item.value ?? '')) return 'recurrence';
+  if (splitOfFigure(what, item.value ?? '', spans)) return 'split_of_figure';
   // A count asked of an item that states no figure (round 5 Task 50; fact-check.ts
   // COUNT_ASK): the item is the ask's coarse answer, not the count.
-  if (opts.count !== false && item.value !== undefined && countFinerThan(ask, item.value)) return true;
+  if (opts.count !== false && item.value !== undefined && countFinerThan(ask, item.value)) return 'count';
   const head = HEAD_NOUN(item.label);
-  if (!head) return false;
+  if (!head) return null;
   const label = item.label.toLowerCase();
   // A split of the item itself: "<split> of/within/inside <head>", "within <head>", "<head> <split>".
   const splitOfHead = new RegExp(String.raw`\b${SPLIT_WORDS}\s+(?:of|within|inside|in|for)\s+(?:the\s+)?(?:[\w&-]+\s+){0,3}?${head}\b|\b(?:within|inside)\s+(?:the\s+)?${head}\b|\b${head}\s+${SPLIT_WORDS}\b`, 'i');
-  if (has(splitOfHead) && !PART_LABEL.test(label)) return true;
-  if (splitOfItem(ask, item, names, spans)) return true;
+  if (has(splitOfHead) && !PART_LABEL.test(label)) return 'split_of_head';
+  if (splitOfItem(ask, item, names, spans)) return 'split_of_item';
   // A split / composition ask is about the parts, not how they moved: a
   // change item ("price change of the other inputs") is in scope only when the
   // ask also asks about movement ("…and how each moved", "the price trend").
   // Batch 18: "the split of COGS by input" released the 37.5% price change in 7 runs.
-  if (changeForSplit(ask, item, spans)) return true;
+  if (changeForSplit(ask, item, spans)) return 'change_for_split';
   const cut = matchOutside(CUT, ask, spans);
   // "total or per store" asks for either: the uncut figure is in scope.
   if (cut && !/\b(?:total|overall|in total)\s+(?:or|and)\b|\b(?:or|and)\s+(?:in\s+)?total\b/.test(ask)) {
     const dim = (cut[1] ?? cut[2] ?? cut[3] ?? '').toLowerCase();
-    if (dim === 'year') return Object.values(item.timeframes ?? {}).length === 0 && !/\byear/.test(label);
-    if (!label.includes(dim)) return true;
+    if (dim === 'year') return Object.values(item.timeframes ?? {}).length === 0 && !/\byear/.test(label) ? 'cut' : null;
+    if (!label.includes(dim)) return 'cut';
   }
-  return false;
+  return null;
+}
+
+// The ask names the item as one side of what it splits or compares (Phase 1 4.2, `coarseKeepNamed`; Lorenzo, 22 Oct:
+// "The coarse rule: never drop an item the model named when that item matches the ask"; b38 Larkspur Jasmine 3f928012
+// t3 → t4, "the ticket versus extras revenue split", mapped by the model to `extras_revenue` and ruled out by
+// `split_of_item` — "extras revenue split" read as a split of the extras line, though extras are one side of the split
+// asked). One of the item's names said right after "versus" / "vs", right before it, or as either side of
+// "between … and / or …", in the model's words or the candidate's sentence. Only a split rule is undone by it
+// (turn-data.ts): a cut, a basis, a one-off or a count the item lacks still rules it out.
+export const SPLIT_RULES: ReadonlySet<ScopeRule> = new Set(['split_of_head', 'split_of_item']);
+export function namedAsPart(texts: string[], names: string[]): boolean {
+  const esc = (x: string) => x.toLowerCase().trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  const ns = [...new Set(names.map(n => n.replace(/\s*\([^)]*\)\s*$/, '').trim()).filter(n => n.length >= 3))].map(esc);
+  const det = String.raw`(?:(?:the|our|their|its)\s+)?`;
+  return texts.some(t => ns.some(n => new RegExp(String.raw`\b(?:versus|vs\.?)\s+${det}${n}s?\b|\b${n}s?\s+(?:versus|vs\.?)(?=\s|$)|\bbetween\s+${det}${n}s?\s+(?:and|or)\b|\bbetween\s+[^,;:?.!]{1,60}?\s+(?:and|or)\s+${det}${n}s?\b`, 'i').test(t)));
 }
 
 export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[]; after?: string[]; requiresItems?: string[]; required?: boolean };
@@ -332,7 +377,10 @@ export type DataDecisions = {
   // mustReach: a must-reach item code volunteered (round 6 Task 72; turn-data.ts mustReachItems) — the point it was due
   // before (an exhibit id, or "recommendation"); said first, without the "earlier" lead-in: nobody asked for it.
   releases: { id: string; value: string; earlier: boolean; mustReach?: string }[];
-  restates: { id: string; value: string; exhibit?: boolean }[];  // explicit re-asks of data already revealed: said again, never re-booked
+  restates: { id: string; value: string; exhibit?: boolean; pointer?: string }[];  // explicit re-asks of data already revealed: said again, never re-booked
+  // Phase 1 4.1 (restateRules, turn-data.ts): `pointer` — the item is on an exhibit already out: its summary is said, not
+  // its line; `recentRestates` — re-asks of lines said within the last four turns, named and not said again.
+  recentRestates?: string[];
   exhibit: { id: string; title: string; covers: string[] } | null;
   refusals: string[];     // what, for explicit asks the case doesn't hold
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
@@ -682,12 +730,15 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   for (const r of asked) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
   // Restated values carry no ids: nothing is booked as a new reveal.
   // The lead-in names where the item came from: what was said ("As I mentioned"), what only an exhibit showed ("As the exhibit shows").
-  const saidFirst = [...d.restates.filter(r => !r.exhibit), ...d.restates.filter(r => r.exhibit)];
+  const saidFirst = [...d.restates.filter(r => !r.exhibit && !r.pointer), ...d.restates.filter(r => r.exhibit && !r.pointer)];
   saidFirst.forEach((r, i) => {
     const v = dataLine(r.value, uses, seed);
     const lead = i === 0 || Boolean(r.exhibit) !== Boolean(saidFirst[i - 1].exhibit);
     parts.push({ kind: 'restate', ids: [], text: lead ? phrase(r.exhibit ? 'restate_exhibit' : 'restate', v, uses, seed) : v });
   });
+  // Phase 1 4.1: one pointer per exhibit summary, then the recent re-asks by name.
+  for (const summary of [...new Set(d.restates.flatMap(r => (r.pointer ? [r.pointer] : [])))]) parts.push({ kind: 'restate', ids: [], text: phrase('restate_pointer', summary, uses, seed) });
+  if (d.recentRestates?.length) parts.push({ kind: 'restate', ids: [], text: phrase('restate_recent', joinWhat(d.recentRestates, 'and'), uses, seed) });
   if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   const proper: ReadonlySet<string> = d.properWords ? new Set(d.properWords.map(w => w.toLowerCase())) : NO_PROPER;
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });
