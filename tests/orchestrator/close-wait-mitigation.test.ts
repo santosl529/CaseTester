@@ -2,7 +2,7 @@
 // answer already gave one (action words: phase / stage / pilot / test / trigger / validate / hedge…), or if the last
 // question already asked what they'd do."). Answers verbatim from the batch 34–38 close_wait turns.
 import { describe, it, expect, afterEach, vi } from 'vitest';
-import { closeWaitLine } from '@/lib/orchestrator/close-hold';
+import { closeWaitLine, closeWaitRule, closeWaitReason } from '@/lib/orchestrator/close-hold';
 import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 
 vi.mock('@/db/client', () => ({ db: {} }));
@@ -106,5 +106,31 @@ describe('4.8: a close_wait follow-up is no probe of a figure', () => {
     expect(withoutCloseWaitLines('six months in, how would you know it was working?').trim()).toBe('');
     expect(withoutCloseWaitLines('How  would you guard against that?').trim()).toBe('');
     expect(withoutCloseWaitLines("What's the first step you'd want the client to take?").trim()).toBe('');
+  });
+});
+
+// Gate report §5 item 1 (26 Oct): the bank asserts the DECISION, not the wording. `closeWaitLine` is a three-way
+// fall-through, so re-routing `after_risk` to `first_step` (10 of 12 records) or to `measure` (12 of 12) greened
+// the close_wait records while the re-ask persisted. `closeWaitRule` names the pool and the pools 4.8 skipped,
+// and the `close_hold` check logs it so a record can pin it with one `check` assertion.
+describe('closeWaitRule — the decision the `close_hold` check logs', () => {
+  const rule = (answer: string, q = RISK_Q, skipAnswered = true) => closeWaitRule(q, { answer, skipAnswered });
+  it('names which pools the switch skipped, not just the one it landed on', () => {
+    // b38 Larkspur Tyler t29: a mitigation AND a sequence — both pools skipped, the measure line goes.
+    expect(rule(GAVE_MITIGATION[4])).toEqual({ pool: 'measure', skipped: ['after_risk', 'first_step'] });
+    // b37 Quillpath Marisol t31: a protection, no first step named — after_risk skipped, first_step goes.
+    expect(rule(GAVE_MITIGATION[1])).toEqual({ pool: 'first_step', skipped: ['after_risk'] });
+    // A risk with no mitigation: nothing skipped, after_risk goes (b38 Jasmine t23).
+    expect(rule("Biggest risk: the new routes ramp slower than 60%.")).toEqual({ pool: 'after_risk', skipped: [] });
+  });
+  it('switch off: every pool is open, so nothing is ever skipped', () => {
+    for (const a of GAVE_MITIGATION) expect(rule(a, RISK_Q, false)).toEqual({ pool: 'after_risk', skipped: [] });
+  });
+  it('the line it writes is the rule\'s pool', () => {
+    for (const a of GAVE_MITIGATION) expect(pool(closeWaitLine(RISK_Q, 's1:30', undefined, { answer: a, skipAnswered: true }))).toBe(rule(a).pool);
+  });
+  it('the reason names the pool and the skips, for the bank to pin', () => {
+    expect(closeWaitReason(rule(GAVE_MITIGATION[4]))).toBe('close_wait line: measure; skipped: after_risk, first_step');
+    expect(closeWaitReason(rule('Biggest risk: a slow ramp.'))).toBe('close_wait line: after_risk; skipped: none');
   });
 });

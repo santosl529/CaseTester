@@ -258,6 +258,14 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     expect(p.state.kind).toBe('close_wait');
     expect(p.ctx.checks.entries.find(c => c.check === 'close_hold')?.detail).toMatchObject({ finalFrom: 7, pending: [7] });
   });
+  // Gate report §5 item 1 (26 Oct): the close_wait DECISION is logged — which pool the follow-up comes from and
+  // which pools 4.8 skipped — so the fault bank's close_wait records can pin it instead of one pool's wording.
+  it('logs 4.8\'s decision on the close_hold check: the pool, and the pools it skipped', () => {
+    const p = modelState(planTurn(endReads(), RISK, on()));
+    const c = p.ctx.checks.entries.find(x => x.check === 'close_hold');
+    expect(c?.detail).toMatchObject({ closeWait: { pool: 'first_step', skipped: [] } });
+    expect(c?.reason).toContain('close_wait line: first_step; skipped: none');
+  });
   it('the closing message states figures: its own check has only started — the follow-up', () => {
     const clean = verdict(7, { claims: [] });
     expect(modelState(planTurn(withVerdict(endReads(), [clean]), 'The biggest risk is volume loss: if traffic falls more than 10%, the rise stops paying.', on())).state.kind).toBe('close_wait');

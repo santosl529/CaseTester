@@ -142,12 +142,30 @@ export const CLOSE_WAIT_ASKED_DO = /\bwhat\s+(?:would|should|could)\s+(?:you|the
 // It must be the sequencing word — sentence-initial, punctuated as a header, "the first step / thing / move", or
 // "start(ing) with". "begin" is narrowed to "begin with / by" for the same reason.
 export const CLOSE_WAIT_SAID_FIRST = /(?:^|[.;!?]\s*)first(?:ly)?\b|\bfirst(?:ly)?[,:]|\bthe\s+first\s+(?:step|thing|move)\b|\bstart(?:ing)?\s+with\b|\bbegin\s+(?:with|by)\b|\bnext\s+steps?\b|\bin\s+order\b|\bimmediately\b|\bright\s+now\b|\btomorrow\b|\bbefore\s+(?:committing|launch\w*|the\s+vote|rolling|we|any)\b/i;
-export function closeWaitLine(lastQuestion: string, seed: string, uses?: PhraseUses, o: { answer?: string; skipAnswered?: boolean } = {}): string {
+// The decision, apart from the wording: which pool the follow-up comes from, and which pools 4.8 skipped because
+// the candidate's last answer (or the last question) already covered them. The fault bank pins THIS, not one
+// pool's phrasing: `closeWaitLine` is a three-way fall-through, so re-routing `after_risk` to `first_step` or to
+// `measure` greened 10 and 12 of the 12 close_wait records respectively while the re-ask persisted (gate report
+// §5 item 1). The `close_hold` check logs it (plan-turn.ts).
+export type CloseWaitPool = 'after_risk' | 'first_step' | 'measure';
+export type CloseWaitRule = { pool: CloseWaitPool; skipped: CloseWaitPool[] };
+export function closeWaitRule(lastQuestion: string, o: { answer?: string; skipAnswered?: boolean } = {}): CloseWaitRule {
   const skip = o.skipAnswered === true;
   const answer = o.answer ?? '';
+  const skipped: CloseWaitPool[] = [];
   const mitigated = skip && (CLOSE_WAIT_ACTION.test(answer) || CLOSE_WAIT_ASKED_DO.test(lastQuestion));
-  if (asksRiskQuestion(lastQuestion, true) && !CLOSE_WAIT_MITIGATED.test(lastQuestion) && !mitigated) return line('after_risk', uses, seed);
+  const risky = asksRiskQuestion(lastQuestion, true) && !CLOSE_WAIT_MITIGATED.test(lastQuestion);
+  if (risky && mitigated) skipped.push('after_risk');
+  if (risky && !mitigated) return { pool: 'after_risk', skipped };
   const saidFirst = skip && (CLOSE_WAIT_SAID_FIRST.test(answer) || CLOSE_WAIT_ASKED_DO.test(lastQuestion));
-  if (!CLOSE_WAIT_FIRST.test(lastQuestion) && !saidFirst) return line('first_step', uses, seed);
-  return line('measure', uses, seed);
+  const firstOpen = !CLOSE_WAIT_FIRST.test(lastQuestion);
+  if (firstOpen && saidFirst) skipped.push('first_step');
+  if (firstOpen && !saidFirst) return { pool: 'first_step', skipped };
+  return { pool: 'measure', skipped };
+}
+// The decision as the `close_hold` check's reason says it, so a bank record can pin it with one `check` assertion.
+export const closeWaitReason = (r: CloseWaitRule) => `close_wait line: ${r.pool}; skipped: ${r.skipped.join(', ') || 'none'}`;
+
+export function closeWaitLine(lastQuestion: string, seed: string, uses?: PhraseUses, o: { answer?: string; skipAnswered?: boolean } = {}): string {
+  return line(closeWaitRule(lastQuestion, o).pool, uses, seed);
 }

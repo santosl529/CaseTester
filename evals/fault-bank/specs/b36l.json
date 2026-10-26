@@ -234,7 +234,7 @@
   "turn": 30,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"What would you do to guard against that?\" after his t29 \"What I'd do is reduce the attractiveness of following us … And I'd set a trigger\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t29 \"What I'd do is reduce the attractiveness of following us … And I'd set a trigger\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
   "a": [
    {
     "kind": "says",
@@ -242,8 +242,19 @@
     "must": false
    },
    {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
     "kind": "spoke",
     "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
     "must": true
    }
   ],
@@ -320,7 +331,7 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"What would you do to guard against that?\" after his t23 \"What I'd do: de-risk before committing the full fleet …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t23 \"What I'd do: de-risk before committing the full fleet …\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
   "a": [
    {
     "kind": "says",
@@ -328,8 +339,19 @@
     "must": false
    },
    {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
     "kind": "spoke",
     "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
     "must": true
    }
   ],
