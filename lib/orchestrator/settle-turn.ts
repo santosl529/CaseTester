@@ -30,6 +30,8 @@ import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { line, phrase, recordPhraseUses, rotateOpeningAck, type PhraseUses } from './phrasing';
 import { shadowAskDecision } from './ask-decision';
+import { composeShadow } from './turn-composer';
+import { composeLintContext } from './turn-lint';
 import { switchOn } from '@/lib/cases/engine-switches';
 import { dataLinePools } from '@/lib/cases/loader';
 import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
@@ -725,6 +727,25 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   }
 
   const spokenText = [say, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
+  // Phase 2 C1 (`composeShadow`; design §3): the same pieces in the four fixed slots, linted both ways — never spoken.
+  if (switchOn(state.caseData, 'composeShadow')) {
+    try {
+      const corrections = [
+        ...(checkerLine && checkerLineBy === 'code' && correctsNow(checkerLine) ? [{ text: checkerLine.line, justSaid: Number.parseInt(checkerLine.id, 10) === nextTurnIndex }] : []),
+        ...(kind === 'rec_ask' ? state.stageCodeLines.map(text => ({ text, justSaid: false })) : []),
+      ];
+      const rewritten = withheld.filter(w => w.reason === 'grading' && w.field === 'question').map(w => gradingRemainder(w.sentence)).filter((x): x is string => Boolean(x));
+      const c = composeShadow({ say, data: dataParts.map(d => ({ kind: d.kind, text: d.text, ids: d.ids })), question, corrections, rewritten, ended, ...(decisions.exhibit ? { exhibitId: decisions.exhibit.id } : {}) }, composeLintContext(plan));
+      // Streaming (design §3.3): a sentence the composer moves that the stream already delivered can't move.
+      const deliveredMoved = c.moves.setupMoved.filter(x => out.delivered.some(d => d.includes(x)));
+      checks.record('compose_shadow', c.changed, c.changed ? 'the four slots would change this turn (Phase 2 C1, shadow)' : 'the four slots compose this turn as today', {
+        changed: c.changed, composed: c.composed, moves: c.moves, deliveredMoved,
+        lintToday: c.lintToday, lintComposed: c.lintComposed,
+      });
+    } catch (e) {
+      checks.record('compose_shadow', false, `shadow failed: ${(e as Error).message}`, {});
+    }
+  }
 
   // Still not heard (a pressure-test step or another of code's lines took the
   // question, or a due stage question held it back): the booking is undone and

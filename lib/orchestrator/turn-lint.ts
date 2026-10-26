@@ -11,6 +11,8 @@
 //   L7  no quote fragment ("“…the only option…”")
 import { poolPattern } from './phrasing';
 import { keyNouns } from './data-decisions';
+import { properNames } from './request-signal';
+import type { ModelPlan } from './plan-turn';
 
 export const LINT_RULES = ['L1', 'L2', 'L3', 'L4', 'L5', 'L6', 'L7'] as const;
 export type LintRule = typeof LINT_RULES[number];
@@ -102,4 +104,14 @@ export function lintTurn(segments: readonly LintSegment[], ctx: LintContext = {}
   // L7: a quote fragment.
   for (const s of sents) if (FRAGMENT.test(s.text)) out.push({ rule: 'L7', sentence: s.text });
   return out;
+}
+
+// The lint's case context for a live turn (Settle's composer shadow): an item's own words, an exhibit's title.
+export function composeLintContext(plan: ModelPlan): LintContext {
+  const c = plan.state.caseData;
+  return {
+    itemWords: id => { const i = c.dataLedger.find(x => x.id === id); return i ? [i.label, i.spoken ?? '', i.value] : []; },
+    exhibitWords: id => [c.exhibits.find(e => e.id === id)?.title ?? ''],
+    caseNames: properNames(c.sttKeyterms),
+  };
 }
