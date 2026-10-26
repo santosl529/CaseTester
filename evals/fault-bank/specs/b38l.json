@@ -6,7 +6,7 @@
   "turn": 2,
   "sev": "false",
   "cls": "false_refusal",
-  "note": "\"I don't have split of revenue decline between passengers and average fare.\" The check returned coarse with five route items partial and code turned the model's deferral into a refusal. Same flights and planes as full → the whole decline is fare; routes_schedule's covers (\"fares and volume\", \"fare versus volume\") missed on \"passengers\" / \"average fare\". Claude's grade: false, not serious (judgement); awaiting Lorenzo's blind grade (open question 1). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "\"I don't have split of revenue decline between passengers and average fare.\" The check returned coarse with five route items partial and code turned the model's deferral into a refusal. Same flights and planes as full → the whole decline is fare; routes_schedule's covers (\"fares and volume\", \"fare versus volume\") missed on \"passengers\" / \"average fare\". Claude's grade: false, not serious (judgement); awaiting Lorenzo's blind grade (open question 1). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Fix round (26 Oct, Lorenzo's ruling 1): the positive leg's item becomes `routes_schedule`, the item this record's own note names as the one whose covers missed. route_results_lakeport is one route's revenue and contribution; the ask is network-level, and what answers it is routes_schedule (same six routes, same flights) beside the load-factor line and the network totals. With `*=phase1` t2 defers \"the routes and schedule\" and t4 releases routes_schedule, unit_costs and fixed_costs; network_totals follows at t6. On the base t2 refuses, so the record still fails there.",
   "src": "batch-38-larkspur/hand-grading.md (not yet second-graded)",
   "a": [
    {
@@ -16,7 +16,7 @@
    },
    {
     "kind": "answered",
-    "item": "route_results_lakeport",
+    "item": "routes_schedule",
     "about": "split|decline|passengers|fare",
     "accept": [
      "release",
