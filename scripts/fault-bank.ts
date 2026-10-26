@@ -27,6 +27,7 @@ import { FaultRecordSchema, type FaultRecord, type FaultResult } from '@/lib/eva
 import { SLICES, SpecSchema, sliceOf, specToRecord, findTurnFile, itemLinesOf, isReportRecord, type Slice } from '@/lib/eval/fault-bank-build';
 import { evaluateRecord, scopeTurns, type BankTurn, type CaseView } from '@/lib/eval/fault-bank-assert';
 import { readTurnFile } from '@/lib/eval/turn-file';
+import { engineSwitchNames } from '@/lib/eval/batch-manifest';
 import { getCaseById, dataLineVersions } from '@/lib/cases/loader';
 
 const ROOT = process.env.REPLAY_ROOT ?? '/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs';
@@ -124,6 +125,21 @@ function checkerFiles(slice: Slice, out: string): string {
   return `${ck31},${f}`;
 }
 
+// Finding 14 of the Stream 1 review: --switches is plumbed but, at the base, consumed by nothing — so a typo'd
+// case id ('prof-01=phase1') would silently give switches-off results. The replay stamps engineSwitchNames(case)
+// into every mirror header; this asserts it is exactly what --switches asks for, run by run.
+const switchCache = new Map<string, string>();
+function assertSwitches(mirror: string, caseId: string, switches: string | undefined) {
+  const want = switchCache.get(caseId) ?? (() => {
+    const v = engineSwitchNames(getCaseById(caseId), { ENGINE_SWITCHES: switches }).join(',');
+    switchCache.set(caseId, v);
+    return v;
+  })();
+  const got = readTurnFile(mirror).header.engineSwitches;
+  if (got === undefined) throw new Error(`${mirror}: the mirror header carries no engineSwitches — the replay is older than the switch stamp`);
+  if (got.join(',') !== want) throw new Error(`${mirror}: the replay ran with switches [${got.join(',')}], but --switches=${switches ?? '(off)'} means [${want}] for ${caseId}`);
+}
+
 function replayOne(dir: string, filter: string, ck: string, switches: string | undefined): Promise<number> {
   const env: NodeJS.ProcessEnv = { ...process.env, REPLAY_RUNNER: '1', REPLAY_OUT: dir, REPLAY_ROOT: ROOT, REPLAY_FILTER: filter, REPLAY_CHECKER: ck };
   if (switches) env.ENGINE_SWITCHES = switches; else delete env.ENGINE_SWITCHES;
@@ -141,7 +157,11 @@ async function pool<T>(items: T[], jobs: number, f: (x: T) => Promise<void>) {
   await Promise.all(Array.from({ length: Math.min(jobs, q.length) }, async () => { while (q.length) await f(q.shift()!); }));
 }
 
-type Row = FaultResult & { kind: FaultRecord['kind']; batch: string; cls: string; sev: string; stream: string; replayable: boolean; changed: boolean; baseline: string };
+// `gated`: the record gate condition 1 counts — replayable, not skipped, and owned by a stream Phase 1 builds
+// (streams 2, 3 and 4). `phase2` and `none` records are excluded explicitly (finding 3 of the Stream 1 review):
+// nothing in Phase 1 touches them, so the condition would be unmeetable by construction.
+type Row = FaultResult & { kind: FaultRecord['kind']; batch: string; cls: string; sev: string; stream: string; replayable: boolean; changed: boolean; baseline: string; gated: boolean };
+const PHASE1_STREAMS = new Set(['2', '3', '4']);
 
 function wordsAt(turns: BankTurn[], n: number) { return turns.find(t => t.turnIndex === n - 1)?.delivered.map(s => s.text).join(' ') ?? null; }
 
@@ -174,8 +194,9 @@ async function run() {
   for (const r of recs) {
     const mirror = path.join(out, 'replay', `${r.turnFile.split('/')[1]}--${r.turnFile.split('/')[2]}`, r.turnFile);
     const meta = { kind: r.kind, batch: r.batch, cls: r.grade.class, sev: r.grade.severity, stream: String(r.stream), replayable: r.replayable };
-    if (isReportRecord(r)) { rows.push({ id: r.id, pass: false, failed: [], skipped: 'not_replayable', ...meta, changed: false, baseline: 'report' }); continue; }
-    if (!existsSync(mirror)) { rows.push({ id: r.id, pass: false, failed: [], skipped: 'run_missing', ...meta, changed: false, baseline: 'run_missing' }); continue; }
+    if (isReportRecord(r)) { rows.push({ id: r.id, pass: false, failed: [], skipped: 'not_replayable', ...meta, changed: false, baseline: 'report', gated: false }); continue; }
+    if (!existsSync(mirror)) { rows.push({ id: r.id, pass: false, failed: [], skipped: 'run_missing', ...meta, changed: false, baseline: 'run_missing', gated: false }); continue; }
+    assertSwitches(mirror, r.caseId, switches);
     const replayed = turnsOf(mirror);
     const recorded = turnsOf(path.join(ROOT, r.turnFile));
     const res = evaluateRecord(r, replayed, linesFor(r.caseId));
@@ -185,7 +206,8 @@ async function run() {
     const own = replayed.find(t => t.turnIndex === r.turn - 1);
     const kindChanged = own && own.stateBefore.kind !== recorded.find(t => t.turnIndex === r.turn - 1)?.stateBefore.kind;
     const result: FaultResult = { ...res, ...(kindChanged ? { skipped: 'diverged' as const } : {}), ...(!r.replayable ? { skipped: 'not_replayable' as const } : {}) };
-    rows.push({ ...result, ...meta, changed, baseline: baselineClass(r, { ...res, ...(kindChanged ? { skipped: 'diverged' as const } : {}) }, changed) });
+    const gated = r.replayable && !result.skipped && PHASE1_STREAMS.has(String(r.stream));
+    rows.push({ ...result, ...meta, changed, baseline: baselineClass(r, { ...res, ...(kindChanged ? { skipped: 'diverged' as const } : {}) }, changed), gated });
   }
   const md = report(rows, recs, { label, switches: switches ?? '(off)', replayMs, runs: runFiles.length, failedRuns });
   writeFileSync(path.join(out, 'results.json'), JSON.stringify(rows, null, 1));
@@ -199,12 +221,36 @@ function report(rows: Row[], recs: FaultRecord[], m: { label: string; switches: 
   const rep = rows.filter(r => r.replayable && r.baseline !== 'report');
   const count = (xs: Row[], p: (r: Row) => boolean) => xs.filter(p).length;
   L.push(`# Fault bank — ${m.label}`, '', `Switches: \`${m.switches}\` · ${rows.length} records (${count(rows, r => r.kind === 'fault')} fault, ${count(rows, r => r.kind === 'correct')} correct) · ${m.runs} runs replayed in ${(m.replayMs / 1000).toFixed(0)} s${m.failedRuns.length ? ` · **replay failed: ${m.failedRuns.join(', ')}**` : ''}`, '');
-  L.push('## Summary (replayable records)', '', '| | records | pass | fail | diverged |', '|---|---:|---:|---:|---:|');
+  // Finding 4 of the Stream 1 review: partition on `skipped` FIRST. A skipped record is neither a pass nor a fail —
+  // the replay never looked at it — so the old table double-counted the diverged rows inside "fail".
+  L.push('## Summary', '',
+    'Every record is first partitioned on `skipped`: `not_replayable` (contract §4.3 / Q2, judged in the wave),',
+    '`diverged` (the replay wrote another kind of turn there, so its assertions have no subject), `vacuous` (a',
+    'must-not whose window holds no replayed turn) and `run_missing`. Pass and fail are counted only over the rest.', '',
+    '| kind | records | skipped | counted | pass | fail |', '|---|---:|---:|---:|---:|---:|');
   for (const k of ['fault', 'correct'] as const) {
-    const xs = rep.filter(r => r.kind === k);
-    L.push(`| ${k} | ${xs.length} | ${count(xs, r => r.pass)} | ${count(xs, r => !r.pass)} | ${count(xs, r => r.skipped === 'diverged')} |`);
+    const xs = rows.filter(r => r.kind === k);
+    const live = xs.filter(r => !r.skipped);
+    L.push(`| ${k} | ${xs.length} | ${count(xs, r => !!r.skipped)} | ${live.length} | ${count(live, r => r.pass)} | ${count(live, r => !r.pass)} |`);
   }
-  L.push('', `Not replayable (judged in the wave, contract §4.3 / Q2): ${count(rows, r => !r.replayable)} (report records ${count(rows, r => r.baseline === 'report')}).`, '');
+  L.push('', '| skipped | fault | correct |', '|---|---:|---:|');
+  for (const why of ['not_replayable', 'diverged', 'vacuous', 'run_missing'] as const) {
+    const xs = rows.filter(r => r.skipped === why);
+    if (xs.length) L.push(`| ${why} | ${count(xs, r => r.kind === 'fault')} | ${count(xs, r => r.kind === 'correct')} |`);
+  }
+  L.push('', 'How a diverged record is judged: not by this harness. The replay drives one turn at a time with the saved',
+    'model output, so when code now writes a turn the model wrote (or the other way round) the saved declarations for',
+    'that turn are gone and the turn the replay writes answers a different question. Those records are read by hand',
+    'against the before/after lines in `## Failed assertions` below, and otherwise go to the wave with the',
+    '`not_replayable` ones (contract §4.3).', '',
+    `Not replayable (judged in the wave, contract §4.3 / Q2): ${count(rows, r => !r.replayable)} (report records ${count(rows, r => r.baseline === 'report')}).`, '');
+  // Gate condition 1 (contract §6), with the streams Phase 1 does not build excluded explicitly.
+  const gate = rows.filter(r => r.gated);
+  const excluded = rows.filter(r => r.kind === 'fault' && r.replayable && !PHASE1_STREAMS.has(r.stream));
+  L.push('## Gate condition 1 (contract §6)', '',
+    `Counted: replayable fault records owned by streams 2, 3 and 4, not skipped — **${count(gate, r => r.kind === 'fault' && r.pass)} pass / ${count(gate, r => r.kind === 'fault')}**.`,
+    `Excluded: ${excluded.length} replayable fault records owned by \`phase2\` or \`none\` (${excluded.map(r => r.id).join(', ') || 'none'}) — no Phase 1 stream touches them.`,
+    `Correct records, not skipped: **${count(rows.filter(r => r.kind === 'correct' && !r.skipped), r => r.pass)} pass / ${count(rows, r => r.kind === 'correct' && !r.skipped)}** (all must pass, switches off and on).`, '');
   L.push('## Baseline classes (contract §4.5)', '', '| class | records |', '|---|---:|');
   const classes = new Map<string, number>();
   for (const r of rep) classes.set(r.baseline, (classes.get(r.baseline) ?? 0) + 1);
@@ -221,8 +267,8 @@ function report(rows: Row[], recs: FaultRecord[], m: { label: string; switches: 
   table('batch', r => r.batch);
   table('stream', r => r.stream);
   table('class', r => r.cls);
-  L.push('', '## Records', '', '| id | kind | sev | class | stream | replayable | pass | changed | baseline |', '|---|---|---|---|---|---|---|---|---|');
-  for (const r of rows) L.push(`| ${r.id} | ${r.kind} | ${r.sev} | ${r.cls} | ${r.stream} | ${r.replayable ? 'yes' : 'no'} | ${r.pass ? 'pass' : 'FAIL'} | ${r.changed ? 'yes' : ''} | ${r.baseline} |`);
+  L.push('', '## Records', '', '| id | kind | sev | class | stream | replayable | gated | result | changed | baseline |', '|---|---|---|---|---|---|---|---|---|---|');
+  for (const r of rows) L.push(`| ${r.id} | ${r.kind} | ${r.sev} | ${r.cls} | ${r.stream} | ${r.replayable ? 'yes' : 'no'} | ${r.gated ? 'yes' : ''} | ${r.skipped ?? (r.pass ? 'pass' : 'FAIL')} | ${r.changed ? 'yes' : ''} | ${r.baseline} |`);
   L.push('', '## Failed assertions (what the replay delivered)', '');
   const byId = new Map(recs.map(r => [r.id, r]));
   for (const r of rows.filter(x => x.failed.length)) {

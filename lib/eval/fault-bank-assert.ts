@@ -6,7 +6,7 @@
 //   release / exhibit  an item in a delivered segment's revealIds; an exhibit a segment put up
 //   refusal            a sentence saying the case doesn't hold it ("I don't have…", any `refuse` pool variant)
 //   restatement        a restate / restate_exhibit lead-in, or an item's ledger line said again while already out
-//                      (or twice in one turn); with `item`, that item's line
+//                      (or twice in one turn); with `item`, that item's line; with `doubled`, only the same-turn double
 //   probe              a sentence asking for working (the probe pools and the model's own forms); with `figure`,
 //                      one whose segment names that figure
 //   correction         a correction line: the correct_one/correct_two pools, "…, not X", or code's "is about X"
@@ -14,6 +14,8 @@
 //   deferral           a defer / gate_defer / wont_get_to pool variant, or the model's "I'll check what we have";
 //                      `about` reads the deferral sentence, `item` the next turn's open data requests
 //   ask                a stage question (recommendation, risk, mitigation, brainstorm)
+//   answered           over the window: the item released, a refusal, or a deferral that later resolves
+//   spoke              a sentence of the turn's own (not a refusal, not a deferral); with `question`, one that asks
 //   close              the turn ended the case
 //   says               the regex over the delivered words
 //   check              a TurnRecord check: its name, and `decision` against its decision, reason or detail
@@ -52,14 +54,38 @@ const norm = (s: string) => s.toLowerCase().replace(/[‐-―]/g, '-').replace(/
 const lineKey = (line: string) => norm(line).slice(0, 48);
 const countOf = (hay: string, needle: string) => needle ? hay.split(needle).length - 1 : 0;
 
-// The numbers a figure string names ("$9.0M" → 9, "1,205" → 1205); a text names the figure when it states one of them.
-const numbersIn = (s: string) => [...s.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => Number(m[0].replace(/,/g, ''))).filter(n => Number.isFinite(n));
+// A figure as said: its currency, its value and its unit. "$920" is not named by "920 passengers" and "19%" is not
+// named by "19 stores" — the bare-number reading (every number of the figure somewhere in the text) let a probe about
+// another quantity satisfy a record (finding 12 of the Stream 1 review). Scale words count: "$16 million" is named by
+// "$16M" and by "$16,000,000"; "%", "x" and "points" must match as written.
+const SCALE: Record<string, number> = { m: 1e6, mm: 1e6, million: 1e6, millions: 1e6, k: 1e3, thousand: 1e3, thousands: 1e3, b: 1e9, bn: 1e9, billion: 1e9, billions: 1e9 };
+const UNIT = '%|x|×|mm?|k|bn?|millions?|thousands?|billions?|points?|pts?|percent';
+type Figure = { cur: string; bare: number; value: number; unit: '' | '%' | 'x' | 'pt' };
+function readFigure(cur: string | undefined, num: string, suffix: string | undefined): Figure {
+  const raw = (suffix ?? '').toLowerCase();
+  const bare = Number(num.replace(/,/g, ''));
+  const at = (unit: Figure['unit']): Figure => ({ cur: cur ?? '', bare, value: bare, unit });
+  if (raw === '%' || raw === 'percent') return at('%');
+  if (raw === 'x' || raw === '×') return at('x');
+  if (/^(?:points?|pts?)$/.test(raw)) return at('pt');
+  return { cur: cur ?? '', bare, value: bare * (SCALE[raw] ?? 1), unit: '' };
+}
+// A letter unit must end the token, so "480,000 bags" is 480,000 and not 480,000 billion.
+const FIGURE_ONLY = new RegExp(`^([$€£])?\\s*(\\d[\\d,]*(?:\\.\\d+)?)\\s*(?:(${UNIT})(?![a-z]))?$`, 'i');
+const FIGURE_IN = new RegExp(`([$€£])?\\s?(\\d[\\d,]*(?:\\.\\d+)?)\\s*(?:(${UNIT})(?![a-z]))?`, 'gi');
 export function namesFigure(text: string, figure: string): boolean {
   if (norm(text).includes(norm(figure))) return true;
-  const want = numbersIn(figure);
-  if (want.length === 0) return false;
-  const have = new Set(numbersIn(text));
-  return want.every(n => have.has(n));
+  const m = FIGURE_ONLY.exec(figure.trim());
+  if (!m) return false;
+  const want = readFigure(m[1], m[2], m[3]);
+  for (const t of text.matchAll(FIGURE_IN)) {
+    const got = readFigure(t[1], t[2], t[3]);
+    if (got.unit !== want.unit) continue;
+    if (want.cur && got.cur !== want.cur) continue;   // "$920" is not "920 passengers"; "920" is named by "$920"
+    // The scale as said ("$16 million" = "$16M" = "$16,000,000") or the figure's own digits ("$9" in "$9 million").
+    if (got.value === want.value || got.bare === want.bare) return true;
+  }
+  return false;
 }
 
 export type TurnReading = {
@@ -72,8 +98,12 @@ export type TurnReading = {
   deferrals: string[];
   restatementLead: boolean;
   restatedItems: Set<string>;
+  /** Items whose own line is said twice within the one turn (the model's copy plus code's). */
+  doubledItems: Set<string>;
   asks: Set<keyof typeof STAGE>;
   closed: boolean;
+  /** The turn's own sentences: neither a refusal nor a deferral — what `spoke` reads. */
+  own: string[];
 };
 
 export function readTurn(t: BankTurn, view: CaseView): TurnReading {
@@ -86,9 +116,11 @@ export function readTurn(t: BankTurn, view: CaseView): TurnReading {
   const before = new Set(t.stateBefore.revealedIds);
   const w = norm(words);
   const restatedItems = new Set<string>();
+  const doubledItems = new Set<string>();
   for (const [id, forms] of Object.entries(lines)) {
     const n = Math.max(0, ...forms.map(f => countOf(w, lineKey(f))));
     if (n === 0) continue;
+    if (n >= 2) doubledItems.add(id);
     if (before.has(id) || n >= 2) restatedItems.add(id);
   }
   return {
@@ -101,8 +133,10 @@ export function readTurn(t: BankTurn, view: CaseView): TurnReading {
     deferrals: sentences.filter(s => DEFER.test(s)),
     restatementLead: t.delivered.some(s => s.kind === 'data' && RESTATE.test(s.text)),
     restatedItems,
+    doubledItems,
     asks: new Set((Object.keys(STAGE) as (keyof typeof STAGE)[]).filter(k => sentences.some(s => /\?/.test(s) && STAGE[k].test(s)))),
     closed: t.ended || CLOSE.test(words),
+    own: sentences.filter(s => !REFUSE.test(s) && !DEFER.test(s)),
   };
 }
 
@@ -113,12 +147,18 @@ function happened(a: Assertion, r: TurnReading, t: BankTurn, next: BankTurn | un
     case 'release': return r.released.has(a.item);
     case 'exhibit': return r.exhibits.has(a.exhibit);
     case 'refusal': return r.refusals.some(s => !a.about || re(a.about).test(s));
-    case 'restatement': return a.item ? r.restatedItems.has(a.item) : (r.restatementLead || r.restatedItems.size > 0);
+    case 'restatement': return a.doubled === true
+      ? (a.item ? r.doubledItems.has(a.item) : r.doubledItems.size > 0)
+      : a.item ? r.restatedItems.has(a.item) : (r.restatementLead || r.restatedItems.size > 0);
     case 'probe': return r.probes.some(p => !a.figure || namesFigure(p.segment, a.figure));
     case 'correction': return r.corrections.some(s => !a.figure || namesFigure(s, a.figure));
     case 'deferral': return r.deferrals.some(s => !a.about || re(a.about).test(s))
       && (!a.item || (next?.stateBefore.openDataRequests ?? []).some(d => d.ledgerItemId === a.item));
     case 'ask': return r.asks.has(a.stage);
+    // Substance of the turn's own: a question, or a sentence long enough not to be an acknowledgment
+    // ("Understood.", "Go on."). Silence and a refuse-everything turn have neither.
+    case 'spoke': return a.question === true ? r.own.some(s => s.includes('?')) : r.own.some(s => s.includes('?') || s.length >= 20);
+    case 'answered': return false;   // over the window (answeredInWindow)
     case 'close': return r.closed;
     case 'says': return re(a.pattern).test(r.words);
     case 'check': return t.checks.some(c => c.check === a.check && (!a.decision || c.decision === a.decision
@@ -126,10 +166,36 @@ function happened(a: Assertion, r: TurnReading, t: BankTurn, next: BankTurn | un
   }
 }
 
+// Whether the ask got a word over the window: released, truly refused, or deferred and the deferral resolved
+// (a later release of the item, or a later refusal about it — the window ends at the close). An unresolved
+// deferral is not an answer, so a hollow deferral and a silent turn both fail.
+function answeredInWindow(a: Extract<Assertion, { kind: 'answered' }>, ns: number[], byT: Map<number, BankTurn>, view: CaseView): boolean {
+  const accept = new Set(a.accept ?? (['release', 'refusal', 'deferral'] as const));
+  const re = a.about ? new RegExp(a.about, 'i') : null;
+  const seen = ns.filter(n => byT.has(n));
+  const read = new Map(seen.map(n => [n, readTurn(byT.get(n)!, view)]));
+  const released = (n: number) => !!a.item && read.get(n)!.released.has(a.item);
+  const refused = (n: number) => read.get(n)!.refusals.some(x => !re || re.test(x));
+  const deferred = (n: number) => read.get(n)!.deferrals.some(x => !re || re.test(x));
+  if (accept.has('release') && seen.some(released)) return true;
+  if (accept.has('refusal') && seen.some(refused)) return true;
+  if (!accept.has('deferral')) return false;
+  // What may resolve the deferral: the outcomes this record accepts — or, when it accepts only a deferral, either.
+  const byRelease = accept.has('release') || !accept.has('refusal');
+  const byRefusal = accept.has('refusal') || !accept.has('release');
+  return seen.some(i => deferred(i) && seen.some(j => j > i && ((byRelease && released(j)) || (byRefusal && refused(j)))));
+}
+
 // The interviewer turns an assertion looks at, as grading turns tN (tN = turnIndex + 1).
+// `answered` with no scope reads the record's turn through the close: a deferral's resolution is owed by then.
 export function scopeTurns(a: Assertion, recordTurn: number, lastTurn: number): number[] {
   const s = a.scope;
-  if (!s) return [recordTurn];
+  if (!s) {
+    if (a.kind !== 'answered') return [recordTurn];
+    const out: number[] = [];
+    for (let n = recordTurn; n <= lastTurn; n += 2) out.push(n);
+    return out.length ? out : [recordTurn];
+  }
   if ('turn' in s) return [s.turn];
   const to = s.toTurn ?? lastTurn;
   const out: number[] = [];
@@ -144,10 +210,15 @@ export function evaluateRecord(rec: FaultRecord, turns: BankTurn[], view: CaseVi
   if (turns.length === 0) return { id: rec.id, pass: false, failed: [], skipped: 'run_missing' };
   const last = Math.max(...byT.keys());
   const failed: FaultResult['failed'] = [];
+  let vacuous = false;
   for (const a of rec.assertions) {
     const ns = scopeTurns(a, rec.turn, last);
     const seen = ns.filter(n => byT.has(n));
-    const hits = seen.filter(n => { const t = byT.get(n)!; return happened(a, readTurn(t, view), t, byT.get(n + 2)); });
+    // A must-not over turns the replay never wrote looked at nothing: the record is skipped, not passed.
+    if (!a.must && seen.length === 0) { vacuous = true; continue; }
+    const hits = a.kind === 'answered'
+      ? (answeredInWindow(a, ns, byT, view) ? seen : [])
+      : seen.filter(n => { const t = byT.get(n)!; return happened(a, readTurn(t, view), t, byT.get(n + 2)); });
     const ok = a.must ? hits.length > 0 : hits.length === 0;
     if (!ok) {
       const at = a.must ? seen : hits;
@@ -156,5 +227,6 @@ export function evaluateRecord(rec: FaultRecord, turns: BankTurn[], view: CaseVi
     }
   }
   const own = byT.get(rec.turn);
-  return { id: rec.id, pass: failed.length === 0, failed, ...(own ? {} : { skipped: 'diverged' as const }) };
+  const skipped = !own ? 'diverged' as const : vacuous ? 'vacuous' as const : undefined;
+  return { id: rec.id, pass: failed.length === 0, failed, ...(skipped ? { skipped } : {}) };
 }

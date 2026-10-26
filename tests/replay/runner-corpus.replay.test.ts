@@ -108,6 +108,11 @@ vi.mock('@/lib/orchestrator/pressure-test', async orig => ({
 }));
 
 const { runTurn } = await import('@/lib/orchestrator/session-runner');
+// The Phase 1 switches actually on for the replayed case, stamped into the mirror's header so a replay cannot
+// claim switches it never had (finding 14 of the Stream 1 review: a typo'd --switches string would otherwise
+// produce switches-off results silently). scripts/fault-bank.ts asserts it against what it asked for.
+const { engineSwitchNames } = await import('@/lib/eval/batch-manifest');
+const { getCaseById } = await import('@/lib/cases/loader');
 const { readTurnFile, writeTurnFile } = await import('@/lib/eval/turn-file');
 const { runFiles } = await import('@/lib/eval/run-corpus');
 
@@ -279,7 +284,8 @@ function finish(records: TurnRecord[], header: ReturnType<typeof readTurnFile>['
     session: { ...run.session, status: endedEarly ? 'completed' : 'completed' }, turns, revealed: [], events: [],
     analytics: [{ eventType: 'llm_usage', createdAt: run.session.startedAt, payloadJsonb: { component: 'interviewer', model: header.models?.interviewer ?? 'unknown' } }],
   }));
-  writeTurnFile(out.replace(/\.json$/, '.turns.jsonl.gz'), header, records, { type: 'end', ended: true, budgetStopped: false, scoring: 'replay', candidateUsage: { calls: 0, input: 0, output: 0, usd: 0 } });
+  const switches = (() => { try { return engineSwitchNames(getCaseById(run.session.caseId)); } catch { return []; } })();
+  writeTurnFile(out.replace(/\.json$/, '.turns.jsonl.gz'), { ...header, engineSwitches: switches }, records, { type: 'end', ended: true, budgetStopped: false, scoring: 'replay', candidateUsage: { calls: 0, input: 0, output: 0, usd: 0 } });
   return { turns: records.length, diverged, endedEarly };
 }
 

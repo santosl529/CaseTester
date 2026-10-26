@@ -90,12 +90,16 @@
   "turn": 22,
   "sev": "firm",
   "cls": "stale_probe",
-  "note": "\"Earlier you said Option B beats A by $40M. Talk me through the math behind 40.\" after her t21 redo (B at $120M, \"A is now well ahead — double, roughly\"). Judgement call: the gap wasn't restated as a figure, so round-4 ruling 3 kept the flag alive.",
+  "note": "\"Earlier you said Option B beats A by $40M. Talk me through the math behind 40.\" after her t21 redo (B at $120M, \"A is now well ahead — double, roughly\"). Judgement call: the gap wasn't restated as a figure, so round-4 ruling 3 kept the flag alive. The figure is written as the probe says it (\"behind 40\"), not \"$40M\": namesFigure now reads the currency and unit, so \"$40M\" no longer matches a bare 40 in the probe's own segment.",
   "a": [
    {
     "kind": "probe",
-    "figure": "$40M",
+    "figure": "40",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,

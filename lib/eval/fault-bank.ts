@@ -23,7 +23,9 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
   // A refusal ("I don't have…", "that's not something I have") — optionally one whose words match `about`.
   z.object({ kind: z.literal('refusal'), about: z.string().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // A restatement of an item already out ("As I mentioned", "Repeating what I said before", an exhibit restated).
-  z.object({ kind: z.literal('restatement'), item: z.string().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
+  // `doubled`: the item's own line said TWICE in the one turn (the model's copy plus code's) — the fault in the
+  // b34l doubled-line records, which removing code's copy alone cannot clear (critical 2 of the Stream 1 review).
+  z.object({ kind: z.literal('restatement'), item: z.string().optional(), doubled: z.boolean().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // A probe or a correction, optionally naming a figure (as said: "5.8", "$920").
   z.object({ kind: z.literal('probe'), figure: z.string().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   z.object({ kind: z.literal('correction'), figure: z.string().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
@@ -31,11 +33,23 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
   // A stage question: the recommendation, the risk, a mitigation, the brainstorm.
   z.object({ kind: z.literal('ask'), stage: z.enum(['recommendation', 'risk', 'mitigation', 'brainstorm']), must: z.boolean(), scope: Scope.optional() }).strict(),
   z.object({ kind: z.literal('close'), must: z.boolean(), scope: Scope.optional() }).strict(),
+  // The ask gets a word (critical 5 of the Stream 1 review; Lorenzo, 25 Oct): within the window, the item is
+  // released, a refusal is spoken, or a deferral is spoken that LATER RESOLVES (a release of the item, or a refusal
+  // about it, before the close). An unresolved deferral is not an answer, so silence and a hollow deferral both fail;
+  // `accept` narrows which of the three count (default: all three). The window defaults to the record's turn → the
+  // close, because a deferral's resolution is owed by then (contract 4.7). At least one of `item` / `about` is given.
+  z.object({ kind: z.literal('answered'), item: z.string().optional(), about: z.string().optional(),
+    accept: z.array(z.enum(['release', 'refusal', 'deferral'])).min(1).optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
+  // The turn says something of its own: a delivered sentence that is neither a refusal nor a deferral — so silence,
+  // a neutral "Go on." and a refuse-everything turn all fail. With `question`, that sentence asks something.
+  z.object({ kind: z.literal('spoke'), question: z.boolean().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // Free text over the turn's delivered words (case-insensitive regex).
   z.object({ kind: z.literal('says'), pattern: z.string(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // A check decision in TurnRecord.checks (e.g. { check: "code_gate", decision: "drop" }).
   z.object({ kind: z.literal('check'), check: z.string(), decision: z.string().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
-]);
+]).superRefine((a, ctx) => {
+  if (a.kind === 'answered' && !a.item && !a.about) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'an `answered` assertion names the item or the ask (`about`)' });
+});
 export type Assertion = z.infer<typeof AssertionSchema>;
 
 export const FaultRecordSchema = z.object({
@@ -73,4 +87,6 @@ export const FaultRecordSchema = z.object({
 export type FaultRecord = z.infer<typeof FaultRecordSchema>;
 
 // The harness's result per record.
-export type FaultResult = { id: string; pass: boolean; failed: { assertion: Assertion; saw: string }[]; skipped?: 'not_replayable' | 'run_missing' | 'diverged' };
+// `vacuous`: a must-not assertion whose window holds no turn in the replay — nothing was looked at, so the record
+// is skipped, not passed (finding 7 of the Stream 1 review).
+export type FaultResult = { id: string; pass: boolean; failed: { assertion: Assertion; saw: string }[]; skipped?: 'not_replayable' | 'run_missing' | 'diverged' | 'vacuous' };

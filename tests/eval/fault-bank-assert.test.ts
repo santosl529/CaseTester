@@ -2,6 +2,7 @@
 import { describe, it, expect } from 'vitest';
 import { readTurn, evaluateRecord, namesFigure, scopeTurns, type BankTurn } from '@/lib/eval/fault-bank-assert';
 import type { FaultRecord } from '@/lib/eval/fault-bank';
+import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 
 type Seg = BankTurn['delivered'][number];
 const seg = (text: string, kind: Seg['kind'] = 'tail', revealIds: string[] = [], exhibitId?: string): Seg => ({ kind, text, revealIds, atMs: 0, ...(exhibitId ? { exhibitId } : {}) });
@@ -119,5 +120,104 @@ describe('evaluateRecord', () => {
     const t = turn(24, [], { checks: [{ check: 'code_gate', decision: 'act', reason: 'held', detail: { decisions: [{ outcome: 'drop' }] } }] });
     expect(evaluateRecord(record({ assertions: [{ kind: 'check', check: 'code_gate', decision: 'drop', must: true }] }), [t], NONE).pass).toBe(true);
     expect(evaluateRecord(record({ assertions: [{ kind: 'check', check: 'code_gate', decision: 'release', must: true }] }), [t], NONE).pass).toBe(false);
+  });
+});
+
+// The fix round (25 Oct, the Stream 1 review's findings 5, 7 and 12).
+describe('namesFigure reads the unit, not a bare number set', () => {
+  it('needs the currency, the scale and the unit the figure names', () => {
+    expect(namesFigure('You said “$920” — walk me through that.', '$920')).toBe(true);
+    expect(namesFigure('That is 920 passengers a week.', '$920')).toBe(false);
+    expect(namesFigure('Starter churn is 19 stores out of 200.', '19%')).toBe(false);
+    expect(namesFigure('Earlier you said “19%” — how does that fit?', '19%')).toBe(true);
+    expect(namesFigure('standalone Starter is 1.3x', '1.3x')).toBe(true);
+    expect(namesFigure('1.3 million sign-ups', '1.3x')).toBe(false);
+    expect(namesFigure('the $16M of marketing', '$16 million')).toBe(true);
+    expect(namesFigure('the $16,000,000 of marketing', '$16 million')).toBe(true);
+    expect(namesFigure('480,000 bags', '480,000')).toBe(true);
+    expect(namesFigure('$9 million of launch cost', '$9')).toBe(true);
+  });
+});
+
+describe('answered — the ask gets a word', () => {
+  const refuse = (tN: number) => turn(tN, [seg("I don't have traffic data on the new routes.", 'data')]);
+  const defer = (tN: number) => turn(tN, [seg("I'll come back to the traffic data on the new routes shortly.", 'data')]);
+  const release = (tN: number) => turn(tN, [seg('New routes typically take 6–12 months to reach their expected load factor, and in the first year the load factor is often around 60%.', 'data', ['new_route_rampup'])]);
+  const silent = (tN: number) => turn(tN, [seg('Go on.')]);
+  const rec = (a: Partial<Extract<FaultRecord['assertions'][number], { kind: 'answered' }>>) =>
+    record({ turn: 20, assertions: [{ kind: 'answered', about: 'traffic', must: true, ...a }] });
+
+  it('a release, a refusal or a deferral that resolves all count', () => {
+    expect(evaluateRecord(rec({ item: 'new_route_rampup' }), [release(20), silent(22)], LINES).pass).toBe(true);
+    expect(evaluateRecord(rec({}), [refuse(20), silent(22)], LINES).pass).toBe(true);
+    expect(evaluateRecord(rec({}), [defer(20), refuse(22)], LINES).pass).toBe(true);
+  });
+
+  it('an unresolved deferral and a silent turn both fail', () => {
+    expect(evaluateRecord(rec({}), [defer(20), silent(22)], LINES).pass).toBe(false);
+    expect(evaluateRecord(rec({}), [silent(20), silent(22)], LINES).pass).toBe(false);
+  });
+
+  it('accept narrows which outcomes answer the ask', () => {
+    const only = rec({ item: 'new_route_rampup', accept: ['refusal', 'deferral'] });
+    expect(evaluateRecord(only, [release(20), silent(22)], LINES).pass).toBe(false);
+    expect(evaluateRecord(only, [refuse(20)], LINES).pass).toBe(true);
+  });
+});
+
+describe('spoke — the turn says something of its own', () => {
+  it('silence, an acknowledgment and a refuse-everything turn all fail', () => {
+    const a = record({ turn: 20, assertions: [{ kind: 'spoke', must: true }] });
+    expect(evaluateRecord(a, [turn(20, [seg('Understood.')])], NONE).pass).toBe(false);
+    expect(evaluateRecord(a, [turn(20, [seg("I don't have that. I don't have fares by route either.", 'data')])], NONE).pass).toBe(false);
+    expect(evaluateRecord(a, [turn(20, [seg('Fuel prices have been roughly flat over the period.', 'data')])], NONE).pass).toBe(true);
+    const q = record({ turn: 20, assertions: [{ kind: 'spoke', question: true, must: true }] });
+    expect(evaluateRecord(q, [turn(20, [seg('Fuel prices have been roughly flat over the period.', 'data')])], NONE).pass).toBe(false);
+    expect(evaluateRecord(q, [turn(20, [seg('What else?')])], NONE).pass).toBe(true);
+  });
+});
+
+describe('a vacuous windowed must-not', () => {
+  it('skips rather than passes when the window holds no replayed turn', () => {
+    const r = record({ turn: 20, assertions: [{ kind: 'probe', must: false, scope: { fromTurn: 22, toTurn: 26 } }] });
+    const res = evaluateRecord(r, [turn(20, [seg('Go on.')])], NONE);
+    expect(res.skipped).toBe('vacuous');
+    expect(res.pass).toBe(true);
+  });
+});
+
+describe('the doubled line', () => {
+  const line = LINE_MAP.route_results_other[0];
+  it('reads the same-turn double apart from a restatement of an item already out', () => {
+    const doubled = turn(24, [seg(line, 'say'), seg(`Repeating what I said before: ${line}`, 'data')]);
+    const once = turn(24, [seg(`Repeating what I said before: ${line}`, 'data')], { revealed: ['route_results_other'] });
+    const a = record({ assertions: [{ kind: 'restatement', item: 'route_results_other', doubled: true, must: false }] });
+    expect(evaluateRecord(a, [doubled], LINES).pass).toBe(false);
+    expect(evaluateRecord(a, [once], LINES).pass).toBe(true);   // code's copy alone is not the doubling
+    const any = record({ assertions: [{ kind: 'restatement', item: 'route_results_other', must: false }] });
+    expect(evaluateRecord(any, [once], LINES).pass).toBe(false);
+  });
+});
+
+describe('the close-wait pools', () => {
+  // Every variant of each close-wait pool, read from lib/orchestrator/phrasing.ts itself, is caught by its own
+  // record pattern and by no other — so a close-wait record asserts the line the fault used and survives both the
+  // phrase rotation and 4.8's switch to another pool (critical 1 of the Stream 1 review). One `first_step` variant
+  // matched the old family-wide STAGE.mitigation regex not at all, which is how a fault could pass.
+  const PATTERNS: Record<'after_risk' | 'first_step' | 'measure', RegExp> = {
+    after_risk: /guard against that/i,
+    first_step: /do first|first step|first thing/i,
+    measure: /six months/i,
+  };
+  it('each pattern matches all of its own pool and none of the others', () => {
+    for (const [name, re] of Object.entries(PATTERNS)) {
+      const mine: readonly string[] = PHRASE_POOLS[name as keyof typeof PATTERNS];
+      expect(mine.length).toBeGreaterThanOrEqual(5);
+      for (const l of mine) expect(re.test(l), `${name}: ${l}`).toBe(true);
+      for (const other of Object.keys(PATTERNS)) {
+        if (other === name) continue;
+        for (const l of PHRASE_POOLS[other as keyof typeof PATTERNS] as readonly string[]) expect(re.test(l), `${name} must not match ${other}: ${l}`).toBe(false);
+      }
+    }
   });
 });
