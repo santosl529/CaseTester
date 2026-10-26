@@ -67,8 +67,9 @@
     "must": true
    }
   ],
-  "rep": true,
-  "stream": 3
+  "rep": false,
+  "stream": 3,
+  "rnote": "With the stale drop on, the turn's kind changes and the replay has no saved model output for it, so it writes a bare \"Go on.\" — the stale 19% probe is provably gone (the negative assertion passes) but the turn's own words are the placeholder, so the record cannot be judged from the replay. Wave: on prof-001, a figure the candidate corrected in the message before is not re-probed, and the turn still says something of its own (Tyler-type misquoters); the auditor (stale_probe) and the hand grade see it."
  },
  {
   "id": "b33-blake-t20-false-stale",
@@ -307,8 +308,9 @@
     "must": true
    }
   ],
-  "rep": true,
-  "stream": 4
+  "rep": false,
+  "stream": 4,
+  "rnote": "The anchor turn t18 is the same diverged turn the replay fills with a bare \"Go on.\" — with no saved model output and no code data decision on a turn whose kind changed, neither a release nor a deferral of the store count can be read there. Wave: on prof-001, \"new store counts\" inside that message gets the store count or a deferral that comes back (Tyler-type); the auditor (ignored_ask) and the hand grade see it."
  },
  {
   "id": "b33-tyler-report-basket",
