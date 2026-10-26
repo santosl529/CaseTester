@@ -951,6 +951,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const deadlineStage = DEADLINE_KINDS.has(kind) && deadlineTurn(() => true).kind !== kind;
   // An overdue stage turn, whatever made it (the controller's ruling on R7, 19 Oct): a correction rides on it, said first.
   const overdueStage = DEADLINE_KINDS.has(kind) && planned.overdue;
+  // …and so does one on any stage turn or recommendation ask code writes,
+  // overdue or not (Lorenzo, 22 Oct; the Phase 1 fault bank's
+  // b35q-marisol-t26-correction): the close, complete coverage or a deadline
+  // made the turn, the model never ran, and a correction left pending there is
+  // dropped rather than deferred — b37q Raj's live run lost two in a row, 19:0
+  // on the coverage-made exhibit turn at t24 (then expired three messages on)
+  // and 21:0 on the recommendation ask at t26. A correction has nowhere else to
+  // go, so it rides on the turn; only the probe waits.
+  const stageTurn = DEADLINE_KINDS.has(kind);
   // Code's own probe released on a deadline-made stage turn is held for the
   // next model turn, like the checker's (PRD §5.2; engine-asks final review, 19
   // Oct — the controller's proposal): no model reads its hint there and the
@@ -1083,9 +1092,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // said first by code and booked as on a model turn; a probe due then is held
   // for the next model turn (flags.mathChecker.held: raised first, it doesn't expire).
   // A restatement of a root's live correction is a correction here too (ruling 1).
-  const stageCorrection = overdueStage && sel && correctsNow(sel) ? sel : null;
+  const stageCorrection = stageTurn && sel && correctsNow(sel) ? sel : null;
   // Code's own correction (a unit line past its probe) rides the same way; its attempt is already counted, its figures licensed (formatRecomputeHint).
-  const stageCodeLines = overdueStage ? liveFlags.filter(codeCorrects).map(f => recMathLine(f, 'correct')) : [];
+  const stageCodeLines = stageTurn ? liveFlags.filter(codeCorrects).map(f => recMathLine(f, 'correct')) : [];
   const stageHeld = deadlineStage && sel && !correctsNow(sel) ? sel : null;
   const checkerUsed = sel && (kind === 'model' || stageCorrection || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];

@@ -508,6 +508,39 @@ describe('R7 through the runner: the overdue brainstorm and the checker line', (
     expect(saysGotTo(r9.interviewerText, 'about 40 points') || /forty points|40 points/.test(r9.interviewerText)).toBe(true);
     expect((flags().mathChecker as Row).held).toBeUndefined();
   });
+
+  // A stage turn code wrote because coverage says the case may end — not
+  // because the stage's own deadline passed (Lorenzo, 22 Oct, on the Phase 1
+  // fault bank): b37q Raj's live run dropped two corrections in a row this way
+  // — t24 (stage_exhibit, coverage complete at 13:37, the exhibit deadline not
+  // reached) selected 19:0 "correct" with `used: null`, and t26 (rec_ask)
+  // selected 21:0 "correct" the same way; 19:0 then expired, three messages on,
+  // never said. b35q Marisol t26 is the same turn kind. The correction has
+  // nowhere else to go on a code-written turn, so it rides on it, as it does on
+  // an overdue one; only the probe waits.
+  const FULL_COVERAGE = { structure: 100, quantitative: 100, dataExhibit: 100, judgment: 100, creativity: 100, synthesis: 100, communication: 100, pushback: 100 };
+  it('coverage complete at 10:00, the brainstorm owed but not yet due: the correction rides on the brainstorm turn', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    store.session = { ...store.session, coverageJsonb: FULL_COVERAGE };
+    at(10.0);
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\./);
+    expect(asksBrainstorm(r.interviewerText)).toBe(true);
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'correct' });
+    expect((flags().mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
+  });
+  it('the same at code\'s recommendation ask (the brainstorm already delivered): the correction before code\'s question', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    store.session = { ...store.session, coverageJsonb: FULL_COVERAGE, phase: 'BRAINSTORM',
+      flagsJsonb: { ...flags(), stageEvidence: { ...(flags().stageEvidence as Row), brainstorm: { delivered: true, deliveredAt: 2, outcome: 'answered' } } } };
+    at(10.0);
+    MODEL.turn = { ...NEUTRAL, say: 'Understood.' };
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^Understood\. From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\. \S/);
+    expect(r.interviewerText).toMatch(/recommendation/i);
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'correct' });
+    expect((flags().mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
+  });
 });
 
 // Review fix 3 (controller's ruling on R7, 19 Oct): code's own correction rides on an overdue recommendation ask, before code's question.

@@ -292,12 +292,18 @@ describe('a deadline yields to a checker line once (R7)', () => {
     expect(codeWrittenTurn(p, null).say).toBe(CORRECTION);
     expect(p.ctx.flags.mathChecker).toMatchObject({ handled: ['3:0', '3:1'], restated: ['pricing:gain@5'] });
   });
-  it('a stage turn coverage makes before its deadline (12:00) is not overdue: the correction waits (unchanged)', () => {
+  // Lorenzo, 22 Oct (the Phase 1 fault bank, b35q-marisol-t26-correction): a
+  // stage turn coverage makes before the deadline is still a turn the model
+  // never ran, and until now the correction was not waiting there — it was
+  // dropped (b37q Raj's live run: 19:0 on the t24 exhibit turn, then expired;
+  // 21:0 on the t26 recommendation ask). It rides on the turn like an overdue
+  // one; only the probe waits.
+  it('a stage turn coverage makes before its deadline (12:00): the correction rides on it too', () => {
     const p = owed({ claims: [PRICE], flags: { recomputeAttempts: { 'pricing:gain@5': 1 } }, coverage: 80, min: 12 });
     expect(p.state.kind).toBe('stage_brainstorm');
-    expect(p.state.stageCheckerLine).toBeNull();
-    expect(codeWrittenTurn(p, null).say).toBe('');
-    expect((p.ctx.flags.mathChecker as { handled?: string[] } | undefined)?.handled ?? []).not.toContain('3:0');
+    expect(p.state.stageCheckerLine).toEqual({ id: '3:0', key: 'pricing:gain@5', line: CORRECTION });
+    expect(codeWrittenTurn(p, null).say).toBe(CORRECTION);
+    expect(p.ctx.flags.mathChecker).toMatchObject({ handled: ['3:0'], closed: ['pricing:gain@5'] });
   });
   // Review fix 3 (controller's ruling on R7): code's own correction is a correction — it rides; code's probe yields once.
   it("code's own unit line: its probe yields the deadline once; past the probe its correction rides on the stage turn", () => {
