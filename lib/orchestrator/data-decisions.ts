@@ -98,8 +98,9 @@ export function mentionStatesNeed(candidateText: string, label: string, strict?:
 // fold, using the one stemmer in data-decisions.ts"): its content words, stemmed (stemWord), three letters or more,
 // the case's proper names taken out whole ("Port Avery", "Larkspur"), and none of the stop list — function and
 // question words, the offer gate's generic label words ("cost", "revenue", "price", "share": every case has them), the
-// words of a split, a period or an amount ("split", "breakdown", "year", "total", "number"), and number words ("the four
-// uncontested routes": "four" names no topic).
+// words of a split, a period or an amount ("split", "breakdown", "year", "total", "number"), number words ("the four
+// uncontested routes": "four" names no topic) and the dimension words "time", "past", "beyond" and "new" (review F2:
+// "repeat rates from past launches" shares only "past" with a case line — a dimension, not a topic).
 const KEY_STOP = new Set([...LABEL_IGNORED, ...GENERIC_LABEL_WORDS, ...`
   and the for are was how why who can did has had its our any all but not one two per via get got let see say ask yes
   about after again also been before between both breakdown broken composition decomposition detail could data does each
@@ -108,7 +109,8 @@ const KEY_STOP = new Set([...LABEL_IGNORED, ...GENERIC_LABEL_WORDS, ...`
   whether which while will with would year your only mix makeup kind type way amount count line item exact actual
   specific basis versus give tell share pull sense idea something anything number numbers
   three four five six seven eight nine ten eleven twelve twenty thirty forty fifty hundred thousand million billion half
-  first second third fourth fifth`.split(/\s+/).filter(Boolean).map(stemWord)]);
+  first second third fourth fifth
+  time past beyond new`.split(/\s+/).filter(Boolean).map(stemWord)]);
 export function keyNouns(text: string, caseNames: string[] = []): Set<string> {
   let t = text.toLowerCase().replace(/[‘’]/g, "'").replace(/'s\b/g, '');
   for (const n of [...caseNames].sort((a, b) => b.length - a.length)) t = t.replace(new RegExp(`(?<![a-z])${n.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'), ' ');

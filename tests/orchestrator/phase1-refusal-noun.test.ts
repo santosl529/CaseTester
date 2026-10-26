@@ -1,10 +1,12 @@
 // Phase 1 4.4 (`refusalNounCheck`; Lorenzo, 22 Oct: "Refusals: when both code and Haiku find no match, refuse only if no
-// ledger item shares a key noun with the ask; otherwise defer. Haiku's "none" adds nothing on its own."). b38 Larkspur
-// Tyler cee7d399 t1 → t2 and Jasmine 3f928012 t3 → t4, the two "split" refusals of the wave (graded false, judgement):
-// the check's verdicts as recorded, the candidates' messages verbatim. A check-made refusal (its "none", or a verdict
-// with no item answering the ask) goes out only when no ledger item not yet out shares a key noun with it; otherwise it
-// is the named deferral, tracked until every one of its nouns has been delivered, else "We won't get to …" at the first
-// wrap-up. Off: today's refusal.
+// ledger item shares a key noun with the ask; otherwise defer. Haiku's "none" adds nothing on its own."), as the review
+// tightened it (F2): a check-made refusal (its "none", or a verdict with no item answering the ask) becomes a deferral
+// only when the ask's **head noun** is shared and **one single item** carries every noun it shares — a set shared across
+// different items is no answer. The deferral is tracked until that item is delivered (F3: the carrier intersection),
+// else "We won't get to …" at the first wrap-up. Off: today's refusal.
+// The wave's two "split" refusals (b38 Larkspur Tyler cee7d399 t1 → t2, Jasmine 3f928012 t3 → t4; graded false,
+// judgement) are pinned here as **still refused by 4.4 alone**: 4.5 fixes Tyler's (phase1-cover-normalization.test.ts)
+// and 4.2 fixes Jasmine's (phase1-coarse-keep-named.test.ts), which is what the review's walk expects.
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 type Row = Record<string, unknown>;
@@ -23,7 +25,7 @@ vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<obje
 
 import { planTurn, type ModelPlan, type TurnKind } from '@/lib/orchestrator/plan-turn';
 import { settleTurn, type ModelOutcome } from '@/lib/orchestrator/settle-turn';
-import { turnDataChecked, resolveDeferrals, type OpenDeferral, type TurnData } from '@/lib/orchestrator/turn-data';
+import { turnDataChecked, resolveDeferrals, headNoun, needCarriers, type OpenDeferral, type TurnData } from '@/lib/orchestrator/turn-data';
 import { renderDataLines, keyNouns } from '@/lib/orchestrator/data-decisions';
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { readsFixture } from './fixtures/turn-reads';
@@ -62,6 +64,7 @@ const on = () => { process.env.ENGINE_SWITCHES = 'prof-002=refusalNounCheck'; };
 beforeEach(() => { ask.mockReset(); delete process.env.ENGINE_SWITCHES; });
 afterEach(() => { if (env === undefined) delete process.env.ENGINE_SWITCHES; else process.env.ENGINE_SWITCHES = env; });
 
+
 describe('key nouns: content nouns after the stop list and plural fold, proper names aside', () => {
   it('Tyler t2\'s part: decline, passenger, fare (split, revenue and average are stop words)', () => {
     expect([...keyNouns(TYLER_PART)].sort()).toEqual(['decline', 'fare', 'passenger']);
@@ -70,9 +73,30 @@ describe('key nouns: content nouns after the stop list and plural fold, proper n
     expect([...keyNouns("Port Avery's fuel line", ['Port Avery', 'Larkspur'])]).toEqual(['fuel']);
     expect([...keyNouns('the ticket versus extras revenue split')].sort()).toEqual(['extra', 'ticket']);
   });
+  it('the dimension words are stopped (review F2): time, past, beyond, new, data', () => {
+    expect([...keyNouns('repeat rates from past launches')].sort()).toEqual(['launche', 'repeat']);
+    expect([...keyNouns('repeat purchase rate beyond year one')]).toEqual(['repeat', 'purchase']);
+    expect([...keyNouns('contribution by departure time')]).toEqual(['contribution', 'departure']);
+    expect([...keyNouns('typical new SKU volume per store')].sort()).toEqual(['sku', 'store', 'typical', 'volume']);
+  });
 });
 
-describe('b38 Tyler t2: the passengers-versus-fare split', () => {
+describe('the head noun (review F2)', () => {
+  it('is the last key noun of the head phrase, before the first modifier', () => {
+    expect(headNoun('waste or spoilage data by store')).toBe('waste');
+    expect(headNoun('contribution by departure time')).toBe('contribution');
+    expect(headNoun("later cohorts' upgrade rates")).toBe('upgrade');   // "rates" is a generic label word
+    expect(headNoun('typical annual bag volume for a Hollis Bay chip SKU')).toBe('volume');
+  });
+  it('falls back to the first key noun when the head phrase has none of its own', () => {
+    expect(headNoun('split of revenue decline between passengers and average fare')).toBe('decline');
+  });
+  it('reads the case\'s proper names out', () => {
+    expect(headNoun("Port Avery's fuel line", ['Port Avery'])).toBe('fuel');
+  });
+});
+
+describe('b38 Tyler t2: the passengers-versus-fare split — the nouns sit on different items', () => {
   it('off: refused, as live', async () => {
     ask.mockImplementation(async () => TYLER_VERDICT);
     const p = plan(TYLER_T1, { phase: 'INTRO' });
@@ -80,65 +104,94 @@ describe('b38 Tyler t2: the passengers-versus-fare split', () => {
     expect(d.refusals).toEqual([TYLER_PART]);
     expect(acted(p, 'refusal_noun')).toEqual([]);
   });
-  it('on: deferred in the same words — fare, passengers and the decline are on items not yet out', async () => {
+  it('on: still refused — no one item carries the decline, the passengers and the fare (4.5 is what fixes this turn)', async () => {
     on();
     ask.mockImplementation(async () => TYLER_VERDICT);
     const p = plan(TYLER_T1, { phase: 'INTRO' });
     const d = await turnDataChecked(p, turn([{ what: TYLER_WHAT, itemIds: [], explicit: true, respond: 'defer' }]));
-    expect(d.refusals).toEqual([]);
-    expect(d.defers).toEqual([TYLER_PART]);
-    expect(d.itemlessDefers).toEqual([TYLER_PART]);
-    expect(renderDataLines(d, 's')).toEqual([`I'll come back to ${TYLER_PART} shortly.`]);
-    const log = acted(p, 'refusal_noun').map(e => e.detail as { asks: { what: string; deferred: boolean; shared: Record<string, string[]> }[] })[0].asks;
-    expect(log).toHaveLength(1);
-    expect(log[0]).toMatchObject({ what: TYLER_PART, deferred: true });
+    expect(d.refusals).toEqual([TYLER_PART]);
+    expect(d.defers).toEqual([]);
+    const log = acted(p, 'refusal_noun').map(e => e.detail as { asks: { what: string; deferred: boolean; head: string | null; carriers: string[]; shared: Record<string, string[]> }[] })[0].asks;
+    expect(log[0]).toMatchObject({ what: TYLER_PART, deferred: false, head: 'decline', carriers: [] });
+    // The nouns are shared, but by different items — which is why the old rule deferred it.
     expect(log[0].shared.lakeport_fare).toEqual(['fare']);
-    const opened = d.deferralsOpened!;
-    expect(opened).toHaveLength(1);
-    expect(Object.keys(opened[0].need!).sort()).toEqual(['decline', 'fare', 'passenger']);
-    expect(opened[0].need!.fare).toContain('lakeport_fare');
-    expect(d.requests.find(r => r.request.what === TYLER_WHAT)?.response).toBe('defer');
   });
 });
 
-describe('b38 Jasmine t4: the ticket-versus-extras split beside the Port Avery line', () => {
-  it('off: the Port Avery line and the refusal, as live', async () => {
+describe('b38 Jasmine t4: the ticket-versus-extras split', () => {
+  it('off and on: refused by 4.4 either way (4.2 is what fixes this turn)', async () => {
     ask.mockImplementation(async () => JASMINE_VERDICT);
+    const off = await turnDataChecked(plan(JASMINE_T3, { flags: SATISFIED }), turn(JASMINE_ASKS));
+    expect(off.refusals).toEqual([SPLIT]);
+    on();
     const p = plan(JASMINE_T3, { flags: SATISFIED });
     const d = await turnDataChecked(p, turn(JASMINE_ASKS));
     expect(d.releases.map(r => r.id)).toEqual(['port_avery_per_flight', 'network_totals']);
     expect(d.refusals).toEqual([SPLIT]);
   });
-  it('on: the same lines, the refusal deferred (extras revenue and the fare are still to come)', async () => {
+});
+
+// b34 Larkspur Tyler 51ad0cb8 t17 → t18, graded a true refusal: "contribution by departure time". The head noun
+// (contribution) is shared and the network totals line carries both its nouns, so it is deferred and tracked.
+const DEPARTURE = 'contribution by departure time';
+describe('a deferral the tightened rule still makes', () => {
+  it('on: one item carries the whole ask — deferred, tracked on that item', async () => {
     on();
-    ask.mockImplementation(async () => JASMINE_VERDICT);
-    const p = plan(JASMINE_T3, { flags: SATISFIED });
-    const d = await turnDataChecked(p, turn(JASMINE_ASKS));
-    expect(d.releases.map(r => r.id)).toEqual(['port_avery_per_flight', 'network_totals']);
+    ask.mockImplementation(async () => ({ items: [] }));
+    const p = plan('Do we have contribution by departure time?', { flags: SATISFIED, phase: 'ANALYSIS' });
+    const d = await turnDataChecked(p, turn([{ what: DEPARTURE, itemIds: [], explicit: true, respond: 'release' }]));
     expect(d.refusals).toEqual([]);
-    expect(d.defers).toEqual([SPLIT]);
-    // port_avery_per_flight goes out this turn: it meets no noun; lakeport_fare ("lakeport ticket price") and
-    // extras_revenue (or the new routes' plan, "new route extras") do.
-    expect(d.deferralsOpened![0].need).toEqual({ ticket: ['lakeport_fare'], extra: ['extras_revenue', 'new_routes_plan'] });
+    expect(d.defers).toEqual([DEPARTURE]);
+    expect(renderDataLines(d, 's')).toEqual([`I'll come back to ${DEPARTURE} shortly.`]);
+    const opened = d.deferralsOpened!;
+    expect(opened).toHaveLength(1);
+    expect(opened[0].need).toEqual({ contribution: ['network_totals'], departure: ['network_totals'] });
+    expect(d.requests.find(r => r.request.what === DEPARTURE)?.response).toBe('defer');
+  });
+  it('on: its carrier already out — nothing is deferred for it (only items not yet out can answer a deferral)', async () => {
+    on();
+    ask.mockImplementation(async () => ({ items: [] }));
+    const p = plan('Do we have contribution by departure time?', { flags: SATISFIED, phase: 'ANALYSIS', revealed: ['network_totals'] });
+    const d = await turnDataChecked(p, turn([{ what: DEPARTURE, itemIds: [], explicit: true, respond: 'release' }]));
+    // Only items not yet out can answer a deferral, so the network totals are no longer its carrier.
+    for (const e of acted(p, 'refusal_noun')) for (const x of (e.detail as { asks: { carriers: string[] }[] }).asks) expect(x.carriers).not.toContain('network_totals');
+    for (const o of d.deferralsOpened ?? []) expect(needCarriers(o.need)).not.toContain('network_totals');
   });
 });
 
-describe('a refusal no item shares a noun with stays a refusal', () => {
-  it('on: "catering contracts" — the check\'s none, no item has either noun: refused', async () => {
+describe('a refusal the rule leaves alone', () => {
+  it('on: "catering contracts" — no item has either noun: refused', async () => {
     on();
     ask.mockImplementation(async () => ({ items: [] }));
     const p = plan('Do we have the catering contracts?', { flags: SATISFIED, phase: 'ANALYSIS' });
     const d = await turnDataChecked(p, turn([{ what: 'the catering contracts', itemIds: [], explicit: true, respond: 'release' }]));
     expect(d.refusals).toEqual(['the catering contracts']);
     expect(d.defers).toEqual([]);
-    expect(acted(p, 'refusal_noun').map(e => (e.detail as { asks: unknown[] }).asks)).toEqual([[{ what: 'the catering contracts', ask: 'the catering contracts', deferred: false, shared: {} }]]);
+    expect(acted(p, 'refusal_noun').map(e => (e.detail as { asks: { deferred: boolean }[] }).asks[0].deferred)).toEqual([false]);
+  });
+  it('on: the head noun no item shares — refused though another noun is shared (b38 Tyler t16 "frequency expansion")', async () => {
+    on();
+    ask.mockImplementation(async () => ({ items: [] }));
+    const p = plan('Any frequency expansion on the four routes?', { flags: SATISFIED, phase: 'ANALYSIS' });
+    const d = await turnDataChecked(p, turn([{ what: 'frequency expansion', itemIds: [], explicit: true, respond: 'release' }]));
+    expect(d.refusals).toEqual(['frequency expansion']);
+    const log = acted(p, 'refusal_noun').map(e => e.detail as { asks: { head: string | null; shared: Record<string, string[]> }[] })[0].asks[0];
+    expect(log.head).toBe('expansion');
+    expect(Object.values(log.shared).flat()).toContain('frequency');
+  });
+  it('on: the nouns shared across different items — refused (b36 Larkspur Raj ef7bed14 t7 → t8)', async () => {
+    on();
+    ask.mockImplementation(async () => ({ items: [] }));
+    const what = 'total passengers flown and average fare per passenger';
+    const p = plan('Do we have total passengers flown and average fare per passenger?', { flags: SATISFIED, phase: 'ANALYSIS' });
+    const d = await turnDataChecked(p, turn([{ what, itemIds: [], explicit: true, respond: 'release' }]));
+    expect(d.refusals).toEqual([what]);
+    expect(d.defers).toEqual([]);
   });
   it('on: a noun only items already out share: refused (nothing more can come for it)', async () => {
     on();
     ask.mockImplementation(async () => ({ items: [] }));
-    const all = ['lakeport_variable_cost', 'fuel_prices'];
-    const p = plan('Do we have fuel hedging?', { flags: SATISFIED, phase: 'ANALYSIS', revealed: all });
-    // "fuel": lakeport_variable_cost ("lakeport fuel cost"), fuel_prices — both out; "hedging": none.
+    const p = plan('Do we have fuel hedging?', { flags: SATISFIED, phase: 'ANALYSIS', revealed: ['lakeport_variable_cost', 'fuel_prices'] });
     const d = await turnDataChecked(p, turn([{ what: 'fuel hedging', itemIds: [], explicit: true, respond: 'release' }]));
     expect(d.refusals).toEqual(['fuel hedging']);
   });
@@ -157,58 +210,61 @@ describe('a refusal no item shares a noun with stays a refusal', () => {
 describe('on a wrap-up turn: "We won\'t get to … today." at once', () => {
   it('a rec-ask turn: the moved refusal is a "won\'t get to", nothing tracked', async () => {
     on();
-    ask.mockImplementation(async () => TYLER_VERDICT);
+    ask.mockImplementation(async () => ({ items: [] }));
     const p = plan('My recommendation is to exit both routes.', { flags: SATISFIED, phase: 'RECOMMENDATION', kind: 'rec_ask' });
-    const d = await turnDataChecked(p, turn([{ what: TYLER_WHAT, itemIds: [], explicit: true, respond: 'release' }]));
+    const d = await turnDataChecked(p, turn([{ what: DEPARTURE, itemIds: [], explicit: true, respond: 'release' }]));
     expect(d.refusals).toEqual([]);
-    expect(d.wontGetTo).toContain(TYLER_PART);
+    expect(d.wontGetTo).toContain(DEPARTURE);
     expect(d.deferralsOpened).toBeUndefined();
   });
 });
 
-describe('a noun deferral resolves once every noun has been delivered', () => {
-  const open: OpenDeferral = { what: SPLIT, ids: [], turn: 4, need: { ticket: ['lakeport_fare'], extra: ['extras_revenue'] } };
+describe('a noun deferral is delivered by one item carrying the whole ask (review F3)', () => {
+  const open: OpenDeferral = { what: SPLIT, ids: [], turn: 4, need: { ticket: ['lakeport_fare'], extra: ['lakeport_fare'] } };
   const none = { requests: [], refusals: [], defers: [], gateDefers: [], releases: [], restates: [], exhibit: null } as unknown as TurnData;
-  it('one noun met: still open, with the other noun still needed', () => {
-    const r = resolveDeferrals([open], none, 6, ['extras_revenue']);
-    expect(r.resolved).toEqual([]);
-    expect(r.open).toEqual([{ ...open, need: { ticket: ['lakeport_fare'] } }]);
-  });
-  it('both met (Exhibit 2 shows both): delivered', () => {
-    const r = resolveDeferrals([open], none, 12, ['lakeport_fare', 'extras_revenue', 'lakeport_seats_load']);
+  it('the carrier delivered: delivered', () => {
+    const r = resolveDeferrals([open], none, 12, ['lakeport_fare', 'lakeport_seats_load']);
     expect(r.resolved).toEqual([{ what: SPLIT, how: 'delivered', turn: 12 }]);
     expect(r.open).toEqual([]);
   });
+  it('another item that carries one noun only: still open (it does not answer the ask)', () => {
+    const split: OpenDeferral = { what: SPLIT, ids: [], turn: 4, need: { ticket: ['lakeport_fare'], extra: ['extras_revenue'] } };
+    const r = resolveDeferrals([split], none, 6, ['extras_revenue']);
+    expect(r.resolved).toEqual([]);
+    expect(r.open).toEqual([split]);
+    // …and nothing ever delivers it: the two lists share no item, so it closes at the wrap-up.
+    expect(needCarriers(split.need)).toEqual([]);
+  });
   it('a noun no item shares can never be met: open until the wrap-up', () => {
-    const lone: OpenDeferral = { what: 'the business versus leisure fare mix', ids: [], turn: 14, need: { business: [], leisure: [], fare: ['new_routes_plan'] } };
+    const lone: OpenDeferral = { what: 'the business versus leisure fare mix', ids: [], turn: 14, need: { business: [], fare: ['new_routes_plan'] } };
     const r = resolveDeferrals([lone], none, 20, ['new_routes_plan']);
     expect(r.resolved).toEqual([]);
-    expect(r.open[0].need).toEqual({ business: [], leisure: [] });
+    expect(r.open).toEqual([lone]);
   });
   it('the first wrap-up turn names it: "We won\'t get to … today."', async () => {
     on();
-    const lone: OpenDeferral = { what: 'the business versus leisure fare mix', ids: [], turn: 14, need: { business: [], leisure: [] } };
+    const lone: OpenDeferral = { what: 'the business versus leisure fare mix', ids: [], turn: 14, need: { business: [] } };
     const p = plan('I recommend exiting.', { flags: { ...SATISFIED, openDeferrals: [lone] }, phase: 'RECOMMENDATION', kind: 'rec_ask', revealed: ['new_route_rampup'] });
     const d = await turnDataChecked(p, turn([]));
     expect(renderDataLines(d, 's')).toEqual(["We won't get to the business versus leisure fare mix today."]);
   });
-  it('Settle books it open with what it needs (an untagged case tracks it too, under the switch)', async () => {
+  it('the first wrap-up turn says nothing for one whose carrier that turn delivers', async () => {
     on();
-    ask.mockImplementation(async () => TYLER_VERDICT);
-    const p = plan(TYLER_T1, { phase: 'INTRO' });
-    await settleTurn(p, outcome(modelTurn([{ what: TYLER_WHAT, itemIds: [], explicit: true, respond: 'defer' }])));
-    const flags = p.ctx.flags.openDeferrals as OpenDeferral[];
-    expect(flags).toHaveLength(1);
-    expect(flags[0]).toMatchObject({ what: TYLER_PART, ids: [] });
-    expect(Object.keys(flags[0].need!).sort()).toEqual(['decline', 'fare', 'passenger']);
-  });
-  it('the first wrap-up turn says nothing for one whose last nouns that turn delivers', async () => {
-    on();
-    const open: OpenDeferral = { what: 'the fleet mix by aircraft type', ids: [], turn: 4, need: { fleet: ['fleet'] } };
-    const p = plan('I recommend exiting. Is the fleet all one type?', { flags: { ...SATISFIED, openDeferrals: [open] }, phase: 'RECOMMENDATION', kind: 'rec_ask', revealed: ['new_route_rampup'] });
+    const open2: OpenDeferral = { what: 'the fleet mix by aircraft type', ids: [], turn: 4, need: { fleet: ['fleet'] } };
+    const p = plan('I recommend exiting. Is the fleet all one type?', { flags: { ...SATISFIED, openDeferrals: [open2] }, phase: 'RECOMMENDATION', kind: 'rec_ask', revealed: ['new_route_rampup'] });
     const d = await turnDataChecked(p, turn([{ what: "Larkspur's fleet", itemIds: ['fleet'], explicit: true, respond: 'release' }]));
     expect(d.releases.map(r => r.id)).toContain('fleet');
     expect(renderDataLines(d, 's').join(' ')).not.toMatch(/won't get to/);
+  });
+  it('Settle books it open with its carrier', async () => {
+    on();
+    ask.mockImplementation(async () => ({ items: [] }));
+    const p = plan('Do we have contribution by departure time?', { flags: SATISFIED, phase: 'ANALYSIS' });
+    await settleTurn(p, outcome(modelTurn([{ what: DEPARTURE, itemIds: [], explicit: true, respond: 'release' }])));
+    const flags = p.ctx.flags.openDeferrals as OpenDeferral[];
+    expect(flags).toHaveLength(1);
+    expect(flags[0]).toMatchObject({ what: DEPARTURE, ids: [] });
+    expect(needCarriers(flags[0].need)).toEqual(['network_totals']);
   });
 });
 
@@ -219,36 +275,38 @@ describe('an untagged case (prof-001) tracks a noun deferral under the switch', 
     p.state.distress = Promise.resolve(null);
     return p;
   };
-  const WHAT = 'the coffee bean supplier contracts';
+  // b33 Brew & Bean Marisol 31e33506 t15 → t16, graded a true refusal ("the case holds no volume, but the store count
+  // would have let her derive it"): the average transaction value carries both nouns.
+  const VOLUME = 'volume per store';
   it('off: the check\'s none is refused, nothing tracked', async () => {
     ask.mockImplementation(async () => ({ items: [] }));
-    const p = plan1('Do we have the coffee bean supplier contracts?');
-    const s = await settleTurn(p, outcome(modelTurn([{ what: WHAT, itemIds: [], explicit: true, respond: 'release' }])));
-    expect(s.spokenText).toMatch(/I don't have the coffee bean supplier contracts/);
+    const p = plan1('Do we have volume per store?');
+    const s = await settleTurn(p, outcome(modelTurn([{ what: VOLUME, itemIds: [], explicit: true, respond: 'release' }])));
+    expect(s.spokenText).toMatch(/I don't have volume per store/);
     expect(p.ctx.flags.openDeferrals).toBeUndefined();
   });
-  it('on: "bean" is on the bean items not yet out — deferred, and booked open', async () => {
+  it('on: the average transaction value carries the whole ask — deferred, and booked open', async () => {
     process.env.ENGINE_SWITCHES = 'prof-001=refusalNounCheck';
     ask.mockImplementation(async () => ({ items: [] }));
-    const p = plan1('Do we have the coffee bean supplier contracts?');
-    const s = await settleTurn(p, outcome(modelTurn([{ what: WHAT, itemIds: [], explicit: true, respond: 'release' }])));
-    expect(s.spokenText).toMatch(/come back to the coffee bean supplier contracts/);
+    const p = plan1('Do we have volume per store?');
+    const s = await settleTurn(p, outcome(modelTurn([{ what: VOLUME, itemIds: [], explicit: true, respond: 'release' }])));
+    expect(s.spokenText).toMatch(/come back to volume per store|get there in a bit|hold volume per store/i);
     const open = p.ctx.flags.openDeferrals as OpenDeferral[];
-    expect(open.map(o => o.what)).toEqual([WHAT]);
-    expect(open[0].need!.bean).toEqual(expect.arrayContaining(['bean_price_change', 'bean_share_of_cogs']));
+    expect(open.map(o => o.what)).toEqual([VOLUME]);
+    expect(needCarriers(open[0].need)).toContain('avg_ticket');
   });
   it('on: its first wrap-up turn says "We won\'t get to … today." for it', async () => {
     process.env.ENGINE_SWITCHES = 'prof-001=refusalNounCheck';
-    const p = planTurn(readsFixture({ phase: 'RECOMMENDATION', flags: { ...SATISFIED, openDeferrals: [{ what: WHAT, ids: [], turn: 4, need: { supplier: [] } }] } }), 'I recommend a price rise.', { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    const p = planTurn(readsFixture({ phase: 'RECOMMENDATION', flags: { ...SATISFIED, openDeferrals: [{ what: VOLUME, ids: [], turn: 4, need: { volume: [] } }] } }), 'I recommend a price rise.', { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
     if (p.kind !== 'model') throw new Error('expected a model plan');
     p.state.kind = 'rec_ask';
     const d = await turnDataChecked(p, turn([]));
-    expect(renderDataLines(d, 's')).toEqual([`We won't get to ${WHAT} today.`]);
+    expect(renderDataLines(d, 's')).toEqual([`We won't get to ${VOLUME} today.`]);
   });
 });
 
-describe('a period or scope in the deferred words: items sharing its nouns don\'t meet it', () => {
-  it('b34 Larkspur Raj 061ef630 t14 "FY2024 fares": deferred, never met by FY2023/FY2025 fares — closed at the wrap-up', async () => {
+describe('a period or scope in the deferred words: its carrier never meets it', () => {
+  it('b34 Larkspur Raj 061ef630 t14 "FY2024 fares": deferred, never met by the FY2023/FY2025 fares — closed at the wrap-up', async () => {
     on();
     ask.mockImplementation(async () => ({ items: [] }));
     const p = plan('Do we have FY2024 fares?', { flags: SATISFIED, phase: 'ANALYSIS' });
@@ -256,10 +314,10 @@ describe('a period or scope in the deferred words: items sharing its nouns don\'
     expect(d.defers).toEqual(['FY2024 fares']);
     const need = d.deferralsOpened![0].need!;
     expect(need['(a period or scope)']).toEqual([]);
+    expect(needCarriers(need)).toEqual([]);
     const open: OpenDeferral = { what: 'FY2024 fares', ids: [], turn: 14, need };
     const none = { requests: [], refusals: [], defers: [], gateDefers: [], releases: [], restates: [], exhibit: null } as unknown as TurnData;
-    const r = resolveDeferrals([open], none, 18, ['lakeport_fare', 'port_avery_per_flight', 'competitor_costs', 'competitor_entry', 'new_routes_plan']);
-    expect(r.resolved).toEqual([]);
+    expect(resolveDeferrals([open], none, 18, ['lakeport_fare', 'port_avery_per_flight', 'competitor_costs']).resolved).toEqual([]);
   });
 });
 

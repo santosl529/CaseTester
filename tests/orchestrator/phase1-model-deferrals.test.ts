@@ -22,7 +22,7 @@ vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<obje
 
 import { planTurn, type ModelPlan, type TurnKind } from '@/lib/orchestrator/plan-turn';
 import { settleTurn, type ModelOutcome } from '@/lib/orchestrator/settle-turn';
-import { turnDataChecked, type OpenDeferral } from '@/lib/orchestrator/turn-data';
+import { turnDataChecked, needCarriers, type OpenDeferral } from '@/lib/orchestrator/turn-data';
 import { renderDataLines } from '@/lib/orchestrator/data-decisions';
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { readsFixture } from './fixtures/turn-reads';
@@ -68,7 +68,10 @@ describe('b38 Tyler t24: "I\'ll check what we have" on elasticity', () => {
     const open = openOf(p)!;
     expect(open.map(o => o.what)).toEqual([WHAT]);
     expect(open[0].ids).toEqual([]);
-    expect(open[0].need?.elasticity).toEqual([]);   // no item has elasticity: met only by its own words, else the wrap-up
+    // No item carries the ask's head noun, so it is booked with no `need` at all: nothing can deliver it (review F3)
+    // and it is met by its own words or by the wrap-up's "We won't get to …".
+    expect(open[0].need).toBeUndefined();
+    expect(needCarriers(open[0].need)).toBeNull();
     expect(acted(p, 'model_deferral')).toHaveLength(1);
   });
   it('on: the first wrap-up turn closes it — "We won\'t get to … today."', async () => {

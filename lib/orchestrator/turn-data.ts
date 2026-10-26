@@ -741,12 +741,28 @@ async function turnDataDecided(plan: ModelPlan, turn: Pick<ModelTurn, 'requests'
 const QUALIFIED = '(a period or scope)';
 // What a turn gives (released, restated, on the exhibit handed over).
 const givenOf = (d: Pick<DataDecisions, 'releases' | 'restates' | 'exhibit'>) => new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]);
+// The ask's head noun (review F2): the last key noun of its head noun phrase — the words before the first preposition,
+// conjunction or clause break that starts a modifier ("waste or spoilage data by store" → "waste"; "later cohorts'
+// upgrade rates" → "upgrade", "rates" being a generic label word). A head phrase with no key noun of its own falls back
+// to the text's first key noun ("split of revenue decline …" → "decline").
+const HEAD_BREAK = /\s+(?:of|by|per|for|in|on|at|with|within|between|across|versus|vs\.?|than|from|to|since|beyond|under|over|about|and|or|plus|that|which|whether|if)\s+|[,;:?!—–(]/i;
+export function headNoun(text: string, caseNames: string[] = []): string | null {
+  const lead = text.trim().split(HEAD_BREAK)[0] ?? '';
+  const own = [...keyNouns(lead, caseNames)];
+  if (own.length > 0) return own[own.length - 1];
+  const all = [...keyNouns(text, caseNames)];
+  return all[0] ?? null;
+}
 // The key nouns of a text against the ledger items not yet out (not revealed, not given this turn): the items sharing
-// each (`shared`, for the log), whether any does (`shares`), and what a deferral in those words needs to be delivered
-// (`need`: per noun, its items; a period or scope in the words can't be met by them — b34 Larkspur Raj 061ef630 t14
-// "FY2024 fares": the FY2023 and FY2025 fares don't state FY2024 — so it closes at the wrap-up unless its own words
-// are answered). Shared by 4.4 (refusalNounCheck) and 4.7 (modelDeferrals).
-function nounReader(plan: ModelPlan, given: ReadonlySet<string>): (text: string) => { shares: boolean; shared: Record<string, string[]>; need: Record<string, string[]> } {
+// each (`shared`, for the log), whether the text is one a deferral may be made of (`shares`), and what that deferral
+// needs to be delivered (`need`). Review F2 (Lorenzo's "no ledger item shares a key noun", read strictly): a deferral
+// is made only when the ask's **head noun** is one of the shared nouns **and a single item carries every shared noun** —
+// a set shared across different items (passengers from one line, the fare from another) is no answer to the ask. Those
+// items are its `need` carriers, per noun; a period or scope in the words can't be met by delivering them (b34 Larkspur
+// Raj 061ef630 t14 "FY2024 fares": the FY2023 and FY2025 fares don't state FY2024), so it closes at the wrap-up unless
+// its own words are answered. Shared by 4.4 (refusalNounCheck) and 4.7 (modelDeferrals).
+export type NounReading = { shares: boolean; shared: Record<string, string[]>; need: Record<string, string[]>; head: string | null; carriers: string[] };
+function nounReader(plan: ModelPlan, given: ReadonlySet<string>): (text: string) => NounReading {
   const { ledger, caseData, factBase } = plan.state;
   const caseNames = properNames(caseData.sttKeyterms);
   const pending = ledger.items.filter(i => !ledger.revealed.has(i.id) && !given.has(i.id)).map(i => ({
@@ -756,9 +772,14 @@ function nounReader(plan: ModelPlan, given: ReadonlySet<string>): (text: string)
   return text => {
     const nouns = [...keyNouns(text, caseNames)];
     const shared = Object.fromEntries(pending.map(i => [i.id, nouns.filter(n => i.nouns.has(n))] as const).filter(([, ns]) => ns.length > 0));
+    const head = headNoun(text, caseNames);
+    const sharedNouns = nouns.filter(n => pending.some(i => i.nouns.has(n)));
+    const carriers = head !== null && sharedNouns.includes(head) ? pending.filter(i => sharedNouns.every(n => i.nouns.has(n))).map(i => i.id) : [];
     const qualified = askQualifiers(text, true).some(q => q.kind === 'period' || q.kind === 'scope');
-    const need = { ...Object.fromEntries(nouns.map(n => [n, pending.filter(i => i.nouns.has(n)).map(i => i.id)])), ...(qualified ? { [QUALIFIED]: [] } : {}) };
-    return { shares: Object.keys(shared).length > 0, shared, need };
+    const need = carriers.length > 0
+      ? { ...Object.fromEntries(sharedNouns.map(n => [n, carriers])), ...(qualified ? { [QUALIFIED]: [] } : {}) }
+      : {};
+    return { shares: carriers.length > 0, shared, need, head, carriers };
   };
 }
 
@@ -771,14 +792,14 @@ function nounDeferrals(plan: ModelPlan, d: TurnData, decided: ReadonlyMap<string
   const refused = d.refusals.filter(t => eligible.has(normAsk(t)));
   if (refused.length === 0) return d;
   const nouns = nounReader(plan, givenOf(d));
-  const log: { what: string; ask: string; deferred: boolean; shared: Record<string, string[]> }[] = [];
+  const log: { what: string; ask: string; deferred: boolean; shared: Record<string, string[]>; head: string | null; carriers: string[] }[] = [];
   const moved: { what: string; ask: string; need: Record<string, string[]> }[] = [];
   for (const t of refused) {
     const r = nouns(t);
-    log.push({ what: t, ask: eligible.get(normAsk(t))!, deferred: r.shares, shared: r.shared });
+    log.push({ what: t, ask: eligible.get(normAsk(t))!, deferred: r.shares, shared: r.shared, head: r.head, carriers: r.carriers });
     if (r.shares) moved.push({ what: t, ask: eligible.get(normAsk(t))!, need: r.need });
   }
-  plan.ctx.checks.act('refusal_noun', 'a refusal the check made: said only when no ledger item not yet out shares a key noun with it; else the named deferral, tracked', { asks: log });
+  plan.ctx.checks.act('refusal_noun', 'a refusal the check made: deferred only when one ledger item not yet out carries the ask\'s head noun and every noun it shares; else said', { asks: log });
   if (moved.length === 0) return d;
   const out = new Set(moved.map(m => normAsk(m.what)));
   const wrap = wrapUpTurn(plan);
@@ -854,9 +875,9 @@ export function modelDeferrals(plan: ModelPlan, d: TurnData, requests: DeclaredR
 // A later refusal of the same words closes it too (the candidate has the answer; "won't get to" would contradict it).
 // Each resolves once: Settle (resolveDeferrals) drops it from the flags and logs `deferral_resolved` { what, how, turn },
 // so it is never said twice. Untagged (prof-001): nothing is tracked.
-// `need` (Phase 1 4.4, refusalNounCheck): a refusal turned into a deferral — per key noun of its words, the items not
-// yet out that share it; a noun is met when one of its items is delivered on a later turn (for any ask), and the
-// deferral is delivered once every noun is met. Nouns met so far are dropped from it.
+// `need` (Phase 1 4.4, refusalNounCheck): a refusal turned into a deferral — per key noun of its words, the items that
+// carry the whole ask (nounReader's carriers). It is delivered when one of those items is delivered on a later turn, for
+// any ask (needCarriers, review F3); a noun with no item leaves no carrier, so it closes at the wrap-up instead.
 export type OpenDeferral = { what: string; ids: string[]; turn: number; need?: Record<string, string[]> };
 export type DeferralResolved = { what: string; how: 'delivered' | 'wont_get_to' | 'refused'; turn: number };
 const normAsk = (w: string) => w.replace(/\s+/g, ' ').trim().toLowerCase();
@@ -877,7 +898,16 @@ function deferralDelivered(o: OpenDeferral, d: Pick<DataDecisions, 'requests'>, 
     && ((x.response === 'release' && x.ledgerItemIds.some(id => out.has(id) && !o.ids.includes(id))) || x.response === 'clarify'));
 }
 // A noun deferral (4.4) whose every noun still needed is met by what this turn delivers.
-const needMet = (o: OpenDeferral, out: ReadonlySet<string>) => o.need !== undefined && Object.values(o.need).every(ids => ids.some(id => out.has(id)));
+// A noun deferral's carriers (review F3): the items in every needed noun's list — one item that carries the whole ask.
+// A noun no item shares (an empty list, like a period or scope in the words) leaves none, so it can never be delivered:
+// it closes at the wrap-up instead. Resolving on any one needed noun would manufacture the hollow deferral E5 forbids.
+export function needCarriers(need: Record<string, string[]> | undefined): string[] | null {
+  if (need === undefined) return null;
+  const lists = Object.values(need);
+  if (lists.length === 0) return [];
+  return lists.reduce<string[]>((acc, ids) => acc.filter(x => ids.includes(x)), [...new Set(lists[0])]);
+}
+const needMet = (o: OpenDeferral, out: ReadonlySet<string>) => (needCarriers(o.need) ?? []).some(id => out.has(id));
 const decidedOut = (d: DeferralReading) => new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]);
 // Said "won't get to" this turn in another form: for its own words.
 const deferralWontNow = (o: OpenDeferral, d: DeferralReading) => (d.wontGetTo ?? []).some(w => normAsk(w) === normAsk(o.what));
@@ -902,12 +932,10 @@ export function resolveDeferrals(open: readonly OpenDeferral[], d: TurnData, tur
   const closed = new Set((d.deferralsClosed ?? []).map(o => normAsk(o.what)));
   const resolved: DeferralResolved[] = [];
   const left: OpenDeferral[] = [];
-  for (const o0 of open) {
-    // A noun deferral's nouns met by what this turn delivered (4.4): dropped from what it still needs.
-    const o = o0.need && o0.turn < turn ? { ...o0, need: Object.fromEntries(Object.entries(o0.need).filter(([, ids]) => !ids.some(id => out.has(id)))) } : o0;
+  for (const o of open) {
     const how = o.turn >= turn ? null
       : closed.has(normAsk(o.what)) ? 'wont_get_to' as const
-        : (o.need !== undefined && Object.keys(o.need).length === 0) || deferralDelivered(o, d, out) ? 'delivered' as const
+        : needMet(o, out) || deferralDelivered(o, d, out) ? 'delivered' as const
           : deferralWontNow(o, d) ? 'wont_get_to' as const
             : deferralRefusedNow(o, d) ? 'refused' as const : null;
     if (how) resolved.push({ what: o.what, how, turn });
