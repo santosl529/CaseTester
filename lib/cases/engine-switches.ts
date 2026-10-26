@@ -29,6 +29,7 @@ export const PHASE1_SWITCHES = [
   // Stream 4 — small fixes inside today's paths.
   'restateRules',        // 4.1: exhibit pointer + summary; a number only if asked; matched item only; not twice in 4 turns
   'coarseKeepNamed',     // 4.2: never drop a model-named item that matches the ask
+  'coarseNoRefusal',     // pre-wave ruling 1 (26 Oct): an ask whose coarse items go out this turn is not also refused
   'haikuTagGate',        // 4.3: the check's positives pass the item tag gate; a mismatch defers
   'coverNormalization',  // 4.5: plurals, synonym table, the candidate's own sentence
   'wantCueBroad',        // 4.6: "I'd want / need / confirm" + any noun phrase

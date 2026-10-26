@@ -39,7 +39,7 @@
   "turn": 4,
   "sev": "false",
   "cls": "false_refusal",
-  "note": "\"I don't have the ticket versus extras revenue split.\" — the scope rule ruled extras_revenue out of scope and scope_coarse released port_avery_per_flight; extras_revenue ($20 per passenger both years) answers the ancillary side. Judgement, not serious; awaiting Lorenzo (open question 1).",
+  "note": "\"I don't have the ticket versus extras revenue split.\" — the scope rule ruled extras_revenue out of scope and scope_coarse released port_avery_per_flight; extras_revenue ($20 per passenger both years) answers the ancillary side. Judgement, not serious; awaiting Lorenzo (open question 1). Fix round (26 Oct, Lorenzo's ruling 1): the positive leg becomes `answered` accepting a deferral that resolves, as the four sibling false_refusal records were given on 25 Oct. The fault graded is the false refusal; a deferral of extras_revenue that comes back is not one. With `*=phase1` t4 defers \"the ticket versus extras revenue split\", it stays open through t10 and extras_revenue is released at t12. On the base the turn refuses, so the record still fails there.",
   "src": "batch-38-larkspur/hand-grading.md (not yet second-graded)",
   "a": [
    {
@@ -48,8 +48,13 @@
     "must": false
    },
    {
-    "kind": "release",
+    "kind": "answered",
     "item": "extras_revenue",
+    "about": "extras|ancillary|ticket versus",
+    "accept": [
+     "release",
+     "deferral"
+    ],
     "must": true
    }
   ],

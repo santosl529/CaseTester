@@ -173,6 +173,26 @@ describe('answered — the ask gets a word', () => {
     expect(evaluateRecord(windowed, [silent(20), release(22)], LINES).pass).toBe(true);
   });
 
+  // Bank fix (26 Oct, Lorenzo's ruling 1): code words a deferral from the ITEM's label, not the candidate's
+  // words, so an `about` regex written from the ask fails on a deferral plainly of the right item (b36l Marcus
+  // t6 asks for "cost per seat mile" and is deferred as "wages and other costs per flight"). A deferral of the
+  // record's own item counts, read from the next turn's open data requests — the anchor must still hold a
+  // deferral, and it must still resolve.
+  it('a deferral of the record\'s own item counts however code worded it', () => {
+    const otherWords = (tN: number) => turn(tN, [seg("I'll come back to wages and other costs per flight shortly.", 'data')]);
+    const open = [{ ledgerItemId: 'new_route_rampup', what: 'Wages and other costs per flight' }];
+    const a = rec({ item: 'new_route_rampup', accept: ['release', 'deferral'] });
+    // The wording misses the `about` regex, but the next turn's open requests name the item, and it resolves.
+    expect(evaluateRecord(a, [otherWords(20), turn(22, [seg('Go on.')], { open }), release(24)], LINES).pass).toBe(true);
+    // Still a deferral at the anchor: a silent anchor does not pass on the open request alone.
+    expect(evaluateRecord(a, [turn(20, [seg('Go on.')]), turn(22, [seg('Go on.')], { open }), release(24)], LINES).pass).toBe(false);
+    // Still has to resolve: a deferral of the item that never comes back fails.
+    expect(evaluateRecord(a, [otherWords(20), turn(22, [seg('Go on.')], { open })], LINES).pass).toBe(false);
+    // A deferral of ANOTHER item does not answer this record's ask.
+    const elsewhere = [{ ledgerItemId: 'route_results_other', what: 'the routes and schedule' }];
+    expect(evaluateRecord(a, [otherWords(20), turn(22, [seg('Go on.')], { open: elsewhere }), release(24)], LINES).pass).toBe(false);
+  });
+
   it('accept narrows which outcomes answer the ask', () => {
     const only = rec({ item: 'new_route_rampup', accept: ['refusal', 'deferral'] });
     expect(evaluateRecord(only, [release(20), silent(22)], LINES).pass).toBe(false);

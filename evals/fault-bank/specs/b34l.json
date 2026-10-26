@@ -19,8 +19,9 @@
     "must": true
    }
   ],
-  "rep": true,
-  "stream": 4
+  "rep": false,
+  "stream": 4,
+  "rnote": "Both arms — and the base with every switch off — write t22 as a code `stage_brainstorm` turn, so the model's saved refusal and its data request are never used and `new_route_rampup` is released at t24 instead. The fault is the refusal standing in the SAME turn as the release, and a turn whose kind changed can neither reproduce nor disprove it (contract §4.3). It fails identically off and on, so it is no regression. Wave: on prof-002, \"Do we have a ramp assumption?\" never gets \"I have no ramp assumption to give you yet\" on a turn that releases the ramp line (Tyler-type); the auditor (false_refusal) and the hand grade see it."
  },
  {
   "id": "b34l-raj-t6-both-moved",
