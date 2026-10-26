@@ -1,11 +1,11 @@
 // The offline auditor's input, schema and calibration (lib/eval/auditor/**). No API call.
 import { describe, it, expect } from 'vitest';
-import { caseSection, transcriptSection } from '@/lib/eval/auditor/input';
+import { caseSection, transcriptSection, EXHIBIT_DATA_CLIP } from '@/lib/eval/auditor/input';
 import { AUDITOR_CLASSES, AUDITOR_RULES, AuditOutputSchema } from '@/lib/eval/auditor/prompt';
 import { matchRun, calibrate, FAMILIES, type Hand } from '@/lib/eval/auditor/calibrate';
 import { auditPrompt } from '@/lib/eval/auditor/audit';
 import { FAULT_CLASSES } from '@/lib/eval/fault-bank';
-import { getCaseById } from '@/lib/cases/loader';
+import { getCaseById, loadCases } from '@/lib/cases/loader';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 
 const turn = (turnIndex: number, text: string, extra: Partial<TurnRecord> = {}) => ({
@@ -28,6 +28,32 @@ describe('auditor input', () => {
     expect(ts).toContain('checker on t1: "$21M fixed" error (right: 20; flag no; misquote)');
     expect(ts).toContain('checks: math_checker: checker flag delivered: probe');
     expect(auditPrompt(cs, ts)).toContain(AUDITOR_RULES);
+  });
+
+  // Finding 14 of the Stream 1 review: launch-001 exhibit-2 is 1,743 characters and the old 1,500 clip silently
+  // lost its last rows — the one case where the auditor's missed_error recall was 50%.
+  it('gives every exhibit\'s data whole', () => {
+    for (const c of loadCases()) {
+      for (const e of c.exhibits) {
+        expect(JSON.stringify(e.data).length, `${c.id} ${e.id}`).toBeLessThanOrEqual(EXHIBIT_DATA_CLIP);
+        expect(caseSection(c), `${c.id} ${e.id}`).toContain(JSON.stringify(e.data));
+      }
+    }
+  });
+
+  // The same finding: the auditor saw only checks that ACTED, so what code dropped — the evidence for
+  // bare_partial and ignored_ask — never reached it. A turn that releases nothing records `pass`.
+  it('surfaces what code withheld, whatever the check\'s decision', () => {
+    const ts = transcriptSection([turn(1, 'Go on.', { checks: [
+      { check: 'code_written_requests', decision: 'act', reason: 'detected requests no asking sentence covers', detail: { dropped: ['the entrant\'s frequency on each route'] } },
+      { check: 'data_decisions', decision: 'pass', reason: 'data decided by code', detail: { releases: [], exhibit: null, refusals: ['competitor_costs'], defers: [], offers: [] } },
+      { check: 'partial_dropped', decision: 'act', reason: 'a partial whose missing part did not hold', detail: { what: 'seats by route', checked: 'seats', missing: null, why: 'whole_ask' } },
+    ] } as never)], []);
+    expect(ts).toContain("withheld: code_written_requests: dropped=[\"the entrant's frequency on each route\"]");
+    expect(ts).toContain('data_decisions: refusals=["competitor_costs"]');
+    expect(ts).toContain('partial_dropped: what=seats by route checked=seats why=whole_ask');
+    expect(ts).not.toContain('releases=');     // only what was withheld
+    expect(transcriptSection([turn(1, 'Go on.')], [])).not.toContain('withheld:');
   });
 
   it('asks for the fault bank\'s classes (report faults aside) and four severities', () => {
