@@ -158,6 +158,21 @@ describe('answered — the ask gets a word', () => {
     expect(evaluateRecord(rec({}), [silent(20), silent(22)], LINES).pass).toBe(false);
   });
 
+  // Bank fix 4 (26 Oct): the three accept paths are read AT the record's turn (or scope.fromTurn). The window scan
+  // is only a deferral's resolution. Unanchored, a turn that ignored the ask passed because the item came out
+  // somewhere later — which is how b36l-jasmine-t2-departures and b38l-tyler-t2-split-refusal greened on silence.
+  it('is anchored at the record\'s turn: a later release does not answer a turn that ignored the ask', () => {
+    expect(evaluateRecord(rec({ item: 'new_route_rampup' }), [silent(20), release(22)], LINES).pass).toBe(false);
+    expect(evaluateRecord(rec({}), [silent(20), refuse(22)], LINES).pass).toBe(false);
+    // The anchor itself still answers, and a deferral there still resolves later in the window.
+    expect(evaluateRecord(rec({ item: 'new_route_rampup' }), [release(20), silent(22)], LINES).pass).toBe(true);
+    expect(evaluateRecord(rec({}), [defer(20), release(22), refuse(24)], LINES).pass).toBe(true);
+    // scope.fromTurn moves the anchor.
+    const windowed = rec({ item: 'new_route_rampup', scope: { fromTurn: 22, toTurn: 26 } });
+    expect(evaluateRecord(windowed, [silent(20), silent(22), release(24)], LINES).pass).toBe(false);
+    expect(evaluateRecord(windowed, [silent(20), release(22)], LINES).pass).toBe(true);
+  });
+
   it('accept narrows which outcomes answer the ask', () => {
     const only = rec({ item: 'new_route_rampup', accept: ['refusal', 'deferral'] });
     expect(evaluateRecord(only, [release(20), silent(22)], LINES).pass).toBe(false);

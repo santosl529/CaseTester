@@ -33,11 +33,14 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
   // A stage question: the recommendation, the risk, a mitigation, the brainstorm.
   z.object({ kind: z.literal('ask'), stage: z.enum(['recommendation', 'risk', 'mitigation', 'brainstorm']), must: z.boolean(), scope: Scope.optional() }).strict(),
   z.object({ kind: z.literal('close'), must: z.boolean(), scope: Scope.optional() }).strict(),
-  // The ask gets a word (critical 5 of the Stream 1 review; Lorenzo, 25 Oct): within the window, the item is
-  // released, a refusal is spoken, or a deferral is spoken that LATER RESOLVES (a release of the item, or a refusal
-  // about it, before the close). An unresolved deferral is not an answer, so silence and a hollow deferral both fail;
-  // `accept` narrows which of the three count (default: all three). The window defaults to the record's turn → the
-  // close, because a deferral's resolution is owed by then (contract 4.7). At least one of `item` / `about` is given.
+  // The ask gets a word (critical 5 of the Stream 1 review; Lorenzo, 25 Oct): ON THE RECORD'S TURN (or
+  // scope.fromTurn) the item is released, a refusal is spoken, or a deferral is spoken that LATER RESOLVES (a
+  // release of the item, or a refusal about it, before the close). The window covers the deferral's resolution
+  // only — the three accept paths are anchored at the turn, so a later release does not excuse a turn that ignored
+  // the ask (bank fix 4, 26 Oct). An unresolved deferral is not an answer, so silence and a hollow deferral both
+  // fail; `accept` narrows which of the three count (default: all three). The window defaults to the record's turn
+  // → the close, because a deferral's resolution is owed by then (contract 4.7). At least one of `item` / `about`
+  // is given.
   z.object({ kind: z.literal('answered'), item: z.string().optional(), about: z.string().optional(),
     accept: z.array(z.enum(['release', 'refusal', 'deferral'])).min(1).optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // The turn says something of its own: a delivered sentence that is neither a refusal nor a deferral — so silence,
