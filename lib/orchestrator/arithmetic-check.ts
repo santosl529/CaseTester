@@ -37,7 +37,7 @@ export type ArithmeticClaim = {
 };
 
 type Tok =
-  | { t: 'num'; v: number; pct: boolean; scaled: boolean; unit: boolean; raw: string }  // v carries its scale ($480M → 480e6); unit: %, points, pp
+  | { t: 'num'; v: number; pct: boolean; scaled: boolean; unit: boolean; raw: string; base?: number; unitWord?: UnitWord }  // v carries its scale ($480M → 480e6); unit: %, points, pp
   | { t: 'op'; v: '+' | '-' | '*' | '/' }
   | { t: 'eq' }
   | { t: 'approx' }
@@ -72,7 +72,21 @@ const LEXEMES: [RegExp, (m: RegExpMatchArray) => Tok][] = [
   [W('approximately|roughly|around|about|nearly|almost|call it|approx'), () => ({ t: 'approx' })],
 ];
 
-function tokenize(sentence: string): Tok[] {
+// A unit noun spoken after the figure ("seventy cents", "three million",
+// "$320 million"): today it is an unknown word, so it ends the expression and
+// the figure loses its scale. The spoken reader (spokenReadings) absorbs it;
+// the live reader never does, so nothing changes with the switch off.
+type UnitWord = 'cents' | 'dollars' | 'scale';
+const UNIT_AFTER_NUMBER = /^\s*(cents?|dollars?|bucks|thousands?|millions?|billions?)(?![a-z'])/i;
+const UNIT_WORDS: Record<string, { kind: UnitWord; factor: number }> = {
+  cent: { kind: 'cents', factor: 0.01 }, cents: { kind: 'cents', factor: 0.01 },
+  dollar: { kind: 'dollars', factor: 1 }, dollars: { kind: 'dollars', factor: 1 }, bucks: { kind: 'dollars', factor: 1 },
+  thousand: { kind: 'scale', factor: 1e3 }, thousands: { kind: 'scale', factor: 1e3 },
+  million: { kind: 'scale', factor: 1e6 }, millions: { kind: 'scale', factor: 1e6 },
+  billion: { kind: 'scale', factor: 1e9 }, billions: { kind: 'scale', factor: 1e9 },
+};
+
+function tokenize(sentence: string, opts?: { units?: boolean }): Tok[] {
   const out: Tok[] = [];
   let s = sentence;
   while (s.length > 0) {
@@ -86,7 +100,17 @@ function tokenize(sentence: string): Tok[] {
       // A number glued to letters ("1.15x", "2nd", "2-thirds", "18-point") is not an operand.
       if (/^-?[a-z]/i.test(s)) { out.push({ t: 'break' }); s = s.replace(/^-?[a-z]+/i, ''); continue; }
       const scale = n[3] ? SCALE[n[3].toLowerCase()] : 1;
-      out.push({ t: 'num', v: parseFloat(n[1].replace(/,/g, '')) * scale, pct: Boolean(n[2] && /%|percent/i.test(n[2])), scaled: scale !== 1, unit: Boolean(n[2]), raw: n[0].trim() });
+      const tok: Tok = { t: 'num', v: parseFloat(n[1].replace(/,/g, '')) * scale, pct: Boolean(n[2] && /%|percent/i.test(n[2])), scaled: scale !== 1, unit: Boolean(n[2]), raw: n[0].trim() };
+      const unitAfter = opts?.units && !n[2] ? UNIT_AFTER_NUMBER.exec(s) : null;
+      if (unitAfter) {
+        const u = UNIT_WORDS[unitAfter[1].toLowerCase()];
+        tok.base = tok.v;
+        tok.v *= u.factor;
+        tok.unitWord = u.kind;
+        if (u.kind === 'scale') tok.scaled = true;
+        s = s.slice(unitAfter[0].length);
+      }
+      out.push(tok);
       continue;
     }
     // "≈" / "~=" are both: an approximate result follows.
@@ -148,13 +172,201 @@ export function verdictFor(stated: number, computed: number, pct: boolean, appro
   return 'unclear';
 }
 
+// ---------------------------------------------------------------------------
+// The spoken-math parser (Phase 1 task 3.6, switch `spokenMathParser`).
+//
+// Speech chains its arithmetic and leaves the grouping to the listener:
+// "three minus seventy cents plus thirty plus thirty plus twenty equals one
+// fifty" is 3 − (0.70 + 0.30 + 0.30 + 0.20) = 1.50, which the left-to-right
+// reader above calls a math error. Lorenzo, 22 Oct: "if any reading matches
+// the stated result, treat it as consistent."
+//
+// So this is a reading *enumerator*, not a second checker. It re-reads the
+// sentence with four tolerances and returns every (left side, stated result)
+// pair they produce; `checkStatedArithmetic` then downgrades an `incorrect`
+// claim to `unclear` when one of them holds. It can only ever remove a flag:
+// it never raises a claim, and never makes one `correct`.
+//
+//   1. a unit noun after the figure — "seventy cents", "$320 million" — which
+//      today ends the expression and strips the scale;
+//   2. that unit inherited by the bare figures after it (70 cents, plus
+//      thirty → $0.30);
+//   3. a leading minus distributed over the plus chain that follows it, when
+//      two or more pluses follow (one does not: "100 minus 40 plus 10" is
+//      read as written);
+//   4. two adjacent spoken figures as one — "one fifty" is 1.50 as well as
+//      150, "two thirty eight" is 238.
+//
+// A reading is tied to the claim it may excuse by the stated side's *first*
+// figure as the live reader read it (`statedFirst`), so a reading of another
+// equation in the same sentence cannot excuse this one.
+export type SpokenReading = { computed: number; stated: number; statedFirst: number; pct: boolean; scaled: boolean; via: string };
+
+type SNum = { t: 'n'; v: number; raw: number; pct: boolean; scaled: boolean; money: boolean; cents: boolean; bare: boolean };
+type SOp = { t: 'o'; v: '+' | '-' | '*' | '/' };
+type SItem = SNum | SOp;
+
+const isNum = (x: SItem): x is SNum => x.t === 'n';
+
+function collapse(nums: number[], ops: ('+' | '-' | '*' | '/')[]): { terms: number[]; addOps: ('+' | '-')[] } | null {
+  if (nums.length !== ops.length + 1 || nums.length < 2) return null;
+  const terms: number[] = [nums[0]];
+  const addOps: ('+' | '-')[] = [];
+  for (let i = 0; i < ops.length; i++) {
+    const op = ops[i], n = nums[i + 1];
+    if (op === '*') terms[terms.length - 1] *= n;
+    else if (op === '/') { if (n === 0) return null; terms[terms.length - 1] /= n; }
+    else { addOps.push(op); terms.push(n); }
+  }
+  return { terms, addOps };
+}
+
+// Tolerance 3: a − b + c + d read as a − (b + c + d). Two or more pluses must
+// follow the minus — "100 minus 40 plus 10" is the ordinary reading, and
+// treating it as a group would silence a one-step error for free.
+function distributed(terms: number[], addOps: ('+' | '-')[]): number | null {
+  const j = addOps.indexOf('-');
+  if (j < 0) return null;
+  const rest = addOps.slice(j + 1);
+  if (rest.length < 2 || rest.some(o => o !== '+')) return null;
+  let head = terms[0];
+  for (let i = 0; i < j; i++) head = addOps[i] === '+' ? head + terms[i + 1] : head - terms[i + 1];
+  return head - terms.slice(j + 1).reduce((a, b) => a + b, 0);
+}
+
+function valuesOf(nums: number[], ops: ('+' | '-' | '*' | '/')[]): { v: number; via: string }[] {
+  const c = collapse(nums, ops);
+  if (!c) return [];
+  const out: { v: number; via: string }[] = [];
+  const std = c.terms.slice(1).reduce((acc, t, i) => (c.addOps[i] === '+' ? acc + t : acc - t), c.terms[0]);
+  if (Number.isFinite(std)) out.push({ v: std, via: 'left to right' });
+  const d = distributed(c.terms, c.addOps);
+  if (d !== null && Number.isFinite(d)) out.push({ v: d, via: 'minus distributed' });
+  return out;
+}
+
+// "A = B plus C × D = E": the spoken result belongs to C × D, not to the whole
+// chain (b35q ee99bd82 t23, "$905k plus 350 × $2,800 = $980k"). Only a tail
+// that opens after a + or − and whose own first operator multiplies — the
+// shape a fresh sub-calculation takes.
+function tails(items: SItem[]): SItem[][] {
+  const out: SItem[][] = [];
+  for (let i = 1; i < items.length - 1; i++) {
+    if (!isNum(items[i]) || items[i - 1].t !== 'o' || items[i + 1].t !== 'o') continue;
+    const before = (items[i - 1] as SOp).v, next = (items[i + 1] as SOp).v;
+    if ((before !== '+' && before !== '-') || (next !== '*' && next !== '/')) continue;
+    out.push(items.slice(i));
+  }
+  return out;
+}
+
+// Tolerance 2: once a figure is given in cents, the bare figures after it are
+// cents too ("seventy cents plus thirty plus twenty").
+function centsInherited(items: SItem[]): SItem[] | null {
+  const first = items.findIndex(x => isNum(x) && x.cents);
+  if (first < 0) return null;
+  let changed = false;
+  const out = items.map((x, i) => {
+    if (i > first && isNum(x) && x.bare) { changed = true; return { ...x, v: x.v * 0.01 }; }
+    return x;
+  });
+  return changed ? out : null;
+}
+
+// Tolerance 4: two adjacent figures with no operator between them are one
+// spoken figure — "one fifty" (1 50) is 150 or 1.50. Only one such pair per
+// side, both bare, the second a two-digit number.
+function mergedFigures(a: SNum, b: SNum): number[] {
+  if (!a.bare || !b.bare || !Number.isInteger(a.raw) || !Number.isInteger(b.raw)) return [];
+  if (a.raw <= 0 || b.raw < 10 || b.raw > 99) return [];
+  return [a.raw * 100 + b.raw, a.raw + b.raw / 100];
+}
+
+function mergeVariants(items: SItem[]): SItem[][] {
+  const at: number[] = [];
+  for (let i = 0; i + 1 < items.length; i++) if (isNum(items[i]) && isNum(items[i + 1])) at.push(i);
+  if (at.length !== 1) return [items];
+  const i = at[0], a = items[i] as SNum, b = items[i + 1] as SNum;
+  return [items, ...mergedFigures(a, b).map(v => [...items.slice(0, i), { ...a, v, raw: v }, ...items.slice(i + 2)])];
+}
+
+function statedReadings(ns: SNum[]): { v: number; via: string }[] {
+  const out = [{ v: ns[0].v, via: 'as said' }];
+  if (ns.length === 2) for (const v of mergedFigures(ns[0], ns[1])) out.push({ v, via: 'one figure' });
+  return out;
+}
+
+export function spokenReadings(sentence: string): SpokenReading[] {
+  const out: SpokenReading[] = [];
+  const segments: Tok[][] = [[]];
+  for (const t of tokenize(sentence, { units: true })) {
+    if (t.t === 'break') { segments.push([]); continue; }
+    if (t.t !== 'approx') segments[segments.length - 1].push(t);
+  }
+  for (const seg of segments) {
+    const parts: SItem[][] = [[]];
+    for (const t of seg) {
+      if (t.t === 'eq') { parts.push([]); continue; }
+      if (t.t === 'num') {
+        parts[parts.length - 1].push({
+          t: 'n', v: t.v, raw: t.base ?? t.v, pct: t.pct, scaled: t.scaled,
+          money: t.raw.startsWith('$') || t.unitWord === 'dollars',
+          cents: t.unitWord === 'cents',
+          bare: !t.unit && !t.scaled && !t.raw.startsWith('$') && t.unitWord === undefined,
+        });
+      } else if (t.t === 'op') parts[parts.length - 1].push({ t: 'o', v: t.v });
+    }
+    for (let i = 0; i + 1 < parts.length; i++) {
+      const right = parts[i + 1];
+      const rightNums = right.filter(isNum);
+      if (rightNums.length === 0 || right.some(x => x.t === 'o')) continue;
+      const stateds = statedReadings(rightNums);
+      const statedFirst = rightNums[0].raw;
+      for (const merged of mergeVariants(parts[i])) {
+        for (const variant of [merged, centsInherited(merged)]) {
+          if (!variant) continue;
+          for (const side of [variant, ...tails(variant)]) {
+            const ns = side.filter(isNum);
+            const ops = side.filter((x): x is SOp => x.t === 'o').map(x => x.v);
+            if (ns.length !== ops.length + 1) continue;
+            const pct = ns.some(n => n.pct) || rightNums.some(n => n.pct);
+            const scaled = [...ns, ...rightNums].some(n => n.scaled || n.money);
+            const where = side === variant ? '' : ' (tail)';
+            for (const { v, via } of valuesOf(ns.map(n => n.v), ops)) {
+              for (const st of stateds) out.push({ computed: v, stated: st.v, statedFirst, pct, scaled, via: `${via}${where} = ${st.via}` });
+            }
+          }
+        }
+      }
+    }
+  }
+  return out;
+}
+
+// The only thing the switch may do: an `incorrect` claim whose sentence is
+// consistent under some reading becomes `unclear` — no flag, and no evidence
+// the other way either.
+function withholdInconsistent(sentence: string, claims: ArithmeticClaim[], from: number): void {
+  if (!claims.slice(from).some(c => c.verdict === 'incorrect')) return;
+  const readings = spokenReadings(sentence);
+  for (let i = from; i < claims.length; i++) {
+    const c = claims[i];
+    if (c.verdict !== 'incorrect') continue;
+    const consistent = readings.some(r => Math.abs(r.statedFirst - c.stated) < 1e-9
+      && verdictFor(r.stated, r.computed, r.pct, c.approximate, r.scaled) === 'correct');
+    if (consistent) claims[i] = { ...c, verdict: 'unclear' };
+  }
+}
+// ---------------------------------------------------------------------------
+
 const SENTENCES = /(?<=[.!?])\s+(?=[A-Z0-9"“$(])|\n+/;
 
-export function checkStatedArithmetic(rawText: string): ArithmeticClaim[] {
+export function checkStatedArithmetic(rawText: string, opts?: { spokenReadings?: boolean }): ArithmeticClaim[] {
   const claims: ArithmeticClaim[] = [];
   for (const raw of normalizeNumberWords(rawText).split(SENTENCES)) {
     const sentence = raw.trim();
     if (!sentence || !/\d/.test(sentence)) continue;
+    const claimsBefore = claims.length;
     const toks = tokenize(sentence);
     let left: Expr | null = null;      // the expression before an equals
     let cur: Expr = { nums: [], ops: [], pct: false, scaled: false, raw: [], pctAt: [], unitAt: [] };
@@ -223,6 +435,7 @@ export function checkStatedArithmetic(rawText: string): ArithmeticClaim[] {
       expectOperand = true;
     }
     settle();
+    if (opts?.spokenReadings) withholdInconsistent(sentence, claims, claimsBefore);
   }
   return markSelfCorrections(normalizeNumberWords(rawText), claims);
 }

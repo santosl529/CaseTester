@@ -19,6 +19,7 @@
 import type { Case } from '@/lib/cases/schema';
 import type { InterviewerMark } from './interviewer-errors';
 import { checkCandidateMath, isClaimVerified, type RecomputeFlag, type VerifiedFigure } from '@/lib/orchestrator/recompute';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { classifyMathTalk, candidateFiguresOf } from '@/lib/orchestrator/math-talk';
 
 type Turn = { role: string; text: string; turnIndex: number };
@@ -32,7 +33,7 @@ export type TurnVerification = { flags: RecomputeFlag[]; verified: VerifiedFigur
 export function verifyCandidateTurns(turns: Turn[], caseData: Case, revealedBefore: (turnIndex: number) => string[]): Map<number, TurnVerification> {
   const out = new Map<number, TurnVerification>();
   for (const t of turns.filter(x => x.role === 'candidate')) {
-    const { flags, verified } = checkCandidateMath(t.text, caseData, revealedBefore(t.turnIndex));
+    const { flags, verified } = checkCandidateMath(t.text, caseData, revealedBefore(t.turnIndex), { spokenReadings: switchOn(caseData, 'spokenMathParser') });
     out.set(t.turnIndex, { flags, verified });
   }
   return out;

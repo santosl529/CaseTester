@@ -340,3 +340,219 @@ python3 -I /Users/lorenzo/.../phase1-s3-tools/compare-s3.py phase1-rest3-base ph
   `/Users/lorenzo/coding/personal-projects/CaseTester-proof-out/phase1-rest3-*`.
 - No API call was made by this stream. The only paid thing it leaves is the definitions re-check in §1, which is the
   lead's under Lorenzo's Q5 ruling.
+
+---
+
+# Task 6 — the spoken-math parser (`spokenMathParser`), `3d6f73e8`; plus the labels, `e3cd0d69`
+
+Resumed 26 Oct on `phase1-rest3`, after `git merge phase1` (e3db556f — tasks 4, 5 and 7 already merged in).
+**Nothing was spent.** Every number below is a free replay, a local read or a `--dry` estimate.
+
+## 0. The owed switches-off arm: **0 / 0**
+
+`zsh …/proof-s3.sh phase1-rest3-off` with no `ENGINE_SWITCHES`, against `phase1-rest3-base`, over all 26 slices
+(487 runs, ~5,900 turns): **0 changed lines, 0 changed checker decisions, 0 runs on one side only.** The
+`probe_method` worry in §7 did not materialise — no spoken line in the corpus matches one of its versions.
+
+## 1. What was built
+
+`lib/orchestrator/arithmetic-check.ts` gains `spokenReadings(sentence)`, a reading **enumerator** (not a second
+checker), and `checkStatedArithmetic(text, { spokenReadings })` downgrades an `incorrect` claim to `unclear` when
+one of the readings holds. It can only ever remove a flag: it never raises a claim and never makes one `correct`
+(both pinned by tests, both caught as mutants). Four tolerances:
+
+1. **a unit noun after the figure** — "seventy cents", "$320 million", "≈ 6.2 million bags". Today the noun is an
+   unknown word, so it ends the expression and the figure loses its scale.
+2. **that unit inherited** by the bare figures after it (70 cents, plus thirty → $0.30).
+3. **a leading minus distributed** over the plus chain that follows it, when **two or more** pluses follow. One does
+   not: "100 minus 40 plus 10 equals 50" is read as written, because treating it as a group would silence a
+   one-step error for free.
+4. **two adjacent spoken figures as one** — "one fifty" is 1.50 as well as 150, "two thirty eight" is 238. Both
+   plain, the second two digits, one pair a side.
+
+Chained equations in one sentence are read the same way: in "$905k plus 350 × $2,800 = $980k" the stated result
+belongs to the tail, so a **tail** reading is enumerated — but only a tail that opens after a `+`/`−` and whose own
+first operator multiplies, the shape a fresh sub-calculation takes.
+
+**A reading is tied to the claim it may excuse** by the stated side's first figure as the live reader read it
+(`statedFirst`), so a reading of another equation in the same sentence cannot excuse this one. Pinned on a real
+pair: b35q ee99bd82 t23 beside batch 18 Maya t20 in one sentence — the first is excused, Maya's 16/18 keeps its flag.
+
+**Plumbing.** `checkCandidateMath(text, caseData, revealedIds, opts?)` threads it (`recompute.ts`), read from
+`switchOn(caseData, 'spokenMathParser')` at the live turn (`plan-turn.ts`) **and in scoring**
+(`challenge-marks.ts`) — otherwise scoring would mark a claim the live turn withheld. Every other call site
+(`lib/eval/math-check.ts`, `scripts/step-binding-check.ts`, `scripts/replay-verified.ts`,
+`tests/replay/corpus.test.ts`) keeps today's behaviour by the default-off parameter.
+
+**Lorenzo's example is real and in the corpus.** b37h 527217df t5 (launch-001, Jasmine, 21 Oct):
+"Contribution per bag: $3.00 minus $0.70 + $0.30 + $0.30 + $0.20 = $1.50 variable, so $1.50 per bag, a 50% margin."
+Off: `incorrect` (code reads 3.1). On: `unclear` — 3.00 − (0.70 + 0.30 + 0.30 + 0.20) = 1.50. His spoken form
+("three minus seventy cents plus thirty plus thirty plus twenty equals one fifty") needs all three of tolerances
+1, 2 and 4 at once, and is tested as such.
+
+## 2. The test set — `evals/spoken-math/sentences.json`, 80 real sentences
+
+Harvested from the 487-run corpus and from `Case Interview Runs/voice-live`. Three pools, every sentence labelled by
+hand as `consistent` (right under some reading a listener would take), `inconsistent` (a real math error) or
+`not-arithmetic` (no stated result to judge), each with its source run, turn and a one-line reason:
+
+| Pool | n | What it is |
+|---|---|---|
+| `flagged` | 21 | **Every** sentence in the 487 runs that carries an `incorrect` claim today — the parser's whole blast radius, since only an `incorrect` claim can change. 9 inconsistent, 12 consistent |
+| `chain` | 35 | Multi-operand claims the code already agrees with, sampled across batches; read and confirmed |
+| `voice` | 24 | **Every** real STT candidate sentence in `voice-live` with ≥2 number words and an operator word |
+
+`tests/orchestrator/spoken-math-set.test.ts` (86 assertions) runs it and prints the P3 numbers. Because the pool of
+`incorrect` claims is enumerated exhaustively, the measurement below is not a sample — it is the whole corpus.
+
+## 3. Lorenzo's ruling P3 — the suppressed-true-flag count
+
+**9 false flags removed. TRUE FLAGS SUPPRESSED: 0.** Per class, as the test prints it:
+
+| Class | False flags removed | **True flags suppressed** | Flags kept |
+|---|---|---|---|
+| `chained-equations` (tail reading) | 5 | **0** | 0 |
+| `unit-noun` (tolerance 1) | 3 | **0** | 0 |
+| `minus-chain` (tolerance 3) | 1 | **0** | 0 |
+| `cents` (tolerance 2) | 0 | **0** | 0 |
+| `merged-figure` (tolerance 4) | 0 | **0** | 0 |
+| `divide` (true errors) | 0 | **0** | 3 |
+| `plus-chain` (true errors) | 0 | **0** | 5 |
+| `minus` (true error) | 0 | **0** | 1 |
+| `noun-break` (false, not this parser's) | 0 | **0** | 3 |
+| `chain-verified`, `voice` | 0 | **0** | 0 |
+
+Corpus-wide the live flag count (`incorrect`, not self-corrected) goes **15 → 6** over 5,848 candidate messages, and
+**no message changes its claim count** — the parser raises nothing, anywhere. The 9 removals, each read:
+
+| Run | Turn | The sentence's own reading | Class |
+|---|---|---|---|
+| b34a 14055867 | t17 | 200,000 × 20% × $8,000 = **$320 million** ✓ | unit-noun |
+| b34a 14055867 | t17 | 200,000 × 25% × $8,000 = **$400 million** ✓ | unit-noun |
+| b37h ddbb070b | t9 | 10,000 × 12 × 52 = 6,240,000 ≈ **6.2 million** bags ✓ | unit-noun |
+| b37h 527217df | t5 | $3.00 − ($0.70+$0.30+$0.30+$0.20) = **$1.50** ✓ (Lorenzo's example) | minus-chain |
+| b35q ee99bd82 | t23 | **$980k** is 350 × $2,800 ✓ | chained-equations |
+| b35q 087451cb | t25 | **$32,000** is 400 × $80 ✓ | chained-equations |
+| b35q fcd7dce7 | t19 | **$0.98M** is 350 × $2,800 ✓ | chained-equations |
+| b37q 3376e5fe | t7 | **$180K** is 150 × $1,200 ✓ | chained-equations |
+| b37q 3376e5fe | t23 | **$1.4M** is 350 × $4,000 ✓ | chained-equations |
+
+The 6 flags that survive, each read: **3 are real errors and must** — b5 73de82ce t13 "1.23/1.15 ≈ 1.94" (1.07),
+b18 c1b79f9e t20 and t28 "16/18 ≈ 1.6%" (89%, batch 18 Maya, the slip the whole check was built for) — and
+b37q e08c362a t9 "40 − 10 = $20" (30, a slip he corrects in his next sentence) stays flagged too, pinned as a test.
+
+### Found, deliberately not fixed: the "noun-break" class
+Three of the surviving flags are **false**, of a different class: an operand the grammar gave to a noun.
+b34a a1133734 t29 "250M **adults** × 1.6% × 50% × 50% × 20% = 200,000" ✓, b38l bbf78ab8 t7 "3,000 **flights** × 80 ×
+75% = 180,000" ✓, b37q 6bbc2163 t33 "**share** × 200,000 × $8,000 − $80M = $120M" (an equation in one unknown).
+No reading of the *numbers* can recover them: it needs the tokenizer to step over a noun, which is the rule that
+stops "25% of COGS" being an operation. All three are identical with every switch off, and the test pins them
+unchanged. *Judgement call — cost if wrong: three known false flags stay, none of them a new regression, and a
+noun-skip tolerance is the highest-suppression-risk change available, which is why I am not making it unasked.*
+
+### Also found: the arithmetic checker is blind on real speech
+All **24** real STT sentences in `voice-live` produce **no claim at all** today — fillers ("um", "uh", "sorry") and
+commas break every chain, so e.g. "So fifty eight divided by four, um, gives us around, um, sorry, uh, fourteen
+point five" (58/4 = 14.5) is neither verified nor flagged. The switch changes none of them, by design: it only
+removes flags. Filler tolerance would mean *raising* claims on speech, which is a separate decision with the
+opposite risk profile. Flagged for Lorenzo; pinned as a test so it cannot change by accident.
+
+## 4. The replay — `*=spokenMathParser`
+
+`phase1-task6-on` vs `phase1-rest3-base`, 26 slices: **0 changed interviewer lines, 2 changed checker decisions,
+0 new false corrections.** Both read:
+
+| Run | Turn | Change | Class |
+|---|---|---|---|
+| b34a 14055867 | t19 (17:1) | the `disagrees_with_code` event disappears: code no longer flags the 400 the checker had already rated correct | **fixed** (in the record; the line was already dropped, so nothing the candidate hears changes) |
+| b37h ddbb070b | t11 (9:0) | same, for the 6.2 | **fixed** (same) |
+
+Why only two, when 9 flags go: in the other seven the recorded checker verdict already overruled code's line
+**silently** (for b37h 527217df t5 the checker claimed the span as step `contribution_per_bag` and rated it
+`correct`, so the gate dropped code's line without logging a disagreement). I confirmed the live effect directly —
+`checkCandidateMath('Contribution per bag: …', launch-001, all)` gives `flags: [arith:… 1.5]` off and `flags: []`
+on. **The replay understates the fix:** what it proves is that nothing regressed, and that where the checker's
+agreement was the only thing standing between a false flag and the candidate, code now agrees too. Scoring
+(`challenge-marks`) is not covered by this harness at all — its flag set changes the same way.
+
+Combined arm `*=misquoteFlat,probeGuardMethod,spokenMathParser` (`phase1-task6-combined`): **27 changed lines
+(= 6 + 21 + 0, the exact union) and 4 changed decisions (= 2 + 0 + 2)**. The three tasks do not interact in the
+corpus — now said from evidence, which §7 item 2 owed.
+
+## 5. The labels — `e3cd0d69`, and a staleness the lead must rule on
+
+§1 found that `evals/math-checker-labels.json` held no pricing-001, prof-002, entry-001 or launch-001 message, so
+the $3 definitions re-check could not show M2. **22 messages added, every existing entry byte-identical** (350 →
+372; 0 changed, 0 removed): pricing-001 12, launch-001 4, prof-002 3, entry-001 3 — 20 recall, 2 precision, every
+recall entry with a hand-written claim key, so nothing is unkeyed. Each was read from the fault-bank record **and**
+from the message, because the label sits on the message the wrong figure is *in*, which is often one turn before
+the record's own turn.
+
+**M2 is now in the set**, four messages of it: b37q Marcus `eb8d7576` t14 ("average tenure ~14 months. 14 × $30 ≈
+$420") and t20 (the root defended from 1 ÷ 0.07), b37q Raj `e08c362a` t12 ("about 13.5 months on plan × $30 =
+roughly $405") and t24 ("$1,205 all-in", built on the root). All read the rate of *leaving* Starter — cancels plus
+upgrades — as the cancellation rate; the case's definition gives 1 ÷ 5% = 20 months and $600, which is exactly the
+ground `checkerDefinitions` puts in front of the checker.
+
+**The staleness.** A bare rebuild of that file drifts, and did before this commit: **HEAD's own builder, without my
+block, writes 671 labels against the 350 committed** — the corpus has grown since 13 Oct and the D6-detector scan
+now flags ~300 messages in batches 22–38 that nobody has read (it also stopped flagging 3 that were read). Letting
+those in would move the checker's own evaluation baseline on unread evidence, so **I left the scan exactly as it
+was**, merged my 22 additively, and put the warning in `scripts/build-math-labels.ts` where a reader meets it.
+Deciding what happens to the ~300 is Lorenzo's. The script also gained `MATH_LABELS_ROOT` so it can be run from a
+worktree (its `ROOT` is relative to cwd, and a worktree's corpus is partial).
+
+### The `--dry` estimates (free, measured 26 Oct, `ENGINE_SWITCHES='*=checkerDefinitions'`, `--arms=sonnet55-medium`)
+
+| Scope | Messages | Per arm |
+|---|---|---|
+| `--set=recall`, extended set | 98 | **$3.05** — over the $3 cap on its own, $6.10 for two arms live |
+| `--ids=` the 20 new-case recall messages (the 4 M2 ones first) | 20 | **$0.65** |
+| `--ids=` the 11 Quillpath (pricing-001) recall messages | 11 | **$0.35** |
+
+**Recommended, and it fits the cap with room: both arms over the 20 new-case ids, $1.30 in all**, which is the only
+part of the set that can show M2 — the prof-001 half of `--set=recall` is answerable for free from the 13 Oct
+recorded file with `--revet=`. The id list needs no new file:
+
+```bash
+python3 -c "import json;print('\n'.join(l['id'] for l in json.load(open('evals/math-checker-labels.json')) if l['label']=='error' and l['sources'][0].startswith('fault bank')))" > /tmp/ids-new-cases.txt
+```
+
+Run from the **main checkout** (the script's `ROOT` and its label path are both relative to cwd), with
+`LLM_BUDGET_USD` set, as §1's commands show. **I ran nothing paid.**
+
+## 6. Judgement calls, each with its cost if wrong
+
+1. **The reading enumerator lives in `arithmetic-check.ts`, not its own module.** It needs the tokenizer and
+   `verdictFor`, and a separate file would either duplicate the grammar or make an import cycle; moving the
+   tokenizer out would be a refactor of the one file every math path reads. *Cost if wrong: a 470-line file instead
+   of two, no behaviour.*
+2. **Minus distribution requires two or more pluses after the minus.** With one, "100 minus 40 plus 10 equals 50"
+   is the ordinary reading and the group would silence a one-step error for free. *Cost if wrong: a spoken
+   "a minus b plus c" group stays flagged. Mutant-checked: relaxing it fails a test.*
+3. **The tail reading is restricted** to a tail opening after `+`/`−` whose own first operator multiplies. It is
+   the shape all 5 corpus cases take. *Cost if wrong: a chained equation of another shape stays flagged.*
+4. **A reading excuses only the claim whose stated figure it starts from** (`statedFirst`). *Cost if wrong: in a
+   sentence with two claims the parser could excuse the wrong one — which is why it is pinned on a real pair.*
+5. **Scoring (`challenge-marks.ts`) gets the switch too.** Lorenzo's words are about the live turn, but a flag the
+   turn withheld as a bad reading should not be marked against the candidate at scoring. *Cost if wrong: one
+   argument; scoring keeps marking 9 corpus claims the live turn withholds.*
+6. **The noun-break class is reported, not fixed** (§3). *Cost if wrong: three known false flags stay.*
+7. **Voice filler tolerance is out of scope** (§3). *Cost if wrong: the checker stays blind on real STT output,
+   which is M2's actual condition — but fixing it means raising claims, the opposite risk.*
+8. **The labels were merged additively rather than rebuilt** (§5), and the D6 scan was left alone. *Cost if wrong:
+   the committed JSON is not reproducible by a bare run of its builder — which was already true at HEAD, and the
+   script now says so.*
+9. **22 labels, not more.** I dropped three candidates whose wrong figure I could not point to **in the message**
+   (b38l cee7d399 t12 `$33.6M`, b38l f80d981c t24 `$15.8M`, b34l e6432db0 t10 `$10,800`). *Cost if wrong: three
+   fewer recall items; a wrong label would corrupt the checker's baseline, which is worse.*
+
+## 7. Not done, and why
+
+- **§9 item 10** (the pricing-001 overlay `inputs`) — left, on the coordinator's instruction: §5 above shows the
+  instruction cannot be followed literally and the lead is taking that to Lorenzo.
+- **§9 item 11** (b35q 5c3d2c21 t13 "$600, not $400" under `starter_churn@7.5`) — still not verified. §6 above
+  holds the free method.
+- The gate arm `*=worksheet,staleProbeDrop,rootLineage,stepLineage,misquoteFlat,probeGuardMethod,spokenMathParser`
+  was not run from this branch; the coordinator reports the cross-stream `*=phase1` arm has since run and met gate
+  condition 2.

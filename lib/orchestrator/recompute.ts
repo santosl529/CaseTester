@@ -420,7 +420,13 @@ export type CandidateMath = {
 // pricing claims once every cost line is out. Each figure ends up flagged
 // wrong, verified, or unverified. The live turn (plan-turn.ts) and scoring
 // (challenge-marks.ts) both read it.
-export function checkCandidateMath(candidateText: string, caseData: MathCaseData, revealedIds: Iterable<string>): CandidateMath {
+// `spokenReadings` (Phase 1 task 3.6, switch `spokenMathParser`) is the live
+// turn's and scoring's only option: with it on, a stated chain that is
+// consistent under some spoken reading raises no flag. Off — every other call
+// site, and every case without the switch — behaviour is unchanged.
+export type CandidateMathOptions = { spokenReadings?: boolean };
+
+export function checkCandidateMath(candidateText: string, caseData: MathCaseData, revealedIds: Iterable<string>, opts?: CandidateMathOptions): CandidateMath {
   const ids = [...revealedIds];
   // A figure the case itself holds — the prompt, a revealed line, a step's
   // worked figures — is that figure, not a wrong answer to another step
@@ -432,7 +438,7 @@ export function checkCandidateMath(candidateText: string, caseData: MathCaseData
     .matchAll(/(\$\s?)?(\d[\d,]*(?:\.\d+)?)(\s?%)?/g)].map(m => ({ v: parseFloat(m[2].replace(/,/g, '')), kind: m[1] ? 'usd' : m[3] ? 'percent' : 'count' }));
   const kindOf = (stepId: string) => { const u = caseData.mathSteps.find(st => st.id === stepId)?.unit; const first = Array.isArray(u) ? u[0] : u; return first === 'usd' ? 'usd' : first === 'percent' || first === 'points' ? 'percent' : 'count'; };
   const near = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
-  const arithmetic = checkStatedArithmetic(candidateText);
+  const arithmetic = checkStatedArithmetic(candidateText, opts);
   const allStepFlags = checkRecomputeForTurn(candidateText, caseData.mathSteps, ids).filter(f =>
     !held.some(h => h.kind === kindOf(f.stepId) && near(f.candidateValue, h.v))
     // The result of correct stated arithmetic in its sentence: their own
