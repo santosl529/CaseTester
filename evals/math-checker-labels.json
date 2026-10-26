@@ -3529,6 +3529,340 @@
   "claim": "prior bean share × current COGS: beans 5.8, others 16.3, 22.1 points added (4.2, 11.8, 16)"
  },
  {
+  "id": "test runs/batch-34-aldermoor-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-fc5eb050#t20",
+  "run": "test runs/batch-34-aldermoor-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-fc5eb050",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "fault bank b34a-tyler-misquotes-missed"
+  ],
+  "match": [
+   "$83 million"
+  ],
+  "claim": "\"the $83 million annual selling cost you've got there\" — the exhibit says $80M",
+  "mustNotFlag": [
+   "$320 million",
+   "$400 million",
+   "$120 million"
+  ]
+ },
+ {
+  "id": "test runs/batch-35-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-a14ca044#t12",
+  "run": "test runs/batch-35-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-a14ca044",
+  "t": 12,
+  "label": "error",
+  "sources": [
+   "fault bank b35h-marisol-t12-correction"
+  ],
+  "match": [
+   "$10.2 million"
+  ],
+  "claim": "$10.2M of fixed cost — it keeps the $1.2M sunk recipe development in (the interviewer corrected it to about $9 million)",
+  "mustNotFlag": [
+   "$20.4 million",
+   "$1.50"
+  ]
+ },
+ {
+  "id": "test runs/batch-35-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-52951de8#t12",
+  "run": "test runs/batch-35-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-52951de8",
+  "t": 12,
+  "label": "correct",
+  "sources": [
+   "fault bank b35h-tyler-t12-stale-correction (he had already redone it)"
+  ]
+ },
+ {
+  "id": "test runs/batch-35-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-20-5c3d2c21#t14",
+  "run": "test runs/batch-35-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-20-5c3d2c21",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "fault bank b35q-raj-t14-correction"
+  ],
+  "match": [
+   "$405",
+   "call it $400"
+  ],
+  "claim": "Starter standalone LTV $405/$400 (the interviewer corrected it to $600)"
+ },
+ {
+  "id": "test runs/batch-35-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-087451cb#t26",
+  "run": "test runs/batch-35-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-087451cb",
+  "t": 26,
+  "label": "error",
+  "sources": [
+   "fault bank b35q-marisol-t26-correction"
+  ],
+  "match": [
+   "30 months"
+  ],
+  "claim": "Pro lifetime 30 months from a 40% ANNUAL cancellation share read as the rate (the interviewer corrected LTV to $4,000, not $2,400)"
+ },
+ {
+  "id": "test runs/batch-35-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-087451cb#t32",
+  "run": "test runs/batch-35-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-087451cb",
+  "t": 32,
+  "label": "error",
+  "sources": [
+   "fault bank b35q-marisol-t32-close-over-false"
+  ],
+  "match": [
+   "$900 LTV",
+   "3.0x"
+  ],
+  "claim": "$900 Starter LTV and exactly 3.0x in her final recommendation (false; it stood unresolved at the close)",
+  "mustNotFlag": [
+   "$4,000",
+   "3.3x",
+   "$72,000"
+  ]
+ },
+ {
+  "id": "test runs/batch-35-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-ee99bd82#t6",
+  "run": "test runs/batch-35-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-ee99bd82",
+  "t": 6,
+  "label": "error",
+  "sources": [
+   "fault bank b35q-tyler-t8-misquote-correction (the misquote is in the t6 message); b35q-tyler-t6-probe-correct-figure gives the mustNotFlag"
+  ],
+  "match": [
+   "$320"
+  ],
+  "claim": "\"you said CAC is $320\" — Starter's CAC is $300, and $320 was never said",
+  "mustNotFlag": [
+   "$80",
+   "$30",
+   "$3,600"
+  ]
+ },
+ {
+  "id": "test runs/batch-36-aldermoor-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-c518221e#t26",
+  "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-c518221e",
+  "t": 26,
+  "label": "error",
+  "sources": [
+   "fault bank b36a-marcus-t26-unprobed-flag"
+  ],
+  "match": [
+   "the only option where Aldermoor's own net sales clear"
+  ],
+  "claim": "A is the only option whose net sales clear the $300M bar — B's net sales are $400M and clear it too; only the royalty Aldermoor keeps does not (conceptual)",
+  "mustNotFlag": [
+   "$320 million",
+   "$240 million",
+   "$120 million"
+  ]
+ },
+ {
+  "id": "test runs/batch-36-aldermoor-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-34eb553a#t6",
+  "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-34eb553a",
+  "t": 6,
+  "label": "error",
+  "sources": [
+   "fault bank b36a-tyler-misquotes-socratic"
+  ],
+  "match": [
+   "1.5%"
+  ],
+  "claim": "\"You said 1.5% have Corlan's disease\" — the prompt says 1.6%, so the whole funnel is low",
+  "mustNotFlag": [
+   "$8,000"
+  ]
+ },
+ {
+  "id": "test runs/batch-36-larkspur-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-4e91d638#t8",
+  "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-4e91d638",
+  "t": 8,
+  "label": "error",
+  "sources": [
+   "fault bank b36l-tyler-t8-misquote-125"
+  ],
+  "match": [
+   "$125"
+  ],
+  "claim": "\"you said the fare fell from $200 to about $125\" — the interviewer said $120",
+  "mustNotFlag": [
+   "132,000",
+   "82%"
+  ]
+ },
+ {
+  "id": "test runs/batch-37-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-7f6c40ea#t12",
+  "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-7f6c40ea",
+  "t": 12,
+  "label": "error",
+  "sources": [
+   "fault bank b37h-marisol-t12-root-correction"
+  ],
+  "match": [
+   "$10.2 million"
+  ],
+  "claim": "the same $10.2M: $9.0M of launch costs plus the $1.2M sunk recipe development"
+ },
+ {
+  "id": "test runs/batch-37-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-442e37ff#t6",
+  "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-442e37ff",
+  "t": 6,
+  "label": "error",
+  "sources": [
+   "fault bank b37h-tyler-misquotes-not-flat; b37h-tyler-t6-challenge-correct gives the mustNotFlag"
+  ],
+  "match": [
+   "$0.75"
+  ],
+  "claim": "\"ingredients you said $0.75\" — the line is $0.70, so his $1.55 variable cost and $1.45 contribution follow from a misquote",
+  "mustNotFlag": [
+   "$9.0M",
+   "$3.0M",
+   "$4.5M"
+  ]
+ },
+ {
+  "id": "test runs/batch-37-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-e08c362a#t12",
+  "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-e08c362a",
+  "t": 12,
+  "label": "error",
+  "sources": [
+   "fault bank b37q-raj-chain-405 (the root; PRD §15 M2)"
+  ],
+  "match": [
+   "13.5 months",
+   "$405"
+  ],
+  "claim": "Starter 13.5 months on plan and $405 LTV, from a 7.4% combined exit rate; the case's definition gives 1 ÷ 5% = 20 months and $600 — M2's root",
+  "mustNotFlag": [
+   "$4,000",
+   "3.3x"
+  ]
+ },
+ {
+  "id": "test runs/batch-37-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-e08c362a#t24",
+  "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-e08c362a",
+  "t": 24,
+  "label": "error",
+  "sources": [
+   "fault bank b37q-raj-t24-correction-dropped"
+  ],
+  "match": [
+   "$1,205"
+  ],
+  "claim": "a Starter sign-up is worth $1,205 all-in — built on the $405 root (the checker rated it an error; the correction was dropped)"
+ },
+ {
+  "id": "test runs/batch-37-quillpath-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-eb8d7576#t14",
+  "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-eb8d7576",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "fault bank b37q-marcus-chain-14-months (the root; PRD §15 M2)"
+  ],
+  "match": [
+   "14 months",
+   "$420"
+  ],
+  "claim": "Starter tenure ~14 months and LTV ~$420, from a 7% rate that blends cancels and upgrades; by the case's definition lifetime is 1 ÷ the monthly CANCELLATION rate (5% → 20 months, $600) — M2's root",
+  "mustNotFlag": [
+   "$30",
+   "$4,000"
+  ]
+ },
+ {
+  "id": "test runs/batch-37-quillpath-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-eb8d7576#t20",
+  "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-eb8d7576",
+  "t": 20,
+  "label": "error",
+  "sources": [
+   "fault bank b37q-marcus-chain-14-months (the root restated; per-message label)"
+  ],
+  "match": [
+   "14 months"
+  ],
+  "claim": "the same 14-month Starter lifetime, defended from 1 ÷ 0.07 (the blended exit rate, not the cancellation rate) — M2's root restated",
+  "note": "per-message label: the chain record counts the root once, at its probe turn"
+ },
+ {
+  "id": "test runs/batch-37-quillpath-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-3376e5fe#t20",
+  "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-3376e5fe",
+  "t": 20,
+  "label": "correct",
+  "sources": [
+   "fault bank b37q-jasmine-t20-stale-correction (her redo is right)"
+  ]
+ },
+ {
+  "id": "test runs/batch-37-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-a2a5921b#t12",
+  "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-a2a5921b",
+  "t": 12,
+  "label": "error",
+  "sources": [
+   "fault bank b37q-tyler-t12-false-stale-12"
+  ],
+  "match": [
+   "$12 a month",
+   "$22 cost to serve"
+  ],
+  "claim": "cost to serve misread as $12 Starter / $22 Pro (the exhibit says $10 and $20), which carries the $28 margin and the $3,900 Pro LTV"
+ },
+ {
+  "id": "test runs/batch-37-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-a2a5921b#t30",
+  "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-a2a5921b",
+  "t": 30,
+  "label": "error",
+  "sources": [
+   "fault bank b37q-tyler-t30-correction"
+  ],
+  "match": [
+   "roughly 10%"
+  ],
+  "claim": "the upgrade rate below which $60 stops beating $40 is about 12.5%, not 10%"
+ },
+ {
+  "id": "test runs/batch-37-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-a2a5921b#t8",
+  "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-a2a5921b",
+  "t": 8,
+  "label": "error",
+  "sources": [
+   "fault bank b37q-tyler-t8-misquote-288"
+  ],
+  "match": [
+   "$288"
+  ],
+  "claim": "\"you had it at $288\" for Starter's acquisition cost ($300; never said)",
+  "mustNotFlag": [
+   "$1,480"
+  ]
+ },
+ {
+  "id": "test runs/batch-38-larkspur-oct-21-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-cee7d399#t14",
+  "run": "test runs/batch-38-larkspur-oct-21-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-cee7d399",
+  "t": 14,
+  "label": "error",
+  "sources": [
+   "fault bank b38l-tyler-t14-125-vetoed"
+  ],
+  "match": [
+   "$125"
+  ],
+  "claim": "\"the exhibit shows fare down to $125\" on Lakeport — the exhibit says $120"
+ },
+ {
+  "id": "test runs/batch-38-larkspur-oct-21-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-cee7d399#t6",
+  "run": "test runs/batch-38-larkspur-oct-21-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-cee7d399",
+  "t": 6,
+  "label": "error",
+  "sources": [
+   "fault bank b38l-tyler-21m-3-6m"
+  ],
+  "match": [
+   "$21M"
+  ],
+  "claim": "\"You said fixed costs were $21M in both years\" — the line is $20M",
+  "mustNotFlag": [
+   "$24M"
+  ]
+ },
+ {
   "id": "test runs/batch-5-oct-02/02-tobias-the-silent-thinker/live-run-2026-10-03-73de82ce#t14",
   "run": "test runs/batch-5-oct-02/02-tobias-the-silent-thinker/live-run-2026-10-03-73de82ce",
   "t": 14,

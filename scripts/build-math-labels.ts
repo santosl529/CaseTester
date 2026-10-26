@@ -26,7 +26,9 @@ import { checkMathTurn } from '@/lib/eval/math-check';
 import { statesQuantitativeClaim } from '@/lib/orchestrator/math-checker';
 import { MATH_LABEL_KEYS } from '@/evals/math-checker-label-keys';
 
-const ROOT = 'Case Interview Runs';
+// The corpus root. A worktree holds only part of it, so point this at the main
+// checkout's corpus when running from one (26 Oct).
+const ROOT = process.env.MATH_LABELS_ROOT ?? 'Case Interview Runs';
 const OUT = 'evals/math-checker-labels.json';
 const DUMP = process.argv.includes('--dump');
 
@@ -110,6 +112,60 @@ for (const run of runs) {
     if (t.seeded) continue;
     if (checkMathTurn(t, c as never).some(m => !m.handled)) add(run, t.t, 'error', 'D6 detector (confirmed, Phase 4)');
   }
+}
+
+// ── batches 33–38: the fault bank's math records (26 Oct) ───────────────────
+// WARNING (26 Oct): a full rebuild of this file DRIFTS. The corpus has grown
+// since the set was built on 13 Oct, and the D6-detector scan below now flags
+// ~300 messages in batches 22–38 that nobody has read — HEAD's own builder,
+// without this block, writes 671 labels against the 350 committed. So the
+// committed JSON is the 13 Oct set plus the hand-read entries below, merged
+// additively; it is NOT the output of a bare run of this script. Whether the
+// unread detector flags join the set (and so move the checker's own baseline)
+// is Lorenzo's ruling, not this script's.
+// Until today every label came from prof-001 batches, so the checker could not
+// be evaluated on the four cases added in batches 34–38 at all — and M2
+// (PRD §15), the Starter-lifetime root the checker rates correct, was outside
+// the set entirely. Each entry below is read by hand from the fault-bank record
+// it names (evals/fault-bank/batch-3*.jsonl) AND from the candidate message
+// itself: the label sits on the message the wrong figure is IN, which is not
+// always the record's own turn — a correction often lands a turn later.
+const BANK: [string, number, MathLabel['label'], string][] = [
+  // pricing-001 (Quillpath). The two chain roots are M2: the checker rates
+  // "13.5 / 14 months on Starter" correct, so nothing in the lineage can be
+  // corrected. The case's definition (lifetime ≈ 1 ÷ the monthly cancellation
+  // rate, 5% → 20 months) is the only ground for rating them an error, which is
+  // what `checkerDefinitions` puts in front of the checker.
+  ['5c3d2c21', 14, 'error', 'b35q-raj-t14-correction'],
+  ['087451cb', 26, 'error', 'b35q-marisol-t26-correction'],
+  ['087451cb', 32, 'error', 'b35q-marisol-t32-close-over-false'],
+  ['ee99bd82', 6, 'error', 'b35q-tyler-t8-misquote-correction (the misquote is in the t6 message); b35q-tyler-t6-probe-correct-figure gives the mustNotFlag'],
+  ['a2a5921b', 8, 'error', 'b37q-tyler-t8-misquote-288'],
+  ['a2a5921b', 12, 'error', 'b37q-tyler-t12-false-stale-12'],
+  ['a2a5921b', 30, 'error', 'b37q-tyler-t30-correction'],
+  ['3376e5fe', 20, 'correct', 'b37q-jasmine-t20-stale-correction (her redo is right)'],
+  ['eb8d7576', 14, 'error', 'b37q-marcus-chain-14-months (the root; PRD §15 M2)'],
+  ['eb8d7576', 20, 'error', 'b37q-marcus-chain-14-months (the root restated; per-message label)'],
+  ['e08c362a', 12, 'error', 'b37q-raj-chain-405 (the root; PRD §15 M2)'],
+  ['e08c362a', 24, 'error', 'b37q-raj-t24-correction-dropped'],
+  // launch-001 (Hollis Bay)
+  ['a14ca044', 12, 'error', 'b35h-marisol-t12-correction'],
+  ['52951de8', 12, 'correct', 'b35h-tyler-t12-stale-correction (he had already redone it)'],
+  ['442e37ff', 6, 'error', 'b37h-tyler-misquotes-not-flat; b37h-tyler-t6-challenge-correct gives the mustNotFlag'],
+  ['7f6c40ea', 12, 'error', 'b37h-marisol-t12-root-correction'],
+  // prof-002 (Larkspur)
+  ['4e91d638', 8, 'error', 'b36l-tyler-t8-misquote-125'],
+  ['cee7d399', 6, 'error', 'b38l-tyler-21m-3-6m'],
+  ['cee7d399', 14, 'error', 'b38l-tyler-t14-125-vetoed'],
+  // entry-001 (Aldermoor)
+  ['fc5eb050', 20, 'error', 'b34a-tyler-misquotes-missed'],
+  ['34eb553a', 6, 'error', 'b36a-tyler-misquotes-socratic'],
+  ['c518221e', 26, 'error', 'b36a-marcus-t26-unprobed-flag'],
+];
+for (const [session, t, label, source] of BANK) {
+  const [run] = byDir(session);
+  if (!run) throw new Error(`fault bank ${session}: no run in the corpus`);
+  add(run, t, label, `fault bank ${source}`);
 }
 
 // ── precision: the correct-math personas in batches 20–21, and doubted correct work ─
