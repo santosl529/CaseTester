@@ -284,7 +284,7 @@ with the recorded ones.
 - **`tests/cases/phase1-contract.test.ts` fails once `cases/phase1/*.json` exist**: "today's cases load unchanged with
   no overlay and no switches" compares `getCaseById(id)` with the raw file, but the overlay always attaches the
   descriptive fields (an exhibit `summary` on entry-001 is what fails). Stream 2's or the integration's to fix. With
-  the overlays removed the suite is **5212 passed, 9 skipped**; with them present, that one test fails and nothing else.
+  the overlays removed the suite is **5213 passed, 9 skipped**; with them present, that one test fails and nothing else.
 - **A pre-existing oddity worth a look** (not mine to change in this round): b35q 5c3d2c21 t13 speaks the correction
   "Starter standalone lifetime value at $40 is about $600, not $400" under the key `starter_churn@7.5` — the key and the
   figure in the line are different quantities. It is identical with every switch off, so it predates Phase 1.

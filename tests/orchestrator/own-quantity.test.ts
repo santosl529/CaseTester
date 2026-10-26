@@ -372,9 +372,11 @@ describe('a scale word the step does not declare: no correction line', () => {
     errorType: 'arithmetic' as const, changesConclusion: false, confidence: 'high' as const, probe: '', pointer: '',
     codeQuantity: { kind: 'step' as const, stepId, price: null, target: null }, actualShare: null,
   });
-  it('"$210k" against uplift_at_60 (0.24, a million-scale step): code\'s figure in full, theirs as said — never "$0.24k"', () => {
+  it('"$210k" against uplift_at_60 (0.24, a million-scale step): code\'s figure at the step\'s scale, theirs as said — never "$0.24k"', () => {
+    // Money keeps the scale word: "$240,000" is a figure the case never states, and the vetting's provenance guard
+    // would drop the whole correction (the replay proved it — the true line vanished).
     expect(codeCorrection(claim('$210k', 'uplift_at_60'), { value: 0.24, index: 0 }, ctx)?.line)
-      .toBe('Extra value per month of sign-ups at $60 vs. $40 is about $240,000, not $210k.');
+      .toBe('Extra value per month of sign-ups at $60 vs. $40 is about $0.24 million, not $210k.');
   });
   // Review C3: the slip is not money's alone — entry-001's "250k patients" against 200,000 read "about 200,000k".
   it('a count in thousands against a count step: code\'s figure in full', () => {

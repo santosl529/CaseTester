@@ -501,12 +501,11 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
         const scaleMismatch = theirScale !== null && theirScale !== (st?.scale === 'million' ? 'million' : null);
         // Review C3: a scale word carries the same slip whatever the unit — entry-001's "250k patients" against 200,000
         // gave "about 200,000k, not 250k" — so the mismatch is read for counts and percents too, and code's figure is
-        // written in full. Money at a million-scale step under a million reads plainer in units ("$240,000, not
-        // $210k"), which is also what the candidate said it in.
+        // written in full there. Money keeps the step's own scale word ("$0.24 million, not $210k"): the review's
+        // plainer "$240,000" states a figure the case does not, and the provenance guard (FR-4, `speakable` in the
+        // vetting) then drops the whole correction — the replay showed the true line disappear.
         const inFullFigure = Math.abs(at.value) >= 1000 ? at.value.toLocaleString('en-US', { maximumFractionDigits: 1 }) : String(Math.round(at.value * 1e6) / 1e6);
-        const mismatchFigure = usd
-          ? (st?.scale === 'million' && Math.abs(at.value) < 1 ? `$${Math.round(at.value * 1e6).toLocaleString('en-US')}` : `$${shown}${million}`)
-          : `${inFullFigure}${unit}`;
+        const mismatchFigure = usd ? `$${shown}${million}` : `${inFullFigure}${unit}`;
         const closer = ratio ? `${shown} times` : inUnits ? `$${Math.round(at.value * 1e6).toLocaleString('en-US')}` : noScale ? `$${shown} million` : scaleMismatch ? mismatchFigure : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}${million}` : `${shown}${unit}`;
         // A bare range ("8 to 9", "8.5-9") is reformatted only when both ends read cleanly ("$8 to $9 million"),
         // else kept as said; a single figure gets separators ("$8800000" → "$8,800,000") (final review I1, 20 Oct).
