@@ -24,6 +24,14 @@ export const SLICES = [
   { tag: 'b37q', batch: 'batch-37-quillpath', wave: 'batch-37-quillpath-oct-20-runs-1-5', caseId: 'pricing-001', verdicts: 'replays/2026-10-21/round6/b37q-verdicts.jsonl' },
   // No b38 verdict file exists in the corpus: the harness converts the run's own recorded verdicts (as convert-verdicts.py does).
   { tag: 'b38l', batch: 'batch-38-larkspur', wave: 'batch-38-larkspur-oct-21-runs-1-5', caseId: 'prof-002', verdicts: null },
+  // Batch 39, the Phase 1 wave (26 Oct, commit db506bee, ENGINE_SWITCHES='*=phase1'; 31 runs). Listed so the
+  // offline auditor and the other eval tools can address these runs — `runsOf(SLICES)` is how both --batches and
+  // --run resolve a target. Their own recorded verdicts are converted, as b38l's are.
+  { tag: 'b39bb', batch: 'batch-39-brewbean', wave: 'batch-39-brewbean-oct-26-runs-1-5', caseId: 'prof-001', verdicts: null },
+  { tag: 'b39a', batch: 'batch-39-aldermoor', wave: 'batch-39-aldermoor-oct-26-runs-1-5', caseId: 'entry-001', verdicts: null },
+  { tag: 'b39l', batch: 'batch-39-larkspur', wave: 'batch-39-larkspur-oct-26-runs-1-8', caseId: 'prof-002', verdicts: null },
+  { tag: 'b39q', batch: 'batch-39-quillpath', wave: 'batch-39-quillpath-oct-26-runs-1-8', caseId: 'pricing-001', verdicts: null },
+  { tag: 'b39h', batch: 'batch-39-hollisbay', wave: 'batch-39-hollisbay-oct-26-runs-1-5', caseId: 'launch-001', verdicts: null },
 ] as const;
 export type Slice = typeof SLICES[number];
 export const sliceOf = (tag: string): Slice => {
