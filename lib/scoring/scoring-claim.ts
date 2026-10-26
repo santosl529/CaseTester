@@ -66,18 +66,43 @@ export async function releaseScoring(sessionId: string, token: number): Promise<
 }
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+type Writer = Pick<Tx, 'update' | 'insert'>;
+// The claim token still this pass's: a no-op UPDATE on the session row, which inside a transaction also locks it
+// for the rest of that transaction.
+async function ownsClaim(w: Writer, claim: ScoringClaim): Promise<boolean> {
+  const own = await w.update(sessions)
+    .set({ flagsJsonb: sql`${sessions.flagsJsonb}` })
+    .where(and(eq(sessions.id, claim.sessionId), sql`${claimAt} = ${claim.token}`))
+    .returning({ id: sessions.id });
+  return own.length > 0;
+}
+
 // The score row, written only while the claim is this pass's: the session row is locked on the claim token for the
 // transaction (a no-op UPDATE), so a concurrent claim waits for the commit. False: the claim was lost, nothing written.
-export async function storeIfClaimed(claim: ScoringClaim, write: (tx: Tx) => Promise<void>): Promise<boolean> {
-  return db.transaction(async tx => {
-    const own = await tx.update(sessions)
-      .set({ flagsJsonb: sql`${sessions.flagsJsonb}` })
-      .where(and(eq(sessions.id, claim.sessionId), sql`${claimAt} = ${claim.token}`))
-      .returning({ id: sessions.id });
-    if (own.length === 0) return false;
-    await write(tx);
+//
+// Review fix round, item 7: this is the only `db.transaction` in the codebase and nothing here has run it against
+// Postgres (drizzle's postgres-js transaction() uses client.begin, which suits Supavisor's transaction mode, and
+// `prepare: false` is set — but it is unverified). If it fails it fails *after* all three Opus passes are paid, and
+// a 500 plus a client retry pays for them again. So an unexpected failure falls back to the same token-checked
+// conditional write without the transaction: it loses the lock (a concurrent claimer could slip between the check
+// and the insert instead of blocking on the commit) and keeps the money. Once `write` has run the error always
+// stands — the row's fate is the transaction's, and nothing is ever written twice.
+export async function storeIfClaimed(claim: ScoringClaim, write: (tx: Writer) => Promise<void>): Promise<boolean> {
+  let wrote = false;
+  try {
+    return await db.transaction(async tx => {
+      if (!await ownsClaim(tx, claim)) return false;
+      wrote = true;
+      await write(tx);
+      return true;
+    });
+  } catch (err) {
+    if (wrote) throw err;
+    console.warn(`[score] the scoring write's transaction failed (${err instanceof Error ? err.message : String(err)}); writing the row on the claim token without it`);
+    if (!await ownsClaim(db, claim)) return false;
+    await write(db);
     return true;
-  });
+  }
 }
 
 const dbDeps: ScoreOnceDeps = {
