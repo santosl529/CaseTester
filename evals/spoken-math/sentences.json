@@ -1,0 +1,805 @@
+{
+ "note": "Real candidate sentences for the spoken-math parser (Phase 1 contract SS5 Stream 3 task 6, switch `spokenMathParser`). `label` is a hand judgement of the candidate's arithmetic, not of the checker: `consistent` = right under some reading a listener would take, `inconsistent` = a real math error, `not-arithmetic` = no stated result to judge. `pool`: `flagged` is every sentence in the 487-run corpus that carries an `incorrect` claim today (the parser's whole blast radius, all 21 hand-labelled); `chain` is a sample of multi-operand claims the code already agrees with; `voice` is every real STT candidate sentence in `Case Interview Runs/voice-live` with two or more number words and an operator word. Read by tests/orchestrator/spoken-math-set.test.ts, which reports the suppressed-true-flag count Lorenzo's ruling P3 requires.",
+ "sentences": [
+  {
+   "id": "2026-10-06-bc0d5a77-t5",
+   "text": "Two years ago: 42 + 22 + 12 = 94%...",
+   "source": "test runs/batch-12-oct-06/08-claire-the-recommendation-freezer/live-run-2026-10-06-bc0d5a77.json",
+   "turn": 5,
+   "pool": "flagged",
+   "label": "inconsistent",
+   "class": "plus-chain",
+   "why": "42 + 22 + 12 is 76, not 94"
+  },
+  {
+   "id": "2026-10-07-bb0faa72-t7",
+   "text": "Two years ago: 42 + 22 + 12 = 94% of revenue in costs, leaving 6%...",
+   "source": "test runs/batch-14-oct-07-cached-history/26-daniel-the-interviewer-led-expecter/live-run-2026-10-07-bb0faa72.json",
+   "turn": 7,
+   "pool": "flagged",
+   "label": "inconsistent",
+   "class": "plus-chain",
+   "why": "42 + 22 + 12 is 76, not 94"
+  },
+  {
+   "id": "2026-10-10-c1b79f9e-t20",
+   "text": "16 divided by 18, that's about 1.6%.",
+   "source": "test runs/batch-18-oct-10-runs-12-13/01-maya-the-freezer/live-run-2026-10-10-c1b79f9e.json",
+   "turn": 20,
+   "pool": "flagged",
+   "label": "inconsistent",
+   "class": "divide",
+   "why": "16/18 is 89%, not 1.6% (batch 18 Maya, the slip the check was built for)"
+  },
+  {
+   "id": "2026-10-10-c1b79f9e-t28",
+   "text": "So 16/18 is like 1.6%.",
+   "source": "test runs/batch-18-oct-10-runs-12-13/01-maya-the-freezer/live-run-2026-10-10-c1b79f9e.json",
+   "turn": 28,
+   "pool": "flagged",
+   "label": "inconsistent",
+   "class": "divide",
+   "why": "16/18 is 89%, not 1.6%"
+  },
+  {
+   "id": "2026-10-10-44c858c6-t5",
+   "text": "Two years ago: 42 + 22 + 12 = 94% of revenue in costs, leaving...",
+   "source": "test runs/batch-18-oct-10-runs-2-11/08-claire-the-recommendation-freezer/live-run-2026-10-10-44c858c6.json",
+   "turn": 5,
+   "pool": "flagged",
+   "label": "inconsistent",
+   "class": "plus-chain",
+   "why": "42 + 22 + 12 is 76, not 94"
+  },
+  {
+   "id": "2026-10-10-b770501e-t5",
+   "text": "Two years ago: 42 plus 22 plus 12 equals 94 — wait, that's 76, leaving 24% margin.",
+   "source": "test runs/batch-18-oct-10-runs-52-61/38-rachel-the-repeat-user/live-run-2026-10-10-b770501e.json",
+   "turn": 5,
+   "pool": "flagged",
+   "label": "inconsistent",
+   "class": "plus-chain",
+   "why": "94 is wrong; she catches it in the same breath (selfCorrected)"
+  },
+  {
+   "id": "2026-10-10-2f92ba80-t5",
+   "text": "Two years ago: 42 plus 22 plus 12 equals 94 — sorry, that's 76, which leaves a 24% margin.",
+   "source": "test runs/batch-18-oct-10-runs-62-71/50-harrison-the-clock-negotiator/live-run-2026-10-10-2f92ba80.json",
+   "turn": 5,
+   "pool": "flagged",
+   "label": "inconsistent",
+   "class": "plus-chain",
+   "why": "94 is wrong; caught in the same breath (selfCorrected)"
+  },
+  {
+   "id": "2026-10-20-14055867-t17",
+   "text": "Running both: Build gives 200,000 × 20% × $8,000 = $320 million net sales, less $80 million selling costs = $240 million to Aldermoor.",
+   "source": "test runs/batch-34-aldermoor-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-20-14055867.json",
+   "turn": 17,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "unit-noun",
+   "why": "200,000 x 20% x $8,000 = $320M; today the reader stops at 320 and loses the 'million'"
+  },
+  {
+   "id": "2026-10-20-14055867-t17-2",
+   "text": "Partner gives 200,000 × 25% × $8,000 = $400 million net sales, of which we keep 30% = $120 million, with no costs.",
+   "source": "test runs/batch-34-aldermoor-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-20-14055867.json",
+   "turn": 17,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "unit-noun",
+   "why": "200,000 x 20% x $8,000 = $320M; today the reader stops at 320 and loses the 'million'"
+  },
+  {
+   "id": "2026-10-20-a1133734-t29",
+   "text": "250M adults × 1.6% × 50% × 50% × 20% = 200,000 eligible patients; at 20% peak share that's 40,000 patients at $8,000 net, or $320M in peak US net sales — above the $300M threshold.",
+   "source": "test runs/batch-34-aldermoor-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-a1133734.json",
+   "turn": 29,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "noun-break",
+   "why": "250M x 1.6% x 50% x 50% x 20% = 200,000; the 250M is lost to the noun 'adults' — a class this parser does not read"
+  },
+  {
+   "id": "2026-10-20-fcd7dce7-t19",
+   "text": "Control: 1,000 × $1,100 = $1.1M plus 350 × $2,800 = $0.98M → $2.08M.",
+   "source": "test runs/batch-35-quillpath-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-20-fcd7dce7.json",
+   "turn": 19,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "chained-equations",
+   "why": "$0.98M is 350 x $2,800, not $1.1M + 350 x $2,800"
+  },
+  {
+   "id": "2026-10-20-087451cb-t25",
+   "text": "Redoing the test group: 800 × $50 = $40,000 plus 400 × $80 = $32,000 = $72,000, versus $58,000 control.",
+   "source": "test runs/batch-35-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-087451cb.json",
+   "turn": 25,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "chained-equations",
+   "why": "$32,000 is 400 x $80, not $40,000 + 400 x $80"
+  },
+  {
+   "id": "2026-10-20-ee99bd82-t23",
+   "text": "Control: 1,000 × $905 = $905k plus 350 × $2,800 = $980k = $1.89m.",
+   "source": "test runs/batch-35-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-ee99bd82.json",
+   "turn": 23,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "chained-equations",
+   "why": "$980k is 350 x $2,800, not $905k + 350 x $2,800"
+  },
+  {
+   "id": "2026-10-21-6bbc2163-t33",
+   "text": "A = share × 200,000 × $8,000 − $80M = $120M, so net sales must be $200M, which is 25,000 patients, or 12.5% of the 200,000 eligible.",
+   "source": "test runs/batch-36-aldermoor-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-6bbc2163.json",
+   "turn": 33,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "noun-break",
+   "why": "'share x 200,000 x $8,000 - $80M = $120M' is an equation in one unknown; the reader drops 'share'"
+  },
+  {
+   "id": "2026-10-21-bbf78ab8-t7",
+   "text": "Port Avery: 3,000 flights × 80 × 75% = 180,000 passengers, fare $160 + $20 extras = $180, so $32.4M revenue — matches.",
+   "source": "test runs/batch-36-larkspur-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-bbf78ab8.json",
+   "turn": 7,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "noun-break",
+   "why": "3,000 x 80 x 75% = 180,000; the 3,000 is lost to the noun 'flights'"
+  },
+  {
+   "id": "2026-10-21-ddbb070b-t9",
+   "text": "If you get, say, 10,000 stores at 12 bags a week, that's 10,000 × 12 × 52 ≈ 6.2 million bags, so you'd just clear it.",
+   "source": "test runs/batch-37-hollisbay-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-ddbb070b.json",
+   "turn": 9,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "unit-noun",
+   "why": "10,000 x 12 x 52 = 6.24M, said as '6.2 million'"
+  },
+  {
+   "id": "2026-10-21-527217df-t5",
+   "text": "Contribution per bag: $3.00 minus $0.70 + $0.30 + $0.30 + $0.20 = $1.50 variable, so $1.50 per bag, a 50% margin.",
+   "source": "test runs/batch-37-hollisbay-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-527217df.json",
+   "turn": 5,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "minus-chain",
+   "why": "$3.00 - ($0.70 + $0.30 + $0.30 + $0.20) = $1.50 — the written form of Lorenzo's own example"
+  },
+  {
+   "id": "2026-10-21-e08c362a-t9",
+   "text": "Starter's is 40 − 10 = $20...",
+   "source": "test runs/batch-37-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-e08c362a.json",
+   "turn": 9,
+   "pool": "flagged",
+   "label": "inconsistent",
+   "class": "minus",
+   "why": "40 - 10 is 30, not 20; she corrects it in the next sentence"
+  },
+  {
+   "id": "2026-10-21-3376e5fe-t7",
+   "text": "Redoing cannibalization: lose 150 × $4,000 = $600K, gain 850 × $1,200 = $1.02M plus 150 × $1,200 = $180K → net ≈ +$600K/month.",
+   "source": "test runs/batch-37-quillpath-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-3376e5fe.json",
+   "turn": 7,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "chained-equations",
+   "why": "$180K is 150 x $1,200, not $1.02M + 150 x $1,200"
+  },
+  {
+   "id": "2026-10-21-3376e5fe-t23",
+   "text": "Control: 1,000 × $1,400 = $1.4M plus 350 × $4,000 = $1.4M → $2.8M, same $720K CAC, net $2.08M.",
+   "source": "test runs/batch-37-quillpath-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-3376e5fe.json",
+   "turn": 23,
+   "pool": "flagged",
+   "label": "consistent",
+   "class": "chained-equations",
+   "why": "$1.4M is 350 x $4,000, not $1.4M + 350 x $4,000"
+  },
+  {
+   "id": "2026-10-03-73de82ce-t13",
+   "text": "But volume is only up 15%, so unit bean cost is 1.23/1.15 ≈ 1.94.",
+   "source": "test runs/batch-5-oct-02/02-tobias-the-silent-thinker/live-run-2026-10-03-73de82ce.json",
+   "turn": 13,
+   "pool": "flagged",
+   "label": "inconsistent",
+   "class": "divide",
+   "why": "1.23/1.15 is 1.07, not 1.94"
+  },
+  {
+   "id": "2026-09-14-eca39ec7-t5",
+   "text": "Two years ago: 42 + 22 + 12 = 76% of revenue in costs, leaving 24% margin.",
+   "source": "default-candidate/live-run-2026-09-14-eca39ec7.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-05-26a78b95-t5",
+   "text": "Today: 58 plus 22 plus 14 equals 94%, leaving 6% — also matches.",
+   "source": "default-candidate/live-run-2026-10-05-26a78b95.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-11-b284faee-t7",
+   "text": "If the 15% revenue growth is all volume: beans = 44 × 1.40 × 1.15 ≈ $71M.",
+   "source": "default-candidate/live-run-2026-10-11-b284faee.json",
+   "turn": 7,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-09-28-9d37db69-t9",
+   "text": "Costs have to absorb them, since the three lines plus profit sum to 100 in every column — let me verify: 42 + 22 + 12 + 24 = 100.",
+   "source": "test runs/batch-1-sep-27-28/45-camila-the-code-switcher/live-run-2026-09-28-9d37db69.json",
+   "turn": 9,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-06-bc0d5a77-t5",
+   "text": "Today: 58 + 22 + 14 = 94, leaving 6%.",
+   "source": "test runs/batch-12-oct-06/08-claire-the-recommendation-freezer/live-run-2026-10-06-bc0d5a77.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-07-83945486-t5",
+   "text": "Today it's 58 plus 22 plus 14 equals 94, leaving 6%.",
+   "source": "test runs/batch-13-oct-06/16-amara-the-self-corrector/live-run-2026-10-07-83945486.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-07-5c48e836-t7",
+   "text": "Today: 58 plus 22 plus 14 equals 94%, leaving 6%.",
+   "source": "test runs/batch-13-oct-06/26-daniel-the-interviewer-led-expecter/live-run-2026-10-07-5c48e836.json",
+   "turn": 7,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-07-6be4c2f8-t15",
+   "text": "Revenue is roughly flat at 100 × 1.10 × 0.90 ≈ 99.",
+   "source": "test runs/batch-14-oct-07-state-in-system/26-daniel-the-interviewer-led-expecter/live-run-2026-10-07-6be4c2f8.json",
+   "turn": 15,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-10-104251ef-t5",
+   "text": "Two years ago: 42 + 22 + 12 = 76%, leaving 24%.",
+   "source": "test runs/batch-18-oct-10-runs-14-21/08-claire-the-recommendation-freezer/live-run-2026-10-10-104251ef.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-10-62d06bd6-t11",
+   "text": "Let me check the math: today 58 + 22 + 14 = 94, leaving 6% margin.",
+   "source": "test runs/batch-18-oct-10-runs-2-11/03-ines-the-clarifier/live-run-2026-10-10-62d06bd6.json",
+   "turn": 11,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-10-44c858c6-t5",
+   "text": "Prior year: 42 + 22 + 12 = 76, so 24% margin.",
+   "source": "test runs/batch-18-oct-10-runs-2-11/08-claire-the-recommendation-freezer/live-run-2026-10-10-44c858c6.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-10-8cd9c36f-t5",
+   "text": "Two years ago: 42 + 22 + 12 = 76, leaving 24% — matches.",
+   "source": "test runs/batch-18-oct-10-runs-22-31/17-priya-the-gamer/live-run-2026-10-10-8cd9c36f.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-10-54a09acf-t5",
+   "text": "Today: 58 plus 22 plus 14 is 94, so 6% margin, also matches.",
+   "source": "test runs/batch-18-oct-10-runs-42-51/23-vivian-the-mece-preempter/live-run-2026-10-10-54a09acf.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-10-bb24a239-t5",
+   "text": "Two years ago: 42 plus 22 plus 12 is 76, so 24% margin — also matches.",
+   "source": "test runs/batch-18-oct-10-runs-42-51/28-jake-the-frustrated-swearer/live-run-2026-10-10-bb24a239.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-10-5a1ae7f5-t7",
+   "text": "But actual COGS dollars: revenue up 15%, and COGS share went 42 to 58, so 1.15 times 58 over 42 equals about 1.59 — up 59%.",
+   "source": "test runs/batch-18-oct-10-runs-52-61/37-dylan-the-multitasker/live-run-2026-10-10-5a1ae7f5.json",
+   "turn": 7,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-10-00f89acd-t5",
+   "text": "Today: 58 + 22 + 14 = 94% of revenue, leaving a 6% margin — matches.",
+   "source": "test runs/batch-18-oct-10-runs-62-71/44-naomi-the-auditor/live-run-2026-10-10-00f89acd.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-10-17bea665-t15",
+   "text": "If 37.5% is price, the dollar line should be 31.5 times 1.375 times 1.15, which is 49.8, not 43.3.",
+   "source": "test runs/batch-18-oct-10-runs-72-81/57-marisol-the-context-confuser/live-run-2026-10-10-17bea665.json",
+   "turn": 15,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-12-89af9c4f-t9",
+   "text": "If dairy is say 30% of COGS and up 40%, that's 0.30 × 42 × 0.4 = 5 more points — and between beans, dairy, and packaging I might close most of the 11.8.",
+   "source": "test runs/batch-19-oct-11-runs-10-19/46-trevor-the-comparer/live-run-2026-10-12-89af9c4f.json",
+   "turn": 9,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-12-662a80f1-t13",
+   "text": "On the pass-through: today costs are 58 plus 22 plus 14 equals 94 points, with 6 of profit.",
+   "source": "test runs/batch-19-oct-11-runs-20-24/54-owen-the-quiet-dropper/live-run-2026-10-12-662a80f1.json",
+   "turn": 13,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-09-30-c45d8104-t9",
+   "text": "Two years ago: 42 + 22 + 12 = 76% of revenue in costs, which gives the 24% margin.",
+   "source": "test runs/batch-2-sep-29/33-omar-the-quoter/live-run-2026-09-30-c45d8104.json",
+   "turn": 9,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-13-33737db2-t17",
+   "text": "Costs today are 58 + 22 + 14 = 94 per 100 of revenue, profit 6.",
+   "source": "test runs/batch-21-oct-12-runs-8-15/24-marcus-the-answer-first-sprinter/live-run-2026-10-13-33737db2.json",
+   "turn": 17,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-15-a4485b6d-t21",
+   "text": "Total costs 46.4 + 17.6 + 11.2 = 75.2, leaving about 24.8% profit.",
+   "source": "test runs/batch-24-oct-14-runs-1-10/53-fiona-the-hypothesis-reverser/live-run-2026-10-15-a4485b6d.json",
+   "turn": 21,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-02-3d00df25-t5",
+   "text": "That lines up cleanly — 58 + 22 + 14 = 94, so 6% profit; and 42 + 22 + 12 = 76, so 24%.",
+   "source": "test runs/batch-3-oct-02/13-micah-the-rounder/live-run-2026-10-02-3d00df25.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-19-6e5a1c90-t15",
+   "text": "If we lifted extras by $20 a seat across the remaining 8,000 flights, that's 8,000 × 80 × $20 = $12.8M, comfortably enough to clear the gap.",
+   "source": "test runs/batch-32-larkspur-oct-19-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-19-6e5a1c90.json",
+   "turn": 15,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-20-e6432db0-t21",
+   "text": "On Lakeport, $80 times 60 times 2,000 is $9.6M.",
+   "source": "test runs/batch-34-larkspur-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-e6432db0.json",
+   "turn": 21,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-20-984d9066-t5",
+   "text": "Fixed year-one costs: 3.0 + 4.5 + 1.5 = $9.0 million.",
+   "source": "test runs/batch-35-hollisbay-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-20-984d9066.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-20-7e69eda5-t9",
+   "text": "Then the upgraders: 1%, 5%, 11%, 20% — average maybe 10% across the year, at $100, so 0.10 × $100 × 12 = $120.",
+   "source": "test runs/batch-35-quillpath-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-20-7e69eda5.json",
+   "turn": 9,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-20-087451cb-t31",
+   "text": "Three, the price test is accretive — 800 × $50 plus 400 × $80 = $72,000 versus $58,000 at control, roughly 24% better monthly margin.",
+   "source": "test runs/batch-35-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-087451cb.json",
+   "turn": 31,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-21-bbf78ab8-t5",
+   "text": "Rough math: if load factor is ~80%, Lakeport carries 2,000 × 80 × 0.8 = 128,000 passengers, so fare went $206 → $131, about −36%.",
+   "source": "test runs/batch-36-larkspur-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-bbf78ab8.json",
+   "turn": 5,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-21-442e37ff-t11",
+   "text": "So redo: 0.70 + 0.30 + 0.30 + 0.20 = $1.50 variable per bag.",
+   "source": "test runs/batch-37-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-442e37ff.json",
+   "turn": 11,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-21-701443f7-t19",
+   "text": "Total contribution = 17.8 + 7.0 - 0.3 = $24.5M, less $20M fixed = +$4.5M operating profit.",
+   "source": "test runs/batch-38-larkspur-oct-21-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-701443f7.json",
+   "turn": 19,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-21-316baba1-t17",
+   "text": "The four safe routes give 5.4 + 4.4 + 4.2 + 3.8 = $17.8M.",
+   "source": "test runs/batch-38-larkspur-oct-21-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-316baba1.json",
+   "turn": 17,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-03-03917aa6-t7",
+   "text": "Let me check: today 58 plus 22 plus 14 is 94% of revenue, so margin 6% — consistent.",
+   "source": "test runs/batch-4-oct-02/13-micah-the-rounder/live-run-2026-10-03-03917aa6.json",
+   "turn": 7,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-03-e70aa6a5-t11",
+   "text": "Costs today are 58 + 22 + 14 = 94% of revenue, so 6% margin.",
+   "source": "test runs/batch-6-oct-03/15-tyler-the-misquoter/live-run-2026-10-03-e70aa6a5.json",
+   "turn": 11,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "2026-10-03-13b37c6c-t19",
+   "text": "Contribution today = 115 − 66.7 − 25.3 = 23.",
+   "source": "test runs/batch-6-oct-03/51-anika-the-unorthodox-structurer/live-run-2026-10-03-13b37c6c.json",
+   "turn": 19,
+   "pool": "chain",
+   "label": "consistent",
+   "class": "chain-verified",
+   "why": "the code already agrees within tolerance; read and confirmed by hand"
+  },
+  {
+   "id": "9e349fea-t2",
+   "text": "So revenue is up fifteen percent over two years, but net margin fell from twenty four percent to six percent.",
+   "source": "voice-live/2026-10-09/9e349fea-262c-4839-91cc-faac7dbd79d5.jsonl",
+   "turn": 2,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "e824fdf3-t10",
+   "text": "Uh, my client is groomed bean, and the net profit margin fell from twenty four percent to six percent over two years while the revenues grew fifteen percent over the same period across two hundred US locations.",
+   "source": "voice-live/2026-10-12/e824fdf3-4063-4fbe-8b72-777144b25eac.jsonl",
+   "turn": 10,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "e824fdf3-t15",
+   "text": "If each of them are up thirty seven point five percent, then that means that, like, the seventy five percent that is not the beans is up thirty seven point five percent, which means that it'll be point seven five times thirty seven point five, I think, to see the the overall impact on on COGS by the other inputs.",
+   "source": "voice-live/2026-10-12/e824fdf3-4063-4fbe-8b72-777144b25eac.jsonl",
+   "turn": 15,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "e824fdf3-t19",
+   "text": "so that divided by four is point one plus the zero...",
+   "source": "voice-live/2026-10-12/e824fdf3-4063-4fbe-8b72-777144b25eac.jsonl",
+   "turn": 19,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "e824fdf3-t19",
+   "text": "plus thirty seven.",
+   "source": "voice-live/2026-10-12/e824fdf3-4063-4fbe-8b72-777144b25eac.jsonl",
+   "turn": 19,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "e824fdf3-t24",
+   "text": "It's it's forty cents over two point...",
+   "source": "voice-live/2026-10-12/e824fdf3-4063-4fbe-8b72-777144b25eac.jsonl",
+   "turn": 24,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "e824fdf3-t27",
+   "text": "it'll be sixty cents over six dollars and twenty cents.",
+   "source": "voice-live/2026-10-12/e824fdf3-4063-4fbe-8b72-777144b25eac.jsonl",
+   "turn": 27,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "e824fdf3-t27",
+   "text": "So zero point six divided by six point two.",
+   "source": "voice-live/2026-10-12/e824fdf3-4063-4fbe-8b72-777144b25eac.jsonl",
+   "turn": 27,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "e824fdf3-t33",
+   "text": "So Cos has, like, suddenly been increasing, um, sixteen over forty two is, yes, like, thirty eight percent.",
+   "source": "voice-live/2026-10-12/e824fdf3-4063-4fbe-8b72-777144b25eac.jsonl",
+   "turn": 33,
+   "pool": "voice",
+   "label": "consistent",
+   "class": "voice",
+   "why": "16/42 = 38%"
+  },
+  {
+   "id": "9ccf0836-t10",
+   "text": "So that would just be twenty five percent times forty percent.",
+   "source": "voice-live/2026-10-17/9ccf0836-12da-4b3a-b6a9-2dbaef50407f.jsonl",
+   "turn": 10,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "9ccf0836-t10",
+   "text": "The other three is point seven five times thirty seven point five.",
+   "source": "voice-live/2026-10-17/9ccf0836-12da-4b3a-b6a9-2dbaef50407f.jsonl",
+   "turn": 10,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "9ccf0836-t10",
+   "text": "So that would be point two five times thirty seven point five, which is one fourth of that, which would come out to three hundred seventy five divided by four is something like ninety three.",
+   "source": "voice-live/2026-10-17/9ccf0836-12da-4b3a-b6a9-2dbaef50407f.jsonl",
+   "turn": 10,
+   "pool": "voice",
+   "label": "consistent",
+   "class": "voice",
+   "why": "375/4 = 93.75, said as 'something like ninety three'"
+  },
+  {
+   "id": "9ccf0836-t10",
+   "text": "So nine point three times three is, like, twenty, like, around...",
+   "source": "voice-live/2026-10-17/9ccf0836-12da-4b3a-b6a9-2dbaef50407f.jsonl",
+   "turn": 10,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "9ccf0836-t10",
+   "text": "Nine point three times three...",
+   "source": "voice-live/2026-10-17/9ccf0836-12da-4b3a-b6a9-2dbaef50407f.jsonl",
+   "turn": 10,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "9ccf0836-t20",
+   "text": "So, like, fifty eight percent times that number or times the ten percent.",
+   "source": "voice-live/2026-10-17/9ccf0836-12da-4b3a-b6a9-2dbaef50407f.jsonl",
+   "turn": 20,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "9813d6ce-t2",
+   "text": "So just to make sure I have it right, my client is Brunn Bean, a coffee chain with over two hundred locations across the US.",
+   "source": "voice-live/2026-10-18/9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59.jsonl",
+   "turn": 2,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "9813d6ce-t2",
+   "text": "Over the past two years, their net profit margin has declined twenty four percent to six percent even though the revenues have grown fifteen percent over the same period.",
+   "source": "voice-live/2026-10-18/9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59.jsonl",
+   "turn": 2,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "9813d6ce-t14",
+   "text": "So fifty eight divided by four, um, gives us around, um, sorry, uh, fourteen point five.",
+   "source": "voice-live/2026-10-18/9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59.jsonl",
+   "turn": 14,
+   "pool": "voice",
+   "label": "consistent",
+   "class": "voice",
+   "why": "58/4 = 14.5"
+  },
+  {
+   "id": "9813d6ce-t15",
+   "text": "Um, if it is less than twenty five percent, that means that the costs of the other goods, uh, took over.",
+   "source": "voice-live/2026-10-18/9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59.jsonl",
+   "turn": 15,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "9813d6ce-t20",
+   "text": "you multiply those together, so thirty seven point five percent times times seventy five percent, and you get the percent increase from that.",
+   "source": "voice-live/2026-10-18/9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59.jsonl",
+   "turn": 20,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "9813d6ce-t23",
+   "text": "So two thirty eight minus twenty eight.",
+   "source": "voice-live/2026-10-18/9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59.jsonl",
+   "turn": 23,
+   "pool": "voice",
+   "label": "not-arithmetic",
+   "class": "voice",
+   "why": "no stated result, or the sentence breaks off: nothing to judge"
+  },
+  {
+   "id": "44174f51-t10",
+   "text": "So if it's twenty five percent, um, and forty percent over the past two years, uh, that means you can do twenty five percent times forty percent and get ten percent.",
+   "source": "voice-live/2026-10-19/44174f51-9b1e-4826-a183-8dc09f900db4.jsonl",
+   "turn": 10,
+   "pool": "voice",
+   "label": "consistent",
+   "class": "voice",
+   "why": "25% x 40% = 10%"
+  },
+  {
+   "id": "44174f51-t10",
+   "text": "But if we convert that to a percentage of revenue Uh, it's ten percent increase times, uh, forty two, which is four point two compared to the other ingredients, which is, uh, seventy five percent, uh, times thirty seven point five, um, percent.",
+   "source": "voice-live/2026-10-19/44174f51-9b1e-4826-a183-8dc09f900db4.jsonl",
+   "turn": 10,
+   "pool": "voice",
+   "label": "consistent",
+   "class": "voice",
+   "why": "10% x 42 = 4.2"
+  },
+  {
+   "id": "44174f51-t10",
+   "text": "twenty eight percent, um, times, um, the forty two, which gives us that they account for eleven percent of the increase.",
+   "source": "voice-live/2026-10-19/44174f51-9b1e-4826-a183-8dc09f900db4.jsonl",
+   "turn": 10,
+   "pool": "voice",
+   "label": "consistent",
+   "class": "voice",
+   "why": "28% x 42 = 11.8, said as 'eleven percent'"
+  }
+ ]
+}
