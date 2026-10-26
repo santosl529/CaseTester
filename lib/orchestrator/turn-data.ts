@@ -846,8 +846,11 @@ function nounDeferrals(plan: ModelPlan, d: TurnData, decided: ReadonlyMap<string
 // wrap-up turn (nothing comes back after it).
 const MODEL_DEFERRAL = /\b(?:I'll|I will|let me|let's|we'll|we will)\s+(?:(?:check|see|look into|look up|find out|dig into)\s+(?:on\s+)?(?:what we have|whether we have|if we have|what I have|that|this|it)\b|(?:come back to|get back to|circle back to|return to)\s+(?:that|this|it|you|those|these)\b)/i;
 const DEFERRAL_LEAD = /^(?:on|as for|regarding|about|for|with)\s+(.{3,90}?),\s*(?:I'll|I will|let me|let's|we'll|we will)\b/i;
-export function modelDeferrals(plan: ModelPlan, d: TurnData, requests: DeclaredRequest[], modelWords: string[]): { what: string; ids: string[]; need?: Record<string, string[]> }[] {
-  if (!switchOn(plan.state.caseData, 'modelDeferrals') || wrapUpTurn(plan)) return [];
+// `opts.wrapUp` (review F7): on a wrap-up or close turn a promise can never be followed, so Settle reads them there too
+// and says "We won't get to <ask> today." in the same breath instead of leaving it hollow (b38 Larkspur Marcus
+// 316baba1 t24, "I'll check what we have" on the turn before the recommendation ask). Nothing is tracked then.
+export function modelDeferrals(plan: ModelPlan, d: TurnData, requests: DeclaredRequest[], modelWords: string[], opts: { wrapUp?: boolean } = {}): { what: string; ids: string[]; need?: Record<string, string[]> }[] {
+  if (!switchOn(plan.state.caseData, 'modelDeferrals') || wrapUpTurn(plan) !== (opts.wrapUp === true)) return [];
   const { caseData } = plan.state;
   const caseNames = properNames(caseData.sttKeyterms);
   // New this turn: released or on the exhibit handed over (read from the decisions — Settle books them before this runs).

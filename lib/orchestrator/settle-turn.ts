@@ -678,6 +678,18 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     flags.mustReach = [...((flags.mustReach as string[] | undefined) ?? []), ...volunteered.map(r => r.id)];
   }
 
+  // Phase 1 4.7 (review F7): a promise the model made on a wrap-up turn can never be followed, so the same turn says
+  // "We won't get to <ask> today." for it — hollow by construction otherwise (b38 Larkspur Marcus 316baba1 t24). Not on
+  // the close itself, which already says the case is over.
+  const wrapPromises = !codeWritten && !ended ? modelDeferrals(plan, decisions, turn.requests, [say, question], { wrapUp: true }) : [];
+  if (wrapPromises.length > 0) {
+    const whats = wrapPromises.map(x => x.what);
+    dataParts.push(...renderDataLineParts({ releases: [], restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], requests: [], wontGetToNamed: whats }, seed, phraseUses));
+    dataLines = dataParts.map(p => p.text);
+    decisions.wontGetTo = [...(decisions.wontGetTo ?? []), ...whats];
+    checks.act('model_deferral', 'the model promised to check or come back on a wrap-up turn: said "We won\'t get to … today." in the same breath', { asks: wrapPromises, wrapUp: true });
+  }
+
   const spokenText = [say, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
 
   // Still not heard (a pressure-test step or another of code's lines took the

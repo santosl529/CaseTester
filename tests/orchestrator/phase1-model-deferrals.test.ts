@@ -120,11 +120,18 @@ describe('what is registered, and what is not', () => {
     expect(s.spokenText).not.toContain("I'll come back to that");
     expect(openOf(p) ?? []).toEqual([]);
   });
-  it('a wrap-up turn: nothing is registered (nothing comes back after it)', async () => {
+  it('a wrap-up turn: not registered — said "We won\'t get to … today." in the same breath (review F7)', async () => {
     on();
     const p = plan(T23, { kind: 'rec_ask', phase: 'RECOMMENDATION' });
-    await settleTurn(p, outcome(T24));
+    const s = await settleTurn(p, outcome(T24));
     expect((openOf(p) ?? []).map(o => o.what)).not.toContain(WHAT);
+    expect(s.spokenText).toContain(WONT);
+    expect(acted(p, 'model_deferral').map(e => (e.detail as { wrapUp?: boolean }).wrapUp)).toEqual([true]);
+  });
+  it('off: the promise on a wrap-up turn is left as it was', async () => {
+    const p = plan(T23, { kind: 'rec_ask', phase: 'RECOMMENDATION' });
+    const s = await settleTurn(p, outcome(T24));
+    expect(s.spokenText).not.toContain(WONT);
   });
   it('code\'s own lines are not the model\'s: "I\'ll come back to …" in a data line registers nothing', async () => {
     on();
