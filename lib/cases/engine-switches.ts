@@ -9,6 +9,7 @@
 // "phase1" (every switch below), or "-name" to turn one off. A case's own entry is read after "*", left to right:
 //   ENGINE_SWITCHES='*=phase1'                         every case, every switch
 //   ENGINE_SWITCHES='prof-001=phase1,-ackRotation'     prof-001 only, all but one
+//   ENGINE_SWITCHES='*=phase1,phase2'                  Phase 1 and the Phase 2 steps built so far
 export const PHASE1_SWITCHES = [
   // Stream 2 — the overlay's data merged into the fields today's code reads (cases/phase1/<id>.json).
   'itemCovers',          // overlay covers → factAnchors.covers; coverExcludes read by cover matching
@@ -47,7 +48,14 @@ export const PHASE1_SWITCHES = [
 // "I don't have that" becomes a promise later withdrawn as "we won't get to it", which the bank records as a
 // fault in its own right. Nameable for evidence, never on by default.
 export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck'] as const;
-export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
+// Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
+// step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
+// structures would decide and say, and change nothing the candidate hears.
+export const PHASE2_SWITCHES = [
+  'askDecisionShadow',   // S1: the one data decision (lib/orchestrator/ask-decision.ts), logged as `ask_decision_shadow`
+  'composeShadow',       // C1: the four-slot composer and its lint (lib/orchestrator/turn-composer.ts), logged as `compose_shadow`
+] as const;
+export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES, ...PHASE2_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];
 export const isEngineSwitch = (s: string): s is EngineSwitch => (ALL_SWITCHES as readonly string[]).includes(s);
@@ -70,6 +78,7 @@ export function parseEngineSwitches(raw: string): Map<string, Map<EngineSwitch, 
       const off = name.startsWith('-');
       const bare = off ? name.slice(1) : name;
       if (bare === 'phase1') { for (const s of PHASE1_SWITCHES) set.set(s, !off); continue; }
+      if (bare === 'phase2') { for (const s of PHASE2_SWITCHES) set.set(s, !off); continue; }
       if (!isEngineSwitch(bare)) throw new Error(`ENGINE_SWITCHES: unknown switch "${bare}"`);
       set.set(bare, !off);
     }

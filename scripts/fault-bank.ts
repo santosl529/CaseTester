@@ -10,6 +10,10 @@
 //                                                            (the slice's recorded checker verdicts, as proof.sh), then check each
 //                                                            assertion against the replayed turn file; prints and writes the tables.
 //                                                            --against folds the compare below into the report and into the exit code
+//   npx tsx scripts/fault-bank.ts shadow --label=<l>                 Phase 2 S1: each record's data assertions read against the
+//                                                            shadow decision at its turn, in a `run` whose --switches named
+//                                                            phase2 (the `ask_decision_shadow` rows); the owned set and the
+//                                                            true refusals reported, with and without the head-noun test (Q2)
 //   npx tsx scripts/fault-bank.ts compare --against=<baseline> --to=<run>
 //                                                            which records moved between two runs, and whether any left the gate's
 //                                                            denominator (a record that was `fails_as_expected` and is now skipped).
@@ -32,6 +36,7 @@ import path from 'node:path';
 import { FaultRecordSchema, bankMoves, bankSkipEscapes, type BankMove, type FaultRecord, type FaultResult } from '@/lib/eval/fault-bank';
 import { SLICES, SpecSchema, sliceOf, specToRecord, findTurnFile, itemLinesOf, isReportRecord, type Slice } from '@/lib/eval/fault-bank-build';
 import { evaluateRecord, scopeTurns, type BankTurn, type CaseView } from '@/lib/eval/fault-bank-assert';
+import { shadowRead, type ShadowRead } from '@/lib/eval/fault-bank-shadow';
 import { readTurnFile } from '@/lib/eval/turn-file';
 import { engineSwitchNames } from '@/lib/eval/batch-manifest';
 import { parseEngineSwitches } from '@/lib/cases/engine-switches';
@@ -252,6 +257,43 @@ async function run() {
   if (escapes.length || rows.some(r => r.skipped === 'run_missing')) process.exitCode = 1;
 }
 
+// ── shadow (Phase 2 S1) ──
+// What the one data decision would have done at each record's turn (lib/eval/fault-bank-shadow.ts), against the run's
+// replay mirrors. Nothing here is spoken, so this is the shadow's own score, not the gate's.
+function shadow() {
+  const label = arg('label');
+  if (!label) throw new Error('--label=<label> is required (a `run` with --switches naming phase2)');
+  const out = path.join(OUT_BASE, `fault-bank-${label}`);
+  const owned = new Set((JSON.parse(readFileSync(path.join(BANK, 'phase2-owned.json'), 'utf8')) as { ids: string[] }).ids);
+  const lines: string[] = [`# Fault bank vs the shadow decision — ${label}`, ''];
+  type ShadowRow = { id: string; cls: string; kind: string; today: string; read: ShadowRead; alt: ShadowRead };
+  const tally = (rows: ShadowRow[], title: string) => {
+    const c = (v: string, k: 'read' | 'alt' = 'read') => rows.filter(r => r[k].verdict === v).length;
+    lines.push(`## ${title}`, '', `| | shadow | with the head-noun test (Q2) |`, '|---|---:|---:|');
+    for (const v of ['pass', 'fail', 'na', 'no_row']) lines.push(`| ${v} | ${c(v)} | ${c(v, 'alt')} |`);
+    lines.push(`| of the passes, on a deferral whose resolution one turn can't show | ${rows.filter(r => r.read.verdict === 'pass' && r.read.unresolvedDefer).length} | ${rows.filter(r => r.alt.verdict === 'pass' && r.alt.unresolvedDefer).length} |`, '');
+    lines.push('| record | class | today (bank) | shadow | head-noun | why |', '|---|---|---|---|---|---|');
+    for (const r of rows) lines.push(`| ${r.id} | ${r.cls} | ${r.today} | ${r.read.verdict}${r.read.unresolvedDefer ? ' (defer)' : ''} | ${r.alt.verdict} | ${r.read.why.join('; ')} |`);
+    lines.push('');
+  };
+  const results = new Map((JSON.parse(readFileSync(path.join(out, RESULTS), 'utf8')) as Row[]).map(r => [r.id, r]));
+  const rows: ShadowRow[] = [];
+  for (const r of loadBank()) {
+    if (isReportRecord(r)) continue;
+    const mirror = path.join(out, 'replay', `${r.turnFile.split('/')[1]}--${r.turnFile.split('/')[2]}`, r.turnFile);
+    if (!existsSync(mirror)) continue;
+    const t = turnsOf(mirror).find(x => x.turnIndex === r.turn - 1);
+    const res = results.get(r.id);
+    rows.push({ id: r.id, cls: r.grade.class, kind: r.kind, today: res ? (res.skipped ?? (res.pass ? 'pass' : 'fail')) : '?', read: shadowRead(r, t), alt: shadowRead(r, t, 'withHead') });
+  }
+  tally(rows.filter(r => owned.has(r.id)), `The ${owned.size} owned records (Q8)`);
+  tally(rows.filter(r => r.kind === 'correct' && r.cls === 'true_refusal'), 'True refusals (correct records) — Q2\'s first test');
+  tally(rows.filter(r => r.kind === 'correct' && r.cls !== 'true_refusal'), 'Other correct records');
+  writeFileSync(path.join(out, 'shadow.md'), lines.join('\n'));
+  console.log(lines.filter(l => !l.startsWith('| b')).join('\n'));
+  console.log(`→ ${out}/shadow.md`);
+}
+
 // ── compare (bank fix 3, 26 Oct) ──
 // Gate condition 1 requires that no record moves from `fails_as_expected` into ANY skip class: a fix that flips a
 // turn's kind, shortens a run or empties a must-not's window would otherwise take a failing record out of the
@@ -376,5 +418,6 @@ if (cmd === 'build') build();
 else if (cmd === 'wave-list') waveList();
 else if (cmd === 'check') process.exitCode = check() ? 1 : 0;
 else if (cmd === 'compare') process.exitCode = compare() ? 1 : 0;
+else if (cmd === 'shadow') shadow();
 else if (cmd === 'run') run().catch(e => { console.error(e); process.exit(1); });
 else { console.error('usage: fault-bank.ts build | check | wave-list | run --label=<l> [--switches=…] [--jobs=n] [--only=<id-prefix>] [--against=<baseline>] | compare --against=<baseline> --to=<run>'); process.exit(2); }

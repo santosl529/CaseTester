@@ -29,6 +29,7 @@ import { logEvent } from '@/lib/analytics';
 import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { line, phrase, recordPhraseUses, rotateOpeningAck, type PhraseUses } from './phrasing';
+import { shadowAskDecision } from './ask-decision';
 import { switchOn } from '@/lib/cases/engine-switches';
 import { dataLinePools } from '@/lib/cases/loader';
 import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
@@ -689,6 +690,17 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       dataParts.push(...parts);
       dataLines = dataParts.map(p => p.text);
       decisions.releases = [...decisions.releases, ...late];
+    }
+  }
+  // Phase 2 S1 (`askDecisionShadow`; design §2): the one data decision, logged beside today's — never spoken. After the
+  // late must-reach lines, so what Settle volunteers at a point only it sees is in today's decisions too.
+  if (switchOn(state.caseData, 'askDecisionShadow')) {
+    try {
+      const shadow = await shadowAskDecision({ plan, model: turn.requests, detections: codeWritten ? out.extraRequestRows ?? null : asked?.detected ?? null,
+        modelWords: codeWritten ? [] : [turn.say, turn.question], old: decisions });
+      checks.record('ask_decision_shadow', shadow.asks.length > 0, 'the one data decision (Phase 2 S1), in shadow: per sub-ask, beside today\'s paths', shadow);
+    } catch (e) {
+      checks.record('ask_decision_shadow', false, `shadow failed: ${(e as Error).message}`, {});
     }
   }
   // The must-reach items this turn volunteers (round 6 Task 72; Lorenzo, 21 Oct: "The report should note when an item

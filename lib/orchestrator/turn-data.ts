@@ -32,6 +32,12 @@ export function caseResolver(plan: ModelPlan): (raw: string) => string | null {
 // check). Two at most, this turn's asks first. An existing exception to the
 // pressure-test gate.
 const FORCES_OPEN = new Set(['rec_ask', 'grace_ask', 'time_warning']);
+// Whether the pressure-test gate holds gated items on this turn (turnData's `gateOn`; read by Phase 2's shadow decision).
+export function ptGateOn(plan: ModelPlan): boolean {
+  const { state } = plan;
+  const satisfied = (state.ptSatisfiedNow ?? state.pressureTest.state === 'satisfied') || Boolean(state.ptWaivingNow) || state.pressureTest.state === 'waived';
+  return !satisfied && !FORCES_OPEN.has(state.kind);
+}
 
 // Whether the pressure test counts as satisfied for this turn: persisted, or
 // the judge says this turn's replies answered it — and, if not, whether this
@@ -1013,7 +1019,7 @@ export function probeTurn(plan: ModelPlan): boolean {
   const { checkerLine, kind } = plan.state;
   return kind === 'model' && checkerLine !== null && !correctsNow(checkerLine);
 }
-function messageAskSentences(plan: ModelPlan): string[] {
+export function messageAskSentences(plan: ModelPlan): string[] {
   const { ctx, state } = plan;
   return WANT_ASK_PHASES.includes(ctx.currentPhase) ? addressedAskSentences(ctx.candidateText, ctx.currentPhase, { wantIs: state.factBase.answerGate, wantBroad: switchOn(state.caseData, 'wantCueBroad') })
     : lateAskSentences(ctx.candidateText, ctx.currentPhase, [state.caseData.prompt, ...Object.values(revealedValues(state.ledger))]);
