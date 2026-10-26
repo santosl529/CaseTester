@@ -326,3 +326,15 @@ describe('number words are no key nouns', () => {
     expect([...keyNouns('price elasticity on the four uncontested routes')].sort()).toEqual(['elasticity', 'route', 'uncontested']);
   });
 });
+
+describe('a finer period cut is unmeetable too (review F3, follow-up)', () => {
+  it('b36 Larkspur Marcus a7d9f44e t11 "quarter-by-quarter fares and passengers since entry": its carriers never meet it', async () => {
+    on();
+    ask.mockImplementation(async () => ({ items: [] }));
+    const what = 'quarter-by-quarter fares and passengers since entry';
+    const p = plan('Do we have quarter-by-quarter fares and passengers since entry?', { flags: SATISFIED, phase: 'ANALYSIS', revealed: ['competitor_entry', 'competitor_costs'] });
+    const d = await turnDataChecked(p, turn([{ what, itemIds: [], explicit: true, respond: 'release' }]));
+    if (d.defers.includes(what)) expect(needCarriers(d.deferralsOpened![0].need)).toEqual([]);
+    else expect(d.refusals).toEqual([what]);
+  });
+});

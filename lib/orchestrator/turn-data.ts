@@ -761,6 +761,7 @@ async function turnDataDecided(plan: ModelPlan, turn: Pick<ModelTurn, 'requests'
 // the items — audit rows 2, 18, 19), and the refusals no check made — the scope rules' finer cuts, the answer gate's
 // parts off the check, the geography refusals (code's own matches at a coarser cut, not "no match").
 const QUALIFIED = '(a period or scope)';
+const FINER_PERIOD = /(?:quarter|week|month|day|year)[-\s]by[-\s](?:quarter|week|month|day|year)|\bby (?:quarter|month|week|day)\b|\b(?:quarterly|monthly|weekly)\b/i;
 // What a turn gives (released, restated, on the exhibit handed over).
 const givenOf = (d: Pick<DataDecisions, 'releases' | 'restates' | 'exhibit'>) => new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]);
 // The ask's head noun (review F2): the last key noun of its head noun phrase — the words before the first preposition,
@@ -797,7 +798,10 @@ function nounReader(plan: ModelPlan, given: ReadonlySet<string>): (text: string)
     const head = headNoun(text, caseNames);
     const sharedNouns = nouns.filter(n => pending.some(i => i.nouns.has(n)));
     const carriers = head !== null && sharedNouns.includes(head) ? pending.filter(i => sharedNouns.every(n => i.nouns.has(n))).map(i => i.id) : [];
-    const qualified = askQualifiers(text, true).some(q => q.kind === 'period' || q.kind === 'scope');
+    // A period or scope the carriers can't state, including a finer period cut the qualifier grammar doesn't read
+    // ("quarter-by-quarter fares and passengers since entry", b36 Larkspur Marcus a7d9f44e t11: delivering an item that
+    // carries "fare" and "passenger" is no answer to it, so it closes at the wrap-up instead of resolving silently).
+    const qualified = askQualifiers(text, true).some(q => q.kind === 'period' || q.kind === 'scope') || FINER_PERIOD.test(text);
     const need = carriers.length > 0
       ? { ...Object.fromEntries(sharedNouns.map(n => [n, carriers])), ...(qualified ? { [QUALIFIED]: [] } : {}) }
       : {};
