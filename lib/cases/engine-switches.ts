@@ -29,7 +29,6 @@ export const PHASE1_SWITCHES = [
   'restateRules',        // 4.1: exhibit pointer + summary; a number only if asked; matched item only; not twice in 4 turns
   'coarseKeepNamed',     // 4.2: never drop a model-named item that matches the ask
   'haikuTagGate',        // 4.3: the check's positives pass the item tag gate; a mismatch defers
-  'refusalNounCheck',    // 4.4: no refusal while a ledger item shares a key noun with the ask; defer
   'coverNormalization',  // 4.5: plurals, synonym table, the candidate's own sentence
   'wantCueBroad',        // 4.6: "I'd want / need / confirm" + any noun phrase
   'modelDeferrals',      // 4.7: model-said deferrals registered for E5's stop sequence
@@ -42,7 +41,12 @@ export const PHASE1_SWITCHES = [
 // reading on 26 Oct — a received recommendation opening the end gate removes post-recommendation pushback probes,
 // and pushback is a scored rubric dimension (five runs closed 3–8 minutes early; b34a Jasmine lost eight turns).
 // It stays nameable for evidence, never on by default.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate'] as const;
+// 4.4 (Lorenzo, 26 Oct): dropped from the preset on the fault bank's evidence. With `*=phase1` it cost three
+// correct-behaviour records and three fault records, and left its own `false_refusal` class unchanged at 7/15 —
+// both graded false refusals are fixed by 4.2 and 4.5 acting alone. Its harm is the realism regression: a true
+// "I don't have that" becomes a promise later withdrawn as "we won't get to it", which the bank records as a
+// fault in its own right. Nameable for evidence, never on by default.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];
