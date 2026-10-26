@@ -429,12 +429,16 @@
   "turn": 26,
   "sev": "correct",
   "cls": "correct_release",
-  "note": "The cannibalization line for his cannibalization question.",
+  "note": "The cannibalization line for his cannibalization question. Window widened on 26 Oct (gate report §2 and §5 item 7, Lorenzo): must-reach releases `cannibalization` before the recommendation — his 21 Oct intent — so with the switches on the correct release lands at t18 instead of t26, and the record pinned to t26 was the one failing correct record in the `*=phase1` arm. What the record means is that the item is out by the turn that answers his ask; where must-reach puts it earlier is must-reach's business, and an unasked early release is a different record's (unasked_release). Fix the record, not the code.",
   "a": [
    {
     "kind": "release",
     "item": "cannibalization",
-    "must": true
+    "must": true,
+    "scope": {
+     "fromTurn": 2,
+     "toTurn": 26
+    }
    }
   ],
   "rep": true,

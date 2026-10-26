@@ -53,11 +53,17 @@
   "turn": 12,
   "sev": "firm",
   "cls": "ignored_ask",
-  "note": "Her t11 \"Do we know whether load factor would actually fall if we priced back up to $200, or is that untested?\" — the model declared nothing and code's \"$18,000\" probe took the turn. The case holds no elasticity: a refusal was owed (a code probe turn had no slot for her ask).",
+  "note": "Her t11 \"Do we know whether load factor would actually fall if we priced back up to $200, or is that untested?\" — the model declared nothing and code's \"$18,000\" probe took the turn. The case holds no elasticity: a refusal was owed (a code probe turn had no slot for her ask). Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$18,000\" probe taking the whole turn, which is what left her ask with no slot.",
   "a": [
    {
     "kind": "refusal",
+    "about": "elasticity|load factor|untested",
     "must": true
+   },
+   {
+    "kind": "probe",
+    "figure": "$18,000",
+    "must": false
    }
   ],
   "rep": true,
@@ -70,11 +76,17 @@
   "turn": 26,
   "sev": "firm",
   "cls": "ignored_ask",
-  "note": "Her t25 \"Do we know how quickly we can exit the Lakeport and Port Avery slots?\" — declared nothing; the \"$2,800\" probe took the turn. Not held: a refusal was owed.",
+  "note": "Her t25 \"Do we know how quickly we can exit the Lakeport and Port Avery slots?\" — declared nothing; the \"$2,800\" probe took the turn. Not held: a refusal was owed. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$2,800\" probe taking the whole turn, which is what left her ask with no slot.",
   "a": [
    {
     "kind": "refusal",
+    "about": "exit|slot",
     "must": true
+   },
+   {
+    "kind": "probe",
+    "figure": "$2,800",
+    "must": false
    }
   ],
   "rep": true,
@@ -371,7 +383,7 @@
   "turn": 30,
   "sev": "borderline",
   "cls": "hollow_deferral",
-  "note": "\"That's one we've covered: [competitor_costs]. We won't get to that today.\" for the competitor's cost breakdown by labor and utilization, which the case doesn't hold; the check mapped it to Larkspur's own items. Lorenzo (20 Oct): \"We won't get to\" on data the case doesn't hold, at the close, is borderline.",
+  "note": "\"That's one we've covered: [competitor_costs]. We won't get to that today.\" for the competitor's cost breakdown by labor and utilization, which the case doesn't hold; the check mapped it to Larkspur's own items. Lorenzo (20 Oct): \"We won't get to\" on data the case doesn't hold, at the close, is borderline. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now (both spellings of utilisation, so the assertion is not a spelling trap).",
   "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (call 2)",
   "a": [
    {
@@ -381,6 +393,7 @@
    },
    {
     "kind": "refusal",
+    "about": "labor|utilisation|utilization|cost breakdown",
     "must": true
    }
   ],
