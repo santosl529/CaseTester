@@ -51,12 +51,16 @@
   "turn": 18,
   "sev": "firm",
   "cls": "stale_probe",
-  "note": "Code's rec_math_probe \"Before we wrap up — how did you arrive at 19%?\" after his t17 redo (\"So it should be 15%, not 19%\"). The stale check missed the redo.",
+  "note": "Code's rec_math_probe \"Before we wrap up — how did you arrive at 19%?\" after his t17 redo (\"So it should be 15%, not 19%\"). The stale check missed the redo. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
     "figure": "19%",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -91,13 +95,17 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "other",
-  "note": "Code's wrap-up probe \"Before we wrap up — walk me through how you got there.\" named no claim; it arrived two turns after its claim (t19), so \"there\" pointed at his first-step answer. Lorenzo's round-4 ruling 4: a late bare probe must quote the claim.",
+  "note": "Code's wrap-up probe \"Before we wrap up — walk me through how you got there.\" named no claim; it arrived two turns after its claim (t19), so \"there\" pointed at his first-step answer. Lorenzo's round-4 ruling 4: a late bare probe must quote the claim. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-33/hand-grading.md; lorenzo-ruling-2026-10-19 (round 4, ruling 4)",
   "a": [
    {
     "kind": "says",
     "pattern": "walk me through how you got there\\.?\\s*$",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -110,11 +118,16 @@
   "turn": 10,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "His same-store volume ask got only the ticket and \"Setting the exact traffic data aside for now\"; the store count (200 both years), never released, would have answered \"same-store\".",
+  "note": "His same-store volume ask got only the ticket and \"Setting the exact traffic data aside for now\"; the store count (200 both years), never released, would have answered \"same-store\". Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "a": [
    {
-    "kind": "release",
+    "kind": "answered",
     "item": "stores_count",
+    "about": "same-store|store",
+    "accept": [
+     "release",
+     "deferral"
+    ],
     "must": true
    }
   ],
@@ -149,8 +162,9 @@
     }
    }
   ],
-  "rep": true,
-  "stream": 4
+  "rep": false,
+  "stream": 4,
+  "rnote": "The fix needs a new classifier detection on a model turn (Guard B regenerated and the model still declared nothing). The replay cannot prove 4.6: the broader want cue only makes the sentence an asking sentence, and on a model turn the message classifier is mocked to the run's saved detections, which hold none for it. Wave: on prof-001, a COGS-split want inside an \"I'm done\" turn gets a word (Jasmine-type early finishers); the auditor (ignored_ask) and the hand grade see it."
  },
  {
   "id": "b33-jasmine-t14-analysis-reask",
@@ -167,8 +181,9 @@
     "must": false
    }
   ],
-  "rep": true,
-  "stream": "phase2"
+  "rep": false,
+  "stream": "phase2",
+  "rnote": "Owned by phase2: no Phase 1 stream touches the stage record behind the re-asked analysis question. Wave: on prof-001, the analysis stage question is not re-asked once the candidate has answered it; the hand grade sees it (auditor: stage_missed)."
  },
  {
   "id": "b33-marcus-t6-before-any-data",
@@ -196,11 +211,16 @@
   "turn": 16,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"I don't have … volume per store.\" True (the case holds no volume), but the store count, never released, would have let her derive it; Sofia got ticket + store count for the same ask at t12. Doubt: under contract 4.4 a key noun shared with stores_count would defer rather than release; the record asks for the release.",
+  "note": "\"I don't have … volume per store.\" True (the case holds no volume), but the store count, never released, would have let her derive it; Sofia got ticket + store count for the same ask at t12. Doubt: under contract 4.4 a key noun shared with stores_count would defer rather than release; the record asks for the release. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "a": [
    {
-    "kind": "release",
+    "kind": "answered",
     "item": "stores_count",
+    "about": "volume per store|store count|stores",
+    "accept": [
+     "release",
+     "deferral"
+    ],
     "must": true
    }
   ],
@@ -233,16 +253,22 @@
   "turn": 8,
   "sev": "borderline",
   "cls": "ignored_ask",
-  "note": "\"I'd want to know whether the 15% came from new stores …\" — a want, not a direct ask (D9); the store count was not given. The grading counts Raj t7, Jordan t1 and Fiona t1 as one borderline item; this record is Raj's (Jordan t2 and Fiona t2 are the same want).",
+  "note": "\"I'd want to know whether the 15% came from new stores …\" — a want, not a direct ask (D9); the store count was not given. The grading counts Raj t7, Jordan t1 and Fiona t1 as one borderline item; this record is Raj's (Jordan t2 and Fiona t2 are the same want). Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "a": [
    {
-    "kind": "release",
+    "kind": "answered",
     "item": "stores_count",
+    "about": "new store|store",
+    "accept": [
+     "release",
+     "deferral"
+    ],
     "must": true
    }
   ],
-  "rep": true,
-  "stream": 4
+  "rep": false,
+  "stream": 4,
+  "rnote": "The fix is contract 4.6 on a model turn. The replay cannot prove 4.6: the broader want cue only makes the sentence an asking sentence, and on a model turn the message classifier is mocked to the run's saved detections, which hold none for it. Wave: on prof-001, \"I'd want to know whether the 15% came from new stores\" gets the store count or a deferral that comes back (Raj-type, Dana the data-heavy asker); the auditor (ignored_ask) and the hand grade see it."
  },
  {
   "id": "b33-tyler-t18-want-dropped",
@@ -251,11 +277,16 @@
   "turn": 18,
   "sev": "borderline",
   "cls": "ignored_ask",
-  "note": "His t17 \"I'd want the split between new-store openings and same-store transaction growth\" went unanswered: the turn was code's rec_math_probe and code_written_requests dropped it.",
+  "note": "His t17 \"I'd want the split between new-store openings and same-store transaction growth\" went unanswered: the turn was code's rec_math_probe and code_written_requests dropped it. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "a": [
    {
-    "kind": "release",
+    "kind": "answered",
     "item": "stores_count",
+    "about": "new store|same-store|store",
+    "accept": [
+     "release",
+     "deferral"
+    ],
     "must": true
    }
   ],

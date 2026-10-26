@@ -30,13 +30,17 @@
   "turn": 6,
   "sev": "false",
   "cls": "wrong_figure",
-  "note": "Code's probe_guard replacement \"How did you get to $9?\" for his \"$9.0M\" (scale dropped). It replaced the model's correct misquote catch (\"you attributed $0.75 per bag to me …\"), withheld as math_challenge. Lorenzo's ruling 3: unit/scale slips in code lines are false, not serious.",
+  "note": "Code's probe_guard replacement \"How did you get to $9?\" for his \"$9.0M\" (scale dropped). It replaced the model's correct misquote catch (\"you attributed $0.75 per bag to me …\"), withheld as math_challenge. Lorenzo's ruling 3: unit/scale slips in code lines are false, not serious. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 3)",
   "a": [
    {
     "kind": "says",
     "pattern": "How did you get to \\$9\\?",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -129,8 +133,9 @@
     "must": true
    }
   ],
-  "rep": true,
-  "stream": 4
+  "rep": false,
+  "stream": 4,
+  "rnote": "The fix is the want cue on a model turn (\"What I'd want is distribution math…\"). The replay cannot prove 4.6: the broader want cue only makes the sentence an asking sentence, and on a model turn the message classifier is mocked to the run's saved detections, which hold none for it. Wave: on launch-001, a distribution want gets retailer_support or a true refusal (Marcus, Dana); the auditor (ignored_ask) and the hand grade see it."
  },
  {
   "id": "b37h-marisol-t20-stale-probe",
@@ -139,12 +144,16 @@
   "turn": 20,
   "sev": "firm",
   "cls": "stale_probe",
-  "note": "\"Earlier you said about $9.9 million of first-year profit. Can you walk me through …?\" — her t19 had redone it (\"$1.50 × 3 million = $4.5 million of first-year profit above breakeven\"); the stale reader closed the household and bag claims but not yearone_profit@9.9.",
+  "note": "\"Earlier you said about $9.9 million of first-year profit. Can you walk me through …?\" — her t19 had redone it (\"$1.50 × 3 million = $4.5 million of first-year profit above breakeven\"); the stale reader closed the household and bag claims but not yearone_profit@9.9. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
     "figure": "$9.9 million",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -211,12 +220,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "false_correction",
-  "note": "The replacement question challenges a correct sum ($9.0M) in place of the model's correct misquote catch (neutral wording, as batch 36 Jasmine t28).",
+  "note": "The replacement question challenges a correct sum ($9.0M) in place of the model's correct misquote catch (neutral wording, as batch 36 Jasmine t28). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
     "figure": "$9",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -229,12 +242,22 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "false_refusal",
-  "note": "\"I don't have repeat rates from past launches.\" Exhibit 2 (on screen since t8) shows each buying household averages 3 bags \"from Hollis Bay's past launches\"; he took it as \"none exist\". Borderline by the refined rule (on screen).",
+  "note": "\"I don't have repeat rates from past launches.\" Exhibit 2 (on screen since t8) shows each buying household averages 3 bags \"from Hollis Bay's past launches\"; he took it as \"none exist\". Borderline by the refined rule (on screen). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "refusal",
     "about": "repeat rates from past launches",
     "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "planning_assumptions",
+    "about": "repeat rate",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true
    }
   ],
   "rep": true,
@@ -247,7 +270,7 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "misquote_uncorrected",
-  "note": "Misquotes not corrected flat (Rule 6 option 4): $0.75 (the model's catch withheld at t6; the checker probed $1.55 at t8), 54% (a Socratic model probe t14), $4.3M in his recommendation (t19, never corrected; closed with 6 minutes left). Code's misquote check found 0 of 3. One item.",
+  "note": "Misquotes not corrected flat (Rule 6 option 4): $0.75 (the model's catch withheld at t6; the checker probed $1.55 at t8), 54% (a Socratic model probe t14), $4.3M in his recommendation (t19, never corrected; closed with 6 minutes left). Code's misquote check found 0 of 3. One item. Fix round (25 Oct): satisfiable in the replay — the recorded checker verdicts rate \"ingredients you said $0.75\" (t6) and \"fund both inside the existing $4.3M marketing line\" (t20) errors of type misquote, so contract 3.4 can fire on both.",
   "a": [
    {
     "kind": "correction",
@@ -300,12 +323,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "stale_probe",
-  "note": "\"Earlier you said the 4.1 million bags were roughly $16 million of retail sales …\" — at t13 she had restated it on 6.8M bags (\"about $27 million of shelf sales\"); the targeted basis error was still live.",
+  "note": "\"Earlier you said the 4.1 million bags were roughly $16 million of retail sales …\" — at t13 she had restated it on 6.8M bags (\"about $27 million of shelf sales\"); the targeted basis error was still live. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
     "figure": "$16 million",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -354,13 +381,17 @@
   "turn": 10,
   "sev": "firm",
   "cls": "unasked_offer",
-  "note": "\"I can share the survey on shopper purchase intent and planning assumptions if you'd like.\" (he took it at t11). Graded borderline; firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (judgement call, applied beyond the named Quillpath case).",
+  "note": "\"I can share the survey on shopper purchase intent and planning assumptions if you'd like.\" (he took it at t11). Graded borderline; firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (judgement call, applied beyond the named Quillpath case). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
   "a": [
    {
     "kind": "says",
     "pattern": "I can share the survey",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -392,12 +423,17 @@
   "turn": 26,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"How would you guard against that?\" after his t25 \"I'd mitigate by locking retailer commitments …\".",
+  "note": "Code's close_wait \"How would you guard against that?\" after his t25 \"I'd mitigate by locking retailer commitments …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -541,12 +577,16 @@
   "turn": 12,
   "sev": "correct",
   "cls": "correct_correction",
-  "note": "Root correction \"Contribution per bag is about $1.5.\" (attempt 2; she still ran $3.99 at t11); her derived 4.1M closed stale.",
+  "note": "Root correction \"Contribution per bag is about $1.5.\" (attempt 2; she still ran $3.99 at t11); her derived 4.1M closed stale. Fix round (25 Oct): the window runs t6–t12, because b37h-marisol-ladders requires the same correction by t10 — pinned to t12 the two records could not both hold.",
   "a": [
    {
     "kind": "correction",
     "figure": "$1.5",
-    "must": true
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 12
+    }
    }
   ],
   "rep": true,

@@ -49,13 +49,23 @@
   "turn": 6,
   "sev": "false",
   "cls": "false_refusal",
-  "note": "\"I don't have cost per seat mile trend.\" (check: maps to none) — unit_costs (no material changes to wages or other costs per flight) and fuel_prices (roughly flat) answer it. Lorenzo (21 Oct): false, not serious. Round 6 added the CASM cover.",
+  "note": "\"I don't have cost per seat mile trend.\" (check: maps to none) — unit_costs (no material changes to wages or other costs per flight) and fuel_prices (roughly flat) answer it. Lorenzo (21 Oct): false, not serious. Round 6 added the CASM cover. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-36-larkspur/hand-grading.md; lorenzo-ruling-2026-10-21",
   "a": [
    {
     "kind": "refusal",
     "about": "seat mile",
     "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "unit_costs",
+    "about": "seat mile|cost per seat",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true
    }
   ],
   "rep": true,
@@ -68,13 +78,23 @@
   "turn": 2,
   "sev": "false",
   "cls": "false_refusal",
-  "note": "\"I don't have total departures and average fare, FY2023 vs FY2025.\" (check: maps to none) — network_totals and routes_schedule hold total departures; the average-fare half is true. Lorenzo (21 Oct): false, not serious. Round 6 added the \"total departures\" cover.",
+  "note": "\"I don't have total departures and average fare, FY2023 vs FY2025.\" (check: maps to none) — network_totals and routes_schedule hold total departures; the average-fare half is true. Lorenzo (21 Oct): false, not serious. Round 6 added the \"total departures\" cover. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-36-larkspur/hand-grading.md; lorenzo-ruling-2026-10-21",
   "a": [
    {
     "kind": "refusal",
     "about": "departures",
     "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "network_totals",
+    "about": "departures",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true
    }
   ],
   "rep": true,
@@ -118,8 +138,9 @@
     }
    }
   ],
-  "rep": true,
-  "stream": "none"
+  "rep": false,
+  "stream": "none",
+  "rnote": "Lorenzo's accepted residual (stream `none`), so no Phase 1 stream owns it. On the contract base the must-reach already volunteers new_route_rampup at t20. Wave: on prof-002, a demand stress-test ask gets the first-year ramp before the recommendation (Tyler, Marcus); the auditor (ignored_ask) and the hand grade see it."
  },
  {
   "id": "b36l-marcus-t20-launch-cost",
@@ -191,11 +212,15 @@
   "turn": 20,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"Do we have a fixed-cost breakdown — how much of the $20M is aircraft leases we could defer?\" → aircraft_leases (the defer half), no \"I don't have the split of the $20M\". Also \"How do you read those numbers?\" after a line with no figures.",
+  "note": "\"Do we have a fixed-cost breakdown — how much of the $20M is aircraft leases we could defer?\" → aircraft_leases (the defer half), no \"I don't have the split of the $20M\". Also \"How do you read those numbers?\" after a line with no figures. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "a": [
    {
-    "kind": "refusal",
+    "kind": "answered",
     "about": "split|breakdown",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
     "must": true
    }
   ],
@@ -209,12 +234,17 @@
   "turn": 30,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"What would you do to guard against that?\" after his t29 \"What I'd do is reduce the attractiveness of following us … And I'd set a trigger\".",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t29 \"What I'd do is reduce the attractiveness of following us … And I'd set a trigger\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -227,12 +257,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "\"As the exhibit shows: On Hub–Lakeport …\" — about 120 words of Exhibit 1 (on screen) in answer to a fare ask (request_group → restate cap 3).",
+  "note": "\"As the exhibit shows: On Hub–Lakeport …\" — about 120 words of Exhibit 1 (on screen) in answer to a fare ask (request_group → restate cap 3). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "restatement",
     "item": "route_results_lakeport",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -264,12 +298,16 @@
   "turn": 20,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Understood. You said roughly 800,000 passengers a year across the network. What's your recommendation to the client?\" — the model's say with an empty question, and code appended the recommendation ask; reads as a probe (800,000 near-right).",
+  "note": "\"Understood. You said roughly 800,000 passengers a year across the network. What's your recommendation to the client?\" — the model's say with an empty question, and code appended the recommendation ask; reads as a probe (800,000 near-right). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "You said roughly 800,000 passengers",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -282,12 +320,17 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"What would you do to guard against that?\" after his t23 \"What I'd do: de-risk before committing the full fleet …\".",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t23 \"What I'd do: de-risk before committing the full fleet …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -300,12 +343,16 @@
   "turn": 12,
   "sev": "borderline",
   "cls": "other",
-  "note": "The model's \"Given that, you said recovering even part of the $4,800 …\" was withheld (grading); \"Walk me through how you got that figure …\" then lands right after the new-routes line, so \"that figure\" reads as the interviewer's $9,200.",
+  "note": "The model's \"Given that, you said recovering even part of the $4,800 …\" was withheld (grading); \"Walk me through how you got that figure …\" then lands right after the new-routes line, so \"that figure\" reads as the interviewer's $9,200. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "^Walk me through how you got that figure|\\. Walk me through how you got that figure",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -318,12 +365,16 @@
   "turn": 10,
   "sev": "borderline",
   "cls": "stale_probe",
-  "note": "\"Earlier you said Lakeport was around $160 in FY2023 after applying a 33% decline to $120. Which base did you apply the 33% to?\" — at t9 she had already used Exhibit 2's \"$200 to $120, down 40%\". Borderline: she hadn't acknowledged the method error.",
+  "note": "\"Earlier you said Lakeport was around $160 in FY2023 after applying a 33% decline to $120. Which base did you apply the 33% to?\" — at t9 she had already used Exhibit 2's \"$200 to $120, down 40%\". Borderline: she hadn't acknowledged the method error. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
     "figure": "$160",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -392,12 +443,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Fuel prices have been roughly flat over the period. I'll come back to fuel and crew rate changes between the years shortly.\" — a deferral re-naming what it just answered (unit_costs delivered at t10, not hollow).",
+  "note": "\"Fuel prices have been roughly flat over the period. I'll come back to fuel and crew rate changes between the years shortly.\" — a deferral re-naming what it just answered (unit_costs delivered at t10, not hollow). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "deferral",
     "about": "fuel",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,

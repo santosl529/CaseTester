@@ -54,12 +54,16 @@
   "turn": 14,
   "sev": "firm",
   "cls": "stale_probe",
-  "note": "\"You mentioned a 40% rebate gives $225 million. Which patient number is that built on …?\" after his t13 redo (\"With the corrected funnel it should be 40,000 × $6,000 = $240 million\"); the model had already asked it at t12.",
+  "note": "\"You mentioned a 40% rebate gives $225 million. Which patient number is that built on …?\" after his t13 redo (\"With the corrected funnel it should be 40,000 × $6,000 = $240 million\"); the model had already asked it at t12. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
     "figure": "$225 million",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -135,17 +139,16 @@
   "turn": 18,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"I'll come back to the partner deal terms, including royalty step-downs and rights reversion shortly.\" The check mapped it to option_b (on screen); the case holds no step-downs or reversion; never answered. Lorenzo's rule 2: a hollow deferral is one firm moderate.",
+  "note": "\"I'll come back to the partner deal terms, including royalty step-downs and rights reversion shortly.\" The check mapped it to option_b (on screen); the case holds no step-downs or reversion; never answered. Lorenzo's rule 2: a hollow deferral is one firm moderate. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (rule 2)",
   "a": [
    {
-    "kind": "deferral",
-    "about": "deal terms|step-down|reversion",
-    "must": false
-   },
-   {
-    "kind": "refusal",
+    "kind": "answered",
     "about": "step-down|reversion|deal terms",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
     "must": true
    }
   ],
@@ -159,7 +162,7 @@
   "turn": 28,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"Let's hold whether any US player has an existing Corlan's franchise for a little later.\" at the recommendation ask; the check mapped it to company_size (Aldermoor's own size). Worse than hollow: option_b (the established partner, on screen) and nimbrel (the incumbent, never told to her) answer it. Baseline finding: on the base the deferral became a company_size release (Aldermoor's own size) — still a non-answer.",
+  "note": "\"Let's hold whether any US player has an existing Corlan's franchise for a little later.\" at the recommendation ask; the check mapped it to company_size (Aldermoor's own size). Worse than hollow: option_b (the established partner, on screen) and nimbrel (the incumbent, never told to her) answer it. Baseline finding: on the base the deferral became a company_size release (Aldermoor's own size) — still a non-answer. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (rule 2)",
   "a": [
    {
@@ -171,6 +174,12 @@
     "kind": "release",
     "item": "company_size",
     "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "option_b",
+    "about": "franchise",
+    "must": true
    }
   ],
   "rep": true,
@@ -208,13 +217,18 @@
   "turn": 20,
   "sev": "borderline",
   "cls": "stage_missed",
-  "note": "The brainstorm re-asked word for word (\"If Aldermoor builds its own team, how could it reduce the risk of a slow start?\") after he answered the model's paraphrase at t19; the stage record didn't credit the paraphrase. Lorenzo's round-5 A7: credit a reworded stage ask (built).",
+  "note": "The brainstorm re-asked word for word (\"If Aldermoor builds its own team, how could it reduce the risk of a slow start?\") after he answered the model's paraphrase at t19; the stage record didn't credit the paraphrase. Lorenzo's round-5 A7: credit a reworded stage ask (built). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (A7)",
   "a": [
    {
     "kind": "says",
     "pattern": "If Aldermoor builds its own team, how could it reduce the risk of a slow start",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -227,13 +241,18 @@
   "turn": 20,
   "sev": "borderline",
   "cls": "stage_missed",
-  "note": "Code's brainstorm stage turn re-asked the slow-start question after he answered the model's t14 paraphrase at t15 (brainstormAsked false). Round-5 A7 credits a reworded stage ask.",
+  "note": "Code's brainstorm stage turn re-asked the slow-start question after he answered the model's t14 paraphrase at t15 (brainstormAsked false). Round-5 A7 credits a reworded stage ask. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (A7)",
   "a": [
    {
     "kind": "says",
     "pattern": "If Aldermoor builds its own team, how could it reduce the risk of a slow start",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -246,12 +265,17 @@
   "turn": 26,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait follow-up \"What would you do to guard against that?\" re-asks what his t25 had answered (rebates tied to formulary placement, a month-12 checkpoint).",
+  "note": "Code's close_wait follow-up \"What would you do to guard against that?\" re-asks what his t25 had answered (rebates tied to formulary placement, a month-12 checkpoint). Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -272,8 +296,9 @@
     "must": false
    }
   ],
-  "rep": true,
-  "stream": "phase2"
+  "rep": false,
+  "stream": "phase2",
+  "rnote": "Owned by phase2: nothing in Phase 1 reads whether the structure question was already answered. Wave: on entry-001, the structure gate asks once (Tyler-type and Marcus-type openers); the hand grade sees it (auditor: other)."
  },
  {
   "id": "b34a-tyler-t12-three-questions",
@@ -332,12 +357,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Here's an exhibit: … That's for a little later — we'll come back to how Kelvexa's European net price has moved …\" reads as if the exhibit is deferred.",
+  "note": "\"Here's an exhibit: … That's for a little later — we'll come back to how Kelvexa's European net price has moved …\" reads as if the exhibit is deferred. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "exhibit:[^.]*\\.[^.]*That's for a little later",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -350,12 +379,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "unasked_offer",
-  "note": "\"I can share what net sales means for the board's test if you'd like.\" He didn't take it, but his recommendation turned on that definition three times; code-written turns dropped each mention (wants). Graded borderline in batch 34 (before the 21 Oct \"an unasked offer is firm\" ruling).",
+  "note": "\"I can share what net sales means for the board's test if you'd like.\" He didn't take it, but his recommendation turned on that definition three times; code-written turns dropped each mention (wants). Graded borderline in batch 34 (before the 21 Oct \"an unasked offer is firm\" ruling). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "I can share what net sales means",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,

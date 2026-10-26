@@ -6,13 +6,27 @@
   "turn": 2,
   "sev": "false",
   "cls": "false_refusal",
-  "note": "\"I don't have split of revenue decline between passengers and average fare.\" The check returned coarse with five route items partial and code turned the model's deferral into a refusal. Same flights and planes as full → the whole decline is fare; routes_schedule's covers (\"fares and volume\", \"fare versus volume\") missed on \"passengers\" / \"average fare\". Claude's grade: false, not serious (judgement); awaiting Lorenzo's blind grade (open question 1).",
+  "note": "\"I don't have split of revenue decline between passengers and average fare.\" The check returned coarse with five route items partial and code turned the model's deferral into a refusal. Same flights and planes as full → the whole decline is fare; routes_schedule's covers (\"fares and volume\", \"fare versus volume\") missed on \"passengers\" / \"average fare\". Claude's grade: false, not serious (judgement); awaiting Lorenzo's blind grade (open question 1). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-38-larkspur/hand-grading.md (not yet second-graded)",
   "a": [
    {
     "kind": "refusal",
     "about": "split",
     "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "route_results_lakeport",
+    "about": "split|decline|passengers|fare",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true,
+    "scope": {
+     "fromTurn": 2,
+     "toTurn": 8
+    }
    }
   ],
   "rep": true,
@@ -49,12 +63,16 @@
   "turn": 20,
   "sev": "firm",
   "cls": "bare_partial",
-  "note": "\"Do we have any evidence behind the demand assumption — traffic data, connecting volumes?\" (new routes) → connecting_passengers (the routes being exited) + new_route_rampup; no \"I don't have traffic data on the new routes\". Judgement call (firm by the scope rule, borderline if the ramp counts); awaiting Lorenzo (open question 2).",
+  "note": "\"Do we have any evidence behind the demand assumption — traffic data, connecting volumes?\" (new routes) → connecting_passengers (the routes being exited) + new_route_rampup; no \"I don't have traffic data on the new routes\". Judgement call (firm by the scope rule, borderline if the ramp counts); awaiting Lorenzo (open question 2). Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "src": "batch-38-larkspur/hand-grading.md (not yet second-graded)",
   "a": [
    {
-    "kind": "refusal",
-    "about": "traffic",
+    "kind": "answered",
+    "about": "traffic|demand assumption|evidence",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
     "must": true
    }
   ],
@@ -91,7 +109,7 @@
   "turn": 24,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"On the price elasticity of those four routes, I'll check what we have.\" (the model) then \"Repeating what I said before: On the other four routes …\" (the check mapped route_results_other full). Elasticity isn't held; nothing came back. One fault: a wrong-mapping restatement plus a hollow model deferral (contract 4.7 model deferrals; round 6 open question 7: the answer gate on restatements).",
+  "note": "\"On the price elasticity of those four routes, I'll check what we have.\" (the model) then \"Repeating what I said before: On the other four routes …\" (the check mapped route_results_other full). Elasticity isn't held; nothing came back. One fault: a wrong-mapping restatement plus a hollow model deferral (contract 4.7 model deferrals; round 6 open question 7: the answer gate on restatements). Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "a": [
    {
     "kind": "restatement",
@@ -99,8 +117,12 @@
     "must": false
    },
    {
-    "kind": "refusal",
+    "kind": "answered",
     "about": "elasticity",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
     "must": true
    }
   ],
@@ -122,8 +144,9 @@
     "must": true
    }
   ],
-  "rep": true,
-  "stream": 4
+  "rep": false,
+  "stream": 4,
+  "rnote": "The fix is contract 4.6 on a model turn (\"I'd want their cost per seat, their frequency on each route\"). The replay cannot prove 4.6: the broader want cue only makes the sentence an asking sentence, and on a model turn the message classifier is mocked to the run's saved detections, which hold none for it. Wave: on prof-002, a competitor want list gets competitor_costs or a word on each part (Marisol, Dana); the auditor (ignored_ask) and the hand grade see it."
  },
  {
   "id": "b38l-marisol-t16-stale-probe",
@@ -132,12 +155,16 @@
   "turn": 16,
   "sev": "firm",
   "cls": "stale_probe",
-  "note": "\"You computed $1,800 positive per Port Avery flight using $9,000 variable cost. Where did that cost figure come from for Port Avery?\" — at t13 she had fixed it (\"it's $11,000 per flight, not $9,000\").",
+  "note": "\"You computed $1,800 positive per Port Avery flight using $9,000 variable cost. Where did that cost figure come from for Port Avery?\" — at t13 she had fixed it (\"it's $11,000 per flight, not $9,000\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
     "figure": "$1,800",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -150,12 +177,16 @@
   "turn": 24,
   "sev": "firm",
   "cls": "stale_correction",
-  "note": "\"The annual operating-profit improvement from redeploying the contested flights is about $11.8M, not $15.8M.\" — at t21 she had said \"So the honest number is an $11.8M contribution improvement\"; the stale reader read her explanation of the old figure as a restatement.",
+  "note": "\"The annual operating-profit improvement from redeploying the contested flights is about $11.8M, not $15.8M.\" — at t21 she had said \"So the honest number is an $11.8M contribution improvement\"; the stale reader read her explanation of the old figure as a restatement. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "correction",
     "figure": "$15.8M",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -168,11 +199,15 @@
   "turn": 8,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"what was the average fare in each year?\" — the model mapped it to lakeport_fare and code deferred it twice (t8, t10 \"On Hub-Lakeport average one-way fare in each year: we'll get there in a bit.\"); resolved at t12 with Exhibit 2. No network average is held and no \"I don't have the network average fare\" came.",
+  "note": "\"what was the average fare in each year?\" — the model mapped it to lakeport_fare and code deferred it twice (t8, t10 \"On Hub-Lakeport average one-way fare in each year: we'll get there in a bit.\"); resolved at t12 with Exhibit 2. No network average is held and no \"I don't have the network average fare\" came. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "a": [
    {
-    "kind": "refusal",
+    "kind": "answered",
     "about": "fare",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
     "must": true,
     "scope": {
      "fromTurn": 8,
@@ -312,12 +347,16 @@
   "turn": 20,
   "sev": "borderline",
   "cls": "other",
-  "note": "The model's \"On variable cost, you said $8,800 per flight.\" and \"Where did that figure come from …?\" were split by two data lines, so \"that figure\" lands after \"around 60%\".",
+  "note": "The model's \"On variable cost, you said $8,800 per flight.\" and \"Where did that figure come from …?\" were split by two data lines, so \"that figure\" lands after \"around 60%\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "60%[^?]*Where did that figure come from",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -330,12 +369,16 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "The same 90-word route_results_other line said at t22 and again at t24 (counted once as a borderline; the faults are t22 and t24).",
+  "note": "The same 90-word route_results_other line said at t22 and again at t24 (counted once as a borderline; the faults are t22 and t24). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "Repeating what I said before: On the other four routes",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -348,12 +391,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Here's an exhibit: … Let's hold extras revenue per passenger and results by route for a little later.\" — a deferral naming the route results right after the route exhibit went up. Extras deferred three times (t2, t4, t6) before t10.",
+  "note": "\"Here's an exhibit: … Let's hold extras revenue per passenger and results by route for a little later.\" — a deferral naming the route results right after the route exhibit went up. Extras deferred three times (t2, t4, t6) before t10. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "deferral",
     "about": "results by route",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -421,12 +468,17 @@
   "turn": 28,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "\"To guard against that, what would you put in place?\" (close_wait) after his t27 \"To manage it: validate demand … And set a decision checkpoint at six months\".",
+  "note": "\"To guard against that, what would you put in place?\" (close_wait) after his t27 \"To manage it: validate demand … And set a decision checkpoint at six months\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,

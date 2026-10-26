@@ -107,13 +107,17 @@
   "turn": 14,
   "sev": "firm",
   "cls": "unasked_offer",
-  "note": "\"I can share Kelvexa US pricing, rebates and time on treatment if you'd like. With that in hand, what would you conclude …\" — an offer, then a question assuming the data. Graded borderline; set firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (named for Quillpath Marcus t10; applied to the b36–b38 offers here — judgement call).",
+  "note": "\"I can share Kelvexa US pricing, rebates and time on treatment if you'd like. With that in hand, what would you conclude …\" — an offer, then a question assuming the data. Graded borderline; set firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (named for Quillpath Marcus t10; applied to the b36–b38 offers here — judgement call). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-36-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
   "a": [
    {
     "kind": "says",
     "pattern": "I can share Kelvexa US pricing",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -126,13 +130,17 @@
   "turn": 8,
   "sev": "firm",
   "cls": "unasked_offer",
-  "note": "\"I can share Kelvexa's forecast peak share if you'd like. With that in hand, how does the forecast peak share compare …\". Graded borderline; firm under the 21 Oct offer ruling (judgement call, as Raj t14). Doubt: the turn record shows the model declared peak_share_forecast as a release of his ask.",
+  "note": "\"I can share Kelvexa's forecast peak share if you'd like. With that in hand, how does the forecast peak share compare …\". Graded borderline; firm under the 21 Oct offer ruling (judgement call, as Raj t14). Doubt: the turn record shows the model declared peak_share_forecast as a release of his ask. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-36-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
   "a": [
    {
     "kind": "says",
     "pattern": "I can share Kelvexa's forecast peak share",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -145,12 +153,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "other",
-  "note": "The guard's refusal \"I don't have late-stage oral competitors.\" — true, but a bare noun phrase that reads as \"there are none\".",
+  "note": "The guard's refusal \"I don't have late-stage oral competitors.\" — true, but a bare noun phrase that reads as \"there are none\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "I don't have late-stage oral competitors\\.",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -163,12 +175,17 @@
   "turn": 34,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"What would you do to guard against that?\" after his t33 \"What I'd do: make the cost structure variable…\".",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t33 \"What I'd do: make the cost structure variable…\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -181,12 +198,17 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"What's the first step you'd want the client to take?\" after his t21 \"Next steps: validate share … and shortlist partners.\"",
+  "note": "Code's close_wait \"What's the first step you'd want the client to take?\" after his t21 \"Next steps: validate share … and shortlist partners.\" Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -199,12 +221,17 @@
   "turn": 30,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"What would you have the client do first?\" after her t25 \"What I'd do: before committing, get Aldermoor's actual rebate quotes…\".",
+  "note": "Code's close_wait \"What would you have the client do first?\" after her t25 \"What I'd do: before committing, get Aldermoor's actual rebate quotes…\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -293,7 +320,7 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "misquote_uncorrected",
-  "note": "Both misquotes (1.5% prevalence t6; $8,650 for Nimbrel t12) got a Socratic model probe, not code's flat correction (persona Rule 6 option 4); code's misquote check dropped misquote:nimbrel at t13 (\"error/high — no flag\"). He self-corrected both. One item.",
+  "note": "Both misquotes (1.5% prevalence t6; $8,650 for Nimbrel t12) got a Socratic model probe, not code's flat correction (persona Rule 6 option 4); code's misquote check dropped misquote:nimbrel at t13 (\"error/high — no flag\"). He self-corrected both. One item. Fix round (25 Oct): satisfiable in the replay — the recorded checker verdicts rate the 1.5% prevalence span (t6, flagged) and \"you said Nimbrel's net price is about $8,650\" (t12) errors of type misquote, so contract 3.4 can fire on both.",
   "a": [
    {
     "kind": "correction",
@@ -346,12 +373,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "other",
-  "note": "Code's checker line quotes a fragment and asks for a calculation that doesn't exist: \"You said “…the only option where reported US net sales clear the board's $300M gate — a…” — how did you do that calculation?\"",
+  "note": "Code's checker line quotes a fragment and asks for a calculation that doesn't exist: \"You said “…the only option where reported US net sales clear the board's $300M gate — a…” — how did you do that calculation?\" Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "“…[^”]*…”",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -364,12 +395,16 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "repeated_probe",
-  "note": "Her B-fails-the-gate claim probed by code at t14 and again at t24 under a second key, then the model's t26 hypothetical; three differing questions, the third led her right — not \"the same probe 3+ times\". Minor grammar: \"royalties that doesn't count\".",
+  "note": "Her B-fails-the-gate claim probed by code at t14 and again at t24 under a second key, then the model's t26 hypothetical; three differing questions, the third led her right — not \"the same probe 3+ times\". Minor grammar: \"royalties that doesn't count\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "royalties that doesn't count",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,

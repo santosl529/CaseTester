@@ -134,12 +134,16 @@
   "turn": 16,
   "sev": "borderline",
   "cls": "unasked_offer",
-  "note": "Code's \"I can share how long new routes take to mature if you'd like.\" — the model read \"a new destination ramps\" as an implicit want; by design then; he asked at t23. Graded borderline before the 21 Oct offer ruling.",
+  "note": "Code's \"I can share how long new routes take to mature if you'd like.\" — the model read \"a new destination ramps\" as an implicit want; by design then; he asked at t23. Graded borderline before the 21 Oct offer ruling. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "I can share how long new routes take",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -171,12 +175,17 @@
   "turn": 30,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"If you had to guard against that, how would you do it?\" after his t29 \"What I'd do …\".",
+  "note": "Code's close_wait \"If you had to guard against that, how would you do it?\" after his t29 \"What I'd do …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -189,12 +198,17 @@
   "turn": 28,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"How would you guard against that?\" after his t27 \"In the first 12 months, if loads track under about 60% …\".",
+  "note": "Code's close_wait \"How would you guard against that?\" after his t27 \"In the first 12 months, if loads track under about 60% …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -207,12 +221,17 @@
   "turn": 20,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "The same data line twice in one turn: the model's say held new_routes_context and code appended \"Repeating what I said before: No other airline …\".",
+  "note": "The same data line twice in one turn: the model's say held new_routes_context and code appended \"Repeating what I said before: No other airline …\". Fix round (25 Oct): the assertion is the doubling (the item's line twice in the one turn), not any restatement — the model's own copy is in the saved output, so removing code's copy alone still left a flagged restatement and only silence could pass.",
   "a": [
    {
     "kind": "restatement",
     "item": "new_routes_context",
+    "doubled": true,
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -225,12 +244,17 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "The same data line twice in one turn (\"No other airline is flying nonstop … Repeating what I said before: No other airline …\").",
+  "note": "The same data line twice in one turn (\"No other airline is flying nonstop … Repeating what I said before: No other airline …\"). Fix round (25 Oct): the assertion is the doubling (the item's line twice in the one turn), not any restatement — the model's own copy is in the saved output, so removing code's copy alone still left a flagged restatement and only silence could pass.",
   "a": [
    {
     "kind": "restatement",
     "item": "new_routes_context",
+    "doubled": true,
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -243,7 +267,7 @@
   "turn": 18,
   "sev": "borderline",
   "cls": "stale_probe",
-  "note": "Probes on figures she had replaced: t18 \"$180\" and t20 \"$260\"; at t17 she used the interviewer's $160 and $240. Borderline: she had never acknowledged the slip, and the probes found her other error. One bullet in the grading.",
+  "note": "Probes on figures she had replaced: t18 \"$180\" and t20 \"$260\"; at t17 she used the interviewer's $160 and $240. Borderline: she had never acknowledged the slip, and the probes found her other error. One bullet in the grading. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
@@ -260,6 +284,10 @@
     "scope": {
      "turn": 20
     }
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -290,13 +318,17 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "\"Repeating what I said before:\" for a line only on Exhibit 3, never said aloud; it answered her start-up-cost ask with \"fixed costs would stay the same\". Lorenzo's D6: the prefix follows how the item came out (\"As the exhibit shows\").",
+  "note": "\"Repeating what I said before:\" for a line only on Exhibit 3, never said aloud; it answered her start-up-cost ask with \"fixed costs would stay the same\". Lorenzo's D6: the prefix follows how the item came out (\"As the exhibit shows\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (D6)",
   "a": [
    {
     "kind": "says",
     "pattern": "Repeating what I said before: No other airline",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -369,12 +401,16 @@
   "turn": 10,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "\"As I mentioned:\" three full ledger lines (≈90 words) to answer \"Flights per year aren't given for FY2025 — do we have that?\".",
+  "note": "\"As I mentioned:\" three full ledger lines (≈90 words) to answer \"Flights per year aren't given for FY2025 — do we have that?\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "restatement",
     "item": "route_results_port_avery",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,

@@ -54,13 +54,17 @@
   "turn": 12,
   "sev": "false",
   "cls": "wrong_figure",
-  "note": "Code's correction \"First-year launch costs that count for the decision is about $9, not 8.8.\" dropped the scale (\"nine dollars\" for $9 million). Lorenzo: unit/scale slips in code lines are false, not serious; E3's \"not X\" carries the unit and scale (\"about $9 million, not $8.8 million\").",
+  "note": "Code's correction \"First-year launch costs that count for the decision is about $9, not 8.8.\" dropped the scale (\"nine dollars\" for $9 million). Lorenzo: unit/scale slips in code lines are false, not serious; E3's \"not X\" carries the unit and scale (\"about $9 million, not $8.8 million\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 3; E3)",
   "a": [
    {
     "kind": "says",
     "pattern": "about \\$9, not",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -73,13 +77,17 @@
   "turn": 12,
   "sev": "firm",
   "cls": "stale_correction",
-  "note": "At t11 he had already said \"$3.0 + $4.5 + $1.5 = $9.0 million\"; the $8.8M sum flag stayed alive and code corrected him to the figure he had just given. Lorenzo: to the stale-reader fix (E6).",
+  "note": "At t11 he had already said \"$3.0 + $4.5 + $1.5 = $9.0 million\"; the $8.8M sum flag stayed alive and code corrected him to the figure he had just given. Lorenzo: to the stale-reader fix (E6). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 4)",
   "a": [
    {
     "kind": "correction",
     "figure": "8.8",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -92,13 +100,17 @@
   "turn": 14,
   "sev": "firm",
   "cls": "stale_probe",
-  "note": "\"You said “$3.9 million” — can you show me that calculation step by step?\" after his t13 redo to $4.5M (verdict correct); he answered \"That $3.9 million came from my earlier, wrong build.\"",
+  "note": "\"You said “$3.9 million” — can you show me that calculation step by step?\" after his t13 redo to $4.5M (verdict correct); he answered \"That $3.9 million came from my earlier, wrong build.\" Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 4)",
   "a": [
    {
     "kind": "probe",
     "figure": "$3.9 million",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -245,8 +257,9 @@
     "must": true
    }
   ],
-  "rep": true,
-  "stream": "phase2"
+  "rep": false,
+  "stream": "phase2",
+  "rnote": "Owned by phase2: the missing question is the model's own turn shape, which no Phase 1 rule writes. Wave: every interviewer turn ends with something to answer (launch-001, Marisol-type); the hand grade sees it (auditor: other)."
  },
  {
   "id": "b35h-marisol-t32-rec-reask",
@@ -255,12 +268,16 @@
   "turn": 32,
   "sev": "borderline",
   "cls": "rec_reask",
-  "note": "The recommendation asked a second time (t24, t32) by code's time warning.",
+  "note": "The recommendation asked a second time (t24, t32) by code's time warning. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "ask",
     "stage": "recommendation",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -292,12 +309,17 @@
   "turn": 26,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"What would you do to guard against that?\" after his t25 \"How I'd hedge before committing …\".",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t25 \"How I'd hedge before committing …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,

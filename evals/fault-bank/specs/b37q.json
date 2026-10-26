@@ -45,7 +45,7 @@
   "turn": 18,
   "sev": "serious",
   "cls": "probe_chain",
-  "note": "Root: t13 \"about 7% a month, average tenure ~14 months … ≈ $420\" (combined exit rate). t18 probe (attempt 1), t22 hint (attempt 2), t24 the root probed a third time under the $920 key, t28 $1,880 (built on $920), t30 a derived correction (\"$1,100, not $920\"); the input never corrected. Lorenzo (21 Oct): serious.",
+  "note": "Root: t13 \"about 7% a month, average tenure ~14 months … ≈ $420\" (combined exit rate). t18 probe (attempt 1), t22 hint (attempt 2), t24 the root probed a third time under the $920 key, t28 $1,880 (built on $920), t30 a derived correction (\"$1,100, not $920\"); the input never corrected. Lorenzo (21 Oct): serious. Fix round (25 Oct): the probes are barred from t24 to the close, not pinned to t24 and t28 — on the contract base the chain merely moved ($1,880 probed at t24 instead of t28), which is not a fix.",
   "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (probe chains)",
   "a": [
    {
@@ -53,7 +53,7 @@
     "figure": "$920",
     "must": false,
     "scope": {
-     "turn": 24
+     "fromTurn": 24
     }
    },
    {
@@ -61,8 +61,12 @@
     "figure": "$1,880",
     "must": false,
     "scope": {
-     "turn": 28
+     "fromTurn": 24
     }
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -75,13 +79,28 @@
   "turn": 14,
   "sev": "firm",
   "cls": "probe_chain",
-  "note": "Root: \"$30 contribution ÷ 7.5% monthly exit ≈ 13 months → ~$400\". Three probes in three turns: t12 \"What steps got you to 4x?\", t14 \"…Walk me through how you got to 1.3x.\", t16 (the model, naming the error). Lorenzo (21 Oct): firm (a ladder that ends in the input's correction).",
+  "note": "Root: \"$30 contribution ÷ 7.5% monthly exit ≈ 13 months → ~$400\". Three probes in three turns: t12 \"What steps got you to 4x?\", t14 \"…Walk me through how you got to 1.3x.\", t16 (the model, naming the error). Lorenzo (21 Oct): firm (a ladder that ends in the input's correction). Fix round (25 Oct): the ladder must end in a correction, not merely lose the figure from its wording — the base still probes at t14 (\"Walk me through the reasoning behind that.\"), which is not a fix.",
   "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (probe chains)",
   "a": [
    {
     "kind": "probe",
     "figure": "1.3x",
-    "must": false
+    "must": false,
+    "scope": {
+     "fromTurn": 14
+    }
+   },
+   {
+    "kind": "correction",
+    "must": true,
+    "scope": {
+     "fromTurn": 14,
+     "toTurn": 20
+    }
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -112,12 +131,21 @@
   "turn": 8,
   "sev": "firm",
   "cls": "misquote_uncorrected",
-  "note": "His t7 \"you had it at $288\" (CAC is $300; never said): code's checker probe \"What steps got you to 4%?\" replaced the model's catch (\"You said Starter's acquisition cost was $288 — where did that figure come from?\"); the misquote check found nothing at t7 and dropped it at t31 on the checker's \"correct\". \"$288 to acquire\" is in his final answer. Contract 3.4: the probe guard never replaces a model question that catches a misquote.",
+  "note": "His t7 \"you had it at $288\" (CAC is $300; never said): code's checker probe \"What steps got you to 4%?\" replaced the model's catch (\"You said Starter's acquisition cost was $288 — where did that figure come from?\"); the misquote check found nothing at t7 and dropped it at t31 on the checker's \"correct\". \"$288 to acquire\" is in his final answer. Contract 3.4: the probe guard never replaces a model question that catches a misquote. Fix round (25 Oct): the record demands the flat ledger correction (\"…about $300, not $288\"), not merely a line that names $288. The recorded checker verdict for t8 rates \"the Starter acquisition cost — you had it at $288\" an error of type misquote (flag false), so contract 3.4's condition — a code mismatch and a checker error verdict, flagged or not — is met in the replay.",
   "a": [
    {
     "kind": "says",
     "pattern": "\\$288",
     "must": true
+   },
+   {
+    "kind": "correction",
+    "figure": "$300",
+    "must": true,
+    "scope": {
+     "fromTurn": 8,
+     "toTurn": 12
+    }
    }
   ],
   "rep": true,
@@ -148,12 +176,16 @@
   "turn": 14,
   "sev": "firm",
   "cls": "stale_probe",
-  "note": "\"You mentioned 22.5 months for Starter. What monthly amount did you divide the $900 by …?\" — at t11 she had fixed it (\"$900 ÷ $30 = 30 months, not 22.5\"; checker correct). She: \"I'd already corrected that one\".",
+  "note": "\"You mentioned 22.5 months for Starter. What monthly amount did you divide the $900 by …?\" — at t11 she had fixed it (\"$900 ÷ $30 = 30 months, not 22.5\"; checker correct). She: \"I'd already corrected that one\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
     "figure": "22.5",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -166,12 +198,16 @@
   "turn": 32,
   "sev": "firm",
   "cls": "rec_reask",
-  "note": "Code's time_warning \"We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?\" straight after his t31 full answer (recommendation, risk, next steps); recommendationReceived stayed false. Contract 4.9.",
+  "note": "Code's time_warning \"We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?\" straight after his t31 full answer (recommendation, risk, next steps); recommendationReceived stayed false. Contract 4.9. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "ask",
     "stage": "recommendation",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -203,13 +239,17 @@
   "turn": 10,
   "sev": "firm",
   "cls": "unasked_offer",
-  "note": "\"I can share plan economics: monthly price and cost to serve for Pro and Starter if you'd like.\" (an item label as the offer; he took it). Lorenzo (21 Oct): firm.",
+  "note": "\"I can share plan economics: monthly price and cost to serve for Pro and Starter if you'd like.\" (an item label as the offer; he took it). Lorenzo (21 Oct): firm. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
   "a": [
    {
     "kind": "says",
     "pattern": "I can share plan economics",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -260,12 +300,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "He asked only for Pro-equivalent churn for upgraded customers; request_group added pro_cohort and starter_cohort to cohort_notes — a 189-word turn reading out both rows of Exhibit 2 (on screen).",
+  "note": "He asked only for Pro-equivalent churn for upgraded customers; request_group added pro_cohort and starter_cohort to cohort_notes — a 189-word turn reading out both rows of Exhibit 2 (on screen). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "restatement",
     "item": "starter_cohort",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -315,12 +359,16 @@
   "turn": 38,
   "sev": "borderline",
   "cls": "rec_reask",
-  "note": "The recommendation asked a second time (t26, t38; recommendationReceived stayed false); defensible after ten probe turns.",
+  "note": "The recommendation asked a second time (t26, t38; recommendationReceived stayed false); defensible after ten probe turns. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "ask",
     "stage": "recommendation",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -355,12 +403,16 @@
   "turn": 32,
   "sev": "borderline",
   "cls": "rec_reask",
-  "note": "\"Only a little time left — what's your bottom-line recommendation, and what's the biggest risk to it?\" after t25/t29; defensible after the t30 correction.",
+  "note": "\"Only a little time left — what's your bottom-line recommendation, and what's the biggest risk to it?\" after t25/t29; defensible after the t30 correction. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "ask",
     "stage": "recommendation",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -391,12 +443,17 @@
   "turn": 32,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"How would you guard against that?\" after her t31 \"Protection: roll $60 out to a fraction of traffic …\".",
+  "note": "Code's close_wait \"How would you guard against that?\" after her t31 \"Protection: roll $60 out to a fraction of traffic …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
   "a": [
    {
-    "kind": "ask",
-    "stage": "mitigation",
+    "kind": "says",
+    "pattern": "guard against that",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": true,
@@ -446,12 +503,16 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "\"are they disproportionately the 150 who would have bought Pro anyway?\" → upgrade_timing (fair coarse answer) plus the full starter_cohort line restated as the hint's set-up; no \"I don't have the overlap\".",
+  "note": "\"are they disproportionately the 150 who would have bought Pro anyway?\" → upgrade_timing (fair coarse answer) plus the full starter_cohort line restated as the hint's set-up; no \"I don't have the overlap\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "restatement",
     "item": "starter_cohort",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -464,12 +525,16 @@
   "turn": 28,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Earlier you said \"$1,880\" for the loss on each customer who moved from Pro to Starter. Earlier you said “$1,880” — what were the steps …?\" — the model's say kept its first sentence after question_in_say withheld the second; code then appended its probe.",
+  "note": "\"Earlier you said \"$1,880\" for the loss on each customer who moved from Pro to Starter. Earlier you said “$1,880” — what were the steps …?\" — the model's say kept its first sentence after question_in_say withheld the second; code then appended its probe. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "says",
     "pattern": "Earlier you said[^?]*Earlier you said",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -504,11 +569,15 @@
   "turn": 20,
   "sev": "borderline",
   "cls": "stale_correction",
-  "note": "\"Starter standalone LTV/CAC is about 2 times.\" — she had said \"so 2x\" at t17 and used $600 at t19; the 1.3× flag wasn't closed by her redo. True, no \"not X\".",
+  "note": "\"Starter standalone LTV/CAC is about 2 times.\" — she had said \"so 2x\" at t17 and used $600 at t19; the 1.3× flag wasn't closed by her redo. True, no \"not X\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "correction",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -521,12 +590,16 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "rec_reask",
-  "note": "\"Your recommendation to keep Starter and raise it to $60 is noted. Based on what you have, what would you tell the CEO to do?\" — the model's say and code's rec_ask question contradict each other.",
+  "note": "\"Your recommendation to keep Starter and raise it to $60 is noted. Based on what you have, what would you tell the CEO to do?\" — the model's say and code's rec_ask question contradict each other. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "ask",
     "stage": "recommendation",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,

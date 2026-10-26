@@ -6,13 +6,17 @@
   "turn": 22,
   "sev": "false",
   "cls": "wrong_figure",
-  "note": "Code's correction \"Starter standalone LTV/CAC is about $2.\" — a ratio given a dollar sign (true: 2.0×). Lorenzo: unit/scale slips in code lines are false, not serious.",
+  "note": "Code's correction \"Starter standalone LTV/CAC is about $2.\" — a ratio given a dollar sign (true: 2.0×). Lorenzo: unit/scale slips in code lines are false, not serious. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-35-quillpath/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 1)",
   "a": [
    {
     "kind": "says",
     "pattern": "LTV/CAC is about \\$",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -25,7 +29,7 @@
   "turn": 28,
   "sev": "false",
   "cls": "wrong_figure",
-  "note": "Code's wrap-up probe \"You put it at “$210”\" for his \"$210k\" (the quote dropped the k). Lorenzo: \"$210\" for $210k counts — a false statement, not serious. Baseline finding (contract base e51a4841): the turn is now code's correction \"Extra value per month of sign-ups at $60 vs. $40 is about $0.24k, not $210k.\" — a new scale slip ($0.24M said as $0.24k; true ≈ $240k), so the record still fails.",
+  "note": "Code's wrap-up probe \"You put it at “$210”\" for his \"$210k\" (the quote dropped the k). Lorenzo: \"$210\" for $210k counts — a false statement, not serious. Baseline finding (contract base e51a4841): the turn is now code's correction \"Extra value per month of sign-ups at $60 vs. $40 is about $0.24k, not $210k.\" — a new scale slip ($0.24M said as $0.24k; true ≈ $240k), so the record still fails. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-35-quillpath/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 1)",
   "a": [
    {
@@ -37,6 +41,10 @@
     "kind": "says",
     "pattern": "\\$0\\.24k",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -95,12 +103,18 @@
   "turn": 18,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"Do we have the cohort beyond month 12 — months 18 or 24?\" → \"On starter cohort beyond month 12: we'll get there in a bit.\" Exhibit 2 (on screen since t14) carries the coarse answer in its note (cancellations steady; very few upgrade after month 12); nothing more was said.",
+  "note": "\"Do we have the cohort beyond month 12 — months 18 or 24?\" → \"On starter cohort beyond month 12: we'll get there in a bit.\" Exhibit 2 (on screen since t14) carries the coarse answer in its note (cancellations steady; very few upgrade after month 12); nothing more was said. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. The base swaps the hollow deferral for a restatement of the cohort row, which answers nothing: a class swap is not a fix.",
   "a": [
    {
     "kind": "deferral",
     "about": "month 12",
     "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "cohort_notes",
+    "about": "month 12|months 18|beyond month 12",
+    "must": true
    }
   ],
   "rep": true,
@@ -113,16 +127,15 @@
   "turn": 28,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"Hold that thought on week-by-week sign-ups within the price test — we'll come back to it shortly.\" The check mapped price_test_results and marked it out of scope; code still deferred. Never answered.",
+  "note": "\"Hold that thought on week-by-week sign-ups within the price test — we'll come back to it shortly.\" The check mapped price_test_results and marked it out of scope; code still deferred. Never answered. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
   "a": [
    {
-    "kind": "deferral",
-    "about": "week-by-week",
-    "must": false
-   },
-   {
-    "kind": "refusal",
+    "kind": "answered",
     "about": "week",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
     "must": true
    }
   ],
@@ -136,12 +149,22 @@
   "turn": 12,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"On how Pro's CAC has moved since January 2025: we'll get there in a bit.\" (mapped plan_cac, already out). Exhibit 1's note (acquisition cost \"does not change with volume\") and why_pro_fell answer it; nothing re-said it.",
+  "note": "\"On how Pro's CAC has moved since January 2025: we'll get there in a bit.\" (mapped plan_cac, already out). Exhibit 1's note (acquisition cost \"does not change with volume\") and why_pro_fell answer it; nothing re-said it. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. A refusal is excluded on purpose: Exhibit 1's note and why_pro_fell answer the ask, so the base's flat \"I don't have Pro's CAC\" is a class swap, not a fix.",
   "a": [
    {
     "kind": "deferral",
     "about": "CAC",
     "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "why_pro_fell",
+    "about": "CAC|acquisition cost",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true
    }
   ],
   "rep": true,
@@ -154,12 +177,18 @@
   "turn": 12,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"That's for a little later — we'll come back to churn for upgraded customers measured from their upgrade date.\" (mapped upgrade_timing, cohort_notes). At t8 the interviewer had already said \"upgraded customers then behave like Pro customers\".",
+  "note": "\"That's for a little later — we'll come back to churn for upgraded customers measured from their upgrade date.\" (mapped upgrade_timing, cohort_notes). At t8 the interviewer had already said \"upgraded customers then behave like Pro customers\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "deferral",
     "about": "upgraded customers",
     "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "upgrade_timing",
+    "about": "upgraded customers|upgrade date",
+    "must": true
    }
   ],
   "rep": true,
@@ -172,13 +201,17 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "The data line doubled: the model's say paraphrased price_test_notes, then code's \"As I mentioned: Starter's cost to serve ($10 a month) and acquisition cost ($300) are the same at either price …\", then a probe. (Lorenzo's D6: exhibits listed items they don't show — the cause of \"As I mentioned\" for lines never said.) Baseline finding: on the base the lead-in is \"As the exhibit shows:\" (D6) but the line is still doubled after the model's paraphrase.",
+  "note": "The data line doubled: the model's say paraphrased price_test_notes, then code's \"As I mentioned: Starter's cost to serve ($10 a month) and acquisition cost ($300) are the same at either price …\", then a probe. (Lorenzo's D6: exhibits listed items they don't show — the cause of \"As I mentioned\" for lines never said.) Baseline finding: on the base the lead-in is \"As the exhibit shows:\" (D6) but the line is still doubled after the model's paraphrase. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "src": "batch-35-quillpath/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 4, D6)",
   "a": [
    {
     "kind": "says",
     "pattern": "(?:As I mentioned|As the exhibit shows|Again, from the exhibit|That's on the exhibit|The exhibit has this|Reading the exhibit again): Starter's cost to serve",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -191,12 +224,16 @@
   "turn": 36,
   "sev": "borderline",
   "cls": "rec_reask",
-  "note": "The recommendation asked a second time (t24, t36) by code's time warning.",
+  "note": "The recommendation asked a second time (t24, t36) by code's time warning. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "ask",
     "stage": "recommendation",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -209,7 +246,7 @@
   "turn": 4,
   "sev": "borderline",
   "cls": "other",
-  "note": "Starter cancellation rates deferred three times (t2 \"I'll come back to…\", t4 \"That's for a little later…\", t6) before the cohort came at t8. Delivered, so not hollow (the b29 Marcus same-item stall).",
+  "note": "Starter cancellation rates deferred three times (t2 \"I'll come back to…\", t4 \"That's for a little later…\", t6) before the cohort came at t8. Delivered, so not hollow (the b29 Marcus same-item stall). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "deferral",
@@ -219,6 +256,10 @@
      "fromTurn": 4,
      "toTurn": 6
     }
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,
@@ -254,12 +295,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "false_correction",
-  "note": "\"How did you get to $80?\" — a probe on a correct figure ($100 − $20); nothing was flagged on it. The turn record shows code's probe_guard line, not the model's (the model asked what the exhibit says about retention) — the grading's \"the model probed\" is corrected here.",
+  "note": "\"How did you get to $80?\" — a probe on a correct figure ($100 − $20); nothing was flagged on it. The turn record shows code's probe_guard line, not the model's (the model asked what the exhibit says about retention) — the grading's \"the model probed\" is corrected here. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
   "a": [
    {
     "kind": "probe",
     "figure": "$80",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": true,

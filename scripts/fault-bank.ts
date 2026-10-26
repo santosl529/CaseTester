@@ -157,9 +157,10 @@ async function pool<T>(items: T[], jobs: number, f: (x: T) => Promise<void>) {
   await Promise.all(Array.from({ length: Math.min(jobs, q.length) }, async () => { while (q.length) await f(q.shift()!); }));
 }
 
-// `gated`: the record gate condition 1 counts — replayable, not skipped, and owned by a stream Phase 1 builds
-// (streams 2, 3 and 4). `phase2` and `none` records are excluded explicitly (finding 3 of the Stream 1 review):
-// nothing in Phase 1 touches them, so the condition would be unmeetable by construction.
+// `gated`: the record the gate counts — replayable, not skipped, and (for a fault record) owned by a stream
+// Phase 1 builds. `phase2` and `none` FAULT records are excluded explicitly (finding 3 of the Stream 1 review):
+// nothing in Phase 1 touches them, so the condition would be unmeetable by construction. Every correct record is
+// counted whoever owns it — gate condition 1 requires all of them to pass, both ways.
 type Row = FaultResult & { kind: FaultRecord['kind']; batch: string; cls: string; sev: string; stream: string; replayable: boolean; changed: boolean; baseline: string; gated: boolean };
 const PHASE1_STREAMS = new Set(['2', '3', '4']);
 
@@ -206,7 +207,7 @@ async function run() {
     const own = replayed.find(t => t.turnIndex === r.turn - 1);
     const kindChanged = own && own.stateBefore.kind !== recorded.find(t => t.turnIndex === r.turn - 1)?.stateBefore.kind;
     const result: FaultResult = { ...res, ...(kindChanged ? { skipped: 'diverged' as const } : {}), ...(!r.replayable ? { skipped: 'not_replayable' as const } : {}) };
-    const gated = r.replayable && !result.skipped && PHASE1_STREAMS.has(String(r.stream));
+    const gated = r.replayable && !result.skipped && (r.kind === 'correct' || PHASE1_STREAMS.has(String(r.stream)));
     rows.push({ ...result, ...meta, changed, baseline: baselineClass(r, { ...res, ...(kindChanged ? { skipped: 'diverged' as const } : {}) }, changed), gated });
   }
   const md = report(rows, recs, { label, switches: switches ?? '(off)', replayMs, runs: runFiles.length, failedRuns });
