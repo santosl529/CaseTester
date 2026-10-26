@@ -791,6 +791,9 @@ function messageAskSentences(plan: ModelPlan): string[] {
 // latency; the turn's wait stays capped at ASK_WAIT_MS (heardAsks), logged on `uncovered_asks` (Settle).
 // With 4.6's `wantCueBroad` on, its broad want cue counts the same way: a message that asks only through it (or
 // row 11's) is tagged `cue: 'want_is'`, on any case — the share Lorenzo capped (~2%) is the want cue's as a whole.
+// The denominator (Stream 4b's review, item 3): this function is only reached from startMessageAsks, which returns
+// null unless the turn is the model's, so 1.72% of candidate turns understates it. Over batches 28–38 the broad cue
+// adds 25 calls: 2.27% of the 1,100 model turns, 3.16% of the 791 want-phase model turns (request-signal.ts).
 function wantIsOnly(plan: ModelPlan): boolean {
   const { ctx, state } = plan;
   const broad = switchOn(state.caseData, 'wantCueBroad');

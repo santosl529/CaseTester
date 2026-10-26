@@ -58,6 +58,15 @@ const WANT_IS = /\b(?:i'?d|i\s+would)\s+want\s+is\b/i;
 // business" is a framework), an object pronoun ("I'd want them to confirm"), a stretch of time ("four to six weeks"),
 // or arithmetic ("I'd need revenue of 94 divided by 0.76"); "(what) I'd want next / now is …" and row 11's
 // "(what) I'd want is …" are wants too. Phase rules as WANT_CUE: before the brainstorm, or a question.
+//
+// The share (Stream 4b's review, item 3). The cue adds 25 classifier calls over batches 28–38 (111 runs). The call
+// can only fire on a model turn — startMessageAsks returns null on any other kind (turn-data.ts) — and only in
+// WANT_ASK_PHASES, so the denominator that matters is not the candidate turns:
+//   25 / 1,455 candidate turns          = 1.72%
+//   25 / 1,100 model turns              = 2.27%   ← where the call can fire
+//   25 /   791 want-phase model turns   = 3.16%   ← where this cue can fire
+// So Lorenzo's "about 2% of turns or less" is met on candidate turns, and **not** met on either denominator where
+// the call can fire: 2.27% on model turns, a shade over the cap, and 3.16% inside the phases. His to rule.
 const WANT_BROAD = /\b(?:i'?d|i\s+would)\s+(?:also\s+|still\s+|first\s+|really\s+|mainly\s+|then\s+|probably\s+|definitely\s+)?(?:want|need|confirm)\b(?!\s+(?:to|you|us|me|him|them|it|help|(?:more\s+)?time|(?:a|one|another|some|more)\s+(?:minute|moment|second|sec|bit)|(?:one|two|three|four|five|six|seven|eight|nine|ten|a\s+few|several|a\s+couple(?:\s+of)?)\s+(?:to\s+\w+\s+)?(?:days?|weeks?|months?|quarters?|years?))\b)(?!\s*[\d(.?!,;]|\s*$)/i;
 const ARITHMETIC = /[=×÷]|\bdivided\s+by\b|\bmultipl(?:y|ied)\b|\d\s*[x*/]\s*\(?\d/i;
 const wantBroad = (sentence: string) => WANT_BROAD.test(sentence) && !ARITHMETIC.test(sentence);
