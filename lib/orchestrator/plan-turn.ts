@@ -35,8 +35,11 @@ import { brainstormRequired, brainstormDue } from './brainstorm';
 import { correctionLines } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
 import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, parseInputKey, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot,
-  stepRootsDeclared, registerStepRoots, stepRootOf, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot } from './math-checker-live';
+  stepRootsDeclared, registerStepRoots, stepRootOf, lineageInherits, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot, type VerdictPayload, claimFigures } from './math-checker-live';
 import { theirFigure } from './own-quantity';
+import { switchOn } from '@/lib/cases/engine-switches';
+import { foldTurn, staleReason, claimQuantity, lineageOf, findWithdrawals, EMPTY_WORKSHEET } from './worksheet';
+import type { Worksheet } from './worksheet-types';
 import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
@@ -475,6 +478,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const checkerConfig = extra.classify && ctx.background ? liveCheckerConfig() : null;
   const checkerRows = (reads.checkerEventRows ?? []).filter(r => r.category === MATH_CHECKER_CATEGORY);
   const gateMemory = (flags.codeGate as CodeGateMemory | undefined) ?? {};
+  // The worksheet (Phase 1 contract §2, Stream 3 task 1; the `worksheet` switch): this message's step bindings and
+  // pricing results, then every landed verdict's tagged claims, folded in by code — the latest value per quantity, the
+  // withdrawn figures. Code-side only (flags.worksheet); read by the stale drop, the root rules, the misquote rule.
+  const worksheetBefore = (flags.worksheet as Worksheet | undefined) ?? EMPTY_WORKSHEET;
+  const worksheet: Worksheet | null = switchOn(caseData, 'worksheet') ? foldTurn(worksheetBefore, {
+    caseData, turn: ctx.nextTurnIndex, text: candidateText, candidateMath, revealedIds: revealedIdsNow,
+    verdicts: checkerRows.filter(r => r.subtype === 'verdict').map(r => r.payloadJsonb as VerdictPayload).filter(v => v.candidateTurnIndex < ctx.nextTurnIndex),
+  }) : null;
+  if (worksheet && JSON.stringify(worksheet) !== JSON.stringify(worksheetBefore)) flags.worksheet = worksheet;
   // The figures a misquote's data line states, and the changes they imply ("58% today, up from 42%" → 16). A unit
   // line names its quantity and period, true on the base it names (Lorenzo, 16 Oct): the checker's flag is enough.
   const codeFigures = (f: CodeFinding): number[] | null => {
@@ -506,12 +518,34 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const wouldProbe = (f: RecomputeFlag) => f.kind !== 'unit' && recomputeAction(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) === 'probe';
   // A step a conversion closed (own-quantity.ts; Lorenzo, 17 Oct) takes no more of code's probes either.
   const convertedSteps = new Set(((flags.mathChecker as Partial<CheckerMemory> | undefined)?.closed ?? []).filter(k => k.startsWith(CONVERTED)).map(k => k.slice(CONVERTED.length)));
-  const cappedFlags = recomputeFlags.filter(f => wouldProbe(f) && ((stepProbes[f.stepId] ?? 0) >= STEP_PROBE_CAP || convertedSteps.has(f.stepId)));
+  // Phase 1 task 3 (the `rootLineage` switch, on a case whose steps declare dependsOn): at most two probes per lineage —
+  // a step's probes are its lineage's, summed (worksheet.ts lineageOf). Off: per step, as before.
+  // Review I6 (Stream 3 review, 22 Oct): the lineage rules run only on a case whose OWN file authored its lineage — it
+  // declares an input question, which no overlay can add (pricing-001, validated in round 6). An overlay's merged
+  // dependsOn is data no one has validated yet: on prof-001 it groups steps off the same ledger lines rather than a
+  // chain, so linking there would silence errors that cannot be inherited at all. Same pattern as `stepFlagsLive` and
+  // `ledgerLookupLive`: the behaviour waits for the case's data to be checked. (Report: proposed, for Lorenzo.)
+  const lineageAuthored = caseData.mathSteps.some(st => st.inputQuestion !== undefined);
+  const lineageOn = switchOn(caseData, 'rootLineage') && stepRootsDeclared(caseData) && lineageAuthored;
+  const probesOn = (step: string) => (lineageOn && caseData.mathSteps.some(st => st.id === step)
+    ? lineageOf(caseData, step).members.reduce((n, m) => n + (stepProbes[m] ?? 0), 0) : stepProbes[step] ?? 0);
+  const cappedFlags = recomputeFlags.filter(f => wouldProbe(f) && (probesOn(f.stepId) >= STEP_PROBE_CAP || convertedSteps.has(f.stepId)));
   // Step roots (round 6 Task 72; math-checker-live.ts stepRootOf — Lorenzo, 21 Oct, the step-check ruling): this
   // message's deterministic step flags, live or report-only, register a root or are linked to one; a released code flag
   // linked to a root says nothing (like a capped one). A case whose steps declare no dependsOn or inputQuestion
   // (prof-001): none of this runs, no check row.
-  const rootsOn = stepRootsDeclared(caseData);
+  // Round 6's roots run on a case whose lineage is authored in its own case file — it declares an input question, which
+  // no overlay can add (pricing-001) — or with the `rootLineage` switch (Phase 1 task 3; the Stream 2 review, 22 Oct:
+  // the overlay's dependsOn, merged under `stepLineage`, must not turn round 6's roots on for prof-001, prof-002,
+  // entry-001 and launch-001 by itself).
+  const rootsOn = stepRootsDeclared(caseData) && lineageAuthored;
+  // Under rootLineage a dependent claim links to its root only when it inherits the root's wrong value (lineageInherits).
+  const rootInherits = lineageOn ? lineageInherits(caseData, [
+    ...checkerRows.filter(r => r.subtype === 'verdict').map(r => r.payloadJsonb as VerdictPayload).filter(v => v.candidateTurnIndex < ctx.nextTurnIndex)
+      .flatMap(v => v.claims.flatMap(c => (c.codeQuantity.kind === 'step' && c.codeQuantity.stepId && claimFigures(c)[0] !== undefined ? [{ stepId: c.codeQuantity.stepId, value: claimFigures(c)[0], n: v.candidateTurnIndex }] : []))),
+    ...[...candidateMath.flags.filter(f => (f.kind ?? 'step') === 'step'), ...candidateMath.reportOnly].map(f => ({ stepId: f.stepId, value: f.candidateValue, n: ctx.nextTurnIndex })),
+    ...candidateMath.verified.map(v => ({ stepId: v.stepId, value: v.value, n: ctx.nextTurnIndex })),
+  ]) : undefined;
   const rootFigures = rootsOn ? caseNumbersOf(caseData, revealedIdsNow) : [];
   // Fix round 2 (controller ruling, 21 Oct; math-checker-live.ts stepRootEnds): this message's step figures — flagged or
   // verified — end a root's dependency links when they state R outside v's tolerance or a dependent step carrying R's
@@ -524,12 +558,27 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const endsNow = rootsOn ? stepRootEnds(caseData, rootsBefore, stated, ctx.nextTurnIndex) : {};
   const rootsStanding = Object.fromEntries(Object.entries(rootsBefore).map(([rk, r]) => [rk, endsNow[rk] !== undefined ? { ...r, endedAt: endsNow[rk] } : r]));
   const rooted = rootsOn
-    ? registerStepRoots(caseData, rootsStanding, [...candidateMath.flags, ...candidateMath.reportOnly], ctx.nextTurnIndex, rootFigures, closedRoots)
+    ? registerStepRoots(caseData, rootsStanding, [...candidateMath.flags, ...candidateMath.reportOnly], ctx.nextTurnIndex, rootFigures, closedRoots, rootInherits)
     : null;
   const stepRoots: Record<string, StepRoot> = rooted?.roots ?? {};
   const rootLinkedFlags = rootsOn ? recomputeFlags.filter(f => !cappedFlags.includes(f)
-    && stepRootOf({ c: caseData, roots: stepRoots, key: attemptKey(f), span: f.span, own: [f.candidateValue], n: fromOf(f), caseFigures: rootFigures, closed: closedRoots }) !== null) : [];
-  const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f) && !rootLinkedFlags.includes(f));
+    && stepRootOf({ c: caseData, roots: stepRoots, key: attemptKey(f), span: f.span, own: [f.candidateValue], n: fromOf(f), caseFigures: rootFigures, closed: closedRoots, inherits: rootInherits }) !== null) : [];
+  // Phase 1 task 2 (the `staleProbeDrop` switch; Lorenzo: "Before any probe or correction is spoken: drop it if the
+  // worksheet holds a newer value for that quantity."): code's released flag, a checker line, a misquote correction or
+  // a root's input question the candidate has overtaken since — a newer value for its quantity, or its figure (or one
+  // its words carry) withdrawn — is dropped and logged (`stale_drop`). Without the worksheet there is nothing to read.
+  const staleOn = worksheet !== null && switchOn(caseData, 'staleProbeDrop');
+  // The figures the data they have states (the prompt, released lines, shown exhibits — as written, no changes derived
+  // from them): a misread of the data, fixed, drops the claims built on it (worksheet.ts staleReason).
+  const staleCaseFigures = staleOn ? numbersOf([caseData.prompt, ...caseData.dataLedger.filter(d => revealedIdsNow.includes(d.id)).map(d => d.value),
+    ...caseData.exhibits.filter(e => shownExhibitIds.has(e.id)).map(e => JSON.stringify(e.data))].join(' ')) : [];
+  const staleDrops: { kind: 'code' | 'checker' | 'misquote' | 'root_question'; id: string; reason: string }[] = [];
+  const staleOfFlag = (f: RecomputeFlag) => (staleOn ? staleReason(worksheet!, caseData, {
+    n: fromOf(f), quantity: (f.kind ?? 'step') === 'step' ? `step:${f.stepId}` : null, value: f.candidateValue, span: f.span,
+  }, staleCaseFigures) : null);
+  const staleCodeFlags = recomputeFlags.filter(f => !cappedFlags.includes(f) && !rootLinkedFlags.includes(f) && staleOfFlag(f) !== null);
+  for (const f of staleCodeFlags) staleDrops.push({ kind: 'code', id: attemptKey(f), reason: staleOfFlag(f)! });
+  const liveFlags = recomputeFlags.filter(f => !cappedFlags.includes(f) && !rootLinkedFlags.includes(f) && !staleCodeFlags.includes(f));
   if (rooted) {
     checks.record('step_root', rooted.registered.length + rooted.linked.length + rootLinkedFlags.length > 0, 'the step check\'s roots: registered, and the flags linked to one (not probed)', {
       registered: rooted.registered, linked: rooted.linked, codeLinked: rootLinkedFlags.map(f => ({ key: attemptKey(f), span: f.span })), ...(Object.keys(endsNow).length > 0 ? { ended: Object.keys(endsNow) } : {}),
@@ -609,6 +658,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const perItem: { item: string; cited: string; sentence: string; n: number }[] = [];
   for (const r of gate.released) {
     if (r.finding.kind !== 'misquote' || wordingOf(r.finding.item) === undefined || perItem.some(x => x.item === (r.finding as { item: string }).item)) continue;
+    // Task 2: a misquote they have taken back since ("the exhibit says 58%, not 61%") is not corrected again.
+    const misquoteStale = staleOn ? staleReason(worksheet!, caseData, { n: r.candidateTurnIndex, quantity: null, value: numbersOf(r.finding.cited)[0], span: r.finding.cited }, staleCaseFigures) : null;
+    if (misquoteStale !== null) { staleDrops.push({ kind: 'misquote', id: r.id, reason: misquoteStale }); continue; }
     perItem.push({ item: r.finding.item, cited: r.finding.cited, sentence: r.finding.sentence, n: r.candidateTurnIndex });
   }
   // Whether message n replied to a recommendation ask (the interviewer turn before it).
@@ -706,6 +758,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     // The gate's decisions, earlier turns' (by turn) then this one's: only a released code flag dedupes the checker's claim (engine-asks final review, 19 Oct).
     gateOutcomes: gateOutcomesOf(checkerRows, gate.decisions),
     ...(rootsOn ? { stepRoots } : {}),
+    ...(lineageOn ? { rootLineage: { probes: probesOn, definitionOf: (step: string) => caseData.definitions?.find(d => d.steps?.includes(step))?.text, inherits: rootInherits,
+      // The root's value withdrawn since, in the candidate's own words (worksheet.ts findWithdrawals): no correction of a
+      // figure they have taken back. Read from the messages themselves, so it holds without the `worksheet` switch.
+      rootStale: (step: string, value: number, since: number) => {
+        const msgs = [...turnRows.filter(t => t.role === 'candidate' && t.turnIndex >= since).map(t => t.text), candidateText];
+        const w = msgs.flatMap(findWithdrawals).find(x => Math.abs(x.value - Math.abs(value)) <= Math.max(0.05, Math.abs(value) * 0.02));
+        return w ? `${value} withdrawn ("${w.phrase}")` : null;
+      } } } : {}),
+    ...(staleOn ? { staleDrop: (e: { n: number; c: VettedClaim }) => staleReason(worksheet!, caseData, { n: e.n, quantity: claimQuantity(e.c), value: claimFigures(e.c)[0], span: e.c.span }, staleCaseFigures) } : {}),
   };
   let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
@@ -1005,10 +1066,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The step check's root due its input question (round 6 Task 72; below): a root step with an input question not asked
   // yet, under the step cap, not closed, at most CHECKER_MAX_WAIT_MESSAGES messages old.
   const askedSteps = (flags.stepRootAsked as string[] | undefined) ?? [];
+  // Task 2: a root the candidate has restated at another value, or withdrawn, since takes no question.
+  const rootStale = (rk: string, r: StepRoot) => {
+    const why = staleOn ? staleReason(worksheet!, caseData, { n: r.since, quantity: `step:${r.step}`, value: r.value, span: r.span ?? '' }, staleCaseFigures) : null;
+    if (why !== null && !staleDrops.some(d => d.id === rk)) staleDrops.push({ kind: 'root_question', id: rk, reason: why });
+    return why !== null;
+  };
   const rootDue = () => Object.entries(stepRoots).sort((a, b) => a[1].since - b[1].since)
-    .find(([, r]) => inputQuestionOf(caseData, r.step) !== undefined && !askedSteps.includes(r.step) && (stepProbes[r.step] ?? 0) < STEP_PROBE_CAP
+    .find(([rk, r]) => inputQuestionOf(caseData, r.step) !== undefined && !askedSteps.includes(r.step) && probesOn(r.step) < STEP_PROBE_CAP
       && !convertedSteps.has(r.step) && !closedKeys.includes(attemptKey({ stepId: r.step, candidateValue: r.value }))
-      && candidateIndexes.filter(i => i > r.since).length <= CHECKER_MAX_WAIT_MESSAGES);
+      && candidateIndexes.filter(i => i > r.since).length <= CHECKER_MAX_WAIT_MESSAGES && !rootStale(rk, r));
   const rootSlotFree = rootsOn && kind === 'model' && checkerInput.currentFlags.length === 0 && misquote === null && !underTimePressure;
   // Fix round 2 (controller ruling, 21 Oct: "a fresh root's input question takes precedence over a linked claim's derived
   // correction (root first)"; b37q Marcus: the 1.4x correction took the slot at t22 and the question never went): the
@@ -1126,7 +1193,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const coveredNow = checkerUsed?.covers ?? [];
   // A row fix closes every input it corrects (E7).
   const inputsFixed = checkerUsed?.action === 'correct' ? checkerUsed.inputs ?? [] : [];
-  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key, ...(checkerUsed.converted ? [convertedMarker(checkerUsed.key)] : [])] : []), ...coveredNow.map(c => c.key), ...inputsFixed])];
+  // Task 3: a root's correction closes the claims riding on it too — no probe on a figure it covered.
+  const rootRiders = checkerUsed?.rootCorrection ? [...(checkerUsed.rootClaimKey ? [checkerUsed.rootClaimKey] : []), ...(checkerUsed.riders ?? []).flatMap(r => (r.key ? [r.key] : []))] : [];
+  const closedAfter = [...new Set([...closedKeys, ...(checkerUsed?.action === 'correct' ? [checkerUsed.key, ...(checkerUsed.converted ? [convertedMarker(checkerUsed.key)] : [])] : []), ...coveredNow.map(c => c.key), ...inputsFixed, ...rootRiders])];
   // The misread inputs closed — by a row fix, this turn's too, or to the report: no probe on them from the model either (probe-guard.ts).
   const closedInputs = closedAfter.flatMap(k => { const i = parseInputKey(k); return i ? [i] : []; });
   const leftForReport = checkerDecisions.filter(d => d.outcome === 'unresolved' && closedKeys.includes(d.key));
@@ -1163,7 +1232,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // on the wrong value; a restatement, once per root (Lorenzo, 19 Oct, round-2 ruling 1). A conversion's line too: the
   // restatement is the line delivered, verbatim (round-3 ruling 1; b28/b29 Jordan).
   const correctedNow = {
-    ...(checkerUsed?.action === 'correct' ? { [checkerUsed.key]: { line: checkerUsed.line, ...(checkerUsed.derived[0] ? { figure: checkerUsed.derived[0] } : {}) } } : {}),
+    ...(checkerUsed?.action === 'correct' ? { [checkerUsed.key]: { line: checkerUsed.line, ...(checkerUsed.derived[0] ? { figure: checkerUsed.derived[0] } : {}), ...(checkerUsed.rootCorrection ? { at: ctx.nextTurnIndex } : {}) } } : {}),
     ...Object.fromEntries(coveredNow.map(c => [c.key, { line: c.line, ...(c.claim.correctionFigure ? { figure: c.claim.correctionFigure } : {}) }])),
     // …and the inputs a row fix corrects, with the message it was decided on: a claim on one said by then was covered by it.
     ...Object.fromEntries(inputsFixed.map(k => [k, { line: checkerUsed!.line, at: ctx.nextTurnIndex }])),
@@ -1221,6 +1290,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     } });
     rootLine = { id: rk, key, action: 'probe', line, stepRoot: r.step,
       undo: { attempt: attemptBefore, step: r.step, mathChecker: (flags.mathChecker as CheckerMemory | undefined) ?? { handled: checkerHandled } } };
+  }
+  if (staleOn) {
+    const checkerStale = checkerDecisions.filter(d => d.outcome === 'stale' && d.reason.startsWith('stale_drop: ')).map(d => ({ kind: 'checker' as const, id: d.id, reason: d.reason.slice('stale_drop: '.length) }));
+    const all = [...staleDrops, ...checkerStale];
+    checks.record('stale_drop', all.length > 0, 'a probe or correction the candidate has overtaken since (the worksheet): dropped, not said', { dropped: all });
   }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.
