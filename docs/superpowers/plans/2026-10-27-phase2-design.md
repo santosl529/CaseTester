@@ -648,3 +648,63 @@ At your +800k-per-session pace that is about 3–4 sessions. A natural first ses
 - **Q7 — Two model questions (L5).** 8 of 382 turns on b36–38 carry two or more "?" sentences. Log only in C1–C4, then choose a remedy (keep the last question, or the first) on the counts?
 - **Q8 — The fault bank's denominator for Phase 2.** Proposed: the gate counts the 57 records owned here, with the 23 math and 7 stage records reported but not counted. That would avoid repeating Phase 1's condition-1 ambiguity.
 - **Q9 — `progress.md` and the PRD.** I left both untouched, so as not to collide with the running Phase 1 session on the same files. Once you approve this design, I'd add the §16 "proposed, awaiting ruling" entry and a "## Now" line.
+
+---
+
+## 9. Lorenzo's rulings (27 Oct) and what they change
+
+| | Ruling | Change to the design |
+|---|---|---|
+| Q1 | The check may run on sub-asks the request reader recognizes; it may release (through the tag gate) or defer, never refuse. Report the calls and latency | R6 never refuses an undeclared sub-ask. b34l-marisol-t12/t26 become wave-judged |
+| Q2 | Head-noun form only if 19/19 true refusals hold, no hollow deferral is added and a record flips | **Measured in S1: it fails the first condition (11/18).** R6 runs without it |
+| Q3 | A tag mismatch on a model item: logged only, keep releasing | R2 logs `tagMismatch` and releases |
+| Q4 | Drop code's offer line | No offer outcome; A13 goes in the step that retires it |
+| Q5 | A correction of what the candidate just said goes before the data; others after | Slots: ack → correction (just said) → data → other corrections → question |
+| Q6 | No rewrite; whole sentences only | The grading remainder (C3) is withheld whole |
+| Q7 | Keep the last question, withhold the earlier; log first, then enforce | L5 logs in C1, acts in C4 |
+| Q8 | Gate = the 57 owned + all correct records + 0 new false refusals, wrong releases or false corrections | `evals/fault-bank/phase2-owned.json` |
+
+## 10. Session 1 (27 Oct): S0, S1, C1 built in shadow
+
+**Nothing the candidate hears changed.** Over b22l and b28–b38 (1,557 interviewer turns), `*=phase1,phase2` matched `*=phase1` on every turn, timing fields aside. Bank verdicts were identical on all 311 records.
+
+**S0 — bank fixes:**
+- b38l-tyler-t20, b36l-marisol-t12 and b33-blake-t22: their `says` pattern also matched a correctly fixed turn, so they now assert L2.
+- b37q-tyler-t6: accepts the refusal in the candidate's own cut ("by source"). Proposed.
+- b34l-marisol-t12/t26: drop a probe must-not that their own correct records contradict; wave-judged under Q1.
+
+Bank: `*=phase1` 70/153, off 48/154, correct records 95/96 both arms.
+
+**S1 — the shadow decision against today** (`scripts/ask-shadow-report.ts`): 1,358 sub-asks, 892 agree with today. The disagreements:
+
+| Class | Count |
+|---|---:|
+| none → defer (355 of them undeclared) | 371 |
+| defer → release | 27 |
+| none → release | 23 |
+| refuse → defer | 13 |
+| release → defer | 9 |
+| point → refuse | 8 |
+| point → defer | 5 |
+| none → point | 5 |
+| defer → refuse | 2 |
+| none → refuse | 1 |
+| release → refuse | 1 |
+| defer → point | 1 |
+
+On the bank (`fault-bank.ts shadow`):
+- true refusals 18/18 (11/18 with the head-noun test);
+- other correct records 21/21;
+- the 57 owned: 18 pass, 30 fail, 9 not this structure's to judge.
+
+**C1 — the composer against today** (`scripts/compose-shadow-report.ts`):
+- 108 turns would change;
+- L5 40 → 3 turns, L2 6 → 4, L4 2 → 1;
+- L1, L3, L6 and L7 unchanged (L3 is the decision's; L7 is the checker's wording);
+- no rule added anywhere.
+
+**What session 1 changes in the plan:**
+1. **The undeclared sub-ask split is about half precise** (30-sample: ~16 real asks, ~14 statements, purpose clauses or rhetoric). S7 must not speak on undeclared sub-asks until the split improves. Q1's checks would fire on 12.6% of turns.
+2. **Four owned records demand a refusal where the rulings give a deferral:** b38l-tyler-t22, b38l-marisol-t12, b35h-raj-t26, b34l-marisol-t30. The check mapped them to items the gates reject, and 4.3's "a mismatch defers, never refuses" applies. Six more are undeclared asks, which Q1 never refuses. These need Lorenzo's reading before S2's gate is set.
+3. **Every setup sentence the composer would move had already streamed** (26 of 26), so C3's stream hold is required, not optional.
+4. **R2's strict line test is relaxed to a positive contradiction plus E1's cut.** The strict form dropped correct semantic mappings ("departures flown by the fleet" → the schedule).
