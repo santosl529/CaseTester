@@ -37,7 +37,7 @@ Not merged: `phase1-s4-fixes` (Stream 4a, review round applied), `phase1-s4b-fix
 | 2 — case data | cover lint on the merged view: 0 wrong gains, 0 unsure, 0 collisions, 0 containments | 5 asks change what a candidate hears, 9 gains, all correct |
 | 3 — math | 1 changed line across 26 slices (the scale fix); prof-001 identical | 10 lines: 5 fixed, 4 neutral, 1 artifact. **0 new false corrections.** `*=stepLineage,rootLineage` identical to `*=rootLineage` |
 | 4a — data path | **0 changed lines on 31 slices** | 29 lines (was 67 pre-review), 0 new refusals, 2 new releases both answering their ask, deferrals 8 (was 30), all closed, 0 hollow |
-| 4b — small fixes | **0 changed lines on 29 slices + b38l** | fix round running at the cap |
+| 4b — small fixes | **0 changed lines on 30 slices; all 225 run files byte-equal** | 1,176 lines, **0 changed decisions**: 1,120 ack rotations, 53 close_wait follow-ups, 3 skipped rec re-asks. Fact-check counts identical on every slice |
 | Base fixes (ungated) | n/a | 11 lines in 3 of 30 runs, fact-check counts identical on all 30 |
 
 ## 4. Gate conditions, honestly
@@ -50,6 +50,14 @@ Not merged: `phase1-s4-fixes` (Stream 4a, review round applied), `phase1-s4b-fix
 | prof-001 identical with switches off | **Met for Phase 1 switches; one deliberate exception.** The ungated base fix moves b33 Jasmine's "19.2% volume loss, not 5–6%" correction from t18 to t16, onto a coverage-made recommendation ask — she now hears it before recommending. Said once either way; fact-check unchanged on every prof-001 slice. **Your call** |
 | Latency and model calls reported | **Partly.** No new live model call. Haiku ask-check calls 258 → 254 with Stream 4a on. Want-cue classifier share: 1.72% of candidate turns, 2.27% of model turns, 3.16% of want-phase model turns — the cap applies to the last of these. Code-path timing not yet extracted |
 | Tokens per stream, merge and review | §7 |
+
+## 4a. A switch trap to fix before any wave
+
+**`ENGINE_SWITCHES='*=phase1'` currently turns `recommendationOpensGate` ON**, because it sits in `PHASE1_SWITCHES`. That is the wider 4.9 reading you have not ruled on. Until then the gate and the wave must run `'*=phase1,-recommendationOpensGate'`, or — better, and my recommendation — the switch should be removed from the `phase1` preset so it can only be named explicitly. One-line change, owed at the 4b merge.
+
+The two 4.9 arms, measured:
+- **Narrow (the default):** 0 changed decisions, no run closes earlier.
+- **Wide (`recommendationOpensGate`):** 2 changed decisions (one neutral claim) and 5 runs close earlier — b34a Jasmine 37→21 turns (8 exchanges lost), b36a Jasmine 39→25 (7), b35q Raj 39→29 (5), b37q Raj 41→35 (3), b37q Tyler 35→31 (2). Every replaced turn is a post-recommendation pushback probe.
 
 ## 5. Three bank fixes before the gate verdict can be trusted
 
@@ -72,7 +80,7 @@ Also confirmed: **nothing in the bank now fails while its fix is correct.** That
 
 ## 7. Tokens
 
-**This session (your +2M): ~2.48M — over, which is why work stopped here.**
+**This session (your +2M): ~2.87M — over, which is why work stopped here.**
 
 | Step | Tokens |
 |---|---|
@@ -82,6 +90,7 @@ Also confirmed: **nothing in the bank now fails while its fix is correct.** That
 | Fault-bank fix round | 330,353 |
 | Stream 4a fix round | ~519,700 |
 | Stream 3 fix round | 673,040 |
+| Stream 4b fix round | ~390,000 |
 | Independent bank re-review | 204,711 |
 | Merges, fault-bank runs, this report (lead) | ~35,000 |
 
@@ -104,15 +113,16 @@ Built (your ruling): prof-002 + `competitor_costs` before exhibit-3 (3 in all); 
 3. **4.9's scope.** Built both ways: the narrow reading (the time warning stops re-asking) is the default, the wider one (a received recommendation opens the end gate) is behind `recommendationOpensGate`, off. The wider reading closed five runs 3–8 minutes earlier and cost b34a Jasmine eight pushback turns — pushback being one of the eight rubric dimensions.
 4. **4.3 has three outcomes**, not two: release, defer, or silently drop the gated item when what remains still answers. At b34l Marisol t30 the drop was better than a deferral. The contract's "a mismatch defers" should move; the gated ids are now recorded so must-reach can still deliver them.
 5. **The auditor's calibration is stale.** Fixing the exhibit clip and adding withheld detail changed its input, so 86% recall / 51% precision no longer describe this version. Re-calibration is ~$3.62 of the $25 cap. Needed before the wave if the auditor grades first.
-6. **close_wait's open question:** if the first-step line also counts as a re-ask when the answer already gave the sequence, the ten `after_risk` records need the first-step pattern as a second must-not.
-7. **Three of eight auditor `DROPS` key sets are dead** (`pending_data`, `uncovered_asks`/`probe_turn_requests`, `data_decisions`), so `uncovered_asks.dropped` — the stated evidence for `bare_partial` — fired on 0 of 156 turns. Worth fixing before re-calibrating.
-8. **Two base issues documented, not fixed:** the once-per-stage yield is defeated when a second reason forces the same kind; a stage turn still inside its budget drops the probe (the wider fix cost a new dangling question, so it was reverted).
-9. **Stream 2's proposed case edit:** pricing-001 `churn_breakeven_at_60` should list `pro_ltv` among its inputs.
-10. **`b35q` run 5c3d2c21 t13** speaks "Starter standalone lifetime value … $600, not $400" under a *churn* key. Identical with every switch off — it predates Phase 1.
+6. **The want cue exceeds the cap on the denominator that matters** (§4) — accept 2.27% / 3.16%, or tighten the cue?
+7. **close_wait's open question:** if the first-step line also counts as a re-ask when the answer already gave the sequence, the ten `after_risk` records need the first-step pattern as a second must-not.
+8. **Three of eight auditor `DROPS` key sets are dead** (`pending_data`, `uncovered_asks`/`probe_turn_requests`, `data_decisions`), so `uncovered_asks.dropped` — the stated evidence for `bare_partial` — fired on 0 of 156 turns. Worth fixing before re-calibrating.
+9. **Two base issues documented, not fixed:** the once-per-stage yield is defeated when a second reason forces the same kind; a stage turn still inside its budget drops the probe (the wider fix cost a new dangling question, so it was reverted).
+10. **Stream 2's proposed case edit:** pricing-001 `churn_breakeven_at_60` should list `pro_ltv` among its inputs.
+11. **`b35q` run 5c3d2c21 t13** speaks "Starter standalone lifetime value … $600, not $400" under a *churn* key. Identical with every switch off — it predates Phase 1.
 
 ## 10. What remains, in order
 
-1. Stream 4b's fix round to finish (running at the cap), then merge 4a and 4b. Expect conflicts in `turn-data.ts`, `data-decisions.ts`, `fact-check.ts`, `item-tags.ts`, `phrasing.ts`, `math-checker-live.ts` and `settle-turn.ts`.
+1. Merge 4a and 4b (both fix rounds are now applied), and drop `recommendationOpensGate` from the `phase1` preset (§4a). Expect conflicts in `turn-data.ts`, `data-decisions.ts`, `fact-check.ts`, `item-tags.ts`, `phrasing.ts`, `math-checker-live.ts` and `settle-turn.ts`.
 2. The three bank fixes in §5, then re-run both arms.
 3. The combined cross-stream replay with every switch on: read and classify every changed data, probe and correction turn across b28–b38. **This is the gate's real test and it has not been run.**
 4. Widen `b35h-raj-t26-cannibalization`'s window.
