@@ -3,6 +3,7 @@
 // turns, 12 consecutive pairs (hand grading). Says verbatim from b38's model turns.
 import { describe, it, expect } from 'vitest';
 import { PHRASE_POOLS, PHRASE_MEMORY, recordPhraseUses, rotateOpeningAck, isAckOnly, type PhraseUses } from '@/lib/orchestrator/phrasing';
+import { turnCorrects } from '@/lib/orchestrator/stream-turn';
 
 describe('4.10: the opening acknowledgment', () => {
   it('a say that opens on acknowledgment words only gets the pool\'s variant; the rest is the model\'s', () => {
@@ -30,6 +31,43 @@ describe('4.10: the opening acknowledgment', () => {
     }
     for (let i = PHRASE_MEMORY; i < said.length; i++) expect(said.slice(i - PHRASE_MEMORY, i)).not.toContain(said[i]);
     expect(said.filter(s => s === 'Understood.').length).toBeLessThanOrEqual(Math.ceil(30 / (PHRASE_MEMORY + 1)));
+  });
+  // Review fix round, item 8: a rotated acknowledgment in front of a correction reads as assent and then
+  // contradiction, which is why "Right." was left out of the pool in the first place.
+  it('a turn that carries a correction keeps the model\'s own word', () => {
+    const uses: PhraseUses = { ack: [0] };
+    const say = 'Mm-hm. Starter standalone lifetime value is about $1,400, not $1,205.';
+    expect(rotateOpeningAck(say, uses, 's:18', { correcting: true })).toBe(say);
+    expect(rotateOpeningAck(say, uses, 's:18')).not.toBe(say);          // …and rotates as usual when it doesn't
+  });
+  it('turnCorrects reads the correction code will write after the say', () => {
+    const base = { misquote: null, checkerLine: null, stageCheckerLine: null, recMathProbe: null };
+    expect(turnCorrects(base as never)).toBe(false);
+    expect(turnCorrects({ ...base, misquote: { item: 'x', items: ['x'], text: 'Y, not Z.', all: [] } } as never)).toBe(true);
+    expect(turnCorrects({ ...base, checkerLine: { action: 'correct' } } as never)).toBe(true);
+    expect(turnCorrects({ ...base, checkerLine: { action: 'restate' } } as never)).toBe(true);
+    expect(turnCorrects({ ...base, checkerLine: { action: 'probe' } } as never)).toBe(false);
+    expect(turnCorrects({ ...base, stageCheckerLine: { id: 'a', key: 'k', line: 'L' } } as never)).toBe(true);
+    expect(turnCorrects({ ...base, recMathProbe: { action: 'correct' } } as never)).toBe(true);
+    expect(turnCorrects({ ...base, recMathProbe: { action: 'probe' } } as never)).toBe(false);
+  });
+  // Stream rotates the first sentence event; Settle rotates the whole say and splits it itself. The words must match.
+  it('the same say rotates identically through the Stream and the Settle path', () => {
+    const uses: PhraseUses = { ack: [0, 1] };
+    const seed = 'sess:12';
+    for (const say of [
+      'Understood. You said roughly 800,000 passengers a year.',
+      'Okay, got it.  The Lakeport number is next.',
+      'Mm-hm.\nWhat would you look at next?',
+      'Got it.',
+      'A cost-first split. What would you look at next?',   // no acknowledgment: both leave it alone
+    ]) {
+      const [first, ...rest] = say.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
+      const stream = [rotateOpeningAck(first, uses, seed), ...rest].join(' ');          // Stream: the first event only
+      const settle = rotateOpeningAck(say, uses, seed);                                  // Settle: the whole say
+      expect(settle.trim().split(/(?<=[.!?])\s+/)[0]).toBe(rotateOpeningAck(first, uses, seed));
+      expect(settle.trim().replace(/\s+/g, ' ')).toBe(stream.trim().replace(/\s+/g, ' '));
+    }
   });
   it('switch off: the ack pool is not recorded — the session\'s uses are as before', () => {
     expect(recordPhraseUses('Understood. What would you look at next?', {})).toEqual({});

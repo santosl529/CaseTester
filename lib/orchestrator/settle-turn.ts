@@ -42,7 +42,7 @@ import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probe
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
 import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
-import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim, dropAckOpening } from './stream-turn';
+import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim, dropAckOpening, turnCorrects } from './stream-turn';
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
 import type { ModelPlan } from './plan-turn';
@@ -257,9 +257,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     }
     return kept.join(' ');
   };
-  // 4.10 (`ackRotation`): the model's opening acknowledgment through the pool rotation, as Stream said it.
+  // 4.10 (`ackRotation`): the model's opening acknowledgment through the pool rotation, as Stream said it — and, by
+  // its review fix, never in front of a correction code writes (stream-turn.ts turnCorrects).
   const ackOn = switchOn(state.caseData, 'ackRotation');
-  const say = codeWritten ? turn.say : keep(ackOn ? rotateOpeningAck(turn.say, phraseUses, seed) : turn.say, 'say');
+  const say = codeWritten ? turn.say : keep(ackOn ? rotateOpeningAck(turn.say, phraseUses, seed, { correcting: turnCorrects(state) }) : turn.say, 'say');
   // Whether this message answered the last question (a fallback must not ask it again).
   const lastAnswered = stallDecision.classification.kind === 'analysis';
   // A code-written question opening with the filler the voice just said ("Take

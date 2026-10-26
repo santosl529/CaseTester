@@ -716,10 +716,17 @@ export function withoutCloseWaitLines(text: string): string {
 // session's last 3 uses never again; the first use is "Understood."). A sentence that comments ("Understood, that
 // fills the gaps.") or says anything else is the model's and stays. Stream and Settle call this with the same seed
 // and uses, so both say the same words. Split as the say's sentences are (turn-events.ts).
+//
+// Review fix round, item 8: `o.correcting` (stream-turn.ts turnCorrects) keeps the model's own word. A rotated
+// acknowledgment in front of a correction reads as assent and then contradiction — "Mm-hm. Starter value is about
+// $1,400, not $1,205." — which is why "Right." was left out of the pool. Only the opening sentence is replaced now,
+// and the text after it is kept exactly as it came, so Stream (which rotates the first sentence event) and Settle
+// (which rotates the whole say) cannot drift apart on whitespace either.
 const ACK_ONLY = /^(?:okay|ok|understood|got it|mm-?hm+|i see|right|sure|alright|all right)(?:[,.!]\s*(?:okay|ok|understood|got it|mm-?hm+|i see|right|sure|alright|all right))*[.!]?$/i;
 export const isAckOnly = (sentence: string) => ACK_ONLY.test(sentence.trim());
-export function rotateOpeningAck(say: string, uses: PhraseUses | undefined, seed: string): string {
-  const [first, ...rest] = say.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
-  if (first === undefined || !isAckOnly(first)) return say;
-  return [line('ack', uses, seed), ...rest].join(' ');
+export function rotateOpeningAck(say: string, uses: PhraseUses | undefined, seed: string, o: { correcting?: boolean } = {}): string {
+  if (o.correcting === true) return say;
+  const m = /^(\s*)([^.!?]*[.!?]*)([\s\S]*)$/.exec(say);
+  if (m === null || !isAckOnly(m[2])) return say;
+  return `${m[1]}${line('ack', uses, seed)}${m[3]}`;
 }
