@@ -45,6 +45,7 @@ export type GateContext = {
   alreadyProbed: Set<string>;
   flaggedThisTurn: boolean;
   flagged?: number[];              // figures a check flagged wrong this turn
+  misquoteFigures?: number[];      // figures code found misquoted in this message (Phase 1 `misquoteFlat`): a doubt of one stands
   closed?: number[];               // figures of a checker flag past Rule 14: not asked about again
   closedInputs?: { figure: number; unit: string }[];   // misread inputs corrected or left for the report (E7): not probed again
   converted?: number[];            // figures a conversion closed (own-quantity.ts): never negated ("not 38")
@@ -199,6 +200,7 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
   const challenge = challengeVerdict(sentence, {
     verified: g.verified, alreadyProbed: g.alreadyProbed, flaggedThisTurn: g.flaggedThisTurn, flagged: g.flagged, closed: g.closed, closedInputs: g.closedInputs, candidateFigures: g.candidateFigures,
+    misquoteFigures: g.misquoteFigures,
   }, new Set(), opts.previous);
   if (challenge && !('explainKey' in challenge)) return challenge.test === 'unsupported_challenge' ? 'unsupported_challenge' : 'probe_guard';
   if (withholdAssumptionChallenges(sentence, g.openItems).withheld.length > 0) return 'assumption_guard';
@@ -244,6 +246,7 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     flagged: state.flaggedFigures,
     closed: state.closedFigures,
     closedInputs: state.closedInputs,
+    misquoteFigures: state.misquoteFigures,
     converted: state.convertedFigures,
     candidateFigures: state.candidateFigures,
     openItems: state.openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })),

@@ -663,6 +663,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     if (misquoteStale !== null) { staleDrops.push({ kind: 'misquote', id: r.id, reason: misquoteStale }); continue; }
     perItem.push({ item: r.finding.item, cited: r.finding.cited, sentence: r.finding.sentence, n: r.candidateTurnIndex });
   }
+  // Phase 1 task 4 (`misquoteFlat`): the figures code found misquoted in THIS message. The probe guard lets the
+  // model's own doubt of one stand — code's mismatch with the revealed item is the backing it asks for — where today
+  // it is withheld as an unsupported challenge (b38 Larkspur Tyler t14, "does your $125 match it?"). Only the live
+  // findings (`found`), not the report-only ones: on a case whose ledger lookup isn't validated, code's own finding is
+  // not trusted to correct, so it is not trusted to license a doubt either.
+  const misquoteFigures = switchOn(caseData, 'misquoteFlat') ? found.flatMap(m => numbersOf(m.cited)) : [];
   // Whether message n replied to a recommendation ask (the interviewer turn before it).
   const flagsMoves = (flags.moves as Record<number, TurnMove> | undefined) ?? {};
   const recReplyAt = (n: number) => {
@@ -1438,7 +1444,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
-      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, closedInputs, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, stageCodeLines, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, factBase, factEchoes,
+      derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, closedInputs, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, stageCodeLines, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, misquoteFigures, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, deferChecks: new Map<string, Promise<CheckVerdict>>(), messageAsks: undefined as Promise<MessageAsks> | undefined, messageAsksHeard: undefined as Promise<MessageAsks & { timedOut?: true }> | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason,

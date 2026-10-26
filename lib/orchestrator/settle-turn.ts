@@ -282,6 +282,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const challengeCtx = {
     verified: [...verifiedNow, ...verifiedPrev], alreadyProbed: explainProbedBefore, flaggedThisTurn: recomputeFlags.length > 0,
     flagged: state.flaggedFigures, closed: state.closedFigures, closedInputs: state.closedInputs, candidateFigures,
+    misquoteFigures: state.misquoteFigures,
   };
   const mathWithheld = withheld.filter(w => w.field === 'question' && (w.reason === 'probe_guard' || w.reason === 'unsupported_challenge'));
   let challengeReplacement: string | null = null;

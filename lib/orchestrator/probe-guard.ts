@@ -31,6 +31,7 @@ export type ChallengeContext = {
   closed?: number[];                 // figures of a flag past Rule 14 (corrected, or left for the report): never asked about again
   closedInputs?: InputFigure[];      // misread inputs corrected or left for the report (E7), with their units: never probed again — the data's own figures, quoted freely
   flaggedThisTurn: boolean;          // any flag fired this turn: an unattributed doubt may be about it
+  misquoteFigures?: number[];        // figures code found misquoted in this message (Phase 1 `misquoteFlat`): a doubt of one is the model catching it
   candidateFigures?: number[];       // the figures the candidate derived (math-talk.ts candidateFiguresOf)
   alreadyProbed: Set<string>;        // step ids / "fig:<n>" keys given an explain probe earlier
 };
@@ -92,6 +93,13 @@ export function challengeVerdict(sentence: string, ctx: ChallengeContext, probed
   if (talk.kind === 'doubt') {
     if (talk.figures.some(f => flagged.some(x => same(f, x)))) return null;
     if (named) return { sentence, stepId: named.stepId, figure: named.value, test: 'doubt_on_verified' };
+    // Phase 1 task 4 (`misquoteFlat`, contract 3.4; Lorenzo, 26 Oct: "Never let the probe guard replace a model
+    // question that catches a misquote."): a doubt of a figure code found misquoted in this message — the candidate
+    // quoting a revealed item at a figure the data doesn't state — is the model catching that misquote, and code's own
+    // mismatch with the data is the backing the guard asks for. b38 Larkspur Tyler t14: "does your $125 match it?"
+    // (the exhibit says $120) went out as `unsupported_challenge`. Only the figures of code's own live findings count,
+    // never a figure the candidate derived: the caller fills them (plan-turn.ts, under the switch).
+    if (talk.figures.some(f => (ctx.misquoteFigures ?? []).some(x => same(f, x)))) return null;
     const unflagged = talk.figures[0];
     if (unflagged !== undefined) return { sentence, figure: unflagged, test: 'unsupported_challenge' };
     if (flaggedThisTurn) return null;
