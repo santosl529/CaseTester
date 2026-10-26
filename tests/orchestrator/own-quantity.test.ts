@@ -372,9 +372,22 @@ describe('a scale word the step does not declare: no correction line', () => {
     errorType: 'arithmetic' as const, changesConclusion: false, confidence: 'high' as const, probe: '', pointer: '',
     codeQuantity: { kind: 'step' as const, stepId, price: null, target: null }, actualShare: null,
   });
-  it('"$210k" against uplift_at_60 (0.24, a million-scale step): code\'s figure at the step\'s scale, theirs as said — never "$0.24k"', () => {
+  it('"$210k" against uplift_at_60 (0.24, a million-scale step): code\'s figure in full, theirs as said — never "$0.24k"', () => {
     expect(codeCorrection(claim('$210k', 'uplift_at_60'), { value: 0.24, index: 0 }, ctx)?.line)
-      .toBe('Extra value per month of sign-ups at $60 vs. $40 is about $0.24 million, not $210k.');
+      .toBe('Extra value per month of sign-ups at $60 vs. $40 is about $240,000, not $210k.');
+  });
+  // Review C3: the slip is not money's alone — entry-001's "250k patients" against 200,000 read "about 200,000k".
+  it('a count in thousands against a count step: code\'s figure in full', () => {
+    const entry = getCaseById('entry-001');
+    const ectx = { caseData: entry as never, revealedIds: entry.dataLedger.map(d => d.id), shownExhibitIds: [], candidateTexts: [] };
+    const c = { ...claim('250k', 'eligible_patients'), quantity: 'US patients eligible for Kelvexa', correctValue: 200000 };
+    expect(codeCorrection(c, { value: 200000, index: 0 }, ectx)?.line).toBe('US patients eligible for Kelvexa is about 200,000, not 250k.');
+  });
+  it('a percent with a scale word it does not own is written plainly', () => {
+    const pricing2 = getCaseById('pricing-001');
+    const pctx = { caseData: pricing2 as never, revealedIds: pricing2.dataLedger.map(d => d.id), shownExhibitIds: [], candidateTexts: [] };
+    const c = { ...claim('12k', 'upgrade_breakeven_at_60'), quantity: 'the upgrade rate below which $60 stops beating $40', correctValue: 12.5 };
+    expect(codeCorrection(c, { value: 12.5, index: 0 }, pctx)?.line).toBe('Upgrade rate below which $60 stops beating $40 is about 12.5%, not 12k.');
   });
   it('their own scale, matched: written in it, as before', () => {
     expect(codeCorrection(claim('$210M', 'uplift_at_60'), { value: 0.24, index: 0 }, ctx)?.line).toMatch(/about \$0\.24M, not \$210M\.$/);
