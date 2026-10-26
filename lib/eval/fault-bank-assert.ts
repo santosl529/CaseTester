@@ -23,12 +23,15 @@
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 import { poolPattern } from '@/lib/orchestrator/phrasing';
 import type { Assertion, FaultRecord, FaultResult } from './fault-bank';
+import { lintTurn } from '@/lib/orchestrator/turn-lint';
 
 export type BankTurn = Pick<TurnRecord, 'turnIndex' | 'delivered' | 'checks' | 'stateBefore' | 'ended'>;
 /** Item id → the ways its ledger line is said (the value, plus any data-line versions). */
 export type ItemLines = Record<string, readonly string[]>;
 /** What the detectors need of the case: its lines, and the items each exhibit releases (an exhibit's segment carries no revealIds). */
-export type CaseView = { lines: ItemLines; exhibits?: Record<string, readonly string[]> };
+export type CaseView = { lines: ItemLines; exhibits?: Record<string, readonly string[]>;
+  /** For the lint's L3: an item's own words (label, spoken name, line) and an exhibit's title. */
+  words?: Record<string, readonly string[]>; exhibitTitles?: Record<string, string>; caseNames?: string[] };
 
 const REFUSE = new RegExp(`\\b(?:I don't have|I do not have|I don’t have|isn't something I have|not something (?:I|we) have|we don't have|that's not in the case|I have no\\b[^.?!]{0,60}\\bto give you)\\b|${poolPattern('refuse').source}`, 'i');
 const PROBE = new RegExp(`${poolPattern('probe_got_to', 'probe_calc', 'probe_there').source}|\\b(?:walk me through|talk me through|take me through|show me,? (?:step by step,? )?(?:how|that|the|your)|what (?:steps|were the steps|got you)|how did you (?:get|arrive|do|calculate|compute|size|work|derive|come up|land|reach|build|figure|separate|count)|where (?:did|does) (?:that|the|this|your) [^?]{0,80}come from|(?:which|what) [^?]{0,100}did you (?:use|apply|read|count|divide|multiply|add|subtract|take|pull|separate)|(?:is|was) (?:that|it) (?:built|based|resting) on|(?:does|did) (?:that|it) rest on|resting on\\?)\\b`, 'i');
@@ -142,7 +145,7 @@ export function readTurn(t: BankTurn, view: CaseView): TurnReading {
 }
 
 // Whether one assertion's event happened on one turn (polarity aside).
-function happened(a: Assertion, r: TurnReading, t: BankTurn, next: BankTurn | undefined): boolean {
+function happened(a: Assertion, r: TurnReading, t: BankTurn, next: BankTurn | undefined, view: CaseView): boolean {
   const re = (p: string) => new RegExp(p, 'i');
   switch (a.kind) {
     case 'release': return r.released.has(a.item);
@@ -162,6 +165,12 @@ function happened(a: Assertion, r: TurnReading, t: BankTurn, next: BankTurn | un
     case 'answered': return false;   // over the window (answeredInWindow)
     case 'close': return r.closed;
     case 'says': return re(a.pattern).test(r.words);
+    case 'lint': return lintTurn(t.delivered, {
+      itemWords: id => [...(view.words?.[id] ?? [])], exhibitWords: id => [view.exhibitTitles?.[id] ?? ''],
+      caseNames: view.caseNames ?? [], ended: r.closed,
+    }).some(v => v.rule === a.rule);
+    case 'subAsk': return t.checks.some(c => c.check === 'ask_decision_shadow'
+      && ((c.detail as { asks?: { words: string; outcome: string }[] } | undefined)?.asks ?? []).some(x => re(a.about).test(x.words) && (a.accept as readonly string[]).includes(x.outcome)));
     case 'check': return t.checks.some(c => c.check === a.check && (!a.decision || c.decision === a.decision
       || re(a.decision).test(c.reason ?? '') || JSON.stringify(c.detail ?? {}).includes(a.decision)));
   }
@@ -226,7 +235,7 @@ export function evaluateRecord(rec: FaultRecord, turns: BankTurn[], view: CaseVi
     if (!a.must && seen.length === 0) { vacuous = true; continue; }
     const hits = a.kind === 'answered'
       ? (answeredInWindow(a, ns, byT, view) ? seen : [])
-      : seen.filter(n => { const t = byT.get(n)!; return happened(a, readTurn(t, view), t, byT.get(n + 2)); });
+      : seen.filter(n => { const t = byT.get(n)!; return happened(a, readTurn(t, view), t, byT.get(n + 2), view); });
     const ok = a.must ? hits.length > 0 : hits.length === 0;
     if (!ok) {
       const at = a.must ? seen : hits;

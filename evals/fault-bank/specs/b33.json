@@ -99,12 +99,12 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "other",
-  "note": "Code's wrap-up probe \"Before we wrap up — walk me through how you got there.\" named no claim; it arrived two turns after its claim (t19), so \"there\" pointed at his first-step answer. Lorenzo's round-4 ruling 4: a late bare probe must quote the claim. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "Code's wrap-up probe \"Before we wrap up — walk me through how you got there.\" named no claim; it arrived two turns after its claim (t19), so \"there\" pointed at his first-step answer. Lorenzo's round-4 ruling 4: a late bare probe must quote the claim. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Phase 2 S0 (27 Oct): the `says` pattern also matched a correctly fixed turn (the setup sentence moved before the question, or the probe quoting its claim), so the must-not is now the turn lint's L2 — an anaphor whose referent is neither in its own sentence nor in the sentence before it, a data line being no referent.",
   "src": "batch-33/hand-grading.md; lorenzo-ruling-2026-10-19 (round 4, ruling 4)",
   "a": [
    {
-    "kind": "says",
-    "pattern": "walk me through how you got there\\.?\\s*$",
+    "kind": "lint",
+    "rule": "L2",
     "must": false
    },
    {

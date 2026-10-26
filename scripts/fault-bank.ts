@@ -36,6 +36,7 @@ import { readTurnFile } from '@/lib/eval/turn-file';
 import { engineSwitchNames } from '@/lib/eval/batch-manifest';
 import { parseEngineSwitches } from '@/lib/cases/engine-switches';
 import { getCaseById, dataLineVersions } from '@/lib/cases/loader';
+import { properNames } from '@/lib/orchestrator/request-signal';
 
 const ROOT = process.env.REPLAY_ROOT ?? '/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs';
 const OUT_BASE = process.env.FAULT_BANK_OUT ?? '/Users/lorenzo/coding/personal-projects/CaseTester-proof-out';
@@ -54,7 +55,12 @@ function linesFor(caseId: string) {
   if (!linesCache.has(caseId)) {
     const c = getCaseById(caseId);
     const versions = Object.fromEntries(c.dataLedger.map(i => [i.id, dataLineVersions(i.value)?.versions ?? []]));
-    linesCache.set(caseId, { lines: itemLinesOf(c, versions), exhibits: Object.fromEntries(c.exhibits.map(e => [e.id, e.coversLedgerItems ?? []])) });
+    linesCache.set(caseId, {
+      lines: itemLinesOf(c, versions), exhibits: Object.fromEntries(c.exhibits.map(e => [e.id, e.coversLedgerItems ?? []])),
+      // The turn lint's L3 (Phase 2): what a deferral of an item or exhibit would name.
+      words: Object.fromEntries(c.dataLedger.map(i => [i.id, [i.label, i.spoken ?? '', i.value]])),
+      exhibitTitles: Object.fromEntries(c.exhibits.map(e => [e.id, e.title])), caseNames: properNames(c.sttKeyterms),
+    });
   }
   return linesCache.get(caseId)!;
 }

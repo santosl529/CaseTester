@@ -4,6 +4,7 @@
 // every assertion against what the replay now delivers. A record names the interviewer turn as the grading does:
 // `turn` tN is the reply to the candidate message with TurnRecord.turnIndex N − 1.
 import { z } from 'zod';
+import { LINT_RULES } from '@/lib/orchestrator/turn-lint';
 
 export const FAULT_CLASSES = [
   'false_refusal', 'wrong_release', 'unasked_release', 'unasked_offer', 'bare_partial', 'restatement',
@@ -57,6 +58,12 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('says'), pattern: z.string(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // A check decision in TurnRecord.checks (e.g. { check: "code_gate", decision: "drop" }).
   z.object({ kind: z.literal('check'), check: z.string(), decision: z.string().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
+  // Phase 2 (design §3.4): a turn-lint rule (lib/orchestrator/turn-lint.ts) on the delivered turn — L1 doubled
+  // sentence … L7 quote fragment. Read by the bank itself, so it works on recorded and replayed turns alike.
+  z.object({ kind: z.literal('lint'), rule: z.enum(LINT_RULES), must: z.boolean(), scope: Scope.optional() }).strict(),
+  // Phase 2 (design §2): the shadow decision's outcome for a sub-ask (the `ask_decision_shadow` row): a sub-ask whose
+  // words match `about` decided as one of `accept`. Only meaningful on a replay with `askDecisionShadow` on.
+  z.object({ kind: z.literal('subAsk'), about: z.string(), accept: z.array(z.enum(['release', 'refuse', 'defer', 'point'])).min(1), must: z.boolean(), scope: Scope.optional() }).strict(),
 ]).superRefine((a, ctx) => {
   if (a.kind === 'answered' && !a.item && !a.about) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'an `answered` assertion names the item or the ask (`about`)' });
 });

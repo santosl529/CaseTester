@@ -113,11 +113,11 @@
   "turn": 6,
   "sev": "firm",
   "cls": "bare_partial",
-  "note": "\"Do we have the split of Starter sign-ups by source — paid versus organic?\" → signup_channels (the sign-up process), not the split, which the case doesn't hold; \"I don't have the paid versus organic split\" was owed. The model named the item; no check, no guard.",
+  "note": "\"Do we have the split of Starter sign-ups by source — paid versus organic?\" → signup_channels (the sign-up process), not the split, which the case doesn't hold; \"I don't have the paid versus organic split\" was owed. The model named the item; no check, no guard. Phase 2 S0 (27 Oct): `about` widened to the candidate's own cut — \"I don't have the split of Starter sign-ups by source.\" refuses exactly the split he asked for (\"by source — paid versus organic\"); the narrower pattern failed a fixed turn. Proposed, for Lorenzo's confirmation.",
   "a": [
    {
     "kind": "refusal",
-    "about": "paid|organic",
+    "about": "paid|organic|by source",
     "must": true
    }
   ],
