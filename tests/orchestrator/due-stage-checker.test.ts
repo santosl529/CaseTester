@@ -508,6 +508,63 @@ describe('R7 through the runner: the overdue brainstorm and the checker line', (
     expect(saysGotTo(r9.interviewerText, 'about 40 points') || /forty points|40 points/.test(r9.interviewerText)).toBe(true);
     expect((flags().mathChecker as Row).held).toBeUndefined();
   });
+
+  // A stage turn code wrote because coverage says the case may end — not
+  // because the stage's own deadline passed (Lorenzo, 22 Oct, on the Phase 1
+  // fault bank): b37q Raj's live run dropped two corrections in a row this way
+  // — t24 (stage_exhibit, coverage complete at 13:37, the exhibit deadline not
+  // reached) selected 19:0 "correct" with `used: null`, and t26 (rec_ask)
+  // selected 21:0 "correct" the same way; 19:0 then expired, three messages on,
+  // never said. b35q Marisol t26 is the same turn kind. The correction has
+  // nowhere else to go on a code-written turn, so it rides on it, as it does on
+  // an overdue one; only the probe waits.
+  const FULL_COVERAGE = { structure: 100, quantitative: 100, dataExhibit: 100, judgment: 100, creativity: 100, synthesis: 100, communication: 100, pushback: 100 };
+  it('coverage complete at 10:00, the brainstorm owed but not yet due: the correction rides on the brainstorm turn', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    store.session = { ...store.session, coverageJsonb: FULL_COVERAGE };
+    at(10.0);
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\./);
+    expect(asksBrainstorm(r.interviewerText)).toBe(true);
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'correct' });
+    expect((flags().mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
+  });
+  it('the same at code\'s recommendation ask (the brainstorm already delivered): the correction before code\'s question', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    store.session = { ...store.session, coverageJsonb: FULL_COVERAGE, phase: 'BRAINSTORM',
+      flagsJsonb: { ...flags(), stageEvidence: { ...(flags().stageEvidence as Row), brainstorm: { delivered: true, deliveredAt: 2, outcome: 'answered' } } } };
+    at(10.0);
+    MODEL.turn = { ...NEUTRAL, say: 'Understood.' };
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^Understood\. From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\. \S/);
+    expect(r.interviewerText).toMatch(/recommendation/i);
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'correct' });
+    expect((flags().mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
+  });
+
+  // The probe on the same turn (Lorenzo, 22 Oct, on b34l Marisol t26): the due
+  // stage question wins — but the probe must be *held*, not dropped. Only a
+  // turn the deadline alone made held it (`deadlineStage`), so when complete
+  // coverage forced the same overdue stage turn the probe fell out of the plan:
+  // in the b34l replay 23:0 was selected on the t26 brainstorm turn (past the
+  // exhibit budget), never booked, and gone by t28. Held, it takes the next
+  // turn over code's coverage ask (`heldNow`), as a held line already does.
+  it('the brainstorm overdue at 13:30 and coverage complete (no yield): the probe is held, not dropped, and goes out next turn', async () => {
+    seedOwed();
+    store.session = { ...store.session, coverageJsonb: FULL_COVERAGE };
+    at(13.5);
+    const r5 = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(asksBrainstorm(r5.interviewerText)).toBe(true);
+    expect(r5.interviewerText).not.toMatch(/Which cost lines did you include\?/);
+    expect(flags().stageYielded).toBeUndefined();
+    expect((flags().mathChecker as Row).held).toBe('3:0');
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'undelivered' });
+    at(14.0);
+    const r7 = await runTurn('s1', 'Labor and overhead, I think.');
+    expect(r7.interviewerText).toMatch(/Which cost lines did you include\?/);
+    expect(r7.interviewerText).not.toMatch(/recommendation/i);
+    expect((flags().mathChecker as Row).held).toBeUndefined();
+  });
 });
 
 // Review fix 3 (controller's ruling on R7, 19 Oct): code's own correction rides on an overdue recommendation ask, before code's question.

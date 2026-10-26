@@ -116,11 +116,15 @@ describe('a landed verdict on a model turn', () => {
 });
 
 describe('on a code-written turn other than the close, the flag waits', () => {
+  // Nothing is handled and no hint goes out; on an overdue stage turn the
+  // waiting probe is now recorded as held, so it keeps its turn instead of
+  // being dropped (Lorenzo, 22 Oct; b34l Marisol t26).
   it('a code-written stage or time line: no hint, not handled', () => {
     const late = 16 * 60 * 1000 + 30_000;
     const p = modelState(planTurn(withVerdict(analysis({}, late), [verdict(3)]), 'Next I would look at competitors.', deps()));
     expect(['model', 'rec_ask', 'close', 'rec_math_probe']).not.toContain(p.state.kind);
-    expect(p.ctx.flags.mathChecker).toBeUndefined();
+    expect((p.ctx.flags.mathChecker as { handled?: string[] } | undefined)?.handled ?? []).toEqual([]);
+    expect(p.state.recomputeHint ?? '').not.toMatch(/MATH CHECK FLAG/);
   });
 });
 
@@ -137,7 +141,7 @@ describe('a claim built on the flagged figure rides on its line', () => {
   });
   it('a code-written stage or time line: neither handled, no derived row', () => {
     const p = modelState(planTurn(withVerdict(analysis({}, 16 * 60 * 1000 + 30_000), [verdict(3, { claims: [flagged, built] })]), 'Next I would look at competitors.', deps()));
-    expect(p.ctx.flags.mathChecker).toBeUndefined();
+    expect((p.ctx.flags.mathChecker as { handled?: string[] } | undefined)?.handled ?? []).toEqual([]);
     expect(p.ctx.events).not.toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ outcome: 'derived' }) }));
   });
 });
