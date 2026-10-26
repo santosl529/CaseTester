@@ -329,3 +329,359 @@ row expected to change is `b37q-raj-t24-correction-dropped` (fail → pass).
 - **Open for Lorenzo:** if he rules that the close-wait *first-step* line is also a re-ask when the answer
   already gave the sequence, the ten `after_risk` records need the first-step pattern added as a second
   must-not; as built they pass when 4.8 routes them to the first-step line.
+
+---
+
+# Bank fixes (26 Oct rulings)
+
+Branch `phase1-bank`, worktree `.claude/worktrees/phase1-bank`, off `phase1` 33c8c3e5 (all five streams merged).
+Lorenzo approved all of the gate report's §5, including `compare --against=`, plus the §9 item 7 ruling (the
+first-step pattern as a second must-not) and the §5 item 6 ruling (`b37q-raj-t24-correction-dropped` is `firm`,
+stream `none`). **$0 spent — no API call. Nothing pushed, merged or deployed; nothing added under `Case Interview
+Runs/`.** Suite 5,509 passed / 9 skipped; `tsc --noEmit` and `eslint lib app components tests scripts db` clean at
+every commit. Replay output: `/Users/lorenzo/coding/personal-projects/CaseTester-proof-out/fault-bank-{bank-off,bank-on}/`.
+
+Commits: 9562258d (fixes 3 and 5), 52367dae (fix 4), 0df1b380 (fix 1), 2e6b049a (fixes 2, 6, 7), 49a5db33 (fix 8 / I5).
+
+## What changed, per item
+
+**1 — the 12 close_wait records green on a pool swap (CRITICAL).** `closeWaitLine` is a three-way fall-through, so
+re-routing `after_risk` is the obvious way to build 4.8 and the records pass while the re-ask persists. Fixed by
+asserting the decision:
+- `closeWaitRule(lastQuestion, {answer, skipAnswered})` (`lib/orchestrator/close-hold.ts`) returns
+  `{pool, skipped[]}` — which pool the follow-up comes from and which pools 4.8 skipped because the last answer (or
+  the last question) already covered them. `closeWaitLine` is now `line(rule.pool, …)`; the three pools' own tests
+  are unchanged.
+- The `close_hold` check logs it (`lib/orchestrator/plan-turn.ts`), in both the reason
+  (`close_wait line: measure; skipped: after_risk, first_step`) and the detail (`closeWait: {pool, skipped}`), from
+  exactly the inputs `codeWrittenTurn` uses.
+- Each of the 12 records pins `{kind:"check", check:"close_hold", decision:"skipped:.*<pool>", must:true}`. A
+  re-route that does not record the skip cannot green it.
+- Lorenzo's §9 item 7 ruling: the first-step pattern (`do first|first step|first thing`) is a second must-not on the
+  ten `after_risk` records. **It costs nothing** — 4.8 as built routes all ten to the measure line, so all ten pass
+  both must-nots. (I expected this to be the expensive half of the ruling; it is not.)
+- Result with `*=phase1`: **11 of 12 pass.** `b36a-marisol-t30-close-reask` still fails, and the fault is real: the
+  first-step ask there re-asks her **t25** answer ("What I'd do: before committing, get Aldermoor's actual rebate
+  quotes…"), and 4.8 reads only the *last* answer (her t29, which gives no sequence). A scope limit of 4.8 as
+  Lorenzo specified it, not a bank error — see "Owed rulings" below.
+
+**2 — three records green on a blanket refusal (CRITICAL).** `b34l-marisol-t12-ask-swallowed`,
+`b34l-marisol-t26-ask-swallowed` and `b34l-marisol-t30-wont-get-to` carried `refusal must:true` with no `about`, so
+"I don't have that." about anything greened all three. Each now names the swallowed ask: t12
+`elasticity|load factor|untested`, t26 `exit|slot`, t30 `labor|utilisation|utilization|cost breakdown`. t12 and t26
+also carry the must-not on the real fault — code's `$18,000` and `$2,800` probes taking the whole turn, which is
+what left her ask no slot (`{kind:"probe", figure:"$18,000", must:false}`).
+
+**3 — a failing record can leave the denominator (CRITICAL).** Both halves fixed.
+- (a) A skip never masks a recorded failure: `vacuous` only when `failed.length === 0`
+  (`lib/eval/fault-bank-assert.ts`), and the same rule on the `kindChanged` → `diverged` path in
+  `scripts/fault-bank.ts`. **This alone moved six records out of `diverged` and back into `FAIL`** in both arms
+  (b33-tyler-t18-stale-reprobe, b33-tyler-t18-want-dropped, b34l-marisol-t26-ask-swallowed,
+  b34l-marisol-t30-wont-get-to, b34l-tyler-t22-ramp-refusal, b35q-marisol-t32-close-over-false — plus
+  b37q-marcus-t32-rec-reask in the `*=phase1` arm, which is exactly the escape the gate report predicted).
+- (b) `compare --against=<baseline> --to=<run>`: which records moved and in which direction, and whether any moved
+  from `fails_as_expected` into any skip class. Any that did is listed for a hand read and the command exits 1. The
+  core (`bankMoves` / `bankSkipEscapes`, `lib/eval/fault-bank.ts`) is in lib so it is unit-tested; either side of
+  the compare may be a `results.json` path, its folder, or a run label. `run --against=<baseline>` folds the same
+  compare into the report and into the exit code, so gate condition 1 now carries the requirement in the report it
+  is read from.
+
+**4 — `answered` was not anchored at the record's turn (IMPORTANT).** The three accept paths were read over the
+whole window, so a turn that ignored the ask passed whenever the item came out anywhere later. They are read on the
+record's turn (or `scope.fromTurn`) alone now, and the window scan is kept for a deferral's **resolution** only.
+**Four records moved from `pass` to `FAIL`**: `b36l-jasmine-t2-departures`, `b38l-tyler-t2-split-refusal` (the two
+the re-review named), plus `b36l-marcus-t6-casm` and `b35q-marisol-t12-hollow-held` — all four were greening on
+silence at the record's turn.
+
+**5 — `run` exited 0 when a replay slice failed.** It now prints the failed slices, sets `process.exitCode = 1`, and
+says so in the report's gate section; any `run_missing` record also fails the gate and is counted there. Both arms
+report 54 runs replayed, 0 `run_missing`.
+
+**6 — `b37q-raj-t24-correction-dropped` relabelled.** `stream: 3` → `stream: "none"` (the fix is an ungated base fix
+no Phase 1 stream owns), so gate condition 1 now excludes it explicitly rather than counting it against Stream 3.
+Severity `firm` is recorded as **Lorenzo's ruling of 26 Oct**, not Claude's reading, in both the note and `src`
+(`lorenzo-ruling-2026-10-26`). The note's error is corrected: 19:0 is recorded `expired` at **t26**, not t28.
+
+**7 — `b35h-raj-t26-cannibalization`'s window widened** to `{fromTurn: 2, toTurn: 26}`. Must-reach releases
+`cannibalization` before the recommendation (Lorenzo's 21 Oct intent), so with the switches on the correct release
+lands at **t18**. Verified: the record passes with `--switches='*=phase1'` **and** with
+`--switches='*=phase1,-mustReachPhase1'`, and still passes on its recording (`check`: 0 wrong of 311). It was the
+one failing correct record in the gate report's §2, and it is clear now.
+
+**8 / I5 — `spoke`'s relevance floor.** Stated as declared scope on the assertion itself
+(`lib/eval/fault-bank.ts`): `spoke` is a **non-degeneracy floor** — the fix must not be "say nothing there" — and
+**not** an answer check; any sentence of 20 characters, or any question, satisfies it. The 25 Oct notes on ten
+records claimed it meant "the asked thing gets a word", which it never did. Judgement on which records need more
+(not all 195, and not all 88 that use `spoke`): I took the ten records carrying that overclaiming note, read each
+candidate message, and split them.
+- **Seven paired** with content, each item verified from the recording: `b34a-marcus-t14-offer`
+  (`answered patents`), `b35q-marcus-t4-same-item-stall` (`answered starter_cohort`, release-or-refusal at the
+  turn — it came at t8 after three deferrals), `b36a-raj-t14-offer` (a refusal about late-stage oral competitors),
+  `b36a-raj-t14-refusal-wording` (`refusal about oral competitor|late-stage`, so losing the bare noun phrase cannot
+  be achieved by losing the refusal), `b36a-marcus-t8-offer` (`answered nimbrel`),
+  `b36l-jasmine-t6-deferral-renames` (`answered fuel_prices` — the answer must survive the fix),
+  `b38l-marisol-t6-deferral-delivered` (`answered route_results_other` — the exhibit's own items).
+- **Three keep the floor alone, and say so**: `b34l-raj-t16-offer`, `b37h-marcus-t10-offer`,
+  `b37q-marcus-t10-offer`. The candidate's message on those turns carries no data ask, so no engagement is owed and
+  the must-not carries the fault.
+
+## Both arms, on this branch
+
+`npx tsx scripts/fault-bank.ts run --label=bank-off` and `… --label=bank-on --switches='*=phase1' --against=bank-off`.
+Free, 54 runs each, 14 s. Both re-run a second time (`bank-off2`, `bank-on2`): `compare` reports **0 moved** either
+way, so the harness is deterministic.
+
+| arm | fault records | skipped | counted | pass | fail | correct counted | correct pass |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| switches off | 212 | 56 | 156 | **46** | 110 | 96 | **95** |
+| `*=phase1` | 212 | 57 | 155 | **62** | 93 | 96 | **92** |
+
+Gate condition 1 (replayable fault records owned by streams 2, 3 and 4, not skipped):
+
+| arm | gate line | excluded (`phase2` / `none`) | correct both ways | `run_missing` | escapes |
+|---|---|---|---|---|---|
+| switches off | **46 / 155** | 1 (b37q-raj-t24-correction-dropped) | 95 / 96 | 0 | — |
+| `*=phase1` | **62 / 154** | 1 (same) | 92 / 96 | 0 | 1 (hand-read below) |
+
+Skip classes: off — `not_replayable` 52 fault + 2 correct, `diverged` 4 fault + 1 correct. On — `not_replayable`
+52 + 2, `diverged` 5 + 1. (`vacuous` is now 0 in both arms, because a vacuous window no longer wins over a
+failure.)
+
+Baseline classes:
+
+| class | off | `*=phase1` |
+|---|---:|---:|
+| fails_as_expected | 110 | 93 |
+| fixed_on_base | 46 | 62 |
+| passes_as_expected | 95 | 92 |
+| base_changed_it | 1 | 4 |
+| diverged | 5 | 6 |
+
+By stream:
+
+| stream | fault off | fault on |
+|---|---|---|
+| 2 — case data | 10 / 18 | 10 / 18 |
+| 3 — math | 9 / 39 | 12 / 39 |
+| 4 — data path & small fixes | 31 / 102 | **45 / 102** |
+| none | 0 / 1 | 0 / 1 |
+
+By class (replayable, not skipped, in that arm):
+
+| class | fault off | fault on | correct off | correct on |
+|---|---:|---:|---:|---:|
+| bare_partial | 6 / 27 | 6 / 27 | — | — |
+| close_wait_reask | 0 / 12 | **11 / 12** | — | — |
+| false_correction | 0 / 2 | 0 / 2 | — | — |
+| false_refusal | 7 / 15 | 7 / 15 | — | — |
+| hollow_deferral | 4 / 10 | **2 / 10** | — | — |
+| ignored_ask | 2 / 7 | 2 / 7 | — | — |
+| misquote_uncorrected | 0 / 6 | 0 / 6 | — | — |
+| missed_error | 0 / 5 | 0 / 4 | — | — |
+| other | 2 / 13 | 2 / 13 | — | — |
+| probe_chain | 2 / 5 | 2 / 5 | — | — |
+| rec_reask | 0 / 6 | 0 / 6 | — | — |
+| repeated_probe | 0 / 1 | 0 / 1 | — | — |
+| restatement | 8 / 18 | **13 / 18** | — | — |
+| stage_missed | 1 / 1 | 1 / 1 | — | — |
+| stale_correction | 2 / 3 | 2 / 3 | — | — |
+| stale_probe | 0 / 10 | **2 / 10** | — | — |
+| unasked_offer | 5 / 6 | 5 / 6 | — | — |
+| unasked_release | 2 / 2 | 2 / 2 | — | — |
+| wrong_figure | 3 / 4 | 3 / 4 | — | — |
+| wrong_release | 2 / 3 | 2 / 3 | — | — |
+| correct_close | — | — | 11 / 12 | 11 / 12 |
+| correct_correction | — | — | 9 / 9 | 9 / 9 |
+| correct_deferral | — | — | 8 / 8 | 8 / 8 |
+| correct_probe | — | — | 19 / 19 | 19 / 19 |
+| correct_release | — | — | 29 / 29 | 29 / 29 |
+| true_refusal | — | — | 19 / 19 | **16 / 19** |
+
+## `compare --against=` — exactly which records moved
+
+**What the bank fixes themselves did** (the same code, the same switches, the bank before and after this round).
+`compare --against=prefix-off --to=bank-off`: 9 moved, 0 escapes.
+
+| id | kind | was | now | why |
+|---|---|---|---|---|
+| b33-tyler-t18-stale-reprobe | fault | diverged | FAIL | fix 3a: the skip no longer masks the failure |
+| b33-tyler-t18-want-dropped | fault | diverged | FAIL | fix 3a |
+| b34a-tyler-t30-close | correct | diverged | FAIL | fix 3a — a known replay artifact, now visible (below) |
+| b34l-marisol-t26-ask-swallowed | fault | diverged | FAIL | fix 3a (and fix 2 named its ask) |
+| b34l-marisol-t30-wont-get-to | fault | diverged | FAIL | fix 3a (and fix 2) |
+| b34l-tyler-t22-ramp-refusal | fault | diverged | FAIL | fix 3a |
+| b35q-marisol-t32-close-over-false | fault | diverged | FAIL | fix 3a |
+| b36l-jasmine-t2-departures | fault | **pass** | **FAIL** | fix 4: it was greening on silence at t2 |
+| b36l-marcus-t6-casm | fault | **pass** | **FAIL** | fix 4 |
+
+`compare --against=prefix-on --to=bank-on`: 12 moved, 0 escapes. The same nine, plus:
+
+| id | kind | was | now | why |
+|---|---|---|---|---|
+| b35h-raj-t26-cannibalization | correct | **FAIL** | **pass** | fix 7: the window accepts must-reach's t18 release |
+| b35q-marisol-t12-hollow-held | fault | **pass** | **FAIL** | fix 4 |
+| b37q-marcus-t32-rec-reask | fault | diverged | FAIL | fix 3a — the escape the gate report predicted |
+| b38l-tyler-t2-split-refusal | fault | **pass** | **FAIL** | fix 4 |
+
+Net: **five records stopped passing on a hole** (four on the `answered` window, one on the kind-change skip in the
+`*=phase1` arm), **seven stopped hiding in a skip class**, and one correct record was fixed in the bank rather than
+in the code. The 12 close_wait records do not appear, because 4.8 already routed them to the measure line, which
+greened both the old wording assertion and the new decision pin — the fix buys the *reason* they pass, not the
+count.
+
+**Switches off → `*=phase1`, on the fixed bank** (`run --label=bank-on --against=bank-off`): 26 moved, **1 escape**.
+
+| id | kind | was | now | |
+|---|---|---|---|---|
+| b34a-raj-t26-close-reask | fault | FAIL | pass | |
+| b34l-marcus-t10-long-restatement | fault | FAIL | pass | |
+| b34l-marcus-t22-doubled-line | fault | FAIL | pass | |
+| b34l-marcus-t28-close-reask | fault | FAIL | pass | |
+| b34l-raj-t14-hollow-fare-trend | fault | **pass** | **FAIL** | regression — see below |
+| b34l-raj-t30-close-reask | fault | FAIL | pass | |
+| b35h-marcus-t26-close-reask | fault | FAIL | pass | |
+| b35q-marisol-t32-close-over-false | fault | FAIL | diverged | **left the denominator — hand read owed** |
+| b35q-raj-t12-hollow | fault | **pass** | **FAIL** | regression — see below |
+| b35q-raj-t22-doubled-line | fault | FAIL | pass | |
+| b36a-jasmine-t4-coarse-refusal | correct | **pass** | **FAIL** | regression — see below |
+| b36a-raj-t34-close-reask | fault | FAIL | pass | |
+| b36a-tyler-t24-close-reask | fault | FAIL | pass | |
+| b36l-marcus-t12-true-refusal | correct | **pass** | **FAIL** | regression — see below |
+| b36l-raj-t30-close-reask | fault | FAIL | pass | |
+| b36l-tyler-t24-close-reask | fault | FAIL | pass | |
+| b36l-tyler-t6-long-restatement | fault | FAIL | pass | |
+| b37h-marcus-t26-close-reask | fault | FAIL | pass | |
+| b37h-marisol-t20-true-refusal | correct | **pass** | **FAIL** | regression — see below |
+| b37q-marisol-t14-repeated-probe | fault | FAIL | pass | |
+| b37q-marisol-t32-close-reask | fault | FAIL | pass | |
+| b37q-raj-t14-unasked-restated | fault | FAIL | pass | |
+| b37q-tyler-t18-trend-restated | fault | **pass** | **FAIL** | regression — see below |
+| b38l-marcus-t28-close-reask | fault | FAIL | pass | |
+| b38l-marisol-t16-stale-probe | fault | FAIL | pass | |
+| b38l-tyler-t24-doubled | fault | FAIL | pass | |
+
+## Hand reads: passes whose fault may persist, and failures whose fix looks right
+
+**The one escape, and it is a true fix.** `b35q-marisol-t32-close-over-false` moves `FAIL` → `diverged` with the
+switches on. Read by hand: with the switches off t32 says "Starter standalone LTV/CAC is about 2 times. Does your
+recommendation change, given that?" (the false close-over the record records); with `*=phase1` on it says
+**"Before we wrap up — earlier you said 'Starter $900' — can you show me that calculation step by step?"** — which
+*is* the `$900` probe the record demands. It is classed `diverged` only because the **recording's** t32 was a
+`close_wait` ("To guard against that, what would you put in place?") while the replay writes a `rec_math_probe` in
+both arms. Verdict: **fixed**, not an escape of a persisting fault. Note on the escape rule's semantics: because
+`diverged` is now set only when nothing failed, every `FAIL → diverged` move means "it passes its assertions, but
+the replay wrote a different turn kind there" — so the flag reads as "looks fixed, hand read owed", which is what
+it is for.
+
+**Five regressions with `*=phase1` on, all one root cause: a true refusal becomes a deferral.** This is the most
+important finding of the round, and it is not a bank bug.
+
+| record | kind | switches off | `*=phase1` | does the deferral resolve? |
+|---|---|---|---|---|
+| b36a-jasmine-t4-coarse-refusal | correct | "I don't have the trend in the treated population since 2022." | "Let's hold the trend in the treated population since 2022 for a little later." | **No** — nothing about that trend in t6–t12 |
+| b37h-marisol-t20-true-refusal | correct | "As for repeat purchase rate beyond year one, that's not something I have." | "That's for a little later — we'll come back to repeat purchase rate beyond year one." | **No** — t26 refuses a *different* item (repeat rates from past sampling) |
+| b36l-marcus-t12-true-refusal | correct | refuses quarter-by-quarter fares at t12 | no refusal at t12; at **t20** "We won't get to quarter-by-quarter fares and passengers since entry today." | Late, and in the `wont_get_to` idiom that `b34l-marisol-t30-wont-get-to` records as a fault |
+| b34l-raj-t14-hollow-fare-trend | fault | refuses FY2024 fares (the record passed) | "That's for a little later — we'll come back to FY2024 fares." | the record's `refusal about FY2024` now fails in t14–t16 |
+| b35q-raj-t12-hollow | fault | refused "later cohorts" (the record passed) | "I'll come back to later cohorts' upgrade rates shortly." | the record's own must-not on that deferral fires |
+| b37q-tyler-t18-trend-restated | fault | refused the 2024 trend | "On the 2024 trend in Pro sign-ups before Starter launched: we'll get there in a bit." | the record's `refusal about trend\|2024` now fails |
+
+Two of the three correct records' deferrals are **unresolved in the replay**, which is the `hollow_deferral` shape
+Phase 1 exists to remove — and the class table shows it: `hollow_deferral` goes **4 / 10 → 2 / 10** and
+`true_refusal` **19 / 19 → 16 / 19** with the switches on. My read: the model-deferral path (Stream 4a) is turning
+true refusals into deferrals on asks the case genuinely does not hold, where a refusal was already right. **This
+needs the lead's eyes before the wave; it is a gate-condition-2 failure as it stands** (92 of 96 correct records,
+not 96). I did not touch it — it is code behaviour, not bank data, and no ruling of yours covers it.
+
+**One failure whose fix is simply out of 4.8's reach.** `b36a-marisol-t30-close-reask` fails with the switches on.
+Her t29 message restates the recommendation with no mitigation and no sequence, so 4.8 correctly does not skip the
+first-step line — but the grading's fault is that the first-step ask re-asks her **t25** answer ("What I'd do:
+before committing, get Aldermoor's actual rebate quotes…"). 4.8 as you specified it reads the *last* answer only.
+Either the record goes to the wave, or 4.8 widens to the stage's answers; your call.
+
+**One correct record failing on a known replay artifact, now visible.** `b34a-tyler-t30-close` fails in **both**
+arms: the replay writes a neutral "Go on." at t30 instead of the close, which §47 of this report already documented
+as "the base's turn there is a neutral replay turn". Bank fix 3a stopped `diverged` from hiding it. It is not a code
+regression. **I did not relabel it** `replayable: false` — scoping a record out of the gate is your ruling, not
+mine — so it currently costs the gate one correct record in both arms (95 / 96 off, and one of the four off the 96
+on). `b34a-tyler-t28-wrapup-probe` is the same artifact and stays `diverged`, because nothing about it failed.
+
+**Nothing in the bank now passes while I believe its fault persists.** The four records that were doing so
+(b36l-jasmine-t2-departures, b38l-tyler-t2-split-refusal, b36l-marcus-t6-casm, b35q-marisol-t12-hollow-held) fail
+in both arms after fix 4, and the 12 close_wait records can no longer be greened by a pool swap.
+
+## Code-path latency and model calls (gate report §10 item 5)
+
+From the 54 replay mirrors' per-turn `timing` (cumulative ms from turn start), 789 interviewer turns per arm. The
+replay serves the saved model output, so the whole of `persist_end` is code time — no model wait is in these
+numbers. **Both arms measured warm, back to back** (`bank-off2` / `bank-on2`); the very first run of the session
+read 60.2 ms mean / 660 ms max on the off arm, which is process warm-up, not the switches.
+
+| per-turn code time | switches off | `*=phase1` | delta |
+|---|---|---|---|
+| whole turn (`persist_end`) — mean | 31.7 ms | 34.4 ms | +2.7 ms (+8.5%) |
+| whole turn — p95 | 121 ms | 138 ms | +17 ms |
+| whole turn — **max** | **209 ms** | **228 ms** | +19 ms |
+| plan (`plan_done`) — mean / max | 11.8 / 77 ms | 13.2 / 81 ms | +1.4 / +4 ms |
+| settle (`settle_composed − settle_start`) — mean / max | 5.8 / 39 ms | 6.1 / 40 ms | +0.3 / +1 ms |
+| first delivered segment — mean / max | 14.6 / 96 ms | 16.1 / 102 ms | +1.5 / +6 ms |
+
+Phase 1's code path costs under 3 ms a turn on average and 228 ms at worst, against the ≤1.5 s turn-latency budget
+— about 15% of the budget at the worst single turn, and the model call dominates it live either way.
+
+Model calls per turn, over the same 789 turns:
+
+| call | switches off | `*=phase1` |
+|---|---:|---:|
+| ask-check / `itemless_defer` (Haiku) | **68** | **65** |
+| want-cue classifier (`want_is`) | 2 | **13** |
+| `conduct_model` | 789 | 789 |
+| total | 859 (1.089 / turn) | 867 (1.099 / turn) |
+
+- **No new live model call.** The ask-check count falls by 3 with the switches on (68 → 65), the same direction as
+  the gate report's 258 → 254 over its wider replay set; the absolute numbers differ because this is the bank's
+  54-run slice, not b28–b38.
+- The want cue fires on 11 more turns (2 → 13 = **1.65% of interviewer turns**), consistent with §4's 1.72% of
+  candidate turns. That is `wantCueBroad`, and your §9 item 6 ruling on the cue still stands open.
+- `conduct_model` is recorded once per turn in both arms and is replay-stubbed, so it is not a live API count —
+  it is here only to show the switches do not change it.
+
+## Judgement calls (every one)
+
+1. **`b35h-raj-t26-cannibalization`'s window is `t2–t26`, not `t18–t26`.** Pinning t18 would fit the record to the
+   output I happened to observe; the record's claim is "the item is out by the turn that answers his ask", and an
+   unasked early release is `unasked_release`'s business. Verified against both `*=phase1` and
+   `*=phase1,-mustReachPhase1`.
+2. **`b34l-marisol-t30`'s `about` carries both spellings** (`utilisation|utilization`): her message says
+   "utilization", and your pattern said `utilisation`, so pinning only yours would have made the assertion a
+   spelling trap.
+3. **The `spoke` pairing covers 10 records, not 88.** I took the ten whose 25 Oct note claimed "the asked thing gets
+   a word" — the overclaim I5 names — paired seven where a verified item answers the ask, and wrote the floor's
+   declared scope into the other three (no ask in the candidate's message, so nothing is owed). Every other
+   `spoke` record keeps the floor and the declared-scope note on the assertion itself now covers them.
+4. **`evaluateRecord`'s own `!own → diverged`** (the record's turn is absent from the replay altogether, e.g. a
+   shorter run) is left as a genuine skip; only `vacuous` and the `kindChanged` path got the no-masking rule. A turn
+   that does not exist cannot be judged. The compare's escape check covers the remaining exposure, which is why
+   both halves of fix 3 were needed.
+5. **The escape rule flags `fails_as_expected` → *any* skip class, including `diverged`-with-nothing-failing.** That
+   is why the one escape this round turned out to be a true fix. I kept the rule flat rather than exempting
+   "diverged but passing", because the exemption is exactly the hole the gate report described.
+6. **`compare` takes a label or a path on either side**, and writes `compare.md` into the newer run's folder; it
+   does not touch the corpus.
+7. **The `close_hold` reason text changed** (it now carries `(close_wait line: …; skipped: …)`). Nothing read that
+   string — the auditor reads the check's name and decision, and the one test on it read `detail` — but it is a
+   logged-string change, so it is called out here.
+8. **I did not relabel `b34a-tyler-t30-close`** as not replayable, and **did not touch the five refusal→deferral
+   regressions**. Both are rulings, not bank fixes.
+9. **The PRD and `progress.md` are not updated here.** This branch is a Phase 1 stream worktree and the lead owns
+   those files at the merge; the owed edits are 4.8's logged decision (`close_hold` now records the close_wait rule)
+   and the bank's gate wording (condition 1 also requires no record to leave the denominator).
+
+## Owed rulings, in priority order
+
+1. **The five refusal→deferral regressions** with `*=phase1` on. Gate condition 2 fails as it stands (92 / 96
+   correct records). Two of the three correct records' deferrals never resolve in the replay.
+2. **`b36a-marisol-t30-close-reask`**: widen 4.8 past the last answer, or move the record to the wave.
+3. **`b34a-tyler-t30-close`**: mark `replayable: false` with a wave note, or accept a standing correct-record
+   failure on a replay artifact.
+4. **Still open from the gate report**: §9 items 1–11, unchanged by this round, and the combined cross-stream read
+   of every changed data / probe / correction turn (gate report §10 item 3) — the gate's real test, still not run.
