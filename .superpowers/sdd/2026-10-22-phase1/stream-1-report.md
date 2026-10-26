@@ -172,3 +172,160 @@ Auditor:
 - Nothing in the baseline is a wrong assertion. The 14 diverged records can't be judged by replay on the base (turn kind changed); they stay in the bank and are reported separately.
 - The b35q Tyler t28 "$0.24k" line is a contract-base finding for Stream 3/4.
 - The persona bands edit changes the bands hash (wave versioning).
+
+---
+
+# Fix round (25 Oct 2026)
+
+The Stream 1 review's required fixes, Lorenzo's four rulings of 25 Oct, and the coordinator's correction on the
+base-regression records. **No API spend** ($0; the auditor was not re-run). Suite 5,184 passed / 9 skipped,
+`tsc` and `eslint lib app components tests scripts db` clean at every commit. Nothing under `Case Interview
+Runs/` was added or written; replay output went to `CaseTester-proof-out/`.
+
+Commits: `76e74ac7` (the assertion engine, the switch proof, the summary), `391f7628` (the records),
+`a47e426d` + `c951aaa4` (the base-regression records, then the coordinator's correction), `358cbf72` (the
+auditor), `457154b3` (`--switches` validation), `5b3604b7` (positives on the non-replayable records), and this
+report.
+
+## Lorenzo's four rulings, as built
+
+1. **close_wait records assert the actual fault.** Each of the 12 now asserts the pool line its own fault used,
+   not the family: `guard against that` for the ten `after_risk` faults, `do first | first step | first thing`
+   for the two `first_step` ones. A test reads all three close-wait pools out of `phrasing.ts` and proves each
+   pattern matches every variant of its own pool and none of another, so the records survive the phrase
+   rotation and 4.8's switch to a different pool. The old `ask: mitigation` reading matched the first-step pool
+   too (so the planned fix could not clear a record) and missed two first-step variants (so the same fault could
+   pass) — both gone.
+2. **Where 4.3 / 4.4 / 4.7 defer, a deferral that resolves is accepted; an unresolved one fails.** New
+   assertion kind `answered`: over a window, the item released, a true refusal, or a deferral that later
+   resolves. `accept` narrows which outcomes count and which may resolve a deferral. Applied to the four b33
+   `stores_count` records, `b38l-tyler-t20-demand-evidence`, `b34a-raj-t18-hollow`,
+   `b35q-marcus-t28-hollow-out-of-scope`, `b36l-raj-t20-fixed-split`, `b38l-tyler-t24-elasticity`,
+   `b38l-raj-t8-network-fare`, and the four false-refusal and four hollow-deferral records that lacked a
+   positive. The window ends at the close.
+3. **A positive on every fault record.** All 212 non-report fault records now carry a must: `answered` where
+   the grading names the ask, `spoke` (with `question` where the turn's job is to ask) where the fault is code's
+   own wording. `spoke` needs a delivered sentence that is neither a refusal nor a deferral and is longer than
+   an acknowledgment — so silence, `"Go on."` and a refuse-everything turn all fail. Outcome-based: it reads
+   the turn's segments, not any wording.
+4. **The summary separates diverged from failed.** Every record is partitioned on `skipped` first
+   (`not_replayable`, `diverged`, `vacuous`, `run_missing`); pass and fail are counted only over the rest, and
+   the report states in prose how a diverged record is judged (by hand, against the before/after lines, else in
+   the wave).
+
+## Each review finding
+
+| # | Finding | What was done |
+|---|---|---|
+| 1 (critical) | 12 close_wait records unpassable | Above, ruling 1. Every pool variant covered by a test against `phrasing.ts`. |
+| 2 (critical) | 2 b34l doubled-line records unpassable | `restatement.doubled` added: the item's own line said twice within the one turn, apart from a restatement of an item already out. Code's copy alone no longer trips them, so removing it is a pass. |
+| 3 (critical) | 4 replayable fault records owned by `phase2` / `none` | All four marked non-replayable with a wave note (`b33-jasmine-t14-analysis-reask`, `b34a-tyler-t4-structure-reask`, `b35h-marisol-t18-no-question`, `b36l-tyler-t18-stress-test`), **and** the gate excludes `phase2` and `none` fault records by name and says so in the report. `b36l-tyler-t18-stress-test` is already fixed on the base (the must-reach volunteers the ramp at t20) — recorded, but out of the counted set as Lorenzo's residual. |
+| 4 (critical) | The summary conflated diverged with fail | Above, ruling 4. |
+| 5 (critical) | 78 of 167 fault records had no positive | Above, ruling 3 — now 0 of 212. |
+| 14 (critical) | `--switches` unproven | The replay stamps `engineSwitchNames(case)` into every mirror header; `run` asserts it, run by run, against what `--switches` resolves to for that case, and rejects a header written before the stamp. `run` also rejects a case id no record uses — `prof-01=phase1` used to resolve to nothing and read as a clean switches-off run. Both proved by hand: `--switches='prof-01=phase1'` and `--switches='*=phase2'` now both abort. |
+| "51 fixed on base" overstated | A class swap or a moved chain is not a fix | **51 → 47.** `b35q-marisol-t12-hollow-held` (hollow deferral → flat refusal, where Exhibit 1's note and `why_pro_fell` answer the ask) and `b35q-marcus-t18-hollow-on-screen` (hollow deferral → a restatement of the cohort row) are class swaps; `b37q-marcus-chain-14-months`'s chain merely moved ($1,880 probed at t24 instead of t28). All three fail again. `b37q-jasmine-chain-400` was re-read and **is** a real fix — the base corrects the root at t16 ("Starter standalone lifetime value at $40 is about $600, not $400.") — and is now asserted as "no further probe on the chain **and** a correction". `b36l-tyler-t18-stress-test` leaves the counted set (finding 3). 12 further rows of the 51 were read before/after by hand (the six unasked offers, the restatement prefix, the refusal wording, the two scale slips, the two stale corrections, the brainstorm re-ask) and are genuine. |
+| Vacuous windowed passes | A `must:false` over turns the replay never wrote | Now skips as `vacuous` instead of passing. 0 records hit it on the contract base; the mechanism is unit-tested. |
+| Loose assertions | `namesFigure` matched a bare number set | It now reads currency, scale and unit: `"$920"` is not named by `"920 passengers"`, nor `"19%"` by `"19 stores"`, while `"$16 million"` is still named by `"$16M"` and `"$16,000,000"`. This caught `b34a-marisol-t22-probe-after-redo` (its figure follows the probe's own words, `40`) and, with the window widening, the two chains. `b37q-tyler-t8-misquote-288` now demands the flat ledger correction ("about $300, not $288"), not merely a line naming $288. |
+| Mutually exclusive pair | `b37h-marisol-ladders` vs `b37h-marisol-t12-root-correction` | The correct record's window widens to t6–t12, so both can hold. |
+| Misquote records | 3.4 needs an anchor match **and** a checker error verdict | **Verified against the recordings: satisfiable, so both stay replayable.** `b37h-tyler-misquotes-not-flat` — the recorded verdicts rate `"ingredients you said $0.75"` (t6) and `"fund both inside the existing $4.3M marketing line"` (t20) `error` / `misquote`. `b36a-tyler-misquotes-socratic` — the 1.5% prevalence span (t6, flagged) and `"you said Nimbrel's net price is about $8,650"` (t12) likewise. `b37q-tyler-t8-misquote-288` too (`error` / `misquote`, flag false — 3.4 says "flagged or not"). |
+| Want-cue records | May be unobservable in replay | **Confirmed unobservable for the four on model turns**, so they move to wave-judged. 4.6's cue (`request-signal.ts` on `phase1-s4b-fixes`) is code-side, but it only makes a sentence an *asking* sentence; the message classifier then has to map it. On a model turn the replay mocks `classifyDataRequests` to the run's saved detections, which hold none for those sentences (`detections = []` for a saved model turn), so no item can reach the candidate. Moved: `b33-raj-t8-new-stores-want`, `b33-jasmine-t6-cogs-split`, `b37h-marcus-t10-distribution-silence`, `b38l-marisol-t10-competitor-wants`. `b33-tyler-t18-want-dropped` stays replayable: its turn is a code-written `rec_math_probe` whose `code_written_requests` row records the dropped ask, which `asksAddressed` decides offline. |
+| Auditor (task 3) | 1,500-char exhibit clip; `ACTS` hid drops | The clip is 6,000 (the largest exhibit in the five cases is `launch-001 exhibit-2` at 1,743), with a test that every case's exhibit data goes in whole, so a future case fails rather than being truncated. A `withheld:` line now carries the drop detail of `code_written_requests`, `request_scope`, `partial_dropped`, `uncovered_asks`, `probe_turn_requests`, `data_decisions`, `code_gate` and `pending_data` **whatever the check's decision** — a turn that releases nothing records `pass`, which is exactly how the acted-only filter hid the evidence for `bare_partial` and `ignored_ask`. **The auditor was not re-run** (no spend), so the 86% / 51% calibration no longer describes this input: re-calibration is the lead's call before the wave. |
+
+## The base-regression records (the coordinator's correction)
+
+First written as two correct-behaviour records (`a47e426d`), then replaced (`c951aaa4`) once the base fixes
+landed on `phase1-base-fixes` (56c54edd, cb38676f) and neither could pass even after the fix:
+
+- **`b37q-raj-t24-correction-dropped`** (new; fault, firm, `missed_error`, stream 3) carries the mechanism: a
+  pending correction must ride on a stage turn code writes, never be dropped. The checker rated his "a Starter
+  sign-up is worth $1,205 all-in" an error with the correction "…is about $1,400, not $1,205." (claim 19:0);
+  t24 is a code-written `stage_exhibit` that selected 19:0 and used nothing, t26 a `rec_ask` that did the same
+  with 21:0, and by t28 19:0 is `expired`. The correction reached him at t34 in the recording and not at all on
+  the contract base. It asks for the correction over t24–t26 and **fails on the base as expected**.
+- **`b35q-marisol-t26-correction`** → non-replayable: a *cascade*, not a regression. That run diverges from t12
+  over an unrelated row fix, so the t26 state never recurs and the turn cannot be judged offline either way.
+- **`b34l-marisol-t26-probe`** → non-replayable: a *replay artifact*. The harness has no coverage scores, so
+  `canEndCase` falls back to an elapsed threshold that this turn's recorded 1,205,145 ms crosses by about five
+  seconds, which the live run never did. The fault underneath is fixed with 0 line change in that run.
+
+Both reasons are in their `replayNote`, so they sit in the skipped column and in `wave-judged.md`, not as gate
+items. It is a **fault** record, not a correct one, because the recording holds the fault: the bank's invariant
+(`check`) is that a fault record fails against its own recording and a correct record passes. Its `stream` is 3
+so the gate counts it — the base fix is ungated, not a Phase 1 switch, and `none` would have excluded it.
+
+## The corrected baseline
+
+`run --label=final2` on the contract base, switches off, 54 runs replayed in 16 s. Copied to
+`evals/fault-bank/baseline-contract-base.md`; raw rows in
+`CaseTester-proof-out/fault-bank-final2/results.{md,json}`.
+
+**311 records — 212 fault, 99 correct.**
+
+| kind | records | skipped | counted | pass | fail |
+|---|---:|---:|---:|---:|---:|
+| fault | 212 | 62 | 150 | **47** (fixed on the base) | **103** (fail as expected) |
+| correct | 99 | 4 | 95 | **95** | **0** |
+
+| skipped | fault | correct |
+|---|---:|---:|
+| not_replayable | 52 | 2 |
+| diverged | 10 | 2 |
+| vacuous | 0 | 0 |
+
+- **Wrong assertions: 0** (of 311, against the recordings and against the replay).
+- **Gate condition 1:** 47 pass / 150 counted fault records; 0 replayable `phase2` / `none` fault records left
+  to exclude; 95 of 95 correct records pass.
+- **Switches on** (`run --label=final2-phase1 --switches='*=phase1'`): **every one of the 311 rows identical**
+  — same pass, same skip reason, same baseline class — as expected on a base where no stream has landed. The
+  mirror-header switch assertion passed on all 54 runs in both arms.
+- Before this round, for comparison: 157 counted fault records, 51 pass, 106 fail; 95 of 95 correct; 44 not
+  replayable; 14 diverged — and a summary that printed the diverged rows inside "fail".
+
+**This baseline predates the `phase1-base-fixes` merge.** Once that is in the base it must be re-run: the one
+row expected to change is `b37q-raj-t24-correction-dropped` (fail → pass).
+
+## Judgement calls in this round
+
+1. **The positive's shape is per class.** `answered` where the grading names an ask; `spoke` where the fault is
+   code's or the model's own wording and there is no owed ask (stale probes, restatements, unasked offers,
+   scale slips, stale and false corrections, chains); `spoke question:true` where the turn's job is to ask (the
+   12 close_wait, the 2 brainstorm re-asks). `spoke`'s floor is "a non-refusal, non-deferral sentence longer
+   than an acknowledgment, or one that asks" — 20 characters. A shorter real line would be a false fail; none
+   exists in the corpus.
+2. **`answered`'s default window runs to the close**, because 4.7's stop sequence is what resolves a model-said
+   deferral. Where a record's own grading names a tighter window (`b38l-raj-t8-network-fare` t8–t12,
+   `b38l-tyler-t2-split-refusal` t2–t8) it keeps it.
+3. **A deferral may be resolved only by an outcome the record accepts** — so `b35q-marisol-t12-hollow-held`,
+   which excludes a refusal on purpose, cannot be greened by a deferral that ends in "I don't have it".
+4. **`b33-jordan-t10-store-count` (stream 2) also moved to `answered`**, though Lorenzo named three b33
+   records: 4.4's key-noun rule can defer that ask too, and a cover fix that releases still passes.
+5. **`b37q-tyler-t8-misquote-288` keeps its `says "$288"` must** beside the new flat-correction must. Every
+   recorded `correctionLine` in these runs carries "…, not X", so the two cannot conflict; if 3.4's wording
+   drops the misquoted value the record would need loosening.
+6. **`b37q-marcus-chain-14-months` bars both probes from t24 to the close** rather than pinning them to t24 and
+   t28, so a chain that moves rather than collapses still fails.
+7. **`b37q-jasmine-chain-400` demands a correction in t14–t20** as well as no further probe on `1.3x`. The base
+   satisfies both; a probe that merely loses the figure from its wording would not.
+8. **`b34a-marisol-t22-probe-after-redo`'s figure is `40`**, as the probe says it, not `$40M`: the unit-aware
+   matcher reads the probe's own segment, where the scale is absent.
+9. **The non-replayable fault records got positives too** (20 of them), so none can be greened by silence if it
+   is ever made replayable.
+10. **`tests/replay/runner-corpus.replay.test.ts` was edited** — a test file, not engine code — to stamp the
+    switch record into the mirror header. Stream 1 is "new files only"; this is the one exception, and it is the
+    only way to prove `--switches` offline.
+11. **Severity `firm` on `b37q-raj-t24-correction-dropped` is Claude's reading**, not Lorenzo's: a live, flagged
+    error the candidate never heard while it mattered. It is not in any hand grading.
+
+## What remains
+
+- **Re-run the baseline after `phase1-base-fixes` merges** (`npx tsx scripts/fault-bank.ts run --label=<l>`,
+  about 20 s): `b37q-raj-t24-correction-dropped` should flip to pass and nothing else should move.
+- **The auditor needs a decision before the wave.** Its input changed (whole exhibits, the `withheld:` line),
+  so the calibration figures are stale. Re-running the 25 calibration runs costs about $3.60 of the $25 cap;
+  without it, the auditor's recall and precision on this version are unknown.
+- **12 diverged records** (10 fault, 2 correct) still cannot be judged by replay. They are listed in the
+  results file with their before/after lines for the hand read.
+- **54 records judged in the wave** (`evals/fault-bank/wave-judged.md`), 17 of them report faults.
+- **Open for Lorenzo:** if he rules that the close-wait *first-step* line is also a re-ask when the answer
+  already gave the sequence, the ten `after_risk` records need the first-step pattern added as a second
+  must-not; as built they pass when 4.8 routes them to the first-step line.
