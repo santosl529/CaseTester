@@ -19,7 +19,8 @@ vi.mock('@/lib/anthropic-client', () => ({
 
 const { scoreOnce } = await import('@/lib/scoring/scoring-claim');
 const { scoreAndStore, ClaimLostError } = await import('@/lib/scoring/score-session');
-const { withStreamRetry, isStreamDeath, STREAM_RETRY_BACKOFF_MS } = await import('@/lib/scoring/stream-retry');
+const { withStreamRetry, withScoringDeadline, isStreamDeath, STREAM_RETRY_BACKOFF_MS, SCORING_BUDGET_MS } = await import('@/lib/scoring/stream-retry');
+const { default: Anthropic } = await import('@anthropic-ai/sdk');
 const { runReconciliation } = await import('@/lib/scoring/reconcile');
 const { logEvent } = await import('@/lib/analytics');
 const { fakeClaimStore } = await import('./helpers/fake-claim-store');
@@ -132,11 +133,52 @@ describe('4.11: a dead scoring stream is retried, and one report is written', ()
 });
 
 describe('the retry itself', () => {
-  it('retries only a death: a connection drop, "terminated", 5xx, 429, overloaded — never a 4xx or a bad answer', () => {
+  it('retries only a death the SDK cannot: a connection drop, "terminated", a mid-stream error event', () => {
     expect(isStreamDeath(new TypeError('terminated'))).toBe(true);
     expect(isStreamDeath(Object.assign(new Error('read ECONNRESET'), { code: 'ECONNRESET' }))).toBe(true);
+    expect(isStreamDeath(new Anthropic.APIConnectionError({ message: 'socket hang up' }))).toBe(true);
     expect(isStreamDeath(new Error('no structured output (stop_reason: max_tokens)'))).toBe(false);
     expect(isStreamDeath(new SyntaxError('Unexpected token'))).toBe(false);
+    // Review fix round, item 5: an HTTP status means the SDK already retried it (maxRetries 2, Retry-After honoured).
+    // Retrying it here as well cost up to 9 attempts and 10 s of our own sleeps for one 429.
+    const body = (type: string) => ({ type: 'error', error: { type, message: 'x' } });
+    expect(isStreamDeath(new Anthropic.RateLimitError(429, body('rate_limit_error'), undefined, new Headers(), 'rate_limit_error'))).toBe(false);
+    expect(isStreamDeath(new Anthropic.InternalServerError(500, body('api_error'), undefined, new Headers(), 'api_error'))).toBe(false);
+    expect(isStreamDeath(new Anthropic.InternalServerError(529, body('overloaded_error'), undefined, new Headers(), 'overloaded_error'))).toBe(false);
+    expect(isStreamDeath(new Anthropic.BadRequestError(400, body('invalid_request_error'), undefined, new Headers(), 'invalid_request_error'))).toBe(false);
+    // …while the `error` SSE event mid-stream carries no status (core/streaming.js): the request succeeded, so the
+    // SDK is done with it, and this is the gap 4.11 exists to cover.
+    expect(isStreamDeath(new Anthropic.APIError(undefined, body('overloaded_error'), undefined, undefined, 'overloaded_error'))).toBe(true);
+    expect(isStreamDeath(new Anthropic.APIError(undefined, body('api_error'), undefined, undefined, 'api_error'))).toBe(true);
+    expect(isStreamDeath(new Anthropic.APIError(undefined, body('invalid_request_error'), undefined, undefined, 'invalid_request_error'))).toBe(false);
+  });
+
+  // Review fix round, item 6: a pass that dies late would spend its backoff, breach the route's 300 s budget, write
+  // nothing — and the next attempt pays for all three Opus passes again.
+  it('a retry that would pass the pass\'s deadline is skipped: the death is thrown while the route can still answer', async () => {
+    let t = 0;
+    const slowDeath = vi.fn(async () => { t += 100_000; throw new TypeError('terminated'); });
+    const deps = { sleep: async () => {}, now: () => t, deadlineAt: SCORING_BUDGET_MS };
+    await expect(withStreamRetry('judge', slowDeath, deps)).rejects.toThrow('terminated');
+    expect(slowDeath).toHaveBeenCalledTimes(2);   // 200 s + 8 s backoff + another ~100 s call is past 240 s
+    // A quick death inside the budget still gets both retries.
+    t = 0;
+    const quickDeath = vi.fn(async () => { t += 1_000; throw new TypeError('terminated'); });
+    await expect(withStreamRetry('judge', quickDeath, deps)).rejects.toThrow('terminated');
+    expect(quickDeath).toHaveBeenCalledTimes(3);
+  });
+
+  it('the deadline comes from the pass when the caller passes none (withScoringDeadline)', async () => {
+    let t = 239_000;
+    const call = vi.fn(async () => { t += 100_000; throw new TypeError('terminated'); });
+    const run = () => withStreamRetry('judge', call, { sleep: async () => {}, now: () => t });
+    await expect(withScoringDeadline(240_000, run)).rejects.toThrow('terminated');
+    expect(call).toHaveBeenCalledTimes(1);
+    // No deadline in scope: retried as before.
+    t = 239_000;
+    call.mockClear();
+    await expect(run()).rejects.toThrow('terminated');
+    expect(call).toHaveBeenCalledTimes(3);
   });
   it('gives up after two retries (2 s, then 8 s) and throws the death as it was', async () => {
     const waits: number[] = [];

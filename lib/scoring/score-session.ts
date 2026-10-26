@@ -27,6 +27,7 @@ import { applyAnswerKeyPass } from './answer-key-pass';
 import { applyStrongGate } from './strong-gate';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
 import { scoreOnce, storeIfClaimed, type ScoringClaim } from './scoring-claim';
+import { withScoringDeadline, SCORING_BUDGET_MS } from './stream-retry';
 
 export type ScoreSessionStatus = 'scored' | 'already_scored' | 'in_progress' | 'not_completed' | 'not_found';
 
@@ -60,9 +61,12 @@ export class ClaimLostError extends Error {
   constructor(sessionId: string) { super(`scoring claim lost for ${sessionId}: no score written`); }
 }
 
-export async function scoreAndStore(claim: ScoringClaim, userId: string, deps: { compute?: typeof computeScore; store?: typeof storeIfClaimed } = {}): Promise<void> {
+export async function scoreAndStore(claim: ScoringClaim, userId: string, deps: { compute?: typeof computeScore; store?: typeof storeIfClaimed; nowMs?: number } = {}): Promise<void> {
   const { sessionId } = claim;
-  const computed = await (deps.compute ?? computeScore)({ sessionId, userId });
+  // The deadline every stream inside this pass retries against (stream-retry.ts, review item 6): a retry that would
+  // run past the route's 300 s budget writes nothing and makes the next attempt pay for all three passes again.
+  const computed = await withScoringDeadline((deps.nowMs ?? Date.now()) + SCORING_BUDGET_MS,
+    () => (deps.compute ?? computeScore)({ sessionId, userId }));
   const { rubric, report, mathResults, qa } = computed;
 
   const stored = await (deps.store ?? storeIfClaimed)(claim, tx => tx.insert(scores).values({
