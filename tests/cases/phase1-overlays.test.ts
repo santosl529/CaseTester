@@ -64,11 +64,20 @@ describe('must-reach', () => {
   });
 });
 
-// Review (22 Oct): round 6's authored lineage on pricing-001 stays as it is; stepLineage changes nothing there.
 describe('step lineage', () => {
-  it('pricing-001 keeps the case\'s own dependsOn under stepLineage', () => {
-    expect(overlay('pricing-001').steps).toEqual({});
-    expect(applyPhase1Overlay(raw('pricing-001'), overlay('pricing-001'), { ENGINE_SWITCHES: 'pricing-001=stepLineage' }).mathSteps).toEqual(raw('pricing-001').mathSteps);
+  // Lorenzo's pre-wave ruling 6 (26 Oct): pricing-001's churn_breakeven_at_60 lists both LTVs. The step's own
+  // description puts the Pro LTV inside it ("$50 × 14 + $800", the $800 being the upgrade share of one Pro LTV),
+  // so the Pro LTV is a root of it as much as the Starter LTV. `mathSteps[].inputs` are ledger ids, so the
+  // `inputs` form the gate report asked for cannot carry it — `dependsOn` is the edge (Stream 3's §5).
+  it('pricing-001: churn_breakeven_at_60 depends on both LTVs under stepLineage, and only that step moves', () => {
+    expect(overlay('pricing-001').steps).toEqual({ churn_breakeven_at_60: { dependsOn: ['starter_ltv', 'pro_ltv'] } });
+    const on = applyPhase1Overlay(raw('pricing-001'), overlay('pricing-001'), { ENGINE_SWITCHES: 'pricing-001=stepLineage' }).mathSteps;
+    const base = raw('pricing-001').mathSteps;
+    expect(on.find(s => s.id === 'churn_breakeven_at_60')!.dependsOn).toEqual(['starter_ltv', 'pro_ltv']);
+    expect(on.filter(s => s.id !== 'churn_breakeven_at_60')).toEqual(base.filter(s => s.id !== 'churn_breakeven_at_60'));
+  });
+  it('pricing-001 is untouched with the switch off', () => {
+    expect(applyPhase1Overlay(raw('pricing-001'), overlay('pricing-001'), {}).mathSteps).toEqual(raw('pricing-001').mathSteps);
   });
   it('entry-001: the net price feeds Option B\'s net sales and the matching share', () => {
     for (const s of ['option_b_net_sales', 'matching_share']) expect(overlay('entry-001').steps[s].dependsOn).toContain('net_price');

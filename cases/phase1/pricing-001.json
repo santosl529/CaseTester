@@ -113,6 +113,9 @@
       "covers": ["current starter base", "how many customers are on starter", "grandfather existing customers", "price change for existing customers", "apply to new customers only"]
     }
   },
+  "steps": {
+    "churn_breakeven_at_60": {"dependsOn": ["starter_ltv", "pro_ltv"]}
+  },
   "exhibits": {
     "exhibit-1": {
       "summary": "The plan economics table has each plan's monthly price, cost to serve and acquisition cost, how customers sign up, and how lifetime value is calculated."
