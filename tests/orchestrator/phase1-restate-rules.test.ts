@@ -119,9 +119,16 @@ describe('a number only if that specific figure was asked', () => {
     expect(d.restates.map(r => r.pointer)).toEqual([undefined]);
     expect(renderDataLines(d, 's').join(' ')).toContain(OTHER);
   });
-  it('two items on the same exhibit: one pointer', async () => {
+  it('"remind me" names the items: their lines are read, not pointed at (review F5)', async () => {
     on();
     const text = 'Can you remind me how the Lakeport and Port Avery routes did?';
+    const p = plan(text, { summary: true });
+    const d = await turnDataChecked(p, turn([{ what: 'the Lakeport and Port Avery route results', itemIds: ['route_results_lakeport', 'route_results_port_avery'], explicit: true, respond: 'release' }]));
+    expect(d.restates.map(r => r.pointer)).toEqual([undefined, undefined]);
+  });
+  it('two items on the same exhibit, with no figure asked: one pointer', async () => {
+    on();
+    const text = "Let's come back to the route results.";
     const p = plan(text, { summary: true });
     const d = await turnDataChecked(p, turn([{ what: 'the Lakeport and Port Avery route results', itemIds: ['route_results_lakeport', 'route_results_port_avery'], explicit: true, respond: 'release' }]));
     expect(d.restates.map(r => r.pointer)).toEqual([SUMMARY, SUMMARY]);
@@ -140,13 +147,19 @@ describe('matching keeps every item when the ask names none of them', () => {
 
 describe('a prompt fact said within four turns is not said again', () => {
   const PLANES = "Larkspur's planes are about as full as they were two years ago.";
-  it('"the fare and volume split" two turns after the planes-as-full fact: routes_schedule only', async () => {
+  it('a split ask reads it again, however recently it was said (review F5)', async () => {
     on();
     const p = plan('Do we have the fare and volume split?', { said: [`As I mentioned: ${PLANES}`] });
     const d = await turnDataChecked(p, turn([{ what: 'the fare and volume split', itemIds: [], explicit: true, respond: 'release' }]));
+    expect(d.restates.map(r => r.id)).toContain('planes_as_full');
+    expect(renderDataLines(d, 's').join(' ')).toContain(PLANES);
+  });
+  it('a vaguer re-ask within four turns is not said again', async () => {
+    on();
+    const p = plan('Are the planes still as full?', { said: [`As I mentioned: ${PLANES}`] });
+    const d = await turnDataChecked(p, turn([{ what: 'how full the planes are', itemIds: [], explicit: true, respond: 'release' }]));
     expect(d.restates.map(r => r.id)).not.toContain('planes_as_full');
     expect(renderDataLines(d, 's').join(' ')).not.toContain(PLANES);
-    expect(acted(p, 'restate_rules').map(e => e.detail)).toContainEqual({ recent: ['planes_as_full'] });
   });
   it('off: said again', async () => {
     const p = plan('Do we have the fare and volume split?', { said: [`As I mentioned: ${PLANES}`] });

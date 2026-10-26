@@ -1170,7 +1170,12 @@ export function withAsks<T extends Pick<ModelTurn, 'requests'>>(turn: T, asks: T
 //       …", "how much", "the exact number"; not "remind me how … did").
 // Logged `restate_rules`. Off, or a restatement none of these touch: the line, as before. A said-earlier item's line is
 // still read when matched and not recent (the figure rule is read as the exhibit's: judgement, in the stream report).
-const FIGURE_ASK = /\bwhat(?:'s| (?:was|is|were|are))\b|\bhow (?:much|many|big|high|low|large)\b|\b(?:the )?(?:exact|precise|specific) (?:figure|number|amount|value)\b/i;
+// A re-ask that asks for the figure itself (review F5): a question word, a direct "can you give me / could you repeat /
+// remind me / say that again / again", or a split or breakdown ask (its parts are figures). Such a re-ask is read again
+// — neither named as recent nor answered by an exhibit pointer (b31 Brew & Bean Blake 47fa8cfd t17 "Can we get the COGS
+// breakdown?", b32 Larkspur Marcus eb170e49 t9 "Can you give me the flight count for both years").
+const FIGURE_ASK = /\bwhat(?:'s| (?:was|is|were|are))\b|\bhow (?:much|many|big|high|low|large)\b|\b(?:the )?(?:exact|precise|specific) (?:figure|number|amount|value)\b|\b(?:can|could|would|will) (?:we|i|you)\s+(?:please\s+)?(?:get|have|see|give|share|repeat|read|run)\b|\bremind me\b|\bsay that again\b|\bagain\b/i;
+const SPLIT_ASK = new RegExp(String.raw`\b(?:split|splits|breakdown|broken (?:down|out)|break[- ]?down|composition|components?|makeup|make-up|mix)\b`, 'i');
 const RESTATE_WINDOW = 4;
 function saidRecently(plan: ModelPlan, texts: string[]): boolean {
   const { state, ctx } = plan;
@@ -1194,23 +1199,33 @@ function restateRules(plan: ModelPlan, d: DataDecisions, groupOrigin: ReadonlyMa
   const unmatched = matched.length > 0 ? ids.filter(id => !matched.includes(id)) : [];
   const exhibitOf = (id: string) => caseData.exhibits.find(e => state.shownExhibitIds.has(e.id) && (e.coversLedgerItems ?? []).includes(id) && e.summary);
   const linesOf = (id: string) => { const v = itemOf(id)?.value ?? ''; return [v, ...(dataLineVersions(v)?.versions ?? []), exhibitOf(id)?.summary ?? '']; };
-  const recent = ids.filter(id => !unmatched.includes(id) && saidRecently(plan, linesOf(id)));
   // A proper name said in the ask that the item's own words carry too: one of the case's ("Port Avery"), or a one-word
   // name of the item said capitalised ("Westhaven's contribution").
   const esc = (n: string) => n.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const lowerHas = (t: string, n: string) => new RegExp(`(?<![a-z])${esc(n.toLowerCase())}(?![a-z])`).test(t.toLowerCase());
   const properNamed = (t: string, id: string) => caseNames.some(n => lowerHas(t, n) && own(id).some(w => lowerHas(w, n)))
     || own(id).some(w => /^[a-z]{4,}$/.test(w) && new RegExp(`(?<![A-Za-z])${w.charAt(0).toUpperCase()}${esc(w.slice(1))}(?![a-z])`).test(t));
-  const figureAsked = (id: string) => askTexts(id).some(t => FIGURE_ASK.test(t) && (saysItemName([t], own(id)) || properNamed(t, id)));
+  const figureAsked = (id: string) => askTexts(id).some(t => SPLIT_ASK.test(t) || (FIGURE_ASK.test(t) && (saysItemName([t], own(id)) || properNamed(t, id))));
+  // Review F5: a direct re-ask of the figure is read again, however recently it was said.
+  const recent = ids.filter(id => !unmatched.includes(id) && !figureAsked(id) && saidRecently(plan, linesOf(id)));
   const pointed: string[] = [];
   d.restates = d.restates.flatMap(r => {
     if (unmatched.includes(r.id) || recent.includes(r.id)) return [];
+    // (the pointer rule reads `figureAsked` below)
     const e = exhibitOf(r.id);
     if (!e || figureAsked(r.id)) return [r];
     pointed.push(r.id);
     return [{ ...r, pointer: /[.!?]$/.test(e.summary!.trim()) ? e.summary!.trim() : `${e.summary!.trim()}.` }];
   });
   if (recent.length > 0) d.recentRestates = [...new Set([...(d.recentRestates ?? []), ...recent.map(id => { const i = itemOf(id)!; return i.spoken ?? spokenItemName(i.label); })])];
+  // Review F5: a restatement the rules dropped leaves the decision rows too — the log must not claim an item was given.
+  // A row left with no item is dropped only while another row keeps its ask on the record (scoring reads these rows).
+  const dropped = new Set([...unmatched, ...recent]);
+  if (dropped.size > 0) {
+    const rows = d.requests.map(x => (x.ledgerItemIds.some(id => dropped.has(id)) ? { ...x, ledgerItemIds: x.ledgerItemIds.filter(id => !dropped.has(id)) } : x));
+    d.requests = rows.filter((x, i) => x.ledgerItemIds.length > 0 || !d.requests[i].ledgerItemIds.some(id => dropped.has(id))
+      || !rows.some((y, j) => j !== i && normAsk(y.request.what) === normAsk(x.request.what)));
+  }
   if (unmatched.length + recent.length + pointed.length > 0) plan.ctx.checks.act('restate_rules', 'a restatement: only the items the ask names; none said within the last four turns (named instead); an exhibit\'s item pointed to with its summary', { ...(unmatched.length > 0 ? { unmatched } : {}), ...(recent.length > 0 ? { recent } : {}), ...(pointed.length > 0 ? { pointed } : {}) });
 }
 
@@ -1937,7 +1952,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // A prompt fact that covers an ask is said again ("As I mentioned: …"); nothing is booked.
   // 4.1: not one said within the last four turns — it is in the prompt too, so it is left out, not named.
   for (const p of promptRestates) {
-    if (restating && saidRecently(plan, [p.value])) {
+    if (restating && !FIGURE_ASK.test(p.request.what) && !SPLIT_ASK.test(p.request.what) && saidRecently(plan, [p.value])) {
       plan.ctx.checks.act('restate_rules', 'a prompt fact said within the last four turns: not said again', { recent: [p.id] });
       continue;
     }
