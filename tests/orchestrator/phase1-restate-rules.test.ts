@@ -167,3 +167,17 @@ describe('a prompt fact said within four turns is not said again', () => {
     expect(d.restates.map(r => r.id)).toContain('planes_as_full');
   });
 });
+
+// Review F5's second pin: the recent rule yields to a direct re-ask whether or not the ask names the item by one of its
+// own phrases (b32 Larkspur Marcus eb170e49 t9 → t10: "Can you give me the flight count for both years so I can confirm
+// the fare math?" — the network totals were read one turn earlier and are read again).
+describe('a direct re-ask that names no item phrase still reads the line', () => {
+  it('"Can you give me the flight count for both years": the network totals again', async () => {
+    on();
+    const NETWORK = line('network_totals');
+    const p = plan('Can you give me the flight count for both years so I can confirm the fare math?', { said: [`Again, for reference: ${NETWORK}`] });
+    const d = await turnDataChecked(p, turn([{ what: 'the network totals', itemIds: ['network_totals'], explicit: true, respond: 'release' }]));
+    expect(d.restates.map(r => r.id)).toEqual(['network_totals']);
+    expect(renderDataLines(d, 's').join(' ')).toContain(NETWORK);
+  });
+});

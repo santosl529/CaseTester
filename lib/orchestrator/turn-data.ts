@@ -1218,9 +1218,16 @@ function restateRules(plan: ModelPlan, d: DataDecisions, groupOrigin: ReadonlyMa
   const lowerHas = (t: string, n: string) => new RegExp(`(?<![a-z])${esc(n.toLowerCase())}(?![a-z])`).test(t.toLowerCase());
   const properNamed = (t: string, id: string) => caseNames.some(n => lowerHas(t, n) && own(id).some(w => lowerHas(w, n)))
     || own(id).some(w => /^[a-z]{4,}$/.test(w) && new RegExp(`(?<![A-Za-z])${w.charAt(0).toUpperCase()}${esc(w.slice(1))}(?![a-z])`).test(t));
+  // For the recent rule (review F5): a direct re-ask — the ask itself asks for the figure or for a split. The item is
+  // already the one the ask names (step 1), so no further naming test applies ("Can you give me the flight count for
+  // both years", b32 Larkspur Marcus eb170e49 t9).
+  const directAsk = (id: string) => [...askTexts(id), ...asking.filter(t => namesItem(t, own(id), caseNames, coversOf(id)))]
+    .some(t => FIGURE_ASK.test(t) || SPLIT_ASK.test(t));
+  // For the pointer rule: the figure of that item, named ("What was Westhaven's contribution again?") — pointing at the
+  // exhibit answers a vaguer re-ask, but not an ask for one figure.
   const figureAsked = (id: string) => askTexts(id).some(t => SPLIT_ASK.test(t) || (FIGURE_ASK.test(t) && (saysItemName([t], own(id)) || properNamed(t, id))));
   // Review F5: a direct re-ask of the figure is read again, however recently it was said.
-  const recent = ids.filter(id => !unmatched.includes(id) && !figureAsked(id) && saidRecently(plan, linesOf(id)));
+  const recent = ids.filter(id => !unmatched.includes(id) && !directAsk(id) && saidRecently(plan, linesOf(id)));
   const pointed: string[] = [];
   d.restates = d.restates.flatMap(r => {
     if (unmatched.includes(r.id) || recent.includes(r.id)) return [];
