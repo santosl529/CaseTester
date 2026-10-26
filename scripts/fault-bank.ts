@@ -28,6 +28,7 @@ import { SLICES, SpecSchema, sliceOf, specToRecord, findTurnFile, itemLinesOf, i
 import { evaluateRecord, scopeTurns, type BankTurn, type CaseView } from '@/lib/eval/fault-bank-assert';
 import { readTurnFile } from '@/lib/eval/turn-file';
 import { engineSwitchNames } from '@/lib/eval/batch-manifest';
+import { parseEngineSwitches } from '@/lib/cases/engine-switches';
 import { getCaseById, dataLineVersions } from '@/lib/cases/loader';
 
 const ROOT = process.env.REPLAY_ROOT ?? '/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs';
@@ -128,6 +129,16 @@ function checkerFiles(slice: Slice, out: string): string {
 // Finding 14 of the Stream 1 review: --switches is plumbed but, at the base, consumed by nothing — so a typo'd
 // case id ('prof-01=phase1') would silently give switches-off results. The replay stamps engineSwitchNames(case)
 // into every mirror header; this asserts it is exactly what --switches asks for, run by run.
+// A case id in --switches that no case has: the names already throw in parseEngineSwitches, but 'prof-01=phase1'
+// used to resolve to nothing and read as a clean switches-off run.
+function validateSwitches(switches: string | undefined, caseIds: string[]) {
+  if (!switches) return;
+  const known = new Set(['*', ...caseIds]);
+  for (const id of parseEngineSwitches(switches).keys()) {
+    if (!known.has(id)) throw new Error(`--switches names "${id}", which is no case in the bank (${caseIds.join(', ')})`);
+  }
+}
+
 const switchCache = new Map<string, string>();
 function assertSwitches(mirror: string, caseId: string, switches: string | undefined) {
   const want = switchCache.get(caseId) ?? (() => {
@@ -181,6 +192,7 @@ async function run() {
   if (path.resolve(out).startsWith(path.resolve(ROOT))) throw new Error('the replay output must be outside the corpus root');
   mkdirSync(out, { recursive: true });
   const recs = loadBank().filter(r => !arg('only') || r.id.startsWith(arg('only')!));
+  validateSwitches(switches, [...new Set(loadBank().map(r => r.caseId))]);
   const runFiles = [...new Set(recs.map(r => r.turnFile))];
   const t0 = Date.now();
   const ck = new Map<string, string>(SLICES.map(s => [s.wave, checkerFiles(s, out)]));
