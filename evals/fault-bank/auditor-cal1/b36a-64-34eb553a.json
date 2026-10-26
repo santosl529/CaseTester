@@ -1,0 +1,29 @@
+{
+ "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-34eb553a.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "Many patients go undiagnosed for years because early symptoms are mistaken for other joint conditions.",
+   "why": "The candidate asked how the diagnosis rate has trended over recent years. The line released explains why patients go undiagnosed, not the trend, and there is no 'I don't have the trend' to cover the actual ask."
+  },
+  {
+   "turn": 24,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What's the first step you'd want the client to take?",
+   "why": "The candidate had already given next steps in the recommendation ('validate share against the European curve and shortlist partners'), so this follow-up re-asks something already answered."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 14696,
+  "output": 2529,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 25396,
+ "usd": 0.109364
+}

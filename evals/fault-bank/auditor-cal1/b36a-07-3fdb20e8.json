@@ -1,0 +1,64 @@
+{
+ "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-3fdb20e8.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 2,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Is that MECE, and what's missing? Given the board's $300 million peak sales threshold, which branch would you prioritize first, and why?",
+   "why": "Three or more questions are stacked in one turn, and the candidate then stalls."
+  },
+  {
+   "turn": 12,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Aldermoor's forecast is that Kelvexa reaches 20% of eligible patients at peak, about five years after launch.",
+   "why": "The candidate asked what share of the 200,000 is on an advanced therapy today. The interviewer released Kelvexa's forecast peak share instead and gave no 'I don't have' for the actual ask."
+  },
+  {
+   "turn": 14,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Kelvexa is protected by patents until 2038.",
+   "why": "The candidate asked for Nimbrel's patent expiry. The interviewer released Kelvexa's patents, a different entity, and said nothing about Nimbrel."
+  },
+  {
+   "turn": 14,
+   "class": "unasked_offer",
+   "severity": "firm",
+   "quote": "I can share Kelvexa US pricing, rebates and time on treatment if you'd like.",
+   "why": "This offers gated pricing data the candidate had not asked for."
+  },
+  {
+   "turn": 18,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Reading that exhibit against your build, what does it tell you about where the biggest uncertainty sits, and which assumption would you stress first?",
+   "why": "The candidate asked whether the board treats $300M as a central case or a downside case. The question got no answer and no refusal."
+  },
+  {
+   "turn": 24,
+   "class": "ack_repetition",
+   "severity": "borderline",
+   "quote": "Right. A haircut-based build.",
+   "why": "Two acknowledgments are stacked back to back."
+  },
+  {
+   "turn": 34,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you do to guard against that?",
+   "why": "The candidate had just given mitigations (CSO, staged reps, a tripwire and a pre-negotiated partnership), which answered the 'what would you do about it' part of t32."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 16904,
+  "output": 2622,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 25716,
+ "usd": 0.120056
+}

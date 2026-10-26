@@ -1,0 +1,29 @@
+{
+ "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-6f57da6e.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As I mentioned: In the patient funnel, 1.6% of US adults have Corlan's disease; 50% of those are diagnosed, 50% of diagnosed patients are treated with prescription medicine, and 20% of treated patients are moderate-to-severe and eligible for Kelvexa — each percentage applies to the stage above it.",
+   "why": "The candidate asked how the eligible pool has grown over recent years. The case holds no trend data, so the right answer was a refusal. Instead the interviewer repeated the funnel line, which was already out, and the growth ask got no actual answer."
+  },
+  {
+   "turn": 30,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you have the client do first?",
+   "why": "The candidate had already said what to do first: get actual rebate quotes from the major plans before committing (t25) and not decide before those payer quotes are in (t27). The follow-up re-asks an answer already given."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 16653,
+  "output": 2341,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 23536,
+ "usd": 0.113432
+}

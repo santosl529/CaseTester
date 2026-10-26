@@ -1,0 +1,106 @@
+{
+ "run": "test runs/batch-38-larkspur-oct-21-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-f80d981c.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Let's hold extras revenue per passenger and results by route for a little later.",
+   "why": "The same turn puts up Exhibit 1, which is the results by route, and releases a line that gives $20 of extras per passenger. The hold contradicts what was just handed over."
+  },
+  {
+   "turn": 6,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years, while the average fare fell from $240 to $160.",
+   "why": "The candidate asked for average fare by route. Only Port Avery's fare is given, with no 'I don't have' for the other routes."
+  },
+  {
+   "turn": 10,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "An exhibit for you — Hub–Lakeport — Economics of one one-way flight, FY2023 vs. FY2025 ($).",
+   "why": "The candidate said they wanted the competitor's cost per seat, its frequency and whether it flies larger aircraft. competitor_costs holds this, but it gets no word and is never released."
+  },
+  {
+   "turn": 10,
+   "class": "unasked_release",
+   "severity": "firm",
+   "quote": "An exhibit for you — Hub–Lakeport — Economics of one one-way flight, FY2023 vs. FY2025 ($).",
+   "why": "Exhibit 2 was handed over though the candidate had asked about the competitor, not Lakeport's per-flight economics."
+  },
+  {
+   "turn": 10,
+   "class": "false_correction",
+   "severity": "borderline",
+   "quote": "How did you get to 24?",
+   "why": "This probes the combined $24M, which the checker marked correct. The flagged errors ($19.2M on seats, the $60 fare cut, extras cushioning) were not the target. The figure is also quoted without units."
+  },
+  {
+   "turn": 12,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "Earlier you said extras are cushioning the gap between $19.2M and $14.4M. How did extras revenue per passenger change between the two years?",
+   "why": "At t11 the candidate had already replaced $19.2M with $14.4M on 60 passengers and said it matches the revenue drop exactly, which drops the extras-cushion claim."
+  },
+  {
+   "turn": 12,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As I mentioned: Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years",
+   "why": "The candidate asked for Port Avery's fuel line separately. Lines already out were restated instead of saying that breakdown isn't held."
+  },
+  {
+   "turn": 16,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "You computed $1,800 positive per Port Avery flight using $9,000 variable cost. Where did that cost figure come from for Port Avery?",
+   "why": "At t13 the candidate had already redone Port Avery with $11,000, giving −$200 per flight."
+  },
+  {
+   "turn": 16,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "You computed $1,800 positive per Port Avery flight using $9,000 variable cost.",
+   "why": "The candidate asked why the new routes' variable cost is lower ($9,200 vs $11,000). There was no refusal or deferral, and it was never addressed."
+  },
+  {
+   "turn": 16,
+   "class": "misquote_uncorrected",
+   "severity": "borderline",
+   "quote": "You computed $1,800 positive per Port Avery flight using $9,000 variable cost.",
+   "why": "The candidate used a 75% load factor on the new routes, but the Exhibit 3 figure is 70%. No flat correction came; the turn probed a stale figure instead, and the load factor was only reached by probe at t18."
+  },
+  {
+   "turn": 20,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "You put it at “$15.8M” — how did you do that calculation?",
+   "why": "At t19 the candidate had already rebuilt the swap on $10.0M and the bottom line at $7.8M, which replaces the $15.8M built on $14.0M."
+  },
+  {
+   "turn": 24,
+   "class": "stale_correction",
+   "severity": "firm",
+   "quote": "The annual operating-profit improvement from redeploying the contested flights is about $11.8M, not $15.8M.",
+   "why": "At t21 the candidate had already corrected $15.8M to $11.8M."
+  },
+  {
+   "turn": 30,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you have the client do first?",
+   "why": "The candidate's last answer had just laid out the first actions: start with Ashford at lower frequency and validate demand before launch."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 18810,
+  "output": 6919,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 64368,
+ "usd": 0.21362
+}

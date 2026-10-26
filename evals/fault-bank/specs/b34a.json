@@ -1,0 +1,657 @@
+[
+ {
+  "id": "b34a-marisol-t14-treatment-mix",
+  "kind": "fault",
+  "p": "57",
+  "turn": 14,
+  "sev": "serious",
+  "cls": "false_refusal",
+  "note": "\"I don't have the current treatment mix across treated patients.\" current_treatment / nimbrel / corlans_disease answer the treatment picture in coarser form; request_scope dropped the item the model named (a finer cut) and code refused the whole ask, without the check and without the coarse answer. She never heard what Nimbrel is. Lorenzo's rule 1 (refined): serious.",
+  "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (rule 1, refined)",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "treatment mix",
+    "must": false
+   },
+   {
+    "kind": "release",
+    "item": "current_treatment",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b34a-jasmine-t4-drug-class",
+  "kind": "fault",
+  "p": "40",
+  "turn": 4,
+  "sev": "serious",
+  "cls": "false_refusal",
+  "note": "\"I don't have current US treatment breakdown by drug class or Kelvexa's European sales trajectory since 2022.\" The treatment half is held in coarse form (current_treatment, nimbrel); request_scope dropped current_treatment and code refused it. The European half is a true refusal.",
+  "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (rule 1, refined)",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "drug class",
+    "must": false
+   },
+   {
+    "kind": "release",
+    "item": "current_treatment",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b34a-tyler-t14-stale-probe",
+  "kind": "fault",
+  "p": "64",
+  "turn": 14,
+  "sev": "firm",
+  "cls": "stale_probe",
+  "note": "\"You mentioned a 40% rebate gives $225 million. Which patient number is that built on …?\" after his t13 redo (\"With the corrected funnel it should be 40,000 × $6,000 = $240 million\"); the model had already asked it at t12. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$225 million",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b34a-tyler-t22-patents-dropped",
+  "kind": "fault",
+  "p": "64",
+  "turn": 22,
+  "sev": "firm",
+  "cls": "ignored_ask",
+  "note": "His t21 \"Do we know whether Kelvexa's US exclusivity runs long enough to make a build pay back?\" was dropped by code's brainstorm stage turn (code_written_requests); patents (to 2038) is held and never reached him.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "patents",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34a-marisol-t22-probe-after-redo",
+  "kind": "fault",
+  "p": "57",
+  "turn": 22,
+  "sev": "firm",
+  "cls": "stale_probe",
+  "note": "\"Earlier you said Option B beats A by $40M. Talk me through the math behind 40.\" after her t21 redo (B at $120M, \"A is now well ahead — double, roughly\"). Judgement call: the gap wasn't restated as a figure, so round-4 ruling 3 kept the flag alive. The figure is written as the probe says it (\"behind 40\"), not \"$40M\": namesFigure now reads the currency and unit, so \"$40M\" no longer matches a bare 40 in the probe's own segment.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "40",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b34a-marisol-t24-one-off-cost",
+  "kind": "fault",
+  "p": "57",
+  "turn": 24,
+  "sev": "firm",
+  "cls": "restatement",
+  "note": "Her t23 \"Do we know the one-off cost to stand up the US team, separate from the $80M annual?\" got \"As I mentioned: Option A is …\" and the brainstorm. The case holds no one-off cost; a refusal was owed (Lorenzo, batch 32: a restatement as the answer is a firm moderate).",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "option_a",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "one-off|stand up",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34a-raj-t18-hollow",
+  "kind": "fault",
+  "p": "07",
+  "turn": 18,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"I'll come back to the partner deal terms, including royalty step-downs and rights reversion shortly.\" The check mapped it to option_b (on screen); the case holds no step-downs or reversion; never answered. Lorenzo's rule 2: a hollow deferral is one firm moderate. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (rule 2)",
+  "a": [
+   {
+    "kind": "answered",
+    "about": "step-down|reversion|deal terms",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34a-marisol-t28-hollow-franchise",
+  "kind": "fault",
+  "p": "57",
+  "turn": 28,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"Let's hold whether any US player has an existing Corlan's franchise for a little later.\" at the recommendation ask; the check mapped it to company_size (Aldermoor's own size). Worse than hollow: option_b (the established partner, on screen) and nimbrel (the incumbent, never told to her) answer it. Baseline finding: on the base the deferral became a company_size release (Aldermoor's own size) — still a non-answer. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (rule 2)",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "franchise",
+    "must": false
+   },
+   {
+    "kind": "release",
+    "item": "company_size",
+    "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "option_b",
+    "about": "franchise",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34a-marcus-t6-hollow-europe",
+  "kind": "fault",
+  "p": "24",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"That's for a little later — we'll come back to how Kelvexa's European net price has moved since the 2022 launch.\" The check timed out (1,502 ms) → a named deferral of data the case doesn't hold; never answered.",
+  "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (rule 2)",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "European net price",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "European",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The check timed out live; the replay serves no verdict for a timeout (it reads as none → a named deferral), and the fix would need a new verdict. Wave: on entry-001, a Marcus-type ask for European price trends gets a true refusal, not a deferral that never comes back; the auditor (hollow_deferral) and the hand grade see it.",
+  "stream": 4
+ },
+ {
+  "id": "b34a-raj-t20-brainstorm-reask",
+  "kind": "fault",
+  "p": "07",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "stage_missed",
+  "note": "The brainstorm re-asked word for word (\"If Aldermoor builds its own team, how could it reduce the risk of a slow start?\") after he answered the model's paraphrase at t19; the stage record didn't credit the paraphrase. Lorenzo's round-5 A7: credit a reworded stage ask (built). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (A7)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "If Aldermoor builds its own team, how could it reduce the risk of a slow start",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34a-marcus-t20-brainstorm-reask",
+  "kind": "fault",
+  "p": "24",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "stage_missed",
+  "note": "Code's brainstorm stage turn re-asked the slow-start question after he answered the model's t14 paraphrase at t15 (brainstormAsked false). Round-5 A7 credits a reworded stage ask. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "src": "batch-34-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-20 (A7)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "If Aldermoor builds its own team, how could it reduce the risk of a slow start",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34a-raj-t26-close-reask",
+  "kind": "fault",
+  "p": "07",
+  "turn": 26,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait follow-up \"What would you do to guard against that?\" re-asks what his t25 had answered (rebates tied to formulary placement, a month-12 checkpoint). Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "guard against that",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34a-tyler-t4-structure-reask",
+  "kind": "fault",
+  "p": "64",
+  "turn": 4,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"One more on your structure before I share that data: what might be missing from it?\" after t3 had answered it (batch 32's Tyler t4 again). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "what might be missing from it",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "stream": "phase2",
+  "rnote": "Owned by phase2: nothing in Phase 1 reads whether the structure question was already answered. Wave: on entry-001, the structure gate asks once (Tyler-type and Marcus-type openers); the hand grade sees it (auditor: other)."
+ },
+ {
+  "id": "b34a-tyler-t12-three-questions",
+  "kind": "fault",
+  "p": "64",
+  "turn": 12,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "Three questions in one turn, the probe split by a data line (\"Earlier you said a 40 percent rebate … In clinical trials … Walk me through that calculation. Separately, you gave Nimbrel's net price as roughly $8,650 … Then, with the trial comparison, …\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "Separately,[^?]*\\?[^?]*Then,",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The stacked questions are the model's own. Wave: one question per turn, a probe not split by a data line (any persona; Tyler-type misquoters draw it); the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b34a-tyler-misquotes-missed",
+  "kind": "fault",
+  "p": "64",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "misquote_uncorrected",
+  "note": "Two misquotes code's misquote check missed: \"$83 million\" for the exhibit's $80M selling cost (t19, t21, t25 — the figure-before-quantity form; the checker caught it only at t25 → the t28 wrap-up probe) and \"$8,650\" for the interviewer's $9,000 Nimbrel price (t11, t13, t15; restated right at t16). One borderline item in the grading; one record with both.",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$80",
+    "must": true,
+    "scope": {
+     "fromTurn": 20,
+     "toTurn": 24
+    }
+   },
+   {
+    "kind": "correction",
+    "figure": "9,000",
+    "must": true,
+    "scope": {
+     "fromTurn": 12,
+     "toTurn": 14
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b34a-marcus-t6-exhibit-deferral",
+  "kind": "fault",
+  "p": "24",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Here's an exhibit: … That's for a little later — we'll come back to how Kelvexa's European net price has moved …\" reads as if the exhibit is deferred. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "exhibit:[^.]*\\.[^.]*That's for a little later",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34a-marcus-t14-offer",
+  "kind": "fault",
+  "p": "24",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "unasked_offer",
+  "note": "\"I can share what net sales means for the board's test if you'd like.\" He didn't take it, but his recommendation turned on that definition three times; code-written turns dropped each mention (wants). Graded borderline in batch 34 (before the 21 Oct \"an unasked offer is firm\" ruling). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "I can share what net sales means",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34a-jasmine-t34-rec-reask",
+  "kind": "fault",
+  "p": "40",
+  "turn": 34,
+  "sev": "borderline",
+  "cls": "rec_reask",
+  "note": "The recommendation asked a second time (t18, t34), as batch 32 Marcus t28. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "recommendation",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The second ask is the model's own question. Wave: the recommendation is asked once unless it changed (Jasmine-type early finishers); the hand grade sees it (auditor: rec_reask).",
+  "stream": 4
+ },
+ {
+  "id": "b34a-marisol-t16-nimbrel-unintroduced",
+  "kind": "fault",
+  "p": "57",
+  "turn": 16,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Nimbrel is covered by most plans\" (the insurance_coverage line) to a candidate never told what Nimbrel is (follows from the t14 false refusal).",
+  "a": [
+   {
+    "kind": "release",
+    "item": "nimbrel",
+    "must": true,
+    "scope": {
+     "fromTurn": 14,
+     "toTurn": 16
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b34a-marcus-report-priced-above",
+  "kind": "fault",
+  "p": "24",
+  "turn": 10,
+  "sev": "false",
+  "cls": "report_false",
+  "note": "Report (top improvement, Data & Exhibit): \"claiming Kelvexa is 'priced above the incumbent' when $8,000 is below Nimbrel's $9,000\" — his t9 was a conditional after the right comparison. The verifier kept it.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "priced above the incumbent",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report claims about what the candidate said match the transcript (conditionals not read as claims); the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b34a-jasmine-report-attributions",
+  "kind": "fault",
+  "p": "40",
+  "turn": 34,
+  "sev": "borderline",
+  "cls": "report_false",
+  "note": "Report: Quantitative ✅ credits her with an 18% → $288M sensitivity she didn't compute; top improvement says her math showed build ahead to 12.5% share (hers said about 11%). Two borderline items in the grading, one record.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "18% share gives \\$288M",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report attributions of computations match the transcript; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b34a-marcus-t4-true-refusal",
+  "kind": "correct",
+  "p": "24",
+  "turn": 4,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I don't have Kelvexa's net revenue per patient per year in Europe.\" True; it also closed the t2 promise (Lorenzo: Marcus t2 is not hollow).",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "Europe",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34a-tyler-t12-trial-release",
+  "kind": "correct",
+  "p": "64",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "His efficacy-comparison ask answered with trial_comparison.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "trial_comparison",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34a-tyler-t20-pipeline-release",
+  "kind": "correct",
+  "p": "64",
+  "turn": 20,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "\"Does Aldermoor have other US-bound pipeline assets?\" → pipeline.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "pipeline",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34a-marcus-t14-patents-release",
+  "kind": "correct",
+  "p": "24",
+  "turn": 14,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "\"how long the partner royalty runs — is it the full patent life?\" → patents.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "patents",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34a-tyler-t28-wrapup-probe",
+  "kind": "correct",
+  "p": "64",
+  "turn": 28,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Wrap-up probe on his \"$83 million\" selling cost (the exhibit says $80M); he corrected to $240M.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$83 million",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34a-marcus-t10-probe",
+  "kind": "correct",
+  "p": "24",
+  "turn": 10,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Probe on his flagged 27% share at a $6,000 net price.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "27%",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34a-tyler-t4-gate-deferral",
+  "kind": "correct",
+  "p": "64",
+  "turn": 4,
+  "sev": "correct",
+  "cls": "correct_deferral",
+  "note": "Prevalence deferred behind the structure gate (\"I'll share US prevalence data … once we've settled your structure.\"), delivered t6.",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "prevalence",
+    "must": true
+   },
+   {
+    "kind": "release",
+    "item": "funnel_rates",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 6
+    }
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34a-raj-t28-close",
+  "kind": "correct",
+  "p": "07",
+  "turn": 28,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed after every stage with no flag open.",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34a-tyler-t30-close",
+  "kind": "correct",
+  "p": "64",
+  "turn": 30,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed after the wrap-up probe was answered.",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ }
+]

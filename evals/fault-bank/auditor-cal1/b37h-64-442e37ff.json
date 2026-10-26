@@ -1,0 +1,64 @@
+{
+ "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-442e37ff.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Planning assumptions from Hollis Bay's past launches are: 30 million households shop in stores carrying Hollis Bay;",
+   "why": "The candidate asked how many bags of chips Hollis Bay sells a year. The planning assumptions don't answer that, and the case holds no chip-volume figure, so a refusal was owed instead."
+  },
+  {
+   "turn": 6,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "How did you get to $9?",
+   "why": "This challenges the $9.0M launch-cost total, which was correct and which the checker marked correct."
+  },
+  {
+   "turn": 6,
+   "class": "wrong_figure",
+   "severity": "false",
+   "quote": "How did you get to $9?",
+   "why": "Unit slip: it says \"$9\" for $9.0 million."
+  },
+  {
+   "turn": 14,
+   "class": "false_refusal",
+   "severity": "borderline",
+   "quote": "I don't have repeat rates from past launches.",
+   "why": "The planning assumptions, already on screen, give a coarse answer from past launches: each buying household averages 3 bags in year one."
+  },
+  {
+   "turn": 18,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As I mentioned: Planning assumptions from Hollis Bay's past launches are: 30 million households shop in stores carrying Hollis Bay;",
+   "why": "The candidate asked how the 500,000 sampling households were estimated. The turn re-reads the planning assumptions and the survey design, which don't answer that. A refusal was owed."
+  },
+  {
+   "turn": 20,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "Understood.",
+   "why": "The candidate called it the \"$4.3M marketing line\"; exhibit-1 shows $4.5M. No flat correction was given."
+  },
+  {
+   "turn": 22,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you put in place to guard against that?",
+   "why": "The candidate's previous answer already gave a mitigation: gate the rollout on an 8-week test read of the repeat rate."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 14870,
+  "output": 2615,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 25430,
+ "usd": 0.11178
+}

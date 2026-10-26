@@ -1,0 +1,134 @@
+{
+ "run": "test runs/batch-38-larkspur-oct-21-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-cee7d399.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 2,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have split of revenue decline between passengers and average fare.",
+   "why": "The ledger answers this coarsely: same flights and fleet, load factor held at 75%, and fares fell on the contested routes. The answer reached the candidate later through exhibits."
+  },
+  {
+   "turn": 4,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "There have been no material changes to wages or other costs per flight. Fixed costs — aircraft leases, hub facilities and corporate overhead — were $20.0M in both FY2023 and FY2025.",
+   "why": "The candidate asked for a cost breakdown by category for both years. Only a qualitative statement and the fixed-cost total were given, with no 'I don't have' for the category split."
+  },
+  {
+   "turn": 6,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "Understood.",
+   "why": "The candidate misquoted fixed costs as $21M; the interviewer's line said $20.0M. No flat correction was given."
+  },
+  {
+   "turn": 6,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Across all six routes, revenue fell from $200.0M to $176.0M and contribution fell from $40.0M to $16.0M, on 14,000 flights a year",
+   "why": "The candidate asked for average fare per passenger in each year. Network totals were released instead, and the fare part got no refusal or deferral."
+  },
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "On the flights assumption: you said the number of flights is roughly the same. Is that something you've been given, or are you assuming it?",
+   "why": "This challenges a correct assumption in the same turn as releasing the line that confirms it, which reads contradictory."
+  },
+  {
+   "turn": 8,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years, while the average fare fell from $240 to $160.",
+   "why": "The candidate asked for the airline's actual load factor. This releases one route's full per-flight economics, including fare and variable cost, which were gated analysis data not asked for."
+  },
+  {
+   "turn": 12,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "The low-cost airline's cost per seat is about 30% lower than Larkspur's — it flies larger planes and has lower labor costs",
+   "why": "The candidate asked for the competitor's seat count per flight. Only 'larger planes' was given, with no statement that the seat count isn't available."
+  },
+  {
+   "turn": 14,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "Fixed costs staying put and exit being hard to reverse, understood.",
+   "why": "The candidate misread the Lakeport fare as $125 (the exhibit says $120) and drew a $300 per-flight loss and a conclusion from it. No flat correction came; the candidate repeated the error at t15 and only a probe followed at t16."
+  },
+  {
+   "turn": 20,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Where did that figure come from, and how does it line up with the planning estimate for those routes?",
+   "why": "'That figure' dangles after the intervening data lines on connecting passengers and ramp-up. A misquote of an exhibit figure called for a flat correction rather than a probe."
+  },
+  {
+   "turn": 20,
+   "class": "wrong_release",
+   "severity": "borderline",
+   "quote": "About 20% of passengers on the two contested routes are connecting at the hub to another Larkspur flight.",
+   "why": "The candidate asked for evidence behind demand on the new routes. This line covers connecting traffic on the contested routes, a different entity."
+  },
+  {
+   "turn": 22,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "What else could Larkspur do to make sure it's profitable in the first year?",
+   "why": "The candidate asked for revenue attributable to connecting passengers on onward legs. It got no release, refusal or deferral."
+  },
+  {
+   "turn": 22,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As I mentioned: About 20% of passengers on the two contested routes are connecting at the hub to another Larkspur flight. As the exhibit shows: On the other four routes revenue and contribution stayed nearly flat",
+   "why": "Lines already out were repeated, and they don't answer the onward-revenue ask."
+  },
+  {
+   "turn": 24,
+   "class": "hollow_deferral",
+   "severity": "firm",
+   "quote": "On the price elasticity of those four routes, I'll check what we have.",
+   "why": "Elasticity was never released, refused or closed out."
+  },
+  {
+   "turn": 24,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "Repeating what I said before: On the other four routes revenue and contribution stayed nearly flat",
+   "why": "This re-gives an exhibit line as the answer to an elasticity ask it doesn't answer."
+  },
+  {
+   "turn": 24,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "A stacked set of levers.",
+   "why": "The candidate misquoted Westhaven contribution as $3.6M (the exhibit says $3.8M). It was never flatly corrected, and the candidate repeated it at t29 and t31."
+  },
+  {
+   "turn": 24,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "Earlier you mentioned the redeployment swings us by about $13.8M. Can you walk me through the components of that figure?",
+   "why": "At t21 the candidate had already corrected the underlying $8,800 to $9,200 and $12M to $10M, so the $13.8M built on them was already replaced."
+  },
+  {
+   "turn": 30,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What's the very first thing you'd have the client do?",
+   "why": "The candidate had just given next steps (validate demand first) in the recommendation and again as the first mitigation."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 19759,
+  "output": 6098,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 59108,
+ "usd": 0.200996
+}

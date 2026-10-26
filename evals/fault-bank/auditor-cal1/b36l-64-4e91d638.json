@@ -1,0 +1,64 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-4e91d638.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "The average one-way fare on Hub–Lakeport fell from $200 in FY2023 to $120 in FY2025.",
+   "why": "The candidate asked for average fare by route, mainly Lakeport and Port Avery. Only Lakeport's fare was released. The case holds Port Avery's fare ($240 to $160), which got no word, and there was no 'I don't have' for the other routes."
+  },
+  {
+   "turn": 6,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: On Hub–Lakeport, revenue fell from $26.4M to $16.8M and contribution fell from $8.4M to a $1.2M loss",
+   "why": "The full exhibit-1 route lines, already on screen, were repeated as part of the answer to a fare ask they don't answer."
+  },
+  {
+   "turn": 8,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "You said Port Avery revenue fell from about $44 million to $32.4 million. Where did the $44 million come from?",
+   "why": "In t7 the candidate misquoted the interviewer's Lakeport fare as 'about $125' (the line said $120) and used it to get 134,000 passengers. No flat correction came; the interviewer instead probed an older figure."
+  },
+  {
+   "turn": 12,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have avoidable fixed cost by route.",
+   "why": "The case holds coarse answers: all nine aircraft are leased through 2030 and can't be returned, and fixed costs would not change. So avoidable fixed cost is essentially nil. The fixed-costs-unchanged note did reach the candidate on exhibit-3 two turns later."
+  },
+  {
+   "turn": 18,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Understood. Setting that plan aside, what else could Larkspur do to make sure it's profitable in the first year?",
+   "why": "The candidate asked to stress-test demand on Ashford and Brookhaven. The case holds new-route ramp-up data (6–12 months, about 60% first-year load factor). The ask got no release, refusal or deferral."
+  },
+  {
+   "turn": 20,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "You said roughly 800,000 passengers a year across the network.",
+   "why": "This flagged a correct figure (about 840,000) as if it needed checking, prompting the candidate to re-verify right math."
+  },
+  {
+   "turn": 24,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you do to guard against that?",
+   "why": "The candidate's previous answer had already given a detailed mitigation (market research, staged rollout, phased exits), so this re-asks it."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 16856,
+  "output": 3621,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 33794,
+ "usd": 0.139844
+}

@@ -1,0 +1,85 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-5907649a.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 4,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "The network is the same six routes as in FY2023, with the same number of flights on each. Here's an exhibit: Larkspur Air — Results by route, FY2023 vs. FY2025 ($ millions unless noted).",
+   "why": "The candidate asked for departures and average fare. Flights are covered, but average fare gets no word: no release, refusal or deferral."
+  },
+  {
+   "turn": 6,
+   "class": "restatement",
+   "severity": "borderline",
+   "quote": "As the exhibit shows: On Hub–Port Avery, revenue fell from $46.8M to $32.4M and contribution fell from $13.8M to a $0.6M loss, on 3,000 flights a year.",
+   "why": "This repeats an Exhibit 1 line that is already on screen. The candidate asked only for Port Avery's FY2023 fare."
+  },
+  {
+   "turn": 8,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "I'm putting up an exhibit: Hub–Lakeport — Economics of one one-way flight, FY2023 vs. FY2025 ($).",
+   "why": "The candidate also asked when the fare started dropping. That part gets no word this turn; the timing only arrives with competitor_entry at t10."
+  },
+  {
+   "turn": 10,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "Earlier you said Lakeport was around $160 in FY2023 after applying a 33% decline to $120. Which base did you apply the 33% to?",
+   "why": "At t9 the candidate had already replaced the $160 estimate with the exhibit's actual $200 FY2023 fare and its 40% drop."
+  },
+  {
+   "turn": 12,
+   "class": "unasked_release",
+   "severity": "serious",
+   "quote": "Variable cost on the new routes is estimated at $9,200 per flight, across 5,000 flights a year that would use the aircraft time freed by exiting Hub–Lakeport (2,000 flights) and Hub–Port Avery (3,000 flights).",
+   "why": "The candidate asked only about the entrant's cost and schedule. This releases new-route data nobody asked for, and it hands over the exit-and-redeploy solution well before that stage."
+  },
+  {
+   "turn": 12,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "The low-cost airline's cost per seat is about 30% lower than Larkspur's — it flies larger planes and has lower labor costs — and its fares are about the same as Larkspur's current fares.",
+   "why": "The candidate also asked how many flights a day the entrant runs. That part gets no word and no 'I don't have'."
+  },
+  {
+   "turn": 12,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "Walk me through how you got that figure and why Port Avery's fare erosion is the right number to apply to Lakeport.",
+   "why": "The $4,800 per flight of lost revenue is correct: Lakeport's own fare drop is also $80 × 60 passengers. Challenging correct math is a fault."
+  },
+  {
+   "turn": 12,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Walk me through how you got that figure",
+   "why": "'That figure' dangles, with no clear referent named."
+  },
+  {
+   "turn": 16,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Air travel demand in Larkspur's cities has been roughly flat.",
+   "why": "The candidate asked for a demand estimate for the new candidate routes. This line covers demand in Larkspur's existing cities."
+  },
+  {
+   "turn": 18,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "New routes typically take 6–12 months to reach their expected load factor, and in the first year the load factor is often around 60%. What do those figures tell you?",
+   "why": "At t17 the candidate applied the entrant's 30% cost-per-seat gap to the $20M fixed cost base, claiming $6M addressable and $13.8M profit. Leases are locked through 2030. This was never probed or corrected."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 18694,
+  "output": 5979,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 53370,
+ "usd": 0.194356
+}

@@ -1,0 +1,605 @@
+[
+ {
+  "id": "b33-marisol-t14-own-quantity",
+  "kind": "fault",
+  "p": "57",
+  "turn": 14,
+  "sev": "serious",
+  "cls": "false_correction",
+  "note": "Code's own-quantity line put the right figure on the wrong quantity with \"not X\" on her own figure: \"In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 5.8.\" Her 5.8 was points of revenue (right figure 4.2). Lorenzo's round-4 ruling 1 fixed own-quantity on engine-asks (before the contract base). Replay finding (base): code now also says the revenue-terms line (\"… in points of revenue, is about 4.2 points, not 5.8\"), but the saved model say still carries the old sentence. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "src": "batch-33/hand-grading.md; lorenzo-ruling-2026-10-19 (round 4, ruling 1)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "In COGS terms[^.]*not 5\\.8",
+    "must": false
+   },
+   {
+    "kind": "correction",
+    "figure": "10 points",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "stream": 3,
+  "rnote": "The wrong sentence is in the saved model output (the model wrote code's hinted line), so the replay repeats it whatever the base's hint now says; the base adds the revenue-terms line beside it. Wave: on prof-001, a Marisol-type candidate's share-of-revenue figure gets no \"In COGS terms … not X\" line; the auditor (false_correction) and the hand grade see it."
+ },
+ {
+  "id": "b33-marisol-t20-base-question",
+  "kind": "fault",
+  "p": "57",
+  "turn": 20,
+  "sev": "firm",
+  "cls": "ignored_ask",
+  "note": "Her t19 \"Could you tell me which base you're using?\" (about the interviewer's own 10) got code's overdue brainstorm line and was never answered. Lorenzo logged a proposed rule (answer a direct question about the interviewer's own figure before a due stage question), not built.",
+  "src": "batch-33/hand-grading.md; lorenzo-ruling-2026-10-19 (round 4, logged)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "\\bbase\\b|points of revenue|revenue terms",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The answer is words only the model writes (or a new code line not in Phase 1). Wave: on prof-001, a Marisol-type candidate who asks the interviewer which base or figure it used should get an answer before the stage question; the auditor (ignored_ask) and the hand grade see it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b33-tyler-t18-stale-reprobe",
+  "kind": "fault",
+  "p": "15",
+  "turn": 18,
+  "sev": "firm",
+  "cls": "stale_probe",
+  "note": "Code's rec_math_probe \"Before we wrap up — how did you arrive at 19%?\" after his t17 redo (\"So it should be 15%, not 19%\"). The stale check missed the redo. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "19%",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b33-blake-t20-false-stale",
+  "kind": "fault",
+  "p": "19",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "missed_error",
+  "note": "t17 \"A 10–12% price increase on a flat cost base recovers roughly 6 to 7 points of margin\" (checker error; ≈8.5–10) closed stale at t19 on the 10 of \"a 10–12% price increase\" and was never probed. Lorenzo's round-4 ruling 3: a figure closes a flag only when stated for the claim's own quantity; Blake counts against the bar.",
+  "src": "batch-33/hand-grading.md; lorenzo-ruling-2026-10-19 (round 4, ruling 3)",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "6 to 7",
+    "must": true,
+    "scope": {
+     "fromTurn": 20
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b33-blake-t22-bare-probe",
+  "kind": "fault",
+  "p": "19",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "Code's wrap-up probe \"Before we wrap up — walk me through how you got there.\" named no claim; it arrived two turns after its claim (t19), so \"there\" pointed at his first-step answer. Lorenzo's round-4 ruling 4: a late bare probe must quote the claim. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "src": "batch-33/hand-grading.md; lorenzo-ruling-2026-10-19 (round 4, ruling 4)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "walk me through how you got there\\.?\\s*$",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b33-jordan-t10-store-count",
+  "kind": "fault",
+  "p": "14",
+  "turn": 10,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "His same-store volume ask got only the ticket and \"Setting the exact traffic data aside for now\"; the store count (200 both years), never released, would have answered \"same-store\". Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "a": [
+   {
+    "kind": "answered",
+    "item": "stores_count",
+    "about": "same-store|store",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b33-jasmine-t6-cogs-split",
+  "kind": "fault",
+  "p": "40",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "ignored_ask",
+  "note": "Her \"I'd want the COGS split between coffee, dairy, and packaging\" (inside \"I'm done\") was regenerated by Guard B and the model still declared nothing; at t16 request_scope dropped both price changes and only the bean share went out. The input price changes never reached her.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "bean_share_of_cogs",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 6
+    }
+   },
+   {
+    "kind": "release",
+    "item": "bean_price_change",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 16
+    }
+   }
+  ],
+  "rep": false,
+  "stream": 4,
+  "rnote": "The fix needs a new classifier detection on a model turn (Guard B regenerated and the model still declared nothing). The replay cannot prove 4.6: the broader want cue only makes the sentence an asking sentence, and on a model turn the message classifier is mocked to the run's saved detections, which hold none for it. Wave: on prof-001, a COGS-split want inside an \"I'm done\" turn gets a word (Jasmine-type early finishers); the auditor (ignored_ask) and the hand grade see it."
+ },
+ {
+  "id": "b33-jasmine-t14-analysis-reask",
+  "kind": "fault",
+  "p": "40",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "stage_missed",
+  "note": "Code's analysis-stage question \"What's driving the margin drop …?\" after she had answered it at t5. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "What's driving the margin drop",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   }
+  ],
+  "rep": false,
+  "stream": "phase2",
+  "rnote": "Owned by phase2: no Phase 1 stream touches the stage record behind the re-asked analysis question. Wave: on prof-001, the analysis stage question is not re-asked once the candidate has answered it; the hand grade sees it (auditor: stage_missed)."
+ },
+ {
+  "id": "b33-marcus-t6-before-any-data",
+  "kind": "fault",
+  "p": "24",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Before any data comes out, what could you not rule out …\" in the same turn that released menu prices and showed the exhibit (reads contradictory). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "Before any data comes out",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The phrase is the model's own question. Wave: no question saying data is still to come on a turn that just gave data (any persona, most likely Marcus at the structure gate); the hand grade sees it (fact-check D1 may flag it).",
+  "stream": "phase2"
+ },
+ {
+  "id": "b33-marisol-t16-volume-per-store",
+  "kind": "fault",
+  "p": "57",
+  "turn": 16,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"I don't have … volume per store.\" True (the case holds no volume), but the store count, never released, would have let her derive it; Sofia got ticket + store count for the same ask at t12. Doubt: under contract 4.4 a key noun shared with stores_count would defer rather than release; the record asks for the release. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "a": [
+   {
+    "kind": "answered",
+    "item": "stores_count",
+    "about": "volume per store|store count|stores",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b33-sofia-t10-two-openings",
+  "kind": "fault",
+  "p": "10",
+  "turn": 10,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "Two openings on one claim in one turn (\"Earlier you put the beans at 25 percentage points … You said beans were 25% of COGS. Points of what is that 25?\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "Earlier you put the beans[^?]*You said beans",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "Wording the model wrote. Wave: a probe opens on one claim once (Sofia-type unit confusers); the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b33-raj-t8-new-stores-want",
+  "kind": "fault",
+  "p": "07",
+  "turn": 8,
+  "sev": "borderline",
+  "cls": "ignored_ask",
+  "note": "\"I'd want to know whether the 15% came from new stores …\" — a want, not a direct ask (D9); the store count was not given. The grading counts Raj t7, Jordan t1 and Fiona t1 as one borderline item; this record is Raj's (Jordan t2 and Fiona t2 are the same want). Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "a": [
+   {
+    "kind": "answered",
+    "item": "stores_count",
+    "about": "new store|store",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true
+   }
+  ],
+  "rep": false,
+  "stream": 4,
+  "rnote": "The fix is contract 4.6 on a model turn. The replay cannot prove 4.6: the broader want cue only makes the sentence an asking sentence, and on a model turn the message classifier is mocked to the run's saved detections, which hold none for it. Wave: on prof-001, \"I'd want to know whether the 15% came from new stores\" gets the store count or a deferral that comes back (Raj-type, Dana the data-heavy asker); the auditor (ignored_ask) and the hand grade see it."
+ },
+ {
+  "id": "b33-tyler-t18-want-dropped",
+  "kind": "fault",
+  "p": "15",
+  "turn": 18,
+  "sev": "borderline",
+  "cls": "ignored_ask",
+  "note": "His t17 \"I'd want the split between new-store openings and same-store transaction growth\" went unanswered: the turn was code's rec_math_probe and code_written_requests dropped it. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "a": [
+   {
+    "kind": "answered",
+    "item": "stores_count",
+    "about": "new store|same-store|store",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b33-tyler-report-basket",
+  "kind": "fault",
+  "p": "15",
+  "turn": 14,
+  "sev": "false",
+  "cls": "report_false",
+  "note": "Report (Creativity Better, turn 13): \"procurement across the 31.5-point non-bean basket at a 5% saving is about 1.5–2 points\" — 31.5 is the basket two years ago (today 43.3). Lorenzo: false and minor.",
+  "src": "batch-33/hand-grading.md; lorenzo-ruling-2026-10-19 (round 4, logged)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "31\\.5-point non-bean basket",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: scored reports on prof-001 state basket figures for the current period (Tyler or Marisol); the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b33-tyler-report-borderline",
+  "kind": "fault",
+  "p": "15",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "report_false",
+  "note": "Report: Better turn 13 \"with 200 stores, some of that is likely new openings\" (200 both years), \"pricing gets us halfway\" for 7 of 18 points, and Pushback \"the interviewer had to ask again\" blaming him for the engine's repeat.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "likely new openings",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report Better answers state only case facts and don't blame the candidate for a code re-probe; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b33-marisol-report-code-error",
+  "kind": "fault",
+  "p": "57",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "report_false",
+  "note": "Report rates her down for adopting code's wrong 10-point figure (Pushback, Communication); interviewerErrorMarks 0 because the marks don't read code's own correction lines. Lorenzo logged: the marks should cover code's lines (later).",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "adopted the 10-point figure",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: a report never faults the candidate for following a wrong interviewer line; the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b33-raj-t14-true-refusal",
+  "kind": "correct",
+  "p": "07",
+  "turn": 14,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "Elasticity and competitor pricing refused truly (the case holds neither).",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "elasticity|competitor pricing",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-tyler-t12-true-refusal",
+  "kind": "correct",
+  "p": "15",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I don't have waste or spoilage data by store.\" True.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "waste|spoilage",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-owen-t10-true-refusal",
+  "kind": "correct",
+  "p": "54",
+  "turn": 10,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I don't have customer price elasticity.\" True.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "elasticity",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-raj-t8-exhibit",
+  "kind": "correct",
+  "p": "07",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "His cost-breakdown ask answered with Exhibit A.",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-a",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-tyler-t8-misquote-correction",
+  "kind": "correct",
+  "p": "15",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "His t5 \"55%\" misquote corrected flat by code (\"To correct one figure: COGS is 58% of revenue today …\"), once.",
+  "a": [
+   {
+    "kind": "correction",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-tyler-t16-probe",
+  "kind": "correct",
+  "p": "15",
+  "turn": 16,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "The checker's probe on his false \"revenue is up about 19% on volume alone\".",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "19%",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-raj-t16-probe",
+  "kind": "correct",
+  "p": "07",
+  "turn": 16,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Final-answer flag probed (Raj t16).",
+  "a": [
+   {
+    "kind": "probe",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-sofia-t22-wrapup-probe",
+  "kind": "correct",
+  "p": "10",
+  "turn": 22,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Wrap-up probe on her flagged final figure (5% transaction decline).",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "5%",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-owen-t14-probe",
+  "kind": "correct",
+  "p": "54",
+  "turn": 14,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Final flag probed (6% back toward 14%).",
+  "a": [
+   {
+    "kind": "probe",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-jordan-t2-deferral",
+  "kind": "correct",
+  "p": "14",
+  "turn": 2,
+  "sev": "correct",
+  "cls": "correct_deferral",
+  "note": "Cost breakdown deferred behind the structure gate, delivered after.",
+  "a": [
+   {
+    "kind": "deferral",
+    "must": true
+   },
+   {
+    "kind": "release",
+    "item": "cogs_pct",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-fiona-t20-close",
+  "kind": "correct",
+  "p": "53",
+  "turn": 20,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed with every stage done and no flag open.",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-fiona-t4-exhibit",
+  "kind": "correct",
+  "p": "53",
+  "turn": 4,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Her cost-breakdown ask → Exhibit A.",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-a",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b33-owen-t4-exhibit",
+  "kind": "correct",
+  "p": "54",
+  "turn": 4,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Cost-structure ask → Exhibit A.",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-a",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ }
+]

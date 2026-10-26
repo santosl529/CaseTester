@@ -1,0 +1,562 @@
+[
+ {
+  "id": "b35h-marcus-t10-store-count",
+  "kind": "fault",
+  "p": "24",
+  "turn": 10,
+  "sev": "serious",
+  "cls": "false_refusal",
+  "note": "\"When it comes to store count and a velocity benchmark, I don't have that.\" retailer_support (the two largest partners stock the line in all their stores) answers the reach half; he never heard it. The check mapped \"store count\" to no item. Lorenzo: serious.",
+  "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 1)",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "store count",
+    "must": false
+   },
+   {
+    "kind": "release",
+    "item": "retailer_support",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b35h-jasmine-t10-store-count",
+  "kind": "fault",
+  "p": "40",
+  "turn": 10,
+  "sev": "serious",
+  "cls": "false_refusal",
+  "note": "\"I don't have store count, distribution rate and bags per store per week.\" retailer_support answers the store-count and distribution half (check 929 ms, \"maps to no item\"). Velocity is a true half. Lorenzo: serious.",
+  "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 1)",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "store count",
+    "must": false
+   },
+   {
+    "kind": "release",
+    "item": "retailer_support",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b35h-tyler-t12-scale-slip",
+  "kind": "fault",
+  "p": "64",
+  "turn": 12,
+  "sev": "false",
+  "cls": "wrong_figure",
+  "note": "Code's correction \"First-year launch costs that count for the decision is about $9, not 8.8.\" dropped the scale (\"nine dollars\" for $9 million). Lorenzo: unit/scale slips in code lines are false, not serious; E3's \"not X\" carries the unit and scale (\"about $9 million, not $8.8 million\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 3; E3)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "about \\$9, not",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b35h-tyler-t12-stale-correction",
+  "kind": "fault",
+  "p": "64",
+  "turn": 12,
+  "sev": "firm",
+  "cls": "stale_correction",
+  "note": "At t11 he had already said \"$3.0 + $4.5 + $1.5 = $9.0 million\"; the $8.8M sum flag stayed alive and code corrected him to the figure he had just given. Lorenzo: to the stale-reader fix (E6). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 4)",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "8.8",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b35h-tyler-t14-stale-probe",
+  "kind": "fault",
+  "p": "64",
+  "turn": 14,
+  "sev": "firm",
+  "cls": "stale_probe",
+  "note": "\"You said “$3.9 million” — can you show me that calculation step by step?\" after his t13 redo to $4.5M (verdict correct); he answered \"That $3.9 million came from my earlier, wrong build.\" Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 4)",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$3.9 million",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b35h-jasmine-t6-chip-volume-offer",
+  "kind": "fault",
+  "p": "40",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "ignored_ask",
+  "note": "\"One thing I'd want: how many bags of chips does Hollis Bay sell a year?\" — the model declared an offer of the planning assumptions instead (\"I can share the volume … if you'd like\"). Chip volume isn't held; a refusal was owed (round 6's offer tightening carved this direct ask out).",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "chip|bags",
+    "must": true
+   },
+   {
+    "kind": "says",
+    "pattern": "I can share the volume",
+    "must": false
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35h-marisol-t10-non-answer",
+  "kind": "fault",
+  "p": "57",
+  "turn": 10,
+  "sev": "firm",
+  "cls": "wrong_release",
+  "note": "Her t9 (is the $3.0M line first-year only or a recurring lease; what marketing looks like in year two) got longer_term_goals (\"a growth platform…\"), which answers neither. Year-two costs aren't held; a refusal was owed (a non-answer = firm moderate).",
+  "a": [
+   {
+    "kind": "release",
+    "item": "longer_term_goals",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "year two|year-two|recur",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35h-marisol-t24-hollow",
+  "kind": "fault",
+  "p": "57",
+  "turn": 24,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"That's for a little later — we'll come back to repeat rate for sampled households.\" then the recommendation ask; the check mapped it to sampling_program (on screen); the case holds no repeat rate. The model's own say had the true refusal (\"I don't have a repeat rate for sampled households.\"), withheld.",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "repeat rate",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "repeat",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35h-tyler-t8-chip-trend",
+  "kind": "fault",
+  "p": "64",
+  "turn": 8,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "\"I don't have chip volume trend year over year.\" The prompt says chip sales have been flat for several years and why_now holds it; code refused without restating it. Lorenzo: borderline (the answer was already in front of him); build the why_now cover anyway (D4).",
+  "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 2, D4)",
+  "a": [
+   {
+    "kind": "release",
+    "item": "why_now",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b35h-marisol-t20-forecast-accuracy",
+  "kind": "fault",
+  "p": "57",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "\"As for year-one volume versus forecast on past launches, that's not something I have.\" survey_reliability (conversion rates from the last five launches) is the case's answer on the forecast's reliability, never given. Lorenzo: borderline; build the survey_reliability cover (D5).",
+  "src": "batch-35-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 2, D5)",
+  "a": [
+   {
+    "kind": "release",
+    "item": "survey_reliability",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b35h-marisol-t8-itemized-sum-probe",
+  "kind": "fault",
+  "p": "57",
+  "turn": 8,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"You said the fixed costs total $10.2 million. How did you do that calculation?\" — the arithmetic was right and itemized; the fault was the base (the sunk $1.2M), which the model's own t6 had raised. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$10.2 million",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The calculation probe follows a checker verdict that rated the base error as a math error; telling base from arithmetic needs a re-run checker (contract 3.7). Wave: a correct sum on a wrong base gets a base question, not a calculation probe (Marisol-type context confusers on launch-001); the hand grade sees it.",
+  "stream": 3
+ },
+ {
+  "id": "b35h-marisol-t18-no-question",
+  "kind": "fault",
+  "p": "57",
+  "turn": 18,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "No question: \"Right. You said the project clears break-even by about 50%. The survey is stated intent, and the board only approves if year one breaks even.\" (the model's question was cut).",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "\\?",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "stream": "phase2",
+  "rnote": "Owned by phase2: the missing question is the model's own turn shape, which no Phase 1 rule writes. Wave: every interviewer turn ends with something to answer (launch-001, Marisol-type); the hand grade sees it (auditor: other)."
+ },
+ {
+  "id": "b35h-marisol-t32-rec-reask",
+  "kind": "fault",
+  "p": "57",
+  "turn": 32,
+  "sev": "borderline",
+  "cls": "rec_reask",
+  "note": "The recommendation asked a second time (t24, t32) by code's time warning. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "recommendation",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35h-marcus-t14-calc-probe-misread",
+  "kind": "fault",
+  "p": "24",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Earlier you said the launch “clears at the current $3.00 shelf price …” What were the steps in that calculation?\" — the error was the price base ($3.99 at the shelf), not arithmetic; he re-walked the math. t16 corrected him rightly. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "What were the steps in that calculation",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "As b35h Marisol t8: the probe's form follows the checker's error type; a re-run checker is needed. Wave: a misread input gets an input question, not a calculation probe (Marcus on launch-001); the hand grade sees it.",
+  "stream": 3
+ },
+ {
+  "id": "b35h-marcus-t26-close-reask",
+  "kind": "fault",
+  "p": "24",
+  "turn": 26,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t25 \"How I'd hedge before committing …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "guard against that",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35h-raj-t26-chip-margin",
+  "kind": "fault",
+  "p": "07",
+  "turn": 26,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"Do we have the contribution margin on the chips business?\" answered only by the cannibalization line; chip margins aren't held; the line makes the ask moot.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "margin",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b35h-jasmine-t14-your-idea",
+  "kind": "fault",
+  "p": "40",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Sampling is your idea, not mine.\" True, but odd. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "your idea, not mine",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The model's own say. Wave: no odd attributions in acknowledgments (Jasmine-type early finishers); the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b35h-jasmine-report-shelf-fees",
+  "kind": "fault",
+  "p": "40",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "report_false",
+  "note": "Report, Business Judgment: \"shelf fees are paid up front, so 'renegotiate' after a shortfall is a weak lever\" — the case doesn't say the fees are paid up front.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "shelf fees are paid up front",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report facts are the case's; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b35h-marisol-t14-retailer-release",
+  "kind": "correct",
+  "p": "57",
+  "turn": 14,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "\"Do we have a store count we could reach in year one?\" → retailer_support (code wrote it).",
+  "a": [
+   {
+    "kind": "release",
+    "item": "retailer_support",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35h-raj-t26-cannibalization",
+  "kind": "correct",
+  "p": "07",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "The cannibalization line for his cannibalization question.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "cannibalization",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35h-marcus-t6-true-refusal",
+  "kind": "correct",
+  "p": "24",
+  "turn": 6,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I don't have chip volume over time.\" True (a finer cut; he said \"not just that revenue is flat\"), with Exhibit 1. The base answers with why_now's coarse line (round 6's chip-volume cover, Lorenzo's D4) instead of the refusal; either is correct.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "I don't have chip volume|Chip sales (?:are|have been) flat",
+    "must": true
+   },
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-1",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35h-marisol-t6-true-refusal",
+  "kind": "correct",
+  "p": "57",
+  "turn": 6,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I don't have category volume of chickpea snacks in the Northeast and Midwest.\" True.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "category volume",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35h-tyler-t22-true-refusal",
+  "kind": "correct",
+  "p": "64",
+  "turn": 22,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"As for repeat-rate data from prior sampling programs, that's not something I have.\" True.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "repeat",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35h-marisol-t12-correction",
+  "kind": "correct",
+  "p": "57",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "\"… about $9 million, not $10.2 million.\" Right (she had argued to keep the sunk cost).",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$10.2 million",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35h-tyler-t26-wrapup-probe",
+  "kind": "correct",
+  "p": "64",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Wrap-up probe on his 480,000 sampling households (in his recommendation); he corrected to 500,000 / $0.75M.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "480,000",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35h-jasmine-t30-close",
+  "kind": "correct",
+  "p": "40",
+  "turn": 30,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed with all stages done and no flag open.",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b35h-jasmine-t14-brainstorm",
+  "kind": "correct",
+  "p": "40",
+  "turn": 14,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "The case's brainstorm ask (\"What could Hollis Bay do to get shoppers to try …?\").",
+  "a": [
+   {
+    "kind": "ask",
+    "stage": "brainstorm",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ }
+]

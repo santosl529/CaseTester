@@ -3336,6 +3336,149 @@
         "confidence": "medium",
         "reason": ""
       }
+    },
+    "65": {
+      "structure": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "quantitative": {
+        "expect": [
+          "meets_bar"
+        ],
+        "confidence": "medium",
+        "reason": "\"your analysis is competent\""
+      },
+      "dataExhibit": {
+        "expect": [
+          "needs_work",
+          "meets_bar"
+        ],
+        "confidence": "medium",
+        "reason": "\"ask for three to five specific figures at once as a list\" and \"Use every figure you are given\""
+      },
+      "judgment": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "creativity": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "communication": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "synthesis": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "pushback": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      }
+    },
+    "66": {
+      "structure": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "quantitative": {
+        "expect": [
+          "needs_work"
+        ],
+        "confidence": "medium",
+        "reason": "\"state only the results … never show the working\"; about half rest on a wrong input"
+      },
+      "dataExhibit": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "judgment": {
+        "expect": [
+          "meets_bar"
+        ],
+        "confidence": "medium",
+        "reason": "\"Your structure and judgement are sound\""
+      },
+      "creativity": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "communication": {
+        "expect": [
+          "needs_work",
+          "meets_bar"
+        ],
+        "confidence": "medium",
+        "reason": "\"never show the working, the formula, or which inputs you used\""
+      },
+      "synthesis": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "pushback": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      }
+    },
+    "67": {
+      "structure": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "quantitative": {
+        "expect": [
+          "meets_bar"
+        ],
+        "confidence": "medium",
+        "reason": "\"Your analysis is otherwise solid\""
+      },
+      "dataExhibit": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "judgment": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "creativity": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "communication": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "synthesis": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "pushback": {
+        "expect": [
+          "needs_work",
+          "meets_bar"
+        ],
+        "confidence": "medium",
+        "reason": "\"dispute it confidently\" then \"accept it and carry on with the interviewer's number\""
+      }
     }
   }
 }
