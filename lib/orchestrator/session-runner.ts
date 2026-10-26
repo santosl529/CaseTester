@@ -10,6 +10,7 @@ import {
 import { isDistressVerdict, type DistressVerdict } from './distress';
 import { classifyDataRequests, type DetectedDataRequest } from './data-requests';
 import { addressedAskSentences, matchAskDetections, properNames } from './request-signal';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { logEvent, inDraftScope } from '@/lib/analytics';
 import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
@@ -467,7 +468,7 @@ export function codeWrittenAsks(plan: ModelPlan, detected: DetectedDataRequest[]
   const goodbye = state.kind === 'close' || state.kind === 'close_wait';
   const c = state.caseData;
   const ledger = goodbye ? undefined : { labels: c.dataLedger.filter(i => canReveal(state.ledger, i.id)).map(i => i.label), caseNames: properNames(c.sttKeyterms) };
-  const sentences = addressedAskSentences(ctx.candidateText, ctx.currentPhase, { closing: state.kind === 'close', ledger, wantIs: state.factBase.answerGate });
+  const sentences = addressedAskSentences(ctx.candidateText, ctx.currentPhase, { closing: state.kind === 'close', ledger, wantIs: state.factBase.answerGate, wantBroad: switchOn(c, 'wantCueBroad') });
   const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit), goodbye ? undefined : {
     text: ctx.candidateText,
     isHeld: id => canReveal(state.ledger, id),
@@ -503,7 +504,7 @@ export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[]
           : state.kind === 'stage_exhibit' ? line('stage_exhibit_q', uses, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? analysisAskLine(state.caseData.analysisCore.ask, state.recommendationInPlay)
             : state.kind === 'rec_revision' ? line(state.recommendationReceived ? 'rec_revision' : 'analysis_revision', uses, seed)
-              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed, uses)
+              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed, uses, { answer: ctx.candidateText, skipAnswered: switchOn(state.caseData, 'closeWaitMitigation') })
               : recMath?.action === 'correct' ? line(state.recommendationReceived ? 'rec_math_revision' : 'analysis_revision', uses, seed)
               : recMath ? recLine('probe')
             : phrase('stall_lead', restateOnTable(state.lastQuestion ?? ''), uses, seed);

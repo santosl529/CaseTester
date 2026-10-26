@@ -1,4 +1,5 @@
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
+import { withStreamRetry } from './stream-retry';
 import { SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { z } from 'zod';
 import type { RubricScores } from './judge';
@@ -222,7 +223,7 @@ export async function runClaimVerifier(
     // SDK's non-streaming guard. The judge's cap on the same model (engine-asks
     // final review, 19 Oct): every strength and Better answer is a claim now, and
     // a response cut at the cap has no parsed output — all verification skipped.
-    const response = await client.beta.messages.stream({
+    const response = await withStreamRetry('verifier', () => client.beta.messages.stream({
       model: SCORING_MODEL_ID,
       max_tokens: VERIFIER_MAX_TOKENS,
       thinking: { type: 'adaptive' },
@@ -230,7 +231,7 @@ export async function runClaimVerifier(
       output_config: { format: VERIFIER_OUTPUT_FORMAT, effort: 'high' },
       betas: [FALLBACK_BETA],
       fallbacks: FALLBACKS,
-    }).finalMessage();
+    }).finalMessage());
     onUsage?.({
       component: 'verifier',
       model: SCORING_MODEL_ID,

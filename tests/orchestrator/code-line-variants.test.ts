@@ -45,7 +45,10 @@ import { getCaseById } from '@/lib/cases/loader';
 const ONE_LINE: PhrasePool[] = ['wont_get_to', 'wont_get_to_that'];
 // A lead-in, not a line (19 Oct, round-4 ruling 6): the words that open a checker probe's "You said …" — its own block.
 const FRAGMENT: PhrasePool[] = ['probe_opener'];
-const POOLS = (Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => !ONE_LINE.includes(p) && !FRAGMENT.includes(p));
+// The model's opening acknowledgment, rotated by code (Phase 1 4.10, `ackRotation`): no line code said before the
+// brief, and recorded only with the switch on — its own block (tests/orchestrator/ack-rotation.test.ts).
+const OWN_BLOCK: PhrasePool[] = ['ack'];
+const POOLS = (Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => !ONE_LINE.includes(p) && !FRAGMENT.includes(p) && !OWN_BLOCK.includes(p));
 const before = BEFORE as Record<string, string[]>;
 const versions = (p: PhrasePool) => PHRASE_POOLS[p] as readonly string[];
 

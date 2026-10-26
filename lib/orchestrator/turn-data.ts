@@ -16,6 +16,7 @@ import { correctsNow } from './math-checker-live';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
 import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, askQualifiers, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { costOf } from '@/lib/llm-pricing';
 import { dataLineVersions } from '@/lib/cases/loader';
 
@@ -1015,7 +1016,7 @@ export function probeTurn(plan: ModelPlan): boolean {
 }
 function messageAskSentences(plan: ModelPlan): string[] {
   const { ctx, state } = plan;
-  return WANT_ASK_PHASES.includes(ctx.currentPhase) ? addressedAskSentences(ctx.candidateText, ctx.currentPhase, { wantIs: state.factBase.answerGate })
+  return WANT_ASK_PHASES.includes(ctx.currentPhase) ? addressedAskSentences(ctx.candidateText, ctx.currentPhase, { wantIs: state.factBase.answerGate, wantBroad: switchOn(state.caseData, 'wantCueBroad') })
     : lateAskSentences(ctx.candidateText, ctx.currentPhase, [state.caseData.prompt, ...Object.values(revealedValues(state.ledger))]);
 }
 // Row 11's classifier call (round 6 Task 76 (c); Lorenzo, 21 Oct, round 6 rulings, 2: "Row 11's classifier call:
@@ -1024,11 +1025,17 @@ function messageAskSentences(plan: ModelPlan): string[] {
 // a message that asks only through Task 71's "(what) I'd want is" cue (request-signal.ts WANT_IS; tagged cases, before
 // the brainstorm) — no addressed asking sentence without it. Its usage row carries `cue: 'want_is'` and the call's
 // latency; the turn's wait stays capped at ASK_WAIT_MS (heardAsks), logged on `uncovered_asks` (Settle).
+// With 4.6's `wantCueBroad` on, its broad want cue counts the same way: a message that asks only through it (or
+// row 11's) is tagged `cue: 'want_is'`, on any case — the share Lorenzo capped (~2%) is the want cue's as a whole.
+// The denominator (Stream 4b's review, item 3): this function is only reached from startMessageAsks, which returns
+// null unless the turn is the model's, so 1.72% of candidate turns understates it. Over batches 28–38 the broad cue
+// adds 25 calls: 2.27% of the 1,100 model turns, 3.16% of the 791 want-phase model turns (request-signal.ts).
 function wantIsOnly(plan: ModelPlan): boolean {
   const { ctx, state } = plan;
-  return state.factBase.answerGate && WANT_ASK_PHASES.includes(ctx.currentPhase)
+  const broad = switchOn(state.caseData, 'wantCueBroad');
+  return (state.factBase.answerGate || broad) && WANT_ASK_PHASES.includes(ctx.currentPhase)
     && addressedAskSentences(ctx.candidateText, ctx.currentPhase).length === 0
-    && addressedAskSentences(ctx.candidateText, ctx.currentPhase, { wantIs: true }).length > 0;
+    && addressedAskSentences(ctx.candidateText, ctx.currentPhase, { wantIs: true, wantBroad: broad }).length > 0;
 }
 // The classifier on the message: one call per turn, shared through the plan.
 function classifyMessage(plan: ModelPlan, sentences: string[], onUsage?: OnUsage): Promise<MessageAsks> {

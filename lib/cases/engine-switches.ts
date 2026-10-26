@@ -34,7 +34,13 @@ export const PHASE1_SWITCHES = [
   'wantCueBroad',        // 4.6: "I'd want / need / confirm" + any noun phrase
   'modelDeferrals',      // 4.7: model-said deferrals registered for E5's stop sequence
   'closeWaitMitigation', // 4.8: no mitigation ask when the last answer or question already covered it
-  'recommendationReceived', // 4.9: set on a clear recommendation; the time warning skips a fresh rec ask
+  'recommendationReceived', // 4.9: the time warning skips a fresh rec ask (the narrow reading: the stage record is untouched)
+  // 4.9's wider reading, Lorenzo's to rule (Stream 4b's review): a received recommendation goes into the stage
+  // record too, so the end gate sees it and the case can close. Five runs then close 3–8 minutes earlier and b34
+  // Aldermoor Jasmine loses eight post-recommendation pushback turns. Off on its own, and it rides on
+  // `recommendationReceived`. NOTE: `ENGINE_SWITCHES='*=phase1'` turns it ON — the gate and the wave want
+  // `'*=phase1,-recommendationOpensGate'` until he rules for the wider reading.
+  'recommendationOpensGate',
   'ackRotation',         // 4.10: the model's opening acknowledgment through the phrase-pool rotation
 ] as const;
 

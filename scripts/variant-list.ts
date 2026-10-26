@@ -76,6 +76,7 @@ const WHEN: Record<PhrasePool, string> = {
   opener_after_q: 'The opener\'s hand-off after a case prompt that ends in a question.',
   close_time_up: 'The goodbye at time-up.',
   close_complete: 'The goodbye when the case is complete.',
+  ack: 'The model\'s opening acknowledgment, replaced by code when the case\'s `ackRotation` switch is on (Phase 1 4.10).',
   close_unresolved: 'The goodbye otherwise.',
 };
 

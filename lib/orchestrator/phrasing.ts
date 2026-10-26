@@ -14,6 +14,8 @@
 // seed before they had a memory (and a line said once a session keeps its
 // variety across sessions).
 
+import { normalizeNumberWords } from '@/lib/number-words';
+
 export const PHRASE_POOLS = {
   // data-decisions.ts: what was asked, held for later. The slot is never a verb's subject:
   // what was asked is often plural ("menu price changes").
@@ -513,6 +515,16 @@ export const PHRASE_POOLS = {
     'We\'ve gotten through what I wanted to. Thank you for working through the case; your written report will follow.',
     'I have what I need. Thanks for working through it — your written report will follow.',
   ],
+  // 4.10 (Phase 1, `ackRotation`): the model's opening acknowledgment, rotated (rotateOpeningAck below). Bare
+  // acknowledgments only: the prompt's own ("Mm-hm.", "Got it.", "Understood."; system.ts) and "I see." — no "Right."
+  // (read as a verdict after a correction, b38 Marisol t18) and no "Okay." (the prompt: "at most now and then").
+  // Four, the fewest the last-3 rule allows.
+  ack: [
+    'Understood.',
+    'Mm-hm.',
+    'Got it.',
+    'I see.',
+  ],
   close_unresolved: [
     'We\'ll stop there. Thanks for working through the case — your written report will follow.',
     'Let\'s stop there. Thanks for working through the case — your written report will follow.',
@@ -672,10 +684,11 @@ export function asOriginalProbe(text: string): string {
 
 // The session's uses after a turn that said \`spoken\`: each variant heard, by pool, the last PHRASE_MEMORY kept.
 // \`extra\`: pools outside the registry heard too (a case's data-line versions, by "data:<itemId>").
-export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, extra?: Record<string, readonly string[]>): PhraseUses {
+// The `ack` pool is recorded only with `o.ack` (the case's `ackRotation`): off, the uses are as before.
+export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, extra?: Record<string, readonly string[]>, o: { ack?: boolean } = {}): PhraseUses {
   const out: PhraseUses = { ...(uses ?? {}) };
   const pools: [keyof PhraseUses, readonly string[]][] = [
-    ...(Object.keys(PHRASE_POOLS) as PhrasePool[]).map(p => [p, PHRASE_POOLS[p]] as [keyof PhraseUses, readonly string[]]),
+    ...(Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => p !== 'ack' || o.ack === true).map(p => [p, PHRASE_POOLS[p]] as [keyof PhraseUses, readonly string[]]),
     ...Object.entries(extra ?? {}).map(([k, vs]) => [k as keyof PhraseUses, vs] as [keyof PhraseUses, readonly string[]]),
   ];
   for (const [pool, vs] of pools) {
@@ -690,4 +703,47 @@ export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, e
     if (said.length > 0) out[pool] = [...(out[pool] ?? []), ...said].slice(-PHRASE_MEMORY);
   }
   return out;
+}
+
+// 4.8 (Phase 1, `closeWaitMitigation`): close_wait's follow-ups (close-hold.ts closeWaitLine) name no figure, so a
+// turn that said one is no probe of a figure — "Six months in, how would you know it was working?" was read as a
+// probe of a candidate's 6 (b31 Sofia e0f7d46c t24, replay with the switch on: the claim's report line became "Probed
+// twice"), in either spelling. The caller passes switchOn(case, 'closeWaitMitigation'); off, the text is unchanged.
+// Review fix round, item 4: a pattern over the three pools, not a literal split — the split was case-sensitive and
+// exact on whitespace, so re-wrapping or recapitalizing one of these lines would have stopped stripping it with
+// nothing to show for it. Both number-word spellings stay (the turn rows hold "6 months in").
+export const CLOSE_WAIT_POOLS = ['after_risk', 'first_step', 'measure'] as const;
+let closeWaitLines: RegExp | undefined;
+function closeWaitLinePattern(): RegExp {
+  if (!closeWaitLines) {
+    const variants = CLOSE_WAIT_POOLS.flatMap(p => [...(PHRASE_POOLS[p] as readonly string[]), ...(RETIRED_POOLS[p] ?? [])]);
+    const alts = [...new Set(variants.flatMap(v => [v.trim(), normalizeNumberWords(v).trim()]))].map(words);
+    closeWaitLines = new RegExp(`(?:${alts.join('|')})`, 'gi');
+  }
+  return closeWaitLines;
+}
+export function withoutCloseWaitLines(text: string): string {
+  return text.replace(closeWaitLinePattern(), ' ');
+}
+
+// 4.10 (Phase 1, `ackRotation`; Lorenzo, 22 Oct: "Acknowledgments: run the model's opening acknowledgment through the
+// phrase-pool rotation, so \"Understood.\" stops repeating."; b38 Larkspur: "Understood." opened 28 of 75 interviewer
+// turns, 12 consecutive pairs). The model's say opens on a sentence of acknowledgment words only ("Understood.",
+// "Got it.", "Okay, got it.", "Right.") — that sentence is replaced by the `ack` pool's variant for this turn (the
+// session's last 3 uses never again; the first use is "Understood."). A sentence that comments ("Understood, that
+// fills the gaps.") or says anything else is the model's and stays. Stream and Settle call this with the same seed
+// and uses, so both say the same words. Split as the say's sentences are (turn-events.ts).
+//
+// Review fix round, item 8: `o.correcting` (stream-turn.ts turnCorrects) keeps the model's own word. A rotated
+// acknowledgment in front of a correction reads as assent and then contradiction — "Mm-hm. Starter value is about
+// $1,400, not $1,205." — which is why "Right." was left out of the pool. Only the opening sentence is replaced now,
+// and the text after it is kept exactly as it came, so Stream (which rotates the first sentence event) and Settle
+// (which rotates the whole say) cannot drift apart on whitespace either.
+const ACK_ONLY = /^(?:okay|ok|understood|got it|mm-?hm+|i see|right|sure|alright|all right)(?:[,.!]\s*(?:okay|ok|understood|got it|mm-?hm+|i see|right|sure|alright|all right))*[.!]?$/i;
+export const isAckOnly = (sentence: string) => ACK_ONLY.test(sentence.trim());
+export function rotateOpeningAck(say: string, uses: PhraseUses | undefined, seed: string, o: { correcting?: boolean } = {}): string {
+  if (o.correcting === true) return say;
+  const m = /^(\s*)([^.!?]*[.!?]*)([\s\S]*)$/.exec(say);
+  if (m === null || !isAckOnly(m[2])) return say;
+  return `${m[1]}${line('ack', uses, seed)}${m[3]}`;
 }

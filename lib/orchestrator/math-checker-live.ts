@@ -12,7 +12,8 @@
 //
 // Plan stays free of writes: startMathCheck returns the job, and the runner
 // writes its row once the turn is accepted (session-runner.ts).
-import { line, phrase, PHRASE_POOLS, type PhraseUses } from './phrasing';
+import { line, phrase, PHRASE_POOLS, withoutCloseWaitLines, type PhraseUses } from './phrasing';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { dataLineVersions } from '@/lib/cases/loader';
 import { mathCheckerConfig, type MathCheckerConfig } from '@/lib/models';
 import type { OnUsage } from '@/lib/llm-usage';
@@ -941,6 +942,9 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   // …and the prompt's changes ("18 points" from 24% to 6%): a figure the claim cites, never its own (a late probe's quote).
   const caseFigures = [...caseNumbers, ...numbersOf(changeFigures([p.caseData.prompt]).join(' '))];
   const ledgerValues = p.caseData.dataLedger.map(i => i.value);
+  // 4.8: close_wait's follow-ups are no probe (phrasing.ts withoutCloseWaitLines; off, unchanged).
+  const closeWaitOn = switchOn(p.caseData, 'closeWaitMitigation');
+  const ownWords = (text: string) => { const own = interviewerOwnWords(text, ledgerValues); return closeWaitOn ? withoutCloseWaitLines(own) : own; };
   const keys: Record<string, CheckerKeyEntry> = { ...(p.keys ?? {}) };
   const closed = new Set(p.closed ?? []);
   const closedNow: string[] = [];
@@ -962,7 +966,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
   const questionedBefore = (id: string, c: CheckerClaim, m: number) => {
     if (delivered.some(x => x.at === m - 2 && (x.d.id === id || x.d.key === checkerKey(c)))) return true;
     const line = [...p.turnRows].reverse().find(t => t.role === 'interviewer' && t.turnIndex < m)?.text;
-    return line !== undefined && probesOf(ownFigures(c, caseNumbers), [interviewerOwnWords(line, ledgerValues)], p.candidateFigures) > 0;
+    return line !== undefined && probesOf(ownFigures(c, caseNumbers), [ownWords(line)], p.candidateFigures) > 0;
   };
   // Misreads code corrects (Lorenzo, 14 Oct; batch 24, Tyler 4228be02's COGS
   // "about 54%"): one error with its framings — a claim whose sentence states
@@ -1269,7 +1273,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const turns = new Set(p.inputProbes?.[key] ?? []);
     for (const t of p.turnRows) {
       if (t.role !== 'interviewer' || t.turnIndex <= since || turns.has(t.turnIndex)) continue;
-      const own = interviewerOwnWords(t.text, ledgerValues);
+      const own = ownWords(t.text);
       const all = sentencesOf(own);
       const asks = /\?|\b(?:walk|talk|take) me through\b|\bexplain\b|\btell me how\b|\bshow me how\b/i.test(own);
       const onF = all.some((x, i) => inputProbed(x, [input, ...chainAt], p.candidateFigures, all[i - 1], asks) !== undefined);
@@ -1591,7 +1595,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     // turns that asked about its figures, whichever is more).
     const since = keys[key]?.since ?? n;
     // The interviewer's own words only: code's data lines are no probe (interviewerOwnWords).
-    const interviewerSince = p.turnRows.filter(t => t.role === 'interviewer' && t.turnIndex > since).map(t => interviewerOwnWords(t.text, ledgerValues));
+    const interviewerSince = p.turnRows.filter(t => t.role === 'interviewer' && t.turnIndex > since).map(t => ownWords(t.text));
     // A claim code flagged was probed by code: it comes back only as the correction.
     const probed = Math.max(p.attempts[key] ?? 0, probesOf(keys[key]?.figures ?? claimFigures(c), interviewerSince, p.candidateFigures), codeProbed ? 1 : 0);
     const attempt = probed + 1;

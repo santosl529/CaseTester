@@ -1,4 +1,5 @@
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
+import { withStreamRetry } from './stream-retry';
 import { SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { z } from 'zod';
 import type { Case } from '@/lib/cases/schema';
@@ -255,7 +256,7 @@ ${dimensionJsonLines}
   // Streamed (batch 4, 2 Oct): with thinking, max_tokens 32000 is past the
   // SDK's non-streaming guard ("may take longer than 10 minutes") and every
   // scoring run failed. finalMessage() still returns the parsed output.
-  const response = await client.beta.messages.stream({
+  const response = await withStreamRetry('judge', () => client.beta.messages.stream({
     model: JUDGE_MODEL_ID,
     max_tokens: 32000,
     thinking: { type: 'adaptive' },
@@ -263,7 +264,7 @@ ${dimensionJsonLines}
     output_config: { format: JUDGE_OUTPUT_FORMAT, effort: 'high' },
     betas: [FALLBACK_BETA],
     fallbacks: FALLBACKS,
-  }).finalMessage();
+  }).finalMessage());
   onUsage?.({
     component: 'judge',
     model: JUDGE_MODEL_ID,

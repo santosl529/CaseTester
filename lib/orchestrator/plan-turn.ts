@@ -14,7 +14,8 @@ import { candidateFiguresOf } from './math-talk';
 import { changeFigures } from './numeric-provenance';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk, stageDeadlinesMs, timeWarningDue } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
-import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, INITIAL_STALL_STATE, type StallState } from './stall';
+import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, clearRecommendation, INITIAL_STALL_STATE, type StallState } from './stall';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { historyWithCheckIns, checkInLinesOf } from './voice-check-in';
 import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf, type ConductAssessment } from './conduct';
@@ -792,6 +793,22 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   if (!stallDecision.state.recommendationDelivered && replyToRecAsk && answersRecommendationAsk(candidateText, stallDecision.classification.kind)) {
     stallDecision = { ...stallDecision, state: { ...stallDecision.state, recommendationDelivered: true } };
   }
+  // 4.9 (`recommendationReceived`; stall.ts clearRecommendation): a clear recommendation in reply to a recommendation
+  // ask, or in the synthesis phases, is received too ("Keep Starter, and raise the price to $60.").
+  // The contract's 4.9 asks only that the time warning skip a fresh recommendation ask, and that is all this switch
+  // does (the narrow reading, Stream 4b's review item 2). Putting the recommendation into the stage record opens the
+  // end gate as well — five runs close 3–8 minutes earlier and b34 Aldermoor Jasmine loses eight post-recommendation
+  // pushback turns — so that is `recommendationOpensGate`, off by itself, for Lorenzo to rule on with the evidence.
+  const recSwitch = switchOn(caseData, 'recommendationReceived');
+  const recOpensGate = recSwitch && switchOn(caseData, 'recommendationOpensGate');
+  if (recOpensGate && !stallDecision.state.recommendationDelivered && stallDecision.classification.kind === 'analysis'
+    && (replyToRecAsk || currentPhase === 'RECOMMENDATION' || currentPhase === 'WRAP') && clearRecommendation(candidateText)) {
+    stallDecision = { ...stallDecision, state: { ...stallDecision.state, recommendationDelivered: true } };
+  }
+  // …and the time warning skips its recommendation ask when one came in the last two messages (b37 Quillpath Marcus
+  // t32: asked again straight after t31's "Keep Starter, and raise the price to $60."), whatever the stage record says.
+  const lastCandidate = [...turnRows].reverse().find(t => t.role === 'candidate')?.text ?? '';
+  const recJustGiven = recSwitch && [candidateText, lastCandidate].some(clearRecommendation);
   if (ptOpen && rawStall.intervene) checks.act('stall_deferred', 'stall rung withheld: the pressure-test ladder owns this turn', { rung: rawStall.rung });
   const recommendationReceived = stallDecision.state.recommendationDelivered;
 
@@ -990,7 +1007,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       : analysisDue ? 'stage_analysis'
       : closeDue && !stageDue ? 'close'
       : graceDue ? 'grace_ask'
-        : shouldFireTimeWarning && !recommendationReceived ? 'time_warning'
+        : shouldFireTimeWarning && !recommendationReceived && !recJustGiven ? 'time_warning'
           : stageDue ? (owedStage === 'exhibit' ? 'stage_exhibit' : 'stage_brainstorm')
             : awaitingRecAsk ? 'rec_ask'
               : stallDecision.intervene && stallDecision.rung === 1 && lastQuestion ? 'rung1'
