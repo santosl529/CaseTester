@@ -343,8 +343,9 @@
     "must": true
    }
   ],
-  "rep": true,
-  "stream": "none"
+  "rep": false,
+  "stream": "none",
+  "rnote": "Cascade, not a regression: this run diverges from t12 over an unrelated row fix, so the t26 state never recurs in the replay and the turn cannot be judged offline either way (the base fixes on phase1-base-fixes, 56c54edd and cb38676f, were proved on b37q Raj e08c362a t24 instead — see b37q-raj-t24-correction-dropped). Wave: on pricing-001, a pending correction that a code-written turn pre-empts is still spoken, so a Marisol-type context confuser learns the Pro lifetime was wrong; the auditor (missed_error) and the hand grade see it."
  },
  {
   "id": "b35q-tyler-t8-misquote-correction",
@@ -446,29 +447,6 @@
    {
     "kind": "close",
     "must": true
-   }
-  ],
-  "rep": true,
-  "stream": "none"
- },
- {
-  "id": "b35q-marisol-t26-correction-carry",
-  "kind": "correct",
-  "p": "57",
-  "turn": 24,
-  "sev": "correct",
-  "cls": "correct_correction",
-  "note": "A pending correction must ride on the rec-ask turn or carry to the next turn — it must never drop. In the recorded run the checker's correction landed at t26 (\"Pro lifetime value is about $4,000, not $2,400.\") and she then found the swapped cohort rows herself. On the contract base t26 is a code-written rec_ask and the correction is dropped, not deferred: nothing says $4,000 at t26, t28 or t30, and she never learns the Pro lifetime was wrong. The record is anchored at t24 (a model turn on the base as in the recording, so the harness does not read it as diverged) and asserts the correction over t26–t30. Fixed on phase1-base-fixes; it fails on the contract base by design.",
-  "src": "stream-1-review-2026-10-25 (finding 8); lorenzo-instruction-2026-10-25",
-  "a": [
-   {
-    "kind": "correction",
-    "figure": "$4,000",
-    "must": true,
-    "scope": {
-     "fromTurn": 26,
-     "toTurn": 30
-    }
    }
   ],
   "rep": true,

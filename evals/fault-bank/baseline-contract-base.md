@@ -1,6 +1,6 @@
-# Fault bank — final
+# Fault bank — final2
 
-Switches: `(off)` · 312 records (211 fault, 101 correct) · 54 runs replayed in 19 s
+Switches: `(off)` · 311 records (212 fault, 99 correct) · 54 runs replayed in 16 s
 
 ## Summary
 
@@ -10,13 +10,13 @@ must-not whose window holds no replayed turn) and `run_missing`. Pass and fail a
 
 | kind | records | skipped | counted | pass | fail |
 |---|---:|---:|---:|---:|---:|
-| fault | 211 | 62 | 149 | 47 | 102 |
-| correct | 101 | 4 | 97 | 95 | 2 |
+| fault | 212 | 62 | 150 | 47 | 103 |
+| correct | 99 | 4 | 95 | 95 | 0 |
 
 | skipped | fault | correct |
 |---|---:|---:|
-| not_replayable | 52 | 0 |
-| diverged | 10 | 4 |
+| not_replayable | 52 | 2 |
+| diverged | 10 | 2 |
 
 How a diverged record is judged: not by this harness. The replay drives one turn at a time with the saved
 model output, so when code now writes a turn the model wrote (or the other way round) the saved declarations for
@@ -24,21 +24,20 @@ that turn are gone and the turn the replay writes answers a different question. 
 against the before/after lines in `## Failed assertions` below, and otherwise go to the wave with the
 `not_replayable` ones (contract §4.3).
 
-Not replayable (judged in the wave, contract §4.3 / Q2): 52 (report records 17).
+Not replayable (judged in the wave, contract §4.3 / Q2): 54 (report records 17).
 
 ## Gate condition 1 (contract §6)
 
-Counted: replayable fault records owned by streams 2, 3 and 4, not skipped — **47 pass / 149**.
+Counted: replayable fault records owned by streams 2, 3 and 4, not skipped — **47 pass / 150**.
 Excluded: 0 replayable fault records owned by `phase2` or `none` (none) — no Phase 1 stream touches them.
-Correct records, not skipped: **95 pass / 97** (all must pass, switches off and on).
+Correct records, not skipped: **95 pass / 95** (all must pass, switches off and on).
 
 ## Baseline classes (contract §4.5)
 
 | class | records |
 |---|---:|
-| base_changed_it | 2 |
-| diverged | 14 |
-| fails_as_expected | 102 |
+| diverged | 12 |
+| fails_as_expected | 103 |
 | fixed_on_base | 47 |
 | passes_as_expected | 95 |
 
@@ -48,13 +47,13 @@ Correct records, not skipped: **95 pass / 97** (all must pass, switches off and 
 |---|---:|---:|
 | batch-33 | 1 / 6 | 13 / 13 |
 | batch-34-aldermoor | 7 / 15 | 8 / 9 |
-| batch-34-larkspur | 4 / 16 | 7 / 9 |
+| batch-34-larkspur | 4 / 16 | 7 / 7 |
 | batch-35-hollisbay | 6 / 13 | 9 / 9 |
-| batch-35-quillpath | 4 / 13 | 7 / 9 |
+| batch-35-quillpath | 4 / 13 | 7 / 7 |
 | batch-36-aldermoor | 9 / 17 | 10 / 10 |
 | batch-36-larkspur | 7 / 17 | 10 / 10 |
 | batch-37-hollisbay | 7 / 20 | 10 / 10 |
-| batch-37-quillpath | 6 / 24 | 8 / 8 |
+| batch-37-quillpath | 6 / 25 | 8 / 8 |
 | batch-38-larkspur | 0 / 18 | 14 / 14 |
 
 ## By stream
@@ -62,9 +61,9 @@ Correct records, not skipped: **95 pass / 97** (all must pass, switches off and 
 | stream | fault pass / n | correct pass / n |
 |---|---:|---:|
 | 2 | 12 / 18 | 0 / 0 |
-| 3 | 8 / 39 | 0 / 0 |
+| 3 | 8 / 40 | 0 / 0 |
 | 4 | 31 / 102 | 0 / 0 |
-| none | 0 / 0 | 96 / 101 |
+| none | 0 / 0 | 96 / 97 |
 
 ## By class
 
@@ -73,16 +72,16 @@ Correct records, not skipped: **95 pass / 97** (all must pass, switches off and 
 | bare_partial | 6 / 27 | 0 / 0 |
 | close_wait_reask | 0 / 12 | 0 / 0 |
 | correct_close | 0 / 0 | 11 / 12 |
-| correct_correction | 0 / 0 | 9 / 11 |
+| correct_correction | 0 / 0 | 9 / 9 |
 | correct_deferral | 0 / 0 | 8 / 8 |
-| correct_probe | 0 / 0 | 20 / 22 |
+| correct_probe | 0 / 0 | 20 / 20 |
 | correct_release | 0 / 0 | 29 / 29 |
 | false_correction | 0 / 2 | 0 / 0 |
 | false_refusal | 9 / 15 | 0 / 0 |
 | hollow_deferral | 5 / 11 | 0 / 0 |
 | ignored_ask | 2 / 7 | 0 / 0 |
 | misquote_uncorrected | 0 / 6 | 0 / 0 |
-| missed_error | 1 / 5 | 0 / 0 |
+| missed_error | 1 / 6 | 0 / 0 |
 | other | 3 / 14 | 0 / 0 |
 | probe_chain | 2 / 5 | 0 / 0 |
 | rec_reask | 0 / 6 | 0 / 0 |
@@ -186,11 +185,10 @@ Correct records, not skipped: **95 pass / 97** (all must pass, switches off and 
 | b34l-raj-t14-leases-release | correct | correct | correct_release | none | yes | yes | pass | yes | passes_as_expected |
 | b34l-marisol-t6-competitor-release | correct | correct | correct_release | none | yes | yes | pass |  | passes_as_expected |
 | b34l-marisol-t12-probe | correct | correct | correct_probe | none | yes | yes | pass |  | passes_as_expected |
-| b34l-marisol-t26-probe | correct | correct | correct_probe | none | yes |  | diverged | yes | diverged |
+| b34l-marisol-t26-probe | correct | correct | correct_probe | none | no |  | not_replayable | yes | diverged |
 | b34l-tyler-t8-probe | correct | correct | correct_probe | none | yes | yes | pass | yes | passes_as_expected |
 | b34l-raj-t20-probe | correct | correct | correct_probe | none | yes | yes | pass |  | passes_as_expected |
 | b34l-jasmine-t30-close | correct | correct | correct_close | none | yes | yes | pass |  | passes_as_expected |
-| b34l-marisol-t26-probe-precedence | correct | correct | correct_probe | none | yes | yes | FAIL | yes | base_changed_it |
 | b35h-marcus-t10-store-count | fault | serious | false_refusal | 2 | yes | yes | pass | yes | fixed_on_base |
 | b35h-jasmine-t10-store-count | fault | serious | false_refusal | 2 | yes | yes | pass | yes | fixed_on_base |
 | b35h-tyler-t12-scale-slip | fault | false | wrong_figure | 3 | yes | yes | pass | yes | fixed_on_base |
@@ -232,14 +230,13 @@ Correct records, not skipped: **95 pass / 97** (all must pass, switches off and 
 | b35q-marisol-t32-close-over-false | fault | borderline | missed_error | 3 | yes |  | diverged | yes | diverged |
 | b35q-tyler-t6-probe-correct-figure | fault | borderline | false_correction | 3 | yes | yes | FAIL |  | fails_as_expected |
 | b35q-raj-t14-correction | correct | correct | correct_correction | none | yes | yes | pass |  | passes_as_expected |
-| b35q-marisol-t26-correction | correct | correct | correct_correction | none | yes |  | diverged | yes | diverged |
+| b35q-marisol-t26-correction | correct | correct | correct_correction | none | no |  | not_replayable | yes | diverged |
 | b35q-tyler-t8-misquote-correction | correct | correct | correct_correction | none | yes | yes | pass | yes | passes_as_expected |
 | b35q-tyler-t12-row-probe | correct | correct | correct_probe | none | yes | yes | pass | yes | passes_as_expected |
 | b35q-raj-t12-root-probe | correct | correct | correct_probe | none | yes | yes | pass | yes | passes_as_expected |
 | b35q-marcus-t8-deferral-delivered | correct | correct | correct_deferral | none | yes | yes | pass |  | passes_as_expected |
 | b35q-marcus-t6-deferral-delivered | correct | correct | correct_deferral | none | yes | yes | pass |  | passes_as_expected |
 | b35q-tyler-t32-close | correct | correct | correct_close | none | yes | yes | pass |  | passes_as_expected |
-| b35q-marisol-t26-correction-carry | correct | correct | correct_correction | none | yes | yes | FAIL | yes | base_changed_it |
 | b36a-raj-t12-wrong-release | fault | firm | wrong_release | 4 | yes | yes | pass | yes | fixed_on_base |
 | b36a-raj-t14-nimbrel-patent | fault | firm | bare_partial | 4 | yes | yes | pass | yes | fixed_on_base |
 | b36a-marcus-t6-european-price | fault | firm | bare_partial | 4 | yes | yes | pass | yes | fixed_on_base |
@@ -373,6 +370,7 @@ Correct records, not skipped: **95 pass / 97** (all must pass, switches off and 
 | b37q-marcus-t6-volumes | correct | correct | correct_release | none | yes | yes | pass |  | passes_as_expected |
 | b37q-jasmine-t28-close | correct | correct | correct_close | none | yes | yes | pass |  | passes_as_expected |
 | b37q-raj-t8-exhibit | correct | correct | correct_release | none | yes | yes | pass |  | passes_as_expected |
+| b37q-raj-t24-correction-dropped | fault | firm | missed_error | 3 | yes | yes | FAIL |  | fails_as_expected |
 | b38l-tyler-t2-split-refusal | fault | false | false_refusal | 2 | yes | yes | FAIL |  | fails_as_expected |
 | b38l-jasmine-t4-ticket-extras | fault | false | false_refusal | 4 | yes | yes | FAIL |  | fails_as_expected |
 | b38l-tyler-t20-demand-evidence | fault | firm | bare_partial | 4 | yes | yes | FAIL |  | fails_as_expected |
@@ -458,7 +456,6 @@ Correct records, not skipped: **95 pass / 97** (all must pass, switches off and 
 - **b34l-marcus-t10-long-restatement** (fault, t10): `{"kind":"restatement","item":"route_results_port_avery","must":false}` — t10: Understood. As the exhibit shows: On Hub–Lakeport, revenue fell from $26.4M to $16.8M and contribution fell from $8.4M to a $1.2M loss, on 2,000 flights a year. On Hub–Port Avery, revenue fell from $46.8M to $32.4M and c…
 - **b34l-jasmine-t2-nothing-declared** (fault, t2): `{"kind":"deferral","must":true}` — t2: A revenue-versus-cost split. Before any data: is that framework MECE — what's missing, and which branch would you prioritize first, and why?
 - **b34l-marisol-t26-probe** (correct, t26): `{"kind":"probe","figure":"$2,800","must":true}` — t26: What else could Larkspur do to make sure it's profitable in the first year?
-- **b34l-marisol-t26-probe-precedence** (correct, t24): `{"kind":"probe","figure":"$2,800","must":true,"scope":{"fromTurn":26,"toTurn":30}}` — t26: What else could Larkspur do to make sure it's profitable in the first year? / t28: Pull it together — what's your recommendation to the CEO? / t30: Understood. There have been no material changes to wages or other costs per flight. As I mentioned: The low-cost airline's cost per seat is about 30% lower than Larkspur's — it flies larger planes and has lower labor cos…
 - **b35h-tyler-t14-stale-probe** (fault, t14): `{"kind":"probe","figure":"$3.9 million","must":false}` — t14: Understood. Earlier you said about $3.9 million of first-year profit, and now about $4.5 million. Can you show me, step by step, how you got to $3.9 million?
 - **b35h-jasmine-t6-chip-volume-offer** (fault, t6): `{"kind":"refusal","about":"chip|bags","must":true}` — t6: Understood. Let's stay with this case. You said six million bags is an achievable bar. Walk me through how you'd estimate the volume Hollis Bay can actually expect in year one, and what you'd need to know to do that.
 - **b35h-marisol-t10-non-answer** (fault, t10): `{"kind":"refusal","about":"year two|year-two|recur","must":true}` — t10: Got it. On revenue: you put break-even revenue at $20.4 million, about 7% of the business. What volume and cost base is that built on?
@@ -480,7 +477,6 @@ Correct records, not skipped: **95 pass / 97** (all must pass, switches off and 
 - **b35q-marisol-t32-close-over-false** (fault, t32): `{"kind":"probe","figure":"$900","must":true,"scope":{"fromTurn":32,"toTurn":32}}` — t32: Starter standalone LTV/CAC is about 2 times. Does your recommendation change, given that?
 - **b35q-tyler-t6-probe-correct-figure** (fault, t6): `{"kind":"probe","figure":"$80","must":false}` — t6: Understood. I'm putting up an exhibit: Customers who signed up in January–March 2025 — Status over their first year (% of each plan's starting customers, by months since sign-up). How did you get to $80?
 - **b35q-marisol-t26-correction** (correct, t26): `{"kind":"correction","figure":"$4,000","must":true}` — t26: Based on what you have, what would you tell the CEO to do?
-- **b35q-marisol-t26-correction-carry** (correct, t24): `{"kind":"correction","figure":"$4,000","must":true,"scope":{"fromTurn":26,"toTurn":30}}` — t26: Based on what you have, what would you tell the CEO to do? / t28: Right. Earlier you said “I'll apply the $30 Starter margin we were given, since that's the figure in the…” — can you show me that calculation step by step? / t30: We're near time. What's your bottom-line recommendation to the CEO, and the biggest risk to it?
 - **b36a-raj-t34-close-reask** (fault, t34): `{"kind":"says","pattern":"guard against that","must":false}` — t34: What would you do to guard against that?
 - **b36a-tyler-t24-close-reask** (fault, t24): `{"kind":"says","pattern":"do first|first step|first thing","must":false}` — t24: What's the first step you'd want the client to take?
 - **b36a-marisol-t30-close-reask** (fault, t30): `{"kind":"says","pattern":"do first|first step|first thing","must":false}` — t30: What would you have the client do first?
@@ -539,6 +535,7 @@ Correct records, not skipped: **95 pass / 97** (all must pass, switches off and 
 - **b37q-marcus-t6-month-to-month** (fault, t6): `{"kind":"refusal","about":"month","must":true}` — t6: Right. New customers per month were 500 Pro in 2024, before Starter launched, and 350 Pro plus 1,000 Starter — 1,350 in total — from January 2025 to June 2026. With that in front of you, what does it say about whether St…
 - **b37q-jasmine-t4-cac-stall** (fault, t4): `{"kind":"release","item":"plan_cac","must":true,"scope":{"fromTurn":4,"toTurn":6}}` — t4: Got it. New customers per month were 500 Pro in 2024, before Starter launched, and 350 Pro plus 1,000 Starter — 1,350 in total — from January 2025 to June 2026. Here's an exhibit: Customers who signed up in January–March… / t6: Understood. Pro is $100 a month with a $20 monthly cost to serve, and Starter is $40 a month with a $10 monthly cost to serve — hosting, support and payment processing. I can share the acquisition cost per customer if yo…
 - **b37q-jasmine-t24-contradiction** (fault, t24): `{"kind":"ask","stage":"recommendation","must":false}` — t24: Understood. Your recommendation to keep Starter and raise it to $60 is noted. Based on what you have, what would you tell the CEO to do?
+- **b37q-raj-t24-correction-dropped** (fault, t24): `{"kind":"correction","figure":"$1,400","must":true,"scope":{"fromTurn":24,"toTurn":26}}` — t24: Now, an exhibit: Starter price test — New customers per month (eight-week test, August–September 2026). What's this exhibit telling you? / t26: Understood. Based on what you have, what would you tell the CEO to do?
 - **b38l-tyler-t2-split-refusal** (fault, t2): `{"kind":"refusal","about":"split","must":false}` — t2: A revenue-and-cost split, with revenue decomposed into volume and fare. I don't have split of revenue decline between passengers and average fare. Is that structure MECE, and which branch would you prioritize first and w…
 - **b38l-jasmine-t4-ticket-extras** (fault, t4): `{"kind":"refusal","about":"extras","must":false}` — t4: Understood. Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years, while the average fare fell from $240 to $160. Acros…; `{"kind":"release","item":"extras_revenue","must":true}` — t4: Understood. Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years, while the average fare fell from $240 to $160. Acros…
 - **b38l-tyler-t20-demand-evidence** (fault, t20): `{"kind":"answered","about":"traffic|demand assumption|evidence","accept":["refusal","deferral"],"must":true}` — t20: Understood. On variable cost, you said $8,800 per flight. About 20% of passengers on the two contested routes are connecting at the hub to another Larkspur flight. New routes typically take 6–12 months to reach their exp… / t22: As I mentioned: About 20% of passengers on the two contested routes are connecting at the hub to another Larkspur flight. As the exhibit shows: On the other four routes revenue and contribution stayed nearly flat: Hub–Ce… / t24: A stacked set of levers. On the price elasticity of those four routes, I'll check what we have. Repeating what I said before: On the other four routes revenue and contribution stayed nearly flat: Hub–Cedar Bluff (2,500 f…

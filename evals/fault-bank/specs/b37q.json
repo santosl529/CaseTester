@@ -783,5 +783,28 @@
   ],
   "rep": true,
   "stream": "none"
+ },
+ {
+  "id": "b37q-raj-t24-correction-dropped",
+  "kind": "fault",
+  "p": "07",
+  "turn": 24,
+  "sev": "firm",
+  "cls": "missed_error",
+  "note": "A pending correction must ride on a stage turn code writes, never be dropped. The checker rated his \"a Starter sign-up is worth $1,205 all-in\" an error with the correction \"Starter value per sign-up including upgrades, at $40, is about $1,400, not $1,205.\" (claim 19:0). t24 is a code-written stage_exhibit that selected 19:0 and used nothing (`used: null`); t26 is a rec_ask that did the same with 21:0, the same correction; by t28 19:0 is recorded `expired` (\"3 messages since the claim\"). The correction only reached him at t34, five turns and two stage turns late, and on the contract base it is lost altogether. Not a hand-graded fault: found by the Stream 1 review's finding 8 and fixed as an ungated base fix on phase1-base-fixes (56c54edd, cb38676f) — a stage turn or rec_ask forced by complete coverage, rather than by being overdue, must carry the pending correction. Severity firm is Claude's reading (a live, flagged error the candidate never heard while it mattered), not Lorenzo's ruling. Replaces the two records first written for b35q Marisol t26 (a cascade) and b34l Marisol t26 (a replay artifact), neither of which can pass even after the fix.",
+  "src": "stream-1-review-2026-10-25 (finding 8); phase1-base-fixes 56c54edd, cb38676f",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$1,400",
+    "must": true,
+    "scope": {
+     "fromTurn": 24,
+     "toTurn": 26
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
  }
 ]
