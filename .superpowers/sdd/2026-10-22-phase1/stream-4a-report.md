@@ -1,16 +1,15 @@
 # Stream 4a — data-path fixes (4.1, 4.2, 4.3, 4.4, 4.5, 4.7)
 
-> **State at hand-back (22 Oct):** all six tasks are built, committed and verified; the free replay is **done**, both
-> arms. Switches off is byte-identical to the contract base on all 31 slices; with the six switches on, all 67 changed
-> interviewer lines are read and classified below (0 new false refusals, 0 new wrong releases). Stream 2's overlay data
-> was tested against without merging `phase1` (see "Condition 3"). **Nothing is owed on this stream except Lorenzo's
-> rulings on the judgement calls J1–J9** — J3 and J5 are the two that change behaviour if he rules the other way.
-> `phase1` was **not** merged into this branch, nothing was pushed, and no money was spent.
+> **State (26 Oct, after the review round):** all six tasks are built and the review's findings F1–F8 are applied
+> (§"Review fixes (26 Oct)" below — one commit per finding, with the replay re-run). Switches off is byte-identical to
+> the contract base on all 31 slices. With the six switches on, 29 changed interviewer lines, all read: 0 new false
+> refusals, 0 new wrong releases, 0 hollow deferrals. Stream 2's overlay data was tested against without merging
+> `phase1`. **Owed: nothing on this stream except Lorenzo's rulings** (J1–J9 below, and the two points the review
+> raised with him: 4.3's third outcome and F2's measured trade). `phase1` was not merged in, nothing was pushed, $0.
 >
-> **If this is picked up again:** the next step is the lead's merge of `phase1-s4-fixes` into `phase1` (merge order
-> S2+S1, S3, then S4), then the post-merge fault-bank run and proof slices (contract §6). The replay tooling this
-> stream used is in `CaseTester-proof-out/phase1-s4a-tools/` (`prove.sh <label> <switches>` runs both arms and diffs
-> them against `phase1-s4a-base`); re-run it after the merge, since these numbers are for this branch alone.
+> **Next step:** the lead's merge of `phase1-s4-fixes` into `phase1` (order S2+S1, S3, then S4), then the post-merge
+> fault-bank run and proof slices (contract §6). Tooling: `CaseTester-proof-out/phase1-s4a-tools/`
+> (`prove.sh <label> <switches>` runs both arms and diffs them against `phase1-s4a-base`).
 
 Branch `phase1-s4-fixes`, worktree `.claude/worktrees/phase1-s4-fixes`, off the contract commit 0f932c89
 (`docs/superpowers/plans/2026-10-22-phase1-contract.md`). Seven commits, one per task plus the overlay follow-up:
@@ -24,6 +23,12 @@ Branch `phase1-s4-fixes`, worktree `.claude/worktrees/phase1-s4-fixes`, off the 
 | 2bb2eccd | 4.1 restatements | `restateRules` |
 | e4a2f726 | 4.7 model-said deferrals | `modelDeferrals` |
 | 84537234 | 4.5 the overlay's `coverExcludes` read by cover matching; tests made overlay-independent | `itemCovers` data (no new switch) |
+| 91abd1d7 | review F2 + F3 — the noun test's head noun and single carrier | `refusalNounCheck` |
+| 26022fc4 | review F1 + F6 — the named-route yield, the duplication guard, the cover gate's scope rule | `coverNormalization` |
+| f75e71f8, 231abb84 | review F5 — a direct re-ask reads the figures; dropped restatements leave the rows | `restateRules` |
+| 95ae9406 | review F7 — a wrap-up promise is closed in the same breath | `modelDeferrals` |
+| 647a0e3d | review F4 (a) — a silently gated item is recorded, ids only | `haikuTagGate` |
+| cb9fdde7 | review F3 follow-up — a finer period cut is unmeetable | `refusalNounCheck` |
 
 No new switch was added: every behaviour sits on the switch the contract named for it (§3). `coverExcludes` is read
 wherever the data is attached, which only happens under Stream 2's `itemCovers` (contract §1 and the switch table:
@@ -321,13 +326,105 @@ reading or the first wrap-up's "We won't get to … today."
   A deferral promised on the turn before the wrap-up reads a little oddly ("for a little later" at t24, "we won't get
   to it" at t26, b38 Marcus): true and resolved, but worth a look in the wave.
 
+## Review fixes (26 Oct)
+
+One round, one commit per finding, every commit with `npx vitest run` (5,253 pass), `npx tsc --noEmit` and
+`npx eslint lib app components tests scripts db` clean. The replay was re-run after the round, both arms, and once
+more against Stream 2's overlays (copied in untracked again, then deleted — `phase1` is still not merged here).
+
+### The replay after the fixes
+
+| | before the review | after |
+|---|---|---|
+| switches off vs the contract base | 0 changed lines | **0 changed lines** (31 slices) |
+| switches on: changed interviewer lines | 67 | **29** |
+| new refusals anywhere in the corpus | 0 | **0** |
+| new releases | 5 distinct | **2 distinct** (both answer their ask) |
+| releases withheld | 1 (b38l Jasmine t4's coarse partial) | 1 (the same) |
+| check-made refusals: deferred / refused | 30 / 12 | **8 / 34** |
+| those deferrals' outcomes | 29 wont-get-to, 1 delivered | **8 of 8 "We won't get to … today."** |
+| hollow deferrals | 0 | **0** |
+| checker decisions changed | 0 | **0** |
+
+With Stream 2's overlays (`ov2-s2` → `ov3-s2-s4a`): 53 changed lines (was 87), 0 new refusals, the same 2 new
+releases, 1 withheld (b34l Marisol t30's `unit_costs`, now recorded silently — F4), 10 deferred / 32 refused,
+17 exhibit pointers (was 20: three are now direct re-asks that read the figures), 2 tag-gate turns, 0 hollow.
+
+The 29 changed turns, classified: **4 fixed graded faults** — b38l Tyler cee7d399 t2 (false refusal; 4.5 fixes it, the
+planes-as-full fact restated and the routes-and-schedule line deferred, then released at t4), b38l Jasmine 3f928012 t4
+(false refusal; 4.2, with the extras line delivered at t12), b38l Tyler t22 (firm: the 90-word restatement is now "I
+gave you connecting passengers on those routes a moment ago"), b38l Tyler t24 + t26 (firm + hollow: the line once, and
+the elasticity promise closed at t26); **1 graded hollow deferral fixed** (b35q Raj 5c3d2c21 t12 → t24); **0 new false
+refusals, 0 new wrong releases**; the remaining 24 are the 8 deferral/close pairs, 2 named restatements (b30 Caleb
+t10, b32 Marcus t8) and 6 phrase-pool rotations.
+
+### Per finding
+
+- **F2 (4.4, rejected as built) — applied.** `nounReader` now needs the ask's **head noun** (`headNoun`: the last key
+  noun of its head phrase) among the shared nouns **and one single item** not yet out carrying every shared noun;
+  `KEY_STOP` gained `time`, `past`, `beyond`, `new` (`data` was already there). Ratio: **8 deferred / 34 refused**
+  (was 30 / 12). **Flagged difference from the review's walk:** of the three *borderline* refusals the loose rule had
+  converted, **one** survives (b36a Marcus c518221e t6, EU manufacturing cost) and **two** are refused again —
+  b37h Raj 11414946 t16 ("category size and growth…", head noun `size`, no carrier) and b37h Tyler 442e37ff t14
+  ("repeat rates from past launches", nothing shared once `past` is stopped). The review predicted one lost; the
+  measured cost is two. I took the trade as instructed; it is the only place where my measurement and the review's
+  walk disagree. Both graded **false** refusals are fixed, by 4.2 and 4.5 as the review expected.
+- **F3 — applied, and a residual it exposed closed.** `needCarriers` intersects every needed noun's list, so only an
+  item carrying the whole ask resolves a deferral, and a noun no item shares (a period or scope) makes it unmeetable.
+  The replay then showed the one case the carrier rule still mis-resolved — b36l Marcus a7d9f44e t12's
+  "quarter-by-quarter fares and passengers since entry", delivered at t14 by an item carrying "fare" and "passenger" —
+  so a finer period cut (`FINER_PERIOD`: quarter-by-quarter, by month, weekly…) now counts as unmeetable too
+  (cb9fdde7). All 8 deferrals close with "We won't get to … today."
+- **F1 (4.5) — applied, with one part done differently.** A hit only a Phase 1 synonym makes now yields when the ask
+  says one of the case's proper names outside the hit that the item's own words don't carry (`FactBase.properNames`,
+  the client's own `clientWords` excluded, so "Larkspur's fares and passengers" is still the network ask the 13 Oct
+  ruling answers). That fixes **b34l Marisol e6432db0 t8** and **b22l Jordan 9ab76a39 t8**. **b34l Raj 061ef630 t8
+  names no route**, so the yield cannot see it; its real fault was the near-verbatim duplication, so a
+  synonym-reached cover is no longer added when its line repeats five words of a line the turn already carries
+  (`repeatsLine`) — which fixes it. b38l Tyler t4 and Jasmine t12 both stay. `coverSpans` now reads `coverNorm`
+  behind the same `answerGate` guard as `coverageIn`. **The new-release list, re-derived:** exactly two releases —
+  `routes_schedule` at b38l Tyler t4 (the ask he made at t1, the fare/volume split Lorenzo's 13 Oct ruling answers
+  with this line) and `extras_revenue` at b38l Jasmine t12 (her t3 ask, through the open-request path). **Both answer
+  their ask**; the three wrong-topic network lines are gone.
+- **F5 (4.1) — applied, in two steps.** `FIGURE_ASK` gained "can/could/would you get / have / see / give / share /
+  repeat / read", "remind me", "say that again" and a bare "again", and a split or breakdown ask counts as a figure
+  ask (`SPLIT_ASK`); the recent rule is gated on that test. The review's two pins needed a second step (231abb84):
+  the cue has to be read in **the candidate's own asking sentence**, not only in the model's label — b31 Blake
+  47fa8cfd t18 ("Can we get the COGS breakdown?") passed on `SPLIT_ASK` alone, but b32 Marcus eb170e49 t10 ("Can you
+  give me the flight count for both years") is declared by the model as "the network totals" and only the message
+  carries the cue. Both now read the figures again. **Still named, and I did not change it:** b32 Marcus t8, where the
+  model re-declares "the FY2023 versus FY2025 cost breakdown" that the candidate did not ask for on that turn (his
+  message asks only for passengers flown) — naming three lines he heard one turn earlier is better than re-reading
+  them, and F5's rule is about a candidate's direct re-ask. A dropped restatement now leaves `decisions.requests`
+  too (a row is dropped only while another row keeps its ask on the record, so coverage accounting is unchanged).
+- **F7 (4.7) — applied.** `modelDeferrals` takes `opts.wrapUp`; Settle reads the model's words again on a wrap-up turn
+  and says "We won't get to <ask> today." in the same breath (b38l Marcus t24). Nothing is tracked for it, and nothing
+  is said on the close itself.
+- **F6 — applied.** The cover gate's scope miss logs which rule fired (`rule`), as `request_scope` does.
+- **F4 — no behaviour change, as instructed.** (a) The gated ids are now booked on `flags.openDeferrals` as a
+  **silent, ids-only** entry: nothing is said for it, the wrap-up never names it, and it resolves only when one of its
+  own ids is delivered — so a later delivery is logged against that ask. (b) **4.3 has a third outcome**, which the
+  contract's wording ("A mismatch defers") does not cover: *release* (the tags agree), *deferral* (the mismatch leaves
+  the ask with nothing, so the ask is deferred and tracked), or a **silent drop** when the kept items still answer the
+  ask. The silent drop is what happens at b34l Marisol t30, and the review agreed it is the right behaviour there.
+- **F8 — noted.** `lib/orchestrator/settle-turn.ts` is **Stream 3's file** in the contract's split (§5), and this
+  stream touched it: the `tracksDeferrals` gate and the model-deferral hook (4.7, F7). Conflict list for the merge:
+  `settle-turn.ts` (Stream 3), `turn-data.ts`, `data-decisions.ts`, `fact-check.ts`, `item-tags.ts`, `phrasing.ts`,
+  `scripts/variant-list.ts`, `tests/orchestrator/fixtures/code-lines-before-b.json`,
+  `tests/orchestrator/turn-data-covers.test.ts`.
+
 ## What is left
 
 - **4.6 and 4.8–4.11 are Stream 4b's** (`request-signal.ts` want cues, `close-hold.ts`, `phrasing.ts` ack pools,
   `lib/scoring/**`): untouched here.
 - **`exhibitOnly` bookkeeping:** Settle counts a restated id as "said", so an item whose restatement became a pointer
   is treated as said aloud. Harmless today (it only chooses the next restatement's lead-in) and left alone.
-- **J1–J9 above** are the decisions I made conservatively; J3 and J5 are the two I would most like ruled on.
+- **J1–J9 above** are the decisions I made conservatively, as of the first round; the review round changed two of
+  them: **J5** is settled (the noun test is now the head-noun + single-carrier rule the review specified, with its
+  measured cost recorded above) and **J1** is settled for a direct re-ask (F5). J3 stands as the review ruled it, with
+  4.3's third outcome written up for Lorenzo (F4 b).
+- **Still unresolved and worth his eye:** F2's measured trade (two borderline turns refused again, not one), and
+  b32 Marcus t8 (a model re-declaration of an ask the candidate did not make, answered by naming rather than reading).
 - The fault-bank records for these turns are Stream 1's; this report's run · turn citations are the evidence they need.
 - PRD and progress updates for Stream 4a are the lead's merge commit (the contract has each stream report its own
   changes); nothing in the PRD body is contradicted by this branch while every switch is off.
