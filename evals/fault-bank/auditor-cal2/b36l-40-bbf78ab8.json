@@ -1,0 +1,50 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-bbf78ab8.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 2,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have total departures and average fare, FY2023 vs FY2025.",
+   "why": "Total departures (14,000 flights in both years, network_totals) and the route fares (lakeport_fare, port_avery_per_flight) are in the ledger. Flights reached the candidate on exhibit-1 at t4, and fares followed at t6 and t8."
+  },
+  {
+   "turn": 2,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "I'll share the fixed costs once we've settled your structure.",
+   "why": "The candidate asked for the cost lines for both years. Only fixed costs were deferred; the variable cost lines got no word until the candidate asked again at t5."
+  },
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Fuel prices have been roughly flat over the period. I'll come back to fuel and crew rate changes between the years shortly.",
+   "why": "The deferral re-names fuel, which was answered in the sentence just before it."
+  },
+  {
+   "turn": 18,
+   "class": "false_correction",
+   "severity": "firm",
+   "quote": "How did you get to that roughly $12M a year, and what is the biggest risk that could undercut it?",
+   "why": "This challenges the candidate's correct $12M figure, which the checker rated correct ($10M + $1.8M = $11.8M). The same turn also pulls in the risk question before the recommendation stage."
+  },
+  {
+   "turn": 22,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What's the first step you'd want the client to take?",
+   "why": "The candidate had just given next steps in t21 (validate demand in the two new cities, phase the schedule build), so this re-asks what that answer covered."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 15045,
+  "output": 3002,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 28809,
+ "usd": 0.12022
+}

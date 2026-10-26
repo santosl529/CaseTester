@@ -1,0 +1,78 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-4e91d638.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "The average one-way fare on Hub–Lakeport fell from $200 in FY2023 to $120 in FY2025.",
+   "why": "The candidate asked for average fare by route, with Lakeport and Port Avery both named. Only Lakeport's fare was given. The Port Avery fare (port_avery_per_flight, $240→$160) got no word and no 'I don't have', and it never came later."
+  },
+  {
+   "turn": 6,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: On Hub–Lakeport, revenue fell from $26.4M to $16.8M and contribution fell from $8.4M to a $1.2M loss, on 2,000 flights a year. On Hub–Port Avery, revenue fell from $46.8M to $32.4M",
+   "why": "All the exhibit-1 route lines, already on screen, were recited again as part of answering a fare ask they don't answer."
+  },
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "I can share load factor on Lakeport and Port Avery if you'd like.",
+   "why": "The candidate had stated a want for passenger counts on those routes. The interviewer offered instead of releasing or refusing, so the held load-factor data stayed gated behind an offer."
+  },
+  {
+   "turn": 8,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "Early in FY2024, a low-cost airline started nonstop flights on Hub–Lakeport and Hub–Port Avery",
+   "why": "The candidate said 'you said the fare fell from $200 to about $125'. The interviewer had said $120. No flat correction came, and the misquote produced a 'slightly up' passenger volume."
+  },
+  {
+   "turn": 12,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have avoidable fixed cost by route.",
+   "why": "The ledger answers this at least coarsely: all aircraft are leased through 2030 and can't be returned (aircraft_leases), and fixed costs would stay the same (new_routes_context / fixed_costs). The fixed-costs part reached the candidate in the exhibit-3 note two turns later; the lease line never did."
+  },
+  {
+   "turn": 18,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Setting that plan aside, what else could Larkspur do to make sure it's profitable in the first year?",
+   "why": "The candidate asked 'Can we stress-test demand on Ashford and Brookhaven?' The case holds ramp-up data (new_route_rampup, about 60% first-year load factor). The ask got no release, refusal or deferral."
+  },
+  {
+   "turn": 20,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "You said roughly 800,000 passengers a year across the network.",
+   "why": "This probes a correct figure (14,000 × 80 × 75% ≈ 840,000) and challenges right math."
+  },
+  {
+   "turn": 24,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you do to guard against that?",
+   "why": "The candidate's previous answer had already given the mitigation: de-risk, market research, phased launch and phased exits."
+  },
+  {
+   "turn": 2,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "I'll come back to the network totals shortly.",
+   "why": "The candidate asked for revenue by route plus fares and departures. The deferral names 'network totals' instead, which reads as a mismatch with the ask."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 17550,
+  "output": 3764,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 35457,
+ "usd": 0.14548
+}

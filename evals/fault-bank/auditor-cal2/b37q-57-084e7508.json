@@ -1,0 +1,64 @@
+{
+ "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-084e7508.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 14,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "You mentioned 22.5 months for Starter. What monthly amount did you divide the $900 by, and does that match how lifetime value is defined?",
+   "why": "The candidate had already redone 22.5 as $900 ÷ $30 = 30 months at t11. Probing it again is stale, and the candidate had to point out it was already fixed."
+  },
+  {
+   "turn": 16,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "I'm putting up an exhibit: Quillpath — New customers per month, by plan (average per month). What stands out to you in this exhibit?",
+   "why": "At t15 the candidate asked whether the upgraders would have bought Pro directly anyway. It got no release, refusal or deferral, even though why_pro_fell, buyer_profile and upgrade_timing bear on it. It was only answered after a re-ask at t17."
+  },
+  {
+   "turn": 16,
+   "class": "restatement",
+   "severity": "borderline",
+   "quote": "I'm putting up an exhibit: Quillpath — New customers per month, by plan (average per month).",
+   "why": "Exhibit-3's figures (500 Pro; 350 Pro + 1,000 Starter) had already gone out as a data line at t8. They were put up again as if new, in place of an answer to the candidate's question."
+  },
+  {
+   "turn": 18,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "On the 43%: how did you get to 150 over 350, and which base is right for sizing how much Pro demand moved to Starter?",
+   "why": "The checker marked the 150 ÷ 350 = 43% claim, framed as a share of today's Pro demand, as correct. The interviewer challenged it as a wrong base, and the candidate retracted a valid figure."
+  },
+  {
+   "turn": 22,
+   "class": "wrong_figure",
+   "severity": "false",
+   "quote": "trade-downs were only 30% of Starter sign-ups against the 500 Pro baseline",
+   "why": "The 150 trade-downs are 30% of the 500 Pro baseline but only 15% of Starter sign-ups. The line puts the 30% on the wrong quantity."
+  },
+  {
+   "turn": 32,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "How would you guard against that?",
+   "why": "The candidate's last answer already gave the protection: a partial rollout, a $40 control for nine months, and gating rollout on the upgrade rate. The follow-up re-asks what was just covered."
+  },
+  {
+   "turn": 32,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "How would you guard against that?",
+   "why": "The candidate's sensitivity netted $640,000 instead of $600,000, because it used the $130k trade-down loss with a $1,100 net per sign-up. On that basis they set a 15% upgrade tripwire, but the case's breakeven is 12.5%. Neither figure was probed before the case closed."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 19163,
+  "output": 4743,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 44706,
+ "usd": 0.171512
+}

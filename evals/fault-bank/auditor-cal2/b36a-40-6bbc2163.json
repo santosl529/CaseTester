@@ -1,0 +1,43 @@
+{
+ "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-6bbc2163.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 26,
+   "class": "probe_chain",
+   "severity": "firm",
+   "quote": "If the board counts net sales as the product's total US sales rather than only what Aldermoor books, how would that change your choice between building and partnering?",
+   "why": "This is the third probe (after t14 and t24) on the candidate's claim that only Option A clears the gate, a claim built on misreading the gate as Aldermoor's booked sales. It came as a hypothetical. The interviewer never said flatly that the gate is Kelvexa's US net sales, so B's $400M clears it."
+  },
+  {
+   "turn": 28,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "How did you get to the $240 million versus $120 million comparison on pure economics?",
+   "why": "This challenges correct math. $240M vs $120M is right, and the candidate had already shown the working in t11 and repeated it in t21."
+  },
+  {
+   "turn": 32,
+   "class": "false_correction",
+   "severity": "firm",
+   "quote": "On that 12.5% breakeven, how did you get there,",
+   "why": "This probes a correct figure. The 12.5% matches the case's matching_share, and t31 had already shown the work (25,000 × $8,000 = $200M, less $80M = $120M)."
+  },
+  {
+   "turn": 20,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "What's your recommendation to the client?",
+   "why": "The candidate had already given a recommendation in t11 ('That flips my earlier recommendation: build'). It was asked again after the brainstorm and probe turns."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 14271,
+  "output": 2820,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 30681,
+ "usd": 0.113484
+}

@@ -1,0 +1,85 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-5907649a.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 4,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "The network is the same six routes as in FY2023, with the same number of flights on each. Here's an exhibit: Larkspur Air — Results by route, FY2023 vs. FY2025 ($ millions unless noted).",
+   "why": "The candidate asked for departures and average fare for FY2023 vs FY2025. Flights were answered, but average fare got no release, refusal or deferral, and Exhibit 1 has no fares."
+  },
+  {
+   "turn": 6,
+   "class": "restatement",
+   "severity": "borderline",
+   "quote": "As the exhibit shows: On Hub–Port Avery, revenue fell from $46.8M to $32.4M and contribution fell from $13.8M to a $0.6M loss, on 3,000 flights a year.",
+   "why": "This repeats an Exhibit 1 line already on screen, appended to an answer about Port Avery's fare, which it doesn't answer."
+  },
+  {
+   "turn": 8,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "I'm putting up an exhibit: Hub–Lakeport — Economics of one one-way flight, FY2023 vs. FY2025 ($).",
+   "why": "The candidate asked about the load-factor trend and when the fare started dropping. Exhibit 2 shows only FY2023 vs FY2025 values, so the timing ask (competitor_entry: early FY2024) got no word until the candidate asked again."
+  },
+  {
+   "turn": 10,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "Earlier you said Lakeport was around $160 in FY2023 after applying a 33% decline to $120. Which base did you apply the 33% to?",
+   "why": "In t9 the candidate had already replaced the $160 estimate with the exhibit's figure, $200 to $120, down 40%."
+  },
+  {
+   "turn": 10,
+   "class": "missed_error",
+   "severity": "borderline",
+   "quote": "The numbers match the exhibit.",
+   "why": "The candidate claimed Port Avery is the structurally worse route and said to focus there first. Port Avery actually loses about $200 per flight against Lakeport's $600. The claim went unprobed, and the blanket approval reads as endorsing it."
+  },
+  {
+   "turn": 12,
+   "class": "wrong_release",
+   "severity": "serious",
+   "quote": "Variable cost on the new routes is estimated at $9,200 per flight, across 5,000 flights a year that would use the aircraft time freed by exiting Hub–Lakeport (2,000 flights) and Hub–Port Avery (3,000 flights).",
+   "why": "The candidate asked how many flights a day the entrant runs. This releases the new-routes cost and flights item instead, which is another entity, gated well past the current stage, and hands over the exit-and-redeploy solution. The entrant-flights ask also got no refusal."
+  },
+  {
+   "turn": 12,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "Walk me through how you got that figure and why Port Avery's fare erosion is the right number to apply to Lakeport.",
+   "why": "The $4,800 per flight (an $80 drop × 60 passengers) is correct, and Lakeport's own fare drop is also $80. Challenging it pushed the candidate to disown right math."
+  },
+  {
+   "turn": 12,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Walk me through how you got that figure",
+   "why": "'That figure' dangles. The acknowledgment just mentioned the 40%, so it's unclear which figure is meant."
+  },
+  {
+   "turn": 16,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Air travel demand in Larkspur's cities has been roughly flat.",
+   "why": "The candidate asked for a demand estimate for the new candidate routes. This line is about Larkspur's existing cities, not the new routes."
+  },
+  {
+   "turn": 18,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "New routes typically take 6–12 months to reach their expected load factor, and in the first year the load factor is often around 60%. What do those figures tell you?",
+   "why": "The candidate applied the entrant's 30% cost-per-seat gap to the $20M of fixed costs, claiming about $6M addressable and $13.8M profit. Leases are locked through 2030 and the logic is conceptually wrong, yet it was never probed or corrected before the close."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 19364,
+  "output": 6408,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 57940,
+ "usd": 0.205616
+}

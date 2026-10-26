@@ -1,0 +1,85 @@
+{
+ "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-eb8d7576.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "New customers per month were 500 Pro in 2024, before Starter launched, and 350 Pro plus 1,000 Starter — 1,350 in total — from January 2025 to June 2026.",
+   "why": "The candidate asked how Pro volume moved month to month. Only period averages were given, and nothing said the monthly cut isn't available."
+  },
+  {
+   "turn": 8,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "On your cannibalization math, you used the forgone price of $60 for each of the 150 customers who went to Starter instead of Pro. Walk me through why that's the right number to use.",
+   "why": "This challenges the $100−$40=$60 price delta and the $9,000 figure, both of which were correct."
+  },
+  {
+   "turn": 10,
+   "class": "unasked_offer",
+   "severity": "firm",
+   "quote": "I can share plan economics: monthly price and cost to serve for Pro and Starter if you'd like.",
+   "why": "The candidate had not asked for price or cost-to-serve data when this was offered."
+  },
+  {
+   "turn": 18,
+   "class": "probe_chain",
+   "severity": "serious",
+   "quote": "You mentioned \"14\" months of Starter lifetime — walk me through that calculation.",
+   "why": "The 14-month / ~7% Starter lifetime input was probed at t18, t22 and t24, and the $1,880 built on it at t28. The input itself (5% churn, 20 months, $600) was never corrected; only the $920 net value was fixed at t30."
+  },
+  {
+   "turn": 22,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Most upgrades are between months 3 and 9, usually when the business hires its first employee; very few are after month 12.",
+   "why": "The candidate asked whether upgraders are disproportionately the 150 cannibalized Pro intenders. Upgrade timing doesn't answer that, and there was no 'I don't have' for the split by prior intent."
+  },
+  {
+   "turn": 22,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: Of the 3,000 Starter customers who signed up in January–March 2025, 94% were still on Starter after month 1",
+   "why": "Exhibit-2's cohort line, already on screen, was repeated as an answer to an ask it doesn't answer."
+  },
+  {
+   "turn": 28,
+   "class": "ack_repetition",
+   "severity": "borderline",
+   "quote": "Earlier you said \"$1,880\" for the loss on each customer who moved from Pro to Starter.",
+   "why": "The acknowledgment just repeats the probe that follows it in the same turn."
+  },
+  {
+   "turn": 32,
+   "class": "rec_reask",
+   "severity": "firm",
+   "quote": "We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?",
+   "why": "The candidate had just given a full recommendation and its biggest risk at t31."
+  },
+  {
+   "turn": 32,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "We're almost out of time — what would you tell the CEO, and what's the biggest risk to it?",
+   "why": "The $60 uplift stated as ~$150–180k a month (the case's figure is $240k), resting on a $1,200 net per sign-up at $60 (the case's figure is $1,500), was never probed or corrected, and it went into the final recommendation."
+  },
+  {
+   "turn": 34,
+   "class": "stage_missed",
+   "severity": "serious",
+   "quote": "That's where we'll stop — we're at time. Thank you for working through this; your written report will follow.",
+   "why": "No brainstorm stage was ever administered before the case closed."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 18604,
+  "output": 6380,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 61728,
+ "usd": 0.202016
+}

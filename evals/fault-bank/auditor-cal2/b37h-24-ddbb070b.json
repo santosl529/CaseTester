@@ -1,0 +1,43 @@
+{
+ "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-ddbb070b.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "unasked_release",
+   "severity": "firm",
+   "quote": "Here's an exhibit: Roasted chickpea snacks — Economics of one bag and first-year launch costs.",
+   "why": "The candidate asked only for chip cost of goods and gross-margin history. Exhibit-1 was put up against that ask, though it is the next data in sequence."
+  },
+  {
+   "turn": 10,
+   "class": "unasked_offer",
+   "severity": "firm",
+   "quote": "I can share the survey on shopper purchase intent and planning assumptions if you'd like.",
+   "why": "The candidate had not asked for survey or planning data; the interviewer offered gated data unprompted."
+  },
+  {
+   "turn": 20,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "An exhibit for you — Proposal — In-store sampling program (first year of the launch). How do you read this exhibit?",
+   "why": "At t19 the candidate said they wanted chip contribution per bag. The case holds no such figure, but no refusal was given; the ask got no word at all."
+  },
+  {
+   "turn": 26,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "How would you guard against that?",
+   "why": "At t25 the candidate had just given mitigations: lock retailer commitments before the line spend, and stage marketing against a 12-week velocity read. The follow-up re-asks what was already answered."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 15803,
+  "output": 1424,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 14942,
+ "usd": 0.091692
+}

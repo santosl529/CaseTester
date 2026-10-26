@@ -1,0 +1,43 @@
+{
+ "run": "test runs/batch-38-larkspur-oct-21-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-316baba1.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 8,
+   "class": "unasked_release",
+   "severity": "firm",
+   "quote": "On what you asked about earlier: Fuel prices have been roughly flat over the period. There have been no material changes to wages or other costs per flight.",
+   "why": "The candidate asked only about fuel cost per seat mile. The wages and other costs-per-flight line was gated and nobody asked for it, yet it was framed as 'what you asked about earlier'."
+  },
+  {
+   "turn": 12,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "its fares are about the same as Larkspur's current fares. About 20% of passengers on the two contested routes are connecting at the hub",
+   "why": "The candidate asked for the LCC's fare and frequency and about segments that won't switch, such as business travelers. Fare and connecting share were answered. Frequency and the business segment got no word and no 'I don't have'."
+  },
+  {
+   "turn": 24,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: Extras revenue — bags, seat selection and snacks — was $20 per passenger in both years.",
+   "why": "The candidate asked for revenue per passenger by extra type, having just said the total was $20. The interviewer restated the $20 total already on Exhibit 2 instead of saying it doesn't have the breakdown."
+  },
+  {
+   "turn": 28,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "To guard against that, what would you put in place?",
+   "why": "The candidate's previous answer already laid out mitigation: validate demand, phase in frequency, introductory fares, staged exits and a six-month checkpoint."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 18303,
+  "output": 3480,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 32872,
+ "usd": 0.142812
+}

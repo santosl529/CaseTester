@@ -1,0 +1,50 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-ef7bed14.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 14,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: A Hub–Lakeport flight has 80 seats and there are 2,000 of them a year, and the load factor was 75% in both FY2023 and FY2025.",
+   "why": "The candidate asked whether the 75% load factor would hold at a higher price. The interviewer repeated the historical load-factor line already on Exhibit 2, which doesn't answer that, and gave no refusal."
+  },
+  {
+   "turn": 20,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "All nine aircraft are leased through 2030, so returning them early is not an option.",
+   "why": "The candidate asked how much of the $20M fixed costs is aircraft leases. Only the lease-term line was released. No breakdown is held, yet there was no \"I don't have the breakdown\", so the asked amount got no word."
+  },
+  {
+   "turn": 22,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "What else could Larkspur do to make sure it's profitable in the first year?",
+   "why": "The candidate said they wanted the quarterly ramp curve for the new routes. This turn gave no release, refusal or deferral; it went straight to the brainstorm question."
+  },
+  {
+   "turn": 22,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "What else could Larkspur do to make sure it's profitable in the first year?",
+   "why": "The candidate's 'roughly $5 more per passenger' to close the $0.2M gap is wrong (about $0.83 is needed). It was never probed or corrected; the later probe covered only the load-factor point."
+  },
+  {
+   "turn": 30,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you do to guard against that?",
+   "why": "The candidate's previous answer had just given mitigations: reduce attractiveness, loyalty and corporate contracts, slot/gate lock-in, and a trigger rule. This re-asks what was already covered."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 17606,
+  "output": 3110,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 30608,
+ "usd": 0.132624
+}
