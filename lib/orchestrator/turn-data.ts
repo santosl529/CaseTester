@@ -147,6 +147,22 @@ function coverEntry(what: string, id: string, fb: ModelPlan['state']['factBase']
   return own.length === 0 ? what : ask.slice(own[0].start, own.at(-1)!.end);
 }
 
+// Whether two data lines repeat each other word for word over a run of five or more words with two content words
+// (review F1's near-verbatim duplication inside one utterance). Only read with coverNormalization on.
+const RUN = 5;
+export function repeatsLine(a: string, b: string): boolean {
+  const words = (t: string) => (t.toLowerCase().match(/[a-z0-9$%.,]+/g) ?? []).map(w => w.replace(/[.,]$/, ''));
+  const wa = words(a), wb = words(b);
+  if (wa.length < RUN || wb.length < RUN) return false;
+  const runs = new Set<string>();
+  for (let i = 0; i + RUN <= wb.length; i++) runs.add(wb.slice(i, i + RUN).join(' '));
+  for (let i = 0; i + RUN <= wa.length; i++) {
+    const run = wa.slice(i, i + RUN);
+    if (runs.has(run.join(' ')) && run.filter(w => w.length >= 4).length >= 2) return true;
+  }
+  return false;
+}
+
 const PROPER_ADJECTIVES = ['European', 'American', 'US', 'EU', 'UK', 'Canadian', 'Asian'];
 
 // Must-reach items (round 6 Task 72; Lorenzo, 21 Oct, round 6: "Must-reach mechanism. Code releases a case-declared
@@ -1293,10 +1309,16 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // say an ask back in its items' labels.
   if (fbGroups.answerGate) {
     const coversAdded: { what: string; added: string[] }[] = [];
+    // Review F1: with coverNormalization on, a cover the synonyms reach does not add a line that repeats, word for word,
+    // a line the turn already carries (b34 Larkspur Raj 061ef630 t7: the routes-and-schedule line's "the same number of
+    // flights on each" beside the network totals' "the same number of flights in both years", in one utterance).
+    const dedupe = switchOn(state.caseData, 'coverNormalization');
+    const sameRun = (id: string, others: string[]) => others.some(o => o !== id && repeatsLine(ledger.items.find(i => i.id === id)?.value ?? '', ledger.items.find(i => i.id === o)?.value ?? ''));
     requests = requests.map(r => {
       if (!r.explicit || r.itemIds.length === 0) return r;
       const added = coverageOf(r.what, fbGroups, { sentence: sentenceFor(r.what) }).items
-        .filter(id => inLedger(id) && !askedThisTurn.has(id) && !coverGateMiss(plan, r.what, id, sentenceFor(r.what)));
+        .filter(id => inLedger(id) && !askedThisTurn.has(id) && !coverGateMiss(plan, r.what, id, sentenceFor(r.what))
+          && !(dedupe && sameRun(id, [...askedThisTurn, ...r.itemIds])));
       if (added.length === 0) return r;
       coversAdded.push({ what: r.what, added });
       return { ...r, itemIds: [...r.itemIds, ...added] };
@@ -1570,7 +1592,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // refused, unchecked (audit row 20: "I don't have Kelvexa's European net price").
   // A failing match beside one that passes is dropped (logged): the rest answers the ask.
   const regionRefused = new Set<string>();
-  const coverGate: { what: string; deferred?: { id: string; why: 'entity' | 'forecast' | 'scope' }[]; kept?: string[]; named?: string[]; coarse?: { what: string; ids: string[] }[]; excluded?: { what: string; why: 'entity' | 'region' }[] }[] = [];
+  const coverGate: { what: string; deferred?: { id: string; why: 'entity' | 'forecast' | 'scope'; rule?: ScopeRule | null }[]; kept?: string[]; named?: string[]; coarse?: { what: string; ids: string[] }[]; excluded?: { what: string; why: 'entity' | 'region' }[] }[] = [];
   // X1 (Task 71): the cut of an ask whose covers missed only on scope, after the pressure test — refused unchecked.
   const scopeVetoed = new Set<string>();
   requests = requests.flatMap(r => {
@@ -1588,8 +1610,10 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
       if (fb.answerGate) {
         const sentence = sentenceFor(r.what);
         const why = (id: string, scope: boolean) => coverGateMiss(plan, r.what, id, sentence, scope);
+        // Review F6: a scope miss logs which rule fired ("log which scope rule fired"), as request_scope does.
+        const scopeRuleOf = (id: string) => { const item = ledger.items.find(i => i.id === id); return item ? scopeRule(coverEntry(r.what, id, fb), item, namesOf(id), { count: false, spans: coverSpans(coverEntry(r.what, id, fb), fb, id) }) : null; };
         const deferred = [...covIds.map(id => ({ id, why: why(id, true) })), ...coarse.flatMap(c => c.ids).map(id => ({ id, why: why(id, false) }))]
-          .flatMap(x => (x.why ? [{ id: x.id, why: x.why }] : []));
+          .flatMap(x => (x.why ? [{ id: x.id, why: x.why, ...(x.why === 'scope' ? { rule: scopeRuleOf(x.id) } : {}) }] : []));
         if (deferred.length > 0) {
           const out = new Set(deferred.map(x => x.id));
           covIds = covIds.filter(id => !out.has(id));

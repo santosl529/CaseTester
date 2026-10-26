@@ -17,6 +17,7 @@ vi.mock('@/lib/orchestrator/pressure-test', async orig => ({ ...(await orig<obje
 import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
 import { turnDataChecked } from '@/lib/orchestrator/turn-data';
 import { coverageOf, factBaseFor, buildFactBase } from '@/lib/orchestrator/fact-check';
+import { repeatsLine } from '@/lib/orchestrator/turn-data';
 import { getCaseById } from '@/lib/cases/loader';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { readsFixture } from './fixtures/turn-reads';
@@ -153,5 +154,60 @@ describe('coverExcludes stop a cover matching', () => {
     const brew = getCaseById('prof-001');
     const fb = buildFactBase({ ...brew, dataLedger: brew.dataLedger.map(d => ({ ...d, coverExcludes: ['charter'] })) } as never);
     expect(coverageOf('the charter store count', fb).items).toEqual(coverageOf('the charter store count', buildFactBase(brew as never)).items);
+  });
+});
+
+// Review F1: `passenger → volume` reached the network-level drivers' covers from a route-level ask. A hit only a
+// Phase 1 synonym makes now yields when the ask names one of the case's proper names, outside the hit, that the item's
+// own words don't carry — the client's own words aside. b38 Tyler t2's ask names none, so it still matches.
+describe('a synonym hit yields to a route the item does not carry', () => {
+  const larkspur = getCaseById('prof-002');
+  const fb = { ...buildFactBase(larkspur as never), coverNorm: true };
+  it('b34 Larkspur Marisol e6432db0 t7 "the Hub-Lakeport fare and passenger split": no network driver line', () => {
+    expect(coverageOf('the Hub-Lakeport fare and passenger split', fb).items).toEqual([]);
+    expect(coverageOf('the Hub-Lakeport fare and passenger split', fb).promptFacts).toEqual([]);
+  });
+  it('b22 Larkspur Jordan 9ab76a39 t7 "Hub–Port Avery passengers and fare": the same', () => {
+    expect(coverageOf('Hub–Port Avery passengers and fare', fb).items).toEqual([]);
+  });
+  it('b38 Tyler t2\'s ask names no route: still covered', () => {
+    expect(coverageOf(TYLER_WHAT, fb).items).toEqual(['routes_schedule']);
+    expect(coverageOf(TYLER_WHAT, fb).promptFacts).toEqual(['planes_as_full']);
+  });
+  it('the client\'s own name is no route: "Larkspur\'s passengers and fare" is still the network ask', () => {
+    expect(coverageOf("Larkspur's passengers and fare", fb).items).toEqual(['routes_schedule']);
+  });
+  it('a literal cover match is not held to it (no synonym, no yield)', () => {
+    expect(coverageOf('average fare by route, Lakeport first', fb).items.sort()).toEqual(['lakeport_fare', 'port_avery_per_flight']);
+  });
+});
+
+// Review F1: and it does not add a line that repeats, word for word, a line the turn already carries.
+describe('a synonym-added cover does not duplicate a line the turn already carries', () => {
+  it('repeatsLine: the routes-and-schedule line against the network totals', () => {
+    const line = (id: string) => getCaseById('prof-002').dataLedger.find(i => i.id === id)!.value;
+    expect(repeatsLine(line('routes_schedule'), line('network_totals'))).toBe(true);
+    expect(repeatsLine(line('routes_schedule'), line('lakeport_fare'))).toBe(false);
+    expect(repeatsLine(line('fuel_prices'), line('unit_costs'))).toBe(false);
+  });
+  const SATISFIED = { pressureTest: { state: 'satisfied', askedAt: 2, intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } };
+  const planOn = (text: string) => {
+    const p = planTurn(readsFixture({ caseId: 'prof-002', phase: 'ANALYSIS', flags: SATISFIED }), text, { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} });
+    if (p.kind !== 'model') throw new Error('expected a model plan');
+    return p;
+  };
+  it('b34 Larkspur Raj 061ef630 t7 → t8: the network totals go out, the routes line is not added beside them', async () => {
+    process.env.ENGINE_SWITCHES = 'prof-002=coverNormalization';
+    const p = planOn('Do we have the breakdown of revenue into passengers flown and average fare for both years?');
+    const d = await turnDataChecked(p, turn([{ what: 'the revenue breakdown into passengers and average fare', itemIds: ['network_totals'], explicit: true, respond: 'release' }]));
+    expect(d.releases.map(r => r.id)).toEqual(['network_totals']);
+    expect(acted(p, 'covers_added')).toEqual([]);
+  });
+  it('with the switch off the dedupe does not run (the covers themselves no longer reach it)', async () => {
+    delete process.env.ENGINE_SWITCHES;
+    const p = planOn('Do we have the breakdown of revenue into passengers flown and average fare for both years?');
+    const d = await turnDataChecked(p, turn([{ what: 'the revenue breakdown into passengers and average fare', itemIds: ['network_totals'], explicit: true, respond: 'release' }]));
+    expect(d.releases.map(r => r.id)).toEqual(['network_totals']);
+    expect(acted(p, 'covers_added')).toEqual([]);
   });
 });

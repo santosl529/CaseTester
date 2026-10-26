@@ -63,11 +63,13 @@ export type FactBase = {
   tags?: CaseTags;                        // round 6: the case's item tags (item-tags.ts)
   answerGate: boolean;                    // tags present: round 6's cover matching and gate are on (Task 68)
   coverNorm?: boolean;                    // Phase 1 4.5: coverNormalization on for this case (factBaseFor, per call)
+  properNames: string[];                  // the case's capitalised STT keyterms: its names, routes and places (review F1)
 };
 export type CaseTags = { clientWords: string[]; entities: { id: string; rival?: boolean; words: string[]; items: string[] }[]; forecast: string[] };
 
 type CaseInput = {
   prompt: string;
+  sttKeyterms?: string[];
   dataLedger: { id: string; label?: string; value: string; timeframes?: Record<string, string>; coverExcludes?: string[] }[];
   exhibits: { id: string; data: Record<string, unknown>[]; coversLedgerItems?: string[] }[];
   mathSteps: { answer: number; altAnswers?: number[]; cues: string[] }[];
@@ -181,6 +183,7 @@ export function buildFactBase(c: CaseInput): FactBase {
     }),
     ...(fa.tags ? { tags: fa.tags } : {}),
     answerGate: fa.tags !== undefined,
+    properNames: (c.sttKeyterms ?? []).filter(t => /^[A-Z]/.test(t)),
   };
 }
 
@@ -875,6 +878,26 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     const toks = coverTokens(lc(line), norm);
     return !toks.some((t, i) => counted.has(t.w) && toks.slice(Math.max(0, i - 2), i).some(x => /\d/.test(x.w)));
   };
+  // A route or place the ask names that the hit's item does not (review F1): `passenger → volume` makes any route-level
+  // "passengers and fare" ask reach the network-level drivers' covers, and FINER_WORDS catches "by route" but not a
+  // named route (b34 Larkspur Marisol e6432db0 t7 "the Hub-Lakeport fare and passenger split", b22 Jordan 9ab76a39 t7
+  // "passengers and average fare on Lakeport and Port Avery specifically"). A synonym-made hit yields when the ask says
+  // one of the case's proper names outside the hit that the item's own words (label, line, names, covers) don't carry.
+  // The client's own words are not read: they name the company, not a route ("Larkspur's fares and passengers" is still
+  // the network ask Lorenzo's 13 Oct ruling answers).
+  const clientWords = new Set((fb.tags?.clientWords ?? []).map(w => w.toLowerCase()));
+  const saysName = (text: string, name: string) => new RegExp(`(?<![a-z])${name.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/[\s–-]+/g, '[\\s\u2013-]+')}(?:'?s)?(?![a-z])`, 'i').test(text);
+  const ownWords = (id: string) => {
+    const item = fb.ledger.find(l => l.id === id);
+    const q = fb.quantities.find(x => x.id === id);
+    const cov = fb.covers.find(c => c.id === id);
+    return lc([item?.label ?? '', item?.value ?? '', ...(q?.names ?? []), ...(cov?.phrases ?? []), cov?.say ?? ''].join(' '));
+  };
+  const namesAnother = (h: CoverHit): boolean => {
+    const outside = `${lower.slice(0, h.start)} ${lower.slice(h.end)}`;
+    const own = ownWords(h.cover.id);
+    return fb.properNames.some(n => !clientWords.has(n.toLowerCase()) && saysName(outside, n) && !saysName(own, n));
+  };
   // Phase 1 (contract §1, the `itemCovers` data; Lorenzo, 21 Oct, round 6: "Add exclusion words where a confusion is
   // known: "chip" excluded from chickpea items, "entrant/competitor" from Larkspur's own items"): an item's
   // coverExcludes stop its covers matching an ask that names the excluded side — the word said in the hit's entry
@@ -910,7 +933,7 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
     // Lakeport seats and load line; b36 Marcus a7d9f44e t11, "quarter-by-quarter fares and passengers since entry").
     const near = hits.filter(h => h.start < entry.end && h.end > entry.start
       && !FURTHER_CUT.test(lower.slice(entry.start, h.start) + ' ' + lower.slice(h.end, entry.end))
-      && !(h.syn && FINER_WORDS.test(lower.slice(0, h.start) + ' ' + lower.slice(h.end)))
+      && !(h.syn && (FINER_WORDS.test(lower.slice(0, h.start) + ' ' + lower.slice(h.end)) || namesAnother(h)))
       && !(folded && totalNotHeld(h, entry))
       && !(folded && excludedWord(h, entry)));
     const why = folded ? near.map(h => dropWhy(h, entry)) : [];
@@ -938,7 +961,8 @@ function coverageIn(what: string, fb: FactBase, folded: boolean, keep: (h: Cover
 // tag gate's scope rules read no cut inside them — Lorenzo, 15 Oct, ruling 7). Positions
 // are the ask's own, as outsideAskScope reads it (lower-cased, same length).
 export function coverSpans(what: string, fb: FactBase, id: string): { start: number; end: number }[] {
-  const norm = fb.coverNorm === true;
+  // The same guard coverageIn uses (review F1): the fold is the tagged case's, and the Phase 1 normalization is its switch's.
+  const norm = fb.answerGate && fb.coverNorm === true;
   const toks = coverTokens(lc(what), norm);
   return fb.covers.filter(c => c.id === id).flatMap(c => c.phrases.flatMap(p => phraseSpans(toks, p, norm)));
 }
@@ -948,7 +972,7 @@ export function coverageDetail(what: string, fb: FactBase, opts: { sentence?: st
   const own = coverageIn(what, fb, fb.answerGate);
   const sentence = opts.sentence?.trim();
   if (!fb.answerGate || !sentence) return own;
-  const norm = fb.coverNorm === true;
+  const norm = fb.answerGate && fb.coverNorm === true;
   const asked = new Set(coverTokens(lc(what), norm).map(t => t.w).filter(w => !COVER_STOP.has(w)));
   const said = coverageIn(sentence, fb, true, (h, lower) => coverTokens(lower.slice(h.start, h.end), norm).some(t => asked.has(t.w)), { sentence: true });
   const items = [...new Set([...own.items, ...said.items])];
