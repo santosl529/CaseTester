@@ -1,0 +1,64 @@
+{
+ "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-7f6c40ea.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 10,
+   "class": "probe_chain",
+   "severity": "firm",
+   "quote": "And on revenue, which party actually pays Hollis Bay, and how much does Hollis Bay receive per bag that it sells?",
+   "why": "This is the third probe (after t6 and t8) on the candidate using $3.99 as revenue per bag. The $3.00 input was not corrected before the third probe; the correction only came at t12."
+  },
+  {
+   "turn": 12,
+   "class": "probe_chain",
+   "severity": "firm",
+   "quote": "Also, is the $1.2 million already spent last year part of what the launch has to recover, or a different decision?",
+   "why": "This is the third probe (after t6 and t10) on including the sunk $1.2M recipe cost in fixed costs. The input was not corrected before the third probe; the $9M correction only came at t16."
+  },
+  {
+   "turn": 14,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "Earlier you said the 4.1 million bags were roughly $16 million of retail sales, about 5% of current scale. How did you do that calculation?",
+   "why": "By t13 the candidate had already replaced 4.1M bags and $16M with 6.8M bags and $27M, so this probes a figure they had already abandoned."
+  },
+  {
+   "turn": 16,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Chip sales are flat, better-for-you snacks are growing quickly, and Hollis Bay's largest retailers have asked for healthier options.",
+   "why": "The candidate asked how many bags of chips Hollis Bay sells a year. This why_now line does not answer that, and the chip-volume ask got no refusal."
+  },
+  {
+   "turn": 20,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "Earlier you said about $9.9 million of first-year profit. Can you walk me through what volume and costs that rests on?",
+   "why": "At t19 the candidate had already redone the profit to $4.5M with the corrected rates, so probing the withdrawn $9.9M figure is stale."
+  },
+  {
+   "turn": 32,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "What would you put in place to guard against that?",
+   "why": "The candidate said 'we clear that by 4.5 million bags', but the cushion is 3 million bags (9M − 6M); the 4.5 is the $4.5M profit used as a bag count. This was left unprobed and uncorrected before the close."
+  },
+  {
+   "turn": 32,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you put in place to guard against that?",
+   "why": "In t31 the candidate had just given a mitigation: a two-market pilot measuring chip volume against control stores before the vote. This follow-up re-asks it."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 19095,
+  "output": 3779,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 37463,
+ "usd": 0.15196
+}

@@ -1,0 +1,85 @@
+{
+ "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-442e37ff.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Planning assumptions from Hollis Bay's past launches are: 30 million households shop in stores carrying Hollis Bay; 60% of “definitely would buy” and 20% of “probably would buy” shoppers actually buy in year one",
+   "why": "The candidate asked for Hollis Bay's annual chip bag volume. The planning assumptions don't answer that, so this releases the next data in sequence that nobody asked for."
+  },
+  {
+   "turn": 6,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "How did you get to $9?",
+   "why": "The ask for annual chip bag volume, which the ledger doesn't hold, got no refusal and no word at all."
+  },
+  {
+   "turn": 6,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "How did you get to $9?",
+   "why": "The candidate's $9.0M launch-cost total is correct and was already shown as a sum. Challenging it questions right math."
+  },
+  {
+   "turn": 6,
+   "class": "wrong_figure",
+   "severity": "false",
+   "quote": "How did you get to $9?",
+   "why": "Scale slip: the figure is $9.0 million, not $9."
+  },
+  {
+   "turn": 8,
+   "class": "misquote_uncorrected",
+   "severity": "borderline",
+   "quote": "Before you plug anything in: you totaled variable cost at $1.55 per bag. Can you walk me through the components you added?",
+   "why": "The candidate misquoted the exhibit's $0.70 ingredients figure as $0.75. The interviewer probed it over two turns instead of giving a flat one-sentence correction of its own figure."
+  },
+  {
+   "turn": 14,
+   "class": "misquote_uncorrected",
+   "severity": "borderline",
+   "quote": "On the protein figure, you said 54% — walk me through where that number comes from.",
+   "why": "The candidate misquoted the exhibit's 52% as 54%. This is a misquote of an exhibit figure, so it called for a flat correction, not a probe."
+  },
+  {
+   "turn": 18,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As I mentioned: Planning assumptions from Hollis Bay's past launches are: 30 million households shop in stores carrying Hollis Bay;",
+   "why": "The candidate asked how the 500,000 sampling households were estimated. Already-released planning assumptions and survey design lines were restated as the answer, though neither answers it, and no refusal was given."
+  },
+  {
+   "turn": 20,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "Understood.",
+   "why": "The candidate misquoted the marketing line as $4.3M when the exhibit says $4.5M. No correction ever came."
+  },
+  {
+   "turn": 22,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you put in place to guard against that?",
+   "why": "The candidate's previous answer already gave a mitigation: gating the rollout on an 8-week test read of repeat rate."
+  },
+  {
+   "turn": 24,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "We've gotten through what I wanted to. Thank you for working through the case; your written report will follow.",
+   "why": "The candidate raised whether a co-packer could carry year-one manufacturing. The ledger holds nothing on this, and it got no refusal or acknowledgment before the close."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 15485,
+  "output": 2896,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 27227,
+ "usd": 0.11986
+}

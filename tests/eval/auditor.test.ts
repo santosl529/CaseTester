@@ -1,11 +1,15 @@
 // The offline auditor's input, schema and calibration (lib/eval/auditor/**). No API call.
 import { describe, it, expect } from 'vitest';
-import { caseSection, transcriptSection, EXHIBIT_DATA_CLIP } from '@/lib/eval/auditor/input';
+import { existsSync, readdirSync } from 'node:fs';
+import path from 'node:path';
+import { caseSection, transcriptSection, EXHIBIT_DATA_CLIP, WITHHELD_KEYS, WITHHELD_TYPED_ONLY } from '@/lib/eval/auditor/input';
 import { AUDITOR_CLASSES, AUDITOR_RULES, AuditOutputSchema } from '@/lib/eval/auditor/prompt';
 import { matchRun, calibrate, FAMILIES, type Hand } from '@/lib/eval/auditor/calibrate';
 import { auditPrompt } from '@/lib/eval/auditor/audit';
 import { FAULT_CLASSES } from '@/lib/eval/fault-bank';
 import { getCaseById, loadCases } from '@/lib/cases/loader';
+import { SLICES } from '@/lib/eval/fault-bank-build';
+import { readTurnFile } from '@/lib/eval/turn-file';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 
 const turn = (turnIndex: number, text: string, extra: Partial<TurnRecord> = {}) => ({
@@ -56,6 +60,33 @@ describe('auditor input', () => {
     expect(transcriptSection([turn(1, 'Go on.')], [])).not.toContain('withheld:');
   });
 
+  // Finding 8 of the gate report: three of the eight declared key sets named keys no check records, so
+  // `uncovered_asks` — the stated evidence for bare_partial and ignored_ask — printed nothing on 0 of 156 turns.
+  // The details below are copied from real b33–b38 records (shape and key names).
+  it('reads the ask, gate and pending-data keys the checks really record', () => {
+    const ts = transcriptSection([turn(1, 'Go on.', { checks: [
+      { check: 'uncovered_asks', decision: 'act', reason: 'the message\'s asks no explicit declaration covers are answered', detail: {
+        sentences: ['Do we have the prevalence, and the growth of the treated pool?'], open: ['Do we have the prevalence, and the growth of the treated pool?'],
+        classified: true, answered: ['US prevalence of Corlan\'s disease'], covered: [], dropped: ['Year-over-year growth of the eligible patient pool'] } },
+      { check: 'code_gate', decision: 'pass', reason: 'code\'s lines wait for the checker: held, released or dropped', detail: {
+        held: ['misquote:recipe_cost'], unchecked: [], decisions: [] } },
+      { check: 'pending_data', decision: 'act', reason: 'question rewritten: the data was delivered this turn', detail: {
+        changes: [{ from: 'Once I have the bean share, what does that tell you?', to: null }] } },
+      { check: 'data_decisions', decision: 'act', reason: 'data decided by code', detail: {
+        releases: [], exhibit: null, refusals: [], defers: [], offers: [], wontGetTo: ['the cost disadvantage breakdown'] } },
+    ] } as never)], []);
+    expect(ts).toContain('uncovered_asks: open=["Do we have the prevalence, and the growth of the treated pool?"]');
+    expect(ts).toContain('answered=["US prevalence of Corlan\'s disease"]');
+    expect(ts).toContain('dropped=["Year-over-year growth of the eligible patient pool"]');
+    expect(ts).toContain('code_gate: held=["misquote:recipe_cost"]');
+    expect(ts).toContain('pending_data: changes=');
+    expect(ts).toContain('data_decisions: wontGetTo=["the cost disadvantage breakdown"]');
+    expect(ts).not.toContain('sentences=');     // every asking sentence is noise; `open` is the subset that matters
+    expect(ts).not.toContain('classified=');
+    // The header has to say what the ask fields mean, or `answered` reads as withheld.
+    expect(ts).toContain('open =');
+  });
+
   it('asks for the fault bank\'s classes (report faults aside) and four severities', () => {
     expect(AUDITOR_CLASSES).toEqual(FAULT_CLASSES.filter(c => c !== 'report_false'));
     for (const c of AUDITOR_CLASSES) expect(AUDITOR_RULES).toContain(`- ${c}: `);
@@ -91,5 +122,35 @@ describe('calibration', () => {
     expect(c.byFamily.asks).toEqual({ hand: 1, predicted: 1, matchedHand: 1, matchedPredicted: 1 });
     expect(c.detection).toEqual({ hand: 2, predicted: 3, matchedHand: 2, matchedPredicted: 2 });
     expect(c.severityAgreement).toEqual({ agree: 1, of: 2 });
+  });
+});
+
+// Against the recordings themselves (the main checkout's corpus; skipped where it isn't): every key the auditor's
+// `withheld` line declares has to exist in a real recorded check detail. Finding 8 of the gate report: three key
+// sets named fields no check ever wrote, so they printed nothing and nobody noticed. A rename now fails here —
+// except data_decisions, whose keys are checked against DataDecisions at compile time (WITHHELD_TYPED_ONLY).
+const CORPUS = process.env.REPLAY_ROOT ?? '/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs';
+describe.skipIf(!existsSync(CORPUS))('the withheld keys on the recordings', () => {
+  it('every declared key is a key some check really records', () => {
+    const seen = new Map<string, Set<string>>();
+    for (const s of SLICES) {
+      const waveDir = path.join(CORPUS, 'test runs', s.wave);
+      if (!existsSync(waveDir)) continue;
+      for (const d of readdirSync(waveDir).filter(x => /^\d\d-/.test(x))) {
+        const f = readdirSync(path.join(waveDir, d)).find(x => x.endsWith('.turns.jsonl.gz'));
+        if (!f) continue;
+        for (const t of readTurnFile(path.join(waveDir, d, f)).turns) {
+          for (const c of t.checks) {
+            if (!(c.check in WITHHELD_KEYS)) continue;
+            if (!seen.has(c.check)) seen.set(c.check, new Set());
+            for (const k of Object.keys((c.detail ?? {}) as Record<string, unknown>)) seen.get(c.check)!.add(k);
+          }
+        }
+      }
+    }
+    expect([...seen.keys()].sort()).toEqual(Object.keys(WITHHELD_KEYS).sort());   // every check still runs
+    const dead = Object.entries(WITHHELD_KEYS).flatMap(([check, keys]) =>
+      keys.filter(k => !seen.get(check)?.has(k) && !WITHHELD_TYPED_ONLY.includes(`${check}.${k}`)).map(k => `${check}.${k}`));
+    expect(dead).toEqual([]);
   });
 });

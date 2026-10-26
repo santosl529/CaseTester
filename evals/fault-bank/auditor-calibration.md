@@ -1,5 +1,11 @@
 # Offline auditor — calibration (auditor-cal1)
 
+> **Superseded 26 Oct 2026 by cal2** (`evals/fault-bank/auditor-cal2/calibration.md`, $3.58): the exhibit clip, the
+> withheld-key fix (809dcc65) and one added bank record changed this measurement. cal2: detection recall 85%
+> (96/113), precision 54%; `bare_partial` 48%, `missed_error` 33%. The side-by-side and the reasons are in
+> `.superpowers/sdd/2026-10-22-phase1/auditor-recalibration-report.md`. The hand read of the unmatched predictions
+> below was not redone and is still the best account of their character.
+
 Opus 5.5 (`claude-opus-5-5`, adaptive thinking, effort high) over 25 of 25 runs; spent $3.62. Hand grade = the fault bank's fault records for each run (report faults aside: the auditor reads the interview only). A prediction matches a hand fault within 2 turns (or inside its scope window): by class first, then by class family. Recall = matched hand faults ÷ hand faults; precision = matched predictions ÷ predictions. A prediction with no hand match may still be a real fault the hand grade didn't count.
 
 **Detection (any class):** recall 86% (96/112), precision 51% (96/187). **Severity agreement on matches:** 65% (62/96).

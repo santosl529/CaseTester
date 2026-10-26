@@ -1,0 +1,43 @@
+{
+ "run": "test runs/batch-38-larkspur-oct-21-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-3f928012.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 2,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Before any data: you've framed revenue and cost as two sides, but your revenue branch already assumes the drop is volume or price.",
+   "why": "The candidate asked directly for departures, average fare and the operating-cost split. The interviewer gave no release, refusal or deferral, only a vague 'before any data'. The cost-split ask was never addressed directly."
+  },
+  {
+   "turn": 4,
+   "class": "wrong_release",
+   "severity": "serious",
+   "quote": "Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years, while the average fare fell from $240 to $160.",
+   "why": "The candidate asked for the network-wide ticket/ancillary split and departure counts. The interviewer instead released one route's per-flight economics, which is analysis-stage data. This revealed the contested-route fare collapse during the structure phase."
+  },
+  {
+   "turn": 4,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have the ticket versus extras revenue split.",
+   "why": "The extras_revenue item ($20 per passenger in both years) answers this coarsely, and with flat volume the split is derivable. The $20 extras figure appeared in the same turn's Port Avery line."
+  },
+  {
+   "turn": 22,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "what is the biggest risk that this plan still ends the year in a loss?",
+   "why": "The candidate had just named a risk (a competitor following into Ashford), and the interviewer asked for the risk again in the same turn as a separate walk-through question."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 14992,
+  "output": 2584,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 25455,
+ "usd": 0.111648
+}

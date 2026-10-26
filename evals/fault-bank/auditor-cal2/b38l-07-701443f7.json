@@ -1,0 +1,71 @@
+{
+ "run": "test runs/batch-38-larkspur-oct-21-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-701443f7.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 2,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Is that structure MECE — what overlaps, and what's missing? And which branch would you prioritize first, and why?",
+   "why": "This one turn stacks several questions (MECE, overlaps, gaps, priority, why), and the candidate stalled on it."
+  },
+  {
+   "turn": 12,
+   "class": "unasked_release",
+   "severity": "firm",
+   "quote": "An exhibit for you — Hub–Lakeport — Economics of one one-way flight, FY2023 vs. FY2025 ($).",
+   "why": "The candidate asked only whether a competitor had entered and what it charges. The Lakeport per-flight exhibit was handed over unasked."
+  },
+  {
+   "turn": 12,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "what would you want to understand about why Larkspur's fares fell?",
+   "why": "The same turn had just released the reason the fares fell (Larkspur matched the low-cost entrant), so the question reads wrong."
+  },
+  {
+   "turn": 14,
+   "class": "unasked_release",
+   "severity": "serious",
+   "quote": "Now, an exhibit: Proposed new routes — Planning estimates (average per flight across Hub–Ashford and Hub–Brookhaven).",
+   "why": "The candidate never asked about new routes or redeployment. Handing over the new-routes exhibit gives away the solution path before the candidate got there."
+  },
+  {
+   "turn": 14,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger",
+   "why": "The candidate asked about load factors and passenger mix (business-heavy before?). Only load factor was answered. Passenger mix got no 'I don't have that'."
+  },
+  {
+   "turn": 22,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Earlier you said \"× $200 - $9,200 = $400 per flight, so $1.4M, and we'd be roughly breakeven\"",
+   "why": "The quoted figure is truncated: it starts mid-expression without the '48', so it reads oddly."
+  },
+  {
+   "turn": 24,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "Then tell me the single biggest risk to your recommendation.",
+   "why": "The candidate had just named risks in t21 (unproven $180 fare, entrant attacking a third route). This re-asks the risk."
+  },
+  {
+   "turn": 26,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "If you had to guard against that, how would you do it?",
+   "why": "The candidate's last answer already gave a mitigation ('I'd pilot one route first')."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 16381,
+  "output": 3265,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 30712,
+ "usd": 0.130824
+}

@@ -1,0 +1,57 @@
+{
+ "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-a2a5921b.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Most Pro customers have a demo with a salesperson first, while Starter customers sign up online on their own.",
+   "why": "The candidate asked for the split of Starter sign-ups by source (paid versus organic). The interviewer released the signup-channel line, which does not answer that, and gave no 'I don't have that split'."
+  },
+  {
+   "turn": 8,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "What steps got you to 4%?",
+   "why": "At t7 the candidate said 'you had it at $288' for Starter CAC; exhibit-1 shows $300. No flat correction ever came. The candidate carried $288 through the recommendation, and the held correction at t30 was dropped."
+  },
+  {
+   "turn": 12,
+   "class": "misquote_uncorrected",
+   "severity": "serious",
+   "quote": "Starter monthly cancellation rate is about 5%, not 4%.",
+   "why": "After the t10 probe, the candidate insisted 'The exhibit lists Starter's cost to serve at $12' (exhibit-1 says $10). The interviewer corrected only the churn rate and never corrected the misread input. The $28 margin, $560 LTV, 1.9x and $48 margin at $60 all stayed wrong to the end."
+  },
+  {
+   "turn": 12,
+   "class": "misquote_uncorrected",
+   "severity": "firm",
+   "quote": "Starter monthly cancellation rate is about 5%, not 4%.",
+   "why": "The candidate misquoted Pro's cost to serve as $22 (exhibit-1: $20), giving a $78 margin and a $3,900 Pro LTV instead of $4,000. This was never corrected and fed the upgrade value ($780 vs $800) and every later total."
+  },
+  {
+   "turn": 18,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: New customers per month were 500 Pro in 2024, before Starter launched, and 350 Pro plus 1,000 Starter — 1,350 in total — from January 2025 to June 2026.",
+   "why": "The candidate asked whether Pro sign-ups were already trending down through 2024. The interviewer repeated the exhibit-3 line already on screen, which gives only a 2024 average and no trend, instead of a refusal or a relevant release."
+  },
+  {
+   "turn": 32,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "Only a little time left — what's your bottom-line recommendation, and what's the biggest risk to it?",
+   "why": "The recommendation (t25) and the biggest risk with mitigation (t29, refined at t31) had already been given. The time-warning re-asks both after several probe turns."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 18734,
+  "output": 4401,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 43570,
+ "usd": 0.162956
+}

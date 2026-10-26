@@ -1,0 +1,71 @@
+{
+ "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-c518221e.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Kelvexa's US list price is $10,000 per patient per year, average discounts and rebates to insurers are 20% of list price, and patients on Kelvexa are treated for the full year.",
+   "why": "The candidate asked for Kelvexa's European net price. The interviewer released US pricing instead and said nothing about the European figure: no release and no 'I don't have'."
+  },
+  {
+   "turn": 6,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have EU manufacturing cost per unit.",
+   "why": "The ledger (option_shared) says product cost is small and similar and can be ignored, which coarsely answers the ask. That answer only reached the candidate much later, through the Exhibit 3 note."
+  },
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "What do you know about Kelvexa's US net price, what share is realistic, and what would you want to confirm before relying on either?",
+   "why": "Three questions are stacked into one turn."
+  },
+  {
+   "turn": 8,
+   "class": "unasked_offer",
+   "severity": "firm",
+   "quote": "I can share Kelvexa's forecast peak share if you'd like.",
+   "why": "The candidate asked for competitor share data, not Kelvexa's forecast share. The offer was unprompted."
+  },
+  {
+   "turn": 8,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "With that in hand, how does the forecast peak share compare with the share you need",
+   "why": "It asks the candidate to compare against a forecast share that had only been offered, not given. 'With that in hand' reads wrong."
+  },
+  {
+   "turn": 24,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: Option A is building Aldermoor's own US team of about 60 specialist sales reps, an insurer-access team and patient support",
+   "why": "The candidate asked for the $80M split by rep cost versus market access. The interviewer restated the Option A line already on screen, which doesn't answer the split, and gave no 'I don't have' refusal."
+  },
+  {
+   "turn": 24,
+   "class": "missed_error",
+   "severity": "serious",
+   "quote": "Pulling this together, what is your final recommendation to the CEO, and what would you tell the board is the single biggest risk to it?",
+   "why": "The candidate claimed Option B doesn't clear the bar, using Aldermoor's $120M royalty in place of US net sales. Under B, US net sales are $400M, which clears it. The interviewer moved straight to the recommendation (after earlier saying 'treat your own comparison as it stands'), so the error drove the Option A recommendation and was never probed or corrected before the close."
+  },
+  {
+   "turn": 26,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "To guard against that, what would you put in place?",
+   "why": "The candidate had just given mitigations: pressure-test rebate depth with payer research and start formulary contracting a cycle ahead of launch."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 16171,
+  "output": 4115,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 38120,
+ "usd": 0.146984
+}

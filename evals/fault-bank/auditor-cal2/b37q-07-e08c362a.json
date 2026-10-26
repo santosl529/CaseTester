@@ -1,0 +1,71 @@
+{
+ "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-e08c362a.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 8,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "Here's an exhibit: Quillpath — Economics of each plan ($ per customer).",
+   "why": "The candidate asked for the churn rate and the CAC for each plan. Exhibit-1 answers CAC only. Churn got no word: no refusal and no deferral. It arrived only after the candidate re-asked at t9."
+  },
+  {
+   "turn": 12,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "How did you separate them, so the upgrade value isn't counted twice or the Starter lifetime overstated?",
+   "why": "The candidate's 7.4% combined exit rate understates Starter's lifetime (13.5 months against the case's 20). The probe points the other way, toward overstatement, so it invites the defence the candidate gave."
+  },
+  {
+   "turn": 12,
+   "class": "probe_chain",
+   "severity": "serious",
+   "quote": "Starter's cancellations and its upgrades both count as leaving the plan. How did you separate them",
+   "why": "The misread input is the Starter on-plan lifetime of 13.5 months (combined exit), giving $405 instead of $600. It was probed at t12, then claims built on it were probed at t20, t22, t28, t30 and t32, and $405 itself again at t36. The input was never corrected. The derived errors (CFO's 1.35x vs 2.0x, $175k vs $240k uplift at $60) stood to the close."
+  },
+  {
+   "turn": 14,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "Of the 1,050 Pro customers who signed up in January–March 2025, 98.0% were still on Pro after month 1, 94.1% after month 3, 88.6% after month 6 and 78.5% after month 12",
+   "why": "The candidate asked only how upgraded customers churn. The cohort-notes line answers that. The full Pro and Starter cohort lines already on exhibit-2 were restated, and they don't answer the ask."
+  },
+  {
+   "turn": 22,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "You had \"$790k\" a month for net value added — take me through the math there.",
+   "why": "The candidate had already replaced both inputs to $790k: the loss was revised to about $285k at t19 and Starter value to $905k at t21. The figure was effectively superseded before it was probed."
+  },
+  {
+   "turn": 34,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Walk me through the reasoning behind that.",
+   "why": "This comes right after the interviewer's own correction, so \"that\" dangles. It asks the candidate to justify the interviewer's figure, and the candidate invented a wrong rationale ($5,200 per upgrade)."
+  },
+  {
+   "turn": 36,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "Earlier you said “$405” — what were the steps in that calculation?",
+   "why": "At t35 the candidate valued an upgrade at $4,000 + $1,200 = $5,200, which is wrong (it should be $4,000). The cannibalization figure was rebuilt on it. This was never probed or corrected; the interviewer moved to a different figure."
+  },
+  {
+   "turn": 38,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "Only a little time left — what's your bottom-line recommendation, and what's the biggest risk to it?",
+   "why": "The recommendation had already been given in full at t27, with risks and next steps. It was asked again after the probe turns."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 19244,
+  "output": 5186,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 50122,
+ "usd": 0.180696
+}

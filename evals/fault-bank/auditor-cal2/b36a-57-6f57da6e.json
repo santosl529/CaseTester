@@ -1,0 +1,43 @@
+{
+ "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-6f57da6e.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As I mentioned: In the patient funnel, 1.6% of US adults have Corlan's disease; 50% of those are diagnosed, 50% of diagnosed patients are treated with prescription medicine, and 20% of treated patients are moderate-to-severe and eligible for Kelvexa",
+   "why": "The candidate asked how the eligible pool has grown over recent years. The ledger holds no trend data, so a refusal was owed. Instead the already-released funnel line was repeated as the answer, and the growth ask got no 'I don't have'."
+  },
+  {
+   "turn": 16,
+   "class": "unasked_release",
+   "severity": "firm",
+   "quote": "I'm putting up an exhibit: US entry options for Kelvexa (peak year, about five years after launch).",
+   "why": "The candidate asked only for Kelvexa's price versus Nimbrel's. The entry-options exhibit was bundled into that answer unasked. The single 'What do those figures tell you?' then blurs the Nimbrel answer and the new exhibit together."
+  },
+  {
+   "turn": 28,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "Under that scenario, which option do you recommend, A or B, and why?",
+   "why": "In t27 the candidate had already given a conditional recommendation for the 30% scenario (switch to B, which clears the net-sales gate). The interviewer re-asks for the recommendation under that same scenario."
+  },
+  {
+   "turn": 30,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you have the client do first?",
+   "why": "The candidate had already named the first step: get actual rebate quotes from the largest plans before committing (t25, and in t23's next steps). This follow-up re-asks something already covered."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 17114,
+  "output": 3136,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 32688,
+ "usd": 0.131176
+}

@@ -1,0 +1,78 @@
+{
+ "run": "test runs/batch-38-larkspur-oct-21-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-f80d981c.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Let's hold extras revenue per passenger and results by route for a little later.",
+   "why": "The same turn had just released Port Avery's $20 extras per passenger and put up Exhibit 1, the results by route. Deferring both items contradicts what is already on screen."
+  },
+  {
+   "turn": 10,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "How did you get to 24?",
+   "why": "At t9 the candidate said they wanted the competitor's cost per seat, its frequency and whether it flies larger aircraft. Competitor_costs answers this, but it got no release, refusal or deferral, and it never reached the candidate."
+  },
+  {
+   "turn": 12,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As I mentioned: Hub–Port Avery shows the same pattern: 80 seats, a 75% load factor and $20 of extras per passenger, with variable cost of $11,000 per flight in both years",
+   "why": "The candidate asked for Port Avery's fuel line separately, which the case does not hold. Two already-released lines were restated as the answer, with no 'I don't have the fuel breakdown'."
+  },
+  {
+   "turn": 12,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "Earlier you said extras are cushioning the gap between $19.2M and $14.4M. How did extras revenue per passenger change between the two years?",
+   "why": "At t11 the candidate had already redone the $19.2M as $14.4M and said it matches the revenue drop exactly. That retired the 'extras cushioning the gap' claim before this probe."
+  },
+  {
+   "turn": 16,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "You computed $1,800 positive per Port Avery flight using $9,000 variable cost. Where did that cost figure come from for Port Avery?",
+   "why": "At t13 the candidate had already corrected to the $11,000 variable cost and redone the figure as −$200 per flight."
+  },
+  {
+   "turn": 16,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "You computed $1,800 positive per Port Avery flight using $9,000 variable cost.",
+   "why": "The candidate asked why the new routes' variable cost is lower ($9,200 vs $11,000) and whether it is stage length. The case doesn't hold this, but no refusal or any reply ever came."
+  },
+  {
+   "turn": 20,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "You put it at “$15.8M” — how did you do that calculation?",
+   "why": "At t19 the candidate had already rebuilt the bridge: −$4.0M plus the $1.8M stopped plus $10.0M, giving $7.8M. That replaced the $14.0M/$15.8M chain."
+  },
+  {
+   "turn": 24,
+   "class": "stale_correction",
+   "severity": "firm",
+   "quote": "The annual operating-profit improvement from redeploying the contested flights is about $11.8M, not $15.8M.",
+   "why": "At t21 the candidate had already corrected $15.8M to $11.8M explicitly."
+  },
+  {
+   "turn": 30,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you have the client do first?",
+   "why": "The candidate had just given next steps (t27) and a sequenced mitigation plan (t29: start with Ashford at lower frequency, validate demand). The follow-up largely re-asks what was covered."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 19371,
+  "output": 5475,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 51449,
+ "usd": 0.186984
+}
