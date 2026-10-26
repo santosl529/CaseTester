@@ -244,12 +244,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "false_refusal",
-  "note": "\"I don't have EU manufacturing cost per unit.\" True of the per-unit figure, but option_shared holds the coarse answer (product cost small and similar); it is gated to Exhibit 3, on screen from t20 — borderline by the refined rule 1.",
+  "note": "\"I don't have EU manufacturing cost per unit.\" True of the per-unit figure, but option_shared holds the coarse answer (product cost small and similar); it is gated to Exhibit 3, on screen from t20 — borderline by the refined rule 1. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "refusal",
     "about": "EU manufacturing",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -263,12 +267,16 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Take that definition, and treat your own comparison as it stands.\" — to \"Which definition of the bar does the board actually mean?\"; he took it as licence (t23 \"A clears the bar at $320 million and B doesn't\"). Not counted as approving wrong work.",
+  "note": "\"Take that definition, and treat your own comparison as it stands.\" — to \"Which definition of the bar does the board actually mean?\"; he took it as licence (t23 \"A clears the bar at $320 million and B doesn't\"). Not counted as approving wrong work. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "treat your own comparison as it stands",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -417,12 +425,16 @@
   "turn": 28,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"How did you get to the $240 million versus $120 million comparison on pure economics?\" asks again for work she had shown at t11 (and stated at t27).",
+  "note": "\"How did you get to the $240 million versus $120 million comparison on pure economics?\" asks again for work she had shown at t11 (and stated at t27). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "probe",
     "figure": "$240 million",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,

@@ -29,13 +29,17 @@
   "turn": 6,
   "sev": "false",
   "cls": "wrong_figure",
-  "note": "\"Let's work from what we know: profit is revenue minus cost, and both moved between FY2023 and FY2025.\" Network costs were flat (variable $160M, fixed $20M both years). Lorenzo: false, not serious; the fact-check doesn't read qualitative model claims.",
+  "note": "\"Let's work from what we know: profit is revenue minus cost, and both moved between FY2023 and FY2025.\" Network costs were flat (variable $160M, fixed $20M both years). Lorenzo: false, not serious; the fact-check doesn't read qualitative model claims. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (B1 + B2 list)",
   "a": [
    {
     "kind": "says",
     "pattern": "both moved between FY2023 and FY2025",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -156,12 +160,16 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "other",
-  "note": "Narration: \"The fare option is off the table, and the brainstorm is next.\"",
+  "note": "Narration: \"The fare option is off the table, and the brainstorm is next.\" Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "the brainstorm is next",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -364,12 +372,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Before the competitor question, what does the route picture tell you …\" right after giving the competitor entry.",
+  "note": "\"Before the competitor question, what does the route picture tell you …\" right after giving the competitor entry. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "Before the competitor question",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,

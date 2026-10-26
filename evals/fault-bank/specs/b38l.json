@@ -261,12 +261,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"On the flights assumption: you said the number of flights is roughly the same. Is that something you've been given, or are you assuming it?\" — code released network_totals in the same turn (\"the same number of flights in both years\").",
+  "note": "\"On the flights assumption: you said the number of flights is roughly the same. Is that something you've been given, or are you assuming it?\" — code released network_totals in the same turn (\"the same number of flights in both years\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "Is that something you've been given",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,

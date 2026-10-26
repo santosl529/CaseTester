@@ -230,12 +230,16 @@
   "turn": 8,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"You said the fixed costs total $10.2 million. How did you do that calculation?\" — the arithmetic was right and itemized; the fault was the base (the sunk $1.2M), which the model's own t6 had raised.",
+  "note": "\"You said the fixed costs total $10.2 million. How did you do that calculation?\" — the arithmetic was right and itemized; the fault was the base (the sunk $1.2M), which the model's own t6 had raised. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "probe",
     "figure": "$10.2 million",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -290,12 +294,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Earlier you said the launch “clears at the current $3.00 shelf price …” What were the steps in that calculation?\" — the error was the price base ($3.99 at the shelf), not arithmetic; he re-walked the math. t16 corrected him rightly.",
+  "note": "\"Earlier you said the launch “clears at the current $3.00 shelf price …” What were the steps in that calculation?\" — the error was the price base ($3.99 at the shelf), not arithmetic; he re-walked the math. t16 corrected him rightly. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "What were the steps in that calculation",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -350,12 +358,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Sampling is your idea, not mine.\" True, but odd.",
+  "note": "\"Sampling is your idea, not mine.\" True, but odd. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "your idea, not mine",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,

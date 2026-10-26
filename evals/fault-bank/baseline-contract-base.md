@@ -1,6 +1,6 @@
-# Fault bank — after2
+# Fault bank — final
 
-Switches: `(off)` · 312 records (211 fault, 101 correct) · 54 runs replayed in 17 s
+Switches: `(off)` · 312 records (211 fault, 101 correct) · 54 runs replayed in 19 s
 
 ## Summary
 

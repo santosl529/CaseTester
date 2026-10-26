@@ -404,12 +404,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "false_refusal",
-  "note": "\"The split between sampling and advertising — that's not something I have.\" sampling_program says the sampling cost \"is in addition to the launch costs\" (none of the $4.5M is sampling); gated to Exhibit 3, which reached him at t20 (refined rule 1: borderline).",
+  "note": "\"The split between sampling and advertising — that's not something I have.\" sampling_program says the sampling cost \"is in addition to the launch costs\" (none of the $4.5M is sampling); gated to Exhibit 3, which reached him at t20 (refined rule 1: borderline). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "The split between sampling and advertising — that's not something I have",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,

@@ -288,12 +288,16 @@
   "turn": 4,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"One more on your structure before I share that data: what might be missing from it?\" after t3 had answered it (batch 32's Tyler t4 again).",
+  "note": "\"One more on your structure before I share that data: what might be missing from it?\" after t3 had answered it (batch 32's Tyler t4 again). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "what might be missing from it",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -307,12 +311,16 @@
   "turn": 12,
   "sev": "borderline",
   "cls": "other",
-  "note": "Three questions in one turn, the probe split by a data line (\"Earlier you said a 40 percent rebate … In clinical trials … Walk me through that calculation. Separately, you gave Nimbrel's net price as roughly $8,650 … Then, with the trial comparison, …\").",
+  "note": "Three questions in one turn, the probe split by a data line (\"Earlier you said a 40 percent rebate … In clinical trials … Walk me through that calculation. Separately, you gave Nimbrel's net price as roughly $8,650 … Then, with the trial comparison, …\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "Separately,[^?]*\\?[^?]*Then,",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -401,12 +409,16 @@
   "turn": 34,
   "sev": "borderline",
   "cls": "rec_reask",
-  "note": "The recommendation asked a second time (t18, t34), as batch 32 Marcus t28.",
+  "note": "The recommendation asked a second time (t18, t34), as batch 32 Marcus t28. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "ask",
     "stage": "recommendation",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,

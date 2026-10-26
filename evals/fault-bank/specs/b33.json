@@ -6,7 +6,7 @@
   "turn": 14,
   "sev": "serious",
   "cls": "false_correction",
-  "note": "Code's own-quantity line put the right figure on the wrong quantity with \"not X\" on her own figure: \"In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 5.8.\" Her 5.8 was points of revenue (right figure 4.2). Lorenzo's round-4 ruling 1 fixed own-quantity on engine-asks (before the contract base). Replay finding (base): code now also says the revenue-terms line (\"… in points of revenue, is about 4.2 points, not 5.8\"), but the saved model say still carries the old sentence.",
+  "note": "Code's own-quantity line put the right figure on the wrong quantity with \"not X\" on her own figure: \"In COGS terms, bean inflation's contribution to the COGS increase is about 10 points, not 5.8.\" Her 5.8 was points of revenue (right figure 4.2). Lorenzo's round-4 ruling 1 fixed own-quantity on engine-asks (before the contract base). Replay finding (base): code now also says the revenue-terms line (\"… in points of revenue, is about 4.2 points, not 5.8\"), but the saved model say still carries the old sentence. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "src": "batch-33/hand-grading.md; lorenzo-ruling-2026-10-19 (round 4, ruling 1)",
   "a": [
    {
@@ -18,6 +18,10 @@
     "kind": "correction",
     "figure": "10 points",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -173,12 +177,17 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "stage_missed",
-  "note": "Code's analysis-stage question \"What's driving the margin drop …?\" after she had answered it at t5.",
+  "note": "Code's analysis-stage question \"What's driving the margin drop …?\" after she had answered it at t5. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "What's driving the margin drop",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
    }
   ],
   "rep": false,
@@ -192,12 +201,16 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Before any data comes out, what could you not rule out …\" in the same turn that released menu prices and showed the exhibit (reads contradictory).",
+  "note": "\"Before any data comes out, what could you not rule out …\" in the same turn that released menu prices and showed the exhibit (reads contradictory). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "Before any data comes out",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -234,12 +247,16 @@
   "turn": 10,
   "sev": "borderline",
   "cls": "other",
-  "note": "Two openings on one claim in one turn (\"Earlier you put the beans at 25 percentage points … You said beans were 25% of COGS. Points of what is that 25?\").",
+  "note": "Two openings on one claim in one turn (\"Earlier you put the beans at 25 percentage points … You said beans were 25% of COGS. Points of what is that 25?\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "Earlier you put the beans[^?]*You said beans",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,

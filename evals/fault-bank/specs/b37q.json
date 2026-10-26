@@ -322,12 +322,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"With that in hand, the Starter test is passed on the combined view.\" — true (4.7×), but it closed the model's own t12 probe on an unresolved defence of the 13.5 months.",
+  "note": "\"With that in hand, the Starter test is passed on the combined view.\" — true (4.7×), but it closed the model's own t12 probe on an unresolved defence of the 13.5 months. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "the Starter test is passed",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
@@ -466,12 +470,16 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "wrong_figure",
-  "note": "The model's \"…and trade-downs were only 30% of Starter sign-ups against the 500 Pro baseline.\" Read literally false (150 of 1,000 is 15%); with \"against the 500 Pro baseline\" it is the intended true point. Borderline false statement.",
+  "note": "The model's \"…and trade-downs were only 30% of Starter sign-ups against the 500 Pro baseline.\" Read literally false (150 of 1,000 is 15%); with \"against the 500 Pro baseline\" it is the intended true point. Borderline false statement. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
   "a": [
    {
     "kind": "says",
     "pattern": "30% of Starter sign-ups",
     "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
    }
   ],
   "rep": false,
