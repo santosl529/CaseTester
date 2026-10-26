@@ -221,3 +221,234 @@ The same file also checks what is retried, the backoff limits, and that the reco
 - **4.9:** should a received recommendation open the end gate, as it does now? Early finishers then close about 5 minutes earlier (b34a and b36a Jasmine close at about 10–11 minutes of 25). The alternative is to skip only the re-ask.
 - **4.8:** when the answer has already covered the mitigation, the first step and a checkpoint, what should close_wait ask? 15 turns in the replay.
 - **4.11:** the owned write uses a transaction through the Supabase pooler. Is one wave's scoring enough to confirm it, or do you want a check against the database first (no cost, but a DB read)?
+
+---
+
+# Review fixes (one round, 26 Oct)
+
+Branch `phase1-s4b-fixes`, continuing off 11f43917. The nine required items from the review (handoff.md, "Required
+before merging Stream 4b"). Every commit passes `npx vitest run` (245 files, 5,213 tests), `npx tsc --noEmit` and
+`npx eslint lib app components tests scripts db`. No API spend, no database access of any kind.
+
+| Commit | Items |
+|---|---|
+| 30772457 | 1 (clearRecommendation's false positives) and 2 (`recommendationOpensGate`) |
+| 456ce09e | 3 (the want cue's share denominators) |
+| ec0c9898 | 4 (close_wait's action test; the probe strip as a pool pattern) |
+| 0effe273 | 5 (the retry layers) and 6 (the route's budget) |
+| 0629a477 | 7 (the transaction's fallback) |
+| 2bb8464f | 8 (no rotated ack in front of a correction) |
+
+Item 9 (merge care for `score-session.ts`) is the lead's at merge; nothing to do here.
+
+## The replay
+
+`proof.sh` from this worktree, plus the b38 Larkspur slice (a scratchpad script with
+`REPLAY_FILTER=batch-38-larkspur-oct-21`): 30 slices. Output in
+`/Users/lorenzo/coding/personal-projects/CaseTester-proof-out/phase1-s4b-fix-*`, against the same base
+(`phase1-s4b-base`, the contract commit 0f932c89).
+
+| Label | `ENGINE_SWITCHES` |
+|---|---|
+| `phase1-s4b-fix-off` | none |
+| `phase1-s4b-fix-t410-on` | `*=ackRotation` |
+| `phase1-s4b-fix-on-narrow` | `*=wantCueBroad,closeWaitMitigation,recommendationReceived,ackRotation` |
+| `phase1-s4b-fix-on-gate` | the same **+ `recommendationOpensGate`** |
+
+**Switches off: byte-identical.** 0 changed interviewer lines and 0 changed checker decisions on all 30 slices —
+and, stronger than last round's claim, **all 225 `live-run-*.json` files (turns, session flags, revealed data,
+events, analytics) compare byte-for-byte equal to the base**, and all 14 `checker-replay.jsonl` files are equal
+once the timing fields are stripped. (The `.turns.jsonl.gz` mirrors differ only in the gzip header's timestamp.)
+
+**All four on (narrow 4.9): 1,176 changed lines, 0 changed decisions.** Every changed line classifies:
+
+| Class | Lines |
+|---|---|
+| Opening acknowledgment rotated (4.10) | 1,120 |
+| close_wait follow-up changed (4.8) | 53 |
+| Time warning's recommendation re-ask skipped (4.9 narrow) | 3 |
+
+The fact-check counts (F1 / F2-next / F2-rec / F3 / F4) are identical to the base on **every** slice, in both on
+arms. No new false refusal, wrong release or false correction.
+
+## 1 — `clearRecommendation`'s false positives (HIGH)
+
+**What changed** (`stall.ts`). The bare imperative read a noun or a subject as its verb. Three guards, as the review
+set out: the matched word is no imperative when a hyphen follows it, or a copula/auxiliary
+(`is|are|was|were|would|will|has|have|had|could|should|might|cost|costs`); the lookahead exclusions gain
+`the question|looking|digging|checking|exploring|open`; and a decision frame
+(`^(?:so,?\s*)?(?:my recommendation is|I'?d recommend|I recommend|we should)`) counts as an alternative to the bare
+imperative.
+
+**Tests** (`tests/orchestrator/recommendation-clear.test.ts`). All six sentences the review named are negatives, and
+all six returned `true` before the fix (verified by running the tests against the old code). The imperatives that had
+to keep working — "Keep Starter, and raise the price to $60." and "Partner for launch, with a path to build later." —
+are positives beside the five verbatim Quillpath replies, and four decision-frame sentences are new positives.
+24 tests in the file, all passing.
+
+**Residual risk I did not fix, because the review asked for the frame:** "We should probably get more data before I
+commit." matches the decision frame and is not a recommendation. With item 2's narrow default the only consequence is
+a time warning that doesn't re-ask for a recommendation, so I left it. Worth his eye.
+
+## 2 — narrow by default, wide behind a switch
+
+`recommendationReceived` now does only what the contract's 4.9 asks: it feeds `recJustGiven` to the time warning and
+**does not** touch `recommendationDelivered`. The wider reading is `recommendationOpensGate`, new in
+`PHASE1_SWITCHES`, off by itself and riding on `recommendationReceived`.
+
+**NOTE for the gate and the wave:** `ENGINE_SWITCHES='*=phase1'` means *every* switch, so it turns
+`recommendationOpensGate` **on**. Until Lorenzo rules for the wider reading, the gate and the wave want
+`'*=phase1,-recommendationOpensGate'`. (I added it to `PHASE1_SWITCHES` because the fix round asked for it there;
+flagging the consequence rather than quietly keeping it out of the list.)
+
+### The two arms, side by side
+
+| | narrow (`recommendationReceived`) | wide (+ `recommendationOpensGate`) |
+|---|---|---|
+| Changed interviewer lines | 1,176 | 1,161 |
+| Changed checker decisions | **0** | 2 (one claim) |
+| Time-warning rec re-asks skipped | 2 runs (b32 Larkspur Marcus t32, b37 Quillpath Marcus t32) | the same 2 |
+| Runs that close earlier | **none** | 5 |
+
+The wide arm's five earlier closes, by turn count (the replay carries no elapsed clock; the minutes are last round's,
+and the closes land on the same turn indices):
+
+| Run | Base | Wide | Exchanges lost | Last round's minutes |
+|---|---|---|---|---|
+| b34 Aldermoor Jasmine | 37 turns | 21 | 8 | 15.5 → 9.9 min |
+| b36 Aldermoor Jasmine | 39 turns | 25 | 7 | 15.0 → 10.9 min |
+| b35 Quillpath Raj | 39 turns | 29 | 5 | 25.5 → 17.8 min |
+| b37 Quillpath Raj | 41 turns | 35 | 3 | 25.9 → 21.3 min |
+| b37 Quillpath Tyler | 35 turns | 31 | 2 | 26.5 → 23.4 min |
+
+What is lost in those 25 exchanges is the model's post-recommendation pushback — the turns the compare report shows
+being replaced by a goodbye are all probes ("Your own numbers show build worth about twice what the partner royalty
+is. What would have to be true…", "On your claim that upgraders are worth $4,000 each: how did you get to that
+figure…"). Pushback is one of the eight rubric dimensions.
+
+The wide arm's 2 changed decisions are one claim, as last round: b37 Quillpath Raj 35:0 ("$5,200"),
+`unresolved_at_close` → a close-hold probe at t37. Neutral, and it follows the 16 Oct rule.
+
+**Open for Lorenzo.** Narrow is the default now. Wide is one switch away and costs the pushback evidence above.
+
+## 3 — the want cue's share (MEDIUM)
+
+Recomputed from the corpus, not taken from the review: 111 runs, batches 28–38, counting a turn where the message
+asks only through a want cue, on a **model** turn (`startMessageAsks` returns `null` on any other kind), in
+`WANT_ASK_PHASES`.
+
+| Denominator | Turns | Share of the 25 calls |
+|---|---|---|
+| Candidate turns | 1,455 | 1.72% |
+| **Model turns** (where the call can fire) | 1,100 | **2.27%** |
+| **Want-phase model turns** (where this cue can fire) | 791 | **3.16%** |
+
+**Plainly: the ~2% cap is met on candidate turns and is not met on either denominator where the call can fire** —
+2.27% on model turns, a shade over, and 3.16% inside the phases. All three are now in the code comments
+(`request-signal.ts`, `turn-data.ts`) and this is Lorenzo's to rule.
+
+## 4 — close_wait's action test (MEDIUM)
+
+**What changed** (`close-hold.ts`). `CLOSE_WAIT_ACTION` is five parts now, and the answer must do something:
+an -ing/-ed form of an action verb; the verb under a decision frame within ~3 words; a thing put in place
+(`put|set|build|add|run|hold|lock` + `tripwire|checkpoint|gate|trigger|control|go/no-go`); one of the headers
+(`next steps`, `first step`, `what I'd do`, `Mitigation:` / `Protection:`); **or** — past the review's rule — the verb
+in clause-initial imperative position with an object.
+
+**Two deviations from the review's literal rule, both reported rather than slipped in:**
+- the **clause-initial imperative** ("; stage the 60 reps", "Then phase it", "Gate full rollout"). Without it two of
+  the six verbatim re-asks 4.8 exists to fix — b36 Aldermoor Raj t33 and b38 Larkspur Tyler t29 — come back. It
+  cannot re-admit the review's false positives: neither "board **test** is on net sales" nor "a net-price-times-share
+  **test**" is clause-initial.
+- `Mitigation` / `Protection` as a header takes a comma as well as a colon, because b38 Larkspur Tyler t29 writes
+  "Mitigation, in order:".
+
+`CLOSE_WAIT_SAID_FIRST`'s bare `first` is tightened exactly as the review set out (sentence-initial, `first[,:]`,
+"the first step/thing/move", "start(ing) with"); I also narrowed `begin\w*` to "begin with / by" for the same reason,
+which the review didn't name.
+
+**The probe strip** (`phrasing.ts withoutCloseWaitLines`) is a pattern over the `after_risk` / `first_step` /
+`measure` pools instead of a literal case-sensitive split, so re-wrapping or recasing a close_wait question can no
+longer silently break it. Both number-word spellings are kept.
+
+**Replay.** The close_wait changed-turn count goes **62 → 53**. Nine turns go back to the base line entirely:
+
+| Turn | It had been |
+|---|---|
+| b32 Aldermoor Marisol t30 | after_risk → first_step — **the "$300 million board test" the review named** |
+| b32 Aldermoor Marcus t24 | after_risk → first_step — the other fair mitigation ask the last round lost |
+| b28 Marcus t20 | after_risk → first_step |
+| b29 Raj t20 | first_step → measure |
+| b29 Fiona t16 | after_risk → measure |
+| b33 Sofia t20 | after_risk → first_step |
+| b33 Marcus t18 | after_risk → measure |
+| b33 Fiona t18 | after_risk → measure |
+| b34 Aldermoor Marcus t22 | first_step → measure |
+
+Three more are half-tightened — the mitigation ask is still skipped, the first-step line no longer is, so they stop at
+`first_step` instead of `measure`: b28 Raj t20, b30 Fiona t16, b30 Omar t16.
+
+**Of the 15 shifted re-asks the last round flagged, 11 remain** (b34a Raj t26, b34l Marcus t28, b35h Raj t28, b35q
+Jasmine t22, b36a Raj t34, b36l Marcus t24, b37h Raj t32, b37q Marisol t32, b32 Larkspur Raj t26, b32 Aldermoor
+Jasmine t26, b30 Owen t16) and **4 are gone** (b29 Fiona t16, b29 Raj t20, b33 Fiona t18, b33 Marcus t18). The open
+question for Lorenzo — what close_wait should ask when the answer has already covered the mitigation, the first step
+and a checkpoint — still stands, on 11 turns rather than 15.
+
+New transition table (53): after_risk → measure 25, first_step → measure 24, after_risk → first_step 4.
+0 changed checker decisions, so the probe-count fix still holds (b31 Sofia t25's claim stays `unresolved_at_close`).
+
+## 5 — the retry layers (MEDIUM)
+
+**Chosen: drop the 429 / 5xx branch from `isStreamDeath`**, not `maxRetries: 0` on the three calls. Reason: the SDK's
+own retry is the better one for those — `shouldRetry` honours `x-should-retry` and Retry-After and covers 408, 409,
+429 and every 5xx, twice by default — and `maxRetries: 0` would have thrown that away, plus its pre-stream connection
+retries, to buy nothing. What the SDK cannot retry is the request that already succeeded: the socket dropping
+mid-stream, and the `error` SSE event, which `core/streaming.js` throws as an `APIError` with **no HTTP status**.
+
+A trap the review didn't name and the first draft would have fallen into: an HTTP 500's body also carries
+`error.type: "api_error"`, so the old mid-stream branch would have re-admitted every 5xx through the back door. The
+branch is now guarded on a missing status.
+
+Worst case for one 429 goes from 9 HTTP attempts plus 10 s of our own sleeps to the SDK's 3.
+
+## 6 — the route's budget (MEDIUM)
+
+`withStreamRetry` takes a deadline (`deps.deadlineAt`, or the pass's own) and skips a retry whose backoff plus
+another call as long as the one that just died would run past it. `scoreAndStore` sets it with `withScoringDeadline`
+around `compute`: `SCORING_BUDGET_MS` is 240 s, inside the route's `maxDuration = 300`. It is an
+`AsyncLocalStorage`, as `lib/analytics.ts`'s draft scope, because one process can score two sessions at once and a
+module-level deadline would be the wrong one. Tests cover the late death (2 attempts, not 3), the quick death inside
+the budget (3), and the deadline arriving from the pass rather than the caller.
+
+## 7 — the transaction's runtime risk (MEDIUM)
+
+`storeIfClaimed` keeps the transaction and falls back, on an unexpected failure, to the same token-checked
+conditional write without it. The fallback loses the row lock — a concurrent claimer could slip between the check and
+the insert instead of blocking on the commit — and keeps the money: the alternative is a 500 after all three Opus
+passes are paid, and a client retry that pays for them again. **Once `write` has run the error always stands**, so
+nothing is ever written twice; that also covers the review's "never on `ClaimLostError`", since a lost claim returns
+`false` rather than throwing (and importing that error here would be a cycle).
+
+`tests/scoring/store-if-claimed.test.ts`, 5 cases with a mocked db: the transaction path, a lost claim, the fallback,
+the fallback's own claim check, and a failure after the write. **No database was touched.** The SQL itself is still
+unverified against Postgres — his open question stands, but it is no longer a question that can cost $0.60 a session.
+
+## 8 — a rotated ack before a correction (LOW)
+
+A turn that carries a correction code writes keeps the model's own opening word. The predicate is `turnCorrects` in
+`stream-turn.ts` (a misquote, a correcting or restating checker line, a stage checker line, or a correcting recMath
+probe); both the Stream and the Settle path pass it to `rotateOpeningAck`. It sits in `stream-turn.ts` rather than
+`plan-turn.ts` so that plan-turn — and so `db/client` — stays out of the module graph of the eight test files that
+read stream-turn's say-level helpers.
+
+`rotateOpeningAck` now replaces only the opening sentence and keeps everything after it exactly as it came, so the two
+paths cannot drift on whitespace either. A test runs the same says through both paths and compares.
+
+**Replay** (`*=ackRotation` alone, against the base): **1,136 → 1,120 changed lines**. The 18 turns that stop rotating
+are all on checker-on slices and all on the misquoter / confuser personas — b28 Jordan t20, b28/b29/b30/b31 Tyler
+(t14, t8, t10, t16, t8, t16), b32 Marisol t14 and t20, b32 Tyler t12, b33 Jordan t10, b35q Marisol t12, b35q Tyler t8,
+b37q Raj t20 and t28, b37q Jasmine t12 and t16. Two turns newly rotate (b37q Raj t26, b37q Jasmine t24): the pool's
+use history shifted, and a turn that used to land back on "Understood." now lands on "Mm-hm.".
+
+The rotation still does its job with the four switches on: **"Understood." openers 511 → 254** of 1,571 interviewer
+turns, **consecutive same-acknowledgment pairs 140 → 0**.
