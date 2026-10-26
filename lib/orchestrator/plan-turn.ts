@@ -520,7 +520,13 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const convertedSteps = new Set(((flags.mathChecker as Partial<CheckerMemory> | undefined)?.closed ?? []).filter(k => k.startsWith(CONVERTED)).map(k => k.slice(CONVERTED.length)));
   // Phase 1 task 3 (the `rootLineage` switch, on a case whose steps declare dependsOn): at most two probes per lineage —
   // a step's probes are its lineage's, summed (worksheet.ts lineageOf). Off: per step, as before.
-  const lineageOn = switchOn(caseData, 'rootLineage') && stepRootsDeclared(caseData);
+  // Review I6 (Stream 3 review, 22 Oct): the lineage rules run only on a case whose OWN file authored its lineage — it
+  // declares an input question, which no overlay can add (pricing-001, validated in round 6). An overlay's merged
+  // dependsOn is data no one has validated yet: on prof-001 it groups steps off the same ledger lines rather than a
+  // chain, so linking there would silence errors that cannot be inherited at all. Same pattern as `stepFlagsLive` and
+  // `ledgerLookupLive`: the behaviour waits for the case's data to be checked. (Report: proposed, for Lorenzo.)
+  const lineageAuthored = caseData.mathSteps.some(st => st.inputQuestion !== undefined);
+  const lineageOn = switchOn(caseData, 'rootLineage') && stepRootsDeclared(caseData) && lineageAuthored;
   const probesOn = (step: string) => (lineageOn && caseData.mathSteps.some(st => st.id === step)
     ? lineageOf(caseData, step).members.reduce((n, m) => n + (stepProbes[m] ?? 0), 0) : stepProbes[step] ?? 0);
   const cappedFlags = recomputeFlags.filter(f => wouldProbe(f) && (probesOn(f.stepId) >= STEP_PROBE_CAP || convertedSteps.has(f.stepId)));
@@ -532,7 +538,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // no overlay can add (pricing-001) — or with the `rootLineage` switch (Phase 1 task 3; the Stream 2 review, 22 Oct:
   // the overlay's dependsOn, merged under `stepLineage`, must not turn round 6's roots on for prof-001, prof-002,
   // entry-001 and launch-001 by itself).
-  const rootsOn = stepRootsDeclared(caseData) && (lineageOn || caseData.mathSteps.some(st => st.inputQuestion !== undefined));
+  const rootsOn = stepRootsDeclared(caseData) && lineageAuthored;
   // Under rootLineage a dependent claim links to its root only when it inherits the root's wrong value (lineageInherits).
   const rootInherits = lineageOn ? lineageInherits(caseData, [
     ...checkerRows.filter(r => r.subtype === 'verdict').map(r => r.payloadJsonb as VerdictPayload).filter(v => v.candidateTurnIndex < ctx.nextTurnIndex)

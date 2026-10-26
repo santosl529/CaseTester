@@ -276,9 +276,17 @@ const HYPOTHETICAL_SPAN = /\b(?:would|could|might|if|suppose|say|assum\w*|closer
 // steps carry the lifetime error by its margin, not by the LTV, and Raj's $1,175 at $60 read as independent.)
 // `stated`: the step statements known (the checker's tagged claims, this message's bindings), with their message.
 export function lineageInherits(c: { mathSteps: unknown[] }, stated: { stepId: string; value: number; n: number }[]): StepInherits {
-  const steps = rootStepsOf(c);
+  const steps = rootStepsOf(c) as (RootStepDef & { inputs?: string[] })[];
   const rightOn = (id: string, x: number) => { const st = steps.find(y => y.id === id); return st !== undefined && [st.answer, ...(st.altAnswers ?? [])].some(a => Math.abs(Math.abs(x) - Math.abs(a)) <= (st.tolerance ?? 0) + 1e-9); };
+  // Review I6: a step can only inherit the root's wrong value if it is computed from what the root is computed from —
+  // a necessary condition code can check from the case's own data, the steps' declared ledger `inputs`. A "lineage"
+  // that only groups steps sharing a theme (siblings off the same lines, not a chain) fails it, and nothing is linked
+  // or silenced there. It is necessary, not sufficient: the authored lineage still has to be validated per case
+  // (plan-turn only runs this on a case whose own file declares it).
+  const inputsOf = (id: string) => new Set(steps.find(x => x.id === id)?.inputs ?? []);
+  const computedFrom = (step: string, rootStep: string) => { const d = inputsOf(step); return [...inputsOf(rootStep)].every(i => d.has(i)); };
   return (r, step, _own, n) => {
+    if (!computedFrom(step, r.step)) return false;
     const between = [...stepDependents(c, r.step)].filter(id => id !== step && stepDependents(c, id).has(step));
     return !stated.some(x => rightOn(x.stepId, x.value) && x.n <= n
       && ((x.stepId === r.step && x.n === n) || (between.includes(x.stepId) && x.n >= r.since)));
@@ -1385,27 +1393,35 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const st = rootStepsOf(p.caseData).find(x => x.id === r.step) as (RootStepDef & { unit?: string | string[] }) | undefined;
     if (!st) return null;
     // Q1 (Lorenzo, 22 Oct): the checker must have rated the root, or a claim in its lineage, an error — flagged or not.
+    // A hypothetical is no rating of what they hold (b37q Marcus t19, "…would put the lifetime nearer 20 months and LTV
+    // around $600", while he kept his 14 months — the controller's 21 Oct ruling on the r6-final replay).
     const lineage = new Set([r.step, ...stepDependents(p.caseData, r.step)]);
     const inLineage = (c: CheckerClaim) => c.codeQuantity.kind === 'step' && lineage.has(c.codeQuantity.stepId ?? '');
-    const evidence = e.c.verdict === 'error' ? { id: e.id }
+    const rated = (c: CheckerClaim) => c.verdict === 'error' && !HYPOTHETICAL_SPAN.test(c.span);
+    const evidence = rated(e.c) ? { id: e.id }
       : verdicts.flatMap(v => v.claims.map((c, i) => ({ id: `${v.candidateTurnIndex}:${i}`, c })))
-        .find(x => x.c.verdict === 'error' && inLineage(x.c));
+        .find(x => rated(x.c) && inLineage(x.c));
     if (!evidence) return null;
-    // The root's value still theirs: the latest of the checker's claims on R since the root (any rating) is at v — not
-    // a figure they have moved off (b37q Tyler a2a5921b: $700 at t5, "$28 margin × 20 = $560" at t13; "not $700" at t28
-    // would have corrected a figure he no longer held).
-    // A hypothetical doesn't count (b37q Marcus t19, "…which would put the pure-Starter lifetime nearer 20 months and LTV
-    // around $600", while he kept his 14 months — the controller's 21 Oct ruling on the r6-final replay).
+    // Review C1 (Stream 3 review, 22 Oct; b35q Marcus 7e69eda5 t30 corrected starter_ltv at $400 — a figure that came
+    // only from the step binder, while the checker had rated his $600 correct): the root's value must be the
+    // CANDIDATE's, said in the checker's own words — a non-hypothetical claim on step R at v, from the root's message
+    // on. The binder's binding alone never licenses a correction, the same rule task 1 applies to the worksheet
+    // (`stepFlagsLive`). This also pins b37q Tyler's false `pro_ltv@288` binding (§15): no claim of his puts Pro LTV at
+    // his CAC, so no line.
+    const atV = (x: number) => Math.abs(x - r.value) <= Math.max(st.tolerance ?? 0, Math.abs(r.value) * 0.02);
     const onR = verdicts.filter(v => v.candidateTurnIndex >= r.since).flatMap(v => v.claims.filter(c => c.codeQuantity.kind === 'step' && c.codeQuantity.stepId === r.step && !HYPOTHETICAL_SPAN.test(c.span)).map(c => ({ n: v.candidateTurnIndex, figs: claimFigures(c) })));
-    const latestOnR = onR.sort((a, b) => a.n - b.n).at(-1);
-    if (latestOnR && !latestOnR.figs.some(x => Math.abs(x - r.value) <= Math.max(st.tolerance ?? 0, Math.abs(r.value) * 0.02))) return null;
+    if (!onR.some(x => x.figs.some(atV))) return null;
+    // …and still theirs: the latest of those claims is at v, not a figure they have moved off (b37q Tyler a2a5921b:
+    // $700 at t5, "$28 margin × 20 = $560" at t13 — "not $700" at t28 would correct a figure he no longer held).
+    const latestOnR = onR.sort((a, b) => a.n - b.n).at(-1)!;
+    if (!latestOnR.figs.some(atV)) return null;
     // …nor withdrawn in a message since (b38 Larkspur Marisol 19: "Across 5,000 flights: $10.0M, not $14.0M").
     if (rl.rootStale?.(r.step, r.value, r.since)) return null;
-    // "Probe only the root" first: the lineage's first line is a probe at the root — its input question, or the checker's
-    // probe of R — and only then does code correct it. The cap (STEP_PROBE_CAP, counted across the lineage) stops a
-    // third probe; requiring the whole budget before the correction starved the chain on the replay (b37q Raj: one
-    // input question, then no step probe ever, so eight derived claims went to the report with no line at all).
-    if (rl.probes(r.step) < 1) return 'wait';
+    // The contract's budget (review I2, back to it): "at most 2 probes per lineage, then one correction at the root" —
+    // the lineage's probes spent (counted across its members), and (review I1) the root at v probed itself, so code
+    // never corrects a figure it never asked about. A probe elsewhere in the lineage, or on the same step at another
+    // value, licenses nothing. (Stream 3's preference for one probe is in the report, proposed, awaiting Lorenzo.)
+    if ((p.attempts[key] ?? 0) < 1 || rl.probes(r.step) < STEP_PROBE_CAP) return 'wait';
     const unit = (Array.isArray(st.unit) ? st.unit[0] : st.unit) ?? '';
     const v = r.value;
     const said = unit === 'usd' ? `$${v.toLocaleString('en-US', { maximumFractionDigits: 2 })}` : unit === 'percent' ? `${v}%` : unit === 'points' ? `${v} points` : unit === 'ratio' ? `${v}x` : String(v);
@@ -1415,7 +1431,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const definition = rl.definitionOf?.(r.step)?.trim();
     const line = definition ? `${/[.!?]$/.test(definition) ? definition : `${definition}.`} ${written.line}` : written.line;
     const sel: CheckerSelection = { id: e.id, candidateTurnIndex: e.n, key, attempt: (p.attempts[key] ?? 0) + 1, action: 'correct', line, derived: [written.figure], claim: { ...claim, correctionLine: line, correctionFigure: written.figure },
-      framing: `the root's correction (rootLineage): ${rk}, the checker's error on ${evidence.id}; ${rl.probes(r.step)} probe(s) on its lineage` };
+      framing: `the root's correction (rootLineage): ${rk}, the checker's error on ${evidence.id}; ${rl.probes(r.step)} probe(s) on its lineage, ${p.attempts[key] ?? 0} at the root` };
     if (saidOnce(sel)) return null;
     // Booked as the root's one correction (derivedOnce, keyed step:R): one error, one count — a claim on the old root
     // after it goes to the report.
