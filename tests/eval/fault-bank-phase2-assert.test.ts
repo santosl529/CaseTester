@@ -33,3 +33,15 @@ describe('subAsk assertion', () => {
     expect(evaluateRecord(r, [turn([seg('say', 'Ok.')])], { lines: {} }).pass).toBe(false);
   });
 });
+
+describe('answered with wontResolves (session-1 ruling 2)', () => {
+  const t = (n: number, text: string): BankTurn => ({ ...turn([seg('data', text)]), turnIndex: n - 1 });
+  it('a deferral closed by "We won\'t get to …" resolves only when the record allows it', () => {
+    const turns = [t(20, 'I\'ll come back to the passenger mix shortly. What else?'), t(22, 'Go on.'), t(24, 'We won\'t get to the passenger mix today. What would you recommend?')];
+    const strict = rec([{ kind: 'answered', about: 'mix', accept: ['refusal', 'deferral'], must: true }]);
+    const loose = rec([{ kind: 'answered', about: 'mix', accept: ['refusal', 'deferral'], wontResolves: true, must: true }]);
+    expect(evaluateRecord(strict, turns, { lines: {} }).pass).toBe(false);
+    expect(evaluateRecord(loose, turns, { lines: {} }).pass).toBe(true);
+    expect(evaluateRecord(loose, turns.slice(0, 2), { lines: {} }).pass).toBe(false);
+  });
+});

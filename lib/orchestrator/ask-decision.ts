@@ -9,7 +9,8 @@
 //   R2 a model-named item that matches is kept — the line test (the candidate's words share a key noun with the item's
 //      own words, or a cover hits) and not a sibling quantity; a scope rule that only says it is coarser keeps it and
 //      refuses the cut beside it (E1). A tag mismatch is logged and the item still released (Q3: log only);
-//   R3 a Haiku positive that passes the tag gate — `partial` with its missing part as the cut;
+//   R3 a Haiku positive that passes the tag gate — `partial` with its missing part as the cut; a CLEAR tag mismatch
+//      on every Haiku item, with nothing else matching, is R6's evidence (session-1 ruling 2); an uncertain one defers;
 //   R4 a deterministic match (covers, names, detections, the case's groups) that passes the tag gate;
 //   R5 already out — point (S1 decides point vs not; which form — the exhibit's summary, the line when the figure is
 //      asked, the name when said recently — is 4.1's restateRules today and is ported in S6);
@@ -93,21 +94,87 @@ const normWords = (s: string) => s.replace(/\s+/g, ' ').trim().toLowerCase();
 // sub-ask; nor is a purpose or contrast clause after it ("… to see whether the discounting is concentrated", "not an
 // assumption"). Words that only frame an ask carry no key noun of a quantity.
 const FRAME_LEAD = /^(?:(?:so|and|also|then|ok(?:ay)?|yes|great|first|second|third|next|finally|to start|to begin|plus)\b[,:]?\s*)+|^(?:(?:what\s+)?i'?d\s+(?:want|need|like|confirm|check|ask)(?:\s+to\s+(?:know|see|confirm|understand|check))?(?:\s+(?:on|is)\b[^:—]{0,40}[:—–-])?|one thing(?: i'?d want| that would help me[^:—]{0,40})?\s*[:—–-]|(?:yes,?\s+)?please share those\s*[:—–-]|can we start with[^—:]{0,40}[:—–-])\s*/i;
-const PURPOSE = /^(?:to (?:see|confirm|check|test|understand|know|figure|size|build)|so (?:i|we) can|(?:i|we) can (?:see|tell|check|judge)|so that|since|because|but|not (?:an?|the|just)\b|or equivalently|to start|to begin)\b/i;
-const FRAME_NOUNS = new Set(['start', 'begin', 'confirm', 'assumption', 'bucket', 'thing', 'help', 'size', 'build']);
+const PURPOSE = /^(?:to (?:see|confirm|check|test|understand|know|figure|size|build|find|identify|tell)|(?:i'?d|i will|i'?ll|i would)\s+(?:check|look|test|expect|assume|then)|so (?:i|we) can|(?:i|we) can (?:see|tell|check|judge)|so that|since|because|but|not (?:an?|the|just)\b|or equivalently|to start|to begin)\b/i;
+const FRAME_NOUNS = new Set(['start', 'begin', 'confirm', 'assumption', 'bucket', 'thing', 'help', 'build']);
 const asked = (t: string) => [...keyNouns(t)].some(n => !FRAME_NOUNS.has(n));
 
-// The sub-asks of an asking sentence: its clauses, each split as a list unless it asks for a split.
+// Splitter v2 (Lorenzo, 27 Oct, session-1 ruling 1: ≥90% real asks on a labelled sample before an undeclared sub-ask
+// may speak; evals/splitter/). Only a sentence that asks for data yields sub-asks — a question to the interviewer or a
+// stated want of data — not a list item carried on from one ("Third, external factors: …"), a self-question ("Is it
+// input prices … or volume?", "Should I dig into …", "Can I start with the revenue side?") or a question about the
+// interviewer's own working. A purpose or condition tail is cut first ("…, so I can model …", "— if beans are the
+// issue, …"). A list item that only qualifies its neighbour ("versus walk-up", "after January 2025", "separate from
+// the $80M annual", "at what fare") or names only an entity ("Port Avery") stays with it; "10,000" is one number.
+const ASKS_DATA = /\?|\b(?:i'?d|i would)\s+(?:also\s+)?(?:want|need|like)\b|\b(?:can|could)\s+(?:i|we)\s+(?:get|see|have)\b|\bdo we (?:have|know)\b|\bplease share\b|\bwhat i'?d want\b|\bone thing i'?d\b/i;
+const SELF_QUESTION = /^(?:(?:so|and|but|ok(?:ay)?|first|second|third|next)[,:]?\s+)?(?:what i (?:was|am|'?m|did)\b|what i'?d (?:test|check|do|try)\b|what'?s missing\b|is (?:it|this|that)|are (?:we|they)|should (?:i|we)|can i (?:start|ask|go|begin)|could you (?:tell|walk|remind) me (?:which|how|why)|what'?s driving|why (?:is|does|did)|would (?:it|that) be|does (?:that|this) mean|am i)\b/i;
+const NOT_DATA_Q = /\b(?:which base|your (?:base|number|figure|calculation)|you(?:'re| are) using|did i (?:get|miss)|is that (?:right|correct|mece)|makes? sense)\b/i;
+const TAIL_CUT = /(?:,|\s+—|\s+–)?\s+(?:so (?:that )?(?:i|we) (?:can|could)|so i'?d|because|since|to (?:see|confirm|size|check|test)(?: (?:whether|if|which|how|the|that|exactly)\b.*)?$|\s+to (?:see|confirm|size|check|test)|before (?:i|we) (?:recommend|go|commit)|rather than|which (?:hits|means|would))\b.*$|\s+[—–]\s+(?:if|because|since|so)\b.*$|,\s+if\b.*$/i;
+const QUALIFIER_LEAD = /^(?:versus|vs\.?|(?:\d+|one|two|three) years? ago|today\b|or (?:just|one|two)|before|after|then|separate(?:ly)?|when\b|at what|for (?:both|each)|in each|each|as a (?:percent|share)|ideally|specifically|and how it moved|by (?:month|year|route|plan))/i;
+const NUM_COMMA = /(\d),(?=\d{3}\b)/g;
+// Where the ask starts: an ask cue's object, or a question's own opener. Text before the cue is the candidate's
+// reasoning ("The obvious lever is raising prices, but before I recommend magnitude I'd want …"); a cue whose object is
+// a pronoun points back ("Breakeven: Port Avery's variable cost per flight — I'd need that directly"), so the ask is
+// what comes before it.
+const ASK_CUE = /\b(?:(?:i'?d|i would)\s+(?:also\s+)?(?:want|need|like)(?:\s+now)?(?:\s+to\s+(?:know|see|understand|get|confirm))?|(?:can|could)\s+(?:i|we)\s+(?:get|see|have)|do we (?:have|know)|is there (?:any|a)|please share)\b\s*(?:is\b\s*)?:?\s*/i;
+const Q_OPENER = /^(?:do|does|did|is there|are there|how|what|which|when|where|who|has|have|any|can|could|would|will)\b/i;
+const POINTS_BACK = /^(?:that|this|it|those|these)\b/i;
+// "the one I'd want hardest", "what I'd want first": the cue is inside a statement, not an ask.
+const NOT_AN_OBJECT = /^(?:hardest|most|more|less|first|next|to (?:do|avoid|be))\b/i;
+const RHETORICAL_TAIL = /\s+[—–]\s+(?:is|are|did|does|do|was|were)\s+(?:this|it|they|that|there)\b.*$/i;
+// A dash that opens an explanation (a clause with its own verb): "how they're classifying — a lot of chains book …".
+const DASH_EXPLAIN = /\s+[—–]\s+(?=(?:[\w'’$%.,-]+\s+){0,5}?(?:is|are|was|were|book|books|has|have|had|means|could|would|will|tends?|feels?)\b)[^—–?]*$/i;
+// A list item: split at commas; at "and" / "plus" only before a new noun phrase or clause; never at "or" (an
+// alternative is the same ask).
+const AND_SPLIT = /\s+(?:and|plus)\s+(?=(?:whether|what|how|which|when|where|if|the|their|its|our|a|an|any|do|does|is|are)\b)/i;
+// An enumeration of one ask's parts ("a cost breakdown — COGS, labor, rent, marketing, overhead —", "into its
+// components: beans, dairy, packaging, food") is one sub-ask: three or more short items in a row.
+const ENUMERATION = /(?:[—–:]\s*|\binto\s+)(?:[^,—–:?]{1,20},\s*){2,}(?:and\s+|or\s+|plus\s+)?[^,—–:?]{1,20}(?=\s*[—–?.]|\s*$|,\s*(?:and|ideally|plus)\b)/i;
+// A tail that explains rather than asks: ", which determines …", ", especially …", ", e.g. …", ", built up from …".
+const EXPLAIN_TAIL = /,\s+(?:which|especially|built|e\.g|i\.e|not just|not the|so)\b.*$/i;
+function listItems(text: string): string[] {
+  const t0 = text.replace(EXPLAIN_TAIL, '').replace(/^on [^:]{1,40}:\s*(?:first,?\s*)?/i, '');
+  // Protect an enumeration and an alternative (", or …") from the comma split.
+  const enumM = ENUMERATION.exec(t0);
+  const t1 = enumM ? t0.replace(enumM[0], enumM[0].replace(/,/g, '\u0000')) : t0;
+  const t = t1.replace(/\([^)]*\)/g, m => m.replace(/,/g, '\u0000'));
+  return t.split(/,(?!\s*or\b)\s*(?:and\s+|plus\s+)?/).flatMap(x => x.split(AND_SPLIT)).map(x => x.replace(/\u0000/g, ','))
+    .map(x => x.replace(/^[:—–\s-]+|[\s—–-]+$/g, '').replace(/^(?:or|and|also|ideally|crucially)\s+/i, '').replace(/^while we wait\s*[—–-]\s*/i, '').trim()).filter(Boolean);
+}
 export function subAskTexts(sentence: string): string[] {
-  const body = sentence.trim().replace(FRAME_LEAD, '').replace(/^[:—–\s-]+/, '');
-  return askClauses(body).flatMap(c => {
-    const parts = (SPLIT_LIKE.test(c) ? [c] : askGroups(c, { list: true }).map(g => g.text.trim())).map(t => t.replace(FRAME_LEAD, '').trim());
+  const raw = sentence.trim();
+  if (!ASKS_DATA.test(raw) || NOT_DATA_Q.test(raw)) return [];
+  // A cue inside a quotation is the quoted speaker's ("not sure I'd like the taste").
+  const cue = ASK_CUE.exec(raw.replace(/[“"][^”"]*[”"]/g, m => ' '.repeat(m.length)));
+  let body: string;
+  if (cue) {
+    const after = raw.slice(cue.index + cue[0].length);
+    if (NOT_AN_OBJECT.test(after)) return [];
+    body = POINTS_BACK.test(after) ? raw.slice(0, cue.index).replace(/^[^:]{0,40}:\s*/, '') : (/^(?:do we|is there|please)/i.test(cue[0]) ? raw.slice(cue.index) : after);
+  } else {
+    const q = raw.replace(FRAME_LEAD, '').replace(/^[:—–\s-]+/, '');
+    if (!raw.includes('?') || SELF_QUESTION.test(q) || !Q_OPENER.test(q)) return [];
+    body = q;
+  }
+  if (SELF_QUESTION.test(body)) return [];
+  body = body.replace(NUM_COMMA, '$1').replace(RHETORICAL_TAIL, '').replace(DASH_EXPLAIN, '').replace(TAIL_CUT, '').replace(/[?.!]+$/, '').trim();
+  const caseless = (t: string) => [...keyNouns(t)].filter(n => !FRAME_NOUNS.has(n));
+  return body.split(/;\s*|\?\s*/).flatMap(c => {
+    const parts0 = SPLIT_LIKE.test(c) && !/,/.test(c) ? [c.trim()] : listItems(c);
     // Everything from a purpose clause on is the purpose ("… to see whether it is concentrated on one or two routes").
-    const at = parts.findIndex(t => PURPOSE.test(t));
-    return (at < 0 ? parts : parts.slice(0, at)).filter(asked);
+    const at = parts0.findIndex(t => PURPOSE.test(t));
+    const parts = at < 0 ? [...parts0] : parts0.slice(0, at);
+    const merged: string[] = [];
+    // A leading prepositional phrase ("of the 20% who upgrade, are they …") belongs to the item after it.
+    if (parts.length > 1 && /^(?:of|for|among|on|in)\s+the\b/i.test(parts[0])) parts.splice(0, 2, `${parts[0]}, ${parts[1]}`);
+    for (const t of parts) {
+      const bareName = /^[A-Z][\w’'-]*(?:\s+[A-Z][\w’'-]*)*$/.test(t);
+      const tiny = caseless(t).length === 0 || t.split(/\s+/).length <= 1 || (/^how\b/i.test(t) && t.split(/\s+/).length <= 3);
+      if (merged.length > 0 && (QUALIFIER_LEAD.test(t) || bareName || tiny)) merged[merged.length - 1] = `${merged[merged.length - 1]}, ${t}`;
+      else merged.push(t);
+    }
+    return merged.filter(asked);
   });
 }
-
 const overlap = (a: string, b: string, names: string[]) => { const x = keyNouns(b, names); return [...keyNouns(a, names)].filter(n => x.has(n)).length; };
 
 export function buildSubAsks(sentences: string[], model: DeclaredRequest[], detections: { what: string; ledgerItemIds: string[] }[], caseNames: string[], resolve: (raw: string) => string | null): SubAsk[] {
@@ -182,6 +249,14 @@ export async function shadowAskDecision(x: ShadowInput): Promise<ShadowDecision>
   const tagOk = (sa: SubAsk, id: string) => {
     const text = sa.sentence ? `${sa.words}\n${sa.sentence}` : sa.words;
     return (!fb.answerGate || tagsAgree(text, id, fb).agree) && itemTagsAgree(askTags(sa.words, sa.sentence ?? '', fb), tagged(id)).agree;
+  };
+  // Rule 3 refined (Lorenzo, 27 Oct, session-1 ruling 2): a tag mismatch is CLEAR when the sub-ask's own words say it
+  // (an entity, period or quantity kind the item's tags don't carry); one that only the rest of the candidate's
+  // sentence brings in is UNCERTAIN. A clear one with nothing else matching is a true refusal (R6); uncertain defers.
+  const tagReject = (sa: SubAsk, id: string): 'clear' | 'uncertain' | null => {
+    if (tagOk(sa, id)) return null;
+    const own = (!fb.answerGate || tagsAgree(sa.words, id, fb).agree) && itemTagsAgree(askTags(sa.words, '', fb), tagged(id)).agree;
+    return own ? 'uncertain' : 'clear';
   };
   const scoped = (sa: SubAsk, id: string): 'in' | 'coarse' | 'sibling' => {
     const item = itemOf(id);
@@ -344,11 +419,14 @@ export async function shadowAskDecision(x: ShadowInput): Promise<ShadowDecision>
 
     // R6 / R7: nothing matches.
     const checkedNone = verdictsOf.some(v => v.mapped === false);
+    const haikuIds = [...new Set([...haikuFull, ...haikuPartial.map(p => p.id)])].filter(inLedger);
+    const rejections = haikuIds.map(id => tagReject(sa, id));
+    const tagRefused = haikuIds.length > 0 && rejections.every(r => r === 'clear');
     const modelRefused = x.modelWords.flatMap(sentencesOf).some(s => MODEL_REFUSES.test(s) && overlap(s, sa.words, caseNames) > 0);
     const deterministicCut = covered.dropped.some(d => d.why === 'region') || gateParts.length > 0;
     const vetoed = findFalseRefusals(`I don't have ${sa.words}.`, fb, new Set([...ledger.revealed, ...given]), { covers: true }).length > 0;
     const stated = [...given].some(id => { const i = itemOf(id); return i ? statesAsked(sa.words, { label: i.label, value: i.value }, caseData.dataLedger) : false; });
-    const evidence = checkedNone || modelRefused || deterministicCut;
+    const evidence = checkedNone || modelRefused || deterministicCut || tagRefused;
     const refusable = sa.declared && evidence && !vetoed && !stated;
     const headR6 = askHead(sa.words, caseNames);
     const headShared = headR6 !== null && pendingItems.some(i => !given.has(i.id) && keyNouns(ownWords(i.id), caseNames).has(headR6));

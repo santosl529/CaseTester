@@ -42,6 +42,7 @@ const NOT_X = /,?\s\bnot (?:about )?[$€£]?\d/i;
 const CODE_ABOUT = /\b(?:is|are|was|were) about [$€£]?\d/i;
 const DEFER = new RegExp(`${poolPattern('defer', 'gate_defer', 'wont_get_to', 'wont_get_to_that').source}|\\b(?:I'll check what we have|let me (?:come back to|check on) (?:that|it|this)|I'll come back to|we'll come back to|we'll get there in a bit|for a little later|once we've settled)\\b`, 'i');
 const RESTATE = poolPattern('restate', 'restate_exhibit');
+const WONT = new RegExp(`${poolPattern('wont_get_to', 'wont_get_to_that').source}|\\bwe won't get to\\b`, 'i');
 const CLOSE = poolPattern('close_time_up', 'close_complete', 'close_unresolved');
 const STAGE: Record<'recommendation' | 'risk' | 'mitigation' | 'brainstorm', RegExp> = {
   recommendation: /\brecommend|\bbottom[- ]line\b|\bwhat (?:would|will) you tell (?:the )?(?:CEO|client|board|CFO)\b|\bwhat would you advise\b/i,
@@ -200,7 +201,8 @@ function answeredInWindow(a: Extract<Assertion, { kind: 'answered' }>, ns: numbe
   // What may resolve the deferral: the outcomes this record accepts — or, when it accepts only a deferral, either.
   const byRelease = accept.has('release') || !accept.has('refusal');
   const byRefusal = accept.has('refusal') || !accept.has('release');
-  return seen.some(j => j > anchor && ((byRelease && released(j)) || (byRefusal && refused(j))));
+  const wontSaid = (n: number) => !!a.wontResolves && read.get(n)!.deferrals.some(x => WONT.test(x) && (!re || re.test(x)));
+  return seen.some(j => j > anchor && ((byRelease && released(j)) || (byRefusal && refused(j)) || wontSaid(j)));
 }
 
 // The interviewer turns an assertion looks at, as grading turns tN (tN = turnIndex + 1).

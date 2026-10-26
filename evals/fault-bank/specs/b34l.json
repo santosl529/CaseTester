@@ -53,17 +53,21 @@
   "turn": 12,
   "sev": "firm",
   "cls": "ignored_ask",
-  "note": "Her t11 \"Do we know whether load factor would actually fall if we priced back up to $200, or is that untested?\" — the model declared nothing and code's \"$18,000\" probe took the turn. The case holds no elasticity: a refusal was owed (a code probe turn had no slot for her ask). Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$18,000\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t12-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check.",
+  "note": "Her t11 \"Do we know whether load factor would actually fall if we priced back up to $200, or is that untested?\" — the model declared nothing and code's \"$18,000\" probe took the turn. The case holds no elasticity: a refusal was owed (a code probe turn had no slot for her ask). Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$18,000\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t12-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Replayable again: with a deferral accepted, the replay can show it once undeclared sub-asks speak (they stay shadow-only until the splitter's precision gate — ruling 1).",
   "a": [
    {
-    "kind": "refusal",
+    "kind": "answered",
     "about": "elasticity|load factor|untested",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
+    "wontResolves": true,
     "must": true
    }
   ],
-  "rep": false,
-  "stream": 4,
-  "rnote": "Wave: the ask gets a word on its own turn — the case holds no elasticity, so a refusal (from a declared ask) or a deferral that resolves; the code probe may still take the question slot. The auditor and the hand grade see it (an ignored ask is a graded class)."
+  "rep": true,
+  "stream": 4
  },
  {
   "id": "b34l-marisol-t26-ask-swallowed",
@@ -72,17 +76,21 @@
   "turn": 26,
   "sev": "firm",
   "cls": "ignored_ask",
-  "note": "Her t25 \"Do we know how quickly we can exit the Lakeport and Port Avery slots?\" — declared nothing; the \"$2,800\" probe took the turn. Not held: a refusal was owed. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$2,800\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t26-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check.",
+  "note": "Her t25 \"Do we know how quickly we can exit the Lakeport and Port Avery slots?\" — declared nothing; the \"$2,800\" probe took the turn. Not held: a refusal was owed. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$2,800\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t26-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Replayable again: with a deferral accepted, the replay can show it once undeclared sub-asks speak (they stay shadow-only until the splitter's precision gate — ruling 1).",
   "a": [
    {
-    "kind": "refusal",
+    "kind": "answered",
     "about": "exit|slot",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
+    "wontResolves": true,
     "must": true
    }
   ],
-  "rep": false,
-  "stream": 4,
-  "rnote": "Wave: the ask gets a word on its own turn — the case holds no slot-exit timing, so a refusal (from a declared ask) or a deferral that resolves; the code probe may still take the question slot. The auditor and the hand grade see it (an ignored ask is a graded class)."
+  "rep": true,
+  "stream": 4
  },
  {
   "id": "b34l-marcus-t14-avoidable-half",

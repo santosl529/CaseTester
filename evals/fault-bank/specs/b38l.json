@@ -225,11 +225,16 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"have these two routes' load factors or passenger mix shifted — were they business-heavy before?\" — the load half answered; the passenger mix (not held) got no word.",
+  "note": "\"have these two routes' load factors or passenger mix shifted — were they business-heavy before?\" — the load half answered; the passenger mix (not held) got no word. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1).",
   "a": [
    {
-    "kind": "refusal",
+    "kind": "answered",
     "about": "mix|business",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
+    "wontResolves": true,
     "must": true
    }
   ],

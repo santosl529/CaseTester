@@ -42,8 +42,10 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
   // fail; `accept` narrows which of the three count (default: all three). The window defaults to the record's turn
   // → the close, because a deferral's resolution is owed by then (contract 4.7). At least one of `item` / `about`
   // is given.
+  // `wontResolves` (Lorenzo, 27 Oct, session-1 ruling 2, the undeclared asks): a later "We won't get to <it> today."
+  // also resolves the deferral — the ask got a word and an end, though the case never came back to it.
   z.object({ kind: z.literal('answered'), item: z.string().optional(), about: z.string().optional(),
-    accept: z.array(z.enum(['release', 'refusal', 'deferral'])).min(1).optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
+    accept: z.array(z.enum(['release', 'refusal', 'deferral'])).min(1).optional(), wontResolves: z.boolean().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // The turn says something of its own: a delivered sentence that is neither a refusal nor a deferral — so silence,
   // a neutral "Go on." and a refuse-everything turn all fail. With `question`, that sentence asks something.
   //
