@@ -734,8 +734,13 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   }
   // 4.9 (`recommendationReceived`; stall.ts clearRecommendation): a clear recommendation in reply to a recommendation
   // ask, or in the synthesis phases, is received too ("Keep Starter, and raise the price to $60.").
+  // The contract's 4.9 asks only that the time warning skip a fresh recommendation ask, and that is all this switch
+  // does (the narrow reading, Stream 4b's review item 2). Putting the recommendation into the stage record opens the
+  // end gate as well — five runs close 3–8 minutes earlier and b34 Aldermoor Jasmine loses eight post-recommendation
+  // pushback turns — so that is `recommendationOpensGate`, off by itself, for Lorenzo to rule on with the evidence.
   const recSwitch = switchOn(caseData, 'recommendationReceived');
-  if (recSwitch && !stallDecision.state.recommendationDelivered && stallDecision.classification.kind === 'analysis'
+  const recOpensGate = recSwitch && switchOn(caseData, 'recommendationOpensGate');
+  if (recOpensGate && !stallDecision.state.recommendationDelivered && stallDecision.classification.kind === 'analysis'
     && (replyToRecAsk || currentPhase === 'RECOMMENDATION' || currentPhase === 'WRAP') && clearRecommendation(candidateText)) {
     stallDecision = { ...stallDecision, state: { ...stallDecision.state, recommendationDelivered: true } };
   }

@@ -20,6 +20,14 @@ const CLEAR = [
   "Keep Starter and reprice it to $60.  Three reasons. First, the CFO's test is wrong, not Starter.",                                  // b35q Raj t25
   'Keep Starter and move the price to $60, rolled out in stages.',                                                                    // b37q Raj t39
   'Bottom line: keep Starter and move it to $60.',                                                                                    // b37q Tyler t33
+  // The two the review named as the imperatives that must keep working.
+  'Keep Starter, and raise the price to $60.',
+  'Partner for launch, with a path to build later.',
+  // Review fix round, item 1: a decision frame counts as well as the bare imperative.
+  'My recommendation is to keep Starter and move it to $60.',
+  "I'd recommend partnering for launch, with a path to build later.",
+  'We should exit the category and redeploy the capital.',
+  'So, I recommend keeping Starter at $60.',
 ];
 const NOT = [
   'Keep in mind the 13.5 months is borrowed from $40 customers.',
@@ -27,6 +35,14 @@ const NOT = [
   "Honestly, I can't commit to a recommendation without the churn data. Keep Starter for now.",
   'At $60, monthly gross margin is $60 − $10 cost to serve = $50.',                                                                  // b37q Raj t31
   'The biggest risk is that the upgrade rate collapses at $60.',                                                                     // b37q Tyler t29
+  // Review fix round, item 1: the false positives the review found. Each of these opened the end gate on no
+  // recommendation (in RECOMMENDATION / WRAP on an analysis turn, where 4.9 reads it).
+  'Raise the question of whether the partner will accept 20%.',
+  'Exit would cost $40 million in write-offs, which nobody has approved.',
+  'Keep looking at the cost side first, before we touch price.',
+  'Sell-through is down 12% at Port Avery.',
+  'Drop-off between trial and repeat is the risk.',
+  'Build cost is $40 million, which the board has not approved yet.',
 ];
 
 describe('4.9: a clear recommendation', () => {
@@ -48,11 +64,19 @@ describe('4.9 through the switch', () => {
   const saved = process.env.ENGINE_SWITCHES;
   afterEach(() => { if (saved === undefined) delete process.env.ENGINE_SWITCHES; else process.env.ENGINE_SWITCHES = saved; });
   const REC_ASK = 'Putting it all together, what would you recommend to the CEO, and what\'s the biggest risk to it?';
-  it('b37q Marcus t31, in reply to the recommendation ask: received only with the switch on', () => {
+  // Review fix round, item 2: the narrow reading is `recommendationReceived`'s — the time warning reads the fresh
+  // recommendation and nothing else. The wider one, where the stage record (and so the end gate) takes it, is
+  // `recommendationOpensGate`, off on its own.
+  it('b37q Marcus t31, in reply to the recommendation ask: the stage record takes it only with recommendationOpensGate', () => {
+    const at = { phase: 'RECOMMENDATION', elapsedMs: 15 * 60_000, ask: REC_ASK, move: 'code_rec_ask' };
     delete process.env.ENGINE_SWITCHES;
-    expect(plan(MARCUS_B37Q_T31, { phase: 'RECOMMENDATION', elapsedMs: 15 * 60_000, ask: REC_ASK, move: 'code_rec_ask' }).recommendationReceived).toBe(false);
+    expect(plan(MARCUS_B37Q_T31, at).recommendationReceived).toBe(false);
     process.env.ENGINE_SWITCHES = 'pricing-001=recommendationReceived';
-    expect(plan(MARCUS_B37Q_T31, { phase: 'RECOMMENDATION', elapsedMs: 15 * 60_000, ask: REC_ASK, move: 'code_rec_ask' }).recommendationReceived).toBe(true);
+    expect(plan(MARCUS_B37Q_T31, at).recommendationReceived).toBe(false);
+    process.env.ENGINE_SWITCHES = 'pricing-001=recommendationOpensGate';
+    expect(plan(MARCUS_B37Q_T31, at).recommendationReceived).toBe(false);   // it rides on 4.9's own switch
+    process.env.ENGINE_SWITCHES = 'pricing-001=recommendationReceived,recommendationOpensGate';
+    expect(plan(MARCUS_B37Q_T31, at).recommendationReceived).toBe(true);
   });
   it('the time warning skips its recommendation ask when the last message gave one', () => {
     // Near the end of a 25-minute case, the message after a clear recommendation that wasn't read as one (a probe

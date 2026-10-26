@@ -102,11 +102,25 @@ export function answersRecommendationAsk(text: string, kind: TurnKind): boolean 
 // for it again (Marcus t32). A clear recommendation: the message's first sentence, not a question, opens on what to
 // do (a decision verb, after "So," / "Bottom line:" / "My answer:"), not "Keep in mind…". The caller passes the
 // switch and reads it only on an analysis turn, in reply to a recommendation ask or in the synthesis phases.
+// Review fix round, item 1: the bare imperative read a noun or a subject as the verb, so six sentences that make
+// no recommendation returned true — enough, in RECOMMENDATION / WRAP, to open the end gate on nothing:
+//   "Raise the question of whether the partner will accept 20%."      (an exclusion: the verb's object is a question)
+//   "Keep looking at the cost side first…"                            (an exclusion: the verb takes a gerund)
+//   "Exit would cost $40 million in write-offs…"                      (a subject, not an imperative: a copula follows)
+//   "Build cost is $40 million, which the board has not approved."    (a noun compound: "cost is")
+//   "Sell-through is down 12% at Port Avery." / "Drop-off between trial and repeat is the risk."  (a hyphenated noun)
+// So: the matched word is no imperative when a hyphen, a copula or an auxiliary follows it, and the exclusion list
+// covers the gerunds and "the question". A sentence that frames the decision instead of opening on the verb
+// ("My recommendation is to keep Starter…", "I'd recommend partnering…", "We should exit…") counts as well.
 const CLEAR_REC_VERBS = "keep|stay with|stick with|enter|build|partner(?: with)?|license|launch|proceed(?: with)?|go ahead(?: with)?|exit|drop|kill|shut(?: \\w+)? down|expand|sell|acquire|invest(?: in)?|redeploy|raise|cut|reprice|approve|reject|pursue|don'?t (?:kill|drop|shut|exit|cut|launch|enter|build)";
-const CLEAR_REC = new RegExp(`^\\W*(?:(?:so|okay|ok|bottom line|my answer|my recommendation|recommendation)[:,—–-]?\\s+)?(?:${CLEAR_REC_VERBS})\\b(?!\\s+(?:in mind|going|track|an eye|it simple|in touch)\\b)`, 'i');
+const NOT_IMPERATIVE = '(?!-)(?!\\s+(?:in mind|going|track|an eye|it simple|in touch|the question|looking|digging|checking|exploring|open)\\b)'
+  + '(?!\\s+(?:is|are|was|were|would|will|has|have|had|could|should|might|cost|costs)\\b)';
+const CLEAR_REC = new RegExp(`^\\W*(?:(?:so|okay|ok|bottom line|my answer|my recommendation|recommendation)[:,—–-]?\\s+)?(?:${CLEAR_REC_VERBS})\\b${NOT_IMPERATIVE}`, 'i');
+const DECISION_FRAME = /^\W*(?:so,?\s*)?(?:my recommendation is|i'?d recommend|i\s+recommend|we\s+should)\b/i;
 export function clearRecommendation(text: string): boolean {
   const first = sentencesOf(text)[0]?.trim() ?? '';
-  return first !== '' && !COMMIT_REFUSAL.test(text) && !first.endsWith('?') && !isQuestionForm(first) && CLEAR_REC.test(first);
+  if (first === '' || COMMIT_REFUSAL.test(text) || first.endsWith('?') || isQuestionForm(first)) return false;
+  return CLEAR_REC.test(first) || DECISION_FRAME.test(first);
 }
 
 export function isRecommendationStatement(text: string, kind: TurnKind): boolean {
