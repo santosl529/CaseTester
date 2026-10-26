@@ -21,7 +21,11 @@
 // 0.86 on the tuning set; 0.40 precision on the held-out set's first pass.
 import { normalizeNumberWords } from '@/lib/number-words';
 
-export type QuoteAnchor = { item: string; names: string[]; kind: 'level' | 'change'; of?: string[] };
+// `scope`: a route- or entity-scoped anchor (Phase 1, Lorenzo's pre-wave ruling 9). A bare quantity name
+// ("fare") that counts only when one of these words is named earlier in the same sentence, so
+// "On Lakeport, the exhibit shows fare down to $125" is read as a Lakeport fare and "Port Avery's fare is
+// $160" is not. A scoped name is never a free-standing name for the item (fact-check.ts buildFactBase).
+export type QuoteAnchor = { item: string; names: string[]; kind: 'level' | 'change'; of?: string[]; scope?: string[] };
 type LedgerItem = { id: string; value: string; timeframes?: Record<string, string> };
 type Unit = 'percent' | 'dollar' | 'count' | 'plain';
 // `value` as said; `scale` the word after it ("$77 million": 77 × 10⁶; 1 when none).
@@ -129,6 +133,11 @@ const INDEXED_OR_PROJECTED = /\bindex|\bbase(?:line)?\b|\$100 of revenue|\breven
 const ARITHMETIC = /[=÷×≈−]|\s-\s|\bdivided by\b|\btimes\b|\bminus\b/i;
 const INDEXED_MESSAGE = /\bindex|\bbase-?100\b|\bon 1\d\d\b|\brevenue (?:of |at )?1\d\d\b/i;
 const PREPOSITION = /\b(?:in|of|within|inside|into|from|with)\s+(?:the\s+|total\s+)?$/i;
+// A scoped anchor's name is a bare quantity word ("fare"), so a modifier right before it makes another quantity:
+// the candidate's own break-even, target or budget figure, never a quote of the ledger. Only scoped anchors read
+// this — an unscoped name carries its own quantity (Lorenzo's pre-wave ruling 9; b22l Raj 07 t24
+// "Lakeport's breakeven fare is $130", his own derived figure, was the one false flag the corpus sweep found).
+const SCOPED_MODIFIER = /\b(?:break-?even|breakeven|target|targeted|required|implied|budget|budgeted|planned|planning|hold|holding|keep|keeping)\s+$/i;
 const CONCLUSION = /\b(?:so|which (?:makes|puts)|that (?:puts|makes|takes)|meaning|new|takes)\s+(?:the\s+)?$/i;
 const SUM = /(?:\bplus|\band|\+|&)\s+$/i;
 const CONTRAST = /\b(?:but|whereas|while|versus|vs\.?|compared)\b/i;
@@ -189,6 +198,9 @@ export function findMisquotes(text: string, c: MisquoteContext): Misquote[] {
       for (const n of a.names) {
         for (const m of lower.matchAll(new RegExp(`\\b${escape(n.toLowerCase())}\\b`, 'g'))) {
           const before = s.slice(0, m.index ?? 0);
+          // A scoped anchor needs its route named before the quantity, in this sentence, and nothing right
+          // before the bare name that makes it another quantity.
+          if (a.scope?.length && (!a.scope.some(w => before.toLowerCase().includes(w.toLowerCase())) || SCOPED_MODIFIER.test(before))) continue;
           const end = clauseEnd(s, (m.index ?? 0) + n.length);
           if (guards && (HYPOTHETICAL.test(before) || INDEXED_OR_PROJECTED.test(s) || ARITHMETIC.test(s.slice(0, end)) || CONCLUSION.test(before.slice(-25))
             || SUM.test(before.slice(-12)) || PREPOSITION.test(before.slice(-20)))) continue;
