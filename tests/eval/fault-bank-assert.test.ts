@@ -1,7 +1,7 @@
 // The fault bank's detectors and assertion checks (lib/eval/fault-bank-assert.ts), on lines from the b33–b38 corpus.
 import { describe, it, expect } from 'vitest';
 import { readTurn, evaluateRecord, namesFigure, scopeTurns, type BankTurn } from '@/lib/eval/fault-bank-assert';
-import type { FaultRecord } from '@/lib/eval/fault-bank';
+import { bankMoves, bankSkipEscapes, type BankResultRow, type FaultRecord } from '@/lib/eval/fault-bank';
 import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 
 type Seg = BankTurn['delivered'][number];
@@ -184,6 +184,18 @@ describe('a vacuous windowed must-not', () => {
     expect(res.skipped).toBe('vacuous');
     expect(res.pass).toBe(true);
   });
+
+  // Bank fix 3 (26 Oct): a skip must never mask a recorded failure, or a fix that empties one window while
+  // another assertion still fails would take the record out of the gate's denominator and improve the line.
+  it('does not skip when another assertion failed', () => {
+    const r = record({ turn: 20, assertions: [
+      { kind: 'probe', must: false, scope: { fromTurn: 22, toTurn: 26 } },
+      { kind: 'refusal', about: 'elasticity', must: true },
+    ] });
+    const res = evaluateRecord(r, [turn(20, [seg('Go on.')])], NONE);
+    expect(res.skipped).toBeUndefined();
+    expect(res.pass).toBe(false);
+  });
 });
 
 describe('the doubled line', () => {
@@ -219,5 +231,26 @@ describe('the close-wait pools', () => {
         for (const l of PHRASE_POOLS[other as keyof typeof PATTERNS] as readonly string[]) expect(re.test(l), `${name} must not match ${other}: ${l}`).toBe(false);
       }
     }
+  });
+});
+
+// Bank fix 3 (26 Oct): gate condition 1 also requires that no record leaves the denominator — a fix that flips a
+// turn's kind would otherwise reclassify a failing record as `diverged` and the gate line would *improve*.
+describe('bankMoves — the compare behind `fault-bank.ts compare --against=`', () => {
+  const row = (o: Partial<BankResultRow> & { id: string }): BankResultRow => ({ kind: 'fault', pass: false, baseline: 'fails_as_expected', ...o });
+  it('flags a record that moves from fails_as_expected into any skip class, and only that', () => {
+    const was = [row({ id: 'a' }), row({ id: 'b' }), row({ id: 'c', pass: true, baseline: 'fixed_on_base' }), row({ id: 'd' })];
+    const now = [row({ id: 'a', skipped: 'diverged' }), row({ id: 'b', pass: true }), row({ id: 'c', skipped: 'vacuous' }), row({ id: 'd' })];
+    expect(bankSkipEscapes(was, now).map(m => [m.id, m.to])).toEqual([['a', 'diverged']]);
+    expect(bankMoves(was, now).map(m => `${m.id}:${m.from}>${m.to}`)).toEqual(['a:FAIL>diverged', 'b:FAIL>pass', 'c:pass>vacuous']);
+  });
+
+  it('a record that is gone entirely has left the denominator too; a new one has not', () => {
+    const was = [row({ id: 'a' })];
+    const now = [row({ id: 'z', pass: true })];
+    expect(bankMoves(was, now)).toEqual([
+      { id: 'z', kind: 'fault', from: '(new record)', to: 'pass', escape: false },
+      { id: 'a', kind: 'fault', from: 'FAIL', to: '(record gone)', escape: true },
+    ]);
   });
 });

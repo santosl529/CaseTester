@@ -88,5 +88,33 @@ export type FaultRecord = z.infer<typeof FaultRecordSchema>;
 
 // The harness's result per record.
 // `vacuous`: a must-not assertion whose window holds no turn in the replay — nothing was looked at, so the record
-// is skipped, not passed (finding 7 of the Stream 1 review).
+// is skipped, not passed (finding 7 of the Stream 1 review) — but only when nothing else about the record failed:
+// a skip must never mask a recorded failure, or a fix that flips a turn's kind or empties a window would take a
+// failing record out of the gate's denominator and the gate line would improve (bank fix 3, 26 Oct).
 export type FaultResult = { id: string; pass: boolean; failed: { assertion: Assertion; saw: string }[]; skipped?: 'not_replayable' | 'run_missing' | 'diverged' | 'vacuous' };
+
+// ── comparing two runs (bank fix 3, 26 Oct) ──
+// Gate condition 1 is not just "how many pass": a fix that flips a turn's kind, shortens a run or empties a
+// must-not's window takes a failing record out of the gate's denominator, and the gate line *improves* while the
+// fault persists. The probe classes are exactly the ones whose fixes flip kinds. So the gate also requires that
+// **no record moves from `fails_as_expected` into any skip class**, and every record that does is listed for a
+// hand read. `scripts/fault-bank.ts compare --against=` reads two results.json files through this.
+export type BankResultRow = { id: string; kind: FaultRecord['kind']; pass: boolean; skipped?: FaultResult['skipped']; baseline?: string };
+export type BankMove = { id: string; kind: string; from: string; to: string; escape: boolean };
+export const resultState = (r: BankResultRow) => r.skipped ?? (r.pass ? 'pass' : 'FAIL');
+
+export function bankMoves(from: readonly BankResultRow[], to: readonly BankResultRow[]): BankMove[] {
+  const was = new Map(from.map(r => [r.id, r]));
+  const now = new Set(to.map(r => r.id));
+  const out: BankMove[] = [];
+  for (const r of to) {
+    const b = was.get(r.id);
+    if (!b) { out.push({ id: r.id, kind: r.kind, from: '(new record)', to: resultState(r), escape: false }); continue; }
+    if (resultState(b) === resultState(r)) continue;
+    out.push({ id: r.id, kind: r.kind, from: resultState(b), to: resultState(r), escape: b.baseline === 'fails_as_expected' && !!r.skipped });
+  }
+  // A record that is gone entirely has left the denominator too.
+  for (const b of from) if (!now.has(b.id)) out.push({ id: b.id, kind: b.kind, from: resultState(b), to: '(record gone)', escape: b.baseline === 'fails_as_expected' });
+  return out;
+}
+export const bankSkipEscapes = (from: readonly BankResultRow[], to: readonly BankResultRow[]) => bankMoves(from, to).filter(m => m.escape);

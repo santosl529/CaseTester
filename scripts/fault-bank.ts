@@ -5,10 +5,16 @@
 //                                                            must fail there (it records the fault), a correct one pass
 //   npx tsx scripts/fault-bank.ts wave-list               evals/fault-bank/wave-judged.md: every record the replay can't prove (Lorenzo's
 //                                                            Q2 ruling: the gate counts replayable records only) with what in the wave would show it fixed
-//   npx tsx scripts/fault-bank.ts run --label=<l> [--switches=<ENGINE_SWITCHES>] [--jobs=8] [--only=<id-prefix>]
+//   npx tsx scripts/fault-bank.ts run --label=<l> [--switches=<ENGINE_SWITCHES>] [--jobs=8] [--only=<id-prefix>] [--against=<baseline>]
 //                                                            replay every record's run through tests/replay/runner-corpus.replay.test.ts
 //                                                            (the slice's recorded checker verdicts, as proof.sh), then check each
-//                                                            assertion against the replayed turn file; prints and writes the tables
+//                                                            assertion against the replayed turn file; prints and writes the tables.
+//                                                            --against folds the compare below into the report and into the exit code
+//   npx tsx scripts/fault-bank.ts compare --against=<baseline> --to=<run>
+//                                                            which records moved between two runs, and whether any left the gate's
+//                                                            denominator (a record that was `fails_as_expected` and is now skipped).
+//                                                            Either side is a results.json path, its folder, or a run label.
+//                                                            Exits 1 when any record escaped.
 //
 // The corpus root is REPLAY_ROOT (default: the main checkout's `Case Interview Runs`). Replay output goes to
 // FAULT_BANK_OUT (default /Users/lorenzo/coding/personal-projects/CaseTester-proof-out)/fault-bank-<label>/ — never
@@ -23,7 +29,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
-import { FaultRecordSchema, type FaultRecord, type FaultResult } from '@/lib/eval/fault-bank';
+import { FaultRecordSchema, bankMoves, bankSkipEscapes, type BankMove, type FaultRecord, type FaultResult } from '@/lib/eval/fault-bank';
 import { SLICES, SpecSchema, sliceOf, specToRecord, findTurnFile, itemLinesOf, isReportRecord, type Slice } from '@/lib/eval/fault-bank-build';
 import { evaluateRecord, scopeTurns, type BankTurn, type CaseView } from '@/lib/eval/fault-bank-assert';
 import { readTurnFile } from '@/lib/eval/turn-file';
@@ -217,19 +223,66 @@ async function run() {
     const scopes = [...new Set(r.assertions.flatMap(a => scopeTurns(a, r.turn, last)))];
     const changed = scopes.some(n => wordsAt(replayed, n) !== wordsAt(recorded, n));
     const own = replayed.find(t => t.turnIndex === r.turn - 1);
+    // A kind change makes the record's assertions subject-less — but only when nothing against it failed. A skip
+    // must never mask a recorded failure (bank fix 3, 26 Oct): the probe classes are exactly the ones whose fixes
+    // flip a turn's kind, so letting `diverged` win over a failure would take failing records out of the gate's
+    // denominator and the gate line would *improve*.
     const kindChanged = own && own.stateBefore.kind !== recorded.find(t => t.turnIndex === r.turn - 1)?.stateBefore.kind;
-    const result: FaultResult = { ...res, ...(kindChanged ? { skipped: 'diverged' as const } : {}), ...(!r.replayable ? { skipped: 'not_replayable' as const } : {}) };
+    const diverged = kindChanged && res.failed.length === 0 ? { skipped: 'diverged' as const } : {};
+    const result: FaultResult = { ...res, ...diverged, ...(!r.replayable ? { skipped: 'not_replayable' as const } : {}) };
     const gated = r.replayable && !result.skipped && (r.kind === 'correct' || PHASE1_STREAMS.has(String(r.stream)));
-    rows.push({ ...result, ...meta, changed, baseline: baselineClass(r, { ...res, ...(kindChanged ? { skipped: 'diverged' as const } : {}) }, changed), gated });
+    rows.push({ ...result, ...meta, changed, baseline: baselineClass(r, { ...res, ...diverged }, changed), gated });
   }
-  const md = report(rows, recs, { label, switches: switches ?? '(off)', replayMs, runs: runFiles.length, failedRuns });
+  // Bank fix 5 (26 Oct): a failing replay slice silently shrank the counted set, and `run` still exited 0.
+  if (failedRuns.length) { console.error(`replay failed on ${failedRuns.length} run(s): ${failedRuns.join(', ')}`); process.exitCode = 1; }
+  const against = arg('against') ? loadResults(arg('against')!) : null;
+  const escapes = against ? bankSkipEscapes(against, rows) : [];
+  const md = report(rows, recs, { label, switches: switches ?? '(off)', replayMs, runs: runFiles.length, failedRuns, against: arg('against'), escapes });
   writeFileSync(path.join(out, 'results.json'), JSON.stringify(rows, null, 1));
   writeFileSync(path.join(out, 'results.md'), md);
   console.log(md.split('\n## Records')[0]);
   console.log(`→ ${out}/results.md`);
+  // Gate condition 1 also requires no record to leave the denominator and no missing run (bank fixes 3 and 5).
+  if (escapes.length || rows.some(r => r.skipped === 'run_missing')) process.exitCode = 1;
 }
 
-function report(rows: Row[], recs: FaultRecord[], m: { label: string; switches: string; replayMs: number; runs: number; failedRuns: string[] }): string {
+// ── compare (bank fix 3, 26 Oct) ──
+// Gate condition 1 requires that no record moves from `fails_as_expected` into ANY skip class: a fix that flips a
+// turn's kind, shortens a run or empties a must-not's window would otherwise take a failing record out of the
+// denominator, and the gate line would *improve* while the fault persisted. Every escape is listed for a hand read.
+const RESULTS = 'results.json';
+function loadResults(ref: string): Row[] {
+  const file = existsSync(ref) ? (ref.endsWith('.json') ? ref : path.join(ref, RESULTS)) : path.join(OUT_BASE, `fault-bank-${ref}`, RESULTS);
+  if (!existsSync(file)) throw new Error(`no results at ${ref} (tried ${file}) — pass a results.json path or a run label`);
+  return JSON.parse(readFileSync(file, 'utf8')) as Row[];
+}
+function compareTable(ms: BankMove[]): string[] {
+  const L = ['| id | kind | was | now | |', '|---|---|---|---|---|'];
+  for (const m of [...ms].sort((a, b) => a.id.localeCompare(b.id))) L.push(`| ${m.id} | ${m.kind} | ${m.from} | ${m.to} | ${m.escape ? '**left the denominator** — hand read owed' : ''} |`);
+  return L;
+}
+
+function compare() {
+  const ref = arg('against');
+  if (!ref) throw new Error('--against=<baseline results.json or run label> is required');
+  const to = arg('to') ?? arg('label');
+  if (!to) throw new Error('--to=<results.json or run label> (or --label=) is required');
+  const from = loadResults(ref), now = loadResults(to);
+  const ms = bankMoves(from, now);
+  const esc = ms.filter(m => m.escape);
+  const L = [`# Fault bank — compare \`${ref}\` → \`${to}\``, '',
+    `${from.length} → ${now.length} records · ${ms.length} moved · **${esc.length} left the gate's denominator**`, '',
+    '## Gate condition 1 — no record may move from `fails_as_expected` into a skip class', '',
+    esc.length ? `**Not met.** ${esc.length} record(s) left the denominator and each needs a hand read: ${esc.map(m => `${m.id} (→ ${m.to})`).join(', ')}.` : '**Met.** No record moved from `fails_as_expected` into a skip class.', ''];
+  if (ms.length) L.push('## Records that moved', '', ...compareTable(ms), '');
+  const md = L.join('\n') + '\n';
+  console.log(md);
+  const out = path.join(OUT_BASE, `fault-bank-${path.basename(to, '.json').replace(/^fault-bank-/, '')}`);
+  if (existsSync(out)) { writeFileSync(path.join(out, 'compare.md'), md); console.log(`→ ${out}/compare.md`); }
+  return esc.length;
+}
+
+function report(rows: Row[], recs: FaultRecord[], m: { label: string; switches: string; replayMs: number; runs: number; failedRuns: string[]; against?: string; escapes?: BankMove[] }): string {
   const L: string[] = [];
   const rep = rows.filter(r => r.replayable && r.baseline !== 'report');
   const count = (xs: Row[], p: (r: Row) => boolean) => xs.filter(p).length;
@@ -263,7 +316,16 @@ function report(rows: Row[], recs: FaultRecord[], m: { label: string; switches: 
   L.push('## Gate condition 1 (contract §6)', '',
     `Counted: replayable fault records owned by streams 2, 3 and 4, not skipped — **${count(gate, r => r.kind === 'fault' && r.pass)} pass / ${count(gate, r => r.kind === 'fault')}**.`,
     `Excluded: ${excluded.length} replayable fault records owned by \`phase2\` or \`none\` (${excluded.map(r => r.id).join(', ') || 'none'}) — no Phase 1 stream touches them.`,
-    `Correct records, not skipped: **${count(rows.filter(r => r.kind === 'correct' && !r.skipped), r => r.pass)} pass / ${count(rows, r => r.kind === 'correct' && !r.skipped)}** (all must pass, switches off and on).`, '');
+    `Correct records, not skipped: **${count(rows.filter(r => r.kind === 'correct' && !r.skipped), r => r.pass)} pass / ${count(rows, r => r.kind === 'correct' && !r.skipped)}** (all must pass, switches off and on).`,
+    `Runs replayed: ${m.runs}${m.failedRuns.length ? ` — **${m.failedRuns.length} replay slice(s) failed**, so the counted set is short; the gate cannot be met` : ''}. Records with no mirror (\`run_missing\`): **${count(rows, r => r.skipped === 'run_missing')}** — any at all fails the gate (bank fix 5).`,
+    // Bank fix 3: the condition is not just "how many pass" but "nothing left the denominator".
+    m.against === undefined
+      ? 'No record may move from `fails_as_expected` into a skip class. Not checked here: pass `--against=<baseline results.json or label>` (or run `compare`).'
+      : (m.escapes ?? []).length === 0
+        ? `No record moved from \`fails_as_expected\` into a skip class, against \`${m.against}\` — **met**.`
+        : `**${(m.escapes ?? []).length} record(s) moved from \`fails_as_expected\` into a skip class** against \`${m.against}\` — the gate is not met, and each needs a hand read: ${(m.escapes ?? []).map(e => `${e.id} (→ ${e.to})`).join(', ')}.`,
+    '');
+  if (m.against !== undefined) L.push(...compareTable(bankMoves(loadResults(m.against), rows)), '');
   L.push('## Baseline classes (contract §4.5)', '', '| class | records |', '|---|---:|');
   const classes = new Map<string, number>();
   for (const r of rep) classes.set(r.baseline, (classes.get(r.baseline) ?? 0) + 1);
@@ -307,5 +369,6 @@ const cmd = process.argv[2];
 if (cmd === 'build') build();
 else if (cmd === 'wave-list') waveList();
 else if (cmd === 'check') process.exitCode = check() ? 1 : 0;
+else if (cmd === 'compare') process.exitCode = compare() ? 1 : 0;
 else if (cmd === 'run') run().catch(e => { console.error(e); process.exit(1); });
-else { console.error('usage: fault-bank.ts build | check | wave-list | run --label=<l> [--switches=…] [--jobs=n] [--only=<id-prefix>]'); process.exit(2); }
+else { console.error('usage: fault-bank.ts build | check | wave-list | run --label=<l> [--switches=…] [--jobs=n] [--only=<id-prefix>] [--against=<baseline>] | compare --against=<baseline> --to=<run>'); process.exit(2); }

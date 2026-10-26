@@ -227,6 +227,9 @@ export function evaluateRecord(rec: FaultRecord, turns: BankTurn[], view: CaseVi
     }
   }
   const own = byT.get(rec.turn);
-  const skipped = !own ? 'diverged' as const : vacuous ? 'vacuous' as const : undefined;
+  // A skip never masks a recorded failure (bank fix 3, 26 Oct): a fix that empties one must-not's window while
+  // another assertion still fails would otherwise take the record out of the gate's denominator — and the gate
+  // line would *improve*. Only a record with nothing against it can be skipped as vacuous.
+  const skipped = !own ? 'diverged' as const : (vacuous && failed.length === 0) ? 'vacuous' as const : undefined;
   return { id: rec.id, pass: failed.length === 0, failed, ...(skipped ? { skipped } : {}) };
 }
