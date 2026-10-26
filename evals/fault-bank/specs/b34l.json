@@ -618,5 +618,28 @@
   ],
   "rep": true,
   "stream": "none"
+ },
+ {
+  "id": "b34l-marisol-t26-probe-precedence",
+  "kind": "correct",
+  "p": "57",
+  "turn": 24,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "A pending probe takes precedence over a stage turn unless the clock forces the stage. In the recorded run t26 probed her $2,800 contribution per flight (she had used the contested routes' 75% load for the exhibit's 70%) and she caught the misread at t27. On the contract base the second brainstorm is pulled forward into t26 and the probe is never asked — not at t26, t28 or t30 — at about 17 minutes, with time still in hand. The record is anchored at t24 (stage_brainstorm on the base as in the recording, so the harness does not read it as diverged) and asserts the probe over t26–t30. Fixed on phase1-base-fixes; it fails on the contract base by design.",
+  "src": "stream-1-review-2026-10-25 (finding 8); lorenzo-instruction-2026-10-25",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$2,800",
+    "must": true,
+    "scope": {
+     "fromTurn": 26,
+     "toTurn": 30
+    }
+   }
+  ],
+  "rep": true,
+  "stream": "none"
  }
 ]

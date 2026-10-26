@@ -450,5 +450,28 @@
   ],
   "rep": true,
   "stream": "none"
+ },
+ {
+  "id": "b35q-marisol-t26-correction-carry",
+  "kind": "correct",
+  "p": "57",
+  "turn": 24,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "A pending correction must ride on the rec-ask turn or carry to the next turn — it must never drop. In the recorded run the checker's correction landed at t26 (\"Pro lifetime value is about $4,000, not $2,400.\") and she then found the swapped cohort rows herself. On the contract base t26 is a code-written rec_ask and the correction is dropped, not deferred: nothing says $4,000 at t26, t28 or t30, and she never learns the Pro lifetime was wrong. The record is anchored at t24 (a model turn on the base as in the recording, so the harness does not read it as diverged) and asserts the correction over t26–t30. Fixed on phase1-base-fixes; it fails on the contract base by design.",
+  "src": "stream-1-review-2026-10-25 (finding 8); lorenzo-instruction-2026-10-25",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$4,000",
+    "must": true,
+    "scope": {
+     "fromTurn": 26,
+     "toTurn": 30
+    }
+   }
+  ],
+  "rep": true,
+  "stream": "none"
  }
 ]

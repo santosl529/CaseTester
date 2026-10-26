@@ -1,6 +1,6 @@
-# Fault bank — after
+# Fault bank — after2
 
-Switches: `(off)` · 310 records (211 fault, 99 correct) · 54 runs replayed in 14 s
+Switches: `(off)` · 312 records (211 fault, 101 correct) · 54 runs replayed in 17 s
 
 ## Summary
 
@@ -11,7 +11,7 @@ must-not whose window holds no replayed turn) and `run_missing`. Pass and fail a
 | kind | records | skipped | counted | pass | fail |
 |---|---:|---:|---:|---:|---:|
 | fault | 211 | 62 | 149 | 47 | 102 |
-| correct | 99 | 4 | 95 | 95 | 0 |
+| correct | 101 | 4 | 97 | 95 | 2 |
 
 | skipped | fault | correct |
 |---|---:|---:|
@@ -30,12 +30,13 @@ Not replayable (judged in the wave, contract §4.3 / Q2): 52 (report records 17)
 
 Counted: replayable fault records owned by streams 2, 3 and 4, not skipped — **47 pass / 149**.
 Excluded: 0 replayable fault records owned by `phase2` or `none` (none) — no Phase 1 stream touches them.
-Correct records, not skipped: **95 pass / 95** (all must pass, switches off and on).
+Correct records, not skipped: **95 pass / 97** (all must pass, switches off and on).
 
 ## Baseline classes (contract §4.5)
 
 | class | records |
 |---|---:|
+| base_changed_it | 2 |
 | diverged | 14 |
 | fails_as_expected | 102 |
 | fixed_on_base | 47 |
@@ -47,9 +48,9 @@ Correct records, not skipped: **95 pass / 95** (all must pass, switches off and 
 |---|---:|---:|
 | batch-33 | 1 / 6 | 13 / 13 |
 | batch-34-aldermoor | 7 / 15 | 8 / 9 |
-| batch-34-larkspur | 4 / 16 | 7 / 8 |
+| batch-34-larkspur | 4 / 16 | 7 / 9 |
 | batch-35-hollisbay | 6 / 13 | 9 / 9 |
-| batch-35-quillpath | 4 / 13 | 7 / 8 |
+| batch-35-quillpath | 4 / 13 | 7 / 9 |
 | batch-36-aldermoor | 9 / 17 | 10 / 10 |
 | batch-36-larkspur | 7 / 17 | 10 / 10 |
 | batch-37-hollisbay | 7 / 20 | 10 / 10 |
@@ -63,7 +64,7 @@ Correct records, not skipped: **95 pass / 95** (all must pass, switches off and 
 | 2 | 12 / 18 | 0 / 0 |
 | 3 | 8 / 39 | 0 / 0 |
 | 4 | 31 / 102 | 0 / 0 |
-| none | 0 / 0 | 96 / 99 |
+| none | 0 / 0 | 96 / 101 |
 
 ## By class
 
@@ -72,9 +73,9 @@ Correct records, not skipped: **95 pass / 95** (all must pass, switches off and 
 | bare_partial | 6 / 27 | 0 / 0 |
 | close_wait_reask | 0 / 12 | 0 / 0 |
 | correct_close | 0 / 0 | 11 / 12 |
-| correct_correction | 0 / 0 | 9 / 10 |
+| correct_correction | 0 / 0 | 9 / 11 |
 | correct_deferral | 0 / 0 | 8 / 8 |
-| correct_probe | 0 / 0 | 20 / 21 |
+| correct_probe | 0 / 0 | 20 / 22 |
 | correct_release | 0 / 0 | 29 / 29 |
 | false_correction | 0 / 2 | 0 / 0 |
 | false_refusal | 9 / 15 | 0 / 0 |
@@ -189,6 +190,7 @@ Correct records, not skipped: **95 pass / 95** (all must pass, switches off and 
 | b34l-tyler-t8-probe | correct | correct | correct_probe | none | yes | yes | pass | yes | passes_as_expected |
 | b34l-raj-t20-probe | correct | correct | correct_probe | none | yes | yes | pass |  | passes_as_expected |
 | b34l-jasmine-t30-close | correct | correct | correct_close | none | yes | yes | pass |  | passes_as_expected |
+| b34l-marisol-t26-probe-precedence | correct | correct | correct_probe | none | yes | yes | FAIL | yes | base_changed_it |
 | b35h-marcus-t10-store-count | fault | serious | false_refusal | 2 | yes | yes | pass | yes | fixed_on_base |
 | b35h-jasmine-t10-store-count | fault | serious | false_refusal | 2 | yes | yes | pass | yes | fixed_on_base |
 | b35h-tyler-t12-scale-slip | fault | false | wrong_figure | 3 | yes | yes | pass | yes | fixed_on_base |
@@ -237,6 +239,7 @@ Correct records, not skipped: **95 pass / 95** (all must pass, switches off and 
 | b35q-marcus-t8-deferral-delivered | correct | correct | correct_deferral | none | yes | yes | pass |  | passes_as_expected |
 | b35q-marcus-t6-deferral-delivered | correct | correct | correct_deferral | none | yes | yes | pass |  | passes_as_expected |
 | b35q-tyler-t32-close | correct | correct | correct_close | none | yes | yes | pass |  | passes_as_expected |
+| b35q-marisol-t26-correction-carry | correct | correct | correct_correction | none | yes | yes | FAIL | yes | base_changed_it |
 | b36a-raj-t12-wrong-release | fault | firm | wrong_release | 4 | yes | yes | pass | yes | fixed_on_base |
 | b36a-raj-t14-nimbrel-patent | fault | firm | bare_partial | 4 | yes | yes | pass | yes | fixed_on_base |
 | b36a-marcus-t6-european-price | fault | firm | bare_partial | 4 | yes | yes | pass | yes | fixed_on_base |
@@ -455,6 +458,7 @@ Correct records, not skipped: **95 pass / 95** (all must pass, switches off and 
 - **b34l-marcus-t10-long-restatement** (fault, t10): `{"kind":"restatement","item":"route_results_port_avery","must":false}` — t10: Understood. As the exhibit shows: On Hub–Lakeport, revenue fell from $26.4M to $16.8M and contribution fell from $8.4M to a $1.2M loss, on 2,000 flights a year. On Hub–Port Avery, revenue fell from $46.8M to $32.4M and c…
 - **b34l-jasmine-t2-nothing-declared** (fault, t2): `{"kind":"deferral","must":true}` — t2: A revenue-versus-cost split. Before any data: is that framework MECE — what's missing, and which branch would you prioritize first, and why?
 - **b34l-marisol-t26-probe** (correct, t26): `{"kind":"probe","figure":"$2,800","must":true}` — t26: What else could Larkspur do to make sure it's profitable in the first year?
+- **b34l-marisol-t26-probe-precedence** (correct, t24): `{"kind":"probe","figure":"$2,800","must":true,"scope":{"fromTurn":26,"toTurn":30}}` — t26: What else could Larkspur do to make sure it's profitable in the first year? / t28: Pull it together — what's your recommendation to the CEO? / t30: Understood. There have been no material changes to wages or other costs per flight. As I mentioned: The low-cost airline's cost per seat is about 30% lower than Larkspur's — it flies larger planes and has lower labor cos…
 - **b35h-tyler-t14-stale-probe** (fault, t14): `{"kind":"probe","figure":"$3.9 million","must":false}` — t14: Understood. Earlier you said about $3.9 million of first-year profit, and now about $4.5 million. Can you show me, step by step, how you got to $3.9 million?
 - **b35h-jasmine-t6-chip-volume-offer** (fault, t6): `{"kind":"refusal","about":"chip|bags","must":true}` — t6: Understood. Let's stay with this case. You said six million bags is an achievable bar. Walk me through how you'd estimate the volume Hollis Bay can actually expect in year one, and what you'd need to know to do that.
 - **b35h-marisol-t10-non-answer** (fault, t10): `{"kind":"refusal","about":"year two|year-two|recur","must":true}` — t10: Got it. On revenue: you put break-even revenue at $20.4 million, about 7% of the business. What volume and cost base is that built on?
@@ -476,6 +480,7 @@ Correct records, not skipped: **95 pass / 95** (all must pass, switches off and 
 - **b35q-marisol-t32-close-over-false** (fault, t32): `{"kind":"probe","figure":"$900","must":true,"scope":{"fromTurn":32,"toTurn":32}}` — t32: Starter standalone LTV/CAC is about 2 times. Does your recommendation change, given that?
 - **b35q-tyler-t6-probe-correct-figure** (fault, t6): `{"kind":"probe","figure":"$80","must":false}` — t6: Understood. I'm putting up an exhibit: Customers who signed up in January–March 2025 — Status over their first year (% of each plan's starting customers, by months since sign-up). How did you get to $80?
 - **b35q-marisol-t26-correction** (correct, t26): `{"kind":"correction","figure":"$4,000","must":true}` — t26: Based on what you have, what would you tell the CEO to do?
+- **b35q-marisol-t26-correction-carry** (correct, t24): `{"kind":"correction","figure":"$4,000","must":true,"scope":{"fromTurn":26,"toTurn":30}}` — t26: Based on what you have, what would you tell the CEO to do? / t28: Right. Earlier you said “I'll apply the $30 Starter margin we were given, since that's the figure in the…” — can you show me that calculation step by step? / t30: We're near time. What's your bottom-line recommendation to the CEO, and the biggest risk to it?
 - **b36a-raj-t34-close-reask** (fault, t34): `{"kind":"says","pattern":"guard against that","must":false}` — t34: What would you do to guard against that?
 - **b36a-tyler-t24-close-reask** (fault, t24): `{"kind":"says","pattern":"do first|first step|first thing","must":false}` — t24: What's the first step you'd want the client to take?
 - **b36a-marisol-t30-close-reask** (fault, t30): `{"kind":"says","pattern":"do first|first step|first thing","must":false}` — t30: What would you have the client do first?
