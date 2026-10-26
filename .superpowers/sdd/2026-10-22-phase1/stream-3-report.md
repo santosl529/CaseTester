@@ -1,14 +1,18 @@
-# Stream 3 (math) — Phase 1, 22 Oct 2026: state and resumption
+# Stream 3 (math) — Phase 1: state, the review's fix round, and what remains
 
 **Branch** `phase1-s3-math`, worktree `.claude/worktrees/phase1-s3-math`, off the contract commit `0f932c89`.
-**Stopped early** (banking work; Lorenzo at 89% of his weekly limit). Tasks 1–3 of 7 are built and committed; 4–7 are
-not started. Nothing was spent on API calls; every piece of evidence below is a free replay.
+**Status:** tasks 1–3 of 7 built, reviewed and fixed; tasks 4–7 not started (the coordinator's instruction — Streams 1–3
+are being merged first). The review of 22 Oct rejected task 3 for a false correction; §1's fix round closes it. Nothing was spent on API calls; every piece of evidence below is a free replay.
 
-| Commit | Task | Switch |
+| Commit | Task / review finding | Switch |
 |---|---|---|
 | `bb2fbda5` | 1 — the worksheet | `worksheet` |
 | `65404519` | 2 — the stale drop | `staleProbeDrop` |
-| `3ed763eb` | 3 — roots by lineage, and the scale slip in code's corrections | `rootLineage` (the scale fix: none) |
+| `3ed763eb` | 3 — roots by lineage, and the USD scale slip | `rootLineage` (the scale fix: none) |
+| `c7b6037c` | this report (resumption document) | — |
+| `d5b5f64d` | review **C1, I1, I2, I6** — the root correction's provenance, probe gates and validated lineage | `rootLineage` |
+| `66105aa2` | review **I3, I4, I5** and the worksheet minors | `worksheet`, `staleProbeDrop` |
+| `4b9825a7` | review **C3** — the scale slip beyond USD | none |
 
 Working tree is clean apart from **untracked `cases/phase1/`** — Stream 2's five overlay files, copied in from
 `.claude/worktrees/phase1-s2-cases` so the lineage arms could be replayed. They are Stream 2's to commit; delete them
@@ -101,6 +105,24 @@ phase/clock/ledger/exhibits, and `readsAt()` to plan any message of either run).
 
 ---
 
+### The review's fix round (22 Oct), commits `d5b5f64d`, `66105aa2`, `4b9825a7`
+
+| Finding | What changed |
+|---|---|
+| **C1** (the false correction) | `rootCorrection` now needs the candidate's own figure in the checker's words: a non-hypothetical claim on step R at v, from the root's message on, and the latest such claim still at v. The step binder alone licenses nothing — the rule task 1 already applies to the worksheet. Hypotheticals are out of the Q1 evidence search too. b35q Marcus 7e69eda5's "$600, not $400" is gone from every arm; the other four root corrections in that arm keep their line; b37q Tyler's known false `pro_ltv@288` binding is pinned by the same gate. |
+| **I1** | The "probed first" gate reads the attempts booked on **R at v** (`p.attempts[key]`), not the lineage sum. The lineage sum stays for the cap and for the input question's budget. |
+| **I2** | Back to the contract: two probes per lineage, then one correction at the root. Decision 8 (one probe) is now **proposed** below with its evidence. |
+| **I6** | The lineage rules run only on a case whose own file authored its lineage (an `inputQuestion`, which no overlay can add). `lineageInherits` also requires real propagation through the steps' declared ledger `inputs`: a step not computed from what the root is computed from inherits nothing, so a sibling grouping silences nothing. The `*=stepLineage,rootLineage` arm is now **identical** to `*=rootLineage` — the overlay's dependsOn changes nothing. |
+| **I3** | `coveringWithdrawal` (shared with `hasNewerValue`) gates every withdrawal by unit, by the quantity it was withdrawn from, and — for a figure of the data — by decision 6 extended: only a misread they fixed, not one said under a condition of its own. Drops #7 and #8 are gone; the nine right ones stand. |
+| **I4** | A withdrawal standing at or after a value's own turn blocks it as it is folded, and a value they take back is removed from its entry (the quantity falls back to its newest standing value, or has none). Contract §2 holds; `update` is idempotent. |
+| **I5** | "not X" no longer withdraws a figure another subject owns, or one named as the data's own ("not the 70% on this exhibit"). "instead of X" counts on a prescription as well as an "I" redo, with "if" vetoing only over the figure's own clause. |
+| **C3** | The scale mismatch is read for every unit, not just money: entry-001's "250k patients" against 200,000 now reads "about 200,000, not 250k". |
+| Minors | `statusOf` → `unchecked` for a step whose unit code can't read; the checker's `rating` fills in where code has no calculation; at the same turn the checker takes the binder's place; `pricing:needed_for_margin@t` / `pricing:needed_for_gain@t` keyed apart; `rootsOn`'s narrowing noted below. |
+
+**Two parts of the review I did not implement as written, with the reasoning:**
+1. **The readability nit on the scale fix** ("$240,000, not $210k" instead of "$0.24 million, not $210k"). Implemented, replayed, reverted: `$240,000` is a figure the case never states, so the vetting's provenance guard (FR-4, `speakable`) dropped the whole correction and b35q Tyler's true line disappeared from the off arm. Money keeps the step's own scale word; counts and percents are written in full, where the guard accepts them.
+2. **A numeric propagation test** inside `lineageInherits`. I built one, replayed it and dropped it before the review (it rejected genuine chains: pricing-001 carries a lifetime error through the margin, not the LTV, so Raj's $1,205 and Jasmine's 4x read as independent). With no formulas in the case data the gain ∂D/∂R is unknown, so any numeric test is either unsound or vacuous. Instead: the **structural** necessary condition the review asked for (declared `inputs`) plus the **authority gate** (only a lineage the case file itself authored). Together they give the outcome the review wanted — a sibling grouping silences nothing, and prof-001 is out of the lineage rules entirely under `*=phase1` — without an inference code cannot justify. If Lorenzo would rather have the numeric test as well, the dropped version is in the history of `3ed763eb`.
+
 ## 2. Replay evidence so far
 
 Tooling (outside the corpus, reusable): `/Users/lorenzo/coding/personal-projects/CaseTester-proof-out/phase1-s3-tools/`
@@ -112,14 +134,34 @@ Run from the worktree: `zsh …/phase1-s3-tools/proof-s3.sh <label>`; compare wi
 
 | Label | Switches | Result |
 |---|---|---|
-| `phase1-s3-base` / `-base2` | base code, off | the baseline, and a determinism check (0 differences between the two) |
-| `phase1-s3-t1-off` / `-t1-on` | task 1, off / `*=worksheet` | 0 changed lines, 0 changed checker decisions, both arms |
-| `phase1-s3-t2-off` | task 2, off | 0 / 0 |
-| `phase1-s3-t2-on` | `*=worksheet,staleProbeDrop` | 30 changed decisions, 6 changed lines; **11 drops, all read** (below) |
-| `phase1-s3-t3-off` | task 3, off | **1 changed line** in 26 slices: the scale fix (b35q Tyler t28). prof-001 identical |
-| `phase1-s3-ovl-step` | `*=stepLineage` (Stream 2's overlays present) | 0 / 0 — requirement (a) |
-| `phase1-s3-t3-root` | `*=rootLineage` | 88 changed decisions, 13 changed lines (b35q, b37q) — **classification unfinished** |
-| `phase1-s3-ovl-root` | `*=stepLineage,rootLineage` | ran against an earlier revision of task 3; **must be re-run** |
+| `phase1-s3-base` / `-base2` | the contract base, off | the baseline, and a determinism check (0 differences between the two) |
+| `phase1-s3-r3-off` | **after the fix round**, off | **1 changed line** in 26 slices: the scale fix (b35q Tyler t28). prof-001 identical, 0 changed checker decisions elsewhere |
+| `phase1-s3-r3-ws` | `*=worksheet,staleProbeDrop` | 28 changed decisions, 6 changed lines — the 9 stale drops that survive I3, all read |
+| `phase1-s3-r3-root` | `*=rootLineage` | 52 changed decisions, 5 changed lines (b35q only; b37q has **no** changed line) — all read, below |
+| `phase1-s3-r3-ovl` | `*=stepLineage,rootLineage` | **identical to `-r3-root`** (52 / 5): the overlay's dependsOn changes nothing — review I6 and I7 |
+| `phase1-s3-r3-all` | `*=worksheet,staleProbeDrop,rootLineage,stepLineage` | 76 changed decisions, 10 changed lines = the union of the two arms, all read, below |
+
+Earlier labels (`t1-*`, `t2-*`, `t3-*`, `ovl-*`, `r2-*`) are the pre-fix-round arms and are superseded.
+
+### Every changed line in the combined arm (`r3-all`, 10), classified
+
+| Run | Turn | Change | Class |
+|---|---|---|---|
+| b38l Marisol f80d981c | t16 | the graded **firm** stale probe ("$1,800 … using $9,000") gone; the guard's question stands in | fixed |
+| b31 Tyler 9443bf5f | t10 | the misquote correction of "61%" dropped — he answered the original run's own t8 correction at m9 | replay artifact, neutral |
+| b31 Marisol 07e9f231 | t18 | a stale probe ("roughly 14% … most of the 18 points") replaced by a probe of a claim that still stands | fixed |
+| b33 Tyler 0150f744 | t18 | the stale pointer on "19%" gone (he said "15%, not 19%" at m17) → the turn's own words | fixed |
+| b35q Marisol 087451cb | t24 | the model's own question in place of a code fallback — a knock-on of the dropped probe, no figure | neutral |
+| b35q Marisol 087451cb | t28 | the probe of the data's "$30 Starter margin" replaced by a probe of her own 2.7x | neutral (better: it probes their figure, not the data's) |
+| b35q Marisol 087451cb | t32 | the derived ratio's correction replaced by a probe at the root ("Starter $900") | neutral — "probe only the root" |
+| b35q Tyler ee99bd82 | t28 | the derived uplift line replaced by the root's correction "$600, not $405" — true, checker-provenanced | fixed |
+| b35q Tyler ee99bd82 | t30 | the root correction (said at t28) replaced by a probe of his "$210k" | neutral |
+| b37q Marisol 084e7508 | t14 | a stale hint ("22.5 months", withdrawn at m11) replaced by a probe of her "700" | fixed |
+
+**New false corrections: none.** The only new correction line in any arm is b35q Tyler's root correction above. Every
+other `correct` / `restate` decision in `r3-all` is byte-identical to the off arm, checked run by run — including the
+two "$600, not $400" lines (b37q Jasmine 3376e5fe t15, b35q 5c3d2c21 t13), which are round 6's own and appear
+unchanged with the switches off.
 
 ### The 11 stale drops (task 2), each read against the run
 1. b28 Marisol 3172597b m19 `pricing:needed@17` — she said "about 24%, not 17%" at m23 → a report row removed. *Fixed.*
@@ -139,47 +181,55 @@ Run from the worktree: `zsh …/phase1-s3-tools/proof-s3.sh <label>`; compare wi
 
 **0 new false corrections** in that arm. The two b38 faults the wave graded firm are the ones this removes.
 
-### The `*=rootLineage` arm — what is read and what is left
-Read (the 13 changed lines): every lineage's chain of derived corrections collapses into **one correction at the root**,
-prefixed by the case's definition — b37q Raj t20 ("$600, not $405" instead of the derived "$1,400, not $1,205" and the
-root's own line only at t36), b37q Marcus t26 ("$600, not $420" — PRD §15's **M2, never corrected before**), b37q
-Jasmine t12, b35q Tyler t28, b35q Marisol t14 (her Pro LTV $2,400 → $4,000). Derived figures that used to carry the
-line are probed or go to the report instead. No line states a figure code did not compute, and no correction fires
-without the checker's error rating.
-**Left to do:** walk the 88 changed checker decisions one by one and classify each (fixed / new false correction /
-neutral), as tasks 1–2 were. Nothing read so far looks false, but the classification is not finished and the gate's
-"zero new false corrections" is not yet proven for this arm. Also re-run `ovl-root` (the overlay arm) against the
-committed revision and read the four new-lineage cases (prof-002, entry-001, launch-001 get roots for the first time
-there — the earlier run of that arm showed b32 Aldermoor reordering several lines and one new true correction, "Peak
-annual US net sales … about $320 million, not $80 million").
+### The `*=rootLineage` arm, after the fix round
 
----
+Five changed lines, all in b35q (above). The 52 changed decisions are those five plus report rows and bookkeeping:
+derived claims that used to carry a correction now read "built on starter_ltv's …, flagged by the step check" and go to
+the report, and the root's own correction moves to the turn the lineage's budget is spent. b37q changes 24 decisions
+and **no** spoken line: with the provenance and two-probe gates, Raj's and Marcus's chains go to the report rather than
+to a line — which is Q1's "otherwise the lineage goes to the report after its two probes". The cost is that **M2
+(PRD §15) is improved but still not corrected**: Marcus's 14-month lifetime is probed and reported, not corrected,
+because his lineage never spends a second probe. That is the trade-off behind the proposed decision 8 below.
 
-## 3. Decisions already made (carry these forward)
+## 3. Decisions and proposals
 
-1. **Q1 (Lorenzo, approved 22 Oct)**: no root correction unless the checker rated the root, or a claim in its lineage,
-   an error — flagged or not. Built; in practice the linked claim's own error rating satisfies it, so the guard binds
-   mainly on the lineage-cap path.
-2. **Q5 (Lorenzo, approved 22 Oct)**: the live definitions re-check is the **lead's** to run at the gate under a $3 cap.
-   Stream 3 spends nothing; task 7 must leave a documented command (below).
-3. **Root activation** (the Stream 2 review): round 6's roots need the case's own `inputQuestion` or `rootLineage`.
-4. **The worksheet trusts the binder only where the case's binding is validated** (`stepFlagsLive`).
-5. **"instead of X" is a withdrawal only in the candidate's own redo.**
-6. **"Built on a withdrawn figure" is stale only for a misread of the data they fixed.**
-7. **The scale fix is ungated**, because gating it would keep a false figure in production and would make Stream 1's
-   fault record unfixable with the switches off.
-8. **Probe the root once before correcting it** (not the whole two-probe budget): requiring the full budget starved
-   b37q Raj's lineage (one input question, then no step probe ever, so eight derived claims went to the report with no
-   line at all).
+**Lorenzo's, made:**
+1. **Q1 (22 Oct)**: no root correction unless the checker rated the root, or a claim in its lineage, an error — flagged
+   or not. Built; after C1 it sits beside the provenance gate.
+2. **Q5 (22 Oct)**: the live definitions re-check is the **lead's** to run at the gate under a $3 cap. Stream 3 spends
+   nothing; task 7 leaves a documented command (below).
+
+**Stream 3's, proposed — awaiting Lorenzo's ruling** (CLAUDE.md: a decision is made only once he makes or approves it):
+3. **Root and lineage activation.** Round 6's roots and task 3's lineage rules run only on a case whose own file
+   authored the lineage (an `inputQuestion`). An overlay's merged `dependsOn` is unvalidated data, so it stays
+   report-only — the `stepFlagsLive` / `ledgerLookupLive` pattern. *Cost if wrong:* prof-002, entry-001 and launch-001
+   get no root behaviour in the wave, so the lineage rules are proved on pricing-001 only.
+4. **The worksheet trusts code's step bindings only where the case's binding is validated** (`stepFlagsLive`:
+   prof-001). Elsewhere the checker's tags and code's pricing results fill it. *Cost if wrong:* the worksheet is
+   thinner on the four new cases, so fewer stale drops there.
+5. **"instead of X" withdraws only in the candidate's own redo or a prescription**, and "if" vetoes it only over the
+   figure's own clause. *Cost if wrong:* a real withdrawal missed, which leaves a stale probe.
+6. **A withdrawn figure of the DATA is stale evidence only as a misread they fixed** (its replacement a case figure
+   too, not said under a condition of its own); a figure of their own needs neither test. *Cost if wrong:* a probe
+   survives that the candidate had already answered.
+7. **The scale fix is ungated**, with every switch off: gating it would keep a false figure in production and would
+   make Stream 1's fault record unfixable off. *Cost if wrong:* one line changes against the contract base (read, true).
+8. **Probe the root once, not twice, before correcting it** — *not built; the contract's two probes are what ships*
+   (review I2). The evidence for one: pricing-001's chains rarely spend a second probe at the root, so with two
+   required, b37q Raj's eight derived claims and Marcus's 14-month lifetime (PRD §15's M2) are probed, reported and
+   never corrected. With one, both chains end in a single true correction at the root. *Cost if wrong (one probe):* a
+   root is corrected after a single question, doubling the exposure C1 came from — which is why the review asked for
+   the contract's reading, and why this stays a proposal.
 
 ## 4. What remains
 
-### Task 3 — finishing touches
-- Classify the `*=rootLineage` arm turn by turn; re-run and read `*=stepLineage,rootLineage`.
-- Decide (and test) whether the **lineage-cap** path should also prefer the root's correction when the root's own value
-  is stale — today it falls back to the claim's own correction with the definition prefix (`withDefinition`).
-- Consider a test for the known false binding b37q Tyler `pro_ltv@288` (PRD §15): the `latestOnR` guard already stops a
-  correction there on the replay, but there is no unit test pinning it.
+### Task 3 — what the fix round left open
+- Lorenzo's ruling on proposals 3–8, above — proposal 8 (one probe at the root, not two) is the only one that would
+  change behaviour, and it is what would let M2 (PRD §15) finally be corrected.
+- The lineage-cap path falls back to the claim's own correction (with its definition prefix) when the root has nothing
+  to say; whether it should instead stay silent is a question for the same ruling.
+- `rootsOn` was narrowed to require an authored `inputQuestion` (proposal 3). If Lorenzo would rather activate per case,
+  the gate is one line in `plan-turn.ts` (`lineageAuthored`).
 
 ### Task 4 — misquotes (`misquoteFlat`), not started
 Plan: in `plan-turn.ts`, where `gateCodeFindings`' outcome is read, release a misquote's flat correction when code finds
@@ -222,16 +272,22 @@ npx tsx scripts/eval-math-checker.ts --runs=<the b37q/b38 math runs> --out=<verd
 with the recorded ones.
 
 ### Final gate work for this stream
-- Re-run the proof with `ENGINE_SWITCHES='*=worksheet,staleProbeDrop,rootLineage,misquoteFlat,probeGuardMethod,spokenMathParser'`
-  (and the off arm) and classify every changed checker/probe/correction turn.
-- Report code-path latency from the replay's `timing` (not yet collected; no new model call was added — the worksheet,
-  the stale drop and the lineage rules are all pure code, and task 7 adds prompt text to an existing call).
+
+- The gate arm is `ENGINE_SWITCHES='*=worksheet,staleProbeDrop,rootLineage,stepLineage,misquoteFlat,probeGuardMethod,spokenMathParser'`
+  (review I7: `stepLineage` belongs in it, because the lineage rules read merged case data), with the off arm beside
+  it, and `*=stepLineage,rootLineage` kept as a required arm of its own — it is the highest-risk combination.
+- Latency: no new model call in tasks 1–3 (pure code; task 7 adds prompt text to an existing call). Code-path time per
+  turn from the replay's `timing` is still to be collected.
 
 ## 5. For the lead / other streams
 
-- **`tests/cases/phase1-contract.test.ts` will fail once `cases/phase1/*.json` exist**: "today's cases load unchanged
-  with no overlay and no switches" compares `getCaseById(id)` with the raw file, but the overlay always attaches the
+- **`tests/cases/phase1-contract.test.ts` fails once `cases/phase1/*.json` exist**: "today's cases load unchanged with
+  no overlay and no switches" compares `getCaseById(id)` with the raw file, but the overlay always attaches the
   descriptive fields (an exhibit `summary` on entry-001 is what fails). Stream 2's or the integration's to fix. With
-  the overlays removed the suite is 5195 passed, 9 skipped; with them present, that one test fails.
-- The b38 Larkspur slice is new to the proof script (`b38l`, on and off) — its verdict file is built by
+  the overlays removed the suite is **5212 passed, 9 skipped**; with them present, that one test fails and nothing else.
+- **A pre-existing oddity worth a look** (not mine to change in this round): b35q 5c3d2c21 t13 speaks the correction
+  "Starter standalone lifetime value at $40 is about $600, not $400" under the key `starter_churn@7.5` — the key and the
+  figure in the line are different quantities. It is identical with every switch off, so it predates Phase 1.
+- The b38 Larkspur slice is new to the proof script (`b38l`, on and off); its verdict file is built by
   `phase1-s3-tools/convert-b38.py`, outside the corpus.
+- Tasks 4–7 are **not started** (the coordinator's instruction, 26 Oct): their plans are in §4 above, unchanged.
