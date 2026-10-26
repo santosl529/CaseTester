@@ -1424,6 +1424,11 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   // read the ask (`coarseOf`). A finer ask left holding only the exhibit the
   // model handed over is backed by that exhibit (`exhibitBacked`).
   const coarseOf = new Map<string, string[]>();
+  // Asks whose coarse item was dropped as a split OF THAT ITEM — the ask names the item and wants it cut finer
+  // (b34a Jasmine "current US treatment breakdown by drug class" against `current_treatment`). Only these are
+  // Lorenzo's refined rule 1 (`coarseNoRefusal`): an ask whose coarse item merely COVERS the topic (the coverage
+  // path below) is a different quantity, so refusing the asked one beside it is true and right.
+  const splitCoarse = new Set<string>();
   const exhibitBacked = new Map<string, string[]>();
   // Asks emptied of topic siblings only (no coarse item): refused unchecked, as before E1.
   const siblingsOnly = new Set<string>();
@@ -1482,8 +1487,10 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
         // has no verdict for a new check, and no verdict is a named deferral
         // (controller ruling, 20 Oct, replay r5-44: b31 Sofia t17).
         const coarse = out.filter(id => !changeForSplit(r.what, ledger.items.find(i => i.id === id)!));
-        if (coarse.length > 0) coarseOf.set(r.what, [...new Set([...(coarseOf.get(r.what) ?? []), ...coarse])]);
-        else siblingsOnly.add(r.what);
+        if (coarse.length > 0) {
+          coarseOf.set(r.what, [...new Set([...(coarseOf.get(r.what) ?? []), ...coarse])]);
+          if (coarse.some(id => splitOfItem(r.what, ledger.items.find(i => i.id === id)!, namesOf(id)))) splitCoarse.add(r.what);
+        } else siblingsOnly.add(r.what);
       }
     }
     // A finer ask the case doesn't hold is refused (4b), even beside an exhibit the
@@ -1942,10 +1949,36 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
     // siblings that the coverage step remapped to held items is not refused (it
     // would contradict its own release or deferral).
     const coarseWhats = new Set(scopeCoarse.map(x => x.what));
-    decisions.refusals = [...new Set([...decisions.refusals, ...coarseWhats])].sort((a, b) => firstAt(a) - firstAt(b));
-    decisions.requests = decisions.requests.flatMap(d => (coarseAsks.has(d.request) && coarseWhats.has(d.request.what) && d.ledgerItemIds.length > 0
-      ? [d, { request: { ...d.request, itemIds: [] }, response: 'refuse' as const, ledgerItemIds: [] }] : [d]));
-    plan.ctx.checks.act('scope_coarse', 'an ask a scope rule emptied keeps its coarse items: given, and the finer cut refused beside them', { asks: scopeCoarse });
+    // Lorenzo's pre-wave ruling 1 (26 Oct), behind `coarseNoRefusal`: an ask whose coarse items go out on THIS
+    // turn is not also refused in the same breath. b34a Jasmine 4e89a7cc t4 releases `current_treatment` ("the
+    // main option in the US today is Nimbrel") and says, in the same data line, "I don't have current US
+    // treatment breakdown by drug class" — the case holds that quantity, coarsely, and had just given it. His
+    // refined rule 1 (20 Oct) grades that a serious false refusal. Off, the finer cut is refused beside the
+    // coarse item (the controller's 20 Oct E1 ruling, today's behaviour). An ask whose coarse items are ALL out
+    // already is unaffected: `outAlready` is the other branch, and its refusal is the only word on it.
+    // Cost if wrong: the finer cut gets no word of its own, only the coarse line — a silent non-answer where
+    // there used to be a false statement. `scope_coarse` records which it was.
+    // Only the split-of-item asks (`splitCoarse`): a cover-mapped coarse item is another quantity, and an
+    // exhibit-backed finer ask has only the exhibit — both are refused as before. Measured on the bank: the
+    // unnarrowed rule cost one correct record (b36a Jasmine t4's true refusal of the treated-population trend,
+    // exhibit-backed) and three fault records whose refusal is the right behaviour (b36a Tyler t6, b37h Tyler
+    // t6, b35q Raj t12, all cover-mapped).
+    const withheld = [...coarseWhats].filter(w => splitCoarse.has(w));
+    const noRefusal = withheld.length > 0 && switchOn(state.caseData, 'coarseNoRefusal');
+    if (!noRefusal) {
+      decisions.refusals = [...new Set([...decisions.refusals, ...coarseWhats])].sort((a, b) => firstAt(a) - firstAt(b));
+      decisions.requests = decisions.requests.flatMap(d => (coarseAsks.has(d.request) && coarseWhats.has(d.request.what) && d.ledgerItemIds.length > 0
+        ? [d, { request: { ...d.request, itemIds: [] }, response: 'refuse' as const, ledgerItemIds: [] }] : [d]));
+    } else {
+      const keep = new Set(withheld);
+      decisions.refusals = [...new Set([...decisions.refusals, ...[...coarseWhats].filter(w => !keep.has(w))])].sort((a, b) => firstAt(a) - firstAt(b));
+      decisions.requests = decisions.requests.flatMap(d => (coarseAsks.has(d.request) && coarseWhats.has(d.request.what) && !keep.has(d.request.what) && d.ledgerItemIds.length > 0
+        ? [d, { request: { ...d.request, itemIds: [] }, response: 'refuse' as const, ledgerItemIds: [] }] : [d]));
+      decisions.refusals = decisions.refusals.filter(w => !keep.has(w));
+    }
+    plan.ctx.checks.act('scope_coarse', noRefusal
+      ? 'an ask a scope rule emptied keeps its coarse items: given, and the split it asked for NOT refused beside them (coarseNoRefusal)'
+      : 'an ask a scope rule emptied keeps its coarse items: given, and the finer cut refused beside them', { asks: scopeCoarse, ...(noRefusal ? { refusalWithheld: withheld } : {}) });
   }
   // Lorenzo, 19 Oct (R1, "don't add code-spoken refusals without the check";
   // round-2 ruling 2, every unmatched ask): an item-less ask code would refuse

@@ -184,7 +184,16 @@ function answeredInWindow(a: Extract<Assertion, { kind: 'answered' }>, ns: numbe
   const read = new Map(seen.map(n => [n, readTurn(byT.get(n)!, view)]));
   const released = (n: number) => !!a.item && read.get(n)!.released.has(a.item);
   const refused = (n: number) => read.get(n)!.refusals.some(x => !re || re.test(x));
-  const deferred = (n: number) => read.get(n)!.deferrals.some(x => !re || re.test(x));
+  // A deferral of the record's own item counts however code worded it (bank fix, 26 Oct, Lorenzo's ruling 1).
+  // §4.2: "Assert outcomes, not wording." Code words a deferral from the ITEM's label, not the candidate's
+  // words — b36l Marcus t6's ask for "cost per seat mile" is deferred as "wages and other costs per flight",
+  // and b36l Jasmine t2's "total departures" as "the network totals and average fare" — so an `about` regex
+  // written from the candidate's ask fails on a deferral that is plainly of the right item. Read as the
+  // `deferral` assertion reads it: the item in the next turn's open data requests. The anchor still has to hold
+  // a deferral, and it still has to resolve, so silence and a hollow deferral both fail as before.
+  const deferredItem = (n: number) => !!a.item && read.get(n)!.deferrals.length > 0
+    && (byT.get(n + 2)?.stateBefore.openDataRequests ?? []).some(d => d.ledgerItemId === a.item);
+  const deferred = (n: number) => read.get(n)!.deferrals.some(x => !re || re.test(x)) || deferredItem(n);
   if (accept.has('release') && released(anchor)) return true;
   if (accept.has('refusal') && refused(anchor)) return true;
   if (!accept.has('deferral') || !deferred(anchor)) return false;

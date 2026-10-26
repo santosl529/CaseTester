@@ -327,6 +327,17 @@ quote it needs the words candidates use for each quotable item:
   `change` for one that states a change ("up 40%").
 - `of`: for a share item, what it is a share of — the quote must say so
   ("beans were 25% of COGS").
+- `scope` (Phase 1, 26 Oct): a bare quantity word that counts only where one
+  of these words is named earlier in the same sentence —
+  `{ "item": "lakeport_fare", "names": ["fare", "fares"], "scope": ["lakeport"] }`,
+  so "On Lakeport, the exhibit shows fare down to $125" is read as a Lakeport
+  fare and "Port Avery's fare is $160" is not. Use it where several items hold
+  the same quantity for different entities (a route, a plan, a rival) and the
+  candidate names the entity away from the quantity. Two rules come with it: a
+  scoped name never names the item on its own (fact-check reads it only as a
+  quote, never for a refusal or an ask), and a modifier right before the bare
+  name makes another quantity ("Lakeport's **breakeven** fare is $130" is the
+  candidate's own figure, not a quote).
 - The figures come from the item's `timeframes` (an item without timeframes
   can't be an anchor — the case fails to load). A shown exhibit's column
   counts too, matched by column name to the item's `names` ("COGS" → cogs).

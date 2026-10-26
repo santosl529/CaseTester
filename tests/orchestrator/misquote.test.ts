@@ -1,7 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { findMisquotes, exhibitColumns, correctionLine, type QuoteAnchor } from '@/lib/orchestrator/misquote';
 import { getCaseById } from '@/lib/cases/loader';
-import { factBaseFor, findCandidateMisquotes } from '@/lib/orchestrator/fact-check';
+import { buildFactBase, factBaseFor, findCandidateMisquotes } from '@/lib/orchestrator/fact-check';
+import { readFileSync } from 'node:fs';
+import { CaseSchema } from '@/lib/cases/schema';
+import { Phase1OverlaySchema, applyPhase1Overlay } from '@/lib/cases/phase1-overlay';
 
 // Rule 6 option 4 (v4.11): lines from batches 12–19, read by hand
 // (tests/orchestrator/fixtures/misquote-labelled.json).
@@ -136,5 +139,51 @@ describe('the quote grammar: full stops, thousands, scale words, arithmetic clau
     expect(items('COGS went from 42% to 58% of revenue.')).toEqual([]);
     expect(items('COGS goes 42 → 50 → 58.')).toEqual([]);
     expect(items('COGS went from 42% to 61%.')).toEqual(['cogs_pct']);
+  });
+});
+
+// Lorenzo's pre-wave ruling 9 (26 Oct): b38 Tyler cee7d399 t13's "$125" Lakeport fare was never found, because
+// lakeport_fare's anchors all put the route beside the quantity ("lakeport fare", "fare on lakeport") and he wrote
+// "On Lakeport, the exhibit shows fare down to $125". The fix is case data: a route-scoped anchor — the bare name
+// "fare", counted only when the route is named earlier in the same sentence.
+describe('a route-scoped misquote anchor (ruling 9)', () => {
+  const raw = CaseSchema.parse(JSON.parse(readFileSync('cases/prof-002.json', 'utf8')));
+  const ovl = Phase1OverlaySchema.parse(JSON.parse(readFileSync('cases/phase1/prof-002.json', 'utf8')));
+  const on = applyPhase1Overlay(raw, ovl, { ENGINE_SWITCHES: 'prof-002=misquoteAnchors' });
+  // buildFactBase, not factBaseFor: that one caches by case id, and the describe above already built prof-002's
+  // base fact base, so the merged case would read the cached one.
+  const look = (c: typeof raw, revealed: string[], shown: string[] = ['exhibit-1']) => {
+    const fb = buildFactBase(c as never);
+    return (s: string) => findCandidateMisquotes(s, fb, new Set(revealed), shown).map(m => m.items[0]);
+  };
+  const REV = ['lakeport_fare', 'port_avery_per_flight', 'lakeport_seats_load', 'lakeport_variable_cost'];
+  const TYLER = 'On Lakeport, the exhibit shows fare down to $125 with $20 extras, so $145 per passenger, 60 passengers, $8,700 per flight against $9,000 variable cost.';
+
+  it('finds the $125 with the overlay on, and did not before', () => {
+    expect(look(on, REV)(TYLER)).toEqual(['lakeport_fare']);
+    expect(look(raw, REV)(TYLER)).toEqual([]);
+  });
+
+  it('is scoped to the route: a bare fare with no Lakeport before it is not its quote', () => {
+    expect(look(on, REV)('The exhibit shows fare down to $125.')).toEqual([]);
+    expect(look(on, REV)("Port Avery's fare is $160 today.")).toEqual([]);
+  });
+
+  it('a modifier before the bare name makes another quantity: the candidate\'s own break-even, target or held fare', () => {
+    // b22l Raj 07 t24 — his own derived figure; the one false flag the corpus sweep of all 28 prof-002 runs found.
+    expect(look(on, REV)("Lakeport's breakeven fare is $130, so every seat sold now loses money.")).toEqual([]);
+    for (const w of ['break-even', 'target', 'required', 'implied', 'budgeted', 'planning'])
+      expect(look(on, REV)(`On Lakeport the ${w} fare is $130.`), w).toEqual([]);
+    expect(look(on, REV)('On Lakeport, hold fare at $137 rather than discounting.')).toEqual([]);
+  });
+
+  it('does not flag the right figure, however the route is named', () => {
+    for (const s of ['On Lakeport, the exhibit shows fare down to $120.', 'On Lakeport the fare fell from $200 to $120.'])
+      expect(look(on, REV)(s), s).toEqual([]);
+  });
+
+  it('the scoped name is not a free-standing name for the item (fact-check reads it only as a quote)', () => {
+    const fb = buildFactBase(on as never);
+    expect(fb.quantities.find(q => q.id === 'lakeport_fare')!.names).not.toContain('fare');
   });
 });

@@ -210,8 +210,9 @@
     "must": true
    }
   ],
-  "rep": true,
-  "stream": 4
+  "rep": false,
+  "stream": 4,
+  "rnote": "With 4.9 on, the time warning skips the fresh recommendation ask and nothing else remains in the model's saved turn, so the replay writes a bare \"Go on.\" — the re-ask is provably gone but the turn's own words are the placeholder. Wave: on pricing-001, the time warning does not re-ask for a recommendation already given, and the turn still says something of its own (Marcus-type answer-first sprinters); the auditor (rec_reask) and the hand grade see it."
  },
  {
   "id": "b37q-marisol-t16-question-dropped",

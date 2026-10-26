@@ -346,12 +346,28 @@ export function withinTolerance(c: CheckerClaim, ctx: VetContext): string | null
     const inBand = theirs.find(f => code.values.some(x => f.lo - code.tol(x) <= x && x <= f.hi + code.tol(x)));
     return inBand ? `code computes ${code.values.map(round).join(' / ')}: theirs ${inBand.lo === inBand.hi ? inBand.lo : `${inBand.lo}–${inBand.hi}`} is within tolerance` : null;
   }
-  const correct = c.correctValue !== null ? { lo: c.correctValue, hi: c.correctValue }
+  const band = correctBand(c);
+  if (!band) return words ? 'no actual share for a word quantity' : 'no correct figure to check';
+  const hit = statedInBand(theirs, band);
+  return hit ? `within tolerance: theirs ${hit.lo === hit.hi ? hit.lo : `${hit.lo}–${hit.hi}`}, correct ${band.lo === band.hi ? band.lo : `${band.lo}–${band.hi}`}` : null;
+}
+
+type Band = { lo: number; hi: number };
+const correctBand = (c: Pick<CheckerClaim, 'correctValue' | 'correctLow' | 'correctHigh'>): Band | null =>
+  c.correctValue !== null ? { lo: c.correctValue, hi: c.correctValue }
     : c.correctLow !== null && c.correctHigh !== null ? { lo: c.correctLow, hi: c.correctHigh } : null;
-  if (!correct) return words ? 'no actual share for a word quantity' : 'no correct figure to check';
+const statedInBand = (theirs: Band[], correct: Band) => {
   const tol = (x: number) => Math.max(0.5, 0.05 * Math.abs(x));
-  const hit = theirs.find(f => f.lo - tol(correct.hi) <= correct.hi && correct.lo <= f.hi + tol(correct.lo));
-  return hit ? `within tolerance: theirs ${hit.lo === hit.hi ? hit.lo : `${hit.lo}–${hit.hi}`}, correct ${correct.lo === correct.hi ? correct.lo : `${correct.lo}–${correct.hi}`}` : null;
+  return theirs.find(f => f.lo - tol(correct.hi) <= correct.hi && correct.lo <= f.hi + tol(correct.lo));
+};
+
+// Whether the figure the candidate stated is inside the checker's own tolerance band of its right figure — the
+// same test `withinTolerance` makes, on the claim alone (no context). Phase 1, Lorenzo's pre-wave ruling 11: a
+// result inside the band is not the fault, so it is never the thing corrected; the misquoted input it was built
+// from is (math-checker-live.ts gateCodeFindings).
+export function statedWithinBand(c: Pick<CheckerClaim, 'candidateValue' | 'correctValue' | 'correctLow' | 'correctHigh'>): boolean {
+  const band = correctBand(c);
+  return band !== null && statedInBand(candidateFigures(c.candidateValue), band) !== undefined;
 }
 
 // "A" / "An" opening a line.

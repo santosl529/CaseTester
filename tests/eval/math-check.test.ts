@@ -1,4 +1,5 @@
 import { describe, it, expect } from 'vitest';
+import { readFileSync } from 'node:fs';
 import { checkMathTurn } from '@/lib/eval/math-check';
 import type { CorpusTurn } from '@/lib/eval/run-corpus';
 import { getCaseById } from '@/lib/cases/loader';
@@ -28,5 +29,21 @@ describe('D6 — a math error the answering turn lets pass', () => {
   });
   it('a correct claim is no error', () => {
     expect(checkMathTurn(turn('A 10% price increase recovers about 8.5 points of margin.', 'Good.'), c)).toEqual([]);
+  });
+});
+
+// Lorenzo's pre-wave ruling 8 (26 Oct): "Leave the ~300 unread detector flags out of the bank." The committed
+// label set is the 13 Oct set plus hand-read entries, merged additively — NOT the output of a bare run of
+// scripts/build-math-labels.ts, whose D6-detector scan sweeps the whole corpus and, measured 26 Oct against the
+// main checkout, writes 680 labels (304 of them with no hand-read claim key) against the 372 committed. This
+// test is the confirmation: every label from batch 22 on names a hand source, so a rebuild that swept the unread
+// flags in would fail here rather than move the checker's own baseline silently.
+describe('the committed math-checker label set (ruling 8)', () => {
+  const labels = JSON.parse(readFileSync('evals/math-checker-labels.json', 'utf8')) as { id: string; run: string; sources: string[] }[];
+  it('holds the hand-read set only: no batch-22-or-later label without a hand source', () => {
+    expect(labels.length).toBe(372);
+    const late = labels.filter(l => /batch-(?:2[2-9]|3\d)/.test(l.run));
+    expect(late.length).toBeGreaterThan(0);
+    for (const l of late) expect(l.sources.join(' | '), l.id).toMatch(/fault bank|hand/);
   });
 });

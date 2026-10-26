@@ -30,6 +30,19 @@ describe('the fault bank', () => {
     }
   });
 
+  // Lorenzo's pre-wave ruling 2 (26 Oct): the replay writes a neutral "Go on." where the turn's kind changed and it
+  // has no saved model output, so no record on one of those turns can be judged from the replay. Three such turns
+  // carry records: b33 Tyler t18, b34a Tyler t30 and b37q Marcus t32 (b32 Marcus t32 carries none).
+  it('every record on a bare "Go on." replay turn is non-replayable, with a wave note (ruling 2)', () => {
+    const artifacts = ['b33-tyler-t18-stale-reprobe', 'b33-tyler-t18-want-dropped', 'b34a-tyler-t30-close', 'b37q-marcus-t32-rec-reask'];
+    for (const id of artifacts) {
+      const r = recs.find(x => x.id === id);
+      expect(r, id).toBeDefined();
+      expect(r!.replayable, id).toBe(false);
+      expect(r!.replayNote, id).toMatch(/Go on\./);
+    }
+  });
+
   it('wave-judged.md lists every record that is not replayable', () => {
     const md = readFileSync(path.join(BANK, 'wave-judged.md'), 'utf8');
     for (const r of recs.filter(x => !x.replayable)) expect(md, r.id).toContain(`| ${r.id} |`);
