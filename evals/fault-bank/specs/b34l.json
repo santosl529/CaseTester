@@ -53,11 +53,17 @@
   "turn": 12,
   "sev": "firm",
   "cls": "ignored_ask",
-  "note": "Her t11 \"Do we know whether load factor would actually fall if we priced back up to $200, or is that untested?\" — the model declared nothing and code's \"$18,000\" probe took the turn. The case holds no elasticity: a refusal was owed (a code probe turn had no slot for her ask).",
+  "note": "Her t11 \"Do we know whether load factor would actually fall if we priced back up to $200, or is that untested?\" — the model declared nothing and code's \"$18,000\" probe took the turn. The case holds no elasticity: a refusal was owed (a code probe turn had no slot for her ask). Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$18,000\" probe taking the whole turn, which is what left her ask with no slot.",
   "a": [
    {
     "kind": "refusal",
+    "about": "elasticity|load factor|untested",
     "must": true
+   },
+   {
+    "kind": "probe",
+    "figure": "$18,000",
+    "must": false
    }
   ],
   "rep": true,
@@ -70,11 +76,17 @@
   "turn": 26,
   "sev": "firm",
   "cls": "ignored_ask",
-  "note": "Her t25 \"Do we know how quickly we can exit the Lakeport and Port Avery slots?\" — declared nothing; the \"$2,800\" probe took the turn. Not held: a refusal was owed.",
+  "note": "Her t25 \"Do we know how quickly we can exit the Lakeport and Port Avery slots?\" — declared nothing; the \"$2,800\" probe took the turn. Not held: a refusal was owed. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$2,800\" probe taking the whole turn, which is what left her ask with no slot.",
   "a": [
    {
     "kind": "refusal",
+    "about": "exit|slot",
     "must": true
+   },
+   {
+    "kind": "probe",
+    "figure": "$2,800",
+    "must": false
    }
   ],
   "rep": true,
@@ -138,7 +150,7 @@
   "turn": 16,
   "sev": "borderline",
   "cls": "unasked_offer",
-  "note": "Code's \"I can share how long new routes take to mature if you'd like.\" — the model read \"a new destination ramps\" as an implicit want; by design then; he asked at t23. Graded borderline before the 21 Oct offer ruling. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "Code's \"I can share how long new routes take to mature if you'd like.\" — the model read \"a new destination ramps\" as an implicit want; by design then; he asked at t23. Graded borderline before the 21 Oct offer ruling. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` here is only the non-degeneracy floor, and that is the whole of its declared scope — the candidate's message on this turn carries no data ask, so no engagement is owed and there is nothing to pair it with. The must-not carries the fault.",
   "a": [
    {
     "kind": "says",
@@ -183,7 +195,7 @@
   "turn": 30,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"If you had to guard against that, how would you do it?\" after his t29 \"What I'd do …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "note": "Code's close_wait \"If you had to guard against that, how would you do it?\" after his t29 \"What I'd do …\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
   "a": [
    {
     "kind": "says",
@@ -191,8 +203,19 @@
     "must": false
    },
    {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
     "kind": "spoke",
     "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
     "must": true
    }
   ],
@@ -206,7 +229,7 @@
   "turn": 28,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"How would you guard against that?\" after his t27 \"In the first 12 months, if loads track under about 60% …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "note": "Code's close_wait \"How would you guard against that?\" after his t27 \"In the first 12 months, if loads track under about 60% …\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
   "a": [
    {
     "kind": "says",
@@ -214,8 +237,19 @@
     "must": false
    },
    {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
     "kind": "spoke",
     "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
     "must": true
    }
   ],
@@ -349,7 +383,7 @@
   "turn": 30,
   "sev": "borderline",
   "cls": "hollow_deferral",
-  "note": "\"That's one we've covered: [competitor_costs]. We won't get to that today.\" for the competitor's cost breakdown by labor and utilization, which the case doesn't hold; the check mapped it to Larkspur's own items. Lorenzo (20 Oct): \"We won't get to\" on data the case doesn't hold, at the close, is borderline.",
+  "note": "\"That's one we've covered: [competitor_costs]. We won't get to that today.\" for the competitor's cost breakdown by labor and utilization, which the case doesn't hold; the check mapped it to Larkspur's own items. Lorenzo (20 Oct): \"We won't get to\" on data the case doesn't hold, at the close, is borderline. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now (both spellings of utilisation, so the assertion is not a spelling trap).",
   "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (call 2)",
   "a": [
    {
@@ -359,6 +393,7 @@
    },
    {
     "kind": "refusal",
+    "about": "labor|utilisation|utilization|cost breakdown",
     "must": true
    }
   ],

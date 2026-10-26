@@ -381,7 +381,7 @@
   "turn": 10,
   "sev": "firm",
   "cls": "unasked_offer",
-  "note": "\"I can share the survey on shopper purchase intent and planning assumptions if you'd like.\" (he took it at t11). Graded borderline; firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (judgement call, applied beyond the named Quillpath case). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "\"I can share the survey on shopper purchase intent and planning assumptions if you'd like.\" (he took it at t11). Graded borderline; firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (judgement call, applied beyond the named Quillpath case). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` here is only the non-degeneracy floor, and that is the whole of its declared scope — the candidate's message on this turn carries no data ask, so no engagement is owed and there is nothing to pair it with. The must-not carries the fault.",
   "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
   "a": [
    {
@@ -427,7 +427,7 @@
   "turn": 26,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"How would you guard against that?\" after his t25 \"I'd mitigate by locking retailer commitments …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "note": "Code's close_wait \"How would you guard against that?\" after his t25 \"I'd mitigate by locking retailer commitments …\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
   "a": [
    {
     "kind": "says",
@@ -435,8 +435,19 @@
     "must": false
    },
    {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
     "kind": "spoke",
     "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
     "must": true
    }
   ],

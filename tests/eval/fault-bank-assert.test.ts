@@ -1,7 +1,7 @@
 // The fault bank's detectors and assertion checks (lib/eval/fault-bank-assert.ts), on lines from the b33–b38 corpus.
 import { describe, it, expect } from 'vitest';
 import { readTurn, evaluateRecord, namesFigure, scopeTurns, type BankTurn } from '@/lib/eval/fault-bank-assert';
-import type { FaultRecord } from '@/lib/eval/fault-bank';
+import { bankMoves, bankSkipEscapes, type BankResultRow, type FaultRecord } from '@/lib/eval/fault-bank';
 import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 
 type Seg = BankTurn['delivered'][number];
@@ -158,6 +158,21 @@ describe('answered — the ask gets a word', () => {
     expect(evaluateRecord(rec({}), [silent(20), silent(22)], LINES).pass).toBe(false);
   });
 
+  // Bank fix 4 (26 Oct): the three accept paths are read AT the record's turn (or scope.fromTurn). The window scan
+  // is only a deferral's resolution. Unanchored, a turn that ignored the ask passed because the item came out
+  // somewhere later — which is how b36l-jasmine-t2-departures and b38l-tyler-t2-split-refusal greened on silence.
+  it('is anchored at the record\'s turn: a later release does not answer a turn that ignored the ask', () => {
+    expect(evaluateRecord(rec({ item: 'new_route_rampup' }), [silent(20), release(22)], LINES).pass).toBe(false);
+    expect(evaluateRecord(rec({}), [silent(20), refuse(22)], LINES).pass).toBe(false);
+    // The anchor itself still answers, and a deferral there still resolves later in the window.
+    expect(evaluateRecord(rec({ item: 'new_route_rampup' }), [release(20), silent(22)], LINES).pass).toBe(true);
+    expect(evaluateRecord(rec({}), [defer(20), release(22), refuse(24)], LINES).pass).toBe(true);
+    // scope.fromTurn moves the anchor.
+    const windowed = rec({ item: 'new_route_rampup', scope: { fromTurn: 22, toTurn: 26 } });
+    expect(evaluateRecord(windowed, [silent(20), silent(22), release(24)], LINES).pass).toBe(false);
+    expect(evaluateRecord(windowed, [silent(20), release(22)], LINES).pass).toBe(true);
+  });
+
   it('accept narrows which outcomes answer the ask', () => {
     const only = rec({ item: 'new_route_rampup', accept: ['refusal', 'deferral'] });
     expect(evaluateRecord(only, [release(20), silent(22)], LINES).pass).toBe(false);
@@ -183,6 +198,18 @@ describe('a vacuous windowed must-not', () => {
     const res = evaluateRecord(r, [turn(20, [seg('Go on.')])], NONE);
     expect(res.skipped).toBe('vacuous');
     expect(res.pass).toBe(true);
+  });
+
+  // Bank fix 3 (26 Oct): a skip must never mask a recorded failure, or a fix that empties one window while
+  // another assertion still fails would take the record out of the gate's denominator and improve the line.
+  it('does not skip when another assertion failed', () => {
+    const r = record({ turn: 20, assertions: [
+      { kind: 'probe', must: false, scope: { fromTurn: 22, toTurn: 26 } },
+      { kind: 'refusal', about: 'elasticity', must: true },
+    ] });
+    const res = evaluateRecord(r, [turn(20, [seg('Go on.')])], NONE);
+    expect(res.skipped).toBeUndefined();
+    expect(res.pass).toBe(false);
   });
 });
 
@@ -219,5 +246,26 @@ describe('the close-wait pools', () => {
         for (const l of PHRASE_POOLS[other as keyof typeof PATTERNS] as readonly string[]) expect(re.test(l), `${name} must not match ${other}: ${l}`).toBe(false);
       }
     }
+  });
+});
+
+// Bank fix 3 (26 Oct): gate condition 1 also requires that no record leaves the denominator — a fix that flips a
+// turn's kind would otherwise reclassify a failing record as `diverged` and the gate line would *improve*.
+describe('bankMoves — the compare behind `fault-bank.ts compare --against=`', () => {
+  const row = (o: Partial<BankResultRow> & { id: string }): BankResultRow => ({ kind: 'fault', pass: false, baseline: 'fails_as_expected', ...o });
+  it('flags a record that moves from fails_as_expected into any skip class, and only that', () => {
+    const was = [row({ id: 'a' }), row({ id: 'b' }), row({ id: 'c', pass: true, baseline: 'fixed_on_base' }), row({ id: 'd' })];
+    const now = [row({ id: 'a', skipped: 'diverged' }), row({ id: 'b', pass: true }), row({ id: 'c', skipped: 'vacuous' }), row({ id: 'd' })];
+    expect(bankSkipEscapes(was, now).map(m => [m.id, m.to])).toEqual([['a', 'diverged']]);
+    expect(bankMoves(was, now).map(m => `${m.id}:${m.from}>${m.to}`)).toEqual(['a:FAIL>diverged', 'b:FAIL>pass', 'c:pass>vacuous']);
+  });
+
+  it('a record that is gone entirely has left the denominator too; a new one has not', () => {
+    const was = [row({ id: 'a' })];
+    const now = [row({ id: 'z', pass: true })];
+    expect(bankMoves(was, now)).toEqual([
+      { id: 'z', kind: 'fault', from: '(new record)', to: 'pass', escape: false },
+      { id: 'a', kind: 'fault', from: 'FAIL', to: '(record gone)', escape: true },
+    ]);
   });
 });

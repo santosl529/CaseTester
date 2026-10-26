@@ -44,7 +44,7 @@ import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
-import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, claimError, relativeError, holdRank, type CloseHoldMemory } from './close-hold';
+import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, claimError, relativeError, holdRank, closeWaitRule, closeWaitReason, type CloseHoldMemory } from './close-hold';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
@@ -1167,9 +1167,17 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   }) : [];
   // With no wrap-up probe left nothing can be probed: no wait.
   if (kind === 'close' && holdable && pendingFinal.length > 0 && !answersWait(ctx.nextTurnIndex, candidateIndexes, closeHold)) kind = 'close_wait';
-  checks.record('close_hold', kind === 'close_wait' || finalHold, kind === 'close_wait' ? 'a final answer\'s verdict has not landed — the follow-up, not the close'
+  // 4.8's decision, logged apart from the wording (gate report §5 item 1): which pool the follow-up comes from and
+  // which pools the switch skipped because the last answer or question already covered them. The fault bank's
+  // close_wait records pin this, because `closeWaitLine` is a three-way fall-through and re-routing the pool
+  // greened the records while the re-ask persisted. Same inputs as session-runner.ts's codeWrittenTurn.
+  const closeWait = kind === 'close_wait'
+    ? closeWaitRule(lastQuestion ?? '', { answer: candidateText, skipAnswered: switchOn(caseData, 'closeWaitMitigation') })
+    : null;
+  checks.record('close_hold', kind === 'close_wait' || finalHold, kind === 'close_wait' ? `a final answer's verdict has not landed — the follow-up, not the close (${closeWaitReason(closeWait!)})`
     : finalHold ? 'a final answer\'s flag — probed before the close' : 'no close hold on the final answers', {
     finalFrom, pending: pendingFinal, probeKey: finalProbeKey, waits: closeHold.waits ?? [], probed: closeHold.probed ?? [],
+    ...(closeWait ? { closeWait } : {}),
   });
   // A deadline's stage turn (R7, above): the checker's correction rides on it,
   // said first by code and booked as on a model turn; a probe due then is held

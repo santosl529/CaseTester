@@ -395,7 +395,7 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Here's an exhibit: … Let's hold extras revenue per passenger and results by route for a little later.\" — a deferral naming the route results right after the route exhibit went up. Extras deferred three times (t2, t4, t6) before t10. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "\"Here's an exhibit: … Let's hold extras revenue per passenger and results by route for a little later.\" — a deferral naming the route results right after the route exhibit went up. Extras deferred three times (t2, t4, t6) before t10. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the route results the exhibit put up on this very turn must still be delivered here — the fault is the deferral re-naming them, not the exhibit.",
   "a": [
    {
     "kind": "deferral",
@@ -404,6 +404,16 @@
    },
    {
     "kind": "spoke",
+    "must": true
+   },
+   {
+    "kind": "answered",
+    "item": "route_results_other",
+    "about": "results by route",
+    "accept": [
+     "release",
+     "refusal"
+    ],
     "must": true
    }
   ],
@@ -472,7 +482,7 @@
   "turn": 28,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "\"To guard against that, what would you put in place?\" (close_wait) after his t27 \"To manage it: validate demand … And set a decision checkpoint at six months\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "note": "\"To guard against that, what would you put in place?\" (close_wait) after his t27 \"To manage it: validate demand … And set a decision checkpoint at six months\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
   "a": [
    {
     "kind": "says",
@@ -480,8 +490,19 @@
     "must": false
    },
    {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
     "kind": "spoke",
     "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
     "must": true
    }
   ],

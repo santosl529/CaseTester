@@ -14,8 +14,9 @@
 //   deferral           a defer / gate_defer / wont_get_to pool variant, or the model's "I'll check what we have";
 //                      `about` reads the deferral sentence, `item` the next turn's open data requests
 //   ask                a stage question (recommendation, risk, mitigation, brainstorm)
-//   answered           over the window: the item released, a refusal, or a deferral that later resolves
-//   spoke              a sentence of the turn's own (not a refusal, not a deferral); with `question`, one that asks
+//   answered           at the record's turn: the item released, a refusal, or a deferral that later resolves
+//   spoke              a sentence of the turn's own (not a refusal, not a deferral); with `question`, one that asks.
+//                      A non-degeneracy floor, not an answer check (I5): see fault-bank.ts's note on the assertion
 //   close              the turn ended the case
 //   says               the regex over the delivered words
 //   check              a TurnRecord check: its name, and `decision` against its decision, reason or detail
@@ -166,24 +167,31 @@ function happened(a: Assertion, r: TurnReading, t: BankTurn, next: BankTurn | un
   }
 }
 
-// Whether the ask got a word over the window: released, truly refused, or deferred and the deferral resolved
-// (a later release of the item, or a later refusal about it — the window ends at the close). An unresolved
-// deferral is not an answer, so a hollow deferral and a silent turn both fail.
+// Whether the ask got a word: released, truly refused, or deferred and the deferral resolved (a later release of
+// the item, or a later refusal about it — the window ends at the close). An unresolved deferral is not an answer,
+// so a hollow deferral and a silent turn both fail.
+//
+// ANCHORED at the record's turn (or scope.fromTurn) — bank fix 4, 26 Oct. The three accept paths are read on the
+// anchor turn alone; the window scan is only the DEFERRAL'S RESOLUTION. Unanchored, the whole window answered,
+// so a turn that ignored the ask passed whenever the item came out anywhere later — which is how
+// b36l-jasmine-t2-departures and b38l-tyler-t2-split-refusal greened on silence.
 function answeredInWindow(a: Extract<Assertion, { kind: 'answered' }>, ns: number[], byT: Map<number, BankTurn>, view: CaseView): boolean {
   const accept = new Set(a.accept ?? (['release', 'refusal', 'deferral'] as const));
   const re = a.about ? new RegExp(a.about, 'i') : null;
+  const anchor = ns[0];
+  if (anchor === undefined || !byT.has(anchor)) return false;
   const seen = ns.filter(n => byT.has(n));
   const read = new Map(seen.map(n => [n, readTurn(byT.get(n)!, view)]));
   const released = (n: number) => !!a.item && read.get(n)!.released.has(a.item);
   const refused = (n: number) => read.get(n)!.refusals.some(x => !re || re.test(x));
   const deferred = (n: number) => read.get(n)!.deferrals.some(x => !re || re.test(x));
-  if (accept.has('release') && seen.some(released)) return true;
-  if (accept.has('refusal') && seen.some(refused)) return true;
-  if (!accept.has('deferral')) return false;
+  if (accept.has('release') && released(anchor)) return true;
+  if (accept.has('refusal') && refused(anchor)) return true;
+  if (!accept.has('deferral') || !deferred(anchor)) return false;
   // What may resolve the deferral: the outcomes this record accepts — or, when it accepts only a deferral, either.
   const byRelease = accept.has('release') || !accept.has('refusal');
   const byRefusal = accept.has('refusal') || !accept.has('release');
-  return seen.some(i => deferred(i) && seen.some(j => j > i && ((byRelease && released(j)) || (byRefusal && refused(j)))));
+  return seen.some(j => j > anchor && ((byRelease && released(j)) || (byRefusal && refused(j))));
 }
 
 // The interviewer turns an assertion looks at, as grading turns tN (tN = turnIndex + 1).
@@ -227,6 +235,9 @@ export function evaluateRecord(rec: FaultRecord, turns: BankTurn[], view: CaseVi
     }
   }
   const own = byT.get(rec.turn);
-  const skipped = !own ? 'diverged' as const : vacuous ? 'vacuous' as const : undefined;
+  // A skip never masks a recorded failure (bank fix 3, 26 Oct): a fix that empties one must-not's window while
+  // another assertion still fails would otherwise take the record out of the gate's denominator — and the gate
+  // line would *improve*. Only a record with nothing against it can be skipped as vacuous.
+  const skipped = !own ? 'diverged' as const : (vacuous && failed.length === 0) ? 'vacuous' as const : undefined;
   return { id: rec.id, pass: failed.length === 0, failed, ...(skipped ? { skipped } : {}) };
 }

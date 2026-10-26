@@ -239,7 +239,7 @@
   "turn": 10,
   "sev": "firm",
   "cls": "unasked_offer",
-  "note": "\"I can share plan economics: monthly price and cost to serve for Pro and Starter if you'd like.\" (an item label as the offer; he took it). Lorenzo (21 Oct): firm. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "\"I can share plan economics: monthly price and cost to serve for Pro and Starter if you'd like.\" (an item label as the offer; he took it). Lorenzo (21 Oct): firm. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` here is only the non-degeneracy floor, and that is the whole of its declared scope — the candidate's message on this turn carries no data ask, so no engagement is owed and there is nothing to pair it with. The must-not carries the fault.",
   "src": "batch-37-quillpath/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
   "a": [
    {
@@ -447,7 +447,7 @@
   "turn": 32,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"How would you guard against that?\" after her t31 \"Protection: roll $60 out to a fraction of traffic …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "note": "Code's close_wait \"How would you guard against that?\" after her t31 \"Protection: roll $60 out to a fraction of traffic …\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
   "a": [
    {
     "kind": "says",
@@ -455,8 +455,19 @@
     "must": false
    },
    {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
     "kind": "spoke",
     "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
     "must": true
    }
   ],
@@ -791,8 +802,8 @@
   "turn": 24,
   "sev": "firm",
   "cls": "missed_error",
-  "note": "A pending correction must ride on a stage turn code writes, never be dropped. The checker rated his \"a Starter sign-up is worth $1,205 all-in\" an error with the correction \"Starter value per sign-up including upgrades, at $40, is about $1,400, not $1,205.\" (claim 19:0). t24 is a code-written stage_exhibit that selected 19:0 and used nothing (`used: null`); t26 is a rec_ask that did the same with 21:0, the same correction; by t28 19:0 is recorded `expired` (\"3 messages since the claim\"). The correction only reached him at t34, five turns and two stage turns late, and on the contract base it is lost altogether. Not a hand-graded fault: found by the Stream 1 review's finding 8 and fixed as an ungated base fix on phase1-base-fixes (56c54edd, cb38676f) — a stage turn or rec_ask forced by complete coverage, rather than by being overdue, must carry the pending correction. Severity firm is Claude's reading (a live, flagged error the candidate never heard while it mattered), not Lorenzo's ruling. Replaces the two records first written for b35q Marisol t26 (a cascade) and b34l Marisol t26 (a replay artifact), neither of which can pass even after the fix.",
-  "src": "stream-1-review-2026-10-25 (finding 8); phase1-base-fixes 56c54edd, cb38676f",
+  "note": "A pending correction must ride on a stage turn code writes, never be dropped. The checker rated his \"a Starter sign-up is worth $1,205 all-in\" an error with the correction \"Starter value per sign-up including upgrades, at $40, is about $1,400, not $1,205.\" (claim 19:0). t24 is a code-written stage_exhibit that selected 19:0 and used nothing (`used: null`); t26 is a rec_ask that did the same with 21:0, the same correction; by t26 19:0 is recorded `expired` (\"3 messages since the claim\"). The correction only reached him at t34, five turns and two stage turns late, and on the contract base it is lost altogether. Not a hand-graded fault: found by the Stream 1 review's finding 8 and fixed as an ungated base fix on phase1-base-fixes (56c54edd, cb38676f) — a stage turn or rec_ask forced by complete coverage, rather than by being overdue, must carry the pending correction. Severity: **firm, Lorenzo's ruling of 26 Oct** (a live, flagged error the candidate never heard while it mattered). Replaces the two records first written for b35q Marisol t26 (a cascade) and b34l Marisol t26 (a replay artifact), neither of which can pass even after the fix. Stream relabelled `none` on 26 Oct (gate report §5 item 6, Lorenzo): the fix is an ungated base fix, so no Phase 1 stream owns it and gate condition 1 does not count it.",
+  "src": "stream-1-review-2026-10-25 (finding 8); phase1-base-fixes 56c54edd, cb38676f; lorenzo-ruling-2026-10-26 (severity firm, stream none)",
   "a": [
    {
     "kind": "correction",
@@ -805,6 +816,6 @@
    }
   ],
   "rep": true,
-  "stream": 3
+  "stream": "none"
  }
 ]

@@ -317,7 +317,7 @@
   "turn": 26,
   "sev": "borderline",
   "cls": "close_wait_reask",
-  "note": "Code's close_wait \"What would you do to guard against that?\" after his t25 \"How I'd hedge before committing …\". Fix round (25 Oct): the record asserts the pool line the fault used, not the whole close-wait family — the old `ask: mitigation` reading also matched the first-step pool (so 4.8 could not clear it) and missed two of its variants (so the same fault could pass). The pattern covers every variant of this pool and no other (tests/eval/fault-bank-assert.test.ts), so it survives the phrase rotation.",
+  "note": "Code's close_wait \"What would you do to guard against that?\" after his t25 \"How I'd hedge before committing …\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
   "a": [
    {
     "kind": "says",
@@ -325,8 +325,19 @@
     "must": false
    },
    {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
     "kind": "spoke",
     "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
     "must": true
    }
   ],
@@ -418,12 +429,16 @@
   "turn": 26,
   "sev": "correct",
   "cls": "correct_release",
-  "note": "The cannibalization line for his cannibalization question.",
+  "note": "The cannibalization line for his cannibalization question. Window widened on 26 Oct (gate report §2 and §5 item 7, Lorenzo): must-reach releases `cannibalization` before the recommendation — his 21 Oct intent — so with the switches on the correct release lands at t18 instead of t26, and the record pinned to t26 was the one failing correct record in the `*=phase1` arm. What the record means is that the item is out by the turn that answers his ask; where must-reach puts it earlier is must-reach's business, and an unasked early release is a different record's (unasked_release). Fix the record, not the code.",
   "a": [
    {
     "kind": "release",
     "item": "cannibalization",
-    "must": true
+    "must": true,
+    "scope": {
+     "fromTurn": 2,
+     "toTurn": 26
+    }
    }
   ],
   "rep": true,

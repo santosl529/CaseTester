@@ -33,15 +33,25 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
   // A stage question: the recommendation, the risk, a mitigation, the brainstorm.
   z.object({ kind: z.literal('ask'), stage: z.enum(['recommendation', 'risk', 'mitigation', 'brainstorm']), must: z.boolean(), scope: Scope.optional() }).strict(),
   z.object({ kind: z.literal('close'), must: z.boolean(), scope: Scope.optional() }).strict(),
-  // The ask gets a word (critical 5 of the Stream 1 review; Lorenzo, 25 Oct): within the window, the item is
-  // released, a refusal is spoken, or a deferral is spoken that LATER RESOLVES (a release of the item, or a refusal
-  // about it, before the close). An unresolved deferral is not an answer, so silence and a hollow deferral both fail;
-  // `accept` narrows which of the three count (default: all three). The window defaults to the record's turn → the
-  // close, because a deferral's resolution is owed by then (contract 4.7). At least one of `item` / `about` is given.
+  // The ask gets a word (critical 5 of the Stream 1 review; Lorenzo, 25 Oct): ON THE RECORD'S TURN (or
+  // scope.fromTurn) the item is released, a refusal is spoken, or a deferral is spoken that LATER RESOLVES (a
+  // release of the item, or a refusal about it, before the close). The window covers the deferral's resolution
+  // only — the three accept paths are anchored at the turn, so a later release does not excuse a turn that ignored
+  // the ask (bank fix 4, 26 Oct). An unresolved deferral is not an answer, so silence and a hollow deferral both
+  // fail; `accept` narrows which of the three count (default: all three). The window defaults to the record's turn
+  // → the close, because a deferral's resolution is owed by then (contract 4.7). At least one of `item` / `about`
+  // is given.
   z.object({ kind: z.literal('answered'), item: z.string().optional(), about: z.string().optional(),
     accept: z.array(z.enum(['release', 'refusal', 'deferral'])).min(1).optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // The turn says something of its own: a delivered sentence that is neither a refusal nor a deferral — so silence,
   // a neutral "Go on." and a refuse-everything turn all fail. With `question`, that sentence asks something.
+  //
+  // DECLARED SCOPE (I5, 26 Oct): `spoke` is a NON-DEGENERACY FLOOR, not an answer check. It says the fix must not
+  // be "say nothing there" — it does not say the turn said anything relevant. Any sentence of 20 characters, or any
+  // question, satisfies it. So where a turn owes an engagement (the candidate asked something, or the turn's own
+  // answer must survive the fix), `spoke` is PAIRED with an `answered` over the item or a `says` over the expected
+  // content; where the candidate's message carries no ask, the floor is the whole of what the record claims and
+  // the must-not carries the fault. Each record's note says which of the two it is.
   z.object({ kind: z.literal('spoke'), question: z.boolean().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // Free text over the turn's delivered words (case-insensitive regex).
   z.object({ kind: z.literal('says'), pattern: z.string(), must: z.boolean(), scope: Scope.optional() }).strict(),
@@ -88,5 +98,33 @@ export type FaultRecord = z.infer<typeof FaultRecordSchema>;
 
 // The harness's result per record.
 // `vacuous`: a must-not assertion whose window holds no turn in the replay — nothing was looked at, so the record
-// is skipped, not passed (finding 7 of the Stream 1 review).
+// is skipped, not passed (finding 7 of the Stream 1 review) — but only when nothing else about the record failed:
+// a skip must never mask a recorded failure, or a fix that flips a turn's kind or empties a window would take a
+// failing record out of the gate's denominator and the gate line would improve (bank fix 3, 26 Oct).
 export type FaultResult = { id: string; pass: boolean; failed: { assertion: Assertion; saw: string }[]; skipped?: 'not_replayable' | 'run_missing' | 'diverged' | 'vacuous' };
+
+// ── comparing two runs (bank fix 3, 26 Oct) ──
+// Gate condition 1 is not just "how many pass": a fix that flips a turn's kind, shortens a run or empties a
+// must-not's window takes a failing record out of the gate's denominator, and the gate line *improves* while the
+// fault persists. The probe classes are exactly the ones whose fixes flip kinds. So the gate also requires that
+// **no record moves from `fails_as_expected` into any skip class**, and every record that does is listed for a
+// hand read. `scripts/fault-bank.ts compare --against=` reads two results.json files through this.
+export type BankResultRow = { id: string; kind: FaultRecord['kind']; pass: boolean; skipped?: FaultResult['skipped']; baseline?: string };
+export type BankMove = { id: string; kind: string; from: string; to: string; escape: boolean };
+export const resultState = (r: BankResultRow) => r.skipped ?? (r.pass ? 'pass' : 'FAIL');
+
+export function bankMoves(from: readonly BankResultRow[], to: readonly BankResultRow[]): BankMove[] {
+  const was = new Map(from.map(r => [r.id, r]));
+  const now = new Set(to.map(r => r.id));
+  const out: BankMove[] = [];
+  for (const r of to) {
+    const b = was.get(r.id);
+    if (!b) { out.push({ id: r.id, kind: r.kind, from: '(new record)', to: resultState(r), escape: false }); continue; }
+    if (resultState(b) === resultState(r)) continue;
+    out.push({ id: r.id, kind: r.kind, from: resultState(b), to: resultState(r), escape: b.baseline === 'fails_as_expected' && !!r.skipped });
+  }
+  // A record that is gone entirely has left the denominator too.
+  for (const b of from) if (!now.has(b.id)) out.push({ id: b.id, kind: b.kind, from: resultState(b), to: '(record gone)', escape: b.baseline === 'fails_as_expected' });
+  return out;
+}
+export const bankSkipEscapes = (from: readonly BankResultRow[], to: readonly BankResultRow[]) => bankMoves(from, to).filter(m => m.escape);
