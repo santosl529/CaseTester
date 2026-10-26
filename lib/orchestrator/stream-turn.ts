@@ -337,6 +337,7 @@ export async function streamTurnSegments(
   // sentence never flushes it early (final review M1, 20 Oct).
   let heldRefusal = false;
   let firstSentenceSeen = false;
+  const sayRaw: string[] = [];
   const ackOn = switchOn(plan.state.caseData, 'ackRotation');
   // 4.10's review fix: no rotated acknowledgment in front of a correction code writes (stream-turn.ts turnCorrects).
   const correcting = turnCorrects(state);
@@ -390,11 +391,12 @@ export async function streamTurnSegments(
     // pressure test's verdict for this turn is in (the gate depends on it).
     await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
     // The message's asks the model left out, as Settle adds them (round 5 Tasks 48, 50).
-    const d = await turnDataChecked(plan, withAsks(fields, await messageAsks(plan, fields.requests, opts.onUsage)), opts.onUsage);
+    // The model's raw say (Phase 2 S2's evidence), as Settle reads it: the sentences as the model wrote them.
+    const d = await turnDataChecked(plan, withAsks(fields, await messageAsks(plan, fields.requests, opts.onUsage)), opts.onUsage, { modelSay: sayRaw.join(' ') });
     // The same connecting words Settle renders: the same seed and the session's recent uses (phrasing.ts).
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`, plan.ctx.flags.phraseUses as PhraseUses | undefined);
     if (lines.length > 0 || d.exhibit) {
-      await send('data', lines.join(' '), d.releases.map(r => r.id), d.exhibit?.id);
+      await send('data', lines.filter(Boolean).join(' '), d.releases.map(r => r.id), d.exhibit?.id);
       mark('data_line_delivered');
     }
   };
@@ -408,6 +410,7 @@ export async function streamTurnSegments(
     if (e.type === 'restart') {
       // A regeneration happens only while nothing was delivered: drop the draft.
       queue = [];
+      sayRaw.length = 0;
       spokenKeys.clear();
       fields = { requests: [], exhibit: null, rescueItem: null };
       closed = new Set();
@@ -423,7 +426,7 @@ export async function streamTurnSegments(
     // 4.10 (`ackRotation`): the say's opening acknowledgment through the pool rotation (phrasing.ts rotateOpeningAck;
     // Settle renders the same words from the same seed and uses).
     if (e.type === 'sentence') p = { kind: 'sentence', text: !firstSentenceSeen && ackOn ? rotateOpeningAck(e.text, plan.ctx.flags.phraseUses as PhraseUses | undefined, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`, { correcting }) : e.text };
-    if (e.type === 'sentence') firstSentenceSeen = true;
+    if (e.type === 'sentence') { firstSentenceSeen = true; sayRaw.push(e.text); }
     else if (e.key === 'requests') fields = { ...fields, requests: toRequests(e.value) };
     else if (e.key === 'exhibit') fields = { ...fields, exhibit: typeof e.value === 'string' ? e.value : null };
     else if (e.key === 'rescue_item') fields = { ...fields, rescueItem: typeof e.value === 'string' ? e.value : null };

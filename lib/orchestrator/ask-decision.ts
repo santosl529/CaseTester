@@ -68,6 +68,8 @@ export type AskDecided = {
   tagMismatch?: string[];
   /** R2's line test failed on these model items, kept for want of a contradiction (logged). */
   lineFail?: string[];
+  /** R6's evidence: the check's "none", the model's own refusal, a clear tag mismatch, a deterministic cut. */
+  evidence?: ('check_none' | 'model_refused' | 'tag_clear' | 'cut')[];
   /** Q1: the check would be called here — no verdict cached for it. */
   wouldCheck?: true;
   /** What today's paths decided for this sub-ask, and whether the two agree. */
@@ -377,7 +379,7 @@ export async function shadowAskDecision(x: ShadowInput): Promise<ShadowDecision>
     }
     if (rule === 'R1' && cut && sa.declared) {
       // Given for a sibling sub-ask, but not stating this one's period or scope: the cut refused (E1, 4b).
-      asks.push({ ...base, outcome: 'refuse', rule: 'R6', items: [], cut, withHead: 'refuse', agree: o.outcome === 'refuse' });
+      asks.push({ ...base, outcome: 'refuse', rule: 'R6', items: [], cut, withHead: 'refuse', evidence: ['cut'], agree: o.outcome === 'refuse' });
       continue;
     }
 
@@ -392,7 +394,7 @@ export async function shadowAskDecision(x: ShadowInput): Promise<ShadowDecision>
       const pointable = out.filter(id => exhibitIds.has(id) || (head !== null && keyNouns(ownWords(id), caseNames).has(head)));
       let decided: AskDecided | null = null;
       if (rule !== 'R1' && cut && out.length === pick.length && sa.declared) {
-        decided = { ...base, outcome: 'refuse', rule: 'R6', items: [], cut, withHead: 'refuse', agree: o.outcome === 'refuse' };
+        decided = { ...base, outcome: 'refuse', rule: 'R6', items: [], cut, withHead: 'refuse', evidence: ['cut'], agree: o.outcome === 'refuse' };
       } else if (fresh.length === 0 && out.length === 0 && givenNow.length > 0) {
         // Already given this turn (another sub-ask, or the exhibit going out): R1.
         decided = { ...base, outcome: 'release', rule: 'R1', items: givenNow, agree: o.outcome === 'release' };
@@ -440,11 +442,61 @@ export async function shadowAskDecision(x: ShadowInput): Promise<ShadowDecision>
     const headShared = headR6 !== null && pendingItems.some(i => !given.has(i.id) && keyNouns(ownWords(i.id), caseNames).has(headR6));
     const wouldCheck = !evidence && verdictsOf.length === 0 ? { wouldCheck: true as const } : {};
     const outcome: Outcome = refusable ? 'refuse' : 'defer';
+    const why6 = [...(checkedNone ? ['check_none' as const] : []), ...(modelRefused ? ['model_refused' as const] : []), ...(tagRefused ? ['tag_clear' as const] : []), ...(deterministicCut ? ['cut' as const] : [])];
     asks.push({ ...base, outcome, rule: refusable ? 'R6' : 'R7', items: [], ...(outcome === 'defer' ? { why: 'uncertain' as const, ...(wrap ? { wont: true as const } : {}) } : {}),
-      withHead: refusable && headShared ? 'defer' : outcome, ...wouldCheck, agree: o.outcome === outcome });
+      withHead: refusable && headShared ? 'defer' : outcome, ...(refusable ? { evidence: why6 } : {}), ...wouldCheck, agree: o.outcome === outcome });
   }
   return { asks, volunteered: old.releases.filter(r => r.mustReach !== undefined || r.earlier).map(r => r.id), offersDropped: old.offers, sentences };
 }
 
 // The disagreement class of one sub-ask: today's outcome → the shadow's ("same" when they agree).
 export const disagreement = (a: Pick<AskDecided, 'old' | 'outcome' | 'agree'>) => (a.agree ? 'same' : `${a.old}→${a.outcome}`);
+
+// ── S2 (`askRefusals`; design §4.3; Lorenzo's GO, 27 Oct) ──
+// The decision's refusals and deferrals, spoken: R6 and R7 replace the item-less refusal path (A9), the noun
+// deferrals and the hollow or wrong-item answers today's code gives a declared sub-ask. Releases, the exhibit and the
+// pressure-test gate's deferrals are untouched (S3–S5); today's refusals are never turned into deferrals here (no
+// hollow deferral added; logged only). Undeclared sub-asks stay shadow-only (session-1 ruling 1). Code's offer line
+// is dropped (Q4). The same inputs in Stream and Settle (the model's raw say), so both speak the same data line.
+export type RefusalChange = { words: string; from: AskDecided['old']; to: 'refuse' | 'defer' | 'wont' | 'dropped'; said: string; removed: string[] };
+const near = (a: string, b: string) => { const x = keyNouns(b); return [...keyNouns(a)].some(n => x.has(n)); };
+export function applyAskRefusals(d: TurnData, asks: AskDecided[]): { data: TurnData; changes: RefusalChange[] } {
+  const out: TurnData = { ...d, refusals: [...d.refusals], defers: [...d.defers], restates: [...d.restates], offers: [],
+    ...(d.itemlessDefers ? { itemlessDefers: [...d.itemlessDefers] } : {}), ...(d.wontGetTo ? { wontGetTo: [...d.wontGetTo] } : {}),
+    ...(d.deferralsOpened ? { deferralsOpened: [...d.deferralsOpened] } : {}), requests: d.requests.map(r => ({ ...r })) };
+  const changes: RefusalChange[] = [];
+  // S2's first replay (27 Oct, 47 turns read by hand) set these limits: an uncertain deferral (R7) is not spoken — added
+  // where today said nothing, it mostly repeated today's own deferral in other words and closed at the wrap-up as a false
+  // "We won't get to …" for data since delivered; a restatement is taken off only for the wrong item (R6 with no cut) —
+  // replacing a coarse answer with a deferral lost it; nothing is refused that today already refuses or defers.
+  for (const a of asks) {
+    if (!a.declared || a.agree || a.outcome !== 'refuse' || a.rule !== 'R6' || !(a.evidence?.length)) continue;
+    if (!(a.old === 'defer' || a.old === 'none' || (a.old === 'point' && !a.cut))) continue;
+    const said = spokenRefusal(a.cut ?? a.whats[0] ?? a.words);
+    if (!said) continue;
+    const hit = (w: string) => near(w, a.words) || a.whats.some(x => near(w, x)) || near(w, said);
+    if (a.old === 'none' && (out.refusals.some(hit) || out.defers.some(hit) || (out.wontGetTo ?? []).some(hit))) continue;
+    const removed: string[] = [];
+    if (a.old === 'defer') {
+      for (const w of out.defers.filter(hit)) removed.push(`defer: ${w}`);
+      out.defers = out.defers.filter(w => !hit(w));
+      if (out.itemlessDefers) out.itemlessDefers = out.itemlessDefers.filter(w => !hit(w));
+      if (out.deferralsOpened) out.deferralsOpened = out.deferralsOpened.filter(o => !hit(o.what));
+      if (out.wontGetTo) { for (const w of out.wontGetTo.filter(hit)) removed.push(`wont: ${w}`); out.wontGetTo = out.wontGetTo.filter(w => !hit(w)); }
+    }
+    if (a.old === 'point') {
+      for (const r of out.restates.filter(r => a.oldItems.includes(r.id))) removed.push(`restate: ${r.id}`);
+      out.restates = out.restates.filter(r => !a.oldItems.includes(r.id));
+    }
+    if (!out.refusals.some(w => w.toLowerCase() === said.toLowerCase())) out.refusals.push(said);
+    out.requests = out.requests.map(r => (r.response === 'defer' && r.ledgerItemIds.length === 0 && hit(r.request.what) ? { ...r, response: 'refuse' as const } : r));
+    changes.push({ words: a.words, from: a.old, to: 'refuse', said, removed });
+  }
+  if (d.offers.length > 0) changes.push({ words: d.offers.join('; '), from: 'offer', to: 'dropped', said: '', removed: d.offers.map(o => `offer: ${o}`) });
+  return { data: out, changes };
+}
+// A refusal in the candidate's words, said as a noun phrase: no ask opener ("Do we have …", "do we know how …").
+function spokenRefusal(words: string): string {
+  return words.replace(/^(?:(?:so|and|but)\s+)?(?:(?:do|did|can|could|would)\s+(?:we|i|you)\s+(?:please\s+)?(?:have|get|see|know)\s+(?:any\s+)?(?:data\s+on\s+|a\s+sense\s+of\s+|anything\s+on\s+)?|is there (?:any|a)\s+|please share\s+)/i, '')
+    .replace(/[?.!]+$/, '').trim();
+}

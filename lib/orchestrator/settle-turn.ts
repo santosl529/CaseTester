@@ -220,7 +220,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       classified: r.classified, ...(asked.timedOut ? { timedOut: true } : {}), latencyMs: r.latencyMs, waitMs: r.waitMs,
     });
   }
-  const decisions = await turnDataChecked(plan, withAsks(turn, asked), onUsage);
+  const decisions = await turnDataChecked(plan, withAsks(turn, asked), onUsage, { modelSay: codeWritten ? '' : turn.say, log: true });
   const phraseUses = flags.phraseUses as PhraseUses | undefined;
   const dataParts = renderDataLineParts(decisions, seed, phraseUses);
   let dataLines = dataParts.map(p => p.text);

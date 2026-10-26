@@ -104,3 +104,50 @@ describe('the comparison with today', () => {
     expect(disagreement({ old: 'refuse', outcome: 'refuse', agree: true })).toBe('same');
   });
 });
+
+// ── S2: the overlay on today's decisions (applyAskRefusals) ──
+import { applyAskRefusals, type AskDecided } from '@/lib/orchestrator/ask-decision';
+import type { TurnData } from '@/lib/orchestrator/turn-data';
+const today = (o: Partial<TurnData> = {}): TurnData => ({ releases: [], restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], requests: [], gatedIds: [], ...o });
+const ask = (o: Partial<AskDecided>): AskDecided => ({ words: 'price elasticity on the four routes', whats: ['price elasticity of those four routes'], sentence: null, source: 'candidate', declared: true, outcome: 'refuse', rule: 'R6', evidence: ['check_none'], items: [], old: 'none', oldItems: [], agree: false, ...o });
+
+describe('S2: applyAskRefusals', () => {
+  it('a true refusal replaces today\'s hollow deferral, in the declared words', () => {
+    const { data, changes } = applyAskRefusals(today({ defers: ['price elasticity of those four routes'], itemlessDefers: ['price elasticity of those four routes'] }), [ask({ old: 'defer' })]);
+    expect(data.defers).toEqual([]);
+    expect(data.refusals).toEqual(['price elasticity of those four routes']);
+    expect(changes[0]).toMatchObject({ from: 'defer', to: 'refuse' });
+  });
+  it('a true refusal replaces a wrong item restated (b38l Tyler t24)', () => {
+    const { data } = applyAskRefusals(today({ restates: [{ id: 'route_results_other', value: 'On the other four routes …' }] }), [ask({ old: 'point', oldItems: ['route_results_other'] })]);
+    expect(data.restates).toEqual([]);
+    expect(data.refusals).toHaveLength(1);
+  });
+  it('today\'s refusal is never turned into a deferral in S2', () => {
+    const { data, changes } = applyAskRefusals(today({ refusals: ['Nimbrel\'s patent expiry'] }), [ask({ words: 'Nimbrel\'s patent expiry', outcome: 'defer', rule: 'R7', why: 'uncertain', old: 'refuse' })]);
+    expect(data.refusals).toEqual(['Nimbrel\'s patent expiry']);
+    expect(changes).toEqual([]);
+  });
+  it('an undeclared sub-ask stays shadow-only (session-1 ruling 1)', () => {
+    const { changes } = applyAskRefusals(today(), [ask({ declared: false, source: 'candidate' })]);
+    expect(changes).toEqual([]);
+  });
+  it('an uncertain deferral (R7) is not spoken in S2 — logged only (the first replay\'s false "We won\'t get to …")', () => {
+    const a = ask({ outcome: 'defer', rule: 'R7', why: 'uncertain', old: 'none', evidence: undefined });
+    expect(applyAskRefusals(today(), [a]).changes).toEqual([]);
+  });
+  it('no refusal without evidence; none added beside today\'s own refusal or deferral of it; no ask opener in the words', () => {
+    expect(applyAskRefusals(today(), [ask({ evidence: [] })]).changes).toEqual([]);
+    expect(applyAskRefusals(today({ refusals: ['price elasticity of those routes'] }), [ask({})]).data.refusals).toEqual(['price elasticity of those routes']);
+    expect(applyAskRefusals(today(), [ask({ words: 'Do we have the split of the $20M fixed', whats: [] })]).data.refusals).toEqual(['the split of the $20M fixed']);
+  });
+  it('a restatement is kept when the refusal is only its finer cut (E1)', () => {
+    const { data } = applyAskRefusals(today({ restates: [{ id: 'option_b', value: 'Option B …' }] }), [ask({ old: 'point', oldItems: ['option_b'], cut: 'royalty step-downs' })]);
+    expect(data.restates).toHaveLength(1);
+  });
+  it('Q4: code\'s offer line is dropped; releases are never touched', () => {
+    const { data } = applyAskRefusals(today({ offers: ['plan economics'], releases: [{ id: 'x', value: 'v', earlier: false }] }), []);
+    expect(data.offers).toEqual([]);
+    expect(data.releases).toHaveLength(1);
+  });
+});

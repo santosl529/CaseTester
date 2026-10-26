@@ -54,6 +54,8 @@ export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck
 export const PHASE2_SWITCHES = [
   'askDecisionShadow',   // S1: the one data decision (lib/orchestrator/ask-decision.ts), logged as `ask_decision_shadow`
   'composeShadow',       // C1: the four-slot composer and its lint (lib/orchestrator/turn-composer.ts), logged as `compose_shadow`
+  'askRefusals',         // S2: the decision's true refusals (R6) and uncertain deferrals (R7) spoken for declared sub-asks; offers dropped
+  'composeData',         // C2: the data slot — the exhibit last, no line the model's say already said (L1), no deferral of what it released (L3)
 ] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES, ...PHASE2_SWITCHES] as const;
 

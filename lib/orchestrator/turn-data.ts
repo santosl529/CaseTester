@@ -13,6 +13,8 @@ import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog,
 import { askingSentences, addressedAskSentences, lateAskSentences, requestSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, saysItemName, WANT_ASK_PHASES } from './request-signal';
 import { tagsAgree, askGroups, askClauses, askTags, itemTagsAgree } from './item-tags';
 import { correctsNow } from './math-checker-live';
+import { shadowAskDecision, applyAskRefusals } from './ask-decision';
+import { composeDataSlot } from './turn-composer';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
 import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, askQualifiers, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
@@ -684,10 +686,31 @@ function haikuTagGate(plan: ModelPlan, what: string, v: CheckVerdict): { verdict
 // second's. An ask a later pass leaves unmatched is checked in turn (bounded).
 // What's left unmatched: no verdict → the named deferral; else refused.
 const CHECK_PASSES = 3;
-export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage): Promise<TurnData> {
+// `modelSay` (Phase 2 S2): the model's own say, raw — its refusals are the decision's evidence; Stream and Settle pass
+// the same words, so both speak the same data line.
+export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage, opts: { modelSay?: string; log?: boolean } = {}): Promise<TurnData> {
   const decided = new Map<string, CheckedAsk>();
   const d = await turnDataDecided(plan, turn, decided, onUsage);
-  return closeOpenDeferrals(plan, switchOn(plan.state.caseData, 'refusalNounCheck') ? nounDeferrals(plan, d, decided) : d);
+  const today = closeOpenDeferrals(plan, switchOn(plan.state.caseData, 'refusalNounCheck') ? nounDeferrals(plan, d, decided) : d);
+  // Phase 2 S2 (`askRefusals`): the one decision's refusals and deferrals in place of today's (ask-decision.ts).
+  let data = today;
+  if (switchOn(plan.state.caseData, 'askRefusals')) {
+    const decision = await shadowAskDecision({ plan, model: turn.requests, detections: null, modelWords: [opts.modelSay ?? ''], old: today });
+    const r = applyAskRefusals(today, decision.asks);
+    data = r.data;
+    if (opts.log && r.changes.length > 0) plan.ctx.checks.act('ask_refusals', 'the one decision\'s refusals and deferrals in place of today\'s (Phase 2 S2)', { changes: r.changes });
+  }
+  // Phase 2 C2 (`composeData`): the data slot (turn-composer.ts composeDataSlot).
+  if (switchOn(plan.state.caseData, 'composeData')) {
+    const { ledger, caseData, factBase } = plan.state;
+    const exhibit = data.exhibit ? { ...data.exhibit, title: caseData.exhibits.find(e => e.id === data.exhibit!.id)?.title ?? '' } : null;
+    const itemOf = (id: string) => { const i = ledger.items.find(x => x.id === id); return i ? { id, words: [i.label, i.spoken ?? '', i.value, ...(factBase.quantities.find(q => q.id === id)?.names ?? [])], spoken: i.spoken ?? spokenItemName(i.label) } : undefined; };
+    const c = composeDataSlot({ ...data, exhibit }, opts.modelSay ?? '', itemOf, properNames(caseData.sttKeyterms));
+    data = { ...c.data, exhibit: data.exhibit };
+    const real = c.changes.filter(x => x.rule !== 'exhibit_last');
+    if (opts.log && real.length > 0) plan.ctx.checks.act('compose_data', 'the data slot (Phase 2 C2): no line the say already spoke, no deferral of what this turn gives', { changes: real });
+  }
+  return data;
 }
 async function turnDataDecided(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, decided: Map<string, CheckedAsk>, onUsage?: OnUsage): Promise<TurnData> {
   // Review F4 (a): per ask, the item-tag mismatches the gate dropped while the rest of the verdict still answered it.

@@ -73,3 +73,47 @@ describe('a code-written turn\'s riding correction', () => {
     expect(c.slots.ack).toEqual([]);
   });
 });
+
+// ── C2: the data slot (composeDataSlot) ──
+import { composeDataSlot } from '@/lib/orchestrator/turn-composer';
+import { renderDataLines } from '@/lib/orchestrator/data-decisions';
+const items: Record<string, { id: string; words: string[]; spoken: string }> = {
+  fuel_prices: { id: 'fuel_prices', words: ['Fuel prices over the period', 'Fuel prices have been roughly flat over the period.'], spoken: 'the fuel price trend' },
+  unit_costs: { id: 'unit_costs', words: ['Wages and other costs per flight', 'There were no material changes to wages or other costs per flight.'], spoken: 'wages and other costs per flight' },
+};
+const base = { releases: [] as { id: string; value: string; earlier: boolean }[], restates: [] as { id: string; value: string }[], exhibit: null as null | { id: string; title: string; covers: string[] }, refusals: [] as string[], defers: [] as string[], gateDefers: [] as string[], unmatchedDefers: [] as string[], offers: [] as string[], requests: [] as { request: { what: string; itemIds: string[]; explicit: boolean; respond: 'release' }; response: 'release' | 'defer' | 'refuse'; ledgerItemIds: string[] }[] };
+describe('C2: composeDataSlot', () => {
+  it('L3 (b36l Jasmine t6): a deferral naming the fuel line just given says the item it still holds', () => {
+    const d = { ...base, releases: [{ id: 'fuel_prices', value: items.fuel_prices.words[1], earlier: false }], defers: ['fuel and crew rate changes between the years'],
+      requests: [{ request: { what: 'fuel and crew rate changes between the years', itemIds: [], explicit: true, respond: 'release' as const }, response: 'defer' as const, ledgerItemIds: ['unit_costs'] }] };
+    const { data, changes } = composeDataSlot(d, '', id => items[id], []);
+    expect(data.defers).toEqual(['wages and other costs per flight']);
+    expect(changes).toContainEqual({ rule: 'L3', what: 'fuel and crew rate changes between the years', to: 'wages and other costs per flight' });
+  });
+  it('L1 (b34l Tyler t20): a restatement the model\'s say already spoke is not said again', () => {
+    const LINE = 'No other airline is flying nonstop on either new route, and aircraft lease and other fixed costs would stay the same.';
+    const { data } = composeDataSlot({ ...base, restates: [{ id: 'new_routes_context', value: LINE }] }, LINE, () => undefined, []);
+    expect(data.restates).toEqual([]);
+  });
+  it('the exhibit handover is said last (b34a Marcus t6)', () => {
+    const d = { ...base, exhibit: { id: 'exhibit-1', title: 'Corlan\'s disease — US patient funnel', covers: [] }, defers: ['how Kelvexa\'s European net price has moved'] };
+    const { data } = composeDataSlot(d, '', () => undefined, []);
+    const lines = renderDataLines(data, 's');
+    expect(lines.at(-1)).toMatch(/exhibit/i);
+    expect(lines[0]).toMatch(/European/);
+  });
+});
+describe('C2: a deferral holding nothing', () => {
+  it('is kept when it still names something the turn didn\'t give (f59f5ea8 t12)', () => {
+    const d = { ...base, releases: [{ id: 'unit_costs', value: items.unit_costs.words[1], earlier: false }], defers: ['wages in Europe against the same competitor'] };
+    expect(composeDataSlot(d, '', id => items[id], []).data.defers).toEqual(['wages in Europe against the same competitor']);
+  });
+});
+describe('C2: L1 on a release', () => {
+  it('b34l Tyler t20: the model said the line — booked as released, not said again', () => {
+    const LINE = 'No other airline is flying nonstop on either new route, and aircraft lease and other fixed costs would stay the same.';
+    const { data } = composeDataSlot({ ...base, releases: [{ id: 'new_routes_context', value: LINE, earlier: false }] }, LINE, () => undefined, []);
+    expect(data.releases.map(r => r.id)).toEqual(['new_routes_context']);
+    expect(renderDataLines(data, 's').filter(Boolean)).toEqual([]);
+  });
+});

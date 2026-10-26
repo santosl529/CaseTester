@@ -408,6 +408,10 @@ export type DataDecisions = {
   // Rule 6 option 4 (v4.11): code's correction of a misquoted revealed figure,
   // spoken first in the data line (set by turn-data.ts on model turns).
   correction?: { item: string; items?: string[]; text: string } | null;
+  // Phase 2 C2 (`composeData`): the exhibit handover is said last in the data line; `saidByModel` — releases whose line
+  // the model's say already spoke: booked, not said again (L1).
+  exhibitLast?: boolean;
+  saidByModel?: string[];
   // wontGetTo: a deferral said as "We won't get to … today." — logged so the queue
   // doesn't promise it again (plan-turn.ts promisedRows); still asked-but-unanswered.
   requests: { request: DeclaredRequest; response: RequestResponse; ledgerItemIds: string[]; wontGetTo?: true }[];
@@ -727,7 +731,7 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   const asked = d.releases.filter(r => r.mustReach === undefined);
   const earlier = asked.filter(r => r.earlier);
   if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: phrase('earlier', '', uses, seed) });
-  for (const r of asked) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
+  for (const r of asked) parts.push({ kind: 'release', ids: [r.id], text: d.saidByModel?.includes(r.id) ? '' : dataLine(r.value, uses, seed) });
   // Restated values carry no ids: nothing is booked as a new reveal.
   // The lead-in names where the item came from: what was said ("As I mentioned"), what only an exhibit showed ("As the exhibit shows").
   const saidFirst = [...d.restates.filter(r => !r.exhibit && !r.pointer), ...d.restates.filter(r => r.exhibit && !r.pointer)];
@@ -739,7 +743,7 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   // Phase 1 4.1: one pointer per exhibit summary, then the recent re-asks by name.
   for (const summary of [...new Set(d.restates.flatMap(r => (r.pointer ? [r.pointer] : [])))]) parts.push({ kind: 'restate', ids: [], text: phrase('restate_pointer', summary, uses, seed) });
   if (d.recentRestates?.length) parts.push({ kind: 'restate', ids: [], text: phrase('restate_recent', joinWhat(d.recentRestates, 'and'), uses, seed) });
-  if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
+  if (d.exhibit && !d.exhibitLast) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   const proper: ReadonlySet<string> = d.properWords ? new Set(d.properWords.map(w => w.toLowerCase())) : NO_PROPER;
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and', false, proper), uses, seed) });
@@ -747,6 +751,7 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   for (const w of d.wontGetToNamed ?? []) parts.push({ kind: 'defers', ids: [], text: phrase('wont_get_to', joinWhat([w], 'and', false, proper), uses, seed) });
   if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and', false, proper), uses, seed) });
   if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and', false, proper), uses, seed) });
+  if (d.exhibit && d.exhibitLast) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   return parts;
 }
 
