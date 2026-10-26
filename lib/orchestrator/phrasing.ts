@@ -455,6 +455,19 @@ export const PHRASE_POOLS = {
     'Can you show me that calculation step by step?',
     'What were the steps in that calculation?',
   ],
+  // settle-turn.ts, Phase 1 task 5 (`probeGuardMethod`; Lorenzo, 26 Oct: "ask about method ('Walk me through how you
+  // got there'), never name a figure that code verified as correct"): the replacement for a withheld math challenge.
+  // No slot — it names no figure at all, where `got_to` puts the candidate's own figure back to them.
+  // His illustration is `probe_there`'s own first line (the checker's neutral probe), and no line may sit in two pools
+  // — each heard line is recorded once, and the two would be indistinguishable where a checker probe is also in play
+  // (`lineHeard` reads a flag's line by its words). So the first version says the same thing in its own words.
+  probe_method: [
+    'Walk me through how you worked that out.',
+    'How did you get there, step by step?',
+    'Walk me through the steps you took.',
+    'How do you get there?',
+    'Walk me through your reasoning there.',
+  ],
   probe_there: [
     'Walk me through how you got there.',
     'How did you get there?',

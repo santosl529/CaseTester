@@ -72,6 +72,26 @@ A fact that so far came out only on an exhibit, asked for again. {x} = the ledge
 4. That's on the exhibit: {x}
 5. Reading the exhibit again: {x}
 
+### restate_pointer
+
+Phase 1 (restateRules): a re-ask of data on an exhibit already out — pointed to. {x} = the exhibit's one-line summary.
+
+1. You'll find that on the exhibit — {x}
+2. That one is on the exhibit you have: {x}
+3. The exhibit already shows that — {x}
+4. The exhibit you have covers that: {x}
+5. That's covered on the exhibit — {x}
+
+### restate_recent
+
+Phase 1 (restateRules): a re-ask of a line said within the last four turns — named, not said again. {x} = the item's spoken name.
+
+1. I gave you {x} a moment ago.
+2. We just went over {x}.
+3. I covered {x} just now.
+4. {X} came up a moment ago.
+5. I went through {x} a moment ago.
+
 ### earlier
 
 Before data asked for earlier and released now (the stage reached).
@@ -572,6 +592,16 @@ The checker's neutral probe of a calculation with no figure of theirs to name. F
 4. Can you show me that calculation step by step?
 5. What were the steps in that calculation?
 
+### probe_method
+
+Phase 1 (`probeGuardMethod`): the replacement question when a math challenge of the model's is withheld — the method, never a figure.
+
+1. Walk me through how you worked that out.
+2. How did you get there, step by step?
+3. Walk me through the steps you took.
+4. How do you get there?
+5. Walk me through your reasoning there.
+
 ### probe_there
 
 The checker's neutral probe of a claim with no figures. First use by seed.
@@ -641,6 +671,15 @@ The goodbye when the case is complete. First use by seed.
 3. That's everything I wanted to cover. Thanks for working through the case — your written report will follow.
 4. We've gotten through what I wanted to. Thank you for working through the case; your written report will follow.
 5. I have what I need. Thanks for working through it — your written report will follow.
+
+### ack
+
+The model's opening acknowledgment, replaced by code when the case's `ackRotation` switch is on (Phase 1 4.10).
+
+1. Understood.
+2. Mm-hm.
+3. Got it.
+4. I see.
 
 ### close_unresolved
 

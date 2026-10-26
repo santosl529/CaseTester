@@ -47,7 +47,9 @@ const ONE_LINE: PhrasePool[] = ['wont_get_to', 'wont_get_to_that'];
 const FRAGMENT: PhrasePool[] = ['probe_opener'];
 // The model's opening acknowledgment, rotated by code (Phase 1 4.10, `ackRotation`): no line code said before the
 // brief, and recorded only with the switch on — its own block (tests/orchestrator/ack-rotation.test.ts).
-const OWN_BLOCK: PhrasePool[] = ['ack'];
+// Phase 1 4.10 (`ackRotation`) and task 5 (`probeGuardMethod`): pools code did not say before brief B, each with its
+// own block (tests/orchestrator/ack-rotation.test.ts, tests/orchestrator/probe-guard-method.test.ts).
+const OWN_BLOCK: PhrasePool[] = ['ack', 'probe_method'];
 const POOLS = (Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => !ONE_LINE.includes(p) && !FRAGMENT.includes(p) && !OWN_BLOCK.includes(p));
 const before = BEFORE as Record<string, string[]>;
 const versions = (p: PhrasePool) => PHRASE_POOLS[p] as readonly string[];

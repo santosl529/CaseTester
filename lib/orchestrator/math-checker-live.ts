@@ -1783,7 +1783,24 @@ export function gateCodeFindings(p: {
       const matched = v.claims.filter(c => gateMatches(ref, c));
       const flaggedAll = matched.filter(c => c.flag);
       const figures = p.codeFigures?.(ref.finding) ?? null;
-      const flagged = figures === null ? flaggedAll[0] : flaggedAll.find(c => rightAgrees(c, figures));
+      // Phase 1 task 4 (`misquoteFlat`, contract 3.4; Lorenzo, 26 Oct): "a flat correction, from the ledger value,
+      // only when code finds a mismatch with a revealed item AND the checker rated the span an error (flag or not)."
+      // What the switch relaxes is the FLAG: an error the checker rates but doesn't act on (within its own tolerance,
+      // or at low confidence) is still the checker rating the span an error. Two of b38 Larkspur Tyler's misquotes
+      // went uncorrected for it: `misquote:fixed_costs` ($21M for the ledger's $20.0M, t5 — "flag dropped: within
+      // tolerance, theirs 21, correct 20") and `misquote:route_results_other` ($3.6M for Westhaven's $4.4M, t29, in
+      // his recommendation). What the switch does NOT relax is the right-figure agreement (`rightAgrees`): the
+      // checker's own right figure must be one code's line states, else it rated another quantity — b38 Marisol 15:2
+      // "the swap is worth $15.8M of contribution" is flagged with 11.8 right, her own derived figure, and the
+      // grammar read it as a misquote of the network totals ($16.0M); correcting it with that ledger line would be a
+      // false correction (the replay of 26 Oct caught it). A matched claim the checker rates CORRECT blocks the flat
+      // path, and so do 'unverifiable' and no claim at all — a rating is required, never inferred.
+      const flatOn = ref.finding.kind === 'misquote' && switchOn(p.caseData, 'misquoteFlat') && !matched.some(c => c.verdict === 'correct');
+      const pool = flatOn ? matched.filter(c => c.verdict === 'error') : flaggedAll;
+      const flagged = figures === null ? pool[0] : pool.find(c => rightAgrees(c, figures));
+      const flatReason = flagged && !flagged.flag
+        ? `code's mismatch with ${(ref.finding as { item?: string }).item}, and the checker rates "${flagged.candidateValue}" ${flagged.verdict}/${flagged.confidence} with no flag (misquoteFlat)`
+        : null;
       if (!flagged && flaggedAll.length > 0) {
         decide('checker_disagrees', `the checker flags "${flaggedAll[0].candidateValue}" but its right figure (${rightOf(flaggedAll[0]) ?? 'none'}) is none of code's (${figures!.join(', ')})`);
         return;
@@ -1804,7 +1821,7 @@ export function gateCodeFindings(p: {
       const keys = { ...(p.keys ?? {}), ...(p.keys?.[own] ? {} : { [own]: { figures: idFigs, since: v.candidateTurnIndex } }) };
       const root = rootOf(flagged.span, own, keys, caseNumbers);
       if (root) { decide('derived', (p.closed ?? []).includes(root) ? `built on a closed input (${root})` : `built on ${root}'s figure — the probe follows the input`); return; }
-      decide('released', `the checker flags "${flagged.candidateValue}"`);
+      decide('released', flatReason ?? `the checker flags "${flagged.candidateValue}"`);
     });
   }
   return { released, decisions };
