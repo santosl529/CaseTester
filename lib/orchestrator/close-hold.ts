@@ -116,9 +116,32 @@ export const CLOSE_WAIT_FIRST = /\bfirst\b/i;
 // answer has sequencing words ("first", "start with", "next steps", "before committing") or the last question asked
 // what they'd do; the measure line is then asked (controller's reading, proposed — it is a re-ask too when the answer
 // already named its metric or checkpoint; no other line exists).
-export const CLOSE_WAIT_ACTION = /\b(?:phas(?:e|ed|es|ing)|stag(?:e|ed|es|ing)|pilot\w*|test(?:s|ed|ing)?|trigger\w*|validat\w*|hedg\w*|mitigat\w*|guard(?:s|ed|ing)?|de-?risk\w*|protect\w*|gat(?:e|ed|es|ing)|checkpoint\w*|tripwire\w*|stagger\w*|sequenc\w*|roll\s+(?:it\s+|\S+\s+)?out|rollout|go\/no-go|next\s+steps?|first\s+step|what\s+i'?d\s+do|i'?d\s+(?:start|lock|negotiate|renegotiate|launch|cap|cut|stop|pull|redeploy))\b/i;
+//
+// Review fix round, item 4 (Stream 4b's review): the first list matched the stems anywhere, so a bare noun counted
+// as an action and the answer skipped a mitigation it had never given — b32 Aldermoor Marisol t29 "the $300 million
+// board **test** is on net sales", a "net-price-times-share **test**", "the **gate** here is payer coverage". The
+// answer must actually do something, so one of these:
+//   - an -ing / -ed form of an action verb ("staging marketing", "taste testing", "gated on the upgrade rate");
+//   - an action verb under a decision frame within ~3 words ("I'd hedge…", "we would phase…", "by staging…");
+//   - an action verb in clause-initial imperative position with an object ("; stage the 60 reps", "Then phase it",
+//     "Gate full rollout") — added past the review's rule, which would otherwise lose b36 Aldermoor Raj t33 and
+//     b38 Larkspur Tyler t29, two of the six verbatim re-asks 4.8 exists to fix;
+//   - a thing put in place ("set a trigger", "hold a go/no-go", "build in a checkpoint");
+//   - or one of the headers an answer uses for exactly this ("next steps", "first step", "what I'd do",
+//     "Mitigation:" / "Protection:" — a comma counts, as in b38 Larkspur Tyler t29's "Mitigation, in order:").
+const CLOSE_WAIT_ACTION_PARTS = [
+  /\b(?:phas|stag|pilot|test|trigger|validat|hedg|mitigat|guard|gat|stagger|sequenc|protect|de-?risk)(?:ing|ed)\b|\broll(?:ing|ed)\s+out\b|\brollout\b/,
+  /\b(?:i'?d|i\s+would|we(?:'?d|\s+would)|they(?:'?d|\s+would)|(?:the\s+)?client\s+(?:would|should|could)|let'?s|plan\s+to|by)\s+(?:\w+\s+){0,3}(?:phase|stage|pilot|test|trigger|validate|hedge|mitigate|guard|protect|gate|stagger|sequence|roll\s+out)\w*/,
+  /(?:^|[.;!?:]\s*|—\s*)(?:(?:and|then|next|also|so)\s+)?(?:phase|stage|pilot|test|trigger|validate|hedge|mitigate|guard|protect|gate|stagger|sequence|roll\s+out)\s+(?:a|an|the|it|them|this|that|full|\$|\d)/,
+  /\b(?:put|set|build|add|run|hold|lock)\s+(?:a|an|the|in)?\s*(?:tripwire|checkpoint|gate|trigger|control|go\/no-go)/,
+  /\bnext\s+steps?\b|\bfirst\s+step\b|\bwhat\s+i'?d\s+do\b|\b(?:mitigation|protection)\b\s*[:,]/,
+];
+export const CLOSE_WAIT_ACTION = new RegExp(CLOSE_WAIT_ACTION_PARTS.map(r => r.source).join('|'), 'i');
 export const CLOSE_WAIT_ASKED_DO = /\bwhat\s+(?:would|should|could)\s+(?:you|they|the\s+client|\w+)\s+do\b|\bhow\s+would\s+you\s+(?:handle|respond|address|manage|deal\s+with|mitigate|protect|guard|hedge|de-?risk|reduce)\b|\bwhat\s+would\s+you\s+put\s+in\s+place\b|\bnext\s+steps?\b/i;
-export const CLOSE_WAIT_SAID_FIRST = /\b(?:first|start(?:s|ing)?(?:\s+with)?|begin\w*|next\s+steps?|in\s+order|immediately|right\s+now|tomorrow|before\s+(?:committing|launch\w*|the\s+vote|rolling|we|any))\b/i;
+// …and the same for the sequencing test: a bare "first" fired on "the first-mover advantage" and "the first city".
+// It must be the sequencing word — sentence-initial, punctuated as a header, "the first step / thing / move", or
+// "start(ing) with". "begin" is narrowed to "begin with / by" for the same reason.
+export const CLOSE_WAIT_SAID_FIRST = /(?:^|[.;!?]\s*)first(?:ly)?\b|\bfirst(?:ly)?[,:]|\bthe\s+first\s+(?:step|thing|move)\b|\bstart(?:ing)?\s+with\b|\bbegin\s+(?:with|by)\b|\bnext\s+steps?\b|\bin\s+order\b|\bimmediately\b|\bright\s+now\b|\btomorrow\b|\bbefore\s+(?:committing|launch\w*|the\s+vote|rolling|we|any)\b/i;
 export function closeWaitLine(lastQuestion: string, seed: string, uses?: PhraseUses, o: { answer?: string; skipAnswered?: boolean } = {}): string {
   const skip = o.skipAnswered === true;
   const answer = o.answer ?? '';

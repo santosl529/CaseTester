@@ -692,11 +692,21 @@ export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, e
 // turn that said one is no probe of a figure — "Six months in, how would you know it was working?" was read as a
 // probe of a candidate's 6 (b31 Sofia e0f7d46c t24, replay with the switch on: the claim's report line became "Probed
 // twice"), in either spelling. The caller passes switchOn(case, 'closeWaitMitigation'); off, the text is unchanged.
+// Review fix round, item 4: a pattern over the three pools, not a literal split — the split was case-sensitive and
+// exact on whitespace, so re-wrapping or recapitalizing one of these lines would have stopped stripping it with
+// nothing to show for it. Both number-word spellings stay (the turn rows hold "6 months in").
 export const CLOSE_WAIT_POOLS = ['after_risk', 'first_step', 'measure'] as const;
+let closeWaitLines: RegExp | undefined;
+function closeWaitLinePattern(): RegExp {
+  if (!closeWaitLines) {
+    const variants = CLOSE_WAIT_POOLS.flatMap(p => [...(PHRASE_POOLS[p] as readonly string[]), ...(RETIRED_POOLS[p] ?? [])]);
+    const alts = [...new Set(variants.flatMap(v => [v.trim(), normalizeNumberWords(v).trim()]))].map(words);
+    closeWaitLines = new RegExp(`(?:${alts.join('|')})`, 'gi');
+  }
+  return closeWaitLines;
+}
 export function withoutCloseWaitLines(text: string): string {
-  return CLOSE_WAIT_POOLS.flatMap(p => [...(PHRASE_POOLS[p] as readonly string[]), ...(RETIRED_POOLS[p] ?? [])])
-    .flatMap(v => [v, normalizeNumberWords(v)]) // the turn rows hold "6 months in"
-    .reduce((t, v) => t.split(v).join(' '), text);
+  return text.replace(closeWaitLinePattern(), ' ');
 }
 
 // 4.10 (Phase 1, `ackRotation`; Lorenzo, 22 Oct: "Acknowledgments: run the model's opening acknowledgment through the

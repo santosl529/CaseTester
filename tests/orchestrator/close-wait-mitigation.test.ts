@@ -48,6 +48,24 @@ describe('4.8: close_wait skips a mitigation the answer already gave', () => {
     expect(on('Probably the payer response.', 'And what would you do about that risk?')).toBe('measure');
     expect(off('Probably the payer response.', 'And what would you do about that risk?')).toBe('first_step');
   });
+  // Review fix round, item 4 (Stream 4b's review): the action-word test matched a bare noun, so an answer that
+  // mentioned a "test" or a "gate" skipped the mitigation ask it had never given.
+  const BARE_NOUNS = [
+    // b32 Aldermoor Marisol t29, verbatim: the board's $300M hurdle, named as a test.
+    'One caution: the $300 million board test is on net sales, and both options clear it at the top line.',
+    "The board's bar is really a net-price-times-share test, so the headroom is thin.",
+    'The gate here is payer coverage, not our own capacity.',
+  ];
+  it('switch on: a bare noun ("board test", "the gate") is no mitigation — the ask stands', () => {
+    for (const a of BARE_NOUNS) expect(on(a)).toBe('after_risk');
+  });
+  it('switch on: a bare "first" is no sequencing — the first-step line still goes', () => {
+    expect(on('The risk is that the first-mover advantage is gone.', 'What would you tell the CEO?')).toBe('first_step');
+    expect(on('Port Avery is the first city a competitor would attack.', 'What would you tell the CEO?')).toBe('first_step');
+    // …and real sequencing still skips it.
+    expect(on('First, lock the retailer commitments. Then spend the marketing.', 'What would you tell the CEO?')).toBe('measure');
+    expect(on("I'd start with the two biggest routes.", 'What would you tell the CEO?')).toBe('measure');
+  });
   it('no risk question, no action word: the first-step line as today', () => {
     expect(on('Keep Starter, move it to $60: it\'s net value-accretive even after cannibalization.', 'What would you tell the CEO?')).toBe('first_step');
   });
@@ -79,5 +97,14 @@ describe('4.8: a close_wait follow-up is no probe of a figure', () => {
     expect(probesOf([6], [withoutCloseWaitLines(said)], [6])).toBe(0);
     expect(withoutCloseWaitLines("What would tell you, 6 months in, that it was working?").trim()).toBe("");
     expect(withoutCloseWaitLines('You said 6%. How did you get there?')).toBe('You said 6%. How did you get there?');
+  });
+  // Review fix round, item 4: the strip was a literal, case-sensitive split, so re-wrapping or recasing one of the
+  // three pools' lines would silently stop stripping it. It is a pattern over the pools now.
+  it('the strip is a pool pattern: a re-wrapped or recased line still goes', async () => {
+    const { withoutCloseWaitLines } = await import('@/lib/orchestrator/phrasing');
+    expect(withoutCloseWaitLines('Six months in,\n   how would you know it was working?').trim()).toBe('');
+    expect(withoutCloseWaitLines('six months in, how would you know it was working?').trim()).toBe('');
+    expect(withoutCloseWaitLines('How  would you guard against that?').trim()).toBe('');
+    expect(withoutCloseWaitLines("What's the first step you'd want the client to take?").trim()).toBe('');
   });
 });
