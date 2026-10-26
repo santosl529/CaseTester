@@ -294,10 +294,27 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       question = rest.join(' ');
       modelQuestion = question;
     } else {
-      const about = mathWithheld.map(w => challengeVerdict(w.sentence, challengeCtx)).find(v => v && !('explainKey' in v) && v.figure !== undefined
+      const verdicts = mathWithheld.map(w => challengeVerdict(w.sentence, challengeCtx));
+      // Phase 1 task 5 (`probeGuardMethod`; Lorenzo, 26 Oct: "ask about method ('Walk me through how you got there'),
+      // never name a figure that code verified as correct"): the replacement asks for the method and names no figure
+      // at all — where `got_to` puts the candidate's own figure back to them, and a figure code verified as correct is
+      // exactly what the guard withheld the challenge over (b35q Marisol t24, b38 Larkspur Tyler t14). The words come
+      // from the `probe_method` pool, like code's other lines, his first.
+      // Not where the withheld doubt was about a figure the case has closed — an error past Rule 14, or working they
+      // already showed: a question with no referent lands on their last claim, and those two are never asked about
+      // again (Lorenzo, 13 and 20 Oct). There the plain fallback still stands in.
+      const methodOn = switchOn(state.caseData, 'probeGuardMethod')
+        && !verdicts.some(v => v !== null && !('explainKey' in v) && (v.test === 'closed_to_report' || v.test === 'explain_work_shown'));
+      // …and not on a turn that hands over data or an exhibit: there the phase fallback already asks about what just
+      // went out ("Where do those numbers point you?"), which beats a question about the working of the message
+      // before it. The figure never comes back either way — `got_to` is out under the switch.
+      const dataNow = decisions.releases.length > 0 || decisions.exhibit !== null;
+      const about = verdicts.find(v => v && !('explainKey' in v) && v.figure !== undefined
         && statedAsResult(candidateText, v.figure)) as { figure?: number } | undefined;
       const figureText = about?.figure !== undefined ? figureAsWritten(candidateText, about.figure) : null;
-      const explain = figureText ? phrase('got_to', figureText, phraseUses, seed) : null;
+      const explain = methodOn
+        ? (dataNow ? null : line('probe_method', phraseUses, seed))
+        : figureText ? phrase('got_to', figureText, phraseUses, seed) : null;
       const verdict = explain ? challengeVerdict(explain, challengeCtx) : null;
       const allowed = explain !== null && (verdict === null || 'explainKey' in verdict);
       question = allowed && explain ? explain : pickFallbackQuestion({ uses: phraseUses, figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
