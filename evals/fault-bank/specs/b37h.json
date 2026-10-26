@@ -381,7 +381,7 @@
   "turn": 10,
   "sev": "firm",
   "cls": "unasked_offer",
-  "note": "\"I can share the survey on shopper purchase intent and planning assumptions if you'd like.\" (he took it at t11). Graded borderline; firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (judgement call, applied beyond the named Quillpath case). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "\"I can share the survey on shopper purchase intent and planning assumptions if you'd like.\" (he took it at t11). Graded borderline; firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (judgement call, applied beyond the named Quillpath case). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` here is only the non-degeneracy floor, and that is the whole of its declared scope — the candidate's message on this turn carries no data ask, so no engagement is owed and there is nothing to pair it with. The must-not carries the fault.",
   "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
   "a": [
    {

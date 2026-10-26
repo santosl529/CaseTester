@@ -15,7 +15,8 @@
 //                      `about` reads the deferral sentence, `item` the next turn's open data requests
 //   ask                a stage question (recommendation, risk, mitigation, brainstorm)
 //   answered           at the record's turn: the item released, a refusal, or a deferral that later resolves
-//   spoke              a sentence of the turn's own (not a refusal, not a deferral); with `question`, one that asks
+//   spoke              a sentence of the turn's own (not a refusal, not a deferral); with `question`, one that asks.
+//                      A non-degeneracy floor, not an answer check (I5): see fault-bank.ts's note on the assertion
 //   close              the turn ended the case
 //   says               the regex over the delivered words
 //   check              a TurnRecord check: its name, and `decision` against its decision, reason or detail

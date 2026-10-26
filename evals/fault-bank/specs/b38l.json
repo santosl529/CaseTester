@@ -395,7 +395,7 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Here's an exhibit: … Let's hold extras revenue per passenger and results by route for a little later.\" — a deferral naming the route results right after the route exhibit went up. Extras deferred three times (t2, t4, t6) before t10. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "\"Here's an exhibit: … Let's hold extras revenue per passenger and results by route for a little later.\" — a deferral naming the route results right after the route exhibit went up. Extras deferred three times (t2, t4, t6) before t10. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the route results the exhibit put up on this very turn must still be delivered here — the fault is the deferral re-naming them, not the exhibit.",
   "a": [
    {
     "kind": "deferral",
@@ -404,6 +404,16 @@
    },
    {
     "kind": "spoke",
+    "must": true
+   },
+   {
+    "kind": "answered",
+    "item": "route_results_other",
+    "about": "results by route",
+    "accept": [
+     "release",
+     "refusal"
+    ],
     "must": true
    }
   ],

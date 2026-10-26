@@ -150,7 +150,7 @@
   "turn": 16,
   "sev": "borderline",
   "cls": "unasked_offer",
-  "note": "Code's \"I can share how long new routes take to mature if you'd like.\" — the model read \"a new destination ramps\" as an implicit want; by design then; he asked at t23. Graded borderline before the 21 Oct offer ruling. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "Code's \"I can share how long new routes take to mature if you'd like.\" — the model read \"a new destination ramps\" as an implicit want; by design then; he asked at t23. Graded borderline before the 21 Oct offer ruling. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` here is only the non-degeneracy floor, and that is the whole of its declared scope — the candidate's message on this turn carries no data ask, so no engagement is owed and there is nothing to pair it with. The must-not carries the fault.",
   "a": [
    {
     "kind": "says",

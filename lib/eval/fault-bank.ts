@@ -45,6 +45,13 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
     accept: z.array(z.enum(['release', 'refusal', 'deferral'])).min(1).optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // The turn says something of its own: a delivered sentence that is neither a refusal nor a deferral — so silence,
   // a neutral "Go on." and a refuse-everything turn all fail. With `question`, that sentence asks something.
+  //
+  // DECLARED SCOPE (I5, 26 Oct): `spoke` is a NON-DEGENERACY FLOOR, not an answer check. It says the fix must not
+  // be "say nothing there" — it does not say the turn said anything relevant. Any sentence of 20 characters, or any
+  // question, satisfies it. So where a turn owes an engagement (the candidate asked something, or the turn's own
+  // answer must survive the fix), `spoke` is PAIRED with an `answered` over the item or a `says` over the expected
+  // content; where the candidate's message carries no ask, the floor is the whole of what the record claims and
+  // the must-not carries the fault. Each record's note says which of the two it is.
   z.object({ kind: z.literal('spoke'), question: z.boolean().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // Free text over the turn's delivered words (case-insensitive regex).
   z.object({ kind: z.literal('says'), pattern: z.string(), must: z.boolean(), scope: Scope.optional() }).strict(),
