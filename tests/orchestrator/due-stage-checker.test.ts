@@ -541,6 +541,30 @@ describe('R7 through the runner: the overdue brainstorm and the checker line', (
     expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'correct' });
     expect((flags().mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
   });
+
+  // The probe on the same turn (Lorenzo, 22 Oct, on b34l Marisol t26): the due
+  // stage question wins — but the probe must be *held*, not dropped. Only a
+  // turn the deadline alone made held it (`deadlineStage`), so when complete
+  // coverage forced the same overdue stage turn the probe fell out of the plan:
+  // in the b34l replay 23:0 was selected on the t26 brainstorm turn (past the
+  // exhibit budget), never booked, and gone by t28. Held, it takes the next
+  // turn over code's coverage ask (`heldNow`), as a held line already does.
+  it('the brainstorm overdue at 13:30 and coverage complete (no yield): the probe is held, not dropped, and goes out next turn', async () => {
+    seedOwed();
+    store.session = { ...store.session, coverageJsonb: FULL_COVERAGE };
+    at(13.5);
+    const r5 = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(asksBrainstorm(r5.interviewerText)).toBe(true);
+    expect(r5.interviewerText).not.toMatch(/Which cost lines did you include\?/);
+    expect(flags().stageYielded).toBeUndefined();
+    expect((flags().mathChecker as Row).held).toBe('3:0');
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'undelivered' });
+    at(14.0);
+    const r7 = await runTurn('s1', 'Labor and overhead, I think.');
+    expect(r7.interviewerText).toMatch(/Which cost lines did you include\?/);
+    expect(r7.interviewerText).not.toMatch(/recommendation/i);
+    expect((flags().mathChecker as Row).held).toBeUndefined();
+  });
 });
 
 // Review fix 3 (controller's ruling on R7, 19 Oct): code's own correction rides on an overdue recommendation ask, before code's question.

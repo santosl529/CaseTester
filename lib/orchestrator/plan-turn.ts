@@ -993,8 +993,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const yieldedAfter: StageYielded = { ...stageYielded, ...Object.fromEntries(yieldedNow.map(s => [s, s === 'exhibit' ? exhibitDueId : true])) };
   if (JSON.stringify(yieldedAfter) !== JSON.stringify(stageYielded)) flags.stageYielded = yieldedAfter;
   checks.record('end_rec_ask_gate', awaitingRecAsk, recAskByTime ? 'the brainstorm budget is spent and the recommendation was never asked — code asks' : 'coverage complete but the recommendation was never asked — code asks this turn', { recAskByTime });
-  checks.record('stage_yield', yieldedNow.length > 0 || ((deadlineStage || overdueStage) && checkerPlan.selected !== null), yieldedNow.length > 0 ? `a deadline yields to the math line once: ${yieldedNow.join(', ')}` : 'the overdue stage goes; the checker line rides or waits', {
-    yielded: yieldedNow, before: stageYielded, deadlineStage, overdueStage, selected: checkerPlan.selected ? { id: checkerPlan.selected.id, action: checkerPlan.selected.action } : null,
+  checks.record('stage_yield', yieldedNow.length > 0 || (stageTurn && checkerPlan.selected !== null), yieldedNow.length > 0 ? `a deadline yields to the math line once: ${yieldedNow.join(', ')}` : 'the stage turn goes; the checker line rides or waits', {
+    yielded: yieldedNow, before: stageYielded, deadlineStage, overdueStage, stageTurn, selected: checkerPlan.selected ? { id: checkerPlan.selected.id, action: checkerPlan.selected.action } : null,
   });
   // The math checker's flag (Lorenzo, 13 Oct): on a model turn, a
   // RECOMPUTE-style hint; at the close, an unresolved conclusion-changing flag
@@ -1095,7 +1095,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const stageCorrection = stageTurn && sel && correctsNow(sel) ? sel : null;
   // Code's own correction (a unit line past its probe) rides the same way; its attempt is already counted, its figures licensed (formatRecomputeHint).
   const stageCodeLines = stageTurn ? liveFlags.filter(codeCorrects).map(f => recMathLine(f, 'correct')) : [];
-  const stageHeld = deadlineStage && sel && !correctsNow(sel) ? sel : null;
+  // The probe waits — on a stage turn past its own deadline, whatever else made
+  // it go (Lorenzo, 22 Oct; the fault bank's b34l-marisol-t26-probe). Only a
+  // turn the deadline *alone* made held it (`deadlineStage`), so when complete
+  // coverage forced the same stage turn the selection fell out of the plan
+  // unbooked and was dropped, not held — b34l Marisol t26: 23:0 on the
+  // brainstorm turn, past the exhibit budget, and by t28 the claim was gone.
+  // Held, it keeps its turn, doesn't expire, and takes the next turn over
+  // code's coverage ask (heldNow), as a held line already does. A stage turn
+  // still inside its budget is left alone: see the base-fixes report.
+  const stageHeld = (deadlineStage || overdueStage) && sel && !correctsNow(sel) ? sel : null;
   const checkerUsed = sel && (kind === 'model' || stageCorrection || (kind === 'rec_math_probe' && recMathProbe && 'checker' in recMathProbe)) ? sel : null;
   const checkerHandledNow = [...checkerPlan.handledNow];
   // Claims built on the line's root ride on it (math-checker-live.ts, §15 o): booked only when the line is used.
@@ -1103,7 +1112,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const riderIds = [...(sel?.riders ?? []), ...(sel?.covers ?? [])].map(r => r.id);
   const checkerDecisions = checkerPlan.decisions.filter(d => !sel || (d.id !== sel.id && !riderIds.includes(d.id)) || checkerUsed);
   const heldDecision = stageHeld ? checkerPlan.decisions.find(d => d.id === stageHeld.id) : undefined;
-  if (heldDecision) checkerDecisions.push({ ...heldDecision, outcome: 'undelivered', reason: `held back: the overdue ${kind === 'rec_ask' ? 'recommendation ask' : STAGE_OF_KIND[kind]} goes this turn (its deadline yielded once already); the line goes out on the next model turn` });
+  if (heldDecision) checkerDecisions.push({ ...heldDecision, outcome: 'undelivered', reason: `held back: the ${overdueStage ? 'overdue ' : ''}${kind === 'rec_ask' ? 'recommendation ask' : STAGE_OF_KIND[kind]} goes this turn${deadlineStage ? ' (its deadline yielded once already)' : ''}; the line goes out on the next model turn` });
   const attemptBeforeChecker = checkerUsed ? recomputeAttempts[checkerUsed.key] : undefined;
   if (checkerUsed) {
     // A restatement is no Rule-14 attempt: its root is closed already.
