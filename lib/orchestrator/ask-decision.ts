@@ -28,7 +28,7 @@ import { caseResolver, messageAskSentences, ptGateOn, wrapUpTurn, headNoun, answ
 import { keyNouns, scopeRule, changeForSplit, heldForOrder, RELEASE_CAP } from './data-decisions';
 import { coverageDetail, findFalseRefusals, groupItemsAsked } from './fact-check';
 import { addressedAskSentences, properNames } from './request-signal';
-import { askClauses, askGroups, askTags, itemTagsAgree, tagsAgree } from './item-tags';
+import { askTags, itemTagsAgree, tagsAgree } from './item-tags';
 import { statesAsked } from './ask-qualifiers';
 import { isGatedItem } from './pressure-test';
 import { switchOn } from '@/lib/cases/engine-switches';
@@ -131,13 +131,21 @@ const AND_SPLIT = /\s+(?:and|plus)\s+(?=(?:whether|what|how|which|when|where|if|
 const ENUMERATION = /(?:[—–:]\s*|\binto\s+)(?:[^,—–:?]{1,20},\s*){2,}(?:and\s+|or\s+|plus\s+)?[^,—–:?]{1,20}(?=\s*[—–?.]|\s*$|,\s*(?:and|ideally|plus)\b)/i;
 // A tail that explains rather than asks: ", which determines …", ", especially …", ", e.g. …", ", built up from …".
 const EXPLAIN_TAIL = /,\s+(?:which|especially|built|e\.g|i\.e|not just|not the|so)\b.*$/i;
+const CLAUSE_LEAD = /^(?:(?:do|does|did|can|could) (?:we|i|you)\b[^,]*?\b)?(?:how|whether|what|which|why|when|where|if|did|does|do|is|are|was|were|has|have)\b/i;
 function listItems(text: string): string[] {
   const t0 = text.replace(EXPLAIN_TAIL, '').replace(/^on [^:]{1,40}:\s*(?:first,?\s*)?/i, '');
   // Protect an enumeration and an alternative (", or …") from the comma split.
   const enumM = ENUMERATION.exec(t0);
-  const t1 = enumM ? t0.replace(enumM[0], enumM[0].replace(/,/g, '\u0000')) : t0;
+  const t1 = enumM ? t0.replace(enumM[0], enumM[0].replace(/,/g, '\u0000').replace(/\s+(and|or|plus)\s+/g, '\u0001$1\u0001')) : t0;
   const t = t1.replace(/\([^)]*\)/g, m => m.replace(/,/g, '\u0000'));
-  return t.split(/,(?!\s*or\b)\s*(?:and\s+|plus\s+)?/).flatMap(x => x.split(AND_SPLIT)).map(x => x.replace(/\u0000/g, ','))
+  // Two bare noun phrases joined by "and" are two asks ("departures and average fare"); inside a question clause they
+  // are one ("how fares and departures changed").
+  const nouns = (x: string) => keyNouns(x).size > 0;
+  const andSplit = (x: string) => (CLAUSE_LEAD.test(x) ? x.split(AND_SPLIT) : x.split(/\s+and\s+/).reduce<string[]>((acc, y) => {
+    if (acc.length > 0 && (!nouns(y) || !nouns(acc[acc.length - 1]))) acc[acc.length - 1] = `${acc[acc.length - 1]} and ${y}`; else acc.push(y);
+    return acc;
+  }, []));
+  return t.split(/,(?!\s*or\b)\s*(?:and\s+|plus\s+)?/).flatMap(andSplit).map(x => x.replace(/\u0000/g, ',').replace(/\u0001(and|or|plus)\u0001/g, ' $1 '))
     .map(x => x.replace(/^[:—–\s-]+|[\s—–-]+$/g, '').replace(/^(?:or|and|also|ideally|crucially)\s+/i, '').replace(/^while we wait\s*[—–-]\s*/i, '').trim()).filter(Boolean);
 }
 export function subAskTexts(sentence: string): string[] {
