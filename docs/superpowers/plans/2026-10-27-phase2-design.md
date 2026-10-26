@@ -708,3 +708,53 @@ On the bank (`fault-bank.ts shadow`):
 2. **Four owned records demand a refusal where the rulings give a deferral:** b38l-tyler-t22, b38l-marisol-t12, b35h-raj-t26, b34l-marisol-t30. The check mapped them to items the gates reject, and 4.3's "a mismatch defers, never refuses" applies. Six more are undeclared asks, which Q1 never refuses. These need Lorenzo's reading before S2's gate is set.
 3. **Every setup sentence the composer would move had already streamed** (26 of 26), so C3's stream hold is required, not optional.
 4. **R2's strict line test is relaxed to a positive contradiction plus E1's cut.** The strict form dropped correct semantic mappings ("departures flown by the fleet" → the schedule).
+
+## 11. Session 2 (27 Oct): the rulings, S2 and C2 live behind switches
+
+**Lorenzo's rulings on session 1, and what each changed:**
+1. **Undeclared sub-asks stay shadow-only, and Q1's calls stay off, until the splitter reaches ≥90% real asks on 100 labelled.** The splitter was rebuilt twice and measured on held-out samples (`evals/splitter/README.md`): 46% (A, v1) → 74% (B, v2) → 67% (C, v3, outside the replay corpus). **Not met.** S7 waits.
+2. **The six undeclared-ask records** accept a deferral that resolves (`answered.wontResolves`). The four Haiku-mapped records stay strict. Rule 3 is refined: a clear tag mismatch with nothing else matching is R6 evidence; an uncertain one defers.
+3. **The relaxed keep-rule (R2):** approved, if it shows 0 new wrong releases. It is still shadow-only. S2 and C2 change no release, so the proof falls to S3.
+4. **The flaky test:** three clean full runs; no recurrence, nothing changed.
+5. **b37q-tyler-t6's wording:** confirmed. C3 is required; its first-sound cost is measured below.
+
+**S2 `askRefusals`, as built:** for a declared sub-ask, R6's true refusal replaces today's hollow deferral, silence or wrong-item restatement, and only with evidence: the check's none, the model's own refusal, a clear tag mismatch or a deterministic cut. The other rules:
+- nothing is refused that today already refuses or defers;
+- a restatement is kept when the refusal is its finer cut;
+- R7's uncertain deferrals are not spoken;
+- today's refusals are never turned into deferrals;
+- offers are dropped (Q4).
+
+The first S2 replay changed 47 turns, and the hand read found two kinds of harm:
+- false "We won't get to …" closures for data since delivered;
+- coarse answers lost.
+
+The limits above come from that read. **The second S2 replay changed 7 turns, all right.**
+
+**C2 `composeData`, as built:**
+- the exhibit handover is last in the data line;
+- L1: a line the model's say already spoke is not said again (a release stays booked);
+- L3: a deferral naming what the turn gave says the items it still holds, or is dropped when it is wholly about what was given.
+
+C2 changed 26 turns: 17 only in exhibit order, 7 L3 renames, 2 L1 drops. One regression was found and fixed (a deferral that held nothing was dropped).
+
+**The gate (Phase 1 + Q8):**
+
+| Condition | Result |
+|---|---|
+| 0 new false refusals, wrong releases or false corrections, b22l + b28–b38 | **Met:** all 33 changed turns read by hand |
+| Owned records | 2 → **8 of 57**: b34a-marcus-t14-offer, b34a-marcus-t6-exhibit-deferral, b34l-tyler-t20-doubled-line, b35h-marisol-t24-hollow, b36l-jasmine-t6-deferral-renames, b38l-marisol-t6-deferral-delivered, plus S0's two |
+| Correct records | **95/96 both arms** (the known "Go on." artifact) |
+| Switches off | **Identical** to b2496fb0 on 31 slices, both checker arms, 2,895 turns |
+| Latency | Code time ~16–23 ms mean, < 60 ms p95; no model call added |
+
+**C3's cost, measured** on the 26 turns where a setup sentence would be held, from the recorded live timings (text mode):
+- 21 turns: no delay (the acknowledgment comes first);
+- 5 turns: +0.7 s to +1.8 s;
+- overall median +0 ms, mean +172 ms.
+
+**Not flipped, and why:**
+- the 21 bare_partial records need S5's per-sub-ask cuts;
+- the four strict Haiku-mapped records: R6's evidence isn't there on three of them;
+- the six undeclared-ask records need S7;
+- the math and stage records are outside this design.
