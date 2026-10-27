@@ -276,10 +276,13 @@ Nothing flat was ever said for a different reason, and the same reason explains 
 > says $0.30"*). So by the time code's line is due it is stale, and nothing flat goes.
 
 That is why fixing the detector alone would have been a **net regression**: it would have turned two silent misses
-into two stale corrections. So the third change, behind a new switch **`misquoteSameTurn`** (in the preset): a live
-finding for THIS message corrects on this turn, with the `MISQUOTE` hint going into the same turn's prompt so the
-model stays off the figure. `found` already excludes report-only findings, so a case whose ledger lookup is not
-validated is untouched, and `correctsItemAgain` keeps the gate's own release next turn from saying it twice.
+into two stale corrections. So the third change, behind a new switch **`misquoteSameTurn`**: a live finding for THIS
+message corrects on this turn, with the `MISQUOTE` hint going into the same turn's prompt so the model stays off the
+figure. `found` already excludes report-only findings, so a case whose ledger lookup is not validated is untouched,
+and `correctsItemAgain` keeps the gate's own release next turn from saying it twice. **It was built, measured, and
+then kept OUT of the `phase1` preset** — the sweep found false corrections behind it, and §7 has the evidence. With
+only the two detector fixes on, the aldermoor t6 prevalence misquote does get its flat correction (at t8, on the
+gate's normal timing); the aldermoor t10 and hollisbay t6 ones still do not.
 
 **Records.** `b39a-tyler-t6-prevalence-misquote`, `b39a-tyler-t10-nimbrel-misquote`,
 `b39h-tyler-t6-packaging-misquote` — all firm / `misquote_uncorrected`, all replayable, each asserting code's own flat
