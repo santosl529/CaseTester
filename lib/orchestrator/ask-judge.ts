@@ -6,7 +6,7 @@
 //
 // At most one judge call per (session, turn) — the never-charge-twice rule (CLAUDE.md): the claim row's insert, on the
 // partial unique index `session_events_ask_judge_once` (Lorenzo, 27 Oct: a migration, not an advisory lock).
-import { and, eq, sql } from 'drizzle-orm';
+import { sql } from 'drizzle-orm';
 import type { DB } from '@/db/client';
 import { sessionEvents } from '@/db/schema';
 import { anthropicClient } from '@/lib/anthropic-client';
