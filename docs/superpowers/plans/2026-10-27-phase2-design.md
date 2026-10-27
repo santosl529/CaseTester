@@ -1112,3 +1112,52 @@ The both-conditions rule rarely fires: most true refusals are code's, after the 
 - 98 assumption lines over 150 interviews, 0.65 an interview (max 4).
 
 The measured run used 4-line pools; a fifth line per pool was added after it, to meet the five-version convention.
+
+## 22. Step 1: the ask check reads the candidate's raw message (`askCheckRawMessage`, 27 Oct) — measured, gate failed
+
+**What changed.** `classifyAsk` gets the candidate's raw message beside the declared ask; the declared ask is "only a hint for which part of the message to read". The prompt facts are added as `prompt:<id>` items. A prompt-only answer gets no verdict, so it takes today's path and is never refused.
+
+**Why some roles stayed on Haiku 4.5 (8 Oct note).** The data-request role over-mapped asks to ledger items on Haiku 5.5, even with an enforced schema, though 5.5 caught enumerated lists that 4.5 missed.
+
+**Accuracy** on the 71 labelled turns with a declared ask, scored by hand on the record's own ask (`evals/item-judge-draft/askcheck-scores.json`). Live, a "partial" item is released as the coarse answer, so an unrelated partial is a wrong release.
+
+| Turn class | Today (4.5) | Raw message (4.5) | Raw message (5.5) |
+|---|---|---|---|
+| Pointer | 0/6 | 2/6 | 3/6 |
+| Batch-39 targets | 4/7 | 3/7 | 3/7 |
+| True refusals | 17/18 | 8/18 | 9/18 |
+| Restatements | 2/14 | 9/14 | 8/14 |
+| Correct records | 19/26 | 19/26 | 17/26 |
+| **All** | **42/71** | **41/71** | **40/71** |
+| Overrated full / partial on held / unrelated item / none on held | 19 / 2 / 7 / 1 | 16 / 3 / 11 / 0 | 8 / 4 / 19 / 0 |
+| Latency p50 / p90 (live cap 1.5 s) | 521 / 722 ms | 616 / 931 ms | 1,625 / 3,062 ms (59% over the cap) |
+
+The raw message fixes restatement and pointer cases. It breaks true refusals, because the whole message pulls in unrelated "partial" items.
+
+**Replay with the switch on** (Haiku 4.5; 212 calls answered once and served through `REPLAY_CHECKS`):
+- bank: true refusals 15/19, correct records 91/95, a wrong-release record breaks (b36a-raj-t12);
+- 7 fault records flip: b38l-marisol-t12, b38l-tyler-t24, b39a-raj-t12, b39a-tyler-t22, b39l-victor-t14, b39q-dana-t12, b39q-victor-t12;
+- corpus: 230 turns changed, all read:
+  - 51 hollow deferrals become true refusals ("I'll come back to competitor pricing" → "I don't have competitor pricing"), the improvement;
+  - about 6 new false refusals of held data (b32 51b8cc22 t2 departures, b32 6e5a1c90 t2, b22l 9ab76a39 t2 fares, b31 93576a8e t2/t6 the cost breakdown, b34l t2 fares);
+  - about 8 unrelated releases (the taste test for a velocity benchmark, the Kelvexa product line for European sales);
+  - about 3 asks left with no word.
+
+**Gate failed.**
+
+**Spend this round:** $0.92 of $1.50 (accuracy $0.46, replay $0.46). The scripts used their own capped spend ledger, not `LLM_BUDGET_USD`.
+
+## 23. Step 2: `refusalAssume` kept, still off — ordering fixed, records updated
+
+**Ordering.** "For anything finer, make an assumption." now follows the exhibit handover when the exhibit goes out last, else the releases. In the corpus, 25 turns changed, all of them the reordering.
+
+**Records.** Every owed-refusal assertion now carries `acceptAssume`, for 81 records (18 true-refusal correct records and 63 fault records): a `refusal` must-true, or an `answered` that accepts a refusal. With it, an assumption line about the ask counts, and so does "for anything finer" beside a coarse line given in the turn. A must-not refusal is unaffected, so an assumption line is never a false refusal.
+
+**Bank:**
+
+| | True refusals | Correct records | Fault records | Batch-39 false refusals |
+|---|---|---|---|---|
+| Switch off | 19/19 | 95/95 | 88/173 (unchanged by the record edits) | — |
+| Switch on | 19/19 | 95/95 | 95/173 | 8/8 |
+
+On substance, 3 of those 8 still tell the candidate to assume data held behind the gate (§21), and 3 corpus turns go silent on an ask.
