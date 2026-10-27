@@ -12,6 +12,7 @@ import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { poolPattern, rotateOpeningAck, type PhraseUses } from './phrasing';
+import { isSetup } from './turn-composer';
 import { switchOn } from '@/lib/cases/engine-switches';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
 import { NEUTRAL_TURN } from '@/lib/agent/models/turn-events';
@@ -338,6 +339,7 @@ export async function streamTurnSegments(
   let heldRefusal = false;
   let firstSentenceSeen = false;
   const sayRaw: string[] = [];
+  const setupHeld = Boolean(plan.ctx.acknowledged) && switchOn(plan.state.caseData, 'composeSetup');
   const ackOn = switchOn(plan.state.caseData, 'ackRotation');
   // 4.10's review fix: no rotated acknowledgment in front of a correction code writes (stream-turn.ts turnCorrects).
   const correcting = turnCorrects(state);
@@ -384,6 +386,10 @@ export async function streamTurnSegments(
       // Any other veto stops delivery.
       if (reason === 'data_talk' || reason === 'refuses_released' || reason === 'double_ack' || reason === 'echo_after_ack' || reason === 'grading') return;
       if (reason) { bufferSwitch = reason; return; }
+      // Phase 2 C3 (`composeSetup`): after a spoken acknowledgment, a setup sentence ("You said $8,800 per flight.")
+      // waits for its question — Settle puts it there, or withholds it with a replaced question. No acknowledgment:
+      // streamed as today (the voice would otherwise start later; Lorenzo, 27 Oct).
+      if (setupHeld && isSetup(p.text)) return;
       await send('say', p.text, []);
       return;
     }

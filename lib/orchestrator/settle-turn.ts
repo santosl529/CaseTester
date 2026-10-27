@@ -30,7 +30,7 @@ import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
 import { line, phrase, recordPhraseUses, rotateOpeningAck, type PhraseUses } from './phrasing';
 import { shadowAskDecision } from './ask-decision';
-import { composeShadow } from './turn-composer';
+import { composeShadow, isSetup } from './turn-composer';
 import { composeLintContext } from './turn-lint';
 import { switchOn } from '@/lib/cases/engine-switches';
 import { dataLinePools } from '@/lib/cases/loader';
@@ -726,7 +726,21 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     checks.act('model_deferral', 'the model promised to check or come back on a wrap-up turn: said "We won\'t get to … today." in the same breath', { asks: wrapPromises, wrapUp: true });
   }
 
-  const spokenText = [say, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
+  // Phase 2 C3 (`composeSetup`; turns where an acknowledgment was spoken): the say's setup sentences go before the
+  // model's question they set up — after the data, so "that figure" has its referent — or are withheld when code
+  // replaced the question (they set up a question nobody asks). Stream held them, so nothing delivered moves.
+  let sayOut = say;
+  if (!codeWritten && ctx.acknowledged && switchOn(state.caseData, 'composeSetup')) {
+    const parts = sentencesOf(say);
+    const setup = parts.filter(isSetup);
+    if (setup.length > 0) {
+      sayOut = parts.filter(x => !isSetup(x)).join(' ');
+      if (modelQuestion) question = [...setup, question].join(' ');
+      else for (const x of setup) withheld.push({ sentence: x, reason: 'setup_question_replaced', field: 'say' });
+      checks.act('compose_setup', modelQuestion ? 'setup sentences moved before their question (Phase 2 C3)' : 'setup sentences withheld: code replaced their question (Phase 2 C3)', { setup, moved: Boolean(modelQuestion) });
+    }
+  }
+  const spokenText = [sayOut, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
   // Phase 2 C1 (`composeShadow`; design §3): the same pieces in the four fixed slots, linted both ways — never spoken.
   if (switchOn(state.caseData, 'composeShadow')) {
     try {

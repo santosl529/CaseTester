@@ -23,6 +23,7 @@ describe('setup sentences travel with their question', () => {
     expect(isSetup('Understood.')).toBe(false);
     expect(isSetup('Earlier you said Option B beats A by $40M.')).toBe(true);
     expect(isSetup('On the prevalence input:')).toBe(true);
+    expect(isSetup('Right, you\'ve separated what you know from what you assumed.')).toBe(false);
   });
 });
 

@@ -63,6 +63,7 @@ export const PHASE2_SWITCHES = [
   'refusalContradiction', // S3: no refused part that a line released or restated this turn states
   'wontGetToGiven',      // S3: a wrap-up "We won't get to …" says only the parts nothing given since states
   'askModelKeep',        // S3: R2 live — a model-named item that matches the ask is kept (today's scope drop and release_checked withdrawal)
+  'composeSetup',        // C3: after a spoken acknowledgment, setup sentences travel with their question (else streamed as today)
 ] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES, ...PHASE2_SWITCHES] as const;
 

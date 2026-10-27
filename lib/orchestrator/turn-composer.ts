@@ -41,7 +41,9 @@ const sentencesOf = (s: string) => s.replace(/\s+/g, ' ').trim().split(/(?<=[.?!
 // A setup sentence states a question's premise: the candidate's figure or claim said back ("On variable cost, you said
 // $8,800 per flight.", "Earlier you said …"), or a lead ending in a colon ("On the prevalence input:").
 const SETUP = /\b(?:you (?:said|put|mentioned|had|used|estimated|got|wrote|assumed|treated|took|applied)|earlier you|you've (?:put|said|got))\b/i;
-export const isSetup = (s: string) => !s.includes('?') && (SETUP.test(s) || /:\s*$/.test(s.trim()));
+// A setup carries the figure or quote it sets up ("you've separated what you know from what you assumed" is an
+// acknowledgment, not a setup — b32 5fa81cec t8).
+export const isSetup = (s: string) => !s.includes('?') && ((SETUP.test(s) && /\d|[“"][^”"]{3,}[”"]/.test(s)) || /:\s*$/.test(s.trim()));
 const isQ = (s: string) => s.includes('?');
 
 export function composeShadow(p: ComposerPieces, ctx: LintContext): ComposeShadow {
