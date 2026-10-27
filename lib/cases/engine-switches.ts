@@ -31,6 +31,9 @@ export const PHASE1_SWITCHES = [
   // evidence: 107 claims gained across 6,304 typed messages, every one `correct`, 0 new flags, 0 claims and 0
   // verified figures lost, and the 131 recorded voice turns 3 → 6 (round-2 report §D).
   'ofAsMultiplication',
+  // Lorenzo, 27 Oct: in, after the 50-claim sample came back 50/50 verifying right work (and all 589 checked:
+  // 585 differ from the single reading only by an exact power of ten). Never raises a flag by construction.
+  'scaleWordReading',
   'correctionRules',     // pre-wave rulings 3 and 4 (26 Oct): one correction per item on every path; none on the closing turn
   'misquoteAttribution', // post-wave (26 Oct): a figure the candidate attributes to the interviewer is a quote — `operandLater` does not excuse it
   'misquoteSameTurn',    // post-wave ruling (26 Oct evening): an ATTRIBUTED misquote is corrected on its own turn, not a turn later
@@ -97,7 +100,7 @@ export const PHASE1_SWITCHES = [
 // form's recall regression by construction rather than by measurement (a test diffs the prompt). Verdict
 // arrival becomes max(checker, extractor), and the answer sheet is read at delivery, a turn or more later,
 // which is the only moment it is needed. Out of every preset; nameable for evaluation.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'checkerEquationsAsync', 'scaleWordReading'] as const;
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'checkerEquationsAsync'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];

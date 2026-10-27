@@ -505,6 +505,19 @@ export function isClaimVerified(v: VerifiedFigure): boolean {
 // recompute_ok: the interviewer-facing line per verified figure (Rule 2 v4.5).
 // Stated arithmetic gets its own line: the operation holds, the claim it
 // supports is unchecked — never "Do not probe it" (Marisol t10, batch 21).
+// A figure's own magnitude, in the words a candidate would say (Lorenzo, 27 Oct, on `scaleWordReading`):
+// the absorbed reading carries the full magnitude, so a hint built from it read "300000000" where he said
+// "300 million". The value is unchanged — only how the prompt spells it. Below 10,000 it is left alone (points,
+// shares and small dollar figures read better bare); the span beside it is always the candidate's own words.
+export function scaleWordValue(n: number): string {
+  const abs = Math.abs(n);
+  const trim = (x: number) => Number(x.toFixed(2)).toString();
+  if (abs >= 1e9) return `${trim(n / 1e9)} billion`;
+  if (abs >= 1e6) return `${trim(n / 1e6)} million`;
+  if (abs >= 1e4) return n.toLocaleString('en-US');
+  return String(n);
+}
+
 export function formatVerifiedHint(verified: VerifiedFigure[], alreadyProbed: Set<string>): string {
   if (verified.length === 0) return '';
   // One line per operation: a ratio's percent readings ("58 / 42 = 1.38" is
@@ -512,12 +525,12 @@ export function formatVerifiedHint(verified: VerifiedFigure[], alreadyProbed: Se
   const shown = verified.filter((v, i) => isClaimVerified(v) || verified.findIndex(x => x.stepId === v.stepId) === i);
   const lines = shown.map(v => {
     if (!isClaimVerified(v)) {
-      return `- arithmetic_ok: ${v.stepId.slice('arith:'.length)} = ${v.value} holds (in "${v.span}"). That checks the operation only, not whether it is the right calculation for what they claim: don't question the arithmetic, and don't treat the claim as verified.`;
+      return `- arithmetic_ok: ${v.stepId.slice('arith:'.length)} = ${scaleWordValue(v.value)} holds (in "${v.span}"). That checks the operation only, not whether it is the right calculation for what they claim: don't question the arithmetic, and don't treat the claim as verified.`;
     }
     const allowed = v.workShown || alreadyProbed.has(v.stepId)
       ? 'Do not probe it at all.'
       : 'At most one process question — "How did you get there?" — if it is decision-relevant. Never doubt phrasing.';
-    return `- recompute_ok: ${v.value} verified (in "${v.span}"), work_shown: ${v.workShown ? 'yes' : 'no'}. ${allowed}`;
+    return `- recompute_ok: ${scaleWordValue(v.value)} verified (in "${v.span}"), work_shown: ${v.workShown ? 'yes' : 'no'}. ${allowed}`;
   });
   return `VERIFIED FIGURES (deterministic — a recompute_ok figure is correct): never question them with doubt phrasing ("points of what?", "are you sure?", "check that", "is that right?").\n${lines.join('\n')}`;
 }

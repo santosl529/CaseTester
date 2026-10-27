@@ -1418,7 +1418,12 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     rootLine = { id: rk, key, action: 'probe', line, stepRoot: r.step,
       undo: { attempt: attemptBefore, step: r.step, mathChecker: (flags.mathChecker as CheckerMemory | undefined) ?? { handled: checkerHandled } } };
   }
-  if (staleOn) {
+  // Logged whenever either source can drop a line (Lorenzo, 27 Oct, on the async answer sheet: "make sure every
+  // drop it causes is logged with the superseding figure so the grade can check each one"). The hook installs on
+  // `staleOn || sheetOn`, so gating the record on `staleOn` alone lost every sheet-only drop — the answer sheet is
+  // meant to run in the confirmation wave with `staleProbeDrop` off. `staleNote` carries the superseding figure,
+  // its scale and unit, the candidate's quoted words, and the figure it replaces.
+  if (staleOn || sheetOn) {
     const checkerStale = checkerDecisions.filter(d => d.outcome === 'stale' && d.reason.startsWith('stale_drop: ')).map(d => ({ kind: 'checker' as const, id: d.id, reason: d.reason.slice('stale_drop: '.length) }));
     const all = [...staleDrops, ...checkerStale];
     checks.record('stale_drop', all.length > 0, 'a probe or correction the candidate has overtaken since (the worksheet): dropped, not said', { dropped: all });

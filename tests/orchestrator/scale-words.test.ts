@@ -1,3 +1,4 @@
+import { scaleWordValue, formatVerifiedHint } from '@/lib/orchestrator/recompute';
 // Scale and currency words after a figure (Phase 1, switch `scaleWordReading`;
 // Lorenzo's ruling of 27 Oct: the absorbed reading may verify, and may **never**
 // flag — a false `correct` is bad, but a false flag on a scale reading is worse,
@@ -104,5 +105,29 @@ describe('the reader with scaleWordReading', () => {
     const text = 'Two hundred thousand times twenty percent is forty thousand patients.';
     expect(checkStatedArithmetic(normalizeNumberWords(text)).some(c => c.absorbed)).toBe(false);
     expect(read(text, OFF).some(c => c.absorbed)).toBe(false);
+  });
+});
+
+// Lorenzo, 27 Oct: the prompt must spell a figure's magnitude in words ("300 million"), not 300000000 —
+// `scaleWordReading` absorbs the scale word, so a hint built from the absorbed value read at full digits.
+describe('scaleWordValue', () => {
+  it('spells millions and billions, keeps small figures bare', () => {
+    expect(scaleWordValue(300_000_000)).toBe('300 million');
+    expect(scaleWordValue(1_500_000)).toBe('1.5 million');
+    expect(scaleWordValue(2_320_000)).toBe('2.32 million');
+    expect(scaleWordValue(4_000_000_000)).toBe('4 billion');
+    expect(scaleWordValue(780_000)).toBe('780,000');
+    expect(scaleWordValue(-2_400_000)).toBe('-2.4 million');
+    expect(scaleWordValue(16)).toBe('16');       // points
+    expect(scaleWordValue(4.2)).toBe('4.2');     // share
+    expect(scaleWordValue(9_200)).toBe('9200');  // per-flight dollars read fine bare
+  });
+  it('a verified hint built from an absorbed reading says the words, not the digits', () => {
+    const hint = formatVerifiedHint(
+      [{ stepId: 'step:option_a_sales', value: 320_000_000, span: 'that is 320 million in net sales', workShown: true } as never],
+      new Set(),
+    );
+    expect(hint).toContain('320 million verified');
+    expect(hint).not.toContain('320000000');
   });
 });
