@@ -376,7 +376,12 @@ export function heldForOrder(id: string, exhibits: ExhibitInfo[], shown: Set<str
 export type DataDecisions = {
   // mustReach: a must-reach item code volunteered (round 6 Task 72; turn-data.ts mustReachItems) — the point it was due
   // before (an exhibit id, or "recommendation"); said first, without the "earlier" lead-in: nobody asked for it.
-  releases: { id: string; value: string; earlier: boolean; mustReach?: string }[];
+  // `selfCorrect` (`asyncAskJudge`, 27 Oct; measurement): a held item the last turn refused, assumed or left unsaid,
+  // given now behind "Actually, I do have that:" — said first, booked like any release.
+  releases: { id: string; value: string; earlier: boolean; mustReach?: string; selfCorrect?: true }[];
+  // `asyncAskJudge`: a line that corrects the last turn without a release ("To correct myself: …", or the gated
+  // "Actually, I do have that — I'll share … once we've settled your structure."), said first.
+  selfCorrectionLine?: { text: string; kind: 'refusals' | 'defers' };
   restates: { id: string; value: string; exhibit?: boolean; pointer?: string }[];  // explicit re-asks of data already revealed: said again, never re-booked
   // Phase 1 4.1 (restateRules, turn-data.ts): `pointer` — the item is on an exhibit already out: its summary is said, not
   // its line; `recentRestates` — re-asks of lines said within the last four turns, named and not said again.
@@ -731,10 +736,13 @@ function dataLine(value: string, uses: PhraseUses | undefined, seed: string): st
 }
 export function renderDataLineParts(d: DataDecisions, seed: string, uses?: PhraseUses): DataLinePart[] {
   const parts: DataLinePart[] = [];
+  // `asyncAskJudge`: the self-correction opens the turn.
+  for (const r of d.releases.filter(x => x.selfCorrect)) parts.push({ kind: 'release', ids: [r.id], text: `Actually, I do have that: ${dataLine(r.value, uses, seed)}` });
+  if (d.selfCorrectionLine) parts.push({ kind: d.selfCorrectionLine.kind, ids: [], text: d.selfCorrectionLine.text });
   if (d.correction) parts.push({ kind: 'correction', ids: [], text: d.correction.text });
   // A must-reach item first, on its own (round 6 Task 72): the "earlier" lead-in would say the candidate asked for it.
-  for (const r of d.releases.filter(x => x.mustReach !== undefined)) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
-  const asked = d.releases.filter(r => r.mustReach === undefined);
+  for (const r of d.releases.filter(x => x.mustReach !== undefined && !x.selfCorrect)) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
+  const asked = d.releases.filter(r => r.mustReach === undefined && !r.selfCorrect);
   const earlier = asked.filter(r => r.earlier);
   if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: phrase('earlier', '', uses, seed) });
   for (const r of asked) parts.push({ kind: 'release', ids: [r.id], text: d.saidByModel?.includes(r.id) ? '' : dataLine(r.value, uses, seed) });

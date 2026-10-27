@@ -9,6 +9,8 @@ import { decideData, RESTATE_INVITE, spokenItemName, exactResolver, labelMatch, 
 import { switchOn } from '@/lib/cases/engine-switches';
 import { saysPhrase } from '@/lib/cases/case-notes-draft';
 import { judgeVerdict, type JudgeAsk } from '@/lib/cases/item-judge-draft';
+import { asyncJudgeVerdict } from '@/lib/cases/async-judge-draft';
+import { selfCorrection, correctionLine } from './self-correct';
 import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS, refusedItemIds } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, promptFactCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
@@ -808,7 +810,52 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     data = r.data;
     if (opts.log && r.changes.length > 0) plan.ctx.checks.act('refusal_assume', 'refusals code is not confident of said as assumptions (refusal-wording measurement)', { changes: r.changes });
   }
+  // Step 3 (`asyncAskJudge`; Lorenzo, 27 Oct; measurement): the background judge's verdict on the previous message,
+  // if it landed in time, may correct the last turn (lib/orchestrator/self-correct.ts).
+  if (switchOn(plan.state.caseData, 'asyncAskJudge')) data = applySelfCorrection(plan, data, opts.log === true);
   return data;
+}
+function applySelfCorrection(plan: ModelPlan, d: TurnData, log: boolean): TurnData {
+  const { state } = plan;
+  const { ledger, caseData, factBase: fb } = state;
+  const rows = state.turnRows;
+  const prevCandidate = [...rows].reverse().find(r => r.role === 'candidate');
+  const lastInterviewer = [...rows].reverse().find(r => r.role === 'interviewer');
+  if (!prevCandidate || !lastInterviewer) return d;
+  const asks = asyncJudgeVerdict(caseData.id, prevCandidate.text);
+  if (!asks) return d;
+  const c = selfCorrection({
+    asks, items: ledger.items.map(i => ({ id: i.id, label: i.label, value: i.value, ...(i.spoken ? { spoken: i.spoken } : {}) })),
+    revealed: ledger.revealed, deferred: new Set(state.openDataRequests.map(o => o.ledgerItemId)),
+    lastInterviewerText: lastInterviewer.text,
+    exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title, ...((e as { summary?: string }).summary ? { summary: (e as { summary?: string }).summary } : {}), covers: e.coversLedgerItems ?? [] })),
+    shownExhibits: state.shownExhibitIds, fb, caseNames: properNames(caseData.sttKeyterms),
+    gated: id => ptGateOn(plan) && isGatedItem(ledger, id), closing: state.kind === 'close' || wrapUpTurn(plan),
+  });
+  if (!c) return d;
+  const item = 'id' in c ? ledger.items.find(i => i.id === c.id) : undefined;
+  // Never a correction the turn already makes: the ask answered now (an item the judge named for it released or
+  // restated, or on the exhibit going out), or an item the release order still holds (its exhibit not yet due).
+  if (c.kind !== 'none') {
+    const givenNow = new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]);
+    if (c.askItems.some(id => givenNow.has(id))) return d;
+    const exhibitsInfo = caseData.exhibits.map(e => ({ id: e.id, title: e.title, coversLedgerItems: e.coversLedgerItems, after: e.after, requiresItems: e.requiresItems }));
+    if (heldForOrder(c.id, exhibitsInfo, state.shownExhibitIds, ledger, state.stagesOut)) return d;
+  }
+  if (c.kind === 'have' && (!canReveal(ledger, c.id) || d.releases.length >= RELEASE_CAP)) return d;
+  const out: TurnData = { ...d, releases: [...d.releases], requests: d.requests.map(r => ({ ...r })), gatedIds: [...d.gatedIds] };
+  if (c.kind === 'have') {
+    out.releases.unshift({ id: c.id, value: item!.value, earlier: false, selfCorrect: true });
+    out.requests.push({ request: { what: c.ask, itemIds: [c.id], explicit: true, respond: 'release' }, response: 'release', ledgerItemIds: [c.id] });
+  } else if (c.kind === 'have_gated') {
+    out.selfCorrectionLine = { kind: 'defers', text: correctionLine(c, { value: item!.value, spoken: item!.spoken ?? spokenItemName(item!.label) }) };
+    if (!out.gatedIds.includes(c.id)) out.gatedIds.push(c.id);
+    out.requests.push({ request: { what: c.ask, itemIds: [c.id], explicit: true, respond: 'defer' }, response: 'defer', ledgerItemIds: [c.id] });
+  } else {
+    out.selfCorrectionLine = { kind: 'refusals', text: correctionLine(c) };
+  }
+  if (log) plan.ctx.checks.act('self_correction', 'the background judge\'s verdict on the last message corrects the last turn (asyncAskJudge, measurement)', { correction: c });
+  return out;
 }
 const MODEL_REFUSAL = /\b(?:I don't have|I do not have|I don’t have|not something (?:I|we) have|we don't have|I have no)\b/i;
 async function assumeRefusals(plan: ModelPlan, d: TurnData, modelSay: string): Promise<{ data: TurnData; changes: { what: string; to: string }[] }> {
