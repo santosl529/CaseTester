@@ -2624,6 +2624,28 @@ hardship (sleep, health, "bad few weeks"). The C5_DESPAIR pattern
 "i'm going to bomb every…" sits on this line and stays C5 because "every"
 generalizes beyond the case.
 
+**Which layer judges what (`conduct.ts` v4.13, Lorenzo's ruling of 26 Oct evening).** The
+regex floor keeps the forms that can only be the candidate about themselves,
+and hands the rest to the model layer (`distress.ts`), whose prompt already
+names them. Off the floor, and the model's call now:
+
+- `the point of/in <verb>ing` — "What's the point of segmenting further",
+  "I don't see the point in discounting below cost" are analytic, and three of
+  three client-subject lines fired. The despair gerunds ("of trying", "of
+  going on", "of carrying on", "of living", "of being here") and the
+  `-ing`-shaped pronouns ("of anything", "of everything") stay on the floor;
+- `(bad|rough|dark|awful) few (weeks|months)` — "Brew & Bean has had a rough
+  few months on traffic" is ordinary trading language. The first-person
+  branches ("i'm not sleeping", "broken me", "i'm falling apart") still carry
+  the disclosure shape Sam's run showed;
+- the BARE sentence-final "why bother?" — "If the margin is negative at every
+  price, why bother?" is a conclusion about the client. "why bother anymore /
+  at all / with this" and "why do I even bother" stay on the floor.
+
+Every self-harm pattern is untouched. "What's the point, I'm going to fail
+anyway" still fires on the floor; "Why bother, I'm useless at this" never did
+and is the model layer's, which is the point of the handover.
+
 **Scoring when the candidate chooses to continue (v4.3 — previously
 undefined).** The session is scored, with constraints:
 
