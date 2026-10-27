@@ -26,9 +26,16 @@ const OBJ = String.raw`(?:\s+(?:it|this|things|the (?:case|interview|session|pra
 // "let's stop on costs for a second" are not requests to end.
 const END = String.raw`(?=\s*(?:[.!?,;—–-]|$|please\b|i'?d rather\b|i'?m (?:not|done)\b|i (?:don'?t|can'?t)\b))`;
 
+// "finish" is the one verb here that reads both ways: "I'd like to finish" / "can we finish the case" is a request to
+// CARRY ON to the end, and OBJ's "it / this / the case" made both read as a request to stop (batch 39, aldermoor p07
+// 35740806 t19: "I've found my footing and I'd like to finish" closed the case in the EXHIBIT phase). It counts only
+// with an object that can only mean ending here and now.
+const FINISH_HERE = String.raw`(?:\s+up)?\s+(?:here|there|now|early|for (?:now|today))`;
 const STOP: [RegExp, string][] = [
-  [new RegExp(String.raw`\b(?:can|could|may)\s+(?:we|i)\s+(?:just\s+|please\s+)?(?:stop|end|finish|quit|call it(?: a day| quits)?|wrap (?:it |this |things )?up)${OBJ}${END}`, 'i'), 'asks to stop'],
-  [new RegExp(String.raw`\bi(?:'?d| would)\s+(?:like|prefer|rather|love)\s+to\s+(?:just\s+)?(?:stop|end|finish|quit|call it|leave it)${OBJ}${END}`, 'i'), 'would like to stop'],
+  [new RegExp(String.raw`\b(?:can|could|may)\s+(?:we|i)\s+(?:just\s+|please\s+)?(?:stop|end|quit|call it(?: a day| quits)?|wrap (?:it |this |things )?up)${OBJ}${END}`, 'i'), 'asks to stop'],
+  [new RegExp(String.raw`\b(?:can|could|may)\s+(?:we|i)\s+(?:just\s+|please\s+)?finish${FINISH_HERE}${END}`, 'i'), 'asks to stop'],
+  [new RegExp(String.raw`\bi(?:'?d| would)\s+(?:like|prefer|rather|love)\s+to\s+(?:just\s+)?(?:stop|end|quit|call it|leave it)${OBJ}${END}`, 'i'), 'would like to stop'],
+  [new RegExp(String.raw`\bi(?:'?d| would)\s+(?:like|prefer|rather|love)\s+to\s+(?:just\s+)?finish${FINISH_HERE}${END}`, 'i'), 'would like to stop'],
   [new RegExp(String.raw`\bi\s+(?:want|need)\s+to\s+(?:just\s+)?(?:stop|end|quit|leave)${OBJ}${END}`, 'i'), 'wants to stop'],
   [new RegExp(String.raw`\b(?:let'?s|let us)\s+(?:just\s+)?(?:stop|end|call it|wrap (?:it |this )?up)(?:\s+(?:here|there|now|the (?:case|interview|session)|it here|it there|for (?:now|today)))+${END}`, 'i'), 'proposes stopping'],
   [/\b(?:please\s+)?end\s+(?:the|this)\s+(?:session|interview|case)\b/i, 'asks to end the session'],

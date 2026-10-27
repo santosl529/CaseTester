@@ -297,3 +297,56 @@ describe('C3 word lists — unambiguous, ambiguous, innocent', async () => {
     expect(classifyConduct(fx.ambiguousDirected, 0)).toEqual({ category: 'C3', action: 'confirm', reason: 'slur_ambiguous' });
   });
 });
+
+// Batch 39, aldermoor p07 35740806 t17 (Lorenzo's ruling, 26 Oct): the regex floor fired C5 "despair" on pure case
+// arithmetic because the message ends "both miss, and nothing works" — a verdict on two options, not on himself —
+// skipped the model layer ("regex floor already fired C5") and spoke the 988 script. "nothing (matters|works)" is
+// gone from the floor; the first-person despair and self-harm forms must still fire.
+describe('C5 — the batch-39 aldermoor p07 misfire (v4.12)', () => {
+  const p07 = "Option A: 20% of 200,000 eligible is 40,000 patients, times $8,000 is $320 million net sales, less $80 million selling costs leaves $240 million.\n\nOption B: 25% of 200,000 is 50,000 patients, times $8,000 is $400 million in US net sales, of which Aldermoor's 30% royalty is $120 million.\n\nSo on economics to Aldermoor, A wins by $120 million — double. The $80 million of selling cost buys far more than it destroys. B also gives away the US franchise permanently and leaves Aldermoor with no US presence for the next product.\n\nThe catch is which number the board is measuring. If the $300 million bar is Kelvexa's US net sales, A clears at $320 million and B clears at $400 million. If it's cash to Aldermoor, A is $240 million and B is $120 million — both miss, and nothing works.\n\nCan I confirm which definition the board intends? And is the $80 million flat from year one, or does it ramp?";
+
+  it('his whole t17 message is clean — no C5, no scripted turn', () => {
+    const r = classifyConduct(p07, 0);
+    expect(r.category).toBe('none');
+    expect(r.action).toBe('ignore');
+  });
+
+  it.each([
+    'If it\'s cash to Aldermoor, A is $240 million and B is $120 million — both miss, and nothing works.',
+    'At that price nothing works: every option loses money.',
+    'Cutting price, cutting cost, closing stores — nothing matters if the traffic keeps falling.',
+  ])('a case verdict in those words is not distress: %s', text => {
+    expect(classifyConduct(text, 0).category).not.toBe('C5');
+  });
+
+  it.each([
+    "I can't do this anymore.",
+    "I hate myself for not seeing that.",
+    "I'm worthless at this and at everything else.",
+    "I give up on everything.",
+    "What's the point. I'm going to fail every one of these.",
+  ])('real despair still fires: %s', text => {
+    const r = classifyConduct(text, 0);
+    expect(r.category).toBe('C5');
+    expect(r.action).toBe('offer_pause');
+    expect(isRiskToSelf(r)).toBe(true);
+  });
+
+  it.each([
+    'I want to die.',
+    "Honestly I've been thinking I'd kill myself.",
+    "There's no reason to go on.",
+    "I don't want to be here anymore.",
+    "Everyone would be better off without me.",
+  ])('self-harm language still fires, and as risk-to-self: %s', text => {
+    const r = classifyConduct(text, 0);
+    expect(r.category).toBe('C5');
+    expect(r.action).toBe('offer_pause');
+    expect(r.reason).toBe('self_harm');
+    expect(isRiskToSelf(r)).toBe(true);
+  });
+
+  it('distress plus "nothing works" is still C5 — the other signals carry it', () => {
+    expect(classifyConduct("Nothing works and I can't do this anymore.", 0).category).toBe('C5');
+  });
+});

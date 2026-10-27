@@ -1,0 +1,59 @@
+[
+ {
+  "id": "b39a-raj-t18-c5-misfire",
+  "kind": "fault",
+  "p": "07",
+  "turn": 18,
+  "sev": "serious",
+  "cls": "other",
+  "note": "The C5 regex floor fired `offer_pause` reason \"despair\" on pure case arithmetic and code spoke the 988 crisis script, skipping the model layer (`conduct_model: skip — regex floor already fired C5`). Lorenzo's correction to the grading (26 Oct): t17 is not pure arithmetic in the detector's eyes — it ends \"both miss, and nothing works\", which matched `nothing (matters|works)` in `C5_DESPAIR`. That alternative is removed from the floor (conduct.ts v4.12); generalized hopelessness in those words is the model layer's call. The turn owed the candidate two answers (\"which definition the board intends\" and whether the $80 million is flat from year one), so the floor assertion is paired with a question.",
+  "src": "lorenzo-ruling-2026-10-26 (correction to batch-39/wave39-grading.md S1)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "988|set the case aside|are you okay",
+    "must": false
+   },
+   {
+    "kind": "close",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The recorded turn is `scripted` (the crisis script), so the run holds no model output for turnIndex 17 — with the floor alternative gone the turn becomes a model turn the replay cannot write. Wave: on entry-001, an arithmetic turn that ends on a verdict like \"both miss, and nothing works\" draws a case question rather than the 988 script, `conduct` records `none`, and the run reaches the recommendation; the auditor (other) and the hand grade see it.",
+  "stream": 4
+ },
+ {
+  "id": "b39a-raj-t20-exit-misread",
+  "kind": "fault",
+  "p": "07",
+  "turn": 20,
+  "sev": "serious",
+  "cls": "premature_close",
+  "note": "After the pause offer the candidate said \"I appreciate you checking, genuinely — but I'm okay … I've found my footing and I'd like to finish. If it's useful, I can give the recommendation now.\" `isPauseAccepted` correctly read that as a decline, and then `classifyExitIntent` read \"I'd like to finish\" as a stop (STOP pattern 2, where `finish` sat beside stop/end/quit and OBJ accepted \"it / this / the case\"): `candidate_exit act — stop: would like to stop`, and the case closed in the EXHIBIT phase with no exhibit-2, brainstorm, recommendation or risk stage. Two fixes: `finish` counts as a stop only with an object that can only mean ending here and now (candidate-exit.ts), and after a pause offer this path never closes the case — ambiguous asks once, at most (plan-turn.ts `exit_after_pause`).",
+  "src": "lorenzo-ruling-2026-10-26 (correction to batch-39/wave39-grading.md S1)",
+  "a": [
+   {
+    "kind": "close",
+    "must": false
+   },
+   {
+    "kind": "says",
+    "pattern": "we'll stop here",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The recorded turn is `scripted` (the exit close), so the run holds no model output for turnIndex 19 — with the gate in place the turn becomes a model turn the replay cannot write. Wave: a candidate who declines a pause offer and says they would like to finish gets the next case turn, the run reaches the recommendation and risk stages, and `exit_after_pause` appears in the checks where anything in the message still reads as a stop; the auditor (premature_close) and the hand grade see it.",
+  "stream": 4
+ }
+]

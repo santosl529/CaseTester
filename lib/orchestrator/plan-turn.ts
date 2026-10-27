@@ -265,7 +265,7 @@ export function planTurn(reads: TurnReads, heardText: string, deps: PlanDeps): T
   // assessment.action === 'ignore' (none / C1): proceed with the normal case turn.
 
   // ── The candidate stops (Rule 18A) — after conduct, before any case rule ──
-  const exitPlanned = planExit(ctx, { ...reads, turnRows }, deps);
+  const exitPlanned = planExit(ctx, { ...reads, turnRows }, deps, { afterPauseOffer: repliedToDistressOffer });
   if (exitPlanned) return exitPlanned;
 
   return modelPlan(ctx, { ...reads, turnRows }, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state, classify: deps.classify !== false, regexC5AfterDecline, conductConfirm });
@@ -293,7 +293,7 @@ function caseNotStarted(flags: Record<string, unknown>, phase: Phase): boolean {
 // three times, then an offer to stop, then the end. No case question in any
 // of these turns. A distress verdict on the message takes precedence (the C5
 // offer includes stopping) — the runner awaits it before speaking.
-function planExit(ctx: TurnCtx, reads: TurnReads, deps: PlanDeps): ScriptedPlan | null {
+function planExit(ctx: TurnCtx, reads: TurnReads, deps: PlanDeps, opts: { afterPauseOffer?: boolean } = {}): ScriptedPlan | null {
   const { candidateText, flags, currentPhase, checks } = ctx;
   const exit: ExitState = { ...(flags.exit as ExitState | undefined) };
   const intent = classifyExitIntent(candidateText);
@@ -329,6 +329,18 @@ function planExit(ctx: TurnCtx, reads: TurnReads, deps: PlanDeps): ScriptedPlan 
     } else if (notStarted) {
       exit.refusals = 0;
     }
+  }
+  // Rule 17-C5 (Lorenzo's ruling, 26 Oct; batch 39 aldermoor p07 35740806 t19): after a pause offer the case is never
+  // CLOSED by this path. The offer already asked "stop, pause, or keep going?", and an explicit accept was taken above
+  // (isPauseAccepted, where a decline wins ties) — so a message that reaches here has declined to stop, and anything in
+  // it that still reads as a stop is ambiguous. Ambiguous asks once (the clarifying question, once a session) and never
+  // closes; "I'm okay", "keep going", "I'd like to finish" resume the case where it left off. Cost if wrong: a
+  // candidate who does want out after the offer is asked once more before the case closes, one turn later.
+  if (opts.afterPauseOffer && (decision === 'stop' || decision === 'declined')) {
+    const to = exit.clarified ? null : 'clarify';
+    checks.act('exit_after_pause', `a reply to the pause offer never closes the case: ${decision} → ${to ?? 'the case continues'}`, { intent: intent.kind, why });
+    decision = to;
+    why = 'ambiguous after a pause offer';
   }
   checks.record('candidate_exit', decision !== null, decision ? `${decision}: ${why}` : 'no exit', {
     intent: intent.kind, refusal, refusals: exit.refusals ?? 0, decision,
