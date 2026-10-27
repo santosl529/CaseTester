@@ -20,6 +20,7 @@
 // The numeric provenance audit checks that a number appears somewhere
 // allowed; F1 checks that it is attached to the right quantity (PRD §15, the
 // 8 Oct Qwen screen: "beans at 42% of COGS" passed because 42 is allowed).
+import { caseNotesDraft } from '@/lib/cases/case-notes-draft';
 import { switchOn, type EngineSwitch } from '@/lib/cases/engine-switches';
 import { asOriginalProbe } from './phrasing';
 import { normalizeNumberWords } from '@/lib/number-words';
@@ -64,6 +65,7 @@ export type FactBase = {
   answerGate: boolean;                    // tags present: round 6's cover matching and gate are on (Task 68)
   coverNorm?: boolean;                    // Phase 1 4.5: coverNormalization on for this case (factBaseFor, per call)
   properNames: string[];                  // the case's capitalised STT keyterms: its names, routes and places (review F1)
+  notHeld?: { id: string; phrase: string; missing: string }[];  // `caseNotesDraft` (measurement): asks an item does not answer
 };
 export type CaseTags = { clientWords: string[]; entities: { id: string; rival?: boolean; words: string[]; items: string[] }[]; forecast: string[] };
 
@@ -199,9 +201,26 @@ export function factBaseFor(c: CaseInput & { id: string; engine?: Partial<Record
   if (switchOn(c, 'coverNormalization')) {
     let nb = normBases.get(c.id);
     if (!nb || nb.quantities !== fb.quantities) { nb = { ...fb, coverNorm: true }; normBases.set(c.id, nb); }
-    return nb;
+    fb = nb;
   }
-  return fb;
+  return switchOn(c, 'caseNotesDraft') ? withCaseNotes(c.id, fb) : fb;
+}
+// `caseNotesDraft` (item-choice experiment, arm A; measurement only): the drafted asks each item answers join its
+// cover phrases (so every coverage path reads them), and the asks it doesn't answer ride along as `notHeld`.
+const notesBases = new WeakMap<FactBase, FactBase>();
+function withCaseNotes(caseId: string, fb: FactBase): FactBase {
+  const hit = notesBases.get(fb);
+  if (hit) return hit;
+  const notes = caseNotesDraft(caseId);
+  if (!notes) return fb;
+  const covers = fb.covers.map(cv => ({ ...cv, phrases: [...cv.phrases] }));
+  for (const n of notes) {
+    const own = covers.find(cv => cv.id === n.id) ?? (covers.push({ id: n.id, phrases: [] }), covers[covers.length - 1]);
+    for (const a of n.answers.map(lc)) if (!own.phrases.includes(a)) own.phrases.push(a);
+  }
+  const nb: FactBase = { ...fb, covers, notHeld: notes.flatMap(n => n.notAnswers.map(x => ({ id: n.id, phrase: lc(x.phrase), missing: x.missing }))) };
+  notesBases.set(fb, nb);
+  return nb;
 }
 
 // ---------------------------------------------------------------- figures

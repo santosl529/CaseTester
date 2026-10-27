@@ -60,7 +60,11 @@ export const PHASE1_SWITCHES = [
 // turns (his lifting of Q1 for this path only).
 // `restateLineInvite` (27 Oct, Lorenzo): R5's pointer path says the item's own line and "If you're after something more
 // specific, ask me." (once per item) — no claim the exhibit answers, no model call. Off until its gate is read.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite'] as const;
+// `caseNotesDraft` (27 Oct, item-choice experiment arm A — measurement only): Opus-drafted per-item notes
+// (evals/case-notes-draft/) as cover phrases and not-held phrases. Never in a preset.
+// `itemJudge` (27 Oct, item-choice experiment arm B — measurement only): recorded Sonnet-judge verdicts (ITEM_JUDGE_VERDICTS)
+// decide the item on restatements and refusals. Never in a preset.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge'] as const;
 // Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
 // step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
 // structures would decide and say, and change nothing the candidate hears.

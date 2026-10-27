@@ -1,0 +1,585 @@
+{
+ "caseId": "pricing-001",
+ "model": "claude-opus-5-5",
+ "authoredFrom": "case JSON + candidate asks, batches <= 38 (batch 39 held out)",
+ "items": [
+  {
+   "id": "product",
+   "answers": [
+    "the product",
+    "quillpath's product",
+    "what quillpath sells",
+    "what the software does",
+    "product description",
+    "who the software is for",
+    "what quillpath does",
+    "where quillpath operates",
+    "target customers",
+    "home-services software"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "quillpath revenue",
+     "missing": "the company's total revenue"
+    }
+   ]
+  },
+  {
+   "id": "plan_features",
+   "answers": [
+    "plan features",
+    "difference between the plans",
+    "starter features",
+    "pro features",
+    "what starter includes",
+    "plan comparison",
+    "how many users on starter",
+    "user limits",
+    "billing frequency",
+    "does starter include reports",
+    "starter versus pro features",
+    "feature differences"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "annual billing discount",
+     "missing": "any annual billing option or discount"
+    },
+    {
+     "phrase": "product cost of starter",
+     "missing": "engineering or product cost of maintaining starter"
+    }
+   ]
+  },
+  {
+   "id": "signup_channels",
+   "answers": [
+    "how customers sign up",
+    "sign-up process",
+    "sales channel",
+    "sales motion",
+    "how pro is sold",
+    "self-serve versus sales-led",
+    "do pro customers get a demo",
+    "is starter self-serve",
+    "acquisition channel"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "paid versus organic sign-ups",
+     "missing": "split of sign-ups by paid or organic source"
+    },
+    {
+     "phrase": "demo close rates",
+     "missing": "conversion rate from demo to purchase"
+    }
+   ]
+  },
+  {
+   "id": "board_rule_definition",
+   "answers": [
+    "board rule",
+    "the board's rule",
+    "three times rule",
+    "ltv/cac threshold",
+    "worth three times acquisition cost",
+    "what metric the board uses",
+    "ltv to cac target",
+    "what the hurdle means",
+    "time horizon of the 3x rule",
+    "how many months the rule covers",
+    "is it margin or revenue"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "discount rate for ltv",
+     "missing": "any discount rate applied to lifetime value"
+    }
+   ]
+  },
+  {
+   "id": "company_size",
+   "answers": [
+    "company size",
+    "paying customers",
+    "customer base",
+    "number of customers",
+    "total customers",
+    "how big is quillpath",
+    "installed base",
+    "how many customers today"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "quillpath annual revenue",
+     "missing": "the company's revenue"
+    },
+    {
+     "phrase": "customers split by plan",
+     "missing": "total base split between pro and starter"
+    }
+   ]
+  },
+  {
+   "id": "market_growth",
+   "answers": [
+    "market growth",
+    "demand growth",
+    "market growth rate",
+    "industry growth",
+    "is the market growing",
+    "market trend",
+    "small-business software demand",
+    "how fast the market grows"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "home-services segment growth",
+     "missing": "growth specific to home-services businesses"
+    },
+    {
+     "phrase": "market size",
+     "missing": "total market size"
+    },
+    {
+     "phrase": "market share",
+     "missing": "quillpath's market share"
+    }
+   ]
+  },
+  {
+   "id": "ceo_goal",
+   "answers": [
+    "ceo's goal",
+    "ceo objective",
+    "what the ceo cares about",
+    "what are we optimizing for",
+    "growth or profitability",
+    "value or ratio",
+    "how we measure success",
+    "ceo priorities"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "ceo's time horizon",
+     "missing": "the time horizon or discount rate for value"
+    }
+   ]
+  },
+  {
+   "id": "plan_prices_costs",
+   "answers": [
+    "plan economics",
+    "cost to serve",
+    "unit economics",
+    "plan prices",
+    "gross margin by plan",
+    "starter gross margin",
+    "margins by plan",
+    "gross margin per customer",
+    "hosting and support costs",
+    "variable cost per customer",
+    "starter unit economics",
+    "contribution margin by plan",
+    "monthly price and cost to serve"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "hosting versus support split",
+     "missing": "cost to serve broken down by component"
+    },
+    {
+     "phrase": "monthly churn by plan",
+     "missing": "cancellation rates"
+    },
+    {
+     "phrase": "cac by plan",
+     "missing": "acquisition cost"
+    }
+   ]
+  },
+  {
+   "id": "plan_cac",
+   "answers": [
+    "cac",
+    "acquisition cost",
+    "cost to acquire",
+    "customer acquisition cost",
+    "cac by plan",
+    "starter cac",
+    "pro cac",
+    "does cac change with volume",
+    "marginal acquisition cost",
+    "cost per acquisition",
+    "acquisition cost figures by plan"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "pro cac trend since january",
+     "missing": "how cac has changed over time"
+    },
+    {
+     "phrase": "cac paid versus organic",
+     "missing": "cac split by acquisition source"
+    },
+    {
+     "phrase": "monthly churn by plan",
+     "missing": "cancellation rates"
+    },
+    {
+     "phrase": "cac of upgraded customers",
+     "missing": "any acquisition cost on upgrades"
+    }
+   ]
+  },
+  {
+   "id": "ltv_definition",
+   "answers": [
+    "ltv definition",
+    "how ltv is calculated",
+    "lifetime value formula",
+    "ltv formula",
+    "how to get lifetime from churn",
+    "expected lifetime formula",
+    "price or margin in ltv",
+    "gross margin definition",
+    "how lifetime is estimated",
+    "average customer lifetime method"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "discount rate",
+     "missing": "a discount rate for future margin"
+    },
+    {
+     "phrase": "ltv to cac by plan",
+     "missing": "computed ltv values per plan"
+    }
+   ]
+  },
+  {
+   "id": "pro_cohort",
+   "answers": [
+    "pro cohort",
+    "pro retention",
+    "pro churn",
+    "pro cancellation rate",
+    "pro monthly churn",
+    "pro attrition",
+    "how long pro customers stay",
+    "pro survival curve",
+    "pro retention over first year",
+    "share of pro customers cancelling",
+    "pro customer lifetime"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "pro retention past month 12",
+     "missing": "retention beyond month 12"
+    },
+    {
+     "phrase": "later pro cohorts",
+     "missing": "cohorts signed up after march 2025"
+    },
+    {
+     "phrase": "pro churn by tenure",
+     "missing": "month-by-month churn beyond the listed months"
+    }
+   ]
+  },
+  {
+   "id": "starter_cohort",
+   "answers": [
+    "starter cohort",
+    "starter retention",
+    "starter churn",
+    "starter monthly churn",
+    "upgrade rate",
+    "starter upgrade rate",
+    "starter to pro upgrades",
+    "how many starter customers upgrade",
+    "do starter customers move to pro",
+    "share upgrading within a year",
+    "what happens to starter customers",
+    "how long starter customers stay",
+    "starter cancellation rate"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "starter retention past month 12",
+     "missing": "retention beyond month 12"
+    },
+    {
+     "phrase": "upgrade rates for later cohorts",
+     "missing": "cohorts signed up after march 2025"
+    },
+    {
+     "phrase": "churn from upgrade date",
+     "missing": "upgraded customers' churn measured from upgrade"
+    },
+    {
+     "phrase": "test-group starter churn",
+     "missing": "churn of $60 customers"
+    },
+    {
+     "phrase": "profile of upgraders",
+     "missing": "business size of customers who upgrade"
+    }
+   ]
+  },
+  {
+   "id": "cohort_notes",
+   "answers": [
+    "cohort notes",
+    "how finance values upgrades",
+    "how to value upgrades",
+    "is churn steady",
+    "is cancellation constant over time",
+    "do upgraded customers churn like pro",
+    "churn of upgraded customers",
+    "pro-equivalent churn for upgraders",
+    "how to value a starter sign-up",
+    "is starter churn settling down",
+    "upgraded customer behavior"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "retention past month 12",
+     "missing": "measured retention beyond month 12"
+    },
+    {
+     "phrase": "do upgrades carry a cac",
+     "missing": "any acquisition cost on upgrades"
+    }
+   ]
+  },
+  {
+   "id": "new_customers_by_plan",
+   "answers": [
+    "new customers by plan",
+    "sign-ups by plan",
+    "cannibalization",
+    "new customers per month",
+    "sign-ups before and after launch",
+    "pro sign-ups before and after january",
+    "effect on pro sales",
+    "did pro sign-ups change",
+    "pro sign-ups lost",
+    "total new customers",
+    "pro pre and post volumes"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "pro sign-ups month by month",
+     "missing": "individual monthly counts"
+    },
+    {
+     "phrase": "pro trend through 2024",
+     "missing": "within-2024 trend"
+    },
+    {
+     "phrase": "is the mix still shifting",
+     "missing": "monthly counts since launch"
+    },
+    {
+     "phrase": "share who'd have bought pro",
+     "missing": "direct measure of starter buyers who would have bought pro"
+    }
+   ]
+  },
+  {
+   "id": "price_test_results",
+   "answers": [
+    "price test",
+    "price test results",
+    "willingness to pay",
+    "starter price test",
+    "a/b test results",
+    "demand at a higher starter price",
+    "starter price sensitivity",
+    "price elasticity of starter",
+    "effect of a price increase on sign-ups",
+    "pro sign-ups at higher starter price",
+    "sign-ups at $60"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "week-by-week test sign-ups",
+     "missing": "weekly sign-up counts during the test"
+    },
+    {
+     "phrase": "is $60 volume stabilizing",
+     "missing": "trend within the test"
+    },
+    {
+     "phrase": "prices other than $60",
+     "missing": "results at other price points"
+    }
+   ]
+  },
+  {
+   "id": "price_test_notes",
+   "answers": [
+    "price test notes",
+    "test caveats",
+    "price test limitations",
+    "cac in the test group",
+    "does cac change with price",
+    "cost to serve at the higher price",
+    "churn at the higher price",
+    "upgrade rate at the higher price",
+    "can the test measure churn",
+    "test-group churn rate"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "week-by-week test sign-ups",
+     "missing": "weekly sign-up counts"
+    }
+   ]
+  },
+  {
+   "id": "upgrade_timing",
+   "answers": [
+    "upgrade timing",
+    "when customers upgrade",
+    "time to upgrade",
+    "upgrade triggers",
+    "what triggers an upgrade",
+    "why customers upgrade",
+    "upgrades after month 12",
+    "when businesses outgrow starter",
+    "upgrades after first year"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "upgrade rates for later cohorts",
+     "missing": "upgrade rates of cohorts after march 2025"
+    },
+    {
+     "phrase": "are upgraders former pro prospects",
+     "missing": "whether upgraders would have bought pro directly"
+    }
+   ]
+  },
+  {
+   "id": "why_pro_fell",
+   "answers": [
+    "why pro fell",
+    "why pro sign-ups fell",
+    "pro decline",
+    "did pro marketing change",
+    "was the sales team changed",
+    "did demo requests fall",
+    "starter customers trading down",
+    "are starter customers net-new",
+    "other causes of the pro drop"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "demo close rates",
+     "missing": "close rates on demos"
+    },
+    {
+     "phrase": "starter buyers turned away before",
+     "missing": "whether starter buyers were previously priced out"
+    },
+    {
+     "phrase": "exact share who traded down",
+     "missing": "a quantified trade-down share"
+    }
+   ]
+  },
+  {
+   "id": "buyer_profile",
+   "answers": [
+    "who buys each plan",
+    "customer profile",
+    "buyer profile",
+    "starter buyers",
+    "pro buyers",
+    "business size by plan",
+    "who chooses starter",
+    "one-person businesses",
+    "typical starter customer",
+    "customer segmentation"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "profile of upgraders",
+     "missing": "business size of customers who upgrade"
+    },
+    {
+     "phrase": "profile of the lost pro sign-ups",
+     "missing": "business size of the lost pro buyers"
+    }
+   ]
+  },
+  {
+   "id": "competitor_prices",
+   "answers": [
+    "competitor prices",
+    "competitor pricing",
+    "competitor entry plans",
+    "what competitors charge",
+    "is the higher price competitive",
+    "price benchmarks",
+    "rival prices",
+    "cheaper competitor"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "competitor features",
+     "missing": "features of competitor plans"
+    },
+    {
+     "phrase": "competitor market share",
+     "missing": "competitors' share"
+    }
+   ]
+  },
+  {
+   "id": "test_design",
+   "answers": [
+    "test design",
+    "how the test worked",
+    "test methodology",
+    "price test setup",
+    "test duration",
+    "was the test randomized",
+    "how long the test ran",
+    "how results were scaled"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "week-by-week test sign-ups",
+     "missing": "weekly sign-up counts"
+    },
+    {
+     "phrase": "test sample size",
+     "missing": "number of visitors in each group"
+    }
+   ]
+  },
+  {
+   "id": "existing_starter_customers",
+   "answers": [
+    "existing starter customers",
+    "current starter customers",
+    "grandfathering",
+    "current starter base",
+    "how many starter customers",
+    "can we grandfather",
+    "new customers only pricing",
+    "price change for current users",
+    "would a price increase hit existing customers"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "existing starter churn",
+     "missing": "churn of the current starter base"
+    }
+   ]
+  }
+ ]
+}

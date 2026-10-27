@@ -7,6 +7,8 @@ import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
 import { decideData, RESTATE_INVITE, spokenItemName, exactResolver, labelMatch, outsideAskScope, scopeRule, SPLIT_RULES, namedAsPart, keyNouns, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo, type ScopeRule } from './data-decisions';
 import { switchOn } from '@/lib/cases/engine-switches';
+import { saysPhrase } from '@/lib/cases/case-notes-draft';
+import { judgeVerdict, type JudgeAsk } from '@/lib/cases/item-judge-draft';
 import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS, refusedItemIds } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
@@ -736,6 +738,16 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
       if (opts.log && m.changes.length > 0) plan.ctx.checks.act('ask_matches', 'a sub-ask R3 or R4 matches: its release, cut or gate/order deferral in place of today\'s (Phase 2 S4)', { changes: m.changes });
     }
   }
+  // Item-choice experiment, arm B (`itemJudge`; measurement only): a recorded judge verdict on the candidate's message
+  // decides which item answers each ask it can be matched to (see applyItemJudge).
+  if (switchOn(plan.state.caseData, 'itemJudge')) {
+    const asks = judgeVerdict(plan.state.caseData.id, plan.ctx.candidateText);
+    if (asks) {
+      const r = applyItemJudge(plan, data, asks);
+      data = r.data;
+      if (opts.log && r.changes.length > 0) plan.ctx.checks.act('item_judge', 'the judge\'s item choice on a restatement or refusal (item-choice experiment, arm B)', { changes: r.changes });
+    }
+  }
   // Phase 2 S6 (`askPoint`; Lorenzo, 27 Oct, widened): before a restatement points at or repeats an item already out,
   // whether the item answers this ask — the recorded check verdict, else the ask check on this turn (his lifting of Q1
   // for this path only): full → R5 as today; partial → the item's own line (no exhibit summary) and a true refusal of
@@ -774,6 +786,69 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     if (opts.log && real.length > 0) plan.ctx.checks.act('compose_data', 'the data slot (Phase 2 C2): no line the say already spoke, no deferral of what this turn gives', { changes: real });
   }
   return data;
+}
+// Arm B: each restatement and refused part is matched (by key nouns) to the judge's ask; the judge's items decide:
+//   restatement — its item full: kept; partial: its line (no pointer) + the missing part refused; another item: that
+//   item's line if it is out, released if it can be, else kept; no item: not restated, the ask refused;
+//   refused part — an item given this turn or out: not refused (its line said if not given); one not out that can be
+//   released: released, not refused.
+// Every added refusal: no item mapped (or only its missing part), no figure, the false-refusal veto passes against
+// everything out or given, and no line of the turn states it.
+type JudgeChange = { what: string; ask: string; from: string; to: string };
+function applyItemJudge(plan: ModelPlan, d: TurnData, asks: JudgeAsk[]): { data: TurnData; changes: JudgeChange[] } {
+  const { ledger, factBase: fb, caseData, shownExhibitIds, stagesOut } = plan.state;
+  const caseNames = properNames(caseData.sttKeyterms);
+  const out: TurnData = { ...d, releases: [...d.releases], restates: [...d.restates], refusals: [...d.refusals], requests: d.requests.map(r => ({ ...r })) };
+  const changes: JudgeChange[] = [];
+  const itemOf = (id: string) => ledger.items.find(i => i.id === id);
+  const givenNow = () => new Set([...out.releases.map(r => r.id), ...out.restates.map(r => r.id), ...(out.exhibit?.covers ?? [])]);
+  const known = (id: string) => itemOf(id) !== undefined;
+  const exhibitsInfo = caseData.exhibits.map(e => ({ id: e.id, title: e.title, coversLedgerItems: e.coversLedgerItems, after: e.after, requiresItems: e.requiresItems }));
+  const releasable = (id: string) => known(id) && canReveal(ledger, id) && !(ptGateOn(plan) && isGatedItem(ledger, id)) && !heldForOrder(id, exhibitsInfo, shownExhibitIds, ledger, stagesOut) && out.releases.length < RELEASE_CAP;
+  const best = (t: string) => { const k = keyNouns(t, caseNames); let top: JudgeAsk | null = null, n = 0; for (const a of asks) { const m = [...keyNouns(a.ask, caseNames)].filter(w => k.has(w)).length; if (m > n) { n = m; top = a; } } return top; };
+  const refusable = (part: string) => part.length > 0 && !/\d/.test(part) && findFalseRefusals(`I don't have ${part}.`, fb, new Set([...ledger.revealed, ...givenNow()]), { covers: true }).length === 0
+    && ![...givenNow()].some(id => { const i = itemOf(id); return i ? statesAsked(part, { label: i.label, value: i.value }, caseData.dataLedger) : false; });
+  const refuse = (part: string) => { if (refusable(part) && !out.refusals.some(x => normAsk(x) === normAsk(part))) { out.refusals.push(part); return true; } return false; };
+  const restateLine = (id: string) => { const i = itemOf(id)!; if (!givenNow().has(id)) out.restates.push({ id, value: i.value }); };
+  for (const r of d.restates) {
+    const whats = d.requests.filter(x => x.request.explicit && x.ledgerItemIds.includes(r.id)).map(x => x.request.what);
+    const j = best([...whats, plan.ctx.candidateText].join(' ')) ;
+    if (!j || whats.length === 0) continue;
+    const mine = j.items.find(x => x.id === r.id);
+    if (mine?.answers === 'full') continue;
+    if (mine) { out.restates = out.restates.map(x => (x.id === r.id ? { id: x.id, value: x.value } : x)); const ok = j.missing ? refuse(j.missing) : false; changes.push({ what: r.id, ask: j.ask, from: r.pointer ? 'pointer' : 'line', to: `line${ok ? ' + refused: ' + j.missing : ''}` }); continue; }
+    const other = j.items.map(x => x.id).filter(known);
+    if (other.length > 0) {
+      const x = other[0];
+      if (ledger.revealed.has(x) || givenNow().has(x)) { out.restates = out.restates.filter(y => y.id !== r.id); restateLine(x); changes.push({ what: r.id, ask: j.ask, from: 'restate', to: `line of ${x}` }); }
+      else if (releasable(x)) { out.restates = out.restates.filter(y => y.id !== r.id); out.releases.push({ id: x, value: itemOf(x)!.value, earlier: false }); out.requests.push({ request: { what: j.ask, itemIds: [x], explicit: true, respond: 'release' }, response: 'release', ledgerItemIds: [x] }); changes.push({ what: r.id, ask: j.ask, from: 'restate', to: `release ${x}` }); }
+      continue;
+    }
+    if (refuse(j.missing || j.ask)) { out.restates = out.restates.filter(y => y.id !== r.id); changes.push({ what: r.id, ask: j.ask, from: 'restate', to: `refused: ${j.missing || j.ask}` }); }
+  }
+  out.refusals = out.refusals.flatMap(part => {
+    const j = best(part);
+    if (!j) return [part];
+    const ids = j.items.map(x => x.id).filter(known);
+    if (ids.length === 0) return [part];
+    // Only a full answer clears the refusal; a partial one leaves its missing part refused (kept as said when the
+    // judge names no missing part, or when the missing part's refusal fails the guards).
+    const full = j.items.filter(x => x.answers === 'full').map(x => x.id).filter(known);
+    const keep = full.length > 0 ? [] : [j.missing && refusable(j.missing) ? j.missing : part];
+    const g = givenNow();
+    if (ids.some(id => g.has(id) || ledger.revealed.has(id))) {
+      for (const id of ids.filter(id => ledger.revealed.has(id) && !g.has(id)).slice(0, 1)) restateLine(id);
+      changes.push({ what: part, ask: j.ask, from: 'refused', to: keep.length ? `kept as: ${keep[0]} (${ids.join(', ')} partial)` : `not refused (${ids.join(', ')})` });
+      return keep;
+    }
+    const x = ids.find(releasable);
+    if (!x) return [part];
+    out.releases.push({ id: x, value: itemOf(x)!.value, earlier: false });
+    out.requests.push({ request: { what: j.ask, itemIds: [x], explicit: true, respond: 'release' }, response: 'release', ledgerItemIds: [x] });
+    changes.push({ what: part, ask: j.ask, from: 'refused', to: `release ${x}${keep.length ? ' + refused: ' + keep[0] : ''}` });
+    return keep;
+  });
+  return { data: out, changes };
 }
 // Phase 2 S6: each restated item read against the check's verdict on the ask it was restated for (see turnDataChecked).
 type PointChange = { item: string; what: string; verdict: 'full' | 'partial' | 'none' | 'no_verdict'; to: 'kept' | 'line' | 'refused' | 'kept_guard'; refused?: string };
@@ -1398,7 +1473,27 @@ function restateRules(plan: ModelPlan, d: DataDecisions, groupOrigin: ReadonlyMa
         && findFalseRefusals(`I don't have ${p}.`, fb, given, { covers: true }).length === 0
         && !d.refusals.some(x => normAsk(x) === normAsk(p)));
   };
+  // `caseNotesDraft` (item-choice experiment, arm A): an item whose drafted notes say it does not answer the ask is
+  // not restated; the part it lacks is refused when that refusal is true (the false-refusal veto against everything
+  // out or given, no line of this turn stating it, no figure). The veto failing leaves the restatement as today.
+  const notHeldDrop: { id: string; phrase: string; refused?: string }[] = [];
+  if (fb.notHeld?.length && switchOn(caseData, 'caseNotesDraft')) {
+    const given = new Set([...ledger.revealed, ...d.releases.map(x => x.id), ...d.restates.map(x => x.id)]);
+    const lines = [...d.releases.map(x => x.id), ...d.restates.map(x => x.id)].flatMap(id => ledger.items.filter(i => i.id === id));
+    for (const r of d.restates) {
+      const hit = fb.notHeld.find(n => n.id === r.id && askTexts(r.id).some(t => saysPhrase(t, n.phrase)));
+      if (!hit) continue;
+      const part = hit.missing.replace(/[.?!]+$/, '').trim();
+      const ok = part.length > 0 && !/\d/.test(part) && findFalseRefusals(`I don't have ${part}.`, fb, given, { covers: true }).length === 0
+        && !lines.some(i => i.id !== r.id && statesAsked(part, { label: i.label, value: i.value }, caseData.dataLedger));
+      if (!ok) continue;
+      notHeldDrop.push({ id: r.id, phrase: hit.phrase, refused: part });
+      if (!d.refusals.some(x => normAsk(x) === normAsk(part))) d.refusals.push(part);
+    }
+    if (notHeldDrop.length > 0) plan.ctx.checks.act('case_notes_not_held', 'a restated item whose notes say it does not answer the ask: not restated; the missing part refused (arm A)', { dropped: notHeldDrop });
+  }
   d.restates = d.restates.flatMap(r => {
+    if (notHeldDrop.some(x => x.id === r.id)) return [];
     if (unmatched.includes(r.id) || recent.includes(r.id)) return [];
     // (the pointer rule reads `figureAsked` below)
     const e = exhibitOf(r.id);
