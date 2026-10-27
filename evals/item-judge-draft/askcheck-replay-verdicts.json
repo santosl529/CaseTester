@@ -1,0 +1,3258 @@
+[
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/07-raj-the-slow-burner/live-run-2026-10-13-43fa5038.json",
+  "turn": 7,
+  "what": "passenger counts",
+  "ids": [
+   "lakeport_seats_load",
+   "port_avery_per_flight",
+   "network_totals"
+  ],
+  "answers": {
+   "lakeport_seats_load": "partial",
+   "port_avery_per_flight": "partial",
+   "network_totals": "partial"
+  },
+  "missing": {
+   "lakeport_seats_load": "passenger counts",
+   "port_avery_per_flight": "passenger counts",
+   "network_totals": "passenger counts"
+  },
+  "latencyMs": 1012
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-aldermoor-oct-19-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-19-052e7048.json",
+  "turn": 11,
+  "what": "Kelvexa's European share progression since 2022",
+  "ids": [
+   "kelvexa_product",
+   "company_size"
+  ],
+  "answers": {
+   "kelvexa_product": "partial",
+   "company_size": "partial"
+  },
+  "missing": {
+   "kelvexa_product": "Kelvexa's European share progression since 2022",
+   "company_size": "Kelvexa's European share progression since 2022"
+  },
+  "latencyMs": 960
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-1-10/07-raj-the-slow-burner/live-run-2026-10-16-d5a390a7.json",
+  "turn": 13,
+  "what": "traffic sensitivity to price",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 416
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-1-10/07-raj-the-slow-burner/live-run-2026-10-16-d5a390a7.json",
+  "turn": 13,
+  "what": "competitor pricing over the same period",
+  "ids": [
+   "menu_price_change"
+  ],
+  "answers": {
+   "menu_price_change": "partial"
+  },
+  "missing": {
+   "menu_price_change": "competitor pricing over the same period"
+  },
+  "latencyMs": 623
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-33-oct-19-runs-1-10/07-raj-the-slow-burner/live-run-2026-10-20-c355c1fd.json",
+  "turn": 13,
+  "what": "historical price elasticity and competitor pricing",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 426
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-aldermoor-oct-19-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-19-052e7048.json",
+  "turn": 13,
+  "what": "Nimbrel's loss of exclusivity timing",
+  "ids": [
+   "nimbrel"
+  ],
+  "answers": {
+   "nimbrel": "partial"
+  },
+  "missing": {
+   "nimbrel": "Nimbrel's loss of exclusivity timing"
+  },
+  "latencyMs": 592
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/07-raj-the-slow-burner/live-run-2026-10-13-43fa5038.json",
+  "turn": 17,
+  "what": "the competitor's schedule",
+  "ids": [
+   "competitor_entry"
+  ],
+  "answers": {
+   "competitor_entry": "partial"
+  },
+  "missing": {
+   "competitor_entry": "the competitor's schedule"
+  },
+  "latencyMs": 713
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/10-sofia-the-unit-confuser/live-run-2026-10-16-0a43682d.json",
+  "turn": 3,
+  "what": "whether the 6% includes unusual charges",
+  "ids": [
+   "prompt:net_margin"
+  ],
+  "answers": {
+   "prompt:net_margin": "partial"
+  },
+  "missing": {
+   "prompt:net_margin": "whether the 6% includes unusual charges"
+  },
+  "latencyMs": 676
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-29-oct-16-runs-1-10/10-sofia-the-unit-confuser/live-run-2026-10-16-3b89869e.json",
+  "turn": 13,
+  "what": "margin by product category",
+  "ids": [
+   "cogs_pct",
+   "avg_ticket"
+  ],
+  "answers": {
+   "cogs_pct": "partial",
+   "avg_ticket": "partial"
+  },
+  "missing": {
+   "cogs_pct": "margin by product category",
+   "avg_ticket": "margin by product category"
+  },
+  "latencyMs": 633
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-31-oct-18-runs-1-10/10-sofia-the-unit-confuser/live-run-2026-10-18-e0f7d46c.json",
+  "turn": 7,
+  "what": "coffee beans as a share of COGS today",
+  "ids": [
+   "bean_share_of_cogs"
+  ],
+  "answers": {
+   "bean_share_of_cogs": "partial"
+  },
+  "missing": {
+   "bean_share_of_cogs": "coffee beans as a share of COGS today"
+  },
+  "latencyMs": 661
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-31-oct-18-runs-1-10/10-sofia-the-unit-confuser/live-run-2026-10-18-e0f7d46c.json",
+  "turn": 9,
+  "what": "the current split of COGS by category",
+  "ids": [
+   "bean_share_of_cogs",
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "bean_share_of_cogs": "partial",
+   "non_bean_input_change": "partial"
+  },
+  "missing": {
+   "bean_share_of_cogs": "the current split of COGS by category",
+   "non_bean_input_change": "the current split of COGS by category"
+  },
+  "latencyMs": 960
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-31-oct-18-runs-1-10/10-sofia-the-unit-confuser/live-run-2026-10-18-e0f7d46c.json",
+  "turn": 9,
+  "what": "waste and spoilage as a share of COGS",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 531
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-31-oct-18-runs-1-10/10-sofia-the-unit-confuser/live-run-2026-10-18-e0f7d46c.json",
+  "turn": 9,
+  "what": "cost per cup versus two years ago",
+  "ids": [
+   "cogs_pct",
+   "bean_price_change",
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "cogs_pct": "partial",
+   "bean_price_change": "partial",
+   "non_bean_input_change": "partial"
+  },
+  "missing": {
+   "cogs_pct": "cost per cup versus two years ago",
+   "bean_price_change": "cost per cup versus two years ago",
+   "non_bean_input_change": "cost per cup versus two years ago"
+  },
+  "latencyMs": 821
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/14-jordan-the-order-of-magnitude-exaggerator/live-run-2026-10-13-9ab76a39.json",
+  "turn": 1,
+  "what": "average fare and passenger counts for each year",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "network_totals",
+   "lakeport_seats_load",
+   "competitor_entry"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full",
+   "network_totals": "full",
+   "lakeport_seats_load": "full",
+   "competitor_entry": "full"
+  },
+  "missing": {},
+  "latencyMs": 1044
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-33-oct-19-runs-1-10/10-sofia-the-unit-confuser/live-run-2026-10-20-f86f6530.json",
+  "turn": 9,
+  "what": "competitor pricing",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 480
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-aldermoor-oct-19-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-19-95059f2a.json",
+  "turn": 1,
+  "what": "Aldermoor's European price point",
+  "ids": [
+   "nimbrel"
+  ],
+  "answers": {
+   "nimbrel": "partial"
+  },
+  "missing": {
+   "nimbrel": "Aldermoor's European price point"
+  },
+  "latencyMs": 714
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-1-10/10-sofia-the-unit-confuser/live-run-2026-10-16-a64dedc0.json",
+  "turn": 13,
+  "what": "current waste rates and bean contracting terms",
+  "ids": [
+   "bean_price_change",
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "bean_price_change": "full",
+   "non_bean_input_change": "partial"
+  },
+  "missing": {
+   "non_bean_input_change": "bean contracting terms"
+  },
+  "latencyMs": 708
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-aldermoor-oct-19-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-19-95059f2a.json",
+  "turn": 5,
+  "what": "Aldermoor's European Kelvexa sales trend since 2022",
+  "ids": [
+   "kelvexa_product",
+   "prompt:case"
+  ],
+  "answers": {
+   "kelvexa_product": "partial",
+   "prompt:case": "partial"
+  },
+  "missing": {
+   "kelvexa_product": "Aldermoor's European Kelvexa sales trend since 2022",
+   "prompt:case": "Aldermoor's European Kelvexa sales trend since 2022"
+  },
+  "latencyMs": 841
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/14-jordan-the-order-of-magnitude-exaggerator/live-run-2026-10-16-591cff13.json",
+  "turn": 13,
+  "what": "competitor pricing",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 577
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-29-oct-16-runs-1-10/15-tyler-the-misquoter/live-run-2026-10-16-3c17d25f.json",
+  "turn": 9,
+  "what": "competitor pricing",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 419
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-1-10/15-tyler-the-misquoter/live-run-2026-10-16-c314db61.json",
+  "turn": 9,
+  "what": "competitor pricing and price elasticity in specialty coffee",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 453
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-31-oct-18-runs-1-10/15-tyler-the-misquoter/live-run-2026-10-18-9443bf5f.json",
+  "turn": 9,
+  "what": "customer and competitor reaction on pricing",
+  "ids": [
+   "avg_ticket",
+   "menu_price_change"
+  ],
+  "answers": {
+   "avg_ticket": "partial",
+   "menu_price_change": "partial"
+  },
+  "missing": {
+   "avg_ticket": "customer and competitor reaction on pricing",
+   "menu_price_change": "customer and competitor reaction on pricing"
+  },
+  "latencyMs": 955
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-33-oct-19-runs-1-10/15-tyler-the-misquoter/live-run-2026-10-20-0150f744.json",
+  "turn": 11,
+  "what": "waste or spoilage data by store",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 531
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/15-tyler-the-misquoter/live-run-2026-10-16-934653af.json",
+  "turn": 9,
+  "what": "price elasticity and competitor pricing",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 403
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/24-marcus-the-answer-first-sprinter/live-run-2026-10-13-27c2d0fb.json",
+  "turn": 1,
+  "what": "average fare trend",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full"
+  },
+  "missing": {},
+  "latencyMs": 817
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-1-10/24-marcus-the-answer-first-sprinter/live-run-2026-10-16-9adb2e58.json",
+  "turn": 13,
+  "what": "price elasticity and competitor pricing",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 472
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/24-marcus-the-answer-first-sprinter/live-run-2026-10-16-2cf33d6c.json",
+  "turn": 1,
+  "what": "whether the locations are company-owned or franchised",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 441
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/24-marcus-the-answer-first-sprinter/live-run-2026-10-13-27c2d0fb.json",
+  "turn": 13,
+  "what": "load factors on the four uncontested routes",
+  "ids": [
+   "route_results_other"
+  ],
+  "answers": {
+   "route_results_other": "partial"
+  },
+  "missing": {
+   "route_results_other": "load factors on the four uncontested routes"
+  },
+  "latencyMs": 658
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/24-marcus-the-answer-first-sprinter/live-run-2026-10-16-2cf33d6c.json",
+  "turn": 11,
+  "what": "customer price elasticity",
+  "ids": [
+   "avg_ticket",
+   "menu_price_change"
+  ],
+  "answers": {
+   "avg_ticket": "partial",
+   "menu_price_change": "partial"
+  },
+  "missing": {
+   "avg_ticket": "customer price elasticity",
+   "menu_price_change": "customer price elasticity"
+  },
+  "latencyMs": 847
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-29-oct-16-runs-1-10/53-fiona-the-hypothesis-reverser/live-run-2026-10-16-fed61584.json",
+  "turn": 3,
+  "what": "operating margin over the period",
+  "ids": [
+   "cogs_pct",
+   "labor_pct",
+   "overhead_pct"
+  ],
+  "answers": {
+   "cogs_pct": "full",
+   "labor_pct": "full",
+   "overhead_pct": "full"
+  },
+  "missing": {},
+  "latencyMs": 707
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/33-omar-the-quoter/live-run-2026-10-13-9bbf41bc.json",
+  "turn": 1,
+  "what": "fares and departures for both years",
+  "ids": [
+   "routes_schedule",
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "network_totals"
+  ],
+  "answers": {
+   "routes_schedule": "full",
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "partial",
+   "network_totals": "full"
+  },
+  "missing": {
+   "port_avery_per_flight": "fares and departures for both years"
+  },
+  "latencyMs": 1153
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-29-oct-16-runs-1-10/53-fiona-the-hypothesis-reverser/live-run-2026-10-16-fed61584.json",
+  "turn": 9,
+  "what": "competitor pricing and price elasticity from past increases",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 422
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-1-10/53-fiona-the-hypothesis-reverser/live-run-2026-10-16-9494b244.json",
+  "turn": 9,
+  "what": "bean sourcing and contract terms",
+  "ids": [
+   "bean_price_change",
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "bean_price_change": "partial",
+   "non_bean_input_change": "partial"
+  },
+  "missing": {
+   "bean_price_change": "contract terms",
+   "non_bean_input_change": "bean sourcing and contract terms"
+  },
+  "latencyMs": 724
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-33-oct-19-runs-1-10/53-fiona-the-hypothesis-reverser/live-run-2026-10-20-2b538541.json",
+  "turn": 5,
+  "what": "units sold per store",
+  "ids": [
+   "stores_count",
+   "revenue_per_store",
+   "avg_ticket"
+  ],
+  "answers": {
+   "stores_count": "partial",
+   "revenue_per_store": "partial",
+   "avg_ticket": "partial"
+  },
+  "missing": {
+   "stores_count": "units sold per store",
+   "revenue_per_store": "units sold per store",
+   "avg_ticket": "units sold per store"
+  },
+  "latencyMs": 892
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-31-oct-18-runs-1-10/53-fiona-the-hypothesis-reverser/live-run-2026-10-18-31e90f50.json",
+  "turn": 5,
+  "what": "whether waste is tracked as a separate line",
+  "ids": [
+   "bean_share_of_cogs",
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "bean_share_of_cogs": "partial",
+   "non_bean_input_change": "partial"
+  },
+  "missing": {
+   "bean_share_of_cogs": "whether waste is tracked as a separate line",
+   "non_bean_input_change": "whether waste is tracked as a separate line"
+  },
+  "latencyMs": 791
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-31-oct-18-runs-1-10/53-fiona-the-hypothesis-reverser/live-run-2026-10-18-31e90f50.json",
+  "turn": 9,
+  "what": "industry input cost inflation benchmarks",
+  "ids": [
+   "bean_price_change",
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "bean_price_change": "full",
+   "non_bean_input_change": "full"
+  },
+  "missing": {},
+  "latencyMs": 635
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/33-omar-the-quoter/live-run-2026-10-13-9bbf41bc.json",
+  "turn": 9,
+  "what": "the low-cost carrier's frequency",
+  "ids": [
+   "competitor_entry",
+   "competitor_costs"
+  ],
+  "answers": {
+   "competitor_entry": "partial",
+   "competitor_costs": "partial"
+  },
+  "missing": {
+   "competitor_entry": "the low-cost carrier's frequency",
+   "competitor_costs": "the low-cost carrier's frequency"
+  },
+  "latencyMs": 688
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-29-oct-16-runs-1-10/54-owen-the-quiet-dropper/live-run-2026-10-16-39b49742.json",
+  "turn": 7,
+  "what": "competitor pricing",
+  "ids": [
+   "menu_price_change"
+  ],
+  "answers": {
+   "menu_price_change": "full"
+  },
+  "missing": {},
+  "latencyMs": 533
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/53-fiona-the-hypothesis-reverser/live-run-2026-10-16-df78de82.json",
+  "turn": 11,
+  "what": "margin by product category",
+  "ids": [
+   "non_bean_input_change",
+   "bean_share_of_cogs"
+  ],
+  "answers": {
+   "non_bean_input_change": "partial",
+   "bean_share_of_cogs": "partial"
+  },
+  "missing": {
+   "non_bean_input_change": "margin by product category",
+   "bean_share_of_cogs": "margin by product category"
+  },
+  "latencyMs": 816
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-1-10/54-owen-the-quiet-dropper/live-run-2026-10-16-08440af0.json",
+  "turn": 9,
+  "what": "price elasticity and competitor pricing moves",
+  "ids": [
+   "menu_price_change"
+  ],
+  "answers": {
+   "menu_price_change": "full"
+  },
+  "missing": {},
+  "latencyMs": 511
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/53-fiona-the-hypothesis-reverser/live-run-2026-10-16-df78de82.json",
+  "turn": 13,
+  "what": "purchasing contracts and centralized buying",
+  "ids": [
+   "bean_share_of_cogs",
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "bean_share_of_cogs": "partial",
+   "non_bean_input_change": "partial"
+  },
+  "missing": {
+   "bean_share_of_cogs": "purchasing contracts and centralized buying",
+   "non_bean_input_change": "purchasing contracts and centralized buying"
+  },
+  "latencyMs": 1008
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-33-oct-19-runs-1-10/54-owen-the-quiet-dropper/live-run-2026-10-20-053db5c8.json",
+  "turn": 9,
+  "what": "customer price elasticity",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 618
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-aldermoor-oct-19-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-19-f59f5ea8.json",
+  "turn": 9,
+  "what": "historical share capture by new entrants against Nimbrel",
+  "ids": [
+   "nimbrel"
+  ],
+  "answers": {
+   "nimbrel": "partial"
+  },
+  "missing": {
+   "nimbrel": "historical share capture by new entrants against Nimbrel"
+  },
+  "latencyMs": 675
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-aldermoor-oct-19-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-19-f59f5ea8.json",
+  "turn": 11,
+  "what": "annual new-start volume versus prevalent patients",
+  "ids": [
+   "funnel_rates",
+   "peak_share_forecast"
+  ],
+  "answers": {
+   "funnel_rates": "full",
+   "peak_share_forecast": "full"
+  },
+  "missing": {},
+  "latencyMs": 654
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-aldermoor-oct-19-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-19-f59f5ea8.json",
+  "turn": 11,
+  "what": "Kelvexa's share in Europe against the same competitor",
+  "ids": [
+   "kelvexa_product",
+   "reasons_to_prescribe"
+  ],
+  "answers": {
+   "kelvexa_product": "partial",
+   "reasons_to_prescribe": "partial"
+  },
+  "missing": {
+   "kelvexa_product": "Kelvexa's share in Europe against the same competitor",
+   "reasons_to_prescribe": "Kelvexa's share in Europe against the same competitor"
+  },
+  "latencyMs": 935
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-1-10/57-marisol-the-context-confuser/live-run-2026-10-16-64e25bdc.json",
+  "turn": 7,
+  "what": "drink mix by customer purchases",
+  "ids": [
+   "avg_ticket",
+   "bean_share_of_cogs"
+  ],
+  "answers": {
+   "avg_ticket": "partial",
+   "bean_share_of_cogs": "partial"
+  },
+  "missing": {
+   "avg_ticket": "drink mix by customer purchases",
+   "bean_share_of_cogs": "drink mix by customer purchases"
+  },
+  "latencyMs": 892
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/54-owen-the-quiet-dropper/live-run-2026-10-16-4e94b924.json",
+  "turn": 9,
+  "what": "competitor pricing",
+  "ids": [
+   "menu_price_change"
+  ],
+  "answers": {
+   "menu_price_change": "partial"
+  },
+  "missing": {
+   "menu_price_change": "competitor pricing"
+  },
+  "latencyMs": 610
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/54-owen-the-quiet-dropper/live-run-2026-10-16-4e94b924.json",
+  "turn": 9,
+  "what": "price elasticity data",
+  "ids": [
+   "cogs_pct",
+   "avg_ticket"
+  ],
+  "answers": {
+   "cogs_pct": "partial",
+   "avg_ticket": "partial"
+  },
+  "missing": {
+   "cogs_pct": "price elasticity data",
+   "avg_ticket": "price elasticity data"
+  },
+  "latencyMs": 804
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-29-oct-16-runs-1-10/57-marisol-the-context-confuser/live-run-2026-10-16-64224460.json",
+  "turn": 11,
+  "what": "gross margin by drink type",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 405
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-1-10/57-marisol-the-context-confuser/live-run-2026-10-16-64e25bdc.json",
+  "turn": 13,
+  "what": "bean contracting structure and supplier concentration",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 524
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-33-oct-19-runs-1-10/57-marisol-the-context-confuser/live-run-2026-10-20-31e33506.json",
+  "turn": 15,
+  "what": "green coffee spend by contract type",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 421
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-33-oct-19-runs-1-10/57-marisol-the-context-confuser/live-run-2026-10-20-31e33506.json",
+  "turn": 15,
+  "what": "volume per store",
+  "ids": [
+   "revenue_per_store"
+  ],
+  "answers": {
+   "revenue_per_store": "full"
+  },
+  "missing": {},
+  "latencyMs": 567
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-28-oct-15-runs-1-10/57-marisol-the-context-confuser/live-run-2026-10-16-3172597b.json",
+  "turn": 7,
+  "what": "a split within the non-bean inputs",
+  "ids": [
+   "non_bean_input_change",
+   "bean_share_of_cogs"
+  ],
+  "answers": {
+   "non_bean_input_change": "partial",
+   "bean_share_of_cogs": "partial"
+  },
+  "missing": {
+   "non_bean_input_change": "a split within the non-bean inputs",
+   "bean_share_of_cogs": "split within non-bean inputs"
+  },
+  "latencyMs": 785
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-31-oct-18-runs-11-11/27-noor-the-brainstorm-refuser/live-run-2026-10-18-93576a8e.json",
+  "turn": 1,
+  "what": "the cost breakdown by category for both years",
+  "ids": [
+   "cogs_pct",
+   "labor_pct",
+   "overhead_pct"
+  ],
+  "answers": {
+   "cogs_pct": "partial",
+   "labor_pct": "partial",
+   "overhead_pct": "partial"
+  },
+  "missing": {
+   "cogs_pct": "the cost breakdown by category for both years",
+   "labor_pct": "the cost breakdown by category for both years",
+   "overhead_pct": "the cost breakdown by category for both years"
+  },
+  "latencyMs": 894
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-31-oct-18-runs-11-11/27-noor-the-brainstorm-refuser/live-run-2026-10-18-93576a8e.json",
+  "turn": 5,
+  "what": "the cost breakdown by category for both years",
+  "ids": [
+   "bean_share_of_cogs",
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "bean_share_of_cogs": "partial",
+   "non_bean_input_change": "partial"
+  },
+  "missing": {
+   "bean_share_of_cogs": "the cost breakdown by category for both years",
+   "non_bean_input_change": "the cost breakdown by category for both years"
+  },
+  "latencyMs": 740
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/53-fiona-the-hypothesis-reverser/live-run-2026-10-13-b6b7fc3a.json",
+  "turn": 5,
+  "what": "passenger mix by business versus leisure and advance versus walk-up",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "competitor_entry"
+  ],
+  "answers": {
+   "lakeport_fare": "partial",
+   "port_avery_per_flight": "partial",
+   "competitor_entry": "partial"
+  },
+  "missing": {
+   "lakeport_fare": "business versus leisure, advance versus walk-up",
+   "port_avery_per_flight": "business versus leisure, advance versus walk-up",
+   "competitor_entry": "business versus leisure, advance versus walk-up"
+  },
+  "latencyMs": 970
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-11-15/33-omar-the-quoter/live-run-2026-10-16-83ed9d40.json",
+  "turn": 9,
+  "what": "customer price sensitivity and competitor pricing",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 425
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-11-15/33-omar-the-quoter/live-run-2026-10-16-83ed9d40.json",
+  "turn": 11,
+  "what": "whether the locations are company-owned or franchised",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 446
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/53-fiona-the-hypothesis-reverser/live-run-2026-10-13-b6b7fc3a.json",
+  "turn": 9,
+  "what": "any contract or partnership that ended on the Lakeport and Port Avery routes",
+  "ids": [
+   "competitor_entry"
+  ],
+  "answers": {
+   "competitor_entry": "partial"
+  },
+  "missing": {
+   "competitor_entry": "any contract or partnership that ended on the Lakeport and Port Avery routes"
+  },
+  "latencyMs": 628
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-11-15/51-anika-the-unorthodox-structurer/live-run-2026-10-16-910aefe2.json",
+  "turn": 5,
+  "what": "input cost per pound versus volume used, and waste or portioning changes",
+  "ids": [
+   "bean_price_change",
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "bean_price_change": "full",
+   "non_bean_input_change": "full"
+  },
+  "missing": {},
+  "latencyMs": 689
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-11-15/51-anika-the-unorthodox-structurer/live-run-2026-10-16-910aefe2.json",
+  "turn": 7,
+  "what": "competitor pricing",
+  "ids": [
+   "prompt:case"
+  ],
+  "answers": {
+   "prompt:case": "partial"
+  },
+  "missing": {
+   "prompt:case": "competitor pricing"
+  },
+  "latencyMs": 554
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/53-fiona-the-hypothesis-reverser/live-run-2026-10-13-b6b7fc3a.json",
+  "turn": 17,
+  "what": "price sensitivity of Lakeport passengers at a $200 fare",
+  "ids": [
+   "competitor_entry",
+   "demand"
+  ],
+  "answers": {
+   "competitor_entry": "partial",
+   "demand": "partial"
+  },
+  "missing": {
+   "competitor_entry": "price sensitivity of Lakeport passengers at a $200 fare",
+   "demand": "price sensitivity of Lakeport passengers at a $200 fare"
+  },
+  "latencyMs": 900
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-larkspur-oct-19-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-19-eb170e49.json",
+  "turn": 1,
+  "what": "the FY2023 versus FY2025 cost breakdown by category",
+  "ids": [
+   "op_profit_definition",
+   "lakeport_variable_cost",
+   "port_avery_per_flight",
+   "fixed_costs"
+  ],
+  "answers": {
+   "op_profit_definition": "partial",
+   "lakeport_variable_cost": "partial",
+   "port_avery_per_flight": "partial",
+   "fixed_costs": "partial"
+  },
+  "missing": {
+   "op_profit_definition": "the FY2023 versus FY2025 cost breakdown by category",
+   "lakeport_variable_cost": "the FY2023 versus FY2025 cost breakdown by category",
+   "port_avery_per_flight": "the FY2023 versus FY2025 cost breakdown by category",
+   "fixed_costs": "the FY2023 versus FY2025 cost breakdown by category"
+  },
+  "latencyMs": 1688
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-larkspur-oct-19-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-19-eb170e49.json",
+  "turn": 5,
+  "what": "the year-by-year fare trend",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full"
+  },
+  "missing": {},
+  "latencyMs": 757
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-30-oct-16-runs-11-15/60-caleb-the-defensible-dissenter/live-run-2026-10-16-990fc873.json",
+  "turn": 9,
+  "what": "the competitive pricing position versus the comp set",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 496
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-larkspur-oct-19-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-19-eb170e49.json",
+  "turn": 7,
+  "what": "passengers flown",
+  "ids": [
+   "network_totals"
+  ],
+  "answers": {
+   "network_totals": "full"
+  },
+  "missing": {},
+  "latencyMs": 497
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/54-owen-the-quiet-dropper/live-run-2026-10-13-c2cdbcc3.json",
+  "turn": 11,
+  "what": "price sensitivity and the fare gap at which share is lost",
+  "ids": [
+   "competitor_costs",
+   "connecting_passengers"
+  ],
+  "answers": {
+   "competitor_costs": "partial",
+   "connecting_passengers": "partial"
+  },
+  "missing": {
+   "competitor_costs": "price sensitivity and the fare gap at which share is lost",
+   "connecting_passengers": "price sensitivity and the fare gap at which share is lost"
+  },
+  "latencyMs": 988
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/54-owen-the-quiet-dropper/live-run-2026-10-13-c2cdbcc3.json",
+  "turn": 15,
+  "what": "a time-of-day or day-of-week revenue split on these two routes",
+  "ids": [
+   "route_results_lakeport",
+   "route_results_port_avery"
+  ],
+  "answers": {
+   "route_results_lakeport": "partial",
+   "route_results_port_avery": "partial"
+  },
+  "missing": {
+   "route_results_lakeport": "a time-of-day or day-of-week revenue split on these two routes",
+   "route_results_port_avery": "a time-of-day or day-of-week revenue split on these two routes"
+  },
+  "latencyMs": 922
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-22-larkspur-oct-13-runs-1-9/64-tyler-the-misquoter-case-neutral/live-run-2026-10-13-38014721.json",
+  "turn": 9,
+  "what": "whether the uncontested routes could absorb more frequency",
+  "ids": [
+   "route_results_other",
+   "demand"
+  ],
+  "answers": {
+   "route_results_other": "partial",
+   "demand": "partial"
+  },
+  "missing": {
+   "route_results_other": "whether the uncontested routes could absorb more frequency",
+   "demand": "whether the uncontested routes could absorb more frequency"
+  },
+  "latencyMs": 893
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-larkspur-oct-19-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-19-6e5a1c90.json",
+  "turn": 1,
+  "what": "a breakdown of revenue, fares and number of flights flown in each year",
+  "ids": [
+   "network_totals",
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "route_results_other",
+   "competitor_entry"
+  ],
+  "answers": {
+   "network_totals": "full",
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full",
+   "route_results_other": "partial",
+   "competitor_entry": "partial"
+  },
+  "missing": {
+   "route_results_other": "fares",
+   "competitor_entry": "fares"
+  },
+  "latencyMs": 1140
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-larkspur-oct-19-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-19-6e5a1c90.json",
+  "turn": 13,
+  "what": "the competitor's load factor on these routes",
+  "ids": [
+   "competitor_entry"
+  ],
+  "answers": {
+   "competitor_entry": "partial"
+  },
+  "missing": {
+   "competitor_entry": "the competitor's load factor on these routes"
+  },
+  "latencyMs": 600
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-larkspur-oct-19-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-19-6e5a1c90.json",
+  "turn": 17,
+  "what": "Whether Larkspur has sufficient crew capacity to operate 10,000 additional flights",
+  "ids": [
+   "aircraft_leases"
+  ],
+  "answers": {
+   "aircraft_leases": "partial"
+  },
+  "missing": {
+   "aircraft_leases": "Whether Larkspur has sufficient crew capacity to operate 10,000 additional flights"
+  },
+  "latencyMs": 740
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-larkspur-oct-19-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-19-6e5a1c90.json",
+  "turn": 27,
+  "what": "Basis for the 70% load factor estimate on the new routes — whether it comes from comparable internal routes or external market study",
+  "ids": [
+   "new_routes_plan"
+  ],
+  "answers": {
+   "new_routes_plan": "partial"
+  },
+  "missing": {
+   "new_routes_plan": "Basis for the 70% load factor estimate on the new routes — whether it comes from comparable internal routes or external market study"
+  },
+  "latencyMs": 721
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-larkspur-oct-19-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-19-51b8cc22.json",
+  "turn": 1,
+  "what": "departures and average fare for FY2023 versus FY2025",
+  "ids": [
+   "network_totals",
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "routes_schedule"
+  ],
+  "answers": {
+   "network_totals": "partial",
+   "lakeport_fare": "partial",
+   "port_avery_per_flight": "partial",
+   "routes_schedule": "partial"
+  },
+  "missing": {
+   "network_totals": "departures and average fare for FY2023 versus FY2025",
+   "lakeport_fare": "departures",
+   "port_avery_per_flight": "departures",
+   "routes_schedule": "departures and average fare for FY2023 versus FY2025"
+  },
+  "latencyMs": 996
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-32-larkspur-oct-19-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-19-51b8cc22.json",
+  "turn": 15,
+  "what": "price sensitivity and business versus leisure mix on Lakeport",
+  "ids": [
+   "competitor_entry",
+   "connecting_passengers"
+  ],
+  "answers": {
+   "competitor_entry": "partial",
+   "connecting_passengers": "partial"
+  },
+  "missing": {
+   "competitor_entry": "price sensitivity and business versus leisure mix on Lakeport",
+   "connecting_passengers": "price sensitivity"
+  },
+  "latencyMs": 731
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-larkspur-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-ef7bed14.json",
+  "turn": 7,
+  "what": "total passengers flown and average fare per passenger",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "network_totals"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full",
+   "network_totals": "partial"
+  },
+  "missing": {
+   "network_totals": "average fare per passenger"
+  },
+  "latencyMs": 850
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-701443f7.json",
+  "turn": 7,
+  "what": "Number of flights operated in FY2023 versus FY2025",
+  "ids": [
+   "network_totals"
+  ],
+  "answers": {
+   "network_totals": "full"
+  },
+  "missing": {},
+  "latencyMs": 557
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-aldermoor-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-20-14055867.json",
+  "turn": 11,
+  "what": "Kelvexa's European share trajectory by year since 2022",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 410
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-aldermoor-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-20-14055867.json",
+  "turn": 17,
+  "what": "the partner deal terms, including royalty step-downs and rights reversion",
+  "ids": [
+   "option_b"
+  ],
+  "answers": {
+   "option_b": "partial"
+  },
+  "missing": {
+   "option_b": "royalty step-downs and rights reversion"
+  },
+  "latencyMs": 642
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-3fdb20e8.json",
+  "turn": 11,
+  "what": "advanced therapy usage among the eligible patients",
+  "ids": [
+   "nimbrel"
+  ],
+  "answers": {
+   "nimbrel": "full"
+  },
+  "missing": {},
+  "latencyMs": 516
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-e08c362a.json",
+  "turn": 15,
+  "what": "Whether Starter sign-ups ever requested a Pro demo first",
+  "ids": [
+   "signup_channels"
+  ],
+  "answers": {
+   "signup_channels": "full"
+  },
+  "missing": {},
+  "latencyMs": 489
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-e08c362a.json",
+  "turn": 15,
+  "what": "Business size of Starter sign-ups (one-person shops versus multi-crew)",
+  "ids": [
+   "buyer_profile"
+  ],
+  "answers": {
+   "buyer_profile": "full"
+  },
+  "missing": {},
+  "latencyMs": 553
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-3fdb20e8.json",
+  "turn": 13,
+  "what": "Nimbrel's patent expiry and late-stage oral competitors",
+  "ids": [
+   "patents",
+   "pipeline"
+  ],
+  "answers": {
+   "patents": "full",
+   "pipeline": "partial"
+  },
+  "missing": {
+   "pipeline": "late-stage oral competitors"
+  },
+  "latencyMs": 600
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-quillpath-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-20-5c3d2c21.json",
+  "turn": 11,
+  "what": "upgrade rates for later cohorts",
+  "ids": [
+   "starter_cohort",
+   "cohort_notes"
+  ],
+  "answers": {
+   "starter_cohort": "partial",
+   "cohort_notes": "partial"
+  },
+  "missing": {
+   "starter_cohort": "upgrade rates for later cohorts",
+   "cohort_notes": "upgrade rates for later cohorts"
+  },
+  "latencyMs": 909
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-11414946.json",
+  "turn": 11,
+  "what": "benchmark turns per store per week for a comparable new snack",
+  "ids": [
+   "competitor_prices"
+  ],
+  "answers": {
+   "competitor_prices": "partial"
+  },
+  "missing": {
+   "competitor_prices": "benchmark turns per store per week for a comparable new snack"
+  },
+  "latencyMs": 697
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-larkspur-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-20-061ef630.json",
+  "turn": 13,
+  "what": "the fare trend across FY2024 and FY2025",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full"
+  },
+  "missing": {},
+  "latencyMs": 817
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-larkspur-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-20-061ef630.json",
+  "turn": 15,
+  "what": "the fare trend across FY2024 and FY2025",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full"
+  },
+  "missing": {},
+  "latencyMs": 714
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-aldermoor-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-20-cdb8ca52.json",
+  "turn": 1,
+  "what": "Kelvexa's net revenue per patient per year in Europe",
+  "ids": [
+   "nimbrel"
+  ],
+  "answers": {
+   "nimbrel": "full"
+  },
+  "missing": {},
+  "latencyMs": 470
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-11414946.json",
+  "turn": 15,
+  "what": "category size and Midwest",
+  "ids": [
+   "prompt:case"
+  ],
+  "answers": {
+   "prompt:case": "full"
+  },
+  "missing": {},
+  "latencyMs": 503
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-aldermoor-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-20-cdb8ca52.json",
+  "turn": 3,
+  "what": "Kelvexa's net revenue per patient per year in Europe",
+  "ids": [
+   "nimbrel"
+  ],
+  "answers": {
+   "nimbrel": "full"
+  },
+  "missing": {},
+  "latencyMs": 461
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-3fdb20e8.json",
+  "turn": 23,
+  "what": "Whether a partner has approached Aldermoor",
+  "ids": [
+   "option_b"
+  ],
+  "answers": {
+   "option_b": "full"
+  },
+  "missing": {},
+  "latencyMs": 674
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-aldermoor-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-20-cdb8ca52.json",
+  "turn": 5,
+  "what": "how Kelvexa's European net price has moved since the 2022 launch",
+  "ids": [
+   "nimbrel"
+  ],
+  "answers": {
+   "nimbrel": "partial"
+  },
+  "missing": {
+   "nimbrel": "how Kelvexa's European net price has moved since the 2022 launch"
+  },
+  "latencyMs": 709
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-hollisbay-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-20-70a06d70.json",
+  "turn": 9,
+  "what": "a velocity benchmark",
+  "ids": [
+   "planning_assumptions",
+   "taste_test"
+  ],
+  "answers": {
+   "planning_assumptions": "full",
+   "taste_test": "full"
+  },
+  "missing": {},
+  "latencyMs": 648
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-ddbb070b.json",
+  "turn": 5,
+  "what": "chip cost of goods and gross margin over the last few years",
+  "ids": [
+   "variable_costs"
+  ],
+  "answers": {
+   "variable_costs": "full"
+  },
+  "missing": {},
+  "latencyMs": 560
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-ddbb070b.json",
+  "turn": 7,
+  "what": "typical annual bag volume for a Hollis Bay chip SKU",
+  "ids": [
+   "planning_assumptions"
+  ],
+  "answers": {
+   "planning_assumptions": "partial"
+  },
+  "missing": {
+   "planning_assumptions": "annual bag volume for a typical Hollis Bay chip SKU"
+  },
+  "latencyMs": 831
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-c518221e.json",
+  "turn": 5,
+  "what": "EU manufacturing cost per unit",
+  "ids": [
+   "supply"
+  ],
+  "answers": {
+   "supply": "partial"
+  },
+  "missing": {
+   "supply": "EU manufacturing cost per unit"
+  },
+  "latencyMs": 612
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-c518221e.json",
+  "turn": 9,
+  "what": "year-over-year growth in the eligible pool",
+  "ids": [
+   "funnel_rates"
+  ],
+  "answers": {
+   "funnel_rates": "partial"
+  },
+  "missing": {
+   "funnel_rates": "year-over-year growth in the eligible pool"
+  },
+  "latencyMs": 565
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-ddbb070b.json",
+  "turn": 17,
+  "what": "Whether chickpea product sales cannibalize Hollis Bay's existing chip sales",
+  "ids": [
+   "cannibalization"
+  ],
+  "answers": {
+   "cannibalization": "full"
+  },
+  "missing": {},
+  "latencyMs": 517
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-aldermoor-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-20-4e89a7cc.json",
+  "turn": 3,
+  "what": "Kelvexa's European sales trajectory since 2022",
+  "ids": [
+   "kelvexa_product",
+   "peak_share_forecast"
+  ],
+  "answers": {
+   "kelvexa_product": "partial",
+   "peak_share_forecast": "partial"
+  },
+  "missing": {
+   "kelvexa_product": "Kelvexa's European sales trajectory since 2022",
+   "peak_share_forecast": "Kelvexa's European sales trajectory since 2022"
+  },
+  "latencyMs": 1036
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-c518221e.json",
+  "turn": 23,
+  "what": "the split of the $80 million between rep cost and market access",
+  "ids": [
+   "option_a",
+   "option_b"
+  ],
+  "answers": {
+   "option_a": "partial",
+   "option_b": "partial"
+  },
+  "missing": {
+   "option_a": "rep cost versus market access split",
+   "option_b": "rep cost versus market access split"
+  },
+  "latencyMs": 757
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-quillpath-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-20-7e69eda5.json",
+  "turn": 17,
+  "what": "Starter cohort beyond month 12",
+  "ids": [
+   "starter_cohort",
+   "cohort_notes"
+  ],
+  "answers": {
+   "starter_cohort": "partial",
+   "cohort_notes": "full"
+  },
+  "missing": {
+   "starter_cohort": "Starter cohort beyond month 12"
+  },
+  "latencyMs": 862
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-larkspur-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-a7d9f44e.json",
+  "turn": 11,
+  "what": "quarter-by-quarter fares and passengers since entry",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 419
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-527217df.json",
+  "turn": 3,
+  "what": "Contribution per unit at the planned retail price",
+  "ids": [
+   "bag_price",
+   "variable_costs"
+  ],
+  "answers": {
+   "bag_price": "full",
+   "variable_costs": "full"
+  },
+  "missing": {},
+  "latencyMs": 623
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-316baba1.json",
+  "turn": 13,
+  "what": "contribution from connecting passengers on onward legs",
+  "ids": [
+   "route_results_other",
+   "connecting_passengers"
+  ],
+  "answers": {
+   "route_results_other": "partial",
+   "connecting_passengers": "partial"
+  },
+  "missing": {
+   "route_results_other": "contribution from connecting passengers on onward legs",
+   "connecting_passengers": "contribution from connecting passengers on onward legs"
+  },
+  "latencyMs": 916
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-hollisbay-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-20-984d9066.json",
+  "turn": 9,
+  "what": "bags per store per week",
+  "ids": [
+   "planning_assumptions"
+  ],
+  "answers": {
+   "planning_assumptions": "full"
+  },
+  "missing": {},
+  "latencyMs": 511
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-6bbc2163.json",
+  "turn": 1,
+  "what": "pricing data",
+  "ids": [
+   "kelvexa_pricing",
+   "net_sales_definition"
+  ],
+  "answers": {
+   "kelvexa_pricing": "full",
+   "net_sales_definition": "full"
+  },
+  "missing": {},
+  "latencyMs": 650
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-quillpath-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-20-7e69eda5.json",
+  "turn": 27,
+  "what": "week-by-week sign-ups within the price test",
+  "ids": [
+   "price_test_results"
+  ],
+  "answers": {
+   "price_test_results": "full"
+  },
+  "missing": {},
+  "latencyMs": 500
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-6bbc2163.json",
+  "turn": 3,
+  "what": "the trend in the treated population since 2022",
+  "ids": [
+   "funnel_rates"
+  ],
+  "answers": {
+   "funnel_rates": "partial"
+  },
+  "missing": {
+   "funnel_rates": "the trend in the treated population since 2022"
+  },
+  "latencyMs": 652
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-larkspur-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-a7d9f44e.json",
+  "turn": 19,
+  "what": "launch costs for the new routes",
+  "ids": [
+   "new_routes_cost_flights",
+   "new_routes_plan"
+  ],
+  "answers": {
+   "new_routes_cost_flights": "partial",
+   "new_routes_plan": "partial"
+  },
+  "missing": {
+   "new_routes_cost_flights": "launch costs for the new routes",
+   "new_routes_plan": "launch costs for the new routes"
+  },
+  "latencyMs": 862
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-316baba1.json",
+  "turn": 23,
+  "what": "extras revenue by type",
+  "ids": [
+   "extras_revenue"
+  ],
+  "answers": {
+   "extras_revenue": "full"
+  },
+  "missing": {},
+  "latencyMs": 570
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-a14ca044.json",
+  "turn": 5,
+  "what": "category volume of chickpea snacks in the Northeast and Midwest",
+  "ids": [
+   "prompt:case"
+  ],
+  "answers": {
+   "prompt:case": "full"
+  },
+  "missing": {},
+  "latencyMs": 510
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-7f6c40ea.json",
+  "turn": 5,
+  "what": "typical new SKU volume per store per week",
+  "ids": [
+   "planning_assumptions"
+  ],
+  "answers": {
+   "planning_assumptions": "partial"
+  },
+  "missing": {
+   "planning_assumptions": "typical new SKU volume per store per week"
+  },
+  "latencyMs": 651
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-larkspur-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-bbf78ab8.json",
+  "turn": 1,
+  "what": "average fare, FY2023 vs FY2025",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full"
+  },
+  "missing": {},
+  "latencyMs": 523
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-larkspur-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-bbf78ab8.json",
+  "turn": 1,
+  "what": "the cost lines for both years",
+  "ids": [
+   "op_profit_definition",
+   "lakeport_variable_cost",
+   "port_avery_per_flight",
+   "fixed_costs",
+   "unit_costs"
+  ],
+  "answers": {
+   "op_profit_definition": "full",
+   "lakeport_variable_cost": "full",
+   "port_avery_per_flight": "full",
+   "fixed_costs": "full",
+   "unit_costs": "full"
+  },
+  "missing": {},
+  "latencyMs": 850
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-a14ca044.json",
+  "turn": 15,
+  "what": "a repeat rate for year-one buyers",
+  "ids": [
+   "planning_assumptions"
+  ],
+  "answers": {
+   "planning_assumptions": "full"
+  },
+  "missing": {},
+  "latencyMs": 498
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-7f6c40ea.json",
+  "turn": 13,
+  "what": "better-for-you segment size in Hollis Bay's regions",
+  "ids": [
+   "why_now",
+   "competition_general"
+  ],
+  "answers": {
+   "why_now": "partial",
+   "competition_general": "partial"
+  },
+  "missing": {
+   "why_now": "size of the better-for-you segment",
+   "competition_general": "size of the better-for-you segment"
+  },
+  "latencyMs": 832
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-6f57da6e.json",
+  "turn": 5,
+  "what": "growth in the eligible pool over recent years",
+  "ids": [
+   "diagnosis_gap",
+   "funnel_rates"
+  ],
+  "answers": {
+   "diagnosis_gap": "partial",
+   "funnel_rates": "partial"
+  },
+  "missing": {
+   "diagnosis_gap": "growth in the eligible pool over recent years",
+   "funnel_rates": "growth over recent years"
+  },
+  "latencyMs": 805
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-a14ca044.json",
+  "turn": 23,
+  "what": "repeat rate for sampled households",
+  "ids": [
+   "sampling_program"
+  ],
+  "answers": {
+   "sampling_program": "partial"
+  },
+  "missing": {
+   "sampling_program": "repeat rate for sampled households"
+  },
+  "latencyMs": 548
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-7f6c40ea.json",
+  "turn": 19,
+  "what": "repeat purchase rate beyond year one",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 588
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-aldermoor-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-a1133734.json",
+  "turn": 27,
+  "what": "whether any US player has an existing Corlan's franchise",
+  "ids": [
+   "option_b"
+  ],
+  "answers": {
+   "option_b": "full"
+  },
+  "missing": {},
+  "latencyMs": 1223
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-7f6c40ea.json",
+  "turn": 25,
+  "what": "repeat rates from past sampling programs",
+  "ids": [
+   "planning_assumptions"
+  ],
+  "answers": {
+   "planning_assumptions": "full"
+  },
+  "missing": {},
+  "latencyMs": 608
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-7f6c40ea.json",
+  "turn": 27,
+  "what": "the total number of stores carrying Hollis Bay",
+  "ids": [
+   "retailer_support"
+  ],
+  "answers": {
+   "retailer_support": "partial"
+  },
+  "missing": {
+   "retailer_support": "the total number of stores carrying Hollis Bay"
+  },
+  "latencyMs": 650
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-f80d981c.json",
+  "turn": 1,
+  "what": "the change in flights flown",
+  "ids": [
+   "network_totals"
+  ],
+  "answers": {
+   "network_totals": "full"
+  },
+  "missing": {},
+  "latencyMs": 569
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-087451cb.json",
+  "turn": 11,
+  "what": "how Pro's CAC has moved since January 2025",
+  "ids": [
+   "new_customers_by_plan",
+   "pro_cohort"
+  ],
+  "answers": {
+   "new_customers_by_plan": "partial",
+   "pro_cohort": "partial"
+  },
+  "missing": {
+   "new_customers_by_plan": "how Pro's CAC has moved since January 2025",
+   "pro_cohort": "how Pro's CAC has moved since January 2025"
+  },
+  "latencyMs": 925
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-442e37ff.json",
+  "turn": 9,
+  "what": "What share of the 9 million bags would cannibalize Hollis Bay's own chips",
+  "ids": [
+   "cannibalization"
+  ],
+  "answers": {
+   "cannibalization": "full"
+  },
+  "missing": {},
+  "latencyMs": 600
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-f80d981c.json",
+  "turn": 11,
+  "what": "Port Avery's fuel line",
+  "ids": [
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "port_avery_per_flight": "partial"
+  },
+  "missing": {
+   "port_avery_per_flight": "Port Avery's fuel line"
+  },
+  "latencyMs": 546
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-442e37ff.json",
+  "turn": 13,
+  "what": "repeat rates from past launches",
+  "ids": [
+   "planning_assumptions"
+  ],
+  "answers": {
+   "planning_assumptions": "full"
+  },
+  "missing": {},
+  "latencyMs": 566
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-larkspur-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-5907649a.json",
+  "turn": 11,
+  "what": "how many flights a day the entrant runs on each route",
+  "ids": [
+   "routes_schedule",
+   "route_results_lakeport",
+   "route_results_port_avery"
+  ],
+  "answers": {
+   "routes_schedule": "full",
+   "route_results_lakeport": "full",
+   "route_results_port_avery": "full"
+  },
+  "missing": {},
+  "latencyMs": 781
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-36-aldermoor-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-34eb553a.json",
+  "turn": 9,
+  "what": "the European share curve",
+  "ids": [
+   "kelvexa_product"
+  ],
+  "answers": {
+   "kelvexa_product": "partial"
+  },
+  "missing": {
+   "kelvexa_product": "the European share curve"
+  },
+  "latencyMs": 626
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-52951de8.json",
+  "turn": 21,
+  "what": "repeat-rate data from prior sampling programs",
+  "ids": [
+   "planning_assumptions",
+   "sampling_program"
+  ],
+  "answers": {
+   "planning_assumptions": "partial",
+   "sampling_program": "partial"
+  },
+  "missing": {
+   "planning_assumptions": "repeat rate from prior sampling programs",
+   "sampling_program": "repeat rate from prior sampling programs"
+  },
+  "latencyMs": 746
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-hollisbay-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-442e37ff.json",
+  "turn": 17,
+  "what": "how the 500,000 household estimate was derived",
+  "ids": [
+   "sampling_program"
+  ],
+  "answers": {
+   "sampling_program": "full"
+  },
+  "missing": {},
+  "latencyMs": 547
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-084e7508.json",
+  "turn": 17,
+  "what": "Whether the Pro customers lost to Starter (150/month) have the same profile (three-plus staff) as customers who upgrade from Starter to Pro, or whether upgraders are smaller operations that grew",
+  "ids": [
+   "buyer_profile",
+   "upgrade_timing"
+  ],
+  "answers": {
+   "buyer_profile": "full",
+   "upgrade_timing": "partial"
+  },
+  "missing": {
+   "upgrade_timing": "whether upgraders are smaller operations that grew"
+  },
+  "latencyMs": 834
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-f80d981c.json",
+  "turn": 23,
+  "what": "Whether the four untouched routes face any competitor nonstop or one-stop pressure",
+  "ids": [
+   "competitor_entry"
+  ],
+  "answers": {
+   "competitor_entry": "full"
+  },
+  "missing": {},
+  "latencyMs": 532
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-larkspur-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-20-e6432db0.json",
+  "turn": 29,
+  "what": "the cost disadvantage breakdown by labor and utilization",
+  "ids": [
+   "competitor_costs",
+   "lakeport_variable_cost"
+  ],
+  "answers": {
+   "competitor_costs": "partial",
+   "lakeport_variable_cost": "partial"
+  },
+  "missing": {
+   "competitor_costs": "the cost disadvantage breakdown by labor and utilization",
+   "lakeport_variable_cost": "the cost disadvantage breakdown by labor and utilization"
+  },
+  "latencyMs": 919
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-35-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-ee99bd82.json",
+  "turn": 11,
+  "what": "churn for upgraded customers measured from their upgrade date",
+  "ids": [
+   "cohort_notes"
+  ],
+  "answers": {
+   "cohort_notes": "full"
+  },
+  "missing": {},
+  "latencyMs": 505
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-cee7d399.json",
+  "turn": 7,
+  "what": "the actual load factor",
+  "ids": [
+   "lakeport_seats_load",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_seats_load": "full",
+   "port_avery_per_flight": "partial"
+  },
+  "missing": {
+   "port_avery_per_flight": "the actual load factor"
+  },
+  "latencyMs": 1073
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-larkspur-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-51ad0cb8.json",
+  "turn": 1,
+  "what": "passengers flown and average fare, FY2023 versus FY2025",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full"
+  },
+  "missing": {},
+  "latencyMs": 759
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-37-quillpath-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-a2a5921b.json",
+  "turn": 17,
+  "what": "the 2024 trend in Pro sign-ups before Starter launched",
+  "ids": [
+   "new_customers_by_plan"
+  ],
+  "answers": {
+   "new_customers_by_plan": "full"
+  },
+  "missing": {},
+  "latencyMs": 647
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-cee7d399.json",
+  "turn": 13,
+  "what": "the business versus leisure fare mix on these two routes",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 468
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-cee7d399.json",
+  "turn": 15,
+  "what": "frequency expansion or slot constraints on Cedar Bluff and Millbrook",
+  "ids": [
+   "routes_schedule",
+   "fleet"
+  ],
+  "answers": {
+   "routes_schedule": "partial",
+   "fleet": "partial"
+  },
+  "missing": {
+   "routes_schedule": "slot constraints on Cedar Bluff and Millbrook",
+   "fleet": "slot constraints on Cedar Bluff and Millbrook"
+  },
+  "latencyMs": 918
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-34-larkspur-oct-20-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-20-51ad0cb8.json",
+  "turn": 17,
+  "what": "contribution by departure time",
+  "ids": [
+   "route_results_lakeport",
+   "route_results_port_avery"
+  ],
+  "answers": {
+   "route_results_lakeport": "partial",
+   "route_results_port_avery": "partial"
+  },
+  "missing": {
+   "route_results_lakeport": "contribution by departure time",
+   "route_results_port_avery": "contribution by departure time"
+  },
+  "latencyMs": 815
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/test runs/batch-38-larkspur-oct-21-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-21-cee7d399.json",
+  "turn": 23,
+  "what": "price elasticity on the four uncontested routes",
+  "ids": [
+   "competitor_costs",
+   "demand"
+  ],
+  "answers": {
+   "competitor_costs": "partial",
+   "demand": "partial"
+  },
+  "missing": {
+   "competitor_costs": "price elasticity on the four uncontested routes",
+   "demand": "price elasticity on the four uncontested routes"
+  },
+  "latencyMs": 769
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-hollisbay-oct-26-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-26-35e83e7f.json",
+  "turn": 7,
+  "what": "the year-one volume estimate",
+  "ids": [
+   "planning_assumptions",
+   "purchase_intent"
+  ],
+  "answers": {
+   "planning_assumptions": "full",
+   "purchase_intent": "full"
+  },
+  "missing": {},
+  "latencyMs": 607
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/07-raj-the-slow-burner/live-run-2026-10-26-52904ce7.json",
+  "turn": 7,
+  "what": "passengers flown and average fare for FY2023 and FY2025",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "lakeport_seats_load"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "partial",
+   "lakeport_seats_load": "partial"
+  },
+  "missing": {
+   "port_avery_per_flight": "passengers flown and average fare for FY2023 and FY2025",
+   "lakeport_seats_load": "passengers flown"
+  },
+  "latencyMs": 1125
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-26-35740806.json",
+  "turn": 9,
+  "what": "Kelvexa's share build in Europe over the first few years",
+  "ids": [
+   "peak_share_forecast",
+   "kelvexa_product"
+  ],
+  "answers": {
+   "peak_share_forecast": "partial",
+   "kelvexa_product": "partial"
+  },
+  "missing": {
+   "peak_share_forecast": "Kelvexa's share build in Europe over the first few years",
+   "kelvexa_product": "share build over the first few years"
+  },
+  "latencyMs": 917
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-26-35740806.json",
+  "turn": 11,
+  "what": "Kelvexa's share in Europe",
+  "ids": [
+   "kelvexa_product",
+   "reasons_to_prescribe"
+  ],
+  "answers": {
+   "kelvexa_product": "partial",
+   "reasons_to_prescribe": "partial"
+  },
+  "missing": {
+   "kelvexa_product": "Kelvexa's share in Europe",
+   "reasons_to_prescribe": "Kelvexa's share in Europe"
+  },
+  "latencyMs": 845
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-26-35740806.json",
+  "turn": 11,
+  "what": "Kelvexa's market share of eligible patients in established European markets",
+  "ids": [
+   "kelvexa_product"
+  ],
+  "answers": {
+   "kelvexa_product": "partial"
+  },
+  "missing": {
+   "kelvexa_product": "Kelvexa's market share of eligible patients in established European markets"
+  },
+  "latencyMs": 728
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-26-35740806.json",
+  "turn": 11,
+  "what": "What competitors exist in European markets where Kelvexa is established",
+  "ids": [
+   "current_treatment",
+   "nimbrel"
+  ],
+  "answers": {
+   "current_treatment": "full",
+   "nimbrel": "full"
+  },
+  "missing": {},
+  "latencyMs": 555
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-brewbean-oct-26-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-26-7bf5e699.json",
+  "turn": 13,
+  "what": "competitor pricing and price elasticity from past increases",
+  "ids": [
+   "menu_price_change"
+  ],
+  "answers": {
+   "menu_price_change": "full"
+  },
+  "missing": {},
+  "latencyMs": 539
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/07-raj-the-slow-burner/live-run-2026-10-26-52904ce7.json",
+  "turn": 13,
+  "what": "the share of business travelers on these routes",
+  "ids": [
+   "connecting_passengers"
+  ],
+  "answers": {
+   "connecting_passengers": "partial"
+  },
+  "missing": {
+   "connecting_passengers": "the share of business travelers on these routes"
+  },
+  "latencyMs": 612
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/07-raj-the-slow-burner/live-run-2026-10-26-52904ce7.json",
+  "turn": 13,
+  "what": "competitor capacity added",
+  "ids": [
+   "competitor_entry",
+   "demand"
+  ],
+  "answers": {
+   "competitor_entry": "partial",
+   "demand": "partial"
+  },
+  "missing": {
+   "competitor_entry": "competitor capacity added",
+   "demand": "competitor capacity added"
+  },
+  "latencyMs": 843
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-hollisbay-oct-26-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-26-35e83e7f.json",
+  "turn": 29,
+  "what": "repeat-rate data from the last five launches",
+  "ids": [
+   "survey_reliability"
+  ],
+  "answers": {
+   "survey_reliability": "partial"
+  },
+  "missing": {
+   "survey_reliability": "repeat-rate data from last five launches"
+  },
+  "latencyMs": 651
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-257e027f.json",
+  "turn": 5,
+  "what": "eligible-patient count trend over time",
+  "ids": [
+   "peak_share_forecast"
+  ],
+  "answers": {
+   "peak_share_forecast": "partial"
+  },
+  "missing": {
+   "peak_share_forecast": "eligible-patient count trend over time"
+  },
+  "latencyMs": 657
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-hollisbay-oct-26-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-61bb8b4d.json",
+  "turn": 5,
+  "what": "cost per bag for chickpea snacks and chip gross margin history",
+  "ids": [
+   "variable_costs",
+   "bag_price"
+  ],
+  "answers": {
+   "variable_costs": "full",
+   "bag_price": "partial"
+  },
+  "missing": {
+   "bag_price": "chip gross margin history"
+  },
+  "latencyMs": 681
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/07-raj-the-slow-burner/live-run-2026-10-26-52904ce7.json",
+  "turn": 19,
+  "what": "Unserved or underserved city pairs from the hub where no LCC flies",
+  "ids": [
+   "competitor_entry"
+  ],
+  "answers": {
+   "competitor_entry": "partial"
+  },
+  "missing": {
+   "competitor_entry": "Unserved or underserved city pairs from the hub where no LCC flies"
+  },
+  "latencyMs": 743
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/07-raj-the-slow-burner/live-run-2026-10-26-52904ce7.json",
+  "turn": 19,
+  "what": "Achievable fares on unserved city pairs",
+  "ids": [
+   "new_routes_plan"
+  ],
+  "answers": {
+   "new_routes_plan": "full"
+  },
+  "missing": {},
+  "latencyMs": 705
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/07-raj-the-slow-burner/live-run-2026-10-26-52904ce7.json",
+  "turn": 19,
+  "what": "Whether the four healthy routes have spill — passengers turned away at peak times",
+  "ids": [
+   "route_results_other"
+  ],
+  "answers": {
+   "route_results_other": "full"
+  },
+  "missing": {},
+  "latencyMs": 614
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-hollisbay-oct-26-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-61bb8b4d.json",
+  "turn": 7,
+  "what": "the chip line's gross margin over the last few years",
+  "ids": [
+   "variable_costs",
+   "bag_price"
+  ],
+  "answers": {
+   "variable_costs": "full",
+   "bag_price": "full"
+  },
+  "missing": {},
+  "latencyMs": 570
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/07-raj-the-slow-burner/live-run-2026-10-26-52904ce7.json",
+  "turn": 21,
+  "what": "the low-cost airline's load factor",
+  "ids": [
+   "competitor_costs"
+  ],
+  "answers": {
+   "competitor_costs": "partial"
+  },
+  "missing": {
+   "competitor_costs": "the low-cost airline's load factor"
+  },
+  "latencyMs": 647
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-hollisbay-oct-26-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-61bb8b4d.json",
+  "turn": 9,
+  "what": "category size and chip bag volumes for comparison",
+  "ids": [
+   "prompt:case"
+  ],
+  "answers": {
+   "prompt:case": "full"
+  },
+  "missing": {},
+  "latencyMs": 527
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/07-raj-the-slow-burner/live-run-2026-10-26-c82e7bd7.json",
+  "turn": 25,
+  "what": "Whether the 150 Pro customers who switched to Starter are genuinely lost Pro sales or would have churned anyway",
+  "ids": [
+   "pro_cohort",
+   "cohort_notes"
+  ],
+  "answers": {
+   "pro_cohort": "full",
+   "cohort_notes": "full"
+  },
+  "missing": {},
+  "latencyMs": 556
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-257e027f.json",
+  "turn": 15,
+  "what": "the year-by-year profile of the $80 million selling cost",
+  "ids": [
+   "option_a"
+  ],
+  "answers": {
+   "option_a": "partial"
+  },
+  "missing": {
+   "option_a": "the year-by-year profile of the $80 million selling cost"
+  },
+  "latencyMs": 557
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-brewbean-oct-26-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-26-03201cc4.json",
+  "turn": 19,
+  "what": "dairy spend per unit over the two years",
+  "ids": [
+   "non_bean_input_change"
+  ],
+  "answers": {
+   "non_bean_input_change": "full"
+  },
+  "missing": {},
+  "latencyMs": 479
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-99dd37d1.json",
+  "turn": 1,
+  "what": "the Starter numbers",
+  "ids": [
+   "plan_prices_costs",
+   "plan_cac",
+   "starter_cohort",
+   "cohort_notes"
+  ],
+  "answers": {
+   "plan_prices_costs": "full",
+   "plan_cac": "full",
+   "starter_cohort": "full",
+   "cohort_notes": "full"
+  },
+  "missing": {},
+  "latencyMs": 780
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-26-8f4417a4.json",
+  "turn": 3,
+  "what": "Kelvexa's European sales trend since 2022",
+  "ids": [
+   "kelvexa_product",
+   "peak_share_forecast"
+  ],
+  "answers": {
+   "kelvexa_product": "partial",
+   "peak_share_forecast": "partial"
+  },
+  "missing": {
+   "kelvexa_product": "Kelvexa's European sales trend since 2022",
+   "peak_share_forecast": "Kelvexa's European sales trend since 2022"
+  },
+  "latencyMs": 863
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-065501fe.json",
+  "turn": 3,
+  "what": "fuel cost per gallon, FY2023 versus FY2025",
+  "ids": [
+   "fuel_prices"
+  ],
+  "answers": {
+   "fuel_prices": "full"
+  },
+  "missing": {},
+  "latencyMs": 520
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-065501fe.json",
+  "turn": 11,
+  "what": "seasonality on the two routes",
+  "ids": [
+   "competitor_entry"
+  ],
+  "answers": {
+   "competitor_entry": "partial"
+  },
+  "missing": {
+   "competitor_entry": "seasonality on the two routes"
+  },
+  "latencyMs": 648
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-hollisbay-oct-26-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-26-17b4117c.json",
+  "turn": 1,
+  "what": "category size and growth data",
+  "ids": [
+   "why_now",
+   "competition_general"
+  ],
+  "answers": {
+   "why_now": "full",
+   "competition_general": "full"
+  },
+  "missing": {},
+  "latencyMs": 655
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-065501fe.json",
+  "turn": 13,
+  "what": "the competitor's frequency on those routes",
+  "ids": [
+   "competitor_entry"
+  ],
+  "answers": {
+   "competitor_entry": "partial"
+  },
+  "missing": {
+   "competitor_entry": "the competitor's frequency on those routes"
+  },
+  "latencyMs": 711
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-065501fe.json",
+  "turn": 13,
+  "what": "Results (revenue, contribution, flights) on the four non-contested routes to use as a benchmark for per-flight economics",
+  "ids": [
+   "route_results_other"
+  ],
+  "answers": {
+   "route_results_other": "full"
+  },
+  "missing": {},
+  "latencyMs": 584
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-brewbean-oct-26-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-26-5433fa09.json",
+  "turn": 9,
+  "what": "Unit volumes to confirm revenue growth is rate-driven rather than mix-driven",
+  "ids": [
+   "avg_ticket"
+  ],
+  "answers": {
+   "avg_ticket": "partial"
+  },
+  "missing": {
+   "avg_ticket": "Unit volumes to confirm revenue growth is rate-driven rather than mix-driven"
+  },
+  "latencyMs": 737
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-065501fe.json",
+  "turn": 15,
+  "what": "Evidence behind the demand estimate for the new routes (Ashford and Brookhaven)",
+  "ids": [
+   "new_routes_plan",
+   "new_routes_context",
+   "new_route_rampup"
+  ],
+  "answers": {
+   "new_routes_plan": "full",
+   "new_routes_context": "partial",
+   "new_route_rampup": "partial"
+  },
+  "missing": {
+   "new_routes_context": "Evidence behind the demand estimate for the new routes (Ashford and Brookhaven)",
+   "new_route_rampup": "Evidence behind the demand estimate for the new routes (Ashford and Brookhaven)"
+  },
+  "latencyMs": 1183
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-065501fe.json",
+  "turn": 15,
+  "what": "Entry barriers at the new cities (Ashford and Brookhaven)",
+  "ids": [
+   "competitor_entry",
+   "new_routes_context"
+  ],
+  "answers": {
+   "competitor_entry": "partial",
+   "new_routes_context": "partial"
+  },
+  "missing": {
+   "competitor_entry": "Entry barriers at the new cities (Ashford and Brookhaven)",
+   "new_routes_context": "Entry barriers at the new cities (Ashford and Brookhaven)"
+  },
+  "latencyMs": 854
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/24-marcus-the-answer-first-sprinter/live-run-2026-10-26-065501fe.json",
+  "turn": 17,
+  "what": "network-wide passenger counts",
+  "ids": [
+   "extras_revenue"
+  ],
+  "answers": {
+   "extras_revenue": "partial"
+  },
+  "missing": {
+   "extras_revenue": "network-wide passenger counts"
+  },
+  "latencyMs": 605
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-26-5bc506bc.json",
+  "turn": 13,
+  "what": "Prescribing intent data — what percent of moderate-to-severe patients specialists would start on Kelvexa in year one",
+  "ids": [
+   "survey_design"
+  ],
+  "answers": {
+   "survey_design": "partial"
+  },
+  "missing": {
+   "survey_design": "Prescribing intent data — what percent of moderate-to-severe patients specialists would start on Kelvexa in year one"
+  },
+  "latencyMs": 883
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-26-5bc506bc.json",
+  "turn": 13,
+  "what": "Number of competing products and their current market shares",
+  "ids": [
+   "nimbrel",
+   "current_treatment"
+  ],
+  "answers": {
+   "nimbrel": "partial",
+   "current_treatment": "partial"
+  },
+  "missing": {
+   "nimbrel": "Number of competing products and their current market shares",
+   "current_treatment": "Number of competing products and their current market shares"
+  },
+  "latencyMs": 1020
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-hollisbay-oct-26-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-26-17b4117c.json",
+  "turn": 11,
+  "what": "Distribution ramp: timing and pace of shelf presence rollout across stores in year one",
+  "ids": [
+   "manufacturing"
+  ],
+  "answers": {
+   "manufacturing": "partial"
+  },
+  "missing": {
+   "manufacturing": "pace of shelf presence rollout across stores in year one"
+  },
+  "latencyMs": 673
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/40-jasmine-the-early-finisher/live-run-2026-10-26-f1f3c359.json",
+  "turn": 5,
+  "what": "Starter cohort churn trend month over month since January",
+  "ids": [
+   "starter_cohort"
+  ],
+  "answers": {
+   "starter_cohort": "full"
+  },
+  "missing": {},
+  "latencyMs": 522
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/40-jasmine-the-early-finisher/live-run-2026-10-26-bd5a333c.json",
+  "turn": 1,
+  "what": "departures and average fare for both years",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "network_totals"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "partial",
+   "network_totals": "full"
+  },
+  "missing": {
+   "port_avery_per_flight": "average fare for both years"
+  },
+  "latencyMs": 743
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/40-jasmine-the-early-finisher/live-run-2026-10-26-bd5a333c.json",
+  "turn": 1,
+  "what": "the FY23 and FY25 cost lines",
+  "ids": [
+   "fixed_costs",
+   "lakeport_variable_cost",
+   "port_avery_per_flight",
+   "new_routes_cost_flights"
+  ],
+  "answers": {
+   "fixed_costs": "full",
+   "lakeport_variable_cost": "full",
+   "port_avery_per_flight": "full",
+   "new_routes_cost_flights": "full"
+  },
+  "missing": {},
+  "latencyMs": 867
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/57-marisol-the-context-confuser/live-run-2026-10-26-854fc080.json",
+  "turn": 1,
+  "what": "Starter)",
+  "ids": [
+   "plan_cac",
+   "starter_cohort"
+  ],
+  "answers": {
+   "plan_cac": "full",
+   "starter_cohort": "full"
+  },
+  "missing": {},
+  "latencyMs": 635
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-hollisbay-oct-26-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-26-7cdbeb74.json",
+  "turn": 1,
+  "what": "sizing of the better-for-you snack segment",
+  "ids": [
+   "why_now",
+   "competition_general"
+  ],
+  "answers": {
+   "why_now": "full",
+   "competition_general": "full"
+  },
+  "missing": {},
+  "latencyMs": 617
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/57-marisol-the-context-confuser/live-run-2026-10-26-69441a66.json",
+  "turn": 1,
+  "what": "the breakdown of revenue by flights, seats sold, fare and route",
+  "ids": [
+   "network_totals",
+   "route_results_lakeport",
+   "route_results_port_avery",
+   "route_results_other",
+   "lakeport_seats_load",
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "extras_revenue"
+  ],
+  "answers": {
+   "network_totals": "full",
+   "route_results_lakeport": "full",
+   "route_results_port_avery": "full",
+   "route_results_other": "full",
+   "lakeport_seats_load": "full",
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full",
+   "extras_revenue": "full"
+  },
+  "missing": {},
+  "latencyMs": 1561
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-aldermoor-oct-26-runs-1-5/64-tyler-the-misquoter-case-neutral/live-run-2026-10-26-4df38465.json",
+  "turn": 21,
+  "what": "Whether the board's $300 million hurdle applies to booked revenue (royalty) or to product sales (net sales)",
+  "ids": [
+   "prompt:board_bar"
+  ],
+  "answers": {
+   "prompt:board_bar": "full"
+  },
+  "missing": {},
+  "latencyMs": 529
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/57-marisol-the-context-confuser/live-run-2026-10-26-69441a66.json",
+  "turn": 9,
+  "what": "the competitor's frequencies on each route",
+  "ids": [
+   "competitor_entry"
+  ],
+  "answers": {
+   "competitor_entry": "partial"
+  },
+  "missing": {
+   "competitor_entry": "the competitor's frequencies on each route"
+  },
+  "latencyMs": 601
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/57-marisol-the-context-confuser/live-run-2026-10-26-69441a66.json",
+  "turn": 15,
+  "what": "the competitor's load factor on these routes",
+  "ids": [
+   "competitor_entry",
+   "competitor_costs"
+  ],
+  "answers": {
+   "competitor_entry": "partial",
+   "competitor_costs": "partial"
+  },
+  "missing": {
+   "competitor_entry": "the competitor's load factor on these routes",
+   "competitor_costs": "the competitor's load factor on these routes"
+  },
+  "latencyMs": 707
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/64-tyler-the-misquoter-case-neutral/live-run-2026-10-26-dcc6774f.json",
+  "turn": 21,
+  "what": "Whether the 20% upgrade rate holds for Starter cohorts after Q1 2025",
+  "ids": [
+   "starter_cohort",
+   "cohort_notes"
+  ],
+  "answers": {
+   "starter_cohort": "full",
+   "cohort_notes": "partial"
+  },
+  "missing": {
+   "cohort_notes": "Whether the 20% upgrade rate holds for Starter cohorts after Q1 2025"
+  },
+  "latencyMs": 812
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/57-marisol-the-context-confuser/live-run-2026-10-26-69441a66.json",
+  "turn": 23,
+  "what": "Price elasticity on the Lakeport and Port Avery routes",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 426
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-dd74b01b.json",
+  "turn": 1,
+  "what": "the split of Starter sign-ups between new prospects and would-be Pro buyers",
+  "ids": [
+   "price_test_results",
+   "why_pro_fell"
+  ],
+  "answers": {
+   "price_test_results": "partial",
+   "why_pro_fell": "full"
+  },
+  "missing": {
+   "price_test_results": "the split of Starter sign-ups between new prospects and would-be Pro buyers"
+  },
+  "latencyMs": 804
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-dd74b01b.json",
+  "turn": 11,
+  "what": "Fixed cost of running two plans",
+  "ids": [],
+  "answers": {},
+  "missing": {},
+  "latencyMs": 462
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-dd74b01b.json",
+  "turn": 15,
+  "what": "Absolute dollar revenue by plan by month",
+  "ids": [
+   "starter_cohort",
+   "pro_cohort"
+  ],
+  "answers": {
+   "starter_cohort": "partial",
+   "pro_cohort": "partial"
+  },
+  "missing": {
+   "starter_cohort": "Absolute dollar revenue by plan by month",
+   "pro_cohort": "Absolute dollar revenue by plan by month"
+  },
+  "latencyMs": 947
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/64-tyler-the-misquoter-case-neutral/live-run-2026-10-26-9c8a354a.json",
+  "turn": 13,
+  "what": "share retention at a fare gap",
+  "ids": [
+   "competitor_costs"
+  ],
+  "answers": {
+   "competitor_costs": "partial"
+  },
+  "missing": {
+   "competitor_costs": "share retention at a fare gap"
+  },
+  "latencyMs": 626
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/66-remy-the-results-only-answerer/live-run-2026-10-26-e1dd3616.json",
+  "turn": 9,
+  "what": "Monthly Pro new sign-ups for 2024 and 2025",
+  "ids": [
+   "new_customers_by_plan"
+  ],
+  "answers": {
+   "new_customers_by_plan": "full"
+  },
+  "missing": {},
+  "latencyMs": 514
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-94f273c5.json",
+  "turn": 1,
+  "what": "available seats, FY2023 vs FY2025",
+  "ids": [
+   "fleet",
+   "routes_schedule",
+   "network_totals",
+   "lakeport_seats_load",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "fleet": "full",
+   "routes_schedule": "full",
+   "network_totals": "full",
+   "lakeport_seats_load": "full",
+   "port_avery_per_flight": "full"
+  },
+  "missing": {},
+  "latencyMs": 977
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-94f273c5.json",
+  "turn": 1,
+  "what": "average fare per passenger in each year",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full"
+  },
+  "missing": {},
+  "latencyMs": 729
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-94f273c5.json",
+  "turn": 5,
+  "what": "Number of passengers carried each year",
+  "ids": [
+   "lakeport_seats_load",
+   "port_avery_per_flight",
+   "route_results_other"
+  ],
+  "answers": {
+   "lakeport_seats_load": "partial",
+   "port_avery_per_flight": "partial",
+   "route_results_other": "partial"
+  },
+  "missing": {
+   "lakeport_seats_load": "Number of passengers carried each year",
+   "port_avery_per_flight": "Number of passengers carried each year",
+   "route_results_other": "Number of passengers carried each year"
+  },
+  "latencyMs": 1123
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-94f273c5.json",
+  "turn": 7,
+  "what": "Port Avery routes",
+  "ids": [
+   "route_results_port_avery",
+   "port_avery_per_flight",
+   "competitor_entry",
+   "competitor_costs",
+   "extras_revenue",
+   "connecting_passengers"
+  ],
+  "answers": {
+   "route_results_port_avery": "full",
+   "port_avery_per_flight": "full",
+   "competitor_entry": "full",
+   "competitor_costs": "partial",
+   "extras_revenue": "full",
+   "connecting_passengers": "full"
+  },
+  "missing": {
+   "competitor_costs": "Port Avery routes"
+  },
+  "latencyMs": 1426
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/67-victor-the-data-challenger/live-run-2026-10-26-1f6007fd.json",
+  "turn": 1,
+  "what": "Starter customer acquisition cost (CAC)",
+  "ids": [
+   "plan_cac"
+  ],
+  "answers": {
+   "plan_cac": "full"
+  },
+  "missing": {},
+  "latencyMs": 713
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-94f273c5.json",
+  "turn": 11,
+  "what": "severance costs for crews",
+  "ids": [
+   "lakeport_variable_cost",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_variable_cost": "partial",
+   "port_avery_per_flight": "partial"
+  },
+  "missing": {
+   "lakeport_variable_cost": "severance cost for crews",
+   "port_avery_per_flight": "severance cost for crews"
+  },
+  "latencyMs": 813
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-94f273c5.json",
+  "turn": 11,
+  "what": "early-exit penalties",
+  "ids": [
+   "aircraft_leases"
+  ],
+  "answers": {
+   "aircraft_leases": "partial"
+  },
+  "missing": {
+   "aircraft_leases": "early-exit penalties"
+  },
+  "latencyMs": 545
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/65-dana-the-data-heavy-asker/live-run-2026-10-26-94f273c5.json",
+  "turn": 13,
+  "what": "how the $180 fare estimate was built and the size of the Ashford and Brookhaven markets",
+  "ids": [
+   "new_routes_plan",
+   "geography"
+  ],
+  "answers": {
+   "new_routes_plan": "full",
+   "geography": "partial"
+  },
+  "missing": {
+   "geography": "market size of Ashford and Brookhaven"
+  },
+  "latencyMs": 774
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/67-victor-the-data-challenger/live-run-2026-10-26-1f6007fd.json",
+  "turn": 11,
+  "what": "Pro marketing spend before versus after Starter launched",
+  "ids": [
+   "why_pro_fell"
+  ],
+  "answers": {
+   "why_pro_fell": "full"
+  },
+  "missing": {},
+  "latencyMs": 480
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/67-victor-the-data-challenger/live-run-2026-10-26-1f6007fd.json",
+  "turn": 11,
+  "what": "Demo volume before versus after Starter launched",
+  "ids": [
+   "new_customers_by_plan"
+  ],
+  "answers": {
+   "new_customers_by_plan": "full"
+  },
+  "missing": {},
+  "latencyMs": 732
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/67-victor-the-data-challenger/live-run-2026-10-26-1f6007fd.json",
+  "turn": 11,
+  "what": "Buyer profile comparison: whether Starter customers look like Pro buyers in terms of business size and user count, or are smaller one-person shops",
+  "ids": [
+   "buyer_profile"
+  ],
+  "answers": {
+   "buyer_profile": "full"
+  },
+  "missing": {},
+  "latencyMs": 518
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/66-remy-the-results-only-answerer/live-run-2026-10-26-abdb8cfa.json",
+  "turn": 1,
+  "what": "the split of the revenue decline between traffic and fare",
+  "ids": [
+   "competitor_entry",
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "network_totals"
+  ],
+  "answers": {
+   "competitor_entry": "partial",
+   "lakeport_fare": "partial",
+   "port_avery_per_flight": "partial",
+   "network_totals": "partial"
+  },
+  "missing": {
+   "competitor_entry": "split between traffic and fare",
+   "lakeport_fare": "split between traffic and fare",
+   "port_avery_per_flight": "split between traffic and fare",
+   "network_totals": "split between traffic and fare"
+  },
+  "latencyMs": 1041
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-quillpath-oct-26-runs-1-8/67-victor-the-data-challenger/live-run-2026-10-26-1f6007fd.json",
+  "turn": 17,
+  "what": "the Starter-to-Pro upgrade rate split by business size",
+  "ids": [
+   "starter_cohort",
+   "buyer_profile"
+  ],
+  "answers": {
+   "starter_cohort": "partial",
+   "buyer_profile": "partial"
+  },
+  "missing": {
+   "starter_cohort": "the Starter-to-Pro upgrade rate split by business size",
+   "buyer_profile": "the Starter-to-Pro upgrade rate split by business size"
+  },
+  "latencyMs": 740
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/66-remy-the-results-only-answerer/live-run-2026-10-26-abdb8cfa.json",
+  "turn": 5,
+  "what": "fares by quarter",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight"
+  ],
+  "answers": {
+   "lakeport_fare": "partial",
+   "port_avery_per_flight": "partial"
+  },
+  "missing": {
+   "lakeport_fare": "fares by quarter",
+   "port_avery_per_flight": "fares by quarter"
+  },
+  "latencyMs": 706
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/66-remy-the-results-only-answerer/live-run-2026-10-26-abdb8cfa.json",
+  "turn": 23,
+  "what": "Catchment population data for new routes versus existing cities",
+  "ids": [
+   "new_route_rampup"
+  ],
+  "answers": {
+   "new_route_rampup": "partial"
+  },
+  "missing": {
+   "new_route_rampup": "Catchment population data for new routes versus existing cities"
+  },
+  "latencyMs": 722
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/67-victor-the-data-challenger/live-run-2026-10-26-38714ea6.json",
+  "turn": 1,
+  "what": "passengers carried and average fare for FY2023 and FY2025",
+  "ids": [
+   "lakeport_fare",
+   "port_avery_per_flight",
+   "network_totals"
+  ],
+  "answers": {
+   "lakeport_fare": "full",
+   "port_avery_per_flight": "full",
+   "network_totals": "partial"
+  },
+  "missing": {
+   "network_totals": "passengers carried"
+  },
+  "latencyMs": 892
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/67-victor-the-data-challenger/live-run-2026-10-26-38714ea6.json",
+  "turn": 7,
+  "what": "The $24M contribution decline split by route",
+  "ids": [
+   "route_results_lakeport",
+   "route_results_port_avery",
+   "route_results_other"
+  ],
+  "answers": {
+   "route_results_lakeport": "full",
+   "route_results_port_avery": "full",
+   "route_results_other": "full"
+  },
+  "missing": {},
+  "latencyMs": 761
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/67-victor-the-data-challenger/live-run-2026-10-26-38714ea6.json",
+  "turn": 13,
+  "what": "how much of the variable cost is contractually fixed in the short run, such as crew",
+  "ids": [
+   "lakeport_variable_cost"
+  ],
+  "answers": {
+   "lakeport_variable_cost": "partial"
+  },
+  "missing": {
+   "lakeport_variable_cost": "how much is contractually fixed in the short run"
+  },
+  "latencyMs": 720
+ },
+ {
+  "run": "/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs/test runs/batch-39-larkspur-oct-26-runs-1-8/67-victor-the-data-challenger/live-run-2026-10-26-38714ea6.json",
+  "turn": 15,
+  "what": "price sensitivity and business share of Lakeport traffic",
+  "ids": [
+   "competitor_entry",
+   "connecting_passengers"
+  ],
+  "answers": {
+   "competitor_entry": "partial",
+   "connecting_passengers": "partial"
+  },
+  "missing": {
+   "competitor_entry": "price sensitivity",
+   "connecting_passengers": "price sensitivity"
+  },
+  "latencyMs": 617
+ }
+]

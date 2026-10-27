@@ -368,6 +368,11 @@ export function maskFigures(text: string): string {
 // The check's catalog for a case: built once per case (the ledger array is the
 // loaded case's own), every line masked.
 const askCatalogs = new WeakMap<readonly object[], AskCheckItem[]>();
+// The case prompt and its prompt facts as catalog items ("prompt:case", "prompt:<id>"), figures masked (`askCheckRawMessage`).
+export function promptFactCatalog(c: { prompt: string; factAnchors?: { promptFacts?: { id: string; say?: string }[] } }): AskCheckItem[] {
+  return [{ id: 'prompt:case', label: 'The case prompt', line: maskFigures(c.prompt) },
+    ...(c.factAnchors?.promptFacts ?? []).filter(f => f.say).map(f => ({ id: `prompt:${f.id}`, label: 'Prompt fact', line: maskFigures(f.say!) }))];
+}
 export function askCheckCatalog(items: readonly Pick<LedgerItem, 'id' | 'label' | 'timeframes' | 'value'>[]): AskCheckItem[] {
   const cached = askCatalogs.get(items);
   if (cached) return cached;
@@ -376,13 +381,22 @@ export function askCheckCatalog(items: readonly Pick<LedgerItem, 'id' | 'label' 
   return built;
 }
 
-export function buildAskCheckPrompt(what: string, catalog: AskCheckItem[]): string {
+// `message` (`askCheckRawMessage`, 27 Oct, Lorenzo; measurement): the candidate's raw message is what is mapped; the
+// declared ask only points at the part of it to read. Catalog ids "prompt:…" are facts the case prompt already gave.
+export function buildAskCheckPrompt(what: string, catalog: AskCheckItem[], opts: { message?: string } = {}): string {
   const lines = catalog.length > 0 ? catalog.map(c => `- ${c.id}: ${c.label} — ${c.line}`).join('\n') : '- (none)';
+  const head = opts.message !== undefined
+    ? `THE CANDIDATE'S MESSAGE: "${opts.message.replace(/\s+/g, ' ').trim()}"
+
+THE ASK, AS THE INTERVIEWER NOTED IT (only a hint for which part of the message to read): "${what}"
+
+Map what the candidate asked in that part of their message, in their own words, to the item(s) that hold the answer; an item on the same topic that doesn't hold it is no mapping. Items whose id starts with "prompt:" are facts the case prompt already gave the candidate.`
+    : `REQUEST: "${what}"
+
+Map the request to the item(s) that hold the answer to what was asked; an item on the same topic that doesn't hold it is no mapping.`;
   return `Check a candidate's data request in a mock case interview against the case's data.
 
-REQUEST: "${what}"
-
-Map the request to the item(s) that hold the answer to what was asked; an item on the same topic that doesn't hold it is no mapping.
+${head}
 Per item:
 - "answers": "full" when its line answers the request; "partial" only when the asked part is absent from the line. A line that gives the asked quantity for the asked period is "full", however it is worded.
 - "missing" (with "partial" only): the asked part it lacks, in the ask's own words, no numbers; it names something the line does not state.
@@ -574,7 +588,7 @@ export const withAskPrefill = (text: string, prefill: string = ASK_CHECK_PREFILL
 // own component, apart from the classifier's 'data_request' ($/case, PRD §13; final
 // review I3). Null on failure (the caller's named deferral). onRaw: the reply's
 // whole text (prefill and stop sequence put back), for evaluation scripts.
-export async function classifyAsk(params: { what: string; catalog: AskCheckItem[]; onUsage?: OnUsage; model?: string; onRaw?: (text: string) => void }): Promise<AskCheckResult | null> {
+export async function classifyAsk(params: { what: string; catalog: AskCheckItem[]; onUsage?: OnUsage; model?: string; onRaw?: (text: string) => void; message?: string }): Promise<AskCheckResult | null> {
   const client = anthropicClient();
   const model = params.model ?? DATA_REQUEST_MODEL_ID;
   const prefill = askCheckPrefill(model);
@@ -585,7 +599,7 @@ export async function classifyAsk(params: { what: string; catalog: AskCheckItem[
       ...backgroundRequest(model, 512, { jsonSchema: askCheckSchema(params.catalog) }),
       ...(stops !== null ? { stop_sequences: stops } : {}),
       messages: [
-        { role: 'user', content: buildAskCheckPrompt(params.what, params.catalog) },
+        { role: 'user', content: buildAskCheckPrompt(params.what, params.catalog, params.message !== undefined ? { message: params.message } : {}) },
         ...(prefill !== null ? [{ role: 'assistant' as const, content: prefill }] : []),
       ],
     } as Anthropic.MessageCreateParamsNonStreaming);

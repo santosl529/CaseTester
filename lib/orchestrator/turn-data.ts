@@ -11,7 +11,7 @@ import { saysPhrase } from '@/lib/cases/case-notes-draft';
 import { judgeVerdict, type JudgeAsk } from '@/lib/cases/item-judge-draft';
 import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS, refusedItemIds } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
-import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
+import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, promptFactCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, requestSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, saysItemName, WANT_ASK_PHASES } from './request-signal';
 import { tagsAgree, askGroups, askClauses, askTags, itemTagsAgree } from './item-tags';
 import { correctsNow } from './math-checker-live';
@@ -577,11 +577,23 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     // at the cap, says `timedOut`, and its latencyMs is the added latency.
     let usage: LlmUsage | undefined;
     let waited = false;
+    // `askCheckRawMessage` (Lorenzo, 27 Oct; measurement): the check maps the candidate's own words, the declared ask
+    // only a hint, with the prompt's facts beside the case's items.
+    const rawMessage = switchOn(plan.state.caseData, 'askCheckRawMessage');
+    let promptHit = false;
     const raced = await Promise.race([
       classifyAsk({
-        what, catalog: askCheckCatalog(plan.state.caseData.dataLedger),
+        what, catalog: rawMessage ? [...askCheckCatalog(plan.state.caseData.dataLedger), ...promptFactCatalog(plan.state.caseData)] : askCheckCatalog(plan.state.caseData.dataLedger),
+        ...(rawMessage ? { message: plan.ctx.candidateText } : {}),
         onUsage: u => { const row: LlmUsage = { ...u, ask: what, ...(waited ? { late: true as const } : {}) }; usage = row; onUsage?.(row); },
-      }).catch(() => null),
+      }).catch(() => null).then(r => {
+        // `askCheckRawMessage`: a prompt fact is no ledger item. An ask only the prompt answers gets no verdict (as a
+        // timeout: today's path, never a refusal); prompt ids are dropped from a mixed one.
+        if (!rawMessage || r === null) return r;
+        const ledgerOnly = r.items.filter(i => !i.id.startsWith('prompt:'));
+        promptHit = ledgerOnly.length < r.items.length;
+        return promptHit && ledgerOnly.length === 0 ? null : { ...r, items: ledgerOnly };
+      }),
       timeout,
     ]).finally(() => clearTimeout(timer));
     waited = true;
@@ -635,7 +647,7 @@ export function checkAsk(plan: ModelPlan, what: string, onUsage?: OnUsage, cut: 
     // `found` keeps its old shape, so a replay reads old and new records alike (lib/eval/recorded-checks.ts).
     plan.ctx.checks.record('itemless_defer', mapped !== false, DECIDED[decision.kind],
       { what, mapped, found: found === null ? null : [{ what, ids }], decision: decision.kind, ...(tagDropped.length > 0 ? { tagDropped } : {}), ...(cut.length > 0 ? { basisCut: cut } : {}), ...(outOfScope.length > 0 ? { outOfScope } : {}), ...(outOfScopeRules ? { outOfScopeRules } : {}),
-        ...(partial.length > 0 ? { partial, missing } : {}), ...(guard ? { guard } : {}), ...(tagGate ? { tagGate: tagGate.gated } : {}), latencyMs: Date.now() - t0, ...(timedOut ? { timedOut } : {}), ...(usage ? usageDetail(usage) : {}) });
+        ...(partial.length > 0 ? { partial, missing } : {}), ...(guard ? { guard } : {}), ...(tagGate ? { tagGate: tagGate.gated } : {}), ...(rawMessage ? { rawMessage: true, ...(promptHit ? { promptHit } : {}) } : {}), latencyMs: Date.now() - t0, ...(timedOut ? { timedOut } : {}), ...(usage ? usageDetail(usage) : {}) });
     if (gate) plan.ctx.checks.act('answer_gate', 'an ask whose mapped items don\'t answer a part of it: those items not given, the part refused unchecked (a period or scope unmet: E1\'s form)', { asks: [{ what, path: 'check', refuse: guard?.parts ?? [], drop: gate.drop, partial: gate.partial }] });
     // A partial part no refusal says (final review I5, for Lorenzo's ruling; M6): the
     // ask, the item, Haiku's own `missing` and the part as checked, so a wave counts them.

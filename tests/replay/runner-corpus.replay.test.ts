@@ -26,7 +26,7 @@
 // longer than the check. Every checker event and turn is written to
 // <REPLAY_OUT>/checker-replay.jsonl. Without REPLAY_CHECKER the checker is off.
 import { describe, it, expect, vi } from 'vitest';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
@@ -76,9 +76,16 @@ vi.mock('@/lib/orchestrator/data-requests', async orig => ({
   // The message classifier (the run's own message): its recorded detections. No other call reads it.
   classifyDataRequests: async (p: { interviewerText: string | null; candidateText: string }) =>
     (!(p.interviewerText === null && p.candidateText !== turnText) ? detections : null),
-  classifyAsk: async (p: { what: string }) => {
+  classifyAsk: async (p: { what: string; message?: string }) => {
     const over = overrideVerdict(checkOverrides, currentRunFile, savedTurnIndex, p.what);   // REPLAY_CHECKS, else the recorded verdict
-    return over !== undefined ? over : recordedCheckVerdict(runChecks, savedTurnIndex, p.what);
+    if (over !== undefined) return over;
+    // `askCheckRawMessage` (27 Oct): the recorded verdicts answered the old prompt, so none is served; the call is
+    // logged (REPLAY_ASK_NEED) for a paid run to answer through REPLAY_CHECKS.
+    if (p.message !== undefined) {
+      if (process.env.REPLAY_ASK_NEED) appendFileSync(process.env.REPLAY_ASK_NEED, JSON.stringify({ run: currentRunFile, turn: savedTurnIndex, what: p.what, message: p.message }) + '\n');
+      return null;
+    }
+    return recordedCheckVerdict(runChecks, savedTurnIndex, p.what);
   },
 }));
 let turnText = '';

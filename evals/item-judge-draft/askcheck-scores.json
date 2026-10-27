@@ -1,0 +1,359 @@
+{
+ "turns": {
+  "35740806:12": {
+   "today-4.5": "over_full",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "wrong_item"
+  },
+  "5bc506bc:24": {
+   "today-4.5": "over_full",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "4df38465:22": {
+   "today-4.5": "over_full",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "6bbc2163:4": {
+   "today-4.5": "ok",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "wrong_item"
+  },
+  "c518221e:10": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "34eb553a:10": {
+   "today-4.5": "ok",
+   "raw-4.5": "over_full",
+   "raw-5.5": "wrong_item"
+  },
+  "a1133734:24": {
+   "today-4.5": "over_full",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "c518221e:24": {
+   "today-4.5": "over_full",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "6f57da6e:6": {
+   "today-4.5": "over_full",
+   "raw-4.5": "ok",
+   "raw-5.5": "wrong_item"
+  },
+  "fc5eb050:12": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "under_full"
+  },
+  "fc5eb050:20": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "cdb8ca52:14": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "6f57da6e:14": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "3fdb20e8:24": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "over_full"
+  },
+  "6f57da6e:2": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "6f57da6e:8": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "wrong_item"
+  },
+  "70a06d70:6": {
+   "today-4.5": "ok",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "wrong_item"
+  },
+  "a14ca044:6": {
+   "today-4.5": "ok",
+   "raw-4.5": "over_full",
+   "raw-5.5": "wrong_item"
+  },
+  "52951de8:22": {
+   "today-4.5": "ok",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "wrong_item"
+  },
+  "11414946:12": {
+   "today-4.5": "ok",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "wrong_item"
+  },
+  "7f6c40ea:14": {
+   "today-4.5": "ok",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "wrong_item"
+  },
+  "7f6c40ea:20": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "442e37ff:18": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "ok"
+  },
+  "a14ca044:14": {
+   "today-4.5": "wrong_item",
+   "raw-4.5": "over_full",
+   "raw-5.5": "ok"
+  },
+  "01b805d6:26": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "7f6c40ea:16": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "wrong_item"
+  },
+  "527217df:6": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "c82e7bd7:28": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "over_full"
+  },
+  "854fc080:14": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "ok"
+  },
+  "dd74b01b:12": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "over_full"
+  },
+  "854fc080:6": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "1f6007fd:12": {
+   "today-4.5": "ok",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "ok"
+  },
+  "5c3d2c21:22": {
+   "today-4.5": "wrong_item",
+   "raw-4.5": "under_full",
+   "raw-5.5": "ok"
+  },
+  "a2a5921b:18": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "over_full"
+  },
+  "e08c362a:14": {
+   "today-4.5": "wrong_item",
+   "raw-4.5": "ok",
+   "raw-5.5": "wrong_item"
+  },
+  "7e69eda5:6": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "over_full"
+  },
+  "3376e5fe:8": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "084e7508:18": {
+   "today-4.5": "wrong_item",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "e08c362a:10": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "eb8d7576:6": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "over_full"
+  },
+  "e08c362a:8": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "c355c1fd:14": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "0150f744:12": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "wrong_item"
+  },
+  "053db5c8:10": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "c355c1fd:8": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "2f9a71e3:2": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "52904ce7:20": {
+   "today-4.5": "none_where_held",
+   "raw-4.5": "ok",
+   "raw-5.5": "wrong_item"
+  },
+  "065501fe:4": {
+   "today-4.5": "wrong_item",
+   "raw-4.5": "over_full",
+   "raw-5.5": "ok"
+  },
+  "065501fe:14": {
+   "today-4.5": "wrong_item",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "wrong_item"
+  },
+  "bd5a333c:2": {
+   "today-4.5": "ok",
+   "raw-4.5": "under_full",
+   "raw-5.5": "under_full"
+  },
+  "69441a66:2": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "under_full"
+  },
+  "cee7d399:14": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "cee7d399:16": {
+   "today-4.5": "over_full",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "316baba1:14": {
+   "today-4.5": "ok",
+   "raw-4.5": "over_full",
+   "raw-5.5": "ok"
+  },
+  "ef7bed14:8": {
+   "today-4.5": "ok",
+   "raw-4.5": "over_full",
+   "raw-5.5": "over_full"
+  },
+  "a7d9f44e:12": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "51ad0cb8:18": {
+   "today-4.5": "ok",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "ok"
+  },
+  "cee7d399:24": {
+   "today-4.5": "over_full",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "ok"
+  },
+  "a7d9f44e:20": {
+   "today-4.5": "over_full",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "4e91d638:6": {
+   "today-4.5": "under_full",
+   "raw-4.5": "ok",
+   "raw-5.5": "under_full"
+  },
+  "51ad0cb8:20": {
+   "today-4.5": "wrong_item",
+   "raw-4.5": "under_full",
+   "raw-5.5": "wrong_item"
+  },
+  "3ac59856:22": {
+   "today-4.5": "under_full",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "e6432db0:24": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "wrong_item"
+  },
+  "3ac59856:10": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "316baba1:24": {
+   "today-4.5": "over_full",
+   "raw-4.5": "over_full",
+   "raw-5.5": "over_full"
+  },
+  "316baba1:8": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "3f928012:8": {
+   "today-4.5": "ok",
+   "raw-4.5": "wrong_item",
+   "raw-5.5": "wrong_item"
+  },
+  "316baba1:16": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "a7d9f44e:16": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "061ef630:14": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "ok"
+  },
+  "e6432db0:6": {
+   "today-4.5": "ok",
+   "raw-4.5": "ok",
+   "raw-5.5": "wrong_item"
+  }
+ }
+}
