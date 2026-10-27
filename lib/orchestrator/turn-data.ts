@@ -1272,7 +1272,8 @@ function restateRules(plan: ModelPlan, d: DataDecisions, groupOrigin: ReadonlyMa
     if (unmatched.includes(r.id) || recent.includes(r.id)) return [];
     // (the pointer rule reads `figureAsked` below)
     const e = exhibitOf(r.id);
-    if (!e || figureAsked(r.id)) return [r];
+    // `restatePointerOff` (measurement only, Lorenzo 27 Oct): the line instead of the exhibit pointer, the rest of 4.1 unchanged.
+    if (!e || figureAsked(r.id) || switchOn(caseData, 'restatePointerOff')) return [r];
     pointed.push(r.id);
     return [{ ...r, pointer: /[.!?]$/.test(e.summary!.trim()) ? e.summary!.trim() : `${e.summary!.trim()}.` }];
   });

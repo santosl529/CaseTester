@@ -49,7 +49,9 @@ export const PHASE1_SWITCHES = [
 // both graded false refusals are fixed by 4.2 and 4.5 acting alone. Its harm is the realism regression: a true
 // "I don't have that" becomes a promise later withdrawn as "we won't get to it", which the bank records as a
 // fault in its own right. Nameable for evidence, never on by default.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck'] as const;
+// `restatePointerOff` (27 Oct): measurement only — 4.1's exhibit-pointer branch off (the line said instead), to weigh
+// the batch-39 pointer regression before S6. Never in a preset.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff'] as const;
 // Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
 // step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
 // structures would decide and say, and change nothing the candidate hears.
