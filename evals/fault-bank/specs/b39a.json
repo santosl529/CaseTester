@@ -52,7 +52,7 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for the length of the royalty term — the entry options table doesn't hold it. Also a D9 ask (wave39-grading.md): the royalty term is not held — a true refusal was owed (Lorenzo, 27 Oct).",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for the length of the royalty term — the entry options table doesn't hold it. Also a D9 ask (wave39-grading.md): the royalty term is not held — a true refusal was owed (Lorenzo, 27 Oct). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
   "a": [
    {
@@ -63,7 +63,8 @@
    {
     "kind": "refusal",
     "about": "royalty|term",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    },
    {
     "kind": "spoke",
@@ -108,13 +109,14 @@
   "turn": 16,
   "sev": "borderline",
   "cls": "ignored_ask",
-  "note": "\"is the $80 million flat across all five years, or does it ramp?\" — the case holds no ramp profile of the selling costs; the turn gave the entry-options pointer and no word on the ask (D9). A true refusal was owed.",
+  "note": "\"is the $80 million flat across all five years, or does it ramp?\" — the case holds no ramp profile of the selling costs; the turn gave the entry-options pointer and no word on the ask (D9). A true refusal was owed. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct): the D9 silences of wave39-grading.md §3/§4 — severity borderline as graded there",
   "a": [
    {
     "kind": "refusal",
     "about": "ramp|flat|\\$80",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    },
    {
     "kind": "spoke",

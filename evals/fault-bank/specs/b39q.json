@@ -190,13 +190,14 @@
   "turn": 26,
   "sev": "borderline",
   "cls": "ignored_ask",
-  "note": "\"whether those 150 are genuinely lost Pro buyers or ones who'd have churned anyway?\" — why_pro_fell arrived, but whether the 150 would have churned anyway is not held (D9). A true refusal was owed for that part.",
+  "note": "\"whether those 150 are genuinely lost Pro buyers or ones who'd have churned anyway?\" — why_pro_fell arrived, but whether the 150 would have churned anyway is not held (D9). A true refusal was owed for that part. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct): the D9 silences of wave39-grading.md §3/§4 — severity borderline as graded there",
   "a": [
    {
     "kind": "refusal",
     "about": "churn|150|lost Pro",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    },
    {
     "kind": "spoke",

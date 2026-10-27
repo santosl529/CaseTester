@@ -377,12 +377,13 @@
   "turn": 14,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "Elasticity and competitor pricing refused truly (the case holds neither).",
+  "note": "Elasticity and competitor pricing refused truly (the case holds neither). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "elasticity|competitor pricing",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -395,12 +396,13 @@
   "turn": 12,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"I don't have waste or spoilage data by store.\" True.",
+  "note": "\"I don't have waste or spoilage data by store.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "waste|spoilage",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -413,12 +415,13 @@
   "turn": 10,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"I don't have customer price elasticity.\" True.",
+  "note": "\"I don't have customer price elasticity.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "elasticity",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,

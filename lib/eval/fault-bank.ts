@@ -22,7 +22,10 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('release'), item: z.string(), must: z.boolean(), scope: Scope.optional() }).strict(),
   z.object({ kind: z.literal('exhibit'), exhibit: z.string(), must: z.boolean(), scope: Scope.optional() }).strict(),
   // A refusal ("I don't have…", "that's not something I have") — optionally one whose words match `about`.
-  z.object({ kind: z.literal('refusal'), about: z.string().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
+  // `acceptAssume` (Lorenzo, 27 Oct; refusalAssume): the record's intent is "no false claim; the candidate learns it isn't
+  // available", so an assumption line about it ("On X, I'd make a reasonable assumption.") counts as the refusal, and so
+  // does "For anything finer, make an assumption." on a turn that gave the coarse line.
+  z.object({ kind: z.literal('refusal'), about: z.string().optional(), must: z.boolean(), scope: Scope.optional(), acceptAssume: z.boolean().optional() }).strict(),
   // A restatement of an item already out ("As I mentioned", "Repeating what I said before", an exhibit restated).
   // `doubled`: the item's own line said TWICE in the one turn (the model's copy plus code's) — the fault in the
   // b34l doubled-line records, which removing code's copy alone cannot clear (critical 2 of the Stream 1 review).
@@ -45,7 +48,8 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
   // `wontResolves` (Lorenzo, 27 Oct, session-1 ruling 2, the undeclared asks): a later "We won't get to <it> today."
   // also resolves the deferral — the ask got a word and an end, though the case never came back to it.
   z.object({ kind: z.literal('answered'), item: z.string().optional(), about: z.string().optional(),
-    accept: z.array(z.enum(['release', 'refusal', 'deferral'])).min(1).optional(), wontResolves: z.boolean().optional(), must: z.boolean(), scope: Scope.optional() }).strict(),
+    accept: z.array(z.enum(['release', 'refusal', 'deferral'])).min(1).optional(), wontResolves: z.boolean().optional(), must: z.boolean(), scope: Scope.optional(),
+    acceptAssume: z.boolean().optional() }).strict(),   // a refusal accepted: an assumption line counts as one (refusalAssume)
   // The turn says something of its own: a delivered sentence that is neither a refusal nor a deferral — so silence,
   // a neutral "Go on." and a refuse-everything turn all fail. With `question`, that sentence asks something.
   //

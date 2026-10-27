@@ -25,7 +25,7 @@
   "turn": 12,
   "sev": "serious",
   "cls": "unasked_release",
-  "note": "\"how many flights a day the entrant runs on each route\" — the check mapped it to 8 items as full; the only one not out went: new_routes_cost_flights (Exhibit 3 data), handing her the case's fix (exit + redeploy 5,000 flights); she took it at t13. The entrant's flights-a-day got no \"I don't have\". Lorenzo (21 Oct): serious (hands over the solution).",
+  "note": "\"how many flights a day the entrant runs on each route\" — the check mapped it to 8 items as full; the only one not out went: new_routes_cost_flights (Exhibit 3 data), handing her the case's fix (exit + redeploy 5,000 flights); she took it at t13. The entrant's flights-a-day got no \"I don't have\". Lorenzo (21 Oct): serious (hands over the solution). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "batch-36-larkspur/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked or wrong-mapping releases)",
   "a": [
    {
@@ -36,7 +36,8 @@
    {
     "kind": "refusal",
     "about": "flights|a day|frequency",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -149,7 +150,7 @@
   "turn": 20,
   "sev": "firm",
   "cls": "restatement",
-  "note": "\"What I'd want to know is the launch cost — marketing, station setup, crew basing\" → \"As the exhibit shows: Variable cost on the new routes …\" (check: new_routes_cost_flights full). Launch costs aren't held; a refusal was owed. Round 6 audit fix: \"launch costs\" refused.",
+  "note": "\"What I'd want to know is the launch cost — marketing, station setup, crew basing\" → \"As the exhibit shows: Variable cost on the new routes …\" (check: new_routes_cost_flights full). Launch costs aren't held; a refusal was owed. Round 6 audit fix: \"launch costs\" refused. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "restatement",
@@ -159,7 +160,8 @@
    {
     "kind": "refusal",
     "about": "launch cost",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -194,7 +196,7 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"whether Larkspur's 75% would hold at, say, $140?\" got a restatement of Lakeport's 75% (message classifier mapping); no \"I don't have how load factor would respond to a fare rise\". Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1).",
+  "note": "\"whether Larkspur's 75% would hold at, say, $140?\" got a restatement of Lakeport's 75% (message classifier mapping); no \"I don't have how load factor would respond to a fare rise\". Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "answered",
@@ -204,7 +206,8 @@
      "deferral"
     ],
     "wontResolves": true,
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -217,7 +220,7 @@
   "turn": 20,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"Do we have a fixed-cost breakdown — how much of the $20M is aircraft leases we could defer?\" → aircraft_leases (the defer half), no \"I don't have the split of the $20M\". Also \"How do you read those numbers?\" after a line with no figures. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "note": "\"Do we have a fixed-cost breakdown — how much of the $20M is aircraft leases we could defer?\" → aircraft_leases (the defer half), no \"I don't have the split of the $20M\". Also \"How do you read those numbers?\" after a line with no figures. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "answered",
@@ -226,7 +229,8 @@
      "refusal",
      "deferral"
     ],
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -414,12 +418,13 @@
   "turn": 4,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"can I get departures and average fare for FY2023 versus FY2025?\" — departures came (routes_schedule + Exhibit 1); the fare got nothing (no network average held; route fares came t6 and t8).",
+  "note": "\"can I get departures and average fare for FY2023 versus FY2025?\" — departures came (routes_schedule + Exhibit 1); the fare got nothing (no network average held; route fares came t6 and t8). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "fare",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -432,12 +437,13 @@
   "turn": 12,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "One of four sub-asks without a word: \"how many seats a day have they added\" (not held; the model never declared it).",
+  "note": "One of four sub-asks without a word: \"how many seats a day have they added\" (not held; the model never declared it). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "seats|a day",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": false,
@@ -470,7 +476,7 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Fuel prices have been roughly flat over the period. I'll come back to fuel and crew rate changes between the years shortly.\" — a deferral re-naming what it just answered (unit_costs delivered at t10, not hollow). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the fuel answer the turn gave must still be there: removing the re-naming deferral cannot be achieved by removing the answer.",
+  "note": "\"Fuel prices have been roughly flat over the period. I'll come back to fuel and crew rate changes between the years shortly.\" — a deferral re-naming what it just answered (unit_costs delivered at t10, not hollow). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the fuel answer the turn gave must still be there: removing the re-naming deferral cannot be achieved by removing the answer. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "deferral",
@@ -489,7 +495,8 @@
      "release",
      "refusal"
     ],
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -540,12 +547,13 @@
   "turn": 8,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"I don't have total passengers flown and average fare per passenger.\" True (no network totals of either).",
+  "note": "\"I don't have total passengers flown and average fare per passenger.\" True (no network totals of either). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "passengers",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -558,12 +566,13 @@
   "turn": 12,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"I'm afraid I don't have quarter-by-quarter fares and passengers since entry.\" True; the fare and cost halves got competitor_costs.",
+  "note": "\"I'm afraid I don't have quarter-by-quarter fares and passengers since entry.\" True; the fare and cost halves got competitor_costs. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "quarter",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    },
    {
     "kind": "release",

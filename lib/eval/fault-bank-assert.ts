@@ -33,6 +33,8 @@ export type CaseView = { lines: ItemLines; exhibits?: Record<string, readonly st
   /** For the lint's L3: an item's own words (label, spoken name, line) and an exhibit's title. */
   words?: Record<string, readonly string[]>; exhibitTitles?: Record<string, string>; caseNames?: string[] };
 
+const ASSUME = poolPattern('assume');
+const ASSUME_FINER = poolPattern('assume_finer');
 const REFUSE = new RegExp(`\\b(?:I don't have|I do not have|I don’t have|isn't something I have|not something (?:I|we) have|we don't have|that's not in the case|I have no\\b[^.?!]{0,60}\\bto give you)\\b|${poolPattern('refuse').source}`, 'i');
 const PROBE = new RegExp(`${poolPattern('probe_got_to', 'probe_calc', 'probe_there').source}|\\b(?:walk me through|talk me through|take me through|show me,? (?:step by step,? )?(?:how|that|the|your)|what (?:steps|were the steps|got you)|how did you (?:get|arrive|do|calculate|compute|size|work|derive|come up|land|reach|build|figure|separate|count)|where (?:did|does) (?:that|the|this|your) [^?]{0,80}come from|(?:which|what) [^?]{0,100}did you (?:use|apply|read|count|divide|multiply|add|subtract|take|pull|separate)|(?:is|was) (?:that|it) (?:built|based|resting) on|(?:does|did) (?:that|it) rest on|resting on\\?)\\b`, 'i');
 // A checker-style probe: an opener quoting their figure, then a question ("Earlier you said “19%” — how does that fit …?").
@@ -98,6 +100,9 @@ export type TurnReading = {
   released: Set<string>;
   exhibits: Set<string>;
   refusals: string[];
+  /** Assumption lines (`refusalAssume`): "On X, I'd make a reasonable assumption."; `finer`: "For anything finer, …". */
+  assumptions: string[];
+  finer: boolean;
   probes: { sentence: string; segment: string }[];
   corrections: string[];
   deferrals: string[];
@@ -133,6 +138,8 @@ export function readTurn(t: BankTurn, view: CaseView): TurnReading {
     released: new Set(t.delivered.flatMap(s => [...s.revealIds, ...(s.exhibitId ? view.exhibits?.[s.exhibitId] ?? [] : [])])),
     exhibits: new Set(t.delivered.flatMap(s => s.exhibitId ? [s.exhibitId] : [])),
     refusals: sentences.filter(s => REFUSE.test(s)),
+    assumptions: sentences.filter(s => ASSUME.test(s)),
+    finer: sentences.some(s => ASSUME_FINER.test(s)),
     probes,
     corrections: sentences.filter(s => CORRECT_POOL.test(s) || (NOT_X.test(s) && !/\?/.test(s)) || (checkerCorrected && CODE_ABOUT.test(s) && !/\?/.test(s))),
     deferrals: sentences.filter(s => DEFER.test(s)),
@@ -151,7 +158,8 @@ function happened(a: Assertion, r: TurnReading, t: BankTurn, next: BankTurn | un
   switch (a.kind) {
     case 'release': return r.released.has(a.item);
     case 'exhibit': return r.exhibits.has(a.exhibit);
-    case 'refusal': return r.refusals.some(s => !a.about || re(a.about).test(s));
+    case 'refusal': return r.refusals.some(s => !a.about || re(a.about).test(s))
+      || (a.acceptAssume === true && (r.assumptions.some(s => !a.about || re(a.about).test(s)) || (r.finer && (r.released.size > 0 || r.restatedItems.size > 0))));
     case 'restatement': return a.doubled === true
       ? (a.item ? r.doubledItems.has(a.item) : r.doubledItems.size > 0)
       : a.item ? r.restatedItems.has(a.item) : (r.restatementLead || r.restatedItems.size > 0);
@@ -193,7 +201,8 @@ function answeredInWindow(a: Extract<Assertion, { kind: 'answered' }>, ns: numbe
   const seen = ns.filter(n => byT.has(n));
   const read = new Map(seen.map(n => [n, readTurn(byT.get(n)!, view)]));
   const released = (n: number) => !!a.item && read.get(n)!.released.has(a.item);
-  const refused = (n: number) => read.get(n)!.refusals.some(x => !re || re.test(x));
+  const refused = (n: number) => { const r = read.get(n)!; return r.refusals.some(x => !re || re.test(x))
+    || (a.acceptAssume === true && (r.assumptions.some(x => !re || re.test(x)) || (r.finer && (r.released.size > 0 || r.restatedItems.size > 0)))); };
   // A deferral of the record's own item counts however code worded it (bank fix, 26 Oct, Lorenzo's ruling 1).
   // §4.2: "Assert outcomes, not wording." Code words a deferral from the ITEM's label, not the candidate's
   // words — b36l Marcus t6's ask for "cost per seat mile" is deferred as "wages and other costs per flight",

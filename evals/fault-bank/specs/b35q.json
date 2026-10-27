@@ -80,7 +80,7 @@
   "turn": 12,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"I'll come back to upgrade rates for later cohorts shortly.\" The check mapped it to starter_cohort, cohort_notes, upgrade_timing; the case holds only the January–March cohort; nothing came back.",
+  "note": "\"I'll come back to upgrade rates for later cohorts shortly.\" The check mapped it to starter_cohort, cohort_notes, upgrade_timing; the case holds only the January–March cohort; nothing came back. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "deferral",
@@ -90,7 +90,8 @@
    {
     "kind": "refusal",
     "about": "later cohorts|cohort",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -103,7 +104,7 @@
   "turn": 18,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"Do we have the cohort beyond month 12 — months 18 or 24?\" → \"On starter cohort beyond month 12: we'll get there in a bit.\" Exhibit 2 (on screen since t14) carries the coarse answer in its note (cancellations steady; very few upgrade after month 12); nothing more was said. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. The base swaps the hollow deferral for a restatement of the cohort row, which answers nothing: a class swap is not a fix.",
+  "note": "\"Do we have the cohort beyond month 12 — months 18 or 24?\" → \"On starter cohort beyond month 12: we'll get there in a bit.\" Exhibit 2 (on screen since t14) carries the coarse answer in its note (cancellations steady; very few upgrade after month 12); nothing more was said. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. The base swaps the hollow deferral for a restatement of the cohort row, which answers nothing: a class swap is not a fix. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "deferral",
@@ -114,7 +115,8 @@
     "kind": "answered",
     "item": "cohort_notes",
     "about": "month 12|months 18|beyond month 12",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -127,7 +129,7 @@
   "turn": 28,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"Hold that thought on week-by-week sign-ups within the price test — we'll come back to it shortly.\" The check mapped price_test_results and marked it out of scope; code still deferred. Never answered. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "note": "\"Hold that thought on week-by-week sign-ups within the price test — we'll come back to it shortly.\" The check mapped price_test_results and marked it out of scope; code still deferred. Never answered. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "answered",
@@ -136,7 +138,8 @@
      "refusal",
      "deferral"
     ],
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -177,7 +180,7 @@
   "turn": 12,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"That's for a little later — we'll come back to churn for upgraded customers measured from their upgrade date.\" (mapped upgrade_timing, cohort_notes). At t8 the interviewer had already said \"upgraded customers then behave like Pro customers\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "\"That's for a little later — we'll come back to churn for upgraded customers measured from their upgrade date.\" (mapped upgrade_timing, cohort_notes). At t8 the interviewer had already said \"upgraded customers then behave like Pro customers\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "deferral",
@@ -188,7 +191,8 @@
     "kind": "answered",
     "item": "upgrade_timing",
     "about": "upgraded customers|upgrade date",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -246,7 +250,7 @@
   "turn": 4,
   "sev": "borderline",
   "cls": "other",
-  "note": "Starter cancellation rates deferred three times (t2 \"I'll come back to…\", t4 \"That's for a little later…\", t6) before the cohort came at t8. Delivered, so not hollow (the b29 Marcus same-item stall). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: his Starter-cancellation ask is released or refused ON this turn (it came at t8 after three deferrals), and `answered` is anchored at the record's turn, so a late release no longer greens it.",
+  "note": "Starter cancellation rates deferred three times (t2 \"I'll come back to…\", t4 \"That's for a little later…\", t6) before the cohort came at t8. Delivered, so not hollow (the b29 Marcus same-item stall). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: his Starter-cancellation ask is released or refused ON this turn (it came at t8 after three deferrals), and `answered` is anchored at the record's turn, so a late release no longer greens it. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "deferral",
@@ -269,7 +273,8 @@
      "release",
      "refusal"
     ],
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,

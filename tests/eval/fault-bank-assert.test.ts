@@ -289,3 +289,23 @@ describe('bankMoves — the compare behind `fault-bank.ts compare --against=`', 
     ]);
   });
 });
+
+describe('acceptAssume (refusal wording, 27 Oct): an assumption line counts as the owed refusal', () => {
+  const t = (s: string) => [turn(24, [seg(s, 'data')])];
+  it('counts an assumption line about the ask only with acceptAssume', () => {
+    const line = 'On price elasticity on the four uncontested routes, I\'d make a reasonable assumption.';
+    expect(evaluateRecord(record({ assertions: [{ kind: 'refusal', about: 'elasticity', must: true, acceptAssume: true }] }), t(line), NONE).pass).toBe(true);
+    expect(evaluateRecord(record({ assertions: [{ kind: 'refusal', about: 'elasticity', must: true }] }), t(line), NONE).pass).toBe(false);
+  });
+  it('counts "for anything finer" only beside a coarse line given in the turn', () => {
+    const finer = 'For anything finer, make an assumption.';
+    const a = [{ kind: 'refusal' as const, about: 'quarter', must: true, acceptAssume: true }];
+    expect(evaluateRecord(record({ assertions: a }), [turn(24, [seg(OTHER, 'data', ['route_results_other']), seg(finer, 'data')])], LINES).pass).toBe(true);
+    expect(evaluateRecord(record({ assertions: a }), t(finer), NONE).pass).toBe(false);
+  });
+  it('never makes an assumption line a refusal for a must-not', () => {
+    const line = 'On fuel cost per gallon, I\'d make a reasonable assumption.';
+    expect(evaluateRecord(record({ assertions: [{ kind: 'refusal', about: 'fuel', must: false }] }), t(line), NONE).pass).toBe(true);
+  });
+  it('the pools are the live ones', () => { expect(PHRASE_POOLS.assume.length).toBe(5); });
+});

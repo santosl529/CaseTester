@@ -126,13 +126,14 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "ignored_ask",
-  "note": "\"how much of our $9,000 variable cost is contractually fixed in the short run — specifically crew?\" — not held; the turn pointed to the Lakeport flight table (which has the cost lines, not their contract terms) and no word on the ask (D9). A true refusal was owed.",
+  "note": "\"how much of our $9,000 variable cost is contractually fixed in the short run — specifically crew?\" — not held; the turn pointed to the Lakeport flight table (which has the cost lines, not their contract terms) and no word on the ask (D9). A true refusal was owed. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct): the D9 silences of wave39-grading.md §3/§4 — severity borderline as graded there",
   "a": [
    {
     "kind": "refusal",
     "about": "crew|contract|fixed in the short run",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    },
    {
     "kind": "spoke",

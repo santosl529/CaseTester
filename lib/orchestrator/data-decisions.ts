@@ -753,8 +753,10 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   if (d.exhibit && !d.exhibitLast) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   const proper: ReadonlySet<string> = d.properWords ? new Set(d.properWords.map(w => w.toLowerCase())) : NO_PROPER;
   if (d.assumes !== undefined || d.assumeFiner) {
-    // `refusalAssume`: release → deferral → assumption → assertive refusal.
-    if (d.assumeFiner) parts.push({ kind: 'refusals', ids: [], text: line('assume_finer', uses, seed) });
+    // `refusalAssume`: release → deferral → assumption → assertive refusal. "For anything finer" follows the line that
+    // carries the coarse figure — the exhibit's handover when one goes out last (Lorenzo, 27 Oct), else the releases.
+    const finerAfterExhibit = Boolean(d.assumeFiner && d.exhibit && d.exhibitLast);
+    if (d.assumeFiner && !finerAfterExhibit) parts.push({ kind: 'refusals', ids: [], text: line('assume_finer', uses, seed) });
     if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and', false, proper), uses, seed) });
     if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed, proper) });
     for (const w of d.wontGetToNamed ?? []) parts.push({ kind: 'defers', ids: [], text: phrase('wont_get_to', joinWhat([w], 'and', false, proper), uses, seed) });
@@ -763,6 +765,7 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
     if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });
     if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and', false, proper), uses, seed) });
     if (d.exhibit && d.exhibitLast) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
+    if (finerAfterExhibit) parts.push({ kind: 'refusals', ids: [], text: line('assume_finer', uses, seed) });
     return parts;
   }
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });

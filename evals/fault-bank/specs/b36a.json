@@ -6,7 +6,7 @@
   "turn": 12,
   "sev": "firm",
   "cls": "wrong_release",
-  "note": "His t11 \"what share of the 200,000 are currently on an advanced therapy versus untreated for severity?\" — the check mapped funnel_rates and peak_share_forecast and code released \"Aldermoor's forecast is that Kelvexa reaches 20% …\" (Kelvexa's future share, not current advanced-therapy use); no \"I don't have\". The case doesn't hold that share. Lorenzo (21 Oct): firm (next data in sequence).",
+  "note": "His t11 \"what share of the 200,000 are currently on an advanced therapy versus untreated for severity?\" — the check mapped funnel_rates and peak_share_forecast and code released \"Aldermoor's forecast is that Kelvexa reaches 20% …\" (Kelvexa's future share, not current advanced-therapy use); no \"I don't have\". The case doesn't hold that share. Lorenzo (21 Oct): firm (next data in sequence). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "batch-36-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked or wrong-mapping releases)",
   "a": [
    {
@@ -17,7 +17,8 @@
    {
     "kind": "refusal",
     "about": "advanced therapy",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -30,12 +31,13 @@
   "turn": 14,
   "sev": "firm",
   "cls": "bare_partial",
-  "note": "\"Do we have Nimbrel's patent expiry and any oral competitors in late-stage trials?\" → \"Kelvexa is protected by patents until 2038. I don't have late-stage oral competitors.\" The qualifier guard treated patents as a full answer to Nimbrel's expiry (no entity qualifier); Nimbrel's expiry got no word.",
+  "note": "\"Do we have Nimbrel's patent expiry and any oral competitors in late-stage trials?\" → \"Kelvexa is protected by patents until 2038. I don't have late-stage oral competitors.\" The qualifier guard treated patents as a full answer to Nimbrel's expiry (no entity qualifier); Nimbrel's expiry got no word. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "Nimbrel",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -48,12 +50,13 @@
   "turn": 6,
   "sev": "firm",
   "cls": "bare_partial",
-  "note": "\"Do we have Kelvexa's current European net price per patient per year? … And what are the EU manufacturing costs per unit?\" — refusal_covered turned the refusal into kelvexa_pricing (US) with rest null; no \"I don't have Kelvexa's European net price.\" He noticed at t15.",
+  "note": "\"Do we have Kelvexa's current European net price per patient per year? … And what are the EU manufacturing costs per unit?\" — refusal_covered turned the refusal into kelvexa_pricing (US) with rest null; no \"I don't have Kelvexa's European net price.\" He noticed at t15. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "European",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -66,7 +69,7 @@
   "turn": 24,
   "sev": "firm",
   "cls": "restatement",
-  "note": "\"Do we have the $80 million split by rep cost versus market access?\" → \"As the exhibit shows: Option A is …\" (check → option_a). The case holds no split; \"I don't have the split of the $80 million\" was owed (Lorenzo, batch 34: a restatement as the answer is firm).",
+  "note": "\"Do we have the $80 million split by rep cost versus market access?\" → \"As the exhibit shows: Option A is …\" (check → option_a). The case holds no split; \"I don't have the split of the $80 million\" was owed (Lorenzo, batch 34: a restatement as the answer is firm). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "restatement",
@@ -76,7 +79,8 @@
    {
     "kind": "refusal",
     "about": "split",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -89,12 +93,13 @@
   "turn": 6,
   "sev": "firm",
   "cls": "restatement",
-  "note": "\"how the eligible pool has grown over the last few years?\" → us_adults + \"As I mentioned: In the patient funnel …\" (check → funnel_rates); no \"I don't have growth in the eligible pool\". The guard's period grammar misses \"grown … over the last few years\". Marcus t10 got the same ask refused truly.",
+  "note": "\"how the eligible pool has grown over the last few years?\" → us_adults + \"As I mentioned: In the patient funnel …\" (check → funnel_rates); no \"I don't have growth in the eligible pool\". The guard's period grammar misses \"grown … over the last few years\". Marcus t10 got the same ask refused truly. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "grow|growth",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -107,7 +112,7 @@
   "turn": 14,
   "sev": "firm",
   "cls": "unasked_offer",
-  "note": "\"I can share Kelvexa US pricing, rebates and time on treatment if you'd like. With that in hand, what would you conclude …\" — an offer, then a question assuming the data. Graded borderline; set firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (named for Quillpath Marcus t10; applied to the b36–b38 offers here — judgement call). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the half of his ask the case does not hold — late-stage oral competitors — gets a refusal, or a deferral that resolves.",
+  "note": "\"I can share Kelvexa US pricing, rebates and time on treatment if you'd like. With that in hand, what would you conclude …\" — an offer, then a question assuming the data. Graded borderline; set firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (named for Quillpath Marcus t10; applied to the b36–b38 offers here — judgement call). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the half of his ask the case does not hold — late-stage oral competitors — gets a refusal, or a deferral that resolves. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "batch-36-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
   "a": [
    {
@@ -126,7 +131,8 @@
      "refusal",
      "deferral"
     ],
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -139,7 +145,7 @@
   "turn": 8,
   "sev": "firm",
   "cls": "unasked_offer",
-  "note": "\"I can share Kelvexa's forecast peak share if you'd like. With that in hand, how does the forecast peak share compare …\". Graded borderline; firm under the 21 Oct offer ruling (judgement call, as Raj t14). Doubt: the turn record shows the model declared peak_share_forecast as a release of his ask. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: his ask for the leading US competitors' share gets `nimbrel`, a refusal about it, or a deferral that resolves.",
+  "note": "\"I can share Kelvexa's forecast peak share if you'd like. With that in hand, how does the forecast peak share compare …\". Graded borderline; firm under the 21 Oct offer ruling (judgement call, as Raj t14). Doubt: the turn record shows the model declared peak_share_forecast as a release of his ask. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: his ask for the leading US competitors' share gets `nimbrel`, a refusal about it, or a deferral that resolves. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "batch-36-aldermoor/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
   "a": [
    {
@@ -155,7 +161,8 @@
     "kind": "answered",
     "item": "nimbrel",
     "about": "competitor|share",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -168,7 +175,7 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "other",
-  "note": "The guard's refusal \"I don't have late-stage oral competitors.\" — true, but a bare noun phrase that reads as \"there are none\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the refusal must still be about late-stage oral competitors, so dropping the bare noun phrase cannot be achieved by dropping the refusal.",
+  "note": "The guard's refusal \"I don't have late-stage oral competitors.\" — true, but a bare noun phrase that reads as \"there are none\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the refusal must still be about late-stage oral competitors, so dropping the bare noun phrase cannot be achieved by dropping the refusal. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "says",
@@ -182,7 +189,8 @@
    {
     "kind": "refusal",
     "about": "oral competitor|late-stage",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -353,12 +361,13 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"how the diagnosis rate has been trending over the last few years?\" got diagnosis_gap with no \"I don't have the trend\"; the model named the item, so neither the check nor the guard ran.",
+  "note": "\"how the diagnosis rate has been trending over the last few years?\" got diagnosis_gap with no \"I don't have the trend\"; the model named the item, so neither the check nor the guard ran. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "trend",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -510,12 +519,13 @@
   "turn": 4,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "scope_coarse: \"I don't have the trend in the treated population since 2022.\" with Exhibit 1 (the coarse item given, the finer cut refused beside it).",
+  "note": "scope_coarse: \"I don't have the trend in the treated population since 2022.\" with Exhibit 1 (the coarse item given, the finer cut refused beside it). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "trend",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    },
    {
     "kind": "exhibit",
@@ -533,12 +543,13 @@
   "turn": 10,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"Year-over-year growth in the eligible pool — that's not something I have.\" True.",
+  "note": "\"Year-over-year growth in the eligible pool — that's not something I have.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "growth",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -551,12 +562,13 @@
   "turn": 10,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"I don't have the European share curve.\" True.",
+  "note": "\"I don't have the European share curve.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "European",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,

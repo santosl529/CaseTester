@@ -29,3 +29,16 @@ describe('the data line with assumptions: release → deferral → assumption �
     expect(renderDataLines(d, 'seed')[0]).toMatch(/waste data/);
   });
 });
+
+describe('"for anything finer" follows the line that carries the coarse figure', () => {
+  it('after the exhibit handover when the exhibit goes out last', () => {
+    const d: DataDecisions = { ...base, exhibit: { id: 'exhibit-1', title: 'The patient funnel', covers: ['funnel_rates'] }, exhibitLast: true, assumeFiner: true, assumes: [] };
+    const lines = renderDataLines(d, 'seed');
+    expect(lines.findIndex(l => /exhibit/i.test(l))).toBeLessThan(lines.findIndex(l => /finer/i.test(l)));
+  });
+  it('after the releases when no exhibit goes out', () => {
+    const d: DataDecisions = { ...base, releases: [{ id: 'a', value: 'Chip sales are flat.', earlier: false }], assumeFiner: true, assumes: [] };
+    const lines = renderDataLines(d, 'seed');
+    expect(lines.findIndex(l => /flat/.test(l))).toBeLessThan(lines.findIndex(l => /finer/i.test(l)));
+  });
+});

@@ -29,13 +29,14 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "ignored_ask",
-  "note": "\"do we have a bag count for the $300 million chip business?\" — not held; the turn said \"I gave you why now a moment ago.\" and no word on the bag count (D9). A true refusal was owed.",
+  "note": "\"do we have a bag count for the $300 million chip business?\" — not held; the turn said \"I gave you why now a moment ago.\" and no word on the bag count (D9). A true refusal was owed. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct): the D9 silences of wave39-grading.md §3/§4 — severity borderline as graded there",
   "a": [
    {
     "kind": "refusal",
     "about": "bag count|bags|chip",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    },
    {
     "kind": "spoke",

@@ -113,12 +113,13 @@
   "turn": 6,
   "sev": "firm",
   "cls": "bare_partial",
-  "note": "\"Do we have the split of Starter sign-ups by source — paid versus organic?\" → signup_channels (the sign-up process), not the split, which the case doesn't hold; \"I don't have the paid versus organic split\" was owed. The model named the item; no check, no guard. Phase 2 S0 (27 Oct): `about` widened to the candidate's own cut — \"I don't have the split of Starter sign-ups by source.\" refuses exactly the split he asked for (\"by source — paid versus organic\"); the narrower pattern failed a fixed turn. Proposed, for Lorenzo's confirmation.",
+  "note": "\"Do we have the split of Starter sign-ups by source — paid versus organic?\" → signup_channels (the sign-up process), not the split, which the case doesn't hold; \"I don't have the paid versus organic split\" was owed. The model named the item; no check, no guard. Phase 2 S0 (27 Oct): `about` widened to the candidate's own cut — \"I don't have the split of Starter sign-ups by source.\" refuses exactly the split he asked for (\"by source — paid versus organic\"); the narrower pattern failed a fixed turn. Proposed, for Lorenzo's confirmation. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "paid|organic|by source",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -158,12 +159,13 @@
   "turn": 18,
   "sev": "firm",
   "cls": "restatement",
-  "note": "\"Do we know whether Pro sign-ups were already trending down through 2024, before Starter launched?\" → \"As the exhibit shows: New customers per month were 500 Pro in 2024 …\"; the guard judged \"trend\" met by the two-year rule. The trend within 2024 got no word.",
+  "note": "\"Do we know whether Pro sign-ups were already trending down through 2024, before Starter launched?\" → \"As the exhibit shows: New customers per month were 500 Pro in 2024 …\"; the guard judged \"trend\" met by the two-year rule. The trend within 2024 got no word. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "trend|2024",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -346,12 +348,13 @@
   "turn": 16,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"whether Starter sign-ups ever requested a Pro demo first\" → signup_channels (check, full): answers it coarsely, no \"I don't have\" for prior demo requests.",
+  "note": "\"whether Starter sign-ups ever requested a Pro demo first\" → signup_channels (check, full): answers it coarsely, no \"I don't have\" for prior demo requests. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "demo",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -505,12 +508,13 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"how has Pro's new-customer volume moved month to month since January?\" → the two averages, no \"I don't have month-by-month volumes\" (model-named item, no guard).",
+  "note": "\"how has Pro's new-customer volume moved month to month since January?\" → the two averages, no \"I don't have month-by-month volumes\" (model-named item, no guard). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "month",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,

@@ -123,12 +123,13 @@
   "turn": 6,
   "sev": "firm",
   "cls": "ignored_ask",
-  "note": "\"One thing I'd want: how many bags of chips does Hollis Bay sell a year?\" — the model declared an offer of the planning assumptions instead (\"I can share the volume … if you'd like\"). Chip volume isn't held; a refusal was owed (round 6's offer tightening carved this direct ask out).",
+  "note": "\"One thing I'd want: how many bags of chips does Hollis Bay sell a year?\" — the model declared an offer of the planning assumptions instead (\"I can share the volume … if you'd like\"). Chip volume isn't held; a refusal was owed (round 6's offer tightening carved this direct ask out). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "chip|bags",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    },
    {
     "kind": "says",
@@ -146,7 +147,7 @@
   "turn": 10,
   "sev": "firm",
   "cls": "wrong_release",
-  "note": "Her t9 (is the $3.0M line first-year only or a recurring lease; what marketing looks like in year two) got longer_term_goals (\"a growth platform…\"), which answers neither. Year-two costs aren't held; a refusal was owed (a non-answer = firm moderate). Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1).",
+  "note": "Her t9 (is the $3.0M line first-year only or a recurring lease; what marketing looks like in year two) got longer_term_goals (\"a growth platform…\"), which answers neither. Year-two costs aren't held; a refusal was owed (a non-answer = firm moderate). Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "release",
@@ -161,7 +162,8 @@
      "deferral"
     ],
     "wontResolves": true,
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -174,7 +176,7 @@
   "turn": 24,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"That's for a little later — we'll come back to repeat rate for sampled households.\" then the recommendation ask; the check mapped it to sampling_program (on screen); the case holds no repeat rate. The model's own say had the true refusal (\"I don't have a repeat rate for sampled households.\"), withheld.",
+  "note": "\"That's for a little later — we'll come back to repeat rate for sampled households.\" then the recommendation ask; the check mapped it to sampling_program (on screen); the case holds no repeat rate. The model's own say had the true refusal (\"I don't have a repeat rate for sampled households.\"), withheld. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "deferral",
@@ -184,7 +186,8 @@
    {
     "kind": "refusal",
     "about": "repeat",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -356,12 +359,13 @@
   "turn": 26,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"Do we have the contribution margin on the chips business?\" answered only by the cannibalization line; chip margins aren't held; the line makes the ask moot.",
+  "note": "\"Do we have the contribution margin on the chips business?\" answered only by the cannibalization line; chip margins aren't held; the line makes the ask moot. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "margin",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -479,12 +483,13 @@
   "turn": 6,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"I don't have category volume of chickpea snacks in the Northeast and Midwest.\" True.",
+  "note": "\"I don't have category volume of chickpea snacks in the Northeast and Midwest.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "category volume",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -497,12 +502,13 @@
   "turn": 22,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"As for repeat-rate data from prior sampling programs, that's not something I have.\" True.",
+  "note": "\"As for repeat-rate data from prior sampling programs, that's not something I have.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "repeat",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,

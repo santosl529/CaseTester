@@ -68,7 +68,7 @@
   "turn": 20,
   "sev": "firm",
   "cls": "bare_partial",
-  "note": "\"Do we have any evidence behind the demand assumption — traffic data, connecting volumes?\" (new routes) → connecting_passengers (the routes being exited) + new_route_rampup; no \"I don't have traffic data on the new routes\". Judgement call (firm by the scope rule, borderline if the ramp counts); awaiting Lorenzo (open question 2). Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "note": "\"Do we have any evidence behind the demand assumption — traffic data, connecting volumes?\" (new routes) → connecting_passengers (the routes being exited) + new_route_rampup; no \"I don't have traffic data on the new routes\". Judgement call (firm by the scope rule, borderline if the ramp counts); awaiting Lorenzo (open question 2). Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "batch-38-larkspur/hand-grading.md (not yet second-graded)",
   "a": [
    {
@@ -78,7 +78,8 @@
      "refusal",
      "deferral"
     ],
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -91,7 +92,7 @@
   "turn": 22,
   "sev": "firm",
   "cls": "restatement",
-  "note": "\"Do we have the revenue attributable to those connecting passengers on the onward legs?\" → \"As I mentioned: About 20% … As the exhibit shows: On the other four routes …\" (≈90 words, on screen), then the brainstorm. Onward-leg revenue isn't held; a refusal was owed. The model's own mapping (outside the check).",
+  "note": "\"Do we have the revenue attributable to those connecting passengers on the onward legs?\" → \"As I mentioned: About 20% … As the exhibit shows: On the other four routes …\" (≈90 words, on screen), then the brainstorm. Onward-leg revenue isn't held; a refusal was owed. The model's own mapping (outside the check). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "restatement",
@@ -101,7 +102,8 @@
    {
     "kind": "refusal",
     "about": "onward",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -114,7 +116,7 @@
   "turn": 24,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"On the price elasticity of those four routes, I'll check what we have.\" (the model) then \"Repeating what I said before: On the other four routes …\" (the check mapped route_results_other full). Elasticity isn't held; nothing came back. One fault: a wrong-mapping restatement plus a hollow model deferral (contract 4.7 model deferrals; round 6 open question 7: the answer gate on restatements). Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "note": "\"On the price elasticity of those four routes, I'll check what we have.\" (the model) then \"Repeating what I said before: On the other four routes …\" (the check mapped route_results_other full). Elasticity isn't held; nothing came back. One fault: a wrong-mapping restatement plus a hollow model deferral (contract 4.7 model deferrals; round 6 open question 7: the answer gate on restatements). Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "restatement",
@@ -128,7 +130,8 @@
      "refusal",
      "deferral"
     ],
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -204,7 +207,7 @@
   "turn": 8,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"what was the average fare in each year?\" — the model mapped it to lakeport_fare and code deferred it twice (t8, t10 \"On Hub-Lakeport average one-way fare in each year: we'll get there in a bit.\"); resolved at t12 with Exhibit 2. No network average is held and no \"I don't have the network average fare\" came. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix.",
+  "note": "\"what was the average fare in each year?\" — the model mapped it to lakeport_fare and code deferred it twice (t8, t10 \"On Hub-Lakeport average one-way fare in each year: we'll get there in a bit.\"); resolved at t12 with Exhibit 2. No network average is held and no \"I don't have the network average fare\" came. Fix round (25 Oct): asserted as `answered` — a release, a true refusal, or a deferral that resolves before the close; an unresolved deferral fails. Contract 4.3 and 4.4 route this ask to a deferral, so demanding the release (or the refusal) outright was unsatisfiable by the planned fix. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "answered",
@@ -217,7 +220,8 @@
     "scope": {
      "fromTurn": 8,
      "toTurn": 12
-    }
+    },
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -230,7 +234,7 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"have these two routes' load factors or passenger mix shifted — were they business-heavy before?\" — the load half answered; the passenger mix (not held) got no word. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1).",
+  "note": "\"have these two routes' load factors or passenger mix shifted — were they business-heavy before?\" — the load half answered; the passenger mix (not held) got no word. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "answered",
@@ -240,7 +244,8 @@
      "deferral"
     ],
     "wontResolves": true,
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -253,12 +258,13 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"average fare per passenger in FY2023 versus FY2025\" → network_totals (no network fare held); route fares came next turn.",
+  "note": "\"average fare per passenger in FY2023 versus FY2025\" → network_totals (no network fare held); route fares came next turn. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "fare",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -294,12 +300,13 @@
   "turn": 12,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "\"their frequency and commitment: are they flying once a day or matching our schedule?\" got nothing (not held; never declared, so round 6's entrant-flights refusal didn't run).",
+  "note": "\"their frequency and commitment: are they flying once a day or matching our schedule?\" got nothing (not held; never declared, so round 6's entrant-flights refusal didn't run). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "frequency|once a day",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": false,
@@ -404,7 +411,7 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "other",
-  "note": "\"Here's an exhibit: … Let's hold extras revenue per passenger and results by route for a little later.\" — a deferral naming the route results right after the route exhibit went up. Extras deferred three times (t2, t4, t6) before t10. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the route results the exhibit put up on this very turn must still be delivered here — the fault is the deferral re-naming them, not the exhibit.",
+  "note": "\"Here's an exhibit: … Let's hold extras revenue per passenger and results by route for a little later.\" — a deferral naming the route results right after the route exhibit went up. Extras deferred three times (t2, t4, t6) before t10. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` is a non-degeneracy floor — the turn says something of its own — not an answer check, so the 25 Oct note's \"the asked thing gets a word\" overclaimed it. The engagement this turn owes is pinned now: the route results the exhibit put up on this very turn must still be delivered here — the fault is the deferral re-naming them, not the exhibit. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "deferral",
@@ -423,7 +430,8 @@
      "release",
      "refusal"
     ],
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -436,12 +444,13 @@
   "turn": 12,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "\"Do we have Port Avery's fuel line separately?\" → the check mapped route_results_port_avery + port_avery_per_flight full; code restated both. No fuel split for Port Avery is held; the finer cut got no word.",
+  "note": "\"Do we have Port Avery's fuel line separately?\" → the check mapped route_results_port_avery + port_avery_per_flight full; code restated both. No fuel split for Port Avery is held; the finer cut got no word. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "fuel",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -454,12 +463,13 @@
   "turn": 12,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "Two of t11's asks without a word: the entrant's frequency and a business segment (neither held; not declared).",
+  "note": "Two of t11's asks without a word: the entrant's frequency and a business segment (neither held; not declared). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "frequency|business",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": false,
@@ -473,12 +483,13 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "\"Do we have revenue per passenger by extra type?\" — the model's true \"I don't have extras revenue broken out by type.\" withheld (data_talk); the check mapped extras_revenue full and code restated it. The \"by type\" cut got no word.",
+  "note": "\"Do we have revenue per passenger by extra type?\" — the model's true \"I don't have extras revenue broken out by type.\" withheld (data_talk); the check mapped extras_revenue full and code restated it. The \"by type\" cut got no word. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "type",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -696,12 +707,13 @@
   "turn": 14,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"As for the business versus leisure fare mix on these two routes, that's not something I have.\" True.",
+  "note": "\"As for the business versus leisure fare mix on these two routes, that's not something I have.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "business",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -714,12 +726,13 @@
   "turn": 16,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "The answer gate's refusal \"When it comes to frequency expansion, I don't have that.\" True.",
+  "note": "The answer gate's refusal \"When it comes to frequency expansion, I don't have that.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "frequency",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -732,12 +745,13 @@
   "turn": 14,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"I don't have contribution from connecting passengers on onward legs.\" True.",
+  "note": "\"I don't have contribution from connecting passengers on onward legs.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "onward",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,

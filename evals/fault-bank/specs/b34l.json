@@ -54,7 +54,7 @@
   "turn": 12,
   "sev": "firm",
   "cls": "ignored_ask",
-  "note": "Her t11 \"Do we know whether load factor would actually fall if we priced back up to $200, or is that untested?\" — the model declared nothing and code's \"$18,000\" probe took the turn. The case holds no elasticity: a refusal was owed (a code probe turn had no slot for her ask). Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$18,000\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t12-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Replayable again: with a deferral accepted, the replay can show it once undeclared sub-asks speak (they stay shadow-only until the splitter's precision gate — ruling 1).",
+  "note": "Her t11 \"Do we know whether load factor would actually fall if we priced back up to $200, or is that untested?\" — the model declared nothing and code's \"$18,000\" probe took the turn. The case holds no elasticity: a refusal was owed (a code probe turn had no slot for her ask). Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$18,000\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t12-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Replayable again: with a deferral accepted, the replay can show it once undeclared sub-asks speak (they stay shadow-only until the splitter's precision gate — ruling 1). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "answered",
@@ -64,7 +64,8 @@
      "deferral"
     ],
     "wontResolves": true,
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -77,7 +78,7 @@
   "turn": 26,
   "sev": "firm",
   "cls": "ignored_ask",
-  "note": "Her t25 \"Do we know how quickly we can exit the Lakeport and Port Avery slots?\" — declared nothing; the \"$2,800\" probe took the turn. Not held: a refusal was owed. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$2,800\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t26-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Replayable again: with a deferral accepted, the replay can show it once undeclared sub-asks speak (they stay shadow-only until the splitter's precision gate — ruling 1).",
+  "note": "Her t25 \"Do we know how quickly we can exit the Lakeport and Port Avery slots?\" — declared nothing; the \"$2,800\" probe took the turn. Not held: a refusal was owed. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$2,800\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t26-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Replayable again: with a deferral accepted, the replay can show it once undeclared sub-asks speak (they stay shadow-only until the splitter's precision gate — ruling 1). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "answered",
@@ -87,7 +88,8 @@
      "deferral"
     ],
     "wontResolves": true,
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -119,7 +121,7 @@
   "turn": 14,
   "sev": "firm",
   "cls": "hollow_deferral",
-  "note": "\"I'll come back to the fare trend across FY2024 and FY2025 shortly.\" (t14) and again at t16. The check mapped it to lakeport_fare; the case holds FY2023 and FY2025 only and nothing went back to \"if it's still sliding\". Lorenzo's rule 2: one firm moderate (one ask, said twice).",
+  "note": "\"I'll come back to the fare trend across FY2024 and FY2025 shortly.\" (t14) and again at t16. The check mapped it to lakeport_fare; the case holds FY2023 and FY2025 only and nothing went back to \"if it's still sliding\". Lorenzo's rule 2: one firm moderate (one ask, said twice). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (rule 2)",
   "a": [
    {
@@ -138,7 +140,8 @@
     "scope": {
      "fromTurn": 14,
      "toTurn": 16
-    }
+    },
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -384,7 +387,7 @@
   "turn": 30,
   "sev": "borderline",
   "cls": "hollow_deferral",
-  "note": "\"That's one we've covered: [competitor_costs]. We won't get to that today.\" for the competitor's cost breakdown by labor and utilization, which the case doesn't hold; the check mapped it to Larkspur's own items. Lorenzo (20 Oct): \"We won't get to\" on data the case doesn't hold, at the close, is borderline. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now (both spellings of utilisation, so the assertion is not a spelling trap).",
+  "note": "\"That's one we've covered: [competitor_costs]. We won't get to that today.\" for the competitor's cost breakdown by labor and utilization, which the case doesn't hold; the check mapped it to Larkspur's own items. Lorenzo (20 Oct): \"We won't get to\" on data the case doesn't hold, at the close, is borderline. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now (both spellings of utilisation, so the assertion is not a spelling trap). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (call 2)",
   "a": [
    {
@@ -395,7 +398,8 @@
    {
     "kind": "refusal",
     "about": "labor|utilisation|utilization|cost breakdown",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -431,12 +435,13 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "bare_partial",
-  "note": "The reassignment half of t21 (\"how quickly the aircraft can be reassigned\") unanswered; not held (the lease line touches it).",
+  "note": "The reassignment half of t21 (\"how quickly the aircraft can be reassigned\") unanswered; not held (the lease line touches it). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "reassign",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
@@ -527,12 +532,13 @@
   "turn": 18,
   "sev": "correct",
   "cls": "true_refusal",
-  "note": "\"I don't have contribution by departure time.\" True (no item holds a time-of-day cut).",
+  "note": "\"I don't have contribution by departure time.\" True (no item holds a time-of-day cut). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
   "a": [
    {
     "kind": "refusal",
     "about": "departure time",
-    "must": true
+    "must": true,
+    "acceptAssume": true
    }
   ],
   "rep": true,
