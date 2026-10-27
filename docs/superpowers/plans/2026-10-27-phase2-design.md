@@ -1014,3 +1014,35 @@ Each of the 87 labelled turns was scored by hand against its record's graded not
 - partials treated as answers.
 
 That bears on Lorenzo's async next-turn self-correction idea, which is not built.
+
+## 19. Judge round 2 (27 Oct): Haiku 5.5 vs Sonnet 5.5, both with prompt facts (paid $0.31 of a $1 cap; no applier)
+
+**Set-up.** Same input as arm B: the candidate's raw message plus every ledger item. The case prompt and its prompt facts are now added as citable `prompt:<id>` items.
+- Haiku 5.5: thinking disabled, effort low, no fallback (it has none).
+- Sonnet 5.5: as round 1.
+
+Each turn is scored by hand against the round-1 labels (`evals/item-judge-draft/scores-round2.json`).
+
+| Turn class | Sonnet 5.5 + prompt facts | Haiku 5.5 + prompt facts |
+|---|---|---|
+| Pointer | 7/9 | 7/9 |
+| Batch-39 false refusals | 8/8 | 7/8 |
+| True refusals | 18/18 | 18/18 |
+| Restatements | 15/15 | 12/15 |
+| Correct records | 26/27 | 26/27 |
+| **All** | **74/77 (96%)** | **70/77 (91%)** |
+| "None" where the answer is held | 0 (the board-bar case fixed by the prompt facts) | 0 |
+| "Full" on a refused ask | 0 | 0 |
+| Partial on a held answer, with a held part as `missing` | 0 | 5 |
+
+**Error detail:**
+- Sonnet's 3: "what competes" in Europe → Nimbrel full; an invented ask (b39a-marcus-t8); "by month" → the averages full.
+- Haiku shares the first two. Its 5 partial-on-held turns are b35q-raj-t22, b39l-marcus-t14, b36l-tyler-t6, b34l-marcus-t10 and b38l-marcus-t8. On each, the `missing` part is something a line already holds, so a refusal built from it would be false.
+- Round 1's missed ask (b33-jordan-t2) is caught by both.
+
+**Latency.** The verdict lands at `reads_done` + the call. Recorded `model_requests_closed` is a median of 1,944 ms.
+
+| Model | Per call p50 / p90 / max | Landing from message arrival p50 / p90 | Before requests close | Before the data line | $ a call |
+|---|---|---|---|---|---|
+| Sonnet 5.5 + prompt facts | 1,869 / 3,265 / 41,684 ms (one outlier) | 1,918 / 3,363 ms | 45% | 62% | $0.0034 |
+| Haiku 5.5 + prompt facts | 1,656 / 2,617 / 3,850 ms | 1,704 / 2,646 ms | 59% | 75% | $0.0002 |

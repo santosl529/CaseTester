@@ -7,7 +7,8 @@ import { gunzipSync } from 'node:zlib';
 import { anthropicClient } from '@/lib/anthropic-client';
 import { FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { canSpend, record } from './spend';
-const MODEL = 'claude-sonnet-5-5';
+const MODEL = process.env.XP_JUDGE_MODEL ?? 'claude-sonnet-5-5';
+const WITH_PROMPT = process.env.XP_PROMPT_FACTS === '1';
 const ROOTS = ['/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs', '/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs'];
 const SCHEMA = { type: 'object', additionalProperties: false, required: ['asks'], properties: { asks: { type: 'array', items: {
   type: 'object', additionalProperties: false, required: ['ask', 'items', 'missing'], properties: {
@@ -18,7 +19,10 @@ const SCHEMA = { type: 'object', additionalProperties: false, required: ['asks']
 const system = (caseId: string) => {
   const c = JSON.parse(readFileSync(`cases/${caseId}.json`, 'utf8'));
   const items = c.dataLedger.map((i: { id: string; label: string; value: string }) => ({ id: i.id, label: i.label, line: i.value }));
-  return `You judge, for a case-interview simulator, which case data answers a candidate's data asks. The case holds ONLY the ledger items below.
+  // Round 2 (Lorenzo, 27 Oct): the prompt and its facts, citable as items "prompt:<id>".
+  const facts = WITH_PROMPT ? [{ id: 'prompt:case', label: 'The case prompt the candidate was given', line: c.prompt },
+    ...(c.factAnchors?.promptFacts ?? []).filter((f: { say?: string }) => f.say).map((f: { id: string; say: string }) => ({ id: `prompt:${f.id}`, label: 'Prompt fact', line: f.say }))] : [];
+  return `You judge, for a case-interview simulator, which case data answers a candidate's data asks. The case holds ONLY the ledger items below${WITH_PROMPT ? ' (items whose id starts with prompt: are facts the candidate was already given in the case prompt)' : ''}.
 
 For each distinct data ask in the candidate's message (a request for a figure, fact or breakdown — not a question about their reasoning), output:
 - "ask": the ask in the candidate's own words, short;
@@ -27,7 +31,7 @@ For each distinct data ask in the candidate's message (a request for a figure, f
 
 Judge only by what each line actually says. A finer cut (by month, by quarter, per route, a breakdown) that no line gives is missing. Do not count an item because it is on the same topic. If the message asks for no data, output {"asks": []}.
 
-Ledger items (JSON): ${JSON.stringify(items)}`;
+Ledger items (JSON): ${JSON.stringify([...items, ...facts])}`;
 };
 function recordedTurn(turnFile: string, turn: number): { timing?: Record<string, number> } | null {
   for (const root of ROOTS) {
@@ -56,13 +60,14 @@ async function main() {
     if (done.has(key)) continue;
     if (!canSpend(spendPath, 0.05)) { console.log('cap: stop'); break; }
     const t0 = Date.now();
-    const resp = await client.beta.messages.create({ model: MODEL, max_tokens: 1024, betas: [FALLBACK_BETA], fallbacks: FALLBACKS, thinking: { type: 'between_tools' },
+    const haiku = MODEL === 'claude-haiku-5-5';   // no server-side fallback; it rejects between_tools
+    const resp = await client.beta.messages.create({ model: MODEL, max_tokens: 1024, ...(haiku ? { thinking: { type: 'disabled' } } : { betas: [FALLBACK_BETA], fallbacks: FALLBACKS, thinking: { type: 'between_tools' } }),
       output_config: { effort: 'low', format: { type: 'json_schema', schema: SCHEMA } },
       system: [{ type: 'text', text: system(r.caseId), cache_control: { type: 'ephemeral' } }],
       messages: [{ role: 'user', content: `Items already given to the candidate: ${JSON.stringify(r.state.revealedIds)}\n\nCandidate's message:\n${r.candidateText}` }] } as never) as unknown as { model: string; content: { type: string; text?: string }[]; usage: { input_tokens: number; output_tokens: number; cache_read_input_tokens?: number; cache_creation_input_tokens?: number } };
     const latencyMs = Date.now() - t0;
     const u = resp.usage;
-    const usd = record(spendPath, { arm: 'B', model: MODEL, inputTokens: u.input_tokens, outputTokens: u.output_tokens, cacheReadTokens: u.cache_read_input_tokens ?? 0, cacheWriteTokens: u.cache_creation_input_tokens ?? 0, latencyMs, note: key });
+    const usd = record(spendPath, { arm: `B:${MODEL}${WITH_PROMPT ? '+pf' : ''}`, model: MODEL, inputTokens: u.input_tokens, outputTokens: u.output_tokens, cacheReadTokens: u.cache_read_input_tokens ?? 0, cacheWriteTokens: u.cache_creation_input_tokens ?? 0, latencyMs, note: key });
     const text = resp.content.filter(b => b.type === 'text').map(b => b.text).join('');
     let verdict: unknown = null; try { verdict = JSON.parse(text); } catch { verdict = { raw: text }; }
     const timing = recordedTurn(r.turnFile, r.turn)?.timing ?? null;
