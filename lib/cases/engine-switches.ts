@@ -71,7 +71,14 @@ export const PHASE1_SWITCHES = [
 // `checkerEquations` (27 Oct, item E) widens the math checker's existing per-message output — no second call: the
 // equations it heard, in structured form, and the quantities whose value changed. Code verifies the arithmetic
 // itself (`lib/orchestrator/checker-equations.ts`), a low-confidence entry is `unclear`, and the answer sheet drops
-// a probe or correction on a figure that is no longer the candidate's latest. Out of the preset until Lorenzo rules.
+// a probe or correction on a figure that is no longer the candidate's latest.
+// **It fails its latency gate and must not be shipped in this synchronous form** (Lorenzo's bar of 27 Oct: at most
+// 100 ms added at p90). Paired over 16 labelled messages on `sonnet55-medium`, one at a time: checker p50 11,114 →
+// 13,345 ms, p90 15,663 → 19,899 ms — **+4,236 ms at p90, 42× the gate**, and the paired per-message delta is median
+// +1,367 ms / p90 +6,496 ms. The second task in the same call also moved the model's own verdicts: firm recall 12/16
+// → 11/16 (fc290dc0 t20's "about 5 points" went error/medium → unverifiable/low), a missed real error that no code
+// guard caused — the answer sheet dropped nothing in either arm. The asynchronous variant is in the round-2 report's
+// §E. Out of every preset; nameable for evaluation only.
 export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'ofAsMultiplication', 'checkerEquations'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 

@@ -30,6 +30,7 @@ import { mathCheckerConfig, type MathCheckerConfig } from '@/lib/models';
 import { costOf, assertPriced } from '@/lib/llm-pricing';
 import { requireRunBudget, BudgetExceededError } from '@/lib/llm-budget';
 import { asksRecommendationAsk } from '@/lib/orchestrator/spoken-close';
+import type { AnswerSheetEntry, EquationCheck } from '@/lib/orchestrator/checker-equations';
 import {
   buildCheckerSystem, buildCheckerUser, checkMathClaims, vetCheckerClaims, statesQuantitativeClaim,
   type CheckerClaim, type CheckerInput, type CheckerTurn, type VettedClaim,
@@ -37,8 +38,11 @@ import {
 import type { MathLabel } from './build-math-labels';
 import type { LlmUsage } from '@/lib/llm-usage';
 
-const ROOT = 'Case Interview Runs';
 const arg = (k: string) => process.argv.find(a => a.startsWith(`--${k}=`))?.slice(k.length + 3);
+// The corpus root. `--root=` / CORPUS_ROOT so the evaluation can be run from a
+// worktree, whose own corpus is partial (the same reason `build-math-labels.ts`
+// gained MATH_LABELS_ROOT).
+const ROOT = arg('root') ?? process.env.CORPUS_ROOT ?? 'Case Interview Runs';
 const DRY = process.argv.includes('--dry');
 const ARMS = (arg('arms') ?? 'sonnet55-medium,opus55-medium').split(',');
 const SET = arg('set') ?? 'all';
@@ -48,7 +52,7 @@ const CONCURRENCY = Number(arg('concurrency') ?? 6);
 // --ids=<file>: only these label ids (one per line), e.g. a rerun of chosen messages.
 // --revet=<files>: recorded verdicts (an earlier run's jsonl), re-vetted — no calls.
 const REVET = arg('revet')?.split(',') ?? null;
-type Recorded = { id: string; latencyMs: number; usd: number; model: string; error?: string; claims: Partial<CheckerClaim>[] };
+type Recorded = { id: string; latencyMs: number; usd: number; model: string; error?: string; claims: Partial<CheckerClaim>[]; answerSheet?: AnswerSheetEntry[] };
 const recorded = REVET ? new Map(REVET.flatMap(f => readFileSync(f, 'utf8').split('\n').filter(Boolean).map(l => JSON.parse(l) as Recorded)).map(r => [r.id, r])) : null;
 const IDS = recorded ? new Set(recorded.keys()) : arg('ids') ? new Set(readFileSync(arg('ids')!, 'utf8').split('\n').map(x => x.trim()).filter(Boolean)) : null;
 // Output tokens per call for the estimate: adaptive thinking at medium plus
@@ -132,7 +136,7 @@ function estimate(items: Item[], cfg: MathCheckerConfig): number {
 // one of the label's figures.
 const mentions = (c: VettedClaim, needles: string[] | undefined) => (needles ?? []).some(n => norm(`${c.span} ${c.candidateValue}`).includes(norm(n)));
 
-type Outcome = { item: Item; claims: VettedClaim[]; latencyMs: number; usd: number; model: string; error?: string };
+type Outcome = { item: Item; claims: VettedClaim[]; latencyMs: number; usd: number; model: string; error?: string; answerSheet?: AnswerSheetEntry[]; equations?: EquationCheck[] };
 
 function report(arm: string, outs: Outcome[], perInterview: number) {
   const ok = outs.filter(o => !o.error);
@@ -204,6 +208,9 @@ async function main() {
       const claims = vetCheckerClaims(r.claims.map(asClaim), {
         caseData, revealedIds: item.input.revealedIds, shownExhibitIds: item.input.shownExhibitIds,
         candidateTexts: [...item.input.transcript.filter(t => t.role === 'candidate').map(t => t.text), item.input.message],
+        // `checkerEquations`: the answer sheet drops a line on a figure the
+        // candidate has replaced (Lorenzo, 27 Oct, item E).
+        answerSheet: r.answerSheet,
       });
       return { item, claims, latencyMs: r.latencyMs, usd: r.usd, model: r.model, error: r.error };
     });
@@ -228,14 +235,17 @@ async function main() {
           const claims = vetCheckerClaims(r.claims, {
             caseData, revealedIds: item.input.revealedIds, shownExhibitIds: item.input.shownExhibitIds,
             candidateTexts: [...item.input.transcript.filter(t => t.role === 'candidate').map(t => t.text), item.input.message],
+            // `checkerEquations`: the answer sheet drops a line on a figure the
+            // candidate has replaced (Lorenzo, 27 Oct, item E).
+            answerSheet: r.answerSheet,
           });
-          outs[k] = { item, claims, latencyMs: r.latencyMs, usd, model: r.model };
+          outs[k] = { item, claims, latencyMs: r.latencyMs, usd, model: r.model, answerSheet: r.answerSheet, equations: r.equations };
         } catch (err) {
           outs[k] = { item, claims: [], latencyMs: 0, usd, model: cfg.model, error: err instanceof Error ? err.message : String(err) };
           console.error(`  ${arm} ${item.label.id}: ${outs[k].error}`);
           if (err instanceof BudgetExceededError || budget.exceeded) throw err;
         }
-        if (OUT) appendFileSync(path.join(OUT, `${arm}.jsonl`), JSON.stringify({ id: item.label.id, label: item.label.label, recTurn: item.recTurn, latencyMs: outs[k].latencyMs, usd: outs[k].usd, model: outs[k].model, error: outs[k].error, claims: outs[k].claims }) + '\n');
+        if (OUT) appendFileSync(path.join(OUT, `${arm}.jsonl`), JSON.stringify({ id: item.label.id, label: item.label.label, recTurn: item.recTurn, latencyMs: outs[k].latencyMs, usd: outs[k].usd, model: outs[k].model, error: outs[k].error, claims: outs[k].claims, answerSheet: outs[k].answerSheet, equations: outs[k].equations }) + '\n');
       }
     }));
     report(arm, outs, perInterview);

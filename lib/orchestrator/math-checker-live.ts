@@ -24,6 +24,7 @@ import {
   checkMathClaims, vetCheckerClaims, codeComputed, codeCorrection, boundInput, numbersOf, quantityWords, statedWithinBand, RATIO_SAID,
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
+import { type AnswerSheetEntry } from './checker-equations';
 import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
 import { checkPricingClaims, pricingAnswers, pricingValues } from './pricing-check';
 import { changeFigures } from './numeric-provenance';
@@ -59,6 +60,11 @@ export type VerdictPayload = {
   claims: VettedClaim[];
   codeFlags: CodeFlagRef[];   // the deterministic checks' flags on the message
   stamps: StampRef[];         // and their verified figures
+  // `checkerEquations` (item E, 27 Oct): the quantities whose value changed in
+  // this message, each naming the figure it replaces. A later turn reads them to
+  // drop a probe or correction on a figure that is no longer the candidate's
+  // latest (plan-turn's `staleDrop`). Absent with the switch off.
+  answerSheet?: AnswerSheetEntry[];
 };
 export type CheckerErrorPayload = { candidateTurnIndex: number; error: string; timedOut: boolean; latencyMs: number };
 export type CheckerJobResult = { subtype: 'verdict'; payload: VerdictPayload } | { subtype: 'error'; payload: CheckerErrorPayload };
@@ -90,9 +96,10 @@ export function startMathCheck(p: {
   const result = check({ caseData: p.caseData, input: p.input, config: p.config, onUsage: p.onUsage, signal: controller.signal })
     .then((r): CheckerJobResult => ({ subtype: 'verdict', payload: {
       candidateTurnIndex: p.candidateTurnIndex, latencyMs: r.latencyMs, model: r.model,
-      claims: vetCheckerClaims(r.claims, p.vet),
+      claims: vetCheckerClaims(r.claims, { ...p.vet, answerSheet: r.answerSheet }),
       codeFlags: codeFlagRefs(p.codeMath, p.misquotes ?? []),
       stamps: p.codeMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span })),
+      ...(r.answerSheet ? { answerSheet: r.answerSheet } : {}),
     } }))
     .catch((e: unknown): CheckerJobResult => ({ subtype: 'error', payload: {
       candidateTurnIndex: p.candidateTurnIndex, error: e instanceof Error ? e.message : String(e), timedOut, latencyMs: Date.now() - t0,

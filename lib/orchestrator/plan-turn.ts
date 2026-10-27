@@ -16,6 +16,7 @@ import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldG
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, clearRecommendation, INITIAL_STALL_STATE, type StallState } from './stall';
 import { switchOn } from '@/lib/cases/engine-switches';
+import { supersededBy, staleNote } from './checker-equations';
 import { historyWithCheckIns, checkInLinesOf } from './voice-check-in';
 import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf, type ConductAssessment } from './conduct';
@@ -592,6 +593,24 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const staleCaseFigures = staleOn ? numbersOf([caseData.prompt, ...caseData.dataLedger.filter(d => revealedIdsNow.includes(d.id)).map(d => d.value),
     ...caseData.exhibits.filter(e => shownExhibitIds.has(e.id)).map(e => JSON.stringify(e.data))].join(' ')) : [];
   const staleDrops: { kind: 'code' | 'checker' | 'misquote' | 'root_question'; id: string; reason: string }[] = [];
+  // Item E (`checkerEquations`, Lorenzo, 27 Oct): "Before any probe or correction, code drops it if the answer sheet
+  // shows the figure is no longer the candidate's latest." The sheet is the checker's own per-message list of the
+  // quantities whose value CHANGED, each naming the figure it replaces; the replacement must itself be a figure the
+  // candidate said, so code never drops a line on a quantity it only guessed at. Read from the verdict rows of the
+  // messages after the claim — this is the cross-message half of the rule; the same-message half is in the vetting.
+  const sheetOn = switchOn(caseData, 'checkerEquations');
+  const sheetsAfter = (n: number) => checkerRows
+    .filter(r => r.subtype === 'verdict')
+    .map(r => r.payloadJsonb as VerdictPayload)
+    .filter(v => v.candidateTurnIndex > n && v.candidateTurnIndex < ctx.nextTurnIndex && (v.answerSheet?.length ?? 0) > 0)
+    .map(v => ({ sheet: v.answerSheet!, text: turnRows.find(t => t.role === 'candidate' && t.turnIndex === v.candidateTurnIndex)?.text ?? '' }));
+  const sheetStale = (e: { n: number; c: VettedClaim }): string | null => {
+    for (const { sheet, text } of sheetsAfter(e.n)) {
+      const entry = supersededBy(e.c.candidateValue, sheet, text);
+      if (entry) return staleNote(entry);
+    }
+    return null;
+  };
   // The figures a claim's candidate-facing lines would NAME, beside the ones its own words carry (ruling (a), 26 Oct;
   // aldermoor p57 5bc506bc t8: the ">2x" ratio claim's hint line named the $640 million he had just withdrawn, and
   // the claim itself named neither). The correction line names the candidate's wrong figure outright, so a
@@ -822,7 +841,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
         const w = msgs.flatMap(findWithdrawals).find(x => Math.abs(x.value - Math.abs(value)) <= Math.max(0.05, Math.abs(value) * 0.02));
         return w ? `${value} withdrawn ("${w.phrase}")` : null;
       } } } : {}),
-    ...(staleOn ? { staleDrop: (e: { n: number; c: VettedClaim }) => staleReason(worksheet!, caseData, { n: e.n, quantity: claimQuantity(e.c), value: claimFigures(e.c)[0], span: e.c.span, lines: claimLines(e.c) }, staleCaseFigures) } : {}),
+    ...(staleOn || sheetOn ? { staleDrop: (e: { n: number; c: VettedClaim }) =>
+      (staleOn ? staleReason(worksheet!, caseData, { n: e.n, quantity: claimQuantity(e.c), value: claimFigures(e.c)[0], span: e.c.span, lines: claimLines(e.c) }, staleCaseFigures) : null)
+      ?? (sheetOn ? sheetStale(e) : null) } : {}),
   };
   let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
