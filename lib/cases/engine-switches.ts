@@ -60,6 +60,9 @@ export const PHASE2_SWITCHES = [
   'composeShadow',       // C1: the four-slot composer and its lint (lib/orchestrator/turn-composer.ts), logged as `compose_shadow`
   'askRefusals',         // S2: the decision's true refusals (R6) and uncertain deferrals (R7) spoken for declared sub-asks; offers dropped
   'composeData',         // C2: the data slot — the exhibit last, no line the model's say already said (L1), no deferral of what it released (L3)
+  'refusalContradiction', // S3: no refused part that a line released or restated this turn states
+  'wontGetToGiven',      // S3: a wrap-up "We won't get to …" says only the parts nothing given since states
+  'askModelKeep',        // S3: R2 live — a model-named item that matches the ask is kept (today's scope drop and release_checked withdrawal)
 ] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES, ...PHASE2_SWITCHES] as const;
 

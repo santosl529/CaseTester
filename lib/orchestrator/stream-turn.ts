@@ -392,7 +392,7 @@ export async function streamTurnSegments(
     await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
     // The message's asks the model left out, as Settle adds them (round 5 Tasks 48, 50).
     // The model's raw say (Phase 2 S2's evidence), as Settle reads it: the sentences as the model wrote them.
-    const d = await turnDataChecked(plan, withAsks(fields, await messageAsks(plan, fields.requests, opts.onUsage)), opts.onUsage, { modelSay: sayRaw.join(' ') });
+    const d = await turnDataChecked(plan, withAsks(fields, await messageAsks(plan, fields.requests, opts.onUsage)), opts.onUsage, { modelSay: sayRaw.join(' '), modelRequests: fields.requests });
     // The same connecting words Settle renders: the same seed and the session's recent uses (phrasing.ts).
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`, plan.ctx.flags.phraseUses as PhraseUses | undefined);
     if (lines.length > 0 || d.exhibit) {

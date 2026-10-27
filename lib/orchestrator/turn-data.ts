@@ -7,14 +7,14 @@ import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
 import { decideData, spokenItemName, exactResolver, labelMatch, outsideAskScope, scopeRule, SPLIT_RULES, namedAsPart, keyNouns, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo, type ScopeRule } from './data-decisions';
 import { switchOn } from '@/lib/cases/engine-switches';
-import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS } from './fact-check';
+import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS, refusedItemIds } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, requestSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, saysItemName, WANT_ASK_PHASES } from './request-signal';
 import { tagsAgree, askGroups, askClauses, askTags, itemTagsAgree } from './item-tags';
 import { correctsNow } from './math-checker-live';
-import { shadowAskDecision, applyAskRefusals } from './ask-decision';
-import { composeDataSlot } from './turn-composer';
+import { shadowAskDecision, applyAskRefusals, applyModelKeep } from './ask-decision';
+import { composeDataSlot, dropContradictedRefusals, wontGetToRemainder } from './turn-composer';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
 import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, askQualifiers, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
@@ -686,26 +686,56 @@ function haikuTagGate(plan: ModelPlan, what: string, v: CheckVerdict): { verdict
 // second's. An ask a later pass leaves unmatched is checked in turn (bounded).
 // What's left unmatched: no verdict → the named deferral; else refused.
 const CHECK_PASSES = 3;
+// The items a refused or deferred part names, and whether an item's line states it (Phase 2 S3).
+const refusalNamed = (plan: ModelPlan) => (part: string) => [...new Set([...refusedItemIds(`I don't have ${part}.`, plan.state.factBase), ...coverageOf(part, plan.state.factBase).items])];
+const refusalStated = (plan: ModelPlan) => (part: string, id: string) => {
+  const i = plan.state.ledger.items.find(x => x.id === id);
+  return i ? statesAsked(part, { label: i.label, value: i.value }, plan.state.caseData.dataLedger) : false;
+};
 // `modelSay` (Phase 2 S2): the model's own say, raw — its refusals are the decision's evidence; Stream and Settle pass
 // the same words, so both speak the same data line.
-export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage, opts: { modelSay?: string; log?: boolean } = {}): Promise<TurnData> {
+export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage, opts: { modelSay?: string; log?: boolean; modelRequests?: DeclaredRequest[] } = {}): Promise<TurnData> {
   const decided = new Map<string, CheckedAsk>();
   const d = await turnDataDecided(plan, turn, decided, onUsage);
   const today = closeOpenDeferrals(plan, switchOn(plan.state.caseData, 'refusalNounCheck') ? nounDeferrals(plan, d, decided) : d);
   // Phase 2 S2 (`askRefusals`): the one decision's refusals and deferrals in place of today's (ask-decision.ts).
   let data = today;
-  if (switchOn(plan.state.caseData, 'askRefusals')) {
-    const decision = await shadowAskDecision({ plan, model: turn.requests, detections: null, modelWords: [opts.modelSay ?? ''], old: today });
-    const r = applyAskRefusals(today, decision.asks);
+  const refusalsOn = switchOn(plan.state.caseData, 'askRefusals');
+  const keepOn = switchOn(plan.state.caseData, 'askModelKeep');
+  if (refusalsOn || keepOn) {
+    // The model's own declarations as it made them (R2 must see what release_checked withdrew), then the message's asks.
+    const original = opts.modelRequests ?? [];
+    const model = [...original, ...turn.requests.filter(r => !original.some(o => o.what === r.what))];
+    const decision = await shadowAskDecision({ plan, model, detections: null, modelWords: [opts.modelSay ?? ''], old: today });
+    if (refusalsOn) {
+      const r = applyAskRefusals(data, decision.asks);
+      data = r.data;
+      if (opts.log && r.changes.length > 0) plan.ctx.checks.act('ask_refusals', 'the one decision\'s refusals and deferrals in place of today\'s (Phase 2 S2)', { changes: r.changes });
+    }
+    if (keepOn) {
+      const { ledger } = plan.state;
+      const k = applyModelKeep(data, decision.asks, id => canReveal(ledger, id), RELEASE_CAP, id => ledger.items.find(i => i.id === id)?.value ?? '');
+      data = k.data;
+      if (opts.log && k.changes.length > 0) plan.ctx.checks.act('ask_model_keep', 'a model-named item that matches the ask, kept (Phase 2 S3, R2)', { changes: k.changes });
+    }
+  }
+  // Phase 2 S3 (`refusalContradiction`): no refused part a line this turn gives states (turn-composer.ts).
+  if (switchOn(plan.state.caseData, 'refusalContradiction')) {
+    const r = dropContradictedRefusals(data, refusalNamed(plan), refusalStated(plan));
     data = r.data;
-    if (opts.log && r.changes.length > 0) plan.ctx.checks.act('ask_refusals', 'the one decision\'s refusals and deferrals in place of today\'s (Phase 2 S2)', { changes: r.changes });
+    if (opts.log && r.changes.length > 0) plan.ctx.checks.act('refusal_contradiction', 'a refused part a line given this turn states: not refused (Phase 2 S3)', { changes: r.changes });
   }
   // Phase 2 C2 (`composeData`): the data slot (turn-composer.ts composeDataSlot).
   if (switchOn(plan.state.caseData, 'composeData')) {
     const { ledger, caseData, factBase } = plan.state;
     const exhibit = data.exhibit ? { ...data.exhibit, title: caseData.exhibits.find(e => e.id === data.exhibit!.id)?.title ?? '' } : null;
     const itemOf = (id: string) => { const i = ledger.items.find(x => x.id === id); return i ? { id, words: [i.label, i.spoken ?? '', i.value, ...(factBase.quantities.find(q => q.id === id)?.names ?? [])], spoken: i.spoken ?? spokenItemName(i.label) } : undefined; };
-    const c = composeDataSlot({ ...data, exhibit }, opts.modelSay ?? '', itemOf, properNames(caseData.sttKeyterms));
+    // A dropped deferral's finer cut is refused only when that refusal is true (the M6 reading, against what is out or given now).
+    const givenNow = new Set([...ledger.revealed, ...data.releases.map(r => r.id), ...data.restates.map(r => r.id), ...(data.exhibit?.covers ?? [])]);
+    const refusable = (w: string) => findFalseRefusals(`I don't have ${w}.`, factBase, givenNow, { covers: true }).length === 0;
+    const statedBy = refusalStated(plan);
+    const stated = (w: string, ids: readonly string[]) => ids.some(id => statedBy(w, id));
+    const c = composeDataSlot({ ...data, exhibit }, opts.modelSay ?? '', itemOf, properNames(caseData.sttKeyterms), refusable, stated);
     data = { ...c.data, exhibit: data.exhibit };
     const real = c.changes.filter(x => x.rule !== 'exhibit_last');
     if (opts.log && real.length > 0) plan.ctx.checks.act('compose_data', 'the data slot (Phase 2 C2): no line the say already spoke, no deferral of what this turn gives', { changes: real });
@@ -982,7 +1012,16 @@ function closeOpenDeferrals(plan: ModelPlan, d: TurnData): TurnData {
   const out = decidedOut(d);
   const closing = openDeferrals(plan).filter(o => o.silent !== true && !needMet(o, out) && !deferralDelivered(o, d, out) && !deferralWontNow(o, d) && !deferralRefusedNow(o, d) && !deferralDeferredNow(o, d));
   if (closing.length === 0) return d;
-  return { ...d, wontGetToNamed: [...(d.wontGetToNamed ?? []), ...closing.map(o => o.what)], deferralsClosed: closing };
+  // Phase 2 S3 (`wontGetToGiven`): only the parts nothing revealed since states (turn-composer.ts wontGetToRemainder).
+  // A part names an item through the case's names and covers, or by sharing two key nouns with its label or names
+  // ("cost per bag" → variable_costs, "Variable costs per bag").
+  const caseNames = properNames(plan.state.caseData.sttKeyterms);
+  const labelled = (part: string) => { const own = keyNouns(part, caseNames); return plan.state.ledger.items.filter(i => [...keyNouns([i.label, ...(plan.state.factBase.quantities.find(q => q.id === i.id)?.names ?? [])].join('\n'), caseNames)].filter(n => own.has(n)).length >= 2).map(i => i.id); };
+  const named = (part: string) => [...new Set([...refusalNamed(plan)(part), ...labelled(part)])];
+  const said = switchOn(plan.state.caseData, 'wontGetToGiven')
+    ? closing.map(o => wontGetToRemainder(o.what, named, refusalStated(plan), new Set([...plan.state.ledger.revealed, ...out]))).filter((w): w is string => w !== null)
+    : closing.map(o => o.what);
+  return { ...d, wontGetToNamed: [...(d.wontGetToNamed ?? []), ...said], deferralsClosed: closing };
 }
 // Settle's bookkeeping for one turn (`turn`: the interviewer turn's index): each open deferral from an earlier turn
 // resolved by this turn's decisions — said "won't get to" here (deferralsClosed, or another form), delivered, or its

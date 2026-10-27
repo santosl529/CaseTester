@@ -108,8 +108,9 @@ const sentenceNorm = (s: string) => s.toLowerCase().replace(/[^a-z0-9$%]+/g, ' '
 export function composeDataSlot<D extends {
   releases: { id: string }[]; restates: { id: string; value: string }[]; exhibit: { id: string; covers: string[]; title?: string } | null;
   defers: string[]; requests: { request: { what: string }; response: string; ledgerItemIds: string[] }[]; exhibitLast?: boolean; saidByModel?: string[];
-}>(d: D, modelSay: string, itemOf: (id: string) => ComposeItem | undefined, caseNames: string[]): { data: D; changes: DataSlotChange[] } {
+}>(d: D, modelSay: string, itemOf: (id: string) => ComposeItem | undefined, caseNames: string[], refusable?: (w: string) => boolean, stated?: (w: string, given: readonly string[]) => boolean): { data: D; changes: DataSlotChange[] } {
   const changes: DataSlotChange[] = [];
+  const refusedCuts: string[] = [];
   const say = sentenceNorm(modelSay);
   // L1: a restated line the model already said in its say (it had been revealed, so it could).
   const restates = d.restates.filter(r => {
@@ -131,8 +132,11 @@ export function composeDataSlot<D extends {
     const own = keyNouns(w, caseNames);
     const shared = [...own].filter(n => givenNouns.has(n));
     if (shared.length === 0) return [w];
-    const held = d.requests.filter(r => r.response === 'defer' && r.ledgerItemIds.length > 0 && [...keyNouns(r.request.what, caseNames)].some(n => own.has(n)))
-      .flatMap(r => r.ledgerItemIds).filter(id => !given.includes(id));
+    const heldAll = d.requests.filter(r => r.response === 'defer' && r.ledgerItemIds.length > 0 && [...keyNouns(r.request.what, caseNames)].some(n => own.has(n)))
+      .flatMap(r => r.ledgerItemIds);
+    const held = heldAll.filter(id => !given.includes(id));
+    // Every item it held is given now (a release this turn, b36l a7d9f44e t6): delivered — dropped silently, never refused.
+    if (heldAll.length > 0 && held.length === 0) { changes.push({ rule: 'L3', what: w, to: 'delivered' }); return []; }
     // Answered: a shared noun the released items carry and the held ones don't ("fuel" beside the fuel line, when the
     // deferral holds wages and crew). With nothing held, only a deferral wholly about what was given is dropped — one
     // that still names something else keeps the ask's only word (f59f5ea8 t12, "Kelvexa's share in Europe").
@@ -141,9 +145,54 @@ export function composeDataSlot<D extends {
     if (held.length > 0 ? answered.length === 0 : shared.length < own.size) return [w];
     const names = [...new Set(held.map(id => itemOf(id)?.spoken).filter((x): x is string => Boolean(x)))];
     const to = names.length > 0 ? names.join(' and ') : undefined;
-    changes.push({ rule: 'L3', what: w, ...(to ? { to } : {}) });
-    return to ? [to] : [];
+    if (to) { changes.push({ rule: 'L3', what: w, to }); return [to]; }
+    // Holding nothing, wholly about what was given (Lorenzo, 27 Oct; Quillpath e1dd3616 t10 "monthly Pro sign-ups"
+    // beside the averages): never silence — the true refusal of the finer cut when the refusal is true, else the
+    // deferral stays.
+    // Answered: a line given this turn states it (f1f3c359 t6: the cohort table shows churn month by month) — dropped.
+    if (stated && stated(w, given)) { changes.push({ rule: 'L3', what: w }); return []; }
+    if (refusable && refusable(w)) { refusedCuts.push(w); changes.push({ rule: 'L3', what: w, to: `refuse: ${w}` }); return []; }
+    if (refusable) return [w];
+    changes.push({ rule: 'L3', what: w });
+    return [];
   });
   if (d.exhibit) changes.push({ rule: 'exhibit_last', what: d.exhibit.id });
-  return { data: { ...d, restates, defers, exhibitLast: true, ...(saidByModel.length > 0 ? { saidByModel } : {}) }, changes };
+  return { data: { ...d, restates, defers, exhibitLast: true, ...(saidByModel.length > 0 ? { saidByModel } : {}), ...(refusedCuts.length > 0 ? { refusals: [...(d as { refusals?: string[] }).refusals ?? [], ...refusedCuts] } : {}) }, changes };
+}
+
+// ── S3 (`refusalContradiction`; Lorenzo, 27 Oct): no refusal of what this turn gives ──
+// A refused part is dropped only when a line released or restated this turn (or the exhibit handed over) maps to the
+// same item the part names AND that item's line states the part — so a finer cut refused beside its coarse item (E1:
+// "quarter-by-quarter fares" beside the competitor line) stays. Any refused part not covered is kept (batch 39:
+// Quillpath Marisol t6 "cost to serve per customer by plan" beside the cost-to-serve line; Victor t12 "Pro marketing
+// spend before versus after" beside why_pro_fell).
+export type ContradictionChange = { refusal: string; dropped: string[]; kept: string | null; by: string[] };
+const PART_SPLIT = /\s*(?:,\s*(?:and|or)?\s*|\s+(?:and|or)\s+)(?=(?:the|a|an|data|whether|how|what|its|their|[A-Z]|\w+(?:'s)?\s))/;
+export function dropContradictedRefusals<D extends { refusals: string[]; releases: { id: string }[]; restates: { id: string }[]; exhibit: { covers: string[] } | null }>(
+  d: D, named: (part: string) => string[], states: (part: string, id: string) => boolean,
+): { data: D; changes: ContradictionChange[] } {
+  const given = new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]);
+  const changes: ContradictionChange[] = [];
+  const covered = (part: string) => named(part).filter(id => given.has(id) && states(part, id));
+  const refusals = d.refusals.flatMap(r => {
+    const whole = covered(r);
+    const parts = r.split(PART_SPLIT).map(x => x.trim()).filter(Boolean);
+    if (whole.length === 0 && parts.every(p => covered(p).length === 0)) return [r];
+    const keep = parts.length > 1 ? parts.filter(p => covered(p).length === 0) : [];
+    const by = [...new Set([...whole, ...parts.flatMap(covered)])];
+    const kept = whole.length > 0 && parts.length === 1 ? null : keep.length > 0 ? keep.join(' or ') : null;
+    changes.push({ refusal: r, dropped: parts.filter(p => !keep.includes(p)), kept, by });
+    return kept ? [kept] : [];
+  });
+  return { data: { ...d, refusals }, changes };
+}
+
+// ── S3 (`wontGetToGiven`; Lorenzo, 27 Oct): "We won't get to …" never names what was given since ──
+// A tracked deferral closed at the wrap-up says only the parts no item revealed since states (batch 39 Hollis Bay
+// Marcus t24: "We won't get to cost per bag … and chip gross margin history" after the bag economics went out). All
+// parts given: closed without a word (it was delivered).
+export function wontGetToRemainder(what: string, named: (part: string) => string[], states: (part: string, id: string) => boolean, out: ReadonlySet<string>): string | null {
+  const parts = what.split(PART_SPLIT).map(x => x.trim()).filter(Boolean);
+  const left = parts.filter(p => !named(p).some(id => out.has(id) && states(p, id)));
+  return left.length === parts.length ? what : left.length > 0 ? left.join(' and ') : null;
 }

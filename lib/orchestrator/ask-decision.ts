@@ -44,6 +44,8 @@ export type SubAsk = {
   declared: boolean;
   modelIds: string[];
   modelWhats: string[];
+  /** The model items declared as a release (respond: release), as opposed to the model's own deferral. */
+  modelReleaseIds: string[];
   detectionIds: string[];
   detectionWhats: string[];
 };
@@ -68,6 +70,10 @@ export type AskDecided = {
   tagMismatch?: string[];
   /** R2's line test failed on these model items, kept for want of a contradiction (logged). */
   lineFail?: string[];
+  /** R2: the model items the model declared as a release (not `respond: defer`) and that pass the line test (a key noun
+   * shared with the sub-ask, or a cover hit). Only these may be released live (S3): a failed line test is released in
+   * shadow for want of a contradiction, but live it was the one new wrong release (b32 f59f5ea8 t8, 27 Oct). */
+  keepable?: string[];
   /** R6's evidence: the check's "none", the model's own refusal, a clear tag mismatch, a deterministic cut. */
   evidence?: ('check_none' | 'model_refused' | 'tag_clear' | 'cut')[];
   /** Q1: the check would be called here — no verdict cached for it. */
@@ -188,7 +194,7 @@ export function subAskTexts(sentence: string): string[] {
 const overlap = (a: string, b: string, names: string[]) => { const x = keyNouns(b, names); return [...keyNouns(a, names)].filter(n => x.has(n)).length; };
 
 export function buildSubAsks(sentences: string[], model: DeclaredRequest[], detections: { what: string; ledgerItemIds: string[] }[], caseNames: string[], resolve: (raw: string) => string | null): SubAsk[] {
-  const out: SubAsk[] = sentences.flatMap(s => subAskTexts(s).map(words => ({ words, sentence: s, source: 'candidate' as const, declared: false, modelIds: [], modelWhats: [], detectionIds: [], detectionWhats: [] })));
+  const out: SubAsk[] = sentences.flatMap(s => subAskTexts(s).map(words => ({ words, sentence: s, source: 'candidate' as const, declared: false, modelIds: [], modelWhats: [], modelReleaseIds: [], detectionIds: [], detectionWhats: [] })));
   // A declaration attaches to every sub-ask it shares a key noun with (a model `what` often merges the sentence's
   // sub-asks); R2's line test then keeps each item only where it answers. One that shares none is a sub-ask of its own.
   // Meaningful: the declaration's head noun, or at least half its key nouns ("quarter-by-quarter fares and
@@ -209,16 +215,17 @@ export function buildSubAsks(sentences: string[], model: DeclaredRequest[], dete
     // A mention (explicit:false) is an ask only where an asking sentence names it (round 6 mention_asked); else it
     // would have been an offer, which Phase 2 drops (Q4).
     if (!r.explicit && at.length === 0) continue;
-    if (at.length === 0) { out.push({ words: r.what, sentence: null, source: 'model', declared: true, modelIds: ids, modelWhats: [r.what], detectionIds: [], detectionWhats: [] }); continue; }
+    if (at.length === 0) { out.push({ words: r.what, sentence: null, source: 'model', declared: true, modelIds: ids, modelWhats: [r.what], modelReleaseIds: r.respond === 'release' ? ids : [], detectionIds: [], detectionWhats: [] }); continue; }
     for (const i of at) {
       out[i].modelIds.push(...ids);
       out[i].modelWhats.push(r.what);
+      if (r.respond === 'release') out[i].modelReleaseIds.push(...ids);
       if (r.explicit) out[i].declared = true;
     }
   }
   for (const d of detections) {
     const at = near(d.what);
-    if (at.length === 0) { out.push({ words: d.what, sentence: null, source: 'detection', declared: true, modelIds: [], modelWhats: [], detectionIds: [...d.ledgerItemIds], detectionWhats: [d.what] }); continue; }
+    if (at.length === 0) { out.push({ words: d.what, sentence: null, source: 'detection', declared: true, modelIds: [], modelWhats: [], modelReleaseIds: [], detectionIds: [...d.ledgerItemIds], detectionWhats: [d.what] }); continue; }
     for (const i of at) {
       out[i].detectionIds.push(...d.ledgerItemIds);
       out[i].detectionWhats.push(d.what);
@@ -422,7 +429,8 @@ export async function shadowAskDecision(x: ShadowInput): Promise<ShadowDecision>
         }
         const items = rule === 'R1' ? pick : [...ok, ...givenNow, ...pointable];
         asks.push({ ...base, outcome: 'release', rule, items, ...(cut ? { cut } : {}), ...(tagMismatch.length ? { tagMismatch } : {}), ...(lineFail.length ? { lineFail } : {}),
-          agree: o.outcome === 'release' && items.some(id => o.items.includes(id)) });
+          ...(rule === 'R2' ? { keepable: items.filter(id => sa.modelReleaseIds.includes(id) && !lineFail.includes(id)) } : {}),
+        agree: o.outcome === 'release' && items.some(id => o.items.includes(id)) });
         continue;
       }
     }
@@ -499,4 +507,31 @@ export function applyAskRefusals(d: TurnData, asks: AskDecided[]): { data: TurnD
 function spokenRefusal(words: string): string {
   return words.replace(/^(?:(?:so|and|but)\s+)?(?:(?:do|did|can|could|would)\s+(?:we|i|you)\s+(?:please\s+)?(?:have|get|see|know)\s+(?:any\s+)?(?:data\s+on\s+|a\s+sense\s+of\s+|anything\s+on\s+)?|is there (?:any|a)\s+|please share\s+)/i, '')
     .replace(/[?.!]+$/, '').trim();
+}
+
+// ── S3 (`askModelKeep`; design §2.4 R2; Lorenzo's approval of the relaxed keep-rule, 27 Oct, "if 0 new wrong releases") ──
+// A model-named item that matches its sub-ask is kept: an item today's code dropped by a scope rule (A5) or withdrew
+// for sharing no word with the message (A12) is released when the decision released it (its gates passed there), up to
+// the cap; today's deferral of exactly that item goes. Refusals beside it are the contradiction rule's (S3).
+export type KeepChange = { words: string; added: string[]; removed: string[] };
+export function applyModelKeep(d: TurnData, asks: AskDecided[], canGive: (id: string) => boolean, cap: number, lineOf: (id: string) => string): { data: TurnData; changes: KeepChange[] } {
+  const given = new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]);
+  const out: TurnData = { ...d, releases: [...d.releases], defers: [...d.defers], requests: d.requests.map(r => ({ ...r })) };
+  const changes: KeepChange[] = [];
+  for (const a of asks) {
+    if (!a.declared || a.rule !== 'R2' || a.outcome !== 'release') continue;
+    const add = (a.keepable ?? []).filter(id => !given.has(id) && canGive(id));
+    if (add.length === 0) continue;
+    const room = Math.max(0, cap - out.releases.length);
+    const now = add.slice(0, room);
+    if (now.length === 0) continue;
+    for (const id of now) { out.releases.push({ id, value: lineOf(id), earlier: false }); given.add(id); }
+    // Today's deferral of what is now given: a deferral row whose items are all given now, matched to its line by words.
+    const rows = out.requests.filter(r => r.response === 'defer' && r.ledgerItemIds.length > 0 && r.ledgerItemIds.every(id => given.has(id)));
+    const removed = out.defers.filter(w => rows.some(r => r.request.what === w || near(r.request.what, w) || r.ledgerItemIds.some(id => near(lineOf(id), w))));
+    out.defers = out.defers.filter(w => !removed.includes(w));
+    out.requests.push({ request: { what: a.whats[0] ?? a.words, itemIds: now, explicit: true, respond: 'release' }, response: 'release', ledgerItemIds: now });
+    changes.push({ words: a.words, added: now, removed });
+  }
+  return { data: out, changes };
 }
