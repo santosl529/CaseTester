@@ -57,7 +57,13 @@ export const PHASE1_SWITCHES = [
 // same-message withdrawal check, which removes both: the restricted form speaks 6 corrections across the slices,
 // 3 of them the same sentence two turns earlier, and all 6 are true misquotes the candidate attributed to the
 // interviewer or the exhibit. See the post-wave report's §9.)
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck'] as const;
+// `speechNormalization` (27 Oct) reads a spoken arithmetic chain through the disfluencies STT leaves in it, so
+// the checker reaches a verdict on speech at all — measured 0 claims over the 131 recorded voice candidate turns
+// against 32.3 per 100 typed turns on the same case. It is the first Phase 1 change that makes the engine *raise*
+// claims rather than withhold them, so it stays out of the preset until Lorenzo has ruled on the evidence
+// (`.superpowers/sdd/2026-10-22-phase1/speech-normalization-report.md`). Nameable for evaluation; off everywhere
+// else, and a no-op on the typed corpus by construction.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];

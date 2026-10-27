@@ -420,11 +420,15 @@ export type CandidateMath = {
 // pricing claims once every cost line is out. Each figure ends up flagged
 // wrong, verified, or unverified. The live turn (plan-turn.ts) and scoring
 // (challenge-marks.ts) both read it.
-// `spokenReadings` (Phase 1 task 3.6, switch `spokenMathParser`) is the live
-// turn's and scoring's only option: with it on, a stated chain that is
-// consistent under some spoken reading raises no flag. Off — every other call
-// site, and every case without the switch — behaviour is unchanged.
-export type CandidateMathOptions = { spokenReadings?: boolean };
+// Two options, both the live turn's and scoring's:
+//   `spokenReadings` (Phase 1 task 3.6, switch `spokenMathParser`): a stated
+//     chain that is consistent under some spoken reading raises no flag;
+//   `speechNormalization` (27 Oct, switch `speechNormalization`): the four
+//     disfluency shapes STT leaves in a spoken chain are read through, so
+//     spoken arithmetic reaches a verdict at all (lib/orchestrator/speech-normalize.ts).
+// Off — every other call site, and every case without the switch — behaviour is
+// unchanged.
+export type CandidateMathOptions = { spokenReadings?: boolean; speechNormalization?: boolean };
 
 export function checkCandidateMath(candidateText: string, caseData: MathCaseData, revealedIds: Iterable<string>, opts?: CandidateMathOptions): CandidateMath {
   const ids = [...revealedIds];

@@ -13,7 +13,7 @@
 //   npx tsx scripts/voice-math-measure.ts --root='<corpus root>'
 //   npx tsx scripts/voice-math-measure.ts --unparsed        # every voice turn with an
 //                                                           # unparsed figure chain
-//   ENGINE_SWITCHES='*=spokenMathParser' npx tsx scripts/voice-math-measure.ts
+//   ENGINE_SWITCHES='*=spokenMathParser,speechNormalization' npx tsx scripts/voice-math-measure.ts
 //
 // Both arms read the same switches as the live turn (`switchOn`), so the arm is
 // named the same way an evaluation names it.
@@ -99,7 +99,7 @@ export type Tally = { turns: number; claims: number; correct: number; incorrect:
 
 export function measure(turns: MeasuredTurn[], caseId: string): Tally {
   const caseData = getCaseById(caseId);
-  const opts = { spokenReadings: switchOn(caseData, 'spokenMathParser') };
+  const opts = { spokenReadings: switchOn(caseData, 'spokenMathParser'), speechNormalization: switchOn(caseData, 'speechNormalization') };
   const tally: Tally = { turns: turns.length, claims: 0, correct: 0, incorrect: 0, unclear: 0, flags: 0, verified: 0, turnsWithClaim: 0 };
   for (const turn of turns) {
     const math = checkCandidateMath(turn.text, caseData, turn.revealed, opts);
@@ -138,7 +138,7 @@ function main(): void {
   if (has('unparsed')) {
     console.log('\n--- voice turns whose figure chain produced no claim ---');
     const caseData = getCaseById(caseId);
-    const opts = { spokenReadings: switchOn(caseData, 'spokenMathParser') };
+    const opts = { spokenReadings: switchOn(caseData, 'spokenMathParser'), speechNormalization: switchOn(caseData, 'speechNormalization') };
     for (const turn of voice) {
       const math = checkCandidateMath(turn.text, caseData, turn.revealed, opts);
       // A turn that says an operator word between two figures but yields no claim.

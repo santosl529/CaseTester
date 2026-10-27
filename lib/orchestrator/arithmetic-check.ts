@@ -23,6 +23,7 @@
 // Percent shorthand ("25 × 42 = 10.5", "16/18 = 89%") and growth read off a
 // ratio ("66.7/42 ≈ 59%" — up 59%) count as correct when a % is in the claim.
 import { normalizeNumberWords } from '@/lib/number-words';
+import { normalizeSpeech } from './speech-normalize';
 
 export type ArithmeticVerdict = 'correct' | 'incorrect' | 'unclear';
 
@@ -361,9 +362,13 @@ function withholdInconsistent(sentence: string, claims: ArithmeticClaim[], from:
 
 const SENTENCES = /(?<=[.!?])\s+(?=[A-Z0-9"“$(])|\n+/;
 
-export function checkStatedArithmetic(rawText: string, opts?: { spokenReadings?: boolean }): ArithmeticClaim[] {
+export function checkStatedArithmetic(rawText: string, opts?: { spokenReadings?: boolean; speechNormalization?: boolean }): ArithmeticClaim[] {
   const claims: ArithmeticClaim[] = [];
-  for (const raw of normalizeNumberWords(rawText).split(SENTENCES)) {
+  // One text for the whole pass: the sentence spans the claims carry must be
+  // the text the self-correction reader searches, or a correction stops being
+  // found (`speech-normalize.ts`; with the switch off this is today's text).
+  const text = normalizeNumberWords(opts?.speechNormalization ? normalizeSpeech(rawText) : rawText);
+  for (const raw of text.split(SENTENCES)) {
     const sentence = raw.trim();
     if (!sentence || !/\d/.test(sentence)) continue;
     const claimsBefore = claims.length;
@@ -437,7 +442,7 @@ export function checkStatedArithmetic(rawText: string, opts?: { spokenReadings?:
     settle();
     if (opts?.spokenReadings) withholdInconsistent(sentence, claims, claimsBefore);
   }
-  return markSelfCorrections(normalizeNumberWords(rawText), claims);
+  return markSelfCorrections(text, claims);
 }
 
 const CORRECTION_MARKER = /\b(?:wait|no,|sorry,? (?:that'?s|it'?s|i meant)|oops|actually|i mean|let me redo|scratch that|correction|that'?s wrong|my mistake)\b/i;
