@@ -18,6 +18,10 @@ type PostTurnParams = {
   caseId: string;
   phase: Phase;        // the session's phase when the candidate turn arrived
   result: TurnResult;
+  // The background item judge's per-turn claim (`asyncAskJudge`). Absent — the turn route and the voice agent never
+  // pass it — the database claim (the session_events_ask_judge_once index). Only the batch harness passes one: an
+  // in-memory claim, so a wave exercises the judge before the migration is applied (Lorenzo, 27 Oct).
+  askJudgeClaim?: (sessionId: string, turnIndex: number) => Promise<boolean>;
 };
 
 // Per-turn background work. The turn route schedules this with after() (runs
@@ -41,7 +45,7 @@ export async function runPostTurnBackground(params: PostTurnParams): Promise<voi
 }
 
 // The background item judge (lib/orchestrator/ask-judge.ts). Off: no read, no write, no call.
-async function askJudgePass({ sessionId, userId, caseId, phase, result }: PostTurnParams): Promise<void> {
+async function askJudgePass({ sessionId, userId, caseId, phase, result, askJudgeClaim }: PostTurnParams): Promise<void> {
   try {
     const caseData = getCaseById(caseId);
     if (!switchOn(caseData, 'asyncAskJudge')) return;
@@ -56,7 +60,9 @@ async function askJudgePass({ sessionId, userId, caseId, phase, result }: PostTu
     const releasedThisTurn = Boolean(result.exhibit) || revealedRows.some(r => r.revealedAtMs >= candidateTurn.timestampMs);
     if (!askJudgeEligible(candidateTurn.text, interviewerTurn.text, releasedThisTurn)) return;
     await runAskJudgeOnce({
-      claim: () => claimAskJudge(db, sessionId, candidateTurn.turnIndex, phase),   // only the insert that lands calls
+      claim: askJudgeClaim
+        ? () => askJudgeClaim(sessionId, candidateTurn.turnIndex)
+        : () => claimAskJudge(db, sessionId, candidateTurn.turnIndex, phase),   // only the insert that lands calls
       judge: () => callAskJudge(caseData, candidateTurn.text, revealedRows.map(r => r.ledgerItemId),
         u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); }),
       write: async v => { await db.insert(sessionEvents).values({ sessionId, category: ASK_JUDGE_EVENT.category, subtype: ASK_JUDGE_EVENT.subtype,

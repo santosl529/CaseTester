@@ -1307,3 +1307,10 @@ Why the live acts went wrong:
 The first-row-wins test is in `self-correct.test.ts`. With the switch off, output is byte-identical over 1,994 turns, prof-001 included.
 
 **Credential.** `session_events` is written by drizzle over `DATABASE_URL`, a direct Postgres connection through Supabase's transaction pooler as the `postgres` role. No Supabase API key is used, so neither the new secret key nor the legacy `service_role` JWT. Note: `db/client.ts` requires `SUPABASE_SECRET_KEY` to be set and comments "from the secret key", but the key is not used for this connection.
+
+**Batch harness claim** (Lorenzo, 27 Oct). `scripts/live-run.ts` writes to the app's database (`@/db/client`, `DATABASE_URL` from `.env.local`). With the index unapplied, the database claim would error and a wave would never run the judge. So `runPostTurnBackground` takes an optional `askJudgeClaim`:
+- `live-run.ts` passes `memoryAskJudgeClaim()`, a Set of (session, turn) keys — complete, since one process runs one session;
+- the turn route and the voice agent never pass it, and keep the database claim;
+- verdict rows still go to `session_events`.
+
+Tests: concurrent passes with the harness claim → one judge call and no claim row; without it → the database claim; off → nothing.

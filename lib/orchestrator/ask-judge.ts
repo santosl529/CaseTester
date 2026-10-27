@@ -83,6 +83,18 @@ export async function claimAskJudge(db: DB, sessionId: string, turnIndex: number
   }
 }
 
+// The batch harness's claim (scripts/live-run.ts; never production): one process runs one session, so a Set of
+// (session, turn) keys is a complete once-only guard there. The check and the add are one synchronous step.
+export function memoryAskJudgeClaim(): (sessionId: string, turnIndex: number) => Promise<boolean> {
+  const claimed = new Set<string>();
+  return async (sessionId, turnIndex) => {
+    const key = `${sessionId}:${turnIndex}`;
+    if (claimed.has(key)) return false;
+    claimed.add(key);
+    return true;
+  };
+}
+
 // The once-only flow, with its effects injected (post-turn.ts supplies the real ones): claim, then judge, then the
 // verdict row. Never rejects.
 export type AskJudgeOnceDeps = {

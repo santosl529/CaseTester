@@ -43,6 +43,10 @@ import { startSession } from '@/lib/orchestrator/start-session';
 import { runTurn, runSilence } from '@/lib/orchestrator/session-runner';
 import { SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS, SILENCE_PAUSE_MAX_MS } from '@/lib/orchestrator/silence';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
+import { memoryAskJudgeClaim } from '@/lib/orchestrator/ask-judge';
+// The harness's background-judge claim (asyncAskJudge): in memory, so a wave runs the judge before the claim index's
+// migration is applied. Production (the turn route, the voice agent) keeps the database claim.
+const askJudgeClaim = memoryAskJudgeClaim();
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { scoreSession } from '@/lib/scoring/score-session';
 import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS } from '@/lib/scoring/rubric';
@@ -356,7 +360,7 @@ async function main() {
       console.log(`\n[interviewer · ${result.phase} · ${clock(Date.now() - startedAt)}] ${result.interviewerText}`);
       phase = result.phase;
 
-      background.push(runPostTurnBackground({ sessionId, userId, caseId, phase: phaseBeforeTurn, result }));
+      background.push(runPostTurnBackground({ sessionId, userId, caseId, phase: phaseBeforeTurn, result, askJudgeClaim }));
       if (EVAL) {
         const check = checkInterviewerModels(EVAL.config, EVAL.model, interviewerUsages());
         if (!check.ok && check.calls > 0) {

@@ -82,3 +82,27 @@ describe('runAskJudgeOnce', () => {
     expect(judge).not.toHaveBeenCalled();
   });
 });
+
+describe('the batch harness claim (memoryAskJudgeClaim; scripts/live-run.ts only)', () => {
+  it('two concurrent passes on one (session, turn) → one judge call; no claim row in the database', async () => {
+    const { memoryAskJudgeClaim } = await import('@/lib/orchestrator/ask-judge');
+    const askJudgeClaim = memoryAskJudgeClaim();
+    insertResult.mode = 'error';   // the index absent: the database claim would skip the judge
+    await Promise.all([runPostTurnBackground({ ...params, askJudgeClaim } as never), runPostTurnBackground({ ...params, askJudgeClaim } as never)]);
+    expect(judgeCalls).toHaveBeenCalledTimes(1);
+    expect(inserts).toHaveLength(1);   // the verdict row only
+  });
+  it('without it, the database claim is used (the claim row, then the verdict row)', async () => {
+    insertResult.mode = 'inserted';
+    await runPostTurnBackground(params as never);
+    expect(inserts).toHaveLength(2);
+    expect((inserts[0] as { subtype: string }).subtype).toBe('ask_judge_claim');
+  });
+  it('switch off with the harness claim → no write, no call', async () => {
+    const { memoryAskJudgeClaim } = await import('@/lib/orchestrator/ask-judge');
+    process.env.ENGINE_SWITCHES = '*=phase1';
+    await runPostTurnBackground({ ...params, askJudgeClaim: memoryAskJudgeClaim() } as never);
+    expect(judgeCalls).not.toHaveBeenCalled();
+    expect(inserts).toHaveLength(0);
+  });
+});
