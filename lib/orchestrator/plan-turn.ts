@@ -1428,6 +1428,15 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     const all = [...staleDrops, ...checkerStale];
     checks.record('stale_drop', all.length > 0, 'a probe or correction the candidate has overtaken since (the worksheet): dropped, not said', { dropped: all });
   }
+  // Lorenzo, 27 Oct, round 4 (`equationClears`): every clear is logged with the equation that
+  // caused it, the candidate's own words for it, and code's verdict on it — so a grader can
+  // check each one. This is the gate's side (a code line dropped on this turn); the checker
+  // claim's side is on the verdict row, in the claim's own `vetNotes`.
+  if (switchOn(caseData, 'equationClears')) {
+    const cleared = gate.decisions.filter(d => d.outcome === 'equation_cleared')
+      .map(d => ({ id: d.id, key: d.key, value: d.value, reason: d.reason }));
+    checks.record('equation_clear', cleared.length > 0, 'a code line their own verified arithmetic accounts for: dropped, not said', { cleared });
+  }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.
   const probedSteps = new Set<string>(rootAsk ? [rootAsk[1].step] : []);

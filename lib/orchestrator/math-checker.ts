@@ -30,7 +30,7 @@ import { pricingAnswers, pricingValues, statedContributions } from './pricing-ch
 import { inputsRevealed } from '@/lib/scoring/math-spans';
 import { statedBaseOf } from './unit-check';
 import { switchOn } from '@/lib/cases/engine-switches';
-import { AnswerSheetEntrySchema, EquationSchema, EQUATIONS_INSTRUCTIONS, supersededBy, staleNote, verifyEquations, type AnswerSheetEntry, type EquationCheck } from './checker-equations';
+import { AnswerSheetEntrySchema, EquationSchema, EQUATIONS_INSTRUCTIONS, supersededBy, staleNote, verifyEquations, clearedByEquation, clearNote, type AnswerSheetEntry, type EquationCheck } from './checker-equations';
 
 // ── the gate ────────────────────────────────────────────────────────────────
 
@@ -279,6 +279,11 @@ export type VetContext = {
   // `checkerEquations` only: the quantities whose value changed in this message.
   // A probe or correction on a figure one of them replaces is dropped.
   answerSheet?: AnswerSheetEntry[];
+  // The equations heard in this message, with code's own verdict on each
+  // (`checkerEquations` / `checkerEquationsAsync`). Under `equationClears` a doubt
+  // probe on a figure his own confirmed, correct arithmetic derives is blocked —
+  // the safe direction only: nothing here can raise a flag or write a correction.
+  equations?: EquationCheck[];
 };
 
 export type VettedClaim = CheckerClaim & {
@@ -731,7 +736,13 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
     // line if the answer sheet shows the figure is no longer their latest.
     const superseded = isActionable(c) && ctx.answerSheet?.length
       ? supersededBy(c.candidateValue, ctx.answerSheet, ctx.candidateTexts.at(-1) ?? '') : null;
-    const tolerated = isActionable(c) ? selfCleared ?? (superseded ? staleNote(superseded) : null) ?? withinTolerance(c, ctx) : null;
+    // Lorenzo, 27 Oct, round 4 (`equationClears`): a correct equation may BLOCK a doubt
+    // probe — never raise one — and only where code has re-read his own words for every
+    // operand and the stated result (checker-equations.ts, the safe direction).
+    const cleared = isActionable(c) && ctx.equations?.length && switchOn(ctx.caseData, 'equationClears')
+      ? clearedByEquation({ value: numbersOf(c.candidateValue)[0] ?? null, expected: c.correctValue ?? (c.correctLow !== null && c.correctHigh !== null ? (c.correctLow + c.correctHigh) / 2 : null), span: c.span }, ctx.equations, ctx.candidateTexts.at(-1) ?? '')
+      : null;
+    const tolerated = isActionable(c) ? selfCleared ?? (superseded ? staleNote(superseded) : null) ?? (cleared ? clearNote(cleared) : null) ?? withinTolerance(c, ctx) : null;
     if (tolerated) vetNotes.push(`flag dropped — ${tolerated}`);
     const flag = isActionable(c) && !tolerated;
     const ratio = c.codeQuantity.kind === 'step' && ((s => Array.isArray(s?.unit) ? s?.unit[0] : s?.unit)(ctx.caseData.mathSteps.find(s => s.id === c.codeQuantity.stepId) as { unit?: string | string[] } | undefined) === 'ratio');

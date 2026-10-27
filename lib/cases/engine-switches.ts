@@ -100,7 +100,17 @@ export const PHASE1_SWITCHES = [
 // form's recall regression by construction rather than by measurement (a test diffs the prompt). Verdict
 // arrival becomes max(checker, extractor), and the answer sheet is read at delivery, a turn or more later,
 // which is the only moment it is needed. Out of every preset; nameable for evaluation.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'checkerEquationsAsync'] as const;
+// `equationClears` (27 Oct, round 4) wires the SAFE DIRECTION of the equations heard, and only that:
+// a correct equation may clear a false flag or block a doubt probe, never raise one, never write a
+// correction, and never mark a figure correct. It fires only where code has re-read the candidate's own
+// text and found every operand and the stated result in it, as digits or as number words
+// (`confirmedInOwnWords`), so the model's entry is a pointer to his words and never an authority on them.
+// A verdict code rescued off `incorrect` may not clear either — the operand the rescue reads (1.10 for his
+// "10%") is not a figure he said. Lorenzo's reason for the direction, from the scale-word ruling of the
+// same day: a false `correct` shields a real error from ever being probed, which is worse than a doubt.
+// It is a rider on the equations themselves — with `checkerEquations`/`checkerEquationsAsync` off there is
+// no equation to read, so the switch is a no-op. Out of every preset; nameable for evaluation.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'checkerEquationsAsync', 'equationClears'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];

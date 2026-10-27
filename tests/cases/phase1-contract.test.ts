@@ -42,6 +42,10 @@ describe('engine switches', () => {
     expect(switchOn({ id: 'prof-002' }, 'ofAsMultiplication', { ENGINE_SWITCHES: '*=phase1,-ofAsMultiplication' })).toBe(false);
     expect(switchOn({ id: 'prof-002' }, 'speechNormalization', env)).toBe(false);
     expect(switchOn({ id: 'prof-002' }, 'checkerEquations', env)).toBe(false);
+    expect(switchOn({ id: 'prof-002' }, 'checkerEquationsAsync', env)).toBe(false);
+    // Round 4: the safe direction of the equations heard. Out of every preset until the
+    // replay shows 0 real errors shielded and Lorenzo rules on the preset entry.
+    expect(switchOn({ id: 'prof-002' }, 'equationClears', env)).toBe(false);
   });
   it('the env beats the case pin; the pin beats the default', () => {
     expect(switchOn({ id: 'x-001', engine: { worksheet: true } }, 'worksheet', {})).toBe(true);
