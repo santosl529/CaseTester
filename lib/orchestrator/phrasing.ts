@@ -45,6 +45,23 @@ export const PHRASE_POOLS = {
     'As for {x}, that\'s not something I have.',
     '{X} — that\'s not something I have.',
   ],
+  // `refusalAssume` (27 Oct, Lorenzo; measurement only): a non-assertive line for what the case may not hold —
+  // "I don't have X" asserts absence, the claim that goes false. Said only where code is not confident it's absent.
+  assume: [
+    'On {x}, I\'d make a reasonable assumption.',
+    'For {x}, make a reasonable assumption.',
+    'On {x}, go with a sensible assumption.',
+    'For {x}, I\'d work with a reasonable assumption.',
+    'On {x}, a reasonable assumption will do.',
+  ],
+  // …and the coarse line given, a finer cut asked: after the coarse line.
+  assume_finer: [
+    'For anything finer, make an assumption.',
+    'For anything finer than that, make a reasonable assumption.',
+    'Beyond that level of detail, make an assumption.',
+    'For a finer cut, I\'d make an assumption.',
+    'For any finer detail, make an assumption.',
+  ],
   // The exhibit handover: its title.
   exhibit: [
     'Here\'s an exhibit: {x}.',

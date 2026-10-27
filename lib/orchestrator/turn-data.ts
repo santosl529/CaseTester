@@ -785,7 +785,50 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     const real = c.changes.filter(x => x.rule !== 'exhibit_last');
     if (opts.log && real.length > 0) plan.ctx.checks.act('compose_data', 'the data slot (Phase 2 C2): no line the say already spoke, no deferral of what this turn gives', { changes: real });
   }
+  // Refusal wording (`refusalAssume`; Lorenzo, 27 Oct; measurement only): "I don't have X" asserts absence — the claim
+  // that goes false. Each refusal is read once:
+  //   names an item not yet out → a deferral of that item (never "assume" for ledger data still to come);
+  //   a line given this turn answers it coarsely → the coarse line stands, then "For anything finer, make an assumption.";
+  //   the check rated it none AND the model's own words refused it → the assertive refusal, as today;
+  //   otherwise → an assumption line ("On X, I'd make a reasonable assumption.").
+  if (switchOn(plan.state.caseData, 'refusalAssume') && data.refusals.length > 0) {
+    const r = await assumeRefusals(plan, data, opts.modelSay ?? '');
+    data = r.data;
+    if (opts.log && r.changes.length > 0) plan.ctx.checks.act('refusal_assume', 'refusals code is not confident of said as assumptions (refusal-wording measurement)', { changes: r.changes });
+  }
   return data;
+}
+const MODEL_REFUSAL = /\b(?:I don't have|I do not have|I don’t have|not something (?:I|we) have|we don't have|I have no)\b/i;
+async function assumeRefusals(plan: ModelPlan, d: TurnData, modelSay: string): Promise<{ data: TurnData; changes: { what: string; to: string }[] }> {
+  const { ledger, factBase: fb, caseData } = plan.state;
+  const caseNames = properNames(caseData.sttKeyterms);
+  const verdicts: { what: string; v: CheckVerdict }[] = [];
+  for (const [what, p] of plan.state.deferChecks) { const v = await p.catch(() => null); if (v) verdicts.push({ what, v }); }
+  const nouns = (t: string) => keyNouns(t, caseNames);
+  const overlap = (a: string, b: string) => { const x = nouns(b); return [...nouns(a)].filter(n => x.has(n)).length; };
+  const given = [...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])];
+  const out: TurnData = { ...d, refusals: [], assumes: [], defers: [...d.defers], requests: d.requests.map(r => ({ ...r })) };
+  const changes: { what: string; to: string }[] = [];
+  const itemLine = (id: string) => { const i = ledger.items.find(x => x.id === id); return i ? `${i.label} ${i.value}` : ''; };
+  for (const r of d.refusals) {
+    const pending = [...new Set([...refusedItemIds(`I don't have ${r}.`, fb), ...coverageOf(r, fb).items])].filter(id => ledger.items.some(i => i.id === id) && !ledger.revealed.has(id) && !given.includes(id));
+    if (pending.length > 0) {
+      out.defers.push(r);
+      out.requests.push({ request: { what: r, itemIds: pending, explicit: true, respond: 'defer' }, response: 'defer', ledgerItemIds: pending });
+      changes.push({ what: r, to: `defer (${pending.join(', ')})` });
+      continue;
+    }
+    // The coarse line given this turn for the same ask: E1's "release + cut" (a release row and a refuse row on one ask),
+    // else a given item's line sharing two of the refusal's key nouns.
+    const cutRow = d.requests.some(x => x.response === 'refuse' && normAsk(x.request.what) === normAsk(r) && d.requests.some(y => y.response === 'release' && y.request.what === x.request.what && y.ledgerItemIds.some(id => given.includes(id))));
+    if (cutRow || given.some(id => overlap(r, itemLine(id)) >= 2)) { out.assumeFiner = true; changes.push({ what: r, to: 'finer' }); continue; }
+    const checkNone = verdicts.some(x => x.v.mapped === false && (normAsk(x.what) === normAsk(r) || overlap(x.what, r) >= Math.max(1, Math.ceil(nouns(r).size / 2))));
+    const modelRefused = sentencesOf(modelSay).some(s => MODEL_REFUSAL.test(s) && overlap(s, r) > 0);
+    if (checkNone && modelRefused) { out.refusals.push(r); changes.push({ what: r, to: 'assertive' }); continue; }
+    out.assumes!.push(r);
+    changes.push({ what: r, to: `assume${checkNone ? ' (check none, model silent)' : modelRefused ? ' (model refused, no check none)' : ''}` });
+  }
+  return { data: out, changes };
 }
 // Arm B: each restatement and refused part is matched (by key nouns) to the judge's ask; the judge's items decide:
 //   restatement — its item full: kept; partial: its line (no pointer) + the missing part refused; another item: that

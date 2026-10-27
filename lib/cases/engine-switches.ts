@@ -64,7 +64,9 @@ export const PHASE1_SWITCHES = [
 // (evals/case-notes-draft/) as cover phrases and not-held phrases. Never in a preset.
 // `itemJudge` (27 Oct, item-choice experiment arm B — measurement only): recorded Sonnet-judge verdicts (ITEM_JUDGE_VERDICTS)
 // decide the item on restatements and refusals. Never in a preset.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge'] as const;
+// `refusalAssume` (27 Oct, Lorenzo — measurement only): an assertive refusal only where the check rated the ask none and
+// the model refused it; else an assumption line (a coarse line given: "for anything finer, make an assumption").
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge', 'refusalAssume'] as const;
 // Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
 // step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
 // structures would decide and say, and change nothing the candidate hears.

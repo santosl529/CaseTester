@@ -14,6 +14,8 @@ const WHEN: Record<PhrasePool, string> = {
   wont_get_to: 'Every deferral on a wrap-up or close turn (Lorenzo\'s line, one version). {x} = what was asked.',
   wont_get_to_that: 'A deferral on a wrap-up or close turn whose ask is long (more than 8 words as said) or a list (Lorenzo\'s line, one version).',
   refuse: 'Data the case doesn\'t hold. {x} = what was asked.',
+  assume: 'refusalAssume (measurement): an ask code is not confident the case lacks, said as an assumption. {x} = what was asked.',
+  assume_finer: 'refusalAssume (measurement): after the coarse line, a finer cut asked. No slot.',
   exhibit: 'Handing over an exhibit. {x} = its title.',
   restate: 'A fact already given, asked for again. {x} = the ledger line.',
   restate_exhibit: 'A fact that so far came out only on an exhibit, asked for again. {x} = the ledger line.',

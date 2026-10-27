@@ -1075,3 +1075,40 @@ Where the replayed figures come from: candidate 383, ledger out 343, prompt 40, 
 - a figure the candidate stated wrongly and the interviewer repeats counts as traced (that is misquote detection's area, untouched).
 
 **Reading.** The model never receives values not yet out (FR-4), and the unsourced-figure veto withholds sentences. In this corpus the interviewer's own figures are all traceable, so step 2 of a firewall has no current faults to fix.
+
+## 21. Refusal wording (`refusalAssume`, 27 Oct): measured behind an off switch, free
+
+**What it does.** "I don't have X" asserts absence, and that is the claim that goes false. With the switch on, each refusal code would say is read once:
+- it names an item not yet out → a deferral of it;
+- a line given this turn answers it coarsely → "For anything finer, make an assumption." (pool `assume_finer`);
+- the ask check rated it none **and** the model's own words refused it → the assertive refusal, as today;
+- otherwise → an assumption line (pool `assume`: "On X, I'd make a reasonable assumption.", five lines, no repeat within 3).
+
+The data line then runs release → deferral → assumption → assertive refusal. The switch is outside every preset, and the default path is identical (1,994 turns).
+
+**Batch-39 false refusals:**
+- none of the 8 now asserts a false absence (the bank shows 8/8, against 1/8 today);
+- read on substance, 4 are right: Marisol t6 and Raj t10 get the finer-cut line after the line that answers them, Marcus t14's frequency becomes an assumption, and Victor t12 is right; Raj t20 was already fixed by S4;
+- 3 break the rule "never assume for a ledger item not yet out": Jasmine t2 (departures, held behind the gate), Marisol t2 (the revenue breakdown, held behind the gate) and Fuel t4 (the fuel trend held, not out). The not-yet-out test misses them for the known reason: the refused words map to no item.
+
+**The 19 true refusals:**
+
+| Outcome | Count | Records |
+|---|---|---|
+| Stay assertive | 2 | b35h-tyler-t22, b37h-marisol-t14 |
+| Assumption line | 14 | — |
+| Finer-cut line | 2 | — |
+| Unchanged | 1 | b35h-marcus-t6, answered by a coarse line |
+
+The both-conditions rule rarely fires: most true refusals are code's, after the check said none, with the model silent.
+
+**Gate:**
+- correct records 79/95 — all 16 failing are true-refusal records, which assert the refusal's wording; no other correct record moves;
+- 25 more fault records fail, for the same reason (they assert an owed refusal);
+- corpus: 97 changed turns, all read;
+- no new false absence, no wrong release, no new silence;
+- the 3 held-data assumption lines above;
+- 3 finer-cut lines read unclearly, because they come before the exhibit handover that carries the coarse data (b36a 6bbc2163 t4, b39h ce6d43bc t6, b39h 61bb8b4d t14);
+- 98 assumption lines over 150 interviews, 0.65 an interview (max 4).
+
+The measured run used 4-line pools; a fifth line per pool was added after it, to meet the five-version convention.

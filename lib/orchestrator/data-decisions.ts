@@ -383,6 +383,10 @@ export type DataDecisions = {
   recentRestates?: string[];
   // `restateLineInvite` (27 Oct): on the pointer path the item's own line was said instead; this statement follows it.
   restateInvite?: true;
+  // `refusalAssume` (27 Oct, measurement): refusals code isn't confident of, said as assumption lines; `assumeFiner`,
+  // the coarse line given and a finer cut asked. With either set the line runs release → deferral → assumption → refusal.
+  assumes?: string[];
+  assumeFiner?: true;
   exhibit: { id: string; title: string; covers: string[] } | null;
   refusals: string[];     // what, for explicit asks the case doesn't hold
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
@@ -748,6 +752,19 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   if (d.recentRestates?.length) parts.push({ kind: 'restate', ids: [], text: phrase('restate_recent', joinWhat(d.recentRestates, 'and'), uses, seed) });
   if (d.exhibit && !d.exhibitLast) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   const proper: ReadonlySet<string> = d.properWords ? new Set(d.properWords.map(w => w.toLowerCase())) : NO_PROPER;
+  if (d.assumes !== undefined || d.assumeFiner) {
+    // `refusalAssume`: release → deferral → assumption → assertive refusal.
+    if (d.assumeFiner) parts.push({ kind: 'refusals', ids: [], text: line('assume_finer', uses, seed) });
+    if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and', false, proper), uses, seed) });
+    if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed, proper) });
+    for (const w of d.wontGetToNamed ?? []) parts.push({ kind: 'defers', ids: [], text: phrase('wont_get_to', joinWhat([w], 'and', false, proper), uses, seed) });
+    if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and', false, proper), uses, seed) });
+    if (d.assumes?.length) parts.push({ kind: 'refusals', ids: [], text: phrase('assume', joinWhat(d.assumes, 'and', false, proper), uses, seed) });
+    if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });
+    if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and', false, proper), uses, seed) });
+    if (d.exhibit && d.exhibitLast) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
+    return parts;
+  }
   if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });
   if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and', false, proper), uses, seed) });
   if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed, proper) });
