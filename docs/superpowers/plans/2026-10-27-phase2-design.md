@@ -1222,9 +1222,9 @@ The module is `lib/orchestrator/self-correct.ts`; the replay serves verdicts thr
 These were fixed by the release-order, exhibit and answered-now tests above, then replayed again for free on the same verdicts.
 
 **Final:** 14 corrections over the 48 runs, about 0.29 an interview.
-- **Have (8):** the net price ×2, the store count, extras revenue, the flight count, the other four routes, the buyer profile, the Pro cohort.
+- **Have (6):** the net price ×2, the store count, the other four routes, the buyer profile, the Pro cohort.
 - **Gated have (1):** the acquisition cost.
-- **None (5):** European net price, European share, seasonality, the competitor's daily frequencies, catchment population, fixed cost of two plans.
+- **None (7):** European net price, European share, seasonality, the competitor's daily frequencies, the capacity the low-cost airline added, catchment population, fixed cost of two plans.
 
 **Gate:**
 - false corrections 0; new false statements 0; wrong releases 0; new silences 0;
@@ -1240,4 +1240,4 @@ These were fixed by the release-order, exhibit and answered-now tests above, the
 
 ## 27. Judge cost note
 
-On Haiku 4.5 the judge's prompt doesn't cache (it is under the minimum cacheable size), so a call costs more there than on Sonnet ($0.0026 against $0.0034 with Sonnet's cache), for far lower accuracy (§25).
+On Haiku 4.5 the judge's prompt doesn't cache (it is under the minimum cacheable size), so a call costs nearly as much as Sonnet's cached call ($0.0026 against $0.0034), for far lower accuracy (§25).
