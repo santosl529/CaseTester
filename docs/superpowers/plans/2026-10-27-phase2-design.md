@@ -1178,3 +1178,21 @@ Lorenzo moved it into the preset; the 3 turns that tell the candidate to assume 
 D9 is 32 before and 32 after, so no new silences.
 
 **Harvest later (Lorenzo):** the raw-message check's 51 hollow-deferral → true-refusal gains (§22) stay unharvested while `askCheckRawMessage` is off.
+
+## 25. The missing baseline: the judge's prompt on Haiku 4.5 (27 Oct; $0.15 cap via `LLM_BUDGET_USD`)
+
+**Set-up.** Same input and output as arm B: the raw message, every item plus prompt facts; item(s), full / partial / none, and the missing part. Haiku 4.5 is called as the app calls it: no thinking, effort or schema, with a JSON prefill.
+
+**Coverage.** The prompt (about 3,500 tokens) is under Haiku 4.5's minimum cacheable size, so nothing caches, and a call costs about $0.0026. The cap stopped the run at 58 of the 77 turns (round-robin by class): all 9 pointer turns, all 8 targets, 14 true refusals, 14 restatements and 13 correct records. 4 responses did not parse.
+
+| On the same 58 turns | Haiku 4.5 | Haiku 5.5 | Sonnet 5.5 |
+|---|---|---|---|
+| Pointer | 6/9 | 7/9 | 7/9 |
+| Batch-39 targets | 4/8 | 7/8 | 8/8 |
+| True refusals | 13/14 | 14/14 | 14/14 |
+| Restatements | 11/14 | 12/14 | 14/14 |
+| Correct records | 6/13 | 13/13 | 12/13 |
+| **All** | **40/58 (69%)** | **53/58** | **55/58** |
+| Latency p50 / p90 / max; over the 1.5 s cap | 0.90 / 1.81 / 3.28 s; 9 of 58 | 1.66 / 2.62 / 3.85 s | 1.87 / 3.27 / 41.7 s |
+
+**Haiku 4.5's errors** lean to "none": 11 times it says "none" where an item holds the answer. Examples: the patent life for "how long does the royalty run", the upgrade timing on Raj t10, the new routes on Raj t20, the fuel trend, and test-group CAC. The rest: 4 parse failures, 1 invented ask, 1 partial on held data, 1 missed ask. It never rates a refused ask full.

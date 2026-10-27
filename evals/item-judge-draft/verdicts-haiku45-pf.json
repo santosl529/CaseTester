@@ -1,0 +1,3509 @@
+[
+ {
+  "key": "35740806:12",
+  "caseId": "entry-001",
+  "run": "35740806",
+  "turn": 12,
+  "records": [
+   "b39a-raj-t12-pointer-mismatch"
+  ],
+  "groups": [
+   "pointer"
+  ],
+  "candidateText": "The headline is that it clears, but barely — and the margin is thin enough that I wouldn't let the board rely on it as-is.\n\nTwo things stand out. First, the 20% peak share of eligible patients is the softest number in the chain. That's Aldermoor's own forecast, it's the only line that's a competitive outcome rather than an epidemiological fact, and it's unvalidated in a market where they have no commercial presence. If it comes in at 15% instead of 20%, sales are $240 million and we miss. So the whole decision effectively hinges on that one assumption.\n\nSecond, the 20% rebate looks optimistic for a US launch. US payers extract steeper discounts than European systems, especially from an unknown entrant with no contracting leverage. At 35% net price is $6,500, and 40,000 patients gives $260 million — also a miss.\n\nSo I'd pressure-test share and net price before anything else. Do we know what Kelvexa's share of eligible patients is in its established European markets, and what competes with it?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Kelvexa's share of eligible patients in established European markets",
+     "items": [],
+     "missing": "Kelvexa's European market share"
+    },
+    {
+     "ask": "What competes with Kelvexa in Europe",
+     "items": [],
+     "missing": "Kelvexa's European competitors"
+    }
+   ]
+  },
+  "latencyMs": 1350,
+  "usd": 0.002646,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 38,
+   "plan_done": 56,
+   "model_request": 58,
+   "distress_verdict": 1358,
+   "model_first_token": 1525,
+   "model_first_sentence": 1530,
+   "held_for_distress": 1530,
+   "model_say_closed": 1530,
+   "model_move_closed": 1531,
+   "model_requests_closed": 1894,
+   "first_delivered": 1896,
+   "model_exhibit_closed": 1896,
+   "model_rescue_item_closed": 1896,
+   "pt_judge_start": 1896,
+   "pt_judge_end": 1896,
+   "first_useful_delivered": 2472,
+   "data_line_delivered": 2472,
+   "model_question_closed": 2472,
+   "model_done": 2472,
+   "settle_start": 2472,
+   "pt_judge_settle_start": 2472,
+   "pt_judge_settle_end": 2472,
+   "settle_composed": 2491,
+   "tail_delivered": 2491,
+   "heard_resolved": 2491,
+   "persist_start": 2491,
+   "persist_end": 2557
+  }
+ },
+ {
+  "key": "6bbc2163:4",
+  "caseId": "entry-001",
+  "run": "6bbc2163",
+  "turn": 4,
+  "records": [
+   "b36a-jasmine-t4-coarse-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "It's broadly MECE — market attractiveness, competitive position, economics, and entry mode don't overlap much, though I'd concede access/pricing sits across buckets one and three, so I'd fold gross-to-net pricing into sizing and keep bucket three purely cost-side.\n\nI'd prioritize bucket one, sizing. The board has set a hard gate at $300 million peak sales. If the realistic peak is below that, the competitive and entry-mode work is moot, so it's the fastest path to a yes/no. Competition is a close second because it drives the share assumption inside the sizing, so in practice I'd run them together: size the treated population, then use competitive differentiation to set peak share.\n\nCould I get the funnel — US prevalence, diagnosed, treated — plus net price per patient-year? And if you have it, how the treated population has trended since 2022.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "US prevalence, diagnosed, and treated patient counts in the funnel",
+     "items": [
+      {
+       "id": "funnel_rates",
+       "answers": "partial"
+      },
+      {
+       "id": "us_adults",
+       "answers": "partial"
+      }
+     ],
+     "missing": "treatment trend since 2022"
+    },
+    {
+     "ask": "net price per patient-year",
+     "items": [
+      {
+       "id": "option_shared",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "how treated population has trended since 2022",
+     "items": [],
+     "missing": "treated population trend since 2022"
+    }
+   ]
+  },
+  "latencyMs": 1638,
+  "usd": 0.002754,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 31,
+   "plan_done": 47,
+   "model_request": 48,
+   "model_first_token": 1039,
+   "model_first_sentence": 1393,
+   "held_for_distress": 1393,
+   "model_say_closed": 1393,
+   "model_move_closed": 1393,
+   "model_requests_closed": 1759,
+   "model_exhibit_closed": 1760,
+   "model_rescue_item_closed": 1785,
+   "model_question_closed": 1983,
+   "model_done": 2023,
+   "distress_verdict": 3594,
+   "first_delivered": 3603,
+   "pt_judge_start": 3603,
+   "pt_judge_end": 3603,
+   "first_useful_delivered": 4245,
+   "data_line_delivered": 4245,
+   "settle_start": 4245,
+   "pt_judge_settle_start": 4246,
+   "pt_judge_settle_end": 4246,
+   "settle_composed": 4272,
+   "tail_delivered": 4272,
+   "heard_resolved": 4272,
+   "persist_start": 4272,
+   "persist_end": 4450
+  }
+ },
+ {
+  "key": "a1133734:24",
+  "caseId": "entry-001",
+  "run": "a1133734",
+  "turn": 24,
+  "records": [
+   "b34a-marisol-t24-one-off-cost"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "That came from the version where I had the royalty reversed. I'd computed Option B as $400M × 70% = $280M to Aldermoor, and Option A as $320M − $80M = $240M, so $280M − $240M = $40M in B's favour.\n\nThat's wrong on the premise. With the royalty read correctly, Option B gives Aldermoor $400M × 30% = $120M, and Option A gives $240M. So the gap is $240M − $120M = $120M, and it runs the other way — A beats B by $120M on what Aldermoor keeps.\n\nThe $40M number should be struck.\n\nThe one thing that still favours B is timing: six months versus 12–18, so B reaches peak sooner and we bank revenue a year earlier. But on an annual peak basis A is twice as good, and with patents to 2038 we have thirteen years to amortise the build. Do we know the one-off cost to stand up the US team, separate from the $80M annual?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "one-off cost to stand up the US team, separate from the $80M annual",
+     "items": [],
+     "missing": "one-off setup cost for US team"
+    }
+   ]
+  },
+  "latencyMs": 818,
+  "usd": 0.002472,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 52,
+   "plan_done": 64,
+   "code_written_checks_start": 64,
+   "distress_verdict": 854,
+   "code_written_checks_end": 1085,
+   "settle_start": 1086,
+   "pt_judge_settle_start": 1086,
+   "pt_judge_settle_end": 1086,
+   "settle_composed": 1089,
+   "first_delivered": 1089,
+   "first_useful_delivered": 1089,
+   "tail_delivered": 1089,
+   "heard_resolved": 1089,
+   "persist_start": 1089,
+   "persist_end": 1156
+  }
+ },
+ {
+  "key": "fc5eb050:12",
+  "caseId": "entry-001",
+  "run": "fc5eb050",
+  "turn": 12,
+  "records": [
+   "b34a-tyler-t12-trial-release"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Let me look again — you're right, the exhibit says 1.6%, not 1.5%. I misread. Let me redo it.\n\n250 million × 1.6% = 4 million with Corlan's. Diagnosed at 50% = 2 million. Treated with prescription medicine at 50% = 1 million. Moderate-to-severe eligible at 20% = 200,000 patients. Kelvexa at 20% of eligible = 40,000 patients.\n\n40,000 × $8,000 net = $320 million. So we clear the bar, but only by about 7% — still thin.\n\nOn competition, that's a useful picture. Nimbrel is an every-two-week injection that's been standard for eight years and nets roughly $8,650 a year. Kelvexa is a once-daily oral at $8,000 net — so we're actually slightly cheaper and far more convenient for the patient, no injections. That convenience advantage is the main reason I'd believe a 20% share is reachable, though an eight-year incumbent means entrenched prescriber habit.\n\nDo we have efficacy data comparing the two?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "efficacy data comparing Kelvexa with Nimbrel",
+     "items": [
+      {
+       "id": "trial_comparison",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    }
+   ]
+  },
+  "latencyMs": 798,
+  "usd": 0.002463,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 38,
+   "plan_done": 58,
+   "model_request": 58,
+   "distress_verdict": 816,
+   "model_first_token": 1516,
+   "model_first_sentence": 1516,
+   "held_for_requests": 1516,
+   "model_say_closed": 1516,
+   "model_move_closed": 1516,
+   "model_requests_closed": 1900,
+   "first_delivered": 1903,
+   "model_exhibit_closed": 1905,
+   "model_rescue_item_closed": 1905,
+   "pt_judge_start": 1905,
+   "pt_judge_end": 1905,
+   "first_useful_delivered": 1913,
+   "data_line_delivered": 1913,
+   "model_question_closed": 2370,
+   "model_done": 2395,
+   "settle_start": 2395,
+   "pt_judge_settle_start": 2395,
+   "pt_judge_settle_end": 2395,
+   "settle_composed": 2409,
+   "tail_delivered": 2410,
+   "heard_resolved": 2410,
+   "persist_start": 2410,
+   "persist_end": 2471
+  }
+ },
+ {
+  "key": "c82e7bd7:10",
+  "caseId": "pricing-001",
+  "run": "c82e7bd7",
+  "turn": 10,
+  "records": [
+   "b39q-raj-t10-refusal-contradiction"
+  ],
+  "groups": [
+   "target"
+  ],
+  "candidateText": "Let me take Starter first. Cancellations hit 40% by month 12 and are steady, so monthly cancellation is about 40/12 ≈ 3.3%, giving expected lifetime ≈ 1/0.033 ≈ 30 months. At $40 a month that's 30 × 40 = $1,200 of value against $300 CAC, so 4x — that passes.\n\nWait, I used price, not margin. Gross margin is $40 − $10 = $30. So Starter LTV = 30 × 30 = $900, ratio $900/$300 = 3.0x. That's right at the line, which is probably why the CFO says it fails.\n\nBut finance also counts upgrades. By month 12, 20% have upgraded and stuck. Do we treat that 20% as the full upgrade share, since few upgrade after month 12?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Do we treat the 20% upgrade share by month 12 as the full upgrade share, since few upgrade after month 12?",
+     "items": [],
+     "missing": "confirmation that 20% is the final upgrade share"
+    }
+   ]
+  },
+  "latencyMs": 901,
+  "usd": 0.002471,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 31,
+   "plan_done": 71,
+   "model_request": 74,
+   "distress_verdict": 868,
+   "model_first_token": 1282,
+   "model_first_sentence": 1282,
+   "first_delivered": 1288,
+   "model_say_closed": 1288,
+   "model_move_closed": 1288,
+   "model_requests_closed": 1288,
+   "model_exhibit_closed": 1288,
+   "model_rescue_item_closed": 1351,
+   "pt_judge_start": 1351,
+   "pt_judge_end": 1351,
+   "first_useful_delivered": 1365,
+   "data_line_delivered": 1365,
+   "model_question_closed": 1812,
+   "model_done": 1941,
+   "settle_start": 1941,
+   "pt_judge_settle_start": 1941,
+   "pt_judge_settle_end": 1941,
+   "settle_composed": 1955,
+   "tail_delivered": 1955,
+   "heard_resolved": 1955,
+   "persist_start": 1955,
+   "persist_end": 2049
+  }
+ },
+ {
+  "key": "257e027f:8",
+  "caseId": "entry-001",
+  "run": "257e027f",
+  "turn": 8,
+  "records": [
+   "b39a-marcus-t8-pointer-mismatch"
+  ],
+  "groups": [
+   "pointer"
+  ],
+  "candidateText": "Fair — I didn't have a European net price. I inferred it. The claim was directional: European reference pricing and rebates typically land net realization well below US levels, so if Kelvexa nets something like $3,000–4,000 a year in Europe, 40,000 patients gets you $120–160 million, nowhere near the bar. But that's my assumption, not a number you gave me. I'd want Aldermoor's actual European net price per patient per year to pressure-test it.\n\nThat said, it doesn't change the recommendation. The US math stands on its own at $320 million — I don't need the European comparison to clear the bar, it just explains why price is the lever. So: launch, price at the $10,000 list with 20% rebates, enter through a co-promote with an established rheumatology force. The European number would sharpen the story for the board, not reverse it.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Aldermoor's actual European net price per patient per year",
+     "items": [],
+     "missing": "European net price per patient per year"
+    }
+   ]
+  },
+  "latencyMs": 732,
+  "usd": 0.002364,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 31,
+   "plan_done": 43,
+   "model_request": 44,
+   "distress_verdict": 842,
+   "model_first_token": 969,
+   "model_first_sentence": 1273,
+   "first_delivered": 1276,
+   "model_say_closed": 1300,
+   "model_move_closed": 1331,
+   "model_requests_closed": 1331,
+   "model_exhibit_closed": 1368,
+   "model_rescue_item_closed": 1570,
+   "pt_judge_start": 1570,
+   "pt_judge_end": 1570,
+   "first_useful_delivered": 1585,
+   "data_line_delivered": 1585,
+   "model_question_closed": 2199,
+   "model_done": 2207,
+   "settle_start": 2207,
+   "pt_judge_settle_start": 2207,
+   "pt_judge_settle_end": 2207,
+   "settle_composed": 2228,
+   "tail_delivered": 2228,
+   "heard_resolved": 2228,
+   "persist_start": 2229,
+   "persist_end": 2337
+  }
+ },
+ {
+  "key": "c518221e:10",
+  "caseId": "entry-001",
+  "run": "c518221e",
+  "turn": 10,
+  "records": [
+   "b36a-marcus-t10-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "Yes, please share the forecast peak share — that's the number I need.\n\nAhead of it, my read: Kelvexa is a once-daily oral versus an injection every two weeks, at $8,000 net against Nimbrel's $9,000. So we're cheaper and more convenient, which is a genuine wedge in an entrenched, single-incumbent market. The offset is that Nimbrel has eight years of clinical evidence and prescriber habit, so switching existing patients is slow — most of our early volume likely comes from newly eligible or newly escalating patients rather than switches.\n\nIf the forecast peak share comes in below 18%, the board's bar isn't cleared on base economics and the question becomes whether price or eligible population can be stretched. If it's above, we're through and the conversation moves to entry mode.\n\nOne thing I'd also want: how the eligible pool has grown year over year — a growing pool makes the share hurdle easier over time.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "forecast peak share of eligible patients",
+     "items": [
+      {
+       "id": "peak_share_forecast",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "year-over-year growth of eligible patient pool",
+     "items": [],
+     "missing": "eligible pool growth rate over time"
+    }
+   ]
+  },
+  "latencyMs": 1224,
+  "usd": 0.002521,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 35,
+   "plan_done": 46,
+   "model_request": 47,
+   "model_first_token": 1211,
+   "model_first_sentence": 1536,
+   "held_for_distress": 1536,
+   "model_say_closed": 1536,
+   "model_move_closed": 1541,
+   "model_requests_closed": 1866,
+   "model_exhibit_closed": 1866,
+   "model_rescue_item_closed": 1866,
+   "distress_verdict": 2049,
+   "model_question_closed": 2072,
+   "model_done": 2341,
+   "first_delivered": 2343,
+   "pt_judge_start": 2343,
+   "pt_judge_end": 2343,
+   "first_useful_delivered": 2772,
+   "data_line_delivered": 2772,
+   "settle_start": 2772,
+   "pt_judge_settle_start": 2773,
+   "pt_judge_settle_end": 2773,
+   "settle_composed": 2783,
+   "tail_delivered": 2783,
+   "heard_resolved": 2783,
+   "persist_start": 2783,
+   "persist_end": 2875
+  }
+ },
+ {
+  "key": "c518221e:24",
+  "caseId": "entry-001",
+  "run": "c518221e",
+  "turn": 24,
+  "records": [
+   "b36a-marcus-t24-split-restated"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "Taking that definition, A clears the bar at $320 million and B doesn't, so A is the recommendation and de-risking the start is the real question.\n\nIdeas:\n\nHire ahead of approval-to-launch — recruit reps and the payer team now from competitors, ideally people who sold Nimbrel and know these specialists.\n\nStart payer contracting 12 months early, since prior authorization is the 58% barrier and formulary cycles are annual — miss a cycle and you lose a year.\n\nGo narrow first: concentrate the 60 reps on the highest-volume specialist centers rather than spreading nationally, then expand.\n\nUse a contract sales organization as a bridge for the first 12–18 months, then transition to the owned team — buys speed without permanent cost.\n\nFund a prior-auth support hub and a copay assistance program to attack the 15% out-of-pocket barrier and reduce abandonment.\n\nRun a US clinical or real-world evidence program to answer the 27% who want US experience.\n\nPhase the $80 million rather than spending it flat from day one.\n\nA smaller option: license co-promotion in some regions only.\n\nDo we have the $80 million split by rep cost versus market access?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "$80 million split by rep cost versus market access",
+     "items": [],
+     "missing": "breakdown of $80 million annual US selling costs by rep salary/overhead versus payer access team and patient support"
+    }
+   ]
+  },
+  "latencyMs": 1123,
+  "usd": 0.002625,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 46,
+   "plan_done": 65,
+   "model_request": 65,
+   "distress_verdict": 999,
+   "model_first_token": 1631,
+   "model_first_sentence": 1893,
+   "held_for_requests": 1893,
+   "model_say_closed": 1893,
+   "model_move_closed": 1894,
+   "model_requests_closed": 2057,
+   "first_delivered": 2061,
+   "model_exhibit_closed": 2088,
+   "model_rescue_item_closed": 2203,
+   "pt_judge_start": 2203,
+   "pt_judge_end": 2203,
+   "first_useful_delivered": 2722,
+   "data_line_delivered": 2722,
+   "model_question_closed": 2722,
+   "model_done": 2722,
+   "settle_start": 2722,
+   "pt_judge_settle_start": 2722,
+   "pt_judge_settle_end": 2722,
+   "settle_composed": 2730,
+   "tail_delivered": 2730,
+   "heard_resolved": 2730,
+   "persist_start": 2730,
+   "persist_end": 2797
+  }
+ },
+ {
+  "key": "fc5eb050:20",
+  "caseId": "entry-001",
+  "run": "fc5eb050",
+  "turn": 20,
+  "records": [
+   "b34a-tyler-t20-pipeline-release"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Let me run both.\n\nEligible pool is 200,000 patients, net price $8,000.\n\nOption A: 20% share = 40,000 patients × $8,000 = $320 million in US net sales, all of which Aldermoor books. Less the $83 million annual selling cost you've got there, that's about $237 million in contribution.\n\nOption B: 25% share = 50,000 patients × $8,000 = $400 million in net sales, but Aldermoor receives a 30% royalty = $120 million, with no selling costs.\n\nSo A is roughly twice as good on economics — $237 million versus $120 million — and it's the only one where Aldermoor itself reports $320 million of net sales against the board's $300 million test. Under B, Aldermoor's own revenue line is $120 million, which fails the bar as literally written.\n\nThe trade is risk and speed: B launches in 6 months versus 12–18, gets higher share because the partner already calls on these specialists, and fixes the 41% \"no local support\" barrier immediately.\n\nDoes Aldermoor have other US-bound pipeline assets?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Does Aldermoor have other US-bound pipeline assets?",
+     "items": [
+      {
+       "id": "pipeline",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    }
+   ]
+  },
+  "latencyMs": 838,
+  "usd": 0.002502,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 41,
+   "plan_done": 57,
+   "model_request": 57,
+   "distress_verdict": 962,
+   "model_first_token": 1672,
+   "model_first_sentence": 1676,
+   "first_delivered": 1679,
+   "model_say_closed": 1679,
+   "model_move_closed": 1679,
+   "model_requests_closed": 1726,
+   "model_exhibit_closed": 2020,
+   "model_rescue_item_closed": 2020,
+   "pt_judge_start": 2020,
+   "pt_judge_end": 2020,
+   "first_useful_delivered": 2024,
+   "data_line_delivered": 2024,
+   "model_question_closed": 2710,
+   "model_done": 2719,
+   "settle_start": 2719,
+   "pt_judge_settle_start": 2719,
+   "pt_judge_settle_end": 2719,
+   "settle_composed": 2727,
+   "tail_delivered": 2727,
+   "heard_resolved": 2727,
+   "persist_start": 2727,
+   "persist_end": 2874
+  }
+ },
+ {
+  "key": "854fc080:6",
+  "caseId": "pricing-001",
+  "run": "854fc080",
+  "turn": 6,
+  "records": [
+   "b39q-marisol-t6-refusal-contradiction"
+  ],
+  "groups": [
+   "target"
+  ],
+  "candidateText": "Let me work it. Lifetime value, simply, is monthly revenue times expected lifetime, where lifetime is one over the monthly churn rate, and then I compare to CAC.\n\nPro: 21.5% cancel, so monthly churn is 21.5%. Expected lifetime = 1/0.215 = 4.65 months. LTV = $100 × 4.65 = $465. Against $1,200 CAC that's 0.39x — Pro fails the 3x rule badly.\n\nStarter: 40% cancel, so monthly churn 40%, lifetime = 1/0.40 = 2.5 months. LTV = $40 × 2.5 = $100. Then finance's upgrade method: 20% upgrade, so add 0.20 × $465 = $93. Total $193 against $300 CAC = 0.64x.\n\nSo Starter is actually the stronger of the two on a ratio basis — 0.64x versus 0.39x — even though neither clears 3x. That flips the CFO's framing.\n\nTo finish the board's test properly I need gross margin, since the rule should run on contribution not revenue. Do we have gross margin or cost to serve per customer by plan?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "gross margin or cost to serve per customer by plan",
+     "items": [
+      {
+       "id": "plan_prices_costs",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    }
+   ]
+  },
+  "latencyMs": 830,
+  "usd": 0.002467,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 33,
+   "plan_done": 47,
+   "model_request": 48,
+   "distress_verdict": 800,
+   "model_first_token": 1111,
+   "model_first_sentence": 1117,
+   "held_for_requests": 1117,
+   "model_say_closed": 1117,
+   "model_move_closed": 1117,
+   "model_requests_closed": 1281,
+   "first_delivered": 1282,
+   "model_exhibit_closed": 1448,
+   "model_rescue_item_closed": 1448,
+   "pt_judge_start": 1448,
+   "pt_judge_end": 1448,
+   "first_useful_delivered": 1456,
+   "data_line_delivered": 1456,
+   "model_question_closed": 1981,
+   "model_done": 2001,
+   "settle_start": 2001,
+   "pt_judge_settle_start": 2001,
+   "pt_judge_settle_end": 2001,
+   "settle_composed": 2010,
+   "tail_delivered": 2010,
+   "heard_resolved": 2010,
+   "persist_start": 2010,
+   "persist_end": 2115
+  }
+ },
+ {
+  "key": "5bc506bc:24",
+  "caseId": "entry-001",
+  "run": "5bc506bc",
+  "turn": 24,
+  "records": [
+   "b39a-marisol-t24-pointer-mismatch"
+  ],
+  "groups": [
+   "pointer"
+  ],
+  "candidateText": "Let me run both against the $300 million bar.\n\nOption A: 20% of 200,000 eligible = 40,000 patients × $8,000 = $320 million US net sales. Aldermoor keeps all of it, less $80 million of selling costs, so $240 million of contribution. Sales clear the bar; profit is well under it.\n\nOption B: 25% of 200,000 = 50,000 patients × $8,000 = $400 million in US net sales. The partner takes a 30% royalty for doing the selling, so Aldermoor retains 70% — $280 million — with no selling costs at all. And it launches in about 6 months rather than 12–18, so we reach peak sooner and capture revenue in years one and two that Option A forfeits.\n\nSo B delivers $280 million versus $240 million, with no fixed cost base and far less execution risk for a company with zero US presence. B also directly answers the 41% who cited no local support — the partner's reps already call on these specialists.\n\nDo we have the length of the royalty term?",
+  "verdict": {
+   "raw": "{\"asks\":[\"ask\":\"length of the royalty term\",\"items\":[],\"missing\":\"length of the royalty term\"}"
+  },
+  "latencyMs": 700,
+  "usd": 0.002395,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 46,
+   "plan_done": 54,
+   "code_written_checks_start": 54,
+   "distress_verdict": 1452,
+   "code_written_checks_end": 2108,
+   "settle_start": 2109,
+   "pt_judge_settle_start": 2109,
+   "pt_judge_settle_end": 2109,
+   "settle_composed": 2123,
+   "first_delivered": 2123,
+   "first_useful_delivered": 2123,
+   "tail_delivered": 2123,
+   "heard_resolved": 2123,
+   "persist_start": 2123,
+   "persist_end": 2193
+  }
+ },
+ {
+  "key": "34eb553a:10",
+  "caseId": "entry-001",
+  "run": "34eb553a",
+  "turn": 10,
+  "records": [
+   "b36a-tyler-t10-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "A few things. First, the competitive set: how many therapies are approved for moderate-to-severe Corlan's in the US, are they orals or injectables, and what share does the leader hold? If there are two entrenched biologics with 40% each, a 20% share for a new entrant is aggressive; if the category is fragmented across five products, it's more plausible.\n\nSecond, Kelvexa's differentiation — efficacy versus standard of care, safety profile, and the once-daily oral dosing, which is a real convenience advantage if competitors are injectables.\n\nThird, and I'd weight this heavily, our own European track record. Kelvexa has been selling since 2022, so what share of eligible moderate-to-severe patients did it reach in Europe at the same point post-launch? That's the best available analogue.\n\nFourth, payer access — formulary tier and whether step therapy forces patients through a cheaper drug first.\n\nI'd look for the European share data internally, and use prescription-audit data like IQVIA for US competitor shares. Do we have the European share curve?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Number of approved therapies for moderate-to-severe Corlan's in the US, whether oral or injectable, and market share of leader",
+     "items": [],
+     "missing": "number of approved therapies, route (oral vs injectable), leader's market share"
+    },
+    {
+     "ask": "Kelvexa's efficacy versus standard of care",
+     "items": [
+      {
+       "id": "trial_comparison",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "Kelvexa's safety profile",
+     "items": [
+      {
+       "id": "trial_comparison",
+       "answers": "partial"
+      }
+     ],
+     "missing": "full safety profile detail beyond injection-site reactions and infections"
+    },
+    {
+     "ask": "Kelvexa's once-daily oral dosing as convenience advantage versus injectable competitors",
+     "items": [
+      {
+       "id": "reasons_to_prescribe",
+       "answers": "partial"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "Kelvexa's share of eligible moderate-to-severe patients in Europe at comparable point post-launch (as analogue for US forecast)",
+     "items": [],
+     "missing": "Kelvexa European market share by time since launch"
+    },
+    {
+     "ask": "European share curve for Kelvexa over time since 2022 launch",
+     "items": [],
+     "missing": "Kelvexa's European patient share or sales curve post-launch"
+    }
+   ]
+  },
+  "latencyMs": 3282,
+  "usd": 0.003653,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 45,
+   "plan_done": 58,
+   "model_request": 59,
+   "distress_verdict": 924,
+   "model_first_token": 7114,
+   "model_first_sentence": 7117,
+   "held_for_requests": 7117,
+   "model_say_closed": 7117,
+   "model_move_closed": 7117,
+   "model_requests_closed": 7927,
+   "first_delivered": 7930,
+   "model_exhibit_closed": 7961,
+   "model_rescue_item_closed": 7998,
+   "pt_judge_start": 7998,
+   "pt_judge_end": 7998,
+   "first_useful_delivered": 8474,
+   "data_line_delivered": 8474,
+   "model_question_closed": 8727,
+   "model_done": 8734,
+   "settle_start": 8734,
+   "pt_judge_settle_start": 8734,
+   "pt_judge_settle_end": 8734,
+   "settle_composed": 8756,
+   "tail_delivered": 8756,
+   "heard_resolved": 8756,
+   "persist_start": 8756,
+   "persist_end": 8847
+  }
+ },
+ {
+  "key": "6f57da6e:6",
+  "caseId": "entry-001",
+  "run": "6f57da6e",
+  "turn": 6,
+  "records": [
+   "b36a-marisol-t6-growth-restated"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "I'll assume roughly 260 million US adults — tell me if you'd rather I use a different base.\n\nSo prevalence: 260 million × 1.6% = 4.16 million with Corlan's.\nDiagnosed: 50% of 4.16 million = 2.08 million.\nTreated with prescription medicine: 50% of 2.08 million = 1.04 million.\n\nNow the severity cut. Moderate-to-severe is a disease characteristic, so I'd read that 20% against the prevalent population rather than the treated slice: 20% × 4.16 million = 832,000 patients eligible for Kelvexa.\n\nTo get from patients to dollars I need two more things: the peak share of that eligible pool Kelvexa captures, and net price per patient per year — net of rebates to US payers, which can be steep. Compliance and persistency matter too, since not everyone stays on a year.\n\nDo we have data on how the eligible pool has grown over the last few years? Diagnosis rates often drift up.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "how the eligible pool has grown over the last few years",
+     "items": [],
+     "missing": "eligible pool growth over time"
+    }
+   ]
+  },
+  "latencyMs": 823,
+  "usd": 0.002377,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 29,
+   "plan_done": 41,
+   "model_request": 42,
+   "distress_verdict": 882,
+   "model_first_token": 1555,
+   "model_first_sentence": 1559,
+   "held_for_requests": 1559,
+   "model_say_closed": 1559,
+   "model_move_closed": 1559,
+   "model_requests_closed": 1920,
+   "first_delivered": 1923,
+   "model_exhibit_closed": 1923,
+   "model_rescue_item_closed": 1923,
+   "pt_judge_start": 1923,
+   "pt_judge_end": 1923,
+   "first_useful_delivered": 2449,
+   "data_line_delivered": 2449,
+   "model_question_closed": 2512,
+   "model_done": 2611,
+   "settle_start": 2611,
+   "pt_judge_settle_start": 2611,
+   "pt_judge_settle_end": 2611,
+   "settle_composed": 2627,
+   "tail_delivered": 2627,
+   "heard_resolved": 2627,
+   "persist_start": 2627,
+   "persist_end": 2697
+  }
+ },
+ {
+  "key": "cdb8ca52:14",
+  "caseId": "entry-001",
+  "run": "cdb8ca52",
+  "turn": 14,
+  "records": [
+   "b34a-marcus-t14-patents-release"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Running both. Option A: 20% of 200,000 = 40,000 patients × $8,000 = $320 million net sales, less $80 million selling costs = $240 million contribution to Aldermoor.\n\nOption B: 25% of 200,000 = 50,000 × $8,000 = $400 million in US net sales, of which Aldermoor keeps 30% = $120 million.\n\nSo A delivers roughly double the economics, $240 million versus $120 million. And on the board's stated test — $300 million in US net sales — A clears it at $320 million; under B the product generates $400 million but Aldermoor only books $120 million, so it depends whether the board means product sales or Aldermoor revenue. I'd flag that definitional issue.\n\nPartner wins on speed, six months versus 12–18, and on share, which fits the access barrier I flagged. But the royalty is expensive.\n\nDo we know how long the partner royalty runs — is it the full patent life?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "How long does the partner royalty run under Option B?",
+     "items": [],
+     "missing": "duration of royalty term"
+    }
+   ]
+  },
+  "latencyMs": 795,
+  "usd": 0.002436,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 42,
+   "plan_done": 57,
+   "model_request": 58,
+   "distress_verdict": 838,
+   "model_first_token": 1494,
+   "model_first_sentence": 1500,
+   "first_delivered": 1503,
+   "model_say_closed": 1503,
+   "model_move_closed": 1503,
+   "model_requests_closed": 1883,
+   "model_exhibit_closed": 1914,
+   "model_rescue_item_closed": 1948,
+   "pt_judge_start": 1948,
+   "pt_judge_end": 1948,
+   "first_useful_delivered": 1956,
+   "data_line_delivered": 1956,
+   "model_question_closed": 2280,
+   "model_done": 2324,
+   "settle_start": 2324,
+   "pt_judge_settle_start": 2324,
+   "pt_judge_settle_end": 2324,
+   "settle_composed": 2336,
+   "tail_delivered": 2336,
+   "heard_resolved": 2336,
+   "persist_start": 2336,
+   "persist_end": 2397
+  }
+ },
+ {
+  "key": "1f6007fd:12",
+  "caseId": "pricing-001",
+  "run": "1f6007fd",
+  "turn": 12,
+  "records": [
+   "b39q-victor-t12-refusal-contradiction"
+  ],
+  "groups": [
+   "target"
+  ],
+  "candidateText": "The math: 40% of the Starter cohort had cancelled by month 12, so 60% survive. If the same fraction cancels each month, survival is (1−r)^12 = 0.60. So 1−r = 0.60^(1/12). Ln(0.6) ≈ −0.511, divided by 12 ≈ −0.0426, so 1−r ≈ 0.958, r ≈ 4.2% a month. Expected lifetime ≈ 1/0.042 ≈ 23.5, call it 24 months. Same method on Pro: 0.785^(1/12) gives about 2.0% a month, 50 months.\n\nOn the Pro drop — other explanations. One, Quillpath may have shifted marketing dollars and sales headcount toward the self-serve funnel, so fewer demos were booked. Two, a competitor could have entered at the high end. Three, the home-services market or small-business formation could have softened in 2025. Four, a price or packaging change on Pro.\n\nWhat I'd want: Pro sign-up trend month by month across 2024 and 2025 rather than two averages, Pro marketing spend and demo volume before versus after, and whether the people choosing Starter look like Pro buyers — business size, user count — or are smaller, one-person shops that never would have paid $100.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Pro sign-up trend month by month across 2024 and 2025",
+     "items": [
+      {
+       "id": "new_customers_by_plan",
+       "answers": "partial"
+      }
+     ],
+     "missing": "monthly breakdown"
+    },
+    {
+     "ask": "Pro marketing spend before versus after Starter launch",
+     "items": [
+      {
+       "id": "why_pro_fell",
+       "answers": "partial"
+      }
+     ],
+     "missing": "marketing spend figures"
+    },
+    {
+     "ask": "Pro demo volume before versus after",
+     "items": [
+      {
+       "id": "why_pro_fell",
+       "answers": "partial"
+      }
+     ],
+     "missing": "demo volume figures"
+    },
+    {
+     "ask": "whether Starter buyers look like Pro buyers or smaller one-person shops",
+     "items": [
+      {
+       "id": "buyer_profile",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    }
+   ]
+  },
+  "latencyMs": 2050,
+  "usd": 0.003394,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 41,
+   "plan_done": 72,
+   "model_request": 73,
+   "distress_verdict": 1021,
+   "model_first_token": 1382,
+   "model_first_sentence": 1385,
+   "held_for_requests": 1385,
+   "model_say_closed": 1385,
+   "model_move_closed": 1385,
+   "model_requests_closed": 1752,
+   "first_delivered": 1756,
+   "model_exhibit_closed": 1790,
+   "model_rescue_item_closed": 1823,
+   "pt_judge_start": 1823,
+   "pt_judge_end": 1823,
+   "first_useful_delivered": 2609,
+   "data_line_delivered": 2609,
+   "model_question_closed": 2609,
+   "model_done": 2609,
+   "settle_start": 2609,
+   "pt_judge_settle_start": 2609,
+   "pt_judge_settle_end": 2609,
+   "settle_composed": 2628,
+   "tail_delivered": 2628,
+   "heard_resolved": 2628,
+   "persist_start": 2628,
+   "persist_end": 2779
+  }
+ },
+ {
+  "key": "4df38465:22",
+  "caseId": "entry-001",
+  "run": "4df38465",
+  "turn": 22,
+  "records": [
+   "b39a-tyler-t22-pointer-mismatch"
+  ],
+  "groups": [
+   "pointer"
+  ],
+  "candidateText": "Let me run both on the 200,000 eligible base.\n\nOption A: 200,000 × 20% = 40,000 patients × $8,000 = $320 million net sales. Aldermoor keeps 100%, less $80 million selling costs = $240 million contribution.\n\nOption B: 200,000 × 25% = 50,000 patients × $8,000 = $400 million net sales. Royalty at 30% = $120 million, no selling costs, so $120 million contribution.\n\nSo A delivers roughly double the contribution — $240 million versus $120 million — despite the lower share. B wins on speed, six months versus 12–18, and on risk: no fixed $80 million, and the partner's existing reps directly address the 41% who cited no local support, plus their access team addresses the 58% prior-approval barrier.\n\nOne wrinkle on the board hurdle: if the test is Aldermoor's own US net sales, Option B books $120 million in royalty, not $400 million, and fails outright. Option A's $320 million passes.\n\nDoes the board's $300 million test apply to booked revenue or to product sales?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Does the board's $300 million test apply to booked revenue or to product sales?",
+     "items": [],
+     "missing": "clarification of what the board's $300 million bar measures"
+    }
+   ]
+  },
+  "latencyMs": 783,
+  "usd": 0.00255,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 45,
+   "plan_done": 62,
+   "code_written_checks_start": 62,
+   "distress_verdict": 642,
+   "code_written_checks_end": 1092,
+   "settle_start": 1093,
+   "pt_judge_settle_start": 1093,
+   "pt_judge_settle_end": 1093,
+   "settle_composed": 1622,
+   "first_delivered": 1622,
+   "first_useful_delivered": 1622,
+   "tail_delivered": 1622,
+   "heard_resolved": 1622,
+   "persist_start": 1622,
+   "persist_end": 1700
+  }
+ },
+ {
+  "key": "70a06d70:6",
+  "caseId": "launch-001",
+  "run": "70a06d70",
+  "turn": 6,
+  "records": [
+   "b35h-marcus-t6-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "I'd say the main gap is competitive response and maybe channel economics — retailer margin, trade spend, that sort of thing. But I'd put both under execution and I don't think either flips the answer.\n\nTo be candid, I think we risk over-structuring. The board's bar is break-even in year one, and the lever that gets you there is price. Input costs on chickpeas are the binding constraint, so the recommendation is launch at a premium and protect the margin.\n\nOne thing I would want, though — do we have chip volume over time? Not just that revenue is flat, but whether bags sold are declining and price is masking it. That tells me how much pricing power the brand actually has with retailers, which is what the chickpea premium depends on.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "chip volume over time — bags sold trend",
+     "items": [],
+     "missing": "historical chip bag sales volume or unit sales trend"
+    }
+   ]
+  },
+  "latencyMs": 819,
+  "usd": 0.002158,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 33,
+   "plan_done": 48,
+   "model_request": 48,
+   "distress_verdict": 1123,
+   "model_first_token": 1266,
+   "model_first_sentence": 1270,
+   "held_for_distress": 1270,
+   "model_say_closed": 1270,
+   "model_move_closed": 1270,
+   "model_requests_closed": 1465,
+   "model_exhibit_closed": 1482,
+   "model_rescue_item_closed": 1548,
+   "model_question_closed": 2483,
+   "model_done": 2524,
+   "first_delivered": 2526,
+   "pt_judge_start": 2526,
+   "pt_judge_end": 2526,
+   "first_useful_delivered": 3116,
+   "data_line_delivered": 3116,
+   "settle_start": 3116,
+   "pt_judge_settle_start": 3117,
+   "pt_judge_settle_end": 3117,
+   "settle_composed": 3134,
+   "tail_delivered": 3134,
+   "heard_resolved": 3134,
+   "persist_start": 3134,
+   "persist_end": 3361
+  }
+ },
+ {
+  "key": "442e37ff:18",
+  "caseId": "launch-001",
+  "run": "442e37ff",
+  "turn": 18,
+  "records": [
+   "b37h-tyler-t18-method-restated"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "This is a standalone go/no-go on sampling, and it pays.\n\nExtra volume: 500,000 households × 3 bags = 1.5 million incremental bags. At the $1.50 contribution per bag, that's $2.25M of incremental contribution.\n\nCost is $1.5M on top of the existing $9.0M. So net it adds $0.75M of profit — a return of about 1.5x on the spend.\n\nStacking it on the base case: total bags 9.0M + 1.5M = 10.5 million. Contribution 10.5 × $1.50 = $15.75M. Fixed costs now $9.0M + $1.5M = $10.5M. Year-one profit $5.25M, versus $4.5M without the program.\n\nIt also directly attacks the 45% taste barrier, which is the thing I said matters most — so the strategic logic and the math point the same way.\n\nOne caution: it only breaks even if the 500,000 households are real and incremental. If half of them would have bought anyway, the program roughly washes. I'd want to know how that 500,000 was estimated — is it from a comparable past launch?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "how the 500,000 extra households from sampling was estimated",
+     "items": [],
+     "missing": "basis for the 500,000 estimate"
+    }
+   ]
+  },
+  "latencyMs": 891,
+  "usd": 0.002364,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 48,
+   "plan_done": 63,
+   "model_request": 64,
+   "distress_verdict": 764,
+   "model_first_token": 1098,
+   "model_first_sentence": 1452,
+   "held_for_requests": 1452,
+   "model_say_closed": 1479,
+   "model_move_closed": 1512,
+   "model_requests_closed": 2206,
+   "first_delivered": 2208,
+   "model_exhibit_closed": 2211,
+   "model_rescue_item_closed": 2211,
+   "pt_judge_start": 2211,
+   "pt_judge_end": 2211,
+   "first_useful_delivered": 2801,
+   "data_line_delivered": 2801,
+   "model_question_closed": 2801,
+   "model_done": 2801,
+   "settle_start": 2802,
+   "pt_judge_settle_start": 2802,
+   "pt_judge_settle_end": 2802,
+   "settle_composed": 2809,
+   "tail_delivered": 2809,
+   "heard_resolved": 2809,
+   "persist_start": 2809,
+   "persist_end": 2884
+  }
+ },
+ {
+  "key": "6f57da6e:14",
+  "caseId": "entry-001",
+  "run": "6f57da6e",
+  "turn": 14,
+  "records": [
+   "b36a-marisol-t14-coverage"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "The pull side is genuinely strong — 64% name the once-daily oral versus an injection, and that's the single biggest driver in the survey. Convenience advantages like that tend to translate into prescribing intent, so I'd read 64% of specialists as willing to write Kelvexa.\n\nBut the barriers bite into that. The two big ones are insurance coverage and prior approval at 58%, and no local support at 41%. Coverage is the binding one: if 58% of specialists hit prior-authorization friction, then realistically only about 42% of prescribing intent converts. So 64% × 42% ≈ 27% of specialists actively prescribing — which is still above the 20% forecast.\n\nSo the forecast looks defensible, with one condition: the 41% naming absence of local support is a problem Aldermoor creates for itself by having no US operations. That's directly fixable and it feeds straight into the entry-mode question.\n\nDo we have data on what share of US patients sit with payers that require prior authorization?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "what share of US patients sit with payers that require prior authorization",
+     "items": [],
+     "missing": "share of US patients with payers requiring prior authorization"
+    }
+   ]
+  },
+  "latencyMs": 800,
+  "usd": 0.002423,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 44,
+   "plan_done": 64,
+   "model_request": 65,
+   "distress_verdict": 1076,
+   "model_first_token": 1311,
+   "model_first_sentence": 1315,
+   "held_for_requests": 1315,
+   "model_say_closed": 1315,
+   "model_move_closed": 1315,
+   "model_requests_closed": 1344,
+   "first_delivered": 1347,
+   "model_exhibit_closed": 1380,
+   "model_rescue_item_closed": 1643,
+   "pt_judge_start": 1643,
+   "pt_judge_end": 1643,
+   "first_useful_delivered": 1653,
+   "data_line_delivered": 1653,
+   "model_question_closed": 2452,
+   "model_done": 2461,
+   "settle_start": 2462,
+   "pt_judge_settle_start": 2462,
+   "pt_judge_settle_end": 2462,
+   "settle_composed": 2475,
+   "tail_delivered": 2475,
+   "heard_resolved": 2475,
+   "persist_start": 2475,
+   "persist_end": 2547
+  }
+ },
+ {
+  "key": "52904ce7:20",
+  "caseId": "prof-002",
+  "run": "52904ce7",
+  "turn": 20,
+  "records": [
+   "b39l-raj-t20-refusal-contradiction"
+  ],
+  "groups": [
+   "target"
+  ],
+  "candidateText": "The feed matters more than I expected. Rough sizing: 5,000 flights × 80 seats × ~80% load ≈ 320,000 passengers on the two routes; 20% connecting is ~64,000 people whose second leg rides on a healthy route. The four surviving routes run about 13–15% contribution margin on fares of roughly $130–150, so call it $20 of contribution per connecting leg — about $1.3M at risk.\n\nAgainst $1.8M of losses avoided, exit nets closer to $0.5M. That's thin, and some of those connectors will rebook on the LCC and connect to us anyway, or we can interline. So exit is only clearly right if the aircraft go somewhere better.\n\nOn redeployment I'd want: unserved or underserved city pairs from the hub where no LCC flies, their estimated demand and achievable fare, plus whether the four healthy routes have spill — passengers we're turning away at peak times — that added frequency could capture.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "estimated demand on potential new city pairs from the hub",
+     "items": [],
+     "missing": "estimated demand on potential new city pairs from the hub"
+    },
+    {
+     "ask": "achievable fares on potential new city pairs",
+     "items": [],
+     "missing": "achievable fares on potential new city pairs"
+    },
+    {
+     "ask": "whether LCCs fly nonstop on potential new city pairs",
+     "items": [],
+     "missing": "LCC nonstop presence on potential new city pairs"
+    },
+    {
+     "ask": "whether the four healthy routes have spill — peak-time capacity constraints",
+     "items": [],
+     "missing": "spill or peak-time capacity constraints on the four healthy routes"
+    }
+   ]
+  },
+  "latencyMs": 1738,
+  "usd": 0.003335,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 43,
+   "plan_done": 56,
+   "code_written_checks_start": 57,
+   "distress_verdict": 775,
+   "code_written_checks_end": 2412,
+   "settle_start": 2413,
+   "pt_judge_settle_start": 2413,
+   "pt_judge_settle_end": 2413,
+   "settle_composed": 3034,
+   "first_delivered": 3034,
+   "first_useful_delivered": 3034,
+   "tail_delivered": 3034,
+   "heard_resolved": 3034,
+   "persist_start": 3034,
+   "persist_end": 3105
+  }
+ },
+ {
+  "key": "c82e7bd7:22",
+  "caseId": "pricing-001",
+  "run": "c82e7bd7",
+  "turn": 22,
+  "records": [
+   "b39q-raj-t22-pointer-mismatch"
+  ],
+  "groups": [
+   "pointer"
+  ],
+  "candidateText": "That reconciles with my last calculation. The note's key point is that the rate applies to customers still on the plan, so the hazard is measured against a shrinking base, not the original 3,000.\n\nStarter leaves the plan two ways. Total off-plan by month 12 is 60% (40% cancelled, 20% upgraded), so the combined monthly exit rate is 0.40^(1/12) ≈ 7.3%. Of that, cancellation is about 5% and upgrade about 2.3% — consistent with the 5% you gave me. Time on Starter ≈ 1/0.073 ≈ 13.7 months, so Starter LTV = $30 × 13.7 ≈ $410, or 1.4x CAC standalone.\n\nPro cancels ~2% monthly (0.785^(1/12)), lifetime ~50 months, LTV $4,000, 3.3x.\n\nPer Starter sign-up: $410 + 0.20 × $4,000 = $1,210, i.e. 4.0x on $300. The upgrade stream is two-thirds of the value.\n\nOne thing I'd want: how the upgrade rate has trended across monthly cohorts since January — if it's decaying, the 4.0x is fragile.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "how the upgrade rate has trended across monthly cohorts since January",
+     "items": [],
+     "missing": "upgrade rate trend by cohort month from January 2025 onward"
+    }
+   ]
+  },
+  "latencyMs": 893,
+  "usd": 0.002527,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 61,
+   "plan_done": 81,
+   "model_request": 82,
+   "distress_verdict": 940,
+   "model_first_token": 1670,
+   "model_first_sentence": 1676,
+   "held_for_requests": 1676,
+   "model_say_closed": 1676,
+   "model_move_closed": 1676,
+   "request_guard_regenerate": 1684,
+   "model_requests_closed": 2970,
+   "model_exhibit_closed": 2974,
+   "model_rescue_item_closed": 3000,
+   "model_question_closed": 3500,
+   "model_done": 3511,
+   "settle_start": 3511,
+   "pt_judge_settle_start": 3511,
+   "pt_judge_settle_end": 3511,
+   "settle_composed": 3525,
+   "first_delivered": 3525,
+   "first_useful_delivered": 3525,
+   "tail_delivered": 3525,
+   "heard_resolved": 3525,
+   "persist_start": 3525,
+   "persist_end": 3637
+  }
+ },
+ {
+  "key": "a14ca044:6",
+  "caseId": "launch-001",
+  "run": "a14ca044",
+  "turn": 6,
+  "records": [
+   "b35h-marisol-t6-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "Break-even is fixed costs divided by contribution per bag.\n\nVariable costs per bag: ingredients $0.70 plus packaging $0.30 plus roasting labor and energy $0.30 plus freight $0.20. That's $1.50. Price is $3.00, so contribution per bag is $3.00 minus $1.50 = $1.50. Nice round 50% margin.\n\nFixed costs: the roasting line at $3.0 million, marketing at $4.5 million, shelf fees at $1.5 million, and recipe development at $1.2 million. That totals $10.2 million — I'm including recipe development because the board is judging whether this line pays for itself, and that $1.2 million was spent on this line specifically.\n\nSo break-even volume is $10.2 million divided by $1.50 = 6.8 million bags in year one.\n\nAt $3.00 a bag that's $20.4 million in first-year revenue — about 7% of the current $300 million business.\n\nDo we have data on category volume — how many bags of chickpea snacks the Northeast and Midwest actually move in a year?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "category volume in Northeast and Midwest chickpea snack market (bags per year)",
+     "items": [],
+     "missing": "Northeast and Midwest chickpea snack category volume"
+    }
+   ]
+  },
+  "latencyMs": 875,
+  "usd": 0.002345,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 33,
+   "plan_done": 58,
+   "model_request": 58,
+   "model_first_token": 1025,
+   "distress_verdict": 1250,
+   "model_first_sentence": 1388,
+   "held_for_requests": 1388,
+   "model_say_closed": 1388,
+   "model_move_closed": 1388,
+   "model_requests_closed": 1743,
+   "first_delivered": 1747,
+   "model_exhibit_closed": 1747,
+   "model_rescue_item_closed": 1747,
+   "pt_judge_start": 1747,
+   "pt_judge_end": 1747,
+   "first_useful_delivered": 2531,
+   "data_line_delivered": 2531,
+   "model_question_closed": 2531,
+   "model_done": 2531,
+   "settle_start": 2531,
+   "pt_judge_settle_start": 2531,
+   "pt_judge_settle_end": 2531,
+   "settle_composed": 2540,
+   "tail_delivered": 2540,
+   "heard_resolved": 2540,
+   "persist_start": 2540,
+   "persist_end": 2621
+  }
+ },
+ {
+  "key": "5c3d2c21:22",
+  "caseId": "pricing-001",
+  "run": "5c3d2c21",
+  "turn": 22,
+  "records": [
+   "b35q-raj-t22-doubled-line"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "Demand is fairly inelastic: 50% price increase, only 20% volume loss. Margin per Starter goes $30 → $50, and 800 × $50 = $40,000 a month versus 1,000 × $30 = $30,000. That's a third more Starter margin.\n\nAnd the $20 gap pushes marginal buyers up — Pro sign-ups rise 350 → 400.\n\nCheck the Pro pipeline: control gives 350 + (1,000 × 20%) = 550 eventual Pro customers. Test gives 400 + (800 × 20%) = 560. So the funnel is held whole, and 50 more of them arrive immediately rather than in a year, which helps cash.\n\nLTV per Starter sign-up at $60: 20 months × $50 = $1,000, plus 0.2 × $4,000 = $800, so $1,800 on $300 CAC — 6x.\n\nThe risk is whether $60 changes who signs up and therefore the 20% upgrade rate — eight weeks won't show that. Do we have CAC in the test group? Higher price could mean worse conversion and higher cost per acquisition.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "CAC in the test group at $60 price",
+     "items": [],
+     "missing": "customer acquisition cost for Starter at $60"
+    },
+    {
+     "ask": "Whether upgrade rate differs between $40 and $60 cohorts",
+     "items": [],
+     "missing": "upgrade rate or cancellation rate for $60 Starter customers"
+    }
+   ]
+  },
+  "latencyMs": 1331,
+  "usd": 0.002685,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 47,
+   "plan_done": 73,
+   "model_request": 74,
+   "distress_verdict": 985,
+   "model_first_token": 1697,
+   "model_first_sentence": 1703,
+   "held_for_requests": 1703,
+   "model_say_closed": 1867,
+   "model_move_closed": 1903,
+   "model_requests_closed": 2135,
+   "first_delivered": 2138,
+   "model_exhibit_closed": 2170,
+   "model_rescue_item_closed": 2207,
+   "pt_judge_start": 2207,
+   "pt_judge_end": 2207,
+   "first_useful_delivered": 2214,
+   "data_line_delivered": 2214,
+   "model_question_closed": 2439,
+   "model_done": 2481,
+   "settle_start": 2481,
+   "pt_judge_settle_start": 2481,
+   "pt_judge_settle_end": 2481,
+   "settle_composed": 2492,
+   "tail_delivered": 2492,
+   "heard_resolved": 2492,
+   "persist_start": 2492,
+   "persist_end": 2582
+  }
+ },
+ {
+  "key": "3fdb20e8:24",
+  "caseId": "entry-001",
+  "run": "3fdb20e8",
+  "turn": 24,
+  "records": [
+   "b36a-raj-t24-option-b"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Fair challenge — 12% was illustrative, not calculated. Let me build it properly.\n\nTake the 20% forecast as the ceiling if access and infrastructure are solved. Then apply two haircuts.\n\nAccess: 58% name prior authorization as a barrier. If Nimbrel step-through applies to, say, half of covered lives in year five, those patients must fail Nimbrel first, and most who are stable on Nimbrel never move. Even if a third of that blocked group eventually reaches us, we lose roughly a quarter of the ceiling — 20% to about 15%.\n\nInfrastructure: 41% cite no local support. Specialty drugs need reps and nurse educators for prior-auth paperwork and onboarding. With no US field force, I'd haircut another few points, to roughly 12–13%.\n\n12% of 200,000 is 24,000 patients × $8,000 = $192 million. Well short of $300M.\n\nBut both haircuts are spend-addressable. The question isn't whether the market clears the bar — it's whether Aldermoor can build or buy the access and field capability to realize the 20%. That's the real entry question.\n\nDo we have anything on comparable US field force costs, or whether a partner has approached Aldermoor?",
+  "verdict": {
+   "raw": "{\"asks\":[\"ask\":\"Comparable US field force costs\",\"items\":[],\"missing\":\"comparable US field force costs\"}"
+  },
+  "latencyMs": 926,
+  "usd": 0.002555,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 41,
+   "plan_done": 51,
+   "model_request": 51,
+   "distress_verdict": 828,
+   "model_first_token": 1131,
+   "model_first_sentence": 1140,
+   "held_for_requests": 1140,
+   "model_say_closed": 1140,
+   "model_move_closed": 1140,
+   "model_requests_closed": 1606,
+   "first_delivered": 1608,
+   "model_exhibit_closed": 2142,
+   "model_rescue_item_closed": 2142,
+   "pt_judge_start": 2142,
+   "pt_judge_end": 2142,
+   "first_useful_delivered": 2693,
+   "data_line_delivered": 2693,
+   "model_question_closed": 2693,
+   "model_done": 2693,
+   "settle_start": 2693,
+   "pt_judge_settle_start": 2693,
+   "pt_judge_settle_end": 2693,
+   "settle_composed": 2702,
+   "tail_delivered": 2702,
+   "heard_resolved": 2702,
+   "persist_start": 2702,
+   "persist_end": 2869
+  }
+ },
+ {
+  "key": "065501fe:4",
+  "caseId": "prof-002",
+  "run": "065501fe",
+  "turn": 4,
+  "records": [
+   "b39l-marcus-t4-fuel-refusal"
+  ],
+  "groups": [
+   "target"
+  ],
+  "candidateText": "Honestly, I think the structure is implied by the answer. Operating profit is revenue minus cost, and you've already told me the two things that matter: revenue dropped $24 million and load factor is flat. That means the revenue decline isn't seats, it's price per seat. And profit fell $24 million on exactly that revenue drop, which tells me cost is at best flat and probably up — so costs are the other half.\n\nIf you want it spelled out: price per ticket, seats flown, cost per seat split into fuel, labor, maintenance, airport fees. That's the whole tree. But I'd test price first because that's where the evidence already points.\n\nOne thing I would want — do we have fuel cost per gallon in FY2023 versus FY2025? That's usually the single biggest mover in an airline P&L.\n\nI still think the recommendation stands: reprice up to recover the fare gap.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "fuel cost per gallon in FY2023 versus FY2025",
+     "items": [],
+     "missing": "fuel cost per gallon by year"
+    }
+   ]
+  },
+  "latencyMs": 765,
+  "usd": 0.002735,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 33,
+   "plan_done": 56,
+   "model_request": 57,
+   "distress_verdict": 832,
+   "model_first_token": 1230,
+   "model_first_sentence": 1235,
+   "held_for_requests": 1235,
+   "model_say_closed": 1235,
+   "model_move_closed": 1235,
+   "model_requests_closed": 1428,
+   "first_delivered": 1430,
+   "model_exhibit_closed": 1486,
+   "model_rescue_item_closed": 1499,
+   "pt_judge_start": 1499,
+   "pt_judge_end": 1499,
+   "first_useful_delivered": 2102,
+   "data_line_delivered": 2102,
+   "model_question_closed": 2248,
+   "model_done": 2286,
+   "settle_start": 2287,
+   "pt_judge_settle_start": 2287,
+   "pt_judge_settle_end": 2287,
+   "settle_composed": 2308,
+   "tail_delivered": 2308,
+   "heard_resolved": 2308,
+   "persist_start": 2308,
+   "persist_end": 2403
+  }
+ },
+ {
+  "key": "c82e7bd7:28",
+  "caseId": "pricing-001",
+  "run": "c82e7bd7",
+  "turn": 28,
+  "records": [
+   "b39q-raj-t28-pointer-mismatch"
+  ],
+  "groups": [
+   "pointer"
+  ],
+  "candidateText": "With spend and demos flat and buyers self-selecting down, I'll treat all 150 as true cannibalization.\n\nEach cannibalized customer was worth $4,000 − $1,200 = $2,800 net as Pro. As a Starter sign-up they're worth $1,400 − $300 = $1,100, and 20% of them find their way back to Pro, which is already inside that $1,400. So we destroy $1,700 each, ×150 = $255k a month.\n\nThe other 850 are genuinely incremental: 850 × $1,100 = $935k a month.\n\nNet: +$680k a month, about $8m a year. Starter is value-creating overall even after cannibalization, and the CFO's 2.0x is the wrong test because it ignores both the upgrade path and incremental volume.\n\nThe lever I'd pull: reduce the 150. Do we know what features separate the plans, and whether multi-employee businesses are the ones downgrading?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "What features separate Pro and Starter plans",
+     "items": [
+      {
+       "id": "plan_features",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "Whether multi-employee businesses are the ones downgrading to Starter",
+     "items": [],
+     "missing": "buyer profile of Pro downgraders / whether multi-employee businesses downgrade"
+    }
+   ]
+  },
+  "latencyMs": 1129,
+  "usd": 0.002641,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 118,
+   "plan_done": 154,
+   "code_written_checks_start": 154,
+   "distress_verdict": 881,
+   "code_written_checks_end": 1474,
+   "settle_start": 1475,
+   "pt_judge_settle_start": 1475,
+   "pt_judge_settle_end": 1475,
+   "settle_composed": 1491,
+   "first_delivered": 1491,
+   "first_useful_delivered": 1491,
+   "tail_delivered": 1491,
+   "heard_resolved": 1491,
+   "persist_start": 1491,
+   "persist_end": 1562
+  }
+ },
+ {
+  "key": "52951de8:22",
+  "caseId": "launch-001",
+  "run": "52951de8",
+  "turn": 22,
+  "records": [
+   "b35h-tyler-t22-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "This is a direct test of whether sampling pays for itself. 500,000 extra buying households × 3 bags = 1.5 million incremental bags. At $1.50 contribution each, that's $2.25 million of incremental contribution against $1.5 million of program cost — so about $0.75 million positive, a return of roughly 1.5x on the spend.\n\nIt also happens to attack the exact barrier the survey flagged: 45% hesitate on taste, and a tasting table resolves that in person. So the logic and the economics line up.\n\nCaveats I'd want to test: is the 500,000 incremental, or does it include households who'd have bought anyway? And 500 stores over 10 weekends is $3,000 per store — I'd sanity-check that against past Hollis Bay sampling programs. Also whether those sampled households repeat at a higher rate than average, which would make it look better in year two.\n\nDo we have repeat-rate data from prior sampling programs?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "repeat-rate data from prior sampling programs",
+     "items": [],
+     "missing": "repeat-rate data from prior sampling programs"
+    }
+   ]
+  },
+  "latencyMs": 847,
+  "usd": 0.002273,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 44,
+   "plan_done": 54,
+   "model_request": 54,
+   "distress_verdict": 700,
+   "model_first_token": 1961,
+   "model_first_sentence": 2103,
+   "held_for_requests": 2103,
+   "model_say_closed": 2110,
+   "model_move_closed": 2129,
+   "model_requests_closed": 2330,
+   "first_delivered": 2333,
+   "model_exhibit_closed": 2366,
+   "model_rescue_item_closed": 2440,
+   "pt_judge_start": 2440,
+   "pt_judge_end": 2440,
+   "first_useful_delivered": 3385,
+   "data_line_delivered": 3385,
+   "model_question_closed": 3385,
+   "model_done": 3385,
+   "settle_start": 3385,
+   "pt_judge_settle_start": 3385,
+   "pt_judge_settle_end": 3385,
+   "settle_composed": 3399,
+   "tail_delivered": 3399,
+   "heard_resolved": 3399,
+   "persist_start": 3399,
+   "persist_end": 3469
+  }
+ },
+ {
+  "key": "a2a5921b:18",
+  "caseId": "pricing-001",
+  "run": "a2a5921b",
+  "turn": 18,
+  "records": [
+   "b37q-tyler-t18-trend-restated"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "This is the cannibalization check, and it's not clean. Pro sign-ups fell from 500 a month to 350 — 150 lost per month, a 30% drop. Total volume nearly tripled, 500 to 1,350, so there's real new demand, but some share of those 150 are people who'd have bought Pro at $100 and now self-select into Starter at $40.\n\nThe question is how many. If all 150 are true cannibalization, the cost is 150 × $3,900 = $585,000 a month in lost Pro LTV, less the $1,200 CAC saved on each, so about $405,000 net.\n\nAgainst that, Starter delivers 1,000 sign-ups × $1,340 of total value = $1,340,000 a month, less acquisition: 1,000 × $288 = $288,000, so roughly $1.05 million net. That more than covers the worst-case cannibalization.\n\nDo we know whether Pro sign-ups were already trending down through 2024, before Starter launched?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Whether Pro sign-ups were trending down through 2024 before Starter launched",
+     "items": [],
+     "missing": "Pro sign-up trend in 2024"
+    }
+   ]
+  },
+  "latencyMs": 883,
+  "usd": 0.002473,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 41,
+   "plan_done": 64,
+   "model_request": 65,
+   "distress_verdict": 858,
+   "model_first_token": 1558,
+   "model_first_sentence": 1558,
+   "first_delivered": 1560,
+   "model_say_closed": 1560,
+   "model_move_closed": 1560,
+   "model_requests_closed": 1645,
+   "model_exhibit_closed": 2445,
+   "model_rescue_item_closed": 2445,
+   "pt_judge_start": 2445,
+   "pt_judge_end": 2445,
+   "first_useful_delivered": 2968,
+   "data_line_delivered": 2968,
+   "model_question_closed": 2968,
+   "model_done": 2968,
+   "settle_start": 2969,
+   "pt_judge_settle_start": 2969,
+   "pt_judge_settle_end": 2969,
+   "settle_composed": 2975,
+   "tail_delivered": 2975,
+   "heard_resolved": 2975,
+   "persist_start": 2975,
+   "persist_end": 3044
+  }
+ },
+ {
+  "key": "6f57da6e:2",
+  "caseId": "entry-001",
+  "run": "6f57da6e",
+  "turn": 2,
+  "records": [
+   "b36a-marisol-t2-deferral"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Let me lay out how I'd think about this.\n\nThree buckets. First, market size: can US Kelvexa sales plausibly clear $300 million at peak? I'd build that bottom-up — US prevalence of Corlan's disease, share diagnosed and treated, share on drugs in Kelvexa's class, the peak share Kelvexa could win, then net price per patient per year.\n\nSecond, competitive and payer dynamics: who else treats Corlan's in the US, how Kelvexa differs on efficacy, safety and dosing, and whether US payers will reimburse at a price that holds up.\n\nThird, entry mode and economics: build a US commercial organization versus license or partner with a company that already has a US salesforce, and what each does to cost, speed and the share of revenue Aldermoor keeps.\n\nI'd start with the market sizing since it's the board's gate. Do we have US prevalence data for Corlan's disease?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "US prevalence of Corlan's disease",
+     "items": [
+      {
+       "id": "funnel_rates",
+       "answers": "partial"
+      }
+     ],
+     "missing": "prevalence as a % of US population or absolute number"
+    }
+   ]
+  },
+  "latencyMs": 2069,
+  "usd": 0.002415,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 130,
+   "plan_done": 177,
+   "model_request": 183,
+   "distress_verdict": 1032,
+   "model_first_token": 1319,
+   "model_first_sentence": 1744,
+   "held_for_distress": 1746,
+   "model_say_closed": 1746,
+   "model_move_closed": 1747,
+   "model_requests_closed": 1747,
+   "model_exhibit_closed": 1747,
+   "model_rescue_item_closed": 1750,
+   "model_question_closed": 2430,
+   "model_done": 2438,
+   "first_delivered": 3437,
+   "pt_judge_start": 3437,
+   "pt_judge_end": 3437,
+   "first_useful_delivered": 3448,
+   "data_line_delivered": 3448,
+   "settle_start": 3448,
+   "pt_judge_settle_start": 3449,
+   "pt_judge_settle_end": 3449,
+   "settle_composed": 3466,
+   "tail_delivered": 3466,
+   "heard_resolved": 3466,
+   "persist_start": 3466,
+   "persist_end": 3571
+  }
+ },
+ {
+  "key": "065501fe:14",
+  "caseId": "prof-002",
+  "run": "065501fe",
+  "turn": 14,
+  "records": [
+   "b39l-marcus-t14-refusal-contradiction"
+  ],
+  "groups": [
+   "target"
+  ],
+  "candidateText": "That settles it: at 30% lower cost per seat, the LCC can sustain today's fares and Larkspur can't. Matching is a permanent loss, and raising fares loses the passengers. So on those two routes there's no pricing path — it's an exit or restructure question.\n\nMath on exiting both: Lakeport contributes ($1.2M) and Port Avery ($0.6M), so dropping them removes $1.8M of negative contribution. Fixed costs of $20M stay, at least initially. Operating profit goes from ($4M) to ($2.2M) — better, but still a loss. So exit alone doesn't get us to profit in 12 months; we'd also need to redeploy those 5,000 flights or shed fixed cost.\n\nWhat I'd want: can the freed aircraft be redeployed to new destinations with no LCC presence, and what do the other four routes earn per flight as a benchmark? Also whether leases can be exited and how much fixed cost is genuinely avoidable.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "what the other four routes earn per flight as a benchmark",
+     "items": [
+      {
+       "id": "route_results_other",
+       "answers": "partial"
+      }
+     ],
+     "missing": "contribution per flight by route"
+    },
+    {
+     "ask": "can the freed aircraft be redeployed to new destinations with no LCC presence",
+     "items": [],
+     "missing": "new route options and LCC presence on them"
+    },
+    {
+     "ask": "whether leases can be exited",
+     "items": [
+      {
+       "id": "aircraft_leases",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "how much fixed cost is genuinely avoidable",
+     "items": [],
+     "missing": "breakdown of avoidable vs unavoidable fixed costs"
+    }
+   ]
+  },
+  "latencyMs": 1808,
+  "usd": 0.003411,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 41,
+   "plan_done": 58,
+   "model_request": 59,
+   "model_first_token": 1229,
+   "model_first_sentence": 1238,
+   "held_for_distress": 1238,
+   "model_say_closed": 1238,
+   "model_move_closed": 1238,
+   "distress_verdict": 1615,
+   "model_requests_closed": 2166,
+   "first_delivered": 2169,
+   "model_exhibit_closed": 2199,
+   "model_rescue_item_closed": 2236,
+   "pt_judge_start": 2236,
+   "pt_judge_end": 2236,
+   "first_useful_delivered": 2767,
+   "data_line_delivered": 2767,
+   "model_question_closed": 2767,
+   "model_done": 2777,
+   "settle_start": 2777,
+   "pt_judge_settle_start": 2777,
+   "pt_judge_settle_end": 2777,
+   "settle_composed": 2800,
+   "tail_delivered": 2800,
+   "heard_resolved": 2800,
+   "persist_start": 2800,
+   "persist_end": 2870
+  }
+ },
+ {
+  "key": "dcc6774f:22",
+  "caseId": "pricing-001",
+  "run": "dcc6774f",
+  "turn": 22,
+  "records": [
+   "b39q-tyler-t22-pointer-mismatch"
+  ],
+  "groups": [
+   "pointer"
+  ],
+  "candidateText": "The breakeven on the upgrade rate, since that's the untested assumption carrying the test case.\n\nAt $60 I credited 20% × $4,250 = $850 of upgrade value. The test adds $240k a month over control. The $60 group signs up 800 Starters, so $240k spread over 800 is $300 per customer of cushion. That's $300 ÷ $4,250 ≈ 7 percentage points of upgrade rate. So if $60 customers upgrade at 13% instead of 20%, the price rise is a wash; below that it's worse than $40.\n\nThat's a real risk, because the logic of the test cuts that way — the people most likely to upgrade are the ones who at $60 just bought Pro outright, which is exactly the 50 extra Pro signups. So the $60 Starter pool is plausibly lower-intent.\n\nI'd also want the cancellation rate for $60 signups once we have six months, and I'd check whether the 20% upgrade figure holds for cohorts after Q1 2025.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "upgrade rate at $60 price for $60 signups",
+     "items": [],
+     "missing": "upgrade rate for $60 Starter signups"
+    },
+    {
+     "ask": "cancellation rate for $60 signups",
+     "items": [],
+     "missing": "cancellation rate for $60 Starter signups"
+    },
+    {
+     "ask": "upgrade rate for cohorts after Q1 2025",
+     "items": [
+      {
+       "id": "starter_cohort",
+       "answers": "partial"
+      }
+     ],
+     "missing": "upgrade rates for cohorts after Q1 2025"
+    }
+   ]
+  },
+  "latencyMs": 1491,
+  "usd": 0.002861,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 57,
+   "plan_done": 77,
+   "model_request": 78,
+   "distress_verdict": 695,
+   "model_first_token": 1733,
+   "model_first_sentence": 1741,
+   "held_for_distress": 1742,
+   "first_delivered": 2071,
+   "model_say_closed": 2074,
+   "model_move_closed": 2074,
+   "model_requests_closed": 2085,
+   "model_exhibit_closed": 2115,
+   "model_rescue_item_closed": 2148,
+   "pt_judge_start": 2148,
+   "pt_judge_end": 2148,
+   "first_useful_delivered": 2170,
+   "data_line_delivered": 2170,
+   "model_question_closed": 2329,
+   "model_done": 2332,
+   "settle_start": 2332,
+   "pt_judge_settle_start": 2333,
+   "pt_judge_settle_end": 2333,
+   "settle_composed": 2351,
+   "tail_delivered": 2351,
+   "heard_resolved": 2351,
+   "persist_start": 2351,
+   "persist_end": 2499
+  }
+ },
+ {
+  "key": "11414946:12",
+  "caseId": "launch-001",
+  "run": "11414946",
+  "turn": 12,
+  "records": [
+   "b37h-raj-t12-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "Two ways. First, benchmark against the existing business: $300M in chip sales — if the average bag nets Hollis Bay something like $2, that's roughly 150 million bags a year. So 5.6 million is under 4% of current unit volume, which doesn't sound crazy for a new line with guaranteed shelf space.\n\nSecond, bottom-up per store. If the two partners cover, say, several thousand stores, I'd divide 5.6M by store count and by 52 weeks to get bags per store per week. That number is very intuitive — if it's two or three bags a week, easy; if it's thirty, hard.\n\nDo we have the store count for those two retailers, and any benchmark for how a comparable new snack SKU turns per store per week?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Store count for the two largest retail partners",
+     "items": [],
+     "missing": "store count for the two largest retail partners"
+    },
+    {
+     "ask": "Benchmark: bags per store per week for a comparable new snack SKU",
+     "items": [],
+     "missing": "benchmark for bags per store per week for a comparable new snack SKU"
+    }
+   ]
+  },
+  "latencyMs": 1303,
+  "usd": 0.002428,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 33,
+   "plan_done": 76,
+   "model_request": 76,
+   "distress_verdict": 801,
+   "model_first_token": 1692,
+   "model_first_sentence": 1698,
+   "held_for_requests": 1698,
+   "model_say_closed": 1698,
+   "model_move_closed": 1698,
+   "model_requests_closed": 2113,
+   "first_delivered": 2116,
+   "model_exhibit_closed": 2146,
+   "model_rescue_item_closed": 2180,
+   "pt_judge_start": 2181,
+   "pt_judge_end": 2181,
+   "first_useful_delivered": 2616,
+   "data_line_delivered": 2616,
+   "model_question_closed": 2776,
+   "model_done": 2778,
+   "settle_start": 2778,
+   "pt_judge_settle_start": 2778,
+   "pt_judge_settle_end": 2778,
+   "settle_composed": 2810,
+   "tail_delivered": 2810,
+   "heard_resolved": 2810,
+   "persist_start": 2810,
+   "persist_end": 2951
+  }
+ },
+ {
+  "key": "e08c362a:14",
+  "caseId": "pricing-001",
+  "run": "e08c362a",
+  "turn": 14,
+  "records": [
+   "b37q-raj-t14-unasked-restated"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "I think it's consistent. The 7.4% is the combined exit rate — cancels plus upgrades — so 13.5 months is time spent paying $30 on Starter, nothing more. The Pro LTV I add on only covers the period after they switch, when they're paying $80. So no month gets counted twice.\n\nThe split within that exit is roughly 40 points cancelled, 20 points upgraded by month 12 — so about two-thirds of the leavers cancel outright, one-third upgrade. I applied the upgrade value to the 20% only, not the whole 60%.\n\nOne check I'd want: do we have the Pro-equivalent churn for upgraded customers? If upgraded customers churn faster than demo-sourced Pro customers, that $800 overstates it.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Pro-equivalent churn rate for upgraded customers",
+     "items": [],
+     "missing": "churn rate for customers who upgraded from Starter to Pro"
+    }
+   ]
+  },
+  "latencyMs": 802,
+  "usd": 0.00236,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 30,
+   "plan_done": 42,
+   "model_request": 42,
+   "distress_verdict": 812,
+   "model_first_token": 1387,
+   "model_first_sentence": 1387,
+   "held_for_requests": 1387,
+   "model_say_closed": 1387,
+   "model_move_closed": 1387,
+   "model_requests_closed": 1721,
+   "first_delivered": 1723,
+   "model_exhibit_closed": 1723,
+   "model_rescue_item_closed": 1723,
+   "pt_judge_start": 1723,
+   "pt_judge_end": 1723,
+   "first_useful_delivered": 1755,
+   "data_line_delivered": 1755,
+   "model_question_closed": 2302,
+   "model_done": 2332,
+   "settle_start": 2332,
+   "pt_judge_settle_start": 2332,
+   "pt_judge_settle_end": 2332,
+   "settle_composed": 2348,
+   "tail_delivered": 2348,
+   "heard_resolved": 2348,
+   "persist_start": 2348,
+   "persist_end": 2452
+  }
+ },
+ {
+  "key": "6f57da6e:8",
+  "caseId": "entry-001",
+  "run": "6f57da6e",
+  "turn": 8,
+  "records": [
+   "b36a-marisol-t8-exhibit"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Fair — you said each percentage applies to the stage above it, so the 20% should sit on the treated pool, not the prevalent pool. My reasoning was that severity is intrinsic to the patient rather than to whether they're treated, but that's me overriding the funnel as given, and the funnel as given is the right base. Let me redo it with 250 million.\n\n250 million × 1.6% = 4 million with Corlan's.\n50% diagnosed = 2 million.\n50% of those treated with prescription medicine = 1 million.\n20% of those moderate-to-severe = 200,000 patients eligible for Kelvexa.\n\nSo a 200,000-patient addressable pool. Against the $300 million gate, that implies revenue per patient times share has to clear $1,500 per eligible patient per year on average.\n\nNext I need net price per patient per year and a view on achievable peak share. Do we have either?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "net price per patient per year",
+     "items": [
+      {
+       "id": "option_shared",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "achievable peak share",
+     "items": [
+      {
+       "id": "peak_share_forecast",
+       "answers": "partial"
+      },
+      {
+       "id": "option_a",
+       "answers": "partial"
+      },
+      {
+       "id": "option_b",
+       "answers": "partial"
+      }
+     ],
+     "missing": "by entry option"
+    }
+   ]
+  },
+  "latencyMs": 1315,
+  "usd": 0.002638,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 30,
+   "plan_done": 60,
+   "model_request": 61,
+   "distress_verdict": 834,
+   "model_first_token": 1617,
+   "model_first_sentence": 1625,
+   "held_for_requests": 1625,
+   "model_say_closed": 1625,
+   "model_move_closed": 1625,
+   "model_requests_closed": 1978,
+   "first_delivered": 1980,
+   "model_exhibit_closed": 1980,
+   "model_rescue_item_closed": 1980,
+   "pt_judge_start": 1980,
+   "pt_judge_end": 1980,
+   "first_useful_delivered": 1985,
+   "data_line_delivered": 1985,
+   "model_question_closed": 2192,
+   "model_done": 2231,
+   "settle_start": 2231,
+   "pt_judge_settle_start": 2231,
+   "pt_judge_settle_end": 2231,
+   "settle_composed": 2246,
+   "tail_delivered": 2246,
+   "heard_resolved": 2246,
+   "persist_start": 2246,
+   "persist_end": 2384
+  }
+ },
+ {
+  "key": "bd5a333c:2",
+  "caseId": "prof-002",
+  "run": "bd5a333c",
+  "turn": 2,
+  "records": [
+   "b39l-jasmine-t2-refusal-contradiction"
+  ],
+  "groups": [
+   "target"
+  ],
+  "candidateText": "Let me lay out how I'd approach this. We've got a $24M profit swing: revenue down $24M and costs roughly flat or up, so I want to size both sides.\n\nOn revenue: revenue equals routes × flights per route × 80 seats × load factor × average fare. Load factor is roughly unchanged, so the drop has to come from fewer flights flown or lower average fare per ticket — or mix shifting toward shorter, cheaper routes. I'd want fare and departure counts for FY23 vs FY25, by route if we have it.\n\nOn cost: split fixed (aircraft ownership, crew salaries, airport leases, overhead) from variable (fuel, landing fees, distribution). Fuel is usually the biggest single line for a regional, so I'd check price per gallon.\n\nCan I get the revenue breakdown — departures and average fare for both years — plus the FY23 and FY25 cost lines?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Revenue breakdown: departures and average fare by route, FY23 vs FY25",
+     "items": [
+      {
+       "id": "route_results_lakeport",
+       "answers": "partial"
+      },
+      {
+       "id": "route_results_port_avery",
+       "answers": "partial"
+      },
+      {
+       "id": "route_results_other",
+       "answers": "partial"
+      },
+      {
+       "id": "routes_schedule",
+       "answers": "partial"
+      }
+     ],
+     "missing": "average fare by route"
+    },
+    {
+     "ask": "Fixed costs FY23 and FY25",
+     "items": [
+      {
+       "id": "fixed_costs",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "Variable costs FY23 and FY25",
+     "items": [
+      {
+       "id": "lakeport_variable_cost",
+       "answers": "partial"
+      },
+      {
+       "id": "port_avery_per_flight",
+       "answers": "partial"
+      }
+     ],
+     "missing": "variable cost per flight on other four routes"
+    },
+    {
+     "ask": "Fuel price per gallon",
+     "items": [],
+     "missing": "fuel price per gallon"
+    }
+   ]
+  },
+  "latencyMs": 2270,
+  "usd": 0.003621,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 175,
+   "plan_done": 243,
+   "model_request": 249,
+   "distress_verdict": 1036,
+   "model_first_token": 1421,
+   "model_first_sentence": 1426,
+   "held_for_requests": 1428,
+   "model_say_closed": 1428,
+   "model_move_closed": 1428,
+   "model_requests_closed": 1750,
+   "first_delivered": 1769,
+   "model_exhibit_closed": 1784,
+   "model_rescue_item_closed": 1822,
+   "pt_judge_start": 1822,
+   "pt_judge_end": 1822,
+   "first_useful_delivered": 3479,
+   "data_line_delivered": 3479,
+   "model_question_closed": 3479,
+   "model_done": 3479,
+   "settle_start": 3479,
+   "pt_judge_settle_start": 3480,
+   "pt_judge_settle_end": 3480,
+   "settle_composed": 3500,
+   "tail_delivered": 3500,
+   "heard_resolved": 3500,
+   "persist_start": 3500,
+   "persist_end": 3644
+  }
+ },
+ {
+  "key": "854fc080:14",
+  "caseId": "pricing-001",
+  "run": "854fc080",
+  "turn": 14,
+  "records": [
+   "b39q-marisol-t14-pointer-mismatch"
+  ],
+  "groups": [
+   "pointer"
+  ],
+  "candidateText": "On the profile: Starter buyers are one-person shops and Pro buyers have three or more staff, so these are largely different segments. A sole operator was never going to buy a $100 single-user-plus plan. That means true cannibalization is well below my 150 — plausibly near zero — and the 150 drop in Pro sign-ups is more likely a reallocation of sales effort or a market effect.\n\nOn timing, I'll rework it. The 20% is cumulative by month twelve, not a monthly event, so the first cohort's upgrades only land through the first year. Using the month-6 figure of 11% as the nearer-term rate, that's 1,000 × 11% = 110 upgrades a month arriving on a six-month lag. Against the 150 Pro sign-ups lost, that's a shortfall of 40 a month in the early period, closing to a surplus as cohorts mature.\n\nDoes the 350 Pro figure already include upgraded Starters, or is it new-logo Pro only?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Does the 350 Pro figure already include upgraded Starters, or is it new-logo Pro only?",
+     "items": [],
+     "missing": "whether 350 Pro sign-ups includes or excludes Starter upgrades"
+    }
+   ]
+  },
+  "latencyMs": 895,
+  "usd": 0.002508,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 41,
+   "plan_done": 50,
+   "code_written_checks_start": 50,
+   "distress_verdict": 974,
+   "code_written_checks_end": 1072,
+   "settle_start": 1072,
+   "pt_judge_settle_start": 1072,
+   "pt_judge_settle_end": 1072,
+   "settle_composed": 1081,
+   "first_delivered": 1081,
+   "first_useful_delivered": 1081,
+   "tail_delivered": 1081,
+   "heard_resolved": 1081,
+   "persist_start": 1081,
+   "persist_end": 1150
+  }
+ },
+ {
+  "key": "7f6c40ea:14",
+  "caseId": "launch-001",
+  "run": "7f6c40ea",
+  "turn": 14,
+  "records": [
+   "b37h-marisol-t14-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "I'll commit to $3.00 per bag — you're right that it's Hollis Bay's own P&L we're building, and $3.00 is what lands in Hollis Bay's revenue line. Contribution $3.00 minus $1.50 variable = $1.50 per bag.\n\nOn the $1.2 million: I'd keep it in. It was spent specifically to create this line, and the board's test is whether the launch breaks even — a launch that leaves $1.2 million of development unrecovered hasn't cleared that bar. If the board had asked \"is the incremental decision positive,\" I'd drop it, but they asked about breakeven on the line.\n\nSo fixed costs $10.2 million, contribution $1.50 per bag, breakeven 6.8 million bags.\n\nAt $3.99 retail that's about $27 million of shelf sales, or roughly 9% of Hollis Bay's $300 million. That's a big ask for a first-year SKU. Do we have anything on what the better-for-you segment is worth in these regions?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Size of the better-for-you snack market in Hollis Bay's regions",
+     "items": [],
+     "missing": "market size or share of better-for-you snacks in the Northeast and Midwest"
+    }
+   ]
+  },
+  "latencyMs": 866,
+  "usd": 0.002354,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 37,
+   "plan_done": 44,
+   "model_request": 45,
+   "model_first_token": 1671,
+   "model_first_sentence": 1675,
+   "held_for_distress": 1675,
+   "model_say_closed": 1678,
+   "model_move_closed": 1678,
+   "distress_verdict": 1783,
+   "model_requests_closed": 2021,
+   "first_delivered": 2022,
+   "model_exhibit_closed": 2028,
+   "model_rescue_item_closed": 2028,
+   "pt_judge_start": 2028,
+   "pt_judge_end": 2028,
+   "first_useful_delivered": 2465,
+   "data_line_delivered": 2465,
+   "model_question_closed": 2465,
+   "model_done": 2530,
+   "settle_start": 2530,
+   "pt_judge_settle_start": 2530,
+   "pt_judge_settle_end": 2530,
+   "settle_composed": 2541,
+   "tail_delivered": 2541,
+   "heard_resolved": 2541,
+   "persist_start": 2541,
+   "persist_end": 2608
+  }
+ },
+ {
+  "key": "eb8d7576:22",
+  "caseId": "pricing-001",
+  "run": "eb8d7576",
+  "turn": 22,
+  "records": [
+   "b37q-marcus-t22-overlap"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "It confirms the cannibalization number I used earlier — Pro direct sign-ups fell 500 to 350, so 150 a month are people who'd have bought Pro and now enter via Starter, and 850 are genuinely new.\n\nWorth valuing those 150 properly now. Previously each was worth $4,000 LTV less $1,200 CAC, so $2,800 net. Now, as a Starter sign-up, each is worth roughly $1,220 LTV less $300 CAC, so about $920 net. That's a loss of ~$1,880 each, or about $282,000 a month.\n\nThe 850 incremental: $920 net each, about $782,000 a month. So net positive, roughly $500,000 a month, but the cannibalization drag is real and much bigger than the $9,000 I sloppily estimated earlier.\n\nOne thing I'd want: of the 20% who upgrade, are they disproportionately the 150 who would have bought Pro anyway? If so the drag is smaller.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Of the 20% of Starter customers who upgrade to Pro, are they disproportionately the 150 cannibalized Pro buyers?",
+     "items": [],
+     "missing": "upgrade rate by customer origin (cannibalized vs. new)"
+    }
+   ]
+  },
+  "latencyMs": 1001,
+  "usd": 0.002545,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 53,
+   "plan_done": 74,
+   "model_request": 75,
+   "distress_verdict": 908,
+   "model_first_token": 1840,
+   "model_say_closed": 1843,
+   "model_move_closed": 1843,
+   "request_guard_regenerate": 1849,
+   "model_first_sentence": 3210,
+   "held_for_requests": 3210,
+   "model_requests_closed": 3210,
+   "first_delivered": 3212,
+   "model_exhibit_closed": 3212,
+   "model_rescue_item_closed": 3214,
+   "pt_judge_start": 3214,
+   "pt_judge_end": 3214,
+   "first_useful_delivered": 3225,
+   "data_line_delivered": 3225,
+   "model_question_closed": 3401,
+   "model_done": 3428,
+   "settle_start": 3428,
+   "pt_judge_settle_start": 3428,
+   "pt_judge_settle_end": 3428,
+   "settle_composed": 3442,
+   "tail_delivered": 3442,
+   "heard_resolved": 3442,
+   "persist_start": 3442,
+   "persist_end": 3511
+  }
+ },
+ {
+  "key": "a14ca044:14",
+  "caseId": "launch-001",
+  "run": "a14ca044",
+  "turn": 14,
+  "records": [
+   "b35h-marisol-t14-retailer-release"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Fair on both. The chickpea margin shouldn't carry to chips — chips are a mature, heavily promoted category with trade spend and likely a different cost structure, and $3.00 is what we receive on a new premium item, not a chip bag. I don't have chip economics, so I should have asked rather than borrowed the 50%. Scratch the $150 million.\n\nAnd no, absorbing a miss isn't the test. The board set break-even in year one as the gate, so the question is whether we clear 6.0 million bags, not whether a miss would sink the company.\n\nTaking $9.0 million as the decision-relevant fixed base: 6.0 million bags at $3.00 is $18.0 million of revenue. Against the $300 million business that's 6%.\n\nWhat I'd want now is whether 6.0 million bags is achievable — distribution points and turns per store. Do we have a store count we could reach in year one?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "store count we could reach in year one",
+     "items": [],
+     "missing": "number of stores Hollis Bay can stock in year one"
+    }
+   ]
+  },
+  "latencyMs": 808,
+  "usd": 0.002249,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 46,
+   "plan_done": 57,
+   "code_written_checks_start": 58,
+   "distress_verdict": 1016,
+   "code_written_checks_end": 1016,
+   "settle_start": 1016,
+   "pt_judge_settle_start": 1016,
+   "pt_judge_settle_end": 1016,
+   "settle_composed": 1025,
+   "first_delivered": 1025,
+   "first_useful_delivered": 1025,
+   "tail_delivered": 1025,
+   "heard_resolved": 1025,
+   "persist_start": 1025,
+   "persist_end": 1099
+  }
+ },
+ {
+  "key": "69441a66:2",
+  "caseId": "prof-002",
+  "run": "69441a66",
+  "turn": 2,
+  "records": [
+   "b39l-marisol-t2-breakdown-refusal"
+  ],
+  "groups": [
+   "target"
+  ],
+  "candidateText": "Okay, so the swing is $24 million — from $20 million profit to a $4 million loss — and revenue fell $24 million at the same time, from $200 to $176. That's a nice coincidence: it suggests the entire profit swing is explained on the revenue side, with costs essentially flat.\n\nI'd structure it as revenue minus cost. On revenue: load factor is flat, so it's not seats filled — it's either fewer flights, or lower fare per ticket, or a mix shift between the six cities. On cost: fuel, labor, maintenance, airport fees, and distribution.\n\nLet me start with revenue. Do we have the breakdown of the $176 million — number of flights flown, seats sold, and average fare, for FY2023 versus FY2025? And ideally the split across the six city routes.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Breakdown of $176M revenue: number of flights, seats sold, average fare for FY2023 vs FY2025",
+     "items": [
+      {
+       "id": "network_totals",
+       "answers": "partial"
+      },
+      {
+       "id": "lakeport_seats_load",
+       "answers": "partial"
+      },
+      {
+       "id": "lakeport_fare",
+       "answers": "partial"
+      },
+      {
+       "id": "port_avery_per_flight",
+       "answers": "partial"
+      },
+      {
+       "id": "extras_revenue",
+       "answers": "partial"
+      }
+     ],
+     "missing": "total seats sold and blended average fare across all six routes for both years"
+    },
+    {
+     "ask": "Revenue split across the six city routes",
+     "items": [
+      {
+       "id": "route_results_lakeport",
+       "answers": "full"
+      },
+      {
+       "id": "route_results_port_avery",
+       "answers": "full"
+      },
+      {
+       "id": "route_results_other",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    }
+   ]
+  },
+  "latencyMs": 2657,
+  "usd": 0.003846,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 120,
+   "plan_done": 187,
+   "model_request": 192,
+   "distress_verdict": 1018,
+   "model_first_token": 1022,
+   "model_first_sentence": 1232,
+   "held_for_requests": 1233,
+   "model_say_closed": 1233,
+   "model_move_closed": 1233,
+   "model_requests_closed": 1495,
+   "first_delivered": 1525,
+   "model_exhibit_closed": 1527,
+   "model_rescue_item_closed": 1569,
+   "pt_judge_start": 1570,
+   "pt_judge_end": 1570,
+   "first_useful_delivered": 3227,
+   "data_line_delivered": 3227,
+   "model_question_closed": 3227,
+   "model_done": 3227,
+   "settle_start": 3227,
+   "pt_judge_settle_start": 3228,
+   "pt_judge_settle_end": 3228,
+   "settle_composed": 3246,
+   "tail_delivered": 3246,
+   "heard_resolved": 3246,
+   "persist_start": 3247,
+   "persist_end": 3338
+  }
+ },
+ {
+  "key": "dd74b01b:12",
+  "caseId": "pricing-001",
+  "run": "dd74b01b",
+  "turn": 12,
+  "records": [
+   "b39q-dana-t12-pointer-mismatch"
+  ],
+  "groups": [
+   "pointer"
+  ],
+  "candidateText": "That 24 months was the same 4.2% calculation — 1 ÷ 0.042 — built off the 60% who hadn't cancelled by month 12. So $30 margin × 24 months = $720, over $300 CAC = 2.4x. But I've since corrected that: the right Starter-stage base is the 40% still on Starter, giving 7.4% monthly, 13.5 months, $405. The $720/2.4x figure is superseded — I'd drop it. The relevant number is ~$1,205 and 4.0x.\n\nOn the new exhibit: total signups went 500 to 1,350. Pro dropped 150 a month. If I treat all 150 as cannibalized — people who'd have paid Pro prices and now pay $40 — that's the worst case. 150 × $4,000 of Pro LTV forgone = $600,000 per month, against 150 × $1,205 = $181k they're now worth, so about $419k a month destroyed.\n\nAgainst that, 850 incremental Starter customers × $1,205 = roughly $1.02m of value created per month, on 850 × $300 = $255k of CAC.\n\nNet clearly positive. But I'd want: the Pro signup trend monthly through 2024 — was it already declining before launch? Is there a competitor that entered? And what's the fixed cost of running two plans?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Pro signup trend monthly through 2024",
+     "items": [],
+     "missing": "Pro sign-ups by month in 2024"
+    },
+    {
+     "ask": "Was Pro declining before Starter launch",
+     "items": [
+      {
+       "id": "new_customers_by_plan",
+       "answers": "partial"
+      },
+      {
+       "id": "why_pro_fell",
+       "answers": "partial"
+      }
+     ],
+     "missing": "Pro trend before January 2025"
+    },
+    {
+     "ask": "Competitor entry",
+     "items": [],
+     "missing": "whether a competitor entered and when"
+    },
+    {
+     "ask": "Fixed cost of running two plans",
+     "items": [],
+     "missing": "fixed cost to operate both plans"
+    }
+   ]
+  },
+  "latencyMs": 1727,
+  "usd": 0.003056,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 68,
+   "plan_done": 104,
+   "model_request": 105,
+   "distress_verdict": 917,
+   "model_first_token": 1355,
+   "model_first_sentence": 1361,
+   "held_for_requests": 1361,
+   "model_say_closed": 1361,
+   "model_move_closed": 1361,
+   "model_requests_closed": 1800,
+   "first_delivered": 1803,
+   "model_exhibit_closed": 1839,
+   "model_rescue_item_closed": 1876,
+   "pt_judge_start": 1876,
+   "pt_judge_end": 1876,
+   "first_useful_delivered": 2435,
+   "data_line_delivered": 2435,
+   "model_question_closed": 2654,
+   "model_done": 2661,
+   "settle_start": 2661,
+   "pt_judge_settle_start": 2661,
+   "pt_judge_settle_end": 2661,
+   "settle_composed": 2684,
+   "tail_delivered": 2684,
+   "heard_resolved": 2684,
+   "persist_start": 2684,
+   "persist_end": 2762
+  }
+ },
+ {
+  "key": "7f6c40ea:20",
+  "caseId": "launch-001",
+  "run": "7f6c40ea",
+  "turn": 20,
+  "records": [
+   "b37h-marisol-t20-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "Let me re-read it. The exhibit says \"Share of 'definitely would buy' who actually buy in year one — 60%\" and \"Share of 'probably would buy' — 20%.\" I had them flipped.\n\nRedo it:\nDefinitely: 10% × 30 million = 3 million households, × 60% = 1.8 million buyers.\nProbably: 20% × 30 million = 6 million households, × 20% = 1.2 million buyers.\nTotal 3 million buying households.\n\nAt 3 bags each, 9 million bags in year one.\n\nBreakeven is 6 million bags, so we clear it by 3 million bags. That's $1.50 × 3 million = $4.5 million of first-year profit above breakeven.\n\nOne adjustment I'd flag: 22% of shoppers named price as a hesitation, so I'd haircut the 9 million by that 22% — call it 7 million bags — and we still clear 6 million, but the cushion gets thin. Do we have any read on repeat purchase rate beyond year one?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "repeat purchase rate beyond year one",
+     "items": [],
+     "missing": "repeat purchase rate beyond year one"
+    }
+   ]
+  },
+  "latencyMs": 823,
+  "usd": 0.00236,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 52,
+   "plan_done": 76,
+   "model_request": 81,
+   "distress_verdict": 720,
+   "model_first_token": 1436,
+   "model_first_sentence": 1441,
+   "held_for_requests": 1441,
+   "model_say_closed": 1441,
+   "model_move_closed": 1441,
+   "model_requests_closed": 1441,
+   "first_delivered": 1443,
+   "model_exhibit_closed": 1443,
+   "model_rescue_item_closed": 1476,
+   "pt_judge_start": 1476,
+   "pt_judge_end": 1476,
+   "first_useful_delivered": 1897,
+   "data_line_delivered": 1897,
+   "model_question_closed": 2183,
+   "model_done": 2186,
+   "settle_start": 2186,
+   "pt_judge_settle_start": 2186,
+   "pt_judge_settle_end": 2186,
+   "settle_composed": 2197,
+   "tail_delivered": 2197,
+   "heard_resolved": 2197,
+   "persist_start": 2197,
+   "persist_end": 2265
+  }
+ },
+ {
+  "key": "cee7d399:24",
+  "caseId": "prof-002",
+  "run": "cee7d399",
+  "turn": 24,
+  "records": [
+   "b38l-tyler-t24-doubled"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "A few levers, and I'd stack them rather than pick one.\n\nFirst, phase the exit. Don't drop both routes at once — exit Lakeport first, since it loses $600 a departure versus Port Avery's $200, and redeploy only those 2,000 flights. That caps first-year ramp exposure while keeping Port Avery's feed traffic.\n\nSecond, protect the feed. 20% of contested-route passengers connect onward, so exiting costs us onward revenue on the four healthy routes — I'd want that quantified before full exit.\n\nThird, pricing on the four uncontested routes. Nobody has entered there, and contribution margins are thin — Westhaven is $3.6M on $24.8M, under 15%. A $5–10 fare increase there drops almost entirely to contribution and needs no ramp.\n\nFourth, extras. $20 per passenger is low; bags and seat selection could add $5–8 immediately.\n\nFifth, revisit the $20M fixed base — it was never scrutinized.\n\nDo we have price elasticity on the four protected routes?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "price elasticity on the four protected routes",
+     "items": [],
+     "missing": "price elasticity on the four protected routes"
+    }
+   ]
+  },
+  "latencyMs": 900,
+  "usd": 0.00294,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 51,
+   "plan_done": 68,
+   "model_request": 68,
+   "distress_verdict": 852,
+   "model_first_token": 1789,
+   "model_first_sentence": 1795,
+   "held_for_requests": 1795,
+   "model_say_closed": 1810,
+   "model_move_closed": 1843,
+   "model_requests_closed": 2152,
+   "first_delivered": 2156,
+   "model_exhibit_closed": 2161,
+   "model_rescue_item_closed": 2161,
+   "pt_judge_start": 2161,
+   "pt_judge_end": 2161,
+   "first_useful_delivered": 2610,
+   "data_line_delivered": 2610,
+   "model_question_closed": 2610,
+   "model_done": 2610,
+   "settle_start": 2610,
+   "pt_judge_settle_start": 2610,
+   "pt_judge_settle_end": 2610,
+   "settle_composed": 2620,
+   "tail_delivered": 2620,
+   "heard_resolved": 2620,
+   "persist_start": 2620,
+   "persist_end": 2700
+  }
+ },
+ {
+  "key": "01b805d6:26",
+  "caseId": "launch-001",
+  "run": "01b805d6",
+  "turn": 26,
+  "records": [
+   "b35h-raj-t26-cannibalization"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "It could change the magnitude but probably not the yes. Worth sizing, though.\n\nThe chickpea line at 10.5M bags and $3.00 is about $31.5M of revenue — roughly 10% of Hollis Bay's $300M base. If even a quarter of that is switched chip volume, that's $8M of chip revenue moving. The question is margin: if kettle chips earn more contribution per dollar than chickpeas, every switched dollar costs us. Do we have the contribution margin on the chips business? I'd assume it's broadly similar to the 50% here, in which case cannibalization is close to profit-neutral and the line is pure strategic upside — we keep the shopper instead of losing them to a competitor's better-for-you brand.\n\nHow I'd find out: household panel data showing whether chickpea buyers reduced chip purchases, and a control comparison of stores with and without the line. The decision-relevant version is incremental category dollars per household, not bags.\n\nAnd the counterfactual matters — chips are flat while better-for-you grows. Some of that volume walks anyway.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "contribution margin on the chips business",
+     "items": [],
+     "missing": "contribution margin on Hollis Bay chips"
+    },
+    {
+     "ask": "household panel data on whether chickpea buyers reduced chip purchases",
+     "items": [],
+     "missing": "household panel data on chickpea buyers' chip purchase changes"
+    },
+    {
+     "ask": "control comparison of stores with and without the chickpea line",
+     "items": [],
+     "missing": "control store comparison data"
+    }
+   ]
+  },
+  "latencyMs": 1275,
+  "usd": 0.002601,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 48,
+   "plan_done": 68,
+   "model_request": 69,
+   "distress_verdict": 798,
+   "model_first_token": 1851,
+   "model_first_sentence": 1853,
+   "held_for_requests": 1853,
+   "model_say_closed": 1853,
+   "model_move_closed": 1853,
+   "model_requests_closed": 1934,
+   "first_delivered": 1937,
+   "model_exhibit_closed": 1973,
+   "model_rescue_item_closed": 2237,
+   "pt_judge_start": 2237,
+   "pt_judge_end": 2237,
+   "first_useful_delivered": 2240,
+   "data_line_delivered": 2240,
+   "model_question_closed": 2301,
+   "model_done": 2347,
+   "settle_start": 2347,
+   "pt_judge_settle_start": 2347,
+   "pt_judge_settle_end": 2347,
+   "settle_composed": 2354,
+   "tail_delivered": 2354,
+   "heard_resolved": 2354,
+   "persist_start": 2354,
+   "persist_end": 2424
+  }
+ },
+ {
+  "key": "c355c1fd:14",
+  "caseId": "prof-001",
+  "run": "c355c1fd",
+  "turn": 14,
+  "records": [
+   "b33-raj-t14-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "Yes, that confirms it. Flat menu prices against roughly 38% input inflation means we absorbed 100% of it. And it also tells me the 15% revenue growth was pure volume or new stores — not a single dollar came from price.\n\nQuick sizing on the fix: to get COGS back from 58 to 42 points, we'd need revenue per unit up by 58/42, about 38% — which makes sense, that's the input inflation. That's obviously too big a jump to take at once. But partial pass-through goes a long way: a 10% price increase at constant volume pulls COGS to 58/1.10 ≈ 53 points, and overhead and labor compress too, so profit goes from 6 to roughly 12-13 points. Doubling of margin from a 10% price move.\n\nThe open question is elasticity — do we have anything on how volume responded to price historically, or what competitors charge?",
+  "verdict": {
+   "raw": "{\"asks\":[\"ask\":\"historical price elasticity or volume response to price changes\",\"items\":[],\"missing\":\"historical price elasticity or volume response to price changes\"}"
+  },
+  "latencyMs": 947,
+  "usd": 0.001469,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 30,
+   "plan_done": 43,
+   "model_request": 43,
+   "distress_verdict": 693,
+   "model_first_token": 1381,
+   "model_first_sentence": 1396,
+   "held_for_requests": 1396,
+   "model_say_closed": 1396,
+   "model_move_closed": 1396,
+   "model_requests_closed": 1396,
+   "first_delivered": 1398,
+   "model_exhibit_closed": 1398,
+   "model_rescue_item_closed": 2975,
+   "pt_judge_start": 2975,
+   "pt_judge_end": 2975,
+   "first_useful_delivered": 4037,
+   "data_line_delivered": 4037,
+   "model_question_closed": 4038,
+   "model_done": 4038,
+   "settle_start": 4038,
+   "pt_judge_settle_start": 4038,
+   "pt_judge_settle_end": 4038,
+   "settle_composed": 4046,
+   "tail_delivered": 4046,
+   "heard_resolved": 4046,
+   "persist_start": 4046,
+   "persist_end": 4134
+  }
+ },
+ {
+  "key": "a7d9f44e:20",
+  "caseId": "prof-002",
+  "run": "a7d9f44e",
+  "turn": 20,
+  "records": [
+   "b36l-marcus-t20-launch-cost"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "A few levers, roughly in order of how much I trust them.\n\nFirst, protect the four healthy routes — Cedar Bluff, Granite Falls, Millbrook, Westhaven deliver $17.8M of contribution and face no entrant. I'd hold or modestly raise fares there, and push extras; at $20 per passenger we're likely under-monetizing bags and seat selection versus the industry.\n\nSecond, phase the exit. Ramp-up on a brand-new route is real — 70% load from day one is optimistic, and the $10M probably isn't fully there in year one. If we only hit, say, 60% of it, that's $6M, and total profit is roughly $3.8M. Still positive, but thinner. I'd stagger: exit Port Avery first since it's 3,000 flights, and keep Lakeport running a few months while Ashford proves out.\n\nThird, attack the $20M fixed base — corporate overhead and hub facilities, not the leases.\n\nFourth, demand stimulation on the new routes: we're the only nonstop, so there's a time-saving story to sell directly through the website.\n\nWhat I'd want to know is the launch cost — marketing, station setup, crew basing at the two new cities.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "launch cost for new routes—marketing, station setup, crew basing",
+     "items": [],
+     "missing": "launch cost (marketing, station setup, crew basing)"
+    }
+   ]
+  },
+  "latencyMs": 954,
+  "usd": 0.003022,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 44,
+   "plan_done": 56,
+   "model_request": 57,
+   "distress_verdict": 948,
+   "model_first_token": 1674,
+   "model_first_sentence": 1680,
+   "first_delivered": 1685,
+   "model_say_closed": 1685,
+   "model_move_closed": 1686,
+   "model_requests_closed": 1751,
+   "model_exhibit_closed": 2270,
+   "model_rescue_item_closed": 2270,
+   "pt_judge_start": 2270,
+   "pt_judge_end": 2270,
+   "first_useful_delivered": 2895,
+   "data_line_delivered": 2895,
+   "model_question_closed": 2895,
+   "model_done": 2895,
+   "settle_start": 2895,
+   "pt_judge_settle_start": 2895,
+   "pt_judge_settle_end": 2895,
+   "settle_composed": 2903,
+   "tail_delivered": 2903,
+   "heard_resolved": 2903,
+   "persist_start": 2903,
+   "persist_end": 2966
+  }
+ },
+ {
+  "key": "11414946:10",
+  "caseId": "launch-001",
+  "run": "11414946",
+  "turn": 10,
+  "records": [
+   "b37h-raj-t10-retailer"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Variable costs: 0.70 + 0.30 + 0.30 + 0.20 — that's 1.40. So contribution is $3.00 minus $1.40, or $1.60 per bag.\n\nOn the fixed side, I'd include the roasting line at $3.0M, marketing at $4.5M, and shelf fees at $1.5M — $9.0M total. I'd exclude the $1.2M recipe development since it's already spent, it's sunk.\n\nSo break-even volume is 9.0 / 1.60 ≈ 5.6 million bags. Next I'd want to know what volume we can realistically sell — distribution reach, number of stores, and turns per store per week.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Volume we can realistically sell — distribution reach, number of stores, and turns per store per week",
+     "items": [],
+     "missing": "distribution reach, number of stores, turns per store per week"
+    }
+   ]
+  },
+  "latencyMs": 884,
+  "usd": 0.002274,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 31,
+   "plan_done": 65,
+   "model_request": 65,
+   "distress_verdict": 718,
+   "model_first_token": 1206,
+   "model_first_sentence": 1539,
+   "held_for_requests": 1539,
+   "model_say_closed": 1539,
+   "model_move_closed": 1539,
+   "request_guard_regenerate": 1547,
+   "model_requests_closed": 3397,
+   "first_delivered": 3400,
+   "model_exhibit_closed": 3400,
+   "model_rescue_item_closed": 3400,
+   "pt_judge_start": 3400,
+   "pt_judge_end": 3400,
+   "first_useful_delivered": 3414,
+   "data_line_delivered": 3414,
+   "model_question_closed": 4090,
+   "model_done": 4097,
+   "settle_start": 4097,
+   "pt_judge_settle_start": 4097,
+   "pt_judge_settle_end": 4097,
+   "settle_composed": 4112,
+   "tail_delivered": 4112,
+   "heard_resolved": 4112,
+   "persist_start": 4112,
+   "persist_end": 4197
+  }
+ },
+ {
+  "key": "0150f744:12",
+  "caseId": "prof-001",
+  "run": "0150f744",
+  "turn": 12,
+  "records": [
+   "b33-tyler-t12-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "A few beyond price.\n\nMix and menu engineering: push customers toward items where input cost is a smaller share of the ticket — brewed coffee versus milk-heavy lattes, which are getting hit hardest if dairy's up 37.5%. Also attach high-margin food or retail bags to lift ticket size without touching posted prices.\n\nPortion and waste control: specialty chains often throw out a meaningful share of brewed product. If waste is even 5% of COGS at 58% of revenue, that's three points of margin sitting there.\n\nProcurement scale: 200 locations should have real buying power. Consolidate suppliers, longer-term contracts, forward-buy dairy and packaging rather than just beans.\n\nStructural protection: build a pricing cadence — review menu prices against an input index annually instead of letting two years go by. That's the actual root failure here, not any one commodity.\n\nAnd on overhead, it drifted 12 to 14 while revenue grew 15%, so corporate cost isn't scaling. Worth a look.\n\nDo we have waste or spoilage data by store?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "waste or spoilage data by store",
+     "items": [],
+     "missing": "waste or spoilage data by store"
+    }
+   ]
+  },
+  "latencyMs": 765,
+  "usd": 0.001426,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 40,
+   "plan_done": 73,
+   "model_request": 73,
+   "distress_verdict": 931,
+   "model_first_token": 1614,
+   "model_first_sentence": 1619,
+   "held_for_requests": 1619,
+   "model_say_closed": 1619,
+   "model_move_closed": 1619,
+   "model_requests_closed": 1646,
+   "first_delivered": 1649,
+   "model_exhibit_closed": 1680,
+   "model_rescue_item_closed": 1954,
+   "pt_judge_start": 1954,
+   "pt_judge_end": 1954,
+   "first_useful_delivered": 2651,
+   "data_line_delivered": 2651,
+   "model_question_closed": 2651,
+   "model_done": 2652,
+   "settle_start": 2652,
+   "pt_judge_settle_start": 2652,
+   "pt_judge_settle_end": 2652,
+   "settle_composed": 2662,
+   "tail_delivered": 2662,
+   "heard_resolved": 2662,
+   "persist_start": 2662,
+   "persist_end": 2728
+  }
+ },
+ {
+  "key": "4e91d638:6",
+  "caseId": "prof-002",
+  "run": "4e91d638",
+  "turn": 6,
+  "records": [
+   "b36l-tyler-t6-long-restatement"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "This is clean — the whole problem is two routes. Let me isolate them.\n\nContribution fell from $40 million to $16 million, a $24 million drop, which exactly matches the operating swing since fixed costs held at $20 million. So nothing wrong with the other four routes — Cedar Bluff and the rest are flat to slightly up.\n\nThe damage is Lakeport and Port Avery. Lakeport contribution went from $8.4 million to negative $1.2 million, a $9.6 million swing. Port Avery went from $13.8 million to negative $0.6 million — that's about $14.4 million. Together that's $24 million, the entire gap.\n\nAnd both are revenue-driven. Port Avery revenue fell from about $44 million to $32.4 million, and Lakeport from $26.4 million to $16.8 million — roughly a third of its revenue gone — while flights per route were held constant per the note.\n\nSo the question becomes: why did revenue collapse on those two routes with flights unchanged? Since load factor is roughly flat overall, I'd want to know fares and passenger counts specifically on Lakeport and Port Avery. Do we have average fare by route?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "average fare by route on Lakeport and Port Avery",
+     "items": [
+      {
+       "id": "lakeport_fare",
+       "answers": "full"
+      },
+      {
+       "id": "port_avery_per_flight",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    }
+   ]
+  },
+  "latencyMs": 960,
+  "usd": 0.002959,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 32,
+   "plan_done": 65,
+   "model_request": 65,
+   "distress_verdict": 726,
+   "model_first_token": 829,
+   "model_first_sentence": 1175,
+   "held_for_requests": 1175,
+   "model_say_closed": 1175,
+   "model_move_closed": 1175,
+   "model_requests_closed": 1511,
+   "first_delivered": 1514,
+   "model_exhibit_closed": 1549,
+   "model_rescue_item_closed": 1583,
+   "pt_judge_start": 1583,
+   "pt_judge_end": 1583,
+   "first_useful_delivered": 1639,
+   "data_line_delivered": 1639,
+   "model_question_closed": 2103,
+   "model_done": 2103,
+   "settle_start": 2104,
+   "pt_judge_settle_start": 2104,
+   "pt_judge_settle_end": 2104,
+   "settle_composed": 2134,
+   "tail_delivered": 2134,
+   "heard_resolved": 2134,
+   "persist_start": 2134,
+   "persist_end": 2237
+  }
+ },
+ {
+  "key": "7f6c40ea:16",
+  "caseId": "launch-001",
+  "run": "7f6c40ea",
+  "turn": 16,
+  "records": [
+   "b37h-marisol-t16-correction"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "I took 4.1 million bags times the $3.99 shelf price — 4 million times $4 is about $16 million — and divided by the $300 million to get roughly 5%.\n\nNow that you make me say it out loud, those two numbers aren't on the same basis. The $300 million is Hollis Bay's own revenue — what it receives from retailers — and I was comparing it to a retail-shelf figure, which is inflated by the retailer's margin. I should compare like to like.\n\nSo on the corrected breakeven: 6.8 million bags at the $3.00 Hollis Bay receives is about $20.4 million of Hollis Bay revenue, against a $300 million base. That's about 7% of current company revenue from a single new line in year one.\n\nThat's the number I'd pressure-test. Do we know how many bags of chips Hollis Bay sells a year? If I knew the chip volume, I could sanity-check whether 6.8 million bags is plausible in those same stores.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "How many bags of chips does Hollis Bay sell a year?",
+     "items": [],
+     "missing": "Hollis Bay annual chip bag volume"
+    }
+   ]
+  },
+  "latencyMs": 876,
+  "usd": 0.00236,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 42,
+   "plan_done": 56,
+   "code_written_checks_start": 57,
+   "distress_verdict": 1070,
+   "code_written_checks_end": 1070,
+   "settle_start": 1071,
+   "pt_judge_settle_start": 1071,
+   "pt_judge_settle_end": 1071,
+   "settle_composed": 1077,
+   "first_delivered": 1077,
+   "first_useful_delivered": 1077,
+   "tail_delivered": 1077,
+   "heard_resolved": 1077,
+   "persist_start": 1077,
+   "persist_end": 1145
+  }
+ },
+ {
+  "key": "053db5c8:10",
+  "caseId": "prof-001",
+  "run": "053db5c8",
+  "turn": 10,
+  "records": [
+   "b33-owen-t10-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "That confirms it. Input costs rose ~38% and the client absorbed 100% of it. That's the whole story — margin fell because the cost side inflated and the revenue side stood still. The 15% revenue growth was likely store count or volume, not price, so it didn't help the percentage at all.\n\nOn what to do: the direct lever is pricing. If I pass through enough to restore COGS to roughly 42% of revenue, I need revenue per unit up about 38%, which is steep — but a partial pass-through gets a lot back. Say a 15% price increase with flat volume: COGS goes from 58% to 58/1.15 ≈ 50%, so margin moves from 6% back toward 14%.\n\nTwo other things worth a look — renegotiating packaging spend, and reviewing product mix to push higher-margin items. But I'd want to know price elasticity first. Do we have any sense of customer sensitivity?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "price elasticity / customer sensitivity to price increases",
+     "items": [],
+     "missing": "price elasticity or customer demand sensitivity data"
+    },
+    {
+     "ask": "current product mix and margins by item",
+     "items": [],
+     "missing": "product mix composition and margin by item"
+    }
+   ]
+  },
+  "latencyMs": 1208,
+  "usd": 0.001547,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 41,
+   "plan_done": 51,
+   "model_request": 52,
+   "distress_verdict": 829,
+   "model_first_token": 1095,
+   "model_first_sentence": 1101,
+   "held_for_requests": 1101,
+   "model_say_closed": 1101,
+   "model_move_closed": 1101,
+   "model_requests_closed": 1427,
+   "first_delivered": 1430,
+   "model_exhibit_closed": 1432,
+   "model_rescue_item_closed": 1433,
+   "pt_judge_start": 1433,
+   "pt_judge_end": 1433,
+   "first_useful_delivered": 2229,
+   "data_line_delivered": 2229,
+   "model_question_closed": 2229,
+   "model_done": 2229,
+   "settle_start": 2229,
+   "pt_judge_settle_start": 2229,
+   "pt_judge_settle_end": 2229,
+   "settle_composed": 2237,
+   "tail_delivered": 2237,
+   "heard_resolved": 2237,
+   "persist_start": 2237,
+   "persist_end": 2302
+  }
+ },
+ {
+  "key": "51ad0cb8:20",
+  "caseId": "prof-002",
+  "run": "51ad0cb8",
+  "turn": 20,
+  "records": [
+   "b34l-tyler-t20-doubled-line"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "That works, and the flight count lines up almost exactly with what we'd free up.\n\nPer flight: 80 × 70% = 56 passengers. Revenue = 56 × ($180 + $20) = $11,200. Less $9,200 variable cost = $2,000 contribution per flight. Across 5,000 flights = $10.0M a year.\n\nCompare that to what Lakeport and Port Avery deliver today: -$1.8M combined on 5,000 flights. So redeploying is worth about $11.8M of contribution swing. That takes us from $16.0M total contribution to roughly $27.8M, less the $20M of fixed costs, so about $7.8M of operating profit. That's back in the black with room to spare.\n\nThe caveats: 70% load factor and $180 fare are planning estimates on untested routes, and ramp-up means year one probably underdelivers. I'd also want to know whether Ashford and Brookhaven are exposed to the same low-cost entrant — if they follow us in, we've just repeated the problem.\n\nDo we know anything about competitive presence in those two cities?",
+  "verdict": {
+   "raw": "{\"asks\":{\"ask\":\"competitive presence in Ashford and Brookhaven\",\"items\":[],\"missing\":\"whether competitors fly nonstop to those cities\"}]}"
+  },
+  "latencyMs": 848,
+  "usd": 0.002869,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 39,
+   "plan_done": 60,
+   "model_request": 60,
+   "distress_verdict": 784,
+   "model_first_token": 1152,
+   "model_first_sentence": 1512,
+   "first_delivered": 1516,
+   "model_say_closed": 1516,
+   "model_move_closed": 1516,
+   "model_requests_closed": 2310,
+   "model_exhibit_closed": 2310,
+   "model_rescue_item_closed": 2310,
+   "pt_judge_start": 2310,
+   "pt_judge_end": 2310,
+   "first_useful_delivered": 2314,
+   "data_line_delivered": 2314,
+   "model_question_closed": 2314,
+   "model_done": 2322,
+   "settle_start": 2322,
+   "pt_judge_settle_start": 2322,
+   "pt_judge_settle_end": 2322,
+   "settle_composed": 2331,
+   "tail_delivered": 2331,
+   "heard_resolved": 2331,
+   "persist_start": 2331,
+   "persist_end": 2391
+  }
+ },
+ {
+  "key": "527217df:6",
+  "caseId": "launch-001",
+  "run": "527217df",
+  "turn": 6,
+  "records": [
+   "b37h-jasmine-t6-survey"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Contribution per bag: $3.00 minus $0.70 + $0.30 + $0.30 + $0.20 = $1.50 variable, so $1.50 per bag, a 50% margin.\n\nFixed year-one costs: $3.0M roasting line + $4.5M marketing + $1.5M shelf fees = $9.0M. Recipe development is sunk, so I exclude it.\n\nBreak-even volume = $9.0M / $1.50 = 6 million bags. At 3 bags per buying household, that's 2 million buying households out of 30 million shopping households — about 6.7% trial.\n\nWhat I need next is the purchase-intent survey: the percentage of shoppers saying \"definitely would buy\" and \"probably would buy.\" Buyers = 30M × (0.6 × definitely% + 0.2 × probably%). I'd also want how chip volumes have trended over the past three years, to size cannibalization.\n\nMy recommendation would hinge on whether that intent math clears 2 million households.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "percentage of shoppers saying 'definitely would buy' and 'probably would buy' from purchase-intent survey",
+     "items": [
+      {
+       "id": "purchase_intent",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "chip volumes trended over the past three years, to size cannibalization",
+     "items": [],
+     "missing": "chip volume trend over three years"
+    }
+   ]
+  },
+  "latencyMs": 1398,
+  "usd": 0.002528,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 30,
+   "plan_done": 50,
+   "model_request": 50,
+   "distress_verdict": 1308,
+   "model_first_token": 2052,
+   "model_first_sentence": 2056,
+   "first_delivered": 2059,
+   "model_say_closed": 2059,
+   "model_move_closed": 2059,
+   "model_requests_closed": 2397,
+   "model_exhibit_closed": 2411,
+   "model_rescue_item_closed": 2447,
+   "pt_judge_start": 2448,
+   "pt_judge_end": 2448,
+   "first_useful_delivered": 2457,
+   "data_line_delivered": 2457,
+   "model_question_closed": 3080,
+   "model_done": 3088,
+   "settle_start": 3088,
+   "pt_judge_settle_start": 3088,
+   "pt_judge_settle_end": 3088,
+   "settle_composed": 3109,
+   "tail_delivered": 3109,
+   "heard_resolved": 3109,
+   "persist_start": 3109,
+   "persist_end": 3179
+  }
+ },
+ {
+  "key": "cee7d399:14",
+  "caseId": "prof-002",
+  "run": "cee7d399",
+  "turn": 14,
+  "records": [
+   "b38l-tyler-t14-true-refusal"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "Fair correction, thanks — Port Avery is $32.4M and a $0.6M contribution loss.\n\nAnd yes, something's missing. Shutting a route doesn't make the fixed costs go away — the $20M of leases, hub facilities and overhead sits above contribution, so parking a plane still leaves us paying for it. Exit only helps if we can redeploy that aircraft to a route earning positive contribution, or get out of the lease. Second, exit is irreversible in practice: we hand the market to the competitor and likely can't re-enter at a reasonable slot or price.\n\nOn Lakeport, the exhibit shows fare down to $125 with $20 extras, so $145 per passenger, 60 passengers, $8,700 per flight against $9,000 variable cost — a $300 loss per departure, $600K a year across 2,000 flights.\n\nSo both routes are marginally cash-negative, not catastrophically. That says the fix is a few dollars of revenue per passenger, not exit.\n\nDo we have the fare mix — business versus leisure — on these two routes?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "fare mix — business versus leisure — on Hub–Lakeport and Hub–Port Avery",
+     "items": [],
+     "missing": "business vs leisure fare mix on the two contested routes"
+    }
+   ]
+  },
+  "latencyMs": 1055,
+  "usd": 0.002977,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 44,
+   "plan_done": 68,
+   "model_request": 69,
+   "distress_verdict": 976,
+   "model_first_token": 1811,
+   "model_first_sentence": 2043,
+   "held_for_requests": 2043,
+   "model_say_closed": 2043,
+   "model_move_closed": 2056,
+   "model_requests_closed": 2429,
+   "first_delivered": 2432,
+   "model_exhibit_closed": 2432,
+   "model_rescue_item_closed": 2432,
+   "pt_judge_start": 2432,
+   "pt_judge_end": 2432,
+   "first_useful_delivered": 2796,
+   "data_line_delivered": 2796,
+   "model_question_closed": 2928,
+   "model_done": 2960,
+   "settle_start": 2960,
+   "pt_judge_settle_start": 2961,
+   "pt_judge_settle_end": 2961,
+   "settle_composed": 2976,
+   "tail_delivered": 2976,
+   "heard_resolved": 2976,
+   "persist_start": 2976,
+   "persist_end": 3068
+  }
+ },
+ {
+  "key": "3ac59856:22",
+  "caseId": "prof-002",
+  "run": "3ac59856",
+  "turn": 22,
+  "records": [
+   "b34l-marcus-t22-doubled-line"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "56 passengers at $200 total revenue per head is $11,200, minus $9,200 variable, so $2,000 contribution per flight. Times 5,000 flights is $10M a year.\n\nAnd note the flight count: 5,000 combined, which is exactly Lakeport's 2,000 plus Port Avery's 3,000. So this is sized to absorb the aircraft and crews from both contested routes — that's the redeployment I was looking for.\n\nRunning the total: the four uncontested routes give $17.8M, plus $10M from the new routes is $27.8M, minus $20M fixed equals $7.8M operating profit. Versus negative $4M today. That's a $11.8M swing and it gets us profitable inside the 12 months the CEO asked for.\n\nThe catch is these are planning estimates — 70% load and $180 fare are assumptions, and they're unproven routes. Do we know whether Ashford and Brookhaven have incumbent competition, and how quickly the aircraft can be reassigned?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "incumbent competition on Ashford and Brookhaven",
+     "items": [
+      {
+       "id": "new_routes_context",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    },
+    {
+     "ask": "how quickly aircraft can be reassigned from exited routes",
+     "items": [],
+     "missing": "aircraft reassignment timeline"
+    }
+   ]
+  },
+  "latencyMs": 1217,
+  "usd": 0.003034,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 39,
+   "plan_done": 54,
+   "model_request": 55,
+   "model_first_token": 2587,
+   "model_first_sentence": 2595,
+   "held_for_distress": 2595,
+   "model_say_closed": 2595,
+   "model_move_closed": 2595,
+   "distress_verdict": 2877,
+   "model_requests_closed": 3770,
+   "model_exhibit_closed": 3770,
+   "model_rescue_item_closed": 3770,
+   "first_delivered": 3773,
+   "pt_judge_start": 3776,
+   "pt_judge_end": 3776,
+   "first_useful_delivered": 3777,
+   "data_line_delivered": 3777,
+   "model_question_closed": 3777,
+   "model_done": 3782,
+   "settle_start": 3782,
+   "pt_judge_settle_start": 3782,
+   "pt_judge_settle_end": 3782,
+   "settle_composed": 3790,
+   "tail_delivered": 3790,
+   "heard_resolved": 3790,
+   "persist_start": 3790,
+   "persist_end": 3849
+  }
+ },
+ {
+  "key": "7e69eda5:6",
+  "caseId": "pricing-001",
+  "run": "7e69eda5",
+  "turn": 6,
+  "records": [
+   "b35q-marcus-t6-deferral-delivered"
+  ],
+  "groups": [
+   "correct"
+  ],
+  "candidateText": "Fair challenge, but I'd push back a little. Cannibalization is the one thing that could break my recommendation, so I'll grant it belongs in the structure — but I'd fold it under price rather than make it a separate branch, because the fix is the same either way. If some Starter signups would have paid $100, the answer is still to close the gap: raise Starter toward $55-60 and widen the feature gap so Pro-ready buyers self-select up.\n\nWhat's strictly missing from my three buckets is the mix question — of the tripling in new customers, how many are net new versus downgrades or deflected Pro prospects. And arguably the shutdown counterfactual: if we kill Starter, do those customers buy Pro or just disappear.\n\nDo we have the Pro new-customer count by month, before and after January 2025? That would show cannibalization directly.",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "Pro new-customer count by month, before and after January 2025",
+     "items": [
+      {
+       "id": "new_customers_by_plan",
+       "answers": "partial"
+      }
+     ],
+     "missing": "Pro sign-ups by month (only aggregate before/after given)"
+    }
+   ]
+  },
+  "latencyMs": 901,
+  "usd": 0.002457,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 43,
+   "plan_done": 57,
+   "model_request": 58,
+   "distress_verdict": 984,
+   "model_first_token": 2203,
+   "model_first_sentence": 2210,
+   "held_for_requests": 2210,
+   "model_say_closed": 2210,
+   "model_move_closed": 2221,
+   "model_requests_closed": 2526,
+   "first_delivered": 2529,
+   "model_exhibit_closed": 2559,
+   "model_rescue_item_closed": 2594,
+   "pt_judge_start": 2594,
+   "pt_judge_end": 2594,
+   "first_useful_delivered": 2603,
+   "data_line_delivered": 2603,
+   "model_question_closed": 2860,
+   "model_done": 2900,
+   "settle_start": 2900,
+   "pt_judge_settle_start": 2900,
+   "pt_judge_settle_end": 2900,
+   "settle_composed": 2913,
+   "tail_delivered": 2913,
+   "heard_resolved": 2913,
+   "persist_start": 2913,
+   "persist_end": 3053
+  }
+ },
+ {
+  "key": "cee7d399:16",
+  "caseId": "prof-002",
+  "run": "cee7d399",
+  "turn": 16,
+  "records": [
+   "b38l-tyler-t16-answer-gate"
+  ],
+  "groups": [
+   "true_refusal"
+  ],
+  "candidateText": "Without the mix I'll assume both routes carry a meaningful leisure share, since a 33% fare cut held load factor flat — that's price-sensitive traffic — but there's likely a business segment on the early-morning and evening banks that would pay more. I'd treat that as a hypothesis to test rather than a fact.\n\nWhere it leaves me: the gap isn't huge. Lakeport loses about $300 per departure, Port Avery about $200. But the bigger number is the system one — contribution is $16M against $20M of fixed cost, so we need at least $4M of contribution improvement to break even, and more to earn a real profit.\n\nSo levers: raise revenue per passenger on the two contested routes without matching the discounter dollar-for-dollar — fare segmentation, higher extras than $20; cut variable cost per flight, though you've said unit costs haven't moved; or redeploy capacity toward the four uncontested routes.\n\nCan we fly more frequencies on Cedar Bluff or Millbrook, or are those slot-constrained?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "whether Cedar Bluff or Millbrook are slot-constrained",
+     "items": [],
+     "missing": "airport slot constraints on Cedar Bluff and Millbrook"
+    }
+   ]
+  },
+  "latencyMs": 905,
+  "usd": 0.00286,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 50,
+   "plan_done": 75,
+   "model_request": 75,
+   "distress_verdict": 928,
+   "model_first_token": 1683,
+   "model_first_sentence": 1687,
+   "first_delivered": 1691,
+   "model_say_closed": 1691,
+   "model_move_closed": 1691,
+   "model_requests_closed": 2538,
+   "model_exhibit_closed": 2538,
+   "model_rescue_item_closed": 2538,
+   "pt_judge_start": 2538,
+   "pt_judge_end": 2538,
+   "first_useful_delivered": 3132,
+   "data_line_delivered": 3132,
+   "model_question_closed": 3132,
+   "model_done": 3132,
+   "settle_start": 3132,
+   "pt_judge_settle_start": 3132,
+   "pt_judge_settle_end": 3132,
+   "settle_composed": 3141,
+   "tail_delivered": 3141,
+   "heard_resolved": 3141,
+   "persist_start": 3141,
+   "persist_end": 3266
+  }
+ },
+ {
+  "key": "e6432db0:24",
+  "caseId": "prof-002",
+  "run": "e6432db0",
+  "turn": 24,
+  "records": [
+   "b34l-marisol-t24-restate-unsaid"
+  ],
+  "groups": [
+   "restatement"
+  ],
+  "candidateText": "This is the redeployment option — if the two contested routes can't earn, the aircraft could fly here instead.\n\nLet me size it. 80 seats at 75% is 60 passengers a flight. Revenue per passenger is $180 fare plus $20 extras = $200, so $12,000 per flight. Against $9,200 variable cost that's $2,800 of contribution per flight. Times 5,000 flights = $14.0M of new contribution.\n\nCompare that with what Lakeport and Port Avery generate today: negative $1.2M and negative $0.6M, so negative $1.8M combined. Swapping one for the other is a $15.8M improvement, which against today's $4M loss puts us at roughly $11.8M of operating profit — fixed costs stay at $20M either way since it's the same fleet.\n\nDo we have the capital or startup cost of opening two new stations, and how long before those load factors season?",
+  "verdict": {
+   "asks": [
+    {
+     "ask": "capital or startup cost of opening two new stations",
+     "items": [],
+     "missing": "capital or startup cost of opening two new stations"
+    },
+    {
+     "ask": "how long before those load factors season",
+     "items": [
+      {
+       "id": "new_route_rampup",
+       "answers": "full"
+      }
+     ],
+     "missing": ""
+    }
+   ]
+  },
+  "latencyMs": 1199,
+  "usd": 0.003016,
+  "cacheRead": 0,
+  "cacheWrite": 0,
+  "servedBy": "claude-haiku-4-5-20251001",
+  "timing": {
+   "reads_done": 55,
+   "plan_done": 74,
+   "code_written_checks_start": 74,
+   "distress_verdict": 1645,
+   "code_written_checks_end": 1645,
+   "settle_start": 1646,
+   "pt_judge_settle_start": 1646,
+   "pt_judge_settle_end": 1646,
+   "settle_composed": 1656,
+   "first_delivered": 1656,
+   "first_useful_delivered": 1656,
+   "tail_delivered": 1656,
+   "heard_resolved": 1656,
+   "persist_start": 1656,
+   "persist_end": 1722
+  }
+ }
+]

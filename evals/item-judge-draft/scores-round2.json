@@ -8,7 +8,8 @@
   "sonnet55_pf": "over_full",
   "sonnet_why": "\"what competes\" (in Europe) \u2192 nimbrel full: US-only",
   "haiku55_pf": "over_full",
-  "haiku_why": "\"what competes\" (in Europe) \u2192 nimbrel full: US-only"
+  "haiku_why": "\"what competes\" (in Europe) \u2192 nimbrel full: US-only",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "257e027f:8",
@@ -19,7 +20,8 @@
   "sonnet55_pf": "spurious_ask",
   "sonnet_why": "invented European net price ask",
   "haiku55_pf": "spurious_ask",
-  "haiku_why": "invented ask, with net_sales_definition partial"
+  "haiku_why": "invented ask, with net_sales_definition partial",
+  "haiku45_pf": "spurious_ask"
  },
  {
   "turn": "5bc506bc:24",
@@ -30,7 +32,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "parse_fail"
  },
  {
   "turn": "4df38465:22",
@@ -41,7 +44,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "cdb8ca52:4",
@@ -63,7 +67,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "c518221e:10",
@@ -74,7 +79,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "34eb553a:10",
@@ -85,7 +91,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "a1133734:24",
@@ -96,7 +103,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "c518221e:24",
@@ -107,7 +115,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "6f57da6e:6",
@@ -118,7 +127,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "fc5eb050:12",
@@ -129,7 +139,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "fc5eb050:20",
@@ -140,7 +151,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "cdb8ca52:14",
@@ -151,7 +163,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "fc5eb050:4",
@@ -173,7 +186,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "3fdb20e8:24",
@@ -184,7 +198,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "parse_fail"
  },
  {
   "turn": "6f57da6e:2",
@@ -195,7 +210,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "under_full"
  },
  {
   "turn": "6f57da6e:8",
@@ -206,7 +222,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "34eb553a:16",
@@ -228,7 +245,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "a14ca044:6",
@@ -239,7 +257,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "52951de8:22",
@@ -250,7 +269,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "11414946:12",
@@ -261,7 +281,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "7f6c40ea:14",
@@ -272,7 +293,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "7f6c40ea:20",
@@ -283,7 +305,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "442e37ff:18",
@@ -294,7 +317,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "a14ca044:14",
@@ -305,7 +329,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "01b805d6:26",
@@ -316,7 +341,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "missed_ask"
  },
  {
   "turn": "11414946:10",
@@ -327,7 +353,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "7f6c40ea:16",
@@ -338,7 +365,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "527217df:6",
@@ -349,7 +377,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "11414946:26",
@@ -382,7 +411,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "c82e7bd7:28",
@@ -393,7 +423,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "dcc6774f:22",
@@ -404,7 +435,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "854fc080:14",
@@ -415,7 +447,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "dd74b01b:12",
@@ -426,7 +459,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "c82e7bd7:10",
@@ -437,7 +471,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "854fc080:6",
@@ -448,7 +483,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "1f6007fd:12",
@@ -459,7 +495,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "5c3d2c21:22",
@@ -470,7 +507,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "under_full",
-  "haiku_why": "test-group CAC partial, missing \"CAC by test group\" \u2014 price_test_notes holds it (same at either price)"
+  "haiku_why": "test-group CAC partial, missing \"CAC by test group\" \u2014 price_test_notes holds it (same at either price)",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "a2a5921b:18",
@@ -481,7 +519,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "e08c362a:14",
@@ -492,7 +531,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "eb8d7576:22",
@@ -503,7 +543,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "7e69eda5:8",
@@ -525,7 +566,8 @@
   "sonnet55_pf": "over_full",
   "sonnet_why": "\"by month\" \u2192 new_customers_by_plan full: averages only",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "3376e5fe:8",
@@ -591,7 +633,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "parse_fail"
  },
  {
   "turn": "0150f744:12",
@@ -602,7 +645,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "053db5c8:10",
@@ -613,7 +657,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "c355c1fd:8",
@@ -668,7 +713,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "065501fe:4",
@@ -679,7 +725,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "065501fe:14",
@@ -690,7 +737,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "under_full",
-  "haiku_why": "benchmark per flight partial, missing per-flight contribution \u2014 route_results_other holds revenue, contribution and flights"
+  "haiku_why": "benchmark per flight partial, missing per-flight contribution \u2014 route_results_other holds revenue, contribution and flights",
+  "haiku45_pf": "none_where_held"
  },
  {
   "turn": "bd5a333c:2",
@@ -701,7 +749,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "69441a66:2",
@@ -712,7 +761,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "cee7d399:14",
@@ -723,7 +773,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "cee7d399:16",
@@ -734,7 +785,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "316baba1:14",
@@ -789,7 +841,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "a7d9f44e:20",
@@ -800,7 +853,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "4e91d638:6",
@@ -811,7 +865,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "under_full",
-  "haiku_why": "fares partial, missing Port Avery FY2023 fare \u2014 port_avery_per_flight holds $240 \u2192 $160"
+  "haiku_why": "fares partial, missing Port Avery FY2023 fare \u2014 port_avery_per_flight holds $240 \u2192 $160",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "51ad0cb8:20",
@@ -822,7 +877,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "parse_fail"
  },
  {
   "turn": "3ac59856:22",
@@ -833,7 +889,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "e6432db0:24",
@@ -844,7 +901,8 @@
   "sonnet55_pf": "ok",
   "sonnet_why": "",
   "haiku55_pf": "ok",
-  "haiku_why": ""
+  "haiku_why": "",
+  "haiku45_pf": "ok"
  },
  {
   "turn": "3ac59856:10",
