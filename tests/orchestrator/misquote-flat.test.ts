@@ -332,3 +332,72 @@ describe('ruling 5 — the wrap-up cap is logged when it bites', () => {
     expect(capCheck(left)?.detail).toMatchObject({ cap: 2, left: 1, dropped: [] });
   });
 });
+
+// Post-wave item 3 (Lorenzo, 26 Oct): Rule 6 option 4 is "one flat sentence", and on today's timing it is never
+// said. Code's correction waits for the checker's verdict, which lands a turn after the message; by then the model's
+// own Socratic question on the misquote turn has made the candidate fix it, so the correction is stale and nothing
+// flat ever goes (batch 39, aldermoor p64 4df38465 t6 → t8 and t10 → t12). `misquoteSameTurn` says it on its own turn.
+describe('`misquoteSameTurn` — the flat sentence on the misquote\'s own turn', () => {
+  it('off: nothing on the misquote\'s own turn (the correction waits for the gate, a turn later)', () => {
+    vi.stubEnv('ENGINE_SWITCHES', ON);
+    expect(plan(5).state.misquote).toBeNull();
+  });
+
+  it('on: the flat correction and the hint, on the turn that answers the message', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = plan(5);
+    expect(p.state.misquote).toMatchObject({ item: 'fixed_costs', cited: 'were $21M' });
+    expect(p.state.misquote!.text).toContain('were $20.0M in both FY2023 and FY2025');
+    expect(p.state.misquoteHint).toContain('Do not repeat, correct, question or build on their figure yourself');
+  });
+
+  it('once said, the gate\'s own release next turn says nothing again (correctionRules)', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn,correctionRules`);
+    const said = plan(5);
+    expect(said.state.misquote).not.toBeNull();
+    const after = plan(7, { misquoteCorrected: ['fixed_costs'] });
+    expect(after.state.misquote).toBeNull();
+  });
+
+  it('a report-only finding is not said on its own turn either — the switch adds no untrusted correction', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = plan(5);
+    // Every item it corrects is one whose misquote code found live on the message (never a report-only one).
+    const reportOnly = p.ctx.checks.entries.find(c => c.check === 'misquote_report_only');
+    expect(reportOnly?.decision).toBe('pass');
+  });
+
+  // Lorenzo's ruling of 26 Oct (evening): only an ATTRIBUTED quote corrects early. t5's "You said fixed costs were
+  // $21M" is attributed; every other finding in these two runs is the candidate showing his own working, and all four
+  // are held. Without this restriction the same switch spoke 45 new corrections across the 31 slices, two of them
+  // provably false (b34a `a1133734` t31, b38l `701443f7` t17).
+  const sameTurn = (p: ModelPlan) => p.ctx.checks.entries.find(c => c.check === 'misquote_same_turn')?.detail as
+    { take: { item: string; cited: string }[]; skipped: { cited: string; why: string }[] } | undefined;
+
+  it('t5 is attributed, so it is taken', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    expect(sameTurn(plan(5))).toEqual({ take: [{ item: 'fixed_costs', cited: 'were $21M' }], skipped: [] });
+  });
+
+  it.each([
+    [9, '33.6'],      // "Port Avery: revenue 46.8 down to 33.6" — his own read of the exhibit, no source named
+    [21, '$19.8M'],   // "contribution around $19.8M against $20M fixed" — his own build
+    [25, '$8,800'],   // "it was built on MY $8,800 variable cost error" — his own, and already withdrawn
+    [29, '$3.6M'],    // "Westhaven's $3.6M of contribution" — his own read
+  ])('t%i\'s unattributed finding (%s) is held, and nothing is corrected on its own turn', (n, cited) => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = plan(n);
+    expect(sameTurn(p)).toEqual({ take: [], skipped: [{ cited, why: 'unattributed' }] });
+    // Nothing corrects THAT figure on this turn. (t9 still carries t5's gate-backed correction, a turn late — the
+    // normal path, which this ruling does not touch.)
+    expect(p.state.misquote?.all.map(m => m.cited) ?? []).not.toContain(cited);
+  });
+
+  it('Marisol\'s own "$15.8M of contribution" is held too', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = planTurn(readsAt(MARISOL, 15, { pressureTest: PT }), textOf(MARISOL, 15),
+      { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
+    expect(sameTurn(p)).toEqual({ take: [], skipped: [{ cited: '$15.8M', why: 'unattributed' }] });
+    expect(p.state.misquote).toBeNull();
+  });
+});

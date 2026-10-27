@@ -151,6 +151,51 @@ function clauseEnd(s: string, from: number): number {
   for (const b of s.matchAll(/,(?!\d)|;|\bso\b/gi)) if ((b.index ?? 0) >= from) return b.index ?? s.length;
   return s.length;
 }
+// A figure the candidate ATTRIBUTES to the interviewer — "prevalence you gave me is 1.5%", "you said Nimbrel's net
+// price is about $9,400" — is a quote of the data by the candidate's own account, so using it as an operand in a
+// later clause is the misquote propagating, not evidence that the figure is their own working (batch 39, aldermoor
+// p64 4df38465 t6: "Prevalence you gave me is 1.5%, so 260 million × 1.5% = 3.9 million" was dropped by
+// `operandLater`, which exists for the candidate's own derived figures — Marisol b18 t9's "COGS today is 66.7,
+// so … 66.7 minus 14.4"). Attribution turns that one guard off; the hypothetical, indexed, conclusion, sum and
+// preposition guards all still apply ("if you gave me 1.5%" is still a hypothetical).
+const ATTRIBUTED = /\byou(?:'ve| have)?\s+(?:gave|given|said|mentioned|quoted|told)\b/i;
+
+// Post-wave item 3 (Lorenzo, 26 Oct evening): `misquoteSameTurn` corrects on the misquote's own turn ONLY where the
+// candidate attributes the figure — "you said X", "you gave me X", "the exhibit says X" and equivalents. The
+// unrestricted form spoke 45 new corrections across the 31 slices and two were provably false (b34a `a1133734` t31's
+// "$320M less $80M … is $240M to Aldermoor" and b38l `701443f7` t17's "$11,000/60 = $183, so a $163 fare" — both his
+// own correct arithmetic, both rated CORRECT by the checker). Neither names a source, so attribution is the line
+// between "I am quoting your data" and "here is my working". This list is WIDER than ATTRIBUTED above, which must
+// stay as it is: ATTRIBUTED turns off the `operandLater` guard inside the detector (`misquoteAttribution`, already in
+// the preset and already measured), while this one only decides whether an existing finding may correct a turn early.
+const ATTRIBUTION_SRC = /\byou(?:'ve| have)?\s+(?:gave|given|said|mentioned|quoted|told|showed|shared|provided|put)\b|\byou(?:'re| are)\s+(?:saying|telling me)\b|\b(?:the|that|this)\s+(?:exhibit|table|case|prompt|data|chart|brief|figures?|numbers?)\s+(?:says?|said|shows?|showed|has|have|gives?|gave|lists?|states?|put)\b|\baccording to\s+(?:you|the\s+(?:exhibit|table|case|prompt|data|chart|brief))\b|\b(?:per|from|on|in)\s+(?:the|that|this)\s+(?:exhibit|table|chart|prompt|brief)\b|\bwe were given\b|\byou gave us\b/i;
+
+// Is the quote attributed to the interviewer or the case? The phrase has to sit at or before the end of the quoted
+// span in the SAME sentence — an attribution in a later clause belongs to a different figure ("that is $240M to
+// Aldermoor; you said the hurdle is $300M" attributes the hurdle, not the $240M).
+export function isAttributedQuote(sentence: string, cited: string): boolean {
+  const i = sentence.toLowerCase().indexOf(cited.toLowerCase().trim());
+  const upTo = i < 0 ? sentence : sentence.slice(0, i + cited.trim().length);
+  return ATTRIBUTION_SRC.test(upTo);
+}
+
+// The findings that may correct on their own turn, and why the others may not. `withdrawn` is this message's own
+// withdrawals (worksheet.ts `findWithdrawals`): a figure the candidate takes back in the same message needs no
+// correction — saying one would correct them on something they have already fixed.
+export type SameTurnSkip = { cited: string; why: 'unattributed' | 'withdrawn_same_message' };
+export function sameTurnCorrections<T extends { cited: string; sentence: string }>(
+  found: T[], withdrawn: { value: number }[],
+): { take: T[]; skipped: SameTurnSkip[] } {
+  const take: T[] = [];
+  const skipped: SameTurnSkip[] = [];
+  for (const m of found) {
+    if (!isAttributedQuote(m.sentence, m.cited)) { skipped.push({ cited: m.cited, why: 'unattributed' }); continue; }
+    const figures = [...normalizeNumberWords(m.cited).matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(x => Math.abs(parseFloat(x[0].replace(/,/g, ''))));
+    if (figures.some(v => withdrawn.some(w => Math.abs(w.value - v) < 1e-9))) { skipped.push({ cited: m.cited, why: 'withdrawn_same_message' }); continue; }
+    take.push(m);
+  }
+  return { take, skipped };
+}
 const operandLater = (f: Fig, later: string) => {
   const n = escape(f.text.match(/\d[\d,]*(?:\.\d+)?/)?.[0] ?? '');
   return n !== '' && new RegExp(String.raw`(?<![\d.,])\$?${n}(?![\d]|[.,]\d)\s*(?:[-−+×*/÷]|minus\b|plus\b|times\b|over\b|divided\b)|(?:[-−+×*/÷=≈]|\bminus|\bplus|\btimes|\bover|\bdivided by)\s*\$?${n}(?![\d]|[.,]\d)`, 'i').test(later);
@@ -162,6 +207,7 @@ export type MisquoteContext = {
   revealedIds: Set<string>;
   exhibitColumns: Record<string, number[]>;   // item id → a shown exhibit's figures for it
   guards?: boolean;                           // false: the bare grammar (labelling only)
+  attribution?: boolean;                      // `misquoteAttribution`: an attributed quote is not excused by a later operand use
 };
 
 // A shown exhibit's column for each item, matched by column name to the item's anchors.
@@ -207,8 +253,10 @@ export function findMisquotes(text: string, c: MisquoteContext): Misquote[] {
           // The anchor already quoted ("a $6.80 ticket is about $0.34"): what follows is another quantity.
           const pre = new RegExp(String.raw`(\$)?(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(?:\s?(${SCALE})\b)?\s*(%)?\s*$`, 'i').exec(before);
           if (guards && pre && allowed({ value: num(pre[2]), unit: pre[1] ? 'dollar' : pre[4] ? 'percent' : 'plain', text: pre[0].trim(), scale: scaleOf(pre[3]) }, targets)) continue;
-          const quoted = quotedAfter(s.slice((m.index ?? 0) + n.length), a, current);
-          occurrences.push({ name: n, quoted: guards && ARITHMETIC.test(s.slice(end)) ? quoted.filter(f => !operandLater(f, s.slice(end))) : quoted });
+          const rest = s.slice((m.index ?? 0) + n.length);
+          const attributed = Boolean(c.attribution) && (ATTRIBUTED.test(before.slice(-40)) || ATTRIBUTED.test(rest.slice(0, 30)));
+          const quoted = quotedAfter(rest, a, current);
+          occurrences.push({ name: n, quoted: guards && !attributed && ARITHMETIC.test(s.slice(end)) ? quoted.filter(f => !operandLater(f, s.slice(end))) : quoted });
         }
       }
       for (const o of occurrences) for (const f of o.quoted) {

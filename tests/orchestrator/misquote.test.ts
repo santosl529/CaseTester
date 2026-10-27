@@ -187,3 +187,74 @@ describe('a route-scoped misquote anchor (ruling 9)', () => {
     expect(fb.quantities.find(q => q.id === 'lakeport_fare')!.names).not.toContain('fare');
   });
 });
+
+// Post-wave item 3 (Lorenzo, 26 Oct). Two genuine detector misses in batch 39's p64 runs.
+describe('`misquoteAttribution` — a figure the candidate attributes to the interviewer', () => {
+  const entry = CaseSchema.parse(JSON.parse(readFileSync('cases/entry-001.json', 'utf8')));
+  const look = (attribution: boolean) => {
+    const fb = { ...buildFactBase(entry as never), ...(attribution ? { attribution: true } : {}) };
+    return (s: string) => findCandidateMisquotes(s, fb as never, new Set(['funnel_rates', 'us_adults', 'nimbrel']), []).map(m => m.items[0]);
+  };
+  // aldermoor p64 4df38465 t6: dropped by `operandLater`, which exists for the candidate's OWN derived figures.
+  const P64 = "Prevalence you gave me is 1.5%, so 260 million × 1.5% = 3.9 million people with Corlan's disease.";
+
+  it('finds the 1.5% with the switch on, and did not before', () => {
+    expect(look(true)(P64)).toEqual(['funnel_rates']);
+    expect(look(false)(P64)).toEqual([]);
+  });
+
+  it.each([
+    "You said prevalence is 1.5%, so 260 × 1.5% = 3.9 million.",
+    "Prevalence you gave is 1.5% and 1.5% of 260 million is 3.9 million.",
+  ])('other attributed forms with the figure as a later operand: %s', text => {
+    expect(look(true)(text)).toEqual(['funnel_rates']);
+  });
+
+  it('the figure the case does state is still no misquote, attributed or not', () => {
+    for (const on of [true, false]) expect(look(on)("Prevalence you gave me is 1.6%, so 260 million × 1.6% = 4.16 million.")).toEqual([]);
+  });
+
+  it('attribution does not defeat the hypothetical, indexed, conclusion or sum guards', () => {
+    expect(look(true)("If you gave me 1.5% prevalence, 260 million × 1.5% = 3.9 million.")).toEqual([]);
+    expect(look(true)("On an index of 100, prevalence you gave is 1.5% of the base.")).toEqual([]);
+  });
+
+  it('an unattributed figure used as a later operand is still excused (Marisol b18 t9)', () => {
+    expect(items('COGS today is 66.7, so 66.7 minus 14.4 leaves 52.3.')).toEqual([]);
+  });
+});
+
+// hollisbay p64 7cdbeb74 t6: "Variable costs: ingredients $0.70, packaging $0.35, …" — variable_costs is one ledger
+// line with four components, and its overlay misquote anchor named only the ingredients. The anchor's names now
+// cover each component the line states.
+describe('`misquoteAnchors` — each component of a multi-component cost line (post-wave item 3)', () => {
+  const raw = CaseSchema.parse(JSON.parse(readFileSync('cases/launch-001.json', 'utf8')));
+  const ovl = Phase1OverlaySchema.parse(JSON.parse(readFileSync('cases/phase1/launch-001.json', 'utf8')));
+  const on = applyPhase1Overlay(raw, ovl, { ENGINE_SWITCHES: 'launch-001=misquoteAnchors' });
+  const look = (c: typeof raw) => {
+    const fb = buildFactBase(c as never);
+    return (s: string) => findCandidateMisquotes(s, fb as never, new Set(['variable_costs', 'bag_price']), []).map(m => ({ item: m.items[0], cited: m.cited }));
+  };
+  const P64 = 'Variable costs: ingredients $0.70, packaging $0.35, roasting labor and energy $0.30, freight $0.20.';
+
+  it('finds the $0.35 packaging with the overlay on, and did not before', () => {
+    expect(look(on)(P64)).toEqual([{ item: 'variable_costs', cited: '$0.35' }]);
+    expect(look(raw)(P64)).toEqual([]);
+  });
+
+  it('the line as the case states it is no misquote', () => {
+    expect(look(on)('Variable costs: ingredients $0.70, packaging $0.30, roasting labor and energy $0.30, freight $0.20.')).toEqual([]);
+  });
+
+  it.each([
+    'Freight is $0.45 a bag.',
+    'Roasting labor and energy is $0.55.',
+  ])('each component name reads its own quote: %s', text => {
+    expect(look(on)(text).map(x => x.item)).toEqual(['variable_costs']);
+  });
+
+  it('a share of something else is no quote of the line', () => {
+    expect(look(on)('Packaging is 20% of the bag cost.')).toEqual([]);
+    expect(look(on)('Freight is about 13% of variable cost.')).toEqual([]);
+  });
+});

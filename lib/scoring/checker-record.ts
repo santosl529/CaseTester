@@ -11,6 +11,7 @@
 import { numbersOf, type CheckerCase, type VettedClaim } from '@/lib/orchestrator/math-checker';
 import type { VerdictPayload, CheckerDecision } from '@/lib/orchestrator/math-checker-live';
 import { claimFigures, isStale, STEP_ROOT } from '@/lib/orchestrator/math-checker-live';
+import { clearRecommendation } from '@/lib/orchestrator/stall';
 import type { TurnVerification } from './challenge-marks';
 
 const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
@@ -163,19 +164,94 @@ function laterRedo(f: Flagged, rows: CheckerEventRow[], redo: RedoContext): stri
   return null;
 }
 
-export function formatCheckerSection(rows: CheckerEventRow[], redo?: RedoContext): string {
+// Post-wave item 4 (Lorenzo, 26 Oct evening): the candidate turns that state a clear recommendation — the same
+// predicate 4.9 uses (`clearRecommendation`, stall.ts: the message's first sentence opens on a decision verb, or
+// frames the decision). More than one message can do it, so it is a set, not a turn.
+const recommendationTurnsOf = (candidateTurns: { turnIndex: number; text: string }[]) =>
+  new Set(candidateTurns.filter(t => clearRecommendation(t.text)).map(t => t.turnIndex));
+
+// Is the flag still open at the report? Nothing in the interview resolved it: no correction, no conversion onto a
+// reading code computes, and the candidate never withdrew it.
+const flagOpen = (outcomes: CheckerDecision[]) =>
+  !outcomes.some(d => d.outcome === 'correct' || d.outcome === 'converted' || d.outcome === 'stale');
+
+// Post-wave item 4, narrowed (Lorenzo, 27 Oct): "name every open claim marked `changesConclusion`, at most 3 per
+// report." The claims so marked — the checker model's own call, or code's escalation on a recommendation figure —
+// carry this tag in the judge's prompt, and the trailing directive makes naming them mandatory. The cap is Lorenzo's:
+// the unnarrowed draft would have mandated 19 items on one stored run (§13.2), which is not a report anybody reads.
+const MANDATE_TAG = '[CHANGES THE CONCLUSION — NAME IT IN THE REPORT]';
+export const MANDATE_CAP = 3;
+
+// What the mandate names, for the code-side enforcement (conclusion-mandate.ts): the claim's own words, what the
+// candidate said, and the right figure as the section prints it (null when the checker gave none — the claim is still
+// named, with no figure invented for it).
+export type MandatedClaim = { id: string; turn: number; span: string; candidateValue: string; figure: string | null; byCode: boolean };
+
+const rightFigure = (c: VettedClaim): string | null => {
+  if (c.correctionFigure) return c.correctionFigure;
+  if (c.correctValue !== null) return String(c.correctValue);
+  if (c.correctLow !== null && c.correctHigh !== null) return `${c.correctLow}\u2013${c.correctHigh}`;
+  if (c.actualShare !== null) return `${Math.round(c.actualShare * 100)}% of the whole`;
+  return null;
+};
+
+// One row of the section: the claim, what became of it, and whether it changes the conclusion (and whose call that
+// was). `open` is the mandate's own test — nothing in the interview resolved it and the candidate never redid it
+// right, so this report is the only place it can be named.
+type Row = { f: Flagged; text: string; changes: string; byCode: boolean; open: boolean };
+
+function rowsOf(rows: CheckerEventRow[], redo?: RedoContext): Row[] {
   const flagged = flaggedClaims(rows);
-  if (flagged.length === 0) return '';
   const all = decisionsOf(rows);
-  const lines = flagged.map(f => {
+  // Item 4, Lorenzo's ruling of 26 Oct (evening): an open flag on a figure IN the recommendation turn changes the
+  // conclusion — code's call, not the checker model's. larkspur p57 `69441a66` claim 29:2 recorded
+  // `changesConclusion: false` on an error that was the recommendation's own bottom line ("call it $7.0M of
+  // operating profit"; the checker's figure is 5.2), so nothing escalated it. The rule is literal: the claim's turn
+  // has to BE a recommendation message. A later restatement of the same wrong bottom line in a risk answer is not
+  // escalated by code — the cost if that is wrong is one missed escalation, against the cost of calling an
+  // arithmetic slip in a risk answer "the conclusion", which is the louder error in a written report.
+  const recTurns = redo ? recommendationTurnsOf(redo.candidateTurns) : new Set<number>();
+  return flagged.map(f => {
     const { turn, claim: c, outcomes } = f;
     const said = outcomeText(outcomes, all);
     const credit = redo ? laterRedo(f, rows, redo) : null;
     // A restatement the redo answered is no longer the last word on it; any other outcome stays, the redo after it.
     const text = credit === null ? said : said === RESTATED ? credit : `${said} ${credit}`;
-    return `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${c.changesConclusion ? '; changes the conclusion' : ''}): ${figureText(c)}. ${text}`;
+    const open = flagOpen(outcomes) && credit === null;
+    const inRecommendation = !c.changesConclusion && recTurns.has(turn) && open;
+    const changes = c.changesConclusion ? '; changes the conclusion'
+      : inRecommendation ? '; changes the conclusion — the figure is in the recommendation itself' : '';
+    return { f, text, changes, byCode: inRecommendation, open };
   });
+}
+
+// The claims the report MUST name: open, and marked as changing the conclusion. Code's escalations first (the figure
+// is the recommendation's own), then the latest turns — the bottom line is at the end of a case — and never more than
+// three. Read by formatCheckerSection for the prompt and by conclusion-mandate.ts for the enforcement, so the prompt
+// and the check can never disagree about which claims they are.
+export function mandatedConclusionClaims(rows: CheckerEventRow[], redo?: RedoContext): MandatedClaim[] {
+  return rowsOf(rows, redo).filter(r => r.changes !== '' && r.open)
+    .sort((a, b) => Number(b.byCode) - Number(a.byCode) || b.f.turn - a.f.turn)
+    .slice(0, MANDATE_CAP)
+    .map(r => ({ id: r.f.id, turn: r.f.turn, span: r.f.claim.span, candidateValue: r.f.claim.candidateValue, figure: rightFigure(r.f.claim), byCode: r.byCode }));
+}
+
+export function formatCheckerSection(rows: CheckerEventRow[], redo?: RedoContext): string {
+  const all = rowsOf(rows, redo);
+  if (all.length === 0) return '';
+  const mandated = new Set(mandatedConclusionClaims(rows, redo).map(m => m.id));
+  const lines = all.map(r => {
+    const { turn, claim: c } = r.f;
+    // The tag goes at the END of the row: the shape before it ("WRONG (...): <figure>. <what became of it>") is what
+    // every other rule and test reads.
+    const tag = mandated.has(r.f.id) ? ` ${MANDATE_TAG}` : '';
+    return `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${r.changes}): ${figureText(c)}. ${r.text}${tag}`;
+  });
+  // The mandate, narrow (Lorenzo, 27 Oct). Enforced in code afterwards either way (conclusion-mandate.ts), so a judge
+  // that ignores it changes nothing but the wording of the item.
+  const mandate = mandated.size === 0 ? '' : `
+At most three claims above carry ${MANDATE_TAG}. Each of them MUST appear in the written report: one needsWork item on the dimension whose work the figure belongs to, quoting the candidate's own words from its span and naming the right figure. That the interview never raised it is the reason this report has to.`;
   return `MATH CHECKER (a model's check of the candidate's claims, vetted in code; a figure "computed in code" is code's own):
 ${lines.join('\n')}
-Treat a WRONG claim as the candidate's error unless they revised it — and cite it only where the transcript bears it out. One they revised or withdrew is a self-correction.`;
+Treat a WRONG claim as the candidate's error unless they revised it — and cite it only where the transcript bears it out. One they revised or withdrew is a self-correction.${mandate}`;
 }

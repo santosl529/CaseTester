@@ -24,6 +24,8 @@ import {
   checkMathClaims, vetCheckerClaims, codeComputed, codeCorrection, boundInput, numbersOf, quantityWords, statedWithinBand, RATIO_SAID,
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
+import { clearedByEquation, clearNote, type AnswerSheetEntry, type EquationCheck } from './checker-equations';
+import { extractEquations, type ExtractorOutput } from './equation-extractor';
 import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
 import { checkPricingClaims, pricingAnswers, pricingValues } from './pricing-check';
 import { changeFigures } from './numeric-provenance';
@@ -59,6 +61,17 @@ export type VerdictPayload = {
   claims: VettedClaim[];
   codeFlags: CodeFlagRef[];   // the deterministic checks' flags on the message
   stamps: StampRef[];         // and their verified figures
+  // `checkerEquations` (item E, 27 Oct): the quantities whose value changed in
+  // this message, each naming the figure it replaces. A later turn reads them to
+  // drop a probe or correction on a figure that is no longer the candidate's
+  // latest (plan-turn's `staleDrop`). Absent with the switch off.
+  answerSheet?: AnswerSheetEntry[];
+  // The equations heard in the message, with code's own verdict on each (the same two
+  // switches). The gate reads them a turn or more later, which is when a code line on the
+  // message is released: under `equationClears` a finding his own confirmed, correct
+  // arithmetic accounts for is dropped instead (the safe direction — see
+  // checker-equations.ts; nothing here can raise a finding).
+  equations?: EquationCheck[];
 };
 export type CheckerErrorPayload = { candidateTurnIndex: number; error: string; timedOut: boolean; latencyMs: number };
 export type CheckerJobResult = { subtype: 'verdict'; payload: VerdictPayload } | { subtype: 'error'; payload: CheckerErrorPayload };
@@ -81,19 +94,44 @@ export function startMathCheck(p: {
   misquotes?: { item: string; cited: string; sentence: string }[];
   config: MathCheckerConfig; timeoutMs?: number; onUsage?: OnUsage;
   check?: (a: Parameters<typeof checkMathClaims>[0]) => Promise<CheckerResult>;
+  extract?: (a: Parameters<typeof extractEquations>[0]) => Promise<ExtractorOutput | null>;
 }): CheckerJob {
   const controller = new AbortController();
   const t0 = Date.now();
   let timedOut = false;
   const timer = setTimeout(() => { timedOut = true; controller.abort(); }, p.timeoutMs ?? MATH_CHECKER_TIMEOUT_MS);
   const check = p.check ?? checkMathClaims;
+  // `checkerEquationsAsync` (item E's asynchronous variant, 27 Oct): the equations and the
+  // answer sheet come from a second, small call over the message alone, fired now, in
+  // parallel — so the checker's own prompt stays byte-identical and the verdict arrives at
+  // max(checker, extractor) instead of checker + the extra output. It fails open: an error
+  // or a timeout leaves the verdict exactly as it is today.
+  const extracting = switchOn(p.caseData, 'checkerEquationsAsync')
+    ? (p.extract ?? extractEquations)({
+      message: p.input.message,
+      // the candidate's own earlier words only — `supersedes` names a figure from one of
+      // them; no case data, and not the interviewer's lines either
+      priorMessages: p.input.transcript.filter(t => t.role === 'candidate').map(t => t.text),
+      onUsage: p.onUsage, signal: controller.signal,
+    })
+      .catch((): null => null)
+    : null;
   const result = check({ caseData: p.caseData, input: p.input, config: p.config, onUsage: p.onUsage, signal: controller.signal })
-    .then((r): CheckerJobResult => ({ subtype: 'verdict', payload: {
-      candidateTurnIndex: p.candidateTurnIndex, latencyMs: r.latencyMs, model: r.model,
-      claims: vetCheckerClaims(r.claims, p.vet),
-      codeFlags: codeFlagRefs(p.codeMath, p.misquotes ?? []),
-      stamps: p.codeMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span })),
-    } }))
+    .then(async (r): Promise<CheckerJobResult> => {
+      const extracted = extracting ? await extracting : null;
+      const answerSheet = r.answerSheet ?? (extracted?.answerSheet?.length ? extracted.answerSheet : undefined);
+      // The equations ride on the verdict row from either source, because the gate reads them
+      // on a later turn (`equationClears`). Code's own verdict on each, never the model's.
+      const equations = r.equations ?? (extracted?.equations?.length ? extracted.equations : undefined);
+      return { subtype: 'verdict', payload: {
+        candidateTurnIndex: p.candidateTurnIndex, latencyMs: r.latencyMs, model: r.model,
+        claims: vetCheckerClaims(r.claims, { ...p.vet, answerSheet, equations }),
+        codeFlags: codeFlagRefs(p.codeMath, p.misquotes ?? []),
+        stamps: p.codeMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span })),
+        ...(answerSheet ? { answerSheet } : {}),
+        ...(equations ? { equations } : {}),
+      } };
+    })
     .catch((e: unknown): CheckerJobResult => ({ subtype: 'error', payload: {
       candidateTurnIndex: p.candidateTurnIndex, error: e instanceof Error ? e.message : String(e), timedOut, latencyMs: Date.now() - t0,
     } }))
@@ -1728,7 +1766,7 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
 // must agree with one of them or a change they imply — the agreement rule of
 // corrections, 3% or 0.5 — so a flag on another reading of the claim releases
 // nothing.
-export type GateOutcome = 'released' | 'checker_correct' | 'not_rated' | 'checker_disagrees' | 'stale' | 'expired' | 'derived';
+export type GateOutcome = 'released' | 'checker_correct' | 'not_rated' | 'checker_disagrees' | 'stale' | 'expired' | 'derived' | 'equation_cleared';
 export type GateDecision = {
   id: string; candidateTurnIndex: number; key: string; value: number; span: string;
   finding: CodeFinding; outcome: GateOutcome; reason: string;
@@ -1833,6 +1871,17 @@ export function gateCodeFindings(p: {
       const keys = { ...(p.keys ?? {}), ...(p.keys?.[own] ? {} : { [own]: { figures: idFigs, since: v.candidateTurnIndex } }) };
       const root = rootOf(flagged.span, own, keys, caseNumbers);
       if (root) { decide('derived', (p.closed ?? []).includes(root) ? `built on a closed input (${root})` : `built on ${root}'s figure — the probe follows the input`); return; }
+      // Lorenzo, 27 Oct, round 4 (`equationClears`): his own correct arithmetic, with every
+      // operand and the result found again in his own words by code, CLEARS a false finding.
+      // The safe direction only — an equation can never put a finding here, and an entry code
+      // cannot confirm does nothing (checker-equations.ts).
+      const cleared = (v.equations?.length ?? 0) > 0 && switchOn(p.caseData, 'equationClears')
+        ? clearedByEquation(
+          { value: ref.value, expected: ref.finding.kind === 'flag' ? ref.finding.flag.expected : null, span: ref.span },
+          v.equations!,
+          p.turnRows.find(t => t.role === 'candidate' && t.turnIndex === v.candidateTurnIndex)?.text ?? '',
+        ) : null;
+      if (cleared) { decide('equation_cleared', clearNote(cleared)); return; }
       decide('released', flatReason ?? `the checker flags "${flagged.candidateValue}"`);
     });
   }

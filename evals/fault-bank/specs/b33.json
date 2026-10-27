@@ -452,11 +452,15 @@
   "turn": 8,
   "sev": "correct",
   "cls": "correct_correction",
-  "note": "His t5 \"55%\" misquote corrected flat by code (\"To correct one figure: COGS is 58% of revenue today …\"), once.",
+  "note": "His t5 \"55%\" misquote corrected flat by code (\"To correct one figure: COGS is 58% of revenue today …\"), once. Post-wave (26 Oct): the assertion's window opens two turns earlier. The record's claim is that the misquote GOT its one flat correction, not that it came on this exact turn; with `misquoteSameTurn` a live finding corrects on the message's own turn instead of a turn later behind the checker gate, so the same correction now lands at t6. It still fails if no correction is spoken at all.",
   "a": [
    {
     "kind": "correction",
-    "must": true
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 8
+    }
    }
   ],
   "rep": true,

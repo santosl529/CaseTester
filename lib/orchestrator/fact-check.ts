@@ -64,6 +64,7 @@ export type FactBase = {
   tags?: CaseTags;                        // round 6: the case's item tags (item-tags.ts)
   answerGate: boolean;                    // tags present: round 6's cover matching and gate are on (Task 68)
   coverNorm?: boolean;                    // Phase 1 4.5: coverNormalization on for this case (factBaseFor, per call)
+  attribution?: boolean;                  // post-wave: misquoteAttribution on for this case (factBaseFor, per call)
   properNames: string[];                  // the case's capitalised STT keyterms: its names, routes and places (review F1)
   notHeld?: { id: string; phrase: string; missing: string }[];  // `caseNotesDraft` (measurement): asks an item does not answer
 };
@@ -198,9 +199,15 @@ const normBases = new Map<string, FactBase>();
 export function factBaseFor(c: CaseInput & { id: string; engine?: Partial<Record<EngineSwitch, boolean>> }): FactBase {
   let fb = factBases.get(c.id);
   if (!fb) { fb = buildFactBase(c); factBases.set(c.id, fb); }
-  if (switchOn(c, 'coverNormalization')) {
-    let nb = normBases.get(c.id);
-    if (!nb || nb.quantities !== fb.quantities) { nb = { ...fb, coverNorm: true }; normBases.set(c.id, nb); }
+  const coverNorm = switchOn(c, 'coverNormalization');
+  const attribution = switchOn(c, 'misquoteAttribution');
+  if (coverNorm || attribution) {
+    const key = `${c.id}:${coverNorm ? 'n' : ''}${attribution ? 'a' : ''}`;
+    let nb = normBases.get(key);
+    if (!nb || nb.quantities !== fb.quantities) {
+      nb = { ...fb, ...(coverNorm ? { coverNorm: true } : {}), ...(attribution ? { attribution: true } : {}) };
+      normBases.set(key, nb);
+    }
     fb = nb;
   }
   return switchOn(c, 'caseNotesDraft') ? withCaseNotes(c.id, fb) : fb;
@@ -562,7 +569,7 @@ export function findCandidateMisquotes(text: string, fb: FactBase, revealedIds: 
   const masked = INDEXING.test(text) ? text : text.replace(/\bindex(es)?\b/gi, 'list');
   const out: MisquoteFlag[] = findMisquotes(masked, {
     anchors: fb.anchors, ledger: [...fb.ledger, ...fb.promptLedger], revealedIds: revealed,
-    exhibitColumns: exhibitColumns(fb.anchors, shown),
+    exhibitColumns: exhibitColumns(fb.anchors, shown), attribution: fb.attribution,
   }).filter(m => !(fb.promptLedger.some(p => p.id === m.item) && /\b(?:contribution|gross|operating|unit|per[- ]drink|product|ebitda|target|drink|food|beverage)\s+margins?\b/i.test(m.sentence)))
     .filter(m => quoteFits(m, fb))
     .map(m => ({ items: [m.item], cited: m.cited, sentence: m.sentence, kind: 'quote' as const }));

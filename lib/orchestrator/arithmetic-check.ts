@@ -23,6 +23,9 @@
 // Percent shorthand ("25 × 42 = 10.5", "16/18 = 89%") and growth read off a
 // ratio ("66.7/42 ≈ 59%" — up 59%) count as correct when a % is in the claim.
 import { normalizeNumberWords } from '@/lib/number-words';
+import { normalizeSpeech } from './speech-normalize';
+import { ofAsMultiplication } from './of-multiplication';
+import { absorbScaleWords } from './scale-words';
 
 export type ArithmeticVerdict = 'correct' | 'incorrect' | 'unclear';
 
@@ -34,6 +37,7 @@ export type ArithmeticClaim = {
   verdict: ArithmeticVerdict;
   approximate: boolean;
   selfCorrected: boolean;  // an incorrect claim the candidate fixed in the same message
+  absorbed?: boolean;      // read only by absorbing a scale or currency word (`scaleWordReading`): may verify, never flag
 };
 
 type Tok =
@@ -361,9 +365,44 @@ function withholdInconsistent(sentence: string, claims: ArithmeticClaim[], from:
 
 const SENTENCES = /(?<=[.!?])\s+(?=[A-Z0-9"“$(])|\n+/;
 
-export function checkStatedArithmetic(rawText: string, opts?: { spokenReadings?: boolean }): ArithmeticClaim[] {
+export type ReaderOptions = { spokenReadings?: boolean; speechNormalization?: boolean; ofAsMultiplication?: boolean; scaleWordReading?: boolean };
+
+export function checkStatedArithmetic(rawText: string, opts?: ReaderOptions): ArithmeticClaim[] {
+  // One text for the whole pass: the sentence spans the claims carry must be
+  // the text the self-correction reader searches, or a correction stops being
+  // found (`speech-normalize.ts`; with the switch off this is today's text).
+  // `ofAsMultiplication` runs last, because it needs the right-hand side as a
+  // digit ("one fourth of forty two" → "0.25 × 42").
+  const normalized = normalizeNumberWords(opts?.speechNormalization ? normalizeSpeech(rawText) : rawText);
+  const text = opts?.ofAsMultiplication ? ofAsMultiplication(normalized) : normalized;
+  const claims = readSentences(text, opts);
+  // `scaleWordReading` (Lorenzo, 27 Oct): a second pass over the sentences a scale or
+  // currency word changes, kept strictly additive — a claim the first pass already
+  // raised is dropped here, so no claim and no verdict of today's reading can move,
+  // and a claim this pass alone raises can never be `incorrect`. The span stays the
+  // candidate's own sentence: the absorbed text is the reader's working, and it must
+  // never reach a prompt as a quote of what he said.
+  if (opts?.scaleWordReading) {
+    // Deduped against the first pass only: a claim the reader already raises never
+    // moves, and a repeat in a second sentence is a second claim there, exactly as
+    // today's per-sentence reading treats one.
+    const already = [...claims];
+    for (const raw of text.split(SENTENCES)) {
+      const sentence = raw.trim();
+      const absorbed = absorbScaleWords(sentence);
+      if (absorbed === sentence) continue;
+      for (const c of readSentences(absorbed, opts)) {
+        if (already.some(y => Math.abs(y.stated - c.stated) < 1e-9 && Math.abs(y.computed - c.computed) < 1e-9)) continue;
+        claims.push({ ...c, span: sentence, absorbed: true, verdict: c.verdict === 'incorrect' ? 'unclear' : c.verdict });
+      }
+    }
+  }
+  return markSelfCorrections(text, claims);
+}
+
+function readSentences(text: string, opts?: ReaderOptions): ArithmeticClaim[] {
   const claims: ArithmeticClaim[] = [];
-  for (const raw of normalizeNumberWords(rawText).split(SENTENCES)) {
+  for (const raw of text.split(SENTENCES)) {
     const sentence = raw.trim();
     if (!sentence || !/\d/.test(sentence)) continue;
     const claimsBefore = claims.length;
@@ -437,7 +476,7 @@ export function checkStatedArithmetic(rawText: string, opts?: { spokenReadings?:
     settle();
     if (opts?.spokenReadings) withholdInconsistent(sentence, claims, claimsBefore);
   }
-  return markSelfCorrections(normalizeNumberWords(rawText), claims);
+  return claims;
 }
 
 const CORRECTION_MARKER = /\b(?:wait|no,|sorry,? (?:that'?s|it'?s|i meant)|oops|actually|i mean|let me redo|scratch that|correction|that'?s wrong|my mistake)\b/i;

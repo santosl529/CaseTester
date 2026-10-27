@@ -45,5 +45,32 @@
   ],
   "rep": true,
   "stream": "phase2"
+ },
+ {
+  "id": "b39h-tyler-t6-packaging-misquote",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "misquote_uncorrected",
+  "note": "\"Variable costs: ingredients $0.70, packaging $0.35, roasting labor and energy $0.30, freight $0.20\" — the line says $0.30 for packaging, so his $1.55 variable cost and $1.45 contribution are both wrong, and the break-even came out at 6.2 million bags instead of 6.0. The misquote check logged `found: []` at t6 and again at t8: `variable_costs` is one ledger line with four components and its overlay misquote anchor named only the ingredients, so \"packaging\" matched no anchor. At t8 the model asked Socratically instead — \"You said variable cost is $1.55 per bag. Which packaging figure did you use there, and where did it come from?\" Fixed by naming each component the line states in the anchor (`misquoteAnchors`), with `misquoteSameTurn` saying the flat sentence on t6. Post-wave: the assertion's window runs to t8 — code's correction is owed either on this turn (`misquoteSameTurn`) or on the next, once the checker's verdict for the message has landed. It fails only if no flat correction is spoken at all.",
+  "src": "lorenzo-ruling-2026-10-26 (post-wave item 3)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "\\$0\\.30 for packaging",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 8
+    }
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
  }
 ]

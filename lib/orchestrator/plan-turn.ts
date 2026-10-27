@@ -16,6 +16,7 @@ import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldG
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
 import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, clearRecommendation, INITIAL_STALL_STATE, type StallState } from './stall';
 import { switchOn } from '@/lib/cases/engine-switches';
+import { supersededBy, staleNote } from './checker-equations';
 import { historyWithCheckIns, checkInLinesOf } from './voice-check-in';
 import { resumeOnCandidateTurn, effectiveElapsedMs, isSilenceLine, INITIAL_SILENCE_STATE, type SilenceState } from './silence';
 import { classifyConduct, isPauseAccepted, isRiskToSelf, type ConductAssessment } from './conduct';
@@ -33,7 +34,7 @@ import type { TurnMove } from './progress';
 import { CheckLog } from './check-log';
 import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
-import { correctionLines } from './misquote';
+import { correctionLines, sameTurnCorrections } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
 import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, parseInputKey, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot,
   stepRootsDeclared, registerStepRoots, stepRootOf, lineageInherits, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot, type VerdictPayload, claimFigures } from './math-checker-live';
@@ -267,7 +268,7 @@ export function planTurn(reads: TurnReads, heardText: string, deps: PlanDeps): T
   // assessment.action === 'ignore' (none / C1): proceed with the normal case turn.
 
   // ── The candidate stops (Rule 18A) — after conduct, before any case rule ──
-  const exitPlanned = planExit(ctx, { ...reads, turnRows }, deps);
+  const exitPlanned = planExit(ctx, { ...reads, turnRows }, deps, { afterPauseOffer: repliedToDistressOffer });
   if (exitPlanned) return exitPlanned;
 
   return modelPlan(ctx, { ...reads, turnRows }, { repliedToDistressOffer, conductRedirectHint, silenceState: resumed.state, classify: deps.classify !== false, regexC5AfterDecline, conductConfirm });
@@ -295,7 +296,7 @@ function caseNotStarted(flags: Record<string, unknown>, phase: Phase): boolean {
 // three times, then an offer to stop, then the end. No case question in any
 // of these turns. A distress verdict on the message takes precedence (the C5
 // offer includes stopping) — the runner awaits it before speaking.
-function planExit(ctx: TurnCtx, reads: TurnReads, deps: PlanDeps): ScriptedPlan | null {
+function planExit(ctx: TurnCtx, reads: TurnReads, deps: PlanDeps, opts: { afterPauseOffer?: boolean } = {}): ScriptedPlan | null {
   const { candidateText, flags, currentPhase, checks } = ctx;
   const exit: ExitState = { ...(flags.exit as ExitState | undefined) };
   const intent = classifyExitIntent(candidateText);
@@ -331,6 +332,18 @@ function planExit(ctx: TurnCtx, reads: TurnReads, deps: PlanDeps): ScriptedPlan 
     } else if (notStarted) {
       exit.refusals = 0;
     }
+  }
+  // Rule 17-C5 (Lorenzo's ruling, 26 Oct; batch 39 aldermoor p07 35740806 t19): after a pause offer the case is never
+  // CLOSED by this path. The offer already asked "stop, pause, or keep going?", and an explicit accept was taken above
+  // (isPauseAccepted, where a decline wins ties) — so a message that reaches here has declined to stop, and anything in
+  // it that still reads as a stop is ambiguous. Ambiguous asks once (the clarifying question, once a session) and never
+  // closes; "I'm okay", "keep going", "I'd like to finish" resume the case where it left off. Cost if wrong: a
+  // candidate who does want out after the offer is asked once more before the case closes, one turn later.
+  if (opts.afterPauseOffer && (decision === 'stop' || decision === 'declined')) {
+    const to = exit.clarified ? null : 'clarify';
+    checks.act('exit_after_pause', `a reply to the pause offer never closes the case: ${decision} → ${to ?? 'the case continues'}`, { intent: intent.kind, why });
+    decision = to;
+    why = 'ambiguous after a pause offer';
   }
   checks.record('candidate_exit', decision !== null, decision ? `${decision}: ${why}` : 'no exit', {
     intent: intent.kind, refusal, refusals: exit.refusals ?? 0, decision,
@@ -470,7 +483,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Pricing claims (12 Oct): a price change's stated result against the case's
   // cost structure, once every cost line is out (pricing-check.ts).
   const revealedIdsNow = Object.keys(revealedValues(ledger));
-  const candidateMath = checkCandidateMath(candidateText, caseData, revealedIdsNow, { spokenReadings: switchOn(caseData, 'spokenMathParser') });
+  const candidateMath = checkCandidateMath(candidateText, caseData, revealedIdsNow, { spokenReadings: switchOn(caseData, 'spokenMathParser'), speechNormalization: switchOn(caseData, 'speechNormalization'), ofAsMultiplication: switchOn(caseData, 'ofAsMultiplication'), scaleWordReading: switchOn(caseData, 'scaleWordReading') });
   const { arithmetic, units, pricing } = candidateMath;
   // The final answers — the recommendation reply and every reply after it — are
   // checked before the case closes (close-hold.ts; Lorenzo, 16 Oct).
@@ -582,6 +595,31 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const staleCaseFigures = staleOn ? numbersOf([caseData.prompt, ...caseData.dataLedger.filter(d => revealedIdsNow.includes(d.id)).map(d => d.value),
     ...caseData.exhibits.filter(e => shownExhibitIds.has(e.id)).map(e => JSON.stringify(e.data))].join(' ')) : [];
   const staleDrops: { kind: 'code' | 'checker' | 'misquote' | 'root_question'; id: string; reason: string }[] = [];
+  // Item E (`checkerEquations`, Lorenzo, 27 Oct): "Before any probe or correction, code drops it if the answer sheet
+  // shows the figure is no longer the candidate's latest." The sheet is the checker's own per-message list of the
+  // quantities whose value CHANGED, each naming the figure it replaces; the replacement must itself be a figure the
+  // candidate said, so code never drops a line on a quantity it only guessed at. Read from the verdict rows of the
+  // messages after the claim — this is the cross-message half of the rule; the same-message half is in the vetting.
+  // Either source of the sheet: the checker's own output (`checkerEquations`) or the parallel
+  // extractor (`checkerEquationsAsync`). The drop itself is the same code on the same rows.
+  const sheetOn = switchOn(caseData, 'checkerEquations') || switchOn(caseData, 'checkerEquationsAsync');
+  const sheetsAfter = (n: number) => checkerRows
+    .filter(r => r.subtype === 'verdict')
+    .map(r => r.payloadJsonb as VerdictPayload)
+    .filter(v => v.candidateTurnIndex > n && v.candidateTurnIndex < ctx.nextTurnIndex && (v.answerSheet?.length ?? 0) > 0)
+    .map(v => ({ sheet: v.answerSheet!, text: turnRows.find(t => t.role === 'candidate' && t.turnIndex === v.candidateTurnIndex)?.text ?? '' }));
+  const sheetStale = (e: { n: number; c: VettedClaim }): string | null => {
+    for (const { sheet, text } of sheetsAfter(e.n)) {
+      const entry = supersededBy(e.c.candidateValue, sheet, text);
+      if (entry) return staleNote(entry);
+    }
+    return null;
+  };
+  // The figures a claim's candidate-facing lines would NAME, beside the ones its own words carry (ruling (a), 26 Oct;
+  // aldermoor p57 5bc506bc t8: the ">2x" ratio claim's hint line named the $640 million he had just withdrawn, and
+  // the claim itself named neither). The correction line names the candidate's wrong figure outright, so a
+  // correction is dropped on strictly more evidence than a probe (ruling (c)).
+  const claimLines = (c: VettedClaim) => [c.probeLine, c.hintLine, c.pointerLine, c.correctionLine].filter(Boolean).join(' ');
   const staleOfFlag = (f: RecomputeFlag) => (staleOn ? staleReason(worksheet!, caseData, {
     n: fromOf(f), quantity: (f.kind ?? 'step') === 'step' ? `step:${f.stepId}` : null, value: f.candidateValue, span: f.span,
   }, staleCaseFigures) : null);
@@ -671,6 +709,31 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     const misquoteStale = staleOn ? staleReason(worksheet!, caseData, { n: r.candidateTurnIndex, quantity: null, value: numbersOf(r.finding.cited)[0], span: r.finding.cited }, staleCaseFigures) : null;
     if (misquoteStale !== null) { staleDrops.push({ kind: 'misquote', id: r.id, reason: misquoteStale }); continue; }
     perItem.push({ item: r.finding.item, cited: r.finding.cited, sentence: r.finding.sentence, n: r.candidateTurnIndex });
+  }
+  // Post-wave (26 Oct, Lorenzo's item 3): Rule 6 option 4 is "one flat sentence", and on today's timing it can never
+  // be said. Code's correction waits for the checker's verdict, which lands a turn after the message; by then the
+  // model's own Socratic question on the misquote turn ("Which figure did I give you?") has made the candidate fix it,
+  // so code's line is stale and nothing flat is ever spoken (batch 39, aldermoor p64 4df38465 t6 → t8 and t10 → t12,
+  // hollisbay p64 7cdbeb74 t6 → t8). With `misquoteSameTurn` a live finding for THIS message corrects on this turn,
+  // and the MISQUOTE hint keeps the model off the figure. `found` already excludes the report-only findings, so a case
+  // whose ledger lookup is not validated is untouched; `correctsItemAgain` keeps the gate's own release next turn from
+  // saying it twice.
+  // Lorenzo's ruling of 26 Oct (evening): approved, but only on an ATTRIBUTED quote, and with a same-message
+  // withdrawal check. The unrestricted form spoke 45 new corrections across the 31 slices and two were provably
+  // false — b34a `a1133734` t31 and b38l `701443f7` t17, both correcting the candidate on his own correct
+  // arithmetic, both rated CORRECT by the checker, neither attributed. `sameTurnCorrections` (misquote.ts) is the
+  // whole restriction: the candidate has to say whose figure it is, and must not have taken it back in the same
+  // message. The gate's own release on the NEXT turn is untouched — it still needs the checker's rating.
+  if (switchOn(caseData, 'misquoteSameTurn')) {
+    const sameTurn = sameTurnCorrections(found, findWithdrawals(candidateText));
+    checks.record('misquote_same_turn', sameTurn.take.length > 0, `${sameTurn.take.length} attributed misquote(s) correct on this turn; ${sameTurn.skipped.length} held`, {
+      take: sameTurn.take.map(m => ({ item: m.items[0], cited: m.cited })), skipped: sameTurn.skipped,
+    });
+    for (const m of sameTurn.take) {
+      const id = correctedItemOf(m.items);
+      if (wordingOf(id) === undefined || perItem.some(x => x.item === id)) continue;
+      perItem.push({ item: id, cited: m.cited, sentence: m.sentence, n: ctx.nextTurnIndex });
+    }
   }
   // Phase 1 task 4 (`misquoteFlat`): the figures code found misquoted in THIS message. The probe guard lets the
   // model's own doubt of one stand — code's mismatch with the revealed item is the backing it asks for — where today
@@ -782,14 +845,23 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
         const w = msgs.flatMap(findWithdrawals).find(x => Math.abs(x.value - Math.abs(value)) <= Math.max(0.05, Math.abs(value) * 0.02));
         return w ? `${value} withdrawn ("${w.phrase}")` : null;
       } } } : {}),
-    ...(staleOn ? { staleDrop: (e: { n: number; c: VettedClaim }) => staleReason(worksheet!, caseData, { n: e.n, quantity: claimQuantity(e.c), value: claimFigures(e.c)[0], span: e.c.span }, staleCaseFigures) } : {}),
+    ...(staleOn || sheetOn ? { staleDrop: (e: { n: number; c: VettedClaim }) =>
+      (staleOn ? staleReason(worksheet!, caseData, { n: e.n, quantity: claimQuantity(e.c), value: claimFigures(e.c)[0], span: e.c.span, lines: claimLines(e.c) }, staleCaseFigures) : null)
+      ?? (sheetOn ? sheetStale(e) : null) } : {}),
   };
   let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:
   // its figures may not be probed again — the case moves on (Lorenzo, 13 Oct;
   // Jordan 099f33e9, seven probes on one "40 points").
   const closedKeys = [...new Set([...(checkerMemory.closed ?? []), ...checkerPlan.closedNow])];
-  const closedFigures = [...closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []), ...(checkerMemory.convertedFigures ?? [])];
+  // …and so is a claim code dropped as STALE (post-wave, 26 Oct). Dropping code's own line while letting the model's
+  // identical doubt through is no drop at all: b37q Jasmine 40 t14 — code dropped 9:1 ("its root starter_ltv restated
+  // at 12.5 since message 9") and the model's own "Earlier you said standalone Starter is 1.3x … walk me through how
+  // you got to 1.3x" went out in its place, where the base's probe guard had replaced it with a neutral line because
+  // the same claim was closed to the report.
+  const staleFigures = checkerPlan.decisions.filter(d => d.outcome === 'stale' && d.reason.startsWith('stale_drop: '))
+    .flatMap(d => numbersOf(String(d.candidateValue ?? '')));
+  const closedFigures = [...closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []), ...(checkerMemory.convertedFigures ?? []), ...staleFigures];
 
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
@@ -1348,10 +1420,24 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     rootLine = { id: rk, key, action: 'probe', line, stepRoot: r.step,
       undo: { attempt: attemptBefore, step: r.step, mathChecker: (flags.mathChecker as CheckerMemory | undefined) ?? { handled: checkerHandled } } };
   }
-  if (staleOn) {
+  // Logged whenever either source can drop a line (Lorenzo, 27 Oct, on the async answer sheet: "make sure every
+  // drop it causes is logged with the superseding figure so the grade can check each one"). The hook installs on
+  // `staleOn || sheetOn`, so gating the record on `staleOn` alone lost every sheet-only drop — the answer sheet is
+  // meant to run in the confirmation wave with `staleProbeDrop` off. `staleNote` carries the superseding figure,
+  // its scale and unit, the candidate's quoted words, and the figure it replaces.
+  if (staleOn || sheetOn) {
     const checkerStale = checkerDecisions.filter(d => d.outcome === 'stale' && d.reason.startsWith('stale_drop: ')).map(d => ({ kind: 'checker' as const, id: d.id, reason: d.reason.slice('stale_drop: '.length) }));
     const all = [...staleDrops, ...checkerStale];
     checks.record('stale_drop', all.length > 0, 'a probe or correction the candidate has overtaken since (the worksheet): dropped, not said', { dropped: all });
+  }
+  // Lorenzo, 27 Oct, round 4 (`equationClears`): every clear is logged with the equation that
+  // caused it, the candidate's own words for it, and code's verdict on it — so a grader can
+  // check each one. This is the gate's side (a code line dropped on this turn); the checker
+  // claim's side is on the verdict row, in the claim's own `vetNotes`.
+  if (switchOn(caseData, 'equationClears')) {
+    const cleared = gate.decisions.filter(d => d.outcome === 'equation_cleared')
+      .map(d => ({ id: d.id, key: d.key, value: d.value, reason: d.reason }));
+    checks.record('equation_clear', cleared.length > 0, 'a code line their own verified arithmetic accounts for: dropped, not said', { cleared });
   }
   // The probes this turn puts out, one per step: code's (in the model's hint,
   // or its recommendation probe) and the checker's probe, pointer or hint.

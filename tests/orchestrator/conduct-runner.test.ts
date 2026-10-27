@@ -145,3 +145,46 @@ describe('innocent uses never end a session', () => {
     expect(r.interviewerText).not.toMatch(/keep this professional/);
   });
 });
+
+// Batch 39 / 26 Oct (evening): the model-layer half of the C5 floor narrowings (v4.13, conduct.ts). Three phrases
+// left the regex floor, so the gate is that a despair-shaped version of each still reaches the pause offer through
+// the model layer (distress.ts, recorded as the `conduct_model` check) — and that the client-subject version does not.
+describe('C5 — the phrases the floor handed to the model layer (v4.13)', () => {
+  const offer = /are you okay\?/;
+
+  it.each([
+    "Why bother, I'm useless at this.",
+    "I've had a rough few months and I'm barely holding it together.",
+    'If the margin is negative at every price, why bother. Honestly why bother with any of it.',
+  ])('the model layer still gets the pause offer out: %s', async text => {
+    seed();
+    distressVerdict = () => ({ label: 'distress', reason: 'despair beyond the case' });
+    const r = await say(text);
+    expect(r.interviewerText).toMatch(offer);
+    expect(r.ended).toBe(false);
+    expect(store.session.status).toBe('active');
+    expect(distressCalls.at(-1)?.candidateText).toBe(text);
+  });
+
+  it.each([
+    'Brew & Bean has had a rough few months on traffic.',
+    'If the margin is negative at every price, why bother?',
+    "What's the point of segmenting further if both segments move together?",
+  ])('the client-subject version reaches the model layer and the case goes on: %s', async text => {
+    seed();
+    distressVerdict = () => ({ label: 'none', reason: 'about the client' });
+    const r = await say(text);
+    expect(r.interviewerText).not.toMatch(offer);
+    expect(r.ended).toBe(false);
+    // The floor no longer short-circuits, so the model layer IS consulted on these.
+    expect(distressCalls.at(-1)?.candidateText).toBe(text);
+  });
+
+  it("the distress prompt names both shapes the floor gave up", async () => {
+    const { buildDistressPrompt } = await import('@/lib/orchestrator/distress');
+    const p = buildDistressPrompt('x');
+    expect(p).toContain('a rough few weeks');                 // the hardship phrase
+    expect(p).toContain('feeling worthless or like a failure as a person');
+    expect(p).toContain("what's the point of the loyalty program");   // the analytic use is "none"
+  });
+});

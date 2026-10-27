@@ -60,7 +60,7 @@ import { writeTurnFile, type TurnFileHeader } from '@/lib/eval/turn-file';
 import { gitInfo } from '@/lib/eval/git-info';
 import { engineSwitchNames } from '@/lib/eval/batch-manifest';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
-import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID } from '@/lib/models';
+import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { evalInterviewer, checkInterviewerModels, type ModelCheck } from '@/lib/eval/model-guard';
 import { simulatorReplyText, SimulatorReplyError } from '@/lib/eval/simulator-reply';
 
@@ -259,8 +259,13 @@ async function candidateReply(client: Anthropic, transcript: Line[]): Promise<st
     max_tokens: 4096,
     system: PERSONA ? personaSystem(PERSONA, CASE_ID) : candidateSystem(CASE_ID),
     output_config: { effort: 'low' },
-    betas: ['server-side-fallback-2026-06-01'],
-    fallbacks: [{ model: 'claude-opus-4-8' }],
+    // The simulator's refusal fallback. It used to pin `claude-opus-4-8` by hand with the June beta — the retired
+    // July-2026 interviewer — which is where batch 39's $0.84 of Opus 4.8 came from (22 calls, every one a refusal
+    // fallback; the 64 Tyler runs drive most of them, because that brief asks the simulator to misstate figures on
+    // purpose). It now takes Anthropic's recommended fallback for the refusal category, like every other call in the
+    // product (lib/models.ts), so no retired model id is pinned anywhere.
+    betas: [FALLBACK_BETA],
+    fallbacks: FALLBACKS,
     messages: transcript.map(l => ({ role: l.role === 'interviewer' ? 'user' : 'assistant', content: l.text })),
   });
   candidateUsage.calls += 1;
