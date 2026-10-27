@@ -27,6 +27,7 @@ export const PHASE1_SWITCHES = [
   'checkerDefinitions',  // 3.7: the case's definitions go to the live checker
   'correctionRules',     // pre-wave rulings 3 and 4 (26 Oct): one correction per item on every path; none on the closing turn
   'misquoteAttribution', // post-wave (26 Oct): a figure the candidate attributes to the interviewer is a quote — `operandLater` does not excuse it
+  'misquoteSameTurn',    // post-wave ruling (26 Oct evening): an ATTRIBUTED misquote is corrected on its own turn, not a turn later
   // Stream 4 — small fixes inside today's paths.
   'restateRules',        // 4.1: exhibit pointer + summary; a number only if asked; matched item only; not twice in 4 turns
   'coarseKeepNamed',     // 4.2: never drop a model-named item that matches the ask
@@ -49,15 +50,14 @@ export const PHASE1_SWITCHES = [
 // both graded false refusals are fixed by 4.2 and 4.5 acting alone. Its harm is the realism regression: a true
 // "I don't have that" becomes a promise later withdrawn as "we won't get to it", which the bank records as a
 // fault in its own right. Nameable for evidence, never on by default.
-// `misquoteSameTurn` (post-wave, 26 Oct): a live misquote finding corrects on its OWN turn instead of waiting for
-// the checker's verdict a turn later. It is the only way Rule 6 option 4's "one flat sentence" is ever spoken on a
-// misquote the candidate self-corrects next message (batch 39 aldermoor p64 t6/t10, hollisbay p64 t6) — but the
-// corpus sweep is decisive against turning it on: corrections across the 31 slices go 52 → 95, of which 45 are
-// sentences those runs never said, and in the base arm the checker gate had rated 3 of those findings CORRECT, 5
-// disagreeing and 19 not rated. Two of the three `checker_correct` ones become spoken corrections and both are
-// FALSE (b34a a1133734 t31 on his own correct "$320M less $80M … is $240M"; b38l 701443f7 t17 on his own correct
-// "$11,000/60 = $183, so a $163 fare"). Nameable for evidence, never on by default.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'misquoteSameTurn'] as const;
+// (`misquoteSameTurn` was here on 26 Oct afternoon and is now in the preset above. Its unrestricted form added 45
+// correction sentences across the 31 slices and two were provably false — b34a a1133734 t31 on the candidate's own
+// correct "$320M less $80M … is $240M", b38l 701443f7 t17 on his own correct "$11,000/60 = $183, so a $163 fare",
+// both rated CORRECT by the checker. Lorenzo's ruling of 26 Oct evening narrows it to an ATTRIBUTED quote with a
+// same-message withdrawal check, which removes both: the restricted form speaks 6 corrections across the slices,
+// 3 of them the same sentence two turns earlier, and all 6 are true misquotes the candidate attributed to the
+// interviewer or the exhibit. See the post-wave report's §9.)
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];

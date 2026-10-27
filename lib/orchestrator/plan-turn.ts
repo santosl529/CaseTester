@@ -33,7 +33,7 @@ import type { TurnMove } from './progress';
 import { CheckLog } from './check-log';
 import { nextReadyExhibit, nextRequiredExhibit } from './data-decisions';
 import { brainstormRequired, brainstormDue } from './brainstorm';
-import { correctionLines } from './misquote';
+import { correctionLines, sameTurnCorrections } from './misquote';
 import { statesQuantitativeClaim, numbersOf, type VettedClaim } from './math-checker';
 import { startMathCheck, planCheckerFlags, gateCodeFindings, gateOutcomesOf, formatCheckerHint, type CodeFinding, liveCheckerConfig, checkerKey, closedErrorAgreed, stepOfKey, STEP_PROBE_CAP, CONVERTED, parseInputKey, convertedMarker, correctsNow, lineKey, MATH_CHECKER_CATEGORY, type CheckerSelection, type CheckerKeyEntry, type ClosedRestatement, type CorrectedRoot,
   stepRootsDeclared, registerStepRoots, stepRootOf, lineageInherits, stepRootEnds, inputQuestionOf, caseNumbersOf, formatRootQuestionHint, CHECKER_MAX_WAIT_MESSAGES, STEP_ROOT, type StepRoot, type VerdictPayload, claimFigures } from './math-checker-live';
@@ -695,8 +695,18 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // and the MISQUOTE hint keeps the model off the figure. `found` already excludes the report-only findings, so a case
   // whose ledger lookup is not validated is untouched; `correctsItemAgain` keeps the gate's own release next turn from
   // saying it twice.
+  // Lorenzo's ruling of 26 Oct (evening): approved, but only on an ATTRIBUTED quote, and with a same-message
+  // withdrawal check. The unrestricted form spoke 45 new corrections across the 31 slices and two were provably
+  // false — b34a `a1133734` t31 and b38l `701443f7` t17, both correcting the candidate on his own correct
+  // arithmetic, both rated CORRECT by the checker, neither attributed. `sameTurnCorrections` (misquote.ts) is the
+  // whole restriction: the candidate has to say whose figure it is, and must not have taken it back in the same
+  // message. The gate's own release on the NEXT turn is untouched — it still needs the checker's rating.
   if (switchOn(caseData, 'misquoteSameTurn')) {
-    for (const m of found) {
+    const sameTurn = sameTurnCorrections(found, findWithdrawals(candidateText));
+    checks.record('misquote_same_turn', sameTurn.take.length > 0, `${sameTurn.take.length} attributed misquote(s) correct on this turn; ${sameTurn.skipped.length} held`, {
+      take: sameTurn.take.map(m => ({ item: m.items[0], cited: m.cited })), skipped: sameTurn.skipped,
+    });
+    for (const m of sameTurn.take) {
       const id = correctedItemOf(m.items);
       if (wordingOf(id) === undefined || perItem.some(x => x.item === id)) continue;
       perItem.push({ item: id, cited: m.cited, sentence: m.sentence, n: ctx.nextTurnIndex });
