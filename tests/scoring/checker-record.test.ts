@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatCheckerSection, checkerFlaggedFigures, dropCheckerStamps, type CheckerEventRow } from '@/lib/scoring/checker-record';
+import { formatCheckerSection, mandatedConclusionClaims, checkerFlaggedFigures, dropCheckerStamps, type CheckerEventRow } from '@/lib/scoring/checker-record';
 import { buildChallengeMarks, type TurnVerification } from '@/lib/scoring/challenge-marks';
 import type { VettedClaim } from '@/lib/orchestrator/math-checker';
 import { getCaseById } from '@/lib/cases/loader';
@@ -279,5 +279,72 @@ describe('a flag left open on a recommendation figure changes the conclusion (co
   it('without the redo context there are no candidate turns to read, so nothing is escalated', () => {
     const s = formatCheckerSection([verdict(29, [p57]), flag('29:0', 'unresolved_at_close', { reason: 'time up' })]);
     expect(s).not.toContain('changes the conclusion');
+  });
+});
+
+// Post-wave item 4, narrowed (Lorenzo, 27 Oct): "name every open claim marked `changesConclusion`, at most 3 per
+// report." The prompt marks those claims and says they must be named; lib/scoring/conclusion-mandate.ts enforces it
+// in code after the passes that would otherwise drop them (tests/scoring/conclusion-mandate.test.ts).
+describe('the report mandate on open claims that change the conclusion', () => {
+  const REC = 'Recommendation: exit Lakeport and Port Avery. What closes the gap is the $1.8M we stop losing on the exited routes — call it $7.0M of operating profit.';
+  const p57 = claim({
+    span: 'What closes the gap is the $1.8M we stop losing on the exited routes — call it $7.0M of operating profit',
+    candidateValue: '$7.0M', correctValue: 5.2, changesConclusion: false, actualShare: null,
+  });
+  const redo = (turns: { turnIndex: number; text: string }[]) =>
+    ({ candidateTurns: turns, caseData: getCaseById('prof-002'), revealedIds: [] }) as unknown as Parameters<typeof formatCheckerSection>[1];
+
+  it('a code-escalated open claim is marked, and the section says it must be named', () => {
+    const rows = [verdict(29, [p57]), flag('29:0', 'unresolved_at_close', { reason: 'time up' })];
+    const s = formatCheckerSection(rows, redo([{ turnIndex: 29, text: REC }]));
+    expect(s).toContain('[CHANGES THE CONCLUSION — NAME IT IN THE REPORT]');
+    expect(s).toContain('MUST appear in the written report');
+    expect(mandatedConclusionClaims(rows, redo([{ turnIndex: 29, text: REC }]))).toEqual([
+      { id: '29:0', turn: 29, span: p57.span, candidateValue: '$7.0M', figure: '5.2', byCode: true },
+    ]);
+  });
+
+  it("the checker model's own changesConclusion, still open, is marked too", () => {
+    const rows = [verdict(29, [claim({ ...p57, changesConclusion: true })]), flag('29:0', 'probe')];
+    expect(formatCheckerSection(rows)).toContain('[CHANGES THE CONCLUSION — NAME IT IN THE REPORT]');
+    expect(mandatedConclusionClaims(rows)).toHaveLength(1);
+  });
+
+  it('a claim the interview closed is not open, so it is neither marked nor mandated', () => {
+    const rows = [verdict(29, [claim({ ...p57, changesConclusion: true })]), flag('29:0', 'correct', { line: 'It is about $5.2M, not $7.0M.' })];
+    const s = formatCheckerSection(rows);
+    expect(s).toContain('changes the conclusion');
+    expect(s).not.toContain('NAME IT IN THE REPORT');
+    expect(s).not.toContain('MUST appear in the written report');
+    expect(mandatedConclusionClaims(rows)).toEqual([]);
+  });
+
+  // b33 Marisol `31e33506`: claim 13:1 ("beans rose 40% … so the increase is 14.5 × …") closed unresolved and she
+  // redid it right at t19, so this report is not the only place it can be named and the mandate leaves it alone (the
+  // same `credit` the line's own text reads).
+  it('a claim the candidate redid right later is not mandated', () => {
+    const rows = B33R.rows as CheckerEventRow[];
+    const ctx = { candidateTurns: B33R.candidateTurns, caseData: getCaseById('prof-001'), revealedIds: B33R.revealedIds } as unknown as Parameters<typeof formatCheckerSection>[1];
+    const before = mandatedConclusionClaims(rows).map(m => m.id);
+    const after = mandatedConclusionClaims(rows, ctx).map(m => m.id);
+    expect(before).toContain('13:1');
+    expect(after).not.toContain('13:1');
+  });
+
+  it('at most three a report: code escalations first, then the latest turns', () => {
+    const open = (n: number, extra: Partial<VettedClaim> = {}) => verdict(n, [claim({ span: `claim at ${n}`, changesConclusion: true, ...extra })]);
+    const rows = [open(5), open(9), open(13), open(17), open(29, { changesConclusion: false }),
+      flag('5:0', 'probe'), flag('9:0', 'probe'), flag('13:0', 'probe'), flag('17:0', 'probe'), flag('29:0', 'unresolved_at_close', { reason: 'time up' })];
+    const ctx = redo([{ turnIndex: 29, text: REC }]);
+    expect(mandatedConclusionClaims(rows, ctx).map(m => m.id)).toEqual(['29:0', '17:0', '13:0']);
+    const s = formatCheckerSection(rows, ctx);
+    expect(s.split('\n').filter(l => l.startsWith('- ') && l.includes('NAME IT IN THE REPORT'))).toHaveLength(3);
+    expect(s).toContain('At most three');
+  });
+
+  it('with nothing open that changes the conclusion the section carries no mandate', () => {
+    const s = formatCheckerSection([verdict(3, [claim({ changesConclusion: false })]), flag('3:0', 'probe')]);
+    expect(s).not.toContain('NAME IT IN THE REPORT');
+    expect(s).not.toContain('MUST appear in the written report');
   });
 });

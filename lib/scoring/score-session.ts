@@ -16,7 +16,8 @@ import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './as
 import { summarizeDataRequests, volunteeredItems } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
-import { formatCheckerSection, checkerFlaggedFigures, dropCheckerStamps } from './checker-record';
+import { formatCheckerSection, mandatedConclusionClaims, checkerFlaggedFigures, dropCheckerStamps } from './checker-record';
+import { applyConclusionMandate } from './conclusion-mandate';
 import { caseNumbersOf } from '@/lib/orchestrator/math-checker-live';
 import { applyStageCaps, formatStageRecordSection, reconstructStages, stagesNotInCase } from './stage-caps';
 import { exhibitsShown } from '@/db/schema';
@@ -277,9 +278,15 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const { rubric: reconciledRubric, merges, gapDrops, crossDimension } = await runReconciliation(
     answerKey.rubric, dataCoverage, u => logUsage({ ...u }),
   );
+  // Item 4, narrowed (Lorenzo, 27 Oct): every OPEN checker claim that changes the conclusion is named in the report —
+  // at most three. After the judge, the quote audit, the verifier and reconciliation, all of which could drop the
+  // item; before the stage caps, so its quoted evidence counts as evidence (conclusion-mandate.ts has the three
+  // conflicts and why this is where it sits).
+  const mandate = applyConclusionMandate(reconciledRubric, mandatedConclusionClaims(checkerRows, checkerRedo), candidateTexts);
+  if (mandate.added.length > 0) console.warn('[score] conclusion mandate named open claims the report had left out:', JSON.stringify(mandate.added));
   // Round-3 fix 3: "strong" only on a checklist of the strong anchor's
   // elements, each evidenced by a real candidate quote; overall capped.
-  const strongGate = applyStrongGate(reconciledRubric, candidateTexts);
+  const strongGate = applyStrongGate(mandate.rubric, candidateTexts);
   if (strongGate.downgraded.length > 0) console.warn('[score] strong ratings lowered by the checklist gate:', JSON.stringify(strongGate.downgraded));
   if (strongGate.overallCapped) console.warn('[score] overall rating capped:', JSON.stringify(strongGate.overallCapped));
   // Rule 9 (v4.10): a dimension whose stage never happened is rated only on
@@ -337,6 +344,8 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
     strongDowngrades: strongGate.downgraded.length,
     overallCapped: strongGate.overallCapped !== null,
     crossDimensionRepeats: crossDimension.length,
+    // Item 4 (27 Oct): open claims that change the conclusion the report had to be made to name.
+    conclusionMandateAdded: mandate.added.length,
   };
 
   return { rubric, report, mathResults, qa, strongGate, answerKey };
