@@ -736,6 +736,16 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
       if (opts.log && m.changes.length > 0) plan.ctx.checks.act('ask_matches', 'a sub-ask R3 or R4 matches: its release, cut or gate/order deferral in place of today\'s (Phase 2 S4)', { changes: m.changes });
     }
   }
+  // Phase 2 S6 (`askPoint`; Lorenzo, 27 Oct, widened): before a restatement points at or repeats an item already out,
+  // whether the item answers this ask — the recorded check verdict, else the ask check on this turn (his lifting of Q1
+  // for this path only): full → R5 as today; partial → the item's own line (no exhibit summary) and a true refusal of
+  // the missing part; none → a true refusal only (R6's guards: the false-refusal veto, nothing given states it, no
+  // item not yet out that the check maps it to). No verdict (a timeout or a failure): as today.
+  if (switchOn(plan.state.caseData, 'askPoint') && data.restates.length > 0) {
+    const r = await pointByCheck(plan, data, onUsage);
+    data = r.data;
+    if (opts.log && r.changes.length > 0) plan.ctx.checks.act('ask_point', 'a restatement checked against the ask: full kept, partial its line + the missing part refused, none refused (Phase 2 S6)', { changes: r.changes });
+  }
   // Phase 2 S3 (`refusalContradiction`): no refused part a line this turn gives states (turn-composer.ts).
   if (switchOn(plan.state.caseData, 'refusalContradiction')) {
     const r = dropContradictedRefusals(data, refusalNamed(plan), refusalStated(plan));
@@ -764,6 +774,46 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     if (opts.log && real.length > 0) plan.ctx.checks.act('compose_data', 'the data slot (Phase 2 C2): no line the say already spoke, no deferral of what this turn gives', { changes: real });
   }
   return data;
+}
+// Phase 2 S6: each restated item read against the check's verdict on the ask it was restated for (see turnDataChecked).
+type PointChange = { item: string; what: string; verdict: 'full' | 'partial' | 'none' | 'no_verdict'; to: 'kept' | 'line' | 'refused' | 'kept_guard'; refused?: string };
+async function pointByCheck(plan: ModelPlan, d: TurnData, onUsage?: OnUsage): Promise<{ data: TurnData; changes: PointChange[] }> {
+  const { ledger, factBase: fb, caseData } = plan.state;
+  const out: TurnData = { ...d, restates: [...d.restates], refusals: [...d.refusals], requests: d.requests.map(r => ({ ...r })) };
+  const changes: PointChange[] = [];
+  const givenNow = () => new Set([...ledger.revealed, ...out.releases.map(r => r.id), ...out.restates.map(r => r.id), ...(out.exhibit?.covers ?? [])]);
+  const givenLines = () => [...out.releases.map(r => r.id), ...out.restates.map(r => r.id)].flatMap(id => ledger.items.filter(i => i.id === id));
+  const refusable = (part: string) => findFalseRefusals(`I don't have ${part}.`, fb, givenNow(), { covers: true }).length === 0
+    && !givenLines().some(i => statesAsked(part, { label: i.label, value: i.value }, caseData.dataLedger));
+  const say = (w: string) => w.replace(/^(?:(?:so|and|but)\s+)?(?:(?:do|did|can|could|would)\s+(?:we|i|you)\s+(?:please\s+)?(?:have|get|see|know)\s+(?:any\s+)?|is there (?:any|a)\s+)/i, '').replace(/[?.!]+$/, '').trim();
+  for (const r of d.restates) {
+    const whats = [...new Set(d.requests.filter(x => x.request.explicit && x.ledgerItemIds.includes(r.id)).map(x => x.request.what))];
+    const what = whats[0];
+    if (!what) continue;
+    const v = await checkAsk(plan, what, onUsage);
+    if (v.mapped === null) { changes.push({ item: r.id, what, verdict: 'no_verdict', to: 'kept' }); continue; }
+    const full = v.ids.includes(r.id) && !v.partial.includes(r.id) && !v.outOfScope.includes(r.id);
+    if (full) { changes.push({ item: r.id, what, verdict: 'full', to: 'kept' }); continue; }
+    if (v.ids.includes(r.id)) {
+      // Partial: what the item holds (its own line, never an exhibit summary), and the missing part refused when true.
+      out.restates = out.restates.map(x => (x.id === r.id ? { id: x.id, value: x.value, ...(x.exhibit ? { exhibit: x.exhibit } : {}) } : x));
+      const part = say(v.missing[r.id] ?? what);
+      const ok = part.length > 0 && !/\d/.test(part) && refusable(part) && !out.refusals.some(x => normAsk(x) === normAsk(part));
+      if (ok) out.refusals.push(part);
+      changes.push({ item: r.id, what, verdict: 'partial', to: 'line', ...(ok ? { refused: part } : {}) });
+      continue;
+    }
+    // None: a true refusal only — never while the check maps the ask to an item not yet out (R6 b), nor when the veto
+    // or a line given this turn says the case holds it (R6 c, d). A guard failing leaves the turn as today.
+    const pending = v.ids.filter(id => !givenNow().has(id));
+    const part = say(what);
+    if (pending.length > 0 || part.length === 0 || /\d/.test(part) || !refusable(part)) { changes.push({ item: r.id, what, verdict: 'none', to: 'kept_guard' }); continue; }
+    out.restates = out.restates.filter(x => x.id !== r.id);
+    if (!out.refusals.some(x => normAsk(x) === normAsk(part))) out.refusals.push(part);
+    out.requests = out.requests.flatMap(x => (x.ledgerItemIds.includes(r.id) && x.request.what === what ? [{ ...x, ledgerItemIds: x.ledgerItemIds.filter(id => id !== r.id) }, { request: { ...x.request, itemIds: [] }, response: 'refuse' as const, ledgerItemIds: [] }] : [x]));
+    changes.push({ item: r.id, what, verdict: 'none', to: 'refused', refused: part });
+  }
+  return { data: out, changes };
 }
 async function turnDataDecided(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, decided: Map<string, CheckedAsk>, onUsage?: OnUsage): Promise<TurnData> {
   // Review F4 (a): per ask, the item-tag mismatches the gate dropped while the rest of the verdict still answered it.
