@@ -15,12 +15,15 @@
 //   --arm=spoken|fillers|unpunctuated   (default: all three)
 //   --arm=identity                      the typed-corpus no-op gate, on its own
 //   --arm=of                            the `ofAsMultiplication` arm, read as written
+//   --arm=scale | --arm=scale-spoken    the `scaleWordReading` arm, written or spoken
+//   --sn                                read both sides of a one-switch arm with
+//                                       `speechNormalization` on
 //   --of                                add `ofAsMultiplication` to the ON side
 //   --case=prof-001                     one case only
 import { writeFileSync } from 'node:fs';
 import { loadCorpus } from '@/lib/eval/run-corpus';
 import { getCaseById } from '@/lib/cases/loader';
-import { checkCandidateMath, type CandidateMath } from '@/lib/orchestrator/recompute';
+import { checkCandidateMath, type CandidateMath, type CandidateMathOptions } from '@/lib/orchestrator/recompute';
 
 const arg = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
 const has = (name: string) => process.argv.includes(`--${name}`);
@@ -208,14 +211,18 @@ function identity(caseFilter?: string): { turns: number; changed: string[] } {
 }
 
 // ---------------------------------------------------------------------------
-// The `ofAsMultiplication` arm. Unlike `speechNormalization` this switch fires
-// on written text, so its gate is not identity but Lorenzo's condition of 27
-// Oct: typed output may only **gain verified-correct claims or lose false
-// flags** — 0 new flags, 0 new corrections, and every changed turn read. So
-// every changed turn is listed, with what it gained and what it lost.
-function ofArm(caseFilter?: string): void {
+// A one-switch arm. `ofAsMultiplication` and `scaleWordReading` both fire on
+// written text, so their gate is not identity but Lorenzo's condition of 27
+// Oct: output may only **gain verified-correct claims or lose false flags** —
+// 0 new flags, 0 new corrections, and every changed turn read. So every changed
+// turn is listed, with what it gained and what it lost. `spoken` reads the same
+// corpus the way STT would hand it over, which is where a scale word lives.
+function switchArm(label: string, onOpts: CandidateMathOptions, spoken: boolean, caseFilter?: string): void {
   const { runs } = loadCorpus(ROOT, id => getCaseById(id) as never);
-  const OF_ON = { spokenReadings: true, ofAsMultiplication: true };
+  // `--sn` reads both sides with `speechNormalization` on, the arm a spoken
+  // measurement belongs in (the switch under test is then the only difference).
+  const base = { spokenReadings: true, speechNormalization: has('sn') };
+  const OF_ON = { ...base, ...onOpts };
   let turns = 0, changed = 0;
   const gained: string[] = [];
   const lostClaims: string[] = [];
@@ -228,8 +235,9 @@ function ofArm(caseFilter?: string): void {
     for (const t of run.turns) {
       if (t.seeded || !t.candidateText) continue;
       turns++;
-      const off = checkCandidateMath(t.candidateText, caseData, t.revealedBefore, OFF);
-      const on = checkCandidateMath(t.candidateText, caseData, t.revealedBefore, OF_ON);
+      const text = spoken ? toSpokenText(t.candidateText, {}) : t.candidateText;
+      const off = checkCandidateMath(text, caseData, t.revealedBefore, base);
+      const on = checkCandidateMath(text, caseData, t.revealedBefore, OF_ON);
       if (JSON.stringify(off) === JSON.stringify(on)) continue;
       changed++;
       const at = `${run.id.slice(-8)} t${t.t}`;
@@ -242,7 +250,7 @@ function ofArm(caseFilter?: string): void {
       for (const v of off.verified) if (!on.verified.some(x => near(x.value, v.value))) lostVerified.push(`${at} ${v.stepId} ${v.value} | ${String(v.span).replace(/\s+/g, ' ').slice(0, 200)}`);
     }
   }
-  console.log(`\n=== ofAsMultiplication — ${turns} candidate messages read as written, switch off vs on`);
+  console.log(`\n=== ${label} — ${turns} candidate messages read ${spoken ? 'as STT would hand them over' : 'as written'}, switch off vs on`);
   console.log(`    CHANGED TURNS ${changed}`);
   console.log(`    CLAIMS GAINED ${gained.length} (correct ${gained.filter(g => g.startsWith('[correct]')).length}, unclear ${gained.filter(g => g.startsWith('[unclear]')).length}, INCORRECT ${gained.filter(g => g.startsWith('[incorrect]')).length})`);
   console.log(`    CLAIMS LOST ${lostClaims.length}   NEW FLAGS ${newFlags.length}   FLAGS REMOVED ${lostFlags.length}   VERIFIED FIGURES LOST ${lostVerified.length}`);
@@ -253,7 +261,9 @@ function ofArm(caseFilter?: string): void {
 
 function main(): void {
   const only = arg('arm');
-  if (only === 'of') { ofArm(arg('case')); return; }
+  if (only === 'of') { switchArm('ofAsMultiplication', { ofAsMultiplication: true }, false, arg('case')); return; }
+  if (only === 'scale') { switchArm('scaleWordReading', { scaleWordReading: true }, false, arg('case')); return; }
+  if (only === 'scale-spoken') { switchArm('scaleWordReading, spoken', { scaleWordReading: true }, true, arg('case')); return; }
   if (only === 'identity') {
     const { turns, changed } = identity(arg('case'));
     console.log(`\n=== typed identity — ${turns} candidate messages read as written, switch off vs on`);

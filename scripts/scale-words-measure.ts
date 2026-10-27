@@ -29,6 +29,7 @@ import { switchOn } from '@/lib/cases/engine-switches';
 import { checkCandidateMath } from '@/lib/orchestrator/recompute';
 import { normalizeNumberWords } from '@/lib/number-words';
 import { normalizeSpeech } from '@/lib/orchestrator/speech-normalize';
+import { absorbScaleWords } from '@/lib/orchestrator/scale-words';
 import { toSpokenText } from './speech-replay';
 
 const arg = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
@@ -39,23 +40,11 @@ const ROOT = arg('root') ?? process.env.CORPUS_ROOT ?? 'Case Interview Runs';
 // The simulated absorption. Applied to the text the reader would see — after
 // `normalizeSpeech` and `normalizeNumberWords`, which is where "200 thousand"
 // and "40 cents" exist as such.
-const N = String.raw`\d[\d,]*(?:\.\d+)?`;
-const SUFFIX: Record<string, string> = { thousand: 'k', million: 'm', billion: 'b' };
-
-export function absorbUnits(text: string): string {
-  return text
-    // "six dollars and twenty cents" → $6.20
-    .replace(new RegExp(`(${N})\\s+dollars?\\s+and\\s+(\\d{1,2})\\s+cents?(?![a-z])`, 'gi'),
-      (_m, d: string, c: string) => `$${d}.${c.padStart(2, '0')}`)
-    // "forty cents" → $0.40
-    .replace(new RegExp(`(${N})\\s+cents?(?![a-z])`, 'gi'),
-      (_m, c: string) => `$${(Number(c.replace(/,/g, '')) / 100).toFixed(2)}`)
-    // "six dollars" / "six bucks" → $6
-    .replace(new RegExp(`(${N})\\s+(?:dollars?|bucks)(?![a-z])`, 'gi'), (_m, d: string) => `$${d}`)
-    // "two hundred thousand" → 200k, "$320 million" → $320m
-    .replace(new RegExp(`(${N})\\s+(thousand|million|billion)(?![a-z])`, 'gi'),
-      (_m, d: string, w: string) => `${d}${SUFFIX[w.toLowerCase()]}`);
-}
+// One definition of the absorption, shared with the feature it measured:
+// `lib/orchestrator/scale-words.ts` (switch `scaleWordReading`). The simulation this
+// script ran on 27 Oct *became* that function unchanged, so the numbers below and the
+// shipped reading cannot drift apart.
+export const absorbUnits = absorbScaleWords;
 
 // The reader's own front end, so the pre-pass sees the text the reader sees.
 const asRead = (text: string, speech: boolean) => normalizeNumberWords(speech ? normalizeSpeech(text) : text);

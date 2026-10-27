@@ -80,7 +80,16 @@ export const PHASE1_SWITCHES = [
 // → 11/16 (fc290dc0 t20's "about 5 points" went error/medium → unverifiable/low), a missed real error that no code
 // guard caused — the answer sheet dropped nothing in either arm. The asynchronous variant is in the round-2 report's
 // §E. Out of every preset; nameable for evaluation only.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations'] as const;
+// `scaleWordReading` (27 Oct, follow-up 2) absorbs a scale or currency word that follows a figure
+// ("200 thousand" → 200k, "forty cents" → $0.40), which is the largest single thing the reader still
+// cannot read on spoken text: 589 claims it verifies and 14 points of verified figures (62.0 → 76.4 per
+// 100 turns against the written form's 83.3). Lorenzo's ruling of 27 Oct is the reading "never a flag,
+// `correct` allowed": a claim the absorbed reading would rate `incorrect` comes out `unclear`, and the
+// second pass is strictly additive, so no claim or verdict of today's reading can move. He approved the
+// reading, not the preset — **out of every preset until he rules on that separately** (and 50 of the 589
+// are hand-verified in `.superpowers/sdd/2026-10-22-phase1/voice-math-round3-report.md` §2: 50/50 verify
+// right work).
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'scaleWordReading'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];

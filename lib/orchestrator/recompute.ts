@@ -428,10 +428,15 @@ export type CandidateMath = {
 //     spoken arithmetic reaches a verdict at all (lib/orchestrator/speech-normalize.ts);
 //   `ofAsMultiplication` (27 Oct, switch `ofAsMultiplication`): "ten percent of
 //     forty two is four point two" — `of` read as × between a share and a
-//     figure, and nowhere else (lib/orchestrator/of-multiplication.ts).
+//     figure, and nowhere else (lib/orchestrator/of-multiplication.ts);
+//   `scaleWordReading` (27 Oct, switch `scaleWordReading`): a scale or currency
+//     word after a figure is absorbed into it ("200 thousand" → 200k, "forty
+//     cents" → $0.40), so the figure keeps its magnitude
+//     (lib/orchestrator/scale-words.ts). Such a claim may verify but may never
+//     flag, and it may never silence a flag either — see `absorbed` below.
 // Off — every other call site, and every case without the switch — behaviour is
 // unchanged.
-export type CandidateMathOptions = { spokenReadings?: boolean; speechNormalization?: boolean; ofAsMultiplication?: boolean };
+export type CandidateMathOptions = { spokenReadings?: boolean; speechNormalization?: boolean; ofAsMultiplication?: boolean; scaleWordReading?: boolean };
 
 export function checkCandidateMath(candidateText: string, caseData: MathCaseData, revealedIds: Iterable<string>, opts?: CandidateMathOptions): CandidateMath {
   const ids = [...revealedIds];
@@ -451,7 +456,11 @@ export function checkCandidateMath(candidateText: string, caseData: MathCaseData
     // The result of correct stated arithmetic in its sentence: their own
     // operands, worked right — which quantity it is is the checker's call
     // (money at any scale: "5,000 × 56 × $10 = $2.8M").
-    && !arithmetic.some(a => a.verdict === 'correct' && sameSentence(a.span, f.span) && [1, 1e3, 1e6, 1e9].some(k => near(Math.abs(a.stated) / k, f.candidateValue)))
+    // A claim read only by absorbing a scale word may not do this. It may add
+    // evidence and it may never flag (`scaleWordReading`), and silencing a step
+    // flag is the same harm as a false flag read backwards: a false `correct`
+    // would shield a real error from ever being probed (Lorenzo, 27 Oct).
+    && !arithmetic.some(a => a.verdict === 'correct' && !a.absorbed && sameSentence(a.span, f.span) && [1, 1e3, 1e6, 1e9].some(k => near(Math.abs(a.stated) / k, f.candidateValue)))
     // A hundred times off is another quantity (120,000 passengers a year against 60 a flight).
     && !(f.expected !== 0 && f.candidateValue !== 0 && Math.abs(Math.log10(Math.abs(f.candidateValue / f.expected))) >= 2));
   // Report-only until the case's step binding is validated (Larkspur: 19 false corrections).
