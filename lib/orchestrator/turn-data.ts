@@ -10,6 +10,7 @@ import { switchOn } from '@/lib/cases/engine-switches';
 import { saysPhrase } from '@/lib/cases/case-notes-draft';
 import { judgeVerdict, type JudgeAsk } from '@/lib/cases/item-judge-draft';
 import { asyncJudgeVerdict } from '@/lib/cases/async-judge-draft';
+import { liveJudgeVerdict } from '@/lib/cases/live-judge-draft';
 import { selfCorrection, correctionLine } from './self-correct';
 import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS, refusedItemIds } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
@@ -799,6 +800,18 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     const real = c.changes.filter(x => x.rule !== 'exhibit_last');
     if (opts.log && real.length > 0) plan.ctx.checks.act('compose_data', 'the data slot (Phase 2 C2): no line the say already spoke, no deferral of what this turn gives', { changes: real });
   }
+  // `liveAskJudge` (Lorenzo, 27 Oct; measurement): the judge's verdict on this message, if it is in before code decides
+  // (or speaks) the data line: "none" on an item about to be pointed at or restated → refused instead (the refusal
+  // wording below decides assertive or assumption); "full" for a held item code would refuse → released, gate
+  // permitting. Never "partial"; never waits. What it doesn't act on goes to asyncAskJudge next turn.
+  if (switchOn(plan.state.caseData, 'liveAskJudge')) {
+    const asks = liveJudgeVerdict(plan.state.caseData.id, plan.ctx.candidateText);
+    if (asks) {
+      const r = applyLiveJudge(plan, data, asks);
+      data = r.data;
+      if (opts.log && r.changes.length > 0) plan.ctx.checks.act('live_judge', 'the judge\'s verdict in time on this message: a pointer refused, or a refusal released (liveAskJudge, measurement)', { changes: r.changes });
+    }
+  }
   // Refusal wording (`refusalAssume`; Lorenzo, 27 Oct; measurement only): "I don't have X" asserts absence — the claim
   // that goes false. Each refusal is read once:
   //   names an item not yet out → a deferral of that item (never "assume" for ledger data still to come);
@@ -889,6 +902,44 @@ async function assumeRefusals(plan: ModelPlan, d: TurnData, modelSay: string): P
     out.assumes!.push(r);
     changes.push({ what: r, to: `assume${checkNone ? ' (check none, model silent)' : modelRefused ? ' (model refused, no check none)' : ''}` });
   }
+  return { data: out, changes };
+}
+function applyLiveJudge(plan: ModelPlan, d: TurnData, asks: JudgeAsk[]): { data: TurnData; changes: { kind: 'none' | 'full'; what: string; item: string }[] } {
+  const { ledger, factBase: fb, caseData, shownExhibitIds, stagesOut } = plan.state;
+  const caseNames = properNames(caseData.sttKeyterms);
+  const nouns = (t: string) => keyNouns(t, caseNames);
+  const shares = (a: string, b: string) => { const n = nouns(b); return [...nouns(a)].some(w => n.has(w)); };
+  const itemOf = (id: string) => ledger.items.find(i => i.id === id);
+  const out: TurnData = { ...d, releases: [...d.releases], restates: [...d.restates], refusals: [...d.refusals], requests: d.requests.map(r => ({ ...r })) };
+  const changes: { kind: 'none' | 'full'; what: string; item: string }[] = [];
+  const exhibitsInfo = caseData.exhibits.map(e => ({ id: e.id, title: e.title, coversLedgerItems: e.coversLedgerItems, after: e.after, requiresItems: e.requiresItems }));
+  const releasable = (id: string) => canReveal(ledger, id) && !(ptGateOn(plan) && isGatedItem(ledger, id)) && !heldForOrder(id, exhibitsInfo, shownExhibitIds, ledger, stagesOut) && out.releases.length < RELEASE_CAP;
+  // (a) "none" on an item about to be pointed at or restated for that ask.
+  for (const r of d.restates) {
+    const whats = d.requests.filter(x => x.request.explicit && x.ledgerItemIds.includes(r.id)).map(x => x.request.what);
+    const i = itemOf(r.id);
+    if (!i) continue;
+    const a = asks.find(k => k.items.length === 0 && whats.some(w => shares(w, k.ask)));
+    if (!a) continue;
+    const what = whats.find(w => shares(w, a.ask))!;
+    if (/\d/.test(what) || findFalseRefusals(`I don't have ${what}.`, fb, new Set([...ledger.revealed, ...out.releases.map(x => x.id)]), { covers: true }).length > 0) continue;
+    if (coverageOf(what, fb).items.some(id => !ledger.revealed.has(id))) continue;
+    out.restates = out.restates.filter(x => x.id !== r.id);
+    if (!out.refusals.some(x => normAsk(x) === normAsk(what))) out.refusals.push(what);
+    changes.push({ kind: 'none', what, item: r.id });
+  }
+  // (b) "full" for a held item where code would refuse.
+  out.refusals = out.refusals.flatMap(p => {
+    if (changes.some(c => c.kind === 'none' && c.what === p)) return [p];
+    const a = asks.find(k => shares(p, k.ask));
+    const id = a?.items.find(x => x.answers === 'full' && !x.id.startsWith('prompt:') && !ledger.revealed.has(x.id) && !out.releases.some(r => r.id === x.id)
+      && (shares(p, `${itemOf(x.id)?.label ?? ''} ${itemOf(x.id)?.value ?? ''}`) || coverageOf(p, fb).items.includes(x.id)) && releasable(x.id))?.id;
+    if (!id) return [p];
+    out.releases.push({ id, value: itemOf(id)!.value, earlier: false });
+    out.requests.push({ request: { what: p, itemIds: [id], explicit: true, respond: 'release' }, response: 'release', ledgerItemIds: [id] });
+    changes.push({ kind: 'full', what: p, item: id });
+    return [];
+  });
   return { data: out, changes };
 }
 // Arm B: each restatement and refused part is matched (by key nouns) to the judge's ask; the judge's items decide:

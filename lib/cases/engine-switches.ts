@@ -64,12 +64,13 @@ export const PHASE1_SWITCHES = [
 // (evals/case-notes-draft/) as cover phrases and not-held phrases. Never in a preset.
 // `itemJudge` (27 Oct, item-choice experiment arm B — measurement only): recorded Sonnet-judge verdicts (ITEM_JUDGE_VERDICTS)
 // decide the item on restatements and refusals. Never in a preset.
+// `liveAskJudge` (27 Oct, Lorenzo — measurement): the judge from message arrival, used this turn if in time (LIVE_JUDGE_*).
 // `asyncAskJudgePartial` (27 Oct, Lorenzo — measurement): asyncAskJudge also acts on "partial" after a pointer or
 // restatement ("To be precise: … shows …, but not <the candidate's words>, and I don't have that."). Folds into
 // asyncAskJudge if it passes its gate.
 // `askCheckRawMessage` (27 Oct, Lorenzo — measure first): the ask check (classifyAsk) reads the candidate's raw message
 // with the declared ask as a hint, plus the prompt's facts. Off and outside every preset.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge', 'askCheckRawMessage', 'asyncAskJudgePartial'] as const;
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge', 'askCheckRawMessage', 'asyncAskJudgePartial', 'liveAskJudge'] as const;
 // Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
 // step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
 // structures would decide and say, and change nothing the candidate hears.
