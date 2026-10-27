@@ -13,7 +13,7 @@ import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog,
 import { askingSentences, addressedAskSentences, lateAskSentences, requestSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, saysItemName, WANT_ASK_PHASES } from './request-signal';
 import { tagsAgree, askGroups, askClauses, askTags, itemTagsAgree } from './item-tags';
 import { correctsNow } from './math-checker-live';
-import { shadowAskDecision, applyAskRefusals, applyModelKeep } from './ask-decision';
+import { shadowAskDecision, applyAskRefusals, applyModelKeep, applyMatches } from './ask-decision';
 import { composeDataSlot, dropContradictedRefusals, wontGetToRemainder } from './turn-composer';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
 import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, coversAskedWords, askQualifiers, type Qualifier } from './ask-qualifiers';
@@ -711,7 +711,8 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
   let data = today;
   const refusalsOn = switchOn(plan.state.caseData, 'askRefusals');
   const keepOn = switchOn(plan.state.caseData, 'askModelKeep');
-  if (refusalsOn || keepOn) {
+  const matchesOn = switchOn(plan.state.caseData, 'askMatches');
+  if (refusalsOn || keepOn || matchesOn) {
     // The model's own declarations as it made them (R2 must see what release_checked withdrew), then the message's asks.
     const original = opts.modelRequests ?? [];
     const model = [...original, ...turn.requests.filter(r => !original.some(o => o.what === r.what))];
@@ -726,6 +727,13 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
       const k = applyModelKeep(data, decision.asks, id => canReveal(ledger, id), RELEASE_CAP, id => ledger.items.find(i => i.id === id)?.value ?? '');
       data = k.data;
       if (opts.log && k.changes.length > 0) plan.ctx.checks.act('ask_model_keep', 'a model-named item that matches the ask, kept (Phase 2 S3, R2)', { changes: k.changes });
+    }
+    if (matchesOn) {
+      const { ledger } = plan.state;
+      const m = applyMatches(data, decision.asks, { canGive: id => canReveal(ledger, id), cap: RELEASE_CAP, lineOf: id => ledger.items.find(i => i.id === id)?.value ?? '',
+        spoken: id => { const i = ledger.items.find(x => x.id === id); return i ? i.spoken ?? spokenItemName(i.label) : id; } });
+      data = m.data;
+      if (opts.log && m.changes.length > 0) plan.ctx.checks.act('ask_matches', 'a sub-ask R3 or R4 matches: its release, cut or gate/order deferral in place of today\'s (Phase 2 S4)', { changes: m.changes });
     }
   }
   // Phase 2 S3 (`refusalContradiction`): no refused part a line this turn gives states (turn-composer.ts).

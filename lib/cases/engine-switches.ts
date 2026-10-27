@@ -68,6 +68,7 @@ export const PHASE2_SWITCHES = [
   'wontGetToGiven',      // S3: a wrap-up "We won't get to …" says only the parts nothing given since states
   'askModelKeep',        // S3: R2 live — a model-named item that matches the ask is kept (today's scope drop and release_checked withdrawal)
   'composeSetup',        // C3: after a spoken acknowledgment, setup sentences travel with their question (else streamed as today)
+  'askMatches',          // S4: R3/R4 live — a matched sub-ask's release (E1 cut beside it) or gate/order deferral in place of today's
 ] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES, ...PHASE2_SWITCHES] as const;
 

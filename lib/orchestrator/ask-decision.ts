@@ -535,3 +535,79 @@ export function applyModelKeep(d: TurnData, asks: AskDecided[], canGive: (id: st
   }
   return { data: out, changes };
 }
+
+// ── S4 (`askMatches`; design §2.4 R3/R4; Lorenzo's GO, 27 Oct) ──
+// The decision's matches, live: a declared sub-ask that R3 (a Haiku positive past the tag gate) or R4 (a deterministic
+// match — covers, names, detections, groups — past the tag gate) decides now gets that outcome in place of today's:
+//   - released where today said nothing, deferred or refused it (E1: the cut refused beside it when R3/R4 found one);
+//   - released with no cut where today released it and refused a cut beside it: that refusal goes;
+//   - a gate or order deferral of the matched items where today said nothing or pointed elsewhere.
+// Never over a deferral today makes (S3's rule: b33 5cfdf48e t2 would have released the store count over the model's
+// "before any data" deferral), and never a refusal turned into a deferral (S2's ruling, no hollow deferral: b39q
+// dd74b01b t2's "split of Starter sign-ups" refusal would have gone behind a deferral of the churn rates). Built over today's decisions as S2 and S3 are (the old A2–A8 passes still run, and their check calls are the only
+// ones made: the decision reads the turn's cached verdicts). S4 never withdraws a release today makes (b32 6e… t6:
+// release → order deferral, logged only), and never refuses what a sub-ask R6 doesn't refuse.
+export type MatchChange = { words: string; rule: 'R3' | 'R4'; from: AskDecided['old']; to: 'release' | 'defer'; added: string[]; removed: string[]; refused?: string; why?: DeferWhy };
+const PARTS = /\s*(?:,\s*(?:and|or)?\s*|\s+(?:and|or)\s+)(?=(?:the|a|an|data|whether|how|what|its|their|[A-Z]|\w+(?:'s)?\s))/;
+export function applyMatches(d: TurnData, asks: AskDecided[], x: { canGive: (id: string) => boolean; cap: number; lineOf: (id: string) => string; spoken: (id: string) => string }): { data: TurnData; changes: MatchChange[] } {
+  const out: TurnData = { ...d, releases: [...d.releases], refusals: [...d.refusals], defers: [...d.defers], gateDefers: [...d.gateDefers], gatedIds: [...d.gatedIds], requests: d.requests.map(r => ({ ...r })) };
+  const changes: MatchChange[] = [];
+  const given = () => new Set([...out.releases.map(r => r.id), ...out.restates.map(r => r.id), ...(out.exhibit?.covers ?? [])]);
+  const refused = asks.filter(a => a.outcome === 'refuse');
+  // A refused part this sub-ask owns: it shares a key noun with the sub-ask (or a model `what` aligned to it) and with
+  // no sub-ask the decision itself refuses.
+  const owns = (a: AskDecided, part: string) => (near(part, a.words) || a.whats.some(w => near(part, w))) && !refused.some(r => r !== a && (near(part, r.words) || (r.cut !== undefined && near(part, r.cut))));
+  const dropParts = (a: AskDecided, keep: (part: string) => boolean): string[] => {
+    const removed: string[] = [];
+    out.refusals = out.refusals.flatMap(r => {
+      const parts = r.split(PARTS).map(p => p.trim()).filter(Boolean);
+      const left = parts.filter(p => !owns(a, p) || keep(p));
+      if (left.length === parts.length) return [r];
+      removed.push(...parts.filter(p => !left.includes(p)).map(p => `refuse: ${p}`));
+      return left.length > 0 ? [left.join(' or ')] : [];
+    });
+    return removed;
+  };
+  const dropDefers = (a: AskDecided): string[] => {
+    const hit = out.defers.filter(w => owns(a, w));
+    out.defers = out.defers.filter(w => !hit.includes(w));
+    return hit.map(w => `defer: ${w}`);
+  };
+  for (const a of asks) {
+    if (!a.declared || (a.rule !== 'R3' && a.rule !== 'R4')) continue;
+    if (a.outcome === 'release' && !a.agree && (a.old === 'none' || a.old === 'refuse')) {
+      const g = given();
+      const room = Math.max(0, x.cap - out.releases.length);
+      const add = a.items.filter(id => !g.has(id) && x.canGive(id)).slice(0, room);
+      if (add.length === 0) continue;
+      for (const id of add) out.releases.push({ id, value: x.lineOf(id), earlier: false });
+      const cutWords = a.cut ? spokenRefusal(a.cut) : '';
+      const removed = [...dropParts(a, () => false), ...dropDefers(a)];
+      if (cutWords && !out.refusals.some(r => near(r, cutWords))) out.refusals.push(cutWords);
+      out.requests.push({ request: { what: a.whats[0] ?? a.words, itemIds: add, explicit: true, respond: 'release' }, response: 'release', ledgerItemIds: add });
+      changes.push({ words: a.words, rule: a.rule, from: a.old, to: 'release', added: add, removed, ...(cutWords ? { refused: cutWords } : {}) });
+    } else if (a.outcome === 'release' && a.old === 'release' && !a.cut) {
+      // Released, and nothing finer asked: today's cut refusal beside the same item goes, when the item's line states it.
+      const g = given();
+      const items = a.items.filter(id => g.has(id));
+      if (items.length === 0) continue;
+      const removed = dropParts(a, () => false);
+      if (removed.length > 0) changes.push({ words: a.words, rule: a.rule, from: a.old, to: 'release', added: [], removed });
+    } else if (a.outcome === 'defer' && (a.why === 'gate' || a.why === 'order') && !a.agree && (a.old === 'none' || a.old === 'point')) {
+      const held = a.items.filter(id => !given().has(id));
+      if (held.length === 0) continue;
+      const removed = dropParts(a, () => false);
+      // Today's deferral of these items already said: nothing added.
+      const said = out.requests.some(r => r.response === 'defer' && r.ledgerItemIds.some(id => held.includes(id)) && [...out.defers, ...out.gateDefers].length > 0);
+      if (!said && !a.wont) {
+        const words = [...new Set(held.map(x.spoken))].join(' and ');
+        (a.why === 'gate' ? out.gateDefers : out.defers).push(words);
+        if (a.why === 'gate') out.gatedIds.push(...held.filter(id => !out.gatedIds.includes(id)));
+        out.requests.push({ request: { what: words, itemIds: held, explicit: true, respond: 'defer' }, response: 'defer', ledgerItemIds: held });
+      }
+      if (removed.length === 0 && said) continue;
+      changes.push({ words: a.words, rule: a.rule, from: a.old, to: 'defer', added: said || a.wont ? [] : held, removed, why: a.why });
+    }
+  }
+  return { data: out, changes };
+}
