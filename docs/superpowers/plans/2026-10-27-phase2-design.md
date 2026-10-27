@@ -1241,3 +1241,39 @@ These were fixed by the release-order, exhibit and answered-now tests above, the
 ## 27. Judge cost note
 
 On Haiku 4.5 the judge's prompt doesn't cache (it is under the minimum cacheable size), so a call costs nearly as much as Sonnet's cached call ($0.0026 against $0.0034), for far lower accuracy (§25).
+
+## 28. `asyncAskJudge` in the preset; "partial" corrections and the live variant measured — both failed (27 Oct)
+
+**`asyncAskJudge` is in the `phase2` preset** (Lorenzo). It takes verdicts from `ASYNC_JUDGE_VERDICTS` in replay. **The live background call is not built.** Under the never-charge-twice rule it needs an atomic per-turn claim, a unique key on (session, turn), which means a migration. It also needs a decision on where background work runs (the serverless route or the voice agent's process). Both are Lorenzo's to rule on.
+
+**"Partial" corrections** (`asyncAskJudgePartial`, off). These act on a Sonnet "partial" only after a pointer or restatement:
+- the candidate's words are quoted by clause match from their own message;
+- the finer part (the clause with every held item's names and cover phrases taken out) matches no held item;
+- the three placement checks apply.
+
+Template: "To be precise: X shows Y, but not <their words>, and I don't have that."
+
+The free replay gave 13 corrections in 150 interviews:
+- 2 pointer records corrected on substance: b39q-raj-t22 (well worded) and b39q-raj-t28 (broken grammar);
+- **1 false correction:** b39l 94f273c5 t14 says "not lease expiry dates", but the leases line says "through 2030";
+- **1 meaningless:** b39a t12 quotes a conditional clause, not an ask;
+- **4 with broken quotes:** "but not are route-specific…", "but not and what share…", "but not and whether…", "but not how have fares … moved";
+- the other 5 are true and readable.
+
+**Failed; stopped** per Lorenzo's rule.
+
+**Live if in time** (`liveAskJudge`, off). The judge starts at message arrival. Its verdict is used this turn if it is in by the recorded `model_requests_closed` (`decide`) or `data_line_delivered` (`spoken`): (a) "none" on an item about to be pointed at or restated → the refusal path; (b) "full" for a held item code would refuse → released, gates permitting.
+
+| | Verdicts in time (of the 192 eligible turns) | Live acts | Right | Wrong | Prevented live / corrected next turn / missed (of 7 actionable) | Bank |
+|---|---|---|---|---|---|---|
+| `decide` | 94 (49%) | 1 | 0 | 1 | 1 / 6 / 0 | true refusals 19/19, correct 95/95, unchanged |
+| `spoken` | 142 (74%) | 5 | 1 (seasonality) | 4 | 5 / 2 / 0 | true refusals 18/19, correct 94/95 (b36a-jasmine-t4 lost) |
+
+26 of the 192 verdicts come from older runs with no timing marks, counted as not in time.
+
+Why the live acts went wrong:
+- (a) takes its refusal words from the model's declared ask, which names the item the model chose. The result tells the candidate to assume held data: "For variable cost per flight and flights per year…", "Kelvexa's forecast peak share", "results on the other four routes".
+- The ask↔pointer match on one shared noun ("route") paired a "none" with the wrong restatement.
+- (b) matched a true "trend since 2022" refusal to the funnel item and dropped it.
+
+**Failed on false statements in both variants; stopped.** Next-turn correction (`asyncAskJudge`) stays the only judge path.
