@@ -3,7 +3,7 @@ import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { FaultRecordSchema, type FaultRecord } from '@/lib/eval/fault-bank';
-import { SpecSchema, specToRecord, sliceOf, isReportRecord, itemLinesOf } from '@/lib/eval/fault-bank-build';
+import { SpecSchema, specToRecord, sliceOf, sliceOfWave, sliceRoot, isReportRecord, itemLinesOf } from '@/lib/eval/fault-bank-build';
 import { evaluateRecord } from '@/lib/eval/fault-bank-assert';
 import { readTurnFile } from '@/lib/eval/turn-file';
 import { getCaseById } from '@/lib/cases/loader';
@@ -51,6 +51,8 @@ describe('the fault bank', () => {
 // Against the recordings themselves (the main checkout's corpus; skipped where it isn't): a fault record's
 // assertions describe the right behaviour, so they fail on the recorded fault; a correct record's pass.
 const ROOT = process.env.REPLAY_ROOT ?? '/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs';
+// Batch 39's runs live in the phase1 worktree's corpus (the slice's `root`).
+const rootOf = (wave: string) => { const s = sliceOfWave(wave); return s ? sliceRoot(s, ROOT) : ROOT; };
 describe.skipIf(!existsSync(ROOT))('the fault bank on its recordings', () => {
   it('every fault record fails and every correct record passes on the recorded turn file', () => {
     const views = new Map<string, Parameters<typeof evaluateRecord>[2]>();
@@ -59,7 +61,7 @@ describe.skipIf(!existsSync(ROOT))('the fault bank on its recordings', () => {
       return views.get(caseId)!;
     };
     const wrong = recs.filter(r => !isReportRecord(r)).filter(r =>
-      evaluateRecord(r, readTurnFile(path.join(ROOT, r.turnFile)).turns, view(r.caseId)).pass !== (r.kind === 'correct')).map(r => r.id);
+      evaluateRecord(r, readTurnFile(path.join(rootOf(r.wave), r.turnFile)).turns, view(r.caseId)).pass !== (r.kind === 'correct')).map(r => r.id);
     expect(wrong).toEqual([]);
   });
 });
