@@ -1,0 +1,785 @@
+[
+ {
+  "turn": "35740806:12",
+  "records": [
+   "b39a-raj-t12-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "score": "over_full",
+  "why": "European share none \u2713, but \"what competes\" rated current_treatment full \u2014 its line is US-only"
+ },
+ {
+  "turn": "257e027f:8",
+  "records": [
+   "b39a-marcus-t8-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "score": "spurious_ask",
+  "why": "no data ask in the message; the judge invented one (European net price) \u2014 outcome none, harmless"
+ },
+ {
+  "turn": "5bc506bc:24",
+  "records": [
+   "b39a-marisol-t24-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "score": "ok",
+  "why": "option_b partial, missing = the royalty term"
+ },
+ {
+  "turn": "4df38465:22",
+  "records": [
+   "b39a-tyler-t22-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "score": "none_where_held",
+  "why": "\"none\" for whether the board test is on booked revenue \u2014 the prompt sets the bar (ruled: no refusal); prompt facts are not in the judge input"
+ },
+ {
+  "turn": "cdb8ca52:4",
+  "records": [
+   "b34a-marcus-t4-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "na",
+  "why": "no data ask in the message"
+ },
+ {
+  "turn": "6bbc2163:4",
+  "records": [
+   "b36a-jasmine-t4-coarse-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "trend since 2022 none"
+ },
+ {
+  "turn": "c518221e:10",
+  "records": [
+   "b36a-marcus-t10-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "growth: funnel partial + missing (no item full)"
+ },
+ {
+  "turn": "34eb553a:10",
+  "records": [
+   "b36a-tyler-t10-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "European share curve none"
+ },
+ {
+  "turn": "a1133734:24",
+  "records": [
+   "b34a-marisol-t24-one-off-cost"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "one-off cost: option_a partial + missing"
+ },
+ {
+  "turn": "c518221e:24",
+  "records": [
+   "b36a-marcus-t24-split-restated"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "$80M split: partial + missing"
+ },
+ {
+  "turn": "6f57da6e:6",
+  "records": [
+   "b36a-marisol-t6-growth-restated"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "pool growth: partial + missing"
+ },
+ {
+  "turn": "fc5eb050:12",
+  "records": [
+   "b34a-tyler-t12-trial-release"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "trial_comparison full"
+ },
+ {
+  "turn": "fc5eb050:20",
+  "records": [
+   "b34a-tyler-t20-pipeline-release"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "pipeline partial (US-bound not stated)"
+ },
+ {
+  "turn": "cdb8ca52:14",
+  "records": [
+   "b34a-marcus-t14-patents-release"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "patents + option_b partial (coarse)"
+ },
+ {
+  "turn": "fc5eb050:4",
+  "records": [
+   "b34a-tyler-t4-gate-deferral"
+  ],
+  "class": "correct",
+  "score": "na",
+  "why": "no data ask"
+ },
+ {
+  "turn": "6f57da6e:14",
+  "records": [
+   "b36a-marisol-t14-coverage"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "insurance_coverage partial (coarse)"
+ },
+ {
+  "turn": "3fdb20e8:24",
+  "records": [
+   "b36a-raj-t24-option-b"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "options partial"
+ },
+ {
+  "turn": "6f57da6e:2",
+  "records": [
+   "b36a-marisol-t2-deferral"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "funnel_rates full"
+ },
+ {
+  "turn": "6f57da6e:8",
+  "records": [
+   "b36a-marisol-t8-exhibit"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "option_shared full (net price $8,000) \u2014 correct"
+ },
+ {
+  "turn": "34eb553a:16",
+  "records": [
+   "b36a-tyler-t16-exhibit"
+  ],
+  "class": "correct",
+  "score": "na",
+  "why": "no data ask"
+ },
+ {
+  "turn": "70a06d70:6",
+  "records": [
+   "b35h-marcus-t6-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "chip volume: why_now partial + missing"
+ },
+ {
+  "turn": "a14ca044:6",
+  "records": [
+   "b35h-marisol-t6-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "category volume: partial + missing"
+ },
+ {
+  "turn": "52951de8:22",
+  "records": [
+   "b35h-tyler-t22-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "repeat rate none"
+ },
+ {
+  "turn": "11414946:12",
+  "records": [
+   "b37h-raj-t12-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "turns none; store count partial"
+ },
+ {
+  "turn": "7f6c40ea:14",
+  "records": [
+   "b37h-marisol-t14-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "segment size none"
+ },
+ {
+  "turn": "7f6c40ea:20",
+  "records": [
+   "b37h-marisol-t20-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "repeat beyond year one: partial + missing"
+ },
+ {
+  "turn": "442e37ff:18",
+  "records": [
+   "b37h-tyler-t18-method-restated"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "500,000 method: partial + missing"
+ },
+ {
+  "turn": "a14ca044:14",
+  "records": [
+   "b35h-marisol-t14-retailer-release"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "store count: retailer_support partial"
+ },
+ {
+  "turn": "01b805d6:26",
+  "records": [
+   "b35h-raj-t26-cannibalization"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "cannibalization partial"
+ },
+ {
+  "turn": "11414946:10",
+  "records": [
+   "b37h-raj-t10-retailer"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "retailer_support partial"
+ },
+ {
+  "turn": "7f6c40ea:16",
+  "records": [
+   "b37h-marisol-t16-correction"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "chip bags a year none (not held)"
+ },
+ {
+  "turn": "527217df:6",
+  "records": [
+   "b37h-jasmine-t6-survey"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "purchase_intent full"
+ },
+ {
+  "turn": "11414946:26",
+  "records": [
+   "b37h-raj-t26-stage-exhibit"
+  ],
+  "class": "correct",
+  "score": "na",
+  "why": "no data ask"
+ },
+ {
+  "turn": "442e37ff:16",
+  "records": [
+   "b37h-tyler-t16-exhibit"
+  ],
+  "class": "correct",
+  "score": "na",
+  "why": "no data ask"
+ },
+ {
+  "turn": "c82e7bd7:22",
+  "records": [
+   "b39q-raj-t22-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "score": "ok",
+  "why": "trend across cohorts: partial + missing"
+ },
+ {
+  "turn": "c82e7bd7:28",
+  "records": [
+   "b39q-raj-t28-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "score": "ok",
+  "why": "features full; downgrading partial + missing"
+ },
+ {
+  "turn": "dcc6774f:22",
+  "records": [
+   "b39q-tyler-t22-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "score": "ok",
+  "why": "price_test_notes partial; later cohorts partial + missing"
+ },
+ {
+  "turn": "854fc080:14",
+  "records": [
+   "b39q-marisol-t14-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "score": "ok",
+  "why": "350 incl. upgrades: partial + missing"
+ },
+ {
+  "turn": "dd74b01b:12",
+  "records": [
+   "b39q-dana-t12-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "score": "ok",
+  "why": "monthly trend partial + missing; fixed cost none"
+ },
+ {
+  "turn": "c82e7bd7:10",
+  "records": [
+   "b39q-raj-t10-refusal-contradiction"
+  ],
+  "class": "target",
+  "score": "ok",
+  "why": "upgrade_timing full"
+ },
+ {
+  "turn": "854fc080:6",
+  "records": [
+   "b39q-marisol-t6-refusal-contradiction"
+  ],
+  "class": "target",
+  "score": "ok",
+  "why": "plan_prices_costs full"
+ },
+ {
+  "turn": "1f6007fd:12",
+  "records": [
+   "b39q-victor-t12-refusal-contradiction"
+  ],
+  "class": "target",
+  "score": "ok",
+  "why": "marketing spend: why_pro_fell full"
+ },
+ {
+  "turn": "5c3d2c21:22",
+  "records": [
+   "b35q-raj-t22-doubled-line"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "test-group CAC: price_test_notes full"
+ },
+ {
+  "turn": "a2a5921b:18",
+  "records": [
+   "b37q-tyler-t18-trend-restated"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "2024 trend: partial + missing"
+ },
+ {
+  "turn": "e08c362a:14",
+  "records": [
+   "b37q-raj-t14-unasked-restated"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "cohort_notes partial (label leans full)"
+ },
+ {
+  "turn": "eb8d7576:22",
+  "records": [
+   "b37q-marcus-t22-overlap"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "overlap: partial + missing"
+ },
+ {
+  "turn": "7e69eda5:8",
+  "records": [
+   "b35q-marcus-t8-deferral-delivered"
+  ],
+  "class": "correct",
+  "score": "na",
+  "why": "no data ask"
+ },
+ {
+  "turn": "7e69eda5:6",
+  "records": [
+   "b35q-marcus-t6-deferral-delivered"
+  ],
+  "class": "correct",
+  "score": "over_full",
+  "why": "\"Pro new-customer count by month\" rated full \u2014 the case holds averages only"
+ },
+ {
+  "turn": "3376e5fe:8",
+  "records": [
+   "b37q-jasmine-t8-cac"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "plan_cac full"
+ },
+ {
+  "turn": "084e7508:18",
+  "records": [
+   "b37q-marisol-t18-why-pro-fell"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "profile: partial items"
+ },
+ {
+  "turn": "e08c362a:10",
+  "records": [
+   "b37q-raj-t10-cohort"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "cohorts partial"
+ },
+ {
+  "turn": "eb8d7576:6",
+  "records": [
+   "b37q-marcus-t6-volumes"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "new_customers partial"
+ },
+ {
+  "turn": "e08c362a:8",
+  "records": [
+   "b37q-raj-t8-exhibit"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "plan_cac full, cohorts partial"
+ },
+ {
+  "turn": "c355c1fd:14",
+  "records": [
+   "b33-raj-t14-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "elasticity partial + missing; competitor pricing none"
+ },
+ {
+  "turn": "0150f744:12",
+  "records": [
+   "b33-tyler-t12-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "waste none"
+ },
+ {
+  "turn": "053db5c8:10",
+  "records": [
+   "b33-owen-t10-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "elasticity none"
+ },
+ {
+  "turn": "c355c1fd:8",
+  "records": [
+   "b33-raj-t8-exhibit"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "cost lines full/partial"
+ },
+ {
+  "turn": "2f9a71e3:2",
+  "records": [
+   "b33-jordan-t2-deferral"
+  ],
+  "class": "correct",
+  "score": "missed_ask",
+  "why": "the cost-breakdown ask is not listed at all (another ask is)"
+ },
+ {
+  "turn": "2b538541:4",
+  "records": [
+   "b33-fiona-t4-exhibit"
+  ],
+  "class": "correct",
+  "score": "na",
+  "why": "no data ask"
+ },
+ {
+  "turn": "053db5c8:4",
+  "records": [
+   "b33-owen-t4-exhibit"
+  ],
+  "class": "correct",
+  "score": "na",
+  "why": "no data ask"
+ },
+ {
+  "turn": "52904ce7:20",
+  "records": [
+   "b39l-raj-t20-refusal-contradiction"
+  ],
+  "class": "target",
+  "score": "ok",
+  "why": "new routes partial (they are the city pairs); spill none"
+ },
+ {
+  "turn": "065501fe:4",
+  "records": [
+   "b39l-marcus-t4-fuel-refusal"
+  ],
+  "class": "target",
+  "score": "ok",
+  "why": "fuel_prices partial"
+ },
+ {
+  "turn": "065501fe:14",
+  "records": [
+   "b39l-marcus-t14-refusal-contradiction"
+  ],
+  "class": "target",
+  "score": "ok",
+  "why": "benchmark full; no-LCC full"
+ },
+ {
+  "turn": "bd5a333c:2",
+  "records": [
+   "b39l-jasmine-t2-refusal-contradiction"
+  ],
+  "class": "target",
+  "score": "ok",
+  "why": "departures held (route results / network totals)"
+ },
+ {
+  "turn": "69441a66:2",
+  "records": [
+   "b39l-marisol-t2-breakdown-refusal"
+  ],
+  "class": "target",
+  "score": "ok",
+  "why": "breakdown held, partial"
+ },
+ {
+  "turn": "cee7d399:14",
+  "records": [
+   "b38l-tyler-t14-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "fare mix: partial + missing"
+ },
+ {
+  "turn": "cee7d399:16",
+  "records": [
+   "b38l-tyler-t16-answer-gate"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "frequency: partial + missing"
+ },
+ {
+  "turn": "316baba1:14",
+  "records": [
+   "b38l-marcus-t14-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "onward contribution: partial + missing"
+ },
+ {
+  "turn": "ef7bed14:8",
+  "records": [
+   "b36l-raj-t8-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "passengers / fare: partial + missing; departures full"
+ },
+ {
+  "turn": "a7d9f44e:12",
+  "records": [
+   "b36l-marcus-t12-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "quarterly partial + missing; competitor_costs full"
+ },
+ {
+  "turn": "51ad0cb8:18",
+  "records": [
+   "b34l-tyler-t18-true-refusal"
+  ],
+  "class": "true_refusal",
+  "score": "ok",
+  "why": "departure time partial + missing"
+ },
+ {
+  "turn": "cee7d399:24",
+  "records": [
+   "b38l-tyler-t24-doubled"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "elasticity partial + missing"
+ },
+ {
+  "turn": "a7d9f44e:20",
+  "records": [
+   "b36l-marcus-t20-launch-cost"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "launch costs none"
+ },
+ {
+  "turn": "4e91d638:6",
+  "records": [
+   "b36l-tyler-t6-long-restatement"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "fares partial (label leans full)"
+ },
+ {
+  "turn": "51ad0cb8:20",
+  "records": [
+   "b34l-tyler-t20-doubled-line"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "new_routes_context partial (label leans full)"
+ },
+ {
+  "turn": "3ac59856:22",
+  "records": [
+   "b34l-marcus-t22-doubled-line"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "incumbent competition full; reassignment partial + missing"
+ },
+ {
+  "turn": "e6432db0:24",
+  "records": [
+   "b34l-marisol-t24-restate-unsaid"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "startup cost none; seasoning full"
+ },
+ {
+  "turn": "3ac59856:10",
+  "records": [
+   "b34l-marcus-t10-long-restatement"
+  ],
+  "class": "restatement",
+  "score": "ok",
+  "why": "flights FY2025 full"
+ },
+ {
+  "turn": "701443f7:20",
+  "records": [
+   "b38l-raj-t20-must-reach"
+  ],
+  "class": "correct",
+  "score": "na",
+  "why": "no data ask"
+ },
+ {
+  "turn": "316baba1:24",
+  "records": [
+   "b38l-marcus-t24-must-reach"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "extras breakdown partial + missing"
+ },
+ {
+  "turn": "3f928012:20",
+  "records": [
+   "b38l-jasmine-t20-must-reach"
+  ],
+  "class": "correct",
+  "score": "na",
+  "why": "no data ask"
+ },
+ {
+  "turn": "316baba1:8",
+  "records": [
+   "b38l-marcus-t8-casm"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "route revenue/departures full"
+ },
+ {
+  "turn": "3f928012:8",
+  "records": [
+   "b38l-jasmine-t8-competitor"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "entry full; fares partial"
+ },
+ {
+  "turn": "316baba1:16",
+  "records": [
+   "b38l-marcus-t16-deferral-delivered"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "Port Avery full"
+ },
+ {
+  "turn": "a7d9f44e:16",
+  "records": [
+   "b36l-marcus-t16-leases"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "leases full"
+ },
+ {
+  "turn": "061ef630:14",
+  "records": [
+   "b34l-raj-t14-leases-release"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "fixed costs partial; FY2024 path partial + missing"
+ },
+ {
+  "turn": "e6432db0:6",
+  "records": [
+   "b34l-marisol-t6-competitor-release"
+  ],
+  "class": "correct",
+  "score": "ok",
+  "why": "entry full; route split full"
+ }
+]

@@ -981,3 +981,36 @@ The applier is mine and part of what was measured: it aligns the judge's asks to
 | ≥ 90% of turns in time | — | ✗ 61% (38% by when the data line is decided) |
 
 Neither arm meets them. Decision for Lorenzo.
+
+## 18. Arm B's raw judge verdicts scored against the hand labels (27 Oct; free; no applier)
+
+Each of the 87 labelled turns was scored by hand against its record's graded note and assertions (`evals/item-judge-draft/scores.json`). A turn is right when:
+- the item the label names is among the judge's items;
+- a refused ask gets no item rated full (partial with the refused part as `missing` counts);
+- the full / partial / none class doesn't overstate.
+
+10 turns carry no data ask in the message and are not scored.
+
+| Turn class | Scored | Right | Errors |
+|---|---|---|---|
+| Pointer | 9 | 6 (67%) | 1 overrated full, 1 "none" where the answer is held, 1 invented ask |
+| Batch-39 false refusals | 8 | 8 (100%) | — |
+| True refusals | 18 | 18 (100%) | — |
+| Restatements | 15 | 15 (100%) | — |
+| Correct records | 27 | 25 (93%) | 1 overrated full, 1 missed ask |
+| **All** | **77** | **72 (94%)** | |
+
+**Errors in detail:**
+- The one "none" where the answer is held is b39a-tyler-t22 (the board test). The prompt sets the bar, and prompt facts were not in the judge's input, so this is an input gap rather than a judging one.
+- Overrated full: b39a-raj-t12 ("what competes" in Europe → the US-only current_treatment), b35q-marcus-t6 (sign-ups "by month" → the averages).
+- Missed ask: b33-jordan-t2 (the cost breakdown is not listed).
+- Invented ask: b39a-marcus-t8.
+
+**On true refusals:** the judge never rates an item full. It says "none" on 8 of 18, and on the other 10 it says partial with the refused part as `missing`.
+
+**The arm B applier's faults were mostly the applier's:**
+- noun alignment to the wrong ask;
+- `missing` text spoken verbatim;
+- partials treated as answers.
+
+That bears on Lorenzo's async next-turn self-correction idea, which is not built.
