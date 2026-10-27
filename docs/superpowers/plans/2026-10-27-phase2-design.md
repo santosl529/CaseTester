@@ -834,3 +834,64 @@ Word coverage can't tell a finer cut from the item it sits beside. Kept off.
 The pointer fault is the item choice (which item answers the ask), not the pointer form.
 
 **Order.** On the shadow decision, S4 reaches more batch-39 faults than S6: 6 false refusals are answered by R1–R4 at their turns (fuel t4, marisol t6, raj t10, victor t12, jasmine t2, raj t20). Proposed next: S4. This is an estimate from shadow rows; S4 is not built.
+
+## 14. S4 `askMatches` (27 Oct): built, gate passed
+
+**What it does.** R3 and R4 run live over today's decisions, in the same form as S2 and S3 (in the `phase2` preset). A declared sub-ask that R3 or R4 matches gets one of these outcomes:
+- released, where today said nothing or refused it (with E1's cut refused beside it);
+- a gate or order deferral, where today said nothing or pointed elsewhere.
+
+**Limits, set by the first replay's read:**
+- never over a deferral today makes (S3's rule: b33 5cfdf48e t2 would have released the store count over the model's "before any data");
+- never a refusal turned into a deferral (S2's ruling: b39q dd74b01b t2's "split of Starter sign-ups").
+
+The old A2–A8 passes still run; their check calls are the only ones made (212 = 212).
+
+**Gate:**
+- 3 changed corpus turns, all read and right: b36l a7d9f44e t6/t8 (CASM → `unit_costs`) and b39l 52904ce7 t20;
+- true refusals 19/19; correct records 95/95;
+- D9 equal on every slice; F1/F3/F4 0;
+- bank 87 → 88 of 173; owned 18 → 19;
+- switches off identical (1,994 turns).
+
+**The 6 batch-39 false refusals: 1 flips** (b39l-raj-t20), against my shadow estimate of 6. The estimate misread the shadow:
+- Marisol t6 and Victor t12: the decision also refuses the cut;
+- Fuel t4: the cut refusal still names fuel;
+- Raj t10: inside the data path the decision is R2 (no detections there), not R4;
+- Jasmine t2: the decision itself refuses "departures" (R6).
+
+Extending the cut drop to R2, measured and reverted: it fixed Raj t10 and broke 2 (dropped the true refusal "turns per store per week"; garbled another). That is S5's per-sub-ask E1.
+
+## 15. S6 widened (`askPoint`, 27 Oct): failed its gate in one round, stopped
+
+**What it does.** Before a restatement points or repeats, the ask check (the recorded verdict, else a live call on that turn) rates the item:
+- full → R5 as today;
+- partial → the item's line plus the missing part refused;
+- none → a true refusal under R6's guards.
+
+**Paid replay** (Lorenzo's go, $0.50 cap):
+- 62 calls to Haiku 4.5, 1 per distinct (case, ask) that S6 needed and no run had recorded;
+- $0.1137 in all ($0.0018 a call);
+- latency median 502 ms, p90 798 ms, max 1.0 s;
+- 1,889 input and 16 output tokens per call (medians);
+- the verdicts are replayed through `REPLAY_CHECKS`, so every arm is deterministic.
+
+**Calls per run:** S6 fires on 55 of the 1,994 corpus turns (149 runs), about 0.4 calls a run. In live use each call adds its latency to that turn, capped at the check's 1.5 s timeout; the turn waits for it before the data line.
+
+**Gate: failed.**
+- Pointer records: 1/9 flip on substance (b39q-tyler-t22: the price-test line answers "can't be measured yet").
+- Why the other 8 don't flip:
+  - the check is asked the model's `what`, which names the item the model chose ("Entry Option B … terms"), not the candidate's question;
+  - on the real question, Haiku rates the mismatched item full ("length of the royalty term" → option_b).
+- New false refusals: 2 (b22l 27c2d0fb t22 "what sits inside the fixed costs" — fixed_costs holds the split, already out; b38l 701443f7 t14 "load factors … on the contested routes" — held, said in the same turn).
+- One regression: b39l-raj-t20 fails again ("estimated demand for unserved city pairs" refused beside the new routes' deferral).
+- Unchanged: true refusals 19/19, correct 95/95, non-pointer restatement records 15/18 both arms.
+
+The switch is off and outside every preset (95dbf229). The wave runs without it.
+
+**What a next round would need** (not started):
+- check the candidate's own sentence, not the model's `what`;
+- block "none" when the check maps the ask to any item, out or not;
+- run R6's statesAsked against the whole data line, not only the items given.
+
+Haiku's full-on-mismatch rating is the open risk.
