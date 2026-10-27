@@ -831,12 +831,14 @@ function applySelfCorrection(plan: ModelPlan, d: TurnData, log: boolean): TurnDa
     exhibits: caseData.exhibits.map(e => ({ id: e.id, title: e.title, ...((e as { summary?: string }).summary ? { summary: (e as { summary?: string }).summary } : {}), covers: e.coversLedgerItems ?? [] })),
     shownExhibits: state.shownExhibitIds, fb, caseNames: properNames(caseData.sttKeyterms),
     gated: id => ptGateOn(plan) && isGatedItem(ledger, id), closing: state.kind === 'close' || wrapUpTurn(plan),
+    ...(switchOn(caseData, 'asyncAskJudgePartial') ? { partial: { previousMessage: prevCandidate.text,
+      givenNow: new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]), exhibitNow: d.exhibit?.id ?? null } } : {}),
   });
   if (!c) return d;
   const item = 'id' in c ? ledger.items.find(i => i.id === c.id) : undefined;
   // Never a correction the turn already makes: the ask answered now (an item the judge named for it released or
   // restated, or on the exhibit going out), or an item the release order still holds (its exhibit not yet due).
-  if (c.kind !== 'none') {
+  if (c.kind === 'have' || c.kind === 'have_gated') {
     const givenNow = new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]);
     if (c.askItems.some(id => givenNow.has(id))) return d;
     const exhibitsInfo = caseData.exhibits.map(e => ({ id: e.id, title: e.title, coversLedgerItems: e.coversLedgerItems, after: e.after, requiresItems: e.requiresItems }));
@@ -852,7 +854,7 @@ function applySelfCorrection(plan: ModelPlan, d: TurnData, log: boolean): TurnDa
     if (!out.gatedIds.includes(c.id)) out.gatedIds.push(c.id);
     out.requests.push({ request: { what: c.ask, itemIds: [c.id], explicit: true, respond: 'defer' }, response: 'defer', ledgerItemIds: [c.id] });
   } else {
-    out.selfCorrectionLine = { kind: 'refusals', text: correctionLine(c) };
+    out.selfCorrectionLine = { kind: 'refusals', text: correctionLine(c) };   // 'none' and 'precise'
   }
   if (log) plan.ctx.checks.act('self_correction', 'the background judge\'s verdict on the last message corrects the last turn (asyncAskJudge, measurement)', { correction: c });
   return out;
