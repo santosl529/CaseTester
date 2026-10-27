@@ -68,7 +68,11 @@ export const PHASE1_SWITCHES = [
 // correct). Unlike `speechNormalization` it fires on written text too, which is why it has its own switch:
 // Lorenzo's 27 Oct ruling allows the typed change only if it adds verified-correct claims or removes false flags,
 // and that condition is evaluated on this switch's own evidence. Out of the preset until he rules.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'ofAsMultiplication'] as const;
+// `checkerEquations` (27 Oct, item E) widens the math checker's existing per-message output — no second call: the
+// equations it heard, in structured form, and the quantities whose value changed. Code verifies the arithmetic
+// itself (`lib/orchestrator/checker-equations.ts`), a low-confidence entry is `unclear`, and the answer sheet drops
+// a probe or correction on a figure that is no longer the candidate's latest. Out of the preset until Lorenzo rules.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'ofAsMultiplication', 'checkerEquations'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];
