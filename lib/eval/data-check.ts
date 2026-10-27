@@ -25,6 +25,9 @@ export type DataFlag = { rule: 'D1' | 'D3' | 'D9'; sub: string; items: string[];
 // Code's lines in any of their variants (phrasing.ts, 17 Oct).
 export const DEFER = new RegExp(`\\b(?:I'll come back to|I'll share|once we've settled|shortly)\\b|${poolPattern('defer', 'wont_get_to', 'wont_get_to_that', 'gate_defer').source}`, 'i');
 const REFUSE = new RegExp(`\\b(?:I don't have|isn't something I have|not something (?:I|we) have|we don't have|that's not in the case)\\b|${poolPattern('refuse').source}`, 'i');
+// `refusalAssume` (Lorenzo, 27 Oct): an assumption line answers the ask as a refusal does ("On X, I'd make a reasonable
+// assumption."; "For anything finer, make an assumption." beside a coarse line).
+const ASSUMES = new RegExp(`${poolPattern('assume').source}|${poolPattern('assume_finer').source}`, 'i');
 export const EARLIER = new RegExp(`\\bOn what you asked for\\b|${poolPattern('earlier', 'restate', 'restate_exhibit').source}`, 'i');
 
 // Items a text names (prompt facts aside; "as a percent of revenue" names no revenue ask).
@@ -85,14 +88,16 @@ export function checkDataTurn(t: CorpusTurn, fb: FactBase, opts: { openBefore?: 
 
   // D9: each addressed ask answered.
   const asks = addressedAskSentences(t.candidateText, (t.phase || 'ANALYSIS') as Phase, { closing: t.kind === 'close' });
-  const answeredIds = new Set([...t.releasedNow, ...idsNamed(data.filter(s => DEFER.test(s.text) || EARLIER.test(s.text) || REFUSE.test(s.text)).map(s => s.text).join(' '), fb)]);
+  const answeredIds = new Set([...t.releasedNow, ...idsNamed(data.filter(s => DEFER.test(s.text) || EARLIER.test(s.text) || REFUSE.test(s.text) || ASSUMES.test(s.text)).map(s => s.text).join(' '), fb)]);
   // The model's own words can answer too: a restatement or a deferral in "say" / the question.
   const wordsText = words.map(s => s.text).join(' ');
   for (const id of idsNamed(wordsText, fb)) if (known.has(id)) answeredIds.add(id);
-  const refusedSomething = REFUSE.test(dataText) || REFUSE.test(wordsText) || /\b(?:not something|isn't something|outside (?:the|what)|beyond (?:the|what) (?:case|data))\b/i.test(wordsText);
+  const refusedSomething = REFUSE.test(dataText) || ASSUMES.test(dataText) || REFUSE.test(wordsText) || ASSUMES.test(wordsText) || /\b(?:not something|isn't something|outside (?:the|what)|beyond (?:the|what) (?:case|data))\b/i.test(wordsText);
   const deferredSomething = DEFER.test(dataText);
   // "We won't get to that today." names no item: it answers every ask it was said for (round-3 ruling 4).
   const wontGetToThat = poolPattern('wont_get_to_that').test(dataText);
+  // "For anything finer, make an assumption." beside a coarse line given this turn answers the finer cut asked.
+  const finerBesideCoarse = poolPattern('assume_finer').test(`${dataText} ${wordsText}`) && t.releasedNow.length > 0;
   for (const a of asks) {
     // A procedural question or a line of the candidate's structure isn't a data ask.
     if (PROCEDURAL.test(a) || !DATA_ASK.test(a)) continue;
@@ -104,7 +109,7 @@ export function checkDataTurn(t: CorpusTurn, fb: FactBase, opts: { openBefore?: 
     // Any one of the items an ask names answered counts (a group asks for its parts).
     // Data the candidate already has needs no new line unless they ask for it again ("remind me", "again").
     const reAsk = /\b(?:remind|again|repeat)\b/i.test(a);
-    if (!wontGetToThat && !ids.some(id => answeredIds.has(id) || (t.revealedBefore.includes(id) && !reAsk))) {
+    if (!wontGetToThat && !finerBesideCoarse && !ids.some(id => answeredIds.has(id) || (t.revealedBefore.includes(id) && !reAsk))) {
       out.push({ rule: 'D9', sub: 'unanswered', items: ids, text: a.slice(0, 200) });
     }
   }

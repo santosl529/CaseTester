@@ -1160,4 +1160,21 @@ The raw message fixes restatement and pointer cases. It breaks true refusals, be
 | Switch off | 19/19 | 95/95 | 88/173 (unchanged by the record edits) | — |
 | Switch on | 19/19 | 95/95 | 95/173 | 8/8 |
 
-On substance, 3 of those 8 still tell the candidate to assume data held behind the gate (§21), and 3 corpus turns go silent on an ask.
+On substance, 3 of those 8 still tell the candidate to assume data held behind the gate (§21). It adds no silences: §21's read found none. The "3 silent turns" first written here belonged to the raw-message replay (§22).
+
+## 24. `refusalAssume` in the `phase2` preset (27 Oct, Lorenzo)
+
+Lorenzo moved it into the preset; the 3 turns that tell the candidate to assume gated data are known residue.
+
+**Gate on the new preset:**
+- bank identical to §23's switch-on arm: true refusals 19/19, correct records 95/95, fault 95/173;
+- corpus identical to the switch-on replay (1,994 turns);
+- F3 0 on every slice.
+
+**The D9 detector** (`lib/eval/data-check.ts`) first read the assumption lines as unanswered asks: +17, then +3. It now reads them as it reads refusals:
+- an assumption line anywhere in the turn answers the ask;
+- "for anything finer" answers it beside a coarse release.
+
+D9 is 32 before and 32 after, so no new silences.
+
+**Harvest later (Lorenzo):** the raw-message check's 51 hollow-deferral → true-refusal gains (§22) stay unharvested while `askCheckRawMessage` is off.

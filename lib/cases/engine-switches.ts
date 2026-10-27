@@ -64,11 +64,9 @@ export const PHASE1_SWITCHES = [
 // (evals/case-notes-draft/) as cover phrases and not-held phrases. Never in a preset.
 // `itemJudge` (27 Oct, item-choice experiment arm B — measurement only): recorded Sonnet-judge verdicts (ITEM_JUDGE_VERDICTS)
 // decide the item on restatements and refusals. Never in a preset.
-// `refusalAssume` (27 Oct, Lorenzo — measurement only): an assertive refusal only where the check rated the ask none and
-// the model refused it; else an assumption line (a coarse line given: "for anything finer, make an assumption").
 // `askCheckRawMessage` (27 Oct, Lorenzo — measure first): the ask check (classifyAsk) reads the candidate's raw message
 // with the declared ask as a hint, plus the prompt's facts. Off and outside every preset.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge', 'refusalAssume', 'askCheckRawMessage'] as const;
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge', 'askCheckRawMessage'] as const;
 // Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
 // step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
 // structures would decide and say, and change nothing the candidate hears.
@@ -82,6 +80,10 @@ export const PHASE2_SWITCHES = [
   'askModelKeep',        // S3: R2 live — a model-named item that matches the ask is kept (today's scope drop and release_checked withdrawal)
   'composeSetup',        // C3: after a spoken acknowledgment, setup sentences travel with their question (else streamed as today)
   'askMatches',          // S4: R3/R4 live — a matched sub-ask's release (E1 cut beside it) or gate/order deferral in place of today's
+  // Refusal wording (Lorenzo, 27 Oct: into the preset; the 3 assume-gated-data turns are known residue): an assertive
+  // refusal only where the check rated the ask none and the model refused it; else an assumption line, and beside a
+  // coarse line "for anything finer, make an assumption".
+  'refusalAssume',
 ] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES, ...PHASE2_SWITCHES] as const;
 
