@@ -709,12 +709,16 @@
   "turn": 18,
   "sev": "correct",
   "cls": "correct_release",
-  "note": "Her re-ask → why_pro_fell + upgrade_timing.",
+  "note": "Her re-ask → why_pro_fell + upgrade_timing. Window widened on 27 Oct (session-3 ruling, Lorenzo): S3's askModelKeep releases why_pro_fell at t8, where she asked for the share of Starter signups that would otherwise have bought Pro; the record means it is out by t18. upgrade_timing stays required at t18.",
   "a": [
    {
     "kind": "release",
     "item": "why_pro_fell",
-    "must": true
+    "must": true,
+    "scope": {
+     "fromTurn": 8,
+     "toTurn": 18
+    }
    },
    {
     "kind": "release",
