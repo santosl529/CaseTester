@@ -911,3 +911,73 @@ Haiku's full-on-mismatch rating is the open risk.
 **Spoken length vs today's pointer** (43 changed corpus turns): a median of +2 words a turn, mean +4.8, range −8 to +42. Today's summaries are about as long as the lines that replace them.
 
 The switch is off and outside every preset. As with option B and pointer-off, the pointer form isn't the fault: the item is wrong.
+
+## 17. Item-choice experiment (27 Oct): a stronger model choosing the item, with no added latency — measurement only
+
+**Spend:** $0.70 of the $3 cap: arm A $0.42 (3 Opus calls), arm B $0.28 (87 Sonnet calls). Both switches are off and outside every preset (fd494dea). The default path is identical (1,994 turns).
+
+**Test set:** 87 labelled turns:
+- the 9 pointer records;
+- the 8 batch-39 false refusals;
+- the 19 true refusals;
+- the 15 passing non-pointer restatement records;
+- 36 correct records that touch the data line.
+
+### Arm A — Opus-authored case notes (`caseNotesDraft`)
+
+**How it was built:**
+- Opus 5.5 wrote notes for Larkspur, Quillpath and Brew & Bean (60 items: 551 answer phrases, 167 not-held phrases). Its inputs were the case JSON and 512 real candidate asks from batches ≤ 38; batch 39 was held out.
+- The drafts are in `evals/case-notes-draft/`, not `cases/`.
+- They run as cover phrases through the existing coverage matcher. A not-held phrase stops a restatement and refuses the missing part (under the refusal guards).
+
+**Result on the bank (current preset):**
+- pointer records: 1/9 (b39q-raj-t28; only 5 of the 9 are on these cases — the 4 Aldermoor records are outside arm A);
+- batch-39 false refusals: 1/8 (S4's existing flip; Hollis Bay has no notes);
+- true refusals 18/19 (b38l-marcus-t14 is lost);
+- correct records 94/95; restatement 15 → 14.
+
+**Corpus-wide** (the three cases, every changed turn read):
+- 46 turns changed;
+- about 15 new pointer lines on turns where nothing asked for them: the broader cover phrases match asks to items already out;
+- one new false refusal (b39l 065501fe t14: "the four non-contested routes", held);
+- one unasked release (b39q t8);
+- one refusal turned into a hollow deferral (b39q dd74b01b t2);
+- one improvement (b29 t8: a hollow deferral of competitor pricing becomes a true refusal).
+
+Wider phrase lists make more asks match, and so produce more pointers. Arm A fails every threshold.
+
+### Arm B — a parallel Sonnet judge (`itemJudge`)
+
+**How it was built:**
+- Sonnet 5.5 (thinking off via `between_tools`, effort low, the case's ledger in a cached system prompt).
+- Input: the candidate's raw message and every item, with an already-out flag.
+- Output per ask: items, full or partial, and the missing part.
+
+**Latency:**
+- per call: p50 1.9 s, p90 3.0 s, max 4.8 s (82 cached-read calls: p50 1.9 s, p90 3.0 s);
+- started at `reads_done`, the verdict lands before `data_line_delivered` on 53 of 87 turns (61%), and before the model's requests close — when code decides the data line — on 33 (38%).
+
+**Cost:** $0.0032 a call. At the corpus's 13 candidate messages an interview, about **$0.04 an interview**.
+
+**Accuracy**, with every verdict applied and every moved turn read:
+- the bank shows 12 of the 17 targets passing (6 pointer, 6 false refusal);
+- on substance, 5 are clean (Jasmine t2, Marisol t6, Raj t10, Tyler t22, Victor t12);
+- 1 has the right outcome but unusable wording: Marcus t8, where the judge's commentary is spoken inside the refusal;
+- 3 are partial or accidental (Marcus t14, Dana t12, Raj t28);
+- 3 do not fix the fault: Marisol t14 (a new silence), Raj t22 (the whole cohort line read out), Marcus t14's frequency;
+- regressions: true refusals 18/19 (b33-raj-t14, the competitor-pricing part lost and the refusal garbled), 1 wrong release (b36a-marisol-t6: peak share for "how the eligible pool has grown"), correct records 93/95 (b36a-marisol-t8: lines replace the exhibit handover), 2 long Option A restatements.
+
+**In time only** (the no-wait rule): 3 targets pass; true refusals 18/19; correct 94/95.
+
+The applier is mine and part of what was measured: it aligns the judge's asks to the turn's lines by key nouns. Its first version dropped refusals whenever any item was named, and was fixed once (only a full answer clears a refusal); the first run showed true refusals 10/19.
+
+### Against Lorenzo's thresholds
+
+| Threshold | Arm A | Arm B |
+|---|---|---|
+| 0 new false refusals | ✗ 1 | ✗ the garbled true refusal; 1 wrong release |
+| 19/19 true refusals | ✗ 18/19 | ✗ 18/19 |
+| Most of the 17 targets on substance | ✗ 1 | ✗ 5 clean (all verdicts); 3 in time |
+| ≥ 90% of turns in time | — | ✗ 61% (38% by when the data line is decided) |
+
+Neither arm meets them. Decision for Lorenzo.
