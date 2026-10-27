@@ -5,7 +5,7 @@
 import type { ModelTurn, DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import { resolveRequests } from '@/lib/agent/models/turn-schema';
 import type { ModelPlan } from './plan-turn';
-import { decideData, spokenItemName, exactResolver, labelMatch, outsideAskScope, scopeRule, SPLIT_RULES, namedAsPart, keyNouns, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo, type ScopeRule } from './data-decisions';
+import { decideData, RESTATE_INVITE, spokenItemName, exactResolver, labelMatch, outsideAskScope, scopeRule, SPLIT_RULES, namedAsPart, keyNouns, changeForSplit, splitOfItem, heldForOrder, RELEASE_CAP, type DataDecisions, type ExhibitInfo, type ScopeRule } from './data-decisions';
 import { switchOn } from '@/lib/cases/engine-switches';
 import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS, refusedItemIds } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
@@ -1381,6 +1381,7 @@ function restateRules(plan: ModelPlan, d: DataDecisions, groupOrigin: ReadonlyMa
   const recent = ids.filter(id => !unmatched.includes(id) && !directAsk(id) && saidRecently(plan, linesOf(id)));
   const pointed: string[] = [];
   const ownLine: string[] = [];
+  const invited: string[] = [];
   const cutRefusals: string[] = [];
   const ownLineCuts = (id: string) => {
     const i = itemOf(id);
@@ -1406,9 +1407,17 @@ function restateRules(plan: ModelPlan, d: DataDecisions, groupOrigin: ReadonlyMa
     // `restateOwnLine` (S6's start, Lorenzo 27 Oct, option B): the item's own line again, no exhibit summary, and the
     // ask's finer parts its line doesn't hold refused — only where that refusal is true. No model call.
     if (switchOn(caseData, 'restateOwnLine')) { ownLine.push(r.id); cutRefusals.push(...ownLineCuts(r.id)); return [r]; }
+    // `restateLineInvite` (Lorenzo, 27 Oct): no claim that the exhibit answers the ask — the item's own line, then once
+    // per item "If you're after something more specific, ask me." No model call.
+    if (switchOn(caseData, 'restateLineInvite')) { invited.push(r.id); return [r]; }
     pointed.push(r.id);
     return [{ ...r, pointer: /[.!?]$/.test(e.summary!.trim()) ? e.summary!.trim() : `${e.summary!.trim()}.` }];
   });
+  // Once per item: not when an earlier interviewer turn already said this item's line with the invitation.
+  const saidInvite = state.turnRows.filter(t => t.role === 'interviewer' && t.text.includes(RESTATE_INVITE)).map(t => t.text);
+  const inviteNow = invited.filter(id => { const v = itemOf(id)?.value ?? ''; return !saidInvite.some(t => linesOf(id).some(x => x.length > 0 && t.includes(x)) || (v.length > 0 && t.includes(v))); });
+  if (inviteNow.length > 0) d.restateInvite = true;
+  if (invited.length > 0) plan.ctx.checks.act('restate_line_invite', 'an exhibit item re-asked: its own line, no claim the exhibit answers; the invitation once per item', { items: invited, ...(inviteNow.length > 0 ? { invited: inviteNow } : {}) });
   const cuts = [...new Map(cutRefusals.map(p => [normAsk(p), p])).values()];
   if (cuts.length > 0) d.refusals = [...d.refusals, ...cuts];
   if (ownLine.length > 0) plan.ctx.checks.act('restate_own_line', 'an exhibit item re-asked: its own line again, no exhibit summary; finer parts it does not hold refused (S6 start, option B)', { items: ownLine, ...(cuts.length > 0 ? { refused: cuts } : {}) });

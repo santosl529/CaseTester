@@ -381,6 +381,8 @@ export type DataDecisions = {
   // Phase 1 4.1 (restateRules, turn-data.ts): `pointer` — the item is on an exhibit already out: its summary is said, not
   // its line; `recentRestates` — re-asks of lines said within the last four turns, named and not said again.
   recentRestates?: string[];
+  // `restateLineInvite` (27 Oct): on the pointer path the item's own line was said instead; this statement follows it.
+  restateInvite?: true;
   exhibit: { id: string; title: string; covers: string[] } | null;
   refusals: string[];     // what, for explicit asks the case doesn't hold
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
@@ -740,6 +742,7 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
     const lead = i === 0 || Boolean(r.exhibit) !== Boolean(saidFirst[i - 1].exhibit);
     parts.push({ kind: 'restate', ids: [], text: lead ? phrase(r.exhibit ? 'restate_exhibit' : 'restate', v, uses, seed) : v });
   });
+  if (d.restateInvite) parts.push({ kind: 'restate', ids: [], text: RESTATE_INVITE });
   // Phase 1 4.1: one pointer per exhibit summary, then the recent re-asks by name.
   for (const summary of [...new Set(d.restates.flatMap(r => (r.pointer ? [r.pointer] : [])))]) parts.push({ kind: 'restate', ids: [], text: phrase('restate_pointer', summary, uses, seed) });
   if (d.recentRestates?.length) parts.push({ kind: 'restate', ids: [], text: phrase('restate_recent', joinWhat(d.recentRestates, 'and'), uses, seed) });
@@ -755,6 +758,8 @@ export function renderDataLineParts(d: DataDecisions, seed: string, uses?: Phras
   return parts;
 }
 
+// `restateLineInvite`: a statement, never a question (the turn keeps its one closing question).
+export const RESTATE_INVITE = "If you're after something more specific, ask me.";
 export function renderDataLines(d: DataDecisions, seed: string, uses?: PhraseUses): string[] {
   return renderDataLineParts(d, seed, uses).map(p => p.text);
 }

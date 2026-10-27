@@ -58,7 +58,9 @@ export const PHASE1_SWITCHES = [
 // `askPoint` (27 Oct, S6 widened — Lorenzo): a restatement read against the ask check's verdict before it points or
 // repeats (full / partial / none). Off and outside the preset until its gate is read; it makes check calls on pointer
 // turns (his lifting of Q1 for this path only).
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint'] as const;
+// `restateLineInvite` (27 Oct, Lorenzo): R5's pointer path says the item's own line and "If you're after something more
+// specific, ask me." (once per item) — no claim the exhibit answers, no model call. Off until its gate is read.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite'] as const;
 // Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
 // step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
 // structures would decide and say, and change nothing the candidate hears.
