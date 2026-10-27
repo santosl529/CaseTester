@@ -14,6 +14,8 @@
 //   npx tsx scripts/speech-replay.ts --root='<corpus root>' [--out=<file>]
 //   --arm=spoken|fillers|unpunctuated   (default: all three)
 //   --arm=identity                      the typed-corpus no-op gate, on its own
+//   --arm=of                            the `ofAsMultiplication` arm, read as written
+//   --of                                add `ofAsMultiplication` to the ON side
 //   --case=prof-001                     one case only
 import { writeFileSync } from 'node:fs';
 import { loadCorpus } from '@/lib/eval/run-corpus';
@@ -21,6 +23,7 @@ import { getCaseById } from '@/lib/cases/loader';
 import { checkCandidateMath, type CandidateMath } from '@/lib/orchestrator/recompute';
 
 const arg = (name: string) => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
+const has = (name: string) => process.argv.includes(`--${name}`);
 const ROOT = arg('root') ?? process.env.CORPUS_ROOT ?? 'Case Interview Runs';
 
 // ---------------------------------------------------------------------------
@@ -118,7 +121,9 @@ export function toSpokenText(text: string, opts: SpokenOpts = {}): string {
 // damage), and what it gives with the switch on (`spokenOn`).
 type Row = { run: string; t: number; typed: string; spoken: string; before: CandidateMath; plain: CandidateMath; after: CandidateMath };
 
-const ON = { spokenReadings: true, speechNormalization: true };
+// `--of` adds `ofAsMultiplication` to the ON side of every arm, so the two
+// switches' effect on spoken text can be read together or apart.
+const ON = { spokenReadings: true, speechNormalization: true, ofAsMultiplication: has('of') };
 const OFF = { spokenReadings: true };
 type Arm = { name: string; opts: SpokenOpts };
 
@@ -202,8 +207,53 @@ function identity(caseFilter?: string): { turns: number; changed: string[] } {
   return { turns, changed };
 }
 
+// ---------------------------------------------------------------------------
+// The `ofAsMultiplication` arm. Unlike `speechNormalization` this switch fires
+// on written text, so its gate is not identity but Lorenzo's condition of 27
+// Oct: typed output may only **gain verified-correct claims or lose false
+// flags** — 0 new flags, 0 new corrections, and every changed turn read. So
+// every changed turn is listed, with what it gained and what it lost.
+function ofArm(caseFilter?: string): void {
+  const { runs } = loadCorpus(ROOT, id => getCaseById(id) as never);
+  const OF_ON = { spokenReadings: true, ofAsMultiplication: true };
+  let turns = 0, changed = 0;
+  const gained: string[] = [];
+  const lostClaims: string[] = [];
+  const newFlags: string[] = [];
+  const lostFlags: string[] = [];
+  const lostVerified: string[] = [];
+  for (const run of runs) {
+    if (caseFilter && run.caseId !== caseFilter) continue;
+    const caseData = getCaseById(run.caseId);
+    for (const t of run.turns) {
+      if (t.seeded || !t.candidateText) continue;
+      turns++;
+      const off = checkCandidateMath(t.candidateText, caseData, t.revealedBefore, OFF);
+      const on = checkCandidateMath(t.candidateText, caseData, t.revealedBefore, OF_ON);
+      if (JSON.stringify(off) === JSON.stringify(on)) continue;
+      changed++;
+      const at = `${run.id.slice(-8)} t${t.t}`;
+      const same = (a: { stated: number; computed: number }, b: { stated: number; computed: number }) =>
+        near(a.stated, b.stated) && near(a.computed, b.computed);
+      for (const c of on.arithmetic) if (!off.arithmetic.some(x => same(x, c))) gained.push(`[${c.verdict}] ${at} ${c.expression} = ${c.stated} | ${c.span.replace(/\s+/g, ' ').slice(0, 220)}`);
+      for (const c of off.arithmetic) if (!on.arithmetic.some(x => same(x, c))) lostClaims.push(`[${c.verdict}] ${at} ${c.expression} = ${c.stated} | ${c.span.replace(/\s+/g, ' ').slice(0, 220)}`);
+      for (const f of on.flags) if (!off.flags.some(x => near(x.candidateValue, f.candidateValue))) newFlags.push(`${at} ${f.stepId} ${f.candidateValue} (exp ${f.expected}) | ${String(f.span).replace(/\s+/g, ' ').slice(0, 200)}`);
+      for (const f of off.flags) if (!on.flags.some(x => near(x.candidateValue, f.candidateValue))) lostFlags.push(`${at} ${f.stepId} ${f.candidateValue} (exp ${f.expected}) | ${String(f.span).replace(/\s+/g, ' ').slice(0, 200)}`);
+      for (const v of off.verified) if (!on.verified.some(x => near(x.value, v.value))) lostVerified.push(`${at} ${v.stepId} ${v.value} | ${String(v.span).replace(/\s+/g, ' ').slice(0, 200)}`);
+    }
+  }
+  console.log(`\n=== ofAsMultiplication — ${turns} candidate messages read as written, switch off vs on`);
+  console.log(`    CHANGED TURNS ${changed}`);
+  console.log(`    CLAIMS GAINED ${gained.length} (correct ${gained.filter(g => g.startsWith('[correct]')).length}, unclear ${gained.filter(g => g.startsWith('[unclear]')).length}, INCORRECT ${gained.filter(g => g.startsWith('[incorrect]')).length})`);
+  console.log(`    CLAIMS LOST ${lostClaims.length}   NEW FLAGS ${newFlags.length}   FLAGS REMOVED ${lostFlags.length}   VERIFIED FIGURES LOST ${lostVerified.length}`);
+  for (const [label, list] of [['NEW-FLAG', newFlags], ['FLAG-REMOVED', lostFlags], ['VERIFIED-LOST', lostVerified], ['CLAIM-LOST', lostClaims], ['GAINED', gained]] as const) {
+    for (const l of list) console.log(`      ${label} ${l}`);
+  }
+}
+
 function main(): void {
   const only = arg('arm');
+  if (only === 'of') { ofArm(arg('case')); return; }
   if (only === 'identity') {
     const { turns, changed } = identity(arg('case'));
     console.log(`\n=== typed identity — ${turns} candidate messages read as written, switch off vs on`);

@@ -33,7 +33,7 @@ export type TurnVerification = { flags: RecomputeFlag[]; verified: VerifiedFigur
 export function verifyCandidateTurns(turns: Turn[], caseData: Case, revealedBefore: (turnIndex: number) => string[]): Map<number, TurnVerification> {
   const out = new Map<number, TurnVerification>();
   for (const t of turns.filter(x => x.role === 'candidate')) {
-    const { flags, verified } = checkCandidateMath(t.text, caseData, revealedBefore(t.turnIndex), { spokenReadings: switchOn(caseData, 'spokenMathParser'), speechNormalization: switchOn(caseData, 'speechNormalization') });
+    const { flags, verified } = checkCandidateMath(t.text, caseData, revealedBefore(t.turnIndex), { spokenReadings: switchOn(caseData, 'spokenMathParser'), speechNormalization: switchOn(caseData, 'speechNormalization'), ofAsMultiplication: switchOn(caseData, 'ofAsMultiplication') });
     out.set(t.turnIndex, { flags, verified });
   }
   return out;

@@ -63,7 +63,12 @@ export const PHASE1_SWITCHES = [
 // claims rather than withhold them, so it stays out of the preset until Lorenzo has ruled on the evidence
 // (`.superpowers/sdd/2026-10-22-phase1/speech-normalization-report.md`). Nameable for evaluation; off everywhere
 // else, and a no-op on the typed corpus by construction.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization'] as const;
+// `ofAsMultiplication` (27 Oct) reads `of` as × between a share and a figure — "ten percent of forty two is four
+// point two" — which is the most frequent unread shape in the recordings (five true spoken claims, every one
+// correct). Unlike `speechNormalization` it fires on written text too, which is why it has its own switch:
+// Lorenzo's 27 Oct ruling allows the typed change only if it adds verified-correct claims or removes false flags,
+// and that condition is evaluated on this switch's own evidence. Out of the preset until he rules.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'ofAsMultiplication'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];

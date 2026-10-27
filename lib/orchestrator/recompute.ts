@@ -425,10 +425,13 @@ export type CandidateMath = {
 //     chain that is consistent under some spoken reading raises no flag;
 //   `speechNormalization` (27 Oct, switch `speechNormalization`): the four
 //     disfluency shapes STT leaves in a spoken chain are read through, so
-//     spoken arithmetic reaches a verdict at all (lib/orchestrator/speech-normalize.ts).
+//     spoken arithmetic reaches a verdict at all (lib/orchestrator/speech-normalize.ts);
+//   `ofAsMultiplication` (27 Oct, switch `ofAsMultiplication`): "ten percent of
+//     forty two is four point two" — `of` read as × between a share and a
+//     figure, and nowhere else (lib/orchestrator/of-multiplication.ts).
 // Off — every other call site, and every case without the switch — behaviour is
 // unchanged.
-export type CandidateMathOptions = { spokenReadings?: boolean; speechNormalization?: boolean };
+export type CandidateMathOptions = { spokenReadings?: boolean; speechNormalization?: boolean; ofAsMultiplication?: boolean };
 
 export function checkCandidateMath(candidateText: string, caseData: MathCaseData, revealedIds: Iterable<string>, opts?: CandidateMathOptions): CandidateMath {
   const ids = [...revealedIds];

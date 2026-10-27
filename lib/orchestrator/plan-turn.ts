@@ -480,7 +480,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Pricing claims (12 Oct): a price change's stated result against the case's
   // cost structure, once every cost line is out (pricing-check.ts).
   const revealedIdsNow = Object.keys(revealedValues(ledger));
-  const candidateMath = checkCandidateMath(candidateText, caseData, revealedIdsNow, { spokenReadings: switchOn(caseData, 'spokenMathParser'), speechNormalization: switchOn(caseData, 'speechNormalization') });
+  const candidateMath = checkCandidateMath(candidateText, caseData, revealedIdsNow, { spokenReadings: switchOn(caseData, 'spokenMathParser'), speechNormalization: switchOn(caseData, 'speechNormalization'), ofAsMultiplication: switchOn(caseData, 'ofAsMultiplication') });
   const { arithmetic, units, pricing } = candidateMath;
   // The final answers — the recommendation reply and every reply after it — are
   // checked before the case closes (close-hold.ts; Lorenzo, 16 Oct).

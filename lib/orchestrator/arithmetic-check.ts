@@ -24,6 +24,7 @@
 // ratio ("66.7/42 ≈ 59%" — up 59%) count as correct when a % is in the claim.
 import { normalizeNumberWords } from '@/lib/number-words';
 import { normalizeSpeech } from './speech-normalize';
+import { ofAsMultiplication } from './of-multiplication';
 
 export type ArithmeticVerdict = 'correct' | 'incorrect' | 'unclear';
 
@@ -362,12 +363,15 @@ function withholdInconsistent(sentence: string, claims: ArithmeticClaim[], from:
 
 const SENTENCES = /(?<=[.!?])\s+(?=[A-Z0-9"“$(])|\n+/;
 
-export function checkStatedArithmetic(rawText: string, opts?: { spokenReadings?: boolean; speechNormalization?: boolean }): ArithmeticClaim[] {
+export function checkStatedArithmetic(rawText: string, opts?: { spokenReadings?: boolean; speechNormalization?: boolean; ofAsMultiplication?: boolean }): ArithmeticClaim[] {
   const claims: ArithmeticClaim[] = [];
   // One text for the whole pass: the sentence spans the claims carry must be
   // the text the self-correction reader searches, or a correction stops being
   // found (`speech-normalize.ts`; with the switch off this is today's text).
-  const text = normalizeNumberWords(opts?.speechNormalization ? normalizeSpeech(rawText) : rawText);
+  // `ofAsMultiplication` runs last, because it needs the right-hand side as a
+  // digit ("one fourth of forty two" → "0.25 × 42").
+  const normalized = normalizeNumberWords(opts?.speechNormalization ? normalizeSpeech(rawText) : rawText);
+  const text = opts?.ofAsMultiplication ? ofAsMultiplication(normalized) : normalized;
   for (const raw of text.split(SENTENCES)) {
     const sentence = raw.trim();
     if (!sentence || !/\d/.test(sentence)) continue;
