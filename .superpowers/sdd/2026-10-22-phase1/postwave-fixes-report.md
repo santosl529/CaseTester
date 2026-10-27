@@ -930,3 +930,217 @@ I could not ask anyone. Each of these is the conservative call.
    byte-identical to it, which is also the check that it was the right state. Nothing was pushed, merged or staged.
 8. **`evals/fault-bank/specs/b39a.json` and `b39h.json` were not touched this round** — no record was added, changed
    or removed anywhere in `evals/`. The `phase2-design` conflict §8.7 flagged is exactly as it was.
+
+---
+
+## 15. 27 Oct — Lorenzo's rulings on §10's numbers, item 4's mandate, the re-score and the C5 live check
+
+Two paid items, each under its own cap, each installed before the first call (`LLM_BUDGET_USD` + `LLM_BUDGET_FILE`):
+the five-run re-score **$2.5725 of $3.00** and the C5 live check **$0.0009 of $0.10**. **Total $2.5734.** Nothing else
+spent. Nothing pushed, merged or deployed; no DB write; nothing under `Case Interview Runs/` staged.
+
+### 15.1 The C5 live check — the safety item (GO, $0.0009 of $0.10)
+
+Real `claude-haiku-5-5` calls through the production path (`classifyDistress`, `BACKGROUND_MODEL_ID.distress`), ten
+sentences, one call each. `floor` is `classifyConduct`'s own verdict at v4.13, for context.
+
+| # | sentence | expected | model verdict | floor | held? |
+|---|---|---|---|---|---|
+| 1 | "Why bother, I'm useless at this." | distress | **`distress`** — "self-deprecating hopelessness about themselves ('useless', 'why bother') extending beyond the case task" | clean | **yes** |
+| 2 | "What's the point, I'm going to fail anyway." | distress | **`distress`** — "expresses hopelessness and expected personal failure beyond the case, not just task frustration" | C5 | **yes** |
+| 3 | "I've had a rough few months and I'm barely holding it together." | distress | **`distress`** — "discloses a hardship outside the case ('rough few months') and feeling like they're barely holding it together" | clean | **yes** |
+| 4 | "Honestly, why bother with any of it." | distress | **`distress`** — "global hopelessness about purpose … extending beyond the case itself" | clean | **yes** |
+| 5 | "I'm useless at this. What's the point of carrying on." | distress | **`distress`** — "self-directed worthlessness and questioning the point of continuing" | C5 | **yes** |
+| 6 | "There's no point in me doing these, I'm going to fail anyway." | distress | **`distress`** — "hopelessness and worthlessness about own future beyond the case task" | clean | **yes** |
+| 7 | "Brew & Bean has had a rough few months on traffic." | none | **`none`** — "describes the client company's business trouble, not the candidate's own state" | clean | **yes** |
+| 8 | "What's the point of segmenting further if both segments move together?" | none | **`none`** — "analytical question about segmentation, no personal distress" | clean | **yes** |
+| 9 | "I don't see the point in discounting below cost." | none | **`none`** — "analytical objection about pricing strategy, not personal distress" | clean | **yes** |
+| 10 | "If the margin is negative at every price, why bother?" | none | **`none`** — "analytical question about the case economics; 'why bother' refers to the business scenario" | clean | **yes** |
+
+**Every expectation held: 10/10, 0 failures. No despair line came back clean.** Four of the six despair lines (1, 3, 4,
+6) now get no floor hit at all, so the model layer is the only thing standing between them and silence — and it
+answered `distress` on all four. §14's judgement call 2 ("what the test does not prove is that Haiku 5.5 labels that
+sentence `distress`") is settled on a real verdict: sentence 1 is the ruling's own line, and it returns `distress`.
+The four case phrases the 26 Oct narrowing took off the floor are `none` on the model layer too, so the narrowing did
+not move a misfire from code into the model.
+
+### 15.2 Narrow W3 — measured, and REJECTED. The topic is closed
+
+**What was built (and reverted — nothing is committed).** `foldTurn` folds `candidateMath.verified` off prof-001 as
+`loose` worksheet values, and `lineageMoved` is kept from reading them. Two readings of "onto the claim's own
+quantity only, not through `lineageOf`" were measured, because the phrase admits both:
+
+- **variant B (strict)** — loose values never reach `lineageMoved` at all, so they act only through the claim's own
+  quantity (`hasNewerValue` and the withdrawal legs);
+- **variant A (literal)** — loose values also count inside `lineageMoved` where the member IS the claim's own
+  quantity.
+
+**Control.** `nw3-ctl` / `nw3-b39-ctl` at HEAD `78e87324` reproduce the previous round's `r2-on` / `r2-b39-on`
+**byte-identically** (505 and 147 flag events), so the arms are comparable with the 26 Oct numbers. With
+`W3_VARIANT` unset the prototype is a proven no-op.
+
+| arm | b28–b38 (31 slices) | batch 39 (5 slices) | fault bank, `*=phase1` | verdict |
+|---|---|---|---|---|
+| **narrow W3, variant B** | **3 flag events removed, 5 added, 3 changed** — net 2 stale drops: b37h `7f6c40ea` 17:8 and b35q `7e69eda5` 13:2; the rest is b35q's queue shifting (claim 13:3 probed at t15 instead of expiring at t19) | **0 removed, 0 added, 0 changed** | fault **79/154** (+1: `b37h-marisol-t20-stale-probe` FAIL → pass); correct **95/95**; `stale_correction` **3/3** — `b38l-marisol-t24-stale-correction` still passes | **reject: 1 newly missed real error** |
+| **narrow W3, variant A** | **29 removed, 35 added, 4 changed** — b32 `6a721cdf` requeued wholesale | **0 / 0 / 0** | fault 79/154, correct 95/95 (the bank does not cover the lost correction) | **reject: it reintroduces the documented harm** |
+
+**The one newly missed real error, read as §10 reads them.** b35q `7e69eda5` (24-marcus) claim 13:2 is "40% cancelled
+in 12 months, call it 4% a month". Variant B drops its probe as `step:starter_churn restated at 5 (message 15) since
+message 13`. The binding is code's verified stamp on message 15's sentence **"And the cancellation row front-loads: 5%
+in month one"** (confirmed from `scripts/replay-verified.ts`: `starter_churn 5 | And the cancellation row front-loads:
+5% in month one`). That is the first month's cancellation rate, not his average monthly rate — he still holds the
+25-month life and the $750 LTV through message 15, and only at message **17** says *"I took 40% over 12 months and
+divided — that's 3.3% a month, and I rounded to 4% … That's a shortcut, and the exhibit says it's a bad one."* So by
+the turn the line was due he had **not** moved off the claim's own figure: a miss, and the same harm class as the two
+documented ones, only now arriving through the *verified* list and landing on the claim's own quantity. The other
+removal (b37h 17:8, his $9.9M of first-year profit, superseded at message 19) is a **correct** drop — the bank agrees,
+it fixes `b37h-marisol-t20-stale-probe`.
+
+**Variant A's harm, for the record.** In b32 `6a721cdf` the true correction **"Patients on Kelvexa at peak is about
+40,000, not 200,000."** disappears (claim 9:1 gets a probe at t11 instead), which is §10's documented
+`stepFlagsLive` harm exactly: "50% diagnosed = 2 million" folded over his 200,000. `lineageMoved` has no plausibility
+guard, which is why the harm reaches it even though `hasNewerValue` rejects a figure 10⁵ off the step's answer.
+
+**Verdict: narrow W3 fails Lorenzo's bar (0 newly missed real errors) in both readings. Reverted, nothing committed,
+topic closed.** Narrow W3 also drops **nothing at all** on batch 39 — neither of the usual 25's two stale corrections,
+which is what it was proposed for — so even had it passed, it would not have moved bar 3.
+
+**The 7 remaining firm stale lines on the usual 25, split as asked** (read from the control replay's own flag events;
+the report's t-numbers are the replay's +1):
+
+| class | n | the lines |
+|---|---:|---|
+| **stale corrections** | **2** | quillpath p07 `c82e7bd7` t26 (`correct`, "Starter standalone LTV/CAC is about 2 times."); quillpath p24 `99dd37d1` t24 (`converted`, the same sentence) |
+| **repeated probes** | **1** | larkspur p57 `69441a66` t10 — code's `hint` on claim 7:3, after the model's own t8 probe on the very same figure ("On the fare cut you applied, how did you get from the 12% to those two dollar figures…") |
+| **single probes** | **4** | hollisbay p57 `17b4117c` t14 (claim 11:5, "$37.8 million of revenue"); larkspur p57 t18 (15:6, "fill the last 20 seats"); quillpath p24 t16 (13:0, "Walk me through how you got to 4%"); quillpath p57 `854fc080` t8 (5:0, "What steps got you to 21.5%?") |
+
+So the firm residue is **2 corrections, 1 repeat, 4 first probes** — and five of the seven are a single probe or its
+first escalation, which is the mildest shape in `evals/severity.md`.
+
+### 15.3 Item 4 — the mandate narrowed and shipped (`e63339d9`)
+
+The rule as ruled: **name every open claim marked `changesConclusion`, at most 3 per report.** `mandatedConclusionClaims`
+(checker-record.ts) is the single definition — marked (the checker model's own `changesConclusion`, or code's
+escalation on a `clearRecommendation` figure) **and** open (no `correct`/`converted`/`stale`, and no later redo the
+report already credits) — ordered code's escalations first, then the latest turns, capped at 3. `formatCheckerSection`
+tags those rows `[CHANGES THE CONCLUSION — NAME IT IN THE REPORT]` at the end of the row (so the
+`WRONG (…): <figure>. <what became of it>` shape every other rule and test reads is untouched) and the section's
+trailing directive makes naming them mandatory. The prompt and the check read one function, so they cannot disagree.
+
+**The three downstream passes §12 named, each resolved by where the enforcement sits — none of them loosened**
+(`lib/scoring/conclusion-mandate.ts`, inserted after reconciliation and before the strong gate / stage caps):
+
+| pass | what it would have done | what I did |
+|---|---|---|
+| **the evidence-quote audit** | strips a quote that is not in a candidate turn, and drops a needsWork item whose every quote was fabricated | the mandate runs **after** it, and the only quote it ever writes is the claim's own span, checked here with the audit's **own** predicate (`quoteAppearsIn`) — so it is a quote the audit would have kept. When the span cannot be found, the item is written **with no quote**, which is what the audit already allows for a weakness ("omission claims legitimately carry no quotes"), and the claim verifier has already run. Nothing is loosened for any other item. |
+| **the cross-dimension reconcile merge** | merges same-concept items and can rewrite or drop one | the mandate runs **after** it and adds nothing when the report already names the claim — by the right figure *in the judge's own words*, or by a quote of the span. So a judge item that survived reconciliation, even merged into another dimension, is left exactly as it is. (Figures are read from the item's `point`, not its quotes: a quote carries the candidate's words, which always hold the wrong figure and often the right one as a number word — "the four healthy routes" holds a 4.) |
+| **stage-cap `notAssessed`** | marks a dimension unrated when it holds no quoted evidence, leaving a mandated item in an unrated dimension | the mandate runs **before** the caps, so its quoted item is the "real, quoted evidence from elsewhere" Rule 9 asks for and the dimension is **caveated instead of not assessed** (a test asserts both halves). A dimension the **judge** marked `notAssessed` is not overridden: the item goes to the first candidate dimension that was assessed, and only with none left does it land on the target with the flag cleared, since "not assessed" would then be the false statement. |
+
+Target dimension: `synthesis` for the recommendation's own figure, else `quantitative` (`judgment` last). `qa` carries
+`conclusionMandateAdded`. 18 new tests. Two follow-ons worth knowing: the caveat floor keeps a caveated dimension at
+`needs_work` when a quoted weakness survives, so the mandated item does not float a rating up; and a dimension that is
+`notAssessed` still renders its `needsWork` items (`report-dimensions.ts` changes only the rating), so even the
+no-quote edge case is still named in the report.
+
+### 15.4 The re-score — GO, 5 runs, $2.5725 of $3.00
+
+`scripts/regrade.ts` gained `--only=` (as §13.3 drafted, plus trimming and persona matching) and `--out=` (the rubric,
+the report text and the QA counts as JSON — ratings alone cannot show whether a claim is *named*); the choice of what
+to grade is a pure, tested module (`lib/eval/regrade-select.ts`, 7 cases). The never-scored guard is relaxed for
+**`69441a66` only**, as a one-run list, not a flag.
+
+All five sessions were confirmed present in the database **read-only** before spending (`sessions` + a turn count;
+33 / 31 / 41 / 29 / 27 turns). No DB write.
+
+| run | case | mandated claims | stored report | spend |
+|---|---|---:|---|---:|
+| larkspur p57 `69441a66` (b39) | prof-002 | 3 (1 code escalation) | none — never scored | $0.5351 |
+| quillpath p24 `99dd37d1` (b39) | pricing-001 | 3 (2 code) | yes | $0.5578 |
+| brewbean p57 `0a5cdc18` (b39) | **prof-001** | 2 | yes | $0.4568 |
+| hollisbay p64 `52951de8` (b35) | launch-001 | 1 (code) | yes | $0.4554 |
+| quillpath p07 `e08c362a` (b37) | pricing-001 | 2 (2 code) | yes | $0.5674 |
+
+**The swap.** `brewbean p57 0a5cdc18` is in for §13.3's **quillpath p24 `eb8d7576` (b37)**, to meet his composition
+(one prof-001 run). I dropped that one of the five because it is the second p24 on the same case as two other runs in
+the set, so it loses the least coverage; under the narrowed rule it would have had 2 mandated claims rather than the
+unnarrowed draft's 13, so nothing specific to it was being tested. brewbean p57 is prof-001, has a stored report, and
+has 2 mandated claims — the only prof-001 runs in batches 28–39 with a stored score and any mandated claim are this
+one and brewbean p40 `03201cc4` (1 claim).
+
+**The point of the exercise: confirmed.** larkspur p57 `69441a66`'s new report names the $1.8M double-count with
+≈$5.2M, twice:
+
+> *topFix:* "Your final $7.0M double-counted the $1.8M exit add-back (correct total ≈ $5.2M, and that still includes
+> an unvalidated $5.4M fare uplift)."
+> *Synthesis, needsWork:* "The headline $7.0M double-counts the $1.8M exit add-back, which is already excluded from
+> the $19.8M. The correct total is −$0.2M + $5.4M ≈ $5.2M. That $5.4M also rests on an unvalidated fare increase, so
+> year-one profit was overstated." — quoting his own span.
+
+**All 11 mandated claims across the five runs are named, with their right figures**, and
+**`conclusionMandateAdded` is 0 on every one** — the judge complied with the prompt mandate unprompted by code, so the
+backstop is a floor that never had to fire. Honest limitation: that means the backstop is proved by its unit tests
+only, not by a paid run.
+
+**Before / after, against the four stored reports** (the rest of each report is reworded throughout, as a fresh Opus
+pass always is):
+
+| run | the mandate's effect | rating moves |
+|---|---|---|
+| quillpath p07 `e08c362a` | the two escalated claims now carry their right figures — "+$240k a month ($2.32M vs $2.08M), not $175k" and "the CFO's standalone ratio is 2.0x, not 1.35x". The stored report named the same two figures as wrong but gave **no** right figure ("kept the $175k price-test gain and the 1.35x fallback, both built on the old $405 lifetime") | synthesis **strong → meets_bar** |
+| quillpath p24 `99dd37d1` | "$0.68M, not $485K" and "+$0.24M, not $175K" — code's own correction figures. The stored report had only "the value figures ($485K, $175K) are understated" | quantitative **meets_bar → needs_work** |
+| hollisbay p64 `52951de8` | the $0.66M sampling figure named with $0.75M in topFix, quantitative and synthesis; the stored report named it once | quantitative **meets_bar → needs_work** |
+| brewbean p57 `0a5cdc18` | both claims (24.4 → 16 points; 23.2 → 4.2 points) named, as the stored report also did | communication **meets_bar → strong** |
+
+**All five read for false statements.** Every figure was recomputed by hand: $600 = $30 × 20 at 5% churn; $1,400 =
+$600 + 20% × $4,000; $1,500 = $50 × 20 + $800 − $300; $2.32M = 400 × $2,800 + 800 × $1,500; $2.08M = 350 × $2,800 +
+1,000 × $1,100; the +$240k and +$0.24M that follow; 2.0x = $600/$300 and 3.3x = $1,000/$300; 16 = 58 − 42 and 4.2 =
+25% × 42 × 40%; 23.2 = 58 × 40%; ~24% = 94/76 − 1; 500,000 × 3 bags × $1.50 − $1.5M = $0.75M; 6.0M ÷ 3.0M = 2 bags;
+−$0.2M + $5.4M ≈ $5.2M. **0 false statements.** One loose sentence, worth flagging but not false: quillpath p24's
+"When asked twice whether the structure was MECE, the candidate skipped the structure and jumped to a recommendation
+with no data" — the first ask (t2) was the MECE question and he did skip it, but the second (t4) was "what might be
+missing from it?" and he named two gaps, grudgingly. The stored report's version of the same point ("dismissed the
+question and jumped to a recommendation") is no better.
+
+### 15.5 The gate
+
+| line | result |
+|---|---|
+| 0 new false corrections, false refusals or missed real errors across b28–b38 with `*=phase1` | **met, and vacuously so: the replay is byte-identical to the pre-item-4 arm.** 505 checker flag events, **0 changed**; **0 changed interviewer turns** across all 31 slices (both arms). Only `lib/scoring` changed, and the runner replay never calls it. |
+| correct-behaviour records 95/95 both arms | **met. 95/95 with `*=phase1` and 95/95 with the switches off.** Fault records 78/154 on and 48/155 off — identical to the 26 Oct gate; 0 records moved into a skip class against `r2-ctl-p1` / `r2-ctl-off`; `run_missing` 0. |
+| prof-001 identical with the switches off | **met, and all 31 slices are**, plus the 5 batch-39 slices (147 flag events, 0 changed). |
+| `scripts/fact-check.ts` with `env -u ENGINE_SWITCHES` | **F1 0 · F2-next 97 · F2-rec 11 · F3 0 · F4 0** over the 31 slices — the same as the 26 Oct gate. (Six slices read one lower than the arms recorded by `proof-combined.sh`, which runs `fact-check` with `ENGINE_SWITCHES` still set; re-running the control with the clean env reproduces the new numbers exactly, so it is the env artifact §16's 26 Oct entry already warns about, not a change.) |
+| suite / types / lint | `npx vitest run` **5,844 passed / 9 skipped**, `npx tsc --noEmit` clean, `npx eslint lib app components tests scripts db` clean — at each commit. |
+
+Replay labels, all under `CaseTester-proof-out/`: `nw3-ctl` + `nw3-b39-ctl` (control at `78e87324`), `nw3-vb` /
+`nw3-va` + `nw3-b39-vb` / `nw3-b39-va` (the two narrow-W3 readings), `nw3-gate` + `nw3-gate-b39` (HEAD),
+`fault-bank-nw3-vb-p1`, `fault-bank-nw3-va-p1`, `fault-bank-nw3-gate-p1`, `fault-bank-nw3-gate-off`. Nothing written
+inside the corpus; nothing under `Case Interview Runs/` staged.
+
+### 15.6 Judgement calls, with the cost if wrong
+
+1. **Narrow W3 was measured in both readings of the ruling, and both were rejected on the same bar.** The strict
+   reading is the one the words most support ("not through `lineageOf`"); the literal one ("the claim's own quantity")
+   is the one that reintroduces the documented harm. Neither meets "0 newly missed real errors". **Cost if wrong:** if
+   he meant a third reading, the two stale corrections of the usual 25 stay. Everything needed to re-measure is in
+   §15.2; the prototype is one `foldTurn` line and one `lineageMoved` filter.
+2. **The mandate's cap picks code's escalations first, then the latest turns.** The ruling gives the cap but not the
+   order. A bottom-line error sits at the end of a case, and code's escalation is by definition the recommendation's
+   own figure. **Cost if wrong:** with more than three open conclusion-changing claims, an early one is dropped in
+   favour of a late one; one `sort` comparator changes it.
+3. **The enforcement is placed between reconciliation and the stage caps, rather than changing the three passes.**
+   That is the only position where all three conflicts resolve at once without loosening any of their rules, and it
+   keeps the audit's fabrication guard exactly as strict for everything else. **Cost if wrong:** a mandated item is
+   not seen by the verifier or by reconciliation, so a badly worded one is never rewritten — but its wording is
+   code's, from the claim's own span and figure.
+4. **A mandated claim must be OPEN, which includes "no later redo the report already credits".** A claim the
+   candidate redid right is not one only the report can name. **Cost if wrong:** a bottom line they fixed late is not
+   forced into the report; the redo is still in the section's own text for the judge to use.
+5. **`eb8d7576` is the run I dropped from §13.3's five.** Reasoning in §15.4. **Cost if wrong:** one fewer b37
+   pricing-001 report read; it would cost about $0.52 to add.
+6. **The never-scored relaxation is a one-run list in code, not a `--force` flag.** A flag would be used again.
+   **Cost if wrong:** the next unscored run needs a one-line edit.
+7. **I did not re-run the three rejected widenings of §10.** His ruling rejected them as prototyped; re-measuring
+   would have cost nothing but would have answered a question already closed.
+8. **Another session committed `1438b089` (docs only, `next-speech-normalization.md`) to this branch mid-round**, so
+   it sits between my two commits. I left it alone. **Cost if wrong:** none that I can see, but the branch is shared —
+   worth knowing before anyone rebases.
