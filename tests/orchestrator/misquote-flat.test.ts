@@ -332,3 +332,38 @@ describe('ruling 5 — the wrap-up cap is logged when it bites', () => {
     expect(capCheck(left)?.detail).toMatchObject({ cap: 2, left: 1, dropped: [] });
   });
 });
+
+// Post-wave item 3 (Lorenzo, 26 Oct): Rule 6 option 4 is "one flat sentence", and on today's timing it is never
+// said. Code's correction waits for the checker's verdict, which lands a turn after the message; by then the model's
+// own Socratic question on the misquote turn has made the candidate fix it, so the correction is stale and nothing
+// flat ever goes (batch 39, aldermoor p64 4df38465 t6 → t8 and t10 → t12). `misquoteSameTurn` says it on its own turn.
+describe('`misquoteSameTurn` — the flat sentence on the misquote\'s own turn', () => {
+  it('off: nothing on the misquote\'s own turn (the correction waits for the gate, a turn later)', () => {
+    vi.stubEnv('ENGINE_SWITCHES', ON);
+    expect(plan(5).state.misquote).toBeNull();
+  });
+
+  it('on: the flat correction and the hint, on the turn that answers the message', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = plan(5);
+    expect(p.state.misquote).toMatchObject({ item: 'fixed_costs', cited: 'were $21M' });
+    expect(p.state.misquote!.text).toContain('were $20.0M in both FY2023 and FY2025');
+    expect(p.state.misquoteHint).toContain('Do not repeat, correct, question or build on their figure yourself');
+  });
+
+  it('once said, the gate\'s own release next turn says nothing again (correctionRules)', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn,correctionRules`);
+    const said = plan(5);
+    expect(said.state.misquote).not.toBeNull();
+    const after = plan(7, { misquoteCorrected: ['fixed_costs'] });
+    expect(after.state.misquote).toBeNull();
+  });
+
+  it('a report-only finding is not said on its own turn either — the switch adds no untrusted correction', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = plan(5);
+    // Every item it corrects is one whose misquote code found live on the message (never a report-only one).
+    const reportOnly = p.ctx.checks.entries.find(c => c.check === 'misquote_report_only');
+    expect(reportOnly?.decision).toBe('pass');
+  });
+});

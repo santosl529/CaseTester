@@ -26,6 +26,8 @@ export const PHASE1_SWITCHES = [
   'spokenMathParser',    // 3.6: chained spoken arithmetic; any consistent reading counts as consistent
   'checkerDefinitions',  // 3.7: the case's definitions go to the live checker
   'correctionRules',     // pre-wave rulings 3 and 4 (26 Oct): one correction per item on every path; none on the closing turn
+  'misquoteAttribution', // post-wave (26 Oct): a figure the candidate attributes to the interviewer is a quote — `operandLater` does not excuse it
+  'misquoteSameTurn',    // post-wave (26 Oct): a live misquote finding corrects on its own turn, not a turn later behind the checker gate
   // Stream 4 — small fixes inside today's paths.
   'restateRules',        // 4.1: exhibit pointer + summary; a number only if asked; matched item only; not twice in 4 turns
   'coarseKeepNamed',     // 4.2: never drop a model-named item that matches the ask

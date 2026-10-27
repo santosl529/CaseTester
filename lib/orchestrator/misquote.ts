@@ -151,6 +151,14 @@ function clauseEnd(s: string, from: number): number {
   for (const b of s.matchAll(/,(?!\d)|;|\bso\b/gi)) if ((b.index ?? 0) >= from) return b.index ?? s.length;
   return s.length;
 }
+// A figure the candidate ATTRIBUTES to the interviewer — "prevalence you gave me is 1.5%", "you said Nimbrel's net
+// price is about $9,400" — is a quote of the data by the candidate's own account, so using it as an operand in a
+// later clause is the misquote propagating, not evidence that the figure is their own working (batch 39, aldermoor
+// p64 4df38465 t6: "Prevalence you gave me is 1.5%, so 260 million × 1.5% = 3.9 million" was dropped by
+// `operandLater`, which exists for the candidate's own derived figures — Marisol b18 t9's "COGS today is 66.7,
+// so … 66.7 minus 14.4"). Attribution turns that one guard off; the hypothetical, indexed, conclusion, sum and
+// preposition guards all still apply ("if you gave me 1.5%" is still a hypothetical).
+const ATTRIBUTED = /\byou(?:'ve| have)?\s+(?:gave|given|said|mentioned|quoted|told)\b/i;
 const operandLater = (f: Fig, later: string) => {
   const n = escape(f.text.match(/\d[\d,]*(?:\.\d+)?/)?.[0] ?? '');
   return n !== '' && new RegExp(String.raw`(?<![\d.,])\$?${n}(?![\d]|[.,]\d)\s*(?:[-−+×*/÷]|minus\b|plus\b|times\b|over\b|divided\b)|(?:[-−+×*/÷=≈]|\bminus|\bplus|\btimes|\bover|\bdivided by)\s*\$?${n}(?![\d]|[.,]\d)`, 'i').test(later);
@@ -162,6 +170,7 @@ export type MisquoteContext = {
   revealedIds: Set<string>;
   exhibitColumns: Record<string, number[]>;   // item id → a shown exhibit's figures for it
   guards?: boolean;                           // false: the bare grammar (labelling only)
+  attribution?: boolean;                      // `misquoteAttribution`: an attributed quote is not excused by a later operand use
 };
 
 // A shown exhibit's column for each item, matched by column name to the item's anchors.
@@ -207,8 +216,10 @@ export function findMisquotes(text: string, c: MisquoteContext): Misquote[] {
           // The anchor already quoted ("a $6.80 ticket is about $0.34"): what follows is another quantity.
           const pre = new RegExp(String.raw`(\$)?(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(?:\s?(${SCALE})\b)?\s*(%)?\s*$`, 'i').exec(before);
           if (guards && pre && allowed({ value: num(pre[2]), unit: pre[1] ? 'dollar' : pre[4] ? 'percent' : 'plain', text: pre[0].trim(), scale: scaleOf(pre[3]) }, targets)) continue;
-          const quoted = quotedAfter(s.slice((m.index ?? 0) + n.length), a, current);
-          occurrences.push({ name: n, quoted: guards && ARITHMETIC.test(s.slice(end)) ? quoted.filter(f => !operandLater(f, s.slice(end))) : quoted });
+          const rest = s.slice((m.index ?? 0) + n.length);
+          const attributed = Boolean(c.attribution) && (ATTRIBUTED.test(before.slice(-40)) || ATTRIBUTED.test(rest.slice(0, 30)));
+          const quoted = quotedAfter(rest, a, current);
+          occurrences.push({ name: n, quoted: guards && !attributed && ARITHMETIC.test(s.slice(end)) ? quoted.filter(f => !operandLater(f, s.slice(end))) : quoted });
         }
       }
       for (const o of occurrences) for (const f of o.quoted) {

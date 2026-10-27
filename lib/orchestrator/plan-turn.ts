@@ -682,6 +682,21 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     if (misquoteStale !== null) { staleDrops.push({ kind: 'misquote', id: r.id, reason: misquoteStale }); continue; }
     perItem.push({ item: r.finding.item, cited: r.finding.cited, sentence: r.finding.sentence, n: r.candidateTurnIndex });
   }
+  // Post-wave (26 Oct, Lorenzo's item 3): Rule 6 option 4 is "one flat sentence", and on today's timing it can never
+  // be said. Code's correction waits for the checker's verdict, which lands a turn after the message; by then the
+  // model's own Socratic question on the misquote turn ("Which figure did I give you?") has made the candidate fix it,
+  // so code's line is stale and nothing flat is ever spoken (batch 39, aldermoor p64 4df38465 t6 → t8 and t10 → t12,
+  // hollisbay p64 7cdbeb74 t6 → t8). With `misquoteSameTurn` a live finding for THIS message corrects on this turn,
+  // and the MISQUOTE hint keeps the model off the figure. `found` already excludes the report-only findings, so a case
+  // whose ledger lookup is not validated is untouched; `correctsItemAgain` keeps the gate's own release next turn from
+  // saying it twice.
+  if (switchOn(caseData, 'misquoteSameTurn')) {
+    for (const m of found) {
+      const id = correctedItemOf(m.items);
+      if (wordingOf(id) === undefined || perItem.some(x => x.item === id)) continue;
+      perItem.push({ item: id, cited: m.cited, sentence: m.sentence, n: ctx.nextTurnIndex });
+    }
+  }
   // Phase 1 task 4 (`misquoteFlat`): the figures code found misquoted in THIS message. The probe guard lets the
   // model's own doubt of one stand — code's mismatch with the revealed item is the backing it asks for — where today
   // it is withheld as an unsupported challenge (b38 Larkspur Tyler t14, "does your $125 match it?"). Only the live
