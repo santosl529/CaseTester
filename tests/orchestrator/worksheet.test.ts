@@ -3,7 +3,7 @@
 // phrases ("not X", "instead of X", "earlier I said X", "throw that out") mark X withdrawn, not current."
 // Sentences are the candidates' own, verbatim from batches 33–38.
 import { describe, it, expect } from 'vitest';
-import { update, latest, hasNewerValue, isWithdrawn, lineageOf, findWithdrawals, statusOf, staleReason, claimQuantity, EMPTY_WORKSHEET } from '@/lib/orchestrator/worksheet';
+import { update, latest, hasNewerValue, lineageMoved, isWithdrawn, lineageOf, findWithdrawals, statusOf, staleReason, claimQuantity, EMPTY_WORKSHEET } from '@/lib/orchestrator/worksheet';
 import { getCaseById } from '@/lib/cases/loader';
 
 const prof2 = getCaseById('prof-002');
@@ -142,11 +142,21 @@ describe('staleReason (3.2, every line that probes or corrects)', () => {
     expect(ws.withdrawn).toEqual([expect.objectContaining({ value: 9000, replacement: 11000 })]);
     expect(staleReason(ws, prof2, { n: 11, quantity: null, value: 1800, span: span11 }, [9000, 11000, 160, 20, 60]))
       .toBe('built on 9000, withdrawn at message 13 ("not $9,000")');
-    expect(staleReason(ws, prof2, { n: 11, quantity: null, value: 1800, span: span11 }, [])).toBeNull();
+    // Lorenzo's post-wave ruling (a), 26 Oct: the carried leg no longer asks whether the figure is the DATA's, so the
+    // case figures make no difference to it.
+    expect(staleReason(ws, prof2, { n: 11, quantity: null, value: 1800, span: span11 }, []))
+      .toBe('built on 9000, withdrawn at message 13 ("not $9,000")');
   });
-  it('…not a figure of their own they redo (b38 Tyler t21 "$10M, not $12M": his t19 "$12M plus $1.8M, about $13.8M" is still probed — the hand grade\'s call)', () => {
+  // Lorenzo's post-wave ruling (a), 26 Oct: "The t24 rule is reversed. If the candidate's latest message restates a
+  // value in the same step lineage, or redoes the root, drop the queued probe or correction on the older claim."
+  it('…and a figure of their own they redo too, now (b38 Tyler t21 "$10M, not $12M" drops the probe of his t19 "$13.8M" — ruling (a) reverses the t24 call)', () => {
     const w = update(EMPTY_WORKSHEET, { turn: 21, text: 'Across 5,000 flights that\'s $10M, not $12M.', stepBindings: [] }, prof2);
-    expect(staleReason(w, prof2, { n: 19, quantity: null, value: 13.8, span: 'exiting them and redeploying the aircraft swings us by $12M plus $1.8M, about $13.8M' }, [1.8, 5000])).toBeNull();
+    expect(staleReason(w, prof2, { n: 19, quantity: null, value: 13.8, span: 'exiting them and redeploying the aircraft swings us by $12M plus $1.8M, about $13.8M' }, [1.8, 5000]))
+      .toBe('built on 12, withdrawn at message 21 ("not $12M")');
+  });
+  it('…but a bare withdrawal with no replacement beside it still drops nothing', () => {
+    const w = update(EMPTY_WORKSHEET, { turn: 21, text: 'Volume makes it worse, not better.', stepBindings: [] }, prof2);
+    expect(staleReason(w, prof2, { n: 19, quantity: null, value: 13.8, span: 'swings us by $12M plus $1.8M, about $13.8M' })).toBeNull();
   });
   it('…nor a case figure withdrawn in another setting (b35q Marisol t29 "at $60 the Starter margin is $50, not $30": her t27 $30 at $40 stands)', () => {
     const w = update(EMPTY_WORKSHEET, { turn: 29, text: 'First, at $60 the Starter margin is $50, not $30.', stepBindings: [] }, pricing);
@@ -159,11 +169,61 @@ describe('staleReason (3.2, every line that probes or corrects)', () => {
     const w = update(EMPTY_WORKSHEET, { turn: 9, text: 'Got it, thanks — 58%, not 61%.', stepBindings: [] }, prof2);
     expect(staleReason(w, prof2, { n: 5, quantity: null, value: 61, span: 'COGS went to 61%' })).toBe('61 withdrawn at message 9 ("not 61%")');
   });
+  // Lorenzo's post-wave ruling (a), 26 Oct, from batch 39 aldermoor p57 5bc506bc t8: claim 5:6 is the ratio ">2x"
+  // with the span "That's more than double the $300 million bar". The $640 million he withdrew at message 7 ("the
+  // revised peak figure is $320 million, not $640 million") is in neither the claim's figure nor its words — only in
+  // the hint line code was about to speak.
+  it('a figure only the line WOULD SAY carries, withdrawn since: stale', () => {
+    const entry = getCaseById('entry-001');
+    const w = update(EMPTY_WORKSHEET, { turn: 7, text: 'So the revised peak figure is $320 million, not $640 million — I had double-counted.', stepBindings: [] }, entry);
+    const item = { n: 5, quantity: null, value: 2, span: "That's more than double the $300 million bar" };
+    expect(staleReason(w, entry, item)).toBeNull();
+    expect(staleReason(w, entry, { ...item, lines: 'You say $640 million is more than double the $300 million bar. How much cushion would remain if the funnel numbers were different?' }))
+      .toBe('built on 640, withdrawn at message 7 ("not $640 million")');
+  });
+
   it('a newer value of its quantity: stale; nothing since: null', () => {
     const w = update(update(EMPTY_WORKSHEET, { turn: 15, text: '', stepBindings: [{ stepId: 'network_improvement', value: 15.8, span: '$15.8M' }] }, prof2),
       { turn: 21, text: '', stepBindings: [{ stepId: 'network_improvement', value: 11.8, span: '$11.8M' }] }, prof2);
     expect(staleReason(w, prof2, { n: 15, quantity: 'step:network_improvement', value: 15.8, span: '$15.8M' })).toBe('step:network_improvement restated at 11.8 (message 21) since message 15');
     expect(staleReason(w, prof2, { n: 21, quantity: 'step:network_improvement', value: 11.8, span: '$11.8M' })).toBeNull();
+  });
+});
+
+// Lorenzo's post-wave ruling (a), 26 Oct: "If the candidate's latest message restates a value in the same step
+// lineage, or redoes the root, drop the queued probe or correction on the older claim." Off prof-001 the worksheet
+// carries no value for the message being answered, so the probed claim's own quantity often shows nothing newer while
+// its lineage has moved on wholesale (batch 39: brewbean p57 t14's "about 22 points" after the 4.2 / 11.8 redo,
+// quillpath p7 t26 and p24 t24's LTV/CAC corrections after the LTV was redone).
+describe('lineageMoved (ruling (a): the lineage restated or the root redone)', () => {
+  const at = (turn: number, stepId: string, value: number) => ({ turn, text: '', stepBindings: [], checkerClaims: [{ quantity: `step:${stepId}`, value, span: String(value), rating: 'error' as const }] });
+
+  it('a member of the lineage restated at a new figure drops the older claim', () => {
+    const w = update(update(EMPTY_WORKSHEET, at(9, 'starter_ltv', 900), pricing), at(13, 'starter_ltv', 720), pricing);
+    expect(lineageMoved(w, pricing, 'step:starter_ratio', 9)).toMatch(/starter_ltv.*restated at 720 \(message 13\) since message 9/);
+    expect(staleReason(w, pricing, { n: 9, quantity: 'step:starter_ratio', value: 3, span: 'ratio $900/$300 = 3.0x' }))
+      .toMatch(/restated at 720 \(message 13\)/);
+  });
+
+  it('the same figure said again is no news', () => {
+    const w = update(update(EMPTY_WORKSHEET, at(9, 'starter_ltv', 900), pricing), at(13, 'starter_ltv', 900), pricing);
+    expect(lineageMoved(w, pricing, 'step:starter_ratio', 9)).toBeNull();
+  });
+
+  it('a step outside the lineage changes nothing', () => {
+    const w = update(update(EMPTY_WORKSHEET, at(9, 'starter_ltv', 900), pricing), at(13, 'pro_margin', 80), pricing);
+    expect(lineageMoved(w, pricing, 'step:starter_ratio', 9)).toBeNull();
+  });
+
+  it('a claim with no step quantity has no lineage to read', () => {
+    const w = update(EMPTY_WORKSHEET, at(13, 'starter_ltv', 720), pricing);
+    expect(lineageMoved(w, pricing, null, 9)).toBeNull();
+    expect(lineageMoved(w, pricing, 'pricing:gain@60', 9)).toBeNull();
+  });
+
+  it('nothing later than the claim is no news either', () => {
+    const w = update(EMPTY_WORKSHEET, at(9, 'starter_ltv', 900), pricing);
+    expect(lineageMoved(w, pricing, 'step:starter_ratio', 13)).toBeNull();
   });
 });
 

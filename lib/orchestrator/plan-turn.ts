@@ -592,6 +592,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const staleCaseFigures = staleOn ? numbersOf([caseData.prompt, ...caseData.dataLedger.filter(d => revealedIdsNow.includes(d.id)).map(d => d.value),
     ...caseData.exhibits.filter(e => shownExhibitIds.has(e.id)).map(e => JSON.stringify(e.data))].join(' ')) : [];
   const staleDrops: { kind: 'code' | 'checker' | 'misquote' | 'root_question'; id: string; reason: string }[] = [];
+  // The figures a claim's candidate-facing lines would NAME, beside the ones its own words carry (ruling (a), 26 Oct;
+  // aldermoor p57 5bc506bc t8: the ">2x" ratio claim's hint line named the $640 million he had just withdrawn, and
+  // the claim itself named neither). The correction line names the candidate's wrong figure outright, so a
+  // correction is dropped on strictly more evidence than a probe (ruling (c)).
+  const claimLines = (c: VettedClaim) => [c.probeLine, c.hintLine, c.pointerLine, c.correctionLine].filter(Boolean).join(' ');
   const staleOfFlag = (f: RecomputeFlag) => (staleOn ? staleReason(worksheet!, caseData, {
     n: fromOf(f), quantity: (f.kind ?? 'step') === 'step' ? `step:${f.stepId}` : null, value: f.candidateValue, span: f.span,
   }, staleCaseFigures) : null);
@@ -807,7 +812,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
         const w = msgs.flatMap(findWithdrawals).find(x => Math.abs(x.value - Math.abs(value)) <= Math.max(0.05, Math.abs(value) * 0.02));
         return w ? `${value} withdrawn ("${w.phrase}")` : null;
       } } } : {}),
-    ...(staleOn ? { staleDrop: (e: { n: number; c: VettedClaim }) => staleReason(worksheet!, caseData, { n: e.n, quantity: claimQuantity(e.c), value: claimFigures(e.c)[0], span: e.c.span }, staleCaseFigures) } : {}),
+    ...(staleOn ? { staleDrop: (e: { n: number; c: VettedClaim }) => staleReason(worksheet!, caseData, { n: e.n, quantity: claimQuantity(e.c), value: claimFigures(e.c)[0], span: e.c.span, lines: claimLines(e.c) }, staleCaseFigures) } : {}),
   };
   let checkerPlan = planCheckerFlags(checkerInput);
   // A flag past Rule 14 (corrected once, or left for the report) is closed:

@@ -159,7 +159,10 @@ export function findWithdrawals(text: string): Withdrawal[] {
     const own = OWN_REDO.test(sentence) || PRESCRIPTIVE.test(sentence);
     // A figure said under a condition the claim it would withdraw doesn't share ("at $60 the Starter margin is $50, not
     // $30", b35q Marisol t25 — her $30 at $40 stands): marked, and the consumer decides (worksheet staleReason).
-    const scenario = /\b(?:if|at \$?\d|under|assuming|in the test|at the test price|scenario|sensitivit\w*)\b/i.test(sentence) ? { scenario: true as const } : {};
+    // The trailing \b used to apply to every branch, so "at $60" never matched (the boundary after "6" is a digit):
+    // the price-condition branch carries its own end (post-wave, 26 Oct — exposed once the t24 rule was reversed and
+    // this guard became the only thing keeping b35q Marisol t29's "$30 at $40" alive).
+    const scenario = /\b(?:if|under|assuming|in the test|at the test price|scenario|sensitivit\w*)\b|\bat \$?\d/i.test(sentence) ? { scenario: true as const } : {};
     for (const re of [...WITHDRAW_FIG, ...(own ? [INSTEAD] : [])]) {
       for (const m of sentence.matchAll(re)) {
         const value = num(m[1]);
@@ -300,9 +303,8 @@ export function hasNewerValue(ws: Worksheet, quantity: string, turn: number, val
 // the words it was said in: the candidate has since stated a newer value for the quantity; or withdrawn its figure (in
 // that message or later); or withdrawn, in a later message, a figure its words carry (b38 Larkspur Marisol 11:4, "less
 // $9,000 = $1,800 positive", then t13 "it's $11,000 per flight, not $9,000"). Null: not stale.
-export function staleReason(ws: Worksheet, caseData: unknown, item: { n: number; quantity: string | null; value?: number; span: string }, caseFigures: number[] = []): string | null {
+export function staleReason(ws: Worksheet, caseData: unknown, item: { n: number; quantity: string | null; value?: number; span: string; lines?: string }, caseFigures: number[] = []): string | null {
   const { n, quantity, value } = item;
-  const isCase = (x: number) => caseFigures.some(y => sameFigure(x, y));
   // A withdrawal that covers this figure (review I3): in a unit that fits the quantity's, not bound to another
   // quantity, and — for a figure of the DATA (decision 6, extended) — only as a misread they fixed: its replacement is
   // a case figure too and it was not said under a condition of its own ("at $60 the Starter margin is $50, not $30",
@@ -320,16 +322,47 @@ export function staleReason(ws: Worksheet, caseData: unknown, item: { n: number;
     const w = covering(value);
     if (w) return `${value} withdrawn at message ${w.turn} ("${w.phrase}")`;
   }
-  const carried = [...normalizeNumberWords(item.span).matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => parseFloat(m[0].replace(/,/g, '')))
+  // The figures the line WOULD SAY count beside the ones the claim's words carry (ruling (a), 26 Oct; batch 39,
+  // aldermoor p57 5bc506bc t8): claim 5:6 is the ratio ">2x" with the span "That's more than double the $300 million
+  // bar" — the $640 million he withdrew at message 7 ("the revised peak figure is $320 million, not $640 million")
+  // appears nowhere in the claim, only in the hint line code was about to speak. A correction's own line names the
+  // candidate's wrong figure explicitly, so a correction is dropped on strictly more evidence than a probe.
+  const carried = [...normalizeNumberWords(`${item.span} ${item.lines ?? ''}`).matchAll(/\d[\d,]*(?:\.\d+)?/g)]
+    .map(m => parseFloat(m[0].replace(/,/g, '')))
     .filter(x => value === undefined || !sameFigure(x, value));
-  // …only a misread of the data they have fixed: the figure and its replacement both figures of the case, one row for
-  // another (Marisol: Lakeport's $9,000 for Port Avery's $11,000). A figure of their own they redo ("$10M, not $12M",
-  // b38 Tyler t21) leaves the claims built on it to be probed — the hand grade's call on his t24 "$13.8M" probe — and a
-  // case figure withdrawn in another setting ("at $60 the Starter margin is $50, not $30", b35q Marisol t25) leaves
-  // its other uses alone.
+  // Lorenzo's ruling (a), 26 Oct: **the b38 Tyler t24 rule is reversed.** It used to take only a misread of the DATA
+  // they had fixed — the figure and its replacement both figures of the case, one row for another (Marisol:
+  // Lakeport's $9,000 for Port Avery's $11,000) — so a figure of their own they redid ("$10M, not $12M", b38 Tyler
+  // t21; "roughly a third off fares on both, not 12%", b39 larkspur p57 t9) left every claim built on it to be
+  // probed. Now a withdrawal of either kind drops them. A figure withdrawn under a condition of its own
+  // (`scenario`: "at $60 the Starter margin is $50, not $30", b35q Marisol t25) still leaves its other uses alone,
+  // and the withdrawal must name what replaces it, so a bare "not 12%" with no new figure beside it is not read as
+  // a redo of the claim's input.
   for (const x of carried) {
-    const w = (ws.withdrawn as Withdrawn[]).find(y => y.turn > n && sameFigure(x, y.value) && isCase(y.value) && !y.scenario && y.replacement !== undefined && isCase(y.replacement));
+    const w = (ws.withdrawn as Withdrawn[]).find(y => y.turn > n && sameFigure(x, y.value) && !y.scenario && y.replacement !== undefined);
     if (w) return `built on ${x}, withdrawn at message ${w.turn} ("${w.phrase}")`;
+  }
+  // …or the lineage moved on (ruling (a)): "If the candidate's latest message restates a value in the same step
+  // lineage, or redoes the root, drop the queued probe or correction on the older claim."
+  return lineageMoved(ws, caseData, quantity, n);
+}
+
+// Ruling (a), 26 Oct. A step whose lineage (worksheet lineageOf, through dependsOn) holds a newer standing value than
+// the claim's own message: the candidate has redone the root, or a figure computed from it, so the queued probe or
+// correction is about work they have replaced. Read from the worksheet only, so nothing enters it that `foldTurn`
+// keeps out (the binder's loose figures off prof-001). A member said again at the same figure is no news — the
+// checker's key dedupes that — so only a changed value counts.
+export function lineageMoved(ws: Worksheet, caseData: unknown, quantity: string | null, n: number): string | null {
+  const id = quantity === null ? null : stepIdOf(quantity);
+  if (id === null) return null;
+  const { root, members } = lineageOf(caseData, id);
+  for (const m of members) {
+    const q = stepQuantity(m);
+    const e = ws.entries[q];
+    if (!e || e.turn <= n) continue;
+    const before = allValues(e).filter(v => v.turn <= n).at(-1);
+    if (before && sameValue(caseData, q, before.value, e.value)) continue;
+    return `${m === id ? q : m === root ? `its root ${m}` : `${m}, in its lineage,`} restated at ${e.value} (message ${e.turn}) since message ${n}`;
   }
   return null;
 }
