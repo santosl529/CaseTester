@@ -21,7 +21,7 @@ import { normalizeNumberWords } from '@/lib/number-words';
 import { findStepSpans, cueNames } from '@/lib/scoring/math-spans';
 import { boundFigures, type BoundFigure } from './figure-binding';
 import {
-  checkMathClaims, vetCheckerClaims, codeComputed, codeCorrection, boundInput, numbersOf, quantityWords, RATIO_SAID,
+  checkMathClaims, vetCheckerClaims, codeComputed, codeCorrection, boundInput, numbersOf, quantityWords, statedWithinBand, RATIO_SAID,
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
 import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
@@ -1797,10 +1797,22 @@ export function gateCodeFindings(p: {
       // path, and so do 'unverifiable' and no claim at all — a rating is required, never inferred.
       const flatOn = ref.finding.kind === 'misquote' && switchOn(p.caseData, 'misquoteFlat') && !matched.some(c => c.verdict === 'correct');
       const pool = flatOn ? matched.filter(c => c.verdict === 'error') : flaggedAll;
-      const flagged = figures === null ? pool[0] : pool.find(c => rightAgrees(c, figures));
-      const flatReason = flagged && !flagged.flag
-        ? `code's mismatch with ${(ref.finding as { item?: string }).item}, and the checker rates "${flagged.candidateValue}" ${flagged.verdict}/${flagged.confidence} with no flag (misquoteFlat)`
-        : null;
+      // Lorenzo's pre-wave ruling 11 (26 Oct): "Name the misquoted input, never a result that's within tolerance."
+      // On b37h 442e37ff t6 and b37q a2a5921b t12 the checker's error-rated claim is the RESULT built on the
+      // misquoted input ($1.45 from a misread $0.75 ingredient cost; $3,900 from a misread $22 cost to serve), so its
+      // right figure is the result's and `rightAgrees` dropped the finding — the misquoted input went unnamed. The
+      // relaxation is narrow and keeps the Marisol guard: only a misquote-typed error whose own stated figure sits
+      // inside the checker's own tolerance band of its right figure. A right figure that is simply another quantity
+      // (her 11.8 against her 15.8) is outside that band, so it still blocks. The line said is code's ledger line for
+      // the misquoted item, so it names the input and never the result.
+      const inBand = flatOn ? pool.find(c => c.errorType === 'misquote' && statedWithinBand(c)) : undefined;
+      const agreeing = figures === null ? pool[0] : pool.find(c => rightAgrees(c, figures));
+      const flagged = agreeing ?? inBand;
+      const flatReason = flagged && !agreeing
+        ? `code's mismatch with ${(ref.finding as { item?: string }).item}, and the checker rates the result "${flagged.candidateValue}" error within the checker's tolerance of ${rightOf(flagged) ?? '?'} — the misquoted input is the fault (misquoteFlat, ruling 11)`
+        : flagged && !flagged.flag
+          ? `code's mismatch with ${(ref.finding as { item?: string }).item}, and the checker rates "${flagged.candidateValue}" ${flagged.verdict}/${flagged.confidence} with no flag (misquoteFlat)`
+          : null;
       if (!flagged && flaggedAll.length > 0) {
         decide('checker_disagrees', `the checker flags "${flaggedAll[0].candidateValue}" but its right figure (${rightOf(flaggedAll[0]) ?? 'none'}) is none of code's (${figures!.join(', ')})`);
         return;

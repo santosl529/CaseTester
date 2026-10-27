@@ -6,7 +6,7 @@
   "turn": 2,
   "sev": "false",
   "cls": "false_refusal",
-  "note": "\"I don't have split of revenue decline between passengers and average fare.\" The check returned coarse with five route items partial and code turned the model's deferral into a refusal. Same flights and planes as full → the whole decline is fare; routes_schedule's covers (\"fares and volume\", \"fare versus volume\") missed on \"passengers\" / \"average fare\". Claude's grade: false, not serious (judgement); awaiting Lorenzo's blind grade (open question 1). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "\"I don't have split of revenue decline between passengers and average fare.\" The check returned coarse with five route items partial and code turned the model's deferral into a refusal. Same flights and planes as full → the whole decline is fare; routes_schedule's covers (\"fares and volume\", \"fare versus volume\") missed on \"passengers\" / \"average fare\". Claude's grade: false, not serious (judgement); awaiting Lorenzo's blind grade (open question 1). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Fix round (26 Oct, Lorenzo's ruling 1): the positive leg's item becomes `routes_schedule`, the item this record's own note names as the one whose covers missed. route_results_lakeport is one route's revenue and contribution; the ask is network-level, and what answers it is routes_schedule (same six routes, same flights) beside the load-factor line and the network totals. With `*=phase1` t2 defers \"the routes and schedule\" and t4 releases routes_schedule, unit_costs and fixed_costs; network_totals follows at t6. On the base t2 refuses, so the record still fails there.",
   "src": "batch-38-larkspur/hand-grading.md (not yet second-graded)",
   "a": [
    {
@@ -16,7 +16,7 @@
    },
    {
     "kind": "answered",
-    "item": "route_results_lakeport",
+    "item": "routes_schedule",
     "about": "split|decline|passengers|fare",
     "accept": [
      "release",
@@ -39,7 +39,7 @@
   "turn": 4,
   "sev": "false",
   "cls": "false_refusal",
-  "note": "\"I don't have the ticket versus extras revenue split.\" — the scope rule ruled extras_revenue out of scope and scope_coarse released port_avery_per_flight; extras_revenue ($20 per passenger both years) answers the ancillary side. Judgement, not serious; awaiting Lorenzo (open question 1).",
+  "note": "\"I don't have the ticket versus extras revenue split.\" — the scope rule ruled extras_revenue out of scope and scope_coarse released port_avery_per_flight; extras_revenue ($20 per passenger both years) answers the ancillary side. Judgement, not serious; awaiting Lorenzo (open question 1). Fix round (26 Oct, Lorenzo's ruling 1): the positive leg becomes `answered` accepting a deferral that resolves, as the four sibling false_refusal records were given on 25 Oct. The fault graded is the false refusal; a deferral of extras_revenue that comes back is not one. With `*=phase1` t4 defers \"the ticket versus extras revenue split\", it stays open through t10 and extras_revenue is released at t12. On the base the turn refuses, so the record still fails there.",
   "src": "batch-38-larkspur/hand-grading.md (not yet second-graded)",
   "a": [
    {
@@ -48,8 +48,13 @@
     "must": false
    },
    {
-    "kind": "release",
+    "kind": "answered",
     "item": "extras_revenue",
+    "about": "extras|ancillary|ticket versus",
+    "accept": [
+     "release",
+     "deferral"
+    ],
     "must": true
    }
   ],
@@ -326,7 +331,7 @@
   "turn": 6,
   "sev": "borderline",
   "cls": "misquote_uncorrected",
-  "note": "The $21M (t5, fixed costs) and $3.6M (t23/t29/t31, Westhaven; true $3.8M) misquotes never corrected: code's misquote check held corrections (misquote:fixed_costs, misquote:route_results_other) and code_gate dropped both (\"error/high — no flag\"). Contract 3.4: a flat correction when the checker rates the span an error, flag or not.",
+  "note": "The $21M (t5, fixed costs) misquote is corrected at t8 ($20.0M). The $3.6M Westhaven misquote (t23/t29/t31; true $3.8M) is NOT corrected aloud: Lorenzo's 26 Oct ruling 4 forbids a correction on the closing turn, so it is left for the written report. Re-graded 26 Oct to assert that ruled behaviour — before the ruling this record asserted the ~70-word read-out at the goodbye.",
   "a": [
    {
     "kind": "correction",
@@ -339,10 +344,9 @@
    },
    {
     "kind": "correction",
-    "figure": "$3.8M",
-    "must": true,
+    "must": false,
     "scope": {
-     "fromTurn": 24
+     "fromTurn": 32
     }
    }
   ],

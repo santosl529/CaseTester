@@ -24,7 +24,7 @@
     "why_now": {
       "tags": {"entity": "chips", "period": ["current", "historical"], "quantityKind": ["trend"]},
       "askPhrases": ["why Hollis Bay is launching now", "how the chip business has been doing", "what retailers are asking for", "the trend in better-for-you snacks"],
-      "covers": ["chip sales growth", "state of the chip business", "core chip business trend", "retailer requests for healthier options", "what prompted the launch", "better-for-you snack growth"]
+      "covers": ["chip sales growth", "state of the chip business", "core chip business trend", "retailer requests for healthier options", "what prompted the launch", "better-for-you snack growth", "growth for better-for-you snacks"]
     },
     "competition_general": {
       "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},

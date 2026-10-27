@@ -26,9 +26,11 @@ export const PHASE1_SWITCHES = [
   'probeGuardMethod',    // 3.5: the guard's replacement asks about method, never names a verified figure
   'spokenMathParser',    // 3.6: chained spoken arithmetic; any consistent reading counts as consistent
   'checkerDefinitions',  // 3.7: the case's definitions go to the live checker
+  'correctionRules',     // pre-wave rulings 3 and 4 (26 Oct): one correction per item on every path; none on the closing turn
   // Stream 4 — small fixes inside today's paths.
   'restateRules',        // 4.1: exhibit pointer + summary; a number only if asked; matched item only; not twice in 4 turns
   'coarseKeepNamed',     // 4.2: never drop a model-named item that matches the ask
+  'coarseNoRefusal',     // pre-wave ruling 1 (26 Oct): an ask whose coarse items go out this turn is not also refused
   'haikuTagGate',        // 4.3: the check's positives pass the item tag gate; a mismatch defers
   'coverNormalization',  // 4.5: plurals, synonym table, the candidate's own sentence
   'wantCueBroad',        // 4.6: "I'd want / need / confirm" + any noun phrase

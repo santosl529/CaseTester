@@ -668,7 +668,8 @@
     "must": true
    }
   ],
-  "rep": true,
-  "stream": "none"
+  "rep": false,
+  "stream": "none",
+  "rnote": "The base already writes another turn kind here, so the replay serves a bare \"Go on.\" instead of the close — a replay artifact, not a behaviour change (it fails in both arms, with the switches off as well as on). Wave: on entry-001, the case closes once the wrap-up probe is answered (Tyler-type); the auditor (close) and the hand grade see it."
  }
 ]

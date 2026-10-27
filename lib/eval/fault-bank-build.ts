@@ -24,14 +24,15 @@ export const SLICES = [
   { tag: 'b37q', batch: 'batch-37-quillpath', wave: 'batch-37-quillpath-oct-20-runs-1-5', caseId: 'pricing-001', verdicts: 'replays/2026-10-21/round6/b37q-verdicts.jsonl' },
   // No b38 verdict file exists in the corpus: the harness converts the run's own recorded verdicts (as convert-verdicts.py does).
   { tag: 'b38l', batch: 'batch-38-larkspur', wave: 'batch-38-larkspur-oct-21-runs-1-5', caseId: 'prof-002', verdicts: null },
-  // Batch 39 (the Phase 1 wave, 26 Oct; Lorenzo approved this grading-harness edit, 27 Oct): its runs live in the phase1
-  // worktree's corpus (`root: 'phase1'`, read only — memory: waves from a worktree write their runs inside it), and its
-  // verdicts are the runs' own recorded ones, converted as for b38.
-  { tag: 'b39p', batch: 'batch-39-brewbean', wave: 'batch-39-brewbean-oct-26-runs-1-5', caseId: 'prof-001', verdicts: null, root: 'phase1' },
+  // Batch 39, the Phase 1 wave (26 Oct, commit db506bee, ENGINE_SWITCHES='*=phase1'; 31 runs). Listed so the
+  // offline auditor and the other eval tools can address these runs — `runsOf(SLICES)` is how both --batches and
+  // --run resolve a target. Their own recorded verdicts are converted, as b38l's are. Their runs live in the phase1
+  // worktree's corpus (`root: 'phase1'`, read only; Phase 2's harness edit, approved by Lorenzo 27 Oct).
+  { tag: 'b39bb', batch: 'batch-39-brewbean', wave: 'batch-39-brewbean-oct-26-runs-1-5', caseId: 'prof-001', verdicts: null, root: 'phase1' },
   { tag: 'b39a', batch: 'batch-39-aldermoor', wave: 'batch-39-aldermoor-oct-26-runs-1-5', caseId: 'entry-001', verdicts: null, root: 'phase1' },
-  { tag: 'b39h', batch: 'batch-39-hollisbay', wave: 'batch-39-hollisbay-oct-26-runs-1-5', caseId: 'launch-001', verdicts: null, root: 'phase1' },
   { tag: 'b39l', batch: 'batch-39-larkspur', wave: 'batch-39-larkspur-oct-26-runs-1-8', caseId: 'prof-002', verdicts: null, root: 'phase1' },
   { tag: 'b39q', batch: 'batch-39-quillpath', wave: 'batch-39-quillpath-oct-26-runs-1-8', caseId: 'pricing-001', verdicts: null, root: 'phase1' },
+  { tag: 'b39h', batch: 'batch-39-hollisbay', wave: 'batch-39-hollisbay-oct-26-runs-1-5', caseId: 'launch-001', verdicts: null, root: 'phase1' },
 ] as const;
 // A slice's corpus root: its own (`phase1`: REPLAY_ROOT_PHASE1, default the phase1 worktree's corpus), else REPLAY_ROOT.
 export const PHASE1_RUNS = process.env.REPLAY_ROOT_PHASE1 ?? '/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs';

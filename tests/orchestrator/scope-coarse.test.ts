@@ -90,6 +90,38 @@ describe('an ask the scope rule empties keeps its coarse item (E1), without D1\'
     expect(lines).toContain(CURRENT_TREATMENT);
     expect(lines).toContain("I don't have current US treatment breakdown by drug class or Kelvexa's European sales trajectory since 2022.");
   });
+  // Lorenzo's pre-wave ruling 1 (26 Oct), `coarseNoRefusal`: an ask whose coarse item goes out on THIS turn is
+  // not also refused in the same breath. His refined rule 1 (20 Oct) grades b34a Jasmine t4's "I don't have
+  // current US treatment breakdown by drug class" a serious false refusal, because the case holds that quantity
+  // coarsely and had just given it. Narrowed to asks the SPLIT rule emptied: a cover-mapped coarse item is
+  // another quantity, and an exhibit-backed finer ask has only the exhibit — both stay refused.
+  it('ruling 1: with coarseNoRefusal the split-of-item ask is not refused beside its own coarse line', async () => {
+    vi.stubEnv('ENGINE_SWITCHES', 'entry-nocovers=coarseNoRefusal');
+    const p = plan('entry-nocovers', JASMINE_T3, { phase: 'STRUCTURE' });
+    classify.mockResolvedValueOnce([]);
+    const d = await turnDataChecked(p, turn(JASMINE_T3_ASKS));
+    expect(d.releases.map(r => r.id)).toEqual(['current_treatment']);
+    // The true refusal of the European trajectory stands; the drug-class split is not refused.
+    expect(d.refusals).toEqual(["Kelvexa's European sales trajectory since 2022"]);
+    const lines = renderDataLines(d, 's');
+    expect(lines).toContain(CURRENT_TREATMENT);
+    expect(lines).not.toContain('current US treatment breakdown by drug class');
+    expect(lines).toContain("I don't have Kelvexa's European sales trajectory since 2022.");
+    expect(acted(p, 'scope_coarse').map(e => (e.detail as { refusalWithheld?: string[] }).refusalWithheld))
+      .toEqual([['current US treatment breakdown by drug class']]);
+    vi.unstubAllEnvs();
+  });
+
+  it('ruling 1: Marisol t13 — the same, one ask, nothing left to say but the coarse line', async () => {
+    vi.stubEnv('ENGINE_SWITCHES', 'entry-nocovers=coarseNoRefusal');
+    const p = plan('entry-nocovers', MARISOL_T13, { revealed: MARISOL_T13_REVEALED });
+    const d = await turnDataChecked(p, turn([MARISOL_T13_ASK], 'exhibit-2'));
+    expect(d.releases.map(r => r.id)).toEqual(['current_treatment']);
+    expect(d.refusals).toEqual([]);
+    expect(renderDataLines(d, 's')).not.toContain("I don't have");
+    vi.unstubAllEnvs();
+  });
+
   it('with D1\'s covers (the real case): the ask is in scope and released as today — no refusal', async () => {
     const p = plan('entry-001', MARISOL_T13, { revealed: MARISOL_T13_REVEALED });
     const d = await turnDataChecked(p, turn([MARISOL_T13_ASK], 'exhibit-2'));

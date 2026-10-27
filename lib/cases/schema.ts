@@ -273,6 +273,9 @@ export const CaseSchema = z.object({
     names: z.array(z.string().min(2)).min(1),
     kind: z.enum(['level', 'change']).default('level'),
     of: z.array(z.string().min(2)).optional(),
+    // A route- or entity-scoped anchor: its names count only where one of these words comes earlier in the
+    // sentence (misquote.ts). A scoped name never names the item on its own (fact-check.ts buildFactBase).
+    scope: z.array(z.string().min(2)).min(1).optional(),
   })).default([]),
   // Fact checks (lib/orchestrator/fact-check.ts, 12 Oct): what code needs to
   // tell a true statement about the case from a false one, beyond the ledger

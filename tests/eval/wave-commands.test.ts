@@ -82,3 +82,20 @@ describe('the wave estimate', () => {
     expect(() => waveEstimate({ scored: 0, unscored: 1, checker: { model: 'claude-opus-5-5', effort: 'medium' } })).toThrow(/no measured cost/);
   });
 });
+
+// Lorenzo's pre-wave question (26 Oct): can the launcher score a SAMPLE — all five prof-001 runs plus one run per
+// other case? It can, with `--score=` as it stands, because `--score` takes PERSONA ids (not run numbers) and
+// planWave dedupes personaIds, so a wave holds at most one run per persona: naming the persona names the run.
+// A batch runs one case (`--case=`), so the wave is one invocation per case.
+describe('the wave\'s per-run scoring sample (--score)', () => {
+  it('names one run per case by its persona, and leaves the rest unscored', () => {
+    const quillpath = [7, 24, 40, 57, 64, 65, 66, 67];
+    const ids = parseScoreIds('24', quillpath);
+    expect(ids).toEqual([24]);
+    expect(quillpath.map(id => scoresPersona(id, { scoreIds: ids })))
+      .toEqual([false, true, false, false, false, false, false, false]);
+    // prof-001: every run scored — no --score and no --no-score.
+    const prof1 = [7, 24, 40, 57, 64];
+    expect(prof1.map(id => scoresPersona(id, { scoreIds: parseScoreIds(undefined, prof1) }))).toEqual([true, true, true, true, true]);
+  });
+});

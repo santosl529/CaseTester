@@ -128,7 +128,9 @@ export function buildFactBase(c: CaseInput): FactBase {
   const quantities: Quantity[] = [];
   for (const it of c.dataLedger) {
     const qa = c.quoteAnchors.filter(a => a.item === it.id);
-    const names = uniq([...qa.flatMap(a => a.names), ...(fa.names[it.id] ?? [])].map(lc));
+    // A scoped anchor's names are read only by the quote grammar, never as names for the quantity itself
+    // (ruling 9: "fare" scoped to Lakeport must not make every fare ask or claim this item's).
+    const names = uniq([...qa.filter(a => !a.scope?.length).flatMap(a => a.names), ...(fa.names[it.id] ?? [])].map(lc));
     if (names.length === 0) continue;
     const tf = it.timeframes ?? {};
     // An item with no figures states a change ("Menu prices have not changed").

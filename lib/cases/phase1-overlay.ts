@@ -17,6 +17,7 @@ const QuoteAnchor = z.object({
   names: z.array(z.string().min(2)).min(1),
   kind: z.enum(['level', 'change']).default('level'),
   of: z.array(z.string().min(2)).optional(),
+  scope: z.array(z.string().min(2)).min(1).optional(),
 }).strict();
 const MustReach = z.object({ item: z.string(), before: z.string().min(1), why: z.string().min(5) }).strict();
 // A cover is a specific phrase: two words at least ("cost per seat", not "cost").

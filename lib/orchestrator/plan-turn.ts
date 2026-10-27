@@ -44,7 +44,7 @@ import { normalizeAsrTerms } from './asr-terms';
 import { phrase, type PhraseUses } from './phrasing';
 import { factBaseFor, findCandidateMisquotes, echoesOf, type Echo } from './fact-check';
 import { formatPeriodQuestionLine } from './unit-check';
-import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, claimError, relativeError, holdRank, closeWaitRule, closeWaitReason, type CloseHoldMemory } from './close-hold';
+import { finalAnswersFrom, inFinalScope, pendingFinalChecks, probedAlready, answersWait, isRedo, wrapUpsLeft, WRAP_UP_PROBES, claimError, relativeError, holdRank, closeWaitRule, closeWaitReason, type CloseHoldMemory } from './close-hold';
 import { CONDUCT_WARNING, CONDUCT_TERMINATION, CONDUCT_REDIRECT, distressOfferText, DISTRESS_CLOSE } from '@/lib/agent/prompts/scripts';
 import type { ConductFlags, ScriptedPlan, TurnCtx } from './turn-types';
 
@@ -123,6 +123,13 @@ export type RecMathProbe = { flag: RecomputeFlag; action: RecomputeAction } | { 
 
 // Rule 6 option 4: how many times code corrects one item's misquote in a session.
 export const MISQUOTE_CORRECTIONS_PER_ITEM = 2;
+// Whether code corrects this item again. Lorenzo's pre-wave ruling 3 (26 Oct): "Each item is corrected once, on
+// every path." b32 Tyler 51b8cc22 was corrected on route_results_port_avery at t12, re-misquoted it at t27 and got
+// the identical line at t28 — the reply to a recommendation ask bypassed the cap altogether, and the cap itself
+// allowed a second. With `correctionRules` on there is one correction per item and no exemption; off is today's
+// behaviour (the rec reply always, otherwise up to MISQUOTE_CORRECTIONS_PER_ITEM).
+export const correctsItemAgain = (o: { timesCorrected: number; recReply: boolean; onceOnly: boolean }) =>
+  o.onceOnly ? o.timesCorrected === 0 : o.recReply || o.timesCorrected < MISQUOTE_CORRECTIONS_PER_ITEM;
 export type TurnPlan = ScriptedPlan | ModelPlan;
 
 export function planTurn(reads: TurnReads, heardText: string, deps: PlanDeps): TurnPlan {
@@ -677,7 +684,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   };
   const replyToRecAsk = recReplyAt(ctx.nextTurnIndex);
   // The reply to a recommendation ask is always corrected: a misquote must not stand in the recommendation.
-  const capped = perItem.filter(m => recReplyAt(m.n) || timesCorrected(m.item) < MISQUOTE_CORRECTIONS_PER_ITEM).slice(0, 2);
+  const correctionRulesOn = switchOn(caseData, 'correctionRules');
+  const capped = perItem.filter(m => correctsItemAgain({ timesCorrected: timesCorrected(m.item), recReply: recReplyAt(m.n), onceOnly: correctionRulesOn })).slice(0, 2);
   const misquoteOf = (list: typeof perItem) => list.length > 0 ? {
     ...list[0], label: labelOf(list[0].item), items: list.map(m => m.item), all: list,
     text: correctionLines(list.map(m => wordingOf(m.item)!), {
@@ -960,20 +968,26 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Rule 14's probe, the figure and a chance to revise — before the case moves
   // on. Once a case; not when time is up; a shed minor error stays shed.
   // A flag released from a recommendation reply (the gate).
-  const recMathFlag = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && wrapUps > 0
+  // Lorenzo's pre-wave ruling 5 (26 Oct): WRAP_UP_PROBES stays at 2, and when the cap drops a correction or probe
+  // that fact is recorded, so the report can show it (b35q Marisol 087451cb lost "Starter standalone LTV/CAC is
+  // about 2 times" to unresolved_at_close, and b35q Tyler lost a correction the same way). The candidates are
+  // computed without the cap and the cap is applied after, so what it kept back is known.
+  const recMathFlagUncapped = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue
     ? liveFlags.find(f => recReplyAt(fromOf(f)) && flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
     : undefined;
+  const recMathFlag = wrapUps > 0 ? recMathFlagUncapped : undefined;
   // An error past Rule 14 said again in the recommendation (Lorenzo, 13 Oct;
   // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule — once
   // the reply's verdict flags it too (the gate). It is the correction's second
   // saying: none once its line was said twice (Lorenzo, 19 Oct, round-3 ruling 2; b29 Jordan t20).
-  const closedRec = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlag && wrapUps > 0
+  const closedRecUncapped = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlagUncapped
     ? closedErrorAgreed({
       rows: checkerRows, candidateTurnIndex: ctx.nextTurnIndex, recReply: recReplyAt, closed: closedKeys, keys: checkerPlan.keys,
       restated: checkerMemory.restated, corrected: checkerMemory.corrected, said: checkerMemory.said,
       messages: [...turnRows.filter(t => t.role === 'candidate').map(t => ({ index: t.turnIndex, text: t.text })), { index: ctx.nextTurnIndex, text: candidateText }],
     })
     : null;
+  const closedRec = wrapUps > 0 ? closedRecUncapped : null;
   let recMathProbe: RecMathProbe | null = recMathFlag
     ? { flag: recMathFlag, action: recomputeAction(recMathFlag, recomputeAttempts[attemptKey(recMathFlag)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)) }
     : closedRec ? { closed: closedRec, action: closedRec.correction ? 'correct' : 'probe' }
@@ -1180,6 +1194,17 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const closeWait = kind === 'close_wait'
     ? closeWaitRule(lastQuestion ?? '', { answer: candidateText, skipAnswered: switchOn(caseData, 'closeWaitMitigation') })
     : null;
+  // Ruling 5's record: what the wrap-up cap kept back on this turn. The cap stays at WRAP_UP_PROBES; this only
+  // says, in the turn file, that a probe or correction existed and the slots were spent — so a wave report can
+  // count the trade instead of inferring it from `unresolved_at_close`.
+  const wrapUpDropped = wrapUps > 0 ? [] : [
+    ...(recMathFlagUncapped ? [{ what: 'rec_math_probe', key: attemptKey(recMathFlagUncapped), value: recMathFlagUncapped.candidateValue }] : []),
+    ...(closedRecUncapped ? [{ what: closedRecUncapped.correction ? 'closed_rec_correction' : 'closed_rec_probe', key: closedRecUncapped.key, value: null }] : []),
+    ...(kind === 'close' && !timeUp && pendingFinal.length > 0 ? [{ what: 'close_hold_wait', key: `pending:${pendingFinal.join(',')}`, value: null }] : []),
+  ];
+  checks.record('wrap_up_cap', wrapUpDropped.length > 0,
+    `both wrap-up slots are spent (WRAP_UP_PROBES = ${WRAP_UP_PROBES}): ${wrapUpDropped.map(d => d.what).join(', ')} goes to the report`,
+    { cap: WRAP_UP_PROBES, left: wrapUps, spentOn: closeHold.probeTurns ?? [], dropped: wrapUpDropped });
   checks.record('close_hold', kind === 'close_wait' || finalHold, kind === 'close_wait' ? `a final answer's verdict has not landed — the follow-up, not the close (${closeWaitReason(closeWait!)})`
     : finalHold ? 'a final answer\'s flag — probed before the close' : 'no close hold on the final answers', {
     finalFrom, pending: pendingFinal, probeKey: finalProbeKey, waits: closeHold.waits ?? [], probed: closeHold.probed ?? [],
@@ -1366,7 +1391,13 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     started: Boolean(checkerConfig && statesQuantitativeClaim(candidateText)), selected: sel?.id ?? null, used: checkerUsed?.id ?? null,
     decisions: checkerDecisions.map(d => ({ id: d.id, outcome: d.outcome, reason: d.reason })), waiting: checkerPlan.waiting.map(w => w.id),
   });
-  if (kind === 'close' && correcting.length < Math.min(2, perItem.length)) {
+  // Lorenzo's pre-wave ruling 4 (26 Oct): "No correction on the closing turn. If time is up, leave it for the
+  // written report." b38l Tyler cee7d399 t32 prepended a ~70-word read-out of the four-route block to the goodbye
+  // to fix $3.6M → $3.8M, never naming which figure was wrong, and the case ended with no chance to revise. Off,
+  // the close lifts the per-item cap so no misquote stands at the goodbye (today's behaviour).
+  const closeHeld = correctionRulesOn && kind === 'close' ? perItem.map(m => m.item) : [];
+  if (closeHeld.length > 0) { correcting = []; misquote = null; }
+  else if (!correctionRulesOn && kind === 'close' && correcting.length < Math.min(2, perItem.length)) {
     correcting = perItem.slice(0, 2);
     misquote = misquoteOf(correcting);
   }
@@ -1375,6 +1406,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   }
   checks.record('misquote', perItem.length > 0, misquote ? 'misquote of revealed data — code corrects it' : 'misquote corrected twice already — logged', {
     found, correcting: correcting.map(m => m.item), alreadyCorrected: misquotesCorrected,
+    ...(closeHeld.length > 0 ? { closeHeld } : {}),
   });
   // A late recommendation ask — past the recommendation deadline — also asks the biggest risk (Lorenzo, 15 Oct).
   const recAskLate = kind === 'rec_ask' && elapsedMs >= deadlines.brainstormEnd;

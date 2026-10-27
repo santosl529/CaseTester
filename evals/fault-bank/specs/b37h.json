@@ -247,7 +247,7 @@
   "turn": 14,
   "sev": "borderline",
   "cls": "false_refusal",
-  "note": "\"I don't have repeat rates from past launches.\" Exhibit 2 (on screen since t8) shows each buying household averages 3 bags \"from Hollis Bay's past launches\"; he took it as \"none exist\". Borderline by the refined rule (on screen). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "note": "\"I don't have repeat rates from past launches.\" Exhibit 2 (on screen since t8) shows each buying household averages 3 bags \"from Hollis Bay's past launches\"; he took it as \"none exist\". Borderline by the refined rule (on screen). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. KNOWN BORDERLINE, STAYS FAILING (Lorenzo, 26 Oct): the ask names a true year-one repeat rate, which the case does not hold; the nearest fact is planning_assumptions (3 bags a household in year one), on screen via exhibit-2 from t8. A 'repeat rate' cover was drafted and deliberately NOT applied — it would name a quantity the case lacks and risk a new wrong release.",
   "a": [
    {
     "kind": "refusal",

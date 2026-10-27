@@ -87,7 +87,8 @@
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level", "trend"]},
       "askPhrases": ["the average Lakeport fare in each year", "how Lakeport fares moved", "the Lakeport ticket price"],
       "covers": ["lakeport fare", "average fare on lakeport", "lakeport ticket price", "lakeport yield"],
-      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"]
+      "coverExcludes": ["entrant", "low-cost carrier", "low-cost airline", "lcc"],
+      "misquote": {"names": ["fare", "fares"], "kind": "level", "scope": ["lakeport"]}
     },
     "extras_revenue": {
       "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level"]},
