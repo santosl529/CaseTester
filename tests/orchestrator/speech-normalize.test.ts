@@ -60,15 +60,21 @@ describe('the patterns the recordings actually contain', () => {
     expect(normalizeSpeech('The other three is point seven five times thirty seven point five.'))
       .toBe('The other three is 0.75 times thirty seven point five.');
     expect(normalizeSpeech('It is point two.')).toBe('It is 0.2.');
+    // Notation, not a figure: the run is not maximal, so it is left alone
+    // (claire 23ec4ff4 t10's "0.315R" spoken back).
+    expect(normalizeSpeech('point three one fiveR times 1.375')).toBe('point three one fiveR times 1.375');
   });
 
   it('leaves a decimal that already has its whole part to the number-word reader', () => {
     expect(normalizeSpeech('around fourteen point five')).toBe('around fourteen point five');
     expect(normalizeSpeech('zero point six divided by six point two')).toBe('zero point six divided by six point two');
-    // "ten, uh, point five" is 10.5 as spoken, but the comma makes the reading a
-    // guess: "point" cannot begin an operand, so the filler run is not a gap in
-    // a chain and the whole phrase is left as written.
-    expect(normalizeSpeech('around ten, uh, point five points of revenue')).toBe('around ten, uh, point five points of revenue');
+    // Only a figure *directly* before claims the decimal. "ten, uh, point five"
+    // is 10.5 as spoken, but the comma makes that a guess, so the bare reading
+    // is taken and the comma still ends the expression — no claim either way.
+    // (the filler run stays: "point" cannot begin an operand, so at that stage
+    // the run is not a gap in a chain)
+    expect(normalizeSpeech('around ten, uh, point five points of revenue')).toBe('around ten, uh, 0.5 points of revenue');
+    expect(read('He said around ten, uh, point five points of revenue.', ON)).toEqual([]);
   });
 });
 

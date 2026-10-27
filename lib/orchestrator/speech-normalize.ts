@@ -82,18 +82,28 @@ function collapseDisfluencies(text: string): string {
 // 2. A decimal spoken with no whole part: "point seven five" is 0.75.
 //
 // `normalizeNumberWords` reads "fourteen point five" because its runs start on
-// a digit or tens word, so a bare "point …" stays words and the figure is lost.
-// Only where the reading is forced: the words before must be neither a figure
-// nor a comma, so "around ten, uh, point five" — 10.5 as spoken, but a guess
-// once the comma is there — is left alone rather than read as 0.5.
+// a digit or tens word, so a bare "point …" stays words and the figure is lost —
+// and worse than lost: the digit words after "point" become operands of their
+// own, so "point three zero plus point two zero is point five zero" reads as
+// "0 + 0.20 = 0.50" and is flagged. Only the whole part decides: a figure
+// directly before means the decimal belongs to it ("fourteen point five"), and
+// anything else — a word, a comma, the start of a sentence — makes it a bare
+// decimal. Applying this unevenly is what raises false flags, so it applies
+// everywhere it is not that one shape.
+//
+// The run must also be maximal. "point three one fiveR" is notation, not a
+// figure: without the check the reader would backtrack to "point three one" and
+// leave "fiveR" behind as a second operand.
 const DIGIT_WORD = 'zero|one|two|three|four|five|six|seven|eight|nine';
 const SPOKEN_DECIMAL = new RegExp(`\\bpoint\\s+((?:${DIGIT_WORD})(?:\\s+(?:${DIGIT_WORD}))*)(?![a-z'])`, 'gi');
-const BEFORE_DECIMAL = new RegExp(`(?:\\d|%|,|\\b(?:${NUMBER_WORD}))\\s*$`, 'i');
+const FIGURE_DIRECTLY_BEFORE = new RegExp(`(?:\\d|%|\\b(?:${NUMBER_WORD}))\\s*$`, 'i');
+const MORE_DIGIT_WORDS = new RegExp(`^(?:[\\s-]+(?:${DIGIT_WORD})|[a-z])`, 'i');
 const DIGITS: Record<string, string> = { zero: '0', one: '1', two: '2', three: '3', four: '4', five: '5', six: '6', seven: '7', eight: '8', nine: '9' };
 
 function spokenDecimals(text: string): string {
   return text.replace(SPOKEN_DECIMAL, (m, words: string, offset: number) => {
-    if (BEFORE_DECIMAL.test(text.slice(0, offset))) return m;
+    if (FIGURE_DIRECTLY_BEFORE.test(text.slice(0, offset))) return m;
+    if (MORE_DIGIT_WORDS.test(text.slice(offset + m.length))) return m;
     return `0.${words.toLowerCase().split(/\s+/).map(w => DIGITS[w]).join('')}`;
   });
 }
