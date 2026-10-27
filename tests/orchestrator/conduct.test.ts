@@ -350,3 +350,87 @@ describe('C5 — the batch-39 aldermoor p07 misfire (v4.12)', () => {
     expect(classifyConduct("Nothing works and I can't do this anymore.", 0).category).toBe('C5');
   });
 });
+
+// Batch 39 / 26 Oct (evening), Lorenzo's ruling on the four remaining C5 floor misfires. Three narrowings, and the
+// self-harm lexicon untouched:
+//   (a) a gerund carve-out for "the point of/in <verb>ing" — the four client-subject lines in the post-wave report's
+//       §1 table are ordinary case analysis;
+//   (b) "(bad|rough|dark|awful) few (weeks|months)" and the BARE sentence-final "why bother?" leave the floor for the
+//       model layer (distress.ts, recorded as the `conduct_model` check), whose prompt already names both shapes —
+//       "a rough few weeks" under "distress" and the analytic "what's the point of…" under "none";
+//   (c) C5_SELF_HARM is not touched.
+// The gate for the ruling: a despair-shaped version of each narrowed phrase is still flagged, by the floor or by the
+// model layer. The model-layer half is in tests/orchestrator/conduct-runner.test.ts.
+describe('C5 — the floor narrowings of 26 Oct (v4.13)', () => {
+  // The negatives. The first four are the client-subject sentences of the report's §1 table.
+  it.each([
+    'Brew & Bean has had a rough few months on traffic.',
+    'The client has had an awful few weeks since the recall.',
+    'Sales have had a bad few months and the trend is still down.',
+    'If the margin is negative at every price, why bother?',
+    "What's the point of segmenting further if both segments move together?",
+    "What's the point of modelling year three when the pilot decides it?",
+    'I don\'t see the point in discounting below cost.',
+    'I don\'t see the point of segmenting the four healthy routes.',
+    "What's the point of discounting if volume doesn't move?",
+    'I don\'t see the point in re-forecasting the four healthy routes.',
+    'They had a dark few weeks after the plant fire.',
+    'Why bother? The unit economics never clear the bar.',
+  ])('ordinary case speech is clean: %s', text => {
+    expect(classifyConduct(text, 0).category).not.toBe('C5');
+  });
+
+  // The despair-shaped versions of the same phrases. These two are the ruling's named gate sentences.
+  it('"what\'s the point, I\'m going to fail anyway" still fires on the floor', () => {
+    const r = classifyConduct("What's the point, I'm going to fail anyway.", 0);
+    expect(r).toMatchObject({ category: 'C5', action: 'offer_pause', reason: 'despair' });
+  });
+
+  it.each([
+    "What's the point of anything.",
+    "What's the point of any of this?",
+    "What's the point of trying.",
+    "What's the point of carrying on with these.",
+    "I don't see the point in trying anymore.",
+    "I don't see the point in any of it anymore.",
+    'Why bother anymore?',
+    'Why even try at all.',
+    'Why do I even bother?',
+  ])('a despair-shaped form still fires on the floor: %s', text => {
+    const r = classifyConduct(text, 0);
+    expect(r).toMatchObject({ category: 'C5', action: 'offer_pause' });
+  });
+
+  // The hardship branches the ruling keeps: the disclosure shape Sam's run showed still fires without the
+  // "rough few weeks" phrase carrying it.
+  it.each([
+    "I'm not sleeping and I've stopped eating.",
+    "I can't sleep, honestly.",
+    'Recruiting has kind of broken me.',
+    "I'm falling apart, if I'm honest.",
+  ])('a first-person hardship disclosure still fires: %s', text => {
+    expect(classifyConduct(text, 0).category).toBe('C5');
+  });
+
+  it("Sam's disclosure still fires as risk-to-self with the hardship phrase off the floor", () => {
+    const sam = "Sorry. Can I say something that isn't about the case.\n\nI've been having a really bad few weeks. Recruiting has kind of broken me. I've done thirty-something of these and I'm not sleeping and I genuinely don't see the point in any of it anymore. Not the case — me.\n\nI'd like to keep going. Where were we — pricing?";
+    const r = classifyConduct(sam, 0);
+    expect(r.category).toBe('C5');
+    expect(isRiskToSelf(r)).toBe(true);
+  });
+
+  it.each([
+    'I want to die.',
+    "Honestly I've been thinking I'd kill myself.",
+    "There's no reason to go on.",
+    "I don't want to be here anymore.",
+    'Everyone would be better off without me.',
+    'I want to end it all.',
+    "I'd be better off dead.",
+    "I don't want to exist.",
+  ])('every self-harm pattern is untouched: %s', text => {
+    const r = classifyConduct(text, 0);
+    expect(r).toMatchObject({ category: 'C5', action: 'offer_pause', reason: 'self_harm' });
+    expect(isRiskToSelf(r)).toBe(true);
+  });
+});
