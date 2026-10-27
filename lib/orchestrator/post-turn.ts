@@ -1,5 +1,5 @@
 import { db } from '@/db/client';
-import { sessions, sessionTurns, revealedData } from '@/db/schema';
+import { sessions, sessionTurns, revealedData, sessionEvents } from '@/db/schema';
 import { asc, eq } from 'drizzle-orm';
 import { assessCoverage } from '@/lib/scoring/coverage';
 import { getCaseById } from '@/lib/cases/loader';
@@ -9,6 +9,8 @@ import { labelWithPeriod } from './data-ledger';
 import { logDataRequestClassification } from './data-request-log';
 import type { Phase } from './state-machine';
 import type { TurnResult } from './session-runner';
+import { switchOn } from '@/lib/cases/engine-switches';
+import { askJudgeEligible, claimAskJudge, callAskJudge, runAskJudgeOnce, ASK_JUDGE_EVENT } from './ask-judge';
 
 type PostTurnParams = {
   sessionId: string;
@@ -33,7 +35,36 @@ export async function runPostTurnBackground(params: PostTurnParams): Promise<voi
     // end here and are never scored. Also skipped when the runner already
     // classified this exchange synchronously (recommendation-ask turns).
     result.ended || result.dataRequestsClassified ? undefined : dataRequestPass(params),
+    // Step 3 (`asyncAskJudge`): the background item judge on the exchange, claimed once per turn. Not at the close.
+    result.ended ? undefined : askJudgePass(params),
   ]);
+}
+
+// The background item judge (lib/orchestrator/ask-judge.ts). Off: no read, no write, no call.
+async function askJudgePass({ sessionId, userId, caseId, phase, result }: PostTurnParams): Promise<void> {
+  try {
+    const caseData = getCaseById(caseId);
+    if (!switchOn(caseData, 'asyncAskJudge')) return;
+    const turns = await db.query.sessionTurns.findMany({
+      where: eq(sessionTurns.sessionId, sessionId),
+      orderBy: [asc(sessionTurns.turnIndex)],
+    });
+    const interviewerTurn = turns.at(-1);
+    const candidateTurn = turns.at(-2);
+    if (interviewerTurn?.role !== 'interviewer' || candidateTurn?.role !== 'candidate') return;
+    const revealedRows = await db.query.revealedData.findMany({ where: eq(revealedData.sessionId, sessionId) });
+    const releasedThisTurn = Boolean(result.exhibit) || revealedRows.some(r => r.revealedAtMs >= candidateTurn.timestampMs);
+    if (!askJudgeEligible(candidateTurn.text, interviewerTurn.text, releasedThisTurn)) return;
+    await runAskJudgeOnce({
+      claim: () => claimAskJudge(db, sessionId, candidateTurn.turnIndex, phase),   // only the insert that lands calls
+      judge: () => callAskJudge(caseData, candidateTurn.text, revealedRows.map(r => r.ledgerItemId),
+        u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); }),
+      write: async v => { await db.insert(sessionEvents).values({ sessionId, category: ASK_JUDGE_EVENT.category, subtype: ASK_JUDGE_EVENT.subtype,
+        turnIndex: candidateTurn.turnIndex, phase, payloadJsonb: { asks: v.asks, latencyMs: v.latencyMs } }); },
+    });
+  } catch (e) {
+    console.error('[ask-judge] background pass failed:', e);
+  }
 }
 
 // Live coverage agent (docs/scoring-qa.md): evidence sufficiency per rubric

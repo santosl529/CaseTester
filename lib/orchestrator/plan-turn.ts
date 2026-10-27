@@ -66,6 +66,8 @@ export type TurnReads = {
   checkerEventRows?: (typeof sessionEvents.$inferSelect)[];
   // The voice check-ins said (voice-check-in.ts): in the history, as no turn.
   checkInEventRows?: (typeof sessionEvents.$inferSelect)[];
+  // The background item judge's verdicts (ask-judge.ts; `asyncAskJudge`): what has landed by planning time.
+  askJudgeEventRows?: (typeof sessionEvents.$inferSelect)[];
 };
 
 export type PlanDeps = {
@@ -1487,7 +1489,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, closedInputs, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, stageCodeLines, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, misquoteFigures, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, deferChecks: new Map<string, Promise<CheckVerdict>>(), messageAsks: undefined as Promise<MessageAsks> | undefined, messageAsksHeard: undefined as Promise<MessageAsks & { timedOut?: true }> | undefined, requestCues, requestGuardRegenerated: false,
-      buffered: bufferReason !== undefined, bufferReason,
+      buffered: bufferReason !== undefined, bufferReason, askJudgeRows: reads.askJudgeEventRows ?? [],
     },
   };
 }

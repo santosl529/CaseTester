@@ -36,3 +36,12 @@ describe('selfCorrection', () => {
     expect(selfCorrection({ ...x, closing: true })).toBeNull();
   });
 });
+
+describe('askJudgeVerdictFrom: the first verdict row for the turn wins', () => {
+  it('two rows for one candidate turn: the earlier is used', async () => {
+    const { askJudgeVerdictFrom } = await import('@/lib/orchestrator/ask-judge');
+    const row = (at: number, ask: string, turnIndex = 4) => ({ category: 'check', subtype: 'ask_judge', turnIndex, createdAt: new Date(at), payloadJsonb: { asks: [{ ask, items: [], missing: '' }] } });
+    expect(askJudgeVerdictFrom([row(2000, 'second'), row(1000, 'first'), row(500, 'other turn', 6)], 4)?.[0].ask).toBe('first');
+    expect(askJudgeVerdictFrom([row(1000, 'first')], 8)).toBeNull();
+  });
+});

@@ -12,6 +12,7 @@ import { judgeVerdict, type JudgeAsk } from '@/lib/cases/item-judge-draft';
 import { asyncJudgeVerdict } from '@/lib/cases/async-judge-draft';
 import { liveJudgeVerdict } from '@/lib/cases/live-judge-draft';
 import { selfCorrection, correctionLine } from './self-correct';
+import { askJudgeVerdictFrom } from './ask-judge';
 import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS, refusedItemIds } from './fact-check';
 import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, promptFactCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
@@ -835,7 +836,8 @@ function applySelfCorrection(plan: ModelPlan, d: TurnData, log: boolean): TurnDa
   const prevCandidate = [...rows].reverse().find(r => r.role === 'candidate');
   const lastInterviewer = [...rows].reverse().find(r => r.role === 'interviewer');
   if (!prevCandidate || !lastInterviewer) return d;
-  const asks = asyncJudgeVerdict(caseData.id, prevCandidate.text);
+  // Replay: the recorded verdicts (ASYNC_JUDGE_VERDICTS); live: the first verdict row for the previous candidate turn.
+  const asks = asyncJudgeVerdict(caseData.id, prevCandidate.text) ?? askJudgeVerdictFrom(state.askJudgeRows ?? [], prevCandidate.turnIndex);
   if (!asks) return d;
   const c = selfCorrection({
     asks, items: ledger.items.map(i => ({ id: i.id, label: i.label, value: i.value, ...(i.spoken ? { spoken: i.spoken } : {}) })),

@@ -1,4 +1,5 @@
 import { closeWaitLine } from './close-hold';
+import { ASK_JUDGE_EVENT } from './ask-judge';
 import { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
@@ -137,6 +138,7 @@ async function readTurn(sessionId: string): Promise<TurnReads> {
       where: and(eq(sessionEvents.sessionId, sessionId), or(
         inArray(sessionEvents.category, ['data_request', MATH_CHECKER_CATEGORY]),
         and(eq(sessionEvents.category, VOICE_CHECK_IN.category), eq(sessionEvents.subtype, VOICE_CHECK_IN.subtype)),
+        and(eq(sessionEvents.category, ASK_JUDGE_EVENT.category), eq(sessionEvents.subtype, ASK_JUDGE_EVENT.subtype)),
       )),
     }),
   ]);
@@ -145,6 +147,7 @@ async function readTurn(sessionId: string): Promise<TurnReads> {
     dataRequestEventRows: eventRows.filter(r => r.category === 'data_request'),
     checkerEventRows: eventRows.filter(r => r.category === MATH_CHECKER_CATEGORY),
     checkInEventRows: eventRows.filter(r => r.category === VOICE_CHECK_IN.category && r.subtype === VOICE_CHECK_IN.subtype),
+    askJudgeEventRows: eventRows.filter(r => r.category === ASK_JUDGE_EVENT.category && r.subtype === ASK_JUDGE_EVENT.subtype),
   };
 }
 

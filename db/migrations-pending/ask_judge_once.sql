@@ -1,0 +1,12 @@
+-- One background item-judge call per (session, turn) — `asyncAskJudge` (Lorenzo, 27 Oct). The claim row's insert
+-- (INSERT … ON CONFLICT (session_id, turn_index) WHERE subtype = 'ask_judge_claim' DO NOTHING) relies on this index.
+--
+-- PENDING, NOT APPLIED. Lorenzo applies it through the normal deploy. It is not in db/migrations/ because the drizzle
+-- sequence is shared with the drills branch (main is at 0023; this branch at 0021): after phase2 merges main, run
+-- `npm run db:generate` — db/schema.ts already declares this index, so drizzle emits the same statement under the
+-- next number — and delete this folder. Rollback: ask_judge_once.down.sql.
+--
+-- Not CONCURRENTLY: db/migrate.ts runs every pending migration inside one transaction, where CREATE INDEX
+-- CONCURRENTLY is refused. A plain build takes a SHARE lock on session_events (reads go on; inserts wait) for as long
+-- as the scan takes — the table is small (see the design doc §29).
+CREATE UNIQUE INDEX session_events_ask_judge_once ON session_events (session_id, turn_index) WHERE subtype = 'ask_judge_claim';
