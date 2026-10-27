@@ -16,7 +16,7 @@ import { correctsNow } from './math-checker-live';
 import { shadowAskDecision, applyAskRefusals, applyModelKeep } from './ask-decision';
 import { composeDataSlot, dropContradictedRefusals, wontGetToRemainder } from './turn-composer';
 import { revealedValues, canReveal, labelWithPeriod } from './data-ledger';
-import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, askQualifiers, type Qualifier } from './ask-qualifiers';
+import { unmetQualifiers, guardParts, mergeParts, qualifierItems, guardedItems, gateReading, statesAsked, coversAskedWords, askQualifiers, type Qualifier } from './ask-qualifiers';
 import type { OnUsage, LlmUsage } from '@/lib/llm-usage';
 import { costOf } from '@/lib/llm-pricing';
 import { dataLineVersions } from '@/lib/cases/loader';
@@ -692,6 +692,15 @@ const refusalStated = (plan: ModelPlan) => (part: string, id: string) => {
   const i = plan.state.ledger.items.find(x => x.id === id);
   return i ? statesAsked(part, { label: i.label, value: i.value }, plan.state.caseData.dataLedger) : false;
 };
+// `refusalCoverage` (measurement): every item given this turn is a candidate, and its line, label, names and cover phrases
+// must cover the part's words — no item mapping of the refused words (batch 39: they map nothing).
+const refusalCovered = (plan: ModelPlan) => (part: string, id: string) => {
+  const { ledger, factBase: fb, caseData } = plan.state;
+  const i = ledger.items.find(x => x.id === id);
+  if (!i) return false;
+  const words = [i.label, i.value, ...(fb.quantities.find(q => q.id === id)?.names ?? []), ...fb.covers.filter(c => c.id === id).flatMap(c => c.phrases)].join(' — ');
+  return coversAskedWords(part, words, caseData.dataLedger);
+};
 // `modelSay` (Phase 2 S2): the model's own say, raw — its refusals are the decision's evidence; Stream and Settle pass
 // the same words, so both speak the same data line.
 export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'exhibit' | 'rescueItem'>, onUsage?: OnUsage, opts: { modelSay?: string; log?: boolean; modelRequests?: DeclaredRequest[] } = {}): Promise<TurnData> {
@@ -724,6 +733,12 @@ export async function turnDataChecked(plan: ModelPlan, turn: Pick<ModelTurn, 're
     const r = dropContradictedRefusals(data, refusalNamed(plan), refusalStated(plan));
     data = r.data;
     if (opts.log && r.changes.length > 0) plan.ctx.checks.act('refusal_contradiction', 'a refused part a line given this turn states: not refused (Phase 2 S3)', { changes: r.changes });
+  }
+  if (switchOn(plan.state.caseData, 'refusalCoverage')) {
+    const given = [...data.releases.map(r => r.id), ...data.restates.map(r => r.id), ...(data.exhibit?.covers ?? [])];
+    const r = dropContradictedRefusals(data, () => given, refusalCovered(plan));
+    data = r.data;
+    if (opts.log && r.changes.length > 0) plan.ctx.checks.act('refusal_coverage', 'a refused part a line given this turn covers: not refused (measurement)', { changes: r.changes });
   }
   // Phase 2 C2 (`composeData`): the data slot (turn-composer.ts composeDataSlot).
   if (switchOn(plan.state.caseData, 'composeData')) {
@@ -1307,15 +1322,38 @@ function restateRules(plan: ModelPlan, d: DataDecisions, groupOrigin: ReadonlyMa
   // Review F5: a direct re-ask of the figure is read again, however recently it was said.
   const recent = ids.filter(id => !unmatched.includes(id) && !directAsk(id) && saidRecently(plan, linesOf(id)));
   const pointed: string[] = [];
+  const ownLine: string[] = [];
+  const cutRefusals: string[] = [];
+  const ownLineCuts = (id: string) => {
+    const i = itemOf(id);
+    if (!i) return [];
+    const qitems = qualifierItems([i], caseData.dataLedger, x => labelWithPeriod(x as Parameters<typeof labelWithPeriod>[0]));
+    const given = new Set([...ledger.revealed, ...d.releases.map(x => x.id), ...d.restates.map(x => x.id)]);
+    // Only the declared ask's own words (never the candidate's sentence: its statements and figures are not asks), and
+    // only a part that reads as a thing asked for — no figure (FR-4), no first-person or reply clause.
+    const whats = [...new Set(d.requests.filter(x => x.ledgerItemIds.includes(id)).map(x => x.request.what))];
+    return whats.flatMap(t => gateReading(t, qitems, caseData.dataLedger, { topics: true }).parts)
+      .map(p => p.replace(/^(?:do|does|did|can|could)\s+(?:we|you|i)\s+(?:have|know|get)\s+/i, '').trim())
+      .filter(p => p.length > 0 && !/\d/.test(p) && !/\b(?:I|I'd|I'm|we're|that's|so)\b/.test(p) && p.split(/\s+/).length <= 12)
+      .filter(p => !statesAsked(p, { label: i.label, value: i.value }, caseData.dataLedger)
+        && findFalseRefusals(`I don't have ${p}.`, fb, given, { covers: true }).length === 0
+        && !d.refusals.some(x => normAsk(x) === normAsk(p)));
+  };
   d.restates = d.restates.flatMap(r => {
     if (unmatched.includes(r.id) || recent.includes(r.id)) return [];
     // (the pointer rule reads `figureAsked` below)
     const e = exhibitOf(r.id);
     // `restatePointerOff` (measurement only, Lorenzo 27 Oct): the line instead of the exhibit pointer, the rest of 4.1 unchanged.
     if (!e || figureAsked(r.id) || switchOn(caseData, 'restatePointerOff')) return [r];
+    // `restateOwnLine` (S6's start, Lorenzo 27 Oct, option B): the item's own line again, no exhibit summary, and the
+    // ask's finer parts its line doesn't hold refused — only where that refusal is true. No model call.
+    if (switchOn(caseData, 'restateOwnLine')) { ownLine.push(r.id); cutRefusals.push(...ownLineCuts(r.id)); return [r]; }
     pointed.push(r.id);
     return [{ ...r, pointer: /[.!?]$/.test(e.summary!.trim()) ? e.summary!.trim() : `${e.summary!.trim()}.` }];
   });
+  const cuts = [...new Map(cutRefusals.map(p => [normAsk(p), p])).values()];
+  if (cuts.length > 0) d.refusals = [...d.refusals, ...cuts];
+  if (ownLine.length > 0) plan.ctx.checks.act('restate_own_line', 'an exhibit item re-asked: its own line again, no exhibit summary; finer parts it does not hold refused (S6 start, option B)', { items: ownLine, ...(cuts.length > 0 ? { refused: cuts } : {}) });
   if (recent.length > 0) d.recentRestates = [...new Set([...(d.recentRestates ?? []), ...recent.map(id => { const i = itemOf(id)!; return i.spoken ?? spokenItemName(i.label); })])];
   // Review F5: a restatement the rules dropped leaves the decision rows too — the log must not claim an item was given.
   // A row left with no item is dropped only while another row keeps its ask on the record (scoring reads these rows).

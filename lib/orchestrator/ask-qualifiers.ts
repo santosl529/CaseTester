@@ -341,6 +341,12 @@ export function statesAsked(part: string, item: { label: string; value: string }
   return statesTopic(part, lineOf(item as QualifierItem), commonStems(caseLines));
 }
 
+// Whether given words (an item's line, label, names and cover phrases) cover a refused part: statesAsked's reading on
+// any text, never vacuous — a part with no noun of its own is covered by nothing (`refusalCoverage`, 27 Oct).
+export function coversAskedWords(part: string, words: string, caseLines: readonly CaseLine[] = []): boolean {
+  return nounsOf(part).length > 0 && statesTopic(part, words, commonStems(caseLines));
+}
+
 // ---- The refusal phrase ----
 const STOP = new Set('for of across since over in by from at on to with within beyond after past versus vs between during through has have had is are was were be been measured compared relative and or that which who'.split(' '));
 const LEAD = /^(?:(?:how|what|which|when|where|why)\s+(?:much\s+|many\s+)?)?((?:the|a|an|any|our|their|its|his|her|your)\s+)?/i;

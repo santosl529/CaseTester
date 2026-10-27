@@ -81,3 +81,13 @@ describe('C2: an answered deferral is dropped silently (b39q f1f3c359 t6)', () =
     expect((data as { refusals: string[] }).refusals).toEqual([]);
   });
 });
+
+describe('refusalCoverage reading (coversAskedWords; measurement)', () => {
+  it('covers a part whose nouns the given words say; never a part with no noun', async () => {
+    const { coversAskedWords } = await import('@/lib/orchestrator/ask-qualifiers');
+    const line = 'Why Pro sign-ups fell — Pro marketing spend, the sales team and demo requests were unchanged';
+    expect(coversAskedWords('data on the Pro marketing spend before versus after Starter launched', line)).toBe(true);
+    expect(coversAskedWords('quarter-by-quarter fares and passengers since entry', line)).toBe(false);
+    expect(coversAskedWords('that', line)).toBe(false);
+  });
+});

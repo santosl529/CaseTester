@@ -51,7 +51,11 @@ export const PHASE1_SWITCHES = [
 // fault in its own right. Nameable for evidence, never on by default.
 // `restatePointerOff` (27 Oct): measurement only — 4.1's exhibit-pointer branch off (the line said instead), to weigh
 // the batch-39 pointer regression before S6. Never in a preset.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff'] as const;
+// `refusalCoverage` (27 Oct): measurement only — S3's contradiction rule without its item mapping: a refused part is
+// dropped when a line given this turn covers its words (the item's line, label, names and cover phrases). Never in a preset.
+// `restateOwnLine` (27 Oct, S6's start — Lorenzo's option B): 4.1's exhibit pointer replaced by the item's own line, plus a
+// true refusal for any finer part the item doesn't hold; no summaries, no model calls. Off until its gate is read.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine'] as const;
 // Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
 // step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
 // structures would decide and say, and change nothing the candidate hears.
