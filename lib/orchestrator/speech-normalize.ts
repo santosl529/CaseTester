@@ -70,11 +70,30 @@ const DISFLUENCY = new RegExp(
   'gi',
 );
 
+// 1b. The bare "is" the reader cannot cross (follow-up 1 of the 27 Oct report,
+// approved by Lorenzo on 27 Oct).
+//
+// `EQ_AFTER_COMMA` in the reader lets a result follow a comma for the
+// introducers it already accepts — "so", "which is", "that's", "gives us",
+// "about", "roughly", "=", "≈" — and a bare "is" is not one of them. That is
+// why the recordings' own example works ("gives us around … fourteen point
+// five") while the commonest spoken shape, ", um, is 14.5", still raises
+// nothing. So `is` / `are` / `equals` become crossable here, in the one place
+// where the comma is not a writer's: where a **hard** filler was removed from
+// in front of them. A written sentence has no "um" to remove, so no written
+// comma can reach this path, and the typed corpus cannot move.
+//
+// Still bounded to a figure that closes its clause, exactly as transforms 3 and
+// 4 are: "ten, um, is twenty five percent of forty two" opens a fresh
+// calculation, so its comma is kept and the two sides stay apart.
+const EQUALS_AHEAD = new RegExp(`^(?:is|are|equals)(?![a-z'])\\s*${FIGURE_THEN_END}`, 'i');
+
 function collapseDisfluencies(text: string): string {
   return text.replace(DISFLUENCY, (m: string, ...rest) => {
     const offset = rest[rest.length - 2] as number;
     if (!ENDS_IN_FIGURE.test(text.slice(0, offset))) return ' ';
-    return HAS_HARD.test(m) ? ', ' : m;
+    if (!HAS_HARD.test(m)) return m;
+    return EQUALS_AHEAD.test(text.slice(offset + m.length)) ? ' ' : ', ';
   });
 }
 

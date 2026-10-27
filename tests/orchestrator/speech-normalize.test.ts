@@ -135,6 +135,57 @@ describe('what it must not do', () => {
   });
 });
 
+// Follow-up 1 of the 27 Oct report (§5 item 2), approved by Lorenzo on 27 Oct:
+// the reader crosses a comma only for the result-introducers it already accepts
+// ("so", "which is", "that's", "gives us", "about", "roughly", "=", "≈"), and a
+// bare "is" is not one of them — which is why the `fillers` arm of the replay
+// stays near zero while the realistic arm works (the recordings' own example
+// happens to say "gives us"). `is` / `are` / `equals` are now crossable, but
+// **only where a hard filler was removed**: a comma a candidate's "um" put
+// there is not a comma a writer typed, so written text cannot reach this path.
+describe('a bare "is" after a hard filler', () => {
+  it('reads the chain the commonest spoken introducer carries', () => {
+    const s = 'So fifty eight divided by four, um, is fourteen point five.';
+    expect(read(s, OFF)).toEqual([]);
+    expect(read(s, ON)).toEqual([['58 / 4', 14.5, 'correct']]);
+  });
+
+  it('reads "equals" and "are" the same way', () => {
+    expect(read('sixteen over forty two, uh, equals thirty eight percent.', ON))
+      .toEqual([['16 / 42', 38, 'correct']]);
+    expect(read('twenty five percent times forty percent, um, are ten percent.', ON))
+      .toEqual([['25 percent × 40 percent', 10, 'correct']]);
+  });
+
+  it('a written comma before "is" is still not crossed — no filler, no change', () => {
+    const typed = 'So 58 / 4, is 14.5.';
+    expect(read(typed, ON)).toEqual(read(typed, OFF));
+    expect(read(typed, OFF)).toEqual([]);
+  });
+
+  it('a soft filler does not open the crossing', () => {
+    // "sorry" after a figure is how a candidate marks a correction, and it is
+    // writable, so the run keeps its comma and the chain still ends there.
+    const s = 'So fifty eight divided by four, sorry, is fourteen point five.';
+    expect(read(s, ON)).toEqual(read(s, OFF));
+    expect(read(s, ON)).toEqual([]);
+  });
+
+  it('only in front of a figure that closes its clause', () => {
+    // "is twenty five percent of forty two" opens a fresh calculation, so the
+    // comma stays and the two sides are not joined.
+    const s = 'Beans were ten, um, is twenty five percent of forty two.';
+    expect(normalizeSpeech(s)).toBe('Beans were ten, is twenty five percent of forty two.');
+  });
+
+  it('still keeps two claims a comma separated', () => {
+    const s = 'That is 10, um, plus 0.75 x 37.5 = 28.1';
+    expect(read(s, ON)).toEqual(read(s, OFF));
+    expect(read(s, ON)).toEqual([['0.75 × 37.5', 28.1, 'correct']]);
+    expect(normalizeSpeech(s)).toBe('That is 10, plus 0.75 x 37.5 = 28.1');
+  });
+});
+
 describe('normalizeSpeech itself', () => {
   it('collapses a filler run after a figure to the comma that was there', () => {
     expect(normalizeSpeech('fifty eight divided by four, um, gives us fourteen point five'))

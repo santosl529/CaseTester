@@ -13,6 +13,7 @@
 //
 //   npx tsx scripts/speech-replay.ts --root='<corpus root>' [--out=<file>]
 //   --arm=spoken|fillers|unpunctuated   (default: all three)
+//   --arm=identity                      the typed-corpus no-op gate, on its own
 //   --case=prof-001                     one case only
 import { writeFileSync } from 'node:fs';
 import { loadCorpus } from '@/lib/eval/run-corpus';
@@ -176,8 +177,40 @@ function against(rows: Row[], base: (r: Row) => CandidateMath): { flags: string[
   return { flags, corrections };
 }
 
+// ---------------------------------------------------------------------------
+// The typed-identity gate: the pass must be a byte-identical no-op on written
+// text. Every candidate message of the corpus is read as written, with the
+// switch off and on, and the two results are deep-compared — claims (spans,
+// expressions, computed values, `approximate`, `selfCorrected`), flags and
+// verified figures. This is the constraint that shaped every transform, and it
+// is the one a widening is most likely to break, so it is a run, not a memory.
+function identity(caseFilter?: string): { turns: number; changed: string[] } {
+  const { runs } = loadCorpus(ROOT, id => getCaseById(id) as never);
+  const changed: string[] = [];
+  let turns = 0;
+  for (const run of runs) {
+    if (caseFilter && run.caseId !== caseFilter) continue;
+    const caseData = getCaseById(run.caseId);
+    for (const t of run.turns) {
+      if (t.seeded || !t.candidateText) continue;
+      turns++;
+      const off = checkCandidateMath(t.candidateText, caseData, t.revealedBefore, OFF);
+      const on = checkCandidateMath(t.candidateText, caseData, t.revealedBefore, ON);
+      if (JSON.stringify(off) !== JSON.stringify(on)) changed.push(`${run.id} t${t.t} | ${t.candidateText.slice(0, 160)}`);
+    }
+  }
+  return { turns, changed };
+}
+
 function main(): void {
   const only = arg('arm');
+  if (only === 'identity') {
+    const { turns, changed } = identity(arg('case'));
+    console.log(`\n=== typed identity — ${turns} candidate messages read as written, switch off vs on`);
+    console.log(`    CHANGED: ${changed.length}`);
+    for (const l of changed.slice(0, 40)) console.log(`      ${l}`);
+    return;
+  }
   const arms: Arm[] = [
     { name: 'spoken', opts: {} },
     { name: 'fillers', opts: { fillers: true } },
