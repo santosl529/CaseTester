@@ -1046,3 +1046,32 @@ Each turn is scored by hand against the round-1 labels (`evals/item-judge-draft/
 |---|---|---|---|---|---|
 | Sonnet 5.5 + prompt facts | 1,869 / 3,265 / 41,684 ms (one outlier) | 1,918 / 3,363 ms | 45% | 62% | $0.0034 |
 | Haiku 5.5 + prompt facts | 1,656 / 2,617 / 3,850 ms | 1,704 / 2,646 ms | 59% | 75% | $0.0002 |
+
+## 20. Number firewall, step 1 (27 Oct): every figure in the interviewer's own words, traced — report only
+
+**What was traced.** Each figure in a model-written sentence: a sentence of the model's own `say` or question that was delivered (code's data lines, probes and corrections excluded). It is traced against, in order:
+1. a ledger line already out or released this turn (including the cells of exhibits shown);
+2. the prompt and its prompt facts;
+3. any figure the candidate has stated so far;
+4. code-written lines and the checker's computed values;
+5. a one-step derivation from those (difference, sum, product, ratio, % change).
+
+A figure tracing to none of these is untraced; one matching an item or exhibit cell not yet out is a leak. Matching is within 0.5% (or 0.05), raw or scaled (M, bn, k). Skipped: years, bare integers 0–10, exhibit numbers, number words. The tool is `evals/number-firewall/trace.py`; tested on planted figures (a hidden value → leak, an invented one → untraced).
+
+| Corpus | Interviews | Figures | Leaks | Untraced |
+|---|---|---|---|---|
+| Current preset, replayed | 150 | 783 (5.2 an interview) | 0 | 0 |
+| Recorded live runs, main corpus | 358 | 1,618 | 0 | 0 |
+| Recorded live runs, batch 39 | 76 | 498 | 0 | 0 |
+| Model sentences the vetoes withheld (replayed) | 150 | 263 | 0 | 0 |
+
+Where the replayed figures come from: candidate 383, ledger out 343, prompt 40, code or checker 13, derivation 4.
+
+**Sample read.** 30 random attributions, all genuine. They are the interviewer quoting the candidate's figure back ("Earlier you said $1,880 …"), restating a line already given, or stating the checker's value. With no flags, there is nothing to classify as wrong, a missed derivation, or other.
+
+**Limits:**
+- number words ("a third", "half") and bare integers up to 10 are not traced;
+- the 0.5% tolerance would let a slightly altered figure pass;
+- a figure the candidate stated wrongly and the interviewer repeats counts as traced (that is misquote detection's area, untouched).
+
+**Reading.** The model never receives values not yet out (FR-4), and the unsourced-figure veto withholds sentences. In this corpus the interviewer's own figures are all traceable, so step 2 of a firewall has no current faults to fix.
