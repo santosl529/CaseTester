@@ -1,0 +1,25 @@
+[
+ {
+  "id": "b39h-marcus-t24-wont-get-to-given",
+  "kind": "fault",
+  "p": "24",
+  "turn": 24,
+  "sev": "borderline",
+  "cls": "hollow_deferral",
+  "note": "\"We won't get to cost per bag for chickpea snacks and chip gross margin history today.\" — cost per bag was given earlier (bag economics on Exhibit 1); the closing line denies data delivered.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "We won't get to cost per bag",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ }
+]

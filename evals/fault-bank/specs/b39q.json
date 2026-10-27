@@ -1,0 +1,186 @@
+[
+ {
+  "id": "b39q-raj-t10-refusal-contradiction",
+  "kind": "fault",
+  "p": "07",
+  "turn": 10,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "Releases upgrade_timing (\"very few are after month 12\") and in the same breath refuses \"whether the 20% upgrade figure by month 12 represents the full upgrade share\" — the line it just said answers it.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "upgrade",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39q-marisol-t6-refusal-contradiction",
+  "kind": "fault",
+  "p": "57",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "Releases plan_prices_costs (each plan's cost to serve) and refuses \"gross margin and cost to serve per customer by plan\" in the same turn.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "cost to serve|gross margin",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39q-victor-t12-refusal-contradiction",
+  "kind": "fault",
+  "p": "67",
+  "turn": 12,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "Releases why_pro_fell (\"Pro marketing spend, the sales team and demo requests were unchanged\") and refuses \"data on the Pro marketing spend before versus after Starter launched\".",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "marketing spend",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39q-raj-t22-pointer-mismatch",
+  "kind": "fault",
+  "p": "07",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for how the upgrade rate has trended across monthly cohorts — the cohort table covers one January–March cohort; no trend across cohorts is held.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39q-raj-t28-pointer-mismatch",
+  "kind": "fault",
+  "p": "07",
+  "turn": 28,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for whether multi-employee businesses are the ones downgrading — the cohort table doesn't say who downgrades.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39q-tyler-t22-pointer-mismatch",
+  "kind": "fault",
+  "p": "64",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for the cancellation rate for $60 sign-ups once six months are in — the price-test table has eight weeks of sign-ups.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39q-marisol-t14-pointer-mismatch",
+  "kind": "fault",
+  "p": "57",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for whether the 350 Pro figure includes upgraded Starters — the cohort table doesn't answer it.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39q-dana-t12-pointer-mismatch",
+  "kind": "fault",
+  "p": "65",
+  "turn": 12,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for the fixed cost of running two plans — the plan economics table has per-customer economics only.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ }
+]

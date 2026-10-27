@@ -34,7 +34,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { FaultRecordSchema, bankMoves, bankSkipEscapes, type BankMove, type FaultRecord, type FaultResult } from '@/lib/eval/fault-bank';
-import { SLICES, SpecSchema, sliceOf, specToRecord, findTurnFile, itemLinesOf, isReportRecord, type Slice } from '@/lib/eval/fault-bank-build';
+import { SLICES, SpecSchema, sliceOf, sliceOfWave, sliceRoot, specToRecord, findTurnFile, itemLinesOf, isReportRecord, type Slice } from '@/lib/eval/fault-bank-build';
 import { evaluateRecord, scopeTurns, type BankTurn, type CaseView } from '@/lib/eval/fault-bank-assert';
 import { shadowRead, type ShadowRead } from '@/lib/eval/fault-bank-shadow';
 import { readTurnFile } from '@/lib/eval/turn-file';
@@ -54,6 +54,9 @@ function loadBank(): FaultRecord[] {
       try { return FaultRecordSchema.parse(JSON.parse(l)); } catch (e) { throw new Error(`${f}:${i + 1}: ${(e as Error).message}`); }
     }));
 }
+
+// The corpus a record's run lives in (batch 39: the phase1 worktree's).
+const rootOfRecord = (r: FaultRecord) => { const s = sliceOfWave(r.wave); return s ? sliceRoot(s, ROOT) : ROOT; };
 
 const linesCache = new Map<string, CaseView>();
 function linesFor(caseId: string) {
@@ -86,8 +89,8 @@ function build() {
       if (ids.has(spec.id)) throw new Error(`duplicate id ${spec.id}`);
       ids.add(spec.id);
       if (!runs.has(spec.p)) {
-        const rel = findTurnFile(ROOT, slice, spec.p);
-        runs.set(spec.p, { ...readTurnFile(path.join(ROOT, rel)), rel });
+        const rel = findTurnFile(sliceRoot(slice, ROOT), slice, spec.p);
+        runs.set(spec.p, { ...readTurnFile(path.join(sliceRoot(slice, ROOT), rel)), rel });
       }
       const run = runs.get(spec.p)!;
       const rec = specToRecord(spec, slice, { turnFile: run.rel, header: run.header, turns: run.turns });
@@ -108,7 +111,7 @@ function check(): number {
   const bad: string[] = [];
   for (const r of recs) {
     if (isReportRecord(r)) continue;
-    const res = evaluateRecord(r, turnsOf(path.join(ROOT, r.turnFile)), linesFor(r.caseId));
+    const res = evaluateRecord(r, turnsOf(path.join(rootOfRecord(r), r.turnFile)), linesFor(r.caseId));
     const want = r.kind === 'correct';
     if (res.pass !== want) bad.push(`${r.id}: ${r.kind} record ${res.pass ? 'passes' : 'fails'} on the recording${res.failed.length ? ` — ${res.failed.map(f => `${f.assertion.kind}${f.assertion.must ? '' : ' (must not)'}: ${f.saw}`).join(' / ')}` : ''}`);
   }
@@ -127,7 +130,7 @@ function checkerFiles(slice: Slice, out: string): string {
   mkdirSync(dir, { recursive: true });
   const f = path.join(dir, `${slice.tag}-verdicts.jsonl`);
   const rows: string[] = [];
-  const waveDir = path.join(ROOT, 'test runs', slice.wave);
+  const waveDir = path.join(sliceRoot(slice, ROOT), 'test runs', slice.wave);
   for (const persona of readdirSync(waveDir).sort()) {
     for (const j of readdirSync(path.join(waveDir, persona)).filter(x => /^live-run-.*\.json$/.test(x)).sort()) {
       const run = JSON.parse(readFileSync(path.join(waveDir, persona, j), 'utf8')) as { events: { category: string; subtype: string; turnIndex: number; payloadJsonb: Record<string, unknown> }[] };
@@ -168,8 +171,8 @@ function assertSwitches(mirror: string, caseId: string, switches: string | undef
   if (got.join(',') !== want) throw new Error(`${mirror}: the replay ran with switches [${got.join(',')}], but --switches=${switches ?? '(off)'} means [${want}] for ${caseId}`);
 }
 
-function replayOne(dir: string, filter: string, ck: string, switches: string | undefined): Promise<number> {
-  const env: NodeJS.ProcessEnv = { ...process.env, REPLAY_RUNNER: '1', REPLAY_OUT: dir, REPLAY_ROOT: ROOT, REPLAY_FILTER: filter, REPLAY_CHECKER: ck };
+function replayOne(dir: string, filter: string, ck: string, switches: string | undefined, root = ROOT): Promise<number> {
+  const env: NodeJS.ProcessEnv = { ...process.env, REPLAY_RUNNER: '1', REPLAY_OUT: dir, REPLAY_ROOT: root, REPLAY_FILTER: filter, REPLAY_CHECKER: ck };
   if (switches) env.ENGINE_SWITCHES = switches; else delete env.ENGINE_SWITCHES;
   return new Promise(resolve => {
     const child = spawn('npx', ['vitest', 'run', 'tests/replay/runner-corpus.replay.test.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -206,7 +209,7 @@ async function run() {
   const switches = arg('switches');
   const jobs = Number(arg('jobs') ?? 8);
   const out = path.join(OUT_BASE, `fault-bank-${label}`);
-  if (path.resolve(out).startsWith(path.resolve(ROOT))) throw new Error('the replay output must be outside the corpus root');
+  if ([ROOT, ...SLICES.map(x => sliceRoot(x, ROOT))].some(r => path.resolve(out).startsWith(path.resolve(r)))) throw new Error('the replay output must be outside every corpus root');
   mkdirSync(out, { recursive: true });
   const recs = loadBank().filter(r => !arg('only') || r.id.startsWith(arg('only')!));
   validateSwitches(switches, [...new Set(loadBank().map(r => r.caseId))]);
@@ -216,7 +219,8 @@ async function run() {
   const failedRuns: string[] = [];
   await pool(runFiles, jobs, async tf => {
     const [, wave, persona] = tf.split('/');
-    const code = await replayOne(path.join(out, 'replay', `${wave}--${persona}`), `${wave}/${persona}/`, ck.get(wave)!, switches);
+    const slice = sliceOfWave(wave);
+    const code = await replayOne(path.join(out, 'replay', `${wave}--${persona}`), `${wave}/${persona}/`, ck.get(wave)!, switches, slice ? sliceRoot(slice, ROOT) : ROOT);
     if (code !== 0) failedRuns.push(tf);
   });
   const replayMs = Date.now() - t0;
@@ -228,7 +232,7 @@ async function run() {
     if (!existsSync(mirror)) { rows.push({ id: r.id, pass: false, failed: [], skipped: 'run_missing', ...meta, changed: false, baseline: 'run_missing', gated: false }); continue; }
     assertSwitches(mirror, r.caseId, switches);
     const replayed = turnsOf(mirror);
-    const recorded = turnsOf(path.join(ROOT, r.turnFile));
+    const recorded = turnsOf(path.join(rootOfRecord(r), r.turnFile));
     const res = evaluateRecord(r, replayed, linesFor(r.caseId));
     const last = Math.max(...recorded.map(t => t.turnIndex + 1));
     const scopes = [...new Set(r.assertions.flatMap(a => scopeTurns(a, r.turn, last)))];

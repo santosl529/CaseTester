@@ -1,0 +1,122 @@
+[
+ {
+  "id": "b39l-raj-t20-refusal-contradiction",
+  "kind": "fault",
+  "p": "07",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "Same-turn contradiction: \"Unserved or underserved city pairs from the hub where no LCC flies … — that's not something I have\" while the same turn defers \"the new routes' planning estimates\" — the new routes (Hub–Ashford, Hub–Brookhaven) are exactly those city pairs, and no other airline flies them (new_routes_context).",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "city pairs|unserved",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39l-marcus-t4-fuel-refusal",
+  "kind": "fault",
+  "p": "24",
+  "turn": 4,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "\"I don't have fuel cost per gallon, FY2023 versus FY2025.\" — the case holds the fuel price trend (fuel_prices: roughly flat), the coarse answer; the per-gallon cut alone is not held.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "fuel",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39l-marcus-t14-refusal-contradiction",
+  "kind": "fault",
+  "p": "24",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "Beside Exhibit 3 the turn refuses \"Results (revenue, contribution, flights) on the four non-contested routes\" — route_results_other holds them — and \"the competitor's frequency on those routes\", while new_routes_context says no other airline flies them.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "four non-contested|benchmark|other four",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "frequency",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39l-jasmine-t2-refusal-contradiction",
+  "kind": "fault",
+  "p": "40",
+  "turn": 2,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "\"I don't have departures or the FY23 and FY25 cost lines. I'll share the network totals once we've settled your structure.\" — the network totals it gate-defers hold the flights; departures are held.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "departures",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39l-marisol-t2-breakdown-refusal",
+  "kind": "fault",
+  "p": "57",
+  "turn": 2,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "\"I don't have the breakdown of revenue by flights, seats sold, fare and route.\" — the case holds flights, load factors, route results and the Lakeport/Port Avery fares (gated before the pressure test: a gate deferral was owed, not a refusal).",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "breakdown of revenue",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ }
+]

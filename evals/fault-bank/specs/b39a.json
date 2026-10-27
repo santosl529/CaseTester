@@ -1,0 +1,94 @@
+[
+ {
+  "id": "b39a-raj-t12-pointer-mismatch",
+  "kind": "fault",
+  "p": "07",
+  "turn": 12,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for Kelvexa's share in its European markets and what competes there — the funnel table is US-only.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39a-marcus-t8-pointer-mismatch",
+  "kind": "fault",
+  "p": "24",
+  "turn": 8,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for no ask for the funnel; the pointer answers nothing asked.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39a-marisol-t24-pointer-mismatch",
+  "kind": "fault",
+  "p": "57",
+  "turn": 24,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for the length of the royalty term — the entry options table doesn't hold it.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39a-tyler-t22-pointer-mismatch",
+  "kind": "fault",
+  "p": "64",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for whether the board's $300M test applies to booked revenue or product sales — the case's net-sales definition item answers it; the entry options table doesn't.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ }
+]

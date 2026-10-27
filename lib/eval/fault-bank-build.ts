@@ -10,7 +10,7 @@ import type { TurnFileHeader } from './turn-file';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 import type { ItemLines } from './fault-bank-assert';
 
-// One slice per wave of batches 33–38 (the proof slices, contract §0). `verdicts`: the recorded checker verdicts
+// One slice per wave of batches 33–39 (the proof slices, contract §0). `verdicts`: the recorded checker verdicts
 // the replay serves (REPLAY_CHECKER), as round 6's proof.sh builds them: CK31 plus the slice's own file.
 export const SLICES = [
   { tag: 'b33', batch: 'batch-33', wave: 'batch-33-oct-19-runs-1-10', caseId: 'prof-001', verdicts: 'replays/2026-10-20/engine-asks/b33-verdicts.jsonl' },
@@ -24,7 +24,19 @@ export const SLICES = [
   { tag: 'b37q', batch: 'batch-37-quillpath', wave: 'batch-37-quillpath-oct-20-runs-1-5', caseId: 'pricing-001', verdicts: 'replays/2026-10-21/round6/b37q-verdicts.jsonl' },
   // No b38 verdict file exists in the corpus: the harness converts the run's own recorded verdicts (as convert-verdicts.py does).
   { tag: 'b38l', batch: 'batch-38-larkspur', wave: 'batch-38-larkspur-oct-21-runs-1-5', caseId: 'prof-002', verdicts: null },
+  // Batch 39 (the Phase 1 wave, 26 Oct; Lorenzo approved this grading-harness edit, 27 Oct): its runs live in the phase1
+  // worktree's corpus (`root: 'phase1'`, read only — memory: waves from a worktree write their runs inside it), and its
+  // verdicts are the runs' own recorded ones, converted as for b38.
+  { tag: 'b39p', batch: 'batch-39-brewbean', wave: 'batch-39-brewbean-oct-26-runs-1-5', caseId: 'prof-001', verdicts: null, root: 'phase1' },
+  { tag: 'b39a', batch: 'batch-39-aldermoor', wave: 'batch-39-aldermoor-oct-26-runs-1-5', caseId: 'entry-001', verdicts: null, root: 'phase1' },
+  { tag: 'b39h', batch: 'batch-39-hollisbay', wave: 'batch-39-hollisbay-oct-26-runs-1-5', caseId: 'launch-001', verdicts: null, root: 'phase1' },
+  { tag: 'b39l', batch: 'batch-39-larkspur', wave: 'batch-39-larkspur-oct-26-runs-1-8', caseId: 'prof-002', verdicts: null, root: 'phase1' },
+  { tag: 'b39q', batch: 'batch-39-quillpath', wave: 'batch-39-quillpath-oct-26-runs-1-8', caseId: 'pricing-001', verdicts: null, root: 'phase1' },
 ] as const;
+// A slice's corpus root: its own (`phase1`: REPLAY_ROOT_PHASE1, default the phase1 worktree's corpus), else REPLAY_ROOT.
+export const PHASE1_RUNS = process.env.REPLAY_ROOT_PHASE1 ?? '/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs';
+export const sliceRoot = (s: Slice, mainRoot: string): string => ('root' in s && s.root === 'phase1' ? PHASE1_RUNS : mainRoot);
+export const sliceOfWave = (wave: string): Slice | undefined => SLICES.find(x => x.wave === wave);
 export type Slice = typeof SLICES[number];
 export const sliceOf = (tag: string): Slice => {
   const s = SLICES.find(x => x.tag === tag);
