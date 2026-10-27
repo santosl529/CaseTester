@@ -25,6 +25,12 @@ export const PHASE1_SWITCHES = [
   'probeGuardMethod',    // 3.5: the guard's replacement asks about method, never names a verified figure
   'spokenMathParser',    // 3.6: chained spoken arithmetic; any consistent reading counts as consistent
   'checkerDefinitions',  // 3.7: the case's definitions go to the live checker
+  // follow-up 3 (27 Oct): `of` read as × between a share and a figure — "ten percent of forty two is four point
+  // two" — the one position where it cannot be the preposition the old rule protects. Unlike `speechNormalization`
+  // it fires on written text too, so it keeps its own switch; Lorenzo put it in the preset on 27 Oct on its
+  // evidence: 107 claims gained across 6,304 typed messages, every one `correct`, 0 new flags, 0 claims and 0
+  // verified figures lost, and the 131 recorded voice turns 3 → 6 (round-2 report §D).
+  'ofAsMultiplication',
   'correctionRules',     // pre-wave rulings 3 and 4 (26 Oct): one correction per item on every path; none on the closing turn
   'misquoteAttribution', // post-wave (26 Oct): a figure the candidate attributes to the interviewer is a quote — `operandLater` does not excuse it
   'misquoteSameTurn',    // post-wave ruling (26 Oct evening): an ATTRIBUTED misquote is corrected on its own turn, not a turn later
@@ -63,11 +69,6 @@ export const PHASE1_SWITCHES = [
 // claims rather than withhold them, so it stays out of the preset until Lorenzo has ruled on the evidence
 // (`.superpowers/sdd/2026-10-22-phase1/speech-normalization-report.md`). Nameable for evaluation; off everywhere
 // else, and a no-op on the typed corpus by construction.
-// `ofAsMultiplication` (27 Oct) reads `of` as × between a share and a figure — "ten percent of forty two is four
-// point two" — which is the most frequent unread shape in the recordings (five true spoken claims, every one
-// correct). Unlike `speechNormalization` it fires on written text too, which is why it has its own switch:
-// Lorenzo's 27 Oct ruling allows the typed change only if it adds verified-correct claims or removes false flags,
-// and that condition is evaluated on this switch's own evidence. Out of the preset until he rules.
 // `checkerEquations` (27 Oct, item E) widens the math checker's existing per-message output — no second call: the
 // equations it heard, in structured form, and the quantities whose value changed. Code verifies the arithmetic
 // itself (`lib/orchestrator/checker-equations.ts`), a low-confidence entry is `unclear`, and the answer sheet drops
@@ -79,7 +80,7 @@ export const PHASE1_SWITCHES = [
 // → 11/16 (fc290dc0 t20's "about 5 points" went error/medium → unverifiable/low), a missed real error that no code
 // guard caused — the answer sheet dropped nothing in either arm. The asynchronous variant is in the round-2 report's
 // §E. Out of every preset; nameable for evaluation only.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'ofAsMultiplication', 'checkerEquations'] as const;
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];

@@ -31,6 +31,18 @@ describe('engine switches', () => {
       expect(switchOn({ id: 'prof-002' }, s, { ENGINE_SWITCHES: `*=phase1,${s}` })).toBe(true);
     }
   });
+  // Lorenzo's ruling of 27 Oct (round 3, item 1): `ofAsMultiplication` ships in the preset on its own evidence —
+  // 107 claims gained across 6,304 typed messages, every one `correct`, 0 new flags, 0 claims lost; the 131
+  // recorded voice turns 3 → 6. `speechNormalization` stays out of the preset, and so does `checkerEquations`.
+  it('the phase1 preset carries ofAsMultiplication, and not speechNormalization', () => {
+    const env = { ENGINE_SWITCHES: '*=phase1' };
+    expect(PHASE1_SWITCHES as readonly string[]).toContain('ofAsMultiplication');
+    expect(switchOn({ id: 'prof-002' }, 'ofAsMultiplication', env)).toBe(true);
+    expect(switchOn({ id: 'prof-001' }, 'ofAsMultiplication', env)).toBe(true);
+    expect(switchOn({ id: 'prof-002' }, 'ofAsMultiplication', { ENGINE_SWITCHES: '*=phase1,-ofAsMultiplication' })).toBe(false);
+    expect(switchOn({ id: 'prof-002' }, 'speechNormalization', env)).toBe(false);
+    expect(switchOn({ id: 'prof-002' }, 'checkerEquations', env)).toBe(false);
+  });
   it('the env beats the case pin; the pin beats the default', () => {
     expect(switchOn({ id: 'x-001', engine: { worksheet: true } }, 'worksheet', {})).toBe(true);
     expect(switchOn({ id: 'x-001', engine: { worksheet: true } }, 'worksheet', { ENGINE_SWITCHES: 'x-001=-worksheet' })).toBe(false);
