@@ -758,3 +758,45 @@ C2 changed 26 turns: 17 only in exhibit order, 7 L3 renames, 2 L1 drops. One reg
 - the four strict Haiku-mapped records: R6's evidence isn't there on three of them;
 - the six undeclared-ask records need S7;
 - the math and stage records are outside this design.
+
+## 12. Session 3 (27 Oct): phase1 merged, batch 39, S3 and C3
+
+**Base.** phase1 2a8dca76 merged into phase2-design (73408507, local only, Lorenzo's approval). Every gate was re-run on the merged code.
+
+**Replay fidelity.** Model turns had been served no classifier detections, so answers that came through the message's own asks were lost on replay, and batch 39 didn't reproduce under `*=phase1`. `recordedMessageDetections` now serves them; since 27 Oct that is the default (`REPLAY_MESSAGE_DETECTIONS=0` for the old runner).
+
+Re-running Phase 1's gate with it:
+- F1, F3 and F4 stay 0 on every slice; F2-next is lower on the same 3 slices, higher on none;
+- the bank with `*=phase1` goes 84 → 78 of 173 (eight batch-39 records had passed on the artifact; one Phase 1 record gained, one lost with switches off only);
+- correct records 95/95 unchanged.
+
+**Batch 39.** 22 owned records: the 18 on Lorenzo's list plus 4 D9 silences; the owned set is 79. Aldermoor Tyler t22, ruled: no refusal and no pointer (the bar is in the prompt), full answer pending.
+
+**The pointer measurement** (report only; nothing changed): turning off 4.1's exhibit-pointer branch passes the 8 pointer records only because they assert the phrase. The turn restates the same wrong item's whole line instead (+22 words a turn, 64 turns), and 6 of Phase 1's restatement fixes break. **Not a net win.** The fault is which item is pointed at: S6's work.
+
+**S3, built with these switches:**
+
+| Switch | What it does |
+|---|---|
+| `askModelKeep` | R2 releases a model item declared as a release that passes the line test, never overriding the model's own deferral |
+| `refusalContradiction` | Drops a refused part only when a line given this turn states it |
+| `wontGetToGiven` | A wrap-up closure says only the parts nothing since states |
+
+C2 fix: a dropped deferral is never silence.
+
+**The S3 gate:**
+- 4 changed turns plus 1 from the C2 fix, all read: 0 new false refusals, wrong releases or false corrections;
+- D9 never above `*=phase1` on any slice;
+- true refusals 19/19;
+- bank 85 → 87 of 173;
+- owned 18 of 77 replayable;
+- correct records 94/95 — `b37q-marisol-t18-why-pro-fell` pinned the late release R2 now makes at t8 (a record-window question for Lorenzo).
+
+The first S3 build failed its own read in three ways, each fixed before the gate:
+- it overrode the model's deferrals on 6 turns;
+- it made one wrong release (b32 f59f5ea8 t8);
+- C2 turned a just-released item's deferral into a false refusal.
+
+**C3 `composeSetup`:** holds setup sentences only after a spoken acknowledgment. With an acknowledgment simulated (`REPLAY_ACK=1`), 15 turns change and no lint rule rises (L2 10 → 8). Without one, it changes nothing (1,994 turns identical).
+
+**Voice:** with Thinking sounds on, the acknowledgment played on every turn (8–17 Oct, median 0.4–0.5 s), so the held setup always follows it. With fillers off (18–19 Oct), it played on 5 of 52 turns, and C3 does nothing on the other 47.
