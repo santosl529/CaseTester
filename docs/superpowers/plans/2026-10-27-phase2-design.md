@@ -1196,3 +1196,48 @@ D9 is 32 before and 32 after, so no new silences.
 | Latency p50 / p90 / max; over the 1.5 s cap | 0.90 / 1.81 / 3.28 s; 9 of 58 | 1.66 / 2.62 / 3.85 s | 1.87 / 3.27 / 41.7 s |
 
 **Haiku 4.5's errors** lean to "none": 11 times it says "none" where an item holds the answer. Examples: the patent life for "how long does the royalty run", the upgrade timing on Raj t10, the new routes on Raj t20, the fuel trend, and test-group CAC. The rest: 4 parse failures, 1 invented ask, 1 partial on held data, 1 missed ask. It never rates a refused ask full.
+
+## 26. Step 3: background self-correction (`asyncAskJudge`, 27 Oct) — built, measured, off and outside every preset
+
+**What it does.** After each interviewer turn, the Sonnet 5.5 judge reads the candidate's previous raw message, every ledger item and the prompt facts, in the background during the candidate's turn. A verdict not back when the next message arrives is skipped; the turn never waits. The next turn acts on two verdicts only, at most one correction a turn, none at the close:
+- **(a) "full"** for a held item the last turn refused, said to assume, or left unsaid (not given, not deferred) → "Actually, I do have that: <its line>". If the stage gate holds the item, a deferral instead.
+- **(b) "none"** where the last turn pointed at an exhibit or restated an item for that ask → "To correct myself: <the exhibit / the item> doesn't show <the candidate's words>, and I don't have it."
+
+"Partial" is never acted on. Code checks each correction first:
+- for (a): the item's words share a key noun with the ask (or a cover maps it); the release order doesn't hold it; this turn isn't already answering the ask or handing over its exhibit;
+- for (b): the false-refusal veto passes, no cover maps the ask, and the words carry no figure.
+
+The module is `lib/orchestrator/self-correct.ts`; the replay serves verdicts through `ASYNC_JUDGE_VERDICTS`.
+
+**Replay set.** Batch 39 (31 runs) plus the bank's runs with a target or true-refusal turn (17); 681 candidate messages. The judge was called on the 192 turns a correction could act on.
+- Cost: $0.58 of the $2 cap, via `LLM_BUDGET_USD`.
+- Latency: p50 1.7 s, p90 2.8 s. 191 of 192 verdicts land before the next message (candidates take at least 28 s on 90% of turns).
+- Live projection: about $0.012 an interview on eligible turns only, $0.044 on every message.
+
+**The first replay** made 20 corrections; all 31 changed turns read. None was false. Three were wrong in form:
+- a line said before the exhibit carrying the same figures (b39h 61bb8b4d t8);
+- "Actually, I do have that" on a turn already delivering the deferred answer (b38l 316baba1 t16);
+- a first-turn correction beside the exhibit that gives it (b36a 6bbc2163 t4).
+
+These were fixed by the release-order, exhibit and answered-now tests above, then replayed again for free on the same verdicts.
+
+**Final:** 14 corrections over the 48 runs, about 0.29 an interview.
+- **Have (8):** the net price ×2, the store count, extras revenue, the flight count, the other four routes, the buyer profile, the Pro cohort.
+- **Gated have (1):** the acquisition cost.
+- **None (5):** European net price, European share, seasonality, the competitor's daily frequencies, catchment population, fixed cost of two plans.
+
+**Gate:**
+- false corrections 0; new false statements 0; wrong releases 0; new silences 0;
+- true refusals 19/19, correct records 95/95; the bank doesn't move, because records judge the faulty turn and the correction lands on the next;
+- switch off: identical (1,994 turns).
+
+**On substance:**
+- pointer records 3/9 corrected (b39a-marcus-t8, b39a-raj-t12, b39q-dana-t12);
+- assume-held-data turns 1/3 (b39l-marisol-t2: the next turn gives the other four routes);
+- the rest got "partial" verdicts, which are never acted on: Option B and the royalty term, the board bar, the cohort table, Jasmine's departures, the fuel trend.
+
+**One knock-on** (b39q 99dd37d1): the gated correction at t4 brings in the stage gate's usual re-ask. The data and exhibits each land a turn later, and at t30 the close becomes "Go on.": live, the case would close a turn or two later.
+
+## 27. Judge cost note
+
+On Haiku 4.5 the judge's prompt doesn't cache (it is under the minimum cacheable size), so a call costs more there than on Sonnet ($0.0026 against $0.0034 with Sonnet's cache), for far lower accuracy (§25).
