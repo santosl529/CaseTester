@@ -11,6 +11,7 @@
 import { numbersOf, type CheckerCase, type VettedClaim } from '@/lib/orchestrator/math-checker';
 import type { VerdictPayload, CheckerDecision } from '@/lib/orchestrator/math-checker-live';
 import { claimFigures, isStale, STEP_ROOT } from '@/lib/orchestrator/math-checker-live';
+import { clearRecommendation } from '@/lib/orchestrator/stall';
 import type { TurnVerification } from './challenge-marks';
 
 const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
@@ -163,17 +164,39 @@ function laterRedo(f: Flagged, rows: CheckerEventRow[], redo: RedoContext): stri
   return null;
 }
 
+// Post-wave item 4 (Lorenzo, 26 Oct evening): the candidate turns that state a clear recommendation — the same
+// predicate 4.9 uses (`clearRecommendation`, stall.ts: the message's first sentence opens on a decision verb, or
+// frames the decision). More than one message can do it, so it is a set, not a turn.
+const recommendationTurnsOf = (candidateTurns: { turnIndex: number; text: string }[]) =>
+  new Set(candidateTurns.filter(t => clearRecommendation(t.text)).map(t => t.turnIndex));
+
+// Is the flag still open at the report? Nothing in the interview resolved it: no correction, no conversion onto a
+// reading code computes, and the candidate never withdrew it.
+const flagOpen = (outcomes: CheckerDecision[]) =>
+  !outcomes.some(d => d.outcome === 'correct' || d.outcome === 'converted' || d.outcome === 'stale');
+
 export function formatCheckerSection(rows: CheckerEventRow[], redo?: RedoContext): string {
   const flagged = flaggedClaims(rows);
   if (flagged.length === 0) return '';
   const all = decisionsOf(rows);
+  // Item 4, Lorenzo's ruling of 26 Oct (evening): an open flag on a figure IN the recommendation turn changes the
+  // conclusion — code's call, not the checker model's. larkspur p57 `69441a66` claim 29:2 recorded
+  // `changesConclusion: false` on an error that was the recommendation's own bottom line ("call it $7.0M of
+  // operating profit"; the checker's figure is 5.2), so nothing escalated it. The rule is literal: the claim's turn
+  // has to BE a recommendation message. A later restatement of the same wrong bottom line in a risk answer is not
+  // escalated by code — the cost if that is wrong is one missed escalation, against the cost of calling an
+  // arithmetic slip in a risk answer "the conclusion", which is the louder error in a written report.
+  const recTurns = redo ? recommendationTurnsOf(redo.candidateTurns) : new Set<number>();
   const lines = flagged.map(f => {
     const { turn, claim: c, outcomes } = f;
     const said = outcomeText(outcomes, all);
     const credit = redo ? laterRedo(f, rows, redo) : null;
     // A restatement the redo answered is no longer the last word on it; any other outcome stays, the redo after it.
     const text = credit === null ? said : said === RESTATED ? credit : `${said} ${credit}`;
-    return `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${c.changesConclusion ? '; changes the conclusion' : ''}): ${figureText(c)}. ${text}`;
+    const inRecommendation = !c.changesConclusion && recTurns.has(turn) && flagOpen(outcomes) && credit === null;
+    const changes = c.changesConclusion ? '; changes the conclusion'
+      : inRecommendation ? '; changes the conclusion — the figure is in the recommendation itself' : '';
+    return `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${changes}): ${figureText(c)}. ${text}`;
   });
   return `MATH CHECKER (a model's check of the candidate's claims, vetted in code; a figure "computed in code" is code's own):
 ${lines.join('\n')}

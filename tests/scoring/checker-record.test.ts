@@ -225,3 +225,59 @@ describe('built on a root left for the report, ended unsaid', () => {
     expect(s).not.toContain('Not raised in the interview (');
   });
 });
+
+// Post-wave item 4, Lorenzo's ruling of 26 Oct (evening): any open checker flag on a figure in the RECOMMENDATION
+// turn counts as `changesConclusion: true`, set by CODE and not left to the checker model's own call. The case for it
+// is larkspur p57 `69441a66` t30's claim 29:2 — `flag: true`, `verdict: "error"`, `confidence: "high"`,
+// `correctValue: 5.2`, span "What closes the gap is the $1.8M we stop losing on the exited routes, plus the $5.4M
+// fare uplift … call it $7.0M of operating profit", only decision `unresolved_at_close` — which records
+// `changesConclusion: false` although the error IS the recommendation's bottom line, so nothing escalated it.
+describe('a flag left open on a recommendation figure changes the conclusion (code\'s call)', () => {
+  const REC = 'Recommendation: exit Lakeport and Port Avery and redeploy all 5,000 flights to Ashford and Brookhaven. What closes the gap is the $1.8M we stop losing on the exited routes, plus the $5.4M fare uplift on the four healthy routes — call it $7.0M of operating profit.';
+  const p57 = claim({
+    span: 'What closes the gap is the $1.8M we stop losing on the exited routes, plus the $5.4M fare uplift on the four healthy routes — call it $7.0M of operating profit',
+    candidateValue: '$7.0M', correctValue: 5.2, changesConclusion: false, actualShare: null,
+  });
+  const redo = (turns: { turnIndex: number; text: string }[]) =>
+    ({ candidateTurns: turns, caseData: getCaseById('prof-002'), revealedIds: [] }) as unknown as Parameters<typeof formatCheckerSection>[1];
+
+  it('the model said false; code says it changes the conclusion, and says why', () => {
+    const s = formatCheckerSection(
+      [verdict(29, [p57]), flag('29:0', 'unresolved_at_close', { reason: 'time up' })],
+      redo([{ turnIndex: 29, text: REC }]),
+    );
+    expect(s).toContain('changes the conclusion — the figure is in the recommendation itself');
+    expect(s).toContain('about 5.2 by the checker');
+    expect(s).toContain('Not raised in the interview (the case closed first).');
+  });
+
+  it('a flag on a turn that is not a recommendation is left to the model\'s own call', () => {
+    const s = formatCheckerSection(
+      [verdict(29, [p57]), flag('29:0', 'unresolved_at_close', { reason: 'time up' })],
+      redo([{ turnIndex: 29, text: 'The load factor ramp is the risk. At 60% the new routes throw off only $2.0M of contribution.' }]),
+    );
+    expect(s).not.toContain('changes the conclusion');
+  });
+
+  it.each(['correct', 'converted', 'stale'])('a flag the interview closed (%s) is not open, so code adds nothing', outcome => {
+    const s = formatCheckerSection(
+      [verdict(29, [p57]), flag('29:0', outcome, { line: 'It is about $5.2M, not $7.0M.', reason: 'withdrawn' })],
+      redo([{ turnIndex: 29, text: REC }]),
+    );
+    expect(s).not.toContain('changes the conclusion');
+  });
+
+  it('a claim the model already rated as changing the conclusion keeps its own words', () => {
+    const s = formatCheckerSection(
+      [verdict(29, [claim({ ...p57, changesConclusion: true })]), flag('29:0', 'unresolved_at_close', { reason: 'time up' })],
+      redo([{ turnIndex: 29, text: REC }]),
+    );
+    expect(s).toContain('WRONG (conceptual; changes the conclusion):');
+    expect(s).not.toContain('the figure is in the recommendation itself');
+  });
+
+  it('without the redo context there are no candidate turns to read, so nothing is escalated', () => {
+    const s = formatCheckerSection([verdict(29, [p57]), flag('29:0', 'unresolved_at_close', { reason: 'time up' })]);
+    expect(s).not.toContain('changes the conclusion');
+  });
+});
