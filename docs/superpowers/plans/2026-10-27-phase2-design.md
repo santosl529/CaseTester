@@ -876,7 +876,7 @@ Extending the cut drop to R2, measured and reverted: it fixed Raj t10 and broke 
 - 1,889 input and 16 output tokens per call (medians);
 - the verdicts are replayed through `REPLAY_CHECKS`, so every arm is deterministic.
 
-**Calls per run:** S6 fires on 55 of the 1,994 corpus turns (149 runs), about 0.4 calls a run. In live use each call adds its latency to that turn, capped at the check's 1.5 s timeout; the turn waits for it before the data line.
+**Calls per run:** S6 fires on 56 of the 1,994 corpus turns, in 42 of 150 runs: 73 asks checked, 0.49 calls a run. In live use each call adds its latency to that turn, capped at the check's 1.5 s timeout; the turn waits for it before the data line.
 
 **Gate: failed.**
 - Pointer records: 1/9 flip on substance (b39q-tyler-t22: the price-test line answers "can't be measured yet").
