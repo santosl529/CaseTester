@@ -1277,3 +1277,33 @@ Why the live acts went wrong:
 - (b) matched a true "trend since 2022" refusal to the funnel item and dropped it.
 
 **Failed on false statements in both variants; stopped.** Next-turn correction (`asyncAskJudge`) stays the only judge path.
+
+## 29. `asyncAskJudge` live call: a per-turn claim by unique index (27 Oct) — built; migration written, not applied
+
+**Ruling** (Lorenzo): use a migration, not the advisory lock. The Docker container started for a local test was removed.
+
+**Claim.** `INSERT INTO session_events … ON CONFLICT (session_id, turn_index) WHERE subtype = 'ask_judge_claim' DO NOTHING RETURNING id`, on the partial unique index `session_events_ask_judge_once`. Only the caller whose insert lands calls the judge. Any error, a missing index included, means not claimed: the judge is skipped and the turn is unaffected (`claimAskJudge`, `runAskJudgeOnce` in `lib/orchestrator/ask-judge.ts`).
+
+**Migration:** `db/migrations-pending/ask_judge_once.sql` and `ask_judge_once.down.sql` (`DROP INDEX session_events_ask_judge_once`).
+- Not in `db/migrations/`: the sequence is shared with drills (main is at 0023, this branch at 0021). `db/schema.ts` declares the index, so `npm run db:generate` after the main merge emits it under the next number.
+- `CONCURRENTLY` is unusable: `db/migrate.ts`'s drizzle migrator runs all pending migrations in one transaction.
+- Size, estimated rather than queried (no production read was made): about 350 `session_events` rows per session across the 549 recorded runs, about 194,000 rows if those runs share the database. So the table is likely around 10⁵ rows, plausibly a few hundred thousand.
+- A plain `CREATE UNIQUE INDEX` takes a SHARE lock while it scans: reads continue, but inserts wait. At this size that is a second or two, during which turns writing events would wait. Apply it at a quiet time.
+
+**Flow.**
+1. `runPostTurnBackground` (text: the turn route's `after()`; voice: the LiveKit agent's `afterTurn`) runs `askJudgePass`.
+2. Switch off: it returns before any read.
+3. Otherwise it reads the exchange and checks eligibility (an ask, and a refusal, assumption, pointer, restatement or no release).
+4. It claims; on success it calls Sonnet 5.5 and writes a `check` / `ask_judge` row for the candidate turn.
+5. The next turn's `readTurn` loads those rows. `turn-data.ts` uses the first row for the previous candidate turn and makes at most one correction.
+
+**Tests** (mocked DB, `tests/orchestrator/ask-judge-claim.test.ts`):
+- inserted → one judge call and the verdict row;
+- conflict → no call;
+- error → no call, and the pass resolves;
+- off → no write and no call;
+- two callers on one turn → one judge.
+
+The first-row-wins test is in `self-correct.test.ts`. With the switch off, output is byte-identical over 1,994 turns, prof-001 included.
+
+**Credential.** `session_events` is written by drizzle over `DATABASE_URL`, a direct Postgres connection through Supabase's transaction pooler as the `postgres` role. No Supabase API key is used, so neither the new secret key nor the legacy `service_role` JWT. Note: `db/client.ts` requires `SUPABASE_SECRET_KEY` to be set and comments "from the secret key", but the key is not used for this connection.
