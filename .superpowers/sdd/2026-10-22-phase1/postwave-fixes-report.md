@@ -561,3 +561,372 @@ I could not ask anyone, so each of these is the conservative call, listed with w
    so the two sets cannot live in separate files. The resolution is a trivial array concatenation in each file; the
    ids do not collide (mine are `b39a-raj-t18-…`, `b39a-raj-t20-…`, `b39a-tyler-t6-…`, `b39a-tyler-t10-…`,
    `b39h-tyler-t6-…`). Flagging it so whoever merges second expects it.
+
+---
+
+# Lorenzo's rulings of 26 Oct (evening) — report
+
+Worktree `.claude/worktrees/phase1`, branch `phase1`, base **ab5b668a** (the state §1–§8 above ends at). Free work
+only: no paid call, no re-score, no auditor, no wave, no push, no merge, no DB write, no deploy. Nothing under
+`Case Interview Runs/` was staged, and no `.env*` value was read.
+
+| commit | item |
+|---|---|
+| `57c8fe68` | 1 — C5: all four floor misfires narrowed |
+| `d8f6359e` | 3 — `misquoteSameTurn`, attributed quotes only, and into the `phase1` preset |
+| `8d1ebba3` | 4 (build) — an open flag on a recommendation figure changes the conclusion, set by code |
+| (this section) | 2 — the three stale widenings, measured and reverted; item 4's draft; the re-score proposal |
+
+**Replay labels**, all under `CaseTester-proof-out/`: baseline `r2-base-{on,off}` and `r2-b39-base-on` (taken at
+ab5b668a, detached, before any change of this round — `r2-base-on` is byte-identical to the previous round's
+`postwave-gate-on`, which is the check that the baseline is the right one); the round's own arms `r2-{on,on-off}`
+and `r2-b39-on`; the measurement arms `r2-mq-on` (item 3), `r2-w1`, `r2-w2b`, `r2-w3` and their `r2-b39-*` twins;
+fault-bank runs `fault-bank-r2-{ctl-p1,ctl-off,w1,w2,w2b,w3}`. Tools: `phase1-combined-tools/proof-combined.sh`,
+`classify2.py`, `compare.py`, plus four small scripts written in the session scratchpad (`count.py` for correction
+and refusal sentences, `stale.py` for checker lines and stale drops, `newstale.py` for claims newly stale,
+`proof-b39.sh` for the five batch-39 slices).
+
+---
+
+## 9. The gate
+
+| line | result |
+|---|---|
+| 0 new **false** corrections across b28–b38 with `*=phase1` | **met.** Corrections 39 → 48 sentences. Every one of the 12 slice-level additions read (§11): 6 distinct turns, 3 of them the same sentence two turns earlier, 3 newly spoken, all 6 true misquotes the candidate attributed to the interviewer or the exhibit. 0 false. |
+| 0 new false refusals | **met.** 107 → 107 refusal sentences on the `*=phase1` arm, 0 added, 0 removed; 111 → 111 with the switches off. |
+| 0 missed real errors | **met for what shipped.** No checker line changed on b28–b38 (150 → 150) or on batch 39 (58 → 58); 0 checker decisions changed on any of the 31 slices. The only interviewer lines that changed are the 19 in §11, all of them the misquote correction and its acknowledgment rotation. |
+| the correct-behaviour records still pass, both arms | **met. 95 / 95 with `*=phase1` and 95 / 95 with the switches off.** Fault records, for context: 78 / 154 counted on, 48 / 155 off. |
+| prof-001 identical with the switches off | **met, and all 31 slices are:** 0 changed interviewer lines, 0 changed checker decisions, 0 runs on one side only, and `fact-check` identical slice by slice. |
+| `scripts/fact-check.ts` with `env -u ENGINE_SWITCHES`, 31 slices | **F1 0 · F2-next 101 → 97 · F2-rec 11 → 11 · F3 0 → 0 · F4 0 → 0.** Four slices changed, all downward: b35q-off/on 3 → 2, b38l-off 7 → 6, b38l-on 8 → 7 — the candidate misquotes that now get corrected on their own turn instead of standing into the next one. Nothing gained a flag. The switches-off arm is identical (F2-next 104 both sides). |
+| the batch-39 stale-probe count | **unchanged: 16 checker stale drops + 1 misquote stale drop, 58 checker lines, 15 `stale_drop` acts — identical to the baseline.** Nothing this round touches the stale path; the three widenings that would were measured and reverted (§10). Firm stale lines on the usual 25 therefore stay at **7 (0.28 per run)** and bar 3 is still not met. |
+
+`npx vitest run` 5819 passed / 9 skipped, `npx tsc --noEmit` clean, `npx eslint lib app components tests scripts db`
+clean, at each of the three commits.
+
+---
+
+## 10. Item 2 — the three stale widenings: numbers only, nothing built
+
+Each was prototyped in the worktree, measured on the free replay (31 slices of b28–b38 with `*=phase1`, the five
+batch-39 slices, and the full fault bank in both arms), and then **reverted — none of the three is committed.**
+`git status` is clean of them and the tree at `8d1ebba3` has no trace of them.
+
+**How "real errors newly missed" was counted.** For every checker line the arm stopped speaking, the claim's
+recorded span and the candidate messages after it were read by hand. A removal counts as a miss when the candidate
+had *not* moved off that claim's own figure by the turn the line was due — a concession about another figure, a
+later message, or a redo of a different quantity does not count as having moved off it. Where the queue merely
+reordered (the same line at another turn, or a reworded probe on the same claim) it is not counted either way.
+
+| widening | guard it loosens, and why that guard exists | stale lines removed (probe / correction) | real errors newly missed | fault-bank records lost | verdict |
+|---|---|---|---|---|---|
+| **W1 — a concession drops the rest of its message's claims** | `isStale`'s concession scope: "a concession withdraws only the claim it answers" (Lorenzo, 14 Oct; batch 24, Owen `e64de272` and Marisol `4bf008fd`). It exists so one "Let me redo it." cannot wipe every open claim of a message the candidate only partly redid. | b28–b38: **18 removed (14 probe-class, 2 corrections, 2 restates), 8 added** by the queue cascade; net 150 → 140 lines. b39: 2 probes removed, 0 added (one of them is the target, hollisbay p57 `17b4117c` t14 "You're right, I flipped them"). | **5** — b29 `64224460` 7:0, b30 `910aefe2` 9:1, b34l `e6432db0` 15:1, b36l `5907649a` 5:5, b37h `7f6c40ea` 9:3. In each, the message's concession is about a different figure and the probed one is conceded only one or two messages later (b34l's $260 fare at message 21, b36l's 30.8% at message 9, b37h's $16M at message 15). | **2 correct-behaviour records lost** — `b37h-marisol-t14-true-refusal` and `b37h-marisol-t16-correction`, both pass → FAIL (correct arm 95 → 93). Plus 1 fault record fixed (`b36l-marisol-t10-stale-probe`) and 1 pushed into `diverged` (`b37h-marisol-t14-superseded`). | **reject.** It fails the standing bar before anything else: two correct-behaviour records stop passing. |
+| **W2 — "not 12%": replacement from the preceding sentence, and no case-figure requirement on a first-person withdrawal** | `coveringWithdrawal`'s data-figure rule: a figure of the **case** counts as withdrawn only as a misread they fixed — its replacement another case figure, not said under a condition of its own. It exists so a contrast with the data ("the exhibit says 58%, not 61%", guarded by `DATA_REF`) is not read as a withdrawal of the data. | b28–b38: **1 probe removed, 0 added.** b39: **1 line removed (the target: larkspur p57 `69441a66` t10's hint on claim 7:3, "about $2.0M of fare given away on Lakeport"), 1 probe added** — the turn then takes claim 7:4, "about $3.9M given away on Port Avery", which rests on the *same* withdrawn 12% and is stale for the same reason, only the carried-figure leg cannot see it (12 is not in 7:4's span). Net firm stale lines on b39: **0**. | **1** — b29 `64224460` 7:0, dropped as `built on 58, withdrawn at message 9 ("I used 58 before")`. He withdraws 58 as a *base* for the bean split; the probed claim is the 38% → 15/23 points split, which he still asserts at message 13. | **0** — 78 / 154 fault and 95 / 95 correct, identical to the control. | **reject.** It drops a stale **probe**, so Lorenzo's rule asks for 0 newly missed real errors, and there is 1. And its own target turn gains an equally stale probe in the dropped line's place, so the replay shows no net gain. |
+| **W3 — fold code's own VERIFIED step bindings off prof-001** | `foldTurn`'s `stepFlagsLive` gate (Lorenzo, 13 Oct): off prof-001 the binder's figures are too loose to say what the candidate holds. The two documented harms are b37q Marcus t15's "$900 / $30 = 30 months" bound as Starter LTV $900 and b32 Marisol t9's "2 million diagnosed" bound as peak patients 2. | b28–b38: **14 removed (9 probe-class, 3 corrections, 2 restates), 9 added**; net 150 → 145, `stale_drop` acts 21 → 30. b39: **2 corrections removed, 0 added** — b39q `dd74b01b` t20 and `e1dd3616` t14, both in the **new personas** (65-dana, 66-remy), neither of the two stale corrections of the usual 25 (quillpath p7 t26, p24 t24). | **4** — b32 `6a721cdf` 7:2 (dropped as `step:peak_patients restated at 2 (message 9)`: **the documented harm itself**, folding "50% diagnosed = 2 million" over his 200,000, and killing a true probe of exactly that error); b32 `6a721cdf` 9:1 (the correction "Patients on Kelvexa at peak is about 40,000, not 200,000" dropped as `its root eligible_patients restated at 2.64 (message 11)` — message 11 *retracts* 2.64, it does not restate it); b35h `a14ca044` 5:2 (the correction "$9 million, not $10.2 million" dropped through the lineage, though he keeps $10.2M deliberately at messages 7 and 9); b38l `f80d981c` 15:2 (the $15.8M probe). | **1 fault record regresses, pass → FAIL: `b38l-marisol-t24-stale-correction`** — the graded stale correction the previous round fixed comes back, because dropping the t20 probe lets the correction fire later. Plus 1 fault record fixed (`b37h-marisol-t20-stale-probe`, a correct drop — his $9.9M really is superseded at message 19) and 1 correct record pushed into `diverged` (`b35q-tyler-t32-close`), which takes it out of the gate's denominator. | **reject as prototyped.** It is the only one of the three that drops stale **corrections**, which is Lorenzo's approvable class — but it drops them in the new personas, not in the 12, and it pays with a graded stale correction returning and four true lines lost. "Verified only" does not avoid the documented harm: the b32 peak-patients binding comes through the verified list. |
+
+**What I would do instead, if any of this is wanted** (proposed, not built):
+- for W3, fold the verified binding onto the claim's **own** quantity only and not through `lineageOf` — three of the
+  four misses above (b32 9:1, b35h 5:2, b38l 15:2) come through the lineage leg, and the two b39 stale corrections
+  it drops also come through the lineage. That version would need its own measurement;
+- for W2, the honest fix for larkspur p57 t10 is not the withdrawal leg at all but the **carried-figure** one: claim
+  7:4 ($3.9M on Port Avery) is built on the same withdrawn 12% and its span does not name it. Carrying the claim's
+  *inputs* (not just the figures its words happen to hold) would drop both, and would not need the case-figure rule
+  relaxed. Also unmeasured;
+- for W1, nothing. The guard it loosens is the one keeping two correct-behaviour records alive.
+
+**One caveat on reading the W2 row.** The §2 table above was read against the **recorded wave**; this round's numbers
+are replay-against-replay. larkspur p57 t10's probe is in the recorded wave but the replay's queue does not reach it
+in the control arm, so the replay could not show W2's benefit directly. I checked the mechanism separately, free, at
+unit level: `findWithdrawals` on his message 9 returns `{value: 12, unit: 'percent', firstPerson: true, replacement: 31}`
+and `staleReason` then returns `built on 12, withdrawn at message 9 ("not 12%")` for the $2.0M claim. That is how the
+b39 row's "1 line removed" was produced once the prototype carried `firstPerson` through `update`'s withdrawal
+mapping (it was silently dropped there in the first cut, which is worth knowing if this is ever built).
+
+---
+
+## 11. Item 1 — C5, all four narrowed (`57c8fe68`)
+
+Three regex changes in `lib/orchestrator/conduct.ts` (`v4.13`); `C5_SELF_HARM` untouched.
+
+1. **The gerund carve-out**, in both `C5_DESPAIR`'s `what's the point` branch and `C5_NO_POINT`, as one shared
+   `GERUND_CARVE`. It exempts an `-ing` continuation after `of` / `in` **except** the forms that can only be despair
+   (`trying`, `bothering`, `going`, `carrying`, `continuing`, `living`, `being`, `existing`) and the `-ing`-shaped
+   pronouns (`anything`, `everything`, `nothing`, `something`, `thing`). That exception list is a judgement call
+   (§13.1): the ruling says "carve out gerunds", and carving out *all* of them would have taken "what's the point of
+   anything" — a core despair test since v4.3 — off the floor with them. Hyphens count (`[\w-]+ing`), or
+   "re-forecasting" would have gone on firing.
+2. **`(bad|rough|dark|awful) few (weeks|months)` is off the floor.** The model layer already names it: the distress
+   prompt's own `distress` label reads "disclosure of a hardship outside the case (not sleeping, health, a loss, a
+   crisis, 'a rough few weeks', 'I'm falling apart')". The first-person branches (`i'm not sleeping`,
+   `i haven't been sleeping`, `i can't sleep`, `broken me`, `i'm falling apart`) still carry the disclosure shape
+   Sam's run showed, and her whole message still fires as risk-to-self.
+3. **The bare sentence-final `why bother?` is off the floor** — the `[.?!]|$` sub-branch is gone and the separator is
+   now `\s+`. "why bother anymore / at all / with (any of) this" and the first-person "why do I even bother" stay.
+
+### The test set, and its results
+
+`tests/orchestrator/conduct.test.ts`, describe "C5 — the floor narrowings of 26 Oct (v4.13)" — all passing.
+
+**Negatives (clean, category ≠ C5).** The first four are the client-subject sentences of §1's table:
+
+| sentence | before | after |
+|---|---|---|
+| "Brew & Bean has had a rough few months on traffic." | C5 hardship | **clean** |
+| "The client has had an awful few weeks since the recall." | C5 hardship | **clean** |
+| "Sales have had a bad few months and the trend is still down." | C5 hardship | **clean** |
+| "If the margin is negative at every price, why bother?" | C5 despair | **clean** |
+| "What's the point of segmenting further if both segments move together?" | C5 despair | **clean** |
+| "What's the point of modelling year three when the pilot decides it?" | C5 despair | **clean** |
+| "I don't see the point in discounting below cost." | C5 despair | **clean** |
+| "I don't see the point of segmenting the four healthy routes." | C5 despair | **clean** |
+| "What's the point of discounting if volume doesn't move?" | C5 | **clean** |
+| "I don't see the point in re-forecasting the four healthy routes." | C5 | **clean** |
+| "They had a dark few weeks after the plant fire." | C5 hardship | **clean** |
+| "Why bother? The unit economics never clear the bar." | C5 despair | **clean** |
+
+**The despair-shaped versions still flagged.** The ruling's two named gate sentences:
+
+- **"What's the point, I'm going to fail anyway."** — still fires on the **regex floor**: `C5 / offer_pause / despair`
+  (nothing of the form "of/in \<gerund\>" follows "point", so the carve-out does not reach it).
+- **"Why bother, I'm useless at this."** — this one never fired on the floor, before this round or after it: the bare
+  branch required `anymore / at all / with this / [.?!] / $` and a comma is none of those, and `i'm useless at this`
+  is not `i'm useless at everything`. It is the **model layer's** call, and `tests/orchestrator/conduct-runner.test.ts`
+  drives it through the real runner: with the distress classifier returning `distress`, the pause offer goes out
+  ("…are you okay?"), the case does not end, and the message reaches `classifyDistress` — which is the change, since
+  the floor no longer short-circuits it. The same test does the other two narrowed shapes ("I've had a rough few
+  months and I'm barely holding it together.", "…why bother with any of it.") and the three client-subject versions
+  with the classifier returning `none`: no offer, case carries on, classifier consulted.
+
+Nine more despair-shaped forms still fire on the floor: "What's the point of anything.", "What's the point of any of
+this?", "What's the point of trying.", "What's the point of carrying on with these.", "I don't see the point in
+trying anymore.", "I don't see the point in any of it anymore.", "Why bother anymore?", "Why even try at all.", "Why
+do I even bother?". All four first-person hardship disclosures still fire. All eight self-harm forms still fire as
+`reason: 'self_harm'` and `isRiskToSelf`. The existing C5, C1/C5-boundary and v4.12 suites are untouched and green.
+
+**This item is invisible to the replay** (no batch-39 message is one of these shapes), which is why the gate for it is
+the test set rather than a line count.
+
+---
+
+## 12. Item 3 — `misquoteSameTurn`, attributed quotes only (`d8f6359e`)
+
+`sameTurnCorrections` in `lib/orchestrator/misquote.ts` is the whole restriction, and it is pure:
+
+- **attribution.** `ATTRIBUTION_SRC` must match the finding's sentence **at or before the end of the quoted span** —
+  an attribution in a later clause belongs to another figure ("that is $240M to Aldermoor; you said the hurdle is
+  $300M" attributes the hurdle). It covers "you said / gave / gave me / gave us / mentioned / quoted / told / showed
+  / shared / provided / put", "you're saying / telling me", "the exhibit|table|case|prompt|data|chart|brief
+  says|shows|has|gives|lists|states", "according to you|the exhibit…", "per|from|on|in the exhibit|table|chart…" and
+  "we were given". It is deliberately **separate from and wider than** the detector's own `ATTRIBUTED`, which must
+  keep its narrow form: that one turns off the `operandLater` guard *inside* the detector (`misquoteAttribution`,
+  already in the preset and already measured), while this one only decides whether an existing finding may correct a
+  turn early;
+- **the same-message withdrawal check.** `findWithdrawals(candidateText)` is read, and a finding whose cited figure
+  the candidate takes back in the same message says nothing;
+- logged as `misquote_same_turn` with `take` and `skipped` (each skip carrying `unattributed` or
+  `withdrawn_same_message`).
+
+### Every new correction sentence, read
+
+**b28–b38, `*=phase1` vs the baseline: 12 slice-level additions, 3 removals — 6 distinct turns.** (The removals are
+the three that moved two turns earlier, so they appear on both sides.)
+
+| run | turn | the candidate's sentence | code's correction | true? |
+|---|---|---|---|---|
+| b32 `f59f5ea8` (64-tyler) | t8, new | "Prevalence **you gave** is 1.5%, so 250 × 0.015 = 3.75 million people with Corlan's disease." | "To correct one figure: in the patient funnel, **1.6%** of US adults have Corlan's disease…" | **yes** |
+| b35q `ee99bd82` (64-tyler) | t8 → **t6** | "For Starter, **you said** CAC is $320, so it needs LTV of $960…" | "…the cost to acquire one new customer is $1,200 for Pro … and **$300** for Starter…" | **yes** |
+| b36a `34eb553a` (64-tyler) | t12, new | "And **you said** Nimbrel's net price is about $8,650 per patient per year…" | "…its net price is about **$9,000** per patient per year." | **yes** |
+| b37h `442e37ff` (64-tyler) | t8 → **t6** | "Variable cost per bag: ingredients **you said** $0.75, packaging $0.30…" | "…variable costs per bag are **$0.70** for ingredients…" | **yes** |
+| b38l `cee7d399` (64-tyler) | t8 → **t6** | "**You said** fixed costs were $21M in both years…" | "…fixed costs … were **$20.0M** in both FY2023 and FY2025." | **yes** |
+| b38l `cee7d399` (64-tyler) | t14, new | "On Lakeport, **the exhibit shows** fare down to $125 with $20 extras…" | "…the average one-way fare on Hub–Lakeport fell from $200 in FY2023 to **$120** in FY2025." | **yes** |
+
+**Both of the previous round's provably false corrections are gone.** b34a `a1133734` t31 ("$320M less $80M in
+annual selling costs is $240M to Aldermoor") and b38l `701443f7` t17 ("breakeven revenue per passenger is
+$11,000/60 = $183, so a $163 fare") name no source: the restriction rejects them, and the measurement arm confirms
+they are absent. Both are locked in as unit cases in `tests/orchestrator/misquote-same-turn.test.ts`, alongside the
+Hollis Bay "packaging $0.35" one, which is also unattributed and also stays silent — exactly as §7's option 2 said
+it would.
+
+**The other three changed lines on b28–b38** are the acknowledgment rotation moving with the correction, plus one
+substantive removal worth naming: **b32 `f59f5ea8` t8 drops the model's own Socratic sentence** "Before we lean on
+that share figure: you said prevalence is 1.5%." in favour of code's flat correction. That is Rule 6 option 4 working
+as specified — one flat sentence, and the `MISQUOTE` hint telling the model to stay off the figure — not a second
+correction. 0 refusal sentences changed; 0 checker decisions changed.
+
+**Batch 39: misquote corrections 3 → 5, and the two turns §3 could not deliver are delivered.** aldermoor p64
+`4df38465` **t6** ("Prevalence you gave me is 1.5%" → the ledger's 1.6%) and **t10** ("You said Nimbrel's net price
+is about $9,400" → $9,000) now both get their one flat sentence, on the misquote's own turn. Brew & Bean p64 gains
+two more, both attributed and both true ("You said COGS went from 44% of revenue" → 42%; "You said average ticket
+went from $6.20 to $6.50"). Hollis Bay p64 t6 still gets nothing, as expected.
+
+**Verdict: `misquoteSameTurn` is IN the `phase1` preset.** It moved out of `NON_PRESET_SWITCHES` and into
+`PHASE1_SWITCHES` in `d8f6359e`. The evidence is the six sentences above — 0 false corrections, 0 new refusals, 0
+changed checker decisions, and `fact-check`'s F2-next falling 101 → 97 with F1/F3/F4 all still 0.
+
+**One replay artifact to know about.** On b38l `cee7d399` t14 the saved model output also asks "…does your $125 match
+it?", so the replayed turn carries both code's correction and the model's question. In a live run the `MISQUOTE` hint
+goes into that same turn's prompt and tells the model not to question the figure; the replay cannot exercise that,
+because the model's words for the turn are the recorded ones. The three `correct_correction` records whose windows
+the previous round widened by two turns (§8.3) all still pass.
+
+---
+
+## 13. Item 4
+
+### 13.1 Built — the recommendation turn sets `changesConclusion` (`8d1ebba3`)
+
+`formatCheckerSection` (`lib/scoring/checker-record.ts`) now escalates in code. A flagged claim whose turn states a
+clear recommendation, and whose flag nothing in the interview closed, reads
+`changes the conclusion — the figure is in the recommendation itself`. The wording differs from the model's plain
+"changes the conclusion" so the prompt never conflates code's call with the checker's.
+
+Three definitions, each deliberate and each one line to change:
+
+- **a recommendation turn** is one `clearRecommendation` fires on (`lib/orchestrator/stall.ts` — the predicate 4.9
+  already uses, on Lorenzo's 22 Oct wording "set it on a clear recommendation": the message's first sentence opens on
+  a decision verb, or frames the decision). On larkspur p57 `69441a66` it fires on **t29 alone**, which is the
+  recommendation ("Recommendation: exit Lakeport and Port Avery and redeploy all 5,000 flights…");
+- **the rule is literal.** The claim's turn has to *be* a recommendation message, not merely be at or after one, so a
+  wrong bottom line restated in a later risk answer is not escalated by code. Cost if that is wrong: one missed
+  escalation, against the cost of a written report calling an arithmetic slip in a risk answer "the conclusion";
+- **open** means no `correct`, `converted` or `stale` decision, and no later redo the report already credits.
+
+**Verified against the stored run.** The section built from larkspur p57 `69441a66`'s own recorded events now carries:
+
+> `- turn 29: "What closes the gap is the $1.8M we stop losing on the exited routes, plus the $5.4M fare uplift on the four healthy routes — call it $7.0M of operating profit" — WRONG (conceptual; changes the conclusion — the figure is in the recommendation itself): about 5.2 by the checker. Not raised in the interview (the case closed first).`
+
+The other six flags of that run are byte-identical. Across all 86 stored runs of batches 32–39 the clause fires on
+**8 runs** and nowhere else, which is the scan behind the re-score selection below.
+
+### 13.2 Drafted, NOT run — the scoring-prompt mandate
+
+I did **not** put this in code, not even behind an unused flag: it is a prompt change whose only honest test is a
+paid re-score, and a dead flag in `lib/scoring` would be a second thing to remember to take out. The draft, against
+`formatCheckerSection`'s trailing directive:
+
+```diff
+   return `MATH CHECKER (a model's check of the candidate's claims, vetted in code; a figure "computed in code" is code's own):
+ ${lines.join('\n')}
+-Treat a WRONG claim as the candidate's error unless they revised it — and cite it only where the transcript bears it out. One they revised or withdrew is a self-correction.`;
++Treat a WRONG claim as the candidate's error unless they revised it — and cite it only where the transcript bears it out. One they revised or withdrew is a self-correction.
++Every WRONG claim above that is still OPEN — its line says it was not raised, not corrected, expired, shed, or left for this report — and that carries a right figure MUST appear in the written report: one needsWork item on the dimension whose work the figure belongs to, quoting the candidate's own words from the span and naming the right figure. Do not leave such a claim out because the interview never raised it; that it was never raised is the reason the report has to. One marked "changes the conclusion" is named in synthesis as well.`;
+```
+
+and, so the mandate has a subject the judge can see, the same predicate that already decides the escalation:
+
+```diff
+-    return `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${changes}): ${figureText(c)}. ${text}`;
++    const open = flagOpen(outcomes) && credit === null && figureText(c) !== 'no figure';
++    return `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${changes})${open ? ' [OPEN — must be named in the report]' : ''}: ${figureText(c)}. ${text}`;
+```
+
+**What it would make mandatory, run by run** — counted on the eight runs the escalation clause fires on, as
+`flagged claims / of those, open and carrying a right figure`:
+
+| run | flagged | mandatory |
+|---|---:|---:|
+| larkspur p57 `69441a66` (b39) | 7 | **5** |
+| larkspur p64 `9c8a354a` (b39) | 8 | **6** |
+| quillpath p24 `99dd37d1` (b39) | 6 | **5** |
+| quillpath p07 `e08c362a` (b37) | 25 | **19** |
+| quillpath p24 `eb8d7576` (b37) | 16 | **13** |
+| quillpath p64 `ee99bd82` (b35) | 22 | **12** |
+| hollisbay p64 `52951de8` (b35) | 5 | **3** |
+| larkspur p40 `bbf78ab8` (b36) | 1 | **1** |
+
+**Why it must be measured and not shipped on reasoning, and why I would not ship this draft as written.** Nineteen
+mandatory needsWork items on one run is not a report anybody reads — quillpath p07 `e08c362a` would get 19, and
+p24 `eb8d7576` 13. Three things downstream of the judge then fight it: the evidence-quote audit strips a needsWork
+item whose quote is not verbatim in a candidate turn, which a span copied out of a checker claim often is not; the
+dimension-reconciliation pass merges cross-dimension repeats, which is exactly the shape a dozen mandated items on
+one run makes; and the stage caps can mark a dimension `notAssessed`, where a mandated item has nowhere to go. So
+the draft above is the ruling taken literally, and my recommendation is to measure it and then narrow it — the two
+narrowings worth measuring beside it are "mandatory only where the claim is marked as changing the conclusion"
+(which on these eight runs is 1–3 items a run, the case item 4 was raised about) and "mandatory for at most the
+three largest-error open claims".
+
+### 13.3 Proposed, NOT run — a re-score of 5 stored runs
+
+**The five**, chosen because the item-4 clause actually changes their judge prompt, across three cases, and four of
+them have a stored report to diff against:
+
+| run | case | recommendation turn | escalated by code | stored report? |
+|---|---|---|---|---|
+| larkspur p57 `69441a66` (b39) | prof-002 | t29 | 1 | no — never scored, so the new report has no before |
+| quillpath p24 `99dd37d1` (b39) | pricing-001 | t25 | 2 | yes |
+| quillpath p07 `e08c362a` (b37) | pricing-001 | t27, t39 | 2 | yes |
+| quillpath p24 `eb8d7576` (b37) | pricing-001 | t31, t33 | 2 | yes |
+| hollisbay p64 `52951de8` (b35) | launch-001 | t23 | 1 | yes |
+
+**Cost estimate.** Scoring is three Opus 5.5 passes per run. From the stored usage tables: judge $0.324 + verifier
+$0.116 + reconcile $0.079 = $0.519 on b39 quillpath p24; the five prof-002 runs of b36 cost $0.477–$0.521 each
+(mean $0.500); b37 quillpath $0.455–$0.518; b35 hollisbay p64 $0.434. So **$0.43–$0.52 per run, $2.40 expected and
+$2.60 worst case for five** — inside the $3 cap with about 15% of headroom. `scripts/regrade.ts` writes no score (it
+prints the ratings beside the stored ones) and only the idempotent data-request backfill plus `llm_usage` events.
+
+**The command.** `scripts/regrade.ts` takes a batch folder and grades every completed, already-scored run in it, and
+has no run filter, so it cannot grade exactly these five as it stands. Two lines would give it one:
+
+```diff
+ const repeat = Number(process.argv.find(a => a.startsWith('--repeat='))?.split('=')[1] ?? 1);
++const only = (process.argv.find(a => a.startsWith('--only='))?.split('=')[1] ?? '').split(',').filter(Boolean);
+...
+     const run = JSON.parse(readFileSync(path.join(root, dir, file), 'utf8'));
++    if (only.length > 0 && !only.some(o => file.includes(o) || dir.includes(o))) continue;
+```
+
+and then, with the cap enforced in the environment rather than trusted:
+
+```
+LLM_BUDGET_USD=3 LLM_BUDGET_FILE=/tmp/regrade-item4.json \
+  npx tsx --env-file=.env.local scripts/regrade.ts batch-39-larkspur-oct-26-runs-1-8 --only=69441a66
+LLM_BUDGET_USD=3 LLM_BUDGET_FILE=/tmp/regrade-item4.json \
+  npx tsx --env-file=.env.local scripts/regrade.ts batch-39-quillpath-oct-26-runs-1-8 --only=99dd37d1
+LLM_BUDGET_USD=3 LLM_BUDGET_FILE=/tmp/regrade-item4.json \
+  npx tsx --env-file=.env.local scripts/regrade.ts batch-37-quillpath-oct-20-runs-1-5 --only=e08c362a,eb8d7576
+LLM_BUDGET_USD=3 LLM_BUDGET_FILE=/tmp/regrade-item4.json \
+  npx tsx --env-file=.env.local scripts/regrade.ts batch-35-hollisbay-oct-20-runs-1-5 --only=52951de8
+```
+
+One shared `LLM_BUDGET_FILE` so the $3 is a cap on the whole set, not on each call. **Not run — your go is needed,
+and the `--only` lines are not committed either.** Two things to know before saying yes: `regrade.ts` reads the
+session out of the database by id, so these five sessions have to still be there; and larkspur p57 was never scored,
+so `regrade` skips an unscored run today — grading it needs that guard relaxed for this one run, or the run scored
+once and then compared.
+
+---
+
+## 14. Judgement calls, with the cost if wrong
+
+I could not ask anyone. Each of these is the conservative call.
+
+1. **The gerund carve-out keeps an exception list** (`trying`, `bothering`, `going`, `carrying`, `continuing`,
+   `living`, `being`, `existing`, plus `anything` / `everything` / `nothing` / `something` / `thing`, which are
+   `-ing`-shaped by accident). The ruling says "carve out gerunds"; carving out all of them would have taken "what's
+   the point of anything" and "what's the point of trying" off the floor, and the standing C5 posture is to err
+   toward triggering. **Cost if wrong:** a candidate questioning an analytic step with one of those nine verbs
+   ("what's the point of continuing with this branch") still draws a pause offer from the floor. Narrowing it is
+   deleting words from one string.
+2. **"Why bother, I'm useless at this." is proved through the runner with a stubbed classifier, not on a recorded
+   verdict.** No message in b28–b39 is that shape, so there is no recorded distress verdict to replay, and a live
+   classifier call costs money. What the test proves is the path: the floor no longer short-circuits, the message
+   reaches `classifyDistress`, and a `distress` verdict still produces the offer. What it does not prove is that
+   Haiku 5.5 labels that sentence `distress` — the prompt names "feeling worthless or like a failure as a person"
+   and the test asserts that clause is in the prompt, which is as far as free evidence goes. **Cost if wrong:** that
+   shape gets no check-in. ~$0.001 of Haiku would settle it if you want it settled.
+3. **`misquoteSameTurn` went into the preset on my own reading of the gate.** The ruling made the preset conditional
+   on 0 false corrections, I measured 0 across the 31 slices, and I moved it. **Cost if wrong:** one line in
+   `engine-switches.ts` moves it back, and §12's six sentences are the evidence to argue with.
+4. **Item 4's rule is literal — the claim's turn must BE a recommendation message.** §13.1 has the reasoning and the
+   cost.
+5. **`clearRecommendation` is the predicate, not `isRecommendationStatement`.** The looser one fires on
+   `RECOMMENDATION_PATTERN` anywhere in an analysis turn ("they should…", "I'd prioritize…"), which on these
+   transcripts would make half the back half of a case a "recommendation turn". `clearRecommendation` fires on t29
+   alone in larkspur p57. **Cost if wrong:** a recommendation that opens on a verb neither list reads is not
+   escalated — the same residual 4.9 carries.
+6. **The three widenings were measured on the replay, which cannot see the recorded wave's own queue.** §10's caveat
+   has the one case where that mattered and how I checked it another way.
+7. **The round's baseline was taken by detaching to ab5b668a in this worktree and replaying there.** The alternative
+   was to trust `postwave-gate-on`, whose `switches.txt` records a dirty tree at `f5cfd81f`; the new baseline is
+   byte-identical to it, which is also the check that it was the right state. Nothing was pushed, merged or staged.
+8. **`evals/fault-bank/specs/b39a.json` and `b39h.json` were not touched this round** — no record was added, changed
+   or removed anywhere in `evals/`. The `phase2-design` conflict §8.7 flagged is exactly as it was.
