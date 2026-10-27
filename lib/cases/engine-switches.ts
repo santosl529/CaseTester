@@ -109,7 +109,19 @@ export const PHASE1_SWITCHES = [
 // "10%") is not a figure he said. Lorenzo's reason for the direction, from the scale-word ruling of the
 // same day: a false `correct` shields a real error from ever being probed, which is worse than a doubt.
 // It is a rider on the equations themselves — with `checkerEquations`/`checkerEquationsAsync` off there is
-// no equation to read, so the switch is a no-op. Out of every preset; nameable for evaluation.
+// no equation to read, so the switch is a no-op.
+// **Measured on 27 Oct and NOT shipped in this form** (`equations-safe-direction-report.md`): it shields
+// real errors. On the speech-like corpus 19 of its 21 clears are real errors (10 `unit:COGS` and 9
+// `pricing:gain` flags, each one his own correct arithmetic in front of a figure of the wrong quantity),
+// and on the corpus's own recorded flagged checker claims it blocks 88 of 211 — 42% of every doubt the
+// engine was about to speak — the 10 read by hand all real. The reason is structural: a doubt is almost
+// never about whether the arithmetic holds but about WHICH QUANTITY the figure is (base, unit, year, a
+// misquoted input), and in those errors the candidate's arithmetic is internally correct — "right
+// arithmetic on the wrong base" is the commonest real error this engine catches. Narrowing to doubts the
+// checker itself types `arithmetic` leaves 4 of the 88, and all four are real errors too. It changes
+// nothing on the voice corpus, the three graded probes included (their operands are not in the doubted
+// message). Out of every preset, and it must not be turned on for a wave in this form; nameable so the
+// evidence can be re-read.
 export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'checkerEquationsAsync', 'equationClears'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 

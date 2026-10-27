@@ -42,7 +42,7 @@ export type MeasuredTurn = { session: string; t: number; text: string; revealed:
 // messages the db-dump's `session_turns` holds where both exist.
 type VoiceLine = { turnSeq: number; candidateText?: string; carried?: boolean };
 
-function voiceTurns(root: string): MeasuredTurn[] {
+export function voiceTurns(root: string): MeasuredTurn[] {
   const dir = path.join(root, 'voice-live');
   if (!existsSync(dir)) return [];
   const files: string[] = [];
