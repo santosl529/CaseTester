@@ -33,6 +33,11 @@ export const SLICES = [
   { tag: 'b39l', batch: 'batch-39-larkspur', wave: 'batch-39-larkspur-oct-26-runs-1-8', caseId: 'prof-002', verdicts: null, root: 'phase1' },
   { tag: 'b39q', batch: 'batch-39-quillpath', wave: 'batch-39-quillpath-oct-26-runs-1-8', caseId: 'pricing-001', verdicts: null, root: 'phase1' },
   { tag: 'b39h', batch: 'batch-39-hollisbay', wave: 'batch-39-hollisbay-oct-26-runs-1-5', caseId: 'launch-001', verdicts: null, root: 'phase1' },
+  // Batch 40 (27 Oct, the phase 2 confirmation wave): runs copied into the main corpus, so no `root`.
+  { tag: 'b40bb', batch: 'batch-40-brewbean', wave: 'batch-40-brewbean-oct-27-runs-1-5', caseId: 'prof-001', verdicts: null },
+  { tag: 'b40l', batch: 'batch-40-larkspur', wave: 'batch-40-larkspur-oct-27-runs-1-5', caseId: 'prof-002', verdicts: null },
+  { tag: 'b40ln', batch: 'batch-40-larkspur', wave: 'batch-40-larkspur-oct-27-runs-6-7', caseId: 'prof-002', verdicts: null },
+  { tag: 'b40q', batch: 'batch-40-quillpath', wave: 'batch-40-quillpath-oct-27-runs-1-8', caseId: 'pricing-001', verdicts: null },
 ] as const;
 // A slice's corpus root: its own (`phase1`: REPLAY_ROOT_PHASE1, default the phase1 worktree's corpus), else REPLAY_ROOT.
 export const PHASE1_RUNS = process.env.REPLAY_ROOT_PHASE1 ?? '/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs';
