@@ -800,3 +800,37 @@ The first S3 build failed its own read in three ways, each fixed before the gate
 **C3 `composeSetup`:** holds setup sentences only after a spoken acknowledgment. With an acknowledgment simulated (`REPLAY_ACK=1`), 15 turns change and no lint rule rises (L2 10 → 8). Without one, it changes nothing (1,994 turns identical).
 
 **Voice:** with Thinking sounds on, the acknowledgment played on every turn (8–17 Oct, median 0.4–0.5 s), so the held setup always follows it. With fillers off (18–19 Oct), it played on 5 of 52 turns, and C3 does nothing on the other 47.
+
+## 13. Session 3b: Lorenzo's session-3 rulings, two measurements, S4 first
+
+**b37q-marisol-t18.** The window was widened as ruled: why_pro_fell may be given anywhere from t8 to t18, and upgrade_timing is still required at t18. Correct records are back to 95/95. In the replayed t8 the item gives the reason Pro fell, not the share, and the turn neither refuses the exact share nor points to an exhibit. Exhibit 3 (new customers by plan) is never shown in that run: its figures go out as a spoken line at t8. That is unchanged from `*=phase1`.
+
+**Why `refusalContradiction` flipped none of the 8 batch-39 false refusals.** Every refused part maps to no item. `named()` comes from the false-refusal veto (`refusedItemIds` + `coverageOf`), which by design maps nothing for a finer cut or a question-worded part ("per customer by plan", "before versus after", "whether …"), and each of these refusals carries such words. Per record:
+
+| Record | Why the rule doesn't flip it |
+|---|---|
+| b39l-raj-t20 | No item mapped; the contradicting item (new_routes_context) is deferred, not given this turn |
+| b39l-marcus-t14 | No item mapped; new_routes_context (via exhibit 3) states the part |
+| b39l-jasmine-t2 | Nothing given this turn; departures are behind the structure gate |
+| b39q-raj-t10 | The rule fires on the sub-clause only; upgrade_timing's line doesn't state "whether 20% is the full share" |
+| b39q-marisol-t6 | No item mapped; plan_prices_costs states both parts |
+| b39q-victor-t12 | No item mapped; why_pro_fell states the part |
+| b39l-marcus-t4 (fuel) | Not a contradiction: nothing given this turn, a refusal of a held coarse item |
+| b39l-marisol-t2 (breakdown) | Not a contradiction: nothing given this turn, a refusal of a held coarse item |
+
+**The coverage version (`refusalCoverage`, measurement only).** A refused part is dropped when a line given this turn covers its words, read against the item's line, label, names and cover phrases with statesAsked's half-the-nouns test. It **fails the gate**:
+- true refusals 17/19, correct records 93/95, bank 86/174;
+- 30 corpus turns changed, about 19 of them losing a true refusal ("FY2024 fares", "the split of the $20M fixed", "diagnosis rate trend", "week-by-week sign-ups"); 2 more garble a sentence;
+- it fixes 3 records (b39l-marcus-t14, b39q-marisol-t6, b39q-victor-t12) and breaks 7.
+
+Word coverage can't tell a finer cut from the item it sits beside. Kept off.
+
+**Option B (`restateOwnLine`, outside every preset).** The pointer branch says the item's own line instead, with no summary, plus a true refusal for each finer part of the declared ask that the line doesn't hold. **It is not a net win:**
+- it moves the bank exactly as pointer-off does: the 8 pointer records pass on the phrase, b39a-marisol-t24 still fails, and Phase 1's restatement fixes break (5 with `phase2`, 6 with `phase1`);
+- the first build took cuts from the candidate's sentences, which gave refusals of non-asks and one candidate figure; it was fixed to use the declared ask's words only;
+- after the fix, cut refusals fire on 2 corpus turns, both wrong: "flights per year on Lakeport" is held, and the split "Millbrook routes to use as benchmarks…" is garbled;
+- the repeated line belongs to the same wrong item.
+
+The pointer fault is the item choice (which item answers the ask), not the pointer form.
+
+**Order.** On the shadow decision, S4 reaches more batch-39 faults than S6: 6 false refusals are answered by R1–R4 at their turns (fuel t4, marisol t6, raj t10, victor t12, jasmine t2, raj t20). Proposed next: S4. This is an estimate from shadow rows; S4 is not built.
