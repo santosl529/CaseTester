@@ -338,13 +338,18 @@ export function staleReason(ws: Worksheet, caseData: unknown, item: { n: number;
   // (`scenario`: "at $60 the Starter margin is $50, not $30", b35q Marisol t25) still leaves its other uses alone,
   // and the withdrawal must name what replaces it, so a bare "not 12%" with no new figure beside it is not read as
   // a redo of the claim's input.
+  // …on the same policy as the claim's own figure (`coveringWithdrawal`): a figure of the CASE still needs to be a
+  // misread they fixed (its replacement another case figure, not said under a condition of its own), but a figure of
+  // their OWN needs only the withdrawal. That symmetry is what ruling (a) asks for: b39 larkspur p57 69441a66 t9's
+  // "roughly a third off fares on both, not 12%" withdraws the 12% the $2.0M claim is built on with no figure beside
+  // it in the clause, and the old leg wanted both a replacement and two case figures.
   for (const x of carried) {
-    const w = (ws.withdrawn as Withdrawn[]).find(y => y.turn > n && sameFigure(x, y.value) && !y.scenario && y.replacement !== undefined);
+    const w = coveringWithdrawal(ws, caseData, null, x, n + 1, caseFigures);
     if (w) return `built on ${x}, withdrawn at message ${w.turn} ("${w.phrase}")`;
   }
   // …or the lineage moved on (ruling (a)): "If the candidate's latest message restates a value in the same step
   // lineage, or redoes the root, drop the queued probe or correction on the older claim."
-  return lineageMoved(ws, caseData, quantity, n);
+  return lineageMoved(ws, caseData, quantity, n, value);
 }
 
 // Ruling (a), 26 Oct. A step whose lineage (worksheet lineageOf, through dependsOn) holds a newer standing value than
@@ -352,9 +357,15 @@ export function staleReason(ws: Worksheet, caseData: unknown, item: { n: number;
 // correction is about work they have replaced. Read from the worksheet only, so nothing enters it that `foldTurn`
 // keeps out (the binder's loose figures off prof-001). A member said again at the same figure is no news — the
 // checker's key dedupes that — so only a changed value counts.
-export function lineageMoved(ws: Worksheet, caseData: unknown, quantity: string | null, n: number): string | null {
+export function lineageMoved(ws: Worksheet, caseData: unknown, quantity: string | null, n: number, value?: number): string | null {
   const id = quantity === null ? null : stepIdOf(quantity);
-  if (id === null) return null;
+  if (id === null || quantity === null) return null;
+  // …unless the claim's OWN quantity still stands at the claim's own figure since. Whatever else in the lineage moved,
+  // they are still using this one and the probe or correction is still owed (b35h Marisol 57 `0e1cb6ff` t12:
+  // `breakeven_bags` was redone at message 9, but her $10.2M of variable cost is restated in message 11 and the
+  // correction — "about $9 million, not $10.2 million" — is the right line).
+  const own = value === undefined ? undefined : ws.entries[quantity];
+  if (own && value !== undefined && own.turn > n && sameValue(caseData, quantity, own.value, value)) return null;
   const { root, members } = lineageOf(caseData, id);
   for (const m of members) {
     const q = stepQuantity(m);

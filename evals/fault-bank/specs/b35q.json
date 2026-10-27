@@ -364,11 +364,15 @@
   "turn": 8,
   "sev": "correct",
   "cls": "correct_correction",
-  "note": "His $320 CAC misquote corrected flat (\"To correct one figure: the cost to acquire one new customer is $1,200 for Pro … $300 for Starter …\").",
+  "note": "His $320 CAC misquote corrected flat (\"To correct one figure: the cost to acquire one new customer is $1,200 for Pro … $300 for Starter …\"). Post-wave (26 Oct): the assertion's window opens two turns earlier. The record's claim is that the misquote GOT its one flat correction, not that it came on this exact turn; with `misquoteSameTurn` a live finding corrects on the message's own turn instead of a turn later behind the checker gate, so the same correction now lands at t6. It still fails if no correction is spoken at all.",
   "a": [
    {
     "kind": "correction",
-    "must": true
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 8
+    }
    }
   ],
   "rep": true,

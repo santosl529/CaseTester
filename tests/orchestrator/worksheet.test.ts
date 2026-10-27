@@ -221,6 +221,14 @@ describe('lineageMoved (ruling (a): the lineage restated or the root redone)', (
     expect(lineageMoved(w, pricing, 'pricing:gain@60', 9)).toBeNull();
   });
 
+  // b35h Marisol 57 t12: breakeven_bags was redone at message 9, but her $10.2M of variable cost is restated at
+  // message 11 and the correction is still the right line.
+  it('the claim\'s own quantity still standing at its own figure keeps the line', () => {
+    const w = update(update(EMPTY_WORKSHEET, at(9, 'starter_ltv', 720), pricing), at(13, 'starter_ratio', 3), pricing);
+    expect(lineageMoved(w, pricing, 'step:starter_ratio', 9, 3)).toBeNull();
+    expect(lineageMoved(w, pricing, 'step:starter_ratio', 9, 2.4)).toMatch(/restated at 3 \(message 13\)/);
+  });
+
   it('nothing later than the claim is no news either', () => {
     const w = update(EMPTY_WORKSHEET, at(9, 'starter_ltv', 900), pricing);
     expect(lineageMoved(w, pricing, 'step:starter_ratio', 13)).toBeNull();

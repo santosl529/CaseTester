@@ -63,13 +63,17 @@
   "turn": 6,
   "sev": "firm",
   "cls": "misquote_uncorrected",
-  "note": "\"Prevalence you gave me is 1.5%, so 260 million × 1.5% = 3.9 million people with Corlan's disease\" — the case says 1.6%. `misquoteFlat` was on and the misquote check logged `found: []`: `operandLater` dropped the quote because the candidate uses the figure as an operand in a later clause, a guard built for the candidate's OWN derived figures (Marisol b18 t9, \"COGS today is 66.7, so … 66.7 minus 14.4\"). Here the figure is attributed — \"you gave me\" — so the later operand is the misquote propagating, not evidence the figure is his. Fixed by `misquoteAttribution`. Rule 6 option 4 asks for one flat sentence; `misquoteSameTurn` says it on this turn, because code's own correction otherwise waits for the checker's verdict a turn later and by t8 he had already fixed it himself.",
+  "note": "\"Prevalence you gave me is 1.5%, so 260 million × 1.5% = 3.9 million people with Corlan's disease\" — the case says 1.6%. `misquoteFlat` was on and the misquote check logged `found: []`: `operandLater` dropped the quote because the candidate uses the figure as an operand in a later clause, a guard built for the candidate's OWN derived figures (Marisol b18 t9, \"COGS today is 66.7, so … 66.7 minus 14.4\"). Here the figure is attributed — \"you gave me\" — so the later operand is the misquote propagating, not evidence the figure is his. Fixed by `misquoteAttribution`. Rule 6 option 4 asks for one flat sentence; `misquoteSameTurn` says it on this turn, because code's own correction otherwise waits for the checker's verdict a turn later and by t8 he had already fixed it himself. Post-wave: the assertion's window runs to t8 — code's correction is owed either on this turn (`misquoteSameTurn`) or on the next, once the checker's verdict for the message has landed. It fails only if no flat correction is spoken at all.",
   "src": "lorenzo-ruling-2026-10-26 (post-wave item 3)",
   "a": [
    {
     "kind": "says",
     "pattern": "1\\.6% of US adults",
-    "must": true
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 8
+    }
    },
    {
     "kind": "spoke",
@@ -86,13 +90,17 @@
   "turn": 10,
   "sev": "firm",
   "cls": "misquote_uncorrected",
-  "note": "\"You said Nimbrel's net price is about $9,400 per patient per year\" — the line says $9,000, and he built $391M of peak sales on it. Correction to the grading: the detector did NOT miss this one. `misquote` at t10 logged `found: [{items:[nimbrel], cited:\"is about $9,400\"}]`, and the gate released it at t12 (\"code's mismatch with nimbrel, and the checker rates \\\"$9,400\\\" error/high with no flag (misquoteFlat)\"). Nothing flat was ever said because code's correction is owed a turn after the message, and by t12 he had fixed it himself at message 11 (\"You gave $9,000, not $9,400\"). The spoken line at t10 was the model's Socratic \"Which was it, and what does that do to your peak sales number?\", which `misquoteFlat` deliberately lets stand. `misquoteSameTurn` says the flat sentence on t10 instead.",
+  "note": "\"You said Nimbrel's net price is about $9,400 per patient per year\" — the line says $9,000, and he built $391M of peak sales on it. Correction to the grading: the detector did NOT miss this one. `misquote` at t10 logged `found: [{items:[nimbrel], cited:\"is about $9,400\"}]`, and the gate released it at t12 (\"code's mismatch with nimbrel, and the checker rates \\\"$9,400\\\" error/high with no flag (misquoteFlat)\"). Nothing flat was ever said because code's correction is owed a turn after the message, and by t12 he had fixed it himself at message 11 (\"You gave $9,000, not $9,400\"). The spoken line at t10 was the model's Socratic \"Which was it, and what does that do to your peak sales number?\", which `misquoteFlat` deliberately lets stand. `misquoteSameTurn` says the flat sentence on t10 instead. Post-wave: the assertion's window runs to t12 — code's correction is owed either on this turn (`misquoteSameTurn`) or on the next, once the checker's verdict for the message has landed. It fails only if no flat correction is spoken at all.",
   "src": "lorenzo-ruling-2026-10-26 (post-wave item 3)",
   "a": [
    {
     "kind": "says",
     "pattern": "\\$9,000 per patient per year",
-    "must": true
+    "must": true,
+    "scope": {
+     "fromTurn": 10,
+     "toTurn": 12
+    }
    },
    {
     "kind": "spoke",

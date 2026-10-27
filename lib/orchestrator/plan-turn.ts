@@ -819,7 +819,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // its figures may not be probed again — the case moves on (Lorenzo, 13 Oct;
   // Jordan 099f33e9, seven probes on one "40 points").
   const closedKeys = [...new Set([...(checkerMemory.closed ?? []), ...checkerPlan.closedNow])];
-  const closedFigures = [...closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []), ...(checkerMemory.convertedFigures ?? [])];
+  // …and so is a claim code dropped as STALE (post-wave, 26 Oct). Dropping code's own line while letting the model's
+  // identical doubt through is no drop at all: b37q Jasmine 40 t14 — code dropped 9:1 ("its root starter_ltv restated
+  // at 12.5 since message 9") and the model's own "Earlier you said standalone Starter is 1.3x … walk me through how
+  // you got to 1.3x" went out in its place, where the base's probe guard had replaced it with a neutral line because
+  // the same claim was closed to the report.
+  const staleFigures = checkerPlan.decisions.filter(d => d.outcome === 'stale' && d.reason.startsWith('stale_drop: '))
+    .flatMap(d => numbersOf(String(d.candidateValue ?? '')));
+  const closedFigures = [...closedKeys.flatMap(k => checkerPlan.keys[k]?.figures ?? []), ...(checkerMemory.convertedFigures ?? []), ...staleFigures];
 
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
