@@ -895,3 +895,19 @@ The switch is off and outside every preset (95dbf229). The wave runs without it.
 - run R6's statesAsked against the whole data line, not only the items given.
 
 Haiku's full-on-mismatch rating is the open risk.
+
+## 16. `restateLineInvite` (27 Oct): failed its gate in one round, stopped
+
+**What it does.** On R5's pointer path, the item's own line is said with no exhibit summary. Then, once per item, a statement follows: "If you're after something more specific, ask me." No model call; free.
+
+**Gate: failed.**
+- **Pointer records:** 8/9 pass the phrase test; b39a-marisol-t24 still has no refusal of the royalty term.
+- **On substance**, read turn by turn, no turn claims the exhibit answers the ask. But:
+  - Tyler t22 reads both entry-option lines, which is the whole entry-options exhibit aloud;
+  - Dana t12, Raj t22 and Raj t28 repeat long, figure-heavy lines of the same wrong item.
+- **Phase 1's restatement records:** 5 that pass today break (6 with `phase1` alone): b34l-marcus-t10, b35q-raj-t22, b36l-tyler-t6, b37q-marcus-t22, b37q-raj-t14, and b34l-marcus-t22 on `phase1`. Non-pointer restatement records: 15/18 → 10/18.
+- **Unchanged:** true refusals 19/19, correct records 95/95; bank 88 → 91 of 173.
+
+**Spoken length vs today's pointer** (43 changed corpus turns): a median of +2 words a turn, mean +4.8, range −8 to +42. Today's summaries are about as long as the lines that replace them.
+
+The switch is off and outside every preset. As with option B and pointer-off, the pointer form isn't the fault: the item is wrong.
