@@ -83,7 +83,7 @@ export function recordedDroppedAsks(turn: { turnIndex: number; checks?: CheckDec
   });
 }
 
-// The message classifier's detections on a MODEL turn (Phase 2, for the runner replay behind REPLAY_MESSAGE_DETECTIONS=1):
+// The message classifier's detections on a MODEL turn (Phase 2, for the runner replay — the default since 27 Oct; REPLAY_MESSAGE_DETECTIONS=0 turns it off):
 // the recorded `uncovered_asks` / `probe_turn_requests` row lists the detections by `what` — answered (they joined the
 // turn's requests), covered (an explicit declaration covered them) and dropped (no asking sentence covered them). A
 // detection the item-less check then ran on (an `itemless_defer` row for its `what`) was item-less; otherwise its ids

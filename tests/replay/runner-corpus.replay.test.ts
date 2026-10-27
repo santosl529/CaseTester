@@ -171,10 +171,12 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     modelCalled = false;
     // A code-written turn's classifier: the asks it answered (its requests) and
     // those it dropped (round 5 Task 49, lib/eval/recorded-checks.ts).
+    // A model turn's own detections (recordedMessageDetections) are served by default since 27 Oct (Lorenzo: the default
+    // for all gates); REPLAY_MESSAGE_DETECTIONS=0 restores the old behaviour (none on model turns) for comparison.
     detections = !savedModel && r.parsedTurn ? [
       ...r.parsedTurn.requests.map(q => ({ what: q.what, ledgerItemIds: q.itemIds, explicit: true })),
       ...recordedDroppedAsks(r, run.events ?? []),
-    ] : savedModel && process.env.REPLAY_MESSAGE_DETECTIONS === '1' ? recordedMessageDetections(r, run.events ?? []) : [];
+    ] : savedModel && process.env.REPLAY_MESSAGE_DETECTIONS !== '0' ? recordedMessageDetections(r, run.events ?? []) : [];
     const pt = r.checks.find(c => c.check === 'pressure_test')?.detail as { verdict?: { answered: boolean; reason: string } | null } | undefined;
     const next = saved[k + 1]?.stateBefore.pressureTest as { state?: string; structureGiven?: boolean } | undefined;
     // The structure check's verdict: what the saved state held after this turn.

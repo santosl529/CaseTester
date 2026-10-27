@@ -80,7 +80,7 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for whether the board's $300M test applies to booked revenue or product sales — not held — net_sales_definition defines net sales (after discounts and rebates), not whether the test is booked revenue or product sales. Also a D9 ask (wave39-grading.md): a true refusal was owed (Lorenzo, 27 Oct).",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for whether the board's $300M test applies to booked revenue or product sales — not held — net_sales_definition defines net sales (after discounts and rebates), not whether the test is booked revenue or product sales. Lorenzo, 27 Oct: no true refusal — the prompt sets the bar as \"$300 million in peak annual US net sales\" (promptFacts.board_bar), so \"I don't have\" would be false. Expected: no refusal and no exhibit pointer; the full expected answer is pending his ruling.",
   "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
   "a": [
    {
@@ -90,8 +90,8 @@
    },
    {
     "kind": "refusal",
-    "about": "booked|product sales|board",
-    "must": true
+    "about": "booked|product sales|board|net sales",
+    "must": false
    },
    {
     "kind": "spoke",
