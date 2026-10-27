@@ -96,6 +96,13 @@ export const BACKGROUND_MODEL_ID = {
   // yet evaluated on real messages — its labelled check is in the proposed
   // validation set.
   conduct: 'claude-haiku-5-5',
+  // New role (27 Oct, item E's asynchronous variant, switch `checkerEquationsAsync`):
+  // the equations and answer sheet transcribed from the candidate's message alone
+  // (lib/orchestrator/equation-extractor.ts). A transcription job with no case in the
+  // prompt, so it is the smallest call in the system; it runs in parallel with the math
+  // checker, whose prompt it leaves byte-identical. Not yet evaluated on real messages
+  // beyond the 16-message latency pair of 27 Oct.
+  equations: 'claude-haiku-5-5',
 } as const;
 
 // Request settings for a background call on `model`. Haiku 5.5 (verified

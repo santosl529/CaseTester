@@ -598,7 +598,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // quantities whose value CHANGED, each naming the figure it replaces; the replacement must itself be a figure the
   // candidate said, so code never drops a line on a quantity it only guessed at. Read from the verdict rows of the
   // messages after the claim — this is the cross-message half of the rule; the same-message half is in the vetting.
-  const sheetOn = switchOn(caseData, 'checkerEquations');
+  // Either source of the sheet: the checker's own output (`checkerEquations`) or the parallel
+  // extractor (`checkerEquationsAsync`). The drop itself is the same code on the same rows.
+  const sheetOn = switchOn(caseData, 'checkerEquations') || switchOn(caseData, 'checkerEquationsAsync');
   const sheetsAfter = (n: number) => checkerRows
     .filter(r => r.subtype === 'verdict')
     .map(r => r.payloadJsonb as VerdictPayload)

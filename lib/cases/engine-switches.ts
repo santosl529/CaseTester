@@ -89,7 +89,15 @@ export const PHASE1_SWITCHES = [
 // reading, not the preset — **out of every preset until he rules on that separately** (and 50 of the 589
 // are hand-verified in `.superpowers/sdd/2026-10-22-phase1/voice-math-round3-report.md` §2: 50/50 verify
 // right work).
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'scaleWordReading'] as const;
+// `checkerEquationsAsync` (27 Oct, item E's asynchronous variant — the round-2 report's §E.6, built on
+// Lorenzo's go) is the same two additions through a second, small, parallel call instead of a second task
+// in the checker's own call: a background classifier over the candidate's message alone
+// (`lib/orchestrator/equation-extractor.ts`, Haiku 5.5, no case in the prompt), fired beside the checker,
+// whose prompt and output schema it leaves **byte-identical** — which is what removes the synchronous
+// form's recall regression by construction rather than by measurement (a test diffs the prompt). Verdict
+// arrival becomes max(checker, extractor), and the answer sheet is read at delivery, a turn or more later,
+// which is the only moment it is needed. Out of every preset; nameable for evaluation.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'checkerEquationsAsync', 'scaleWordReading'] as const;
 export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES] as const;
 
 export type EngineSwitch = typeof ALL_SWITCHES[number];

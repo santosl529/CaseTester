@@ -116,12 +116,38 @@ export function verifyEquation(e: Equation, message: string): EquationCheck {
   const why = unquoted(e, message);
   if (why) return unclear(why, computed);
   const all = [...e.operands, e.statedResult];
-  const verdict = verdictFor(
-    stated, computed,
-    all.some(o => SHARE.test(o.unit)),
-    HEDGE.test(e.quoted),
-    all.some(o => o.scale !== 'none' || MONEY.test(o.unit)),
-  );
+  const share = all.some(o => SHARE.test(o.unit));
+  const hedge = HEDGE.test(e.quoted);
+  const verdict = verdictFor(stated, computed, share, hedge, all.some(o => o.scale !== 'none' || MONEY.test(o.unit)));
+  if (verdict !== 'incorrect') return { quoted: e.quoted, expression, computed, stated, verdict, why: '' };
+  // Two readings the deterministic reader already allows, and this check did not — both
+  // measured on the 16-message extractor run of 27 Oct, where 3 of the 5 `incorrect`
+  // verdicts were false and all 3 were one of these shapes. A false flag making the
+  // interviewer doubt correct work is the harm this whole checker is tuned against, so
+  // they are applied in the safe direction only: a verdict may move off `incorrect`,
+  // never onto it.
+  //
+  //   (1) a percent operand read as a growth factor — "a 10% price increase takes
+  //       revenue to 126.5" is transcribed as `115 × 10% = 126.5`, and the candidate
+  //       means 115 × 1.10. `checkStatedArithmetic` has this rescue already (pctAt →
+  //       1 + n/100, multiplicative chains only), and it makes the claim `correct`.
+  const factors = e.operands.map(o => (SHARE.test(o.unit) ? 1 + scaled(o) / 100 : scaled(o)));
+  if ((e.operator === '*' || e.operator === '/') && factors.some((f, i) => f !== values[i])) {
+    const asFactors = factors.reduce((a, b) => (e.operator === '*' ? a * b : a / b));
+    if (Number.isFinite(asFactors) && verdictFor(stated, asFactors, share, hedge, true) === 'correct') {
+      return { quoted: e.quoted, expression, computed: asFactors, stated, verdict: 'correct', why: '' };
+    }
+  }
+  //   (2) a relative change stated as a percent, transcribed as the difference — "158.8
+  //       versus 115 today, that's a 38% price increase" comes through as `158.8 − 115 =
+  //       38%`. Here the operator itself may not be the one he meant, so this is `unclear`:
+  //       no flag, and no evidence the other way either.
+  if ((e.operator === '-' || e.operator === '+') && values.length === 2 && SHARE.test(e.statedResult.unit) && values[1] !== 0) {
+    const relative = (values[0] / values[1] - 1) * 100;
+    if (Number.isFinite(relative) && verdictFor(stated, relative, true, hedge) === 'correct') {
+      return unclear('the operands read as a relative change give their figure — the transcribed operator may not be the one they meant', computed);
+    }
+  }
   return { quoted: e.quoted, expression, computed, stated, verdict, why: '' };
 }
 
@@ -134,21 +160,52 @@ export const verifyEquations = (equations: Equation[], message: string) => equat
 // the figure, not on the label — an entry declares which earlier figure it
 // replaces, and the replacement must itself be a figure the candidate said, so
 // code never drops a line on a quantity it only guessed at.
+// A figure with what the words around it say it is. The match below needs this because
+// the numbers alone are not enough: the 27 Oct extractor run dropped a probe on the
+// candidate's "1.4x" ratio against a sheet entry that superseded "$1.4m net" — the same
+// digits, a different quantity, and a line that should have been spoken was silenced by a
+// coincidence. A false drop is a missed real error, so kinds that are both known and
+// different, or explicit scales that disagree, are not a match.
+type FigureKind = 'usd' | 'share' | 'ratio' | 'unknown';
+type Figure = { v: number; kind: FigureKind; scale: number | null };
+const FIGURE_RE = /(\$)?\s*(\d[\d,]*(?:\.\d+)?)\s*(%|percent|points?|pp|x|times|k|m|bn?|thousand|million|billion|dollars?|cents?)?/gi;
+const SCALE_WORD: Record<string, number> = { k: 1e3, thousand: 1e3, m: 1e6, million: 1e6, b: 1e9, bn: 1e9, billion: 1e9 };
+
+export function figuresWithKind(text: string): Figure[] {
+  return [...normalizeNumberWords(text).matchAll(FIGURE_RE)].map(m => {
+    const suffix = (m[3] ?? '').toLowerCase();
+    const scale = SCALE_WORD[suffix] ?? null;
+    const kind: FigureKind = m[1] || /^(?:dollars?|cents?)$/.test(suffix) ? 'usd'
+      : /^(?:%|percent|points?|pp)$/.test(suffix) ? 'share'
+        : /^(?:x|times)$/.test(suffix) ? 'ratio' : 'unknown';
+    return { v: parseFloat(m[2].replace(/,/g, '')), kind, scale };
+  });
+}
+
+// Two figures may be the same quantity: the same number, and nothing in the words says
+// they are different things.
+function sameFigure(a: Figure, b: Figure): boolean {
+  if (!near(a.v, b.v)) return false;
+  if (a.kind !== 'unknown' && b.kind !== 'unknown' && a.kind !== b.kind) return false;
+  if (a.scale !== null && b.scale !== null && a.scale !== b.scale) return false;
+  return true;
+}
+
 export function supersededBy(
   candidateValue: string,
   sheet: AnswerSheetEntry[],
   message: string,
 ): AnswerSheetEntry | null {
-  const theirs = figuresIn(candidateValue);
+  const theirs = figuresWithKind(candidateValue);
   if (theirs.length === 0) return null;
   const said = figuresIn(message);
   for (const entry of sheet) {
-    const replaced = figuresIn(entry.supersedes);
+    const replaced = figuresWithKind(entry.supersedes);
     if (replaced.length === 0) continue;
     // The new value has to be the candidate's own, and really a different figure.
     if (!said.some(n => near(n, entry.value)) && !said.some(n => near(n, scaled(entry)))) continue;
-    if (!theirs.some(t => replaced.some(r => near(t, r)))) continue;
-    if (theirs.some(t => near(t, entry.value) || near(t, scaled(entry)))) continue;
+    if (!theirs.some(t => replaced.some(r => sameFigure(t, r)))) continue;
+    if (theirs.some(t => near(t.v, entry.value) || near(t.v, scaled(entry)))) continue;
     return entry;
   }
   return null;

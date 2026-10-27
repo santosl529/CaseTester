@@ -25,6 +25,7 @@ import {
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
 import { type AnswerSheetEntry } from './checker-equations';
+import { extractEquations, type ExtractorOutput } from './equation-extractor';
 import { recomputeAction, attemptKey, type CandidateMath, type RecomputeAttempts, type RecomputeFlag } from './recompute';
 import { checkPricingClaims, pricingAnswers, pricingValues } from './pricing-check';
 import { changeFigures } from './numeric-provenance';
@@ -87,20 +88,40 @@ export function startMathCheck(p: {
   misquotes?: { item: string; cited: string; sentence: string }[];
   config: MathCheckerConfig; timeoutMs?: number; onUsage?: OnUsage;
   check?: (a: Parameters<typeof checkMathClaims>[0]) => Promise<CheckerResult>;
+  extract?: (a: Parameters<typeof extractEquations>[0]) => Promise<ExtractorOutput | null>;
 }): CheckerJob {
   const controller = new AbortController();
   const t0 = Date.now();
   let timedOut = false;
   const timer = setTimeout(() => { timedOut = true; controller.abort(); }, p.timeoutMs ?? MATH_CHECKER_TIMEOUT_MS);
   const check = p.check ?? checkMathClaims;
+  // `checkerEquationsAsync` (item E's asynchronous variant, 27 Oct): the equations and the
+  // answer sheet come from a second, small call over the message alone, fired now, in
+  // parallel — so the checker's own prompt stays byte-identical and the verdict arrives at
+  // max(checker, extractor) instead of checker + the extra output. It fails open: an error
+  // or a timeout leaves the verdict exactly as it is today.
+  const extracting = switchOn(p.caseData, 'checkerEquationsAsync')
+    ? (p.extract ?? extractEquations)({
+      message: p.input.message,
+      // the candidate's own earlier words only — `supersedes` names a figure from one of
+      // them; no case data, and not the interviewer's lines either
+      priorMessages: p.input.transcript.filter(t => t.role === 'candidate').map(t => t.text),
+      onUsage: p.onUsage, signal: controller.signal,
+    })
+      .catch((): null => null)
+    : null;
   const result = check({ caseData: p.caseData, input: p.input, config: p.config, onUsage: p.onUsage, signal: controller.signal })
-    .then((r): CheckerJobResult => ({ subtype: 'verdict', payload: {
-      candidateTurnIndex: p.candidateTurnIndex, latencyMs: r.latencyMs, model: r.model,
-      claims: vetCheckerClaims(r.claims, { ...p.vet, answerSheet: r.answerSheet }),
-      codeFlags: codeFlagRefs(p.codeMath, p.misquotes ?? []),
-      stamps: p.codeMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span })),
-      ...(r.answerSheet ? { answerSheet: r.answerSheet } : {}),
-    } }))
+    .then(async (r): Promise<CheckerJobResult> => {
+      const extracted = extracting ? await extracting : null;
+      const answerSheet = r.answerSheet ?? (extracted?.answerSheet?.length ? extracted.answerSheet : undefined);
+      return { subtype: 'verdict', payload: {
+        candidateTurnIndex: p.candidateTurnIndex, latencyMs: r.latencyMs, model: r.model,
+        claims: vetCheckerClaims(r.claims, { ...p.vet, answerSheet }),
+        codeFlags: codeFlagRefs(p.codeMath, p.misquotes ?? []),
+        stamps: p.codeMath.verified.map(v => ({ stepId: v.stepId, value: v.value, span: v.span })),
+        ...(answerSheet ? { answerSheet } : {}),
+      } };
+    })
     .catch((e: unknown): CheckerJobResult => ({ subtype: 'error', payload: {
       candidateTurnIndex: p.candidateTurnIndex, error: e instanceof Error ? e.message : String(e), timedOut, latencyMs: Date.now() - t0,
     } }))

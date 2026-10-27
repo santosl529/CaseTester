@@ -161,3 +161,58 @@ describe('the vetting drops the line, not just the sheet', () => {
     expect(v.flag).toBe(true);
   });
 });
+
+// The two readings the reader allows and this check did not, pinned on the real entries
+// of the 27 Oct extractor run (scripts/equation-extractor-latency.ts, 16 messages): 5 of
+// its equations were rated `incorrect` in code, and 3 of the 5 were FALSE — every one of
+// the three a percent the model transcribed as a factor the candidate never meant. The
+// other two are real errors and must stay `incorrect`.
+describe('verifyEquation, the safe-direction rescues (27 Oct)', () => {
+  const op = (value: number, unit = '', scale: 'none' | 'thousand' | 'million' | 'billion' = 'none') => ({ value, scale, unit });
+  const eq = (quoted: string, operands: ReturnType<typeof op>[], operator: '+' | '-' | '*' | '/', statedResult: ReturnType<typeof op>) =>
+    ({ quoted, operands, operator, statedResult, confidence: 'high' as const });
+
+  it('a percent operand read as a growth factor is correct, not an error (58cb8061 t24, b284faee t10)', () => {
+    const m1 = 'Revenue is 115 today. A 10% price increase takes revenue to 126.5 against costs of 108.';
+    expect(verifyEquation(eq('A 10% price increase takes revenue to 126.5', [op(115), op(10, '%')], '*', op(126.5)), m1).verdict).toBe('correct');
+    const m2 = 'Revenue is $480M, so a 10% price increase takes revenue to $528M, and COGS does not move.';
+    expect(verifyEquation(eq('a 10% price increase takes revenue to $528M', [op(480, '$', 'million'), op(10, '%')], '*', op(528, '$', 'million')), m2).verdict).toBe('correct');
+  });
+
+  it('a relative change transcribed as a difference is unclear — never a flag (58cb8061 t24)', () => {
+    const m = 'We would need 158.8 versus 115 today — that\'s a 38% price increase.';
+    const r = verifyEquation(eq("versus 115 today — that's a 38% price increase", [op(158.8), op(115)], '-', op(38, '%')), m);
+    expect(r.verdict).toBe('unclear');
+    expect(r.why).toMatch(/relative change/);
+  });
+
+  it('leaves a real error alone (0bfe5f38 t20: 4.2 + 11.8 is 16, not 18; c1b79f9e t29: 16/18 is 0.89)', () => {
+    const m1 = 'The 18-point margin decline is fully explained — 4.2 points from beans up 40%, 11.8 points from dairy and packaging.';
+    expect(verifyEquation(eq('4.2 points from beans up 40%, 11.8 points from dairy', [op(4.2, 'points'), op(11.8, 'points')], '+', op(18, 'points')), m1).verdict).toBe('incorrect');
+    const m2 = '16 over 18... it\'s a bit under 18/18, and 18/18 would be 2. So 16/18 is like 1.6%.';
+    expect(verifyEquation(eq('So 16/18 is like 1.6%', [op(16), op(18)], '/', op(1.6, '%')), m2).verdict).toBe('incorrect');
+  });
+});
+
+// The figure match is not number-blind (27 Oct, the extractor run): the candidate's
+// "1.4x" ratio is not the "$1.4m net" a sheet entry replaces, and a line dropped on that
+// coincidence is a real error no one ever hears about.
+describe('supersededBy, the kinds of a figure', () => {
+  const msg = 'Pro sign-ups fall to 350 a month, so total value is $2.08m, up from $1.4m net.';
+  const entry = (over: Partial<AnswerSheetEntry> = {}): AnswerSheetEntry => ({
+    label: 'Value per month (net)', value: 2.08, scale: 'million', unit: '$', supersedes: '$1.4m net', quoted: 'total value is $2.08m', ...over,
+  });
+  it('does not drop a ratio against the money it shares digits with', () => {
+    expect(supersededBy('1.4x', [entry()], msg)).toBeNull();
+  });
+  it('does not drop a figure whose scale disagrees', () => {
+    expect(supersededBy('$1.4k', [entry()], msg)).toBeNull();
+  });
+  it('still drops the same kind at the same scale', () => {
+    expect(supersededBy('$1.4m', [entry()], msg)).not.toBeNull();
+    expect(supersededBy('1.4x', [entry({ label: 'LTV/CAC', supersedes: '1.4x', unit: 'x', scale: 'none', value: 2.08, quoted: 'it is 2.08x now' })], msg)).not.toBeNull();
+  });
+  it('a bare figure still matches — the words say nothing either way', () => {
+    expect(supersededBy('1.4', [entry()], msg)).not.toBeNull();
+  });
+});
