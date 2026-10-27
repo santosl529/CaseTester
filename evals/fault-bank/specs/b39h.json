@@ -21,5 +21,28 @@
   ],
   "rep": true,
   "stream": "phase2"
+ },
+ {
+  "id": "b39h-marisol-t6-silence-chip-bags",
+  "kind": "fault",
+  "p": "57",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "ignored_ask",
+  "note": "\"do we have a bag count for the $300 million chip business?\" — not held; the turn said \"I gave you why now a moment ago.\" and no word on the bag count (D9). A true refusal was owed.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct): the D9 silences of wave39-grading.md §3/§4 — severity borderline as graded there",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "bag count|bags|chip",
+    "must": true
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
  }
 ]

@@ -30,7 +30,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
-import { recordedChecks, recordedCheckVerdict, recordedDroppedAsks, loadCheckOverrides, overrideVerdict, type RecordedCheck } from '@/lib/eval/recorded-checks';
+import { recordedChecks, recordedCheckVerdict, recordedDroppedAsks, recordedMessageDetections, loadCheckOverrides, overrideVerdict, type RecordedCheck } from '@/lib/eval/recorded-checks';
 
 type Row = Record<string, unknown>;
 // The replay's clock for the checker: rows land when it reaches them.
@@ -174,7 +174,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     detections = !savedModel && r.parsedTurn ? [
       ...r.parsedTurn.requests.map(q => ({ what: q.what, ledgerItemIds: q.itemIds, explicit: true })),
       ...recordedDroppedAsks(r, run.events ?? []),
-    ] : [];
+    ] : savedModel && process.env.REPLAY_MESSAGE_DETECTIONS === '1' ? recordedMessageDetections(r, run.events ?? []) : [];
     const pt = r.checks.find(c => c.check === 'pressure_test')?.detail as { verdict?: { answered: boolean; reason: string } | null } | undefined;
     const next = saved[k + 1]?.stateBefore.pressureTest as { state?: string; structureGiven?: boolean } | undefined;
     // The structure check's verdict: what the saved state held after this turn.

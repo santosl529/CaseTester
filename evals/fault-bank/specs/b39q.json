@@ -182,5 +182,28 @@
   ],
   "rep": true,
   "stream": "phase2"
+ },
+ {
+  "id": "b39q-raj-t26-silence-lost-150",
+  "kind": "fault",
+  "p": "07",
+  "turn": 26,
+  "sev": "borderline",
+  "cls": "ignored_ask",
+  "note": "\"whether those 150 are genuinely lost Pro buyers or ones who'd have churned anyway?\" — why_pro_fell arrived, but whether the 150 would have churned anyway is not held (D9). A true refusal was owed for that part.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct): the D9 silences of wave39-grading.md §3/§4 — severity borderline as graded there",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "churn|150|lost Pro",
+    "must": true
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
  }
 ]

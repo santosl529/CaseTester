@@ -82,3 +82,26 @@ export function recordedDroppedAsks(turn: { turnIndex: number; checks?: CheckDec
     return { what, ledgerItemIds: Array.isArray(ids) ? ids.map(String) : [], response: 'none' as const, explicit: true };
   });
 }
+
+// The message classifier's detections on a MODEL turn (Phase 2, for the runner replay behind REPLAY_MESSAGE_DETECTIONS=1):
+// the recorded `uncovered_asks` / `probe_turn_requests` row lists the detections by `what` — answered (they joined the
+// turn's requests), covered (an explicit declaration covered them) and dropped (no asking sentence covered them). A
+// detection the item-less check then ran on (an `itemless_defer` row for its `what`) was item-less; otherwise its ids
+// are the turn's data_request rows for that `what`. A `release_checked` confirmation adds a detection mapping the
+// confirmed item (the check reads only whether some detection maps it). Without this the replay served model turns no
+// detections at all, so every answer that came through the message's own asks (design path A11) was lost on replay —
+// batch 39's Quillpath Raj t10, for one.
+export function recordedMessageDetections(turn: { turnIndex: number; checks?: CheckDecision[] }, events: RecordedEvent[]): DetectedDataRequest[] {
+  const checks = turn.checks ?? [];
+  const row = checks.find(c => c.check === 'uncovered_asks' || c.check === 'probe_turn_requests')?.detail as { answered?: unknown; covered?: unknown; dropped?: unknown } | undefined;
+  const whats = (x: unknown) => (Array.isArray(x) ? x.filter((w): w is string => typeof w === 'string') : []);
+  const checked = new Set(checks.filter(c => c.check === 'itemless_defer').map(c => (c.detail as { what?: string } | undefined)?.what).filter((w): w is string => !!w));
+  const rows = events.filter(e => e.category === 'data_request' && e.turnIndex === turn.turnIndex)
+    .map(e => e.payloadJsonb as { what?: unknown; ledgerItemIds?: unknown } | undefined);
+  const idsOf = (what: string) => (checked.has(what) ? [] : [...new Set(rows.filter(r => r?.what === what).flatMap(r => (Array.isArray(r?.ledgerItemIds) ? r!.ledgerItemIds.map(String) : [])))]);
+  const out: DetectedDataRequest[] = [...whats(row?.answered), ...whats(row?.covered), ...whats(row?.dropped)]
+    .map(what => ({ what, ledgerItemIds: idsOf(what), response: 'none' as const, explicit: true }));
+  const rc = checks.find(c => c.check === 'release_checked')?.detail as { confirmed?: unknown } | undefined;
+  for (const id of whats(rc?.confirmed)) out.push({ what: id, ledgerItemIds: [id], response: 'none' as const, explicit: true });
+  return out;
+}

@@ -52,13 +52,18 @@
   "turn": 24,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for the length of the royalty term — the entry options table doesn't hold it.",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for the length of the royalty term — the entry options table doesn't hold it. Also a D9 ask (wave39-grading.md): the royalty term is not held — a true refusal was owed (Lorenzo, 27 Oct).",
   "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
   "a": [
    {
     "kind": "says",
     "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
     "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "royalty|term",
+    "must": true
    },
    {
     "kind": "spoke",
@@ -75,13 +80,41 @@
   "turn": 22,
   "sev": "borderline",
   "cls": "restatement",
-  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for whether the board's $300M test applies to booked revenue or product sales — the case's net-sales definition item answers it; the entry options table doesn't.",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for whether the board's $300M test applies to booked revenue or product sales — not held — net_sales_definition defines net sales (after discounts and rebates), not whether the test is booked revenue or product sales. Also a D9 ask (wave39-grading.md): a true refusal was owed (Lorenzo, 27 Oct).",
   "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
   "a": [
    {
     "kind": "says",
     "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
     "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "booked|product sales|board",
+    "must": true
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39a-marcus-t16-silence-ramp",
+  "kind": "fault",
+  "p": "24",
+  "turn": 16,
+  "sev": "borderline",
+  "cls": "ignored_ask",
+  "note": "\"is the $80 million flat across all five years, or does it ramp?\" — the case holds no ramp profile of the selling costs; the turn gave the entry-options pointer and no word on the ask (D9). A true refusal was owed.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct): the D9 silences of wave39-grading.md §3/§4 — severity borderline as graded there",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "ramp|flat|\\$80",
+    "must": true
    },
    {
     "kind": "spoke",
