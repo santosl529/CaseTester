@@ -24,6 +24,7 @@ import { checkHintDelivered } from '@/lib/orchestrator/hint-check';
 import { classifyDataRequests } from '@/lib/orchestrator/data-requests';
 import { assessCoverage } from '@/lib/scoring/coverage';
 import { judgeProbeAnswer, judgeStructureGiven, judgeCallsFor } from '@/lib/orchestrator/pressure-test';
+import { extractEquations } from '@/lib/orchestrator/equation-extractor';
 import { BACKGROUND_MODEL_ID } from '@/lib/models';
 
 type Run = (model?: string) => Promise<unknown>;
@@ -34,15 +35,19 @@ const ROLES: [string, Run, number][] = [
   ['coverage', m => assessCoverage([{ role: 'candidate', text: 'x' }], undefined, m), 256],
   ['probe_judge', m => m ? judgeProbeAnswer({ probe: 'q', replies: ['r'] }, judgeCallsFor(m).probe) : judgeProbeAnswer({ probe: 'q', replies: ['r'] }), 120],
   ['structure_judge', m => m ? judgeStructureGiven({ replies: ['r'] }, judgeCallsFor(m).structure) : judgeStructureGiven({ replies: ['r'] }), 120],
+  ['equations', m => extractEquations({ message: 'x', ...(m ? { model: m } : {}) }), 2048],
 ];
 
 beforeEach(() => { calls.length = 0; });
 
 describe('background classifiers', () => {
-  it('production: judges, distress and the conduct backstop (new 11 Oct) on Haiku 5.5; the rest on Haiku 4.5', () => {
+  it('production: judges, distress and the conduct backstop (new 11 Oct) on Haiku 5.5; the item judge (new 27 Oct) on Sonnet 5.5; the rest on Haiku 4.5', () => {
     expect(BACKGROUND_MODEL_ID).toEqual({
       coverage: 'claude-haiku-4-5-20251001', data_request: 'claude-haiku-4-5', distress: 'claude-haiku-5-5',
       hint_check: 'claude-haiku-4-5', probe_judge: 'claude-haiku-5-5', conduct: 'claude-haiku-5-5',
+      // New role (27 Oct, item E's asynchronous variant): the equation/answer-sheet
+      // extractor over the candidate's message alone (`checkerEquationsAsync`).
+      equations: 'claude-haiku-5-5', ask_judge: 'claude-sonnet-5-5',
     });
   });
 

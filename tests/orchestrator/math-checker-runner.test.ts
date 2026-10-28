@@ -55,6 +55,7 @@ vi.mock('@/lib/agent/models/factory', async () => {
 });
 
 const { runTurn } = await import('@/lib/orchestrator/session-runner');
+const { lineKey } = await import('@/lib/orchestrator/math-checker-live');
 
 const COSTS = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'menu_price_change', 'bean_price_change', 'non_bean_input_change'];
 // A claim no deterministic check reads (a code flag on it would dedupe the checker's).
@@ -171,7 +172,8 @@ describe('in place of the close, code says the checker\'s line', () => {
     store.events.push({ sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: 7, phase: 'RECOMMENDATION', payloadJsonb: { candidateTurnIndex: 7, latencyMs: 9000, model: 'claude-sonnet-5-5', claims, codeFlags: [], stamps: [] } });
     const r = await runTurn('s1', 'The biggest risk is volume loss; I would pilot it first.');
     expect(r.ended).toBe(false);
-    expect(r.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS. Which cost lines did you look at to get there?');
+    // The opener rotates after an earlier "You said" in the session (round-4 ruling 6); the rest is the vetted line.
+    expect(r.interviewerText).toMatch(/Before we wrap up — (?:you said|you mentioned|earlier you said) the whole 18 points sits in COGS\. Which cost lines did you look at to get there\?/);
     // A final answer's hold (Lorenzo, 16 Oct): its own memory, the once-a-case counter untouched.
     expect((store.session.flagsJsonb as Row).recMathProbed).toBe(false);
     expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: [{ key: 'checker:the whole 18 points', at: 9 }], probeTurns: [9] });
@@ -205,6 +207,40 @@ describe('a final answer\'s flag raised on a model turn', () => {
   });
 });
 
+// Lorenzo, 19 Oct (round-2 ruling 4): a root inherits the highest rating riding on it — its line, heard on a model
+// turn, is the final answers' one extra probe when a claim built on it is in them, keyed by the root.
+describe('a root whose rider is a final answer, raised on a model turn', () => {
+  beforeEach(seed);
+  it('counts as the root\'s probe in the final answers', async () => {
+    const startedAt = new Date(Date.now() - 15 * 60_000);
+    store.session = {
+      ...store.session, phase: 'RECOMMENDATION', startedAt,
+      flagsJsonb: { ...(store.session.flagsJsonb as Row), moves: { 4: 'brainstorm', 6: 'recommendation' }, stall: { recommendationDelivered: true }, stagesEnforced: { analysis: true, exhibit: true, brainstorm: true }, stageEvidence: { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const } } },
+    };
+    const PRICE = 'A 10% price increase recovers about 5 points of margin.';
+    const REPLY = 'My recommendation is to raise menu prices, so margin goes 6 + 5 = 11%.';
+    const more = [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: PRICE }, { role: 'interviewer', text: 'What do you recommend?' },
+      { role: 'candidate', text: REPLY }, { role: 'interviewer', text: 'How would you sequence it?' },
+    ];
+    store.turns.push(...more.map((t, i) => ({ id: `x${i}`, sessionId: 's1', turnIndex: 3 + i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 20_000, latencyMs: null })));
+    store.exhibits = [{ id: 'e0', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: startedAt.getTime() }];
+    const vetted = { flag: true, correctionLine: null, correctionFigure: null, pointerLine: null, vetNotes: [] };
+    const root = { span: 'A 10% price increase recovers about 5 points of margin', quantity: 'margin gain', candidateValue: 'about 5 points', assumptions: '', verdict: 'error', correctValue: 8.5, correctLow: null, correctHigh: null,
+      unit: 'points', derivation: '', errorType: 'conceptual', changesConclusion: false, confidence: 'high', probe: '', pointer: '', codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null }, actualShare: null,
+      ...vetted, probeLine: 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?' };
+    const rider = { ...root, span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', candidateValue: '11%', correctValue: 14.5, changesConclusion: true,
+      codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null }, probeLine: 'Walk me through how you got to 11%.' };
+    for (const [n, claims] of [[5, [root]], [7, [rider]]] as const) {
+      store.events.push({ sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: n, phase: 'RECOMMENDATION', payloadJsonb: { candidateTurnIndex: n, latencyMs: 6000, model: 'claude-sonnet-5-5', claims, codeFlags: [], stamps: [] } });
+    }
+    const r9 = await runTurn('s1', 'I would sequence pricing first, then procurement.');
+    expect(r9.interviewerText).toContain('Which cost lines did you include?');
+    expect((store.session.flagsJsonb as Row).closeHold).toEqual({ probed: [{ key: 'pricing:gain@5', at: 9 }] });
+  });
+});
+
 // Lorenzo, 16 Oct (batches 23–28: 19 of 60 closed before the final answers were checked).
 describe('a final answer not yet checked: the stage\'s follow-up, not the close', () => {
   beforeEach(seed);
@@ -234,7 +270,7 @@ describe('a final answer not yet checked: the stage\'s follow-up, not the close'
     await flush(); await flush();
     const r11 = await runTurn('s1', 'I would pilot it in 20 stores and watch traffic weekly.');
     expect(r11.ended).toBe(false);
-    expect(r11.interviewerText).toContain('Before we wrap up — you said the whole 18 points sits in COGS.');
+    expect(r11.interviewerText).toMatch(/Before we wrap up — (?:you said|you mentioned|earlier you said) the whole 18 points sits in COGS\./);
     // The redo of code's probe holds nothing and is not waited on: the close.
     const r13 = await runTurn('s1', 'Still the whole 18 points, I think.');
     expect(r13.ended).toBe(true);
@@ -349,6 +385,40 @@ describe('a closed error said again in the final recommendation: one flag', () =
     expect(r.ended).toBe(false);
     expect(r.interviewerText).toMatch(/^COGS rose 16 points, from 42% to 58% of revenue; 38% is its growth on its own base\. (Does that change your recommendation|Would that change your recommendation at all)\?$/);
     expect((store.session.flagsJsonb as Row).recMathProbed).toBe(true);
+    // Its second saying (Lorenzo, 19 Oct, round-3 ruling 2): the key is restated — no restatement of it later.
+    expect(((store.session.flagsJsonb as Row).mathChecker as Row).restated).toEqual([KEY]);
+  });
+
+  // Lorenzo, 19 Oct (round-3 ruling 2): "the 13 Oct recommendation re-correction counts as the restatement, so a
+  // correction is said at most twice in total" (b29 Jordan ea27d1f6: t8, t10, then t20 — the line a third time).
+  describe('a correction is said at most twice in total', () => {
+    const ROOT = 'cogs_dollar_impact@38';
+    const memory = (extra: Row = {}) => ({ mathChecker: { handled: ['3:0', '5:0'], keys: { [KEY]: { figures: [40], since: 3 }, [ROOT]: { figures: [38], since: 1 } }, closed: [KEY, ROOT],
+      corrected: { [ROOT]: { line: CORRECTION, figure: '16' }, [KEY]: { line: CORRECTION } }, ...extra } });
+    it('the re-correction heard: its key and every key whose line it said word for word are restated', async () => {
+      atRecommendation({ events: corrected, flags: memory({ said: { [lineKey(CORRECTION)]: 1 } }) });
+      const r = await replyThenNext(REC, 'about 40 points');
+      expect(r.interviewerText).toMatch(/^COGS rose 16 points/);
+      expect(((store.session.flagsJsonb as Row).mathChecker as Row).restated).toEqual(expect.arrayContaining([KEY, ROOT]));
+      // …and its line counted (the controller's ruling on concern 1): said once before, now twice.
+      expect(((store.session.flagsJsonb as Row).mathChecker as Row).said).toEqual({ [lineKey(CORRECTION)]: 2 });
+    });
+    it('its line said twice already (per line, whatever the keys): no re-correction', async () => {
+      atRecommendation({ events: corrected, flags: memory({ said: { [lineKey(CORRECTION)]: 2 } }) });
+      const r = await replyThenNext(REC, 'about 40 points');
+      expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+    });
+    it('its key restated already: no re-correction', async () => {
+      atRecommendation({ events: corrected, flags: memory({ restated: [KEY] }) });
+      const r = await replyThenNext(REC, 'about 40 points');
+      expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+      expect((store.session.flagsJsonb as Row).recMathProbed).toBeFalsy();
+    });
+    it('another key restated with the same line (the b29 root): no re-correction — that line was said twice', async () => {
+      atRecommendation({ events: corrected, flags: memory({ restated: [ROOT] }) });
+      const r = await replyThenNext(REC, 'about 40 points');
+      expect(r.interviewerText).not.toMatch(/COGS rose 16 points|Before we wrap up/);
+    });
   });
 
   it('left for the report: one neutral probe on the figure, before the case moves on', async () => {
@@ -356,6 +426,8 @@ describe('a closed error said again in the final recommendation: one flag', () =
     const r = await replyThenNext(REC, 'about 40 points');
     expect(r.interviewerText).toBe('Before we wrap up — walk me through how you got to 40 points.');
     expect((store.session.flagsJsonb as Row).recMathProbed).toBe(true);
+    // A probe says no correction: nothing restated.
+    expect(((store.session.flagsJsonb as Row).mathChecker as Row).restated).toBeUndefined();
   });
 
   it("the reply's own verdict doesn't flag it: no line (the gate, 16 Oct)", async () => {

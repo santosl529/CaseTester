@@ -1,0 +1,226 @@
+// Per-case engine switches (Phase 1 contract, docs/superpowers/plans/2026-10-22-phase1-contract.md §3;
+// Lorenzo, 22 Oct: "A per-case engine switch for every behaviour change. Production prof-001 stays on today's
+// behaviour; Phase 1 can be switched on per case for tests and waves."). Every Phase 1 behaviour change reads
+// exactly one switch here; off is today's behaviour. A switch is on when, in order:
+//   1. ENGINE_SWITCHES names it for the case (evaluation only — production never sets it);
+//   2. the case file pins it (`engine` in cases/<id>.json);
+//   3. otherwise it is off.
+// ENGINE_SWITCHES: entries separated by ";", each `<caseId|*>=<names>`, names separated by ",": a switch name,
+// "phase1" (every switch below), or "-name" to turn one off. A case's own entry is read after "*", left to right:
+//   ENGINE_SWITCHES='*=phase1'                         every case, every switch
+//   ENGINE_SWITCHES='prof-001=phase1,-ackRotation'     prof-001 only, all but one
+//   ENGINE_SWITCHES='*=phase1,phase2'                  Phase 1 and the Phase 2 steps built so far
+export const PHASE1_SWITCHES = [
+  // Stream 2 — the overlay's data merged into the fields today's code reads (cases/phase1/<id>.json).
+  'itemCovers',          // overlay covers → factAnchors.covers; coverExcludes read by cover matching
+  'tagMatching',         // overlay factTags → factAnchors.tags (a case without them: prof-001)
+  'stepLineage',         // overlay dependsOn → mathSteps[].dependsOn
+  'mustReachPhase1',     // overlay mustReach appended to the case's (≤ 3 in all)
+  'misquoteAnchors',     // overlay misquote anchors → quoteAnchors
+  'askPhrasesInPrompt',  // 2.5: an unrevealed item's askPhrases beside its label, in the static prompt
+  // Stream 3 — math.
+  'worksheet',           // 3.1: the worksheet is kept (code-side; never in a prompt)
+  'staleProbeDrop',      // 3.2: a probe or correction is dropped when the worksheet holds a newer value
+  'rootLineage',         // 3.3: probe only the root; ≤ 2 probes a lineage, then one root correction; derived wait
+  'misquoteFlat',        // 3.4: flat ledger-value correction on a code mismatch the checker rated an error
+  'probeGuardMethod',    // 3.5: the guard's replacement asks about method, never names a verified figure
+  'spokenMathParser',    // 3.6: chained spoken arithmetic; any consistent reading counts as consistent
+  'checkerDefinitions',  // 3.7: the case's definitions go to the live checker
+  // follow-up 3 (27 Oct): `of` read as × between a share and a figure — "ten percent of forty two is four point
+  // two" — the one position where it cannot be the preposition the old rule protects. Unlike `speechNormalization`
+  // it fires on written text too, so it keeps its own switch; Lorenzo put it in the preset on 27 Oct on its
+  // evidence: 107 claims gained across 6,304 typed messages, every one `correct`, 0 new flags, 0 claims and 0
+  // verified figures lost, and the 131 recorded voice turns 3 → 6 (round-2 report §D).
+  'ofAsMultiplication',
+  // Lorenzo, 27 Oct: in, after the 50-claim sample came back 50/50 verifying right work (and all 589 checked:
+  // 585 differ from the single reading only by an exact power of ten). Never raises a flag by construction.
+  'scaleWordReading',
+  'correctionRules',     // pre-wave rulings 3 and 4 (26 Oct): one correction per item on every path; none on the closing turn
+  'misquoteAttribution', // post-wave (26 Oct): a figure the candidate attributes to the interviewer is a quote — `operandLater` does not excuse it
+  'misquoteSameTurn',    // post-wave ruling (26 Oct evening): an ATTRIBUTED misquote is corrected on its own turn, not a turn later
+  // Stream 4 — small fixes inside today's paths.
+  'restateRules',        // 4.1: exhibit pointer + summary; a number only if asked; matched item only; not twice in 4 turns
+  'coarseKeepNamed',     // 4.2: never drop a model-named item that matches the ask
+  'coarseNoRefusal',     // pre-wave ruling 1 (26 Oct): an ask whose coarse items go out this turn is not also refused
+  'haikuTagGate',        // 4.3: the check's positives pass the item tag gate; a mismatch defers
+  'coverNormalization',  // 4.5: plurals, synonym table, the candidate's own sentence
+  'wantCueBroad',        // 4.6: "I'd want / need / confirm" + any noun phrase
+  'modelDeferrals',      // 4.7: model-said deferrals registered for E5's stop sequence
+  'closeWaitMitigation', // 4.8: no mitigation ask when the last answer or question already covered it
+  'recommendationReceived', // 4.9: the time warning skips a fresh rec ask (the narrow reading: the stage record is untouched)
+  'ackRotation',         // 4.10: the model's opening acknowledgment through the phrase-pool rotation
+] as const;
+
+// Switches outside the `phase1` preset: nameable, never turned on by `*=phase1`. Lorenzo rejected 4.9's wider
+// reading on 26 Oct — a received recommendation opening the end gate removes post-recommendation pushback probes,
+// and pushback is a scored rubric dimension (five runs closed 3–8 minutes early; b34a Jasmine lost eight turns).
+// It stays nameable for evidence, never on by default.
+// 4.4 (Lorenzo, 26 Oct): dropped from the preset on the fault bank's evidence. With `*=phase1` it cost three
+// correct-behaviour records and three fault records, and left its own `false_refusal` class unchanged at 7/15 —
+// both graded false refusals are fixed by 4.2 and 4.5 acting alone. Its harm is the realism regression: a true
+// "I don't have that" becomes a promise later withdrawn as "we won't get to it", which the bank records as a
+// fault in its own right. Nameable for evidence, never on by default.
+// (`misquoteSameTurn` was here on 26 Oct afternoon and is now in the preset above. Its unrestricted form added 45
+// correction sentences across the 31 slices and two were provably false — b34a a1133734 t31 on the candidate's own
+// correct "$320M less $80M … is $240M", b38l 701443f7 t17 on his own correct "$11,000/60 = $183, so a $163 fare",
+// both rated CORRECT by the checker. Lorenzo's ruling of 26 Oct evening narrows it to an ATTRIBUTED quote with a
+// same-message withdrawal check, which removes both: the restricted form speaks 6 corrections across the slices,
+// 3 of them the same sentence two turns earlier, and all 6 are true misquotes the candidate attributed to the
+// interviewer or the exhibit. See the post-wave report's §9.)
+// `speechNormalization` (27 Oct) reads a spoken arithmetic chain through the disfluencies STT leaves in it, so
+// the checker reaches a verdict on speech at all — measured 0 claims over the 131 recorded voice candidate turns
+// against 32.3 per 100 typed turns on the same case. It is the first Phase 1 change that makes the engine *raise*
+// claims rather than withhold them, so it stays out of the preset until Lorenzo has ruled on the evidence
+// (`.superpowers/sdd/2026-10-22-phase1/speech-normalization-report.md`). Nameable for evaluation; off everywhere
+// else, and a no-op on the typed corpus by construction.
+// `checkerEquations` (27 Oct, item E) widens the math checker's existing per-message output — no second call: the
+// equations it heard, in structured form, and the quantities whose value changed. Code verifies the arithmetic
+// itself (`lib/orchestrator/checker-equations.ts`), a low-confidence entry is `unclear`, and the answer sheet drops
+// a probe or correction on a figure that is no longer the candidate's latest.
+// **It fails its latency gate and must not be shipped in this synchronous form** (Lorenzo's bar of 27 Oct: at most
+// 100 ms added at p90). Paired over 16 labelled messages on `sonnet55-medium`, one at a time: checker p50 11,114 →
+// 13,345 ms, p90 15,663 → 19,899 ms — **+4,236 ms at p90, 42× the gate**, and the paired per-message delta is median
+// +1,367 ms / p90 +6,496 ms. The second task in the same call also moved the model's own verdicts: firm recall 12/16
+// → 11/16 (fc290dc0 t20's "about 5 points" went error/medium → unverifiable/low), a missed real error that no code
+// guard caused — the answer sheet dropped nothing in either arm. The asynchronous variant is in the round-2 report's
+// §E. Out of every preset; nameable for evaluation only.
+// `scaleWordReading` (27 Oct, follow-up 2) absorbs a scale or currency word that follows a figure
+// ("200 thousand" → 200k, "forty cents" → $0.40), which is the largest single thing the reader still
+// cannot read on spoken text: 589 claims it verifies and 14 points of verified figures (62.0 → 76.4 per
+// 100 turns against the written form's 83.3). Lorenzo's ruling of 27 Oct is the reading "never a flag,
+// `correct` allowed": a claim the absorbed reading would rate `incorrect` comes out `unclear`, and the
+// second pass is strictly additive, so no claim or verdict of today's reading can move. He approved the
+// reading, not the preset — **out of every preset until he rules on that separately** (and 50 of the 589
+// are hand-verified in `.superpowers/sdd/2026-10-22-phase1/voice-math-round3-report.md` §2: 50/50 verify
+// right work).
+// `checkerEquationsAsync` (27 Oct, item E's asynchronous variant — the round-2 report's §E.6, built on
+// Lorenzo's go) is the same two additions through a second, small, parallel call instead of a second task
+// in the checker's own call: a background classifier over the candidate's message alone
+// (`lib/orchestrator/equation-extractor.ts`, Haiku 5.5, no case in the prompt), fired beside the checker,
+// whose prompt and output schema it leaves **byte-identical** — which is what removes the synchronous
+// form's recall regression by construction rather than by measurement (a test diffs the prompt). Verdict
+// arrival becomes max(checker, extractor), and the answer sheet is read at delivery, a turn or more later,
+// which is the only moment it is needed. Out of every preset; nameable for evaluation.
+// `equationClears` (27 Oct, round 4) wires the SAFE DIRECTION of the equations heard, and only that:
+// a correct equation may clear a false flag or block a doubt probe, never raise one, never write a
+// correction, and never mark a figure correct. It fires only where code has re-read the candidate's own
+// text and found every operand and the stated result in it, as digits or as number words
+// (`confirmedInOwnWords`), so the model's entry is a pointer to his words and never an authority on them.
+// A verdict code rescued off `incorrect` may not clear either — the operand the rescue reads (1.10 for his
+// "10%") is not a figure he said. Lorenzo's reason for the direction, from the scale-word ruling of the
+// same day: a false `correct` shields a real error from ever being probed, which is worse than a doubt.
+// It is a rider on the equations themselves — with `checkerEquations`/`checkerEquationsAsync` off there is
+// no equation to read, so the switch is a no-op.
+// **Measured on 27 Oct and NOT shipped in this form** (`equations-safe-direction-report.md`): it shields
+// real errors. On the speech-like corpus 19 of its 21 clears are real errors (10 `unit:COGS` and 9
+// `pricing:gain` flags, each one his own correct arithmetic in front of a figure of the wrong quantity),
+// and on the corpus's own recorded flagged checker claims it blocks 88 of 211 — 42% of every doubt the
+// engine was about to speak — the 10 read by hand all real. The reason is structural: a doubt is almost
+// never about whether the arithmetic holds but about WHICH QUANTITY the figure is (base, unit, year, a
+// misquoted input), and in those errors the candidate's arithmetic is internally correct — "right
+// arithmetic on the wrong base" is the commonest real error this engine catches. Narrowing to doubts the
+// checker itself types `arithmetic` leaves 4 of the 88, and all four are real errors too. It changes
+// nothing on the voice corpus, the three graded probes included (their operands are not in the doubted
+// message). Out of every preset, and it must not be turned on for a wave in this form; nameable so the
+// evidence can be re-read.
+// `restatePointerOff` (27 Oct): measurement only — 4.1's exhibit-pointer branch off (the line said instead), to weigh
+// the batch-39 pointer regression before S6. Never in a preset.
+// `refusalCoverage` (27 Oct): measurement only — S3's contradiction rule without its item mapping: a refused part is
+// dropped when a line given this turn covers its words (the item's line, label, names and cover phrases). Never in a preset.
+// `restateOwnLine` (27 Oct, S6's start — Lorenzo's option B): 4.1's exhibit pointer replaced by the item's own line, plus a
+// true refusal for any finer part the item doesn't hold; no summaries, no model calls. Off until its gate is read.
+// `askPoint` (27 Oct, S6 widened — Lorenzo): a restatement read against the ask check's verdict before it points or
+// repeats (full / partial / none). Off and outside the preset until its gate is read; it makes check calls on pointer
+// turns (his lifting of Q1 for this path only).
+// `restateLineInvite` (27 Oct, Lorenzo): R5's pointer path says the item's own line and "If you're after something more
+// specific, ask me." (once per item) — no claim the exhibit answers, no model call. Off until its gate is read.
+// `caseNotesDraft` (27 Oct, item-choice experiment arm A — measurement only): Opus-drafted per-item notes
+// (evals/case-notes-draft/) as cover phrases and not-held phrases. Never in a preset.
+// `itemJudge` (27 Oct, item-choice experiment arm B — measurement only): recorded Sonnet-judge verdicts (ITEM_JUDGE_VERDICTS)
+// decide the item on restatements and refusals. Never in a preset.
+// `liveAskJudge` (27 Oct, Lorenzo — measurement): the judge from message arrival, used this turn if in time (LIVE_JUDGE_*).
+// `asyncAskJudgePartial` (27 Oct, Lorenzo — measurement): asyncAskJudge also acts on "partial" after a pointer or
+// restatement ("To be precise: … shows …, but not <the candidate's words>, and I don't have that."). Folds into
+// asyncAskJudge if it passes its gate.
+// `askCheckRawMessage` (27 Oct, Lorenzo — measure first): the ask check (classifyAsk) reads the candidate's raw message
+// with the declared ask as a hint, plus the prompt's facts. Off and outside every preset.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'checkerEquationsAsync', 'equationClears', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge', 'askCheckRawMessage', 'asyncAskJudgePartial', 'liveAskJudge'] as const;
+// Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
+// step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
+// structures would decide and say, and change nothing the candidate hears.
+export const PHASE2_SWITCHES = [
+  'askDecisionShadow',   // S1: the one data decision (lib/orchestrator/ask-decision.ts), logged as `ask_decision_shadow`
+  'composeShadow',       // C1: the four-slot composer and its lint (lib/orchestrator/turn-composer.ts), logged as `compose_shadow`
+  'askRefusals',         // S2: the decision's true refusals (R6) and uncertain deferrals (R7) spoken for declared sub-asks; offers dropped
+  'composeData',         // C2: the data slot — the exhibit last, no line the model's say already said (L1), no deferral of what it released (L3)
+  'refusalContradiction', // S3: no refused part that a line released or restated this turn states
+  'wontGetToGiven',      // S3: a wrap-up "We won't get to …" says only the parts nothing given since states
+  'askModelKeep',        // S3: R2 live — a model-named item that matches the ask is kept (today's scope drop and release_checked withdrawal)
+  'composeSetup',        // C3: after a spoken acknowledgment, setup sentences travel with their question (else streamed as today)
+  'askMatches',          // S4: R3/R4 live — a matched sub-ask's release (E1 cut beside it) or gate/order deferral in place of today's
+  // Refusal wording (Lorenzo, 27 Oct: into the preset; the 3 assume-gated-data turns are known residue): an assertive
+  // refusal only where the check rated the ask none and the model refused it; else an assumption line, and beside a
+  // coarse line "for anything finer, make an assumption".
+  'refusalAssume',
+  // Step 3 (Lorenzo, 27 Oct: into the preset; the judge runs only on turns a correction could act on): the background
+  // judge's verdict on the previous message may correct the last turn (lib/orchestrator/self-correct.ts). Verdicts come
+  // from ASYNC_JUDGE_VERDICTS in replay; the live background call is not built yet (it needs a per-turn claim).
+  'asyncAskJudge',
+] as const;
+export const ALL_SWITCHES = [...PHASE1_SWITCHES, ...NON_PRESET_SWITCHES, ...PHASE2_SWITCHES] as const;
+
+export type EngineSwitch = typeof ALL_SWITCHES[number];
+export const isEngineSwitch = (s: string): s is EngineSwitch => (ALL_SWITCHES as readonly string[]).includes(s);
+
+type Env = Record<string, string | undefined>;
+type CaseLike = { id: string; engine?: Partial<Record<EngineSwitch, boolean>> };
+
+// The env value parsed once per distinct string; a name that is no switch throws (a typo would silently test nothing).
+const parsed = new Map<string, Map<string, Map<EngineSwitch, boolean>>>();
+export function parseEngineSwitches(raw: string): Map<string, Map<EngineSwitch, boolean>> {
+  const hit = parsed.get(raw);
+  if (hit) return hit;
+  const out = new Map<string, Map<EngineSwitch, boolean>>();
+  for (const entry of raw.split(';').map(s => s.trim()).filter(Boolean)) {
+    const eq = entry.indexOf('=');
+    if (eq <= 0) throw new Error(`ENGINE_SWITCHES: "${entry}" is not <caseId|*>=<names>`);
+    const caseId = entry.slice(0, eq).trim();
+    const set = out.get(caseId) ?? new Map<EngineSwitch, boolean>();
+    for (const name of entry.slice(eq + 1).split(',').map(s => s.trim()).filter(Boolean)) {
+      const off = name.startsWith('-');
+      const bare = off ? name.slice(1) : name;
+      if (bare === 'phase1') { for (const s of PHASE1_SWITCHES) set.set(s, !off); continue; }
+      if (bare === 'phase2') { for (const s of PHASE2_SWITCHES) set.set(s, !off); continue; }
+      if (!isEngineSwitch(bare)) throw new Error(`ENGINE_SWITCHES: unknown switch "${bare}"`);
+      set.set(bare, !off);
+    }
+    out.set(caseId, set);
+  }
+  parsed.set(raw, out);
+  return out;
+}
+
+// Lorenzo's D2 guard (22 Oct): ENGINE_SWITCHES is for evaluation only. In production mode (NODE_ENV=production, as
+// on Vercel and `next start`) the case loader refuses to start with it set.
+export function assertNoEngineSwitchesInProduction(env: Env = process.env): void {
+  if (env.NODE_ENV === 'production' && env.ENGINE_SWITCHES?.trim()) {
+    throw new Error(`ENGINE_SWITCHES is set in production mode ("${env.ENGINE_SWITCHES}"): Phase 1 switches are for evaluation only — refusing to start`);
+  }
+}
+
+export function switchOn(c: CaseLike, name: EngineSwitch, env: Env = process.env): boolean {
+  const raw = env.ENGINE_SWITCHES?.trim();
+  if (raw) {
+    const table = parseEngineSwitches(raw);
+    const own = table.get(c.id)?.get(name);
+    if (own !== undefined) return own;
+    const all = table.get('*')?.get(name);
+    if (all !== undefined) return all;
+  }
+  return c.engine?.[name] ?? false;
+}
+
+// Every switch's value for a case: the run header and the session flags record it.
+export function engineSwitchesOf(c: CaseLike, env: Env = process.env): Partial<Record<EngineSwitch, true>> {
+  return Object.fromEntries(ALL_SWITCHES.filter(s => switchOn(c, s, env)).map(s => [s, true]));
+}

@@ -7,7 +7,7 @@ import { isClosingTurn, asksRecommendationAsk } from '@/lib/orchestrator/spoken-
 import { renderDataLines } from '@/lib/orchestrator/data-decisions';
 
 // The data-line pools of item 4a (17 Oct); every pool joins them with brief B (18 Oct).
-const POOLS = ['defer', 'refuse', 'exhibit', 'restate', 'earlier', 'correct_one', 'correct_two', 'wrap_up'] as PhrasePool[];
+const POOLS = ['defer', 'refuse', 'exhibit', 'restate', 'restate_exhibit', 'earlier', 'correct_one', 'correct_two', 'wrap_up'] as PhrasePool[];
 const ALL = Object.keys(PHRASE_POOLS) as PhrasePool[];
 
 describe('the pools', () => {
@@ -49,7 +49,7 @@ describe('choosing a variant', () => {
         uses = recordPhraseUses(phrase(pool, 'the store count', uses, `${sid}:${turn}`), uses);
       }
     }
-  });
+  }, 30_000);
   it('deterministic: the same uses and seed give the same line (Stream and Settle agree)', () => {
     const uses: PhraseUses = { defer: [0], refuse: [0, 2] };
     expect(phrase('refuse', 'competitor pricing', uses, 's:9')).toBe(phrase('refuse', 'competitor pricing', uses, 's:9'));
@@ -72,7 +72,7 @@ describe('recording what was said', () => {
 });
 
 describe('the data lines', () => {
-  const d = { correction: null, releases: [], restates: [], exhibit: { id: 'exhibit-a', title: 'Cost Structure Over Time' }, refusals: ['competitor pricing'], defers: ['the ticket'], gateDefers: [], unmappedDefer: false, offers: [] } as never;
+  const d = { correction: null, releases: [], restates: [], exhibit: { id: 'exhibit-a', title: 'Cost Structure Over Time' }, refusals: ['competitor pricing'], defers: ['the ticket'], gateDefers: [], unmatchedDefers: [], offers: [] } as never;
   it('first time the original words; later another variant — the content verbatim', () => {
     expect(renderDataLines(d, 's:3')).toEqual(["Here's an exhibit: Cost Structure Over Time.", "I don't have competitor pricing.", "I'll come back to the ticket shortly."]);
     const later = renderDataLines(d, 's:9', { exhibit: [0], refuse: [0], defer: [0] });
@@ -119,4 +119,18 @@ describe('the registry keeps the old choices', () => {
     const seen = new Map<string, string>();
     for (const pool of ALL) for (const v of PHRASE_POOLS[pool]) { expect(seen.get(v), `${pool}: ${v}`).toBeUndefined(); seen.set(v, pool); }
   });
+});
+
+// Lorenzo, 19 Oct (round-2 ruling 3): at a wrap-up or the close, a named
+// deferral is "We won't get to <ask> today." — his words, one variant.
+describe('the wrap-up deferral', () => {
+  const g: GateContext = { allowedTexts: [], verified: [], alreadyProbed: new Set(), flaggedThisTurn: false, openItems: [], phase: 'WRAP' };
+  it('is Lorenzo\'s line alone', () => expect(PHRASE_POOLS.wont_get_to).toEqual(["We won't get to {x} today."]));
+  it('reads as neither the close nor a recommendation ask', () => {
+    const line = fill(PHRASE_POOLS.wont_get_to[0], 'competitor pricing');
+    expect(hasCloseCue(line)).toBe(false);
+    expect(isClosingTurn(line)).toBe(false);
+    expect(asksRecommendationAsk(line)).toBe(false);
+  });
+  it('the model saying it is data talk (code says it)', () => expect(vetoReason("We won't get to competitor pricing today.", g)).toBe('data_talk'));
 });

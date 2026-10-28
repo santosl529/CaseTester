@@ -3,7 +3,8 @@ import {
   parseDataRequestResponse, buildDataRequestPrompt, toDataRequestEvents,
   formatOpenRequestsHint, planForcedReleases,
   classifiedMarkerEvent, findUnclassifiedExchanges,
-  type LedgerCatalogItem,
+  buildAskCheckPrompt, parseAskCheckResponse, askCheckCatalog, maskFigures, askCheckPrefill, withAskPrefill, statedIn, dropStatedFigures, missingPart,
+  type LedgerCatalogItem, type AskCheckItem,
 } from '@/lib/orchestrator/data-requests';
 
 describe('classifiedMarkerEvent (classified-empty vs never-classified)', () => {
@@ -222,5 +223,242 @@ describe('toDataRequestEvents', () => {
     const ctx = { candidateTurnIndex: 4, interviewerTurnIndex: 5 };
     expect(toDataRequestEvents(request, { ...ctx, revealedIds: new Set(['avg_ticket']) })[0].payload.revealedByNow).toBe(false);
     expect(toDataRequestEvents(request, { ...ctx, revealedIds: new Set(['avg_ticket', 'bean_price_change']) })[0].payload.revealedByNow).toBe(true);
+  });
+});
+
+// Round 5b Task 56 (Lorenzo, 20 Oct, job 3): the item-less ask check gets its own
+// prompt — the item(s) that hold the answer, and per item whether its line answers
+// the ask in full or only holds the nearest data (`partial`, with the asked part it
+// lacks). The check sees each item's label and its line with every figure masked.
+describe('the ask check (classifyAsk): catalog, prompt and parser', () => {
+  const CASES = ['prof-001', 'prof-002', 'entry-001', 'launch-001', 'pricing-001'];
+  const NUMBER_WORDS = /\b(?:zero|one|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|forty|fifty|hundred|thousand|million|billion|half|twice|double)\b/i;
+
+  it('masks every figure in each item\'s line: digits and spelled-out amounts', () => {
+    expect(maskFigures('Raw coffee bean costs are up 40% over the past two years.')).toBe('Raw coffee bean costs are up #% over the past # years.');
+    expect(maskFigures('Aldermoor has about $1.5 billion in annual revenue, almost all in Europe, and it has no US employees or sales force today.'))
+      .toBe('Aldermoor has about $# # in annual revenue, almost all in Europe, and it has no US employees or sales force today.');
+    expect(maskFigures('Hub–Cedar Bluff (2,500 flights) went from $38.0M to $37.5M')).toBe('Hub–Cedar Bluff (# flights) went from $#M to $#M');
+    for (const id of CASES) for (const item of askCheckCatalog(getCaseById(id).dataLedger)) {
+      expect(item.line, `${id}/${item.id}`).not.toMatch(/\d/);
+      expect(item.line, `${id}/${item.id}`).not.toMatch(NUMBER_WORDS);
+    }
+  });
+
+  it('the catalog is the check\'s: id, the label with its period, the masked line', () => {
+    const cat = askCheckCatalog(getCaseById('prof-001').dataLedger);
+    expect(cat.find(c => c.id === 'bean_share_of_cogs')).toEqual({
+      id: 'bean_share_of_cogs', label: "Composition of COGS: coffee beans' share of COGS (covers the prior period)", line: 'Coffee beans were #% of COGS # years ago.',
+    });
+  });
+
+  it('the prompt lists every catalog id with its label and masked line; no figure of any value reaches it', () => {
+    for (const id of CASES) {
+      const c = getCaseById(id);
+      const catalog = askCheckCatalog(c.dataLedger);
+      const what = 'the cost breakdown by region';
+      const prompt = buildAskCheckPrompt(what, catalog);
+      for (const item of catalog) expect(prompt).toContain(`- ${item.id}: ${item.label} — ${item.line}`);
+      // Labels and the ask are the classifier's input already (some labels carry a digit: "over 2 years").
+      let rest = prompt.replace(what, '');
+      for (const item of catalog) rest = rest.replace(item.label, '');
+      expect(rest, id).not.toMatch(/\d/);
+      // A line with a figure never goes in whole (a line without one, a definition, is its own masked line).
+      for (const item of c.dataLedger) if (/\d/.test(item.value)) expect(prompt).not.toContain(item.value);
+    }
+  });
+
+  it('the prompt states the rules: the item that holds the answer, full or partial, the missing part in the ask\'s words, and the examples', () => {
+    const prompt = buildAskCheckPrompt('Starter cohort beyond month 12', askCheckCatalog(getCaseById('pricing-001').dataLedger));
+    expect(prompt).toContain('"Starter cohort beyond month 12"');
+    expect(prompt).toMatch(/hold the answer to what was asked/);
+    expect(prompt).toMatch(/same topic that doesn't hold it is no mapping/);
+    expect(prompt).toMatch(/"answers": "full"/);
+    expect(prompt).toMatch(/"partial"/);
+    expect(prompt).toMatch(/"missing"/);
+    expect(prompt).toMatch(/in the ask's own words, no numbers/);
+    for (const ex of ['option_b', 'company_size', 'cohort_notes', 'starter_cohort', 'upgrade_timing', 'cogs_pct', 'labor_pct', 'overhead_pct']) expect(prompt).toContain(ex);
+  });
+
+  const cat: AskCheckItem[] = [
+    { id: 'bean_share_of_cogs', label: "Composition of COGS: coffee beans' share of COGS (covers the prior period)", line: 'Coffee beans were #% of COGS # years ago.' },
+    { id: 'cogs_pct', label: 'COGS as % of revenue', line: 'COGS is #% of revenue today, up from #% # years ago.' },
+  ];
+  const WHAT = 'coffee beans as a share of COGS today';
+  const parse = (o: unknown, what = WHAT) => parseAskCheckResponse(JSON.stringify(o), what, cat);
+
+  it('parses items; ids outside the catalog are dropped; a repeated id kept once', () => {
+    expect(parse({ items: [{ id: 'cogs_pct', answers: 'full' }, { id: 'made_up', answers: 'full' }, { id: 'cogs_pct', answers: 'partial', missing: 'today' }] }))
+      .toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+    expect(parse({ items: [] })).toEqual({ items: [] });
+  });
+  it('`answers` missing or unknown → full', () => {
+    expect(parse({ items: [{ id: 'cogs_pct' }, { id: 'bean_share_of_cogs', answers: 'mostly' }] }))
+      .toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }, { id: 'bean_share_of_cogs', answers: 'full' }] });
+  });
+  it('a partial keeps its `missing`: a span of the ask between list boundaries (the ask\'s text), or words all the ask\'s (as written)', () => {
+    expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: 'Coffee Beans as a share of COGS today' }] }))
+      .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: WHAT }] });
+    expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: "coffee beans' share of COGS today" }] }))
+      .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: "coffee beans' share of COGS today" }] });
+    // A piece of the ask cut before its end ("… of COGS" without "today") is a truncation: the ask.
+    expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: 'coffee beans as a share of COGS' }] }))
+      .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: WHAT }] });
+  });
+  it('`missing` with a digit, a content word not in the ask, or none at all → the ask\'s own words', () => {
+    for (const missing of ['the 2025 bean share', "today's bean share at 58%", 'the current-period bean share', 'bean share by region', '', undefined]) {
+      expect(parse({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', ...(missing === undefined ? {} : { missing }) }] }), String(missing))
+        .toEqual({ items: [{ id: 'bean_share_of_cogs', answers: 'partial', missing: WHAT }] });
+    }
+  });
+  it('a full item carries no `missing`', () => {
+    expect(parse({ items: [{ id: 'cogs_pct', answers: 'full', missing: 'today' }] })).toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+  });
+  it('null on garbage or a reply without items; code fences stripped', () => {
+    expect(parseAskCheckResponse('not json', WHAT, cat)).toBeNull();
+    expect(parse({ requests: [] })).toBeNull();
+    expect(parseAskCheckResponse('```json\n{"items":[{"id":"cogs_pct","answers":"full"}]}\n```', WHAT, cat)).toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+  });
+});
+
+// Task 56 fix round 1 (the paid Haiku rerun, 20 Oct): 16 of 68 replies from
+// claude-haiku-4-5 (no structured output) wrapped the JSON in prose, so the parse
+// failed → no verdict → a hollow named deferral. The reply is prefilled with
+// ASK_CHECK_PREFILL on models without a JSON schema, and the parser reads the first
+// balanced JSON object out of any prose around it.
+describe('the ask check reply: prose around the JSON, and the prefill', () => {
+  const cat: AskCheckItem[] = [{ id: 'cogs_pct', label: 'COGS as % of revenue', line: 'COGS is #% of revenue today.' }];
+  it('a prose-wrapped reply parses', () => {
+    expect(parseAskCheckResponse('No item in the catalog holds competitor pricing.\n{"items":[]}', 'competitor pricing', cat)).toEqual({ items: [] });
+    expect(parseAskCheckResponse('Looking at the catalog, {"items":[{"id":"cogs_pct","answers":"full"}]} is my answer — the {COGS} line holds it.', 'COGS', cat))
+      .toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+    // A brace inside a string doesn't end the object early.
+    expect(parseAskCheckResponse('Here: {"items":[{"id":"cogs_pct","answers":"partial","missing":"COGS } today"}]}', 'COGS today', cat))
+      .toEqual({ items: [{ id: 'cogs_pct', answers: 'partial', missing: 'COGS today' }] });
+  });
+  it('a prefilled reply, put back together with the prefill, parses (prose after it too)', () => {
+    expect(parseAskCheckResponse(withAskPrefill('{"id":"cogs_pct","answers":"full"}]}'), 'COGS', cat)).toEqual({ items: [{ id: 'cogs_pct', answers: 'full' }] });
+    expect(parseAskCheckResponse(withAskPrefill(']}\n\nNo catalog item covers competitor pricing.'), 'competitor pricing', cat)).toEqual({ items: [] });
+  });
+  it('a reply with no JSON object, or none with items → null', () => {
+    expect(parseAskCheckResponse('No item in the catalog holds competitor pricing.', 'competitor pricing', cat)).toBeNull();
+    expect(parseAskCheckResponse('Unbalanced {"items":[', 'x', cat)).toBeNull();
+    expect(parseAskCheckResponse('{"note":"none"} and nothing else', 'x', cat)).toBeNull();
+  });
+  it('the prefill goes only to a model the JSON schema isn\'t applied to (claude-haiku-4-5), never to claude-haiku-5-5', () => {
+    expect(askCheckPrefill('claude-haiku-4-5')).toBe('{"items":[');
+    expect(askCheckPrefill('claude-haiku-5-5')).toBeNull();
+    expect(askCheckPrefill('claude-sonnet-5-5')).toBeNull();
+  });
+});
+
+
+// Task 56 fix round 2 (the first paid run's verdicts replayed, r5b-haiku-pre): the
+// refusal lines. A `missing` phrase is said as "I don't have <missing>.", so it must
+// be a noun phrase of the ask's own text: a span of the ask that starts at the ask's
+// start or after a list break (a comma, "and", "or", "including"), never at a
+// preposition — else the ask's own words.
+describe('a partial\'s missing part: a span of the ask, from a list break', () => {
+  const cat: AskCheckItem[] = [
+    { id: 'bean_price_change', label: 'Coffee bean price change over 2 years', line: 'Raw coffee bean costs are up #% over the past # years.' },
+    { id: 'avg_ticket', label: 'Average transaction value', line: 'The average transaction is $#, up from $# # years ago.' },
+    { id: 'cogs_pct', label: 'COGS as % of revenue', line: 'COGS is #% of revenue today, up from #% # years ago.' },
+    { id: 'option_b', label: 'Entry Option B', line: 'Option B is partnering …' },
+  ];
+  const missingOf = (what: string, missing: string) => parseAskCheckResponse(JSON.stringify({ items: [{ id: 'cogs_pct', answers: 'partial', missing }] }), what, cat)?.items[0].missing;
+  it('#27 Anika t6: the head of the ask cut ("volume used, and waste or portioning changes") → the whole ask', () => {
+    const what = 'input cost per pound versus volume used, and waste or portioning changes';
+    expect(missingOf(what, 'volume used, and waste or portioning changes')).toBe(what);
+  });
+  it('#33 Sofia t10: "versus two years ago" (no noun) → the whole ask', () => {
+    expect(missingOf('cost per cup versus two years ago', 'versus two years ago')).toBe('cost per cup versus two years ago');
+  });
+  it('#37 Noor t6: "breakdown by category" (cut after "cost", no article) → the whole ask', () => {
+    expect(missingOf('the cost breakdown by category for both years', 'breakdown by category')).toBe('the cost breakdown by category for both years');
+  });
+  it('kept, a span from list break to list break: #42 after "including", #21 after "and", to the ask\'s end', () => {
+    expect(missingOf('the partner deal terms, including royalty step-downs and rights reversion', 'royalty step-downs and rights reversion')).toBe('royalty step-downs and rights reversion');
+    expect(missingOf('bean sourcing and contract terms', 'contract terms')).toBe('contract terms');
+    expect(missingOf('the partner deal terms, including royalty step-downs and rights reversion', 'the partner deal terms')).toBe('the partner deal terms');
+  });
+  // Fix round 3 (the controller's ruling): a span must also END at a list boundary or
+  // the ask's end; a span cut mid-phrase is a truncation, not the ask's part.
+  it('a span that stops mid-phrase → the ask: "the cost break" in "the cost breakdown …", "Starter churn" in "Starter churn beyond month 12", #65 "week-by-week sign-ups"', () => {
+    expect(missingOf('the cost breakdown by category for both years', 'the cost break')).toBe('the cost breakdown by category for both years');
+    expect(missingOf('Starter churn beyond the first year', 'Starter churn')).toBe('Starter churn beyond the first year');
+    expect(missingOf('week-by-week sign-ups within the price test', 'week-by-week sign-ups')).toBe('week-by-week sign-ups within the price test');
+  });
+  it('else a phrase whose content words all come from the ask, not opening at a preposition, as the check wrote it: #18 "current bean contracting terms"', () => {
+    expect(missingOf('current waste rates and bean contracting terms', 'current bean contracting terms')).toBe('current bean contracting terms');
+    expect(missingOf('current waste rates and bean contracting terms', 'versus bean contracting terms')).toBe('current waste rates and bean contracting terms');
+  });
+});
+
+describe('statedIn and dropStatedFigures (the item\'s own line, server-side)', () => {
+  it('a phrase every content word (and figure token) of which the line states', () => {
+    expect(statedIn('versus two years ago', 'The average transaction is $6.80, up from $6.20 two years ago.')).toBe(true);
+    expect(statedIn('cost per cup versus two years ago', 'The average transaction is $6.80, up from $6.20 two years ago.')).toBe(false);
+    expect(statedIn('the fare trend across FY2024 and FY2025', 'The average one-way fare on Hub–Lakeport fell from $200 in FY2023 to $120 in FY2025.')).toBe(false);
+  });
+  it('#49/#50: a figure token the lines state is dropped from a pair; nothing else changes', () => {
+    const lines = ['The average one-way fare on Hub–Lakeport fell from $200 in FY2023 to $120 in FY2025.'];
+    expect(dropStatedFigures('the fare trend across FY2024 and FY2025', lines)).toBe('the fare trend across FY2024');
+    expect(dropStatedFigures('the fare trend across FY2025 and FY2024', lines)).toBe('the fare trend across FY2024');
+    expect(dropStatedFigures('the fare trend across FY2023 and FY2025', lines)).toBe('the fare trend across FY2023 and FY2025');   // both stated: unchanged
+    expect(dropStatedFigures('the fare trend across FY2024 and FY2026', lines)).toBe('the fare trend across FY2024 and FY2026');
+  });
+});
+
+describe('the ask check prompt: round 2 rules', () => {
+  const prompt = buildAskCheckPrompt('cost per cup versus two years ago', askCheckCatalog(getCaseById('prof-001').dataLedger));
+  it('"partial" only when the asked part is absent from the line; the asked quantity for the asked period is full however worded', () => {
+    expect(prompt).toMatch(/"partial" only when the asked part is absent from the line/);
+    expect(prompt).toMatch(/gives the asked quantity for the asked period is "full", however it is worded/);
+  });
+  it('"missing" names something the line does not state, copied from the ask', () => {
+    expect(prompt).toMatch(/"missing" .*names something the line does not state/);
+  });
+  // Fix round 3: "price" alone would cut prof-001's cost items whose labels say price
+  // ("Coffee bean price change over 2 years", "Price change of the other inputs …").
+  it('a selling-price or revenue item (what customers pay) never answers a cost ask, and vice versa', () => {
+    expect(prompt).toMatch(/A selling-price or revenue item \(what customers pay\) never answers a cost ask, and vice versa/);
+    expect(prompt).not.toMatch(/A price or revenue item/);
+  });
+});
+
+// Final review I2 (f0fbaf8..5f73bc8): both sides of the match are normalised alike — 's,
+// then s/es, then a trailing e ("fares" and "fare" both "far"; price/prices, rate/rates,
+// store/stores, share/shares) — and a 2-letter capitalised token (US, EU, UK) is a
+// content word: before, "US sales" passed as the ask's words and was spoken.
+describe('final review I2: the stems match plurals of -e words, and US/EU/UK are content words', () => {
+  it('statedIn: "the fares" is stated by a line about the fare', () => {
+    expect(statedIn('the fares', 'The average one-way fare … $180 in FY2025.')).toBe(true);
+    expect(statedIn('the fare', 'The average one-way fares … $180 in FY2025.')).toBe(true);
+  });
+  it.each([['prices', 'price'], ['rates', 'rate'], ['stores', 'store'], ['shares', 'share'], ['price', 'prices'], ['fees', 'fee'], ['classes', 'class'], ['cities', 'city'], ['niches', 'niche'], ['caches', 'cache']])('statedIn("%s") in a line with "%s"', (phrase, word) => {
+    expect(statedIn(phrase, `The ${word} is listed.`)).toBe(true);
+  });
+  it('missingPart: an -e plural is the ask\'s word ("menu prices" for "the menu price trend")', () => {
+    expect(missingPart('menu prices', 'the menu price trend and store count')).toBe('menu prices');
+  });
+  it('missingPart("US sales") for "Kelvexa\'s European sales since launch" → null (US is not the ask\'s)', () => {
+    expect(missingPart('US sales', "Kelvexa's European sales since launch")).toBeNull();
+  });
+  it('statedIn("US sales", "European sales were up.") → false; with US in the line → true', () => {
+    expect(statedIn('US sales', 'European sales were up.')).toBe(false);
+    expect(statedIn('US sales', 'US sales were up.')).toBe(true);
+  });
+  it('the pronoun "us" is still no content word', () => {
+    expect(statedIn('sales for us', 'European sales were up.')).toBe(true);
+  });
+});
+
+// Final review M7: the examples are prof-001's, pricing-001's and entry-001's own asks,
+// so the prompt makes no claim about where they come from.
+describe('final review M7: the examples carry no claim about their source', () => {
+  it.each(['prof-001', 'pricing-001', 'entry-001', 'launch-001'])('%s: "Examples:", never "other cases" or "other interviews"', id => {
+    const prompt = buildAskCheckPrompt('x', askCheckCatalog(getCaseById(id).dataLedger));
+    expect(prompt).toMatch(/^Examples:$/m);
+    expect(prompt).not.toMatch(/other cases|other interviews/i);
   });
 });

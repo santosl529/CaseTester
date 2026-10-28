@@ -1,0 +1,1060 @@
+[
+ {
+  "name": "quillpath-marisol-29:2",
+  "run": "live-run-2026-10-20-087451cb",
+  "caseId": "pricing-001",
+  "claimId": "29:2",
+  "claim": {
+   "span": "Starter $900",
+   "quantity": "Starter standalone LTV at $40",
+   "candidateValue": "$900",
+   "assumptions": "",
+   "verdict": "error",
+   "correctValue": 600,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$",
+   "derivation": "Starter monthly cancellation 5% (not the 40% twelve-month figure) gives 20 months; $30 x 20 = $600",
+   "errorType": "conceptual",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "starter_ltv",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 31,
+    "text": "My recommendation: keep Starter, but reprice it to $60.\n\nThree supports. One, on corrected economics Starter clears the board's bar — $30 margin × 30 months = $900 LTV against $300 CAC, exactly 3.0x, and Pro is at $4,000 / $1,200 = 3.3x. Neither plan is broken. Two, the CFO's test understates Starter because it ignores upgrades: 20% of the cohort is on Pro by month 12, acquired for $300 instead of $1,200, which is $900 of CAC saved on 600 customers from one quarter's cohort, about $540,000. Three, the price test is accretive — 800 × $50 plus 400 × $80 = $72,000 versus $58,000 at control, roughly 24% better monthly margin.\n\nBiggest risk: we don't know churn or upgrade behaviour at $60. If $60 customers cancel materially faster, the volume loss isn't paid back. Next step is to run the test cohort out to month 6 before rolling out.",
+    "revealed": [
+     "pro_cohort",
+     "starter_cohort",
+     "plan_prices_costs",
+     "plan_cac",
+     "ltv_definition",
+     "cohort_notes",
+     "new_customers_by_plan",
+     "price_test_results",
+     "price_test_notes"
+    ],
+    "expect": null
+   }
+  ]
+ },
+ {
+  "name": "quillpath-tyler-25:1",
+  "run": "live-run-2026-10-20-ee99bd82",
+  "caseId": "pricing-001",
+  "claimId": "25:1",
+  "claim": {
+   "span": "roughly 4x, clearing the 3x bar",
+   "quantity": "Starter LTV/CAC including upgrades",
+   "candidateValue": "~4.0x",
+   "assumptions": "Same as above",
+   "verdict": "error",
+   "correctValue": 4.7,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "x",
+   "derivation": "$1,400 ÷ $300 ≈ 4.7x. The conclusion that Starter clears 3x still holds.",
+   "errorType": "conceptual",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "starter_ratio_with_upgrades",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 29,
+    "text": "The $210k a month was the gap between the test arm and the control arm in the price test, using monthly net value per signup.\n\nTest arm, $60: Starter margin $50, so LTV $50 / 0.074 ≈ $676, plus the upgrade stream 0.20 × $4,000 = $800, giving $1,476; less $300 CAC = $1,176 net per signup. Times 830 signups = $976k. Plus Pro, 400 × $2,800 = $1.12m. Total $2.10m.\n\nControl, $40: $905 net per Starter signup × 1,000 = $905k. Plus Pro, 350 × $2,800 = $980k. Total $1.89m.\n\nDifference ≈ $210k a month, so roughly $2.5m a year.\n\nTwo things I should flag. The Starter signups in the test arm are 800, not 830 — I rounded wrong earlier, which trims the test arm by about $35k, so the gap is nearer $175k. And it all assumes churn and the 20% upgrade rate survive the price increase.",
+    "revealed": [
+     "plan_prices_costs",
+     "plan_cac",
+     "ltv_definition",
+     "new_customers_by_plan",
+     "pro_cohort",
+     "starter_cohort",
+     "cohort_notes",
+     "buyer_profile",
+     "why_pro_fell",
+     "price_test_results",
+     "price_test_notes"
+    ],
+    "expect": null
+   }
+  ]
+ },
+ {
+  "name": "quillpath-tyler-25:2",
+  "run": "live-run-2026-10-20-ee99bd82",
+  "caseId": "pricing-001",
+  "claimId": "25:2",
+  "claim": {
+   "span": "the $40 subscription alone, which is only $405",
+   "quantity": "Starter standalone LTV",
+   "candidateValue": "$405",
+   "assumptions": "Case data",
+   "verdict": "error",
+   "correctValue": 600,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$",
+   "derivation": "$30 margin ÷ 5% monthly cancellation = $30 × 20 months = $600.",
+   "errorType": "conceptual",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "starter_ltv",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 29,
+    "text": "The $210k a month was the gap between the test arm and the control arm in the price test, using monthly net value per signup.\n\nTest arm, $60: Starter margin $50, so LTV $50 / 0.074 ≈ $676, plus the upgrade stream 0.20 × $4,000 = $800, giving $1,476; less $300 CAC = $1,176 net per signup. Times 830 signups = $976k. Plus Pro, 400 × $2,800 = $1.12m. Total $2.10m.\n\nControl, $40: $905 net per Starter signup × 1,000 = $905k. Plus Pro, 350 × $2,800 = $980k. Total $1.89m.\n\nDifference ≈ $210k a month, so roughly $2.5m a year.\n\nTwo things I should flag. The Starter signups in the test arm are 800, not 830 — I rounded wrong earlier, which trims the test arm by about $35k, so the gap is nearer $175k. And it all assumes churn and the 20% upgrade rate survive the price increase.",
+    "revealed": [
+     "plan_prices_costs",
+     "plan_cac",
+     "ltv_definition",
+     "new_customers_by_plan",
+     "pro_cohort",
+     "starter_cohort",
+     "cohort_notes",
+     "buyer_profile",
+     "why_pro_fell",
+     "price_test_results",
+     "price_test_notes"
+    ],
+    "expect": null
+   }
+  ]
+ },
+ {
+  "name": "quillpath-tyler-29:2",
+  "run": "live-run-2026-10-20-ee99bd82",
+  "caseId": "pricing-001",
+  "claimId": "29:2",
+  "claim": {
+   "span": "the gap is nearer $175k",
+   "quantity": "Extra monthly value of $60 vs $40 Starter price",
+   "candidateValue": "$175k a month (about $2.1m a year)",
+   "assumptions": "Churn and upgrade rate unchanged at $60.",
+   "verdict": "error",
+   "correctValue": 0.24,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$M per month",
+   "derivation": "At $60: 400 x $2,800 + 800 x $1,500 = $2.32M. At $40: 350 x $2,800 + 1,000 x $1,100 = $2.08M. Gap = about $0.24M a month, not $0.175M.",
+   "errorType": "conceptual",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "uplift_at_60",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 31,
+    "text": "Sure. That's the value of one Starter signup under finance's convention: Starter LTV plus one Pro LTV for each customer who upgrades.\n\nStarter LTV: 40% are still on Starter at month 12, and cancellation is steady month to month, so monthly survival is 0.40^(1/12) ≈ 0.926 — about 7.4% leaving Starter each month, counting cancels and upgrades together. Monthly gross margin is $40 − $10 = $30. So $30 / 0.074 ≈ $405.\n\nPro LTV: 78.5% still on Pro at month 12, so 0.785^(1/12) ≈ 0.980, about 2.0% monthly churn. Margin $100 − $20 = $80. So $80 / 0.020 = $4,000.\n\nUpgrade stream: 20% of Starter signups upgrade by month 12 and very few after, so 0.20 × $4,000 = $800.\n\n$405 + $800 = $1,205, against $300 CAC — about 4x, clearing the 3x bar.",
+    "revealed": [
+     "plan_prices_costs",
+     "plan_cac",
+     "ltv_definition",
+     "new_customers_by_plan",
+     "pro_cohort",
+     "starter_cohort",
+     "cohort_notes",
+     "buyer_profile",
+     "why_pro_fell",
+     "price_test_results",
+     "price_test_notes"
+    ],
+    "expect": null
+   }
+  ]
+ },
+ {
+  "name": "hollisbay-tyler-9:1",
+  "run": "live-run-2026-10-20-52951de8",
+  "caseId": "launch-001",
+  "claimId": "9:1",
+  "claim": {
+   "span": "$3.0 plus $4.3 plus $1.5 is $8.8 million",
+   "quantity": "first-year launch costs total",
+   "candidateValue": "8.8",
+   "assumptions": "",
+   "verdict": "error",
+   "correctValue": 9,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$ million",
+   "derivation": "3.0+4.5+1.5 = 9.0M; the 8.8 rests on the misquoted marketing figure.",
+   "errorType": "misquote",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "launch_costs_total",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 11,
+    "text": "Let me look again. You're right on marketing — the exhibit says $4.5 million, not $4.3. That makes fixed costs $3.0 + $4.5 + $1.5 = $9.0 million, and breakeven volume $9.0 million / $1.50 = 6.0 million bags. Slightly higher bar.\n\nOn households, I used 28.8 million as the base that shops in stores carrying Hollis Bay — that's where the 2.88 million \"definitely\" figure came from, 10% of it. Redoing with that: definitely 2.88 million × 60% = 1.73 million; probably 5.76 million × 20% = 1.15 million; total 2.88 million buying households × 3 bags = 8.6 million bags.\n\nSo 8.6 million bags versus 6.0 million needed. Contribution is 8.6 × $1.50 = $12.9 million against $9.0 million of costs, so about $3.9 million of first-year profit. Still clears the board's test with roughly 30% cushion on volume.",
+    "revealed": [
+     "bag_price",
+     "variable_costs",
+     "launch_costs",
+     "recipe_cost",
+     "planning_assumptions",
+     "purchase_intent",
+     "liked_most",
+     "hesitations",
+     "survey_design"
+    ],
+    "expect": "stale"
+   }
+  ]
+ },
+ {
+  "name": "hollisbay-tyler-11:3",
+  "run": "live-run-2026-10-20-52951de8",
+  "caseId": "launch-001",
+  "claimId": "11:3",
+  "claim": {
+   "span": "about $3.9 million of first-year profit",
+   "quantity": "year-one profit",
+   "candidateValue": "$3.9 million",
+   "assumptions": "correct figure 4.5M",
+   "verdict": "error",
+   "correctValue": 4.5,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$ million",
+   "derivation": "(9.0-6.0)x1.5=4.5M; candidate 3.9 is 13% low because of the wrong household base",
+   "errorType": "misquote",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "yearone_profit",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 13,
+    "text": "You're right — the exhibit says 30 million. I don't have a source for 28.8; I think I just carried it forward wrong from my earlier scratch estimate and then anchored on it. Let me redo it clean.\n\n30 million households. Definitely would buy, 10%, is 3.0 million; times 60% conversion is 1.8 million buying households. Probably would buy, 20%, is 6.0 million; times 20% is 1.2 million. Others, zero. Total buying households is 3.0 million. Times 3 bags each is 9.0 million bags in year one.\n\nContribution is 9.0 million × $1.50 = $13.5 million. Against $9.0 million of first-year launch costs, that's about $4.5 million of first-year profit — so it clears the board's breakeven test, and breakeven volume of 6.0 million bags is a third below the 9.0 million estimate. That's a reasonable cushion, though it rests entirely on the intent-to-purchase conversion assumptions.",
+    "revealed": [
+     "bag_price",
+     "variable_costs",
+     "launch_costs",
+     "recipe_cost",
+     "planning_assumptions",
+     "purchase_intent",
+     "liked_most",
+     "hesitations",
+     "survey_design"
+    ],
+    "expect": "stale"
+   }
+  ]
+ },
+ {
+  "name": "aldermoor-tyler-9:0",
+  "run": "live-run-2026-10-20-fc5eb050",
+  "caseId": "entry-001",
+  "claimId": "9:0",
+  "claim": {
+   "span": "A 40% rebate takes net to $6,000 and sales to $225 million — below the bar on its own.",
+   "quantity": "net price and peak sales at 40% rebate",
+   "candidateValue": "net $6,000; sales $225M",
+   "assumptions": "Candidate's own earlier (wrong) 37,500 patients; correct case figure is 40,000 patients",
+   "verdict": "error",
+   "correctValue": 240,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$ million",
+   "derivation": "Net = 10,000 x 0.6 = 6,000 (correct). Correct patients at peak = 200,000 x 20% = 40,000 (candidate used 37,500 from misquoting prevalence as 1.5%). 40,000 x 6,000 = $240M. Still below $300M bar, so conclusion holds.",
+   "errorType": "misquote",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "none",
+    "price": null,
+    "stepId": null,
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 11,
+    "text": "Let me look again — you're right, the exhibit says 1.6%, not 1.5%. I misread. Let me redo it.\n\n250 million × 1.6% = 4 million with Corlan's. Diagnosed at 50% = 2 million. Treated with prescription medicine at 50% = 1 million. Moderate-to-severe eligible at 20% = 200,000 patients. Kelvexa at 20% of eligible = 40,000 patients.\n\n40,000 × $8,000 net = $320 million. So we clear the bar, but only by about 7% — still thin.\n\nOn competition, that's a useful picture. Nimbrel is an every-two-week injection that's been standard for eight years and nets roughly $8,650 a year. Kelvexa is a once-daily oral at $8,000 net — so we're actually slightly cheaper and far more convenient for the patient, no injections. That convenience advantage is the main reason I'd believe a 20% share is reachable, though an eight-year incumbent means entrenched prescriber habit.\n\nDo we have efficacy data comparing the two?",
+    "revealed": [
+     "nimbrel",
+     "current_treatment",
+     "us_adults",
+     "funnel_rates",
+     "peak_share_forecast",
+     "kelvexa_pricing",
+     "diagnosis_gap",
+     "trial_comparison"
+    ],
+    "expect": null
+   },
+   {
+    "turn": 13,
+    "text": "The $225 million was built on my old patient count — 37,500 × $6,000. With the corrected funnel it should be 40,000 × $6,000 = $240 million. Still well below the bar, so the point holds: net price is the assumption that breaks us fastest.\n\nOn Nimbrel, I took the figure you gave me, about $8,650 per patient per year — I didn't derive it. If I've got that wrong, correct me, but that's what I noted down.\n\nOn the trial comparison: efficacy is at parity, and we win on tolerability — fewer injection-site reactions and infections — plus oral once-daily versus a biweekly injection. That's a real patient-preference advantage but not a clinical superiority story, so I wouldn't expect payers to grant us a premium or physicians to switch stable patients. I'd expect Kelvexa to win mostly among new starts and patients intolerant of Nimbrel, which makes 20% at peak plausible but not conservative.",
+    "revealed": [
+     "nimbrel",
+     "current_treatment",
+     "us_adults",
+     "funnel_rates",
+     "peak_share_forecast",
+     "kelvexa_pricing",
+     "diagnosis_gap",
+     "trial_comparison"
+    ],
+    "expect": "stale"
+   }
+  ]
+ },
+ {
+  "name": "b33-marisol-31e33506-15:2",
+  "run": "live-run-2026-10-20-31e33506",
+  "caseId": "prof-001",
+  "claimId": "15:2",
+  "claim": {
+   "span": "the other inputs account for only about 6 points combined",
+   "quantity": "other inputs' contribution to COGS increase",
+   "candidateValue": "6 points",
+   "assumptions": "16 - 10.",
+   "verdict": "error",
+   "correctValue": 11.8,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "points of revenue",
+   "derivation": "Other inputs: 31.5 points x 37.5% = 11.8 points of revenue. 4.2 + 11.8 = 16.",
+   "errorType": "conceptual",
+   "changesConclusion": true,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "non_bean_points_added",
+    "target": null
+   },
+   "actualShare": 0.74
+  },
+  "later": [
+   {
+    "turn": 17,
+    "text": "I took the 5.8 points — which came from 0.25 × 58 = 14.5, then × 40% — and added it straight onto the current 6% margin, which got me to 11.8%, call it 12%.\n\nWith your correction that beans contribute about 10 points, the same logic gives 6% + 10 = 16%. So fully neutralizing bean inflation takes us from 6% to 16%, not 12%. That's a bigger prize than I said, and it changes the recommendation's weight — procurement alone gets us two-thirds of the way back toward 24%.\n\nThe remaining gap to 24% is about 8 points, which would have to come from the other inputs — up 37.5% — plus the 2 points overhead drifted, 12 to 14. Pricing closes whatever's left.\n\nI'd note the add-back assumes revenue and volume hold while we do it, which is exactly what I'd want the contract and volume data to confirm.",
+    "revealed": [
+     "avg_ticket",
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct",
+     "menu_price_change",
+     "bean_share_of_cogs",
+     "bean_price_change",
+     "non_bean_input_change"
+    ],
+    "expect": null
+   }
+  ]
+ },
+ {
+  "name": "b30-blake-01daac8b-23:0",
+  "run": "live-run-2026-10-16-01daac8b",
+  "caseId": "prof-001",
+  "claimId": "23:0",
+  "claim": {
+   "span": "If demand is twice as elastic as I've assumed, an 8% increase loses 8% of volume and nets close to nothing",
+   "quantity": "net margin effect of an 8% price rise with 8% volume loss",
+   "candidateValue": "close to nothing (about 0 points of gain)",
+   "assumptions": "Elasticity 1.0 gives an 8% volume loss. COGS scales with volume; labor and overhead are held fixed. Current costs are 94 of revenue 100.",
+   "verdict": "error",
+   "correctValue": 4,
+   "correctLow": 4,
+   "correctHigh": 5.8,
+   "unit": "points of margin gained",
+   "derivation": "Revenue is 100×1.08×0.92=99.36. COGS is 58×0.92=53.36. Labor 22 and overhead 14 stay fixed. Profit is 10.0, up from 6, so the margin is about 10.1%, a gain of about 4 points. If labor also flexes with volume, profit is 11.8 and the gain is about 5.8 points. The break-even volume loss for an 8% rise is 16%, so an 8% loss is well inside it and the price rise still adds profit.",
+   "errorType": "conceptual",
+   "changesConclusion": true,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "breakeven",
+    "price": 8,
+    "stepId": null,
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 25,
+    "text": "First thing, this week: launch the pricing pilot. Pick 20 stores that are representative on income and competitive density, take 4% on the menu, hold 20 matched control stores flat, and measure transaction counts daily for 60 days. That's the cheapest way to replace my elasticity assumption with a real number before committing 200 stores.\n\nIn parallel, because it costs nothing to start, open supplier renegotiations on dairy and packaging — those are the two lines carrying most of the 16-point increase, and contract cycles are slow, so you want that running while the pilot reads out.\n\nI'd hold off on waste and mix work until the pilot's done. Those are real but smaller, and I'd rather not change three variables at once and lose the read on price.\n\nThen at 60 days, if volume holds within 4%, roll the first increment chain-wide and decide on the second 4%.",
+    "revealed": [
+     "menu_price_change",
+     "cogs_pct",
+     "bean_share_of_cogs",
+     "bean_price_change",
+     "non_bean_input_change",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "expect": null
+   }
+  ]
+ },
+ {
+  "name": "b32-larkspur-marisol-6e5a1c90-17:2",
+  "run": "live-run-2026-10-19-6e5a1c90",
+  "caseId": "prof-002",
+  "claimId": "17:2",
+  "claim": {
+   "span": "The exhibit says 5,000 flights for the routes, and there are two of them... so I'll read that as 5,000 each, 10,000 flights total. That's 10,000 × $2,000 = $20M of contribution.",
+   "quantity": "annual contribution of new routes",
+   "candidateValue": "$20M",
+   "assumptions": "Candidate reads 5,000 as per route, but exhibit says both routes combined",
+   "verdict": "error",
+   "correctValue": 10,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$M per year",
+   "derivation": "Exhibit 3: 5,000 flights both routes combined; 5,000 × $2,000 = $10M",
+   "errorType": "misquote",
+   "changesConclusion": true,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "new_routes_annual",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 19,
+    "text": "A few levers beyond the route swap.\n\nFirst, the four untouched routes. Those are competitor-free, so I'd test a modest fare increase — demand there hasn't been disrupted, and we're at $157 average revenue per seat across the system, which is below the $180 the new routes are planned at. Even a few dollars per passenger across 8,000 flights compounds quickly.\n\nSecond, extras. We earn $20 per passenger today and that figure hasn't moved in two years — bags and seat selection are pure margin. Getting that to $30 on the four stable routes is 8,000 flights × 60 passengers × $10 = $4.8M.\n\nThird, the $20M fixed cost block, which was identical in both years and is the single biggest line we haven't touched. If any of it is gates or station staff at Lakeport and Port Avery, exiting frees it.\n\nFourth, cost per seat. The entrant runs 30% below us on larger aircraft — worth testing whether upgauging closes part of that gap.",
+    "revealed": [
+     "route_results_lakeport",
+     "route_results_port_avery",
+     "route_results_other",
+     "fixed_costs",
+     "network_totals",
+     "competitor_costs",
+     "competitor_entry",
+     "new_routes_plan",
+     "new_routes_cost_flights",
+     "new_routes_context",
+     "lakeport_seats_load",
+     "lakeport_fare",
+     "extras_revenue",
+     "lakeport_variable_cost"
+    ],
+    "expect": null
+   },
+   {
+    "turn": 21,
+    "text": "Sure. Two pieces.\n\nExiting: Lakeport contributes negative $1.2M and Port Avery negative $0.6M in FY2025, so dropping both removes negative $1.8M — a $1.8M improvement.\n\nAdding: contribution of $2,000 per flight on the new routes. I read the exhibit's 5,000 flights as per route, so two routes gives 10,000 flights, times $2,000 = $20M.\n\n$20M plus $1.8M is $21.8M.\n\nThat said, the exhibit says \"flights per year (both routes combined),\" so 5,000 is the total, not each. That halves it: 5,000 × $2,000 = $10M, and the swap is worth $11.8M. I misread that line.\n\n$11.8M against the negative $4M starting point puts us around positive $7.8M, assuming fixed costs hold at $20M and the aircraft and crews from the two exited routes cover the 5,000 new flights — the exited routes flew 5,000 between them, so that lines up neatly.",
+    "revealed": [
+     "route_results_lakeport",
+     "route_results_port_avery",
+     "route_results_other",
+     "fixed_costs",
+     "network_totals",
+     "competitor_costs",
+     "competitor_entry",
+     "new_routes_plan",
+     "new_routes_cost_flights",
+     "new_routes_context",
+     "lakeport_seats_load",
+     "lakeport_fare",
+     "extras_revenue",
+     "lakeport_variable_cost"
+    ],
+    "expect": "stale"
+   }
+  ]
+ },
+ {
+  "name": "b33-blake-cb23e17b-17:0",
+  "run": "live-run-2026-10-20-cb23e17b",
+  "caseId": "prof-001",
+  "claimId": "17:0",
+  "claim": {
+   "span": "A 10–12% price increase on a flat cost base recovers roughly 6 to 7 points of margin",
+   "quantity": "Margin points recovered by a 10–12% price rise at flat costs",
+   "candidateValue": "6 to 7 points",
+   "assumptions": "Costs stay at 94 per 100 of current revenue. The candidate's 2–3% volume loss is not applied here; the claim is stated on a flat cost base.",
+   "verdict": "error",
+   "correctValue": null,
+   "correctLow": 8.5,
+   "correctHigh": 10.1,
+   "unit": "percentage points",
+   "derivation": "Margin after a price rise = 1 − 94/(100×(1+p)). At 10%: 1 − 94/110 = 14.5%, a gain of 8.5 points. At 12%: 1 − 94/112 = 16.1%, a gain of 10.1 points. So the gain is about 8.5 to 10.1 points, not 6 to 7.",
+   "errorType": "arithmetic",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "gain",
+    "price": 12,
+    "stepId": null,
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 19,
+    "text": "The single biggest risk is that the price increase doesn't stick — that volume falls more than I've assumed. My whole recommendation rests on a 2–3% volume loss against a 10–12% price increase, and that number is a benchmark, not something we've tested on this customer base. If elasticity is actually closer to one, I lose the entire margin recovery and I've also lost traffic, which is much harder to win back than price is to roll back.\n\nMitigation is the pilot. Three to five markets, representative mix of urban and suburban, run it for eight to twelve weeks, measure transaction counts and ticket size against matched control stores. If volume holds, roll national. If it doesn't, I shift weight onto procurement and the non-dairy surcharge, which don't carry the same traffic risk.\n\nThe second-order risk is that input costs keep climbing eight points a year, in which case pricing is a treadmill and the real fix is contract hedging.",
+    "revealed": [
+     "labor_pct",
+     "overhead_pct",
+     "menu_price_change",
+     "cogs_pct",
+     "bean_share_of_cogs",
+     "non_bean_input_change",
+     "bean_price_change"
+    ],
+    "expect": null
+   }
+  ]
+ },
+ {
+  "name": "b28-sofia-0a43682d-5:3",
+  "run": "live-run-2026-10-16-0a43682d",
+  "caseId": "prof-001",
+  "claimId": "5:3",
+  "claim": {
+   "span": "which more than accounts for the 18 point margin drop",
+   "quantity": "COGS share of margin drop",
+   "candidateValue": "more than all of the 18 points",
+   "assumptions": "",
+   "verdict": "error",
+   "correctValue": 16,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "points",
+   "derivation": "COGS explains 16 of the 18 points (~89%), less than all; overhead's 2 points explains the rest.",
+   "errorType": "conceptual",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "none",
+    "price": null,
+    "stepId": null,
+    "target": null
+   },
+   "actualShare": 0.889
+  },
+  "later": [
+   {
+    "turn": 7,
+    "text": "You're right, I conflated two things. 38% is the relative increase in COGS; in points of revenue it's 58 minus 42, so 16 points. Add 2 points of overhead and you get 18, which exactly matches the margin drop from 24 to 6. Labor contributes zero. Good — the cost structure fully explains it, no revenue mystery.\n\nNow inside COGS. Beans were 25% of COGS two years ago, so call that 25 points of revenue, and they're up 40%, which gets you to 35 — so 10 points of the increase from beans.\n\nOther inputs would be the remaining 75, up 37.5%, which is about 28 more.\n\nThat overshoots the 16, so one of those is too big, but directionally beans and other inputs are both inflating at roughly the same rate — call it 38 to 40% across the board. That's a broad input-cost shock, not a single commodity problem.",
+    "revealed": [
+     "menu_price_change",
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct",
+     "bean_share_of_cogs",
+     "bean_price_change",
+     "non_bean_input_change"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b28-tyler-934653af-5:0",
+  "run": "live-run-2026-10-16-934653af",
+  "caseId": "prof-001",
+  "claimId": "5:0",
+  "claim": {
+   "span": "it goes from 42% two years ago to about 61% today, so that's roughly 19 points of margin lost right there",
+   "quantity": "COGS % of revenue today and its increase in points",
+   "candidateValue": "61% today, ~19 points",
+   "assumptions": "Exhibit A: COGS current = 58%, prior = 42%",
+   "verdict": "error",
+   "correctValue": 16,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "points of revenue",
+   "derivation": "Exhibit A shows COGS at 58% today. 58 - 42 = 16 points, not 19. The 61% figure is a misread of the exhibit.",
+   "errorType": "misquote",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "profit_margin_now",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 7,
+    "text": "Right, 58% today — let me redo it properly. 58 minus 42 is 16 points of margin from COGS, plus the 2 from overhead, so 18 points. That ties exactly to the 24-to-6 drop. Good, the exhibit is fully explained.\n\nNow let me see if input inflation alone accounts for it. Beans were 30% of COGS two years ago, so 0.30 × 42 = 12.6 points of revenue. Up 40%, that becomes 17.6 points — about 5 points added. The other inputs were the remaining 29.4 points; up 37.5%, that's 40.4 points, adding about 11 points. Five plus eleven is roughly 16 points of increase, which lands me right at the 58% we see.\n\nSo commodity inflation explains essentially the entire COGS increase — and critically, none of it was passed through to customers. That's the real finding: input costs rose roughly 38-40% and menu prices apparently didn't move at all. I'd want the menu price history to confirm, and I'd check whether volume is flat, since the 15% revenue growth might just be new stores.",
+    "revealed": [
+     "menu_price_change",
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct",
+     "bean_share_of_cogs",
+     "non_bean_input_change",
+     "bean_price_change"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b28-tyler-934653af-5:1",
+  "run": "live-run-2026-10-16-934653af",
+  "caseId": "prof-001",
+  "claimId": "5:1",
+  "claim": {
+   "span": "19 points from COGS plus 2 from overhead is 21 points of deterioration, against an 18-point margin drop from 24 to 6",
+   "quantity": "Total cost deterioration in points",
+   "candidateValue": "21 points",
+   "assumptions": "Correct figures: COGS +16, overhead +2, labor 0",
+   "verdict": "error",
+   "correctValue": 18,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "points of revenue",
+   "derivation": "16 + 2 = 18 points, which exactly equals the 24 to 6 margin drop. The 21 figure rests on the wrong COGS figure; it only looked 'directionally consistent' and in fact does not reconcile.",
+   "errorType": "arithmetic",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "none",
+    "price": null,
+    "stepId": null,
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 7,
+    "text": "Right, 58% today — let me redo it properly. 58 minus 42 is 16 points of margin from COGS, plus the 2 from overhead, so 18 points. That ties exactly to the 24-to-6 drop. Good, the exhibit is fully explained.\n\nNow let me see if input inflation alone accounts for it. Beans were 30% of COGS two years ago, so 0.30 × 42 = 12.6 points of revenue. Up 40%, that becomes 17.6 points — about 5 points added. The other inputs were the remaining 29.4 points; up 37.5%, that's 40.4 points, adding about 11 points. Five plus eleven is roughly 16 points of increase, which lands me right at the 58% we see.\n\nSo commodity inflation explains essentially the entire COGS increase — and critically, none of it was passed through to customers. That's the real finding: input costs rose roughly 38-40% and menu prices apparently didn't move at all. I'd want the menu price history to confirm, and I'd check whether volume is flat, since the 15% revenue growth might just be new stores.",
+    "revealed": [
+     "menu_price_change",
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct",
+     "bean_share_of_cogs",
+     "non_bean_input_change",
+     "bean_price_change"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b29-sofia-3b89869e-9:1",
+  "run": "live-run-2026-10-16-3b89869e",
+  "caseId": "prof-001",
+  "claimId": "9:1",
+  "claim": {
+   "span": "beans alone are driving 40% of the COGS deterioration, which is about 6.4 of the 16 points",
+   "quantity": "beans' contribution to COGS increase",
+   "candidateValue": "40% of COGS deterioration, about 6.4 of 16 points",
+   "assumptions": "Beans 25% of COGS two years ago, up 40%; other inputs up 37.5%",
+   "verdict": "error",
+   "correctValue": 4.2,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "points of revenue",
+   "derivation": "Beans two years ago = 25% x 42 = 10.5 points of revenue; x 40% = 4.2 points, i.e. 4.2/16 = 26% of COGS increase. The candidate applied the 40% price rise to the whole 16-point increase instead of the bean base.",
+   "errorType": "wrong_base",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "bean_points_added",
+    "target": null
+   },
+   "actualShare": 0.26
+  },
+  "later": [
+   {
+    "turn": 11,
+    "text": "Let me reconcile. I took \"beans up 40%\" and treated the 40 as a share of the COGS deterioration — that's the same mistake again, just wearing a different hat. The 40% is growth on the bean line's own base, not a slice of the 16 points.\n\nMy earlier split is the right one. Beans were 25% of 42, so 10.5 points of revenue; up 40% gives 14.7, an increase of 4.2 points. Other inputs were 31.5; up 37.5% gives 43.3, an increase of 11.8. So 4.2 and 11.8, totaling 16. Beans are about a quarter of the deterioration, not 40%.\n\nWhich actually reinforces the conclusion: dairy, packaging, and food are three-quarters of the damage. So supplier renegotiation should start there, not with beans.",
+    "revealed": [
+     "stores_count",
+     "revenue_per_store",
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct",
+     "menu_price_change",
+     "bean_share_of_cogs",
+     "bean_price_change",
+     "non_bean_input_change"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b31-blake-47fa8cfd-19:0",
+  "run": "live-run-2026-10-18-47fa8cfd",
+  "caseId": "prof-001",
+  "claimId": "19:0",
+  "claim": {
+   "span": "Labor and overhead were essentially well-managed — flat and up one point.",
+   "quantity": "overhead increase in points of revenue over two years",
+   "candidateValue": "1 point",
+   "assumptions": "Overhead 12% two years ago to 14% now, per the exhibit and the revealed overhead line",
+   "verdict": "error",
+   "correctValue": 2,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "percentage points",
+   "derivation": "Overhead was 12% of revenue two years ago and is 14% now, so it rose 2 points over the two-year window. The 1-point figure matches only the last-year step (12 to 13). The 18-point margin drop is 16 from COGS plus 2 from overhead.",
+   "errorType": "misquote",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "none",
+    "price": null,
+    "stepId": null,
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 23,
+    "text": "Overhead went 12, then 13, then 14 on the exhibit — so it's up two points over the two years, not one. I misread that; I was comparing last year to current rather than the full two-year window.\n\nIt doesn't change the conclusion much, but it does change the arithmetic slightly. Cost lines moved 16 points on COGS plus 2 on overhead, that's 18 points total, and labor flat at 22. Margin went 24 to 6 — an 18-point decline. So COGS and overhead together account for the whole thing, with COGS at roughly 89% of it.\n\nWorth noting overhead rising two points while revenue grew 15% is a little concerning — overhead should normally leverage down as revenue scales, so that's a real if secondary issue. Possibly corporate build-out or new-store support costs.\n\nBut COGS remains the story.",
+    "revealed": [
+     "menu_price_change",
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct",
+     "bean_share_of_cogs",
+     "bean_price_change",
+     "non_bean_input_change"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b31-marisol-07e9f231-7:2",
+  "run": "live-run-2026-10-18-07e9f231",
+  "caseId": "prof-001",
+  "claimId": "7:2",
+  "claim": {
+   "span": "beans are 25%, and beans are up 40%, so beans alone are 25 times 40, which is 10 points of the increase",
+   "quantity": "Bean inflation's contribution to COGS increase",
+   "candidateValue": "10 points",
+   "assumptions": "Applies 25% share of COGS directly as if it were share of revenue",
+   "verdict": "error",
+   "correctValue": 4.2,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "points of revenue",
+   "derivation": "Beans were 25% of COGS, which was 42% of revenue, so 10.5 points of revenue. Times 40% = 4.2 points. 25×40=10 uses a share of COGS as if share of revenue.",
+   "errorType": "unit",
+   "changesConclusion": true,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "bean_points_added",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 9,
+    "text": "That fits cleanly, actually. Flat prices means the 15% revenue growth is all volume — more cups, same ticket. So nothing on the revenue side is distorting the ratio; the whole move from 42 to 58 is input cost inflation flowing straight through with no price offset.\n\nAnd the magnitudes check out. Beans are 25% of COGS at 42 points, so about 10.5 points of revenue, and they're up 40% — that's 4.2 points added. The other 75% is 31.5 points, up 37.5%, which is 11.8 points added. Together 16 points, and 42 plus 16 is 58. That's the exhibit exactly.\n\nSo the story is: input costs rose roughly 38 to 40% across the board, the client absorbed every dollar of it because menu prices never moved, and volume growth of 15% just scaled a worse-margin cup. Beans are the headline but they're only a quarter of it — dairy and packaging are the bigger absolute hit.",
+    "revealed": [
+     "menu_price_change",
+     "bean_share_of_cogs",
+     "non_bean_input_change",
+     "bean_price_change",
+     "stores_count",
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b33-sofia-f86f6530-7:0",
+  "run": "live-run-2026-10-20-f86f6530",
+  "caseId": "prof-001",
+  "claimId": "7:0",
+  "claim": {
+   "span": "Beans were 25% of COGS — so call that 25 percentage points of revenue from beans",
+   "quantity": "beans as points of revenue two years ago",
+   "candidateValue": "25 points",
+   "assumptions": "Beans 25% of COGS two years ago; COGS 42% of revenue then",
+   "verdict": "error",
+   "correctValue": 10.5,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "points of revenue",
+   "derivation": "25% x 42 = 10.5 points; candidate treated the share of COGS as points of revenue",
+   "errorType": "unit",
+   "changesConclusion": true,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "bean_share_of_revenue",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 11,
+    "text": "Points of COGS, not revenue. Beans were 25% of the 42, so 0.25 × 42 = 10.5 points of revenue. The other inputs are 31.5 points.\n\nRedoing it: beans 10.5 × 1.4 = 14.7. Other inputs 31.5 × 1.375 = 43.3. Total 58.0 — still lands exactly on the current COGS line, so the conclusion holds, but I had the magnitudes badly wrong. Beans are the smaller piece; dairy, packaging and food are three-quarters of COGS and account for about 11.8 of the 16 point increase versus 4.2 from beans.\n\nThat actually sharpens the recommendation. Hedging coffee futures would only address a quarter of the problem. The bigger exposure is dairy and packaging, where I'd look at supplier renegotiation and volume consolidation across 200 stores.\n\nBut price remains the primary lever. Do we have transaction volume per store over this period? I want to know how much elasticity headroom we have.",
+    "revealed": [
+     "avg_ticket",
+     "stores_count",
+     "cogs_pct",
+     "labor_pct",
+     "overhead_pct",
+     "menu_price_change",
+     "bean_share_of_cogs",
+     "non_bean_input_change",
+     "bean_price_change"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b34a-marisol-a1133734-19:3",
+  "run": "live-run-2026-10-20-a1133734",
+  "caseId": "entry-001",
+  "claimId": "19:3",
+  "claim": {
+   "span": "Aldermoor pays the 30% royalty to the partner, so we keep 70%: $400M × 70% = $280M",
+   "quantity": "Option B profit to Aldermoor",
+   "candidateValue": "280",
+   "assumptions": "royalty direction",
+   "verdict": "error",
+   "correctValue": 120,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$M",
+   "derivation": "Aldermoor receives a 30% royalty: 30%×$400M = $120M, not 70%.",
+   "errorType": "conceptual",
+   "changesConclusion": true,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "option_b_profit",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 21,
+    "text": "Let me re-read it. The row says \"What Aldermoor receives: a 30% royalty on US net sales\" — so the 30% is what comes to us, not what we pay out. I had it backwards.\n\nSo Option B: $400M net sales × 30% = $120 million to Aldermoor, no selling costs.\n\nAgainst Option A at $240M after the $80M of selling costs, A is now well ahead — double, roughly.\n\nBut on your definition, net sales are after insurer and PBM discounts only, which is the $8,000 figure. Selling costs sit below that line. So on the board's measure:\n\nOption A peak net sales = $320M — clears $300M.\nOption B peak net sales = $400M — clears it more comfortably, and that's the figure booked as US net sales.\n\nSo B wins on the board's stated gate, A wins on what Aldermoor actually keeps. I'd flag that mismatch to the CEO rather than pick on the gate alone. Which measure does the board care about?",
+    "revealed": [
+     "survey_design",
+     "reasons_to_prescribe",
+     "barriers_to_prescribing",
+     "option_a",
+     "option_b",
+     "option_shared",
+     "funnel_rates",
+     "patents",
+     "insurance_coverage",
+     "us_adults",
+     "peak_share_forecast",
+     "net_sales_definition",
+     "kelvexa_pricing"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b35q-raj-5c3d2c21-11:1",
+  "run": "live-run-2026-10-20-5c3d2c21",
+  "caseId": "pricing-001",
+  "claimId": "11:1",
+  "claim": {
+   "span": "Total ≈ $1,200 against $300 CAC, so about 4x",
+   "quantity": "Starter LTV/CAC including upgrades",
+   "candidateValue": "4x ($1,200/$300)",
+   "assumptions": "Correct: $600 + 20% x $4,000 = $1,400; /$300 = 4.7x",
+   "verdict": "error",
+   "correctValue": 4.7,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "x",
+   "derivation": "Starter value per sign-up = $600 + $800 = $1,400; divided by $300 = 4.7x. The candidate's 4x rests on the understated $400 standalone LTV.",
+   "errorType": "conceptual",
+   "changesConclusion": false,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "starter_ratio_with_upgrades",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 15,
+    "text": "Fair — if I use cancellations only rather than blending in upgrades, the Starter life is longer, around 20 months, and $30 × 20 = $600.\n\nThen per Starter sign-up: $600 + 0.20 × $4,000 = $1,400 against $300 CAC, about 4.7x. Even standalone, $600/$300 is 2x — short of the rule, but not catastrophic.\n\nWhat the exhibit tells me: Pro has the better unit economics per customer, $80 margin a month versus $30, but it's an expensive, salesperson-led motion at $1,200 a head, and that caps how fast it can scale — demos need reps. Starter is self-serve at $300, no human in the loop, so it scales with marketing spend. So they're not competing plans; Starter is a low-cost top of funnel that feeds the high-margin plan. The right question isn't shut it down, it's how to raise the upgrade rate.",
+    "revealed": [
+     "cohort_notes",
+     "board_rule_definition",
+     "new_customers_by_plan",
+     "pro_cohort",
+     "starter_cohort",
+     "plan_prices_costs",
+     "plan_cac",
+     "ltv_definition"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b35q-marisol-087451cb-23:3",
+  "run": "live-run-2026-10-20-087451cb",
+  "caseId": "pricing-001",
+  "claimId": "23:3",
+  "claim": {
+   "span": "So on that read the test is slightly worse, about $2,000 a month, roughly 3% down.",
+   "quantity": "Test vs control difference in monthly margin",
+   "candidateValue": "-$2,000, ~3% down",
+   "assumptions": "Correct margin $50 at $60 price",
+   "verdict": "error",
+   "correctValue": 14000,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$ per month",
+   "derivation": "Test with $50 margin: 800×50=40,000 + 32,000 = 72,000 vs 58,000: +14,000, about +24%. Candidate's sign is wrong.",
+   "errorType": "conceptual",
+   "changesConclusion": true,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "none",
+    "price": null,
+    "stepId": null,
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 25,
+    "text": "It's based on 40% as Pro's annual cancellation rate — the month-12 cancelled figure I read off the Pro row — over a twelve-month period. So 1 / 0.40 = 2.5 years, times 12 = 30 months.\n\nThe period is the key assumption there: the cohort table only runs to month 12, so I'm treating that one-year cancellation share as the steady annual rate and extrapolating beyond the data. In reality cancellations are front-loaded, so the survivors at month 12 are stickier than the cohort average and the true lifetime is probably longer than 2.5 years for both plans — which would help Pro more than my number suggests.\n\nAlso worth noting on your point about the price test: if cost to serve stays at $10, then at $60 the Starter margin is $50, not $30. Redoing the test group: 800 × $50 = $40,000 plus 400 × $80 = $32,000 = $72,000, versus $58,000 control. That's a $14,000 monthly gain, about 24%. That flips my read — the $60 price looks clearly better.",
+    "revealed": [
+     "pro_cohort",
+     "starter_cohort",
+     "plan_prices_costs",
+     "plan_cac",
+     "ltv_definition",
+     "cohort_notes",
+     "new_customers_by_plan",
+     "price_test_results",
+     "price_test_notes"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ },
+ {
+  "name": "b35q-marisol-087451cb-21:3",
+  "run": "live-run-2026-10-20-087451cb",
+  "caseId": "pricing-001",
+  "claimId": "21:3",
+  "claim": {
+   "span": "30 × $80 ... so $2,400.",
+   "quantity": "Pro LTV",
+   "candidateValue": "$2,400",
+   "assumptions": "",
+   "verdict": "error",
+   "correctValue": 4000,
+   "correctLow": null,
+   "correctHigh": null,
+   "unit": "$",
+   "derivation": "80 × 50 = 4,000",
+   "errorType": "wrong_base",
+   "changesConclusion": true,
+   "confidence": "high",
+   "codeQuantity": {
+    "kind": "step",
+    "price": null,
+    "stepId": "pro_ltv",
+    "target": null
+   },
+   "actualShare": null
+  },
+  "later": [
+   {
+    "turn": 27,
+    "text": "That reframes it. $4,000 at $80 a month implies about 50 months of life, which back-solves to roughly a 24% annual cancellation rate — close to the 21.5% figure. So I had the two cohort rows swapped: 21.5% is Pro's annual cancellation and 40% is Starter's.\n\nRedoing Starter on that basis: 1 / 0.40 = 2.5 years = 30 months, × $30 margin = $900 LTV against $300 CAC = 3.0x. So Starter sits right on the board's bar, not comfortably above it — and Pro at $4,000 / $1,200 = 3.3x clears.\n\nThat's a much tighter story. Starter is marginal on its own economics, which is where the CFO's objection comes from. What rescues it is the upgrade row: 20% of Starter signups are on Pro by month 12, acquired for $300 instead of $1,200. Adding even part of that Pro value to the Starter cohort pushes it clearly past 3x. So the plan isn't the problem — the standalone framing is.",
+    "revealed": [
+     "pro_cohort",
+     "starter_cohort",
+     "plan_prices_costs",
+     "plan_cac",
+     "ltv_definition",
+     "cohort_notes",
+     "new_customers_by_plan",
+     "price_test_results",
+     "price_test_notes"
+    ],
+    "expect": "stale"
+   }
+  ],
+  "regression": "r5-46"
+ }
+]

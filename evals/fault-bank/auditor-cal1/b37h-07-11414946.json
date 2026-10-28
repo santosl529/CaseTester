@@ -1,0 +1,78 @@
+{
+ "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-11414946.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 10,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "Hollis Bay's two largest retail partners have agreed to stock the line in all their stores, provided Hollis Bay pays the shelf fees.",
+   "why": "The candidate asked about distribution reach, number of stores and turns per store per week. Only the retailer-support line went out. Store count and turns got no word, not even an 'I don't have'."
+  },
+  {
+   "turn": 10,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "You've put the break-even at about 5.6 million bags. Before we size volume, how would you judge whether that's a high or low hurdle for this launch?",
+   "why": "The interviewer restates the candidate's wrong 5.6M break-even, built on the miscalculated $1.40 cost, as the working hurdle. It invites further analysis on it before probing the error."
+  },
+  {
+   "turn": 12,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As I mentioned: Hollis Bay's two largest retail partners have agreed to stock the line in all their stores, provided Hollis Bay pays the shelf fees.",
+   "why": "An already-released line is repeated as the answer to an explicit ask for store count, which it doesn't answer. There is no 'I don't have the store count'."
+  },
+  {
+   "turn": 16,
+   "class": "false_refusal",
+   "severity": "borderline",
+   "quote": "Category size and growth for better-for-you snacks in the Northeast and Midwest — that's not something I have.",
+   "why": "Growth is coarsely answered by the case (why_now, and the prompt says better-for-you snacks are growing quickly), so 'not something I have' is not true for the growth part. That coarse answer was already in front of the candidate."
+  },
+  {
+   "turn": 16,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Mm-hm.",
+   "why": "The candidate stated a want to know who the incumbents are and whether a dominant brand is already in the stores. The competition_general ledger item answers this, but it got no release, refusal or deferral."
+  },
+  {
+   "turn": 16,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Category size and growth for better-for-you snacks in the Northeast and Midwest — that's not something I have.",
+   "why": "The candidate again asked for the store count for the two partners. It got no word at all, after being met only with a restatement at t12."
+  },
+  {
+   "turn": 22,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Three doubts: conversion, repeat and cannibalization.",
+   "why": "The candidate stated a want to know whether the 60%/20% conversion rates come from Hollis Bay's own past launches. The survey_reliability ledger item answers this, but it was not released or addressed."
+  },
+  {
+   "turn": 22,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "Fewer than 5% of chickpea-snack purchases are expected to replace a bag of Hollis Bay's own chips — small enough to ignore for this decision.",
+   "why": "The candidate asked whether survey respondents are current chip buyers. The cannibalization line answers the underlying concern but not the respondent-mix question, and there is no 'I don't have' for that part."
+  },
+  {
+   "turn": 32,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you do to guard against that?",
+   "why": "The candidate's last answer had just laid out mitigations: diagnosis, freezing spend, and pull-back thresholds. Asking how to guard against the risk re-asks what was just covered."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 15630,
+  "output": 2963,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 28268,
+ "usd": 0.12178
+}

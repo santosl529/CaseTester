@@ -11,9 +11,16 @@ import { getCaseById } from '@/lib/cases/loader';
 // When each pool is said, in a line.
 const WHEN: Record<PhrasePool, string> = {
   defer: 'Data asked for that the case holds but not yet: the deferral. {x} = what was asked.',
+  wont_get_to: 'Every deferral on a wrap-up or close turn (Lorenzo\'s line, one version). {x} = what was asked.',
+  wont_get_to_that: 'A deferral on a wrap-up or close turn whose ask is long (more than 8 words as said) or a list (Lorenzo\'s line, one version).',
   refuse: 'Data the case doesn\'t hold. {x} = what was asked.',
+  assume: 'refusalAssume (measurement): an ask code is not confident the case lacks, said as an assumption. {x} = what was asked.',
+  assume_finer: 'refusalAssume (measurement): after the coarse line, a finer cut asked. No slot.',
   exhibit: 'Handing over an exhibit. {x} = its title.',
   restate: 'A fact already given, asked for again. {x} = the ledger line.',
+  restate_exhibit: 'A fact that so far came out only on an exhibit, asked for again. {x} = the ledger line.',
+  restate_pointer: 'Phase 1 (restateRules): a re-ask of data on an exhibit already out — pointed to. {x} = the exhibit\'s one-line summary.',
+  restate_recent: 'Phase 1 (restateRules): a re-ask of a line said within the last four turns — named, not said again. {x} = the item\'s spoken name.',
   earlier: 'Before data asked for earlier and released now (the stage reached).',
   correct_one: 'Before a misquoted figure\'s correction. {x} = the ledger line.',
   correct_two: 'Before two misquoted figures\' corrections. {x} = the ledger lines.',
@@ -49,6 +56,7 @@ const WHEN: Record<PhrasePool, string> = {
   probe_got_to: 'The checker\'s neutral probe of a figure (chosen when code selects the flag; also the wrap-up probe\'s ask). {x} = the candidate\'s figure.',
   probe_calc: 'The checker\'s neutral probe of a calculation with no figure of theirs to name.',
   probe_there: 'The checker\'s neutral probe of a claim with no figures.',
+  probe_opener: 'The lead-in of a checker probe that opens "You said" (a late probe quoting the claim, or the checker\'s own line); only these words vary. "You put it at" / "You had" are used only before the claim\'s own figure; before a quoted clause or the checker\'s own words, the first three.',
   check_in: 'Text mode: the check-in after a minute of silence (once a silence), before the question on the table.',
   voice_check_in: 'Voice: the soft check-in after VOICE_CHECKIN_MS (90s) with no candidate speech and nothing playing — once a silence, again after the candidate speaks; interruptible; no clock pause, no session end.',
   pause: 'Text mode: the technical pause after three minutes (again on a later silence while pause budget is left). {x} = the limit, e.g. "5 minutes".',
@@ -70,6 +78,8 @@ const WHEN: Record<PhrasePool, string> = {
   opener_after_q: 'The opener\'s hand-off after a case prompt that ends in a question.',
   close_time_up: 'The goodbye at time-up.',
   close_complete: 'The goodbye when the case is complete.',
+  probe_method: 'Phase 1 (`probeGuardMethod`): the replacement question when a math challenge of the model\'s is withheld — the method, never a figure.',
+  ack: 'The model\'s opening acknowledgment, replaced by code when the case\'s `ackRotation` switch is on (Phase 1 4.10).',
   close_unresolved: 'The goodbye otherwise.',
 };
 

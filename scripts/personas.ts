@@ -378,6 +378,24 @@ export const PERSONAS: Persona[] = [
     brief: `Misstate figures the interviewer has already given you — in a data line or on an exhibit — believing you're quoting them: e.g. "you said it was X" with X a few points or a few percent off what you were shown. Do it once early in the analysis, and later with a second figure, off by about 4%. Build your next calculations on the misremembered figures, and carry one of them into your recommendation. Your reasoning method is otherwise fine.`,
     tests: 'Rule 6 option 4 on any case: misquotes of revealed data are corrected by code in one flat sentence (up to twice per item), never a Socratic probe; a recommendation resting on a misquote gets the correction and one chance to revise.',
   },
+  // Phase 1 additions (contract 22 Oct, Stream 1 task 4; Lorenzo: "a data-heavy asker (many specific data
+  // questions, lists of wants); a candidate who states only results, not working; a candidate who challenges the
+  // interviewer's data"). Case-neutral, like 64: the wave runs them on prof-002 and pricing-001.
+  {
+    id: 65, name: 'Dana — the Data-Heavy Asker',
+    brief: `Ask for a lot of data, specifically. After your structure, and again at every new branch, ask for three to five specific figures at once as a list — "I'd want: the trend in each cost line, the split by segment, last year's figure for each, and how the competitors compare" — mixing things the interviewer will plausibly have with finer cuts they may not (a split by month, by customer type, by region, a competitor's internal figure). Phrase about half of the asks as direct questions ("Do we have …?") and half as stated wants ("I'd want …", "I'd need to confirm …"). When something is refused or deferred, accept it and move on, but come back to one deferred item later by name. Use every figure you are given; your analysis is competent.`,
+    tests: 'The ask path under volume (contract §4.6–§4.7, round-6 covers and the answer gate): every ask in a list gets a release, a true refusal or a deferral that resolves — no silent part, no false refusal of a held item, no wrong-scope release, no restatement in place of an answer; "I\'d want / need / confirm" wants are read.',
+  },
+  {
+    id: 66, name: 'Remy — the Results-Only Answerer',
+    brief: `Do the case's math in your head and state only the results — "So that's a loss of about X a unit, and break-even sits near Y" — never show the working, the formula, or which inputs you used. About half of your results are right; the others rest on a wrong input or a slipped step you never mention. When asked how you got a figure, give the next result rather than the steps the first time ("it falls out of the per-unit number"); give the steps only when asked a second time. Your structure and judgement are sound.`,
+    tests: 'The checker and the probe guard on bare results (contract §3.5–§3.6): a wrong result is probed on method ("Walk me through how you got there"), never by naming a figure code verified as correct; right results are not challenged; at most two probes a lineage before one root correction; nothing stale is probed after a redo.',
+  },
+  {
+    id: 67, name: 'Victor — the Data Challenger',
+    brief: `Challenge the interviewer's data. Two or three times, right after a figure is given (in a data line or on an exhibit), dispute it confidently — "That can't be right, that's far too high for this industry", "Are you sure? I'd have expected that to have fallen" — and ask the interviewer to confirm or change it. Once, propose your own replacement figure and ask to use it instead. If the interviewer holds the figure, accept it and carry on with the interviewer's number; if they change it, use the new one. Your analysis is otherwise solid.`,
+    tests: 'FR-4 under pushback: the interviewer holds the case\'s figures — never revises, softens or replaces a ledger value, and never confirms the candidate\'s substitute — while staying civil; the dispute is no reason to release other data or to skip a stage.',
+  },
 ];
 
 export function getPersona(id: number): Persona {

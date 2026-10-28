@@ -71,14 +71,32 @@ const C5_SELF_HARM = /\b(kill myself|hurt myself|end it all|don'?t want to (live
 // point in any of it / anymore" is despair generalized beyond the case. The
 // "of a/the <thing>" continuation stays analytic ("I don't see the point of a
 // loyalty program here") — the C1/C5 boundary in Rule 17.
-const C5_NO_POINT = /\b(?:don'?t|do not|didn'?t|did not|can'?t|cannot) (?:really |even |genuinely )*see (?:the|any) point(?!\s+(?:of|in)\s+(?:the|a|an|our|your|this|that)\s+(?!case\b)\w)/i;
+// v4.13 (batch 39 — Lorenzo's ruling, 26 Oct evening): the gerund carve-out. "the point of/in <verb>ing" is how a
+// candidate questions an analytic step — "I don't see the point in discounting below cost", "what's the point of
+// segmenting further" — and all four client-subject lines in the post-wave report's §1 table fired on this floor.
+// The carve-out exempts an -ing continuation EXCEPT the handful that can only be despair ("of trying", "of going on",
+// "of carrying on", "of living", "of being here") and the -ing-shaped pronouns ("of anything", "of everything",
+// "of nothing", "of something", "of this thing"), which keep firing.
+const GERUND_CARVE = String.raw`(?!anything|everything|nothing|something|thing|trying|bothering|going|carrying|continuing|living|being|existing)[\w-]+ing\b`;
+const C5_NO_POINT = new RegExp(String.raw`\b(?:don'?t|do not|didn'?t|did not|can'?t|cannot) (?:really |even |genuinely )*see (?:the|any) point(?!\s+(?:of|in)\s+(?:(?:the|a|an|our|your|this|that)\s+(?!case\b)\w|${GERUND_CARVE}))`, 'i');
 // Non-case hardship disclosures: not risk-to-self on their own, but a real
 // interviewer would stop and check in.
-const C5_HARDSHIP = /\b(?:i'?m not sleeping|i haven'?t been sleeping|i can'?t sleep|(?:bad|rough|dark|awful) few (?:weeks|months)|(?:has|have) (?:kind of |really )?broken me|i'?m falling apart)\b/i;
+// v4.13: "(bad|rough|dark|awful) few (weeks|months)" removed from the floor on Lorenzo's ruling — it is an ordinary
+// way to describe a client's trading ("Brew & Bean has had a rough few months on traffic") and three of three
+// client-subject lines fired. The model layer (distress.ts) has it: its "distress" label names "a rough few weeks"
+// outright. The first-person branches below still carry the disclosure shape Sam's run showed.
+const C5_HARDSHIP = /\b(?:i'?m not sleeping|i haven'?t been sleeping|i can'?t sleep|(?:has|have) (?:kind of |really )?broken me|i'?m falling apart)\b/i;
+// v4.12 (batch 39, aldermoor p07 35740806 t17 — Lorenzo's ruling, 26 Oct): "nothing (matters|works)" removed. His
+// message was pure case arithmetic ending "both miss, and nothing works" — a verdict on two options, not on himself —
+// and the regex floor fired C5 "despair", skipped the model layer, and spoke the 988 script. Generalized hopelessness
+// in those words is the model layer's call now (conduct-model.ts); the floor keeps the first-person forms.
 // v4.6: "i (always|never) (fail|screw|mess)" removed — "ugh, I always mess up
 // the math" is C1 by the Rule 17 boundary, and the eval corpus showed it
 // firing on exactly that. Generalized self-talk is the model layer's job.
-const C5_DESPAIR = /\b(what'?s the point(?!\s+(?:of\s+(?:the|a|an|our|your)\b|where\b|at which\b|to\s))|why do i (?:even )?(?:bother|try)\b|why (?:even )?(?:bother|try)(?:ing)?\s*(?:anymore|at all|with (?:any of )?this|[.?!]|$)|i'?m going to (bomb|fail|blow|screw up) (every|all|everything|it all)|nothing (matters|works)|i (hate|can'?t stand) myself|i'?m (worthless|hopeless|a failure|useless at everything)|i can'?t do (this|anything) anymore|i give up on everything)/i;
+// v4.13: the same gerund carve-out on "what's the point of/in <verb>ing", and the BARE sentence-final "why bother?"
+// off the floor — "If the margin is negative at every price, why bother?" is a conclusion about the client, and the
+// model layer judges it. "why bother anymore / at all / with this" and the first-person "why do I even bother" stay.
+const C5_DESPAIR = new RegExp(String.raw`\b(what'?s the point(?!\s+(?:of\s+(?:the|a|an|our|your)\b|(?:of|in)\s+${GERUND_CARVE}|where\b|at which\b|to\s))|why do i (?:even )?(?:bother|try)\b|why (?:even )?(?:bother|try)(?:ing)?\s+(?:anymore|at all|with (?:any of )?this)|i'?m going to (bomb|fail|blow|screw up) (every|all|everything|it all)|i (hate|can'?t stand) myself|i'?m (worthless|hopeless|a failure|useless at everything)|i can'?t do (this|anything) anymore|i give up on everything)`, 'i');
 
 // ---- C4: prompt injection → redirect + log, NEVER terminate --------------------
 // Tuned against an adversarial probe corpus (July 2026, see conduct.test.ts):

@@ -1,0 +1,71 @@
+{
+ "run": "test runs/batch-36-aldermoor-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-3fdb20e8.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 2,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Is that MECE, and what's missing? Given the board's $300 million peak sales threshold, which branch would you prioritize first, and why?",
+   "why": "Three questions are packed into one turn, so the candidate has too many things to answer at once."
+  },
+  {
+   "turn": 8,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "In the patient funnel, 1.6% of US adults have Corlan's disease; 50% of those are diagnosed, 50% of diagnosed patients are treated with prescription medicine, and 20% of treated patients are moderate-to-severe and eligible for Kelvexa",
+   "why": "The candidate also asked for a net price per patient-year benchmark. That part got no release, refusal or deferral, and was only answered after the candidate asked again."
+  },
+  {
+   "turn": 12,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Aldermoor's forecast is that Kelvexa reaches 20% of eligible patients at peak, about five years after launch.",
+   "why": "The candidate asked what share of the 200,000 are on an advanced therapy today. The forecast peak share does not answer that, and the actual ask got no answer or refusal."
+  },
+  {
+   "turn": 14,
+   "class": "wrong_release",
+   "severity": "firm",
+   "quote": "Kelvexa is protected by patents until 2038.",
+   "why": "The candidate asked for Nimbrel's patent expiry. Kelvexa's patent date was given instead, and Nimbrel's expiry got no word."
+  },
+  {
+   "turn": 14,
+   "class": "unasked_offer",
+   "severity": "firm",
+   "quote": "I can share Kelvexa US pricing, rebates and time on treatment if you'd like.",
+   "why": "The candidate had not asked for Kelvexa pricing at this point; it asked about patent expiry and competitors."
+  },
+  {
+   "turn": 18,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Here's an exhibit: Corlan's disease — US patient funnel and Kelvexa pricing",
+   "why": "The candidate asked whether the board means $300M as a central case or a downside case. The turn gave no answer, refusal or deferral."
+  },
+  {
+   "turn": 24,
+   "class": "ack_repetition",
+   "severity": "borderline",
+   "quote": "Right. A haircut-based build.",
+   "why": "Two acknowledgments are stacked in one turn."
+  },
+  {
+   "turn": 34,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you do to guard against that?",
+   "why": "In the previous answer the candidate had already given mitigations: variable cost structure, staged reps, a tripwire and a pre-negotiated partnership."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 17540,
+  "output": 2680,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 23971,
+ "usd": 0.12376
+}

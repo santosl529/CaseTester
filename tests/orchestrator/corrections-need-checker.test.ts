@@ -58,6 +58,6 @@ describe('code names the quantity and formats the figure', () => {
   const ctx = { caseData: prof2, revealedIds: [], shownExhibitIds: [], candidateTexts: [] };
   it('"Hub–Lakeport contribution per flight in FY2023 is about $4,200, not $11,429." — never a bare number', () => {
     expect(codeCorrection(c('$11,429', 'lakeport_contribution_fy2023'), { value: 4200, index: 0 }, ctx)?.line).toBe('Hub–Lakeport contribution per flight in FY2023 is about $4,200, not $11,429.');
-    expect(codeCorrection(c('11429', 'lakeport_contribution_fy2023'), { value: 4200, index: 0 }, ctx)?.line).toBe('Hub–Lakeport contribution per flight in FY2023 is about $4,200, not 11429.');
+    expect(codeCorrection(c('11429', 'lakeport_contribution_fy2023'), { value: 4200, index: 0 }, ctx)?.line).toBe('Hub–Lakeport contribution per flight in FY2023 is about $4,200, not $11,429.');
   });
 });

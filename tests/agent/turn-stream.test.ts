@@ -92,3 +92,21 @@ describe('resolveRequests', () => {
     expect(resolveRequests([{ what: 'cost split', itemIds: ['cogs_pct', 'nope'], explicit: true, respond: 'release' }], resolve)[0].itemIds).toEqual(['cogs_pct']);
   });
 });
+
+describe('literal \\uXXXX in the model text (Lorenzo, 19 Oct; batch 28 Owen t12)', () => {
+  // The model writes "\\u2013" in its JSON, so JSON.parse leaves – as six characters.
+  const RAW = '{"say":"Hub\\\\u2013Lakeport is out.","question":"What about cost \\\\u2014 beyond pricing?","requests":[{"what":"Hub\\\\u2013Lakeport fare","itemIds":[],"explicit":true,"respond":"release"}]}';
+  it('decodes sentences and fields', () => {
+    const ev = run(chunked(RAW, 7));
+    expect(ev).toContainEqual({ type: 'sentence', text: 'Hub–Lakeport is out.' });
+    expect(ev).toContainEqual({ type: 'field', key: 'question', value: 'What about cost — beyond pricing?' });
+    expect(ev).toContainEqual({ type: 'field', key: 'requests', value: [{ what: 'Hub–Lakeport fare', itemIds: [], explicit: true, respond: 'release' }] });
+  });
+  it('decodes the final parse; leaves a short or non-hex escape', () => {
+    const t = parseTurn(RAW.replace('"requests"', '"move":"other","requests"'));
+    expect(t?.say).toBe('Hub–Lakeport is out.');
+    expect(t?.question).toBe('What about cost — beyond pricing?');
+    expect(t?.requests[0].what).toBe('Hub–Lakeport fare');
+    expect(parseTurn('{"say":"a \\\\u20 b \\\\uZZZZ","question":"q"}')?.say).toBe('a \\u20 b \\uZZZZ');
+  });
+});

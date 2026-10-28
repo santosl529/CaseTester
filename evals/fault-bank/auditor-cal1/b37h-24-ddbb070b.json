@@ -1,0 +1,57 @@
+{
+ "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-ddbb070b.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "unasked_release",
+   "severity": "firm",
+   "quote": "Here's an exhibit: Roasted chickpea snacks — Economics of one bag and first-year launch costs.",
+   "why": "The candidate asked only for chip cost of goods and gross-margin history. The chickpea economics exhibit went out against that ask; it is simply the next data in sequence."
+  },
+  {
+   "turn": 8,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "What would you want to know to judge whether the launch can realistically reach that in year one?",
+   "why": "This \"that\" dangles. It sits right after the line about chip SKU volume, but it apparently means the 6 million breakeven bags."
+  },
+  {
+   "turn": 10,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "You're treating 6 million bags as reachable by comparing it to a revenue percentage.",
+   "why": "In answer to the interviewer's own question, the candidate said they wanted to know how many stores the line could get into. The case holds this (retailer_support, channels), yet the turn gives no release, refusal or deferral."
+  },
+  {
+   "turn": 10,
+   "class": "unasked_offer",
+   "severity": "firm",
+   "quote": "I can share the survey on shopper purchase intent and planning assumptions if you'd like.",
+   "why": "The candidate had not asked for survey or intent data; this offer was volunteered."
+  },
+  {
+   "turn": 20,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "An exhibit for you — Proposal — In-store sampling program (first year of the launch). How do you read this exhibit?",
+   "why": "The candidate said they wanted to confirm chip contribution per bag. The case doesn't hold it, but no refusal was given; the turn moved straight to the next exhibit."
+  },
+  {
+   "turn": 26,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "How would you guard against that?",
+   "why": "The candidate's last answer had already given mitigations: locking retailer commitments first and staging the marketing spend on a 12-week velocity read."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 14863,
+  "output": 2151,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 21171,
+ "usd": 0.102472
+}

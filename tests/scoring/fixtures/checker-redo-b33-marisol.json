@@ -1,0 +1,611 @@
+{
+ "source": "b33 Marisol 31e33506 (prof-001), test runs/batch-33-oct-19-runs-1-10/57-marisol-the-context-confuser/live-run-2026-10-20-31e33506: the math_checker events on messages 9, 11 and 13 as the r5b-58 replay booked them (verdicts as recorded), the candidate messages from 13 on (recorded, verbatim), and the items revealed by the end.",
+ "revealedIds": [
+  "avg_ticket",
+  "cogs_pct",
+  "labor_pct",
+  "overhead_pct",
+  "menu_price_change",
+  "bean_share_of_cogs",
+  "bean_price_change",
+  "non_bean_input_change"
+ ],
+ "candidateTurns": [
+  {
+   "turnIndex": 13,
+   "text": "Sure. Beans were 25% of COGS. I took the current COGS line, 58 points of revenue, and multiplied: 0.25 × 58 = 14.5 points of revenue sitting in beans today. Then beans rose 40% over the two years, so the increase is 14.5 × 0.40 = 5.8 points of revenue.\n\nAnd the transaction figure actually reinforces the pricing story. Average ticket is $6.80 now versus $6.20 two years ago — so a cup of coffee effectively goes for $6.80. If beans run at 14.5% of revenue, that's about $0.99 of bean cost in that $6.80 cup, up from roughly $0.71 before the run-up. So customers are absorbing nothing, because menu prices held flat — the whole $0.28 landed on us.\n\nA 5% price increase on $6.80 is about $0.34, which more than covers the bean inflation per cup. That's a clean, small ask of the customer."
+  },
+  {
+   "turnIndex": 15,
+   "text": "Let me re-anchor. If beans contribute about 10 points of the 16-point COGS increase, then beans are the overwhelming driver — roughly 62% of the deterioration — and the other inputs account for only about 6 points combined, even though they grew 37.5%. So this is close to a single-input problem.\n\nI think my slip was multiplying the 40% against the wrong base — I ran it off the current COGS line rather than where beans actually sat.\n\nNext step is sizing the fix against that 10. If procurement could claw back even half the bean inflation, that's 5 points of margin, taking us from 6% to 11%. Pricing has to carry the rest. Ticket is $6.80, up 10% from $6.20, so customers are already spending more per visit without complaint — that's evidence of tolerance.\n\nI'd want the split of green coffee spend by contract type, and whether volume per store held while ticket rose."
+  },
+  {
+   "turnIndex": 17,
+   "text": "I took the 5.8 points — which came from 0.25 × 58 = 14.5, then × 40% — and added it straight onto the current 6% margin, which got me to 11.8%, call it 12%.\n\nWith your correction that beans contribute about 10 points, the same logic gives 6% + 10 = 16%. So fully neutralizing bean inflation takes us from 6% to 16%, not 12%. That's a bigger prize than I said, and it changes the recommendation's weight — procurement alone gets us two-thirds of the way back toward 24%.\n\nThe remaining gap to 24% is about 8 points, which would have to come from the other inputs — up 37.5% — plus the 2 points overhead drifted, 12 to 14. Pricing closes whatever's left.\n\nI'd note the add-back assumes revenue and volume hold while we do it, which is exactly what I'd want the contract and volume data to confirm."
+  },
+  {
+   "turnIndex": 19,
+   "text": "Honestly — I didn't derive it. You gave me the 10 and I took it and reasoned forward from it. My own calculation produced 5.8, which was wrong.\n\nLet me try to actually get there. Beans were 25% of COGS two years ago, and COGS was 42 points of revenue then — that's the right base, not the current 58. So beans were 0.25 × 42 = 10.5 points of revenue. Beans up 40%, so the increase is 10.5 × 0.40 = 4.2 points.\n\nThat gives 4.2, not 10. So I'm still not landing on your figure, which means my slot is still off somewhere — possibly I should be working in dollar terms with revenue up 15%, rather than holding revenue constant, since a percent-of-revenue base moves when revenue moves.\n\nCould you tell me which base you're using? I'd rather fix the mechanics than keep guessing at it."
+  },
+  {
+   "turnIndex": 21,
+   "text": "Beyond hedging beans and taking price, a few levers.\n\nOn the input itself: reformulate or re-source. Blend in a lower-cost origin for drip and espresso bases while protecting the single-origin premium line, so the brand story stays intact. Also look at waste — brewed coffee thrown out at close, over-pouring, free refills. That's bean cost that never becomes revenue, and it's fixable without touching the customer.\n\nOn mix: ticket is up to $6.80 from $6.20 because customers buy more items per visit. If we steer that attachment toward items with low bean content — pastries, food — we grow revenue without growing the input that's killing us. Merchandising and bundling do that cheaply.\n\nOn the other lines: labor held flat at 22 for three straight years, which is unusual in this period and worth confirming it's real.\n\nAnd structurally, with 200 locations, I'd check whether any are unprofitable outright and worth closing or renegotiating on rent."
+  },
+  {
+   "turnIndex": 23,
+   "text": "Numerator 10, base 16 — the 10 points you gave me for beans over the 16-point total COGS increase, 42 to 58. 10 ÷ 16 = 62.5%, which I rounded to 62%.\n\nSo the arithmetic there is fine, but it's only as good as the 10, which I never managed to derive myself. My own attempts gave 5.8 off the current COGS base and 4.2 off the two-years-ago base. If the right figure were 4.2, the share would be 4.2 ÷ 16 = 26%, which is a completely different story — beans would be one contributor among several rather than the dominant one, and the recommendation would shift from \"fix procurement\" to a broader cost program.\n\nThat's a material fork, and I don't want to build a recommendation on a number I can't reconstruct. I'd want to nail the bean base before I present anything to the CEO."
+  },
+  {
+   "turnIndex": 25,
+   "text": "My recommendation: attack coffee bean cost through procurement, and take a modest price increase to cover the rest.\n\nSupporting it: COGS went 42 to 58 points of revenue while labor held flat at 22 and overhead moved only 12 to 14, so essentially all 18 points of margin loss sit in COGS. Beans grew fastest at 40% versus 37.5% for everything else, and they're the largest single component at 25% of the line. Menu prices have been flat for two years, so none of that inflation reached the customer. Meanwhile ticket rose from $6.20 to $6.80, so the average cup now sells for $6.80 — a 5% increase is about $0.34, which more than covers the per-cup bean inflation.\n\nOn my numbers, neutralizing beans moves margin from 6% to roughly 16%.\n\nBiggest risk: I couldn't reconstruct the 10-point bean figure. If it's closer to 4, beans are a quarter of the problem, not two-thirds, and this recommendation is undersized.\n\nNext step: pull green coffee contracts and the COGS component split."
+  }
+ ],
+ "rows": [
+  {
+   "category": "math_checker",
+   "subtype": "verdict",
+   "turnIndex": 9,
+   "payloadJsonb": {
+    "candidateTurnIndex": 9,
+    "latencyMs": 9430,
+    "model": "claude-sonnet-5-5",
+    "claims": [
+     {
+      "pointer": "",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "step",
+       "price": null,
+       "stepId": "bean_share_of_revenue",
+       "target": null
+      },
+      "flag": true,
+      "span": "beans are 0.25 × 58 = 14.5 points. The other inputs are the remaining 43.5 points.",
+      "unit": "points of revenue",
+      "probe": "You took beans as 25% of the 58 points of COGS. Which year does that 25% refer to, and what was COGS then?",
+      "verdict": "error",
+      "hintLine": null,
+      "quantity": "Beans as points of revenue today",
+      "vetNotes": [
+       "probe only: the claim states COGS at 58; the step is two years ago's (42) — another quantity"
+      ],
+      "errorType": "wrong_period",
+      "probeLine": "You took beans as 25% of the 58 points of COGS. Which year does that 25% refer to, and what was COGS then?",
+      "confidence": "medium",
+      "correctLow": null,
+      "derivation": "The 25% share is of COGS two years ago, when COGS was 42% of revenue: 0.25 × 42 = 10.5 points then. Applying it to current 58 mixes periods. Today beans are 10.5 × 1.4 = 14.7 points, and other inputs are 31.5 × 1.375 = 43.3 points. The 14.5 is near today's level by coincidence, but the derivation is wrong-period; as a prior figure it should be 10.5.",
+      "assumptions": "25% bean share applies to two years ago, per ledger; applied to current COGS",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": 10.5,
+      "candidateValue": "14.5 points (others 43.5)",
+      "correctionLine": null,
+      "correctionFigure": null,
+      "changesConclusion": false
+     },
+     {
+      "pointer": "",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "step",
+       "price": null,
+       "stepId": "bean_points_added",
+       "target": null
+      },
+      "flag": true,
+      "span": "beans up 40%, so 14.5 × 0.40 = 5.8 points of increase",
+      "unit": "points of revenue",
+      "probe": "You got 5.8 points of increase from 40% on 14.5 points. Which period's base should a 40% rise over two years apply to?",
+      "verdict": "error",
+      "hintLine": null,
+      "quantity": "Bean inflation's contribution to the COGS increase",
+      "vetNotes": [],
+      "errorType": "wrong_period",
+      "probeLine": "You got 5.8 points of increase from 40% on 14.5 points. Which period's base should a 40% rise over two years apply to?",
+      "confidence": "high",
+      "correctLow": null,
+      "derivation": "Bean base two years ago is 10.5 points; × 40% = 4.2 points added. 5.8 applies 40% to a current-period base.",
+      "assumptions": "",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": 4.2,
+      "candidateValue": "5.8 points",
+      "correctionLine": "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8.",
+      "correctionFigure": "4.2",
+      "changesConclusion": true
+     },
+     {
+      "pointer": "",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "step",
+       "price": null,
+       "stepId": "non_bean_points_added",
+       "target": null
+      },
+      "flag": true,
+      "span": "Everything else up 37.5%... call it roughly 2 points each",
+      "unit": "points of revenue",
+      "probe": "You estimated roughly 2 points each for dairy, packaging and food. How did you get that from a 37.5% rise on the other inputs?",
+      "verdict": "error",
+      "hintLine": null,
+      "quantity": "Other inputs' contribution to the COGS increase",
+      "vetNotes": [],
+      "errorType": "conceptual",
+      "probeLine": "You estimated roughly 2 points each for dairy, packaging and food. How did you get that from a 37.5% rise on the other inputs?",
+      "confidence": "high",
+      "correctLow": null,
+      "derivation": "Other inputs two years ago were 31.5 points; × 37.5% = 11.8 points added in total. Candidate's ~2 each (~6) is about half the true total.",
+      "assumptions": "three inputs split equally",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": 11.8,
+      "candidateValue": "about 2 points each, ~6 total",
+      "correctionLine": "Other inputs' contribution to the COGS increase, in points of revenue, is about 11.8 points, not 2.",
+      "correctionFigure": "11.8",
+      "changesConclusion": true
+     },
+     {
+      "pointer": "",
+      "actualShare": 0.26,
+      "codeQuantity": {
+       "kind": "none",
+       "price": null,
+       "stepId": null,
+       "target": null
+      },
+      "flag": true,
+      "span": "beans at 5.8 points is the single largest contributor by a wide margin, more than double any other line... Coffee beans are driving the COGS increase",
+      "unit": "points of revenue",
+      "probe": "You say beans are driving the COGS increase. What share of the 16-point rise do beans account for versus all the other inputs together?",
+      "verdict": "error",
+      "hintLine": "You say beans are driving the COGS increase. What share of the 16-point rise do beans account for versus all the other inputs together?",
+      "quantity": "Beans as the dominant driver of the COGS increase",
+      "vetNotes": [
+       "probe withheld (leads: names 16, not in the claim): You say beans are driving the COGS increase. What share of the 16-point rise do beans account for versus all the other inputs together?",
+       "hint kept for the second probe",
+       "no correction: code computes nothing for none"
+      ],
+      "errorType": "conceptual",
+      "probeLine": "Walk me through that calculation.",
+      "confidence": "high",
+      "correctLow": null,
+      "derivation": "Beans add 4.2 points of the 16, about 26%. Other inputs add 11.8 points, about 74%, so the bulk is in the other inputs collectively. The conclusion that beans drive the increase is false.",
+      "assumptions": "Compared with other lines individually; the split among other inputs is unrevealed",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": 4.2,
+      "candidateValue": "beans largest, more than double any other line",
+      "correctionLine": null,
+      "correctionFigure": null,
+      "changesConclusion": true
+     }
+    ],
+    "codeFlags": [],
+    "stamps": [
+     {
+      "stepId": "non_bean_points_now",
+      "value": 43.5,
+      "span": "The other inputs are the remaining 43.5 points"
+     },
+     {
+      "stepId": "arith:0.25 × 58",
+      "value": 14.5,
+      "span": "Beans are 25% of COGS, and COGS is currently 58 points of revenue, so beans are 0.25 × 58 = 14.5 points."
+     },
+     {
+      "stepId": "arith:14.5 × 0.40",
+      "value": 5.8,
+      "span": "Now apply the growth: beans up 40%, so 14.5 × 0.40 = 5.8 points of increase."
+     }
+    ]
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "flag",
+   "turnIndex": 11,
+   "payloadJsonb": {
+    "id": "9:0",
+    "candidateTurnIndex": 9,
+    "outcome": "probe",
+    "reason": "attempt 1",
+    "span": "beans are 0.25 × 58 = 14.5 points. The other inputs are the remaining 43.5 points.",
+    "candidateValue": "14.5 points (others 43.5)",
+    "key": "bean_share_of_revenue@14.5",
+    "changesConclusion": false,
+    "line": "You took beans as 25% of the 58 points of COGS. Which year does that 25% refer to, and what was COGS then?"
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "flag",
+   "turnIndex": 11,
+   "payloadJsonb": {
+    "id": "9:1",
+    "candidateTurnIndex": 9,
+    "outcome": "derived",
+    "reason": "built on bean_share_of_revenue@14.5's figure — the probe follows the input",
+    "span": "beans up 40%, so 14.5 × 0.40 = 5.8 points of increase",
+    "candidateValue": "5.8 points",
+    "key": "bean_points_added@5.8",
+    "changesConclusion": true,
+    "root": "bean_share_of_revenue@14.5"
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "flag",
+   "turnIndex": 11,
+   "payloadJsonb": {
+    "id": "9:2",
+    "candidateTurnIndex": 9,
+    "outcome": "derived",
+    "reason": "built on bean_share_of_revenue@14.5's figure — the probe follows the input",
+    "span": "Everything else up 37.5%... call it roughly 2 points each",
+    "candidateValue": "about 2 points each, ~6 total",
+    "key": "non_bean_points_added@2",
+    "changesConclusion": true,
+    "root": "bean_share_of_revenue@14.5"
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "flag",
+   "turnIndex": 11,
+   "payloadJsonb": {
+    "id": "9:3",
+    "candidateTurnIndex": 9,
+    "outcome": "derived",
+    "reason": "built on bean_share_of_revenue@14.5's figure — the probe follows the input",
+    "span": "beans at 5.8 points is the single largest contributor by a wide margin, more than double any other line... Coffee beans are driving the COGS increase",
+    "candidateValue": "beans largest, more than double any other line",
+    "key": "non_bean_points_added@2",
+    "changesConclusion": true,
+    "root": "bean_share_of_revenue@14.5"
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "verdict",
+   "turnIndex": 11,
+   "payloadJsonb": {
+    "candidateTurnIndex": 11,
+    "latencyMs": 10208,
+    "model": "claude-sonnet-5-5",
+    "claims": [
+     {
+      "pointer": "How does that fit with the fact that beans were 25% of COGS two years ago, when COGS was 42% of revenue rather than 58%?",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "step",
+       "price": null,
+       "stepId": "bean_points_added",
+       "target": null
+      },
+      "flag": true,
+      "span": "Beans are 5.8 points of the 16-point COGS increase.",
+      "unit": "points of revenue",
+      "probe": "You said beans are 5.8 points of the 16-point increase. What base and which period did you apply the 25% bean share to?",
+      "verdict": "error",
+      "hintLine": "You said beans are 5.8 points of the 16-point increase. What base and which period did you apply the 25% bean share to?",
+      "quantity": "Bean inflation's contribution to the COGS increase, in points of revenue",
+      "vetNotes": [
+       "probe trimmed (leads: names 25, not in the claim): You said beans are 5.8 points of the 16-point increase. What base and which period did you apply the 25% bean share to?",
+       "hint kept for the second probe"
+      ],
+      "errorType": "wrong_period",
+      "probeLine": "You said beans are 5.8 points of the 16-point increase. What base?",
+      "confidence": "high",
+      "correctLow": null,
+      "derivation": "The 25% bean share applies to COGS two years ago, not today. Beans were 0.25 × 42 = 10.5 points of revenue then. A 40% rise adds 10.5 × 0.40 = 4.2 points. The candidate used 0.25 × 58 = 14.5 as the base, which mixes periods.",
+      "assumptions": "Beans were 25% of COGS two years ago; COGS was 42% of revenue then; beans are up 40%; menu prices flat.",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": 4.2,
+      "candidateValue": "5.8 points",
+      "correctionLine": "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8.",
+      "correctionFigure": "4.2",
+      "changesConclusion": true
+     },
+     {
+      "pointer": "How does that fit with the 25% bean share being from two years ago, when COGS was 42% of revenue?",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "none",
+       "price": null,
+       "stepId": null,
+       "target": null
+      },
+      "flag": true,
+      "span": "If we could hold bean costs at the old level, margin goes from 6% to roughly 11.8% — so call it 12%.",
+      "unit": "percent margin",
+      "probe": "You said margin goes to roughly 12% if bean costs return to the old level. What bean cost figure and base did you add to the 6%?",
+      "verdict": "error",
+      "hintLine": null,
+      "quantity": "Margin after reversing the bean cost increase",
+      "vetNotes": [
+       "no correction: code computes nothing for none",
+       "pointer withheld (leads: names 25, 42, not in the claim): How does that fit with the 25% bean share being from two years ago, when COGS was 42% of revenue?"
+      ],
+      "errorType": "wrong_period",
+      "probeLine": "You said margin goes to roughly 12% if bean costs return to the old level. What bean cost figure and base did you add to the 6%?",
+      "confidence": "high",
+      "correctLow": null,
+      "derivation": "Reversing the bean increase recovers 4.2 points, so the margin goes from 6% to 6 + 4.2 = 10.2%. The candidate's 11.8% rests on the 5.8-point figure, which is wrong.",
+      "assumptions": "Bean costs return to the old level; everything else is unchanged.",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": 10.2,
+      "candidateValue": "about 12%",
+      "correctionLine": null,
+      "correctionFigure": null,
+      "changesConclusion": false
+     }
+    ],
+    "codeFlags": [],
+    "stamps": []
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "flag",
+   "turnIndex": 13,
+   "payloadJsonb": {
+    "id": "9:0",
+    "candidateTurnIndex": 9,
+    "outcome": "unresolved",
+    "reason": "attempt 2: no correction code can write, no pointer — left for the report",
+    "span": "beans are 0.25 × 58 = 14.5 points. The other inputs are the remaining 43.5 points.",
+    "candidateValue": "14.5 points (others 43.5)",
+    "key": "bean_share_of_revenue@14.5",
+    "changesConclusion": false
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "flag",
+   "turnIndex": 13,
+   "payloadJsonb": {
+    "id": "11:0",
+    "candidateTurnIndex": 11,
+    "outcome": "correct",
+    "reason": "built on a closed input (bean_share_of_revenue@14.5) — its own correction, once; attempt 1; code's quantity stated (revenue or margin units attached)",
+    "span": "Beans are 5.8 points of the 16-point COGS increase.",
+    "candidateValue": "5.8 points",
+    "key": "bean_points_added@5.8",
+    "changesConclusion": true,
+    "line": "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8.",
+    "root": "bean_share_of_revenue@14.5"
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "verdict",
+   "turnIndex": 13,
+   "payloadJsonb": {
+    "candidateTurnIndex": 13,
+    "latencyMs": 10496,
+    "model": "claude-sonnet-5-5",
+    "claims": [
+     {
+      "pointer": "",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "step",
+       "price": null,
+       "stepId": "bean_share_of_revenue",
+       "target": null
+      },
+      "flag": true,
+      "span": "0.25 × 58 = 14.5 points of revenue sitting in beans today",
+      "unit": "points of revenue",
+      "probe": "You got 14.5 points from 25% of the 58% COGS. Which year does that 25% bean share refer to, and which year's COGS does it apply to?",
+      "verdict": "error",
+      "hintLine": null,
+      "quantity": "beans as points of revenue today",
+      "vetNotes": [
+       "probe only: the claim states COGS at 58; the step is two years ago's (42) — another quantity"
+      ],
+      "errorType": "wrong_period",
+      "probeLine": "You got 14.5 points from 25% of the 58% COGS. Which year does that 25% bean share refer to, and which year's COGS does it apply to?",
+      "confidence": "medium",
+      "correctLow": null,
+      "derivation": "25% was two years ago, so beans were 0.25 × 42 = 10.5 points then. Today beans are 10.5 × 1.4 = 14.7 points, so 14.5 is close to today's level only by coincidence, but it is derived from the wrong-period share. The claim labelled as 'today' is within rounding of 14.7, though the method is wrong.",
+      "assumptions": "Beans were 25% of COGS two years ago, not today; the 25% share applies to the prior COGS of 42",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": 10.5,
+      "candidateValue": "14.5 points",
+      "correctionLine": null,
+      "correctionFigure": null,
+      "changesConclusion": false
+     },
+     {
+      "pointer": "",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "step",
+       "price": null,
+       "stepId": "bean_points_added",
+       "target": null
+      },
+      "flag": true,
+      "span": "beans rose 40% over the two years, so the increase is 14.5 × 0.40 = 5.8 points of revenue",
+      "unit": "points of revenue",
+      "probe": "You got 5.8 points by applying 40% to 14.5. Is that 14.5 the level before or after the 40% rise?",
+      "verdict": "error",
+      "hintLine": null,
+      "quantity": "bean inflation contribution to COGS increase",
+      "vetNotes": [],
+      "errorType": "wrong_period",
+      "probeLine": "You got 5.8 points by applying 40% to 14.5. Is that 14.5 the level before or after the 40% rise?",
+      "confidence": "high",
+      "correctLow": null,
+      "derivation": "Prior bean share = 0.25 × 42 = 10.5 points; × 40% = 4.2 points. The candidate applied 40% to the current-level figure, which already includes the increase.",
+      "assumptions": "Increase = prior bean share of revenue × 40%",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": 4.2,
+      "candidateValue": "5.8 points",
+      "correctionLine": "Bean inflation's contribution to the COGS increase, in points of revenue, is about 4.2 points, not 5.8.",
+      "correctionFigure": "4.2",
+      "changesConclusion": true
+     },
+     {
+      "pointer": "",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "none",
+       "price": null,
+       "stepId": null,
+       "target": null
+      },
+      "flag": false,
+      "span": "that's about $0.99 of bean cost in that $6.80 cup, up from roughly $0.71 before the run-up",
+      "unit": "USD",
+      "probe": "",
+      "verdict": "unverifiable",
+      "hintLine": null,
+      "quantity": "bean cost per ticket now and before",
+      "vetNotes": [],
+      "errorType": null,
+      "probeLine": null,
+      "confidence": "low",
+      "correctLow": null,
+      "derivation": "Mixed bases: the prior ticket was $6.20 and bean share was 10.5%, which gives about $0.65, versus $0.71. Per-ticket bean cost today is about 14.7% × 6.80 ≈ $1.00. The per-cup framing is loose; not flagged separately.",
+      "assumptions": "Beans 14.5% of revenue today; the prior cost is today's divided by 1.4 and expressed per the same $6.80",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": null,
+      "candidateValue": "$0.99 now, $0.71 before",
+      "correctionLine": null,
+      "correctionFigure": null,
+      "changesConclusion": false
+     },
+     {
+      "pointer": "",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "none",
+       "price": null,
+       "stepId": null,
+       "target": null
+      },
+      "flag": false,
+      "span": "the whole $0.28 landed on us",
+      "unit": "USD",
+      "probe": "",
+      "verdict": "unverifiable",
+      "hintLine": null,
+      "quantity": "bean cost increase per cup",
+      "vetNotes": [],
+      "errorType": null,
+      "probeLine": null,
+      "confidence": "low",
+      "correctLow": null,
+      "derivation": "Depends on the per-cup framing above; a per-ticket comparison across different ticket sizes is not clean enough to call an error.",
+      "assumptions": "Difference between 0.99 and 0.71",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": null,
+      "candidateValue": "$0.28",
+      "correctionLine": null,
+      "correctionFigure": null,
+      "changesConclusion": false
+     },
+     {
+      "pointer": "",
+      "actualShare": null,
+      "codeQuantity": {
+       "kind": "gain",
+       "price": 5,
+       "stepId": null,
+       "target": null
+      },
+      "flag": false,
+      "span": "A 5% price increase on $6.80 is about $0.34, which more than covers the bean inflation per cup",
+      "unit": "USD",
+      "probe": "",
+      "verdict": "correct",
+      "hintLine": null,
+      "quantity": "5% price rise vs bean inflation",
+      "vetNotes": [],
+      "errorType": null,
+      "probeLine": null,
+      "confidence": "medium",
+      "correctLow": null,
+      "derivation": "5% × 6.80 = 0.34, which exceeds both 0.28 and the true bean increase of about 0.29 per ticket. Margin gain from 5% is 4.5 points, roughly consistent with covering the 4.2-point bean increase.",
+      "assumptions": "Compares to the candidate's $0.28",
+      "correctHigh": null,
+      "pointerLine": null,
+      "correctValue": 0.34,
+      "candidateValue": "$0.34 covers bean inflation",
+      "correctionLine": null,
+      "correctionFigure": null,
+      "changesConclusion": false
+     }
+    ],
+    "codeFlags": [],
+    "stamps": [
+     {
+      "stepId": "arith:0.25 × 58",
+      "value": 14.5,
+      "span": "I took the current COGS line, 58 points of revenue, and multiplied: 0.25 × 58 = 14.5 points of revenue sitting in beans today."
+     },
+     {
+      "stepId": "arith:14.5 × 0.40",
+      "value": 5.8,
+      "span": "Then beans rose 40% over the 2 years, so the increase is 14.5 × 0.40 = 5.8 points of revenue."
+     }
+    ]
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "flag",
+   "turnIndex": 15,
+   "payloadJsonb": {
+    "id": "13:0",
+    "candidateTurnIndex": 13,
+    "outcome": "unresolved",
+    "reason": "restated after the flag closed (corrected, or left for the report)",
+    "span": "0.25 × 58 = 14.5 points of revenue sitting in beans today",
+    "candidateValue": "14.5 points",
+    "key": "bean_share_of_revenue@14.5",
+    "changesConclusion": false
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "flag",
+   "turnIndex": 15,
+   "payloadJsonb": {
+    "id": "13:1",
+    "candidateTurnIndex": 13,
+    "outcome": "unresolved",
+    "reason": "restated after the flag closed (corrected, or left for the report)",
+    "span": "beans rose 40% over the two years, so the increase is 14.5 × 0.40 = 5.8 points of revenue",
+    "candidateValue": "5.8 points",
+    "key": "bean_points_added@5.8",
+    "changesConclusion": true
+   }
+  },
+  {
+   "category": "math_checker",
+   "subtype": "flag",
+   "turnIndex": 15,
+   "payloadJsonb": {
+    "id": "11:1",
+    "candidateTurnIndex": 11,
+    "outcome": "probe",
+    "reason": "attempt 1",
+    "span": "If we could hold bean costs at the old level, margin goes from 6% to roughly 11.8% — so call it 12%.",
+    "candidateValue": "about 12%",
+    "key": "checker:about 12%",
+    "changesConclusion": false,
+    "line": "You mentioned margin goes to roughly 12% if bean costs return to the old level. What bean cost figure and base did you add to the 6%?"
+   }
+  }
+ ]
+}

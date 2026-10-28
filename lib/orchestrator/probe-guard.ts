@@ -1,6 +1,7 @@
 import { normalizeNumberWords } from '@/lib/number-words';
 import type { VerifiedFigure } from './recompute';
 import { classifyMathTalk } from './math-talk';
+import { figuresIn, unitsAgree } from './own-quantity';
 
 // Challenges to the candidate's math, decided by what code verified
 // (docs/interviewer-behavior.md Rule 2; round-3 fixes, 11 Oct 2026). Before a
@@ -28,10 +29,31 @@ export type ChallengeContext = {
   verified: VerifiedFigure[];        // this candidate turn's verified figures, then the previous turn's
   flagged?: number[];                // figures a check flagged as wrong this turn
   closed?: number[];                 // figures of a flag past Rule 14 (corrected, or left for the report): never asked about again
+  closedInputs?: InputFigure[];      // misread inputs corrected or left for the report (E7), with their units: never probed again — the data's own figures, quoted freely
   flaggedThisTurn: boolean;          // any flag fired this turn: an unattributed doubt may be about it
+  misquoteFigures?: number[];        // figures code found misquoted in this message (Phase 1 `misquoteFlat`): a doubt of one is the model catching it
   candidateFigures?: number[];       // the figures the candidate derived (math-talk.ts candidateFiguresOf)
   alreadyProbed: Set<string>;        // step ids / "fig:<n>" keys given an explain probe earlier
 };
+
+// E7: a question that puts a figure of the data back to them as theirs — "you used 21.5% for Starter… walk me
+// through where each came from" (Marisol t6), "Where does 40% come from, and which plan's figure is it?" (her t12, the
+// model's own): a probe on a misread input, though it names no working.
+export const PUTS_INPUT_BACK = /\byou(?:'ve| have)?\s+(?:used|said|took|take|had|put|got|read|picked|chose|assumed|applied|mentioned|plugged in)\b|\bwhere\b[^?]*\bcomes? from\b|\bwhich (?:plan|row|cohort|line|column|segment|group)\b|\bhow did you (?:get|arrive|land|come)\b/i;
+// A figure bound to another quantity named right after it ("a 40% margin", "$40 price"): not the input (review I2).
+const OTHER_QUANTITY = /^\s*(?:(?:a|per)\s+month\s+)?(?:gross\s+|net\s+|monthly\s+|annual\s+)?(?:margins?|prices?|revenues?|costs?|ltv|cac|lifetimes?|ratios?|payback|profits?|growth|discounts?|increases?|decreases?|rises?|drops?|uplift|conversion|share of|months?|years?|weeks?|days?|customers?|sign-?ups?|stores?|units?)\b/i;
+// A sentence that probes one of the inputs: its figure, in the input's unit and not bound to another quantity, with its
+// working asked for, doubted, or put back to them in a question (`asks`: the turn asks something). Returns the figure.
+export type InputFigure = { figure: number; unit: string };
+export function inputProbed(sentence: string, inputs: InputFigure[], candidateFigures: number[], previous?: string, asks = sentence.trim().endsWith('?')): number | undefined {
+  // In its unit, or bare ("which of those two progressions, 2.0, 5.9, 11.4, 21.5 and 5, 13, 24, 40, belongs to which
+  // plan", b35q Marisol t20, the model's own): never in another unit ("$40" is the price, not the 40%).
+  const named = figuresIn(sentence).filter(x => !OTHER_QUANTITY.test(x.rest) && inputs.some(i => same(x.value, i.figure) && (unitsAgree(x.unit, i.unit) || x.unit === '')));
+  if (named.length === 0) return undefined;
+  const talk = classifyMathTalk(sentence, [...candidateFigures, ...named.map(x => x.value)], previous);
+  if (talk.kind === 'none' && !(asks && PUTS_INPUT_BACK.test(sentence))) return undefined;
+  return talk.figures.find(f => named.some(x => same(f, x.value)));
+}
 
 function sentencesOf(text: string): string[] {
   return text.trim().split(/(?<=[.!?])\s+/).filter(Boolean);
@@ -60,12 +82,24 @@ export function challengeVerdict(sentence: string, ctx: ChallengeContext, probed
   // A flag past Rule 14: the case moved on (Lorenzo, 13 Oct; Jordan 099f33e9).
   const closedFig = talk.figures.find(f => (ctx.closed ?? []).some(x => same(f, x)));
   if (closedFig !== undefined) return { sentence, figure: closedFig, test: 'closed_to_report' };
+  // E7 (Lorenzo, 20 Oct; b35q Marisol): a misread input corrected by its row fix, or left for the report, takes no
+  // third probe — the model's own included ("Show me how you got to 40%."). A figure of the data, so only a probe on it
+  // is withheld — its working asked for, doubted, or put back to them as theirs in a question — never a quote of it.
+  const input = inputProbed(sentence, ctx.closedInputs ?? [], candidateFigures, previous);
+  if (input !== undefined) return { sentence, figure: input, test: 'closed_to_report' };
   if (talk.kind === 'none') return null;
   const named = verified.find(v => mentions(sentence, v));
 
   if (talk.kind === 'doubt') {
     if (talk.figures.some(f => flagged.some(x => same(f, x)))) return null;
     if (named) return { sentence, stepId: named.stepId, figure: named.value, test: 'doubt_on_verified' };
+    // Phase 1 task 4 (`misquoteFlat`, contract 3.4; Lorenzo, 26 Oct: "Never let the probe guard replace a model
+    // question that catches a misquote."): a doubt of a figure code found misquoted in this message — the candidate
+    // quoting a revealed item at a figure the data doesn't state — is the model catching that misquote, and code's own
+    // mismatch with the data is the backing the guard asks for. b38 Larkspur Tyler t14: "does your $125 match it?"
+    // (the exhibit says $120) went out as `unsupported_challenge`. Only the figures of code's own live findings count,
+    // never a figure the candidate derived: the caller fills them (plan-turn.ts, under the switch).
+    if (talk.figures.some(f => (ctx.misquoteFigures ?? []).some(x => same(f, x)))) return null;
     const unflagged = talk.figures[0];
     if (unflagged !== undefined) return { sentence, figure: unflagged, test: 'unsupported_challenge' };
     if (flaggedThisTurn) return null;

@@ -359,3 +359,49 @@ describe('batch 30 Noor a35507dc t9/t13, verbatim: right on her own quantity —
     expect(lineFor(c, w)).toMatchObject({ line: "From today's 6% margin, recovering 16 points of margin takes about a 20.5% price rise.", converted: true });
   });
 });
+
+// Stream 1's fault-bank baseline (22 Oct): on the contract base, b35 Quillpath Tyler ee99bd82 t28 said "Extra value per
+// month of sign-ups at $60 vs. $40 is about $0.24k, not $210k" — uplift_at_60's answer is 0.24, in $M, and the step
+// declares no scale, so reusing his "k" put the figure a thousandfold out. Code writes no line there.
+describe('a scale word the step does not declare: no correction line', () => {
+  const pricing = getCaseById('pricing-001');
+  const ctx = { caseData: pricing as never, revealedIds: pricing.dataLedger.map(d => d.id), shownExhibitIds: [], candidateTexts: [] };
+  const claim = (candidateValue: string, stepId: string) => ({
+    span: 'the $60 arm is worth about $210k a month more', quantity: 'extra value per month of sign-ups', candidateValue,
+    assumptions: '', verdict: 'error' as const, correctValue: 0.24, correctLow: null, correctHigh: null, unit: 'usd', derivation: '',
+    errorType: 'arithmetic' as const, changesConclusion: false, confidence: 'high' as const, probe: '', pointer: '',
+    codeQuantity: { kind: 'step' as const, stepId, price: null, target: null }, actualShare: null,
+  });
+  it('"$210k" against uplift_at_60 (0.24, a million-scale step): code\'s figure at the step\'s scale, theirs as said — never "$0.24k"', () => {
+    // Money keeps the scale word: "$240,000" is a figure the case never states, and the vetting's provenance guard
+    // would drop the whole correction (the replay proved it — the true line vanished).
+    expect(codeCorrection(claim('$210k', 'uplift_at_60'), { value: 0.24, index: 0 }, ctx)?.line)
+      .toBe('Extra value per month of sign-ups at $60 vs. $40 is about $0.24 million, not $210k.');
+  });
+  // Review C3: the slip is not money's alone — entry-001's "250k patients" against 200,000 read "about 200,000k".
+  it('a count in thousands against a count step: code\'s figure in full', () => {
+    const entry = getCaseById('entry-001');
+    const ectx = { caseData: entry as never, revealedIds: entry.dataLedger.map(d => d.id), shownExhibitIds: [], candidateTexts: [] };
+    const c = { ...claim('250k', 'eligible_patients'), quantity: 'US patients eligible for Kelvexa', correctValue: 200000 };
+    expect(codeCorrection(c, { value: 200000, index: 0 }, ectx)?.line).toBe('US patients eligible for Kelvexa is about 200,000, not 250k.');
+  });
+  it('a percent with a scale word it does not own is written plainly', () => {
+    const pricing2 = getCaseById('pricing-001');
+    const pctx = { caseData: pricing2 as never, revealedIds: pricing2.dataLedger.map(d => d.id), shownExhibitIds: [], candidateTexts: [] };
+    const c = { ...claim('12k', 'upgrade_breakeven_at_60'), quantity: 'the upgrade rate below which $60 stops beating $40', correctValue: 12.5 };
+    expect(codeCorrection(c, { value: 12.5, index: 0 }, pctx)?.line).toBe('Upgrade rate below which $60 stops beating $40 is about 12.5%, not 12k.');
+  });
+  it('their own scale, matched: written in it, as before', () => {
+    expect(codeCorrection(claim('$210M', 'uplift_at_60'), { value: 0.24, index: 0 }, ctx)?.line).toMatch(/about \$0\.24M, not \$210M\.$/);
+  });
+  it('a unit-scale step against a figure in millions: code\'s figure in units', () => {
+    expect(codeCorrection({ ...claim('$1.2M', 'starter_ltv'), quantity: 'Starter standalone lifetime value' }, { value: 600, index: 0 }, ctx)?.line)
+      .toBe('Starter standalone lifetime value at $40 is about $600, not $1.2M.');
+  });
+  it('…and a step that declares million keeps writing both sides in millions', () => {
+    const larkspur = getCaseById('prof-002');
+    const c = { ...claim('$15.8M', 'network_improvement'), quantity: 'the annual improvement' };
+    const out = codeCorrection(c, { value: 11.8, index: 0 }, { caseData: larkspur as never, revealedIds: larkspur.dataLedger.map(d => d.id), shownExhibitIds: [], candidateTexts: [] });
+    expect(out?.line).toBe('The annual operating-profit improvement from redeploying the contested flights is about $11.8M, not $15.8M.');
+  });
+});

@@ -43,9 +43,16 @@ vi.mock('@/db/client', async () => {
 });
 vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-// The classifier's verdict for the message, set per test.
+// The classifier's verdict for the message, set per test; and the small-model
+// check's on an item-less ask (round-2 ruling 2, 19 Oct) (classifyAsk, served through this file's detection mock as "Could I get <ask>?" — a test adapter, fixtures/ask-check.ts; production sends the ask to the check's own prompt):
+// maps to none unless a test says otherwise.
 let detected: DetectedDataRequest[] | null = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => detected }));
+let checkVerdict: DetectedDataRequest[] | null = [];
+vi.mock('@/lib/orchestrator/data-requests', async orig => {
+  const { askVia } = await import('./fixtures/ask-check');
+  const detect = async (p: { candidateText: string }) => ((detected ?? []).some(d => p.candidateText === `Could I get ${d.what}?`) ? checkVerdict : detected);
+  return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) };
+});
 vi.mock('@/lib/agent/models/factory', async () => ({
   createInterviewerModel: () => ({
     runTurn: async () => { throw new Error('code-written turns make no model call'); },
@@ -127,7 +134,7 @@ const KINDS: { kind: string; setup: () => void }[] = [
   { kind: 'time_warning', setup: () => { resetStore('ANALYSIS', { pressureTest: SATISFIED }, 19 * 60_000); store.exhibits = [{ id: 'x1', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: 0 }]; } },
 ];
 
-beforeEach(() => { detected = []; });
+beforeEach(() => { detected = []; checkVerdict = []; });
 
 describe('corpus final messages at the close', () => {
   it('Nikhil (a65c1831 t21) "Could I get: one, …" — every listed item is answered', async () => {
@@ -140,6 +147,29 @@ describe('corpus final messages at the close', () => {
     expect(r.interviewerText).toMatch(/I don't have (regional demographics or competitor price points|competitor price points or regional demographics)\./);
     expect(explicitRows().length).toBe(4);
     expect(check('code_written_requests')?.decision).toBe('pass');
+    expect(r.ended).toBe(true);
+  });
+
+  // Round-2 rulings 2 and 3 (Lorenzo, 19 Oct): the item-less asks go through the
+  // check; at the close a deferral is "We won't get to … today." Round 5 E5 (d)
+  // (Lorenzo, 20 Oct): items the check maps that can go now go now, in the order
+  // asked, up to the release cap; what's over it is "We won't get to …" — booked
+  // as such, not promised.
+  it('Nikhil at the close, the check mapping the item-less asks to items: released up to the cap, the rest "We won\'t get to … today."', async () => {
+    atClose();
+    detected = CORPUS.nikhil.detected;
+    checkVerdict = [det('competitor pricing', ['bean_price_change', 'non_bean_input_change'])];
+    const r = await runTurn('s1', CORPUS.nikhil.text);
+    expect(turnKind()).toBe('close');
+    expect(new Set(revealed())).toEqual(new Set(['bean_price_change', 'non_bean_input_change', 'avg_ticket']));
+    expect(r.interviewerText).not.toMatch(/come back to/);
+    expect(r.interviewerText).toMatch(/40%/);
+    expect(r.interviewerText).toContain("We won't get to historical response to any prior price move today.");
+    // Round 5c Task 61 (the qualifier guard): the input-cost lines don't state a competitor scope, so the mapped
+    // items are partial — released (E1), and the competitor ask refused in its own words.
+    expect(r.interviewerText).toContain("I don't have competitor price points.");
+    expect(r.interviewerText).not.toMatch(/regional demographics/i);
+    expect(explicitRows().filter(e => (e.payloadJsonb as Row).wontGetTo === true).map(e => (e.payloadJsonb as Row).what)).toEqual(['Historical response to any prior price move']);
     expect(r.ended).toBe(true);
   });
 

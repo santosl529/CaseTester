@@ -77,3 +77,35 @@ describe('the reply to "Do you want to stop the interview here?"', () => {
     expect(exitReplyChoice(text)).toBe(choice);
   });
 });
+
+// Batch 39, aldermoor p07 35740806 t19 (Lorenzo's ruling, 26 Oct): "I've found my footing and I'd like to finish"
+// was read as a request to stop and closed the case in the EXHIBIT phase. "finish" reads both ways; it counts as a
+// stop only with an object that can only mean ending here and now.
+describe('"finish" — carrying on to the end is not stopping', () => {
+  it.each([
+    "I appreciate you checking, genuinely — but I'm okay. I was rough at the start and that rattled me a bit, but I've found my footing and I'd like to finish.",
+    "I'd like to finish.",
+    "I'd like to finish the case.",
+    'Can we finish the case?',
+    "Let me finish this, then I'll take questions.",
+    "I want to finish the recommendation first.",
+  ])('not a stop: %s', text => {
+    expect(classifyExitIntent(text).kind).not.toBe('stop');
+  });
+
+  it.each([
+    "I'd like to finish here.",
+    "I'd prefer to finish up here.",
+    'Can we finish here?',
+    'Can we just finish up now?',
+    "I'd like to finish for today.",
+  ])('still a stop: %s', text => {
+    expect(classifyExitIntent(text).kind).toBe('stop');
+  });
+
+  it('the other stop forms are untouched', () => {
+    for (const text of ['Honestly, can we just stop.', "I'd like to end the session.", "Can we call it a day?", 'I quit.', "I'm done with the interview."]) {
+      expect(classifyExitIntent(text).kind).toBe('stop');
+    }
+  });
+});

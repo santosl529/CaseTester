@@ -12,7 +12,8 @@ import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 import type { RequestedUnanswered } from '@/lib/scoring/data-coverage';
 import type { RequestResponse } from './data-requests';
 import { canReveal, type DataLedger } from './data-ledger';
-import { line, phrase, versionIndex, PHRASE_POOLS, type PhraseUses } from './phrasing';
+import { phrase, line, versionIndex, type PhraseUses } from './phrasing';
+import { BASIS, countFinerThan } from './fact-check';
 import { dataLineVersions } from '@/lib/cases/loader';
 import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
 import { isOrderStage } from '@/lib/cases/schema';
@@ -20,12 +21,6 @@ import { isOrderStage } from '@/lib/cases/schema';
 export const RELEASE_CAP = 3;
 
 // The lead-in for data said again on an explicit re-ask.
-
-// Spec 2026-10-07 §4's line for asks code can't map while the structure is
-// open. v4.10 (KF-4): it promises nothing — the ask may name data the case
-// doesn't have; it is put to the interviewer again once the structure is
-// settled (plan-turn.ts unmappedToResolve), to map or decline then.
-export const UNMAPPED_DEFER_LINE = PHRASE_POOLS.unmapped_defer[0];
 
 // Resolves a declared id to a canonical one. Exact only — an id or a
 // label / title, ignoring case and punctuation: a partial match could release
@@ -68,18 +63,58 @@ const GENERIC_LABEL_WORDS = new Set(['price', 'change', 'cost', 'revenue', 'perc
 const NEED_CUE = /\b(?:i'?d (?:want|need|check|look|ask|pull|get|like)|i (?:want|need)|we'?d need|do we (?:have|know)|is there|can (?:i|we) (?:get|see)|would (?:want|need)|whether|needs? to (?:know|see|check)|still need|data on|data to confirm|i (?:haven't|have not) (?:been given|seen|got|had)|i don't think i've (?:been given|seen|got|had)|unless i missed|next steps?|to (?:confirm|verify|check)|worth (?:checking|confirming|verifying|knowing|pulling|getting|a look at))\b/i;
 const stemWord = (w: string) => (w.length > 3 && w.endsWith('s') ? w.slice(0, -1) : w);
 const contentWords = (s: string) => (s.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).map(stemWord);
-export function mentionStatesNeed(candidateText: string, label: string): boolean {
+// `strict` (round 6 Task 71, audit row 16; tagged cases — decideData's `need`): b37 Quillpath Marcus
+// eb8d7576 t9 → t10 heard "I can share plan economics …" for "I'd need to multiply by expected tenure on
+// each plan" — the cue and one label word, "plan". On a tagged case the need clause names two distinctive
+// words of the label, the case's proper names aside ("Starter", "Pro"), or says the item's spoken name.
+// prof-001 keeps the 12 Oct rule (its examples name one word: "I'd check milk and dairy first").
+export type NeedStrict = { spoken?: string; caseNames: string[] };
+export function mentionStatesNeed(candidateText: string, label: string, strict?: NeedStrict): boolean {
   // Four letters as said ("cogs" names the COGS line, though it stems to "cog").
+  const proper = new Set(contentWords((strict?.caseNames ?? []).join(' ')));
   const named = new Set((label.toLowerCase().match(/[a-z][a-z-]+/g) ?? []).filter(w => w.length >= 4).map(stemWord)
-    .filter(w => !GENERIC_LABEL_WORDS.has(w) && !LABEL_IGNORED.has(w)));
-  if (named.size === 0) return false;
+    .filter(w => !GENERIC_LABEL_WORDS.has(w) && !LABEL_IGNORED.has(w) && !proper.has(w)));
+  const spoken = strict?.spoken?.toLowerCase().replace(/^(?:the|a|an)\s+/, '').trim();
+  // A label's acronym (all capitals, three letters or more: CAC, LTV, COGS), said as written, names the item
+  // on its own (Task 71 fix round 1, controller replay: b37 Quillpath Jasmine t5, "Next steps: get CAC by
+  // plan, …", lost the acquisition-cost offer — "CAC" is short and a case name, so no word of it counted).
+  const acronyms = strict ? (label.match(/\b[A-Z]{3,}\b/g) ?? []) : [];
+  if (named.size === 0 && !spoken && acronyms.length === 0) return false;
   // The item is what the need is for: named after the cue, in the same clause
   // — not in a subordinate one ("I'd check dairy and packaging first … even
   // though beans rose faster" is no need for the bean figure; batch 20 R25 t24).
   return candidateText.split(/(?<=[.?!])\s+|\n+/).some(s => s.split(/\b(?:even though|although|though|since|because|while|whereas|but)\b/i).some(clause => {
     const cue = NEED_CUE.exec(clause);
-    return cue !== null && contentWords(clause.slice(cue.index)).some(w => named.has(w));
+    if (cue === null) return false;
+    const need = clause.slice(cue.index);
+    const hits = new Set(contentWords(need).filter(w => named.has(w)));
+    if (!strict) return hits.size > 0;
+    return hits.size >= 2 || (spoken !== undefined && spoken.length > 0 && need.toLowerCase().includes(spoken))
+      || acronyms.some(a => new RegExp(`\\b${a}\\b`).test(need));
   }));
+}
+
+// A text's key nouns (Phase 1 4.4, `refusalNounCheck`; contract §5: "a content noun after the stop list and plural
+// fold, using the one stemmer in data-decisions.ts"): its content words, stemmed (stemWord), three letters or more,
+// the case's proper names taken out whole ("Port Avery", "Larkspur"), and none of the stop list — function and
+// question words, the offer gate's generic label words ("cost", "revenue", "price", "share": every case has them), the
+// words of a split, a period or an amount ("split", "breakdown", "year", "total", "number"), number words ("the four
+// uncontested routes": "four" names no topic) and the dimension words "time", "past", "beyond" and "new" (review F2:
+// "repeat rates from past launches" shares only "past" with a case line — a dimension, not a topic).
+const KEY_STOP = new Set([...LABEL_IGNORED, ...GENERIC_LABEL_WORDS, ...`
+  and the for are was how why who can did has had its our any all but not one two per via get got let see say ask yes
+  about after again also been before between both breakdown broken composition decomposition detail could data does each
+  either figure from have here into just know level like look many more most much need part same should show some split
+  than that their them then there these they this those through total trend under very versu want were what when where
+  whether which while will with would year your only mix makeup kind type way amount count line item exact actual
+  specific basis versus give tell share pull sense idea something anything number numbers
+  three four five six seven eight nine ten eleven twelve twenty thirty forty fifty hundred thousand million billion half
+  first second third fourth fifth
+  time past beyond new`.split(/\s+/).filter(Boolean).map(stemWord)]);
+export function keyNouns(text: string, caseNames: string[] = []): Set<string> {
+  let t = text.toLowerCase().replace(/[‘’]/g, "'").replace(/'s\b/g, '');
+  for (const n of [...caseNames].sort((a, b) => b.length - a.length)) t = t.replace(new RegExp(`(?<![a-z])${n.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![a-z])`, 'g'), ' ');
+  return new Set(contentWords(t).filter(w => w.length >= 3 && !KEY_STOP.has(w)));
 }
 
 export function labelMatch(what: string, items: { id: string; label: string; timeframes?: Record<string, string> }[]): string | null {
@@ -122,7 +157,24 @@ const HEAD_NOUN = (label: string) => label.toLowerCase().replace(/[^a-z0-9% ]+/g
 // "the variable cost per flight" alone name a cost line, not a cut (Lorenzo,
 // 13 Oct; Larkspur, Marcus 27c2d0fb t22: "what sits inside the fixed costs,
 // including aircraft leases" lost the aircraft-leases item and was refused).
-const CUT = /\b(?:per|by|for each)\s+(pound|lb|gallon|sku|product|store|location|region|market|month|quarter|week|day|daypart|channel|customer|segment|supplier|year)s?\b|\b(variable|fixed)\b(?=[\s-]*(?:(?:versus|vs\.?|and|or|\/|to)[\s-]*(?:fixed|variable)\b|(?:portion|part|share|component|element|piece)s?\b))|\b(?:is|are|was|were)\s+(?:mostly\s+|largely\s+|partly\s+)?(variable|fixed)\b/i;
+// "By source" (round 6 Task 71, audit row 14; b37 Quillpath Tyler a2a5921b t5, "the split of Starter
+// sign-ups by source — paid versus organic?" got how each plan signs up, as if it were the split).
+const CUT = /\b(?:per|by|for each)\s+(pound|lb|gallon|sku|product|store|location|region|market|month|quarter|week|day|daypart|channel|customer|segment|supplier|year|source)s?\b|\b(variable|fixed)\b(?=[\s-]*(?:(?:versus|vs\.?|and|or|\/|to)[\s-]*(?:fixed|variable)\b|(?:portion|part|share|component|element|piece)s?\b))|\b(?:is|are|was|were)\s+(?:mostly\s+|largely\s+|partly\s+)?(variable|fixed)\b/i;
+// Words the case's own cover phrase carries (round 6 Task 68 fix round 2; Lorenzo, 15 Oct,
+// batch-25 ruling 7, "transaction volume per store": the case's own phrase carrying the cut
+// means the item answers it): the spans of a cover match in the ask. A scope rule fires only
+// on a match not wholly inside one, so "price per patient per year" doesn't cut its own item,
+// while "… by market" or "the one-off cost of building a team" still does. No spans, as before.
+export type AskSpan = { start: number; end: number };
+function matchOutside(re: RegExp, text: string, spans: readonly AskSpan[] = []): RegExpExecArray | null {
+  const g = new RegExp(re.source, re.flags.replace('g', '') + 'g');
+  for (let m = g.exec(text); m; m = g.exec(text)) {
+    const end = m.index + m[0].length;
+    if (!spans.some(sp => m!.index >= sp.start && end <= sp.end)) return m;
+    g.lastIndex = m.index + 1;   // an overlapping match that leaves the span still counts
+  }
+  return null;
+}
 const PART_LABEL = /\b(?:share|split|composition|breakdown|mix|component)\b/i;
 const CHANGE_LABEL = /\b(?:change|changes|growth|increase|inflation|trend)\b/i;
 const MOVEMENT_ASK = /\b(?:chang\w*|mov\w*|grow\w*|grew|increas\w*|inflat\w*|trend\w*|rose|risen|went up|over (?:time|the (?:two )?years)|year[- ]over[- ]year|both years|each year|price (?:trend|history|movement)|then (?:versus|vs\.?|and) now|(?:versus|vs\.?) (?:now|today)|before and after)\b/i;
@@ -133,35 +185,150 @@ const MOVEMENT_ASK = /\b(?:chang\w*|mov\w*|grow\w*|grew|increas\w*|inflat\w*|tre
 // <name>", "within <name>", "<name> <split>", the name right there — not a
 // list of parts ("breakdown of beans and other inputs"). An item that is
 // itself a part ("…share of COGS") answers a split.
-export function splitOfItem(what: string, item: { label: string }, names: string[] = []): boolean {
+export function splitOfItem(what: string, item: { label: string }, names: string[] = [], spans: readonly AskSpan[] = []): boolean {
   if (PART_LABEL.test(item.label)) return false;
   const esc = (x: string) => x.toLowerCase().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const det = String.raw`(?:the\s+|that\s+|those\s+|this\s+)?`;
-  return names.map(esc).some(name => new RegExp(String.raw`(?:\b${SPLIT_WORDS}\s+(?:of|within|inside|in)\s+|\b(?:within|inside)\s+)${det}${name}\b(?!\s*(?:,|and\b|or\b|vs\.?|versus\b))|\b${name}\s+${SPLIT_WORDS}\b`, 'i').test(what));
+  return names.map(esc).some(name => matchOutside(new RegExp(String.raw`(?:\b${SPLIT_WORDS}\s+(?:of|within|inside|in)\s+|\b(?:within|inside)\s+)${det}${name}\b(?!\s*(?:,|and\b|or\b|vs\.?|versus\b))|\b${name}\s+${SPLIT_WORDS}\b`, 'i'), what, spans) !== null);
 }
 
-export function outsideAskScope(what: string, item: { label: string; timeframes?: Record<string, string> }, names: string[] = []): boolean {
+// A basis ask (Lorenzo, 19 Oct; batch 32 Larkspur Marisol t27, "Basis for the 70%
+// load factor estimate on the new routes" answered by restating the plan): out
+// of scope of an item unless the item's value itself says where the figure comes from.
+const SAYS_BASIS = /\b(?:based on|comes? from|derived from|benchmark(?:ed)? (?:on|against))\b/i;
+
+// A one-off cost ask (Lorenzo, 20 Oct; batch 34 Aldermoor Marisol t23, "the
+// one-off cost to stand up the US team, separate from the $80M annual" got
+// Option A's annual line restated): a finer cut of an item whose value states
+// only an annual or monthly figure and no one-off wording of its own.
+// "Launch" costs too (round 6 Task 71, audit row 8; b36 Larkspur Marcus a7d9f44e t19, "the launch cost —
+// marketing, station setup, crew basing at the two new cities" got the new routes' "5,000 flights a year"
+// line restated): Hollis Bay's own launch costs say "launch costs" (ONE_OFF_VALUE), so they stay in scope.
+const ONE_OFF_ASK = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up|launch)\s+(?:costs?|fees?|spend|expenses?|investment|capex)\b|\b(?:costs?|spend|investment)\s+(?:to|of|for)\s+(?:stand(?:ing)?[- ]up|set(?:ting)?[- ]up|start(?:ing)?[- ]up)\b/i;
+const RECURRING_VALUE = /\b(?:annual|annually|yearly|a year|per year|each year|a month|per month|monthly)\b/i;
+const ONE_OFF_VALUE = /\b(?:one[- ]?offs?|one[- ]?time|up-?front|set-?up|start-?up|stand(?:ing)?[- ]up|launch costs?)\b/i;
+// An ask for both cuts ("setup cost and ongoing cost of building our own team"):
+// the item answers its recurring cut, so the one-off rule doesn't put it out of
+// scope — unless the ask sets the recurring cut aside ("separate from the $80M
+// annual", Marisol t23). A recurring word right before the one-off phrase
+// modifies it ("the monthly setup cost") and is not a second cut (final review I2, 20 Oct).
+const RECURRING_WORD = String.raw`(?:annual|annually|ongoing|recurring|running|yearly|monthly|per year|a year|each year|per month|a month)`;
+const RECURRING_CUT = new RegExp(String.raw`\b${RECURRING_WORD}\b`, 'i');
+const ONE_OFF_WITH_MODIFIER = new RegExp(String.raw`(?:\b${RECURRING_WORD}\s+)?(?:${ONE_OFF_ASK.source})`, 'gi');
+const SETS_ASIDE = /\b(?:separate(?:ly)? from|apart from|aside from|excluding|exclusive of|not (?:counting|including)|other than|beyond|on top of|over and above|besides)\b/i;
+const asksBothCuts = (ask: string) => RECURRING_CUT.test(ask.replace(ONE_OFF_WITH_MODIFIER, ' ')) && !SETS_ASIDE.test(ask);
+
+// Whether a cost recurs (round 5 Task 51 fix round 1; B2 Hollis Bay Marisol a14ca044
+// t9, "whether the $3.0 million roasting line is truly a first-year-only cost or an
+// annual lease that recurs", "what marketing looks like in year two"): a finer cut of
+// an item whose value states only a first-year or one-off money figure and nothing on
+// recurrence — the case doesn't hold the answer, so it is "I don't have …", not the
+// item said again (Lorenzo's 13 Oct 4b: "As I mentioned" only for a re-ask of that item).
+const RECURRENCE_ASK = /\brecurs?\b|\brecurr\w*|\b(?:ongoing|year after year)\b|\bfirst[- ]year[- ]only\b|\b(?:in|for|into) (?:year (?:two|2|three|3)|the second year|later years|future years|subsequent years)\b/i;
+const FIRST_YEAR_VALUE = /\bfirst[- ]year\b|\byear[- ]one\b|\bone[- ](?:time|off)\b/i;
+const SAYS_RECURRENCE = /\b(?:ongoing|recurs?|recurr\w*|continu\w*|every year|each year|after the first year|in later years)\b/i;
+const firstYearOnly = (value: string) => /\$/.test(value) && FIRST_YEAR_VALUE.test(value) && !RECURRING_VALUE.test(value) && !SAYS_RECURRENCE.test(value);
+
+// A split of a stated figure (round 6 Task 71, audit row 21; b36 Aldermoor Marcus c518221e t23, "Do we
+// have the $80 million split by rep cost versus market access?" got Option A's line restated — the split
+// rule keys on the label's head noun, "entry"): a split, breakdown or "versus" ask of a money figure
+// ("the split of the $80 million", "the $80M split", "the $80 million: rep cost versus market access")
+// is out of scope of an item whose line states that figure once and no parts of it (two or more of the
+// line's other amounts summing to it). Money only: a percent's split ("a split of that 58 by category",
+// prof-001) is the group's, as before.
+const MONEY = /\$\s?(\d[\d,]*(?:\.\d+)?)(?:\s?(million|billion|thousand|bn|m|k)\b)?/gi;
+const SCALE: Record<string, number> = { million: 1e6, m: 1e6, billion: 1e9, bn: 1e9, thousand: 1e3, k: 1e3 };
+const amountsIn = (t: string) => [...t.matchAll(MONEY)].map(m => ({ start: m.index!, end: m.index! + m[0].length, amount: parseFloat(m[1].replace(/,/g, '')) * (SCALE[(m[2] ?? '').toLowerCase()] ?? 1) }));
+const sameAmount = (a: number, b: number) => Math.abs(a - b) <= Math.abs(b) * 0.005;
+const SPLIT_BEFORE = new RegExp(String.raw`\b${SPLIT_WORDS}\s+(?:of|in|within|inside)\s+(?:the\s+|that\s+|this\s+)?$`, 'i');
+const SPLIT_AFTER = new RegExp(String.raw`^\s+(?:[\w-]+\s+){0,2}?${SPLIT_WORDS}\b`, 'i');
+const VERSUS_AFTER = /^\s*(?::|\b(?:by|between|into|across)\b)[^.?!$]{0,40}?\b(?:versus|vs\.?)(?=\s|$)/i;
+// Whether some two or more of the amounts sum to the figure.
+function partsOf(amounts: number[], figure: number): boolean {
+  const xs = amounts.slice(0, 12);
+  for (let mask = 1; mask < 1 << xs.length; mask++) {
+    if ((mask & (mask - 1)) === 0) continue;   // one amount is no split
+    const sum = xs.reduce((t, x, i) => (mask & (1 << i) ? t + x : t), 0);
+    if (sameAmount(sum, figure)) return true;
+  }
+  return false;
+}
+export function splitOfFigure(what: string, value: string, spans: readonly AskSpan[] = []): boolean {
+  const stated = amountsIn(value);
+  return amountsIn(what).some(f => {
+    if (spans.some(sp => f.start >= sp.start && f.end <= sp.end)) return false;
+    const asked = SPLIT_BEFORE.test(what.slice(0, f.start)) || SPLIT_AFTER.test(what.slice(f.end)) || VERSUS_AFTER.test(what.slice(f.end));
+    if (!asked) return false;
+    const same = stated.filter(x => sameAmount(x.amount, f.amount));
+    return same.length === 1 && !partsOf(stated.filter(x => !same.includes(x)).map(x => x.amount), f.amount);
+  });
+}
+
+// A change item asked for a split (the clause in outsideAskScope below): a topic
+// sibling of the ask, not the asked quantity at a coarser cut — E1 doesn't give it
+// as a coarse item (controller ruling, 20 Oct, replay r5-44: b31 Sofia t17 "the
+// current COGS split by category" mapped to the two input price changes).
+export function changeForSplit(what: string, item: { label: string }, spans: readonly AskSpan[] = []): boolean {
+  return matchOutside(new RegExp(String.raw`\b${SPLIT_WORDS}\b`, 'i'), what, spans) !== null && CHANGE_LABEL.test(item.label) && !MOVEMENT_ASK.test(what);
+}
+
+// `count: false` (round 6 Task 68): the count rule left to the case's covers — a cover
+// match's count is decided by coverageOf (a phrase that carries the count keeps the
+// item whole), so the tag gate on a covered item reads the other rules only.
+// `spans` (fix round 2): the cover phrase's spans in the ask; words inside them cut nothing (matchOutside).
+export function outsideAskScope(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = [], opts: { count?: boolean; spans?: readonly AskSpan[] } = {}): boolean {
+  return scopeRule(what, item, names, opts) !== null;
+}
+// Which scope rule puts the item outside the ask (Phase 1 4.2, `coarseKeepNamed`: Lorenzo, 22 Oct, "Log which scope
+// rule fired"; b38 Larkspur Jasmine 3f928012 t4's `extras_revenue` was ruled out and the grading couldn't tell by
+// which rule). The rules in outsideAskScope's order, the first that fires; null: in scope.
+export type ScopeRule = 'basis' | 'one_off' | 'recurrence' | 'split_of_figure' | 'count' | 'split_of_head' | 'split_of_item' | 'change_for_split' | 'cut';
+export function scopeRule(what: string, item: { label: string; value?: string; timeframes?: Record<string, string> }, names: string[] = [], opts: { count?: boolean; spans?: readonly AskSpan[] } = {}): ScopeRule | null {
   const ask = what.toLowerCase();
+  const spans = opts.spans ?? [];
+  const has = (re: RegExp) => matchOutside(re, ask, spans) !== null;
+  if (has(BASIS) && !SAYS_BASIS.test(item.value ?? '')) return 'basis';
+  if (has(ONE_OFF_ASK) && !asksBothCuts(ask) && RECURRING_VALUE.test(item.value ?? '') && !ONE_OFF_VALUE.test(item.value ?? '')) return 'one_off';
+  if (has(RECURRENCE_ASK) && firstYearOnly(item.value ?? '')) return 'recurrence';
+  if (splitOfFigure(what, item.value ?? '', spans)) return 'split_of_figure';
+  // A count asked of an item that states no figure (round 5 Task 50; fact-check.ts
+  // COUNT_ASK): the item is the ask's coarse answer, not the count.
+  if (opts.count !== false && item.value !== undefined && countFinerThan(ask, item.value)) return 'count';
   const head = HEAD_NOUN(item.label);
-  if (!head) return false;
+  if (!head) return null;
   const label = item.label.toLowerCase();
   // A split of the item itself: "<split> of/within/inside <head>", "within <head>", "<head> <split>".
   const splitOfHead = new RegExp(String.raw`\b${SPLIT_WORDS}\s+(?:of|within|inside|in|for)\s+(?:the\s+)?(?:[\w&-]+\s+){0,3}?${head}\b|\b(?:within|inside)\s+(?:the\s+)?${head}\b|\b${head}\s+${SPLIT_WORDS}\b`, 'i');
-  if (splitOfHead.test(ask) && !PART_LABEL.test(label)) return true;
-  if (splitOfItem(ask, item, names)) return true;
+  if (has(splitOfHead) && !PART_LABEL.test(label)) return 'split_of_head';
+  if (splitOfItem(ask, item, names, spans)) return 'split_of_item';
   // A split / composition ask is about the parts, not how they moved: a
   // change item ("price change of the other inputs") is in scope only when the
   // ask also asks about movement ("…and how each moved", "the price trend").
   // Batch 18: "the split of COGS by input" released the 37.5% price change in 7 runs.
-  if (new RegExp(String.raw`\b${SPLIT_WORDS}\b`, 'i').test(ask) && CHANGE_LABEL.test(label) && !MOVEMENT_ASK.test(ask)) return true;
-  const cut = CUT.exec(ask);
+  if (changeForSplit(ask, item, spans)) return 'change_for_split';
+  const cut = matchOutside(CUT, ask, spans);
   // "total or per store" asks for either: the uncut figure is in scope.
   if (cut && !/\b(?:total|overall|in total)\s+(?:or|and)\b|\b(?:or|and)\s+(?:in\s+)?total\b/.test(ask)) {
     const dim = (cut[1] ?? cut[2] ?? cut[3] ?? '').toLowerCase();
-    if (dim === 'year') return Object.values(item.timeframes ?? {}).length === 0 && !/\byear/.test(label);
-    if (!label.includes(dim)) return true;
+    if (dim === 'year') return Object.values(item.timeframes ?? {}).length === 0 && !/\byear/.test(label) ? 'cut' : null;
+    if (!label.includes(dim)) return 'cut';
   }
-  return false;
+  return null;
+}
+
+// The ask names the item as one side of what it splits or compares (Phase 1 4.2, `coarseKeepNamed`; Lorenzo, 22 Oct:
+// "The coarse rule: never drop an item the model named when that item matches the ask"; b38 Larkspur Jasmine 3f928012
+// t3 → t4, "the ticket versus extras revenue split", mapped by the model to `extras_revenue` and ruled out by
+// `split_of_item` — "extras revenue split" read as a split of the extras line, though extras are one side of the split
+// asked). One of the item's names said right after "versus" / "vs", right before it, or as either side of
+// "between … and / or …", in the model's words or the candidate's sentence. Only a split rule is undone by it
+// (turn-data.ts): a cut, a basis, a one-off or a count the item lacks still rules it out.
+export const SPLIT_RULES: ReadonlySet<ScopeRule> = new Set(['split_of_head', 'split_of_item']);
+export function namedAsPart(texts: string[], names: string[]): boolean {
+  const esc = (x: string) => x.toLowerCase().trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&').replace(/\s+/g, '\\s+');
+  const ns = [...new Set(names.map(n => n.replace(/\s*\([^)]*\)\s*$/, '').trim()).filter(n => n.length >= 3))].map(esc);
+  const det = String.raw`(?:(?:the|our|their|its)\s+)?`;
+  return texts.some(t => ns.some(n => new RegExp(String.raw`\b(?:versus|vs\.?)\s+${det}${n}s?\b|\b${n}s?\s+(?:versus|vs\.?)(?=\s|$)|\bbetween\s+${det}${n}s?\s+(?:and|or)\b|\bbetween\s+[^,;:?.!]{1,60}?\s+(?:and|or)\s+${det}${n}s?\b`, 'i').test(t)));
 }
 
 export type ExhibitInfo = { id: string; title: string; coversLedgerItems?: string[]; after?: string[]; requiresItems?: string[]; required?: boolean };
@@ -207,19 +374,65 @@ export function heldForOrder(id: string, exhibits: ExhibitInfo[], shown: Set<str
 }
 
 export type DataDecisions = {
-  releases: { id: string; value: string; earlier: boolean }[];
-  restates: { id: string; value: string }[];  // explicit re-asks of data already revealed: said again, never re-booked
+  // mustReach: a must-reach item code volunteered (round 6 Task 72; turn-data.ts mustReachItems) — the point it was due
+  // before (an exhibit id, or "recommendation"); said first, without the "earlier" lead-in: nobody asked for it.
+  // `selfCorrect` (`asyncAskJudge`, 27 Oct; measurement): a held item the last turn refused, assumed or left unsaid,
+  // given now behind "Actually, I do have that:" — said first, booked like any release.
+  releases: { id: string; value: string; earlier: boolean; mustReach?: string; selfCorrect?: true }[];
+  // `asyncAskJudge`: a line that corrects the last turn without a release ("To correct myself: …", or the gated
+  // "Actually, I do have that — I'll share … once we've settled your structure."), said first.
+  selfCorrectionLine?: { text: string; kind: 'refusals' | 'defers' };
+  restates: { id: string; value: string; exhibit?: boolean; pointer?: string }[];  // explicit re-asks of data already revealed: said again, never re-booked
+  // Phase 1 4.1 (restateRules, turn-data.ts): `pointer` — the item is on an exhibit already out: its summary is said, not
+  // its line; `recentRestates` — re-asks of lines said within the last four turns, named and not said again.
+  recentRestates?: string[];
+  // `restateLineInvite` (27 Oct): on the pointer path the item's own line was said instead; this statement follows it.
+  restateInvite?: true;
+  // `refusalAssume` (27 Oct, measurement): refusals code isn't confident of, said as assumption lines; `assumeFiner`,
+  // the coarse line given and a finer cut asked. With either set the line runs release → deferral → assumption → refusal.
+  assumes?: string[];
+  assumeFiner?: true;
   exhibit: { id: string; title: string; covers: string[] } | null;
   refusals: string[];     // what, for explicit asks the case doesn't hold
   defers: string[];       // what, for asks held for later (by the model, or over the cap)
   gateDefers: string[];   // what, for asks the pressure-test gate holds: deferred with the reason (v3)
-  unmappedDefer: boolean; // an explicit deferral the model couldn't map: a generic line, nothing promised
+  // Explicit deferrals with no item, awaiting the small-model check (turn-data.ts
+  // turnDataChecked; Lorenzo, 19 Oct, engine-asks R1). Nothing is said for them
+  // until then; its verdict decides each (decideCheckedAsk, round 5 E5).
+  unmatchedDefers: string[];
+  // Every deferral on a wrap-up or close turn: "We won't get to <ask> today."
+  // (Lorenzo, 19 Oct, round-2 ruling 3: the check's named deferrals, set by
+  // turnDataChecked; round-3 ruling 4: item-backed, gate and over-cap ones too, set
+  // by decideData). Nothing is held for them: `defers` and `gateDefers` stay empty there.
+  wontGetTo?: string[];
+  // Which of `defers` are the check's item-less named deferrals: they hold no ledger
+  // item, so they hold no data (Lorenzo, 19 Oct, round-3 ruling 3; set by turnDataChecked).
+  itemlessDefers?: string[];
+  // Tracked deferrals from earlier turns, closed on the first wrap-up turn (round 6 Task 76, fix round 1): each said by
+  // name, "We won't get to <ask> today." — never the bare "…that today." (turn-data.ts closeOpenDeferrals).
+  wontGetToNamed?: string[];
   offers: string[];       // what, for passing mentions of data the case holds
+  // Proper adjectives and names said as written when they open an ask in a line (Task 70 fix
+  // round 2, 68b item 3: "I don't have European net price…", not "european"); set by turnData
+  // on tagged cases only — a fixed list and the case's proper names.
+  properWords?: string[];
   // Rule 6 option 4 (v4.11): code's correction of a misquoted revealed figure,
   // spoken first in the data line (set by turn-data.ts on model turns).
   correction?: { item: string; items?: string[]; text: string } | null;
-  requests: { request: DeclaredRequest; response: RequestResponse; ledgerItemIds: string[] }[];
+  // Phase 2 C2 (`composeData`): the exhibit handover is said last in the data line; `saidByModel` — releases whose line
+  // the model's say already spoke: booked, not said again (L1).
+  exhibitLast?: boolean;
+  saidByModel?: string[];
+  // wontGetTo: a deferral said as "We won't get to … today." — logged so the queue
+  // doesn't promise it again (plan-turn.ts promisedRows); still asked-but-unanswered.
+  requests: { request: DeclaredRequest; response: RequestResponse; ledgerItemIds: string[]; wontGetTo?: true }[];
 };
+
+// The deferrals that hold a ledger item: the check's item-less named deferrals hold no data.
+export function itemBackedDefers(d: Pick<DataDecisions, 'defers' | 'itemlessDefers'>): string[] {
+  const itemless = new Set(d.itemlessDefers ?? []);
+  return d.defers.filter(w => !itemless.has(w));
+}
 
 export function decideData(p: {
   requests: DeclaredRequest[];      // ids already resolved to canonical ledger / exhibit ids
@@ -235,6 +448,8 @@ export function decideData(p: {
   candidateText: string;           // the candidate's message: a mention is offered only when it states a need for the item
   cap?: number;
   groups?: string[][];              // items asked as one group: the cap never splits one
+  wrapUp?: boolean;                 // a wrap-up or close turn (turn-data.ts wrapUpTurn): every deferral is "We won't get to …"
+  need?: { caseNames: string[] };   // a tagged case: the offer gate's stricter need (mentionStatesNeed `strict`, round 6 Task 71)
 }): DataDecisions {
   const cap = p.cap ?? RELEASE_CAP;
   // A group already going out completes past the cap; nothing else does.
@@ -272,8 +487,10 @@ export function decideData(p: {
   const defers: string[] = [];
   const gateDefers: string[] = [];
   const offers: string[] = [];
-  let unmappedDefer = false;
+  const unmatchedDefers: string[] = [];
   const decided: DataDecisions['requests'] = [];
+  // The requests a deferral line is said for.
+  const deferSaid = new Set<DeclaredRequest>();
 
   const available = (id: string) => itemById.has(id) && canReveal(p.ledger, id) && !releasing.has(id);
   // What a promise says: an ask worded as an item's catalog label is said as the
@@ -307,8 +524,13 @@ export function decideData(p: {
     const exhibitIds = r.itemIds.filter(id => exhibitById.has(id));
     if (ledgerIds.length === 0 && exhibitIds.length === 0) {
       // An unmapped deferral contradicts itself (the model meant to hold
-      // something): no refusal, and no named item promised — it may not exist.
-      if (r.explicit && r.respond === 'defer') { unmappedDefer = true; decidedAt.push({ at, d: { request: r, response: 'defer', ledgerItemIds: [] } }); }
+      // something): neither refused nor promised here — the small-model check
+      // decides (turnDataChecked); the generic "settle your structure" line
+      // answered nothing (batch 32 Aldermoor Marcus t5).
+      // An unmapped release is refused here; turnData sends it through the same
+      // check (round-2 ruling 2, 19 Oct) unless it is the finer cut of an ask whose
+      // coarse item goes out beside it (round 5 E1, 20 Oct: `scope_coarse`).
+      if (r.explicit && r.respond === 'defer') { unmatchedDefers.push(r.what); decidedAt.push({ at, d: { request: r, response: 'defer', ledgerItemIds: [] } }); }
       else if (r.explicit) { refusals.push(r.what); decidedAt.push({ at, d: { request: r, response: 'refuse', ledgerItemIds: [] } }); }
       return;
     }
@@ -317,7 +539,7 @@ export function decideData(p: {
     for (const id of ledgerIds) {
       if (covered.has(id)) continue;
       if (restatable(id)) {
-        if (restates.length < cap) { restates.push({ id, value: itemById.get(id)!.value }); restating.add(id); }
+        if (restates.length < cap) { restates.push({ id, value: itemById.get(id)!.value, ...(p.ledger.exhibitOnly?.has(id) ? { exhibit: true } : {}) }); restating.add(id); }
         continue;
       }
       if (!available(id)) continue;
@@ -325,7 +547,7 @@ export function decideData(p: {
       releases.push({ id, value: itemById.get(id)!.value, earlier: openIds.has(id) });
       releasing.add(id);
     }
-    if (heldOver) defers.push(promised(r, ledgerIds));
+    if (heldOver) { defers.push(promised(r, ledgerIds)); deferSaid.add(r); }
     decidedAt.push({ at, d: { request: r, response: heldOver ? 'defer' : 'release', ledgerItemIds: ledgerIds } });
   });
 
@@ -339,10 +561,11 @@ export function decideData(p: {
     const partlyReleased = held.length < ledgerIds.length;
     if (!r.explicit) {
       const offerable = held.filter(id => available(id) && !covered.has(id) && !orderHeld(id))
-        .filter(id => mentionStatesNeed(p.candidateText, itemById.get(id)?.label ?? ''));
+        .filter(id => mentionStatesNeed(p.candidateText, itemById.get(id)?.label ?? '', p.need ? { spoken: itemById.get(id)?.spoken, caseNames: p.need.caseNames } : undefined));
       if (offerable.length > 0 && r.respond === 'release' && !partlyReleased) offers.push(promised(r, ledgerIds));
     } else if (held.some(available) && !partlyReleased) {
       (p.gateHeld?.has(r.what) ? gateDefers : defers).push(promised(r, ledgerIds));
+      deferSaid.add(r);
     }
     decidedAt.push({ at, d: held.length === 0 && ledgerIds.length > 0
       ? { request: r, response: 'release', ledgerItemIds: ledgerIds }
@@ -356,7 +579,18 @@ export function decideData(p: {
 
   // Earlier asks first, so the lead-in introduces them together.
   releases.sort((a, b) => Number(b.earlier) - Number(a.earlier));
-  return { releases, restates, exhibit, refusals, defers: asGroup(defers), gateDefers: asGroup(gateDefers), unmappedDefer, offers, requests: decided };
+  // A wrap-up or close turn (Lorenzo, 19 Oct, round-3 ruling 4: "Close turns: all
+  // deferrals, item-backed included, become "We won't get to <ask> today.""): every
+  // deferral line — the model's, over the cap, the release order's, the gate's —
+  // is said as one; the case won't come back to them, so nothing is held.
+  if (p.wrapUp && defers.length + gateDefers.length > 0) {
+    return {
+      releases, restates, exhibit, refusals, defers: [], gateDefers: [], unmatchedDefers, offers,
+      wontGetTo: [...asGroup(defers), ...asGroup(gateDefers)],
+      requests: decided.map(x => (x.response === 'defer' && deferSaid.has(x.request) ? { ...x, wontGetTo: true as const } : x)),
+    };
+  }
+  return { releases, restates, exhibit, refusals, defers: asGroup(defers), gateDefers: asGroup(gateDefers), unmatchedDefers, offers, requests: decided };
 }
 
 // An item spoken mid-sentence starts lower-case (smoke run 9 Oct: "I don't
@@ -364,18 +598,52 @@ export function decideData(p: {
 // classifier's capital). Kept as written when its first word looks like an
 // acronym ("COGS", "NPS"), carries a digit ("Q3"), has an inner capital
 // ("McKinsey"), or opens a capitalised name ("Brew & Bean", "Blue Bottle").
-// The logged `what` is never changed.
-function spokenWhat(what: string): string {
+// A question word is never a name (round 5 Task 49 fix round 1; b32 Larkspur
+// Marisol t18: "Hold that thought on Whether Larkspur has sufficient crew
+// capacity…"). The logged `what` is never changed.
+const QUESTION_WORD = /^(?:whether|if|how|what|when|where|which|who|why)$/i;
+// A count or amount asked as a question is said as a noun phrase (round 5 Task 50
+// fix round 2; B2 Hollis Bay Jasmine t6 "I don't have how many bags of chips Hollis
+// Bay sells a year."): "how many X" → "the number of X" ("how many of the 200
+// stores are new" → "the number of the 200 stores that are new"), "how much X
+// costs / is" → "what X costs / is". Any other "how much …" stays a question — the
+// corpus's are degree or share questions ("how much the other COGS inputs changed
+// over two years", "How much of the 22% labor cost is …"), where "the amount of"
+// reads wrong — and a refusal says it "data on how much …" (joinWhat). An inverted
+// question ("how much does X cost") is left as written.
+const BE_VERB = /^(.*?)\s+(are|is|were|was)\b(.*)$/i;
+const AMOUNT_VERB = /^(.+?)\s+(costs?|is|are|was|were)\b(.*)$/i;
+function nounPhrase(what: string): string {
+  const many = /^how\s+many\s+(.+)$/i.exec(what.trim());
+  if (many) {
+    if (/^(?:do|does|did|will|would|can|could|should)\b/i.test(many[1])) return what;
+    const be = BE_VERB.exec(many[1]);
+    const counted = be && be[1].split(/\s+/).length <= 5 ? `${be[1]} that ${be[2]}${be[3]}` : many[1];
+    return `the number ${/^of\s/i.test(counted) ? '' : 'of '}${counted}`;
+  }
+  const much = /^how\s+much\s+(.+)$/i.exec(what.trim());
+  if (much) {
+    if (/^(?:do|does|did|will|would|can|could|should)\b/i.test(much[1])) return what;
+    const verb = /^of\b/i.test(much[1]) ? null : AMOUNT_VERB.exec(much[1]);
+    return verb ? `what ${verb[1]} ${verb[2]}${verb[3]}` : what;
+  }
+  return what;
+}
+const NO_PROPER: ReadonlySet<string> = new Set();
+function spokenWhat(raw: string, proper: ReadonlySet<string> = NO_PROPER): string {
+  const what = nounPhrase(raw);
   const words = what.trim().split(/\s+/);
   const first = words[0] ?? '';
   const letters = first.replace(/[^A-Za-z]/g, '');
   const next = words.slice(1).find(w => /[A-Za-z]/.test(w)) ?? '';
+  if (QUESTION_WORD.test(first)) return what.charAt(0).toLowerCase() + what.slice(1);
   const keep = !/^[A-Z]/.test(first)
     || /\d/.test(first)
     || (letters.length >= 2 && letters === letters.toUpperCase())
     || /[A-Z]/.test(first.slice(1))
     || /^[A-Z][a-z]+['’]s$/.test(first)   // a possessive name: "Kelvexa's", "Larkspur's"
-    || /^[A-Z]/.test(next);
+    || /^[A-Z]/.test(next)
+    || proper.has(letters.toLowerCase());
   return keep ? what : what.charAt(0).toLowerCase() + what.slice(1);
 }
 
@@ -423,9 +691,13 @@ export function spokenItemName(label: string): string {
   return bare ? s : `the ${spokenWhat(s)}`;
 }
 
-const joinWhat = (whats: string[], conj: 'and' | 'or') => {
+// In a refusal, an ask still worded as a question is "data on …" ("I don't have
+// data on whether load factor would fall …", not "I don't have whether …"; fix
+// round 2); a deferral keeps it ("I'll come back to whether …").
+const QUESTION_START = /^(?:whether|if|how|what(?!['’]s)|when|where|which|who|why)\b/i;
+const joinWhat = (whats: string[], conj: 'and' | 'or', refusal = false, proper: ReadonlySet<string> = NO_PROPER) => {
   const inList = new Set(whats).size > 1;
-  const u = [...new Set(whats.map(w => spokenWhat(speakable(w, conj, inList))))];
+  const u = [...new Set(whats.map(w => spokenWhat(speakable(w, conj, inList), proper)).map(w => (refusal && QUESTION_START.test(w) ? `data on ${w}` : w)))];
   if (u.length <= 1) return u[0] ?? '';
   // A suffix every item shares is said once: "COGS and labor as a percent of revenue".
   const tail = / as a (?:percent|share) of revenue$/i.exec(u[0])?.[0];
@@ -435,6 +707,18 @@ const joinWhat = (whats: string[], conj: 'and' | 'or') => {
   const serial = items.length > 2 && items.some(x => / (?:and|including) /.test(x)) ? ',' : '';
   return `${items.slice(0, -1).join(', ')}${serial} ${conj} ${items.at(-1)}${items === u ? '' : tail}`;
 };
+
+// "We won't get to <ask> today."; "…that today." for a long label (more than 8
+// words as said) or a list — two or more asks (a group among them), or a label
+// with a comma or an "and" (Lorenzo, 19 Oct, round-3 ruling 4; the controller's
+// definitions; batch 32 Larkspur Marcus / Marisol t28).
+const WONT_GET_TO_WORDS = 8;
+function wontGetToLine(whats: string[], uses: PhraseUses | undefined, seed: string, proper: ReadonlySet<string> = NO_PROPER): string {
+  const what = joinWhat(whats, 'and', false, proper);
+  // Two asks or more are joined with "and" (joinWhat), so the joined text tells.
+  const list = /,|\sand\s/i.test(what);
+  return list || what.split(/\s+/).length > WONT_GET_TO_WORDS ? line('wont_get_to_that', uses, seed) : phrase('wont_get_to', what, uses, seed);
+}
 
 // The spoken data lines, in order: releases (earlier asks under one lead-in),
 // the exhibit handover, refusals, deferrals, offers — each with what it
@@ -452,26 +736,63 @@ function dataLine(value: string, uses: PhraseUses | undefined, seed: string): st
 }
 export function renderDataLineParts(d: DataDecisions, seed: string, uses?: PhraseUses): DataLinePart[] {
   const parts: DataLinePart[] = [];
+  // `asyncAskJudge`: the self-correction opens the turn.
+  for (const r of d.releases.filter(x => x.selfCorrect)) parts.push({ kind: 'release', ids: [r.id], text: `Actually, I do have that: ${dataLine(r.value, uses, seed)}` });
+  if (d.selfCorrectionLine) parts.push({ kind: d.selfCorrectionLine.kind, ids: [], text: d.selfCorrectionLine.text });
   if (d.correction) parts.push({ kind: 'correction', ids: [], text: d.correction.text });
-  const earlier = d.releases.filter(r => r.earlier);
+  // A must-reach item first, on its own (round 6 Task 72): the "earlier" lead-in would say the candidate asked for it.
+  for (const r of d.releases.filter(x => x.mustReach !== undefined && !x.selfCorrect)) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
+  const asked = d.releases.filter(r => r.mustReach === undefined && !r.selfCorrect);
+  const earlier = asked.filter(r => r.earlier);
   if (earlier.length > 0) parts.push({ kind: 'leadin', ids: [], text: phrase('earlier', '', uses, seed) });
-  for (const r of d.releases) parts.push({ kind: 'release', ids: [r.id], text: dataLine(r.value, uses, seed) });
+  for (const r of asked) parts.push({ kind: 'release', ids: [r.id], text: d.saidByModel?.includes(r.id) ? '' : dataLine(r.value, uses, seed) });
   // Restated values carry no ids: nothing is booked as a new reveal.
-  d.restates.forEach((r, i) => { const v = dataLine(r.value, uses, seed); parts.push({ kind: 'restate', ids: [], text: i === 0 ? phrase('restate', v, uses, seed) : v }); });
-  if (d.exhibit) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
-  if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or'), uses, seed) });
-  if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and'), uses, seed) });
-  if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and'), uses, seed) });
-  if (d.unmappedDefer) parts.push({ kind: 'defers', ids: [], text: line('unmapped_defer', uses, seed) });
-  if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and'), uses, seed) });
+  // The lead-in names where the item came from: what was said ("As I mentioned"), what only an exhibit showed ("As the exhibit shows").
+  const saidFirst = [...d.restates.filter(r => !r.exhibit && !r.pointer), ...d.restates.filter(r => r.exhibit && !r.pointer)];
+  saidFirst.forEach((r, i) => {
+    const v = dataLine(r.value, uses, seed);
+    const lead = i === 0 || Boolean(r.exhibit) !== Boolean(saidFirst[i - 1].exhibit);
+    parts.push({ kind: 'restate', ids: [], text: lead ? phrase(r.exhibit ? 'restate_exhibit' : 'restate', v, uses, seed) : v });
+  });
+  if (d.restateInvite) parts.push({ kind: 'restate', ids: [], text: RESTATE_INVITE });
+  // Phase 1 4.1: one pointer per exhibit summary, then the recent re-asks by name.
+  for (const summary of [...new Set(d.restates.flatMap(r => (r.pointer ? [r.pointer] : [])))]) parts.push({ kind: 'restate', ids: [], text: phrase('restate_pointer', summary, uses, seed) });
+  if (d.recentRestates?.length) parts.push({ kind: 'restate', ids: [], text: phrase('restate_recent', joinWhat(d.recentRestates, 'and'), uses, seed) });
+  if (d.exhibit && !d.exhibitLast) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
+  const proper: ReadonlySet<string> = d.properWords ? new Set(d.properWords.map(w => w.toLowerCase())) : NO_PROPER;
+  if (d.assumes !== undefined || d.assumeFiner) {
+    // `refusalAssume`: release → deferral → assumption → assertive refusal. "For anything finer" follows the line that
+    // carries the coarse figure — the exhibit's handover when one goes out last (Lorenzo, 27 Oct), else the releases.
+    const finerAfterExhibit = Boolean(d.assumeFiner && d.exhibit && d.exhibitLast);
+    if (d.assumeFiner && !finerAfterExhibit) parts.push({ kind: 'refusals', ids: [], text: line('assume_finer', uses, seed) });
+    if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and', false, proper), uses, seed) });
+    if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed, proper) });
+    for (const w of d.wontGetToNamed ?? []) parts.push({ kind: 'defers', ids: [], text: phrase('wont_get_to', joinWhat([w], 'and', false, proper), uses, seed) });
+    if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and', false, proper), uses, seed) });
+    if (d.assumes?.length) parts.push({ kind: 'refusals', ids: [], text: phrase('assume', joinWhat(d.assumes, 'and', false, proper), uses, seed) });
+    if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });
+    if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and', false, proper), uses, seed) });
+    if (d.exhibit && d.exhibitLast) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
+    if (finerAfterExhibit) parts.push({ kind: 'refusals', ids: [], text: line('assume_finer', uses, seed) });
+    return parts;
+  }
+  if (d.refusals.length > 0) parts.push({ kind: 'refusals', ids: [], text: phrase('refuse', joinWhat(d.refusals, 'or', true, proper), uses, seed) });
+  if (d.defers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('defer', joinWhat(d.defers, 'and', false, proper), uses, seed) });
+  if (d.wontGetTo?.length) parts.push({ kind: 'defers', ids: [], text: wontGetToLine(d.wontGetTo, uses, seed, proper) });
+  for (const w of d.wontGetToNamed ?? []) parts.push({ kind: 'defers', ids: [], text: phrase('wont_get_to', joinWhat([w], 'and', false, proper), uses, seed) });
+  if (d.gateDefers.length > 0) parts.push({ kind: 'defers', ids: [], text: phrase('gate_defer', joinWhat(d.gateDefers, 'and', false, proper), uses, seed) });
+  if (d.offers.length > 0) parts.push({ kind: 'offers', ids: [], text: phrase('offer', joinWhat(d.offers, 'and', false, proper), uses, seed) });
+  if (d.exhibit && d.exhibitLast) parts.push({ kind: 'exhibit', ids: [d.exhibit.id], text: phrase('exhibit', d.exhibit.title, uses, seed) });
   return parts;
 }
 
+// `restateLineInvite`: a statement, never a question (the turn keeps its one closing question).
+export const RESTATE_INVITE = "If you're after something more specific, ask me.";
 export function renderDataLines(d: DataDecisions, seed: string, uses?: PhraseUses): string[] {
   return renderDataLineParts(d, seed, uses).map(p => p.text);
 }
 
 // The turn's data_request rows (scoring reads these shapes; spec §9).
-export function decisionRows(d: DataDecisions): { what: string; ledgerItemIds: string[]; response: RequestResponse; explicit: boolean }[] {
-  return d.requests.map(x => ({ what: x.request.what, ledgerItemIds: x.ledgerItemIds, response: x.response, explicit: x.request.explicit }));
+export function decisionRows(d: DataDecisions): { what: string; ledgerItemIds: string[]; response: RequestResponse; explicit: boolean; wontGetTo?: true }[] {
+  return d.requests.map(x => ({ what: x.request.what, ledgerItemIds: x.ledgerItemIds, response: x.response, explicit: x.request.explicit, ...(x.wontGetTo ? { wontGetTo: true as const } : {}) }));
 }

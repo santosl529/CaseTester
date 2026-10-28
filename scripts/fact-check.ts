@@ -90,7 +90,7 @@ export function checkRun(run: CorpusRun): Flag[] {
       // A correction line delivers the item's figure too ("Given the corrected figure, …").
       // A correction or a restatement ("As I mentioned: …") delivers its figures too.
       deliveredNow: t.releasedNow.length > 0 || !!t.exhibitNow || t.segments.some(s => poolPattern('correct_one', 'correct_two').test(s.text))
-        || t.segments.some(s => s.kind === 'data' && poolPattern('earlier', 'restate').test(s.text)),
+        || t.segments.some(s => s.kind === 'data' && poolPattern('earlier', 'restate', 'restate_exhibit').test(s.text)),
       deliveredPrev: false, refusedNow: t.segments.some(s => /\bI don't have\b/i.test(s.text) || poolPattern('refuse').test(s.text)),
       deferredNow: t.segments.some(s => s.kind === 'data' && (/\b(?:I'll share .* once we've settled|I can share .* if you'd like|Let's settle your structure before)\b/.test(s.text) || poolPattern('defer', 'gate_defer', 'offer', 'unmapped_defer').test(s.text))),
     };
@@ -115,7 +115,7 @@ export function checkRun(run: CorpusRun): Flag[] {
         for (const f of findEchoes(seg.text, open.filter(e => !ms.some(m => m.cited === e.cited)), fb)) flags.push({ ...base, rule: 'F1', sub: 'F1-echo', t: t.t, author: `${seg.kind}/${seg.author}`, items: f.items, cited: f.cited, sentence: f.sentence });
         for (const f of findUndeliveredClaims(seg.text, fb, ctx)) flags.push({ ...base, rule: 'F4', sub: f.why, t: t.t, author: `${seg.kind}/${seg.author}`, items: f.items, cited: f.claim, sentence: f.sentence });
       }
-      for (const f of findFalseRefusals(seg.text, fb, revealed)) flags.push({ ...base, rule: 'F3', sub: 'refusal', t: t.t, author: `${seg.kind}/${seg.author}`, items: f.items, cited: f.refused, sentence: f.sentence });
+      for (const f of findFalseRefusals(seg.text, fb, revealed, { covers: true })) flags.push({ ...base, rule: 'F3', sub: 'refusal', t: t.t, author: `${seg.kind}/${seg.author}`, items: f.items, cited: f.refused, sentence: f.sentence });
     }
     for (const f of checkDataTurn(t, fb, { openBefore: t.openBefore })) flags.push({ ...base, rule: f.rule, sub: f.sub, t: t.t, author: 'turn', items: f.items, cited: f.sub, sentence: f.text });
     for (const m of checkMathTurn(t, getCaseById(run.caseId) as never)) if (!m.handled) flags.push({ ...base, rule: 'D6', sub: m.error.kind, t: t.t, author: 'candidate', items: [], cited: `${m.error.what}: ${m.error.stated} vs ${m.error.expected.join('/')}`, sentence: m.error.span });
@@ -177,7 +177,7 @@ function replayMain(): void {
       if (!statSync(dir).isDirectory()) continue;
       for (const x of replayTexts(dir)) {
         for (const f of findFalseFacts(x.text, fb)) found.push({ folder, where: x.where, rule: 'F1', text: `${f.cited} | ${f.sentence}` });
-        for (const f of findFalseRefusals(x.text, fb)) found.push({ folder, where: x.where, rule: 'F3', text: `${f.items.join(',')} | ${f.sentence}` });
+        for (const f of findFalseRefusals(x.text, fb, new Set(), { covers: true })) found.push({ folder, where: x.where, rule: 'F3', text: `${f.items.join(',')} | ${f.sentence}` });
       }
     }
   }

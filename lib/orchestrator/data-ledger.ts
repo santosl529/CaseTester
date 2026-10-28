@@ -12,10 +12,13 @@ export type LedgerItem = {
 export type DataLedger = {
   items: LedgerItem[];
   revealed: Set<string>;
+  // Revealed items that so far came out only on an exhibit, never said (a release or restate
+  // line): their restatement leads with "As the exhibit shows" (Lorenzo, 20 Oct, D6).
+  exhibitOnly?: Set<string>;
 };
 
 export function createLedger(items: LedgerItem[]): DataLedger {
-  return { items, revealed: new Set() };
+  return { items, revealed: new Set(), exhibitOnly: new Set() };
 }
 
 // Resolve a model-provided identifier to a canonical item id. The model
@@ -55,9 +58,25 @@ export function markExhibitReveals(ledger: DataLedger, exhibit: { coversLedgerIt
   for (const id of exhibit.coversLedgerItems ?? []) {
     if (!canReveal(ledger, id)) continue;
     ledger.revealed.add(id);
+    (ledger.exhibitOnly ??= new Set()).add(id);
     newlyRevealed.push(id);
   }
   return newlyRevealed;
+}
+
+// Which revealed items came out only on an exhibit is kept in the session flags
+// (flags.exhibitOnly: string[]); a missing field is an empty list, so every older run reads as said.
+export function restoreExhibitOnly(ledger: DataLedger, saved: unknown): void {
+  const ids = Array.isArray(saved) ? saved.filter((x): x is string => typeof x === 'string') : [];
+  ledger.exhibitOnly = new Set(ids.filter(id => ledger.revealed.has(id)));
+}
+
+// The list to save after a turn: an id joins when an exhibit revealed it, and leaves when
+// it is said (a release, or a restatement that named it).
+export function nextExhibitOnly(prev: Iterable<string>, exhibitRevealed: string[], said: string[]): string[] {
+  const out = new Set([...prev, ...exhibitRevealed]);
+  for (const id of said) out.delete(id);
+  return [...out];
 }
 
 export function revealedValues(ledger: DataLedger): Record<string, string> {

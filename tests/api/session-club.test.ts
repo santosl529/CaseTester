@@ -80,7 +80,7 @@ describe('POST /api/session', () => {
 
   it('a registered but unlisted case, or an unknown one: 400, nothing started', async () => {
     h.profile = [{ orgId: 'ALPHA' }];
-    for (const caseId of ['prof-002', 'nope-001']) {
+    for (const caseId of ['entry-001', 'nope-001']) {
       const res = await call({ caseId });
       expect(res.status).toBe(400);
       expect(await res.json()).toEqual({ error: 'Unknown case' });

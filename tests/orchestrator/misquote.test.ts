@@ -1,6 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { findMisquotes, exhibitColumns, correctionLine, type QuoteAnchor } from '@/lib/orchestrator/misquote';
 import { getCaseById } from '@/lib/cases/loader';
+import { buildFactBase, factBaseFor, findCandidateMisquotes } from '@/lib/orchestrator/fact-check';
+import { readFileSync } from 'node:fs';
+import { CaseSchema } from '@/lib/cases/schema';
+import { Phase1OverlaySchema, applyPhase1Overlay } from '@/lib/cases/phase1-overlay';
 
 // Rule 6 option 4 (v4.11): lines from batches 12–19, read by hand
 // (tests/orchestrator/fixtures/misquote-labelled.json).
@@ -85,5 +89,172 @@ describe('correctionLine', () => {
   it('is the ledger value, flat, after one lead-in — an acronym keeps its case', () => {
     expect(correctionLine('COGS is 58% of revenue today, up from 42% two years ago.')).toBe('To correct one figure: COGS is 58% of revenue today, up from 42% two years ago.');
     expect(correctionLine('The average transaction is $6.80, up from $6.20 two years ago.')).toBe('To correct one figure: the average transaction is $6.80, up from $6.20 two years ago.');
+  });
+});
+
+// Task 9 (Lorenzo, 19 Oct; §15 p, c): the grammar missed a figure before the
+// sentence's full stop ("The shelf price is $4.49." flagged nothing, "…$4.49 per
+// bag." did), read "$1,200" as "$1", refused "million", and skipped a whole
+// sentence for arithmetic in a later clause (batch-32 Aldermoor Tyler t9:
+// "Prevalence you gave is 1.5%, so 250 × 0.015 = …"). Through the live path.
+describe('the quote grammar: full stops, thousands, scale words, arithmetic clauses', () => {
+  const live = (caseId: string, revealed: string[], shown: string[] = []) => {
+    const fb = factBaseFor(getCaseById(caseId) as never);
+    return (s: string) => findCandidateMisquotes(s, fb, new Set(revealed), shown).map(m => m.items[0]);
+  };
+  const launch = live('launch-001', ['bag_price', 'recipe_cost', 'launch_costs']);
+  const entry = live('entry-001', ['funnel_rates', 'us_adults', 'option_a'], ['exhibit-1', 'exhibit-3']);
+  const pricing = live('pricing-001', ['plan_cac'], ['exhibit-1']);
+  const larkspur = live('prof-002', ['lakeport_variable_cost'], ['exhibit-2']);
+  const prof1 = live('prof-001', ALL, ['exhibit-a']);
+
+  it.each([
+    ['The shelf price is $4.49.', 'bag_price', launch],
+    ['Recipe development was $1.5 million.', 'recipe_cost', launch],
+    ['Prevalence you gave is 1.5%, so 250 × 0.015 = 3.75 million.', 'funnel_rates', entry],
+    ['Selling costs are $77 million.', 'option_a', entry],
+    ['The ticket is $6.90.', 'avg_ticket', prof1],
+    ['Recipe development was $1,500,000.', 'recipe_cost', launch],
+  ] as const)('flags: %s', (text, item, check) => expect(check(text)).toEqual([item]));
+
+  it.each([
+    ['The shelf price is $3.00.', launch],
+    ['Recipe development was $1.2 million.', launch],
+    ['Selling costs are $80 million.', entry],
+    ['Pro CAC is $1,200', pricing],
+    ['Pro CAC is $1,200.', pricing],
+    ['The Lakeport cost per flight is $9,000.', larkspur],
+    ['COGS is 58/110, about 53%.', prof1],
+    ['The ticket is $6.80.', prof1],
+    // Written in full, read at the item's scale (Task 9 review).
+    ['Recipe development was $1,200,000.', launch],
+    ['Recipe development was about $1,000,000.', launch],
+  ] as const)('does not flag: %s', (text, check) => expect(check(text)).toEqual([]));
+
+  it('a scale word before "points" is no figure, whatever its spelling (Task 9 review)', () => {
+    for (const w of ['thousand', 'bn', 'mn', 'million', 'k']) expect(items(`Labor is 5 ${w} points.`)).toEqual([]);
+  });
+
+  it('chains still read through the periods', () => {
+    expect(items('COGS went from 42% to 58% of revenue.')).toEqual([]);
+    expect(items('COGS goes 42 → 50 → 58.')).toEqual([]);
+    expect(items('COGS went from 42% to 61%.')).toEqual(['cogs_pct']);
+  });
+});
+
+// Lorenzo's pre-wave ruling 9 (26 Oct): b38 Tyler cee7d399 t13's "$125" Lakeport fare was never found, because
+// lakeport_fare's anchors all put the route beside the quantity ("lakeport fare", "fare on lakeport") and he wrote
+// "On Lakeport, the exhibit shows fare down to $125". The fix is case data: a route-scoped anchor — the bare name
+// "fare", counted only when the route is named earlier in the same sentence.
+describe('a route-scoped misquote anchor (ruling 9)', () => {
+  const raw = CaseSchema.parse(JSON.parse(readFileSync('cases/prof-002.json', 'utf8')));
+  const ovl = Phase1OverlaySchema.parse(JSON.parse(readFileSync('cases/phase1/prof-002.json', 'utf8')));
+  const on = applyPhase1Overlay(raw, ovl, { ENGINE_SWITCHES: 'prof-002=misquoteAnchors' });
+  // buildFactBase, not factBaseFor: that one caches by case id, and the describe above already built prof-002's
+  // base fact base, so the merged case would read the cached one.
+  const look = (c: typeof raw, revealed: string[], shown: string[] = ['exhibit-1']) => {
+    const fb = buildFactBase(c as never);
+    return (s: string) => findCandidateMisquotes(s, fb, new Set(revealed), shown).map(m => m.items[0]);
+  };
+  const REV = ['lakeport_fare', 'port_avery_per_flight', 'lakeport_seats_load', 'lakeport_variable_cost'];
+  const TYLER = 'On Lakeport, the exhibit shows fare down to $125 with $20 extras, so $145 per passenger, 60 passengers, $8,700 per flight against $9,000 variable cost.';
+
+  it('finds the $125 with the overlay on, and did not before', () => {
+    expect(look(on, REV)(TYLER)).toEqual(['lakeport_fare']);
+    expect(look(raw, REV)(TYLER)).toEqual([]);
+  });
+
+  it('is scoped to the route: a bare fare with no Lakeport before it is not its quote', () => {
+    expect(look(on, REV)('The exhibit shows fare down to $125.')).toEqual([]);
+    expect(look(on, REV)("Port Avery's fare is $160 today.")).toEqual([]);
+  });
+
+  it('a modifier before the bare name makes another quantity: the candidate\'s own break-even, target or held fare', () => {
+    // b22l Raj 07 t24 — his own derived figure; the one false flag the corpus sweep of all 28 prof-002 runs found.
+    expect(look(on, REV)("Lakeport's breakeven fare is $130, so every seat sold now loses money.")).toEqual([]);
+    for (const w of ['break-even', 'target', 'required', 'implied', 'budgeted', 'planning'])
+      expect(look(on, REV)(`On Lakeport the ${w} fare is $130.`), w).toEqual([]);
+    expect(look(on, REV)('On Lakeport, hold fare at $137 rather than discounting.')).toEqual([]);
+  });
+
+  it('does not flag the right figure, however the route is named', () => {
+    for (const s of ['On Lakeport, the exhibit shows fare down to $120.', 'On Lakeport the fare fell from $200 to $120.'])
+      expect(look(on, REV)(s), s).toEqual([]);
+  });
+
+  it('the scoped name is not a free-standing name for the item (fact-check reads it only as a quote)', () => {
+    const fb = buildFactBase(on as never);
+    expect(fb.quantities.find(q => q.id === 'lakeport_fare')!.names).not.toContain('fare');
+  });
+});
+
+// Post-wave item 3 (Lorenzo, 26 Oct). Two genuine detector misses in batch 39's p64 runs.
+describe('`misquoteAttribution` — a figure the candidate attributes to the interviewer', () => {
+  const entry = CaseSchema.parse(JSON.parse(readFileSync('cases/entry-001.json', 'utf8')));
+  const look = (attribution: boolean) => {
+    const fb = { ...buildFactBase(entry as never), ...(attribution ? { attribution: true } : {}) };
+    return (s: string) => findCandidateMisquotes(s, fb as never, new Set(['funnel_rates', 'us_adults', 'nimbrel']), []).map(m => m.items[0]);
+  };
+  // aldermoor p64 4df38465 t6: dropped by `operandLater`, which exists for the candidate's OWN derived figures.
+  const P64 = "Prevalence you gave me is 1.5%, so 260 million × 1.5% = 3.9 million people with Corlan's disease.";
+
+  it('finds the 1.5% with the switch on, and did not before', () => {
+    expect(look(true)(P64)).toEqual(['funnel_rates']);
+    expect(look(false)(P64)).toEqual([]);
+  });
+
+  it.each([
+    "You said prevalence is 1.5%, so 260 × 1.5% = 3.9 million.",
+    "Prevalence you gave is 1.5% and 1.5% of 260 million is 3.9 million.",
+  ])('other attributed forms with the figure as a later operand: %s', text => {
+    expect(look(true)(text)).toEqual(['funnel_rates']);
+  });
+
+  it('the figure the case does state is still no misquote, attributed or not', () => {
+    for (const on of [true, false]) expect(look(on)("Prevalence you gave me is 1.6%, so 260 million × 1.6% = 4.16 million.")).toEqual([]);
+  });
+
+  it('attribution does not defeat the hypothetical, indexed, conclusion or sum guards', () => {
+    expect(look(true)("If you gave me 1.5% prevalence, 260 million × 1.5% = 3.9 million.")).toEqual([]);
+    expect(look(true)("On an index of 100, prevalence you gave is 1.5% of the base.")).toEqual([]);
+  });
+
+  it('an unattributed figure used as a later operand is still excused (Marisol b18 t9)', () => {
+    expect(items('COGS today is 66.7, so 66.7 minus 14.4 leaves 52.3.')).toEqual([]);
+  });
+});
+
+// hollisbay p64 7cdbeb74 t6: "Variable costs: ingredients $0.70, packaging $0.35, …" — variable_costs is one ledger
+// line with four components, and its overlay misquote anchor named only the ingredients. The anchor's names now
+// cover each component the line states.
+describe('`misquoteAnchors` — each component of a multi-component cost line (post-wave item 3)', () => {
+  const raw = CaseSchema.parse(JSON.parse(readFileSync('cases/launch-001.json', 'utf8')));
+  const ovl = Phase1OverlaySchema.parse(JSON.parse(readFileSync('cases/phase1/launch-001.json', 'utf8')));
+  const on = applyPhase1Overlay(raw, ovl, { ENGINE_SWITCHES: 'launch-001=misquoteAnchors' });
+  const look = (c: typeof raw) => {
+    const fb = buildFactBase(c as never);
+    return (s: string) => findCandidateMisquotes(s, fb as never, new Set(['variable_costs', 'bag_price']), []).map(m => ({ item: m.items[0], cited: m.cited }));
+  };
+  const P64 = 'Variable costs: ingredients $0.70, packaging $0.35, roasting labor and energy $0.30, freight $0.20.';
+
+  it('finds the $0.35 packaging with the overlay on, and did not before', () => {
+    expect(look(on)(P64)).toEqual([{ item: 'variable_costs', cited: '$0.35' }]);
+    expect(look(raw)(P64)).toEqual([]);
+  });
+
+  it('the line as the case states it is no misquote', () => {
+    expect(look(on)('Variable costs: ingredients $0.70, packaging $0.30, roasting labor and energy $0.30, freight $0.20.')).toEqual([]);
+  });
+
+  it.each([
+    'Freight is $0.45 a bag.',
+    'Roasting labor and energy is $0.55.',
+  ])('each component name reads its own quote: %s', text => {
+    expect(look(on)(text).map(x => x.item)).toEqual(['variable_costs']);
+  });
+
+  it('a share of something else is no quote of the line', () => {
+    expect(look(on)('Packaging is 20% of the bag cost.')).toEqual([]);
+    expect(look(on)('Freight is about 13% of variable cost.')).toEqual([]);
   });
 });

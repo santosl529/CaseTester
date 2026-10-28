@@ -1,0 +1,240 @@
+[
+ {
+  "id": "b39a-raj-t12-pointer-mismatch",
+  "kind": "fault",
+  "p": "07",
+  "turn": 12,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for Kelvexa's share in its European markets and what competes there — the funnel table is US-only.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39a-marcus-t8-pointer-mismatch",
+  "kind": "fault",
+  "p": "24",
+  "turn": 8,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for no ask for the funnel; the pointer answers nothing asked.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39a-marisol-t24-pointer-mismatch",
+  "kind": "fault",
+  "p": "57",
+  "turn": 24,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for the length of the royalty term — the entry options table doesn't hold it. Also a D9 ask (wave39-grading.md): the royalty term is not held — a true refusal was owed (Lorenzo, 27 Oct). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "royalty|term",
+    "must": true,
+    "acceptAssume": true
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39a-tyler-t22-pointer-mismatch",
+  "kind": "fault",
+  "p": "64",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "Mismatched exhibit pointer: the turn points to an exhibit's summary for whether the board's $300M test applies to booked revenue or product sales — not held — net_sales_definition defines net sales (after discounts and rebates), not whether the test is booked revenue or product sales. Lorenzo, 27 Oct: no true refusal — the prompt sets the bar as \"$300 million in peak annual US net sales\" (promptFacts.board_bar), so \"I don't have\" would be false. Expected: no refusal and no exhibit pointer; the full expected answer is pending his ruling.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct); batch 39 not yet graded — severity proposed",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "You'll find that on the exhibit|That one is on the exhibit you have|The exhibit already shows that|The exhibit you have covers that|That's covered on the exhibit",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "booked|product sales|board|net sales",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39a-marcus-t16-silence-ramp",
+  "kind": "fault",
+  "p": "24",
+  "turn": 16,
+  "sev": "borderline",
+  "cls": "ignored_ask",
+  "note": "\"is the $80 million flat across all five years, or does it ramp?\" — the case holds no ramp profile of the selling costs; the turn gave the entry-options pointer and no word on the ask (D9). A true refusal was owed. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "src": "Lorenzo's batch-39 list for Phase 2 (27 Oct): the D9 silences of wave39-grading.md §3/§4 — severity borderline as graded there",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "ramp|flat|\\$80",
+    "must": true,
+    "acceptAssume": true
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "phase2"
+ },
+ {
+  "id": "b39a-raj-t18-c5-misfire",
+  "kind": "fault",
+  "p": "07",
+  "turn": 18,
+  "sev": "serious",
+  "cls": "other",
+  "note": "The C5 regex floor fired `offer_pause` reason \"despair\" on pure case arithmetic and code spoke the 988 crisis script, skipping the model layer (`conduct_model: skip — regex floor already fired C5`). Lorenzo's correction to the grading (26 Oct): t17 is not pure arithmetic in the detector's eyes — it ends \"both miss, and nothing works\", which matched `nothing (matters|works)` in `C5_DESPAIR`. That alternative is removed from the floor (conduct.ts v4.12); generalized hopelessness in those words is the model layer's call. The turn owed the candidate two answers (\"which definition the board intends\" and whether the $80 million is flat from year one), so the floor assertion is paired with a question.",
+  "src": "lorenzo-ruling-2026-10-26 (correction to batch-39/wave39-grading.md S1)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "988|set the case aside|are you okay",
+    "must": false
+   },
+   {
+    "kind": "close",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The recorded turn is `scripted` (the crisis script), so the run holds no model output for turnIndex 17 — with the floor alternative gone the turn becomes a model turn the replay cannot write. Wave: on entry-001, an arithmetic turn that ends on a verdict like \"both miss, and nothing works\" draws a case question rather than the 988 script, `conduct` records `none`, and the run reaches the recommendation; the auditor (other) and the hand grade see it.",
+  "stream": 4
+ },
+ {
+  "id": "b39a-raj-t20-exit-misread",
+  "kind": "fault",
+  "p": "07",
+  "turn": 20,
+  "sev": "serious",
+  "cls": "premature_close",
+  "note": "After the pause offer the candidate said \"I appreciate you checking, genuinely — but I'm okay … I've found my footing and I'd like to finish. If it's useful, I can give the recommendation now.\" `isPauseAccepted` correctly read that as a decline, and then `classifyExitIntent` read \"I'd like to finish\" as a stop (STOP pattern 2, where `finish` sat beside stop/end/quit and OBJ accepted \"it / this / the case\"): `candidate_exit act — stop: would like to stop`, and the case closed in the EXHIBIT phase with no exhibit-2, brainstorm, recommendation or risk stage. Two fixes: `finish` counts as a stop only with an object that can only mean ending here and now (candidate-exit.ts), and after a pause offer this path never closes the case — ambiguous asks once, at most (plan-turn.ts `exit_after_pause`).",
+  "src": "lorenzo-ruling-2026-10-26 (correction to batch-39/wave39-grading.md S1)",
+  "a": [
+   {
+    "kind": "close",
+    "must": false
+   },
+   {
+    "kind": "says",
+    "pattern": "we'll stop here",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The recorded turn is `scripted` (the exit close), so the run holds no model output for turnIndex 19 — with the gate in place the turn becomes a model turn the replay cannot write. Wave: a candidate who declines a pause offer and says they would like to finish gets the next case turn, the run reaches the recommendation and risk stages, and `exit_after_pause` appears in the checks where anything in the message still reads as a stop; the auditor (premature_close) and the hand grade see it.",
+  "stream": 4
+ },
+ {
+  "id": "b39a-tyler-t6-prevalence-misquote",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "misquote_uncorrected",
+  "note": "\"Prevalence you gave me is 1.5%, so 260 million × 1.5% = 3.9 million people with Corlan's disease\" — the case says 1.6%. `misquoteFlat` was on and the misquote check logged `found: []`: `operandLater` dropped the quote because the candidate uses the figure as an operand in a later clause, a guard built for the candidate's OWN derived figures (Marisol b18 t9, \"COGS today is 66.7, so … 66.7 minus 14.4\"). Here the figure is attributed — \"you gave me\" — so the later operand is the misquote propagating, not evidence the figure is his. Fixed by `misquoteAttribution`. Rule 6 option 4 asks for one flat sentence; `misquoteSameTurn` says it on this turn, because code's own correction otherwise waits for the checker's verdict a turn later and by t8 he had already fixed it himself. Post-wave: the assertion's window runs to t8 — code's correction is owed either on this turn (`misquoteSameTurn`) or on the next, once the checker's verdict for the message has landed. It fails only if no flat correction is spoken at all.",
+  "src": "lorenzo-ruling-2026-10-26 (post-wave item 3)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "1\\.6% of US adults",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 8
+    }
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b39a-tyler-t10-nimbrel-misquote",
+  "kind": "fault",
+  "p": "64",
+  "turn": 10,
+  "sev": "firm",
+  "cls": "misquote_uncorrected",
+  "note": "\"You said Nimbrel's net price is about $9,400 per patient per year\" — the line says $9,000, and he built $391M of peak sales on it. Correction to the grading: the detector did NOT miss this one. `misquote` at t10 logged `found: [{items:[nimbrel], cited:\"is about $9,400\"}]`, and the gate released it at t12 (\"code's mismatch with nimbrel, and the checker rates \\\"$9,400\\\" error/high with no flag (misquoteFlat)\"). Nothing flat was ever said because code's correction is owed a turn after the message, and by t12 he had fixed it himself at message 11 (\"You gave $9,000, not $9,400\"). The spoken line at t10 was the model's Socratic \"Which was it, and what does that do to your peak sales number?\", which `misquoteFlat` deliberately lets stand. `misquoteSameTurn` says the flat sentence on t10 instead. Post-wave: the assertion's window runs to t12 — code's correction is owed either on this turn (`misquoteSameTurn`) or on the next, once the checker's verdict for the message has landed. It fails only if no flat correction is spoken at all.",
+  "src": "lorenzo-ruling-2026-10-26 (post-wave item 3)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "\\$9,000 per patient per year",
+    "must": true,
+    "scope": {
+     "fromTurn": 10,
+     "toTurn": 12
+    }
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ }
+]

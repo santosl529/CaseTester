@@ -1,0 +1,64 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/24-marcus-the-answer-first-sprinter/live-run-2026-10-21-a7d9f44e.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 6,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have cost per seat mile trend.",
+   "why": "The unit_costs and fuel_prices items answer this coarsely: there were no material changes in costs per flight and fuel was flat. Those lines were never released, but Exhibit 1, put up two turns later, effectively showed that variable costs were unchanged."
+  },
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "Is that MECE, and what's missing? Specifically, what within revenue could you still be missing before you commit to pricing?",
+   "why": "Three questions are stacked in one turn."
+  },
+  {
+   "turn": 12,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "I'm afraid I don't have quarter-by-quarter fares and passengers since entry.",
+   "why": "The candidate asked how many seats a day the entrant had added. The turn answered the fare, cost and quarterly asks but said nothing at all about the entrant's added capacity."
+  },
+  {
+   "turn": 18,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "You've tied the new routes to the freed aircraft time and landed on a profit figure.",
+   "why": "The candidate asked directly, 'What stops the same low-cost carrier following us there?' The interviewer gave no answer, refusal or deferral."
+  },
+  {
+   "turn": 20,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As the exhibit shows: Variable cost on the new routes is estimated at $9,200 per flight, across 5,000 flights a year",
+   "why": "The candidate asked for launch costs (marketing, station setup, crew basing). The interviewer restated the already-released variable cost line as the answer, and never said it doesn't have launch costs."
+  },
+  {
+   "turn": 24,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "Where should the client start — what's the first step?",
+   "why": "The candidate had already given next steps in the recommendation (validate demand, stage the exit with Port Avery first) and repeated the staging in the guard answer just before."
+  },
+  {
+   "turn": 26,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Before we wrap up — you said each passenger nets $160 toward the $9,200 variable cost.",
+   "why": "The candidate said they wanted O&D volume for each new city pair before committing on Lakeport. The case doesn't hold that data, but no refusal came and the case closed without addressing it."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 17911,
+  "output": 2776,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 26005,
+ "usd": 0.127164
+}

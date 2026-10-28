@@ -5,10 +5,13 @@ import { LISTED_CASE_IDS, listedCases, isListedCase } from '@/lib/cases/listed';
 import { getCaseById } from '@/lib/cases/loader';
 
 describe('listed cases', () => {
-  it('lists prof-001 only, with its title and difficulty from the case file', () => {
-    expect(LISTED_CASE_IDS).toEqual(['prof-001']);
-    const c = getCaseById('prof-001');
-    expect(listedCases()).toEqual([{ id: 'prof-001', title: c.title, difficulty: c.difficulty, caseType: c.caseType }]);
+  // The four demo cases (Lorenzo, 27 Oct); Aldermoor (entry-001) stays unlisted.
+  it('lists the four demo cases, each with its title and difficulty from the case file', () => {
+    expect(LISTED_CASE_IDS).toEqual(['prof-001', 'prof-002', 'pricing-001', 'launch-001']);
+    expect(listedCases()).toEqual(LISTED_CASE_IDS.map(id => {
+      const c = getCaseById(id);
+      return { id, title: c.title, difficulty: c.difficulty, caseType: c.caseType };
+    }));
   });
 
   it('carries no server-only field (prompt, ledger, keys, anchors)', () => {
@@ -17,7 +20,7 @@ describe('listed cases', () => {
 
   it('isListedCase: a listed id yes; a registered but unlisted case, an unknown id, a non-string no', () => {
     expect(isListedCase('prof-001')).toBe(true);
-    expect(isListedCase('prof-002')).toBe(false);
+    expect(isListedCase('entry-001')).toBe(false);
     expect(isListedCase('nope-001')).toBe(false);
     expect(isListedCase(undefined)).toBe(false);
   });

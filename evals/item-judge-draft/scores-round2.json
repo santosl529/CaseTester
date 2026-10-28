@@ -1,0 +1,1017 @@
+[
+ {
+  "turn": "35740806:12",
+  "records": [
+   "b39a-raj-t12-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "sonnet55_pf": "over_full",
+  "sonnet_why": "\"what competes\" (in Europe) \u2192 nimbrel full: US-only",
+  "haiku55_pf": "over_full",
+  "haiku_why": "\"what competes\" (in Europe) \u2192 nimbrel full: US-only",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "257e027f:8",
+  "records": [
+   "b39a-marcus-t8-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "sonnet55_pf": "spurious_ask",
+  "sonnet_why": "invented European net price ask",
+  "haiku55_pf": "spurious_ask",
+  "haiku_why": "invented ask, with net_sales_definition partial",
+  "haiku45_pf": "spurious_ask"
+ },
+ {
+  "turn": "5bc506bc:24",
+  "records": [
+   "b39a-marisol-t24-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "parse_fail"
+ },
+ {
+  "turn": "4df38465:22",
+  "records": [
+   "b39a-tyler-t22-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "cdb8ca52:4",
+  "records": [
+   "b34a-marcus-t4-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "6bbc2163:4",
+  "records": [
+   "b36a-jasmine-t4-coarse-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "c518221e:10",
+  "records": [
+   "b36a-marcus-t10-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "34eb553a:10",
+  "records": [
+   "b36a-tyler-t10-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "a1133734:24",
+  "records": [
+   "b34a-marisol-t24-one-off-cost"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "c518221e:24",
+  "records": [
+   "b36a-marcus-t24-split-restated"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "6f57da6e:6",
+  "records": [
+   "b36a-marisol-t6-growth-restated"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "fc5eb050:12",
+  "records": [
+   "b34a-tyler-t12-trial-release"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "fc5eb050:20",
+  "records": [
+   "b34a-tyler-t20-pipeline-release"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "cdb8ca52:14",
+  "records": [
+   "b34a-marcus-t14-patents-release"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "fc5eb050:4",
+  "records": [
+   "b34a-tyler-t4-gate-deferral"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "6f57da6e:14",
+  "records": [
+   "b36a-marisol-t14-coverage"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "3fdb20e8:24",
+  "records": [
+   "b36a-raj-t24-option-b"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "parse_fail"
+ },
+ {
+  "turn": "6f57da6e:2",
+  "records": [
+   "b36a-marisol-t2-deferral"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "under_full"
+ },
+ {
+  "turn": "6f57da6e:8",
+  "records": [
+   "b36a-marisol-t8-exhibit"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "34eb553a:16",
+  "records": [
+   "b36a-tyler-t16-exhibit"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "70a06d70:6",
+  "records": [
+   "b35h-marcus-t6-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "a14ca044:6",
+  "records": [
+   "b35h-marisol-t6-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "52951de8:22",
+  "records": [
+   "b35h-tyler-t22-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "11414946:12",
+  "records": [
+   "b37h-raj-t12-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "7f6c40ea:14",
+  "records": [
+   "b37h-marisol-t14-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "7f6c40ea:20",
+  "records": [
+   "b37h-marisol-t20-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "442e37ff:18",
+  "records": [
+   "b37h-tyler-t18-method-restated"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "a14ca044:14",
+  "records": [
+   "b35h-marisol-t14-retailer-release"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "01b805d6:26",
+  "records": [
+   "b35h-raj-t26-cannibalization"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "missed_ask"
+ },
+ {
+  "turn": "11414946:10",
+  "records": [
+   "b37h-raj-t10-retailer"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "7f6c40ea:16",
+  "records": [
+   "b37h-marisol-t16-correction"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "527217df:6",
+  "records": [
+   "b37h-jasmine-t6-survey"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "11414946:26",
+  "records": [
+   "b37h-raj-t26-stage-exhibit"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "442e37ff:16",
+  "records": [
+   "b37h-tyler-t16-exhibit"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "c82e7bd7:22",
+  "records": [
+   "b39q-raj-t22-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "c82e7bd7:28",
+  "records": [
+   "b39q-raj-t28-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "dcc6774f:22",
+  "records": [
+   "b39q-tyler-t22-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "854fc080:14",
+  "records": [
+   "b39q-marisol-t14-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "dd74b01b:12",
+  "records": [
+   "b39q-dana-t12-pointer-mismatch"
+  ],
+  "class": "pointer",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "c82e7bd7:10",
+  "records": [
+   "b39q-raj-t10-refusal-contradiction"
+  ],
+  "class": "target",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "854fc080:6",
+  "records": [
+   "b39q-marisol-t6-refusal-contradiction"
+  ],
+  "class": "target",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "1f6007fd:12",
+  "records": [
+   "b39q-victor-t12-refusal-contradiction"
+  ],
+  "class": "target",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "5c3d2c21:22",
+  "records": [
+   "b35q-raj-t22-doubled-line"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "under_full",
+  "haiku_why": "test-group CAC partial, missing \"CAC by test group\" \u2014 price_test_notes holds it (same at either price)",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "a2a5921b:18",
+  "records": [
+   "b37q-tyler-t18-trend-restated"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "e08c362a:14",
+  "records": [
+   "b37q-raj-t14-unasked-restated"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "eb8d7576:22",
+  "records": [
+   "b37q-marcus-t22-overlap"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "7e69eda5:8",
+  "records": [
+   "b35q-marcus-t8-deferral-delivered"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "7e69eda5:6",
+  "records": [
+   "b35q-marcus-t6-deferral-delivered"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "over_full",
+  "sonnet_why": "\"by month\" \u2192 new_customers_by_plan full: averages only",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "3376e5fe:8",
+  "records": [
+   "b37q-jasmine-t8-cac"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "084e7508:18",
+  "records": [
+   "b37q-marisol-t18-why-pro-fell"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "e08c362a:10",
+  "records": [
+   "b37q-raj-t10-cohort"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "eb8d7576:6",
+  "records": [
+   "b37q-marcus-t6-volumes"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "e08c362a:8",
+  "records": [
+   "b37q-raj-t8-exhibit"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "c355c1fd:14",
+  "records": [
+   "b33-raj-t14-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "parse_fail"
+ },
+ {
+  "turn": "0150f744:12",
+  "records": [
+   "b33-tyler-t12-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "053db5c8:10",
+  "records": [
+   "b33-owen-t10-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "c355c1fd:8",
+  "records": [
+   "b33-raj-t8-exhibit"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "2f9a71e3:2",
+  "records": [
+   "b33-jordan-t2-deferral"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "2b538541:4",
+  "records": [
+   "b33-fiona-t4-exhibit"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "053db5c8:4",
+  "records": [
+   "b33-owen-t4-exhibit"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "52904ce7:20",
+  "records": [
+   "b39l-raj-t20-refusal-contradiction"
+  ],
+  "class": "target",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "065501fe:4",
+  "records": [
+   "b39l-marcus-t4-fuel-refusal"
+  ],
+  "class": "target",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "065501fe:14",
+  "records": [
+   "b39l-marcus-t14-refusal-contradiction"
+  ],
+  "class": "target",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "under_full",
+  "haiku_why": "benchmark per flight partial, missing per-flight contribution \u2014 route_results_other holds revenue, contribution and flights",
+  "haiku45_pf": "none_where_held"
+ },
+ {
+  "turn": "bd5a333c:2",
+  "records": [
+   "b39l-jasmine-t2-refusal-contradiction"
+  ],
+  "class": "target",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "69441a66:2",
+  "records": [
+   "b39l-marisol-t2-breakdown-refusal"
+  ],
+  "class": "target",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "cee7d399:14",
+  "records": [
+   "b38l-tyler-t14-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "cee7d399:16",
+  "records": [
+   "b38l-tyler-t16-answer-gate"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "316baba1:14",
+  "records": [
+   "b38l-marcus-t14-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "ef7bed14:8",
+  "records": [
+   "b36l-raj-t8-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "a7d9f44e:12",
+  "records": [
+   "b36l-marcus-t12-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "51ad0cb8:18",
+  "records": [
+   "b34l-tyler-t18-true-refusal"
+  ],
+  "class": "true_refusal",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "cee7d399:24",
+  "records": [
+   "b38l-tyler-t24-doubled"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "a7d9f44e:20",
+  "records": [
+   "b36l-marcus-t20-launch-cost"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "4e91d638:6",
+  "records": [
+   "b36l-tyler-t6-long-restatement"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "under_full",
+  "haiku_why": "fares partial, missing Port Avery FY2023 fare \u2014 port_avery_per_flight holds $240 \u2192 $160",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "51ad0cb8:20",
+  "records": [
+   "b34l-tyler-t20-doubled-line"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "parse_fail"
+ },
+ {
+  "turn": "3ac59856:22",
+  "records": [
+   "b34l-marcus-t22-doubled-line"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "e6432db0:24",
+  "records": [
+   "b34l-marisol-t24-restate-unsaid"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": "",
+  "haiku45_pf": "ok"
+ },
+ {
+  "turn": "3ac59856:10",
+  "records": [
+   "b34l-marcus-t10-long-restatement"
+  ],
+  "class": "restatement",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "under_full",
+  "haiku_why": "FY2025 flights partial, missing explicit counts \u2014 the route lines hold 2,000 / 3,000 a year"
+ },
+ {
+  "turn": "701443f7:20",
+  "records": [
+   "b38l-raj-t20-must-reach"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "316baba1:24",
+  "records": [
+   "b38l-marcus-t24-must-reach"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "3f928012:20",
+  "records": [
+   "b38l-jasmine-t20-must-reach"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "na",
+  "sonnet_why": "",
+  "haiku55_pf": "na",
+  "haiku_why": ""
+ },
+ {
+  "turn": "316baba1:8",
+  "records": [
+   "b38l-marcus-t8-casm"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "under_full",
+  "haiku_why": "revenue by route partial, missing \"all six\" \u2014 the three route lines cover all six"
+ },
+ {
+  "turn": "3f928012:8",
+  "records": [
+   "b38l-jasmine-t8-competitor"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "316baba1:16",
+  "records": [
+   "b38l-marcus-t16-deferral-delivered"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "a7d9f44e:16",
+  "records": [
+   "b36l-marcus-t16-leases"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "061ef630:14",
+  "records": [
+   "b34l-raj-t14-leases-release"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ },
+ {
+  "turn": "e6432db0:6",
+  "records": [
+   "b34l-marisol-t6-competitor-release"
+  ],
+  "class": "correct",
+  "sonnet55_pf": "ok",
+  "sonnet_why": "",
+  "haiku55_pf": "ok",
+  "haiku_why": ""
+ }
+]

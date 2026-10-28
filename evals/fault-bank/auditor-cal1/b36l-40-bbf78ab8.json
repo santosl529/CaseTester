@@ -1,0 +1,64 @@
+{
+ "run": "test runs/batch-36-larkspur-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-bbf78ab8.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 2,
+   "class": "false_refusal",
+   "severity": "false",
+   "quote": "I don't have total departures and average fare, FY2023 vs FY2025.",
+   "why": "The case holds flights per year (14,000 in both years, network_totals and routes_schedule) and route fares (Lakeport $200→$120, Port Avery $240→$160). The flight count reached the candidate on exhibit-1 at t4, and the fares came out within a few turns."
+  },
+  {
+   "turn": 6,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "I'll come back to fuel and crew rate changes between the years shortly.",
+   "why": "The deferral names fuel, but fuel_prices was released in the same turn. It reads as though fuel had not been answered."
+  },
+  {
+   "turn": 8,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Let's stay with this case.",
+   "why": "When asked what it wanted to confirm, the candidate said it would check whether the entrant is a lower-cost carrier and how much capacity it added. The case holds competitor_entry and competitor_costs, but the candidate got no release, refusal or deferral on either."
+  },
+  {
+   "turn": 18,
+   "class": "false_correction",
+   "severity": "firm",
+   "quote": "How did you get to that roughly $12M a year, and what is the biggest risk that could undercut it?",
+   "why": "This challenges a correct figure: $10M plus $1.8M is about $12M. It also folds the risk question into the same probe."
+  },
+  {
+   "turn": 20,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "Putting it all together, what would you recommend to the CEO?",
+   "why": "The candidate had already given the recommendation ('I'd exit') at t17, and also at t7. Asking for it again re-asks an answer already given."
+  },
+  {
+   "turn": 22,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What's the first step you'd want the client to take?",
+   "why": "The candidate's t21 answer had just listed next steps, starting with validating demand in the two new cities. This follow-up re-asks what was already covered."
+  },
+  {
+   "turn": 24,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "you put it at “60%” — can you show me that calculation step by step?",
+   "why": "60% is an assumed load factor, not something the candidate calculated. The flagged claim was '60% erases the gain', so quoting '60%' as the calculation to show misreads what is being probed."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 14467,
+  "output": 3755,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 35944,
+ "usd": 0.132968
+}

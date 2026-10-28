@@ -11,10 +11,12 @@ import { growthProbeOnRatio, growthProbeUnchecked } from './growth-probe';
 import type { TurnTimer } from './turn-timer';
 import type { TurnEvent, TurnValidation } from '@/lib/agent/models/interface';
 import { normalizeNumberWords } from '@/lib/number-words';
-import { poolPattern, type PhraseUses } from './phrasing';
+import { poolPattern, rotateOpeningAck, type PhraseUses } from './phrasing';
+import { isSetup } from './turn-composer';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { toRequests, type ModelTurn } from '@/lib/agent/models/turn-schema';
 import { NEUTRAL_TURN } from '@/lib/agent/models/turn-events';
-import type { ModelPlan } from './plan-turn';
+import type { ModelPlan, ModelState } from './plan-turn';
 import type { SegmentKind, SegmentSink } from './turn-types';
 import type { Phase } from './state-machine';
 import type { VerifiedFigure } from './recompute';
@@ -31,9 +33,10 @@ import { hasCloseCue } from '@/lib/agent/prompts/scripts';
 import { handoffSentences } from './data-ledger';
 import { promisesExhibit } from './exhibits';
 import { revealedValues } from './data-ledger';
-import { turnData, pressureTestOutcomeNow } from './turn-data';
+import type { OnUsage } from '@/lib/llm-usage';
+import { turnDataChecked, pressureTestOutcomeNow, messageAsks, withAsks } from './turn-data';
 import { renderDataLines } from './data-decisions';
-import { findFalseFacts, findEchoes, findFalseRefusals, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
+import { findFalseFacts, findEchoes, findFalseRefusals, refusedItemIds, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
 import { isGradingSentence } from './grading';
 import { sayAfterAckReason, sayFiguresOf } from './say-after-ack';
 
@@ -43,7 +46,9 @@ export type GateContext = {
   alreadyProbed: Set<string>;
   flaggedThisTurn: boolean;
   flagged?: number[];              // figures a check flagged wrong this turn
+  misquoteFigures?: number[];      // figures code found misquoted in this message (Phase 1 `misquoteFlat`): a doubt of one stands
   closed?: number[];               // figures of a checker flag past Rule 14: not asked about again
+  closedInputs?: { figure: number; unit: string }[];   // misread inputs corrected or left for the report (E7): not probed again
   converted?: number[];            // figures a conversion closed (own-quantity.ts): never negated ("not 38")
   candidateFigures?: number[];     // the figures the candidate derived (math-talk.ts)
   openItems: OpenRequestItem[];
@@ -57,7 +62,9 @@ export type GateContext = {
   sayFigures?: number[];   // the case's and the candidate's figures: a "say" sentence with one is never dropped (say-after-ack.ts)
   // The truth check (fact-check.ts F1): the case's facts, what has been
   // revealed (ids), and the figures of misquotes still standing.
-  facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext };
+  facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext;
+    // Items code hands over in this turn's data line (releases, restates, the exhibit's covers): the model must not refuse them (Task 39).
+    releasedNow?: Set<string> };
 };
 
 // A short sentence whose every word is in the filler just said ("Take your
@@ -104,6 +111,20 @@ export function isBareAcknowledgment(sentence: string): boolean {
   return BARE_ACK.test(sentence.trim());
 }
 
+// 4.10's review fix (item 8): a correction code writes on this turn — a misquote's, said right after the model's
+// "say", or the checker's line. A rotated acknowledgment in front of one reads as assent and then contradiction
+// ("Mm-hm. Starter value is about $1,400, not $1,205."), which is why "Right." was left out of the pool in the
+// first place; on such a turn the model's own opening word stands (phrasing.ts rotateOpeningAck, from here and
+// from Settle). It lives here rather than in plan-turn.ts to keep plan-turn, and so db/client, out of the module
+// graph of every test that reads this file's say-level helpers.
+export function turnCorrects(state: Pick<ModelState, 'misquote' | 'checkerLine' | 'stageCheckerLine' | 'recMathProbe'>): boolean {
+  const corrects = (action: string) => action === 'correct' || action === 'restate';   // math-checker-live.ts correctsNow
+  return state.misquote !== null
+    || (state.checkerLine !== null && corrects(state.checkerLine.action))
+    || state.stageCheckerLine !== null
+    || (state.recMathProbe !== null && state.recMathProbe.action === 'correct');
+}
+
 // The model's own words declining, deferring or announcing data — code
 // speaks those lines; a model that writes them doubles or contradicts them
 // (batch 9: Devon t14 "…is available, so I'll give you that"). Claims about
@@ -123,7 +144,7 @@ export const DATA_TALK = /\b(i don'?t have|we don'?t have|that'?s not in the inf
 // talk, as the original wording is. The lead-ins and deferrals by their fixed words.
 const CODE_LINE_TALK = new RegExp([
   String.raw`\b(?:we'?ll|i'?ll) (?:get|come back) to\b[^.?!]{0,80}\b(?:shortly|in a bit|a little later|in a moment|later)\b`,
-  poolPattern('defer', 'gate_defer', 'offer', 'unmapped_defer', 'restate', 'earlier').source,
+  poolPattern('defer', 'wont_get_to', 'wont_get_to_that', 'gate_defer', 'offer', 'unmapped_defer', 'restate', 'restate_exhibit', 'earlier').source,
 ].join('|'), 'i');
 
 // A statement in the question that hands something over ("Here's the cost
@@ -161,8 +182,12 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // provenance check passes these when the number was said by anyone.
   if (g.facts && (findFalseFacts(sentence, g.facts.fb, g.facts.revealed).length > 0 || findEchoes(sentence, g.facts.echoes, g.facts.fb).length > 0
     || findEchoes(sentence, g.facts.correcting ?? [], g.facts.fb, { strict: true }).length > 0)) return 'false_fact';
+  // A refusal or deferral of an item code releases in this same turn
+  // ("I have no ramp assumption to give you yet." before the ramp line; Lorenzo,
+  // 20 Oct, batch 34 Larkspur Tyler t21): false, so withheld (Task 39).
+  if (g.facts?.releasedNow?.size && refusedItemIds(sentence, g.facts.fb).some(id => g.facts!.releasedNow!.has(id))) return 'refuses_released';
   // A refusal of data the case holds, in the model's own words (code's data line answers asks).
-  if (g.facts && findFalseRefusals(sentence, g.facts.fb, g.facts.revealed).length > 0) return 'false_refusal';
+  if (g.facts && findFalseRefusals(sentence, g.facts.fb, g.facts.revealed, { covers: true }).length > 0) return 'false_refusal';
   // The question agrees with what code delivered (fact checks F4): "with the
   // other-input price change in hand" when only the bean figures went out, "the
   // exhibit" before any was shown, "with those figures" when none were given.
@@ -175,7 +200,8 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // Doubt on the candidate's math only with a flag behind it (probe-guard.ts):
   // on a verified figure "probe_guard", on an unverified one "unsupported_challenge".
   const challenge = challengeVerdict(sentence, {
-    verified: g.verified, alreadyProbed: g.alreadyProbed, flaggedThisTurn: g.flaggedThisTurn, flagged: g.flagged, closed: g.closed, candidateFigures: g.candidateFigures,
+    verified: g.verified, alreadyProbed: g.alreadyProbed, flaggedThisTurn: g.flaggedThisTurn, flagged: g.flagged, closed: g.closed, closedInputs: g.closedInputs, candidateFigures: g.candidateFigures,
+    misquoteFigures: g.misquoteFigures,
   }, new Set(), opts.previous);
   if (challenge && !('explainKey' in challenge)) return challenge.test === 'unsupported_challenge' ? 'unsupported_challenge' : 'probe_guard';
   if (withholdAssumptionChallenges(sentence, g.openItems).withheld.length > 0) return 'assumption_guard';
@@ -220,6 +246,8 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
     flaggedThisTurn: state.recomputeFlags.length > 0,
     flagged: state.flaggedFigures,
     closed: state.closedFigures,
+    closedInputs: state.closedInputs,
+    misquoteFigures: state.misquoteFigures,
     converted: state.convertedFigures,
     candidateFigures: state.candidateFigures,
     openItems: state.openDataRequests.map(r => ({ ledgerItemId: r.ledgerItemId, label: r.label })),
@@ -274,7 +302,7 @@ export async function streamTurnSegments(
   events: AsyncIterable<TurnEvent>,
   plan: ModelPlan,
   sink: SegmentSink,
-  opts: { isDelivered: { value: boolean }; timer?: TurnTimer },
+  opts: { isDelivered: { value: boolean }; timer?: TurnTimer; onUsage?: OnUsage },
 ): Promise<StreamOutcome> {
   const mark = (name: string) => opts.timer?.mark(name);
   const { state } = plan;
@@ -304,6 +332,19 @@ export async function streamTurnSegments(
   // Guard B (7 Oct): on an explicit ask, say waits for the declarations so a
   // regeneration (interviewer.ts) can still happen with nothing delivered.
   const holdForRequests = state.requestCues.length > 0;
+  // A say sentence that refuses or defers an item waits until every declaration
+  // has closed (what this turn releases, the exhibit handed over and its covers),
+  // and the say sentences after it wait behind it, in order — the next ordinary
+  // sentence never flushes it early (final review M1, 20 Oct).
+  let heldRefusal = false;
+  let firstSentenceSeen = false;
+  const sayRaw: string[] = [];
+  const setupHeld = Boolean(plan.ctx.acknowledged) && switchOn(plan.state.caseData, 'composeSetup');
+  const ackOn = switchOn(plan.state.caseData, 'ackRotation');
+  // 4.10's review fix: no rotated acknowledgment in front of a correction code writes (stream-turn.ts turnCorrects).
+  const correcting = turnCorrects(state);
+  const refusalShaped = (text: string) => g.facts !== undefined && refusedItemIds(text, g.facts.fb).length > 0;
+  const judgeable = () => closed.has('requests') && (!heldRefusal || DECLARATIONS.every(k => closed.has(k)));
 
   const send = async (kind: SegmentKind, text: string, revealIds: string[], exhibitId?: string) => {
     try {
@@ -325,26 +366,43 @@ export async function streamTurnSegments(
       const key = p.text.toLowerCase().replace(/\s+/g, ' ');
       if (spokenKeys.has(key)) { bufferSwitch = 'duplicate'; return; }
       spokenKeys.add(key);
-      const reason = vetoReason(p.text, g);
+      // A sentence that refuses or defers an item is judged against what this
+      // turn's data line releases: the requests have closed by now (it was held).
+      // The checked decisions, the data line's own (round 5 Task 45: the small-model
+      // check's verdict can release an item; cached on the plan, shared with Settle).
+      // Every turn with such a sentence, declared requests or not: the message's own asks count (Task 50).
+      let gate = g;
+      if (g.facts && refusedItemIds(p.text, g.facts.fb).length > 0) {
+        await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
+        const d = await turnDataChecked(plan, withAsks(fields, await messageAsks(plan, fields.requests, opts.onUsage)), opts.onUsage);
+        gate = { ...g, facts: { ...g.facts, releasedNow: new Set([...d.releases.map(r => r.id), ...d.restates.map(r => r.id), ...(d.exhibit?.covers ?? [])]) } };
+      }
+      const reason = vetoReason(p.text, gate);
       // With "say" written before the declarations, the model sometimes
       // answers the requests there ("I don't have X, Y or Z"); the data line
       // says it properly, so that sentence alone is dropped (Settle drops it
       // too) and streaming goes on — so does a verdict on their work, a
       // doubled acknowledgment and an echo after the voice's acknowledgment.
       // Any other veto stops delivery.
-      if (reason === 'data_talk' || reason === 'double_ack' || reason === 'echo_after_ack' || reason === 'grading') return;
+      if (reason === 'data_talk' || reason === 'refuses_released' || reason === 'double_ack' || reason === 'echo_after_ack' || reason === 'grading') return;
       if (reason) { bufferSwitch = reason; return; }
+      // Phase 2 C3 (`composeSetup`): after a spoken acknowledgment, a setup sentence ("You said $8,800 per flight.")
+      // waits for its question — Settle puts it there, or withholds it with a replaced question. No acknowledgment:
+      // streamed as today (the voice would otherwise start later; Lorenzo, 27 Oct).
+      if (setupHeld && isSetup(p.text)) return;
       await send('say', p.text, []);
       return;
     }
     // "say" and the declarations closed: code's data line — once the
     // pressure test's verdict for this turn is in (the gate depends on it).
     await (opts.timer ? opts.timer.time('pt_judge', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
-    const d = turnData(plan, fields);
+    // The message's asks the model left out, as Settle adds them (round 5 Tasks 48, 50).
+    // The model's raw say (Phase 2 S2's evidence), as Settle reads it: the sentences as the model wrote them.
+    const d = await turnDataChecked(plan, withAsks(fields, await messageAsks(plan, fields.requests, opts.onUsage)), opts.onUsage, { modelSay: sayRaw.join(' '), modelRequests: fields.requests });
     // The same connecting words Settle renders: the same seed and the session's recent uses (phrasing.ts).
     const lines = renderDataLines(d, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`, plan.ctx.flags.phraseUses as PhraseUses | undefined);
     if (lines.length > 0 || d.exhibit) {
-      await send('data', lines.join(' '), d.releases.map(r => r.id), d.exhibit?.id);
+      await send('data', lines.filter(Boolean).join(' '), d.releases.map(r => r.id), d.exhibit?.id);
       mark('data_line_delivered');
     }
   };
@@ -358,31 +416,40 @@ export async function streamTurnSegments(
     if (e.type === 'restart') {
       // A regeneration happens only while nothing was delivered: drop the draft.
       queue = [];
+      sayRaw.length = 0;
       spokenKeys.clear();
       fields = { requests: [], exhibit: null, rescueItem: null };
       closed = new Set();
       dataLineQueued = false;
+      heldRefusal = false;
+      firstSentenceSeen = false;
       continue;
     }
     if (e.type === 'done') { turn = e.turn; validation = e.validation; modelDoneAt = Date.now(); mark('model_done'); break; }
     if (e.type === 'sentence') mark('model_first_sentence');
     else mark(`model_${e.key}_closed`);
     let p: Pending | null = null;
-    if (e.type === 'sentence') p = { kind: 'sentence', text: e.text };
+    // 4.10 (`ackRotation`): the say's opening acknowledgment through the pool rotation (phrasing.ts rotateOpeningAck;
+    // Settle renders the same words from the same seed and uses).
+    if (e.type === 'sentence') p = { kind: 'sentence', text: !firstSentenceSeen && ackOn ? rotateOpeningAck(e.text, plan.ctx.flags.phraseUses as PhraseUses | undefined, `${plan.ctx.sessionId}:${plan.ctx.nextTurnIndex}`, { correcting }) : e.text };
+    if (e.type === 'sentence') { firstSentenceSeen = true; sayRaw.push(e.text); }
     else if (e.key === 'requests') fields = { ...fields, requests: toRequests(e.value) };
     else if (e.key === 'exhibit') fields = { ...fields, exhibit: typeof e.value === 'string' ? e.value : null };
     else if (e.key === 'rescue_item') fields = { ...fields, rescueItem: typeof e.value === 'string' ? e.value : null };
     if (e.type === 'field') closed.add(e.key);
     // Guard B: held say sentences go out once the requests have closed (a
-    // regeneration before then drops them with the draft).
-    if (holdForRequests && e.type === 'field' && e.key === 'requests' && verdict !== undefined && !stops()) await flushQueue();
+    // regeneration before then drops them with the draft) — every declaration,
+    // when a refusal-shaped sentence is among them.
+    if (e.type === 'field' && (DECLARATIONS as readonly string[]).includes(e.key) && judgeable() && verdict !== undefined && !stops()) await flushQueue();
     if (!p && !dataLineQueued && closed.has('say') && DECLARATIONS.every(k => closed.has(k))) {
       dataLineQueued = true;
       p = { kind: 'data_line' };
     }
     if (!p) continue;
+    // …and so is a sentence that refuses or defers an item, whatever the cue: a release for it may be declared (Task 39).
+    if (p.kind === 'sentence' && !closed.has('requests') && refusalShaped(p.text)) heldRefusal = true;
     if (verdict === undefined) { queue.push(p); mark('held_for_distress'); continue; } // D1: hold until the verdict
-    if (p.kind === 'sentence' && holdForRequests && !closed.has('requests')) { queue.push(p); mark('held_for_requests'); continue; }
+    if (p.kind === 'sentence' && !judgeable() && (holdForRequests || heldRefusal)) { queue.push(p); mark('held_for_requests'); continue; }
     if (stops()) continue;
     await flushQueue();
     await handle(p);

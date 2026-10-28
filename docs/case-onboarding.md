@@ -1,0 +1,439 @@
+# Case onboarding — the pipeline from PDF to listed case
+
+The end-to-end process for bringing a new case onto the site. `case-authoring.md`
+holds the rules for writing the case JSON; this file is the order of work, the
+gates, who decides, what it costs, and where each case stands. Started 19 Oct
+from batch 22 (Larkspur) and batch 32 (Larkspur + Aldermoor). **Keep it current:**
+after every wave, fix or ruling, update the tracker and add a line to the lessons log.
+
+Roles: **Lorenzo** rules on design points, sets the bar and caps, gives every paid
+go-ahead and the listing go. **The case agent** authors, audits, fixes and does
+the first grading. **The advisor (Claude, Cowork)** grades every wave
+independently and blind to the agent's grade.
+
+## Definition of done (a case is listable when all hold)
+
+1. The fact audit is clean and every design point has a ruling (stage 2).
+2. Anchors are audited and reviewed (stage 3), and all free checks pass (stage 4).
+3. One full wave (5 personas, all scored) meets the bar after the last change to the
+   case or the shared engine, by both grades (stage 6). Disagreements go to Lorenzo.
+4. Lorenzo's listing go.
+
+## Stage 0 — Source (free)
+
+- A case PDF with an interviewer guide, exhibits, a worked answer key, the release
+  order and timing. If the PDF is vague about a number or what gets released when,
+  resolve that before authoring.
+- Take the clock from the PDF. Don't shorten it: batch 22 ran a 25-minute case on 20
+  minutes and 6 of 8 runs ran out of time.
+
+## Stage 1 — Author the case JSON (free)
+
+Follow `case-authoring.md` rule by rule. Things batch 32 showed are easy to miss:
+- **Answer keys accept only correct readings.** A figure that is right only as
+  another quantity ($150 is revenue per passenger, not the fare) is accepted only
+  when the candidate names that quantity (the units rule). If the schema can't
+  express that, accept it and log the gap, because a false correction is worse
+  than a missed flag.
+- **Signs and tolerances.** A loss is negative, and "+0.2 profit" must fail. Set
+  tolerance from the PDF's rounding, never ±100%.
+- **Every figure carries its year** where the case has more than one (the Larkspur
+  "$1,840–$2,200 per flight" range is FY2023 only).
+- **Brainstorm placement.** If the brainstorm ask presupposes a later exhibit
+  ("If Aldermoor builds its own team…"), set `brainstorm.after` to that exhibit.
+- **Content the PDF says to give before a stage** (Larkspur: the competitor's
+  entry before the network fix): declare it in `mustReach` (round 6, 21 Oct;
+  `case-authoring.md`). Code volunteers it at that point and the report says so.
+- **Tags** (round 6): give the case a `factAnchors.tags` block — the client's
+  words, every other company or product as an entity (`rival` for a
+  competitor), the forecast items. Without it the case keeps the old literal
+  matcher and none of round 6's answer gate.
+- Start with `stepFlagsLive` off (report-only). Batch 22: step corrections on a
+  new case produced about 19 false "It's closer to X, not Y" lines.
+
+## Stage 2 — Fact audit against the PDF (free) → Lorenzo rules
+
+- Check every ledger value, math step (answer, formula, tolerance), exhibit cell
+  and prompt line against the PDF, and re-derive the PDF's own math.
+- A script confirms every number in the JSON appears in the PDF.
+- Fix transcription errors directly. List design and ambiguity points for
+  Lorenzo's ruling, with nothing changed until he rules. Recurring kinds: clock
+  length, answer keys accepting a wrong reading, unsigned steps, one anchor
+  covering two figures.
+
+## Stage 3 — Anchors (about $0.30–1.20 per case, cap $2)
+
+1. Run `scripts/anchor-audit.ts`. An LLM proposes `factAnchors.names`/`covers`
+   per ledger item from the JSON and PDF; the script lints, diffs and replays
+   real asks.
+2. **Review by hand.**
+   - Strike generic phrases that would send an ask to the wrong item ("average
+     fare" sent new-route fare asks to Lakeport). A wrong item released counts as
+     serious in grading.
+   - Remember the matcher splits an ask at "and".
+3. Write **negative probes** (asks that must not map to an item) as well as
+   positive ones. Batch 32's audit had 21 probes for about 900 phrases, which is
+   too few.
+4. **Quote anchors** for every figure a candidate may restate, including prose
+   cells in exhibits. Before splitting an anchor that covers two figures, test
+   both ways: the pricing "Pro sign-ups" split created false flags on true
+   statements, so it stayed shared.
+5. **Lint the covers** (`scripts/cover-lint.ts`, free): every shared phrase,
+   and every real ask a new or changed phrase matches, with what the engine
+   does with it. Mark each match "answers" or "doesn't" and fix the ones that
+   don't before the commit. Covers are multi-word and specific, never a bare
+   "cost" or "flights" (Lorenzo, 21 Oct).
+6. Known engine limits until PRD §15 (p) is fixed: quotes written with
+   "million", and figures inside arithmetic, are never checked.
+
+## Stage 4 — Free checks
+
+The case tests and the new-case end-to-end tests; `step-binding-check`;
+`plan-inspect`; `fact-check` and the replay tools on any saved runs of the case.
+Read D6 and data-release flags on new cases as leads, not counts: they carry
+prof-001 assumptions.
+
+## Stage 5 — Fix the bar before any paid run
+
+- **Bar (batch 31's, plus reports):**
+  - zero false statements, including in scored reports and their "Better" answers;
+  - no close over an unprobed checker flag unless both wrap-up probes were spent;
+  - no required stage owed at close, and direct asks answered;
+  - at most 2 firm moderate faults per interview;
+  - the phrasing check — **advisory**: counted and reported in every grade, but it
+    never fails a wave or blocks a listing (Lorenzo, 19 Oct, before B1).
+- **Severity:** `evals/severity.md`. A false refusal of data the case holds is
+  serious. A report rating a dimension with no evidence counts as a false
+  statement (Lorenzo, 19 Oct).
+- Any easing for a first look must be decided before the run, not after.
+
+## Stage 6 — Paid waves (about $6–7 per case per wave; cap $11)
+
+- Personas: 7 Raj, 64 Tyler (case-neutral misquoter), 57 Marisol, 24 Marcus,
+  40 Jasmine. All scored, human pace, `scripts/persona-batch.ts --case=<id>`.
+- At most two cases per wave, as parallel batches. One wave per go-ahead, each
+  with its own cap.
+- **Two grades:**
+  - The agent grades every transcript and report into `hand-grading.md` in the
+    batch folder.
+  - The advisor grades independently and blind, then the disputed turns are
+    checked in the transcripts.
+  - Batch 32: the first grade missed 2 interviewer false refusals, 1 report error
+    and most moderate faults. Don't skip the second grade.
+  - Every grade counts and reports **hollow deferrals** (an ask mapped to an item
+    that nothing later delivers) and the phrasing check (advisory, Stage 5)
+    (Lorenzo, 19 Oct, round-4 ruling 7).
+- Classify every fault as **case data** (fix in the JSON, free), **shared
+  engine** (PRD §15 proposal, built only with a prof-001 recheck) or
+  **simulator**.
+
+## Stage 7 — Iterate
+
+Case-data fixes plus free replays, then the next wave. Shared-engine fixes go in
+bundles, each verified by replays of batches 28–31 (prof-001 must stay identical
+except where the fix applies) and a prof-001 wave.
+
+## Stage 8 — List and go live
+
+- Add the id to `LISTED_CASE_IDS` (`lib/cases/listed.ts`, from the site-flow
+  work). `/api/session` rejects any case not on that list.
+- **Voice, before the case is offered in voice:**
+  - `sttKeyterms`;
+  - TTS pronunciations for the case's jargon (as COGS → "cogs");
+  - optionally, data-line variants;
+  - one live voice session, exported and read.
+- **After launch:** export and read the first real sessions.
+
+## Costs (19 Oct prices)
+
+| Step | Cost |
+|---|---|
+| Fact audit, free checks, replays | free (agent time only) |
+| Anchor audit | $0.30–1.20 per case |
+| One wave (5 runs, all scored) | ≈ $6–7 (25-minute case) |
+| Shared-engine recheck (prof-001 wave) | ≈ $6–8 |
+
+## Tracker
+
+| Case | Clock | Authored | Fact audit | Anchors | Waves | Bar | Listed |
+|---|---|---|---|---|---|---|---|
+| prof-001 Brew & Bean | 20 | yes | yes | tuned over batches 18–31 | 20–31; 33 (engine-asks wave A); 40 (phase 2) | **40 (phase 2, 27 Oct, Claude's grade): 0 serious; firm 5 in 5 runs (1 Tyler partial); 1 answer-sheet drop of a real error (Marcus t16, named in his report); 1 repeated stale probe; 1 tracking re-ask; 0 false statements.** **met** (batch 31, `main`); not met on `engine-asks` (33): 1 serious false statement (code's own-quantity line, pre-existing), 1 report error, 1 close over a false-stale flag, 1 ask ignored, 4 same-opening pairs (phrasing is advisory since 19 Oct). Round-4 fixes built on `engine-asks`; the free proof is clean (`r4-final.md`). One prof-001 wave runs right before the merge. Round 5 (20 Oct) built; `r5-final.md`: 0 prof-001 regressions under the recorded rulings, R7 (b33 Marisol 11:0's true correction no longer said) flagged for Lorenzo. Rounds 5b and 5c built; r5c-final: 0 prof-001 changes vs r5b-final, fact-check identical. Round 6 (21 Oct): prof-001 is untagged, so its data path is unchanged — r6-final: 0 changed checker decisions and 0 changed lines on b28–b31 and b33, on and off | **yes** |
+| prof-002 Larkspur | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; round 6 tags (`competitor`, rival) and covers (CASM, total departures, fare by route), linted | 22, 32, 34 (B1), 36 (B1′), 38 (round 6); 40 (phase 2) | **40 (phase 2, 27 Oct, Claude's grade): 0 serious; firm 11 in 5 runs (1 Tyler partial); false 6 — 3 misleading "it's on the exhibit" pointers, 2 opening assumption lines for held fares/departures (the old t2 false refusal, reworded), 1 false comparison; 2 repeated stale probes.** **38: $7.41 of $9; 5/5 scored; fails the bar (firm: Tyler 3, Marisol 3; 2 judgement "split" refusals); 0 serious (b36: 2); hollow 1.** Round 6 built from 36 (audit rows 1–4, 6, 8; must-reach `competitor_entry` before Exhibit 3 and `new_route_rampup` before the recommendation, row 9; row 7 a residual by Lorenzo's ruling); r6-final caught every deterministic row (Tyler t12 now hears the leases line; Marisol t12 the competitor line + the refusal of the entrant's flights). **Before, not met (36, Claude's grade; Lorenzo's 21 Oct rulings: Tyler t12 serious, Marisol t12 serious, Marcus t6 and Jasmine t2 false, not serious):** 3 interviewer false statements, all refusals of held data from the check's labels (Tyler t12 `aircraft_leases`, serious; Marcus t5 CASM trend; Jasmine t1 departures) + 1 report; 2 serious (Tyler t12; Marisol t12 unasked `new_routes_cost_flights` release by the check); firm moderate ≤ 2 met; hollow 0; the guard fired 0 times; 7 bare partials (5 outside the guard). Before, not met (34): 1 interviewer + 1 report false statement (both judgement, none serious; Tyler t22 false per Lorenzo's provisional call; 0 false refusals, 32 had 3), asks unanswered (2 swallowed by probe turns, 1 half) + 1 hollow deferral; firm moderate ≤ 2 met (re-graded under the 20 Oct rules: Raj 1, Marisol 2, Marcus 1). Round 5 built from these (D3, D7, E2, E4, E5, A1) | no |
+| entry-001 Aldermoor | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed; brainstorm after Exh 3 | 32, 34 (B1), 36 (B1′) | **not met (36, Claude's grade; Lorenzo's blind grade pending):** 0 false statements (2 borderline), 0 serious (Raj t12 unasked `peak_share_forecast` release open), firm moderate 5 (max 2), hollow 0, stages met; fails on asks (5 with no word: bare partials through the check's mappings and `refusal_covered`) and a close over an unprobed flag (Marcus, judgement); the guard fired twice, both true. Before, not met (34): 2 serious false refusals of the treatment picture (`request_scope`; settled serious under the 20 Oct rule 1) + 1 report error, asks unanswered + 3 hollow deferrals; **firm moderate ≤ 2 not met** after the re-grade (Marisol 3); stages met. Round 5 built from these (D1, E1, E4, E5, E6, A2, A3, A7). Round 6 (21 Oct): tags (`nimbrel`, rival; forecast items), the geography veto and the answer gate on the check's verdicts; r6-final: audit rows 18–22 caught (Raj t12 "I don't have advanced therapy usage among the eligible patients."; Raj t14 Nimbrel's patents refused; Marcus t6 European price refused; Marcus t24 the $80M split refused; Marisol t6 pool growth refused); no wave on round 6 yet | no |
+| pricing-001 Quillpath | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2), 37 (B2′); 40 (phase 2) | **40 (phase 2, 27 Oct, Claude's grade): 1 serious (Raj t20 code correction "$680 million, not $560k" — unit scale); firm 9 in 5 runs; false 5 (4 pointers + the correction); root corrected in 4 of 5 (Jasmine left at 4.2%); 8 answer-sheet drops of real errors (figure-only match).** **not met (37, Claude's grade; Lorenzo's blind grade pending):** 0 false statements (3 borderline), 0 refusals, hollow 0 (35: 5); 2 serious + 1 judgement call — probe chains on a misread Starter lifetime (combined exit rate; derived claims carry no root link, so the input-probe cap misses them; the stale reader 7 false closes); Tyler 3 firm (fails ≤ 2); the recommendation asked twice (`recommendationReceived` false) in 3 runs; the guard fired 0 times. Before, not met (35): 1 interviewer false statement (code's "LTV/CAC is about $2", a unit slip, judgement), report 0, **0 refusals**; 5 hollow deferrals in 4 runs (every mapped check verdict); close, stages and firm moderate ≤ 2 met (Marcus 2, Marisol 2). Round 5 built from these (E3 ratio unit, E5, E6, E7, D6). Round 6 (21 Oct): tags (no entities), step roots (`dependsOn` on twelve Starter steps, `inputQuestion` on `starter_ltv` and `pro_ltv`); r6-final: rows 14–17 caught (17 coarsely), M1 caught (Raj: input question, one derived correction, the root corrected — at most firm by Lorenzo's probe-chain rule), M2 improved, not caught (the checker rates 14 months correct; the step check may not correct; PRD §15); Lorenzo graded Raj and Marcus's chains serious, Jasmine's firm (21 Oct); no wave on round 6 yet | no |
+| launch-001 Hollis Bay | 25 | yes | 19 Oct, rulings applied | 19 Oct, reviewed | 35 (B2), 37 (B2′) | **not met (37, Claude's grade; Lorenzo's blind grade pending):** 2 interviewer false statements — Marisol t8 store-count refusal (`retailer_support` held; serious, Lorenzo 21 Oct; the batch-35 ask again — corrected 21 Oct: no cover matched the ask, the coverage step read it and found none, so the covers veto would have missed too) and Tyler t6 "How did you get to $9?" (scale); 3 open (Tyler t6, Marcus t6 unasked releases by the check; Marcus t10 dropped ask); firm moderate ≤ 2 met; hollow 0; the guard fired once, true; Marcus not scored (scoring stream terminated; re-score needs Lorenzo's OK). Before, not met (35): 2 serious false refusals of distribution (`retailer_support` never mapped for "store count / distribution rate", judgement) + 1 scale slip ("$9, not 8.8"), report 0; asks unanswered (2) + 1 hollow deferral; close, stages and firm moderate ≤ 2 met (Marisol 2, Tyler 2). Round 5 built from these (D2, D4, D5, E3, E6, A4, A5). Round 6 (21 Oct): tags (`chips` entity, client-owned, not a rival), the synonym fold ("number of stores" → "how many stores"), the in-total veto, the chip-bag covers removed; r6-final: rows 5, 10, 12, 13 and M3 caught, row 11 caught with a live classifier call (the store count instead of the survey offer); no wave on round 6 yet | no |
+
+**Next (21 Oct, after round 6):** round 6 is built on `engine-asks` at e51a4841 (be1217b..e51a4841), reviewed and proved free, not merged or deployed (PRD §5.4 "Round 6", "Step-check roots"; §16 21 Oct). One wave ran on it: batch-38 Larkspur — $7.41 of $9; 5/5 scored; fails the bar (firm: Tyler 3, Marisol 3; 2 judgement "split" refusals); 0 serious (b36: 2); hollow 1.
+- The own-quantity hotfix is on `main` 9be93ca and deployed (Vercel + LiveKit agent stv9i6rgY6yS; PRD §16); the prof-001 voice smoke is Lorenzo's.
+- **Rounds 5, 5b and 5c:** see PRD §16 (covers D1–D7, E1–E7, A1–A5, A7; E5 partial answers and the check's own prompt; the qualifier guard; one derived correction per root). Waves B1′ / B2′ (batches 36–37): no case met the bar; the faults came from the check's labels and the paths the guard didn't read.
+- **Data-path audit (21 Oct, free):** `docs/superpowers/plans/2026-10-21-data-path-audit.md` — the 22 B1′ / B2′ data faults and M1–M3 traced to their paths; the input to round 6.
+- **Round 6:** cover matching on tagged cases (plural and synonym fold, the candidate's sentence, entity / geography / in-total exclusions, the tag gate, cover-vetoed deferrals with no check call); `factAnchors.tags` on the four new cases; the answer gate (period and scope on every path; topic, entity and forecast on the check's verdicts; tags off the check behind `TAGS_ON_NONCHECK_PATHS`, off); deferrals that resolve ("We won't get to <ask> today." at the first wrap-up); the audit's code-only fixes; must-reach on prof-002; step-check roots on pricing-001. Proof r6-final2: 0 new false refusals, 0 new wrong releases, every deterministic audit fault caught except M2 (improved), prof-001 identical, no added check calls (row 11's classifier call on 0.15% of turns); live $0.0069.
+- **Next:** the batch-38 grade, then Lorenzo's rulings on PRD §15 "After round 6"; the prof-001 pre-merge wave stays owed before any merge (each paid wave on his go, one at a time).
+- A′ is skipped.
+
+## Shared-engine gaps that affect new cases (PRD §15)
+
+Status: open unless marked. **Bundle built (engine-asks, 19 Oct; not merged or
+deployed; free proof done, `final.md`; round 2 — Lorenzo's rulings 1–8 on that
+proof — built and free-proved, `r2-final.md`; by his ruling 8 the round-1
+controller rulings marked "proposed" are his; round 3 — his rulings 1–7 on the
+round-2 proof — built and free-proved, `r3-final.md`; by his round-3 acceptance
+the round-2 controller rulings are his, except the scope filter on the check's
+mapping, which he overruled (ruling 5); round-3 controller rulings (decisions 1–5) approved by Lorenzo with his wave-A rulings; round 4 — his rulings 1–7 on wave A — built and free-proved, `r4-final.md`; round-4 controller rulings approved by him, 20 Oct; round 5 — his rulings on the B1 + B2 list — built and free-proved, `r5-final.md`; round-5 controller rulings are proposed, awaiting him):** (q), (r), (h), (o), (p) with (c), (k),
+(l), (m) and the strengths check (with (m)), all below; out of it and open: (s),
+(t), (j) the stale-check redo, (i) the misquote-in-recommendation gate. **(q)** asks the model never declares go unanswered. *Built on engine-asks (not merged), part 1: guard B reads "I'd want:" and addressed asks after the brainstorm; part 2: an item-less deferral is checked by the small model (a named deferral, or refused when it maps to no item; the generic "settle your structure" line is gone), and a basis ask is out of scope of an item that doesn't say where its figure comes from; (a basis-emptied ask the check maps back only to the item the basis rule cut was refused here; round 3, ruling 5, reverses it). Round 3 (ruling 5): code refuses an unmatched ask only when the check maps it to no item — any ledger item it finds, scope-cut or basis-cut, is a named deferral (or "We won't get to" at a wrap-up); the cut / out-of-scope ids are only logged (`basisCut`, `outOfScope`); asks the finer-cut rules empty stay refused unchecked. Round 3 (ruling 3): only item-backed deferrals (gated ids, a request's held ledger items, the gate's deferrals) hold the model's figure question; the check's item-less named deferral and "We won't get to" lines hold no data, so a probe on figures stays (b31 Sofia t10; `itemlessDefers`). Round 3 (ruling 4): on a wrap-up or close turn every deferral — item-backed, the gate's, over the cap, the release order's, the check's named ones — is "We won't get to <ask> today.", or "We won't get to that today." for an ask over 8 words as said or a list (two asks or more, a comma, an "and"; new pool `wont_get_to_that`); such an item holds nothing, leaves the open-requests queue until asked again (`promisedRows`, rows logged `wontGetTo`) and stays a coverage gap in the report. Round 2 (rulings 2 and 3): every item-less ask code would refuse goes through the check — item-less releases and a code-written turn's item-less detections too (asks a finer-cut scope rule emptied stay refused unchecked); the check is capped at 1.5 s (a timeout defers); on a wrap-up or close turn (code's recommendation ask included) the named deferral is "We won't get to <ask> today."; the check's mapping was held to the same scope rules as the model's (superseded by round 3, ruling 5); `rec_ask` counted as wrap-up, finer-cut-emptied asks left unchecked and the line as one variant were the controller's rulings (19 Oct), Lorenzo's by his round-3 acceptance. The live check (round 3, 41 calls on prof-001's 34 asks): refused 33, deferred 8 (7 hollow), 0 wrong releases, 0 timeouts at 1.5 s, p95 1.3 s.*
+**(r)** the live false-refusal guard and F3 read names, not covers. *Built on engine-asks (not merged): both pass `{ covers: true }` to `findFalseRefusals`, which sends an object no item name hits through `coverageOf`.* **(h)** a
+stage deadline yields to every checker line. *Built on engine-asks (not merged): a deadline yields to a probe once (`flags.stageYielded`; an exhibit's by its id), then the stage goes and a probe due then is held for the next model turn (code's own probe too: not marked handled or counted, re-gated then — final review; Lorenzo's by his round-2 ruling 8; since round 2, ruling 6, the held probe is re-gated exempt from the wait and dedupes none of the checker's claims on its stage turn, and the gate's `code_gate` rows are read in turn order, so its re-gate's outcome is the one that counts); a correction (the checker's or code's own) rides on any overdue stage turn, said first, and a misquote no longer blocks it (R7).* **(o)** the correction cap resets on
+each derived figure. *Built on engine-asks (not merged), part (a): a flag is stale only when the quantity is restated at a different value (R2); said again at its own figure the error stands, and the key dedupes it. Part (b): a flagged claim whose span (or another claim of its key) carries another step's wrong result (`rootOf`, the root's head figure) rides on that root's line — `derived` only on a turn the root is said, else it waits; a raised, open root carried into a new message comes back there with its next Rule-14 attempt (the correction follows the wrong input); the root takes the claim's rating; once the root closes the claim goes to the report ("built on a closed input"); code's own finding on it yields to a raised root. A step span at a case figure no longer counts as a restatement (the trade-off accepted, Lorenzo's round-2 ruling 8). Round 2 (ruling 1): a root closed by a live correction is recorded (`flags.mathChecker.corrected`, the line said); the first later claim still on its wrong value gets that correction once more, as a correction (one math line, rides on an overdue stage turn), then the report ("restated once"); a root closed when attempts ran out keeps "built on a closed input". Round 3 (ruling 1): the restatement is the line delivered, verbatim — a correction's or a conversion's (a conversion now records its line too); the built "<root> is <right>, not <wrong>" form and its scale-word code are gone (b28/b29 Jordan: no "not 38" on a figure true as growth on its own base). Round 3 (ruling 2): a correction is said at most twice — the 13 Oct recommendation re-correction counts as the restatement (heard, it marks its key and every key with the same line restated; a key restated, or sharing a restated line, gets no re-correction; b29 Jordan t20); counted per line too (`flags.mathChecker.said`) — any correction, restatement or re-correction whose line was said twice is not said, its key closes report-only ("its correction was already said twice", and the report says so); a restatement that ends shed, expired or cut off by the close carries its root, so the report says the root's correction instead of "not raised". Round 2 (ruling 4): the close hold reads that inherited rating too — the selection carries the highest conclusion-changing rating, final-answer messages and hold rank riding on the root, so a minor root with a rider in the final answers holds the close, once (keyed by the root; its line heard on a model turn counts as that probe). The restatement's rank (below a conclusion-changing flag, above age — Aldermoor Marisol 11:5's probe expires behind it), a waiting flag closed by an identical line, and the model-turn probe count were the controller's rulings, Lorenzo's by his round-3 acceptance; counting "said twice" per line as well as per key was a round-3 controller ruling, approved by Lorenzo (his round-3 decisions 1–5).* **(p)** "million" and arithmetic quotes are unchecked. *Built on engine-asks (not merged), with (c): the quote grammar reads a figure before a full stop ("The shelf price is $4.49."), thousands ("$1,200", not "$1"), and a scale word ("$77 million" against the item's "$80 million", at full scale; a scaled figure quotes only an item stated at scale); arithmetic skips a quote only up to the end of the anchor's clause, unless the quoted figure is an operand later; "you gave / you said" links an anchor to its figure; cells written "$80 million" or "250 million" are lookup facts; a figure written in full ("$1,200,000") is read at the item's scale; the checker's claim is no longer deduped for a misquote flag the gate will hold (checker_disagrees), so its probe still goes; since the final review, any code flag dedupes it only when the gate released that flag. Still open: a figure before its quantity — see the gap below.*
+**(s)** a ledger line can't be ordered after an exhibit. **(t)** an existing
+group beats a more specific cover. Others:
+- (j) the stale check misses a late redo;
+- (i) a repeated misquote in the recommendation is dropped without a checker flag;
+- *(m) built on engine-asks (not merged):* reports' "Better" answers and the facts of strengths are fact-checked: `auditBetterFigures` lists figures no case value or one operation of two explains, the verifier gets them as hints, and an unsupported Better answer is blanked (moment stays) or an unsupported strength dropped;
+- *(l) the caveat floor covers only needs_work: built on engine-asks (not merged):* any assessed dimension with no quote in wentWell or needsWork is now not assessed, whatever its rating and caveat (R4); a strong overall is re-capped against the dimensions still assessed;
+- the checker's probe lines all open "You said" (b33 Marisol, two in a row). *Built on engine-asks (not merged; Lorenzo, 19 Oct, round 4 ruling 6, wording only): the leading "You said" of a checker probe — code's quoted late form or the checker's own line — rotates through the `probe_opener` pool (You said / You mentioned / Earlier you said / You put it at / You had; no repeat within the last 3 uses); the quote and the rest of the line are byte-identical. "You put it at" and "You had" are used only before the claim's own figure ("You put it at “$4.8M” — …"); before a quoted clause or the checker's own words the first three. The heard check reads every lead-in as the same line.*
+- (k) literal `\uXXXX` appears in the interviewer's text. *Built on engine-asks (not merged): `decodeLiteralEscapes` decodes `\uXXXX` (exactly four hex digits) in the streamed sentences and fields and in the final parsed turn, before any guard reads it.*
+- a bare "cost breakdown" cover on prof-002 withheld the true "I don't have the fixed cost breakdown" (b22 Omar t14). *Built on engine-asks (not merged): case data only; the bare phrase is replaced by phrases naming what each item holds (fuel, unit, per-flight, a period-wide or by-route breakdown), so "fixed cost breakdown" covers nothing; "the / a / full / total / overall cost breakdown" keep the bare asks mapped (a controller ruling, Lorenzo's by his round-3 acceptance — the first cut unmapped b22 Marcus's "the cost breakdown"); an article-less or possessive ask ("our cost breakdown") now maps to nothing — see the gap below.*
+- the own-quantity reading put a revenue-points figure on the COGS base (b33 Marisol 31e33506 t14: "In COGS terms, … about 10 points, not 5.8"; her 5.8 was "points of the 16-point COGS increase", then "points of revenue"). Only a case with `shareBases` can hit it. *Built on engine-asks (not merged; Lorenzo, 19 Oct, round 4 ruling 1): "points of the N-point COGS increase" is revenue points when N is the COGS line's change in revenue points (16 on prof-001, within rounding); without N ("of the COGS increase", "of COGS growth") it names no base; revenue points said with the figure anywhere in the window win over a COGS reading; the "In COGS terms … not X" line fires only when every mention of their figure with a unit names the COGS base by an allowlist: "of" (or "in … terms"), then only the / old / current / today's / total / prior / our / its / two years ago's, the base, at most one of line / base / spend / costs / terms / bill (not "share": "the COGS share" is a share of revenue), then the phrase's end, with no COGS change or level in revenue points (16; 58 / 42) elsewhere in its sentence or STT run-on ("i.e." / "e.g." / "vs." / "etc." / "approx." end no sentence; "of COGS, out of the 16-point increase", "of the COGS line, up from 42") ("of the COGS delta", "of the higher COGS", "in COGS", "of COGS, which went up 16 points" name none). Otherwise code's figure is stated with no "not X" (the conversion when it is right on a reading). The no-N reading, the allowlist and the no-"not X" fallback are controller rulings from the Task 27 review, proposed and awaiting Lorenzo. The fallback departs from his literal "use the checker's own revenue-terms line", which is used only where the revenue base is established. "of the COGS line's 16-point increase", "of the 16 points (of COGS)" and "of the 58 / 42 points of COGS" are revenue points too; "points of revenue growth / increase / change" are not (no "not X").*
+- the stale check closed a flag on a figure stated for another quantity (b33 Blake cb23e17b t17: his "6 to 7 points" of margin closed stale on the "10" of "a 10–12% price increase"; b33 Marisol 31e33506's other-inputs claims 9:2 and 15:2 on "11.8%" said as a margin). *Built on engine-asks (not merged; Lorenzo, 19 Oct, round 4 ruling 3; fixes 9:2 and Blake): a right figure closes a flag only when stated for the claim's own quantity — in a sentence naming it (its quantity words, or for a code-computed pricing kind the words that name it: gain / recover / margin, margin, volume / break-even / elasticity, need / takes / price), never a price a gain, new-margin or break-even claim was computed from (its span's other figures and its price), in the "right figure stated" and rebased branches and the redo's figures; a needed claim's price answer is already stated for its quantity. The kind words (`KIND_CUE`) are the controller's reading of "stated for the claim's own quantity" for code-computed pricing kinds, proposed and awaiting Lorenzo. They are broad: "prices", "menu" and "takes" count, and so does "volume" for break-even, so b30 Blake 01daac8b 23:0 is still closed on "volume holds within 4%". **Round 5 (E6) fixed this:** each figure is now tied to its quantity, and 15:2, b30 Blake 23:0 and b32 Larkspur Marisol 17:2 are probes or expiries in `r5-final.md`. Before round 5: **Marisol 15:2 was still closed falsely**, through the R2 "restated" branch. Its step span reads "about 8 points … gap to 24%" as her other-inputs figure, and fixing that needs figure-level span binding (left for Lorenzo; ruling 3's words cover it). The redo and concession paths close on a right figure anywhere in the message. (j) stays open.*
+- a bare checker probe said turns after its claim pointed at the wrong answer (b33 Blake cb23e17b t22: "Walk me through how you got there." two turns after his t19 claim, behind the follow-up question). *Built on engine-asks (not merged; Lorenzo, 19 Oct, round 4 ruling 4; the quote cap and the heard rule are controller rulings from the Task 30 review, proposed and awaiting Lorenzo): a probe, pointer or hint naming no figure and no three words of its claim and not putting it to them ("You said / put / total / estimated / sized / assumed …" with a word or figure of the claim), said later than the turn right after it (every checker line, as its verdict lands a turn late), quotes the claim first in the candidate's words: the claim's own figure as written when it has one that is no case figure (the prompt's changes count as case figures) — "You said “$4.8M” — what were the steps in that calculation?" — else at most 15 of their words around the claim, "…" where cut (the span's sentence holding the claimed figure, ellipsis parts each as written; a span not in their words, their sentence holding its longest run of three or more words); nothing of theirs, the line as vetted. The model's hint, code's wrap-up probe and the heard check read that line; the bare probe after (or in) a model sentence carrying the claim's own figure, or "you said / you mentioned / earlier you / your …" with its words, is heard too — a case figure it shares is not.*
+- the leads check counted a period word as a figure (b33 Marisol 31e33506 t9: "a 40% rise over two years" withheld as "names 2"). *Built on engine-asks (not merged; Lorenzo, 19 Oct, round 4 ruling 5): every figure in the case prompt, and the case's own periods, no longer count as leading in a probe or pointer. A period phrase ("two years", "2 years", "18 months") is stripped only when the prompt uses that period, and a year or FY label only when the prompt names that year. This narrowing is a controller ruling from the Task 31 review, proposed: a duration the prompt never uses can be a leaked answer. "Year one" and "last / this / next year" are always stripped. An unrevealed or right figure still withholds the probe.*
+- the price-rise "not X" line (logged for Lorenzo, Task 27 review, 19 Oct; not built): own-quantity's price-rise reading pins the candidate's quantity on any "COGS … (falls) back to N" in the window and says "Getting COGS back to N% of revenue takes about X% price rise, not Y%" when their figure is off it — the same class of risk as b33 Marisol t14 (a cost line named nearby read as their base), outside ruling 1's words; no wave has shown it firing falsely.
+- the report's Better answer can state a figure from the wrong period (b33 Tyler 0150f744's report: "the 31.5-point non-bean basket" is the figure from two years ago; today it is 43.3). Lorenzo, 19 Oct, round-4 ruling 6: false, minor. Logged, not built: the report verifier should check a Better answer's figures together with their period.
+- a direct question about the interviewer's own figure went unanswered behind a due stage question (b33 Marisol 31e33506 t19: "Could you tell me which base you're using?" was asked about code's t18 probe). **Proposed rule, not built (round-4 ruling 6):** a direct question about the interviewer's own figure is answered before a due stage question, and the stage question can follow in the same turn.
+- the report's interviewer-error marks don't cover code's own lines (Marisol 31e33506's report: her pushback rating leaned on code's false t14 line). Lorenzo, 19 Oct, round-4 ruling 6: build later.
+- deferred minors from round 4 (ledger `.superpowers/sdd/2026-10-19-engine-asks-round4/progress.md`), none seen in a wave:
+  - Own-quantity:
+    - The every-mention fallback fires on an unrelated figure ("Labor is 15% too").
+    - "5.8 points of margin growth" still reads as code's unit.
+    - Any number near 16, 42 or 58 in the sentence cancels the COGS line. This is safe but broad.
+    - A capitalised STT run-on into the next sentence ("…of COGS. Like out of the 58.") stays outside the context window. If Flux capitalises after a full stop, the run-on protection doesn't apply.
+  - Late probes:
+    - The fallback can quote another claim's sentence.
+    - Only message n is searched.
+    - The figure form can lose context ("$10" for "$10 short", b32 Larkspur Tyler).
+    - An attribution that shares a case figure still counts as heard.
+  - `recordPhraseUses` counts the model's own "you said / had / mentioned" as opener uses.
+- *Round 5 (engine-asks, 20 Oct; built, not merged; PRD §5.4, §16):* an ask a
+  scope rule empties keeps its coarse item (the item's line, then "I don't have
+  <the ask>."; E1 — asks the finer-cut rules empty are no longer refused
+  unchecked unless every coarse item is out or the item is a split's sibling);
+  the check's mapping is acted on — out of scope → E1's form, already out →
+  restated, releasable → released now, else deferred by the item's spoken name
+  (E5 a, b, d; the scope filter (c) declined); one-off, recurrence and count
+  cuts are finer cuts; the candidate's own asks are answered on probe turns,
+  on any model turn the model left them undeclared, and on code turns when a
+  held item is asked in a real question (A1, A4, A2); an unasked model release
+  is checked first (A5). **Still open (Lorenzo):** the check maps an ask to a
+  near item, and E5 now releases or restates it — 9 non-answers in the live
+  Haiku check (`r5-haiku-check.md`); R7 (rule (o) and a derived claim's own
+  correction); b35q Marisol 7:2 (a figure's subject in the sentence before).
+- *Round 6 (engine-asks, 21 Oct; built, not merged; PRD §5.4 "Round 6" and
+  "Step-check roots", §15 "After round 6", §16):* on tagged cases covers match
+  plurals, synonyms and the candidate's own sentence, and drop a hit across
+  another entity, a region or a total the line doesn't state; a matched item is
+  released only if its tags and scope agree, else a named deferral with no
+  check call, which resolves (delivered, refused, or "We won't get to <ask>
+  today." at the first wrap-up); the answer gate reads period and scope on every
+  path, and topic, entity and forecast on the check's verdicts; the audit's
+  code-only fixes; must-reach items (prof-002); step-check roots (pricing-001).
+  prof-001 is untagged and unchanged. **Still open (Lorenzo):** M2 (Quillpath
+  Marcus's chain) improved, not caught; report-only step flags asking the input
+  question on a false binding; the client-word entity direction; row 16's offer
+  trade; the tags off the check (off by default).
+- "say before stage" isn't supported. *(Round 6: `mustReach` covers items the
+  guide says to give before a stage.)*
+- a quote with the figure before its quantity ("the $77 million annual selling
+  cost", Aldermoor Tyler t17) isn't read — not now (Lorenzo, 19 Oct, round-2 ruling 7); a widening
+  of the quote grammar, needs the labelled set rechecked.
+- the check's topical mappings (Lorenzo, 19 Oct, round-3 point 4, as proposed:
+  logged, not built): the scope rules don't read "competitor pricing" as
+  outside menu prices, nor period cuts ("the bean share today" against a share
+  from two years ago). Since round 3 (ruling 5) any item the check finds is a
+  named deferral, so such a mapping is a deferral nothing keeps. Live (r3 Haiku
+  check): every "competitor pricing" ask mapped to nothing and was refused; the
+  period cuts mapped (b31 Sofia t8 "coffee beans as a share of COGS today", t10
+  "the current split of COGS by category" → `bean_share_of_cogs`) — hollow
+  deferrals. Wave A shows how often it happens live.
+- possessive or quantifier asks on prof-002 (Lorenzo, 19 Oct, round-3 point 7,
+  as proposed: logged, not built): the determiner-anchored covers ("the / a /
+  full / total / overall cost breakdown") don't map "our cost breakdown", "any
+  cost breakdown" or a bare "Cost breakdown", so they reach the small-model
+  check (a named deferral or a refusal on its verdict) instead of the cover's
+  items. Add covers only if a wave shows it.
+
+## Lessons log
+
+- 13 Oct, batch 22: step corrections on a new case produced about 19 false
+  corrections. New cases start report-only.
+- 19 Oct, batch 32: a 25-minute case belongs on 25 minutes.
+- 19 Oct, batch 32: thin anchors produce false refusals ("that's not something
+  I have"), the most common false statement on new cases. Audit anchors before
+  the first wave.
+- 19 Oct, batch 32: anchors can't answer an ask the model never declares. That
+  is engine work (q), not case data.
+- 19 Oct, batch 32: an answer key can grade a wrong answer as right (an unsigned
+  loss, a figure for the wrong quantity). The fact audit has to read the keys,
+  not just the values.
+- 19 Oct, batch 32: a brainstorm that presupposes an option, asked before the
+  options exhibit, steers the decision. Use `brainstorm.after`.
+- 19 Oct, batch 32: the first-pass grade under-counted. Keep two independent
+  grades.
+- 19 Oct, batch 32: reports can state false figures in "Better" answers, and can
+  rate untested dimensions.
+- 19 Oct, batch 32: "Understood." opens consecutive turns in every run. It isn't
+  a bar failure, but it will sound robotic in voice.
+- 19 Oct, engine-asks rulings: an item-less deferral (and an ask
+  the basis rule empties) is checked by a small model against the ledger
+  before code refuses it — item-less releases, a code-written turn's item-less
+  detections among them, were still refused unchecked (round 2 checks them too,
+  below); a flag is stale only when the quantity is restated
+  at a different value; reports are fact-checked in Better answers and in the
+  facts of strengths; any dimension with no evidence is not assessed; new-case
+  waves run at most 10 sessions at once.
+- 19 Oct, engine-asks free proof: a fix in shared code can be proved free on
+  prof-001 by replaying its saved runs (checker off and on) and listing every
+  changed decision and line; it caught a false positive (Guard B on "Do you
+  want me to work from 25%?") and a probe delayed by a dedupe before any spend.
+  The replay can't show regenerations, small-model checks or scoring — a wave
+  has to.
+- 19 Oct, engine-asks proof rulings (Lorenzo): a later claim at a corrected wrong
+  value hears the correction once more, then the report; every code refusal of an
+  unmatched ask goes through the small-model check (1.5s cap, a timeout defers);
+  at the close a mapped ask hears "We won't get to <ask> today."; close hold uses
+  the highest rating riding on a root; prof-002's "cost breakdown" cover to be
+  narrowed; the figure-before-quantity form ("the $77 million annual selling
+  cost") left open — logged in the gaps list.
+- 19 Oct, engine-asks round 2 (free proof final2 → r2-final): a replay whose
+  small-model check is mocked to no answer turns every refusal it would check
+  into a named deferral (68 prof-001 slice-lines, 7 more by phrase rotation) — the proof shows the
+  timeout path, not the live verdict, so a scope filter on the check's mapping
+  and a paid wave are what tell a true refusal from a hollow deferral. Narrowing
+  a cover by deleting a phrase can unmap the asks it was written for; anchor
+  the replacement on the words those asks use ("the cost breakdown") and replay
+  them. Ordering choices (where a restatement ranks) move other probes; prove
+  each candidate ordering on the corpus before picking one.
+- 19 Oct, engine-asks round-2 rulings (Lorenzo): a restatement repeats the
+  original correction line word for word (a new "not X" can contradict the units
+  fix); a correction is said at most twice in all; only item-backed deferrals hold
+  the model's figure question; every deferral at a close is "We won't get to <ask>
+  today." ("…that today." for a long or list label); code refuses an unmatched ask
+  only when the small-model check says the case doesn't hold it.
+- 19 Oct, engine-asks round 3 (free proof r2-final → r3-final, live check $0.04):
+  a correction counted "at most twice" has to count sayings of the line, not
+  only of the key — the 13 Oct re-correction and a restatement can carry the
+  same words under different keys (b29 Jordan heard one line three times).
+  Read a fact-check count the per-task lists don't name (b29 STAGE 3 → 2) back
+  to its turn before calling it an interaction. A mocked check can't show a
+  rule that acts on the verdict (ruling 5: 0 replay changes); a cents-level live
+  run of the check on the corpus asks can (33 refused, 8 deferred, 0 wrong
+  releases).
+- 19 Oct, batch 33 (engine-asks wave A): a code-written line can be false even
+  when its figure is a true case value — "about 10 points, not 5.8" was right on
+  COGS's own base, wrong on the candidate's (revenue points), and she built her
+  recommendation on it. fact-check's F1/F3/F4 don't test which quantity a
+  correction is on; read every code correction against the candidate's own
+  words. A stale reading can fire on the same figure used as another quantity
+  ("10" in "a 10–12% price increase").
+- 19 Oct, wave A rulings (Lorenzo): the own-quantity "In COGS terms … not X" line
+  fires only when every unit-bearing mention of the figure names the COGS base
+  (b29, b30, b33 each produced a false correction from a new wording — sweep it);
+  a flag goes stale only on a figure stated for its own quantity; a probe said
+  later than the next turn quotes its claim; period words and prompt figures
+  aren't leading; hollow deferrals are counted in every grade.
+- 20 Oct, engine-asks round 4 (free proof r4-base → r4-final): a guard written as
+  a growing cut list or blocklist of phrasings failed open on each new wording
+  the review tried. The own-quantity guard had four misfires from four wordings
+  before it became an allowlist of the forms that establish a base, with no
+  "not X" where no base is established. Fix the reading to the ruling's exact words; a "close
+  variant" the ruling doesn't name is a new false line. A replay reuses the
+  model's recorded `say`, so a changed code line can sit beside the old one (b33
+  Marisol t14). Read such a line as an artifact before counting a new "not X".
+- 20 Oct, B1 (batch 34, prof-002 + entry-001): the anchor audit worked — 0
+  false refusals on prof-002 (batch 32: 3) — but a scope rule can make a new
+  one: `request_scope` read "treatment mix" / "breakdown by drug class" as finer
+  than `current_treatment` and refused the whole ask, so two candidates never
+  heard of the incumbent drug. Audit covers for "mix / breakdown / split by"
+  forms of every landscape item. A named deferral needs an item that holds what
+  was asked: the small-model check's generous mapping and its timeouts made 6
+  hollow deferrals in 10 runs. Code probe and stage turns can swallow the
+  candidate's ask; grade every ask the turn after a code line.
+- 20 Oct, B2 (batch 35, pricing-001 + launch-001): the small-model check maps an
+  ask to an item near it, not one that holds it — 6 of 6 mapped verdicts became
+  hollow deferrals (10 of 13 with B1), three of them to data already said or on
+  screen. Grade a named deferral against what the item holds beyond what's out.
+  Audit covers for the "how many / store count / distribution" forms of every
+  reach item: launch-001's `retailer_support` was never mapped, so two
+  candidates were told "I don't have … distribution rate". Check code lines for
+  units and scale: a bare candidate figure ("8.8") or a ratio gave "$9, not
+  8.8", "LTV/CAC is about $2", and "$210" for "$210k". A probe chain on figures
+  that all trace to one misread input (Quillpath Marisol, 9 probes) needs the
+  input corrected, not each figure probed.
+- Exhibit notes (20 Oct, D6, Lorenzo): real candidates see an exhibit's notes under the
+  table (chat and voice room alike), so the simulator must too — `exhibitAsText` appends
+  `Note: <notes>`; notes stay notes, never moved into rows. A case's exhibit must carry the
+  figures and key words of every ledger item it covers (cells, title or notes;
+  `tests/cases/consistency.test.ts`). A restatement names where the item came from: "As I
+  mentioned" if it was said, "As the exhibit shows" if it only came out on an exhibit
+  (`restate_exhibit` pool; the exhibit-only ids are kept in the session flags, `flags.exhibitOnly`; a missing field reads as said).
+- 20 Oct, engine-asks round 5 (free proof r5-base → r5-final, live check
+  $0.0749): covers come first. D1's "treatment mix" covers released the B1
+  asks before E1's engine path could run, so E1 is proven only on a cover-less
+  clone. Audit covers for "how many / mix / breakdown by / store count / one-off
+  / forecast versus actual" forms before blaming the engine; a count or one-off
+  ask of an item with no such figure gets the coarse line plus "I don't have …".
+  A fix that releases more (E5, A4, A5) needs the live check on the corpus asks,
+  not only the replay: 0 wrong releases, but 9 releases or restates of a near
+  item that don't answer the ask. Know the replay's limits before reading a
+  diff: it reuses the model's recorded `say` (a line written under an old hint
+  survives), a new check call gets no verdict (a named deferral), saved model
+  turns get no ask detections (A1, A4, A5 show only in tests), and everything
+  after a changed turn is a cascade, shown but not judged. Serve the run's
+  recorded verdicts (`REPLAY_CHECKS` for a live check's). A tighter matcher can
+  fail on real redos: E6's first binder turned 7 prof-001 redos into stale
+  probes; prove a stale-check change on the false closes and on the real redos.
+- 20 Oct, engine-asks round 5b (two Haiku check runs, $0.1886): the ask check
+  sees only each item's label and its line with every figure masked, never the
+  exhibit. Write each ledger line so it says what it holds and for which period
+  even with its figures hidden (#66: Haiku took plan_cac's single CAC as an
+  answer to a CAC-trend ask). A check model's full / partial labels need a live sample:
+  the replay serves recorded verdicts, and Haiku's labels changed run to run
+  (#36, #63, #66). Check a small model's reply format live too: prose around
+  the JSON gave 16 nulls, and prose after it 15 calls over 1.5 s.
+- 20 Oct, engine-asks round 5c + B1′ / B2′ (batches 36–37, $28.30): an engine
+  guard proven on a 68-ask rerun (0 bare partials) fired only 3 times in 20
+  live runs, because it sees only the check's verdicts. The faults moved to the
+  paths it doesn't read: items the model names itself, `refusal_covered` with no
+  remainder, the coverage and remap paths (19 of 29 bare partials), and the
+  check's own wrong full or coarse labels (4 false refusals, 4 unasked
+  releases). A coarse check label takes the `scope_coarse` path, which skips the
+  covers veto — so a cover that blocks a plain refusal doesn't block that one
+  (Hollis Bay Marisol t8, the batch-35 store-count ask again). When a fix
+  narrows one path, grade every ask by the path it took, and count bare
+  partials inside vs outside the fix's reach. A probe chain on a misread input
+  needs the derived claims linked to the root by the input figure; without the
+  link the input-probe cap counts each claim fresh (Quillpath, 2 serious).
+- 21 Oct, data-path audit (free): trace each fault to the path that made it
+  and the checks on that path before picking a fix. "Run the covers veto
+  everywhere" would have caught 0 of 22: it already ran before every check-made
+  refusal, and the five false refusals were literal-match cover misses
+  ("avoidable fixed cost" vs "…costs", "number of stores" vs "how many
+  stores"). The 20 Oct lesson above misread Hollis Bay Marisol t8: the coarse
+  path does skip the covers veto, but no cover matched that ask, so the veto
+  would have missed too (Lorenzo had the PRD corrected, 21 Oct).
+- 21 Oct, round 6 (free proof r6-base → r6-final2, live $0.0069): looser
+  matching widens every cover at once, so lint each new match against the real
+  asks (`scripts/cover-lint.ts`). The fold made "the total number of stores"
+  meet "how many stores", a release that didn't answer (now the in-total
+  veto), and a phrase can newly match through the candidate's sentence. A noun
+  test for topics on the model's own mappings refused about 11 true answers
+  ("price point", "churn", "ramp"): it can't read synonyms, so it stays on the
+  small-model check's verdicts. Measure each widened path on the replay and
+  switch off what adds a wrong deferral (tags off the check: one, b34a Marcus
+  t10). Tag only real rivals as `rival` (launch-001's chips are the client's).
+  Prove a math rule on the real chains: a step root ended on a hypothetical
+  right answer ("LTV around $600") and Marcus's chain replayed as before. A
+  must-reach item changes what every candidate hears; compare waves with that
+  in mind.
+- 21 Oct, batch 38 (Larkspur, round 6): round 6 removed both serious faults (0 vs 2) and the wrong releases; what remains is asks answered by restatements of out items on the model-mapped path (the answer gate reads restatements only on the check path), stale probes/corrections after a redo, competitor wants with no request signal (Marisol t9), and two "split" refusals where the parts are held (judgement). Must-reach worked as ruled.
+- 27 Oct, batch 40 (phase 2 confirmation wave, prof-001 / prof-002 / pricing-001): stale probes and false refusals fell against batch 39 (9 → 4, 6 → 2 on these cases), but a restatement pointer ("You'll find that on the exhibit — the route/cohort table…") now fires whenever the matched item is on a table, whether or not the table answers the ask — 7 false pointers in 15 runs. Check a pointer against the ask's own words, not the item. The asynchronous answer sheet drops a probe on any figure near a replaced one, so a total, a different arm or a with-upgrades ratio can "replace" a real error; match on the quantity too. A code correction stated the checker's $k value in the step's $M unit ("$680 million").

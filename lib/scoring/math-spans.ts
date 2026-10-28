@@ -14,7 +14,7 @@
 
 import { normalizeNumberWords } from '@/lib/number-words';
 
-export type MathUnit = 'percent' | 'points' | 'usd' | 'count';
+export type MathUnit = 'percent' | 'points' | 'usd' | 'count' | 'ratio';
 
 export type SpanStep = {
   id: string;
@@ -79,12 +79,23 @@ function wordsBetween(clause: string, a: number, b: number): number {
 // one is a word, with its inflections only — "rest" is not "restore" (batch
 // 21, Fiona t16: "10–12% on menu prices to restore margin" verified as the
 // other inputs' 11.8 points), "net" is not "network".
-function cueCharIndexes(clause: string, cue: string): { start: number; end: number }[] {
+function cueCharIndexes(clause: string, cue: string, notCue = false): { start: number; end: number }[] {
   const body = cue.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   const tail = cue.length < 6 && /[a-z]$/i.test(cue) ? '(?:s|es|ed|d|ing)?(?![a-z])' : '';
-  const re = new RegExp(`\\b${body}${tail}`, 'gi');
+  // A not-cue opening on a symbol ("$60") starts after a space, where \b never
+  // matches (Lorenzo, 20 Oct, E6: Quillpath Tyler t29 "Test arm, $60: … LTV
+  // $676" restated his $405 Starter LTV at $40; the case's '$60' not-cue never
+  // fired), and a not-cue ending in a digit is not a longer number's start
+  // ("$60" is not "$600"). Not-cues only: they narrow; a cue that starts
+  // matching would widen a step (review before turning it on for cues).
+  const head = notCue && /^[^a-z0-9]/i.test(cue) ? '(?<![\\w$])' : '\\b';
+  const end = notCue && /\d$/.test(cue) ? '(?![\\d]|[.,]\\d)' : '';
+  const re = new RegExp(`${head}${body}${tail}${end}`, 'gi');
   return [...clause.matchAll(re)].map(m => ({ start: m.index ?? 0, end: (m.index ?? 0) + m[0].length }));
 }
+// Whether a step's cue names the text, as findStepSpans reads cues (the stale
+// reader's binding of a figure's phrase to the step, Lorenzo, 20 Oct, E6).
+export const cueNames = (text: string, cue: string) => cueCharIndexes(text, cue.toLowerCase()).length > 0;
 
 // v4.6: spoken numbers count ("ten and a half points" → 10.5). Spans quote the
 // normalized clause.
@@ -105,7 +116,7 @@ export function findStepSpans(rawText: string, step: SpanStep, scope: 'clause' |
   const sentences = text.split(SENTENCE_SPLIT);
   const excluded: boolean[] = [];
   sentences.forEach((sentence, i) => {
-    excluded[i] = notCues.some(c => cueCharIndexes(sentence, c).length > 0) || (i > 0 && excluded[i - 1] && CONTINUES.test(sentence.trim()));
+    excluded[i] = notCues.some(c => cueCharIndexes(sentence, c, true).length > 0) || (i > 0 && excluded[i - 1] && CONTINUES.test(sentence.trim()));
   });
   const pieces = sentences
     .filter((_, i) => !excluded[i])
@@ -126,6 +137,9 @@ export function findStepSpans(rawText: string, step: SpanStep, scope: 'clause' |
       // more per passenger", "75% load factor" — Larkspur); "6 million bags" is one.
       if (units?.includes('count')) {
         if (m[1] || unit === 'percent' || unit === 'points') continue;
+      } else if (units?.includes('ratio') && !units.some(u => u !== 'ratio')) {
+        // "3.3x", "2 times" or a bare ratio — never money or a percent ("$750" is a price).
+        if (m[1] || unit !== undefined) continue;
       } else if (units && (unit === undefined || !units.includes(unit))) continue;
       if (step.scale && unit === 'usd' && scaleOf(m[3]) !== step.scale) continue;
       const start = m.index ?? 0;

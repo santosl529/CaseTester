@@ -41,8 +41,8 @@ export async function POST(
     return NextResponse.json({ error: 'Session is not completed' }, { status: 409 });
   }
   if (status === 'not_found') return NextResponse.json({ error: 'Not found' }, { status: 404 });
-  // Another pass (a second tab, a double click) outlived this call's wait: no
-  // second pass is started; the client's retry finds the score.
+  // Another pass (a second tab, a double click) outlived this call's wait, or took over a stale claim: no second
+  // pass and no second row; the client's retry finds the score (lib/scoring/scoring-claim.ts).
   if (status === 'in_progress') return NextResponse.json({ error: 'Scoring in progress' }, { status: 409 });
 
   return NextResponse.json({ scored: true });

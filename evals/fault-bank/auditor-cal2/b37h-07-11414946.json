@@ -1,0 +1,85 @@
+{
+ "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/07-raj-the-slow-burner/live-run-2026-10-21-11414946.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 8,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "Here's an exhibit: Roasted chickpea snacks — Economics of one bag and first-year launch costs.",
+   "why": "The candidate also said they wanted expected first-year volume. The exhibit covers only price and costs, and volume gets no word (no deferral, no 'I don't have')."
+  },
+  {
+   "turn": 8,
+   "class": "other",
+   "severity": "borderline",
+   "quote": "what would you want to know next to size the fixed side?",
+   "why": "The exhibit just released already lists all the first-year launch (fixed) costs, so asking what else is needed to size the fixed side reads wrong and misleads."
+  },
+  {
+   "turn": 10,
+   "class": "other",
+   "severity": "firm",
+   "quote": "You've put the break-even at about 5.6 million bags. Before we size volume, how would you judge whether that's a high or low hurdle for this launch?",
+   "why": "This repeats the candidate's wrong 5.6M break-even (built on the $1.40/$1.60 arithmetic slip) as a working premise and builds the next question on it, instead of probing it. The probe only comes a turn later."
+  },
+  {
+   "turn": 10,
+   "class": "bare_partial",
+   "severity": "firm",
+   "quote": "Hollis Bay's two largest retail partners have agreed to stock the line in all their stores, provided Hollis Bay pays the shelf fees.",
+   "why": "The candidate asked for distribution reach, number of stores and turns per store per week. Only the retailer-support line goes out; store count and turns get no word and no 'I don't have'."
+  },
+  {
+   "turn": 12,
+   "class": "restatement",
+   "severity": "firm",
+   "quote": "As I mentioned: Hollis Bay's two largest retail partners have agreed to stock the line in all their stores, provided Hollis Bay pays the shelf fees.",
+   "why": "The candidate asked for the store count of those two retailers. The already-released retailer-support line is repeated as the answer, though it gives no count, and there is no refusal for store count."
+  },
+  {
+   "turn": 16,
+   "class": "false_refusal",
+   "severity": "borderline",
+   "quote": "Category size and growth for better-for-you snacks in the Northeast and Midwest — that's not something I have.",
+   "why": "Growth is coarsely answered by the case: the prompt and why_now say better-for-you snacks are growing quickly. That coarse answer was already in front of the candidate."
+  },
+  {
+   "turn": 16,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Mm-hm.",
+   "why": "The candidate asked directly 'is there a dominant brand already in those stores, or are we early?'. competition_general answers it (no large national brand is dominant), but the question gets no word."
+  },
+  {
+   "turn": 18,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "In blind taste tests, 70% of people who tried the snack were positive, rating it good or very good. I have an exhibit for you",
+   "why": "The candidate asked for a concept test or test-market result. The taste test and survey go out, but the test-market part gets no 'I don't have'."
+  },
+  {
+   "turn": 22,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "Three doubts: conversion, repeat and cannibalization.",
+   "why": "The candidate said they'd want to know whether the 60%/20% conversion rates come from Hollis Bay's own past launches. survey_reliability answers this (the rates are from the last five launches), but it is never released or addressed, and the candidate raises it again at the close."
+  },
+  {
+   "turn": 32,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "What would you do to guard against that?",
+   "why": "The candidate had just laid out diagnosis, fixes, freezing spend and pull-back thresholds, so asking what they'd do to guard against it re-asks what was covered. The 'that' also dangles."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 16480,
+  "output": 4157,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 38799,
+ "usd": 0.14906
+}

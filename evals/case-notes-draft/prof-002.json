@@ -1,0 +1,690 @@
+{
+ "caseId": "prof-002",
+ "model": "claude-opus-5-5",
+ "authoredFrom": "case JSON + candidate asks, batches <= 38 (batch 39 held out)",
+ "items": [
+  {
+   "id": "op_profit_definition",
+   "answers": [
+    "what operating profit includes",
+    "operating profit definition",
+    "is it ebit",
+    "before interest and taxes",
+    "does profit include leases",
+    "operating profit components",
+    "is fuel in operating costs",
+    "what costs are in operating profit",
+    "what's in operating profit"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "interest expense amount",
+     "missing": "the interest expense figure"
+    },
+    {
+     "phrase": "is contribution variable only",
+     "missing": "an explicit definition of contribution"
+    },
+    {
+     "phrase": "tax expense",
+     "missing": "the tax figure"
+    }
+   ]
+  },
+  {
+   "id": "geography",
+   "answers": [
+    "where larkspur flies",
+    "domestic or international",
+    "any international routes",
+    "us domestic flights",
+    "international exposure",
+    "domestic only",
+    "larkspur's geography"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "stage length of routes",
+     "missing": "route distances or stage lengths"
+    },
+    {
+     "phrase": "regulatory changes",
+     "missing": "any regulatory information"
+    }
+   ]
+  },
+  {
+   "id": "fleet",
+   "answers": [
+    "fleet size",
+    "number of aircraft",
+    "how many planes",
+    "did the fleet change",
+    "owned or leased",
+    "aircraft type",
+    "number of jets",
+    "fleet composition",
+    "seats per plane",
+    "larkspur's fleet"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "aircraft utilization",
+     "missing": "block hours or utilization per aircraft"
+    },
+    {
+     "phrase": "spare aircraft capacity",
+     "missing": "idle aircraft time available"
+    },
+    {
+     "phrase": "lease cost per aircraft",
+     "missing": "the lease cost per aircraft"
+    }
+   ]
+  },
+  {
+   "id": "routes_schedule",
+   "answers": [
+    "did routes change",
+    "same routes",
+    "did the schedule change",
+    "flight frequency",
+    "route network",
+    "capacity changes",
+    "added or dropped routes",
+    "flights per route unchanged",
+    "schedule changes",
+    "network changes"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "departure times by route",
+     "missing": "time-of-day schedule detail"
+    },
+    {
+     "phrase": "slots and gates at hub",
+     "missing": "hub slot and gate availability"
+    }
+   ]
+  },
+  {
+   "id": "fuel_prices",
+   "answers": [
+    "fuel prices",
+    "did fuel prices rise",
+    "jet fuel prices",
+    "fuel price trend",
+    "fuel price changes",
+    "oil prices",
+    "fuel cost trend",
+    "external factors like fuel"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "fuel hedging",
+     "missing": "any fuel hedging position"
+    },
+    {
+     "phrase": "fuel cost in dollars",
+     "missing": "total network fuel spend by year"
+    }
+   ]
+  },
+  {
+   "id": "unit_costs",
+   "answers": [
+    "wages",
+    "did costs per flight change",
+    "labor costs",
+    "did wages rise",
+    "cost inflation",
+    "unit costs",
+    "crew wages",
+    "did labor costs rise",
+    "did fuel or crew rates move",
+    "cost per flight trend"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "cost per available seat mile",
+     "missing": "a CASM figure"
+    },
+    {
+     "phrase": "cost lines by year",
+     "missing": "dollar cost totals by line item"
+    },
+    {
+     "phrase": "crew availability",
+     "missing": "crew headcount or capacity"
+    }
+   ]
+  },
+  {
+   "id": "demand",
+   "answers": [
+    "air travel demand",
+    "did demand fall",
+    "overall demand",
+    "market demand",
+    "is the market shrinking",
+    "market growth",
+    "passenger demand",
+    "demand in larkspur's cities",
+    "travel demand trend"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "demand headroom on four routes",
+     "missing": "unserved demand on uncontested routes"
+    },
+    {
+     "phrase": "demand on ashford and brookhaven",
+     "missing": "o&d demand for new routes"
+    },
+    {
+     "phrase": "price sensitivity",
+     "missing": "price elasticity data"
+    },
+    {
+     "phrase": "business versus leisure mix",
+     "missing": "passenger mix split"
+    }
+   ]
+  },
+  {
+   "id": "one_time_charges",
+   "answers": [
+    "one-time charges",
+    "is the loss recurring",
+    "non-recurring items",
+    "one-off charges",
+    "restructuring charges",
+    "impairments",
+    "write-offs",
+    "special items"
+   ],
+   "notAnswers": []
+  },
+  {
+   "id": "competition_general",
+   "answers": [
+    "competition in general",
+    "competitive landscape",
+    "other airlines",
+    "larger airlines",
+    "legacy carriers",
+    "connecting itineraries",
+    "who else flies from the hub",
+    "existing competitors"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "market share by airline",
+     "missing": "market shares"
+    }
+   ]
+  },
+  {
+   "id": "route_results_lakeport",
+   "answers": [
+    "lakeport results",
+    "lakeport revenue",
+    "lakeport contribution",
+    "how much lakeport lost",
+    "lakeport decline",
+    "lakeport p&l",
+    "lakeport flights per year",
+    "revenue on lakeport"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "lakeport revenue by quarter",
+     "missing": "quarterly revenue"
+    },
+    {
+     "phrase": "lakeport revenue by departure time",
+     "missing": "time-of-day revenue split"
+    }
+   ]
+  },
+  {
+   "id": "route_results_port_avery",
+   "answers": [
+    "port avery results",
+    "port avery revenue",
+    "port avery contribution",
+    "how much port avery lost",
+    "port avery decline",
+    "port avery p&l",
+    "port avery flights",
+    "revenue on port avery"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "port avery revenue by quarter",
+     "missing": "quarterly revenue"
+    },
+    {
+     "phrase": "port avery revenue by time of day",
+     "missing": "time-of-day revenue split"
+    }
+   ]
+  },
+  {
+   "id": "route_results_other",
+   "answers": [
+    "other four routes",
+    "how other routes performed",
+    "did other routes decline",
+    "cedar bluff results",
+    "granite falls results",
+    "millbrook results",
+    "westhaven results",
+    "uncontested routes",
+    "contribution on healthy routes"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "load factors on four routes",
+     "missing": "load factors on the other routes"
+    },
+    {
+     "phrase": "fares on the other routes",
+     "missing": "average fare on the other routes"
+    },
+    {
+     "phrase": "demand headroom on four routes",
+     "missing": "unserved demand data"
+    }
+   ]
+  },
+  {
+   "id": "network_totals",
+   "answers": [
+    "revenue by route",
+    "contribution by route",
+    "results by route",
+    "total flights",
+    "total departures",
+    "did the number of flights change",
+    "departures fy2023 versus fy2025",
+    "network totals",
+    "contribution decline",
+    "is the decline concentrated",
+    "revenue split by route"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "total passengers flown",
+     "missing": "passenger counts by year"
+    },
+    {
+     "phrase": "network average fare",
+     "missing": "average fare by year"
+    },
+    {
+     "phrase": "ticket versus ancillary revenue",
+     "missing": "ticket/ancillary revenue split"
+    },
+    {
+     "phrase": "load factor by route",
+     "missing": "route-level load factors"
+    },
+    {
+     "phrase": "cost by line item",
+     "missing": "dollar costs by category"
+    }
+   ]
+  },
+  {
+   "id": "fixed_costs",
+   "answers": [
+    "fixed costs",
+    "did fixed costs rise",
+    "fixed cost trend",
+    "what sits inside the $20m",
+    "hub facilities",
+    "corporate overhead",
+    "did overhead change",
+    "fixed cost base"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "split of the $20m",
+     "missing": "breakdown of fixed cost by component"
+    },
+    {
+     "phrase": "avoidable fixed cost",
+     "missing": "avoidable portion of fixed costs"
+    },
+    {
+     "phrase": "route-specific fixed costs",
+     "missing": "fixed costs by route"
+    }
+   ]
+  },
+  {
+   "id": "lakeport_seats_load",
+   "answers": [
+    "lakeport load factor",
+    "seats per flight",
+    "lakeport passengers per flight",
+    "how many passengers on lakeport",
+    "lakeport load by year",
+    "are seats still filling",
+    "lakeport volume",
+    "load factor on lakeport"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "lakeport load factor by quarter",
+     "missing": "quarterly load factor"
+    },
+    {
+     "phrase": "competitor load factor",
+     "missing": "the competitor's load factor"
+    }
+   ]
+  },
+  {
+   "id": "lakeport_fare",
+   "answers": [
+    "lakeport fare",
+    "how much lakeport fares fell",
+    "fare on lakeport",
+    "lakeport fare cut",
+    "lakeport ticket price",
+    "average fare by route",
+    "lakeport fare both years"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "when fares started dropping",
+     "missing": "timing or quarterly fare path"
+    },
+    {
+     "phrase": "fare bucket mix",
+     "missing": "fare class mix"
+    },
+    {
+     "phrase": "price sensitivity on lakeport",
+     "missing": "price elasticity"
+    }
+   ]
+  },
+  {
+   "id": "extras_revenue",
+   "answers": [
+    "extras revenue",
+    "ancillary revenue",
+    "bag fees",
+    "extras per passenger",
+    "revenue beyond the fare",
+    "non-ticket revenue",
+    "ancillary split",
+    "seat selection"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "extras split by type",
+     "missing": "split among bags, seats and snacks"
+    }
+   ]
+  },
+  {
+   "id": "lakeport_variable_cost",
+   "answers": [
+    "lakeport variable cost",
+    "lakeport cost per flight",
+    "lakeport fuel cost",
+    "lakeport crew cost",
+    "lakeport cost breakdown",
+    "did lakeport costs change",
+    "fare and variable cost per flight",
+    "variable cost per flight"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "avoidable cost on exit",
+     "missing": "avoidable share of variable cost"
+    },
+    {
+     "phrase": "variable cost on other routes",
+     "missing": "per-flight cost for other routes"
+    }
+   ]
+  },
+  {
+   "id": "competitor_entry",
+   "answers": [
+    "did a competitor enter",
+    "new entrant",
+    "who entered",
+    "when did they start",
+    "what changed on these routes",
+    "why fares fell",
+    "competitor on lakeport",
+    "competitor on port avery",
+    "low-cost carrier entry"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "competitor daily frequency",
+     "missing": "competitor's flight frequency"
+    },
+    {
+     "phrase": "competitor seats added",
+     "missing": "competitor capacity added"
+    },
+    {
+     "phrase": "competitor load factor",
+     "missing": "the competitor's load factor"
+    },
+    {
+     "phrase": "is competitor profitable",
+     "missing": "competitor profitability"
+    }
+   ]
+  },
+  {
+   "id": "competitor_costs",
+   "answers": [
+    "competitor cost per seat",
+    "their cost per seat",
+    "competitor fares",
+    "low-cost carrier's fare",
+    "competitor cost advantage",
+    "can we match their costs",
+    "larger planes",
+    "competitor labor costs"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "competitor frequency",
+     "missing": "competitor's flights per day"
+    },
+    {
+     "phrase": "competitor aircraft type",
+     "missing": "specific aircraft model"
+    },
+    {
+     "phrase": "competitor profitability",
+     "missing": "whether the competitor is profitable"
+    }
+   ]
+  },
+  {
+   "id": "connecting_passengers",
+   "answers": [
+    "connecting passengers",
+    "feed effects",
+    "network feed",
+    "share of connecting passengers",
+    "do passengers connect",
+    "transfer passengers",
+    "share of local passengers"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "which routes they connect to",
+     "missing": "connection destinations"
+    },
+    {
+     "phrase": "contribution from connecting traffic",
+     "missing": "value of connecting traffic"
+    }
+   ]
+  },
+  {
+   "id": "new_route_rampup",
+   "answers": [
+    "ramp-up",
+    "how fast new routes fill",
+    "first-year load factor",
+    "time to reach load factor",
+    "does the 70% ramp",
+    "how firm the 70%",
+    "ramp assumption",
+    "route maturity"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "ramp curve by quarter",
+     "missing": "quarterly ramp data"
+    },
+    {
+     "phrase": "basis for the 70%",
+     "missing": "source of the estimate"
+    }
+   ]
+  },
+  {
+   "id": "aircraft_leases",
+   "answers": [
+    "aircraft leases",
+    "can we return planes",
+    "lease end date",
+    "lease-locked",
+    "shrink the fleet",
+    "park the planes",
+    "early lease return",
+    "when leases expire"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "annual lease cost",
+     "missing": "lease cost amount"
+    },
+    {
+     "phrase": "wet-leasing or charter",
+     "missing": "wet-lease or charter options"
+    }
+   ]
+  },
+  {
+   "id": "port_avery_per_flight",
+   "answers": [
+    "port avery per flight",
+    "port avery fare",
+    "port avery load factor",
+    "port avery variable cost",
+    "same data for port avery",
+    "port avery fare fy2023",
+    "port avery fare and cost"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "port avery cost breakdown",
+     "missing": "fuel/crew split of variable cost"
+    },
+    {
+     "phrase": "competitor frequency on port avery",
+     "missing": "competitor's frequency"
+    }
+   ]
+  },
+  {
+   "id": "new_routes_plan",
+   "answers": [
+    "new routes",
+    "planning estimates",
+    "new route fare",
+    "expected load factor on new routes",
+    "fare on ashford",
+    "fare on brookhaven",
+    "new route extras",
+    "new route seats"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "basis for the estimates",
+     "missing": "source of the planning estimates"
+    },
+    {
+     "phrase": "o&d demand on new routes",
+     "missing": "demand volume data"
+    },
+    {
+     "phrase": "launch costs",
+     "missing": "startup costs"
+    },
+    {
+     "phrase": "stage length to new cities",
+     "missing": "route distance or block hours"
+    }
+   ]
+  },
+  {
+   "id": "new_routes_cost_flights",
+   "answers": [
+    "new route variable cost",
+    "flights on new routes",
+    "cost per flight on new routes",
+    "freed aircraft time",
+    "how many flights redeployed",
+    "where the aircraft come from",
+    "new route frequency"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "crew availability",
+     "missing": "crew capacity"
+    },
+    {
+     "phrase": "block hours",
+     "missing": "block hour data"
+    },
+    {
+     "phrase": "launch cost",
+     "missing": "startup costs"
+    }
+   ]
+  },
+  {
+   "id": "new_routes_context",
+   "answers": [
+    "competition on ashford",
+    "competition on brookhaven",
+    "incumbents on new routes",
+    "low-cost carrier on new routes",
+    "do fixed costs change",
+    "fixed costs after redeploying",
+    "new route competition"
+   ],
+   "notAnswers": [
+    {
+     "phrase": "will competitor follow us",
+     "missing": "entry risk assessment"
+    },
+    {
+     "phrase": "hub slots and gates",
+     "missing": "slot and gate availability"
+    },
+    {
+     "phrase": "how quickly can we launch",
+     "missing": "launch timing"
+    }
+   ]
+  }
+ ]
+}

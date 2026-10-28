@@ -8,9 +8,10 @@
 //     longer counts as verified, and a doubt on a checker-flagged figure is a
 //     supported challenge. Claims the deterministic checks flagged themselves
 //     (dedupe) are theirs, and left out here.
-import type { VettedClaim } from '@/lib/orchestrator/math-checker';
+import { numbersOf, type CheckerCase, type VettedClaim } from '@/lib/orchestrator/math-checker';
 import type { VerdictPayload, CheckerDecision } from '@/lib/orchestrator/math-checker-live';
-import { claimFigures } from '@/lib/orchestrator/math-checker-live';
+import { claimFigures, isStale, STEP_ROOT } from '@/lib/orchestrator/math-checker-live';
+import { clearRecommendation } from '@/lib/orchestrator/stall';
 import type { TurnVerification } from './challenge-marks';
 
 const same = (a: number, b: number) => Math.abs(a - b) <= Math.max(0.05, Math.abs(b) * 0.01);
@@ -20,14 +21,16 @@ export type CheckerEventRow = { category: string; subtype: string; turnIndex: nu
 
 type Flagged = { id: string; turn: number; claim: VettedClaim; outcomes: CheckerDecision[] };
 
+const decisionsOf = (rows: CheckerEventRow[]) => rows.filter(r => r.category === 'math_checker' && r.subtype === 'flag').map(r => r.payloadJsonb as CheckerDecision);
 function flaggedClaims(rows: CheckerEventRow[]): Flagged[] {
-  const decisions = rows.filter(r => r.category === 'math_checker' && r.subtype === 'flag').map(r => r.payloadJsonb as CheckerDecision);
+  const decisions = decisionsOf(rows);
   return rows.filter(r => r.category === 'math_checker' && r.subtype === 'verdict')
     .map(r => r.payloadJsonb as VerdictPayload)
     .sort((a, b) => a.candidateTurnIndex - b.candidateTurnIndex)
     .flatMap(v => v.claims.map((claim, i) => ({ id: `${v.candidateTurnIndex}:${i}`, turn: v.candidateTurnIndex, claim, outcomes: decisions.filter(d => d.id === `${v.candidateTurnIndex}:${i}`) })))
     // A conversion: the figure was right on a reading code computes (own-quantity.ts) — no error of theirs.
-    .filter(f => f.claim.flag && !f.outcomes.some(d => d.outcome === 'dedupe' || d.outcome === 'disagrees_with_code' || d.outcome === 'converted'));
+    // An unclear claim (code's correction > 100× off their figure; Lorenzo, 27 Oct) is listed too, as unclear.
+    .filter(f => (f.claim.flag || !!(f.claim as { unclear?: string }).unclear) && !f.outcomes.some(d => d.outcome === 'dedupe' || d.outcome === 'disagrees_with_code' || d.outcome === 'converted'));
 }
 
 // The candidate figures the checker flagged, by candidate turn (a word
@@ -44,21 +47,77 @@ export function dropCheckerStamps(v: Map<number, TurnVerification>, rows: Checke
   return new Map([...v].map(([turn, x]) => [turn, { ...x, verified: x.verified.filter(s => !(flagged.get(turn) ?? []).some(n => same(n, s.value))) }]));
 }
 
-function outcomeText(outcomes: CheckerDecision[]): string {
+// The decisions on a root: on its key — or, for a misread input (E7, `input:…`), on the claims of it sent to the report
+// with it ("two probes on its input (input:40%) already, … — left for the report"; their key is the claim's own).
+const onRootOf = (root: string | undefined, all: CheckerDecision[]) => (root === undefined ? []
+  : all.filter(d => d.key === root || (root.startsWith('input:') && d.reason.includes(`its input (${root})`))));
+
+// A claim built on an earlier wrong figure (Lorenzo, 19 Oct, §15 o): what became of that input in the interview.
+// The root's correction said once more for this claim (Lorenzo, 19 Oct, round-2 ruling 1): `restated`.
+function builtText(root: string | undefined, all: CheckerDecision[], restated = false): string {
+  const onRoot = onRootOf(root, all);
+  const fix = onRoot.find(d => d.outcome === 'correct' || d.outcome === 'converted');
+  // A root a conversion closed was right on another quantity: not their error, so never "wrong" (round-3 ruling 1, Lorenzo,
+  // 19 Oct: "not X" only on code's own quantity; Task 18 review). Its line, as said, on its right basis.
+  if (fix?.outcome === 'converted') {
+    const basis = `Not raised on its own: it is built on an earlier figure of theirs that the interview restated on its right basis: "${fix.line}"`;
+    return restated ? `${basis}; it was still in use here, and that line was said once more.` : basis;
+  }
+  const lead = 'Not raised on its own: it is built on an earlier wrong figure of theirs';
+  if (fix && restated) return `${lead}, which the interview corrected: "${fix.line}"; it was still in use here, and the correction was said once more.`;
+  if (fix) return `${lead}, which the interview corrected: "${fix.line}"`;
+  if (onRoot.some(d => d.outcome === 'unresolved' && /left for the report/.test(d.reason))) return `${lead}, which was probed and left for this report.`;
+  if (onRoot.some(d => ['probe', 'pointer', 'hint'].includes(d.outcome))) return `${lead}, which the interview probed instead; not corrected.`;
+  return `${lead}; that figure was not raised in the interview either.`;
+}
+
+const RESTATED = 'Restated after it had been probed or corrected.';
+
+// One derived correction per root (Lorenzo, 20 Oct, ruling 3): another claim built on the same root had it — its line, as
+// said (that claim's own correction, once: a `correct` or `converted` decision naming the root).
+function perRoot(root: string | undefined, all: CheckerDecision[]): string {
+  const said = all.find(d => d.root === root && (d.outcome === 'correct' || d.outcome === 'converted') && /its own correction, once/.test(d.reason) && d.line);
+  return ` One correction built on that figure was said, on another claim${said ? `: "${said.line}"` : ''}; this one was left for this report (one correction per root).`;
+}
+
+function outcomeText(outcomes: CheckerDecision[], all: CheckerDecision[] = outcomes): string {
   const has = (o: CheckerDecision['outcome']) => outcomes.find(d => d.outcome === o);
   const corrected = has('correct');
   if (corrected) return `Corrected: "${corrected.line}"`;
+  // Said once more for this claim, built on a root corrected live (ruling 1) — whatever line took the question on an earlier try.
+  const restate = has('restate');
+  if (restate) return builtText(restate.root, all, true);
+  // Linked to a step root (round 6 Task 72; Lorenzo, 21 Oct, the step-check ruling): built on a figure the deterministic
+  // step check found wrong — not probed in the interview, left for this report.
+  const linked = outcomes.find(d => d.outcome === 'unresolved' && d.root?.startsWith(STEP_ROOT));
+  if (linked) return `Not raised on its own: ${linked.reason.replace(/; left for the report$/, '')} — left for this report.`;
   if (has('stale')) return 'The candidate revised or withdrew it since.';
   if (has('pointer')) return 'Probed twice (the second time against the data); not corrected.';
   if (has('hint')) return 'Probed twice (the second time with a hint); not corrected.';
   if (has('probe')) return 'Probed; not corrected.';
+  // A claim built on a root a live correction closed that ended unsaid (shed, expired, cut off by the close) carries
+  // that root: what became of it, not a bare "not raised" (round-2 final review, Minor 2; Lorenzo, 19 Oct, round-3 ruling 2).
+  // So does one on a root probed and left for the report (round-5b Task 54's review).
+  const unsaid = outcomes.find(d => ['expired', 'shed', 'unresolved_at_close'].includes(d.outcome) && d.root !== undefined
+    && onRootOf(d.root, all).some(r => r.outcome === 'correct' || r.outcome === 'converted' || (r.outcome === 'unresolved' && /left for the report/.test(r.reason))));
+  if (unsaid) return builtText(unsaid.root, all);
   if (has('expired')) return 'Not raised in the interview (it waited behind other checks and expired).';
   if (has('shed')) return 'Not raised in the interview (minor, under time pressure).';
   if (has('unresolved_at_close')) return 'Not raised in the interview (the case closed first).';
   if (has('undelivered')) return 'Not raised in the interview (another line took the question).';
+  // Built on another wrong figure (Lorenzo, 19 Oct, §15 o): the input's outcome, said as it went.
+  const built = outcomes.find(d => d.outcome === 'derived' || (d.outcome === 'unresolved' && /^built on a (?:closed|corrected) input/.test(d.reason)));
+  // …whose correction was already said twice: not again (the controller's ruling on Task 19's concern 1).
+  const spent = built && /already said twice/.test(built.reason) ? '; that correction had already been said twice, so it was not said again.' : '';
+  if (built) {
+    const root = built.root ?? /^built on (?:a (?:closed|corrected) input \()?([^ )']+)/.exec(built.reason)?.[1];
+    return `${builtText(root, all)}${spent}${built.outcome === 'unresolved' && /one correction per root/.test(built.reason) ? perRoot(root, all) : ''}`;
+  }
+  const twice = outcomes.find(d => d.outcome === 'unresolved' && /already said twice/.test(d.reason));
+  if (twice) return `Not corrected again: its correction had already been said twice in the interview: "${twice.line}"`;
   // Past Rule 14 (Lorenzo, 13 Oct): probed twice with nothing code could correct, or a restatement of an error already handled.
   const unresolved = has('unresolved');
-  if (unresolved && /restated after the flag closed/.test(unresolved.reason)) return 'Restated after it had been probed or corrected.';
+  if (unresolved && /restated after the flag closed/.test(unresolved.reason)) return RESTATED;
   if (unresolved && /left for the report/.test(unresolved.reason)) return 'Probed twice; not corrected — left for this report.';
   return 'Not raised in the interview (the check landed after the case moved on).';
 }
@@ -71,12 +130,132 @@ function figureText(c: VettedClaim): string {
   return 'no figure';
 }
 
-export function formatCheckerSection(rows: CheckerEventRow[]): string {
+// The candidate's messages after the flags closed, for a redo the interview never read (Lorenzo, 20 Oct, round-5b job 2).
+export type RedoContext = { candidateTurns: { turnIndex: number; text: string }[]; caseData: CheckerCase; revealedIds: string[] };
+
+// isStale's reason for a redo to the right figure, stated for the claim's own quantity (E6) — not a withdrawal, a
+// revision with no figure read, a restatement, or the right figure on another base.
+const RIGHT_STATED = /^the right figure \((-?\d[\d,]*(?:\.\d+)?)\) stated since$/;
+const sentencesSaid = (t: string) => t.split(/(?<=[.!?])\s+|\n+/).map(x => x.trim()).filter(Boolean);
+
+// A flagged claim the interview closed unsaid-right — left for the report or restated after its flag closed
+// (`unresolved`, any reason), or expired or shed after a probe — that the candidate redid to the right figure in a
+// later message (b33 Marisol 31e33506 13:0, "0.25 × 58 = 14.5", redone at t19 as "0.25 × 42 = 10.5"). The first such
+// message after the decision, read with isStale (as E6 binds: the right figure for another quantity is no redo); its
+// sentence carrying the figure, quoted. Null when none.
+function laterRedo(f: Flagged, rows: CheckerEventRow[], redo: RedoContext): string | null {
+  if (f.outcomes.some(d => d.outcome === 'correct' || d.outcome === 'converted' || d.outcome === 'stale')) return null;
+  const probed = f.outcomes.some(d => ['probe', 'pointer', 'hint'].includes(d.outcome));
+  const closedAt = rows.filter(r => r.category === 'math_checker' && r.subtype === 'flag' && r.turnIndex !== null).filter(r => {
+    const d = r.payloadJsonb as CheckerDecision;
+    return d.id === f.id && (d.outcome === 'unresolved' || (probed && (d.outcome === 'expired' || d.outcome === 'shed')));
+  }).map(r => r.turnIndex as number);
+  if (closedAt.length === 0) return null;
+  const after = Math.max(...closedAt);
+  for (const t of redo.candidateTurns.filter(x => x.turnIndex > after).sort((a, b) => a.turnIndex - b.turnIndex)) {
+    const m = RIGHT_STATED.exec(isStale(f.claim, [t.text], redo.caseData, redo.revealedIds) ?? '');
+    if (!m) continue;
+    const v = Number(m[1].replace(/,/g, ''));
+    // The sentence the redo is bound in: the one isStale credits on its own (figure-binding.ts binds within a
+    // sentence), not the first that holds the number ("The other inputs added 10.5 points. Beans were … = 10.5.").
+    const holding = sentencesSaid(t.text).filter(x => numbersOf(x).some(n => same(n, v)));
+    const sentence = holding.find(x => RIGHT_STATED.test(isStale(f.claim, [x], redo.caseData, redo.revealedIds) ?? '')) ?? holding[0];
+    if (sentence) return `The candidate redid it correctly later (turn ${t.turnIndex}): "${sentence}"`;
+  }
+  return null;
+}
+
+// Post-wave item 4 (Lorenzo, 26 Oct evening): the candidate turns that state a clear recommendation — the same
+// predicate 4.9 uses (`clearRecommendation`, stall.ts: the message's first sentence opens on a decision verb, or
+// frames the decision). More than one message can do it, so it is a set, not a turn.
+const recommendationTurnsOf = (candidateTurns: { turnIndex: number; text: string }[]) =>
+  new Set(candidateTurns.filter(t => clearRecommendation(t.text)).map(t => t.turnIndex));
+
+// Is the flag still open at the report? Nothing in the interview resolved it: no correction, no conversion onto a
+// reading code computes, and the candidate never withdrew it.
+const flagOpen = (outcomes: CheckerDecision[]) =>
+  !outcomes.some(d => d.outcome === 'correct' || d.outcome === 'converted' || d.outcome === 'stale');
+
+// Post-wave item 4, narrowed (Lorenzo, 27 Oct): "name every open claim marked `changesConclusion`, at most 3 per
+// report." The claims so marked — the checker model's own call, or code's escalation on a recommendation figure —
+// carry this tag in the judge's prompt, and the trailing directive makes naming them mandatory. The cap is Lorenzo's:
+// the unnarrowed draft would have mandated 19 items on one stored run (§13.2), which is not a report anybody reads.
+const MANDATE_TAG = '[CHANGES THE CONCLUSION — NAME IT IN THE REPORT]';
+export const MANDATE_CAP = 3;
+
+// What the mandate names, for the code-side enforcement (conclusion-mandate.ts): the claim's own words, what the
+// candidate said, and the right figure as the section prints it (null when the checker gave none — the claim is still
+// named, with no figure invented for it).
+export type MandatedClaim = { id: string; turn: number; span: string; candidateValue: string; figure: string | null; byCode: boolean };
+
+const rightFigure = (c: VettedClaim): string | null => {
+  if (c.correctionFigure) return c.correctionFigure;
+  if (c.correctValue !== null) return String(c.correctValue);
+  if (c.correctLow !== null && c.correctHigh !== null) return `${c.correctLow}\u2013${c.correctHigh}`;
+  if (c.actualShare !== null) return `${Math.round(c.actualShare * 100)}% of the whole`;
+  return null;
+};
+
+// One row of the section: the claim, what became of it, and whether it changes the conclusion (and whose call that
+// was). `open` is the mandate's own test — nothing in the interview resolved it and the candidate never redid it
+// right, so this report is the only place it can be named.
+type Row = { f: Flagged; text: string; changes: string; byCode: boolean; open: boolean };
+
+function rowsOf(rows: CheckerEventRow[], redo?: RedoContext): Row[] {
   const flagged = flaggedClaims(rows);
-  if (flagged.length === 0) return '';
-  const lines = flagged.map(({ turn, claim: c, outcomes }) =>
-    `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${c.changesConclusion ? '; changes the conclusion' : ''}): ${figureText(c)}. ${outcomeText(outcomes)}`);
+  const all = decisionsOf(rows);
+  // Item 4, Lorenzo's ruling of 26 Oct (evening): an open flag on a figure IN the recommendation turn changes the
+  // conclusion — code's call, not the checker model's. larkspur p57 `69441a66` claim 29:2 recorded
+  // `changesConclusion: false` on an error that was the recommendation's own bottom line ("call it $7.0M of
+  // operating profit"; the checker's figure is 5.2), so nothing escalated it. The rule is literal: the claim's turn
+  // has to BE a recommendation message. A later restatement of the same wrong bottom line in a risk answer is not
+  // escalated by code — the cost if that is wrong is one missed escalation, against the cost of calling an
+  // arithmetic slip in a risk answer "the conclusion", which is the louder error in a written report.
+  const recTurns = redo ? recommendationTurnsOf(redo.candidateTurns) : new Set<number>();
+  return flagged.map(f => {
+    const { turn, claim: c, outcomes } = f;
+    const unclear = (c as { unclear?: string }).unclear;
+    if (unclear) return { f, text: "Unclear: code's correction would have been more than 100 times off the candidate's figure, so it was not raised in the interview — check this figure yourself before naming it.", changes: '', byCode: false, open: false };
+    const said = outcomeText(outcomes, all);
+    const credit = redo ? laterRedo(f, rows, redo) : null;
+    // A restatement the redo answered is no longer the last word on it; any other outcome stays, the redo after it.
+    const text = credit === null ? said : said === RESTATED ? credit : `${said} ${credit}`;
+    const open = flagOpen(outcomes) && credit === null;
+    const inRecommendation = !c.changesConclusion && recTurns.has(turn) && open;
+    const changes = c.changesConclusion ? '; changes the conclusion'
+      : inRecommendation ? '; changes the conclusion — the figure is in the recommendation itself' : '';
+    return { f, text, changes, byCode: inRecommendation, open };
+  });
+}
+
+// The claims the report MUST name: open, and marked as changing the conclusion. Code's escalations first (the figure
+// is the recommendation's own), then the latest turns — the bottom line is at the end of a case — and never more than
+// three. Read by formatCheckerSection for the prompt and by conclusion-mandate.ts for the enforcement, so the prompt
+// and the check can never disagree about which claims they are.
+export function mandatedConclusionClaims(rows: CheckerEventRow[], redo?: RedoContext): MandatedClaim[] {
+  return rowsOf(rows, redo).filter(r => r.changes !== '' && r.open)
+    .sort((a, b) => Number(b.byCode) - Number(a.byCode) || b.f.turn - a.f.turn)
+    .slice(0, MANDATE_CAP)
+    .map(r => ({ id: r.f.id, turn: r.f.turn, span: r.f.claim.span, candidateValue: r.f.claim.candidateValue, figure: rightFigure(r.f.claim), byCode: r.byCode }));
+}
+
+export function formatCheckerSection(rows: CheckerEventRow[], redo?: RedoContext): string {
+  const all = rowsOf(rows, redo);
+  if (all.length === 0) return '';
+  const mandated = new Set(mandatedConclusionClaims(rows, redo).map(m => m.id));
+  const lines = all.map(r => {
+    const { turn, claim: c } = r.f;
+    // The tag goes at the END of the row: the shape before it ("WRONG (...): <figure>. <what became of it>") is what
+    // every other rule and test reads.
+    const tag = mandated.has(r.f.id) ? ` ${MANDATE_TAG}` : '';
+    const verdict = (c as { unclear?: string }).unclear ? 'UNCLEAR' : `WRONG (${c.errorType ?? 'error'}${r.changes})`;
+    return `- turn ${turn}: "${c.span}" — ${verdict}: ${figureText(c)}. ${r.text}${tag}`;
+  });
+  // The mandate, narrow (Lorenzo, 27 Oct). Enforced in code afterwards either way (conclusion-mandate.ts), so a judge
+  // that ignores it changes nothing but the wording of the item.
+  const mandate = mandated.size === 0 ? '' : `
+At most three claims above carry ${MANDATE_TAG}. Each of them MUST appear in the written report: one needsWork item on the dimension whose work the figure belongs to, quoting the candidate's own words from its span and naming the right figure. That the interview never raised it is the reason this report has to.`;
   return `MATH CHECKER (a model's check of the candidate's claims, vetted in code; a figure "computed in code" is code's own):
 ${lines.join('\n')}
-Treat a WRONG claim as the candidate's error unless they revised it — and cite it only where the transcript bears it out. One they revised or withdrew is a self-correction.`;
+Treat a WRONG claim as the candidate's error unless they revised it — and cite it only where the transcript bears it out. One they revised or withdrew is a self-correction.${mandate}`;
 }

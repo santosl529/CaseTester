@@ -1,4 +1,5 @@
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
+import { withStreamRetry } from './stream-retry';
 import { SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { z } from 'zod';
 import type { Case } from '@/lib/cases/schema';
@@ -146,6 +147,17 @@ ${gaps.map(g => `- ${g.label} — candidate asked about "${g.what}"${turnRef(g.t
 How to score these: this list comes from an automated classifier, so first confirm in the transcript that the candidate actually asked for that data at that turn; ignore any line the transcript doesn't support. For each confirmed line, a conclusion or assumption the candidate built on the missing data is a SESSION COVERAGE GAP, not a judgment weakness: set a coverageCaveat on each dimension whose rating it affects, attributing the gap to the interviewer not providing requested data. Do NOT put that unverified assumption — or the failure to reach an insight that needed this data — in needsWork or missedOpportunities, and do NOT make it the topFix.`;
   }
 
+  // Round 6 Task 72 (Lorenzo, 21 Oct: "The report should note when an item was volunteered"): a must-reach item code
+  // released unasked — the candidate gets no credit for asking for it.
+  const volunteered = dataCoverage?.volunteered ?? [];
+  if (volunteered.length > 0) {
+    section += `
+
+VOLUNTEERED BY THE INTERVIEWER (the case releases these at a fixed point when the candidate hasn't asked by then):
+${volunteered.map(v => `- ${v.label} was volunteered by the interviewer (not asked for)${turnRef(v.turnIndex)}`).join('\n')}
+How to score these: do NOT credit the candidate for asking for this data or for seeing that it was needed — they never asked. What they did with it once given is scored as usual.`;
+  }
+
   if (notInCase.length > 0) {
     section += `
 
@@ -244,7 +256,7 @@ ${dimensionJsonLines}
   // Streamed (batch 4, 2 Oct): with thinking, max_tokens 32000 is past the
   // SDK's non-streaming guard ("may take longer than 10 minutes") and every
   // scoring run failed. finalMessage() still returns the parsed output.
-  const response = await client.beta.messages.stream({
+  const response = await withStreamRetry('judge', () => client.beta.messages.stream({
     model: JUDGE_MODEL_ID,
     max_tokens: 32000,
     thinking: { type: 'adaptive' },
@@ -252,7 +264,7 @@ ${dimensionJsonLines}
     output_config: { format: JUDGE_OUTPUT_FORMAT, effort: 'high' },
     betas: [FALLBACK_BETA],
     fallbacks: FALLBACKS,
-  }).finalMessage();
+  }).finalMessage());
   onUsage?.({
     component: 'judge',
     model: JUDGE_MODEL_ID,

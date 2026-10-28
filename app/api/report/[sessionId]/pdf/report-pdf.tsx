@@ -121,7 +121,7 @@ export function ReportPdf(props: ReportPdfProps) {
                     {d.feedback.missedOpportunities.map((item, i) => (
                       <View key={i}>
                         <Text style={styles.feedbackPoint}>{item.moment}</Text>
-                        <Text style={styles.betterResponse}>A great answer: &ldquo;{item.betterResponse}&rdquo;</Text>
+                        {item.betterResponse ? <Text style={styles.betterResponse}>A great answer: &ldquo;{item.betterResponse}&rdquo;</Text> : null}
                       </View>
                     ))}
                   </View>

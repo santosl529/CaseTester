@@ -1,6 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { decideData, renderDataLines, decisionRows, labelMatch, outsideAskScope, splitOfItem, mentionStatesNeed, exhibitReady, heldForOrder, nextReadyExhibit, nextRequiredExhibit } from '@/lib/orchestrator/data-decisions';
 import { createLedger, reveal, type LedgerItem } from '@/lib/orchestrator/data-ledger';
+import { getCaseById } from '@/lib/cases/loader';
+import { factBaseFor, coverageOf } from '@/lib/orchestrator/fact-check';
 import type { DeclaredRequest } from '@/lib/agent/models/turn-schema';
 
 // Rule 11 decided in code (spec 2026-10-06 D2/D3): the model declares what was
@@ -186,6 +188,14 @@ describe('spoken lists lower-case the first letter of each item', () => {
     expect(renderDataLines(decideData(base({ requests: [req({ what, itemIds: [] })] })), 's')).toEqual([`I don't have ${spoken}.`]);
   });
 
+  // b32 Larkspur Marisol t18 (round 5 Task 49 fix round 1): "Hold that thought on
+  // Whether Larkspur has sufficient crew capacity…" — a question word is no name.
+  it('a leading question word is lower-cased even before a name', () => {
+    const what = 'Whether Larkspur has sufficient crew capacity to operate 10,000 additional flights';
+    const d = decideData(base({ requests: [req({ what, itemIds: ['bean_price_change'], respond: 'defer' })] }));   // deferred by name (prof-001's item stands in)
+    expect(renderDataLines(d, 's')).toEqual(["I'll come back to whether Larkspur has sufficient crew capacity to operate 10,000 additional flights shortly."]);
+  });
+
   it('applies to refusals, deferrals and offers, and keeps the logged what as declared', () => {
     const d = decideData(base({ requests: [
       req({ what: 'Pilot elasticity results', itemIds: [] }), req({ what: 'Competitor pricing actions', itemIds: [] }),
@@ -258,15 +268,17 @@ describe('an empty item mapping is not proof the case lacks the data', () => {
     expect(labelMatch('pilot elasticity results', CATALOG)).toBeNull();
   });
 
-  it('a deferral the model could not map is not a refusal: one generic line, no item promised', () => {
+  it('a deferral the model could not map is not refused here: held for the small-model check (turnDataChecked), nothing promised', () => {
     const d = decideData(base({ requests: [req({ what: 'the number of stores over the two years', itemIds: [], respond: 'defer' })] }));
     expect(d.refusals).toEqual([]);
-    // v4.10 (KF-4): nothing promised — the ask may name data the case doesn't have.
-    expect(renderDataLines(d, 's')).toEqual(["Let's settle your structure before we get into the data."]);
+    // Nothing is said until the check decides (19 Oct, engine-asks R1; the generic line is gone).
+    expect(d.unmatchedDefers).toEqual(['the number of stores over the two years']);
+    expect(renderDataLines(d, 's')).toEqual([]);
     expect(decisionRows(d)).toEqual([{ what: 'the number of stores over the two years', ledgerItemIds: [], response: 'defer', explicit: true }]);
   });
 
-  it('an unmapped explicit release is still refused', () => {
+  // decideData's refusal is provisional: turnData puts it through the small-model check (itemless-defer.test.ts; round-2 ruling 2).
+  it('an unmapped explicit release is refused here', () => {
     const d = decideData(base({ requests: [req({ what: 'total annual revenue by region', itemIds: [] })] }));
     expect(renderDataLines(d, 's')).toEqual(["I don't have total annual revenue by region."]);
   });
@@ -341,6 +353,32 @@ describe('splitOfItem', () => {
   });
   it('an item that is itself a part answers a split ("the coffee beans\' share of COGS")', () => {
     expect(splitOfItem('the split within the bean share', { label: "Composition of COGS: coffee beans' share of COGS" }, ['bean share'])).toBe(false);
+  });
+});
+
+describe('a basis ask (Lorenzo, 19 Oct; batch 32 Larkspur Marisol t27)', () => {
+  const plan = getCaseById('prof-002').dataLedger.find(i => i.id === 'new_routes_plan')!;
+  const fb = factBaseFor(getCaseById('prof-002') as never);
+  const names = fb.quantities.find(q => q.id === 'new_routes_plan')?.names ?? [];
+  it('is outside the item that holds only the figure', () => {
+    expect(outsideAskScope('Basis for the 70% load factor estimate on the new routes', plan, names)).toBe(true);
+    expect(outsideAskScope('the 70% load factor on the new routes', plan, names)).toBe(false);
+  });
+  it('is in scope when the item says where the figure comes from', () => {
+    expect(outsideAskScope('the basis for the estimate', { label: 'Forecast', value: 'The forecast is based on 3 pilots.' })).toBe(false);
+  });
+  it.each([
+    ['What are the revenue sources?', { label: 'Revenue by source', value: 'Fares are 80% of revenue.' }],
+    ['Where does our revenue come from?', { label: 'Revenue mix by source', value: 'Fares are 80% of revenue.' }],
+    ['the source data for revenue', { label: 'Revenue', value: 'Revenue was $200M.' }],
+  ])('"%s" stays in scope of a revenue item', (what, item) => {
+    expect(outsideAskScope(what, item)).toBe(false);
+  });
+  it.each(['where the 70% load factor estimate comes from', 'how solid is the 70% assumption', 'the source of the 70% figure', 'how was the 70% estimated'])('"%s" is a basis ask', what => {
+    expect(outsideAskScope(what, plan, names)).toBe(true);
+  });
+  it('is not covered by the phrase beside it', () => {
+    expect(coverageOf('basis for the 70% load factor estimate', fb).items).toEqual([]);
   });
 });
 
@@ -473,7 +511,26 @@ describe('spoken whats', () => {
       req({ what: 'Pilot elasticity results (volume loss from price increase)', itemIds: [] }),
       req({ what: 'whether the 15% growth is per store', itemIds: [] }),
     ] }));
-    expect(renderDataLines(d, 's')).toEqual(["I don't have pilot elasticity results or whether the 15% growth is per store."]);
+    // A question-worded ask is "data on …" in a refusal (round 5 Task 50 fix round 2).
+    expect(renderDataLines(d, 's')).toEqual(["I don't have pilot elasticity results or data on whether the 15% growth is per store."]);
+  });
+  // Round 5 Task 50 fix round 2: a count or amount asked as a question is said as a
+  // noun phrase; a refusal of a question-worded ask is "data on …". The asks are
+  // the corpus's own `what`s (batch run records).
+  it.each([
+    ['how many bags of chips Hollis Bay sells a year', "I don't have the number of bags of chips Hollis Bay sells a year."],
+    ['how many of the 200 stores are new', "I don't have the number of the 200 stores that are new."],
+    ['How many of the 200 stores opened in the last two years', "I don't have the number of the 200 stores opened in the last two years."],
+    // Constructed (no corpus `what` has "how much X costs"): the cost rewrite, then the refusal's "data on".
+    ['how much the roasting line costs', "I don't have data on what the roasting line costs."],
+    ['how much the other COGS inputs changed over two years', "I don't have data on how much the other COGS inputs changed over two years."],
+    ['How much of the 22% labor cost is schedulable/variable hours vs. fixed', "I don't have data on how much of the 22% labor cost is schedulable or variable hours vs. fixed."],
+  ])('refused: "%s"', (what, said) => {
+    expect(renderDataLines(decideData(base({ requests: [req({ what, itemIds: [] })] })), 's')).toEqual([said]);
+  });
+  it('a deferral keeps the question word; a count is still a noun phrase', () => {
+    const d = decideData(base({ requests: [req({ what: 'whether the 15% growth is per store', itemIds: [], respond: 'defer' }), req({ what: 'how many stores opened in the last two years', itemIds: [], respond: 'defer' })] }));
+    expect(d.unmatchedDefers).toEqual(['whether the 15% growth is per store', 'how many stores opened in the last two years']);
   });
   it('a parenthesis inside is read as an aside', () => {
     const d = decideData(base({ requests: [req({ what: 'price change of the other inputs (dairy, packaging, food) by supplier', itemIds: ['bean_price_change'], explicit: false })], candidateText: "I'd want the bean price trend." }));
@@ -662,5 +719,83 @@ describe('promises say the item, not its catalog label', () => {
     expect(renderDataLines(d, 's')).toEqual(["I don't have store counts today and two years ago.", "I'll come back to the bean price trend shortly."]);
     const labelled = decideData(pb({ requests: [defer('Coffee bean price change over 2 years', 'bean_price_change')] }));
     expect(decisionRows(labelled)[0].what).toBe('Coffee bean price change over 2 years');
+  });
+});
+
+describe('a one-off cost ask (Lorenzo, 20 Oct; batch 34 Aldermoor Marisol t23)', () => {
+  const optionA = getCaseById('entry-001').dataLedger.find(i => i.id === 'option_a')!;
+  it('is outside an item that states only an annual figure', () => {
+    expect(outsideAskScope('Do we know the one-off cost to stand up the US team, separate from the $80M annual?', optionA)).toBe(true);
+    expect(outsideAskScope('the upfront cost of the US team', optionA)).toBe(true);
+    expect(outsideAskScope('the monthly setup cost', { label: 'Plan cost', value: 'The plan costs $20 a month.' })).toBe(true);
+  });
+  it('keeps the annual ask and an item that states a one-off figure', () => {
+    expect(outsideAskScope('the annual selling cost', optionA)).toBe(false);
+    expect(outsideAskScope('the one-off cost', { label: 'Plan cost', value: 'The plan costs $20 a month plus a one-off $500 setup fee.' })).toBe(false);
+  });
+  // Final review I2 (20 Oct), the reviewer's probe: both cuts named, no cue setting the recurring one aside.
+  it('keeps an ask naming both the one-off and the recurring cut; still cuts one that sets the recurring cut aside', () => {
+    expect(outsideAskScope('setup cost and ongoing cost of building our own team', optionA)).toBe(false);
+    expect(outsideAskScope('One-off cost to stand up the US team under Option A, separate from the $80M annual cost', optionA)).toBe(true);
+    expect(outsideAskScope('the one-time cost on top of the annual selling cost', optionA)).toBe(true);
+  });
+});
+
+// Round 6 Task 71 (the audit's code-only fixes, docs/superpowers/plans/2026-10-21-data-path-audit.md;
+// Lorenzo, 21 Oct, round 6: "4. The audit's 12 code-only rule fixes."). The asks verbatim from the runs.
+describe('Task 71: the scope rules the audit found missing', () => {
+  const item = (caseId: string, id: string) => getCaseById(caseId).dataLedger.find(i => i.id === id)!;
+  // Row 8, b36 Larkspur Marcus a7d9f44e t19 → t20: "What I'd want to know is the launch cost — marketing,
+  // station setup, crew basing at the two new cities." The check mapped it to the new routes' recurring
+  // line, restated at t20.
+  it('row 8: a launch-cost ask is a one-off ask — the new routes\' recurring line is out of its scope', () => {
+    expect(outsideAskScope('launch costs for the new routes', item('prof-002', 'new_routes_cost_flights'))).toBe(true);
+    // Hollis Bay's own launch costs say "launch costs" (ONE_OFF_VALUE): still in scope.
+    expect(outsideAskScope('first-year launch costs', item('launch-001', 'launch_costs'))).toBe(false);
+    expect(outsideAskScope('launch costs and the price point', item('launch-001', 'launch_costs'))).toBe(false);
+  });
+  // Row 14, b37 Quillpath Tyler a2a5921b t5 → t6: "Do we have the split of Starter sign-ups by source —
+  // paid versus organic?" mapped to signup_channels, whose line says how each plan signs up.
+  it('row 14: a cut by source is a cut the sign-up item doesn\'t have', () => {
+    expect(outsideAskScope('the split of Starter sign-ups by source', item('pricing-001', 'signup_channels'))).toBe(true);
+    expect(outsideAskScope('sign-ups by sources', { label: 'Sign-ups by source' })).toBe(false);   // a label that carries the cut
+  });
+  // Row 21, b36 Aldermoor Marcus c518221e t23 → t24: "Do we have the $80 million split by rep cost versus
+  // market access?" — Option A's line states the $80 million once, and no parts of it.
+  it('row 21: a split of a figure the item states as one amount is out of its scope', () => {
+    const optionA = item('entry-001', 'option_a');
+    expect(outsideAskScope('the split of the $80 million between rep cost and market access', optionA)).toBe(true);
+    expect(outsideAskScope('the $80M split by rep cost versus market access', optionA)).toBe(true);
+    expect(outsideAskScope('the $80 million: rep cost versus market access', optionA)).toBe(true);
+    // A line that states the parts answers the split; a figure the line doesn't state isn't this rule's.
+    const parts = { label: 'Selling costs', value: 'Annual US selling costs are $80 million: $50 million for the reps and $30 million for market access.' };
+    expect(outsideAskScope('the split of the $80 million between rep cost and market access', parts)).toBe(false);
+    expect(outsideAskScope('the split of the $90 million between rep cost and market access', optionA)).toBe(false);
+    // Not a split of the figure: the figure asked about as a whole.
+    expect(outsideAskScope('whether the $80 million holds flat over time', optionA)).toBe(false);
+  });
+});
+
+// Round 6 Task 71 (audit row 16; b37 Quillpath Marcus eb8d7576 t9 → t10, graded borderline): "I can share
+// plan economics … if you'd like." for a cue and one label word, "plan". On a tagged case (`strict`) the
+// need clause names two distinctive label words, the case's proper names aside, or the spoken name.
+describe('Task 71: the offer gate on a tagged case', () => {
+  const MARCUS = 'First, it\'s a monthly number and the comparison that matters is lifetime, so I\'d need to multiply by expected tenure on each plan, and tenure probably differs — a Starter customer may churn faster, which makes the gap worse than $60 a month.';
+  const LABEL = 'Plan economics: monthly price and cost to serve, Pro and Starter';
+  const strict = { spoken: 'the plan economics', caseNames: ['Quillpath', 'Starter', 'Pro', 'LTV', 'CAC'] };
+  it('row 16: one label word ("plan", "Starter" a plan name) is no need on a tagged case; untagged, as before', () => {
+    expect(mentionStatesNeed(MARCUS, LABEL, strict)).toBe(false);
+    expect(mentionStatesNeed(MARCUS, LABEL)).toBe(true);
+  });
+  it('two label words or the spoken name are', () => {
+    expect(mentionStatesNeed("I'd want the monthly cost to serve on each plan.", LABEL, strict)).toBe(true);
+    expect(mentionStatesNeed('I still need the plan economics.', LABEL, strict)).toBe(true);
+  });
+  it('fix round 1: a label acronym said as written is a need (tagged); lower-case or untagged, as before', () => {
+    const CAC = 'Customer acquisition cost (CAC), Pro and Starter';
+    const caseNames = ['Quillpath', 'Starter', 'Pro', 'LTV', 'CAC'];
+    expect(mentionStatesNeed('Next steps: get CAC by plan, confirm the 3x test on the $1,530 figure.', CAC, { spoken: 'the acquisition cost per customer', caseNames })).toBe(true);
+    expect(mentionStatesNeed('Next steps: get cac by plan.', CAC, { spoken: 'the acquisition cost per customer', caseNames })).toBe(false);
+    expect(mentionStatesNeed('Next steps: get CAC by plan.', CAC)).toBe(false);
   });
 });

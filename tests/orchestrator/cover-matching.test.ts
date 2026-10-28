@@ -1,0 +1,239 @@
+// Round 6 Task 68 (Lorenzo, 21 Oct: "Normalize matching before adding phrases:
+// plurals, a small synonym table … Match the candidate's own sentence as well as
+// the model's rewording. … Add exclusion words where a confusion is known"):
+// coverageOf on a tagged case folds plurals and synonyms, drops a hit on another
+// company's item or across a geography, and reads the candidate's asking sentence.
+// An untagged case (prof-001) matches as before. Asks are the audit's
+// (docs/superpowers/plans/2026-10-21-data-path-audit.md rows 1, 5, 12, 20).
+import { describe, it, expect } from 'vitest';
+import { coverageOf, coverageDetail, coverSpans, factBaseFor } from '@/lib/orchestrator/fact-check';
+import { outsideAskScope } from '@/lib/orchestrator/data-decisions';
+import { getCaseById } from '@/lib/cases/loader';
+import { taggedFactBase } from './fixtures/tagged-cases';
+
+const larkspur = taggedFactBase('prof-002');
+const hollis = taggedFactBase('launch-001');
+const aldermoor = taggedFactBase('entry-001');
+
+describe('normalized matching (tagged cases)', () => {
+  it('row 1, Larkspur Tyler t11: the plural fold — "avoidable fixed cost" meets the cover "avoidable fixed costs"', () => {
+    expect(coverageOf('avoidable fixed cost by route', larkspur)).toEqual({ items: ['aircraft_leases'], promptFacts: [], rest: null, coarse: [] });
+  });
+  it('row 5, Hollis Bay Marisol t7: the synonym fold — "number of stores" meets the cover "how many stores"', () => {
+    expect(coverageOf('a distribution estimate by number of stores', hollis)).toEqual({ items: ['retailer_support'], promptFacts: [], rest: null, coarse: [] });
+  });
+  it('plurals in -es after ss, x, z, ch, sh fold to the word; a word in -ss stays', () => {
+    const fb = taggedFactBase('launch-001', { covers: { product: ['bag pouch'] } });
+    expect(coverageOf('bag pouches', fb).items).toEqual(['product']);
+    expect(coverageOf("the chip businesses' volume", hollis).items).toEqual(['why_now']);
+  });
+  it('"a number of stores" is no count (COUNT_ASK): no synonym fold', () => {
+    expect(coverageOf('a number of stores', hollis).items).toEqual([]);
+  });
+  it('the fold keeps the hit\'s span: a finer cut beside it still vetoes it', () => {
+    expect(coverageOf('avoidable fixed costs broken down by customer segment', larkspur).items).toEqual([]);
+  });
+  it('departures fold onto flights; doors onto stores; pricing (a noun) onto price', () => {
+    const fb = taggedFactBase('prof-002', { covers: { network_totals: ['total flights'] } });
+    expect(coverageOf('total departures', fb).items).toEqual(['network_totals']);
+    expect(coverageOf('how many doors', hollis).items).toEqual(['retailer_support']);
+    const priced = taggedFactBase('entry-001', { covers: { nimbrel: ['net price trend'], kelvexa_pricing: ['price below list'] } });
+    expect(coverageOf("Nimbrel's net pricing trend", priced).items).toEqual(['nimbrel']);
+    expect(coverageOf('the option of pricing below list', priced).items).toEqual([]);   // a verb: "pricing below"
+  });
+});
+
+describe('the candidate\'s asking sentence (tagged cases)', () => {
+  const SENTENCE = 'Do we have a sense of how many bags of chips Hollis Bay moves a year?';
+  it('row 12, Hollis Bay Tyler t5: the model\'s "annual chip bag volume" misses; the sentence\'s "bags of chips" reaches why_now — at the coarser cut, worded from the model\'s ask', () => {
+    const cov = coverageOf('annual chip bag volume', hollis, { sentence: SENTENCE });
+    expect([...cov.items, ...cov.coarse.flatMap(c => c.ids)]).toContain('why_now');
+    expect(cov).toEqual({ items: [], promptFacts: [], rest: null, coarse: [{ what: 'annual chip bag volume', ids: ['why_now'] }] });
+  });
+  it('without the sentence the model\'s ask is uncovered, as before', () => {
+    expect(coverageOf('annual chip bag volume', hollis)).toEqual({ items: [], promptFacts: [], rest: 'annual chip bag volume', coarse: [] });
+  });
+  it('a sentence hit sharing no word with the model\'s ask is another ask\'s: not joined', () => {
+    expect(coverageOf("the competitor's prices", hollis, { sentence: SENTENCE }).coarse).toEqual([]);
+  });
+  it('the sentence\'s items join the ask\'s own; the rest is worded from the model\'s ask', () => {
+    const cov = coverageOf('retailer margin and the planning figure', hollis, { sentence: 'Do we have the retailer margin and how many stores carry the planning figure?' });
+    expect(cov.items).toEqual(['bag_price']);
+    expect(cov.rest).toBe('the planning figure');
+  });
+});
+
+// Task 69 fix round 1 (controller ruling on C1, 21 Oct): a count asked "in total" beside a
+// cover phrase isn't covered by an item whose line states no total — a FURTHER_CUT-style veto
+// on tagged cases, so the ask flows as at BASE (the check, its own verdict), never cover-vetoed.
+describe('a count asked in total (tagged cases)', () => {
+  const T27_WHAT = 'the total number of stores carrying Hollis Bay';
+  const T27_SAID = 'Do we know how many stores carry Hollis Bay in total?';
+  it('b37 Hollis Bay Marisol t27: the model\'s ask and her sentence — no retailer_support, the whole ask left, nothing dropped', () => {
+    expect(coverageOf(T27_WHAT, hollis)).toEqual({ items: [], promptFacts: [], rest: T27_WHAT, coarse: [] });
+    expect(coverageOf(T27_WHAT, hollis, { sentence: T27_SAID })).toEqual({ items: [], promptFacts: [], rest: T27_WHAT, coarse: [] });
+    expect(coverageOf(T27_SAID, hollis).items).toEqual([]);
+    expect(coverageDetail(T27_WHAT, hollis, { sentence: T27_SAID }).dropped).toEqual([]);
+  });
+  it('b37 Hollis Bay Marisol t7 still reaches retailer_support (row 5)', () => {
+    expect(coverageOf('a distribution estimate by number of stores', hollis, { sentence: 'Do we have a distribution estimate — number of stores Hollis Bay can get into next spring?' }).items).toEqual(['retailer_support']);
+  });
+  it.each(['the total count of stores', 'how many stores altogether', 'a total count of how many stores'])('"%s": not covered', what => {
+    expect(coverageOf(what, hollis).items).toEqual([]);
+  });
+  it('"total" without a count is no veto: "how many stores" is the count, "total" names the phrase', () => {
+    expect(coverageOf('how many stores in the total footprint', hollis).items).toEqual(['retailer_support']);
+  });
+  // Fix round 2 (review): the count and the total are the hit's own, and only that hit is dropped;
+  // a figure on the counted noun in the line ("30 million households") is a stated total.
+  it('"How many households are there in total?": planning_assumptions\' "30 million households" states it — covered', () => {
+    expect(coverageOf('How many households are there in total?', hollis).items).toEqual(['planning_assumptions']);
+    expect(coverageOf('the total number of households', hollis).items).toEqual(['planning_assumptions']);
+  });
+  it('a total count in one part of a question drops only its own hit: the retailer margin is still covered', () => {
+    const cov = coverageOf('Do we know how many stores carry Hollis Bay in total, and what is the retailer margin?', hollis);
+    expect(cov.items).toEqual(['bag_price']);
+  });
+  it('prof-002: "How many flights in total, and what was the Lakeport fare cut?" keeps lakeport_fare', () => {
+    expect(coverageOf('How many flights in total, and what was the Lakeport fare cut?', larkspur).items).toContain('lakeport_fare');
+  });
+  it('a count elsewhere in the question is not the hit\'s: "how many weeks it took, and the distribution reach in total"', () => {
+    expect(coverageOf('how many weeks it took, and the distribution reach in total', hollis).items).toEqual(['retailer_support']);
+  });
+  it('the count and the total are read in the hit\'s clause only', () => {
+    expect(coverageOf('how many weeks, and distribution reach in total', hollis).items).toEqual(['retailer_support']);
+    expect(coverageOf('how many stores carry the line, and the retailer margin in total', hollis).items).toEqual(['bag_price', 'retailer_support']);
+  });
+  it('"in total" with no count beside it is no veto', () => {
+    expect(coverageOf('distribution reach in total', hollis).items).toEqual(['retailer_support']);
+  });
+  // retailer_support's line rewritten, to read each way a line can state a total.
+  const withLine = (label: string, value: string) => {
+    const fb = taggedFactBase('launch-001');
+    fb.ledger = fb.ledger.map(l => (l.id === 'retailer_support' ? { ...l, label, value } : l));
+    return fb;
+  };
+  it('"total" and a figure in the label or line state a total, wherever the figure sits', () => {
+    expect(coverageOf(T27_WHAT, withLine('Retailer support totals', 'The partners carry the line, 2 partners in all.')).items).toEqual(['retailer_support']);
+    expect(coverageOf(T27_WHAT, withLine('Retailer support', 'Two partners stock the line in all their stores, 2 partners in total.')).items).toEqual(['retailer_support']);
+  });
+  it('a figure after the counted noun is not its count: "all their stores from 2027" states no total', () => {
+    expect(coverageOf(T27_WHAT, withLine('Retailer support', 'The partners stock the line in all their stores from 2027.')).items).toEqual([]);
+  });
+  it('a line saying "in total" with no figure states no total', () => {
+    const fb = taggedFactBase('launch-001');
+    fb.ledger = fb.ledger.map(l => (l.id === 'retailer_support' ? { ...l, label: 'Retailer support', value: 'The partners carry the line in all their stores in total.' } : l));
+    expect(coverageOf(T27_WHAT, fb).items).toEqual([]);
+  });
+  it('a line stating a total keeps the hit (its value, or its label)', () => {
+    const quill = taggedFactBase('pricing-001');
+    expect(coverageOf('how many total new customers in total', quill).items).toEqual(['new_customers_by_plan']);   // "1,350 in total"
+    const lark = taggedFactBase('prof-002', { covers: { network_totals: ['flights a year'] } });
+    expect(coverageOf('how many flights a year in total', lark).items).toEqual(['network_totals']);           // "Network totals"
+  });
+  it('a total the cover phrase itself carries is no veto (ruling 7)', () => {
+    const fb = taggedFactBase('launch-001', { covers: { retailer_support: ['total number of stores'] } });
+    expect(coverageOf(T27_WHAT, fb).items).toEqual(['retailer_support']);
+  });
+  it('untagged: unchanged — the literal phrase covers it', () => {
+    expect(coverageOf('how many stores in total', taggedFactBase('launch-001', { tags: null })).items).toEqual(['retailer_support']);
+  });
+});
+
+describe('exclusion: a hit on another company\'s item (tags)', () => {
+  it('"chip volume for the chickpea line" keeps why_now: both named', () => {
+    expect(coverageOf('chip volume for the chickpea line', hollis).items).toEqual(['why_now']);
+  });
+  it('an ask naming only the entrant drops a hit on a Larkspur item', () => {
+    expect(coverageOf("the entrant's avoidable fixed costs", larkspur)).toEqual({ items: [], promptFacts: [], rest: "the entrant's avoidable fixed costs", coarse: [] });
+    expect(coverageOf("Larkspur's avoidable fixed costs", larkspur).items).toEqual(['aircraft_leases']);
+  });
+  it('a list entry naming the entrant drops its hit, though another entry names Larkspur', () => {
+    expect(coverageOf("Larkspur's fares and the entrant's avoidable fixed costs", larkspur).items).toEqual([]);
+  });
+  it('an ask naming the entrant keeps a hit on the entrant\'s item', () => {
+    expect(coverageOf("the competitor's cost structure", larkspur).items).toEqual(['competitor_costs']);
+  });
+});
+
+describe('geography (audit row 20)', () => {
+  it('Aldermoor Marcus t5: "European net price per patient per year" is not the US pricing line', () => {
+    expect(coverageOf('European net price per patient per year', aldermoor).items).not.toContain('kelvexa_pricing');
+    expect(coverageOf('European net price per patient per year', aldermoor).rest).toBe('European net price per patient per year');
+  });
+  it('a region the line names, or the cover phrase carries, stays', () => {
+    expect(coverageOf('US price per patient per year', aldermoor).items).toEqual(['kelvexa_pricing']);
+    expect(coverageOf('any international routes', larkspur).items).toEqual(['geography']);
+  });
+});
+
+describe('untagged cases match as before', () => {
+  const p1 = factBaseFor(getCaseById('prof-001') as never);
+  it('prof-001 has no tags: no answer gate', () => {
+    expect(p1.tags).toBeUndefined();
+    expect(p1.answerGate).toBe(false);
+  });
+  it('the plural of a prof-001 cover is not matched', () => {
+    expect(coverageOf('net margins', p1).items).toEqual([]);
+    expect(coverageOf('net margins', p1).promptFacts).toEqual([]);
+    expect(coverageOf('net margin', p1).promptFacts).toEqual(['net_margin']);
+  });
+  it('nor a synonym; and the sentence is not read', () => {
+    expect(coverageOf('the count of transactions', p1).items).toEqual([]);
+    expect(coverageOf('the menu', p1, { sentence: 'Could I get the transaction volume per store?' })).toEqual({ items: [], promptFacts: [], rest: 'the menu', coarse: [] });
+  });
+  it('the same case untagged: no fold, no sentence', () => {
+    const plain = taggedFactBase('launch-001', { tags: null });
+    expect(plain.answerGate).toBe(false);
+    expect(coverageOf('a distribution estimate by number of stores', plain).items).toEqual([]);
+    expect(coverageOf('annual chip bag volume', plain, { sentence: 'Do we have a sense of how many bags of chips Hollis Bay moves a year?' }).coarse).toEqual([]);
+  });
+});
+
+// Fix round 2 (Lorenzo, 15 Oct, ruling 7: the case's own phrase carrying the cut means the
+// item answers it): the tag gate's scope rules read the ask with the cover's spans.
+describe('coverSpans and the scope rules (ruling 7)', () => {
+  const scoped = (fb: ReturnType<typeof taggedFactBase>, what: string, id: string, spans = coverSpans(what, fb, id)) =>
+    outsideAskScope(what, fb.ledger.find(l => l.id === id)! as never, fb.quantities.find(q => q.id === id)?.names ?? [], { count: false, spans });
+  it('every cover phrase of the tagged cases, asked as it stands, is in its own item\'s scope', () => {
+    const missed = [larkspur, hollis, aldermoor].flatMap(fb => fb.covers.filter(c => fb.ledger.some(l => l.id === c.id))
+      .flatMap(c => c.phrases.filter(p => scoped(fb, p, c.id)).map(p => `${c.id}: ${p}`)));
+    expect(missed).toEqual([]);
+    // Without the spans, the scope rules alone rule some out (the round-1 regression).
+    expect(scoped(aldermoor, 'current treatment mix', 'current_treatment', [])).toBe(true);
+    expect(scoped(larkspur, 'how firm the 70%', 'new_route_rampup', [])).toBe(true);
+  });
+  it('spans are the folded matches, at the ask\'s own positions', () => {
+    expect(coverSpans("Kelvexa's US Price per Patients per year by market", aldermoor, 'kelvexa_pricing')).toEqual([{ start: 13, end: 40 }]);
+    expect(coverSpans("Kelvexa's US price per patient per year", aldermoor, 'current_treatment')).toEqual([]);   // another item's phrase
+  });
+  it('a cut outside the span still rules the item out, even after a cut the span carries', () => {
+    expect(scoped(aldermoor, "Kelvexa's US price per patient per year by market", 'kelvexa_pricing')).toBe(true);
+    expect(scoped(aldermoor, "Kelvexa's US price per patient per year", 'kelvexa_pricing')).toBe(false);
+  });
+  it('the one-off and recurrence rules read only words outside the spans too', () => {
+    const annual = { label: 'Option A team cost', value: '$80M a year' };
+    const all = (t: string) => [{ start: 0, end: t.length }];
+    const oneOff = 'one-off cost of the team';
+    expect(outsideAskScope(oneOff, annual, [], { count: false })).toBe(true);
+    expect(outsideAskScope(oneOff, annual, [], { count: false, spans: all(oneOff) })).toBe(false);
+    const firstYear = { label: 'Launch marketing', value: '$3.0M of marketing in the first year' };
+    const recurs = 'whether the marketing recurs';
+    expect(outsideAskScope(recurs, firstYear, [], { count: false })).toBe(true);
+    expect(outsideAskScope(recurs, firstYear, [], { count: false, spans: all(recurs) })).toBe(false);
+  });
+  it('a split of the item\'s head inside the spans cuts nothing; outside it, it does', () => {
+    const leases = { label: 'Aircraft leases', value: '$40M a year' };
+    expect(outsideAskScope('aircraft breakdown', leases, [], { count: false })).toBe(true);
+    expect(outsideAskScope('aircraft breakdown', leases, [], { count: false, spans: [{ start: 0, end: 18 }] })).toBe(false);
+  });
+  it('a match that leaves the span counts, even one overlapping a match inside it', () => {
+    const annual = { label: 'Option A team cost', value: '$80M a year' };
+    // "setup cost" is inside the span; "cost to set up" starts inside it and leaves it.
+    expect(outsideAskScope('setup cost to set up the team', annual, [], { count: false, spans: [{ start: 0, end: 10 }] })).toBe(true);
+  });
+  it('no spans: the scope rules as before (prof-001 "transaction volume per store" is still out of the ticket\'s scope)', () => {
+    const p1 = factBaseFor(getCaseById('prof-001') as never);
+    expect(outsideAskScope('transaction volume per store', p1.ledger.find(l => l.id === 'avg_ticket')! as never)).toBe(true);
+  });
+});

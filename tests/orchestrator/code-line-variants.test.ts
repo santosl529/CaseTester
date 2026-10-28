@@ -39,7 +39,19 @@ import { isSilenceLine } from '@/lib/orchestrator/silence';
 import { stripCopiedCheckIn } from '@/lib/orchestrator/audit';
 import { getCaseById } from '@/lib/cases/loader';
 
-const POOLS = Object.keys(PHRASE_POOLS) as PhrasePool[];
+// A pool Lorenzo worded himself as one line (19 Oct, round-2 ruling 3: "We won't
+// get to <ask> today."; round-3 ruling 4: "…that today." for a long or list ask):
+// no versions, no line said before the brief — their own blocks below.
+const ONE_LINE: PhrasePool[] = ['wont_get_to', 'wont_get_to_that'];
+// A lead-in, not a line (19 Oct, round-4 ruling 6): the words that open a checker probe's "You said …" — its own block.
+const FRAGMENT: PhrasePool[] = ['probe_opener'];
+// The model's opening acknowledgment, rotated by code (Phase 1 4.10, `ackRotation`): no line code said before the
+// brief, and recorded only with the switch on — its own block (tests/orchestrator/ack-rotation.test.ts).
+// Phase 1 4.10 (`ackRotation`) and task 5 (`probeGuardMethod`): pools code did not say before brief B, each with its
+// own block (tests/orchestrator/ack-rotation.test.ts, tests/orchestrator/probe-guard-method.test.ts).
+// `refusalAssume` (27 Oct, measurement): no line said before the brief — tests/orchestrator/refusal-assume.test.ts.
+const OWN_BLOCK: PhrasePool[] = ['ack', 'probe_method', 'assume', 'assume_finer'];
+const POOLS = (Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => !ONE_LINE.includes(p) && !FRAGMENT.includes(p) && !OWN_BLOCK.includes(p));
 const before = BEFORE as Record<string, string[]>;
 const versions = (p: PhrasePool) => PHRASE_POOLS[p] as readonly string[];
 
@@ -47,11 +59,12 @@ const versions = (p: PhrasePool) => PHRASE_POOLS[p] as readonly string[];
 const ASK = 'which branch would you start with, and why?';
 const SLOT: Partial<Record<PhrasePool, string>> = {
   defer: 'the cost breakdown', refuse: 'the cost breakdown', exhibit: 'Brew & Bean Cost Structure Over Time',
-  restate: 'Menu prices have not changed in two years.', correct_one: 'COGS is 58% of revenue today, up from 42% two years ago.',
+  restate_exhibit: 'Menu prices have not changed in two years.', restate: 'Menu prices have not changed in two years.', correct_one: 'COGS is 58% of revenue today, up from 42% two years ago.',
   correct_two: 'COGS is 58% of revenue today, up from 42% two years ago. Labor is 22% of revenue, and it’s been stable.',
   wrap_up: 'walk me through how you got to 38%.', gate_defer: 'the cost breakdown', offer: 'the cost breakdown',
   before_data: ASK, reask_more: ASK, reask_answer: ASK, reask_back: ASK, concrete: "name one thing your structure doesn't cover yet.",
   got_to: '38%', probe_got_to: '38%', pause: '5 minutes', stall_lead: "The question on the table is how you'd size the margin gap.",
+  restate_pointer: 'It has revenue and contribution by route for both years.', restate_recent: 'the network totals',
 };
 const filled = (p: PhrasePool, v: string) => fill(v, SLOT[p] ?? '');
 const template = (v: string) => v.replace(/\{[xX]\}/g, ' ');
@@ -75,6 +88,16 @@ const TERM_CLASSES: [string, RegExp][] = [
   ['store', /\bstores?\b/i], ['evidence', /\bevidence\b/i], ['option', /\boptions?\b/i],
 ];
 const termsOf = (t: string) => TERM_CLASSES.filter(([, re]) => re.test(t)).map(([k]) => k).sort().join(',');
+
+describe('probe_opener: the lead-in of a "You said …" probe', () => {
+  it('five distinct lead-ins, the original first; the echo-probe reader reads each with a claim after it', () => {
+    const vs = versions('probe_opener');
+    expect(vs).toHaveLength(5);
+    expect(new Set(vs).size).toBe(5);
+    expect(vs[0]).toBe('You said');
+    for (const v of vs) expect(ECHO_PROBE.test(`${v} “5 points” — which cost lines did you include?`), v).toBe(true);
+  });
+});
 
 describe('every pool has five versions', () => {
   it.each(POOLS)('%s: five distinct versions, the lines said before among them, one slot where they had one', pool => {
@@ -199,5 +222,46 @@ describe('the last-3 rule', () => {
         uses = recordPhraseUses(phrase(pool, SLOT[pool] ?? '', uses, `${sid}:${turn}`), uses);
       }
     }
+  }, 30_000);
+});
+
+describe('a one-line pool (wont_get_to)', () => {
+  const said = fill(PHRASE_POOLS.wont_get_to[0], 'the cost breakdown');
+  it('is one line, said every time', () => {
+    expect(PHRASE_POOLS.wont_get_to).toHaveLength(1);
+    expect(phrase('wont_get_to', 'the cost breakdown', { wont_get_to: [0, 0, 0] }, 'a:1')).toBe(said);
+  });
+  it('the evaluators find it, and read its slot back out', () => {
+    expect(poolPattern('wont_get_to').test(said)).toBe(true);
+    expect(slotOf('wont_get_to', said)).toBe('the cost breakdown');
+    expect(recordPhraseUses(said, {}).wont_get_to).toEqual([0]);
+  });
+  it('reads as a deferral (an ask answered), not the close, a refusal or a delivery', () => {
+    expect(DEFER.test(said)).toBe(true);
+    expect(hasCloseCue(said)).toBe(false);
+    expect(isClosingTurn(said)).toBe(false);
+    expect(findFalseRefusals(said, fb)).toEqual([]);
+    expect(isDeliveryClaim(said)).toBe(false);
+    expect(vetoReason(said, gate)).toBe('data_talk');
+  });
+});
+
+describe('a one-line pool (wont_get_to_that)', () => {
+  const said = PHRASE_POOLS.wont_get_to_that[0];
+  it('is one line, said every time', () => {
+    expect(PHRASE_POOLS.wont_get_to_that).toEqual(["We won't get to that today."]);
+    expect(phrase('wont_get_to_that', '', { wont_get_to_that: [0, 0, 0] }, 'a:1')).toBe(said);
+  });
+  it('the evaluators find it and record it', () => {
+    expect(poolPattern('wont_get_to_that').test(said)).toBe(true);
+    expect(recordPhraseUses(said, {}).wont_get_to_that).toEqual([0]);
+  });
+  it('reads as a deferral (an ask answered), not the close, a refusal or a delivery', () => {
+    expect(DEFER.test(said)).toBe(true);
+    expect(hasCloseCue(said)).toBe(false);
+    expect(isClosingTurn(said)).toBe(false);
+    expect(findFalseRefusals(said, fb)).toEqual([]);
+    expect(isDeliveryClaim(said)).toBe(false);
+    expect(vetoReason(said, gate)).toBe('data_talk');
   });
 });

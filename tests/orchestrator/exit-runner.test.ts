@@ -222,6 +222,60 @@ describe('Rule 17-C5 — after the candidate chose to continue', () => {
   });
 });
 
+// Batch 39, aldermoor p07 35740806 t19 (Lorenzo's ruling, 26 Oct): after the C5 script, "I'm okay … I'd like to
+// finish. If it's useful, I can give the recommendation now" was classified `intent: stop` and the case closed in
+// the EXHIBIT phase with no exhibit-2, brainstorm, recommendation or risk stage. After a pause offer this path never
+// closes the case: an explicit accept is taken above (isPauseAccepted), and anything else asks once at most.
+describe("Rule 17-C5 — the reply to a pause offer never closes the case", () => {
+  const midCase = (extra: Row = {}) => seed({
+    phase: 'ANALYSIS', elapsedMin: 11,
+    turns: [{ role: 'interviewer', text: 'Prompt' }, { role: 'candidate', text: 'COGS went from 42 to 58.' }, { role: 'interviewer', text: 'Go on.' }],
+    revealed: ['cogs_pct', 'labor_pct'],
+    flags: { pressureTest: SATISFIED, conduct: { warnings: 0, distressOffered: true, distressDisclosure: 'x' }, ...extra },
+  });
+  const p07t19 = "I appreciate you checking, genuinely — but I'm okay. I think something got crossed; nothing I said was meant that way. I'm just locked into the numbers here. I was rough at the start and that rattled me a bit, but I've found my footing and I'd like to finish.\n\nIf it's useful, I can give the recommendation now.";
+
+  it('p07 t19: the case carries on — no close, no 988 script, the model turn runs', async () => {
+    midCase();
+    const r = await say(p07t19, T({ question: 'Which input inside COGS moved most?' }));
+    expect(r.ended).toBe(false);
+    expect(store.session.status).toBe('active');
+    expect(r.interviewerText).not.toMatch(/we'll stop here/i);
+    expect(r.interviewerText).not.toMatch(/988/);
+    expect(r.interviewerText).toMatch(/Which input inside COGS moved most\?/);
+    expect(ev('candidate_exit')).toHaveLength(0);
+  });
+
+  it.each(["I'm okay, let's keep going.", "No — keep going.", "I'd like to finish."])('%s resumes the case', async text => {
+    midCase();
+    const r = await say(text, T({ question: 'Where would you look next?' }));
+    expect(r.ended).toBe(false);
+    expect(ev('candidate_exit')).toHaveLength(0);
+  });
+
+  it('an ambiguous sign-off after the offer asks once and never closes', async () => {
+    midCase();
+    const first = await say('Done here.', T());
+    expect(first.ended).toBe(false);
+    expect(first.interviewerText).toMatch(/^Do you want to stop the interview here\?/);
+    expect((flags().exit as Row)).toMatchObject({ pending: 'ambiguous', clarified: true });
+  });
+
+  it('with the clarification already used, an ambiguous sign-off after the offer still does not close', async () => {
+    midCase({ exit: { clarified: true } });
+    const r = await say('Done here.', T({ question: 'Where would you look next?' }));
+    expect(r.ended).toBe(false);
+    expect(store.session.status).toBe('active');
+  });
+
+  it('an explicit accept of the offer still closes (unchanged)', async () => {
+    midCase();
+    const r = await say("Yes, let's stop there please.");
+    expect(r.ended).toBe(true);
+    expect(ev('C5_accept', 'conduct')).toHaveLength(1);
+  });
+});
+
 const STAGES_OWED_BRAINSTORM = {
   structure: { delivered: true, outcome: 'answered' }, pressure_test: { delivered: true, outcome: 'answered' }, analysis: { delivered: true, outcome: 'answered' },
   exhibit: { delivered: true, outcome: 'answered' }, brainstorm: { delivered: false }, recommendation: { delivered: false }, risk: { delivered: false }, pending: null,

@@ -1,0 +1,238 @@
+{
+ "b36l-jasmine-bbf78ab8-t9": {
+  "session": "bbf78ab8-de90-43b6-b9c4-0bb1abcd1a62",
+  "turnIndex": 9,
+  "phase": "EXHIBIT",
+  "kind": "model",
+  "elapsedMs": 424905,
+  "revealed": [
+   "route_results_lakeport",
+   "route_results_port_avery",
+   "route_results_other",
+   "network_totals",
+   "fixed_costs",
+   "lakeport_variable_cost",
+   "port_avery_per_flight",
+   "fuel_prices",
+   "lakeport_seats_load",
+   "lakeport_fare",
+   "extras_revenue"
+  ],
+  "shown": [
+   "exhibit-1",
+   "exhibit-2"
+  ],
+  "pressureTest": {
+   "state": "satisfied",
+   "reasks": 0,
+   "codeAsked": false,
+   "gatedTurns": 1,
+   "structureGiven": false,
+   "structureAsked": false,
+   "probe": "Before any data, which branch of that structure do you prioritize first, and why?",
+   "askedAt": 2,
+   "intents": [
+    "prioritize"
+   ],
+   "followUps": [],
+   "satisfiedAt": 3,
+   "awaitingReplies": 0
+  },
+  "candidateText": "Confirms it: 60 passengers, fare $200→$120, so $4,800 lost per flight × 2,000 = $9.6M. Costs unchanged at $9,000. Breakeven fare is $130. Already covered in my recommendation.",
+  "turn": {
+   "say": "Right.",
+   "move": "brainstorm",
+   "requests": [
+    {
+     "what": "wages and other costs per flight",
+     "itemIds": [
+      "unit_costs"
+     ],
+     "explicit": true,
+     "respond": "release"
+    }
+   ],
+   "exhibit": null,
+   "rescueItem": null,
+   "question": "Your plan leans on raising fares on two routes where a competitor now sits. What else could Larkspur do, beyond fares, to get back to an operating profit within the next 12 months?"
+  },
+  "savedLine": "Right. On what you asked about earlier: There have been no material changes to wages or other costs per flight. I'm putting up an exhibit: Proposed new routes — Planning estimates (average per flight across Hub–Ashford and Hub–Brookhaven). What stands out to you in this exhibit?",
+  "owedStage": "exhibit"
+ },
+ "b36l-tyler-4e91d638-t19": {
+  "session": "4e91d638-f71a-4cb5-990e-d606bd5a1c0e",
+  "turnIndex": 19,
+  "phase": "BRAINSTORM",
+  "kind": "rec_ask",
+  "elapsedMs": 929434,
+  "revealed": [
+   "route_results_lakeport",
+   "route_results_port_avery",
+   "route_results_other",
+   "network_totals",
+   "fixed_costs",
+   "lakeport_fare",
+   "competitor_entry",
+   "competitor_costs",
+   "lakeport_seats_load",
+   "extras_revenue",
+   "lakeport_variable_cost",
+   "new_routes_plan",
+   "new_routes_cost_flights",
+   "new_routes_context"
+  ],
+  "shown": [
+   "exhibit-1",
+   "exhibit-2",
+   "exhibit-3"
+  ],
+  "pressureTest": {
+   "state": "satisfied",
+   "reasks": 0,
+   "codeAsked": false,
+   "gatedTurns": 0,
+   "structureGiven": false,
+   "structureAsked": false,
+   "probe": "Before any data: is that framework MECE, and what's missing from it?",
+   "askedAt": 2,
+   "intents": [
+    "mece"
+   ],
+   "followUps": [],
+   "satisfiedAt": 3,
+   "awaitingReplies": 0
+  },
+  "candidateText": "A few things beyond the route swap, since the new routes are estimates and ramp-up risk is real.\n\nFirst, phase it. Don't exit Lakeport and Port Avery cold — the new routes may take months to build demand. Keep some defensive frequency where it at least covers variable cost while ramping Ashford and Brookhaven, so there's no revenue gap in the transition.\n\nSecond, pull the ancillary lever. Extras are only $20 per passenger across all routes. Raising bag, seat, and co-brand card revenue by even $10 per passenger across the whole network — on roughly 800,000 passengers a year — is real money and doesn't depend on fares.\n\nThird, attack the cost gap directly. The competitor is 30% cheaper per seat partly on larger aircraft; Larkspur could look at crew productivity, maintenance, or renegotiating airport fees to lower that $9,000-ish variable cost per flight.\n\nFourth, protect the four healthy routes — they're the profit base; make sure nothing invites a low-cost entrant there.\n\nI'd sequence these so year-one profit doesn't hinge entirely on the new-route estimates hitting.",
+  "turn": {
+   "say": "Understood. You said roughly 800,000 passengers a year across the network.",
+   "move": "brainstorm",
+   "requests": [],
+   "exhibit": null,
+   "rescueItem": null,
+   "question": ""
+  },
+  "savedLine": "Understood. You said roughly 800,000 passengers a year across the network. What's your recommendation to the client?",
+  "owedStage": null
+ },
+ "b36l-tyler-4e91d638-t21": {
+  "session": "4e91d638-f71a-4cb5-990e-d606bd5a1c0e",
+  "turnIndex": 21,
+  "phase": "RECOMMENDATION",
+  "kind": "model",
+  "elapsedMs": 1021340,
+  "revealed": [
+   "route_results_lakeport",
+   "route_results_port_avery",
+   "route_results_other",
+   "network_totals",
+   "fixed_costs",
+   "lakeport_fare",
+   "competitor_entry",
+   "competitor_costs",
+   "lakeport_seats_load",
+   "extras_revenue",
+   "lakeport_variable_cost",
+   "new_routes_plan",
+   "new_routes_cost_flights",
+   "new_routes_context"
+  ],
+  "shown": [
+   "exhibit-1",
+   "exhibit-2",
+   "exhibit-3"
+  ],
+  "pressureTest": {
+   "state": "satisfied",
+   "reasks": 0,
+   "codeAsked": false,
+   "gatedTurns": 0,
+   "structureGiven": false,
+   "structureAsked": false,
+   "probe": "Before any data: is that framework MECE, and what's missing from it?",
+   "askedAt": 2,
+   "intents": [
+    "mece"
+   ],
+   "followUps": [],
+   "satisfiedAt": 3,
+   "awaitingReplies": 0
+  },
+  "candidateText": "Let me quickly sanity-check that passenger figure before I recommend. Across six routes, 14,000 flights × 80 seats × roughly 75% load ≈ 840,000. So about 800,000 to 840,000 — fine.\n\nMy recommendation: Larkspur should exit the two routes where a lower-cost competitor has triggered an unwinnable price war and redeploy those aircraft to the two uncontested new routes. That alone swings the airline from a $4 million operating loss to roughly a $7.8 million operating profit within the year.\n\nThe logic: the entire $24 million profit swing came from Lakeport and Port Avery, where Larkspur now sells seats below variable cost. It can't out-price a competitor with 30% lower costs. Redeploying 5,000 flights to Ashford and Brookhaven generates about $10 million of new contribution against unchanged fixed costs.\n\nRisks: the new-route fares and load factors are planning estimates — if demand disappoints, profit erodes; and a competitor could follow onto those routes. So I'd phase the exit, layer in higher ancillary revenue of $10-plus per passenger across ~800,000 fliers, and attack the cost gap in parallel.\n\nNext step: stress-test demand on the two new routes before committing aircraft.",
+  "turn": {
+   "say": "Understood.",
+   "move": "risk",
+   "requests": [],
+   "exhibit": null,
+   "rescueItem": null,
+   "question": "What do you see as the single biggest risk to this recommendation, and what would you do about it?"
+  },
+  "savedLine": "Understood. What do you see as the single biggest risk to this recommendation, and what would you do about it?",
+  "owedStage": null
+ },
+ "b34l-tyler-t19": {
+  "session": "51ad0cb8-122a-4d11-bfbd-983c337974dc",
+  "turnIndex": 19,
+  "phase": "EXHIBIT",
+  "kind": "model",
+  "elapsedMs": 926559,
+  "revealed": [
+   "demand",
+   "new_routes_plan",
+   "new_routes_cost_flights",
+   "new_routes_context",
+   "network_totals",
+   "route_results_lakeport",
+   "route_results_port_avery",
+   "route_results_other",
+   "fixed_costs",
+   "aircraft_leases",
+   "competitor_entry",
+   "competitor_costs",
+   "lakeport_seats_load",
+   "lakeport_fare",
+   "extras_revenue",
+   "lakeport_variable_cost"
+  ],
+  "shown": [
+   "exhibit-1",
+   "exhibit-2",
+   "exhibit-3"
+  ],
+  "pressureTest": {
+   "state": "satisfied",
+   "reasks": 0,
+   "codeAsked": false,
+   "gatedTurns": 0,
+   "structureGiven": false,
+   "structureAsked": false,
+   "probe": "Before we pull data: is that structure MECE, and what might be missing from it?",
+   "askedAt": 2,
+   "intents": [
+    "mece"
+   ],
+   "followUps": [],
+   "satisfiedAt": 3,
+   "awaitingReplies": 0
+  },
+  "candidateText": "That works, and the flight count lines up almost exactly with what we'd free up.\n\nPer flight: 80 × 70% = 56 passengers. Revenue = 56 × ($180 + $20) = $11,200. Less $9,200 variable cost = $2,000 contribution per flight. Across 5,000 flights = $10.0M a year.\n\nCompare that to what Lakeport and Port Avery deliver today: -$1.8M combined on 5,000 flights. So redeploying is worth about $11.8M of contribution swing. That takes us from $16.0M total contribution to roughly $27.8M, less the $20M of fixed costs, so about $7.8M of operating profit. That's back in the black with room to spare.\n\nThe caveats: 70% load factor and $180 fare are planning estimates on untested routes, and ramp-up means year one probably underdelivers. I'd also want to know whether Ashford and Brookhaven are exposed to the same low-cost entrant — if they follow us in, we've just repeated the problem.\n\nDo we know anything about competitive presence in those two cities?",
+  "turn": {
+   "say": "No other airline is flying nonstop on either new route, and aircraft lease and other fixed costs would stay the same.",
+   "move": "recommendation",
+   "requests": [
+    {
+     "what": "competitive presence on the new routes",
+     "itemIds": [
+      "new_routes_context"
+     ],
+     "explicit": true,
+     "respond": "release"
+    }
+   ],
+   "exhibit": null,
+   "rescueItem": null,
+   "question": "Given that, what is your recommendation to the CEO for getting back to an operating profit within the next 12 months?"
+  },
+  "savedLine": "No other airline is flying nonstop on either new route, and aircraft lease and other fixed costs would stay the same. Repeating what I said before: No other airline is flying nonstop on either new route, and aircraft lease and other fixed costs would stay the same. What else could Larkspur do to make sure it's profitable in the first year?",
+  "owedStage": "brainstorm"
+ }
+}

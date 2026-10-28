@@ -14,7 +14,7 @@ const { checkMathClaims } = vi.hoisted(() => ({ checkMathClaims: vi.fn(() => new
 vi.mock('@/lib/orchestrator/math-checker', async orig => ({ ...(await orig<object>()), checkMathClaims }));
 
 import { planTurn, type TurnReads } from '@/lib/orchestrator/plan-turn';
-import { planCheckerFlags } from '@/lib/orchestrator/math-checker-live';
+import { planCheckerFlags, lineKey } from '@/lib/orchestrator/math-checker-live';
 import { getCaseById } from '@/lib/cases/loader';
 import { pendingFinalChecks } from '@/lib/orchestrator/close-hold';
 import type { VettedClaim } from '@/lib/orchestrator/math-checker';
@@ -67,6 +67,17 @@ describe('a landed verdict on a model turn', () => {
     const p = modelState(planTurn(withVerdict(analysis({ recomputeAttempts: { 'pricing:gain@5': 1 } }), [verdict(3)]), 'Next I would look at competitors.', deps()));
     expect(p.state.recomputeHint).toContain('"A 10% price rise lifts margin about 8.5 points, not 5."');
     expect(p.state.derivedValueTexts).toContain('8.5');
+    // Counted per line (the controller's ruling on Task 19's concern 1): booked with the line, undone with it.
+    const said = { [lineKey('A 10% price rise lifts margin about 8.5 points, not 5.')]: 1 };
+    expect((p.ctx.flags.mathChecker as { said: Record<string, number> }).said).toEqual(said);
+    expect(p.state.checkerLine?.undo.mathChecker.said).toBeUndefined();
+  });
+  it('past the probe, its line said twice already: not said — report-only, the key closed', () => {
+    const line = 'A 10% price rise lifts margin about 8.5 points, not 5.';
+    const p = modelState(planTurn(withVerdict(analysis({ recomputeAttempts: { 'pricing:gain@5': 1 }, mathChecker: { handled: [], said: { [lineKey(line)]: 2 } } }), [verdict(3)]), 'Next I would look at competitors.', deps()));
+    expect(p.state.recomputeHint ?? '').not.toContain(line);
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '3:0', outcome: 'unresolved', reason: 'its correction was already said twice — left for the report' }) }));
+    expect((p.ctx.flags.mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
   });
 
   // Lorenzo, 13 Oct (Larkspur review, item 1): a deterministic flag past its
@@ -105,11 +116,53 @@ describe('a landed verdict on a model turn', () => {
 });
 
 describe('on a code-written turn other than the close, the flag waits', () => {
+  // Nothing is handled and no hint goes out; on an overdue stage turn the
+  // waiting probe is now recorded as held, so it keeps its turn instead of
+  // being dropped (Lorenzo, 22 Oct; b34l Marisol t26).
   it('a code-written stage or time line: no hint, not handled', () => {
     const late = 16 * 60 * 1000 + 30_000;
     const p = modelState(planTurn(withVerdict(analysis({}, late), [verdict(3)]), 'Next I would look at competitors.', deps()));
     expect(['model', 'rec_ask', 'close', 'rec_math_probe']).not.toContain(p.state.kind);
-    expect(p.ctx.flags.mathChecker).toBeUndefined();
+    expect((p.ctx.flags.mathChecker as { handled?: string[] } | undefined)?.handled ?? []).toEqual([]);
+    expect(p.state.recomputeHint ?? '').not.toMatch(/MATH CHECK FLAG/);
+  });
+});
+
+// Lorenzo, 19 Oct (§15 o; review I1): a claim built on the flagged figure rides
+// on its line — booked with it on a turn that says it, left waiting on one that doesn't.
+describe('a claim built on the flagged figure rides on its line', () => {
+  const built: VettedClaim = { ...flagged, span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', candidateValue: '11%', correctValue: 14.5, codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null },
+    probeLine: 'Walk me through how you got to 11%.', correctionLine: null, correctionFigure: null };
+  it('a model turn: the root probed, the built claim derived and handled with it', () => {
+    const p = modelState(planTurn(withVerdict(analysis(), [verdict(3, { claims: [flagged, built] })]), 'Next I would look at competitors.', deps()));
+    expect(p.state.recomputeHint).toMatch(/Which cost lines did you include\?/);
+    expect((p.ctx.flags.mathChecker as { handled: string[] }).handled).toEqual(['3:0', '3:1']);
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ id: '3:1', outcome: 'derived', root: 'pricing:gain@5' }) }));
+  });
+  it('a code-written stage or time line: neither handled, no derived row', () => {
+    const p = modelState(planTurn(withVerdict(analysis({}, 16 * 60 * 1000 + 30_000), [verdict(3, { claims: [flagged, built] })]), 'Next I would look at competitors.', deps()));
+    expect((p.ctx.flags.mathChecker as { handled?: string[] } | undefined)?.handled ?? []).toEqual([]);
+    expect(p.ctx.events).not.toContainEqual(expect.objectContaining({ subtype: 'flag', payload: expect.objectContaining({ outcome: 'derived' }) }));
+  });
+});
+
+// Ruling 3 (Lorenzo, 20 Oct, round-5b review): one derived correction per root. The root (3:0) went to the report with no
+// line said; the claim built on it (3:1) gets its own correction once, and the root's one is booked when the line is
+// said — flags.mathChecker.derivedOnce, by the root — and undone with it if it isn't heard.
+describe('ruling 3: the root\'s one derived correction is booked by the root', () => {
+  const built: VettedClaim = { ...flagged, span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', candidateValue: '11%', correctValue: 14.5, codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null },
+    probeLine: 'Walk me through how you got to 11%.', correctionLine: 'The new margin is about 14.5%, not 11%.', correctionFigure: '14.5' };
+  const closedRoot = { handled: ['3:0'], closed: ['pricing:gain@5'], keys: { 'pricing:gain@5': { figures: [5], since: 3 } } };
+  it('said: booked to the root (pricing:gain@5 → 3:1), never in the undo', () => {
+    const p = modelState(planTurn(withVerdict(analysis({ mathChecker: closedRoot }), [verdict(3, { claims: [flagged, built] })]), 'Next I would look at competitors.', deps()));
+    expect(p.state.checkerLine).toMatchObject({ id: '3:1', action: 'correct' });
+    expect((p.ctx.flags.mathChecker as { derivedOnce?: Record<string, string> }).derivedOnce).toEqual({ 'pricing:gain@5': '3:1' });
+    expect(p.state.checkerLine?.undo.mathChecker.derivedOnce).toBeUndefined();
+  });
+  it('an earlier record is kept, in the flags and the undo', () => {
+    const p = modelState(planTurn(withVerdict(analysis({ mathChecker: { ...closedRoot, derivedOnce: { 'other@1': '1:0' } } }), [verdict(3, { claims: [flagged, built] })]), 'Next I would look at competitors.', deps()));
+    expect((p.ctx.flags.mathChecker as { derivedOnce?: Record<string, string> }).derivedOnce).toEqual({ 'other@1': '1:0', 'pricing:gain@5': '3:1' });
+    expect(p.state.checkerLine?.undo.mathChecker.derivedOnce).toEqual({ 'other@1': '1:0' });
   });
 });
 
@@ -204,6 +257,14 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     const p = modelState(planTurn(endReads(), RISK, on()));
     expect(p.state.kind).toBe('close_wait');
     expect(p.ctx.checks.entries.find(c => c.check === 'close_hold')?.detail).toMatchObject({ finalFrom: 7, pending: [7] });
+  });
+  // Gate report §5 item 1 (26 Oct): the close_wait DECISION is logged — which pool the follow-up comes from and
+  // which pools 4.8 skipped — so the fault bank's close_wait records can pin it instead of one pool's wording.
+  it('logs 4.8\'s decision on the close_hold check: the pool, and the pools it skipped', () => {
+    const p = modelState(planTurn(endReads(), RISK, on()));
+    const c = p.ctx.checks.entries.find(x => x.check === 'close_hold');
+    expect(c?.detail).toMatchObject({ closeWait: { pool: 'first_step', skipped: [] } });
+    expect(c?.reason).toContain('close_wait line: first_step; skipped: none');
   });
   it('the closing message states figures: its own check has only started — the follow-up', () => {
     const clean = verdict(7, { claims: [] });
@@ -322,6 +383,68 @@ describe('the close holds one turn for an unresolved conclusion-changing flag', 
     // The same figure under another key (a restatement, code's flag and the checker's): no second probe.
     expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: [{ key: 'pricing:gain@5.0', at: 9 }] } } }), [verdict(7)]), RISK, deps())).state.kind).toBe('close');
     expect(modelState(planTurn(withVerdict(endReads({ flags: { closeHold: { probed: [{ key: 'pricing:gain', at: 9 }] } } }), [verdict(7)]), RISK, deps())).state.kind).toBe('close');
+  });
+});
+
+// Lorenzo, 19 Oct (round-2 ruling 4): "Close hold: a root inherits the highest
+// rating among the claims riding on it." A minor root before the final answers,
+// a claim built on it in the recommendation reply that changes the conclusion.
+describe('the close hold reads the highest rating riding on a root (ruling 4)', () => {
+  const CORE = ['cogs_pct', 'labor_pct', 'overhead_pct', 'bean_share_of_cogs', 'bean_price_change', 'non_bean_input_change', 'menu_price_change'];
+  const REPLY = 'My recommendation is to raise menu prices, so margin goes 6 + 5 = 11%.';
+  const RISK = 'The biggest risk is volume loss; I would pilot it first.';
+  const stages = { ...INITIAL_STAGES, brainstorm: { delivered: true, deliveredAt: 4, outcome: 'answered' as const }, recommendation: { delivered: true, deliveredAt: 6, asks: 1, outcome: 'answered' as const }, risk: { delivered: true, deliveredAt: 8 }, pending: 'risk' as const };
+  const reads = (flags: Record<string, unknown> = {}) => readsFixture({
+    phase: 'RECOMMENDATION', elapsedMs: 17 * 60 * 1000, revealed: CORE,
+    flags: { moves: { 4: 'brainstorm', 6: 'recommendation', 8: 'risk' }, stall: { recommendationDelivered: true }, stageEvidence: stages, ...flags },
+    extraTurns: [
+      { role: 'candidate', text: 'Ideas.' }, { role: 'interviewer', text: 'What else could they do?' },
+      { role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What do you recommend?' },
+      { role: 'candidate', text: REPLY }, { role: 'interviewer', text: 'What is the biggest risk?' },
+    ],
+  });
+  const root = verdict(5, { claims: [{ ...flagged, changesConclusion: false }] });
+  const rider: VettedClaim = { ...flagged, span: 'so margin goes 6 + 5 = 11%', quantity: 'new margin', candidateValue: '11%', correctValue: 14.5, changesConclusion: true,
+    codeQuantity: { kind: 'new_margin', stepId: null, price: 10, target: null }, probeLine: 'Walk me through how you got to 11%.', correctionLine: null, correctionFigure: null };
+  const rows = () => [root, verdict(7, { claims: [rider] })];
+
+  it('a minor root whose rider is in the final answer and changes the conclusion: the close is held for it', () => {
+    const p = modelState(planTurn(withVerdict(reads(), rows()), RISK, deps()));
+    expect(p.state.kind).toBe('rec_math_probe');
+    expect(p.state.recMathProbe).toEqual(expect.objectContaining({ checker: expect.objectContaining({ id: '5:0', key: 'pricing:gain@5' }) }));
+    // A final answer's hold, keyed by the root: once per figure.
+    expect(p.state.closeHoldPlan).toEqual({ from: 7, probeKey: 'pricing:gain@5', hold: true });
+    expect((p.ctx.flags.mathChecker as { handled: string[] }).handled).toEqual(expect.arrayContaining(['5:0', '7:0']));
+    expect(p.ctx.events).not.toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ outcome: 'unresolved_at_close' }) }));
+  });
+  it('the same root again: no second hold — the close, both to the report', () => {
+    const p = modelState(planTurn(withVerdict(reads({ closeHold: { probed: [{ key: 'pricing:gain@5', at: 3 }] } }), rows()), RISK, deps()));
+    expect(p.state.kind).toBe('close');
+    for (const id of ['5:0', '7:0']) expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id, outcome: 'unresolved_at_close' }) }));
+    // The rider carries its root to the report (round-2 final review, Minor 2).
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close', root: 'pricing:gain@5' }) }));
+  });
+  // Round-2 final review, Minor 2 (Lorenzo, 19 Oct, round-3 ruling 2): a restatement the close cut off carries its root.
+  it('a root corrected live, a claim on it still to restate, its hold spent: the close — the claim carries its root', () => {
+    const LINE = 'A 10% price rise lifts margin about 8.5 points, not 5.';
+    const memory = { mathChecker: { handled: ['5:0'], keys: { 'pricing:gain@5': { figures: [5], since: 5 } }, closed: ['pricing:gain@5'], corrected: { 'pricing:gain@5': { line: LINE, figure: '8.5' } } } };
+    const sel = planCheckerFlags({ rows: rows() as never, turnRows: [5, 7].map(i => ({ turnIndex: i, role: 'candidate', text: i === 5 ? CLAIM : REPLY })), candidateText: RISK, candidateTurnIndex: 9,
+      currentFlags: [], attempts: {}, underTimePressure: false, candidateFigures: [], caseData: getCaseById('prof-001'), revealedIds: CORE, ...memory.mathChecker }).selected;
+    expect(sel).toMatchObject({ id: '7:0', action: 'restate', key: 'pricing:gain@5', line: LINE });
+    const p = modelState(planTurn(withVerdict(reads({ ...memory, closeHold: { probed: [{ key: 'pricing:gain@5', at: 3 }] } }), rows()), RISK, deps()));
+    expect(p.state.kind).toBe('close');
+    expect(p.ctx.events).toContainEqual(expect.objectContaining({ payload: expect.objectContaining({ id: '7:0', outcome: 'unresolved_at_close', root: 'pricing:gain@5' }) }));
+  });
+  it('the selection carries the riders\' rating: conclusion-changing, its final answers and rank', () => {
+    const sel = planCheckerFlags({ rows: rows() as never, handled: [], turnRows: [5, 7].map(i => ({ turnIndex: i, role: 'candidate', text: i === 5 ? CLAIM : REPLY })), candidateText: RISK, candidateTurnIndex: 9,
+      currentFlags: [], attempts: {}, underTimePressure: false, candidateFigures: [], caseData: getCaseById('prof-001'), revealedIds: CORE, finalAnswer: n => n >= 7, rank: n => (n === 7 ? 1e6 : 0) }).selected;
+    expect(sel).toMatchObject({ id: '5:0', claim: { changesConclusion: false }, rating: { changesConclusion: true, final: [{ n: 7, rank: 1e6 }] } });
+  });
+  // Before the final answers the conclusion-changing hold reads the riders' rating too (once a case).
+  it('before the recommendation: a minor root with a conclusion-changing rider holds the close once a case', () => {
+    const early = (flags: Record<string, unknown> = {}) => reads({ stageEvidence: { ...stages, recommendation: { delivered: true, deliveredAt: 10, asks: 1, outcome: 'answered' as const } }, ...flags });
+    expect(modelState(planTurn(withVerdict(early(), rows()), RISK, deps())).state.kind).toBe('rec_math_probe');
+    expect(modelState(planTurn(withVerdict(early({ recMathProbed: true }), rows()), RISK, deps())).state.kind).toBe('close');
   });
 });
 

@@ -16,6 +16,7 @@
 // toward 42").
 import { normalizeNumberWords, articleFor } from '@/lib/number-words';
 import { numbersOf, boundInput, quantityWords, type CheckerClaim, type VetContext } from './math-checker';
+import { boundFigures } from './figure-binding';
 
 export type Reading = { quantity: string; value: number };
 export type QuantityFrame =
@@ -307,6 +308,187 @@ export function framedCorrection(c: CheckerClaim & { correctionLine: string | nu
     return { line: `Getting ${frame.quantity} takes about ${articleFor(x)} ${x}% price rise, not ${spoken(said)}%.`, derived: [x], converted: false, note: `wrong on their own quantity (${frame.quantity})` };
   }
   return { line: c.correctionLine, derived: [figure], converted: false, note: `wrong on their own quantity (${frame.quantity}); no wording on it` };
+}
+
+// ── a misread of the data (Lorenzo, 20 Oct, E7; b35q Marisol 087451cb) ──────
+// The candidate's figure is a figure of the data, said in the data's unit: "21.5%" — Pro's share cancelled by month 12
+// — read as Starter's annual churn. Their own quantity is then a row of the data, and the one line true on their reading
+// is the row fix — which row each figure belongs to, in the data's own figures (FR-4) — never "about 5%, not 21.5%"
+// against her annual reading. Lorenzo: "If code can't write a true line, it goes to the report."
+
+// Each figure in a text with the unit it is written with: '%', '$', 'x' (a ratio), or '' (bare); `raw` as written,
+// `rest` the text after it and its unit.
+export type FigureAt = { value: number; unit: string; raw: string; rest: string };
+export function figuresIn(text: string): FigureAt[] {
+  const t = normalizeNumberWords(text);
+  return [...t.matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => {
+    const after = t.slice(m.index! + m[0].length);
+    const before = t.slice(Math.max(0, m.index! - 2), m.index!);
+    const unit = /^\s?%|^\s*percent\b/i.test(after) ? '%' : /\$\s?$/.test(before) ? '$' : /^\s*(?:x\b|×|times\b)/i.test(after) ? 'x' : '';
+    return { value: parseFloat(m[0].replace(/,/g, '')), unit, raw: m[0], rest: after.replace(/^\s?(?:%|percent\b|x\b|×|times\b)/i, '') };
+  });
+}
+// The units a figure is written with in a text.
+export function figureUnits(text: string, figure: number): string[] {
+  return figuresIn(text).filter(x => Math.abs(x.value - figure) < 1e-9).map(x => x.unit);
+}
+
+// The case's texts the candidate has: the prompt and the revealed ledger lines.
+const dataTexts = (ctx: VetContext) => [ctx.caseData.prompt, ...ctx.caseData.dataLedger.filter(d => ctx.revealedIds.includes(d.id)).map(d => d.value)];
+
+// Units that name the same figure: equal, or a bare figure and a ratio ("ratio 2.0", "2.0x").
+export const unitsAgree = (a: string, b: string) => a === b || ((a === '' || a === 'x') && (b === '' || b === 'x'));
+
+// A figure led into by arithmetic or a result word: computed, not read ("40 months × $30 = $1,200", "comes to $1,200").
+// "~"/"≈" right before a figure is "about" ("CAC ~$1,200", a read); after an expression it is a result ("× $30 ≈ $1,675").
+const APPROX_RESULT = /[\d%)]\s*[≈~]\s*(?:about\s+|roughly\s+)?\$?\s?$/;
+const COMPUTED_BEFORE = /(?:[=×*/÷+−]|\s-|\bx|\btimes|\bequals?|\bcomes? to|\bworks? out to|\bgives?(?: us| you)?)\s*(?:about\s+|roughly\s+|approximately\s+|around\s+)?\$?\s?$/i;
+// Read as data: some place the claim's span states the figure, not as the result of arithmetic (review I1, fix round 1).
+function readAsData(span: string, f: number): boolean {
+  const t = normalizeNumberWords(span);
+  const at = [...t.matchAll(/\d[\d,]*(?:\.\d+)?/g)].filter(m => Math.abs(parseFloat(m[0].replace(/,/g, '')) - f) < 1e-9);
+  return at.length === 0 || at.some(m => { const lead = t.slice(Math.max(0, m.index! - 30), m.index!); return !COMPUTED_BEFORE.test(lead) && !APPROX_RESULT.test(lead); });
+}
+// Words that name no quantity, and a word's stem (its first five letters: "cancelled" ~ "cancellation", "months" ~ "monthly").
+const PLAIN_TALK = new Set(['that', 'this', 'with', 'from', 'have', 'were', 'been', 'still', 'after', 'before', 'those', 'these', 'their', 'there', 'which', 'about', 'through', 'than', 'each', 'also', 'some', 'more', 'most', 'over', 'under', 'what', 'when', 'where', 'them', 'they', 'into', 'figure', 'number', 'used', 'read', 'take', 'took', 'from', 'whole', 'same', 'then']);
+const stemsIn = (text: string) => new Set((text.match(/[A-Za-z][A-Za-z'-]*/g) ?? []).map(w => w.toLowerCase()).filter(w => w.length >= 4 && !PLAIN_TALK.has(w)).map(w => w.slice(0, 5)));
+// The data's own words for the figure, in each sentence of a released line that states it in this unit: the quantity
+// phrase it is bound to (figure-binding.ts: "$80 million" → "selling costs", "21.5% had cancelled"), or — where it is
+// bound to none — the three words either side of it. Capitalised words name whose figure it is ("Pro", "Starter"), not
+// what it is, and are left out. Fix round 2 (b32 Aldermoor Marisol 6a721cdf): a ±6-word window let her peak sales
+// "$80 million" share "peak" with Option A's selling costs ("…are $80 million, the expected peak share…").
+function dataWordsFor(f: number, unit: string, ctx: VetContext): Set<string> {
+  const out = new Set<string>();
+  const add = (text: string) => { for (const x of text.split(/\s+/)) if (!/^[A-Z]/.test(x)) stemsIn(x).forEach(st => out.add(st)); };
+  for (const text of dataTexts(ctx)) {
+    for (const s of normalizeNumberWords(text).split(/(?<=[.;!?])\s+/)) {
+      if (!figuresIn(s).some(x => Math.abs(x.value - f) < 1e-9 && unitsAgree(x.unit, unit))) continue;
+      const bound = boundFigures(s).filter(b => Math.abs(b.value - f) < 1e-9);
+      for (const b of bound) if (b.phrase) add(b.phrase);
+      if (bound.length === 0 || bound.some(b => !b.phrase)) {
+        const words = s.split(/\s+/);
+        words.forEach((w, i) => {
+          if (!figuresIn(w).some(x => Math.abs(x.value - f) < 1e-9 && unitsAgree(x.unit, unit))) return;
+          add([...words.slice(Math.max(0, i - 3), i), ...words.slice(i + 1, i + 4)].join(' '));
+        });
+      }
+    }
+  }
+  return out;
+}
+
+// The claim's own figure when it is a figure of the data, said in the data's unit — a percent or money as the data
+// writes it, or a bare figure of 100 or more (a count) — else null. A ratio ("2.0x") is never one: it is computed.
+// Review I1 (fix round 1; a Starter LTV computed as "$1,200", Pro's CAC): stated as read, not as a result of arithmetic,
+// and for what the data says it is — the claim names a word the data uses beside the figure ("21.5% … had cancelled by
+// those months" for her "twelve-month cancellation figure"), not only whose it is.
+export function dataFigure(c: CheckerClaim, ctx: VetContext): number | null {
+  const f = theirFigure(c);
+  if (f === undefined) return null;
+  const unit = unitOf(c, f);
+  if (unit === 'x') return null;
+  const data = dataTexts(ctx).flatMap(t => figureUnits(t, f));
+  if (!(unit !== '' ? data.includes(unit) : Math.abs(f) >= 100 && data.includes(''))) return null;
+  if (!readAsData(c.span, f)) return null;
+  const q = c.codeQuantity;
+  const step = q.kind === 'step' ? ctx.caseData.mathSteps.find(s => s.id === q.stepId) : undefined;
+  const claimWords = stemsIn([c.span, c.candidateValue, c.quantity, step?.quantity ?? ''].join(' '));
+  return [...dataWordsFor(f, unit, ctx)].some(w => claimWords.has(w)) ? f : null;
+}
+
+// A cell holding a figure only ("21.5", "$1,200", "40%"); any other cell is a label.
+const CELL_FIGURE = /^\s*\$?\s?-?\d[\d,]*(?:\.\d+)?\s?%?\s*$/;
+const cellValue = (t: string) => parseFloat(t.replace(/[$,%\s]/g, ''));
+// A label as spoken: no parentheticals ("Pro (1,050 at sign-up)" → "Pro").
+const cleanLabel = (s: string) => s.replace(/\s*\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+// Lower-cased at its start unless the first word is an acronym ("Cancelled" → "cancelled", "CAC" stays).
+const lowerStart = (s: string) => (/^[A-Z]{2,}\b/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
+
+// The row fix, from the case's exhibits (the cells of an exhibit whose ledger items are out, or that is shown): the
+// candidate's figure in one cell, and the cell one coordinate apart from it — the same column and every label but one
+// ("Pro" → "Starter" in the Cohort column), or the same row in another column — whose differing label the claim's
+// quantity names while it doesn't name the figure's own ("source of Starter 12-month cancellation figure": Starter, not
+// Pro). Both figures said with their owners, in exhibit order: "At month 12, 21.5% of Pro customers and 40% of Starter
+// customers had cancelled." (a row label with no verb phrase: "The … figure at month 12 is 21.5% for Pro and 40% for Starter.") One such pair only, every figure in it already out to the candidate (FR-4) — else null.
+type RowPair = { line: string; pair: [number, number]; note: string; namesFigure: boolean; namesOther: boolean; exhibit: string; cells: { value: number; unit: string }[] };
+// `unit`: the unit the input was said in (its own claim's); by default the claim's — a claim built on it may not write it.
+const unitOf = (c: CheckerClaim, figure: number) => figureUnits(c.candidateValue, figure)[0] ?? figureUnits(c.span, figure)[0] ?? '';
+function rowPairs(figure: number, c: CheckerClaim, ctx: VetContext, unit = unitOf(c, figure)): RowPair[] {
+  const q = c.codeQuantity;
+  const step = q.kind === 'step' ? ctx.caseData.mathSteps.find(s => s.id === q.stepId) : undefined;
+  const quantity = [c.quantity, step?.quantity ?? ''].join(' ');
+  const names = (label: string) => label !== '' && new RegExp(`(?<![\\w])${esc(label)}(?![\\w])`, 'i').test(quantity);
+  const written = unit;
+  const out: RowPair[] = [];
+  for (const ex of ctx.caseData.exhibits) {
+    const covers = (ex as { coversLedgerItems?: string[] }).coversLedgerItems ?? [];
+    if (!covers.some(id => ctx.revealedIds.includes(id)) && !ctx.shownExhibitIds.includes(ex.id)) continue;
+    const rows = ex.data.map(r => Object.entries(r).map(([k, v]) => [k, String(v ?? '')] as const));
+    const columns = [...new Set(rows.flatMap(r => r.map(([k]) => k)))];
+    const labels = (i: number) => Object.fromEntries(rows[i].filter(([, v]) => !CELL_FIGURE.test(v)));
+    const cells = rows.flatMap((r, i) => r.filter(([, v]) => CELL_FIGURE.test(v)).map(([col, text]) => ({ row: i, col, text, value: cellValue(text) })));
+    const fmt = (x: { text: string }) => (/[%$]/.test(x.text) || written !== '%' ? x.text.trim() : `${x.text.trim()}%`);
+    // A cell's own unit, when it writes one, is the candidate's ("$40", the Starter price, is no "40%"); a bare cell takes theirs.
+    const cellUnit = (t: string) => (t.includes('%') ? '%' : t.includes('$') ? '$' : '');
+    const unitOk = (t: string) => { const u = cellUnit(t); return u === '' || written === '' || u === written; };
+    const unitOfCell = (t: string) => cellUnit(t) || written;
+    for (const x of cells.filter(y => Math.abs(y.value - figure) < 1e-9 && unitOk(y.text))) {
+      for (const y of cells.filter(z => Math.abs(z.value - figure) > 1e-9)) {
+        let own: [string, string]; let shared: string; let state = '';
+        if (y.row === x.row && y.col !== x.col) {
+          own = [cleanLabel(x.col), cleanLabel(y.col)];
+          shared = `The ${lowerStart(Object.values(labels(x.row)).map(cleanLabel).join(' '))}`;
+        } else if (y.col === x.col && y.row !== x.row) {
+          const lx = labels(x.row), ly = labels(y.row);
+          const keys = [...new Set([...Object.keys(lx), ...Object.keys(ly)])];
+          const apart = keys.filter(k => cleanLabel(lx[k] ?? '') !== cleanLabel(ly[k] ?? ''));
+          if (apart.length !== 1) continue;
+          own = [cleanLabel(lx[apart[0]] ?? ''), cleanLabel(ly[apart[0]] ?? '')];
+          const rest = keys.filter(k => k !== apart[0]).map(k => cleanLabel(lx[k] ?? '')).filter(Boolean).join(' ');
+          shared = `The ${rest ? `${lowerStart(rest)} figure` : 'figure'} at ${lowerStart(cleanLabel(x.col))}`;
+          // A row label that is one past-tense word ("Cancelled") is the state the cohorts are in: "had cancelled".
+          if (/^[A-Za-z]+ed$/.test(rest)) state = `had ${rest.toLowerCase()}`;
+        } else continue;
+        if (!own[0] || !own[1]) continue;
+        const xFirst = x.row < y.row || (x.row === y.row && columns.indexOf(x.col) < columns.indexOf(y.col));
+        const [a, b, oa, ob] = xFirst ? [x, y, own[0], own[1]] : [y, x, own[1], own[0]];
+        // Lorenzo's wording (20 Oct): "At month 12, 21.5% of Pro customers and 40% of Starter customers had cancelled."
+        // Any label that gives no verb phrase (or a cell with no %) keeps the plain "The … figure at … is … for …" form.
+        const sentence = state && /%/.test(fmt(a)) && /%/.test(fmt(b))
+          ? `At ${lowerStart(cleanLabel(x.col))}, ${fmt(a)} of ${oa} customers and ${fmt(b)} of ${ob} customers ${state}.`
+          : `${shared} is ${fmt(a)} for ${oa} and ${fmt(b)} for ${ob}.`;
+        out.push({
+          line: sentence, pair: [figure, y.value],
+          note: `a misread of the data: ${figure} is ${own[0]}'s, the claim is about ${own[1]}'s (${ex.id})`, namesFigure: names(own[0]), namesOther: names(own[1]),
+          exhibit: ex.id, cells: [x, y].map(z => ({ value: z.value, unit: unitOfCell(z.text) })),
+        });
+      }
+    }
+  }
+  return out;
+}
+// FR-4 (review C1, fix round 1): each cell's figure is out to the candidate — and any other figure in the line (a
+// label's "month 12") is in a released line. A cell is out when its exhibit is (shown, or every item it covers
+// released), or when the released line of the cell's own item states it in its unit: the exhibit's items that state
+// the figure, every one of them released. A coincident figure in another released line is no licence (final review,
+// 20 Oct: Starter's "40%" is not out because the Starter price "$40 a month" is, nor because another line says "40%").
+export function rowFix(figure: number, c: CheckerClaim, ctx: VetContext, unit?: string): { line: string; pair: [number, number]; note: string } | null {
+  const texts = dataTexts(ctx);
+  const known = numbersOf(texts.join(' '));
+  const coversOf = (id: string) => (ctx.caseData.exhibits.find(e => e.id === id) as { coversLedgerItems?: string[] } | undefined)?.coversLedgerItems ?? [];
+  const released = (id: string) => ctx.revealedIds.includes(id);
+  const exhibitOut = (id: string) => ctx.shownExhibitIds.includes(id) || (coversOf(id).length > 0 && coversOf(id).every(released));
+  const ownItems = (id: string, x: { value: number; unit: string }) => coversOf(id).filter(item => figureUnits(ctx.caseData.dataLedger.find(d => d.id === item)?.value ?? '', x.value).includes(x.unit));
+  const out = (r: RowPair, x: { value: number; unit: string }) => exhibitOut(r.exhibit) || (ownItems(r.exhibit, x).length > 0 && ownItems(r.exhibit, x).every(released));
+  const fixes = new Map(rowPairs(figure, c, ctx, unit)
+    .filter(r => r.namesOther && !r.namesFigure && r.cells.every(x => out(r, x))
+      && numbersOf(r.line).every(n => r.cells.some(x => Math.abs(x.value - n) < 1e-9) || known.some(k => Math.abs(k - n) < 1e-9)))
+    .map(r => [r.line, { line: r.line, pair: r.pair, note: r.note }]));
+  return fixes.size === 1 ? [...fixes.values()][0] : null;
+}
+// The claim uses the figure for its own row (her later "Starter: 1 / 0.40" — Starter's 40%, read right): no misread.
+export function onItsOwnRow(figure: number, c: CheckerClaim, ctx: VetContext, unit?: string): boolean {
+  return rowPairs(figure, c, ctx, unit).some(r => r.namesFigure && !r.namesOther);
 }
 
 // The window a claim is read in: its sentence and the one before, then the next two messages.

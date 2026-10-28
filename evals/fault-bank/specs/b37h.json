@@ -1,0 +1,720 @@
+[
+ {
+  "id": "b37h-marisol-t8-distribution",
+  "kind": "fault",
+  "p": "57",
+  "turn": 8,
+  "sev": "serious",
+  "cls": "false_refusal",
+  "note": "\"A distribution estimate by number of stores — that's not something I have.\" retailer_support answers it and never reached her; the check mapped channels coarse → scope_coarse gave channels and refused the rest. Lorenzo (21 Oct): serious; his corrected attribution: no cover matched (\"number of\" vs the cover's \"how many stores\"); the fix is the synonym fold (round 6).",
+  "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-21",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "stores|distribution",
+    "must": false
+   },
+   {
+    "kind": "release",
+    "item": "retailer_support",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b37h-tyler-t6-scale-slip",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "false",
+  "cls": "wrong_figure",
+  "note": "Code's probe_guard replacement \"How did you get to $9?\" for his \"$9.0M\" (scale dropped). It replaced the model's correct misquote catch (\"you attributed $0.75 per bag to me …\"), withheld as math_challenge. Lorenzo's ruling 3: unit/scale slips in code lines are false, not serious. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-20 (B2 ruling 3)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "How did you get to \\$9\\?",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37h-tyler-t6-unasked-release",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "wrong_release",
+  "note": "\"Do we have a sense of how many bags of chips Hollis Bay moves a year?\" — the check mapped planning_assumptions (full) and bag_price (partial, whole ask missing); code released planning_assumptions (ANALYSIS) and the partial was dropped beside it; chip volume got no word. Lorenzo (21 Oct): firm (next data in sequence). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked or wrong-mapping releases)",
+  "a": [
+   {
+    "kind": "release",
+    "item": "planning_assumptions",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "chip",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-tyler-t18-method-restated",
+  "kind": "fault",
+  "p": "64",
+  "turn": 18,
+  "sev": "firm",
+  "cls": "restatement",
+  "note": "\"I'd want to know how that 500,000 was estimated\" — the model's true refusal (\"You also asked how the 500,000 was estimated; I don't have that.\") was withheld (data_talk); the check mapped planning_assumptions and survey_design (full) and code restated both. The case doesn't hold the method. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "planning_assumptions",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "500,000|estimated",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-marcus-t6-exhibit-unasked",
+  "kind": "fault",
+  "p": "24",
+  "turn": 6,
+  "sev": "firm",
+  "cls": "unasked_release",
+  "note": "His chip-COGS ask — the check mapped variable_costs and bag_price (the chickpea per-bag costs, another product) coarse; code wrote \"Here's an exhibit: … I don't have chip cost of goods or gross margin over the last few years.\" over the model's structure question. The refusal is true; the exhibit release was unasked and skipped the structure gate. Lorenzo (21 Oct): firm. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked or wrong-mapping releases)",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-1",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "chip",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-marcus-t10-distribution-silence",
+  "kind": "fault",
+  "p": "24",
+  "turn": 10,
+  "sev": "firm",
+  "cls": "ignored_ask",
+  "note": "\"What I'd want is distribution math: how many stores Hollis Bay can get the line into, and velocity\" — the model declared only a survey offer; no check ran; retailer_support never reached him, and distribution became his biggest risk. Lorenzo (21 Oct): silence on an ask is firm.",
+  "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-21 (silence is firm)",
+  "a": [
+   {
+    "kind": "release",
+    "item": "retailer_support",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "stream": 4,
+  "rnote": "The fix is the want cue on a model turn (\"What I'd want is distribution math…\"). The replay cannot prove 4.6: the broader want cue only makes the sentence an asking sentence, and on a model turn the message classifier is mocked to the run's saved detections, which hold none for it. Wave: on launch-001, a distribution want gets retailer_support or a true refusal (Marcus, Dana); the auditor (ignored_ask) and the hand grade see it."
+ },
+ {
+  "id": "b37h-marisol-t20-stale-probe",
+  "kind": "fault",
+  "p": "57",
+  "turn": 20,
+  "sev": "firm",
+  "cls": "stale_probe",
+  "note": "\"Earlier you said about $9.9 million of first-year profit. Can you walk me through …?\" — her t19 had redone it (\"$1.50 × 3 million = $4.5 million of first-year profit above breakeven\"); the stale reader closed the household and bag claims but not yearone_profit@9.9. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$9.9 million",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37h-raj-t10-velocity",
+  "kind": "fault",
+  "p": "07",
+  "turn": 10,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"distribution reach, number of stores, and turns per store per week\" → retailer_support for all three, no word on turns per store; he re-asked at t11 and t12 refused it truly. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "turns|velocity",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-raj-t16-category-growth",
+  "kind": "fault",
+  "p": "07",
+  "turn": 16,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "\"Category size and growth for better-for-you snacks in the Northeast and Midwest — that's not something I have.\" Growth is in the prompt and why_now (covers \"is better-for-you growing\"); the held half was already in front of him (refined rule 1: borderline). The size half is true.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "why_now",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b37h-raj-t22-chip-buyers",
+  "kind": "fault",
+  "p": "07",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"Do we know whether the survey respondents are current chip buyers?\" got the cannibalization line (answers his stated purpose); no \"I don't have\" for the respondents' chip buying. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "answered",
+    "about": "chip buyers|respondents",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
+    "wontResolves": true,
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-tyler-t6-challenge-correct",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "false_correction",
+  "note": "The replacement question challenges a correct sum ($9.0M) in place of the model's correct misquote catch (neutral wording, as batch 36 Jasmine t28). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$9",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37h-tyler-t14-repeat-rates",
+  "kind": "fault",
+  "p": "64",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "\"I don't have repeat rates from past launches.\" Exhibit 2 (on screen since t8) shows each buying household averages 3 bags \"from Hollis Bay's past launches\"; he took it as \"none exist\". Borderline by the refined rule (on screen). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. KNOWN BORDERLINE, STAYS FAILING (Lorenzo, 26 Oct): the ask names a true year-one repeat rate, which the case does not hold; the nearest fact is planning_assumptions (3 bags a household in year one), on screen via exhibit-2 from t8. A 'repeat rate' cover was drafted and deliberately NOT applied — it would name a quantity the case lacks and risk a new wrong release.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "repeat rates from past launches",
+    "must": false
+   },
+   {
+    "kind": "answered",
+    "item": "planning_assumptions",
+    "about": "repeat rate",
+    "accept": [
+     "release",
+     "deferral"
+    ],
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b37h-tyler-misquotes-not-flat",
+  "kind": "fault",
+  "p": "64",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "misquote_uncorrected",
+  "note": "Misquotes not corrected flat (Rule 6 option 4): $0.75 (the model's catch withheld at t6; the checker probed $1.55 at t8), 54% (a Socratic model probe t14), $4.3M in his recommendation (t19, never corrected; closed with 6 minutes left). Code's misquote check found 0 of 3. One item. Fix round (25 Oct): satisfiable in the replay — the recorded checker verdicts rate \"ingredients you said $0.75\" (t6) and \"fund both inside the existing $4.3M marketing line\" (t20) errors of type misquote, so contract 3.4 can fire on both.",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$0.70",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 8
+    }
+   },
+   {
+    "kind": "correction",
+    "figure": "$4.5",
+    "must": true,
+    "scope": {
+     "fromTurn": 20
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37h-marisol-ladders",
+  "kind": "fault",
+  "p": "57",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "probe_chain",
+  "note": "Two errors each raised four times before code's correction: the $3.99 base (t6, t8, t10, t12 \"Contribution per bag is about $1.5.\") and the sunk $1.2M (t6, t10, t12, t16). Lorenzo (21 Oct): borderline (a sharpening ladder ending in a correction of the input). The assertion asks for the base correction by the third step; doubt: his step-check ruling forbids a correction without the checker's agreement.",
+  "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-21 (probe chains)",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$1.5",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 10
+    }
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37h-marisol-t14-superseded",
+  "kind": "fault",
+  "p": "57",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "stale_probe",
+  "note": "\"Earlier you said the 4.1 million bags were roughly $16 million of retail sales …\" — at t13 she had restated it on 6.8M bags (\"about $27 million of shelf sales\"); the targeted basis error was still live. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$16 million",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b37h-marisol-t16-chip-bags",
+  "kind": "fault",
+  "p": "57",
+  "turn": 16,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"Do we know how many bags of chips Hollis Bay sells a year?\" → why_now (refusal_covered, rest null), no \"I don't have the number of bags\". Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "bags",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-marisol-t18-forecast-actual",
+  "kind": "fault",
+  "p": "57",
+  "turn": 18,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"how past launches' actual volumes compared to the survey-based forecast\" → survey_reliability (Lorenzo's D5 cover working as designed), no \"I don't have forecast versus actual\"; the line implies the rates are calibrated on actual launches. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "forecast|actual",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-marcus-t10-offer",
+  "kind": "fault",
+  "p": "24",
+  "turn": 10,
+  "sev": "firm",
+  "cls": "unasked_offer",
+  "note": "\"I can share the survey on shopper purchase intent and planning assumptions if you'd like.\" (he took it at t11). Graded borderline; firm under Lorenzo's 21 Oct \"an unasked offer is firm\" (judgement call, applied beyond the named Quillpath case). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` here is only the non-degeneracy floor, and that is the whole of its declared scope — the candidate's message on this turn carries no data ask, so no engagement is owed and there is nothing to pair it with. The must-not carries the fault.",
+  "src": "batch-37-hollisbay/hand-grading.md; lorenzo-ruling-2026-10-21 (unasked offer firm)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "I can share the survey",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-marcus-t14-split-refusal",
+  "kind": "fault",
+  "p": "24",
+  "turn": 14,
+  "sev": "borderline",
+  "cls": "false_refusal",
+  "note": "\"The split between sampling and advertising — that's not something I have.\" sampling_program says the sampling cost \"is in addition to the launch costs\" (none of the $4.5M is sampling); gated to Exhibit 3, which reached him at t20 (refined rule 1: borderline). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "The split between sampling and advertising — that's not something I have",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The coarse answer is gated to Exhibit 3; no Phase 1 rule decides between the finer-cut refusal and the gated item. Wave: on launch-001, a marketing-split ask is not refused flat when the case says sampling is extra (Marcus); the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b37h-marcus-t26-close-reask",
+  "kind": "fault",
+  "p": "24",
+  "turn": 26,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"How would you guard against that?\" after his t25 \"I'd mitigate by locking retailer commitments …\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "guard against that",
+    "must": false
+   },
+   {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-jasmine-t4-velocity",
+  "kind": "fault",
+  "p": "40",
+  "turn": 4,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"the number of stores … plus turns per store per week\" — uncovered_asks answered the stores half with retailer_support and listed turns per store as covered; no word on velocity. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "turns|velocity",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b37h-jasmine-t6-chip-trend",
+  "kind": "fault",
+  "p": "40",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "\"how chip volumes have trended over the past three years, to size cannibalization\" got the cannibalization line (answers her purpose); the trend is in the prompt.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "why_now",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b37h-tyler-report-9m",
+  "kind": "fault",
+  "p": "64",
+  "turn": 18,
+  "sev": "borderline",
+  "cls": "report_false",
+  "note": "Report, Quant ⚠️: the final figures incl. \"9.0M forecast bags … were right only after that fix\" — his 9 million bags (t9) came before the fix (t11) and don't depend on the ingredient cost.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "were right only after that fix",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report statements about when a figure became right match the transcript; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b37h-raj-t10-retailer",
+  "kind": "correct",
+  "p": "07",
+  "turn": 10,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "\"distribution reach, number of stores\" → retailer_support (by design). On the base his t9 statement-form want gets no release at t10 (round 6's tightening of soft wants, Lorenzo's ruling 3) and retailer_support goes out at t12 on his re-ask.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "retailer_support",
+    "must": true,
+    "scope": {
+     "fromTurn": 10,
+     "toTurn": 12
+    }
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37h-raj-t12-true-refusal",
+  "kind": "correct",
+  "p": "07",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I don't have benchmark turns per store per week for a comparable new snack.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "turns per store",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37h-marisol-t14-true-refusal",
+  "kind": "correct",
+  "p": "57",
+  "turn": 14,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"When it comes to better-for-you segment size in Hollis Bay's regions, I don't have that.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "segment size",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37h-marisol-t20-true-refusal",
+  "kind": "correct",
+  "p": "57",
+  "turn": 20,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I'm afraid I don't have repeat purchase rate beyond year one.\" True. Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "repeat purchase",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37h-marisol-t12-root-correction",
+  "kind": "correct",
+  "p": "57",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "Root correction \"Contribution per bag is about $1.5.\" (attempt 2; she still ran $3.99 at t11); her derived 4.1M closed stale. Fix round (25 Oct): the window runs t6–t12, because b37h-marisol-ladders requires the same correction by t10 — pinned to t12 the two records could not both hold.",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$1.5",
+    "must": true,
+    "scope": {
+     "fromTurn": 6,
+     "toTurn": 12
+    }
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37h-marisol-t16-correction",
+  "kind": "correct",
+  "p": "57",
+  "turn": 16,
+  "sev": "correct",
+  "cls": "correct_correction",
+  "note": "\"… about $9 million, not $10.2 million.\" True (ungrammatical \"is\"); one line per root, riding the overdue Exhibit 2 turn.",
+  "a": [
+   {
+    "kind": "correction",
+    "figure": "$10.2 million",
+    "must": true
+   },
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-2",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37h-jasmine-t6-survey",
+  "kind": "correct",
+  "p": "40",
+  "turn": 6,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Her purchase-intent ask → Exhibit 2.",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-2",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37h-jasmine-t22-close",
+  "kind": "correct",
+  "p": "40",
+  "turn": 22,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed with all stages done and no flag open (9:14).",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37h-raj-t26-stage-exhibit",
+  "kind": "correct",
+  "p": "07",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "The overdue sampling exhibit given by code's stage turn.",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-3",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b37h-tyler-t16-exhibit",
+  "kind": "correct",
+  "p": "64",
+  "turn": 16,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "Sampling proposal exhibit (stage turn).",
+  "a": [
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-3",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ }
+]

@@ -66,7 +66,7 @@ describe('behind DATA_LINE_VARIANTS', () => {
     expect(dataLineVariantsOn({ DATA_LINE_VARIANTS: '1' })).toBe(true);
     expect(dataLineVariantsOn({ DATA_LINE_VARIANTS: '0' })).toBe(false);
   });
-  const release = (id: string) => ({ correction: null, releases: [{ id, value: prof.dataLedger.find(i => i.id === id)!.value, earlier: false }], restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmappedDefer: false, offers: [] }) as never;
+  const release = (id: string) => ({ correction: null, releases: [{ id, value: prof.dataLedger.find(i => i.id === id)!.value, earlier: false }], restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [] }) as never;
   it('off (DATA_LINE_VARIANTS=0): the ledger line, always', () => {
     process.env.DATA_LINE_VARIANTS = '0';
     for (const seed of ['a:1', 'b:2', 'c:3', 'd:4']) expect(renderDataLines(release('cogs_pct'), seed)).toEqual([prof.dataLedger.find(i => i.id === 'cogs_pct')!.value]);
@@ -85,7 +85,7 @@ describe('behind DATA_LINE_VARIANTS', () => {
   it('on: said again (restated), never one of the item\'s last 3 versions', () => {
     process.env.DATA_LINE_VARIANTS = '1';
     const value = prof.dataLedger.find(i => i.id === 'labor_pct')!.value;
-    const restate = { correction: null, releases: [], restates: [{ id: 'labor_pct', value }], exhibit: null, refusals: [], defers: [], gateDefers: [], unmappedDefer: false, offers: [] } as never;
+    const restate = { correction: null, releases: [], restates: [{ id: 'labor_pct', value }], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [] } as never;
     let uses: PhraseUses = {};
     const seen: number[] = [];
     for (let turn = 0; turn < 20; turn++) {

@@ -4,7 +4,8 @@ import { describe, it, expect } from 'vitest';
 import { evalInterviewer, checkInterviewerModels } from '@/lib/eval/model-guard';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
 import { AnthropicInterviewerModel } from '@/lib/agent/models/anthropic';
-import { INTERVIEWER_MODEL_ID, BACKGROUND_MODEL_ID, SCORING_MODEL_ID } from '@/lib/models';
+import { INTERVIEWER_MODEL_ID, BACKGROUND_MODEL_ID, SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
+import { readFileSync } from 'node:fs';
 
 describe('the declared evaluation interviewer', () => {
   it('haiku55-thinking-off is Haiku 5.5 with thinking disabled, effort medium, no fallbacks', () => {
@@ -83,5 +84,29 @@ describe('requested vs returned interviewer model', () => {
     expect(checkInterviewerModels('x', 'gpt-6-luna', [{ component: 'interviewer', model: 'gpt-6-luna', actualModel: 'gpt-6-luna' }]).problems)
       .toContain('requested model "gpt-6-luna" is unpriced');
     expect(checkInterviewerModels('x', 'claude-haiku-5-5', []).problems).toContain('no interviewer call was recorded');
+  });
+});
+
+// Batch 39's ledgers carried $0.84 of `claude-opus-4-8`, the retired July-2026 interviewer, on a model nothing
+// should be calling (22 calls, most of them in the 64 Tyler runs, whose brief asks the simulator to misstate figures
+// on purpose and so trips the refusal classifier). It was the candidate simulator's hand-pinned refusal fallback in
+// scripts/live-run.ts. No source file may pin a retired model id; the server-side fallback picks the current one.
+describe('no retired model id is pinned in any call (batch 39 housekeeping)', () => {
+  const RETIRED = ['claude-opus-4-8', 'claude-haiku-4-5-20250929', 'claude-sonnet-4-5'];
+  const files = ['scripts/live-run.ts', 'lib/models.ts', 'lib/agent/models/anthropic.ts', 'lib/scoring/judge.ts', 'lib/scoring/verifier.ts', 'lib/scoring/reconcile.ts'];
+
+  it.each(files)('%s names no retired model outside a comment', file => {
+    const code = readFileSync(file, 'utf8').split('\n')
+      .filter(l => !/^\s*(?:\/\/|\*|\/\*)/.test(l)).join('\n');
+    for (const id of RETIRED) expect(code, `${file} pins ${id}`).not.toContain(`'${id}'`);
+  });
+
+  it('the simulator asks for the recommended fallback, with the current beta', () => {
+    const src = readFileSync('scripts/live-run.ts', 'utf8');
+    expect(src).toContain('betas: [FALLBACK_BETA]');
+    expect(src).toContain('fallbacks: FALLBACKS');
+    expect(src).not.toContain('server-side-fallback-2026-06-01');
+    expect(FALLBACK_BETA).toBe('server-side-fallback-2026-07-01');
+    expect(FALLBACKS).toBe('default');
   });
 });

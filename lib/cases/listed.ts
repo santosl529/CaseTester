@@ -4,7 +4,8 @@
 import { loadCases } from './loader';
 import type { Case } from './schema';
 
-export const LISTED_CASE_IDS: readonly string[] = ['prof-001'];
+// The four demo cases (Lorenzo, 27 Oct: "LISTED_CASE_IDS: prof-001, prof-002, pricing-001, launch-001. Aldermoor stays unlisted.").
+export const LISTED_CASE_IDS: readonly string[] = ['prof-001', 'prof-002', 'pricing-001', 'launch-001'];
 
 export type ListedCase = Pick<Case, 'id' | 'title' | 'difficulty' | 'caseType'>;
 

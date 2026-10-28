@@ -699,7 +699,7 @@
         }
       ],
       "notes": "Survey of 200 US specialists who treat Corlan's disease. Each specialist could choose up to two answers per question, so percentages add up to more than 100%. “Local support” means sales reps and nurse educators who help doctors and patients get started.",
-      "interpretationKey": "Doctors like the product — the once-daily pill is the top reason (64%) — but the top barriers are insurance coverage (58%) and no local support from the company (41%): access and presence, which Aldermoor doesn't have in the US. 27% want more US experience first, so uptake starts slowly; with only 1.25 points of cushion over the $300M bar, the 20% share needs both barriers fixed. Percentages add up to more than 100% (up to two answers); price (11% / 15%) is well behind coverage and support. 'Local support' means sales reps and nurse educators."
+      "interpretationKey": "Doctors like the product — the once-daily pill is the top reason (64%) — but the top barriers are insurance coverage (58%) and no local support from the company (41%): access and presence, which Aldermoor doesn't have in the US. 27% want more US experience first, so uptake starts slowly; with only 1.25 points of cushion over the $300M bar, the 20% share needs both barriers fixed. Percentages add up to more than 100% (up to two answers). Price is not the main barrier: patient out-of-pocket cost (15%) is well behind coverage and support. 'Local support' means sales reps and nurse educators."
     },
     {
       "id": "exhibit-3",
@@ -817,19 +817,23 @@
   ],
   "pacing": {
     "phaseBudgetsMs": {
-      "INTRO": 24000,
-      "CLARIFY": 48000,
-      "STRUCTURE": 192000,
-      "ANALYSIS": 336000,
-      "EXHIBIT": 264000,
-      "BRAINSTORM": 240000,
-      "RECOMMENDATION": 72000,
-      "WRAP": 24000
-    }
+      "INTRO": 30000,
+      "CLARIFY": 60000,
+      "STRUCTURE": 240000,
+      "ANALYSIS": 360000,
+      "EXHIBIT": 330000,
+      "BRAINSTORM": 300000,
+      "RECOMMENDATION": 150000,
+      "WRAP": 30000
+    },
+    "totalMs": 1500000
   },
   "format": "interviewer_led",
   "brainstorm": {
-    "ask": "If Aldermoor builds its own team, how could it reduce the risk of a slow start?"
+    "ask": "If Aldermoor builds its own team, how could it reduce the risk of a slow start?",
+    "after": [
+      "exhibit-3"
+    ]
   },
   "analysisCore": {
     "items": [
@@ -875,6 +879,40 @@
         "adults in the us"
       ],
       "kind": "level"
+    },
+    {
+      "item": "funnel_rates",
+      "names": [
+        "prevalence",
+        "prevalence rate",
+        "diagnosis rate",
+        "treatment rate"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "barriers_to_prescribing",
+      "names": [
+        "insurance coverage",
+        "insurance and prior approval",
+        "prior approval",
+        "prior authorization",
+        "no local support",
+        "local support",
+        "out-of-pocket cost",
+        "side-effect concerns"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "reasons_to_prescribe",
+      "names": [
+        "once-daily pill",
+        "oral convenience",
+        "fewer side effects",
+        "efficacy data"
+      ],
+      "kind": "level"
     }
   ],
   "factAnchors": {
@@ -901,52 +939,102 @@
       "us_adults": [
         "us adults",
         "adult population",
-        "population"
+        "population",
+        "number of us adults",
+        "us adult population",
+        "total us adults"
       ],
       "funnel_rates": [
         "prevalence",
         "diagnosis rate",
         "treatment rate",
-        "funnel rates"
+        "funnel rates",
+        "share diagnosed",
+        "share treated",
+        "moderate-to-severe share",
+        "funnel percentages",
+        "share of patients diagnosed",
+        "how common the disease is"
       ],
       "peak_share_forecast": [
         "share forecast",
         "forecast share",
-        "aldermoor's forecast"
+        "aldermoor's forecast",
+        "peak share forecast",
+        "forecast peak share",
+        "kelvexa's peak share",
+        "share of eligible patients",
+        "uptake forecast",
+        "penetration forecast"
       ],
       "kelvexa_pricing": [
         "list price",
         "kelvexa pricing",
         "discounts and rebates",
-        "rebates"
+        "rebates",
+        "kelvexa price",
+        "price of kelvexa",
+        "kelvexa us price",
+        "gross-to-net discount",
+        "time on treatment",
+        "treatment duration"
       ],
       "survey_design": [
         "survey",
         "specialist survey",
         "what doctors think",
-        "doctor survey"
+        "doctor survey",
+        "survey design",
+        "survey sample",
+        "survey methodology",
+        "sample size",
+        "who was surveyed",
+        "how many specialists surveyed"
       ],
       "reasons_to_prescribe": [
         "reasons to prescribe",
-        "why doctors would prescribe"
+        "why doctors would prescribe",
+        "top reasons to prescribe",
+        "reasons for prescribing",
+        "prescribing drivers",
+        "why doctors like kelvexa",
+        "kelvexa's advantages",
+        "drivers of adoption"
       ],
       "barriers_to_prescribing": [
         "barriers",
         "barriers to prescribing",
         "why doctors would not prescribe",
-        "concerns"
+        "concerns",
+        "top barriers",
+        "prescribing barriers",
+        "reasons not to prescribe",
+        "want more us experience",
+        "obstacles to adoption"
       ],
       "nimbrel": [
         "nimbrel",
         "current standard",
         "competitor",
-        "the injectable"
+        "the injectable",
+        "main competitor",
+        "the incumbent",
+        "incumbent drug",
+        "competitor price",
+        "competitor's price",
+        "nimbrel dosing"
       ],
       "trial_comparison": [
         "trial results",
         "clinical trials",
         "efficacy",
-        "how kelvexa compares"
+        "how kelvexa compares",
+        "trial comparison",
+        "head-to-head data",
+        "clinical data",
+        "safety profile",
+        "kelvexa versus nimbrel",
+        "comparative efficacy"
       ],
       "insurance_coverage": [
         "insurance",
@@ -955,57 +1043,150 @@
         "reimbursement",
         "prior approval",
         "payers",
-        "access"
+        "access",
+        "payer coverage",
+        "payer access",
+        "insurer coverage",
+        "market access",
+        "formulary coverage",
+        "us reimbursement",
+        "time to broad coverage"
       ],
       "specialist_concentration": [
         "who treats these patients",
         "who treats",
         "specialist concentration",
-        "sales force size"
+        "sales force size",
+        "number of specialists",
+        "how many specialists treat",
+        "how many prescribers",
+        "prescriber base",
+        "target doctors",
+        "number of prescribers"
       ],
       "diagnosis_gap": [
         "diagnosis gap",
         "undiagnosed",
-        "why so few are diagnosed"
+        "why so few are diagnosed",
+        "underdiagnosis",
+        "why patients go undiagnosed",
+        "delayed diagnosis",
+        "missed diagnosis",
+        "reasons for underdiagnosis"
       ],
       "pipeline": [
         "pipeline",
         "other drugs",
         "next drugs",
-        "long-term plans"
+        "long-term plans",
+        "aldermoor's pipeline",
+        "future drugs",
+        "late-stage drugs",
+        "pipeline drugs",
+        "follow-on products",
+        "long-term us strategy"
       ],
       "option_a": [
         "option a",
         "build own team",
         "own us team",
         "go alone",
-        "building a team"
+        "building a team",
+        "build option",
+        "own sales force",
+        "build our own",
+        "in-house launch",
+        "self-launch",
+        "option a terms"
       ],
       "option_b": [
         "option b",
         "partner",
         "partnering",
         "royalty deal",
-        "licensing"
+        "licensing",
+        "partner option",
+        "option b terms",
+        "us partner",
+        "partnership terms",
+        "royalty rate"
       ],
       "option_shared": [
         "entry options",
-        "product cost"
+        "product cost",
+        "net price under both options",
+        "shared assumptions",
+        "cost of goods",
+        "cogs",
+        "option net price"
       ],
       "company_size": [
         "aldermoor's size",
         "company size",
-        "us presence"
+        "us presence",
+        "aldermoor's revenue",
+        "aldermoor revenue",
+        "client size",
+        "us operations",
+        "us employees",
+        "existing us sales force"
       ],
       "patents": [
         "patents",
         "patent",
-        "exclusivity"
+        "exclusivity",
+        "patent expiry",
+        "patent protection",
+        "patent life",
+        "generic entry"
       ],
       "supply": [
         "manufacturing",
         "supply",
-        "capacity"
+        "capacity",
+        "manufacturing capacity",
+        "supply chain",
+        "production capacity",
+        "manufacturing and supply",
+        "us supply"
+      ],
+      "kelvexa_product": [
+        "what kelvexa is",
+        "who kelvexa is for",
+        "kelvexa's indication",
+        "kelvexa indication",
+        "kelvexa approved indication",
+        "target patients for kelvexa"
+      ],
+      "corlans_disease": [
+        "corlan's disease",
+        "corlans disease",
+        "about the disease",
+        "disease background",
+        "what corlan's disease is"
+      ],
+      "current_treatment": [
+        "current treatment",
+        "current us treatment",
+        "existing treatments",
+        "existing therapies",
+        "treatment options today",
+        "how patients are treated today"
+      ],
+      "net_sales_definition": [
+        "net sales definition",
+        "definition of net sales",
+        "what net sales means",
+        "meaning of net sales",
+        "net versus gross sales"
+      ],
+      "peak_timing": [
+        "peak timing",
+        "time to peak",
+        "when peak sales happen",
+        "years to peak",
+        "when sales peak",
+        "timing of peak sales"
       ]
     },
     "groups": [
@@ -1058,6 +1239,177 @@
       }
     ],
     "directions": {},
-    "drivers": []
+    "drivers": [],
+    "tags": {
+      "clientWords": [
+        "Kelvexa",
+        "Aldermoor"
+      ],
+      "entities": [
+        {
+          "id": "nimbrel",
+          "rival": true,
+          "words": [
+            "Nimbrel"
+          ],
+          "items": [
+            "nimbrel",
+            "current_treatment"
+          ]
+        }
+      ],
+      "forecast": [
+        "peak_share_forecast",
+        "peak_timing"
+      ]
+    },
+    "covers": {
+      "kelvexa_product": [
+        "is kelvexa approved in the us",
+        "kelvexa approval status",
+        "how long sold in europe",
+        "is kelvexa a pill",
+        "how is kelvexa taken",
+        "kelvexa dosing frequency"
+      ],
+      "corlans_disease": [
+        "is the disease curable",
+        "is it chronic",
+        "how mild cases are treated",
+        "treatment for mild patients",
+        "mild versus severe patients"
+      ],
+      "current_treatment": [
+        "main alternative to kelvexa",
+        "what patients use now",
+        "is there an injectable option",
+        "treatment mix",
+        "current treatment mix",
+        "treatment breakdown",
+        "breakdown by drug class",
+        "competitor mix",
+        "mix across treated patients"
+      ],
+      "company_size": [
+        "does aldermoor have us reps",
+        "any us employees",
+        "where aldermoor sells today",
+        "aldermoor's annual revenue"
+      ],
+      "net_sales_definition": [
+        "what counts as net sales",
+        "net or gross",
+        "are rebates deducted"
+      ],
+      "peak_timing": [
+        "how long to reach peak",
+        "when is peak",
+        "how long until peak sales"
+      ],
+      "patents": [
+        "when do generics enter",
+        "how long is kelvexa protected",
+        "ip protection"
+      ],
+      "supply": [
+        "can they supply the us",
+        "need a us plant",
+        "capacity constraints",
+        "where is kelvexa made"
+      ],
+      "us_adults": [
+        "starting population",
+        "top of the funnel"
+      ],
+      "funnel_rates": [
+        "percent of adults affected",
+        "how common is corlan's",
+        "share eligible for kelvexa",
+        "severity mix",
+        "share on prescription medicine"
+      ],
+      "peak_share_forecast": [
+        "assumed market share",
+        "penetration assumption",
+        "share at peak"
+      ],
+      "kelvexa_pricing": [
+        "price per patient per year",
+        "rebate rate",
+        "how long patients stay on therapy",
+        "annual cost per patient"
+      ],
+      "survey_design": [
+        "why percentages exceed 100",
+        "multiple answers allowed",
+        "survey respondents"
+      ],
+      "reasons_to_prescribe": [
+        "what doctors like",
+        "is price a reason to prescribe",
+        "appeal of the pill",
+        "why switch from nimbrel"
+      ],
+      "barriers_to_prescribing": [
+        "what holds doctors back",
+        "is price a barrier",
+        "doctor hesitations"
+      ],
+      "nimbrel": [
+        "how often nimbrel is injected",
+        "how established is nimbrel",
+        "who uses nimbrel",
+        "competitor net price",
+        "price versus competitor",
+        "competitor mix",
+        "nimbrel's share of treated patients"
+      ],
+      "trial_comparison": [
+        "is kelvexa better than nimbrel",
+        "is kelvexa as effective",
+        "side effects versus nimbrel",
+        "safety compared to nimbrel"
+      ],
+      "insurance_coverage": [
+        "is nimbrel covered",
+        "how long to get coverage",
+        "will insurers pay",
+        "do insurers require approval"
+      ],
+      "specialist_concentration": [
+        "how concentrated are prescribers",
+        "who prescribes",
+        "which doctors to target"
+      ],
+      "diagnosis_gap": [
+        "why only half diagnosed",
+        "misdiagnosis",
+        "how to raise diagnosis",
+        "diagnosis rate trend",
+        "diagnosis rate has trended",
+        "diagnosis rising",
+        "diagnosis improving",
+        "more patients diagnosed"
+      ],
+      "pipeline": [
+        "can the team sell other drugs",
+        "platform value",
+        "future launches"
+      ],
+      "option_a": [
+        "cost of building a team",
+        "how many sales reps",
+        "time to launch alone"
+      ],
+      "option_b": [
+        "what does the partner pay",
+        "time to launch with partner",
+        "aldermoor's share under partner"
+      ],
+      "option_shared": [
+        "can we ignore product cost",
+        "is price same under both options"
+      ]
+    }
   }
 }

@@ -1,0 +1,815 @@
+{
+ "caseId": "launch-001",
+ "items": {
+  "product": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "what the snack is",
+    "the flavors and bag size",
+    "protein and fat compared with chips",
+    "the product format"
+   ],
+   "covers": [
+    "flavor lineup",
+    "what flavors are launching",
+    "bag size and flavors",
+    "protein content",
+    "fat content",
+    "package size",
+    "ounces per bag"
+   ]
+  },
+  "channels": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "where the line would be sold",
+    "which kinds of stores would carry it",
+    "the sales channels for the line"
+   ],
+   "covers": [
+    "which retailers would carry it",
+    "retail channels",
+    "channel mix",
+    "grocery and mass channels",
+    "where the line is sold",
+    "online or in stores"
+   ]
+  },
+  "manufacturing": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "how the snack would be made",
+    "whether existing equipment can make it",
+    "when production could be ready"
+   ],
+   "covers": [
+    "manufacturing capacity",
+    "production capacity",
+    "co-packing setup",
+    "co-packer option",
+    "make it in-house",
+    "production readiness",
+    "lead time on the roasting line"
+   ]
+  },
+  "breakeven_definition": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "what the board means by breaking even",
+    "which costs count toward break even",
+    "the board's approval test"
+   ],
+   "covers": [
+    "what counts as break even",
+    "the board's hurdle",
+    "board's approval criterion",
+    "meaning of break even",
+    "break even on what basis",
+    "how the board defines break even",
+    "year-one profit requirement"
+   ]
+  },
+  "why_now": {
+   "tags": {
+    "entity": "chips",
+    "period": [
+     "current",
+     "historical"
+    ],
+    "quantityKind": [
+     "trend"
+    ]
+   },
+   "askPhrases": [
+    "why Hollis Bay is launching now",
+    "how the chip business has been doing",
+    "what retailers are asking for",
+    "the trend in better-for-you snacks"
+   ],
+   "covers": [
+    "chip sales growth",
+    "state of the chip business",
+    "core chip business trend",
+    "retailer requests for healthier options",
+    "what prompted the launch",
+    "better-for-you snack growth",
+    "growth for better-for-you snacks"
+   ]
+  },
+  "competition_general": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "who else sells roasted chickpea snacks",
+    "whether a big brand leads the category",
+    "how crowded the category is"
+   ],
+   "covers": [
+    "other chickpea snack brands",
+    "who else is in the category",
+    "how crowded the category is",
+    "national brands in the category",
+    "small better-for-you brands",
+    "competitive set"
+   ]
+  },
+  "longer_term_goals": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "what Hollis Bay wants beyond year one",
+    "whether the line is meant to lead to more products",
+    "the long-term ambition for the line"
+   ],
+   "covers": [
+    "plans beyond the first year",
+    "growth platform",
+    "long-term vision for the line",
+    "future better-for-you launches",
+    "strategic goal of the line",
+    "year two and beyond",
+    "the line's long-term role"
+   ]
+  },
+  "bag_price": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "the price Hollis Bay gets per bag",
+    "what shoppers pay in stores",
+    "how much the retailer keeps"
+   ],
+   "covers": [
+    "price hollis bay gets",
+    "wholesale price per bag",
+    "planned price point",
+    "our price point per bag",
+    "our shelf price per bag",
+    "our retail price per bag",
+    "invoice price per bag",
+    "price to the retailer"
+   ],
+   "coverExcludes": [
+    "chip",
+    "potato chip"
+   ]
+  },
+  "variable_costs": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "split",
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "what it costs to make and ship each bag",
+    "the per-bag ingredients and packaging",
+    "costs that rise with each bag made"
+   ],
+   "covers": [
+    "ingredient cost per bag",
+    "packaging cost per bag",
+    "freight cost per bag",
+    "roasting labor and energy",
+    "cost of goods per bag",
+    "per-bag cost structure",
+    "production cost per bag",
+    "unit cost per bag",
+    "what each bag costs to make"
+   ],
+   "coverExcludes": [
+    "chip",
+    "potato chip"
+   ],
+   "misquote": {
+    "names": [
+     "ingredients",
+     "ingredient cost",
+     "ingredient costs",
+     "packaging",
+     "packaging cost",
+     "packaging costs",
+     "freight",
+     "freight cost",
+     "freight costs",
+     "roasting labor",
+     "roasting labour",
+     "roasting labor and energy",
+     "roasting and energy"
+    ],
+    "kind": "level"
+   }
+  },
+  "launch_costs": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "split",
+     "total",
+     "one-off"
+    ]
+   },
+   "askPhrases": [
+    "the fixed costs of the launch",
+    "marketing and shelf fees for the launch",
+    "what the roasting line costs in year one"
+   ],
+   "covers": [
+    "fixed launch costs",
+    "first-year fixed costs",
+    "marketing and advertising spend",
+    "slotting fees",
+    "upfront launch investment",
+    "launch marketing budget",
+    "roasting line lease cost",
+    "one-time launch costs",
+    "fixed costs of the launch",
+    "shelf fee cost"
+   ],
+   "coverExcludes": [
+    "chip",
+    "potato chip"
+   ]
+  },
+  "recipe_cost": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "historical"
+    ],
+    "quantityKind": [
+     "one-off",
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "what has already been spent developing the snack",
+    "the recipe development cost",
+    "money spent before the launch decision"
+   ],
+   "covers": [
+    "sunk development costs",
+    "recipe development spend",
+    "development costs to date",
+    "what was spent on the recipe",
+    "costs already incurred",
+    "spent last year on development",
+    "product development spend"
+   ],
+   "coverExcludes": [
+    "chip",
+    "potato chip"
+   ]
+  },
+  "purchase_intent": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "split"
+    ]
+   },
+   "askPhrases": [
+    "how likely shoppers say they are to buy",
+    "survey purchase intent at the shelf price",
+    "the split of purchase-intent answers"
+   ],
+   "covers": [
+    "purchase-intent split",
+    "purchase intent results",
+    "how many shoppers would buy",
+    "survey intent to buy",
+    "would buy at that price",
+    "share of shoppers who would buy",
+    "stated purchase intent",
+    "intent at the shelf price"
+   ],
+   "coverExcludes": [
+    "chip",
+    "potato chip"
+   ]
+  },
+  "liked_most": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "split"
+    ]
+   },
+   "askPhrases": [
+    "what shoppers like most about the snack",
+    "the main reasons shoppers would buy",
+    "the snack's biggest draws"
+   ],
+   "covers": [
+    "what shoppers like about it",
+    "top reasons to buy",
+    "main selling points",
+    "why shoppers would buy",
+    "what draws shoppers",
+    "most liked attributes",
+    "biggest draw for shoppers"
+   ]
+  },
+  "hesitations": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "split"
+    ]
+   },
+   "askPhrases": [
+    "what makes shoppers hesitate",
+    "the main reasons not to buy",
+    "shoppers' concerns about the snack"
+   ],
+   "covers": [
+    "why shoppers hesitate",
+    "reasons not to buy",
+    "top objections",
+    "barriers to purchase",
+    "what holds shoppers back",
+    "biggest barrier to trial",
+    "is price a barrier"
+   ]
+  },
+  "survey_design": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "how the shopper survey was run",
+    "who was surveyed",
+    "how to read questions where shoppers could pick more than one answer"
+   ],
+   "covers": [
+    "survey sample size",
+    "who was surveyed",
+    "survey methodology",
+    "how the survey was run",
+    "number of survey respondents",
+    "one response per household",
+    "more than one answer",
+    "where the survey was fielded"
+   ]
+  },
+  "planning_assumptions": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "forecast",
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "how many households shop where the line would be sold",
+    "how survey intent converts into actual buyers",
+    "how many bags a buying household buys in year one",
+    "the assumptions from past launches"
+   ],
+   "covers": [
+    "conversion rate assumptions",
+    "conversion from intent to purchase",
+    "households in our stores",
+    "bags per household",
+    "what share actually buy",
+    "addressable households",
+    "expected year-one volume",
+    "households shopping our stores"
+   ],
+   "coverExcludes": [
+    "chip",
+    "potato chip"
+   ]
+  },
+  "sampling_program": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "forecast"
+    ],
+    "quantityKind": [
+     "level",
+     "one-off"
+    ]
+   },
+   "askPhrases": [
+    "the in-store sampling proposal",
+    "what sampling would cost",
+    "how many extra buyers sampling would bring"
+   ],
+   "covers": [
+    "in-store sampling proposal",
+    "tasting tables",
+    "in-store tastings",
+    "sampling plan cost",
+    "cost of the sampling",
+    "demo program in stores",
+    "extra buyers from sampling",
+    "sampling weekends"
+   ],
+   "coverExcludes": [
+    "chip",
+    "potato chip"
+   ]
+  },
+  "cannibalization": {
+   "tags": {
+    "entity": "chips",
+    "period": [
+     "forecast",
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "whether the new line takes sales from the chips",
+    "how many chickpea purchases replace a chip bag",
+    "overlap between the new line and the chip business"
+   ],
+   "covers": [
+    "impact on chip sales",
+    "switching from our chips",
+    "chip sales lost",
+    "replace chip purchases",
+    "chip cannibalization",
+    "effect on the chip business",
+    "overlap with chip buyers",
+    "incremental or cannibalized",
+    "cannibalize the core business"
+   ]
+  },
+  "survey_reliability": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "how much to trust the survey",
+    "whether the sample matches Hollis Bay's shoppers",
+    "where the conversion rates come from"
+   ],
+   "covers": [
+    "is the survey representative",
+    "source of the conversion rates",
+    "track record of past launches",
+    "how predictive the survey is"
+   ]
+  },
+  "taste_test": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "how people rated the taste",
+    "the blind taste test",
+    "whether people like the snack after trying it"
+   ],
+   "covers": [
+    "how people rated the taste",
+    "consumer taste ratings",
+    "tasting feedback",
+    "do people like the flavor",
+    "product test results",
+    "blind taste results",
+    "how it scored with tasters"
+   ]
+  },
+  "competitor_prices": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "what competing chickpea snacks cost",
+    "how the shelf price compares with competitors",
+    "competitor price points"
+   ],
+   "covers": [
+    "competitor price points",
+    "what competitors charge",
+    "price of competing chickpea snacks",
+    "competitor shelf prices",
+    "how our price compares",
+    "price relative to other brands",
+    "competitive pricing",
+    "rival brand prices",
+    "price gap to competitors"
+   ]
+  },
+  "retailer_support": {
+   "tags": {
+    "entity": "client",
+    "period": [
+     "current"
+    ],
+    "quantityKind": [
+     "level"
+    ]
+   },
+   "askPhrases": [
+    "whether retailers will stock the line",
+    "what retailers have committed to",
+    "the conditions for getting on shelf"
+   ],
+   "covers": [
+    "retailer commitment",
+    "will retailers stock the line",
+    "retail partner support",
+    "listing agreements",
+    "secured shelf space"
+   ],
+   "coverExcludes": [
+    "chip",
+    "potato chip"
+   ]
+  }
+ },
+ "steps": {
+  "contribution_per_bag": {
+   "dependsOn": [
+    "variable_cost_per_bag"
+   ]
+  },
+  "breakeven_bags": {
+   "dependsOn": [
+    "launch_costs_total",
+    "contribution_per_bag"
+   ]
+  },
+  "buying_households": {
+   "dependsOn": [
+    "buying_share"
+   ]
+  },
+  "yearone_bags": {
+   "dependsOn": [
+    "buying_households"
+   ]
+  },
+  "yearone_profit": {
+   "dependsOn": [
+    "yearone_bags",
+    "breakeven_bags",
+    "contribution_per_bag"
+   ]
+  },
+  "repeat_threshold": {
+   "dependsOn": [
+    "breakeven_bags",
+    "buying_households"
+   ]
+  },
+  "sampling_contribution": {
+   "dependsOn": [
+    "sampling_extra_bags",
+    "contribution_per_bag"
+   ]
+  },
+  "sampling_net_gain": {
+   "dependsOn": [
+    "sampling_contribution"
+   ]
+  },
+  "sampling_breakeven_bags": {
+   "dependsOn": [
+    "contribution_per_bag"
+   ]
+  }
+ },
+ "exhibits": {
+  "exhibit-1": {
+   "summary": "The economics table has the price Hollis Bay receives per bag, each variable cost per bag, the first-year launch costs and the recipe development cost."
+  },
+  "exhibit-2": {
+   "summary": "The survey table has shoppers' purchase intent at the shelf price, what they like most and what makes them hesitate, with the planning assumptions from past launches."
+  },
+  "exhibit-3": {
+   "summary": "The proposal table describes the in-store sampling program: what it is, its cost, and the extra buying households and bags it is expected to bring."
+  }
+ },
+ "definitions": [
+  {
+   "term": "variable cost per bag",
+   "text": "Variable cost per bag is the ingredients, packaging, roasting labor and energy, and freight for one bag: the costs that rise with every bag made.",
+   "steps": [
+    "variable_cost_per_bag"
+   ],
+   "items": [
+    "variable_costs"
+   ]
+  },
+  {
+   "term": "contribution per bag",
+   "text": "Contribution per bag is the price Hollis Bay receives from retailers, not the shelf price shoppers pay, less the variable cost per bag.",
+   "steps": [
+    "contribution_per_bag"
+   ],
+   "items": [
+    "bag_price",
+    "variable_costs"
+   ]
+  },
+  {
+   "term": "first-year launch costs",
+   "text": "First-year launch costs are the roasting line, marketing and advertising, and shelf fees; the recipe development was spent last year and is left out.",
+   "steps": [
+    "launch_costs_total"
+   ],
+   "items": [
+    "launch_costs",
+    "recipe_cost"
+   ]
+  },
+  {
+   "term": "break-even volume",
+   "text": "Break-even volume is the first-year launch costs divided by the contribution per bag.",
+   "steps": [
+    "breakeven_bags"
+   ]
+  },
+  {
+   "term": "buying share",
+   "text": "The buying share is the share of households who actually buy in year one: each purchase-intent answer's share of shoppers times its conversion rate from the planning assumptions, added up over the answers that convert.",
+   "steps": [
+    "buying_share"
+   ],
+   "items": [
+    "purchase_intent",
+    "planning_assumptions"
+   ]
+  },
+  {
+   "term": "buying households",
+   "text": "Buying households are the households that shop in stores carrying Hollis Bay times the buying share.",
+   "steps": [
+    "buying_households"
+   ],
+   "items": [
+    "planning_assumptions"
+   ]
+  },
+  {
+   "term": "year-one bags",
+   "text": "Year-one bags are the buying households times the bags each buying household buys in year one.",
+   "steps": [
+    "yearone_bags"
+   ],
+   "items": [
+    "planning_assumptions"
+   ]
+  },
+  {
+   "term": "year-one profit",
+   "text": "Year-one profit is the bags sold beyond the break-even volume times the contribution per bag: total contribution less the first-year launch costs.",
+   "steps": [
+    "yearone_profit"
+   ]
+  },
+  {
+   "term": "bags per household to break even",
+   "text": "The bags each buying household must buy to break even are the break-even volume divided by the buying households.",
+   "steps": [
+    "repeat_threshold"
+   ]
+  },
+  {
+   "term": "extra bags from sampling",
+   "text": "Extra bags from sampling are the extra buying households the proposal expects times the bags each of them buys, on top of the survey-based forecast.",
+   "steps": [
+    "sampling_extra_bags"
+   ],
+   "items": [
+    "sampling_program"
+   ]
+  },
+  {
+   "term": "net gain from sampling",
+   "text": "The net gain from sampling is the extra bags times the contribution per bag, less the program cost, which comes on top of the launch costs.",
+   "steps": [
+    "sampling_contribution",
+    "sampling_net_gain"
+   ],
+   "items": [
+    "sampling_program"
+   ]
+  },
+  {
+   "term": "bags to cover the sampling cost",
+   "text": "The bags needed to cover the sampling cost are the program cost divided by the contribution per bag.",
+   "steps": [
+    "sampling_breakeven_bags"
+   ],
+   "items": [
+    "sampling_program"
+   ]
+  }
+ ],
+ "mustReach": [
+  {
+   "item": "retailer_support",
+   "before": "recommendation",
+   "why": "Never heard before the recommendation in b35 Marcus 70a06d70 (rec asked t22), b35 Jasmine 984d9066 (t20), b35 Tyler 52951de8 (t20), b37 Marcus ddbb070b (t22; hand grade: distribution became his biggest risk, same ask refused at b35 t10 and dropped at b37 t10), b37 Marisol 7f6c40ea (t28), b37 Tyler 442e37ff (t18)."
+  },
+  {
+   "item": "cannibalization",
+   "before": "recommendation",
+   "why": "Never heard before the recommendation in b35 Raj 01b805d6 (rec asked t18, line out only at t28), b35 Marcus 70a06d70 (t22), b35 Jasmine 984d9066 (t20), b35 Marisol a14ca044 (t24), b35 Tyler 52951de8 (t20), b37 Marisol 7f6c40ea (t28; hand grade: made cannibalization her biggest risk at t31 without ever hearing the line)."
+  }
+ ]
+}

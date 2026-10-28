@@ -7,12 +7,13 @@
 // here as a turn whose words are code's own and are not vetoed.
 import type { CloseHoldMemory } from './close-hold';
 import type { TurnTimer } from './turn-timer';
+import type { OnUsage } from '@/lib/llm-usage';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { logDataRequestClassification } from './data-request-log';
 import type { DetectedDataRequest } from './data-requests';
-import { reveal, revealedValues, markExhibitReveals } from './data-ledger';
+import { reveal, revealedValues, markExhibitReveals, nextExhibitOnly } from './data-ledger';
 import { auditTurn, auditTurnStyle } from './audit';
 import { changeFigures } from './numeric-provenance';
 import { withholdMathChallenges, challengeVerdict } from './probe-guard';
@@ -27,20 +28,24 @@ import { rungName, classifyRungDelivery, revertUndeliveredRung } from './stall';
 import { logEvent } from '@/lib/analytics';
 import { caseTotalMs, type Phase } from './state-machine';
 import { toCheckEventRows } from './check-log';
-import { line, phrase, recordPhraseUses, type PhraseUses } from './phrasing';
+import { line, phrase, recordPhraseUses, rotateOpeningAck, type PhraseUses } from './phrasing';
+import { shadowAskDecision } from './ask-decision';
+import { composeShadow, isSetup } from './turn-composer';
+import { composeLintContext } from './turn-lint';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { dataLinePools } from '@/lib/cases/loader';
 import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
 import { asksForConclusion, analysisAskLine } from './spoken-close';
 import { updateStages, stageQuestions, type StageKey, type StageRecord } from './stage-evidence';
-import { renderDataLineParts, decisionRows, nextReadyExhibit } from './data-decisions';
+import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers } from './data-decisions';
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
-import { turnData, pressureTestOutcomeNow } from './turn-data';
+import { turnDataChecked, pressureTestOutcomeNow, wrapUpTurn, messageAsks, probeTurn, withAsks, mustReachItems, openDeferrals, resolveDeferrals, tracksDeferrals, modelDeferrals } from './turn-data';
 import { isGradingSentence, gradingRemainder } from './grading';
 import { settlePendingData } from './pending-data';
-import { lineHeard } from './math-checker-live';
-import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim, dropAckOpening } from './stream-turn';
+import { lineHeard, correctsNow, restatedBy, lineKey, type CorrectedRoot } from './math-checker-live';
+import { vetoReason, gateContext, isHandoverAnnouncement, isDeliveryClaim, dropAckOpening, turnCorrects } from './stream-turn';
 import type { ModelTurn, Move } from '@/lib/agent/models/turn-schema';
 import type { TurnValidation } from '@/lib/agent/models/interface';
 import type { ModelPlan } from './plan-turn';
@@ -175,6 +180,9 @@ function statedAsResult(candidateText: string, figure: number): boolean {
 }
 
 const ASKS_RECOMMENDATION = new Set(['rec_ask', 'grace_ask', 'time_warning']);
+// A must-reach item said after other data lines at a point only Settle sees (round 6 Task 72, fix round 2).
+export const MUST_REACH_LEAD_EXHIBIT = 'One more thing before the exhibit:';
+export const MUST_REACH_LEAD_REC = 'Before your recommendation:';
 
 export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Settled> {
   const { ctx, state } = plan;
@@ -190,18 +198,40 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // Data: the same decisions Stream delivered from (the pressure test's
   // verdict for this turn first — the gate depends on it).
   const { satisfied: satisfiedNow, waiving, nothingMissing } = await (out.timer ? out.timer.time('pt_judge_settle', pressureTestOutcomeNow(plan)) : pressureTestOutcomeNow(plan));
-  const decisions = turnData(plan, turn);
+  const onUsage: OnUsage = u => { void logEvent('llm_usage', { ...u }, { sessionId: plan.ctx.sessionId, userId: plan.ctx.userId }); };
+  // A model turn answers the asks the model left out (round 5 Tasks 48 and 50,
+  // turn-data.ts messageAsks): they join its requests; on a probe turn the data
+  // line goes before the probe.
+  const asked = await messageAsks(plan, turn.requests, onUsage);
+  if (asked && asked.sentences.length > 0) {
+    checks.record(probeTurn(plan) ? 'probe_turn_requests' : 'uncovered_asks', asked.fresh.length > 0, 'the message\'s asks no explicit declaration covers are answered', {
+      sentences: asked.sentences, open: asked.open, classified: asked.waited ? asked.detected !== null : null, ...(asked.timedOut ? { timedOut: true } : {}),
+      answered: asked.fresh.map(r => r.what), covered: asked.covered.map(r => r.what), dropped: asked.dropped.map(r => r.what),
+      // Row 11's call (round 6 Task 76 (c)): the cue, the classifier's own latency and the turn's wait (capped at 1.5 s).
+      ...(asked.cue ? { cue: asked.cue, waitMs: asked.waited ? asked.waitMs ?? null : 0, latencyMs: asked.latencyMs ?? null } : {}),
+    });
+  }
+  // A model release the message never named, checked by the classifier on the message (Task 51).
+  // latencyMs is the classifier's own time — null when it hadn't answered (a timeout: waitMs ≈ 1500), not "no call".
+  if (asked?.release) {
+    const r = asked.release;
+    checks.record('release_checked', r.withdrawn.length > 0, 'a model release the message never named, and no detection maps: withdrawn, the message\'s asks answered on their own', {
+      checked: r.checked.map(c => ({ what: c.what, id: c.id })), confirmed: r.confirmed, withdrawn: r.withdrawn.map(c => c.id),
+      classified: r.classified, ...(asked.timedOut ? { timedOut: true } : {}), latencyMs: r.latencyMs, waitMs: r.waitMs,
+    });
+  }
+  const decisions = await turnDataChecked(plan, withAsks(turn, asked), onUsage, { modelSay: codeWritten ? '' : turn.say, log: true, modelRequests: turn.requests });
   const phraseUses = flags.phraseUses as PhraseUses | undefined;
   const dataParts = renderDataLineParts(decisions, seed, phraseUses);
-  const dataLines = dataParts.map(p => p.text);
+  let dataLines = dataParts.map(p => p.text);
   const gBase = gateContext(plan, decisions.releases.map(r => r.value), [...decisions.releases.map(r => r.id), ...(decisions.exhibit?.covers ?? []), ...decisions.restates.map(r => r.id)]);
   // What this turn's data line hands over, for the question's delivery claims.
   const g = gBase.facts ? { ...gBase, facts: { ...gBase.facts, delivery: {
     revealed: gBase.facts.revealed, exhibitShown: state.shownExhibitIds.size > 0 || decisions.exhibit !== null,
     deliveredNow: decisions.releases.length > 0 || decisions.exhibit !== null || decisions.restates.length > 0 || decisions.correction != null,
     deliveredPrev: false, refusedNow: decisions.refusals.length > 0,
-    deferredNow: decisions.defers.length + decisions.gateDefers.length + decisions.offers.length > 0 || decisions.unmappedDefer,
-  } } } : gBase;
+    deferredNow: itemBackedDefers(decisions).length + decisions.gateDefers.length + decisions.offers.length > 0,
+  }, releasedNow: new Set([...decisions.releases.map(r => r.id), ...decisions.restates.map(r => r.id), ...(decisions.exhibit?.covers ?? [])]) } } : gBase;
 
   // The model's words, vetoed sentence by sentence (never rewritten).
   const withheld: { sentence: string; reason: string; field: 'say' | 'question' }[] = [];
@@ -230,7 +260,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     }
     return kept.join(' ');
   };
-  const say = codeWritten ? turn.say : keep(turn.say, 'say');
+  // 4.10 (`ackRotation`): the model's opening acknowledgment through the pool rotation, as Stream said it — and, by
+  // its review fix, never in front of a correction code writes (stream-turn.ts turnCorrects).
+  const ackOn = switchOn(state.caseData, 'ackRotation');
+  const say = codeWritten ? turn.say : keep(ackOn ? rotateOpeningAck(turn.say, phraseUses, seed, { correcting: turnCorrects(state) }) : turn.say, 'say');
   // Whether this message answered the last question (a fallback must not ask it again).
   const lastAnswered = stallDecision.classification.kind === 'analysis';
   // A code-written question opening with the filler the voice just said ("Take
@@ -251,7 +284,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // the figure when that is still allowed, otherwise a plain next question.
   const challengeCtx = {
     verified: [...verifiedNow, ...verifiedPrev], alreadyProbed: explainProbedBefore, flaggedThisTurn: recomputeFlags.length > 0,
-    flagged: state.flaggedFigures, closed: state.closedFigures, candidateFigures,
+    flagged: state.flaggedFigures, closed: state.closedFigures, closedInputs: state.closedInputs, candidateFigures,
+    misquoteFigures: state.misquoteFigures,
   };
   const mathWithheld = withheld.filter(w => w.field === 'question' && (w.reason === 'probe_guard' || w.reason === 'unsupported_challenge'));
   let challengeReplacement: string | null = null;
@@ -263,10 +297,27 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       question = rest.join(' ');
       modelQuestion = question;
     } else {
-      const about = mathWithheld.map(w => challengeVerdict(w.sentence, challengeCtx)).find(v => v && !('explainKey' in v) && v.figure !== undefined
+      const verdicts = mathWithheld.map(w => challengeVerdict(w.sentence, challengeCtx));
+      // Phase 1 task 5 (`probeGuardMethod`; Lorenzo, 26 Oct: "ask about method ('Walk me through how you got there'),
+      // never name a figure that code verified as correct"): the replacement asks for the method and names no figure
+      // at all — where `got_to` puts the candidate's own figure back to them, and a figure code verified as correct is
+      // exactly what the guard withheld the challenge over (b35q Marisol t24, b38 Larkspur Tyler t14). The words come
+      // from the `probe_method` pool, like code's other lines, his first.
+      // Not where the withheld doubt was about a figure the case has closed — an error past Rule 14, or working they
+      // already showed: a question with no referent lands on their last claim, and those two are never asked about
+      // again (Lorenzo, 13 and 20 Oct). There the plain fallback still stands in.
+      const methodOn = switchOn(state.caseData, 'probeGuardMethod')
+        && !verdicts.some(v => v !== null && !('explainKey' in v) && (v.test === 'closed_to_report' || v.test === 'explain_work_shown'));
+      // …and not on a turn that hands over data or an exhibit: there the phase fallback already asks about what just
+      // went out ("Where do those numbers point you?"), which beats a question about the working of the message
+      // before it. The figure never comes back either way — `got_to` is out under the switch.
+      const dataNow = decisions.releases.length > 0 || decisions.exhibit !== null;
+      const about = verdicts.find(v => v && !('explainKey' in v) && v.figure !== undefined
         && statedAsResult(candidateText, v.figure)) as { figure?: number } | undefined;
       const figureText = about?.figure !== undefined ? figureAsWritten(candidateText, about.figure) : null;
-      const explain = figureText ? phrase('got_to', figureText, phraseUses, seed) : null;
+      const explain = methodOn
+        ? (dataNow ? null : line('probe_method', phraseUses, seed))
+        : figureText ? phrase('got_to', figureText, phraseUses, seed) : null;
       const verdict = explain ? challengeVerdict(explain, challengeCtx) : null;
       const allowed = explain !== null && (verdict === null || 'explainKey' in verdict);
       question = allowed && explain ? explain : pickFallbackQuestion({ uses: phraseUses, figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
@@ -285,7 +336,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // (Jasmine 35897f4a t18 "That's all I have on the case.") — is replaced by one that fits the phase
   // (after whatever statement of the question is left: "Per-unit costs aren't
   // something I have directly." still needs a question after it).
-  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal' || w.reason === 'close_cue'
+  if (!codeWritten && kind !== 'rec_ask' && !question.trim().endsWith('?') && withheld.some(w => w.field === 'question' && (w.reason === 'false_fact' || w.reason === 'undelivered_claim' || w.reason === 'false_refusal' || w.reason === 'refuses_released' || w.reason === 'close_cue'
       // A withheld growth probe (growth-probe.ts) leaves an ask when "Walk me through it." stays.
       || ((w.reason === 'growth_probe_on_ratio' || w.reason === 'growth_probe_unchecked') && !/\b(?:walk|talk) me through\b|\btell me\b/i.test(question))))) {
     const fallback = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
@@ -314,7 +365,11 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       modelQuestion = kept.some(x => x.endsWith('?')) && modelQuestion ? question : '';
     }
   }
-  const heldThisTurn = decisions.gatedIds.length > 0 || decisions.defers.length > 0 || decisions.gateDefers.length > 0;
+  // Only item-backed deferrals hold the model's figure question: the check's item-less
+  // named deferrals hold no data (Lorenzo, 19 Oct, round-3 ruling 3; batch 31 Sofia t10's
+  // math probe was withheld), and "We won't get to" lines are not counted either —
+  // on a wrap-up turn every deferral is one, the gate's included (round-3 ruling 4).
+  const heldThisTurn = (decisions.gatedIds.length > 0 && !wrapUpTurn(plan)) || itemBackedDefers(decisions).length > 0 || decisions.gateDefers.length > 0;
   if (!codeWritten && kind !== 'rec_ask' && !figuresOut && refersToFigures(question)
     && (heldThisTurn || Object.keys(revealedValues(ledger)).length === 0)) {
     withheld.push({ sentence: question, reason: 'undelivered_figures', field: 'question' });
@@ -506,9 +561,13 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // Code's brainstorm line on a turn whose own data line hands over data
   // (batch 21 D8, Fiona t14: the decisive other-input figure, then "What other
   // levers could the client pull here?") asks about the figures; the
-  // brainstorm, not yet administered, comes next turn.
+  // brainstorm, not yet administered, comes next turn. Not under time pressure
+  // (round 5 Task 49, A2; the hold before Exhibit 3's rule, Lorenzo 13 Oct):
+  // there the brainstorm ask follows the data line in the same turn, so a
+  // time-up can't lose it.
   let stageWaited = false;
-  if (kind === 'stage_brainstorm' && (decisions.releases.length > 0 || decisions.exhibit !== null)) {
+  if (kind === 'stage_brainstorm' && !(state.timeUp || isUnderTimePressure(elapsedMs, TOTAL_CASE_MS))
+    && (decisions.releases.length > 0 || decisions.exhibit !== null)) {
     question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: true, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase });
     stageAsked = undefined;
     stageWaited = true;
@@ -526,21 +585,31 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // held back to the next turn. Due: at or past the stage's deadline or after
   // the time warning; the risk once the recommendation is in (Plan's stagesDue).
   // A correction is no probe: it still goes first, before the stage question.
-  const checkerLine = !codeWritten && kind === 'model' ? state.checkerLine : null;
+  // A correction riding on a deadline's stage turn (Lorenzo, 19 Oct, R7): code
+  // wrote it into a code-written turn's "say"; before code's recommendation ask
+  // it goes ahead of the question (the model's "say" is already spoken). Heard,
+  // booked, undone if not heard — as on a model turn.
+  const checkerLine = (!codeWritten && kind === 'model') || state.stageCheckerLine ? state.checkerLine : null;
   let checkerLineBy: 'model' | 'code' | null = null;
   let heldForStage: StageKey | undefined;
   const codeTookQuestion = ['waived', 'reask', 'narrowed', 'code_asked', 'code_asked_structure'].includes(ptAction ?? '') || stageAsked !== undefined || heldForExhibit !== undefined;
-  if (checkerLine && !codeTookQuestion) {
+  // Code's own correction before code's recommendation ask the same way (the model may have said it from its hint).
+  if (kind === 'rec_ask') for (const l of [...state.stageCodeLines].reverse()) if (!lineHeard(`${say} ${question}`, l)) question = `${l} ${question}`;
+  if (checkerLine && state.stageCheckerLine) {
+    const saidByModel = !codeWritten && lineHeard(`${say} ${question}`, checkerLine.line, checkerLine.quote);
+    if (!codeWritten && !saidByModel) question = [checkerLine.line, question].filter(Boolean).join(' ');
+    checkerLineBy = saidByModel ? 'model' : 'code';
+  } else if (checkerLine && !codeTookQuestion) {
     const asked = modelQuestion ? stageQuestions(modelQuestion, {
       move: turn.move, recOnTable: state.stages.recommendationAsked || state.recommendationReceived,
       brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue,
     }) : null;
     const dueAsked = asked ? (['risk', 'recommendation', 'brainstorm'] as const).find(k => asked[k] && state.stagesDue[k]) : undefined;
-    if (lineHeard(`${say} ${question}`, checkerLine.line)) checkerLineBy = 'model';
-    else if (dueAsked && checkerLine.action !== 'correct' && !checkerLine.wasHeld) heldForStage = dueAsked;
+    if (lineHeard(`${say} ${question}`, checkerLine.line, checkerLine.quote)) checkerLineBy = 'model';
+    else if (dueAsked && !correctsNow(checkerLine) && !checkerLine.wasHeld) heldForStage = dueAsked;
     else {
       // A correction goes before the question; so does a line held back once already, before a due stage question it no longer waits for.
-      const before = checkerLine.action === 'correct' || (dueAsked !== undefined && checkerLine.wasHeld);
+      const before = correctsNow(checkerLine) || (dueAsked !== undefined && checkerLine.wasHeld);
       question = before ? [checkerLine.line, question].filter(Boolean).join(' ') : checkerLine.line;
       if (!before) modelQuestion = '';
       checkerLineBy = 'code';
@@ -605,23 +674,118 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   checks.record('vetoes', withheld.length > 0, 'sentences of the model\'s own withheld', { withheld });
   if (withheld.length > 0) console.warn('[runner] withheld:', JSON.stringify(withheld));
 
-  const spokenText = [say, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
+  // Must-reach items due at a point only Settle sees (round 6 Task 72; turn-data.ts mustReachItems): the exhibit code
+  // hands over in the question (a held handover — b36 Larkspur Jasmine bbf78ab8 t10: her brainstorm was held for
+  // Exhibit 3), or the model's question as stage-evidence.ts reads it — the recommendation ask. Released at the end of
+  // the data line, so ahead of that exhibit and that question; the line streamed already is untouched (the prefix lock).
+  if (!ended) {
+    const recAskedNow = kind === 'model' && Boolean(question) && stageQuestions(question, {
+      move: modelQuestion ? turn.move : undefined, recOnTable: state.stages.recommendationAsked || state.recommendationReceived,
+      brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue,
+    }).recommendation;
+    const late = mustReachItems(plan, { exhibit: heldForExhibit?.id ?? null, recommendation: recAskedNow }, decisions);
+    if (late.length > 0) {
+      const parts = renderDataLineParts({ releases: late, restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], requests: [] }, seed, phraseUses);
+      // Not first in the line (fix round 2, controller ruling, 21 Oct; b36 Larkspur Jasmine: it followed "On what you
+      // asked about earlier: …"): a short lead, so it doesn't read as part of what the candidate asked.
+      if (dataParts.length > 0) parts[0] = { ...parts[0], text: `${late[0].mustReach === 'recommendation' ? MUST_REACH_LEAD_REC : MUST_REACH_LEAD_EXHIBIT} ${parts[0].text}` };
+      dataParts.push(...parts);
+      dataLines = dataParts.map(p => p.text);
+      decisions.releases = [...decisions.releases, ...late];
+    }
+  }
+  // Phase 2 S1 (`askDecisionShadow`; design §2): the one data decision, logged beside today's — never spoken. After the
+  // late must-reach lines, so what Settle volunteers at a point only it sees is in today's decisions too.
+  if (switchOn(state.caseData, 'askDecisionShadow')) {
+    try {
+      const shadow = await shadowAskDecision({ plan, model: turn.requests, detections: codeWritten ? out.extraRequestRows ?? null : asked?.detected ?? null,
+        modelWords: codeWritten ? [] : [turn.say, turn.question], old: decisions });
+      checks.record('ask_decision_shadow', shadow.asks.length > 0, 'the one data decision (Phase 2 S1), in shadow: per sub-ask, beside today\'s paths', shadow);
+    } catch (e) {
+      checks.record('ask_decision_shadow', false, `shadow failed: ${(e as Error).message}`, {});
+    }
+  }
+  // The must-reach items this turn volunteers (round 6 Task 72; Lorenzo, 21 Oct: "The report should note when an item
+  // was volunteered"): logged; never volunteered again (flags.mustReach, whether heard or not); the `volunteered`
+  // event for each one the candidate got (persist, below) — the judge doesn't credit them for asking it.
+  const volunteered = decisions.releases.filter(r => r.mustReach !== undefined);
+  if (volunteered.length > 0) {
+    checks.act('must_reach', 'a must-reach item the candidate never asked for, released at its point', { items: volunteered.map(r => ({ item: r.id, before: r.mustReach })) });
+    flags.mustReach = [...((flags.mustReach as string[] | undefined) ?? []), ...volunteered.map(r => r.id)];
+  }
+
+  // Phase 1 4.7 (review F7): a promise the model made on a wrap-up turn can never be followed, so the same turn says
+  // "We won't get to <ask> today." for it — hollow by construction otherwise (b38 Larkspur Marcus 316baba1 t24). Not on
+  // the close itself, which already says the case is over.
+  const wrapPromises = !codeWritten && !ended ? modelDeferrals(plan, decisions, turn.requests, [say, question], { wrapUp: true }) : [];
+  if (wrapPromises.length > 0) {
+    const whats = wrapPromises.map(x => x.what);
+    dataParts.push(...renderDataLineParts({ releases: [], restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], requests: [], wontGetToNamed: whats }, seed, phraseUses));
+    dataLines = dataParts.map(p => p.text);
+    decisions.wontGetTo = [...(decisions.wontGetTo ?? []), ...whats];
+    checks.act('model_deferral', 'the model promised to check or come back on a wrap-up turn: said "We won\'t get to … today." in the same breath', { asks: wrapPromises, wrapUp: true });
+  }
+
+  // Phase 2 C3 (`composeSetup`; turns where an acknowledgment was spoken): the say's setup sentences go before the
+  // model's question they set up — after the data, so "that figure" has its referent — or are withheld when code
+  // replaced the question (they set up a question nobody asks). Stream held them, so nothing delivered moves.
+  let sayOut = say;
+  if (!codeWritten && ctx.acknowledged && switchOn(state.caseData, 'composeSetup')) {
+    const parts = sentencesOf(say);
+    const setup = parts.filter(isSetup);
+    if (setup.length > 0) {
+      sayOut = parts.filter(x => !isSetup(x)).join(' ');
+      if (modelQuestion) question = [...setup, question].join(' ');
+      else for (const x of setup) withheld.push({ sentence: x, reason: 'setup_question_replaced', field: 'say' });
+      checks.act('compose_setup', modelQuestion ? 'setup sentences moved before their question (Phase 2 C3)' : 'setup sentences withheld: code replaced their question (Phase 2 C3)', { setup, moved: Boolean(modelQuestion) });
+    }
+  }
+  const spokenText = [sayOut, ...dataLines, question].map(s => s.trim()).filter(Boolean).join(' ');
+  // Phase 2 C1 (`composeShadow`; design §3): the same pieces in the four fixed slots, linted both ways — never spoken.
+  if (switchOn(state.caseData, 'composeShadow')) {
+    try {
+      const corrections = [
+        ...(checkerLine && checkerLineBy === 'code' && correctsNow(checkerLine) ? [{ text: checkerLine.line, justSaid: Number.parseInt(checkerLine.id, 10) === nextTurnIndex }] : []),
+        ...(kind === 'rec_ask' ? state.stageCodeLines.map(text => ({ text, justSaid: false })) : []),
+      ];
+      const rewritten = withheld.filter(w => w.reason === 'grading' && w.field === 'question').map(w => gradingRemainder(w.sentence)).filter((x): x is string => Boolean(x));
+      const c = composeShadow({ say, data: dataParts.map(d => ({ kind: d.kind, text: d.text, ids: d.ids })), question, corrections, rewritten, ended, ...(decisions.exhibit ? { exhibitId: decisions.exhibit.id } : {}) }, composeLintContext(plan));
+      // Streaming (design §3.3): a sentence the composer moves that the stream already delivered can't move.
+      const deliveredMoved = c.moves.setupMoved.filter(x => out.delivered.some(d => d.includes(x)));
+      checks.record('compose_shadow', c.changed, c.changed ? 'the four slots would change this turn (Phase 2 C1, shadow)' : 'the four slots compose this turn as today', {
+        changed: c.changed, composed: c.composed, moves: c.moves, deliveredMoved,
+        lintToday: c.lintToday, lintComposed: c.lintComposed,
+      });
+    } catch (e) {
+      checks.record('compose_shadow', false, `shadow failed: ${(e as Error).message}`, {});
+    }
+  }
 
   // Still not heard (a pressure-test step or another of code's lines took the
   // question, or a due stage question held it back): the booking is undone and
   // the flag stays pending for a later turn — a held-back one for the next.
-  const checkerHeard = checkerLine ? lineHeard(spokenText, checkerLine.line) : null;
+  const checkerHeard = checkerLine ? lineHeard(spokenText, checkerLine.line, checkerLine.quote) : null;
   if (checkerLine && !checkerHeard) {
     if (checkerLine.undo.attempt === undefined) delete recomputeAttempts[checkerLine.key];
     else recomputeAttempts[checkerLine.key] = checkerLine.undo.attempt;
-    flags.mathChecker = { ...checkerLine.undo.mathChecker, ...(heldForStage ? { held: checkerLine.id } : {}) };
+    flags.mathChecker = { ...checkerLine.undo.mathChecker, ...(heldForStage && !checkerLine.stepRoot ? { held: checkerLine.id } : {}) };
+    // The step check's input question not heard (round 6 Task 72): not asked — it may go on a later turn, within its wait.
+    if (checkerLine.stepRoot) flags.stepRootAsked = ((flags.stepRootAsked as string[] | undefined) ?? []).filter(st => st !== checkerLine.stepRoot);
     if (checkerLine.undo.step) {
       const steps = { ...(flags.stepProbes as Record<string, number> | undefined) };
       steps[checkerLine.undo.step] = Math.max(0, (steps[checkerLine.undo.step] ?? 1) - 1);
       flags.stepProbes = steps;
     }
+    // …and the input it was counted for (E7): that turn is no probe of it.
+    if (checkerLine.undo.input) {
+      const { key, turn } = checkerLine.undo.input;
+      const inputs = { ...(flags.inputProbes as Record<string, number[]> | undefined) };
+      inputs[key] = (inputs[key] ?? []).filter(t => t !== turn);
+      flags.inputProbes = inputs;
+    }
     for (const e of ctx.events) {
-      if (e.category === 'math_checker' && e.subtype === 'flag' && (e.payload as { id?: string }).id === checkerLine.id) {
+      // …and the flags it corrected word for word (by: its id) — not corrected after all.
+      if (e.category === 'math_checker' && e.subtype === 'flag' && ((e.payload as { id?: string }).id === checkerLine.id || (e.payload as { by?: string }).by === checkerLine.id)) {
         e.payload = { ...e.payload, outcome: 'undelivered', reason: heldForStage
           ? `held back: the ${heldForStage} question is due and keeps the question; the line goes out next turn`
           : 'chosen, not said: another line took the question' };
@@ -650,6 +814,20 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     exhibit = { id: found.id, title: found.title, chartType: found.chartType, data: found.data as Record<string, unknown>[], ...(found.notes ? { notes: found.notes } : {}) };
     exhibitReveals = markExhibitReveals(ledger, found);
   }
+  // Deferrals that resolve (round 6 Task 76 (a); Lorenzo, 21 Oct, round 6 rulings, 4: "The deferral must resolve through
+  // the E5 stop sequence (delivered, or "We won't get to that"), never left hollow"; turn-data.ts resolveDeferrals):
+  // code's item-less named deferrals on a tagged case stay open in flags.openDeferrals until delivered or said "We won't
+  // get to …" on the first wrap-up turn — each resolved once, logged; whether heard or not, as flags.mustReach.
+  if (tracksDeferrals(plan)) {
+    // Booked deliveries only (fix round 1, the review's minor): the reveals booked, the lines restated, the exhibit shown.
+    // Phase 1 4.7 (turn-data.ts modelDeferrals): the model's own "I'll check what we have" opens a tracked deferral too.
+    const modelSaid = codeWritten ? [] : modelDeferrals(plan, decisions, turn.requests, [say, question]);
+    if (modelSaid.length > 0) checks.act('model_deferral', 'the model promised to check or come back to an ask this turn doesn\'t answer: tracked until delivered or "We won\'t get to …"', { asks: modelSaid });
+    const tracked = resolveDeferrals(openDeferrals(plan), modelSaid.length > 0 ? { ...decisions, deferralsOpened: [...(decisions.deferralsOpened ?? []), ...modelSaid] } : decisions, nextTurnIndex + 1, [...newReveals, ...decisions.restates.map(r => r.id), ...exhibitReveals]);
+    for (const r of tracked.resolved) checks.act('deferral_resolved', r.how === 'delivered' ? 'a tracked deferral delivered: nothing more said'
+      : r.how === 'wont_get_to' ? 'a tracked deferral said "We won\'t get to …" on the first wrap-up turn' : 'a tracked deferral\'s ask refused since: closed', r);
+    if (tracked.open.length > 0 || flags.openDeferrals !== undefined) flags.openDeferrals = tracked.open;
+  }
   // Rule 6 option 4: the correction went out in the data line — booked once
   // per item, logged for scoring with what the candidate said.
   const correctedItems = decisions.correction ? decisions.correction.items ?? [decisions.correction.item] : [];
@@ -663,6 +841,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     'data decided by code', {
       releases: decisions.releases.map(r => r.id), exhibit: decisions.exhibit?.id ?? null,
       refusals: decisions.refusals, defers: decisions.defers, offers: decisions.offers,
+      ...(decisions.wontGetTo?.length ? { wontGetTo: decisions.wontGetTo } : {}),
+      ...(decisions.wontGetToNamed?.length ? { wontGetToNamed: decisions.wontGetToNamed } : {}),
     });
 
   // Phase and stages (progress.ts).
@@ -761,6 +941,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const h = applyHeard(heard, { spokenText, question, newReveals, dataParts, exhibitId: exhibit?.id });
     const qHeard = h.questionHeard;
     const bookedReveals = h.bookedReveals;
+    for (const v of volunteered) if (bookedReveals.includes(v.id)) ctx.events.push({ category: 'intervention', subtype: 'volunteered', payload: { item: v.id, before: v.mustReach } });
     const exhibitSaved = h.exhibitBooked ? exhibit : undefined;
     const exhibitRevealsSaved = exhibitSaved ? exhibitReveals : [];
     const endedSaved = ended && qHeard;
@@ -808,6 +989,8 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const loadShedLoggedThisTurn = underTimePressure && !flags.loadShedLogged;
     const advancedThisTurn = phaseSaved !== currentPhase && !endedSaved;
     const revealedRowsNew = [...bookedReveals, ...exhibitRevealsSaved].map(itemId => ({ sessionId, ledgerItemId: itemId, revealedAtMs: now }));
+    // Items revealed only by an exhibit (flags.exhibitOnly): one said again, or released, has been said and reads as said from here on.
+    const exhibitOnlySaved = nextExhibitOnly((flags.exhibitOnly as string[] | undefined) ?? [], exhibitRevealsSaved, [...bookedReveals, ...decisions.restates.map(r => r.id)]);
     // What happened this turn, stage by stage (stage-evidence.ts) — from what
     // the candidate got, never from the move label.
     const stageAskedSaved = qHeard ? stageAsked : undefined;
@@ -823,19 +1006,32 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     // checker's line heard on a model turn.
     const holdPrev = (flags.closeHold as CloseHoldMemory | undefined) ?? {};
     const holdFrom = state.closeHoldPlan.from;
-    const finalLineHeard = checkerLine !== null && checkerHeard === true && holdFrom !== null && Number(checkerLine.id.split(':')[0]) >= holdFrom;
+    // A root's line counts there when a claim riding on it is a final answer (Lorenzo, 19 Oct, round-2 ruling 4): keyed by the root.
+    const finalLineHeard = checkerLine !== null && checkerHeard === true && holdFrom !== null && (Number(checkerLine.id.split(':')[0]) >= holdFrom || checkerLine.final === true);
     const probedNow = [...(kind === 'rec_math_probe' && qHeard && state.closeHoldPlan.probeKey ? [state.closeHoldPlan.probeKey] : []), ...(finalLineHeard ? [checkerLine.key] : [])];
     const closeHoldSaved: CloseHoldMemory = {
       ...(holdPrev.waits?.length || (kind === 'close_wait' && qHeard) ? { waits: [...(holdPrev.waits ?? []), ...(kind === 'close_wait' && qHeard ? [nextTurnIndex] : [])] } : {}),
       ...(holdPrev.probeTurns?.length || (kind === 'rec_math_probe' && qHeard) ? { probeTurns: [...(holdPrev.probeTurns ?? []), ...(kind === 'rec_math_probe' && qHeard ? [nextTurnIndex] : [])] } : {}),
       ...(probedNow.length || holdPrev.probed?.length ? { probed: [...(holdPrev.probed ?? []), ...probedNow.filter(k => !holdPrev.probed?.some(p => p.key === k)).map(key => ({ key, at: nextTurnIndex }))] } : {}),
     };
+    // The 13 Oct re-correction heard is a correction's second saying (Lorenzo, 19 Oct, round-3 ruling 2; b29 Jordan
+    // t20): its key, and every key whose line it said word for word, are restated — no restatement after it.
+    const recMath = kind === 'rec_math_probe' ? state.recMathProbe : null;
+    const reCorrected = recMath && 'closed' in recMath && recMath.action === 'correct' ? recMath.closed : null;
+    // Its line counted once more too (per line: the controller's ruling on Task 19's concern 1).
+    const memory = flags.mathChecker as { restated?: string[]; corrected?: Record<string, CorrectedRoot>; said?: Record<string, number> } | undefined;
+    const reSaid = reCorrected?.correction && h.heardContains(reCorrected.correction) ? reCorrected.correction : null;
+    const restatedNow = reSaid && reCorrected ? restatedBy(reCorrected.key, reSaid, memory?.corrected) : [];
+    const mathCheckerSaved = reSaid ? { mathChecker: { ...memory, restated: [...new Set([...(memory?.restated ?? []), ...restatedNow])],
+      said: { ...memory?.said, [lineKey(reSaid)]: (memory?.said?.[lineKey(reSaid)] ?? 0) + 1 } } } : {};
     // KF-4 (v4.10): when the gate closes this turn, the unmapped asks it held
     // are put to the interviewer next turn — once; then they lapse (logged).
     const closed = (st: string | undefined) => st === 'satisfied' || st === 'waived';
     const heldUnmapped = !closed(ptPrev.state) && closed(ptSaved.state)
       ? [...new Set(state.dataRequestRows
-        .filter(r => r.subtype === 'defer' && ((r.payloadJsonb as { ledgerItemIds?: string[] }).ledgerItemIds ?? []).length === 0)
+        .filter(r => r.subtype === 'defer' && ((r.payloadJsonb as { ledgerItemIds?: string[] }).ledgerItemIds ?? []).length === 0
+          // Not one the candidate heard "We won't get to … today." for (round-3 ruling 4).
+          && (r.payloadJsonb as { wontGetTo?: boolean }).wontGetTo !== true)
         .map(r => (r.payloadJsonb as { what?: string }).what ?? '').filter(Boolean))]
       : [];
     const unmappedToResolveSaved = heldUnmapped.length > 0 ? heldUnmapped : [];
@@ -897,9 +1093,11 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             // The close hold for a line a due stage held back: once an interview (Lorenzo, 15 Oct).
             heldCloseHold: Boolean(flags.heldCloseHold) || (kind === 'rec_math_probe' && state.heldCloseHold && qHeard),
             ...(Object.keys(closeHoldSaved).length ? { closeHold: closeHoldSaved } : {}),
+            ...mathCheckerSaved,
+            exhibitOnly: exhibitOnlySaved,
             recomputeAttempts,
             // The connecting words heard this turn (phrasing.ts): no variant again within its pool's last 3.
-            phraseUses: recordPhraseUses(savedLine, phraseUses, dataLineVariantsOn() ? dataLinePools() : undefined),
+            phraseUses: recordPhraseUses(savedLine, phraseUses, dataLineVariantsOn() ? dataLinePools() : undefined, { ack: switchOn(state.caseData, 'ackRotation') }),
             lastVerified: verifiedNow,
             flaggedFigures: state.flaggedFigures,
             explainProbed: [...explainProbedBefore, ...probeSaved.explainProbed],

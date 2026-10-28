@@ -130,7 +130,12 @@ export const sessionEvents = pgTable('session_events', {
   phase: phaseEnum('phase'),
   payloadJsonb: jsonb('payload_jsonb'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
-}, t => [index('session_events_session_idx').on(t.sessionId)]).enableRLS();
+}, t => [
+  index('session_events_session_idx').on(t.sessionId),
+  // One background item-judge call per (session, turn) (`asyncAskJudge`, 27 Oct; the never-charge-twice rule): the
+  // claim row's insert is the claim (lib/orchestrator/ask-judge.ts). Pending migration: db/migrations-pending/.
+  uniqueIndex('session_events_ask_judge_once').on(t.sessionId, t.turnIndex).where(sql`${t.subtype} = 'ask_judge_claim'`),
+]).enableRLS();
 
 export const analyticsEvents = pgTable('analytics_events', {
   id: uuid('id').primaryKey().defaultRandom(),

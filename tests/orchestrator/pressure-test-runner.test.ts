@@ -122,6 +122,8 @@ describe('pressure-test state', () => {
   it('"nothing is missing" answers the what\'s-missing probe: satisfied, data released, code asks which branch first', async () => {
     resetStore('STRUCTURE', { pressureTest: { state: 'awaiting', askedAt: 2, probe: 'Is that structure MECE, and what might be missing from it?', intents: ['mece'], reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } });
     judgeQueue.push({ answered: false });   // the judge called it a bare claim
+    // Asked before the probe and held by the gate: open (round 5 Task 51 checks a release the message never names).
+    store.events.push({ category: 'data_request', subtype: 'defer', turnIndex: 1, payloadJsonb: { what: 'the cost breakdown', ledgerItemIds: ['cogs_pct'], interviewerTurnIndex: 2, revealedByNow: false, explicit: true } });
     const heard = await turn('Yes. It is MECE, and nothing is missing.', T({ requests: [ask(['cogs_pct'], 'the cost breakdown')], question: 'Coming back to it: what might be missing?' }));
     expect(pt()?.state).toBe('satisfied');
     expect(heard).toMatch(new RegExp(anyVariant('ask_branch').source, 'i'));   // code's line, opening its sentence

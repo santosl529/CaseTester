@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { CASE_TYPES } from '@/lib/case-types';
+import { ALL_SWITCHES } from './engine-switches';
 
 const PhaseSchema = z.enum([
   'INTRO', 'CLARIFY', 'STRUCTURE', 'ANALYSIS',
@@ -26,6 +27,10 @@ const SENTENCE_VERB_RE = new RegExp(
   'i',
 );
 
+// Phase 1 text that may be spoken or shown before reveal carries no figure (FR-4): digits or number words.
+const NUMBER_WORD = /\b(?:zero|two|three|four|five|six|seven|eight|nine|ten|eleven|twelve|twenty|thirty|forty|fifty|hundred|thousand|million|billion|half|quarter|percent)\b/i;
+export function noFigure(text: string): boolean { return !/\d/.test(text) && !NUMBER_WORD.test(text); }
+
 function isSpeakableSentence(value: string): boolean {
   return /[.!?]\s*$/.test(value.trim()) && SENTENCE_VERB_RE.test(value);
 }
@@ -44,6 +49,19 @@ const LedgerItemSchema = z.object({
   // name derived from the label can read badly or give the finding away
   // ("a new competitor"). Without it: spokenItemName(label).
   spoken: z.string().min(2).optional(),
+  // Phase 1 (docs/superpowers/plans/2026-10-22-phase1-contract.md §1). Authored in cases/phase1/<id>.json and
+  // attached at load (lib/cases/phase1-overlay.ts); read only by Phase 1 code behind its switch.
+  //   tags — what the item is about: whose (`client` or a factAnchors.tags entity id), which period, what kind of quantity.
+  //   askPhrases — 3–5 short "answers questions about…" phrases; shown to the model before reveal (askPhrasesInPrompt),
+  //     so no figure and nothing that gives the finding away.
+  //   coverExcludes — words that keep a cover from matching this item (chip vs chickpea), with itemCovers on.
+  tags: z.object({
+    entity: z.string().min(1),
+    period: z.array(z.enum(['forecast', 'current', 'historical'])).min(1),
+    quantityKind: z.array(z.enum(['total', 'split', 'level', 'trend', 'one-off', 'recurring'])).min(1),
+  }).strict().optional(),
+  askPhrases: z.array(z.string().min(3).refine(noFigure, 'no figure in an ask phrase')).min(3).max(5).optional(),
+  coverExcludes: z.array(z.string().min(2)).optional(),
 }).superRefine((item, ctx) => {
   if (!isSpeakableSentence(item.value)) {
     ctx.addIssue({
@@ -80,7 +98,8 @@ const MathStepSchema = z.object({
   // of plan", "trigger" — and other routes' or periods' figures).
   flagNotCues: z.array(z.string().min(2)).optional(),
   // "count" (13 Oct): passengers, patients, bags — never a $ or % figure.
-  unit: z.union([z.enum(['percent', 'points', 'usd', 'count']), z.array(z.enum(['percent', 'points', 'usd', 'count'])).min(1)]).optional(),
+  // "ratio" (20 Oct): LTV/CAC, "2.5x" — said with x or times, never a $ or % figure; code says it "about 2 times".
+  unit: z.union([z.enum(['percent', 'points', 'usd', 'count', 'ratio']), z.array(z.enum(['percent', 'points', 'usd', 'count', 'ratio'])).min(1)]).optional(),
   // Money's scale (13 Oct, Larkspur): "unit" — a per-unit dollar figure
   // ($4,200 per flight); "million" — stated in $M. A figure stated at another
   // scale is not this step (lib/scoring/math-spans.ts).
@@ -102,6 +121,15 @@ const MathStepSchema = z.object({
   // candidate's claim in these terms). Server-only like the rest.
   quantity: z.string().optional(),
   timeframe: z.enum(['current', 'prior', 'change']).optional(),
+  // Step roots (round 6 Task 72; Lorenzo, 21 Oct, the step-check ruling: "The deterministic step check may, without the
+  // checker agreeing: link derived claims to the flagged root and stop probing them; ask one neutral input question at
+  // the root (for example, "Which row did you use for cancellations?"). It may NOT voice a correction without the
+  // checker's agreement."; audit M1–M2, b37 Quillpath Raj and Marcus). dependsOn: the steps this one is computed from — a
+  // claim on a step that depends (transitively) on a step the deterministic check flagged is linked to that root, not
+  // probed. inputQuestion: the root's one neutral question, said by code as a probe — no figure, no arithmetic, no
+  // lead (math-checker-live.ts stepRootOf, plan-turn.ts). A case whose steps declare neither (prof-001) is unchanged.
+  dependsOn: z.array(z.string()).optional(),
+  inputQuestion: z.string().min(5).optional(),
 });
 
 // Stages an exhibit's `after` may name besides earlier exhibits (13 Oct).
@@ -136,6 +164,9 @@ const ExhibitSchema = z.object({
   // under time pressure it goes out with the recommendation ask instead. A
   // required exhibit's `after` exhibits must be required too.
   required: z.boolean().optional(),
+  // Phase 1 (contract §1; restateRules): one line on what the table generally shows, no figures — said when an ask
+  // is answered by an exhibit already out ("Exhibit 2 has the route results by year.").
+  summary: z.string().min(5).refine(noFigure, 'no figure in an exhibit summary').optional(),
 });
 
 const RubricAnchorSchema = z.object({
@@ -206,6 +237,23 @@ export const CaseSchema = z.object({
     minItems: z.number().int().min(1).optional(),
     ask: z.string().min(1),
   }).optional(),
+  // Must-reach items (round 6 Task 72; Lorenzo, 21 Oct, round 6: "Code releases a case-declared item at a declared
+  // point if the candidate hasn't asked by then … The report should note when an item was volunteered."; audit row 9,
+  // b36 Larkspur Jasmine: Exhibit 3 at t10, the competitor never told). `before`: an exhibit id — released in the data
+  // line of the turn that hands that exhibit over, ahead of it — or "recommendation" — released before code's (or the
+  // model's) recommendation ask (turn-data.ts mustReachItems). Never on a close turn, never twice, past the release cap.
+  // Phase 1 (contract §1): at most 3 per case; `why` names the runs that missed the item (overlay entries need it).
+  mustReach: z.array(z.object({ item: z.string(), before: z.string().min(1), why: z.string().min(5).optional() }).strict()).max(3).optional(),
+  // Phase 1 (contract §1; rootLineage, checkerDefinitions): a quantity's one-line definition, no figures — the
+  // wording of a root correction and context for the live checker. Server-only.
+  definitions: z.array(z.object({
+    term: z.string().min(2),
+    text: z.string().min(5).refine(noFigure, 'no figure in a definition'),
+    steps: z.array(z.string()).optional(),
+    items: z.array(z.string()).optional(),
+  }).strict()).optional(),
+  // Phase 1 engine switches pinned by the case file (lib/cases/engine-switches.ts); absent = today's behaviour.
+  engine: z.partialRecord(z.enum(ALL_SWITCHES), z.boolean()).optional(),
   // Voice (lib/voice/keyterms.ts; Lorenzo's brief, 17 Oct): the case's own
   // names and terms Flux is told to expect — the client, products, places —
   // beside the generic ones ("COGS", "MECE"). 9ccf0836 heard "Cogshare".
@@ -229,6 +277,9 @@ export const CaseSchema = z.object({
     names: z.array(z.string().min(2)).min(1),
     kind: z.enum(['level', 'change']).default('level'),
     of: z.array(z.string().min(2)).optional(),
+    // A route- or entity-scoped anchor: its names count only where one of these words comes earlier in the
+    // sentence (misquote.ts). A scoped name never names the item on its own (fact-check.ts buildFactBase).
+    scope: z.array(z.string().min(2)).min(1).optional(),
   })).default([]),
   // Fact checks (lib/orchestrator/fact-check.ts, 12 Oct): what code needs to
   // tell a true statement about the case from a false one, beyond the ledger
@@ -269,6 +320,22 @@ export const CaseSchema = z.object({
       parts: z.array(z.object({ names: z.array(z.string().min(2)).min(1), value: z.number() })).min(2),
     })).default([]),
     covers: z.record(z.string(), z.array(z.string().min(3)).min(1)).default({}),
+    //   tags — round 6 (Lorenzo, 21 Oct: "It may release the matched item only if
+    //     the item's tags (company; forecast vs current; quantity) also agree with
+    //     the ask"): the words that name the client's own product or business in an
+    //     ask; each other company or product (its words, the items about it — items
+    //     in no entity are the client's); the items stating a forecast, plan or
+    //     estimate. Present = the case opts into round 6's cover matching and gate
+    //     (fact-check.ts coverageOf, item-tags.ts tagsAgree); prof-001 has none.
+    //     `rival` (Task 70 fix round 2, controller ruling, 21 Oct): the entity competes with
+    //     the client (Larkspur's entrant, Aldermoor's Nimbrel) — its items are the comparator
+    //     and meet a competitor or benchmark scope. Not the client's own other business
+    //     (Hollis Bay's chips).
+    tags: z.object({
+      clientWords: z.array(z.string().min(2)),
+      entities: z.array(z.object({ id: z.string().min(1), rival: z.boolean().optional(), words: z.array(z.string().min(2)).min(1), items: z.array(z.string()) }).strict()),
+      forecast: z.array(z.string()),
+    }).optional(),
   }).optional(),
   // Pricing math (lib/orchestrator/pricing-check.ts, 12 Oct): the cost lines a
   // price change leaves fixed in dollars at flat volume (their current shares
@@ -303,6 +370,17 @@ export const CaseSchema = z.object({
       ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'inputs', j], message: `Unknown ledger item "${id}"` });
     }
   }));
+  // Step roots (round 6 Task 72): known steps, no cycle; the input question asks — no figure, no arithmetic (FR-4).
+  const stepIds = new Set(c.mathSteps.map(st => st.id));
+  const cyclic = (id: string, seen: string[]): boolean => seen.includes(id)
+    || (c.mathSteps.find(st => st.id === id)?.dependsOn ?? []).some(d => cyclic(d, [...seen, id]));
+  c.mathSteps.forEach((step, i) => {
+    (step.dependsOn ?? []).forEach((id, j) => {
+      if (!stepIds.has(id) || id === step.id) ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'dependsOn', j], message: `Unknown math step "${id}"` });
+    });
+    if ((step.dependsOn ?? []).some(d => stepIds.has(d) && d !== step.id && cyclic(d, [step.id]))) ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'dependsOn'], message: `"${step.id}" depends on itself` });
+    if (step.inputQuestion !== undefined && (/\d/.test(step.inputQuestion) || !step.inputQuestion.trim().endsWith('?'))) ctx.addIssue({ code: 'custom', path: ['mathSteps', i, 'inputQuestion'], message: 'An input question asks, with no figure in it' });
+  });
   c.shareBases.forEach((b, i) => {
     if (!ledgerIds.has(b.item)) ctx.addIssue({ code: 'custom', path: ['shareBases', i, 'item'], message: `Unknown ledger item "${b.item}"` });
   });
@@ -343,6 +421,19 @@ export const CaseSchema = z.object({
   c.analysisCore?.items.forEach((id, i) => {
     if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['analysisCore', 'items', i], message: `Unknown ledger item "${id}"` });
   });
+  (c.mustReach ?? []).forEach((m, i) => {
+    if (!ledgerIds.has(m.item)) ctx.addIssue({ code: 'custom', path: ['mustReach', i, 'item'], message: `Unknown ledger item "${m.item}"` });
+    if (m.before !== 'recommendation' && !c.exhibits.some(e => e.id === m.before)) ctx.addIssue({ code: 'custom', path: ['mustReach', i, 'before'], message: `"${m.before}" is neither an exhibit nor "recommendation"` });
+  });
+  (c.definitions ?? []).forEach((d, i) => {
+    (d.steps ?? []).forEach((id, j) => { if (!stepIds.has(id)) ctx.addIssue({ code: 'custom', path: ['definitions', i, 'steps', j], message: `Unknown math step "${id}"` }); });
+    (d.items ?? []).forEach((id, j) => { if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['definitions', i, 'items', j], message: `Unknown ledger item "${id}"` }); });
+  });
+  // Item tags' entities: checked where the case has entity tags (prof-001's come with its overlay's factTags).
+  const entityIds = new Set(['client', ...(c.factAnchors?.tags?.entities.map(e => e.id) ?? [])]);
+  if (c.factAnchors?.tags) c.dataLedger.forEach((d, i) => {
+    if (d.tags && !entityIds.has(d.tags.entity)) ctx.addIssue({ code: 'custom', path: ['dataLedger', i, 'tags', 'entity'], message: `"${d.tags.entity}" is neither "client" nor a factAnchors.tags entity` });
+  });
   if (c.pricingModel) {
     const pm = c.pricingModel;
     [...pm.costItems, ...pm.variableSets.flat(), ...(pm.revenueItem ? [pm.revenueItem] : [])].forEach(id => {
@@ -370,6 +461,13 @@ export const CaseSchema = z.object({
       if (!ledgerIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'groups', i, 'items', j], message: `Unknown ledger item "${id}"` });
     }));
     for (const id of Object.keys(f.covers)) if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'covers', id], message: `Unknown ledger item or prompt fact "${id}"` });
+    if (f.tags) {
+      f.tags.entities.forEach((e, i) => {
+        if (e.id === 'client' || f.tags!.entities.findIndex(x => x.id === e.id) !== i) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'tags', 'entities', i, 'id'], message: `Entity id "${e.id}" is reserved or repeated` });
+        e.items.forEach((id, j) => { if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'tags', 'entities', i, 'items', j], message: `Unknown ledger item or prompt fact "${id}"` }); });
+      });
+      f.tags.forecast.forEach((id, i) => { if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'tags', 'forecast', i], message: `Unknown ledger item or prompt fact "${id}"` }); });
+    }
     for (const id of Object.keys(f.directions)) if (!factIds.has(id)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'directions', id], message: `Unknown ledger item or prompt fact "${id}"` });
     f.drivers.forEach((d, i) => {
       if (!factIds.has(d.of)) ctx.addIssue({ code: 'custom', path: ['factAnchors', 'drivers', i, 'of'], message: `Unknown ledger item or prompt fact "${d.of}"` });

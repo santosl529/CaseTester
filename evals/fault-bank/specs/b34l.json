@@ -1,0 +1,677 @@
+[
+ {
+  "id": "b34l-tyler-t22-ramp-refusal",
+  "kind": "fault",
+  "p": "64",
+  "turn": 22,
+  "sev": "false",
+  "cls": "false_refusal",
+  "note": "\"I have no ramp assumption to give you yet.\" then new_route_rampup in the same turn: the model's refusal sentence isn't withheld when code releases that item. Lorenzo (20 Oct): false, not serious — he got the ramp data in the same turn — and it counts against zero false statements.",
+  "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (call 1)",
+  "a": [
+   {
+    "kind": "refusal",
+    "must": false
+   },
+   {
+    "kind": "release",
+    "item": "new_route_rampup",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "stream": 4,
+  "rnote": "Both arms — and the base with every switch off — write t22 as a code `stage_brainstorm` turn, so the model's saved refusal and its data request are never used and `new_route_rampup` is released at t24 instead. The fault is the refusal standing in the SAME turn as the release, and a turn whose kind changed can neither reproduce nor disprove it (contract §4.3). It fails identically off and on, so it is no regression. Wave: on prof-002, \"Do we have a ramp assumption?\" never gets \"I have no ramp assumption to give you yet\" on a turn that releases the ramp line (Tyler-type); the auditor (false_refusal) and the hand grade see it."
+ },
+ {
+  "id": "b34l-raj-t6-both-moved",
+  "kind": "fault",
+  "p": "07",
+  "turn": 6,
+  "sev": "false",
+  "cls": "wrong_figure",
+  "note": "\"Let's work from what we know: profit is revenue minus cost, and both moved between FY2023 and FY2025.\" Network costs were flat (variable $160M, fixed $20M both years). Lorenzo: false, not serious; the fact-check doesn't read qualitative model claims. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (B1 + B2 list)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "both moved between FY2023 and FY2025",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The false claim is the model's own sentence; no Phase 1 check reads qualitative claims. Wave: no interviewer line says costs moved on prof-002 (Raj-type stuck openers); the auditor (wrong_figure) and the hand grade see it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b34l-marisol-t12-ask-swallowed",
+  "kind": "fault",
+  "p": "57",
+  "turn": 12,
+  "sev": "firm",
+  "cls": "ignored_ask",
+  "note": "Her t11 \"Do we know whether load factor would actually fall if we priced back up to $200, or is that untested?\" — the model declared nothing and code's \"$18,000\" probe took the turn. The case holds no elasticity: a refusal was owed (a code probe turn had no slot for her ask). Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$18,000\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t12-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Replayable again: with a deferral accepted, the replay can show it once undeclared sub-asks speak (they stay shadow-only until the splitter's precision gate — ruling 1). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "answered",
+    "about": "elasticity|load factor|untested",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
+    "wontResolves": true,
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-marisol-t26-ask-swallowed",
+  "kind": "fault",
+  "p": "57",
+  "turn": 26,
+  "sev": "firm",
+  "cls": "ignored_ask",
+  "note": "Her t25 \"Do we know how quickly we can exit the Lakeport and Port Avery slots?\" — declared nothing; the \"$2,800\" probe took the turn. Not held: a refusal was owed. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now, and a must-not on the real fault: code's \"$2,800\" probe taking the whole turn, which is what left her ask with no slot. Phase 2 S0 (27 Oct): two changes. (1) The `probe must:false` is dropped: it contradicts this turn's own correct record (the probe was right — b34l-marisol-t26-probe); the fault is the ask getting no word, not the probe being asked. (2) Not replayable under Lorenzo's Q1 ruling (27 Oct): the model declared nothing and no classifier detection was recorded, so only an undeclared sub-ask can carry this ask, and the Haiku check on an undeclared sub-ask may release or defer, never refuse — the owed refusal can't come from it, and the replay serves no verdict for a new check. Phase 2 (Lorenzo, 27 Oct, session-1 ruling 2): an ask the model never declared and no classifier detected may be answered by a refusal or by a deferral that resolves — delivered, or \"We won't get to …\" (`wontResolves`); the refusal is no longer required, since the check on an undeclared sub-ask never refuses (Q1). Replayable again: with a deferral accepted, the replay can show it once undeclared sub-asks speak (they stay shadow-only until the splitter's precision gate — ruling 1). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "answered",
+    "about": "exit|slot",
+    "accept": [
+     "refusal",
+     "deferral"
+    ],
+    "wontResolves": true,
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-marcus-t14-avoidable-half",
+  "kind": "fault",
+  "p": "24",
+  "turn": 14,
+  "sev": "firm",
+  "cls": "bare_partial",
+  "note": "\"Do we have the split of the $20M fixed, and whether it's avoidable?\" — the model mapped only fixed_costs (restated); aircraft_leases (\"leased through 2030, so returning them early is not an option\") answers the avoidable half and never reached him. Lorenzo: fixed by case data (D3, the aircraft_leases cover).",
+  "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (D3)",
+  "a": [
+   {
+    "kind": "release",
+    "item": "aircraft_leases",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 2
+ },
+ {
+  "id": "b34l-raj-t14-hollow-fare-trend",
+  "kind": "fault",
+  "p": "07",
+  "turn": 14,
+  "sev": "firm",
+  "cls": "hollow_deferral",
+  "note": "\"I'll come back to the fare trend across FY2024 and FY2025 shortly.\" (t14) and again at t16. The check mapped it to lakeport_fare; the case holds FY2023 and FY2025 only and nothing went back to \"if it's still sliding\". Lorenzo's rule 2: one firm moderate (one ask, said twice). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (rule 2)",
+  "a": [
+   {
+    "kind": "deferral",
+    "about": "fare trend",
+    "must": false,
+    "scope": {
+     "fromTurn": 14,
+     "toTurn": 16
+    }
+   },
+   {
+    "kind": "refusal",
+    "about": "FY2024",
+    "must": true,
+    "scope": {
+     "fromTurn": 14,
+     "toTurn": 16
+    },
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-raj-t16-offer",
+  "kind": "fault",
+  "p": "07",
+  "turn": 16,
+  "sev": "borderline",
+  "cls": "unasked_offer",
+  "note": "Code's \"I can share how long new routes take to mature if you'd like.\" — the model read \"a new destination ramps\" as an implicit want; by design then; he asked at t23. Graded borderline before the 21 Oct offer ruling. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record. Bank fix 8 / I5 (26 Oct): `spoke` here is only the non-degeneracy floor, and that is the whole of its declared scope — the candidate's message on this turn carries no data ask, so no engagement is owed and there is nothing to pair it with. The must-not carries the fault.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "I can share how long new routes take",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-raj-t22-narration",
+  "kind": "fault",
+  "p": "07",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "Narration: \"The fare option is off the table, and the brainstorm is next.\" Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "the brainstorm is next",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The narration is the model's own say. Wave: no stage-naming narration in any interviewer line; the hand grade counts narration.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b34l-raj-t30-close-reask",
+  "kind": "fault",
+  "p": "07",
+  "turn": 30,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"If you had to guard against that, how would you do it?\" after his t29 \"What I'd do …\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "guard against that",
+    "must": false
+   },
+   {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-marcus-t28-close-reask",
+  "kind": "fault",
+  "p": "24",
+  "turn": 28,
+  "sev": "borderline",
+  "cls": "close_wait_reask",
+  "note": "Code's close_wait \"How would you guard against that?\" after his t27 \"In the first 12 months, if loads track under about 60% …\". Bank fix 1 (26 Oct, gate report §5 item 1): the pool patterns alone green on a pool swap — `closeWaitLine` is a three-way fall-through, and simulation put 10 of 12 of these records green on the first-step line and 12 of 12 on the measure line while the re-ask persisted. The record now pins the DECISION: the `close_hold` check logs which pool 4.8 chose and which it skipped because the answer (or the last question) already covered it, so a re-route that does not record the skip cannot green it. Lorenzo's ruling on §9 item 7 adds the first-step pattern as a second must-not here: the first-step line is a re-ask too when the answer already gave the sequence.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "guard against that",
+    "must": false
+   },
+   {
+    "kind": "says",
+    "pattern": "do first|first step|first thing",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "question": true,
+    "must": true
+   },
+   {
+    "kind": "check",
+    "check": "close_hold",
+    "decision": "skipped:.*after_risk",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-tyler-t20-doubled-line",
+  "kind": "fault",
+  "p": "64",
+  "turn": 20,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "The same data line twice in one turn: the model's say held new_routes_context and code appended \"Repeating what I said before: No other airline …\". Fix round (25 Oct): the assertion is the doubling (the item's line twice in the one turn), not any restatement — the model's own copy is in the saved output, so removing code's copy alone still left a flagged restatement and only silence could pass.",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "new_routes_context",
+    "doubled": true,
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-marcus-t22-doubled-line",
+  "kind": "fault",
+  "p": "24",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "The same data line twice in one turn (\"No other airline is flying nonstop … Repeating what I said before: No other airline …\"). Fix round (25 Oct): the assertion is the doubling (the item's line twice in the one turn), not any restatement — the model's own copy is in the saved output, so removing code's copy alone still left a flagged restatement and only silence could pass.",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "new_routes_context",
+    "doubled": true,
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-marisol-t18-t20-stale-probes",
+  "kind": "fault",
+  "p": "57",
+  "turn": 18,
+  "sev": "borderline",
+  "cls": "stale_probe",
+  "note": "Probes on figures she had replaced: t18 \"$180\" and t20 \"$260\"; at t17 she used the interviewer's $160 and $240. Borderline: she had never acknowledged the slip, and the probes found her other error. One bullet in the grading. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$180",
+    "must": false,
+    "scope": {
+     "turn": 18
+    }
+   },
+   {
+    "kind": "probe",
+    "figure": "$260",
+    "must": false,
+    "scope": {
+     "turn": 20
+    }
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b34l-marisol-t10-unit-probe-blocked",
+  "kind": "fault",
+  "p": "57",
+  "turn": 10,
+  "sev": "borderline",
+  "cls": "missed_error",
+  "note": "The model's \"you said $10,800 per passenger — … what unit it's really in\" was withheld as challenge_on_verified (the number right, the unit wrong); the unit error was probed at t14 instead. Grading turn \"t9\" is her message; the withheld line is the t10 reply.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "per passenger",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 3
+ },
+ {
+  "id": "b34l-marisol-t24-restate-unsaid",
+  "kind": "fault",
+  "p": "57",
+  "turn": 24,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "\"Repeating what I said before:\" for a line only on Exhibit 3, never said aloud; it answered her start-up-cost ask with \"fixed costs would stay the same\". Lorenzo's D6: the prefix follows how the item came out (\"As the exhibit shows\"). Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (D6)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "Repeating what I said before: No other airline",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-marisol-t30-wont-get-to",
+  "kind": "fault",
+  "p": "57",
+  "turn": 30,
+  "sev": "borderline",
+  "cls": "hollow_deferral",
+  "note": "\"That's one we've covered: [competitor_costs]. We won't get to that today.\" for the competitor's cost breakdown by labor and utilization, which the case doesn't hold; the check mapped it to Larkspur's own items. Lorenzo (20 Oct): \"We won't get to\" on data the case doesn't hold, at the close, is borderline. Bank fix 2 (26 Oct, gate report §5 item 2): the `refusal` assertion carried no `about`, so \"I don't have that.\" about anything at all greened the record. It names the swallowed ask now (both spellings of utilisation, so the assertion is not a spelling trap). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "src": "batch-34-larkspur/hand-grading.md; lorenzo-ruling-2026-10-20 (call 2)",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "We won't get to",
+    "must": false
+   },
+   {
+    "kind": "refusal",
+    "about": "labor|utilisation|utilization|cost breakdown",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-marisol-t6-before-competitor",
+  "kind": "fault",
+  "p": "57",
+  "turn": 6,
+  "sev": "borderline",
+  "cls": "other",
+  "note": "\"Before the competitor question, what does the route picture tell you …\" right after giving the competitor entry. Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record if it is ever made replayable.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "Before the competitor question",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The model's own question. Wave: no question deferring a topic the same turn just answered; the hand grade sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b34l-marcus-t22-reassignment",
+  "kind": "fault",
+  "p": "24",
+  "turn": 22,
+  "sev": "borderline",
+  "cls": "bare_partial",
+  "note": "The reassignment half of t21 (\"how quickly the aircraft can be reassigned\") unanswered; not held (the lease line touches it). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "reassign",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-marcus-t10-long-restatement",
+  "kind": "fault",
+  "p": "24",
+  "turn": 10,
+  "sev": "borderline",
+  "cls": "restatement",
+  "note": "\"As I mentioned:\" three full ledger lines (≈90 words) to answer \"Flights per year aren't given for FY2025 — do we have that?\". Fix round (25 Oct): a positive assertion added — the asked thing gets a word, so a turn that says nothing (or only refuses) no longer greens the record.",
+  "a": [
+   {
+    "kind": "restatement",
+    "item": "route_results_port_avery",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": 4
+ },
+ {
+  "id": "b34l-jasmine-t2-nothing-declared",
+  "kind": "fault",
+  "p": "40",
+  "turn": 2,
+  "sev": "borderline",
+  "cls": "ignored_ask",
+  "note": "Guard B regenerated and the model declared nothing for her three t1 asks; flights and fare came at t4 after she re-asked, the cost-line split never explicitly (Exhibits 1–2 carry it).",
+  "a": [
+   {
+    "kind": "deferral",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "rnote": "The declaration is the model's: Guard B regenerated and the model still declared nothing, so code had nothing to defer. Wave: a structure-gate turn after a data ask names a deferral (Jasmine-type early askers); the hand grade sees it (auditor: ignored_ask).",
+  "stream": 4
+ },
+ {
+  "id": "b34l-marisol-report-12-month",
+  "kind": "fault",
+  "p": "57",
+  "turn": 4,
+  "sev": "false",
+  "cls": "report_false",
+  "note": "Report, Problem Structuring: \"…and the 12-month turnaround question also surfaced only then.\" She never raised the 12-month goal (judge + reconcile; the verifier kept it).",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "12-month turnaround question also surfaced",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report statements about what the candidate said are true to the transcript; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b34l-raj-report-extras",
+  "kind": "fault",
+  "p": "07",
+  "turn": 10,
+  "sev": "borderline",
+  "cls": "report_false",
+  "note": "Report, Quantitative: \"The first attempt at the Lakeport fare math was garbled and left extras out. It was corrected only after the interviewer asked.\" His $105 was revenue per seat (the error was the load), and he corrected it himself.",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "left extras out",
+    "must": false
+   }
+  ],
+  "rep": false,
+  "rnote": "Report fault: scoring is not replayed. Wave: report says who corrected what as the transcript shows; the hand grade's report read sees it.",
+  "stream": "phase2"
+ },
+ {
+  "id": "b34l-tyler-t18-true-refusal",
+  "kind": "correct",
+  "p": "64",
+  "turn": 18,
+  "sev": "correct",
+  "cls": "true_refusal",
+  "note": "\"I don't have contribution by departure time.\" True (no item holds a time-of-day cut). Refusal wording (27 Oct, Lorenzo): an assumption line about it counts as the owed refusal (acceptAssume) — the intent is no false claim, and the candidate learns it isn't available.",
+  "a": [
+   {
+    "kind": "refusal",
+    "about": "departure time",
+    "must": true,
+    "acceptAssume": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34l-raj-t14-leases-release",
+  "kind": "correct",
+  "p": "07",
+  "turn": 14,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "\"are the fixed costs truly fixed if we shrink\" → aircraft_leases.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "aircraft_leases",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34l-marisol-t6-competitor-release",
+  "kind": "correct",
+  "p": "57",
+  "turn": 6,
+  "sev": "correct",
+  "cls": "correct_release",
+  "note": "\"whether a competitor entered on any of the six?\" → competitor_entry, with Exhibit 1 for the route split.",
+  "a": [
+   {
+    "kind": "release",
+    "item": "competitor_entry",
+    "must": true
+   },
+   {
+    "kind": "exhibit",
+    "exhibit": "exhibit-1",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34l-marisol-t12-probe",
+  "kind": "correct",
+  "p": "57",
+  "turn": 12,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Probe on her flagged $18,000 (a unit error).",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$18,000",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34l-marisol-t26-probe",
+  "kind": "correct",
+  "p": "57",
+  "turn": 26,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Probe on her $2,800 contribution (75% load for the exhibit's 70%).",
+  "a": [
+   {
+    "kind": "probe",
+    "figure": "$2,800",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "stream": "none",
+  "rnote": "Replay artifact: the harness has no coverage scores, so canEndCase falls back to an elapsed threshold and this turn's recorded elapsed (1,205,145 ms) crosses it by about 5 seconds, which the live run never did — the replay writes a stage turn the run did not. The fault underneath (a probe dropped rather than held on an overdue stage turn) is fixed on phase1-base-fixes with 0 line change in this run, because she withdrew the claim. Wave: on prof-002, a live probe is held and asked rather than dropped when a stage turn falls due; the auditor (stale_probe) and the hand grade see it."
+ },
+ {
+  "id": "b34l-tyler-t8-probe",
+  "kind": "correct",
+  "p": "64",
+  "turn": 8,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Probe on his 14,500-flight misquote (1.16M seats).",
+  "a": [
+   {
+    "kind": "probe",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34l-raj-t20-probe",
+  "kind": "correct",
+  "p": "07",
+  "turn": 20,
+  "sev": "correct",
+  "cls": "correct_probe",
+  "note": "Late probe quoting its claim (\"On the $115 fare with 15% fewer passengers …\").",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "\\$115 fare",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ },
+ {
+  "id": "b34l-jasmine-t30-close",
+  "kind": "correct",
+  "p": "40",
+  "turn": 30,
+  "sev": "correct",
+  "cls": "correct_close",
+  "note": "Closed with every stage done (early finisher kept in the case).",
+  "a": [
+   {
+    "kind": "close",
+    "must": true
+   }
+  ],
+  "rep": true,
+  "stream": "none"
+ }
+]

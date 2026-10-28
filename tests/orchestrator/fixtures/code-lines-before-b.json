@@ -23,6 +23,15 @@
   "To repeat: {x}",
   "Just to restate: {x}"
  ],
+ "restate_pointer": [
+  "You'll find that on the exhibit — {x}"
+ ],
+ "restate_recent": [
+  "I gave you {x} a moment ago."
+ ],
+ "restate_exhibit": [
+  "As the exhibit shows: {x}"
+ ],
  "earlier": [
   "On what you asked about earlier:",
   "Coming back to what you asked for earlier:",

@@ -1,0 +1,499 @@
+{
+  "items": [
+    {
+      "id": "product",
+      "names": [
+        "the product",
+        "quillpath's product",
+        "what quillpath sells",
+        "what the software does",
+        "product description",
+        "product offering"
+      ],
+      "covers": [
+        "who the software is for",
+        "what quillpath does",
+        "where quillpath operates"
+      ],
+      "notHeld": [
+        "feature usage",
+        "product roadmap",
+        "features by plan",
+        "integrations"
+      ],
+      "note": "'who the software is for' could drift toward buyer_profile, but this value truthfully answers it at the level of small US home-services businesses; check that the reviewer accepts that overlap."
+    },
+    {
+      "id": "plan_features",
+      "names": [
+        "starter features",
+        "pro features",
+        "what starter includes",
+        "plan comparison",
+        "feature differences",
+        "starter versus pro features"
+      ],
+      "covers": [
+        "how many users on starter",
+        "user limits",
+        "billing frequency",
+        "annual billing option",
+        "does starter include reports"
+      ],
+      "notHeld": [
+        "feature usage data",
+        "add-on pricing",
+        "which features drive upgrades",
+        "feature roadmap"
+      ],
+      "note": "The existing name 'features' is a single generic word and also overlaps the product item; consider removing it."
+    },
+    {
+      "id": "signup_channels",
+      "names": [
+        "how customers sign up",
+        "sign-up process",
+        "sales channel",
+        "acquisition channel",
+        "sales motion",
+        "how pro is sold"
+      ],
+      "covers": [
+        "self-serve versus sales-led",
+        "do pro customers get a demo",
+        "is starter self-serve"
+      ],
+      "notHeld": [
+        "sales team size",
+        "demo conversion rate",
+        "marketing channel mix",
+        "sales-team detail"
+      ],
+      "note": "plan_cac also mentions demo versus self-serve, but this item is the one that names the sign-up path; asks about sales-team detail stay unavailable under row 10."
+    },
+    {
+      "id": "board_rule_definition",
+      "names": [
+        "board rule",
+        "the board's rule",
+        "three times rule",
+        "board's ltv/cac rule",
+        "ltv/cac threshold",
+        "worth three times acquisition cost"
+      ],
+      "covers": [
+        "what metric the board uses",
+        "how the board defines worth",
+        "ltv to cac target",
+        "what the hurdle means"
+      ],
+      "notHeld": [
+        "why the board set the rule",
+        "whether the rule is flexible",
+        "board's view of starter"
+      ],
+      "note": "Avoid 'lifetime value definition' here because it equally names ltv_definition; the rule is partly known from the prompt, so the definition is the new content."
+    },
+    {
+      "id": "company_size",
+      "names": [
+        "number of customers",
+        "total customers",
+        "customer count",
+        "how many customers today",
+        "size of quillpath"
+      ],
+      "covers": [
+        "how big is quillpath",
+        "installed base"
+      ],
+      "notHeld": [
+        "revenue",
+        "customers by plan",
+        "employee count",
+        "market share"
+      ],
+      "note": "'number of starter customers' must route to existing_starter_customers, not here; 'number of customers' must not swallow new-customer asks, which go to new_customers_by_plan."
+    },
+    {
+      "id": "market_growth",
+      "names": [
+        "market growth rate",
+        "industry growth",
+        "how fast the market is growing",
+        "sector growth",
+        "small-business software demand"
+      ],
+      "covers": [
+        "is the market growing",
+        "market trend"
+      ],
+      "notHeld": [
+        "market size",
+        "market share",
+        "competitor growth",
+        "home-services market size"
+      ],
+      "note": "The existing name 'market' is a single generic word and could catch market-size asks, which this item does not answer."
+    },
+    {
+      "id": "ceo_goal",
+      "names": [
+        "ceo's goal",
+        "ceo objective",
+        "what the ceo cares about",
+        "ceo priorities",
+        "ceo's objective"
+      ],
+      "covers": [
+        "what are we optimizing for",
+        "growth or profitability",
+        "value or ratio",
+        "how we measure success"
+      ],
+      "notHeld": [
+        "financial targets",
+        "decision timeline",
+        "ceo's view of starter"
+      ],
+      "note": "'Growth or profitability' is answered as long-term value within the board rule; confirm the reviewer is comfortable with that framing."
+    },
+    {
+      "id": "plan_prices_costs",
+      "names": [
+        "prices and cost to serve",
+        "monthly price and cost to serve",
+        "gross margin by plan",
+        "plan prices",
+        "starter cost to serve",
+        "pro cost to serve"
+      ],
+      "covers": [
+        "margins by plan",
+        "gross margin per customer",
+        "hosting and support costs",
+        "payment processing costs",
+        "variable cost per customer",
+        "contribution margin by plan"
+      ],
+      "notHeld": [
+        "cost breakdown hosting versus support",
+        "fixed costs",
+        "overhead",
+        "margin at the higher price"
+      ],
+      "note": "The existing names 'plan economics' and 'unit economics' are also group names covering CAC and the LTV definition, so they should stay group-level rather than item names."
+    },
+    {
+      "id": "plan_cac",
+      "names": [
+        "cac by plan",
+        "starter cac",
+        "pro cac",
+        "cost per acquisition",
+        "acquisition cost per customer",
+        "sales and marketing cost per customer"
+      ],
+      "covers": [
+        "does cac change with volume",
+        "cac at scale",
+        "marginal acquisition cost"
+      ],
+      "notHeld": [
+        "total marketing spend",
+        "cac by channel",
+        "cac breakdown",
+        "cac trend over time"
+      ],
+      "note": "price_test_notes also states Starter CAC is unchanged at either price; CAC at the higher price should go there, not here."
+    },
+    {
+      "id": "ltv_definition",
+      "names": [
+        "ltv formula",
+        "lifetime value calculation",
+        "how to calculate lifetime value",
+        "expected lifetime formula",
+        "ltv methodology"
+      ],
+      "covers": [
+        "price or margin in ltv",
+        "how lifetime is estimated",
+        "how to get lifetime from churn",
+        "gross margin definition"
+      ],
+      "notHeld": [
+        "discount rate",
+        "ltv values by plan",
+        "actual lifetime by plan"
+      ],
+      "note": "Derived LTV figures (D-01) must never be released through this item; it only holds the formula."
+    },
+    {
+      "id": "pro_cohort",
+      "names": [
+        "pro cohort retention",
+        "pro cancellation rate",
+        "pro attrition",
+        "how long pro customers stay",
+        "pro customers still active",
+        "pro survival curve"
+      ],
+      "covers": [
+        "pro retention over first year",
+        "share of pro customers cancelling"
+      ],
+      "notHeld": [
+        "pro churn beyond month 12",
+        "retention of pre-2025 pro customers",
+        "churn by business size",
+        "churn of upgraded customers"
+      ],
+      "note": "Steady-churn assurance lives in cohort_notes; 'how long pro customers stay' is answered by the retention curve, not a stated lifetime."
+    },
+    {
+      "id": "starter_cohort",
+      "names": [
+        "starter cancellation rate",
+        "starter attrition",
+        "starter upgrade rate",
+        "starter to pro upgrades",
+        "how many starter customers upgrade",
+        "how long starter customers stay"
+      ],
+      "covers": [
+        "do starter customers move to pro",
+        "share upgrading within a year",
+        "what happens to starter customers"
+      ],
+      "notHeld": [
+        "upgrades after month 12",
+        "churn of upgraded customers",
+        "starter churn at the higher price",
+        "upgrade timing drivers"
+      ],
+      "note": "The existing names 'upgrades' and 'upgrade rate' are broad; 'when customers upgrade' must still route to upgrade_timing."
+    },
+    {
+      "id": "cohort_notes",
+      "names": [
+        "finance upgrade method",
+        "how to value upgrades",
+        "is churn steady",
+        "upgrade valuation method",
+        "upgraded customer behavior"
+      ],
+      "covers": [
+        "is cancellation constant over time",
+        "do upgraded customers churn like pro",
+        "churn of upgraded customers",
+        "how to value a starter sign-up"
+      ],
+      "notHeld": [
+        "upgrade timing by month",
+        "discount rate",
+        "churn beyond month 12"
+      ],
+      "note": "'Few upgrades after month 12' also appears in upgrade_timing; both answer it truthfully, so either routing is acceptable."
+    },
+    {
+      "id": "new_customers_by_plan",
+      "names": [
+        "new customers per month",
+        "monthly sign-ups by plan",
+        "sign-ups before and after launch",
+        "new customer trend",
+        "customer acquisition by plan"
+      ],
+      "covers": [
+        "effect on pro sales",
+        "did pro sign-ups change",
+        "impact of starter on pro",
+        "pro sign-ups lost",
+        "how much did sign-ups grow",
+        "total new customers"
+      ],
+      "notHeld": [
+        "sign-ups by month",
+        "sign-ups by channel",
+        "sign-ups after june 2026",
+        "why pro sign-ups fell"
+      ],
+      "note": "The existing names 'pro sign-ups', 'pro signups' and 'new pro customers' also sit on price_test_results; resolve that duplicate by context, since before release of Exhibit 4 they should map here."
+    },
+    {
+      "id": "price_test_results",
+      "names": [
+        "starter price test",
+        "results of the price test",
+        "a/b test results",
+        "price experiment results"
+      ],
+      "covers": [
+        "demand at a higher starter price",
+        "price elasticity of starter",
+        "what if starter costs more",
+        "effect of a price increase on sign-ups",
+        "pro sign-ups at higher starter price"
+      ],
+      "notHeld": [
+        "churn at the higher price",
+        "upgrades at the higher price",
+        "results at other prices",
+        "test results by week"
+      ],
+      "note": "This item is gated until after N3, and 'starter sign-ups' (existing name) could misroute ask about actual sign-ups to test figures; the reviewer should check that duplicate."
+    },
+    {
+      "id": "price_test_notes",
+      "names": [
+        "test caveats",
+        "price test limitations",
+        "price test footnotes",
+        "test limitations"
+      ],
+      "covers": [
+        "does cac change with price",
+        "cost to serve at the higher price",
+        "churn at the higher price",
+        "upgrade rate at the higher price",
+        "can the test measure churn"
+      ],
+      "notHeld": [
+        "test sample size",
+        "statistical significance",
+        "test duration rationale"
+      ],
+      "note": "Churn and upgrade asks at the higher price are honestly answered by 'not yet measurable'; test_design states the same, so either routing is fine."
+    },
+    {
+      "id": "upgrade_timing",
+      "names": [
+        "time to upgrade",
+        "upgrade triggers",
+        "what triggers an upgrade",
+        "why customers upgrade",
+        "upgrade drivers"
+      ],
+      "covers": [
+        "upgrades after first year",
+        "upgrades after month 12",
+        "when businesses outgrow starter"
+      ],
+      "notHeld": [
+        "upgrade rate by month",
+        "in-app upgrade prompts",
+        "upgrades by business type"
+      ],
+      "note": "Upgrade percentages belong to starter_cohort; this item holds only timing and trigger."
+    },
+    {
+      "id": "why_pro_fell",
+      "names": [
+        "reason pro sign-ups fell",
+        "why pro sales dropped",
+        "cause of the pro decline",
+        "reason for fewer pro customers"
+      ],
+      "covers": [
+        "did pro marketing change",
+        "was the sales team changed",
+        "did demo requests fall",
+        "other causes of the pro drop"
+      ],
+      "notHeld": [
+        "number of pro buyers who switched",
+        "interview sample size",
+        "pro sign-ups by month"
+      ],
+      "note": "The size of the Pro drop is in new_customers_by_plan; this item only explains the cause, so 'cannibalization' asks for numbers should not route here. [Reviewed 19 Oct (Claude): struck customer interviews; ]"
+    },
+    {
+      "id": "buyer_profile",
+      "names": [
+        "starter buyers",
+        "pro buyers",
+        "customer segments",
+        "business size by plan",
+        "who chooses starter"
+      ],
+      "covers": [
+        "typical starter customer",
+        "how many employees customers have",
+        "customer segmentation"
+      ],
+      "notHeld": [
+        "industry mix by plan",
+        "segment sizes",
+        "customer business revenue"
+      ],
+      "note": "The existing name 'customer profile' is close to the product item's 'who the software is for'; confirm per-plan asks land here."
+    },
+    {
+      "id": "competitor_prices",
+      "names": [
+        "competitor entry plans",
+        "what competitors charge",
+        "competitive pricing",
+        "rival prices"
+      ],
+      "covers": [
+        "is the higher price competitive",
+        "price benchmarks",
+        "competitors charge",
+        "competitor charges",
+        "competitor entry plans"
+      ],
+      "notHeld": [
+        "named competitors",
+        "competitor features",
+        "competitor market share",
+        "competitor premium plan prices"
+      ],
+      "note": "The existing name 'competitors' would remap any competitor ask, such as named competitors or features, to a price range; consider removing it. [Reviewed 19 Oct (Claude): struck market pricing; ] [Probes 19 Oct: covers for the question form (\"what competitors charge\").]"
+    },
+    {
+      "id": "test_design",
+      "names": [
+        "test methodology",
+        "how the price test was run",
+        "price test setup",
+        "test duration",
+        "price test randomization"
+      ],
+      "covers": [
+        "was the test randomized",
+        "how long the test ran",
+        "how results were scaled"
+      ],
+      "notHeld": [
+        "sample size",
+        "statistical significance",
+        "test results by week"
+      ],
+      "note": "This item is released only after Exhibit 4; it overlaps price_test_notes on the unmeasurable churn and upgrades, which is consistent."
+    },
+    {
+      "id": "existing_starter_customers",
+      "names": [
+        "current starter base",
+        "number of starter customers",
+        "how many starter customers",
+        "installed starter base",
+        "legacy starter pricing"
+      ],
+      "covers": [
+        "can we grandfather",
+        "new customers only pricing",
+        "price change for current users",
+        "would a price increase hit existing customers"
+      ],
+      "notHeld": [
+        "churn of existing starter customers if repriced",
+        "existing starter revenue",
+        "starter customers by tenure"
+      ],
+      "note": "The existing name 'existing customers' is ambiguous with company_size (20,000 total); 'how many starter customers' could also mean sign-ups, which go to new_customers_by_plan."
+    }
+  ]
+}

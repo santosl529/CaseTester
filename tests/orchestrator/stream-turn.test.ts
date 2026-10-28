@@ -3,9 +3,11 @@ import { describe, it, expect, vi } from 'vitest';
 vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
+vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = async () => []; return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
 
 import { vetoReason, streamTurnSegments, gateContext, type GateContext } from '@/lib/orchestrator/stream-turn';
+import { getCaseById } from '@/lib/cases/loader';
+import { factBaseFor } from '@/lib/orchestrator/fact-check';
 import { planTurn } from '@/lib/orchestrator/plan-turn';
 import { readsFixture } from './fixtures/turn-reads';
 import { eventsFromTurn } from '@/lib/agent/models/turn-events';
@@ -27,6 +29,11 @@ const run = (turn: ModelTurn, plan = modelPlanFixture({ distress: null }), sink 
   streamTurnSegments(eventsFromTurn(Promise.resolve(turn)), plan, sink, { isDelivered: { value: false } });
 
 describe('vetoReason', () => {
+  it('stops a refusal of what a cover phrase answers, in the question (engine-asks task 3)', () => {
+    const fb = factBaseFor(getCaseById('prof-002') as never);
+    const gate = g({ facts: { fb, revealed: new Set(), echoes: [] } });
+    expect(vetoReason("As for competition on Ashford and Brookhaven, that's not something I have.", gate, { inQuestion: true })).toBe('false_refusal');
+  });
   it('passes a clean statement', () => expect(vetoReason('Okay.', g())).toBeNull());
   it('stops an unsourced figure', () => expect(vetoReason('So the bean cost rose by $7M per year.', g())).toBe('provenance'));
   it('passes a released figure', () => expect(vetoReason('Revenue is $480M a year.', g())).toBeNull());

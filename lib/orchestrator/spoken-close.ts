@@ -1,3 +1,4 @@
+import { isQuestionForm } from './stall';
 
 // One goodbye, and only when the case actually ends (docs/interviewer-
 // behavior.md Rule 12, v4.2 → v4.6). Run 1d76e3d9 looped on goodbyes because
@@ -45,7 +46,7 @@ const LEAVE_IT_THERE = /\bwe'?ll leave (it|that|things|the \w+) there\b/i;
 // feedback in the candidate's message…
 const ASSESSMENT_WORDS = /\b(?:scor\w*|grad(?:e|ed|ing)\b|rat(?:e|ed|ing)\b|rubric|percentile|evaluat\w*|assess\w*|feedback|report|right track|on track|how am i doing|how (?:did|do) i do|(?:hit|hitting) the bar|land(?:s|ing)? me|relative to (?:others|other candidates)|(?:most|other) candidates|strong on every|keep pursuing|a strong start|how (?:i|i'?m) (?:did|doing|compare))\b/i;
 export function asksAboutAssessment(candidateText: string): boolean {
-  return candidateText.split(/(?<=[.!?])\s+|\n+/).some(s => s.includes('?') && ASSESSMENT_WORDS.test(s));
+  return candidateText.split(/(?<=[.!?])\s+|\n+/).some(s => (s.includes('?') || isQuestionForm(s)) && ASSESSMENT_WORDS.test(s));
 }
 
 // …gets its report hand-off through, mid-case: a sentence that hands off to

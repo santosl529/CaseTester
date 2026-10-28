@@ -137,6 +137,10 @@ describe('planTurn: the conversion closes the step for code\'s probes too', () =
     expect((p.ctx.flags.mathChecker as { closed: string[] }).closed).toEqual(expect.arrayContaining(['converted:bean_points_added']));
     // His "10" is a case figure too (25% × 40%), so no key keeps it: memory does, for the closed figures.
     expect((p.ctx.flags.mathChecker as { convertedFigures: number[] }).convertedFigures).toEqual([10]);
+    // Round-3 ruling 1 (Lorenzo, 19 Oct; b28/b29 Jordan): the line a conversion delivered is recorded too — a later
+    // claim on its key hears that line again, verbatim. Not heard: no record.
+    expect((p.ctx.flags.mathChecker as { corrected: Record<string, unknown> }).corrected).toEqual({ 'bean_points_added@10': { line: "In revenue terms, that's about 4.2 points.", figure: '4.2' } });
+    expect(p.state.checkerLine?.undo.mathChecker.corrected).toBeUndefined();
   });
   it('the next turn: his figure is closed — a doubt on it is withheld', () => {
     const reads = readsFixture({

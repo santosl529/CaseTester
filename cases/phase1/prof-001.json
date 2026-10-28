@@ -1,0 +1,128 @@
+{
+  "caseId": "prof-001",
+  "factTags": {"clientWords": ["Brew & Bean", "Brew and Bean"], "entities": [], "forecast": []},
+  "items": {
+    "revenue_total": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["total", "level"]},
+      "askPhrases": ["the company's total annual revenue", "how large the business is in sales", "sales across the whole chain"],
+      "covers": ["total annual revenue", "revenue in dollars", "dollar revenue", "absolute revenue", "current revenue level", "total company revenue", "company-wide revenue", "how big is the business", "size of the business", "systemwide sales", "system-wide revenue", "total sales today"]
+    },
+    "stores_count": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["total", "trend"]},
+      "askPhrases": ["how many stores the chain has", "whether the store count changed", "new store openings or closures", "same-store versus new-store growth"],
+      "covers": ["store closures", "closed any stores"]
+    },
+    "revenue_per_store": {
+      "tags": {"entity": "client", "period": ["current"], "quantityKind": ["level"]},
+      "askPhrases": ["average sales per store", "revenue of a typical location", "store-level sales productivity"],
+      "covers": ["per-store revenue", "average revenue per store", "sales per store", "revenue per location", "average store revenue", "store-level revenue", "average unit volume", "sales per location", "per-location revenue", "average sales per store"]
+    },
+    "cogs_pct": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["split", "trend"]},
+      "askPhrases": ["cost of goods sold as a share of revenue", "how COGS moved over the period", "COGS then and now"],
+      "covers": ["cogs as a percentage of revenue", "cogs as a share of revenue", "cogs share of revenue", "cogs percentage", "cogs ratio", "cost of goods as a percent", "cost of goods sold as a percent", "cogs over time", "cogs trend", "cogs then and now", "cost of goods trend"]
+    },
+    "labor_pct": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["split", "trend"]},
+      "askPhrases": ["labor cost as a share of revenue", "whether wages or staffing costs moved", "labor then and now"],
+      "covers": ["labor as a percent of revenue", "labor as a percentage of revenue", "labor as a share of revenue", "labor share of revenue", "labour as a percent of revenue", "labor cost trend", "labor costs over time", "staffing costs", "payroll costs", "labor cost ratio", "did labor costs rise", "labor percentage"]
+    },
+    "overhead_pct": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["split", "trend"]},
+      "askPhrases": ["rent and overhead as a share of revenue", "occupancy costs over the period", "overhead then and now"],
+      "covers": ["overhead as a percent of revenue", "overhead and rent as a percent of revenue", "rent as a percent of revenue", "overhead as a share of revenue", "overhead share of revenue", "occupancy costs", "rent costs", "overhead costs", "rent and overhead", "overhead trend", "lease costs"]
+    },
+    "bean_price_change": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend"]},
+      "askPhrases": ["how coffee bean prices moved", "green coffee costs over the period", "the price of raw beans then and now"],
+      "covers": ["coffee bean price change", "bean price change", "bean price increase", "green coffee prices", "coffee commodity prices", "arabica prices", "rise in bean prices", "bean cost inflation", "price of coffee beans", "coffee bean price trend", "raw coffee costs"],
+      "coverExcludes": ["non-bean"]
+    },
+    "avg_ticket": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["level", "trend"]},
+      "askPhrases": ["the average transaction value", "what customers spend per visit", "whether ticket size changed", "spend per transaction then and now"],
+      "covers": ["basket size"]
+    },
+    "menu_price_change": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend"]},
+      "askPhrases": ["whether menu prices changed", "the chain's menu pricing history", "menu price changes over the period"],
+      "covers": ["menu price changes", "menu price increase", "menu prices changed", "raised menu prices", "menu price hikes", "price changes on the menu", "menu prices over time", "menu prices moved", "changed menu prices", "menu price movement"]
+    },
+    "bean_share_of_cogs": {
+      "tags": {"entity": "client", "period": ["historical"], "quantityKind": ["split"]},
+      "askPhrases": ["what share of COGS is coffee beans", "how much of the cost of goods is beans", "the make-up of COGS by input"],
+      "covers": ["bean share of cogs", "coffee bean share of cogs", "share of cogs from beans", "beans as a percent of cogs", "how much of cogs is coffee", "bean portion of cogs", "share of cogs that is beans", "how much of cogs is beans", "beans' share of cogs", "coffee beans' share of cogs"],
+      "coverExcludes": ["non-bean"]
+    },
+    "non_bean_input_change": {
+      "tags": {"entity": "client", "period": ["historical", "current"], "quantityKind": ["trend"]},
+      "askPhrases": ["how dairy, packaging and food prices moved", "the other inputs inside COGS", "non-bean input prices over the period"],
+      "covers": ["other input prices", "other input price change", "dairy prices", "milk prices", "packaging costs", "dairy costs", "packaging prices", "price of dairy", "non-bean input prices", "non-bean inflation", "other input inflation", "dairy and packaging costs", "milk costs"]
+    }
+  },
+  "steps": {
+    "bean_points_added": {"dependsOn": ["bean_share_of_revenue"]},
+    "non_bean_points_now": {"dependsOn": ["bean_share_of_revenue"]},
+    "non_bean_points_added": {"dependsOn": ["non_bean_points_now"]}
+  },
+  "exhibits": {
+    "exhibit-a": {
+      "summary": "The cost-structure chart shows COGS, labor, overhead and profit as shares of revenue for each year of the period."
+    }
+  },
+  "definitions": [
+    {
+      "term": "net profit margin",
+      "text": "Net profit margin is what is left of revenue after COGS, labor and overhead, as a share of revenue.",
+      "steps": ["profit_margin_now", "profit_margin_prior"],
+      "items": ["cogs_pct", "labor_pct", "overhead_pct"]
+    },
+    {
+      "term": "margin impact of COGS",
+      "text": "The margin impact of COGS is the rise in COGS as a share of revenue valued at today's revenue, not the growth in COGS spending, which includes revenue growth.",
+      "steps": ["cogs_dollar_impact"],
+      "items": ["cogs_pct", "revenue_total"]
+    },
+    {
+      "term": "revenue per store",
+      "text": "Revenue per store is total annual revenue divided by the number of stores.",
+      "steps": ["revenue_per_store_check"],
+      "items": ["revenue_total", "revenue_per_store"]
+    },
+    {
+      "term": "beans as a share of revenue",
+      "text": "Beans' earlier share of revenue is beans' share of COGS times COGS as a share of revenue, both from before the increase.",
+      "steps": ["bean_share_of_revenue"],
+      "items": ["bean_share_of_cogs", "cogs_pct"]
+    },
+    {
+      "term": "bean inflation's contribution",
+      "text": "Bean inflation's contribution to the COGS increase is beans' earlier share of revenue times the bean price change, in points of revenue.",
+      "steps": ["bean_points_added"],
+      "items": ["bean_price_change"]
+    },
+    {
+      "term": "other inputs as a share of revenue",
+      "text": "Other inputs' share of revenue today is their earlier share, COGS less beans, scaled up by their price change.",
+      "steps": ["non_bean_points_now"],
+      "items": ["non_bean_input_change"]
+    },
+    {
+      "term": "other inputs' contribution",
+      "text": "Other inputs' contribution to the COGS increase is their share of revenue today less their earlier share, in points of revenue.",
+      "steps": ["non_bean_points_added"],
+      "items": ["non_bean_input_change"]
+    }
+  ],
+  "mustReach": [],
+  "proposed": {
+    "mustReach": [
+      {
+        "item": "non_bean_input_change",
+        "before": "recommendation",
+        "why": "b31 Sofia e0f7d46c t21: recommended a bean procurement reset ('hedging on beans, which were the largest COGS line') never having heard that dairy, packaging and food are up about as much as beans (hand grade b31, fault 3, firm moderate: the input price changes never offered; her own t19 said a broad-based split would change the cost lever). b28 Blake 32f0a72b t21: 'take price … and pair it with hedging their bean supply', resting on his untested green-coffee prior with the bean share and both price changes held (hand grade b28, borderline)."
+      }
+    ],
+    "note": "Lorenzo's ruling: none unless a graded run shows a recommendation contradicted by a fact the candidate never heard. Two prof-001 runs in b28-b33 qualify (above); both recommendations lean on beans as the cost fix, which the other-input price change contradicts. Proposed only, never merged. Caveats: Blake is persona 19 'the data ignorer', who declined the offered data (t13), so a must-reach would hand him what the persona exists to skip; Sofia's miss was the engine's (she asked for the split twice and the price changes were never offered). bean_share_of_cogs (Blake lacked it too) is not proposed: Sofia had it and still erred."
+  }
+}

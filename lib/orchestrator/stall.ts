@@ -95,6 +95,34 @@ export function answersRecommendationAsk(text: string, kind: TurnKind): boolean 
   return COMMITS.test(text.replace(NEGATED_RECOMMENDATION, ' ')) || ACTION_LEAD.test(text.trim()) || FIRST_LEAD.test(text.trim()) || LEVER_LEAD.test(text.trim());
 }
 
+// 4.9 (Phase 1, `recommendationReceived`; Lorenzo, 22 Oct: "recommendationReceived: set it on a clear
+// recommendation."). Quillpath answers led on a verb neither list reads — b37 Marcus t31 "Keep Starter, and raise the
+// price to $60.", Raj t27, Tyler t25 ("Keep Starter — don't shut it down — and raise the price to $60."), b35 Raj
+// t25 "Keep Starter and reprice it to $60." — so the stage record had no recommendation and the time warning asked
+// for it again (Marcus t32). A clear recommendation: the message's first sentence, not a question, opens on what to
+// do (a decision verb, after "So," / "Bottom line:" / "My answer:"), not "Keep in mind…". The caller passes the
+// switch and reads it only on an analysis turn, in reply to a recommendation ask or in the synthesis phases.
+// Review fix round, item 1: the bare imperative read a noun or a subject as the verb, so six sentences that make
+// no recommendation returned true — enough, in RECOMMENDATION / WRAP, to open the end gate on nothing:
+//   "Raise the question of whether the partner will accept 20%."      (an exclusion: the verb's object is a question)
+//   "Keep looking at the cost side first…"                            (an exclusion: the verb takes a gerund)
+//   "Exit would cost $40 million in write-offs…"                      (a subject, not an imperative: a copula follows)
+//   "Build cost is $40 million, which the board has not approved."    (a noun compound: "cost is")
+//   "Sell-through is down 12% at Port Avery." / "Drop-off between trial and repeat is the risk."  (a hyphenated noun)
+// So: the matched word is no imperative when a hyphen, a copula or an auxiliary follows it, and the exclusion list
+// covers the gerunds and "the question". A sentence that frames the decision instead of opening on the verb
+// ("My recommendation is to keep Starter…", "I'd recommend partnering…", "We should exit…") counts as well.
+const CLEAR_REC_VERBS = "keep|stay with|stick with|enter|build|partner(?: with)?|license|launch|proceed(?: with)?|go ahead(?: with)?|exit|drop|kill|shut(?: \\w+)? down|expand|sell|acquire|invest(?: in)?|redeploy|raise|cut|reprice|approve|reject|pursue|don'?t (?:kill|drop|shut|exit|cut|launch|enter|build)";
+const NOT_IMPERATIVE = '(?!-)(?!\\s+(?:in mind|going|track|an eye|it simple|in touch|the question|looking|digging|checking|exploring|open)\\b)'
+  + '(?!\\s+(?:is|are|was|were|would|will|has|have|had|could|should|might|cost|costs)\\b)';
+const CLEAR_REC = new RegExp(`^\\W*(?:(?:so|okay|ok|bottom line|my answer|my recommendation|recommendation)[:,—–-]?\\s+)?(?:${CLEAR_REC_VERBS})\\b${NOT_IMPERATIVE}`, 'i');
+const DECISION_FRAME = /^\W*(?:so,?\s*)?(?:my recommendation is|i'?d recommend|i\s+recommend|we\s+should)\b/i;
+export function clearRecommendation(text: string): boolean {
+  const first = sentencesOf(text)[0]?.trim() ?? '';
+  if (first === '' || COMMIT_REFUSAL.test(text) || first.endsWith('?') || isQuestionForm(first)) return false;
+  return CLEAR_REC.test(first) || DECISION_FRAME.test(first);
+}
+
 export function isRecommendationStatement(text: string, kind: TurnKind): boolean {
   if (COMMIT_REFUSAL.test(text)) return false;
   if (LEVER_LEAD.test(text.trim())) return true;
@@ -109,8 +137,10 @@ function wordCount(s: string): number {
   return s.split(/\s+/).filter(Boolean).length;
 }
 
+// Round 5c Task 63: a question-form sentence counts too (voice STT drops the "?": "So what was the suite").
+// The older bare wh/auxiliary-start fallback below is still ORed in (looser: it also takes "what we need …").
 function isQuestion(text: string): boolean {
-  return /\?/.test(text) || /^\s*(what|what'?s|how|why|which|who|when|where|do|does|is|are|can|could|would|should)\b/i.test(text);
+  return /\?/.test(text) || sentencesOf(text).some(isQuestionForm) || /^\s*(what|what'?s|how|why|which|who|when|where|do|does|is|are|can|could|would|should)\b/i.test(text);
 }
 
 const HEDGE_PATTERN = /\b(i (really )?(don'?t|do not) know|not sure|no idea|i'?m stuck|i am stuck|stuck|can you help|help me|give me a hint|i give up|i can'?t (do|figure|think)|no clue|i'?m lost|i am lost|blank|um+|uh+|hmm+)\b/i;
@@ -156,15 +186,66 @@ export function isQuestionSentence(sentence: string): boolean {
   return sentence.endsWith('?') && INTERROGATIVE_START.test(sentence);
 }
 
+// Question FORM without the "?": voice STT often drops it (22% of the
+// candidate's turns in the 17-19 Oct voice exports). Opens (after fillers)
+// with a wh-word + inversion ("what was", "what am I", "how many", "which
+// one") or an auxiliary + subject ("do we", "does it", "can I", "is there").
+// "do it" / "could be" / "what we need" / "what would make me change course:
+// one, …" are statements (the auxiliary needs a subject after it). A sentence ending in
+// "?" keeps today's rule (isQuestionSentence).
+//
+// Final review I4 (round 5b fix wave): recall on the common data asks — what's /
+// where's / how's + a determiner or a data noun ("What's the revenue", "Where's the
+// cost data") or an -ing word ("What's driving margin"); a wh-word + auxiliary + a
+// bare data noun ("What was revenue in 2024", "How did sales change"); an auxiliary
+// + a determiner ("Is the revenue growing"; not "do the", "have the", "had the": an
+// imperative or a conditional). How much / how long / how often only when inverted —
+// an auxiliary before any subject pronoun ("How much does it cost", "How much revenue
+// did they make"; not "How much we charge will decide it.", "How long it takes depends
+// on the contracts."). A pseudo-cleft is a statement: a wh-word + noun or -ing word
+// with a later "is"/"was" or a colon or dash ("What's driving margin is the bean cost.",
+// "What's missing: product and channel mix." — 40 such sentences in b28–b35).
+const FORM_FILLERS = '(?:(?:so|and|uh|um|okay|ok|yeah|sorry|also)[,.]?\\s+)*';
+const AUX = '(?:is|are|was|were|am|do|does|did|can|could|would|should|has|have|had|will)';
+const DETERMINER = '(?:the|a|an|my|our|your|his|her|its|their|this|that|these|those|any|each|every|some)';
+const SUBJECT_PRONOUN = '(?:i|we|you|they|it|he|she)';
+const WH_INVERSION = `(?:what|how|why|where|when|who)\\s+(?:${AUX}\\s+(?:${SUBJECT_PRONOUN}|there|that|this|these|those|the|a|an|my|our|your|his|her|their)|many|about)\\b`;
+const HOW_AMOUNT = `how\\s+(?:much|long|often)\\s+(?:(?!${SUBJECT_PRONOUN}\\b)[^\\s]+\\s+){0,5}?${AUX}\\b`;
+const WH_CONTRACTED_DET = `(?:what|where|how)['’]?s\\s+${DETERMINER}\\b`;
+const WH_WHICH = 'which\\s+(?:one|ones|of|\\w+\\s+(?:is|are|was|were|do|does|did|should|would|can|could|has|have))\\b';
+const AUX_SUBJECT = `(?:(?:do|did|can|could|would|should|will|have|has|is|are|was|were)\\s+(?:we|i|you|they|there)|does\\s+(?:it|he|she|that|this|there|the)|is\\s+(?:it|that|this)|are\\s+(?:these|those)|can\\s+(?:it|that|this)|could\\s+(?:it|that|this)|(?:is|are|was|were|did|does|has)\\s+${DETERMINER})\\b`;
+const QUESTION_FORM = new RegExp(`^\\s*${FORM_FILLERS}(?:${WH_INVERSION}|${HOW_AMOUNT}|${WH_CONTRACTED_DET}|${WH_WHICH}|${AUX_SUBJECT})`, 'i');
+// A wh-word + a bare noun or -ing word: a question unless a copula follows (a pseudo-cleft).
+const NOUN = DATA_NOUN.source;
+const WH_BARE = new RegExp(`^\\s*${FORM_FILLERS}(?:(?:what|where|how)['’]?s\\s+(?:${NOUN}|[a-z]+ing\\b)|(?:what|how|why|where|when|who)\\s+${AUX}\\s+${NOUN})(.*)$`, 'i');
+// Round 5c Task 63 fix round 1 (no "?" only): two ways a question-shaped opening is still a statement.
+// (a) The candidate answers themselves after the question clause: "Is the price the main driver here,
+//     I would say yes because volume is flat." (", I would say / I'd assume / I think …", "yes because").
+// (b) A cleft: wh + a non-copula auxiliary, then a copula with no subordinator before it ("What do we do
+//     about the cost of beans is raise prices."); "What do we do if the price is 5" stays a question.
+// A cognition/report verb (know, think, tell, say, expect, believe, assume, guess, figure, see, mean) after the subject keeps a question ("How do we know the price is right").
+// "Can we assume the market is growing …" stays a question: it asks for confirmation.
+const SELF_ANSWER = /,\s*i\s+(?:would|'d|think|guess|assume|suppose|figure|believe)\b|,\s*i'd\b|\b(?:yes|no),?\s+because\b/i;
+const WH_AUX_CLEFT = /^\s*(?:(?:so|and|uh|um|okay|ok|yeah|sorry|also)[,.]?\s+)*(?:what|how|why|where|when|who)\s+(?:do|does|did|can|could|would|should|will|have|has)\b(?!\s+\w+\s+(?:know|think|tell|say|expect|believe|assume|guess|figure|see|mean)\b)(?:(?!\b(?:if|when|because|whether|since|that|where|while)\b).)*?\b(?:is|was|are|were)\s+(?:to\s+)?[a-z]+/i;
+export const selfAnswered = (sentence: string) => !sentence.trim().endsWith('?') && SELF_ANSWER.test(sentence);
+export function isQuestionForm(sentence: string): boolean {
+  const s = sentence.trim();
+  if (s.endsWith('?')) return isQuestionSentence(s);
+  if (selfAnswered(s) || WH_AUX_CLEFT.test(s)) return false;
+  if (QUESTION_FORM.test(s)) return true;
+  const bare = WH_BARE.exec(s);
+  return bare !== null && !/\b(?:is|was|are|were)\b|[:—–]/i.test(bare[bare.length - 1] ?? '');
+}
+
 function isDataRequest(text: string): boolean {
   if (DATA_REQUEST_PHRASE.test(text)) return true;
-  return sentencesOf(text).some(s => isQuestionSentence(s) && DATA_NOUN.test(s));
+  return sentencesOf(text).some(s => isQuestionForm(s) && DATA_NOUN.test(s));
 }
 
 // Rule 13 v4.5: the budget counts only question-only turns. A sentence that is
 // not a question and has some substance (not "Okay." / "Sure.") is content.
 function hasSubstantiveStatement(text: string): boolean {
-  return sentencesOf(text).some(s => !isQuestionSentence(s) && wordCount(s) >= 4);
+  return sentencesOf(text).some(s => !isQuestionForm(s) && wordCount(s) >= 4);
 }
 
 // A turn is classified by its content, not its last sentence (Rule 13 v4.5).

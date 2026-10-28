@@ -38,6 +38,10 @@ export type PromptContext = {
   // or none owed. Absent: the generic question. `after`: the titles of the
   // exhibits it waits on (Larkspur: Exhibit 3).
   brainstorm?: { ask: string; required: boolean; after?: string[] };
+  // Phase 1 contract 2.5 (askPhrasesInPrompt; lib/cases/engine-switches.ts): every ledger item's "answers
+  // questions about…" phrases beside its label — no figures, no finding (cases/phase1/<id>.json). In the
+  // stable part, so the cached prefix is the same every turn; absent (switch off), the prompt is unchanged.
+  askPhrases?: { id: string; label: string; phrases: string[] }[];
 };
 
 // What each phase is for. The system tracks the phase from what you declare
@@ -121,6 +125,11 @@ export function buildPromptParts(ctx: PromptContext): { stable: string; turn: st
     ? `DATA YOU CAN RELEASE (declare it in "requests"; never state a value yourself):\n${ctx.unrevealedItems.map(i => `- id: "${i.id}" — ${i.label}`).join('\n')}`
     : 'All case data has been released.';
 
+  // Static: every item, whether released or not, so the section never changes within a case (2.5).
+  const askPhrasesSection = ctx.askPhrases?.length
+    ? `\n\nWHAT EACH DATA ITEM ANSWERS — the questions each case item answers, to help you fill "item_ids". An item can be declared for release only while it is listed under DATA YOU CAN RELEASE. These phrases describe the questions, not the data: never say them as facts.\n${ctx.askPhrases.map(i => `- id: "${i.id}" — ${i.label}: ${i.phrases.join('; ')}`).join('\n')}`
+    : '';
+
   const exhibitSection = ctx.exhibits.length > 0
     ? `EXHIBITS:\n${ctx.exhibits.map(e => `- id: "${e.id}" — ${e.title}${e.shown ? ' (already on the candidate\'s screen — refer to it, don\'t hand it over again)' : e.notYet ? ' (not yet — its turn in the case\'s order hasn\'t come; don\'t hand it over or mention it)' : ''}`).join('\n')}`
     : '';
@@ -189,7 +198,7 @@ DATA AND EXHIBITS — you declare, the system delivers:
 - Release what the candidate has earned: when they are on the right thread and ask for what drives the problem, release it. Defer only when the request is premature (see STRUCTURE). An OPEN DATA REQUEST is released as soon as it is earned.
 - A passing mention (explicit false) is offered, not released: the system says "I can share … if you'd like." Offered data is not released: never build your question on it — it goes out once they take the offer.
 - Data goes out only when asked, with two exceptions: a STALL Level 3 "rescue_item", and an exhibit you hand over when the candidate reaches the point of reading it.
-- Exhibits: when asked, hand it over (its id in that request's item_ids). One already on screen stays there — refer to it, and hand it over again only if they ask. When an exhibit is handed over this turn the system announces it ("Here's an exhibit: …"), so your question asks about it directly ("What does it tell you?") — never "take a look" or "here's the exhibit". If your question refers to an exhibit not yet on screen, set "exhibit" to its id.
+- Exhibits: when asked, hand it over (its id in that request's item_ids). One already on screen stays there — refer to it, and hand it over again only if they ask. When an exhibit is handed over this turn the system announces it ("Here's an exhibit: …"), so your question asks about it directly ("What does it tell you?") — never "take a look" or "here's the exhibit". If your question refers to an exhibit not yet on screen, set "exhibit" to its id.${askPhrasesSection}
 
 FLOW:
 ${phaseGuide(ctx.brainstorm)}

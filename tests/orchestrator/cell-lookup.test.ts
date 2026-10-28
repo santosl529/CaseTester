@@ -89,3 +89,32 @@ describe('only table exhibits; projections are no quotes', () => {
     expect(flags('Extrapolate one more year: contribution today is $15.4M.')).toEqual([]);
   });
 });
+
+// Task 9 (Lorenzo, 19 Oct; §15 p): cells written "$80 million" or "250 million"
+// (entry-001, launch-001) were no facts at all — parseCell took "M" only.
+describe('cells written with "million"', () => {
+  it('become facts, at million scale', async () => {
+    const { buildCellFacts } = await import('@/lib/orchestrator/cell-lookup');
+    const entry = buildCellFacts(getCaseById('entry-001'));
+    expect(entry.find(x => x.item === 'option_a' && x.value === 80)).toEqual(expect.objectContaining({ kind: 'money', scale: 'million' }));
+    expect(entry.find(x => x.item === 'us_adults')?.value).toBe(250);
+    const launch = buildCellFacts(getCaseById('launch-001'));
+    expect(launch.find(x => x.item === 'recipe_cost')).toEqual(expect.objectContaining({ value: 1.2, kind: 'money', scale: 'million' }));
+  });
+  it('"$1.3 million" of recipe development is a misread of the $1.2 million cell', () => {
+    const launch = getCaseById('launch-001');
+    expect(findCellMisquotes('Recipe development was $1.3 million.', launch, [], ['exhibit-1']).map(f => f.items[0])).toEqual(['recipe_cost']);
+  });
+  it('a cell at scale belongs to the line that states it at scale ("$3.0 million" roasting line, not the $3.00 bag)', async () => {
+    const { buildCellFacts } = await import('@/lib/orchestrator/cell-lookup');
+    expect(buildCellFacts(getCaseById('launch-001')).find(x => x.value === 3 && x.scale === 'million')?.item).toBe('launch_costs');
+  });
+  // Batch-32 Aldermoor Tyler t9: the figure comes before its quantity, and the
+  // row's name is "Annual US selling costs paid by Aldermoor". Not caught: a
+  // figure-before-anchor form is a widening awaiting Lorenzo's ruling (Task 9 stop clause).
+  it('"the $77 million annual selling cost" is not caught yet (figure before its quantity)', () => {
+    const entry = getCaseById('entry-001');
+    expect(findCellMisquotes('Aldermoor books all of it, less the $77 million annual selling cost you gave, so about $243 million of contribution before COGS.', entry, [], ['exhibit-3'])).toEqual([]);
+    expect(findCellMisquotes('Annual US selling costs paid by Aldermoor are $77 million.', entry, [], ['exhibit-3']).map(f => f.items[0])).toEqual(['option_a']);
+  });
+});

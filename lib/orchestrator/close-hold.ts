@@ -106,8 +106,66 @@ export function pendingFinalChecks(p: {
 // Read off the last question: already asked how to guard against it; already asked what comes first.
 export const CLOSE_WAIT_MITIGATED = /\b(?:mitigat\w*|guard against|protect against|de-?risk)\b/i;
 export const CLOSE_WAIT_FIRST = /\bfirst\b/i;
-export function closeWaitLine(lastQuestion: string, seed: string, uses?: PhraseUses): string {
-  if (asksRiskQuestion(lastQuestion, true) && !CLOSE_WAIT_MITIGATED.test(lastQuestion)) return line('after_risk', uses, seed);
-  if (!CLOSE_WAIT_FIRST.test(lastQuestion)) return line('first_step', uses, seed);
-  return line('measure', uses, seed);
+// 4.8 (Phase 1, `closeWaitMitigation`; Lorenzo, 22 Oct: "close_wait: don't ask for a mitigation if the candidate's last
+// answer already gave one (action words: phase / stage / pilot / test / trigger / validate / hedge…), or if the last
+// question already asked what they'd do."). Batches 34–38: the follow-up re-asked what the answer had just said (b37
+// Hollis Bay Marcus t25 "I'd mitigate by locking retailer commitments … and staging marketing" → "How would you guard
+// against that?"; b37 Quillpath Marisol t31 "Protection: roll $60 out to a fraction of traffic … Gate full rollout …";
+// b36 Aldermoor Raj t33, Tyler t21 and Marisol t25 — the last two re-asked by the first-step line). The same
+// answer often says what comes first too, so with the switch on the first-step line is skipped as well when the
+// answer has sequencing words ("first", "start with", "next steps", "before committing") or the last question asked
+// what they'd do; the measure line is then asked (controller's reading, proposed — it is a re-ask too when the answer
+// already named its metric or checkpoint; no other line exists).
+//
+// Review fix round, item 4 (Stream 4b's review): the first list matched the stems anywhere, so a bare noun counted
+// as an action and the answer skipped a mitigation it had never given — b32 Aldermoor Marisol t29 "the $300 million
+// board **test** is on net sales", a "net-price-times-share **test**", "the **gate** here is payer coverage". The
+// answer must actually do something, so one of these:
+//   - an -ing / -ed form of an action verb ("staging marketing", "taste testing", "gated on the upgrade rate");
+//   - an action verb under a decision frame within ~3 words ("I'd hedge…", "we would phase…", "by staging…");
+//   - an action verb in clause-initial imperative position with an object ("; stage the 60 reps", "Then phase it",
+//     "Gate full rollout") — added past the review's rule, which would otherwise lose b36 Aldermoor Raj t33 and
+//     b38 Larkspur Tyler t29, two of the six verbatim re-asks 4.8 exists to fix;
+//   - a thing put in place ("set a trigger", "hold a go/no-go", "build in a checkpoint");
+//   - or one of the headers an answer uses for exactly this ("next steps", "first step", "what I'd do",
+//     "Mitigation:" / "Protection:" — a comma counts, as in b38 Larkspur Tyler t29's "Mitigation, in order:").
+const CLOSE_WAIT_ACTION_PARTS = [
+  /\b(?:phas|stag|pilot|test|trigger|validat|hedg|mitigat|guard|gat|stagger|sequenc|protect|de-?risk)(?:ing|ed)\b|\broll(?:ing|ed)\s+out\b|\brollout\b/,
+  /\b(?:i'?d|i\s+would|we(?:'?d|\s+would)|they(?:'?d|\s+would)|(?:the\s+)?client\s+(?:would|should|could)|let'?s|plan\s+to|by)\s+(?:\w+\s+){0,3}(?:phase|stage|pilot|test|trigger|validate|hedge|mitigate|guard|protect|gate|stagger|sequence|roll\s+out)\w*/,
+  /(?:^|[.;!?:]\s*|—\s*)(?:(?:and|then|next|also|so)\s+)?(?:phase|stage|pilot|test|trigger|validate|hedge|mitigate|guard|protect|gate|stagger|sequence|roll\s+out)\s+(?:a|an|the|it|them|this|that|full|\$|\d)/,
+  /\b(?:put|set|build|add|run|hold|lock)\s+(?:a|an|the|in)?\s*(?:tripwire|checkpoint|gate|trigger|control|go\/no-go)/,
+  /\bnext\s+steps?\b|\bfirst\s+step\b|\bwhat\s+i'?d\s+do\b|\b(?:mitigation|protection)\b\s*[:,]/,
+];
+export const CLOSE_WAIT_ACTION = new RegExp(CLOSE_WAIT_ACTION_PARTS.map(r => r.source).join('|'), 'i');
+export const CLOSE_WAIT_ASKED_DO = /\bwhat\s+(?:would|should|could)\s+(?:you|they|the\s+client|\w+)\s+do\b|\bhow\s+would\s+you\s+(?:handle|respond|address|manage|deal\s+with|mitigate|protect|guard|hedge|de-?risk|reduce)\b|\bwhat\s+would\s+you\s+put\s+in\s+place\b|\bnext\s+steps?\b/i;
+// …and the same for the sequencing test: a bare "first" fired on "the first-mover advantage" and "the first city".
+// It must be the sequencing word — sentence-initial, punctuated as a header, "the first step / thing / move", or
+// "start(ing) with". "begin" is narrowed to "begin with / by" for the same reason.
+export const CLOSE_WAIT_SAID_FIRST = /(?:^|[.;!?]\s*)first(?:ly)?\b|\bfirst(?:ly)?[,:]|\bthe\s+first\s+(?:step|thing|move)\b|\bstart(?:ing)?\s+with\b|\bbegin\s+(?:with|by)\b|\bnext\s+steps?\b|\bin\s+order\b|\bimmediately\b|\bright\s+now\b|\btomorrow\b|\bbefore\s+(?:committing|launch\w*|the\s+vote|rolling|we|any)\b/i;
+// The decision, apart from the wording: which pool the follow-up comes from, and which pools 4.8 skipped because
+// the candidate's last answer (or the last question) already covered them. The fault bank pins THIS, not one
+// pool's phrasing: `closeWaitLine` is a three-way fall-through, so re-routing `after_risk` to `first_step` or to
+// `measure` greened 10 and 12 of the 12 close_wait records respectively while the re-ask persisted (gate report
+// §5 item 1). The `close_hold` check logs it (plan-turn.ts).
+export type CloseWaitPool = 'after_risk' | 'first_step' | 'measure';
+export type CloseWaitRule = { pool: CloseWaitPool; skipped: CloseWaitPool[] };
+export function closeWaitRule(lastQuestion: string, o: { answer?: string; skipAnswered?: boolean } = {}): CloseWaitRule {
+  const skip = o.skipAnswered === true;
+  const answer = o.answer ?? '';
+  const skipped: CloseWaitPool[] = [];
+  const mitigated = skip && (CLOSE_WAIT_ACTION.test(answer) || CLOSE_WAIT_ASKED_DO.test(lastQuestion));
+  const risky = asksRiskQuestion(lastQuestion, true) && !CLOSE_WAIT_MITIGATED.test(lastQuestion);
+  if (risky && mitigated) skipped.push('after_risk');
+  if (risky && !mitigated) return { pool: 'after_risk', skipped };
+  const saidFirst = skip && (CLOSE_WAIT_SAID_FIRST.test(answer) || CLOSE_WAIT_ASKED_DO.test(lastQuestion));
+  const firstOpen = !CLOSE_WAIT_FIRST.test(lastQuestion);
+  if (firstOpen && saidFirst) skipped.push('first_step');
+  if (firstOpen && !saidFirst) return { pool: 'first_step', skipped };
+  return { pool: 'measure', skipped };
+}
+// The decision as the `close_hold` check's reason says it, so a bank record can pin it with one `check` assertion.
+export const closeWaitReason = (r: CloseWaitRule) => `close_wait line: ${r.pool}; skipped: ${r.skipped.join(', ') || 'none'}`;
+
+export function closeWaitLine(lastQuestion: string, seed: string, uses?: PhraseUses, o: { answer?: string; skipAnswered?: boolean } = {}): string {
+  return line(closeWaitRule(lastQuestion, o).pool, uses, seed);
 }

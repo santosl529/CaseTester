@@ -17,6 +17,18 @@ function norm(s: string): string {
   return s.toLowerCase().replace(/[^a-z0-9%]+/g, ' ').trim();
 }
 
+// An overall of strong needs no needs_work among the assessed dimensions and at
+// least half of them strong. Shared with the caveat floor, which can take a
+// dimension out of "assessed" after this gate has run. Mutates the rubric.
+export function capStrongOverall(rubric: RubricScores): { from: Rating; to: Rating } | null {
+  const assessed = RUBRIC_DIMENSION_KEYS.filter(k => !rubric[k].notAssessed);
+  const strongCount = assessed.filter(k => rubric[k].rating === 'strong').length;
+  const anyNeedsWork = assessed.some(k => rubric[k].rating === 'needs_work');
+  if (rubric.overallRating !== 'strong' || (!anyNeedsWork && strongCount * 2 >= assessed.length)) return null;
+  rubric.overallRating = 'meets_bar';
+  return { from: 'strong', to: 'meets_bar' };
+}
+
 export function applyStrongGate(
   rubric: RubricScores,
   candidateTexts: string[],
@@ -44,13 +56,6 @@ export function applyStrongGate(
     }
   }
 
-  let overallCapped: { from: Rating; to: Rating } | null = null;
-  const assessed = RUBRIC_DIMENSION_KEYS.filter(k => !out[k].notAssessed);
-  const strongCount = assessed.filter(k => out[k].rating === 'strong').length;
-  const anyNeedsWork = assessed.some(k => out[k].rating === 'needs_work');
-  if (out.overallRating === 'strong' && (anyNeedsWork || strongCount * 2 < assessed.length)) {
-    overallCapped = { from: 'strong', to: 'meets_bar' };
-    out.overallRating = 'meets_bar';
-  }
+  const overallCapped = capStrongOverall(out);
   return { rubric: out, downgraded, overallCapped };
 }

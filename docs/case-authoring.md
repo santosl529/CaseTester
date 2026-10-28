@@ -1,5 +1,7 @@
 # Case Authoring Rules
 
+Onboarding a case end to end (stages, gates, costs, tracker): `docs/case-onboarding.md`.
+
 Source: pilot transcript review (July 2026). Complements `docs/interviewer-behavior.md`.
 
 ## Pre-flight ledger consistency (hard QA gate)
@@ -118,6 +120,21 @@ transcripts and get zero false flags. Until then leave `stepFlagsLive` out —
 its step flags are logged (`recompute_report_only`) and never spoken. Set it
 to `true` only with that validation recorded (prof-001 is the only case).
 
+**The anchor audit (19 Oct; `scripts/anchor-audit.ts`).** Before a case's first
+wave, run it: an LLM reads the case JSON and the PDF (as text) and proposes, per
+ledger item, the names candidates use for it and the asks it answers without
+naming it; the script lints the proposal, writes a diff, replays a file of asks
+(`--asks=`: real ones from transcripts, `evals/anchor-probes.json` for asks that
+must not misfire) through today's anchors and the proposed ones, and `--apply`
+merges a reviewed proposal into `factAnchors.names`/`covers`. Review is the
+human step — strike a phrase that sends an ask to the wrong item, add the ones
+the asks need. Batch 32: three false refusals of held data were asks no anchor
+named; the model's raw proposal fixed one of five, the reviewed one all five.
+Know the matcher: it splits a declared ask at commas, "and", "or", "plus" and
+matches each part alone; names before covers; a name only when the rest of
+its part is neutral words; a short generic cover ("average fare") fires on every
+part that contains it.
+
 **`factAnchors.covers` (13 Oct).** Before code says "I don't have X" it checks
 whether a ledger item or a prompt fact covers X. Most asks are matched by an
 item's names; `covers` lists the asks an item or prompt fact answers without
@@ -139,6 +156,22 @@ phrase is matched across the whole ask ("fares and volume" covers both
 entries of the list it splits into). A prompt fact may carry no figure when
 the prompt states it only in words (Larkspur's `planes_as_full`, direction
 flat): it is restated by its `say`.
+
+**Covers for the forms candidates use (20 Oct, round 5).** B1 and B2 refused
+held data for "treatment mix", "breakdown by drug class", "store count",
+"distribution rate", "chip volume" and "forecast versus actual" (D1–D5). Audit
+covers for the mix / breakdown-by / how-many / store-count / trend forms of
+every landscape and reach item. No bare category word ("distribution" would
+also take "distribution costs", which are freight). A count ask ("how many …",
+"number of …") of an item whose value states no figure gets the item's line
+(when it isn't out yet) and "I don't have the number of …", unless a cover carries the count ("how many
+stores" keeps `retailer_support` whole; the count rule is proposed, awaiting
+Lorenzo). A one-off, upfront or setup cost asked of an item that states only an
+annual or monthly figure is a finer cut the same way. Add each batch ask
+verbatim, and a true-refusal probe per cover, to `evals/anchor-probes.json`.
+On a tagged case (round 6, below) the matcher also folds plurals and a few
+synonyms and reads the candidate's own sentence, so author the singular,
+"how many" form once.
 
 **`ledgerLookupLive` (13 Oct).** The exact lookup also reads ledger lines no
 exhibit shows, figure by figure, for the quantity named next to each
@@ -186,10 +219,22 @@ false revenue-per-store error in most reports. Each step now declares:
   within five words of it in the same clause (clauses split at "but", "so",
   commas, dashes). Pick phrases a candidate uses when stating *this* quantity,
   not words that describe its inputs — "COGS" as a cue for the dollar-impact
-  step matched "$280 million COGS", a spend figure.
-- `unit` (`percent` | `points` | `usd`) — when set, only numbers that state
-  this unit count. Unitless ratios and hypotheticals ("1 minus 0.94") are too
-  weak to attribute. Set it on every step whose answer has a natural unit.
+  step matched "$280 million COGS", a spend figure. **Since round 5 (20 Oct,
+  E6) the live stale reader reads them too:** a later figure closes the step's
+  flag when it is tied to a phrase whose head noun a cue (or the checker's
+  quantity) names. The engine adds no synonyms (Lorenzo), so the case's own
+  words for the quantity belong here: launch-001's `launch_costs_total` takes
+  "fixed costs" (Hollis Bay Tyler's "fixed costs $3.0 + $4.5 + $1.5 = $9.0
+  million").
+- `unit` (`percent` | `points` | `usd` | `ratio`) — when set, only numbers that
+  state this unit count. Unitless ratios and hypotheticals ("1 minus 0.94") are
+  too weak to attribute. Set it on every step whose answer has a natural unit.
+  `ratio` (20 Oct, E3) is for a multiple such as LTV/CAC (pricing-001's
+  `pro_ratio`, `starter_ratio`, `starter_ratio_with_upgrades`): it reads
+  "2.5x", "2 times" or a bare figure, never a $ or % figure; code's line says
+  "about 2 times", never "$2"; the claim is keyed by its x / times figure. A
+  `usd` step at `scale: "million"` gets "about $9 million, not $8.8 million"
+  for a bare "8.8".
 - `inputs` — the ledger item ids the step derives from. The step is checked
   only after all of them are revealed (live) or were revealed at some point
   (scoring). Leave empty only for steps derivable from the case prompt alone.
@@ -282,6 +327,17 @@ quote it needs the words candidates use for each quotable item:
   `change` for one that states a change ("up 40%").
 - `of`: for a share item, what it is a share of — the quote must say so
   ("beans were 25% of COGS").
+- `scope` (Phase 1, 26 Oct): a bare quantity word that counts only where one
+  of these words is named earlier in the same sentence —
+  `{ "item": "lakeport_fare", "names": ["fare", "fares"], "scope": ["lakeport"] }`,
+  so "On Lakeport, the exhibit shows fare down to $125" is read as a Lakeport
+  fare and "Port Avery's fare is $160" is not. Use it where several items hold
+  the same quantity for different entities (a route, a plan, a rival) and the
+  candidate names the entity away from the quantity. Two rules come with it: a
+  scoped name never names the item on its own (fact-check reads it only as a
+  quote, never for a refusal or an ask), and a modifier right before the bare
+  name makes another quantity ("Lakeport's **breakeven** fare is $130" is the
+  candidate's own figure, not a quote).
 - The figures come from the item's `timeframes` (an item without timeframes
   can't be an anchor — the case fails to load). A shown exhibit's column
   counts too, matched by column name to the item's `names` ("COGS" → cogs).
@@ -317,6 +373,19 @@ and sits in the interviewer's prompt before anything is released. Every figure
 in the notes must be in a sentence the exhibit covers, like its cells
 (consistency test).
 
+**Notes are read by the candidate (20 Oct, D6, Lorenzo).** The chat and the
+voice room's exhibit panel show them under the table, and since round 5 the
+simulated candidate gets them too (`exhibitAsText`: the rows, then
+`Note: <notes>`; before that, waves never saw them). Write them for the
+candidate. Keep notes as notes; never move them into rows. Every item in
+`coversLedgerItems` must have its figures and key words (words of seven or
+more letters) somewhere on the exhibit: cells, column headers, title or notes
+(consistency test). An item that came out only on an exhibit is restated as
+"As the exhibit shows: <its ledger line>", one that was said as "As I
+mentioned: …" (`restate_exhibit` pool), so a ledger line should read after
+either lead-in. One that opens "As …" reads twice ("As the exhibit shows: As a
+share of revenue…", prof-001; cosmetic, logged).
+
 ## The analysis ask's lead (13 Oct)
 
 Write `analysisCore.ask` as "Let's hold the recommendation for now: <the
@@ -349,6 +418,115 @@ item in every case has one (consistency test).
 turn, before its figures are out (consistency test). A prompt-derivable step
 lists the ledger items that confirm it (prof-002's operating-profit swing:
 the network totals and fixed costs).
+
+## Covers on a tagged case (21 Oct, round 6)
+
+A case with `factAnchors.tags` (below) gets round 6's cover matching; prof-001
+has no tags and keeps the literal matcher. On a tagged case:
+
+- **The matcher folds before it matches**, the ask and the phrase alike:
+  plural and possessive endings, and `COVER_SYNONYMS` — "number of" / "count
+  of" → "how many", "departures" → "flights", "doors" → "stores", "pricing" →
+  "price" (as a noun). Don't author plural or synonym variants: "avoidable fixed
+  costs" already covers "avoidable fixed cost", and "how many stores" covers "a
+  distribution estimate by number of stores" (Hollis Bay Marisol t7, audit row 5).
+- **The candidate's asking sentence is matched too**, not only the model's
+  rewording, so a phrase can match an ask through the candidate's words.
+- **A hit is dropped** when its list entry names another entity and not the
+  item's own (the tags' entity words), when it names a region the item's label
+  and line don't (Europe, EU, UK, Canada, Asia, international), or when a count
+  is asked "in total" / "altogether" of an item whose line states no total.
+- **A matched item is released only if its tags and scope agree**; otherwise
+  the ask gets a named deferral with no small-model call.
+
+**Writing covers** (Lorenzo, 21 Oct: "Each must be multi-word and specific,
+with no bare "cost" or "flights"."):
+- Multi-word and specific: the thing asked for, as candidates say it ("cost per
+  seat mile", "total departures", "average fare by route"). Never a bare
+  "cost", "flights", "distribution" or "volume".
+- A phrase on two items only when the ask is answered by both (prof-002's
+  "average fare by route" on both route fares, listed in the lint's
+  `INTENDED_PAIRS`).
+- A phrase that already gives the coarse form through the candidate's sentence
+  doesn't need a cover: launch-001's "chip bag volume" was removed because it
+  released `why_now` whole, where the sentence path gives `why_now` + "I don't
+  have annual chip bag volume."
+- A modifier before a phrase isn't read ("fixed costs per available seat mile"
+  meets "cost per available seat mile"); keep that in mind for generic heads.
+
+**The cover lint** (free, no model calls):
+`npx tsx scripts/cover-lint.ts --runs "<main>/Case Interview Runs/test runs" --out <file.md>`.
+It lists every folded phrase shared by two items' covers (intended / at BASE /
+new), every candidate sentence and model-declared ask in the case's runs that a
+new or changed phrase matches (or an existing phrase newly matches through the
+fold), what the engine does with it and the `tagsAgree` verdict, every model ask
+whose coverage changes from BASE, and the count per phrase. Read every match and
+mark it "answers" or "doesn't"; narrow or remove a phrase with a match that
+doesn't answer before committing it.
+
+## `factAnchors.tags` — whose figure, and forecast or current (21 Oct, round 6)
+
+prof-002's block (entity words shortened):
+
+```json
+"tags": {
+  "clientWords": ["Larkspur", "our", "we"],
+  "entities": [{ "id": "competitor", "rival": true,
+                 "words": ["entrant", "competitor", "competitors", "low-cost carrier", "rival"],
+                 "items": ["competitor_entry", "competitor_costs"] }],
+  "forecast": ["new_routes_plan", "new_routes_cost_flights", "new_route_rampup"]
+}
+```
+
+- `clientWords`: the words that name the client's own business or product
+  (launch-001: "chickpea", "the line", "the new line", "roasted", "the snack").
+  They are read outside a question's frame ("Do we know …" names nobody).
+- `entities`: each other company or product the case talks about — the words
+  that name it and the items about it. Items in no entity are the client's.
+  `rival: true` for a competitor (prof-002's `competitor`, entry-001's
+  `nimbrel`); leave it off for something the client owns (launch-001's `chips`
+  is the client's own chip business). A rival's own item answers a competitor or
+  benchmark ask.
+- `forecast`: the items that state a forecast, plan or estimate. An ask with a
+  current marker (today, currently, now, this year) doesn't get them.
+- An ask naming another entity and no client word doesn't get the client's
+  items; an ask naming one entity doesn't get another entity's items. An item
+  whose own label or line names the asked entity counts as answering it
+  coarsely (its line plus "I don't have <the ask>").
+- Adding `tags` opts the case into round 6's matching and answer gate (period
+  and scope on every path; topic, entity and forecast on the small-model
+  check's verdicts). Ids must be ledger items or prompt facts; entity objects
+  are strict (an unknown key fails load). A case with no entity confusion still
+  gets an empty block (pricing-001: `entities: []`, `forecast: []`).
+
+## `mustReach` — items code volunteers (21 Oct, round 6)
+
+`mustReach: [{ "item": "<ledger id>", "before": "<exhibit id>" | "recommendation" }]`.
+For content the guide says the candidate must have before a point, whether or
+not they ask (prof-002: `competitor_entry` before `exhibit-3`, the network fix;
+`new_route_rampup` before `recommendation`). Code releases the item first in the
+data line on the turn that hands over that exhibit or asks for the
+recommendation, if it isn't out yet. The report notes it as volunteered and the
+judge doesn't credit the candidate for asking. Use it sparingly: it changes what
+every candidate hears, and so the comparability of waves. prof-002 is the only
+case with it.
+
+## Step roots: `dependsOn` and `inputQuestion` (21 Oct, round 6)
+
+- `dependsOn: ["<step id>"]` on a math step built on another step's result
+  (pricing-001: twelve Starter steps depend on `starter_ltv`). Read
+  transitively; unknown ids and cycles fail load.
+- `inputQuestion` on a root step: one neutral question about the input the
+  candidate may have misread ("Which row of the Starter cohort table did you
+  use for cancellations?"). It must end in "?" and carry no digit — no figure,
+  no arithmetic, no hint of the answer.
+- With either field, a deterministic step flag on the root (live or
+  report-only) links the derived claims built on it: they aren't probed one by
+  one, and the root gets the question once. Code never corrects from the step
+  flag alone; corrections still need the checker. Declare `dependsOn` only for
+  real derivations: a step listed as dependent goes quiet while its root stands.
+  pricing-001 is the only case with them; its step flags are report-only, so a
+  false binding can ask an unneeded question (PRD §15).
 
 ## Labels say what the item is (v4.10)
 
@@ -411,9 +589,11 @@ budgets are stage deadlines (15 Oct):** a required lead exhibit and the core
 analysis are owed by the end of the ANALYSIS budget, later exhibits and the
 brainstorm by the end of EXHIBIT, the recommendation ask by the end of
 BRAINSTORM — so RECOMMENDATION + WRAP should leave room for two exchanges
-(the recommendation and its risk question, ~3 minutes at a typed pace). The clock is one for
-every case: the AI Casing cases were written for 25 minutes and run at 20, with
-their budgets scaled (Lorenzo, 13 Oct). Wave reports give each stage's minute
+(the recommendation and its risk question, ~3 minutes at a typed pace). The AI Casing cases
+were written for 25 minutes and run at 25 (`pacing.totalMs`; prof-002 since 13
+Oct, the others since 19 Oct), with budgets ×1.25 and at least 3 minutes for
+RECOMMENDATION + WRAP, taken from ANALYSIS (Lorenzo, 15 and 19 Oct); prof-001
+runs 20. Wave reports give each stage's minute
 per run (`scripts/stage-minutes.ts`). Prefer setting
 `phaseBudgetsMs` for any case where structuring or analysis legitimately needs
 more than an even 1/8th share of the clock — a uniform default fires spurious

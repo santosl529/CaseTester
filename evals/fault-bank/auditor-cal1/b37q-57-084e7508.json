@@ -1,0 +1,71 @@
+{
+ "run": "test runs/batch-37-quillpath-oct-20-runs-1-5/57-marisol-the-context-confuser/live-run-2026-10-21-084e7508.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 14,
+   "class": "stale_probe",
+   "severity": "firm",
+   "quote": "You mentioned 22.5 months for Starter. What monthly amount did you divide the $900 by, and does that match how lifetime value is defined?",
+   "why": "At t11 the candidate had already redone 22.5 as $900 ÷ $30 = 30 months. The probe targets a withdrawn figure."
+  },
+  {
+   "turn": 16,
+   "class": "ignored_ask",
+   "severity": "firm",
+   "quote": "I'm putting up an exhibit: Quillpath — New customers per month, by plan (average per month). What stands out to you in this exhibit?",
+   "why": "The candidate asked at t15 whether the upgraders are people who would have bought Pro anyway. The turn gives no release, refusal or deferral."
+  },
+  {
+   "turn": 18,
+   "class": "false_correction",
+   "severity": "serious",
+   "quote": "On the 43%: how did you get to 150 over 350, and which base is right for sizing how much Pro demand moved to Starter?",
+   "why": "The candidate's 150 ÷ 350 = 43% was correct as stated, and the checker marked it correct. Challenging it pushed the candidate back to the 30% framing that fed the 300 trade-down error."
+  },
+  {
+   "turn": 22,
+   "class": "wrong_figure",
+   "severity": "false",
+   "quote": "trade-downs were only 30% of Starter sign-ups against the 500 Pro baseline",
+   "why": "30% is the share of the 500 Pro baseline, not of Starter sign-ups. Trade-downs are 15% of Starter sign-ups, so the line puts 30% on the wrong quantity."
+  },
+  {
+   "turn": 30,
+   "class": "rec_reask",
+   "severity": "borderline",
+   "quote": "What is the biggest risk to it, and how would you protect Quillpath against it?",
+   "why": "The candidate had already stated risks and next steps in the t27 recommendation."
+  },
+  {
+   "turn": 32,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "How would you guard against that?",
+   "why": "The candidate had just given protection at t31: a staged rollout with a $40 control and gating on the upgrade rate."
+  },
+  {
+   "turn": 32,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "How would you guard against that?",
+   "why": "The t31 sensitivity figure of about $640,000 is wrong (right is about $600,000) and the checker flagged it. It was never probed or corrected."
+  },
+  {
+   "turn": 34,
+   "class": "missed_error",
+   "severity": "firm",
+   "quote": "We're at time now. Thanks for working through it — your written report will follow.",
+   "why": "The case closed with the t33 tripwire error left open. The candidate put the breakeven at 15% when it is 12.5%, and the checker flagged it, but no probe or correction came."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 18541,
+  "output": 3764,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 35408,
+ "usd": 0.149444
+}

@@ -1,7 +1,8 @@
 // Lorenzo, 13 Oct (Larkspur review, item 3): a figure binds to a step only
 // when it can be that quantity — its scale, a count's unit, a real figure.
 import { describe, it, expect } from 'vitest';
-import { findStepSpans } from '@/lib/scoring/math-spans';
+import { findStepSpans, cueNames } from '@/lib/scoring/math-spans';
+import { getCaseById } from '@/lib/cases/loader';
 
 const perFlight = { id: 'c', description: '', cues: ['contribution', 'per flight'], unit: 'usd' as const, scale: 'unit' as const };
 const annual = { id: 'a', description: '', cues: ['contribution', 'a year'], unit: 'usd' as const, scale: 'million' as const };
@@ -30,6 +31,35 @@ describe('a count takes no money or percent', () => {
   });
   it('a count in millions stays a count ("6 million bags")', () => {
     expect(vals('we need to sell 6 million bags', { id: 'b', description: '', cues: ['bags'], unit: 'count' as const })).toEqual([6]);
+  });
+});
+
+// Lorenzo, 20 Oct (E6): Quillpath Tyler t29 "Test arm, $60: … LTV $50 / 0.074 ≈ $676"
+// restated his $405 Starter LTV at $40 — the case's '$60' not-cue never matched after a space.
+describe('a not-cue that opens on a symbol', () => {
+  const starterLtv = { id: 's', description: '', cues: ['ltv', 'lifetime value'], notCues: ['$60', 'at 60'], unit: 'usd' as const, scale: 'unit' as const };
+  it('"$60" excludes its sentence; "$600" is not "$60"', () => {
+    expect(vals('Test arm, $60: Starter margin $50, so LTV $50 / 0.074 ≈ $676, plus the upgrade stream 0.20 × $4,000 = $800, giving $1,476; less $300 CAC = $1,176 net per signup.', starterLtv)).toEqual([]);
+    expect(vals('So Starter LTV is $600.', starterLtv)).toEqual([600]);
+    expect(vals('Starter LTV is $600 at 600 signups.', starterLtv)).toEqual([600]);
+  });
+  it('a cue opening on a symbol is unchanged (still \\b-anchored)', () => {
+    expect(vals('at $60 the LTV is $1,000', { id: 'v', description: '', cues: ['$60'], unit: 'usd' as const })).toEqual([]);
+  });
+});
+
+// Lorenzo, 20 Oct (E6): "where a miss is vocabulary, add that case's synonym to the
+// step's cues in the case JSON ("fixed costs" for launch_costs_total). No engine-wide
+// synonyms." Hollis Bay Tyler t11 called his launch costs "fixed costs".
+describe("case vocabulary: launch-001's launch costs are its fixed costs", () => {
+  const step = getCaseById('launch-001').mathSteps.find(s => s.id === 'launch_costs_total') as Parameters<typeof findStepSpans>[1];
+  const T11 = 'That makes fixed costs $3.0 + $4.5 + $1.5 = $9.0 million, and breakeven volume $9.0 million / $1.50 = 6.0 million bags.';
+  it('the step\'s cues name "fixed costs"', () => {
+    expect(step.cues).toContain('fixed costs');
+    expect(step.cues!.some(c => cueNames('fixed costs', c))).toBe(true);
+  });
+  it('Tyler t11: his "$9.0 million" binds to the step', () => {
+    expect(vals(T11, step)).toContain(9);
   });
 });
 

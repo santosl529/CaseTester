@@ -69,9 +69,11 @@ export function ReportCard({ label, rating, feedback, legacyEvidence }: Props) {
                 {feedback.missedOpportunities.map((item, i) => (
                   <div key={i} className="mb-2">
                     <p className="text-sm text-neutral-600 mb-1">{item.moment}</p>
-                    <p className="text-sm text-neutral-900 border-l-2 border-blue-200 pl-3">
-                      A great answer: &ldquo;{item.betterResponse}&rdquo;
-                    </p>
+                    {item.betterResponse && (
+                      <p className="text-sm text-neutral-900 border-l-2 border-blue-200 pl-3">
+                        A great answer: &ldquo;{item.betterResponse}&rdquo;
+                      </p>
+                    )}
                   </div>
                 ))}
               </div>

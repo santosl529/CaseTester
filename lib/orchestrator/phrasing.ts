@@ -14,6 +14,8 @@
 // seed before they had a memory (and a line said once a session keeps its
 // variety across sessions).
 
+import { normalizeNumberWords } from '@/lib/number-words';
+
 export const PHRASE_POOLS = {
   // data-decisions.ts: what was asked, held for later. The slot is never a verb's subject:
   // what was asked is often plural ("menu price changes").
@@ -24,6 +26,17 @@ export const PHRASE_POOLS = {
     'Hold that thought on {x} — we\'ll come back to it shortly.',
     'That\'s for a little later — we\'ll come back to {x}.',
   ],
+  // A deferral on a wrap-up or close turn (turn-data.ts wrapUpTurn): the case
+  // won't get back to it. Lorenzo's words, one variant (19 Oct, round-2 ruling 3;
+  // every deferral there, item-backed included: round-3 ruling 4).
+  wont_get_to: [
+    'We won\'t get to {x} today.',
+  ],
+  // …when what was asked is long (more than 8 words as said) or a list (two or
+  // more asks, a comma, an "and"): Lorenzo's words, one variant (19 Oct, round-3 ruling 4).
+  wont_get_to_that: [
+    'We won\'t get to that today.',
+  ],
   // …and what the case doesn't hold.
   refuse: [
     'I don\'t have {x}.',
@@ -31,6 +44,23 @@ export const PHRASE_POOLS = {
     'When it comes to {x}, I don\'t have that.',
     'As for {x}, that\'s not something I have.',
     '{X} — that\'s not something I have.',
+  ],
+  // `refusalAssume` (27 Oct, Lorenzo; measurement only): a non-assertive line for what the case may not hold —
+  // "I don't have X" asserts absence, the claim that goes false. Said only where code is not confident it's absent.
+  assume: [
+    'On {x}, I\'d make a reasonable assumption.',
+    'For {x}, make a reasonable assumption.',
+    'On {x}, go with a sensible assumption.',
+    'For {x}, I\'d work with a reasonable assumption.',
+    'On {x}, a reasonable assumption will do.',
+  ],
+  // …and the coarse line given, a finer cut asked: after the coarse line.
+  assume_finer: [
+    'For anything finer, make an assumption.',
+    'For anything finer than that, make a reasonable assumption.',
+    'Beyond that level of detail, make an assumption.',
+    'For a finer cut, I\'d make an assumption.',
+    'For any finer detail, make an assumption.',
   ],
   // The exhibit handover: its title.
   exhibit: [
@@ -47,6 +77,32 @@ export const PHRASE_POOLS = {
     'Again, for reference: {x}',
     'That\'s one we\'ve covered: {x}',
     'Repeating what I said before: {x}',
+  ],
+  // A fact that so far came out only on an exhibit, said again: the lead-in
+  // names where it came from (Lorenzo, 20 Oct, D6).
+  restate_exhibit: [
+    'As the exhibit shows: {x}',
+    'The exhibit has this — {x}',
+    'Again, from the exhibit: {x}',
+    'That\'s on the exhibit: {x}',
+    'Reading the exhibit again: {x}',
+  ],
+  // Phase 1 4.1 (restateRules): a re-ask of data on an exhibit already out — pointed to, with the exhibit's one-line
+  // summary (no figures; the case's overlay), not read again.
+  restate_pointer: [
+    'You\'ll find that on the exhibit — {x}',
+    'That one is on the exhibit you have: {x}',
+    'The exhibit already shows that — {x}',
+    'The exhibit you have covers that: {x}',
+    'That\'s covered on the exhibit — {x}',
+  ],
+  // …and a re-ask of a line said within the last four turns: named, not said again.
+  restate_recent: [
+    'I gave you {x} a moment ago.',
+    'We just went over {x}.',
+    'I covered {x} just now.',
+    '{X} came up a moment ago.',
+    'I went through {x} a moment ago.',
   ],
   // An earlier ask released once its stage is reached.
   earlier: [
@@ -416,12 +472,37 @@ export const PHRASE_POOLS = {
     'Can you show me that calculation step by step?',
     'What were the steps in that calculation?',
   ],
+  // settle-turn.ts, Phase 1 task 5 (`probeGuardMethod`; Lorenzo, 26 Oct: "ask about method ('Walk me through how you
+  // got there'), never name a figure that code verified as correct"): the replacement for a withheld math challenge.
+  // No slot — it names no figure at all, where `got_to` puts the candidate's own figure back to them.
+  // His illustration is `probe_there`'s own first line (the checker's neutral probe), and no line may sit in two pools
+  // — each heard line is recorded once, and the two would be indistinguishable where a checker probe is also in play
+  // (`lineHeard` reads a flag's line by its words). So the first version says the same thing in its own words.
+  probe_method: [
+    'Walk me through how you worked that out.',
+    'How did you get there, step by step?',
+    'Walk me through the steps you took.',
+    'How do you get there?',
+    'Walk me through your reasoning there.',
+  ],
   probe_there: [
     'Walk me through how you got there.',
     'How did you get there?',
     'Take me through your reasoning there.',
     'What got you there?',
     'Talk me through how you got there.',
+  ],
+  // math-checker-live.ts withProbeOpener: the lead-in of a checker probe that opens "You said" (code's quoted late
+  // probe, "You said “<quote>” — …", or the checker's own line). Only these words vary; the quote and the rest of the
+  // line stay byte-identical (Lorenzo, 19 Oct, round-4 ruling 6; b33 Marisol: two consecutive checker lines both
+  // opened "You said"). The last two read only before a figure ("You put it at “$4.8M”"), so a quoted clause or the
+  // checker's own line (what follows is unknown) takes the first three; see PROBE_OPENER_CLAUSE.
+  probe_opener: [
+    'You said',
+    'You mentioned',
+    'Earlier you said',
+    'You put it at',
+    'You had',
   ],
   // silence.ts (text mode): the check-in, once a silence — again after the next silence;
   // the question on the table follows it.
@@ -463,6 +544,16 @@ export const PHRASE_POOLS = {
     'That\'s everything I wanted to cover. Thanks for working through the case — your written report will follow.',
     'We\'ve gotten through what I wanted to. Thank you for working through the case; your written report will follow.',
     'I have what I need. Thanks for working through it — your written report will follow.',
+  ],
+  // 4.10 (Phase 1, `ackRotation`): the model's opening acknowledgment, rotated (rotateOpeningAck below). Bare
+  // acknowledgments only: the prompt's own ("Mm-hm.", "Got it.", "Understood."; system.ts) and "I see." — no "Right."
+  // (read as a verdict after a correction, b38 Marisol t18) and no "Okay." (the prompt: "at most now and then").
+  // Four, the fewest the last-3 rule allows.
+  ack: [
+    'Understood.',
+    'Mm-hm.',
+    'Got it.',
+    'I see.',
   ],
   close_unresolved: [
     'We\'ll stop there. Thanks for working through the case — your written report will follow.',
@@ -623,10 +714,11 @@ export function asOriginalProbe(text: string): string {
 
 // The session's uses after a turn that said \`spoken\`: each variant heard, by pool, the last PHRASE_MEMORY kept.
 // \`extra\`: pools outside the registry heard too (a case's data-line versions, by "data:<itemId>").
-export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, extra?: Record<string, readonly string[]>): PhraseUses {
+// The `ack` pool is recorded only with `o.ack` (the case's `ackRotation`): off, the uses are as before.
+export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, extra?: Record<string, readonly string[]>, o: { ack?: boolean } = {}): PhraseUses {
   const out: PhraseUses = { ...(uses ?? {}) };
   const pools: [keyof PhraseUses, readonly string[]][] = [
-    ...(Object.keys(PHRASE_POOLS) as PhrasePool[]).map(p => [p, PHRASE_POOLS[p]] as [keyof PhraseUses, readonly string[]]),
+    ...(Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => p !== 'ack' || o.ack === true).map(p => [p, PHRASE_POOLS[p]] as [keyof PhraseUses, readonly string[]]),
     ...Object.entries(extra ?? {}).map(([k, vs]) => [k as keyof PhraseUses, vs] as [keyof PhraseUses, readonly string[]]),
   ];
   for (const [pool, vs] of pools) {
@@ -641,4 +733,47 @@ export function recordPhraseUses(spoken: string, uses: PhraseUses | undefined, e
     if (said.length > 0) out[pool] = [...(out[pool] ?? []), ...said].slice(-PHRASE_MEMORY);
   }
   return out;
+}
+
+// 4.8 (Phase 1, `closeWaitMitigation`): close_wait's follow-ups (close-hold.ts closeWaitLine) name no figure, so a
+// turn that said one is no probe of a figure — "Six months in, how would you know it was working?" was read as a
+// probe of a candidate's 6 (b31 Sofia e0f7d46c t24, replay with the switch on: the claim's report line became "Probed
+// twice"), in either spelling. The caller passes switchOn(case, 'closeWaitMitigation'); off, the text is unchanged.
+// Review fix round, item 4: a pattern over the three pools, not a literal split — the split was case-sensitive and
+// exact on whitespace, so re-wrapping or recapitalizing one of these lines would have stopped stripping it with
+// nothing to show for it. Both number-word spellings stay (the turn rows hold "6 months in").
+export const CLOSE_WAIT_POOLS = ['after_risk', 'first_step', 'measure'] as const;
+let closeWaitLines: RegExp | undefined;
+function closeWaitLinePattern(): RegExp {
+  if (!closeWaitLines) {
+    const variants = CLOSE_WAIT_POOLS.flatMap(p => [...(PHRASE_POOLS[p] as readonly string[]), ...(RETIRED_POOLS[p] ?? [])]);
+    const alts = [...new Set(variants.flatMap(v => [v.trim(), normalizeNumberWords(v).trim()]))].map(words);
+    closeWaitLines = new RegExp(`(?:${alts.join('|')})`, 'gi');
+  }
+  return closeWaitLines;
+}
+export function withoutCloseWaitLines(text: string): string {
+  return text.replace(closeWaitLinePattern(), ' ');
+}
+
+// 4.10 (Phase 1, `ackRotation`; Lorenzo, 22 Oct: "Acknowledgments: run the model's opening acknowledgment through the
+// phrase-pool rotation, so \"Understood.\" stops repeating."; b38 Larkspur: "Understood." opened 28 of 75 interviewer
+// turns, 12 consecutive pairs). The model's say opens on a sentence of acknowledgment words only ("Understood.",
+// "Got it.", "Okay, got it.", "Right.") — that sentence is replaced by the `ack` pool's variant for this turn (the
+// session's last 3 uses never again; the first use is "Understood."). A sentence that comments ("Understood, that
+// fills the gaps.") or says anything else is the model's and stays. Stream and Settle call this with the same seed
+// and uses, so both say the same words. Split as the say's sentences are (turn-events.ts).
+//
+// Review fix round, item 8: `o.correcting` (stream-turn.ts turnCorrects) keeps the model's own word. A rotated
+// acknowledgment in front of a correction reads as assent and then contradiction — "Mm-hm. Starter value is about
+// $1,400, not $1,205." — which is why "Right." was left out of the pool. Only the opening sentence is replaced now,
+// and the text after it is kept exactly as it came, so Stream (which rotates the first sentence event) and Settle
+// (which rotates the whole say) cannot drift apart on whitespace either.
+const ACK_ONLY = /^(?:okay|ok|understood|got it|mm-?hm+|i see|right|sure|alright|all right)(?:[,.!]\s*(?:okay|ok|understood|got it|mm-?hm+|i see|right|sure|alright|all right))*[.!]?$/i;
+export const isAckOnly = (sentence: string) => ACK_ONLY.test(sentence.trim());
+export function rotateOpeningAck(say: string, uses: PhraseUses | undefined, seed: string, o: { correcting?: boolean } = {}): string {
+  if (o.correcting === true) return say;
+  const m = /^(\s*)([^.!?]*[.!?]*)([\s\S]*)$/.exec(say);
+  if (m === null || !isAckOnly(m[2])) return say;
+  return `${m[1]}${line('ack', uses, seed)}${m[3]}`;
 }

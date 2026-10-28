@@ -13,10 +13,11 @@ import { runReconciliation } from './reconcile';
 import { checkMathSteps } from './deterministic';
 import { assembleReport } from './report';
 import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './assists';
-import { summarizeDataRequests } from './data-coverage';
+import { summarizeDataRequests, volunteeredItems } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
-import { formatCheckerSection, checkerFlaggedFigures, dropCheckerStamps } from './checker-record';
+import { formatCheckerSection, mandatedConclusionClaims, checkerFlaggedFigures, dropCheckerStamps } from './checker-record';
+import { applyConclusionMandate } from './conclusion-mandate';
 import { caseNumbersOf } from '@/lib/orchestrator/math-checker-live';
 import { applyStageCaps, formatStageRecordSection, reconstructStages, stagesNotInCase } from './stage-caps';
 import { exhibitsShown } from '@/db/schema';
@@ -26,7 +27,8 @@ import { applyCaveatFloor } from './caveat-floor';
 import { applyAnswerKeyPass } from './answer-key-pass';
 import { applyStrongGate } from './strong-gate';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
-import { scoreOnce } from './scoring-claim';
+import { scoreOnce, storeIfClaimed, type ScoringClaim } from './scoring-claim';
+import { withScoringDeadline, SCORING_BUDGET_MS } from './stream-retry';
 
 export type ScoreSessionStatus = 'scored' | 'already_scored' | 'in_progress' | 'not_completed' | 'not_found';
 
@@ -34,7 +36,9 @@ export type ScoreSessionStatus = 'scored' | 'already_scored' | 'in_progress' | '
 // (which checks ownership first) and scripts/live-run.ts. Idempotent: returns
 // early if a score already exists, so a failed scoring pass can be retried;
 // one pass at a time per session — a second call waits for the running pass's
-// score (scoring-claim.ts).
+// score (scoring-claim.ts). A dead Opus stream is retried inside the pass
+// (stream-retry.ts, Phase 1 4.11), and the row is written only by the pass
+// that still holds the claim: one report, whatever retries.
 // A not-assessed dimension (Rule 9, v4.3) has no rating: NULL column.
 function ratingColumn(d: { rating: RubricScores['structure']['rating']; notAssessed?: boolean }) {
   return d.notAssessed ? null : d.rating;
@@ -45,14 +49,28 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
   if (!session) return { status: 'not_found' };
   if (session.status !== 'completed') return { status: 'not_completed' };
 
-  return { status: await scoreOnce(sessionId, () => scoreAndStore(sessionId, userId)) };
+  try {
+    return { status: await scoreOnce(sessionId, claim => scoreAndStore(claim, userId)) };
+  } catch (err) {
+    // The claim was taken over mid-pass (it went stale): that pass's row stands; this one wrote nothing.
+    if (err instanceof ClaimLostError) return { status: 'in_progress' };
+    throw err;
+  }
 }
 
-async function scoreAndStore(sessionId: string, userId: string): Promise<void> {
-  const computed = await computeScore({ sessionId, userId });
+export class ClaimLostError extends Error {
+  constructor(sessionId: string) { super(`scoring claim lost for ${sessionId}: no score written`); }
+}
+
+export async function scoreAndStore(claim: ScoringClaim, userId: string, deps: { compute?: typeof computeScore; store?: typeof storeIfClaimed; nowMs?: number } = {}): Promise<void> {
+  const { sessionId } = claim;
+  // The deadline every stream inside this pass retries against (stream-retry.ts, review item 6): a retry that would
+  // run past the route's 300 s budget writes nothing and makes the next attempt pay for all three passes again.
+  const computed = await withScoringDeadline((deps.nowMs ?? Date.now()) + SCORING_BUDGET_MS,
+    () => (deps.compute ?? computeScore)({ sessionId, userId }));
   const { rubric, report, mathResults, qa } = computed;
 
-  await db.insert(scores).values({
+  const stored = await (deps.store ?? storeIfClaimed)(claim, tx => tx.insert(scores).values({
     sessionId,
     structureRating: ratingColumn(rubric.structure),
     quantitativeRating: ratingColumn(rubric.quantitative),
@@ -69,7 +87,8 @@ async function scoreAndStore(sessionId: string, userId: string): Promise<void> {
     modelAnswerJsonb: report.modelAnswer,
     scoringRuntimeMs: report.scoringRuntimeMs,
     judgeModel: report.judgeModel,
-  });
+  }).then(() => {}));
+  if (!stored) throw new ClaimLostError(sessionId);
 
   await logEvent('scoring_complete', { scoringRuntimeMs: report.scoringRuntimeMs, overallRating: rubric.overallRating },
     { sessionId, userId });
@@ -167,11 +186,15 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const dataRequestRows = await db.query.sessionEvents.findMany({
     where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
   });
-  const dataCoverage = summarizeDataRequests(
-    dataRequestRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb })),
-    catalog,
-    revealedIds,
-  );
+  const dataCoverage = {
+    ...summarizeDataRequests(
+      dataRequestRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb })),
+      catalog,
+      revealedIds,
+    ),
+    // Must-reach items the interviewer volunteered (round 6 Task 72): the judge doesn't credit asking for them.
+    volunteered: volunteeredItems(interventionRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb })), catalog),
+  };
   if (dataCoverage.requestedUnanswered.length > 0) {
     console.warn('[score] requested-but-unanswered ledger data (coverage gap):', JSON.stringify(dataCoverage.requestedUnanswered));
   }
@@ -192,6 +215,8 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const checkerRows = markEvents.filter(e => e.category === 'math_checker');
   const caseNumbers = caseNumbersOf(caseData, revealedIds);
   const verification = dropCheckerStamps(verifyCandidateTurns(transcript, caseData, revealedBefore), checkerRows, caseNumbers);
+  // A redo the interview never read — after a flag closed — credited in the record, figure-bound (Lorenzo, 20 Oct, round-5b job 2).
+  const checkerRedo = { candidateTurns: transcript.filter(t => t.role === 'candidate').map(t => ({ turnIndex: t.turnIndex, text: t.text })), caseData, revealedIds };
   const marks = [
     ...buildInterviewerMarks(
       transcript,
@@ -204,7 +229,7 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   if (marks.length > 0) console.warn('[score] interviewer-error marks:', JSON.stringify(marks.map(m => [m.kind, m.interviewerTurn])));
 
   const rawRubric = await runJudge(
-    transcript, caseData, revealedIds, mathResults, [interventionSummary, stageSection, formatClaimChecksSection(verification), formatCheckerSection(checkerRows)].filter(Boolean).join('\n\n'), dataCoverage,
+    transcript, caseData, revealedIds, mathResults, [interventionSummary, stageSection, formatClaimChecksSection(verification), formatCheckerSection(checkerRows, checkerRedo)].filter(Boolean).join('\n\n'), dataCoverage,
     formatInterviewerMarksSection(marks),
     u => logUsage({ ...u }),
   );
@@ -229,7 +254,7 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   // Second pass: verify claims the quote audit can't (omission claims,
   // mischaracterizations); drop what the transcript contradicts.
   const { rubric: verifiedRubric, dropped } = await runClaimVerifier(
-    auditedRubric, transcript, u => logUsage({ ...u }), { mathResults, marksSection: formatInterviewerMarksSection(marks) },
+    auditedRubric, transcript, u => logUsage({ ...u }), { mathResults, marksSection: formatInterviewerMarksSection(marks), caseData },
   );
   if (dropped.length > 0) {
     console.warn('[score] verifier dropped unsupported claims:', JSON.stringify(dropped));
@@ -253,9 +278,15 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const { rubric: reconciledRubric, merges, gapDrops, crossDimension } = await runReconciliation(
     answerKey.rubric, dataCoverage, u => logUsage({ ...u }),
   );
+  // Item 4, narrowed (Lorenzo, 27 Oct): every OPEN checker claim that changes the conclusion is named in the report —
+  // at most three. After the judge, the quote audit, the verifier and reconciliation, all of which could drop the
+  // item; before the stage caps, so its quoted evidence counts as evidence (conclusion-mandate.ts has the three
+  // conflicts and why this is where it sits).
+  const mandate = applyConclusionMandate(reconciledRubric, mandatedConclusionClaims(checkerRows, checkerRedo), candidateTexts);
+  if (mandate.added.length > 0) console.warn('[score] conclusion mandate named open claims the report had left out:', JSON.stringify(mandate.added));
   // Round-3 fix 3: "strong" only on a checklist of the strong anchor's
   // elements, each evidenced by a real candidate quote; overall capped.
-  const strongGate = applyStrongGate(reconciledRubric, candidateTexts);
+  const strongGate = applyStrongGate(mandate.rubric, candidateTexts);
   if (strongGate.downgraded.length > 0) console.warn('[score] strong ratings lowered by the checklist gate:', JSON.stringify(strongGate.downgraded));
   if (strongGate.overallCapped) console.warn('[score] overall rating capped:', JSON.stringify(strongGate.overallCapped));
   // Rule 9 (v4.10): a dimension whose stage never happened is rated only on
@@ -313,6 +344,8 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
     strongDowngrades: strongGate.downgraded.length,
     overallCapped: strongGate.overallCapped !== null,
     crossDimensionRepeats: crossDimension.length,
+    // Item 4 (27 Oct): open claims that change the conclusion the report had to be made to name.
+    conclusionMandateAdded: mandate.added.length,
   };
 
   return { rubric, report, mathResults, qa, strongGate, answerKey };

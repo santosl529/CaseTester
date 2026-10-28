@@ -1,0 +1,548 @@
+{
+  "items": [
+    {
+      "id": "kelvexa_product",
+      "names": [
+        "what kelvexa is",
+        "who kelvexa is for",
+        "kelvexa's indication",
+        "kelvexa indication",
+        "kelvexa approved indication",
+        "target patients for kelvexa"
+      ],
+      "covers": [
+        "is kelvexa approved in the us",
+        "kelvexa approval status",
+        "how long sold in europe",
+        "is kelvexa a pill",
+        "how is kelvexa taken",
+        "kelvexa dosing frequency"
+      ],
+      "notHeld": [
+        "number of eligible patients",
+        "european sales figures",
+        "european market share",
+        "kelvexa side effect profile"
+      ],
+      "note": "Avoid 'who is eligible' wording as a cover because it collides with the funnel's eligible-patient count, which is derived and never volunteered."
+    },
+    {
+      "id": "corlans_disease",
+      "names": [
+        "corlan's disease",
+        "corlans disease",
+        "about the disease",
+        "disease background",
+        "what corlan's disease is"
+      ],
+      "covers": [
+        "is the disease curable",
+        "is it chronic",
+        "how mild cases are treated",
+        "treatment for mild patients",
+        "mild versus severe patients"
+      ],
+      "notHeld": [
+        "how many have the disease",
+        "share moderate-to-severe",
+        "disease progression rates",
+        "prevalence by age"
+      ],
+      "note": "Value is qualitative only; any numeric prevalence or severity-split ask belongs to funnel_rates. [Reviewed 19 Oct (Claude): struck the condition; ]"
+    },
+    {
+      "id": "current_treatment",
+      "names": [
+        "current treatment",
+        "current us treatment",
+        "existing treatments",
+        "existing therapies",
+        "treatment options today",
+        "how patients are treated today"
+      ],
+      "covers": [
+        "main alternative to kelvexa",
+        "what patients use now",
+        "is there an injectable option"
+      ],
+      "notHeld": [
+        "nimbrel's market share",
+        "nimbrel's price",
+        "number of competitors",
+        "competitor pipeline drugs"
+      ],
+      "note": "'Standard of care' and 'competitor' are left out because they equally name the nimbrel item, which holds the fuller detail."
+    },
+    {
+      "id": "company_size",
+      "names": [
+        "aldermoor's revenue",
+        "aldermoor revenue",
+        "client size",
+        "us operations",
+        "us employees",
+        "existing us sales force"
+      ],
+      "covers": [
+        "does aldermoor have us reps",
+        "any us employees",
+        "where aldermoor sells today",
+        "aldermoor's annual revenue"
+      ],
+      "notHeld": [
+        "aldermoor's profit margin",
+        "cash available for launch",
+        "european sales of kelvexa",
+        "number of european reps"
+      ],
+      "note": "'Revenue split by region' is a cover only because the value says almost all revenue is in Europe; an exact split is not held. [Reviewed 19 Oct (Claude): struck revenue split by region; ]"
+    },
+    {
+      "id": "net_sales_definition",
+      "names": [
+        "net sales definition",
+        "definition of net sales",
+        "what net sales means",
+        "meaning of net sales",
+        "net versus gross sales"
+      ],
+      "covers": [
+        "what counts as net sales",
+        "net or gross",
+        "are rebates deducted"
+      ],
+      "notHeld": [
+        "rebate percentage",
+        "net price per patient",
+        "gross-to-net by insurer"
+      ],
+      "note": "The definition contains no figures; the rebate rate lives in kelvexa_pricing, and phrases asking for it must not be routed here."
+    },
+    {
+      "id": "peak_timing",
+      "names": [
+        "peak timing",
+        "time to peak",
+        "when peak sales happen",
+        "years to peak",
+        "when sales peak",
+        "timing of peak sales"
+      ],
+      "covers": [
+        "how long to reach peak",
+        "when is peak",
+        "how long until peak sales"
+      ],
+      "notHeld": [
+        "year-by-year sales ramp",
+        "launch curve detail",
+        "sales after peak",
+        "us launch date"
+      ],
+      "note": "The guide lists launch-curve detail as not available, so ramp-shape asks must stay refused."
+    },
+    {
+      "id": "patents",
+      "names": [
+        "patent expiry",
+        "patent protection",
+        "patent life",
+        "generic entry"
+      ],
+      "covers": [
+        "when do generics enter",
+        "how long is kelvexa protected",
+        "ip protection"
+      ],
+      "notHeld": [
+        "nimbrel's patent expiry",
+        "european patent terms"
+      ],
+      "note": "Straightforward; check that 'exclusivity' does not catch market-exclusivity asks about competitors. [Reviewed 19 Oct (Claude): struck loss of exclusivity; ]"
+    },
+    {
+      "id": "supply",
+      "names": [
+        "manufacturing capacity",
+        "supply chain",
+        "production capacity",
+        "manufacturing and supply",
+        "us supply"
+      ],
+      "covers": [
+        "can they supply the us",
+        "need a us plant",
+        "capacity constraints",
+        "where is kelvexa made"
+      ],
+      "notHeld": [
+        "product cost",
+        "shipping cost",
+        "plant utilization"
+      ],
+      "note": "Product cost belongs to option_shared; manufacturing-cost asks must not route here."
+    },
+    {
+      "id": "us_adults",
+      "names": [
+        "number of us adults",
+        "us adult population",
+        "total us adults"
+      ],
+      "covers": [
+        "starting population",
+        "top of the funnel"
+      ],
+      "notHeld": [
+        "us population growth",
+        "children with the disease"
+      ],
+      "note": "'Top of the funnel' fits only because the funnel starts at 250 million adults. [Reviewed 19 Oct (Claude): struck us population; ]"
+    },
+    {
+      "id": "funnel_rates",
+      "names": [
+        "share diagnosed",
+        "share treated",
+        "moderate-to-severe share",
+        "funnel percentages",
+        "share of patients diagnosed",
+        "how common the disease is"
+      ],
+      "covers": [
+        "percent of adults affected",
+        "how common is corlan's",
+        "share eligible for kelvexa",
+        "severity mix",
+        "share on prescription medicine"
+      ],
+      "notHeld": [
+        "number of eligible patients",
+        "prevalence by age",
+        "diagnosis rate trend",
+        "share treated with nimbrel"
+      ],
+      "note": "Value holds rates, not counts; 'how many' asks need us_adults too and must not produce the derived 200,000, which is never volunteered."
+    },
+    {
+      "id": "peak_share_forecast",
+      "names": [
+        "peak share forecast",
+        "forecast peak share",
+        "kelvexa's peak share",
+        "share of eligible patients",
+        "uptake forecast",
+        "penetration forecast"
+      ],
+      "covers": [
+        "assumed market share",
+        "penetration assumption",
+        "share at peak"
+      ],
+      "notHeld": [
+        "basis of the share forecast",
+        "share by year",
+        "share under option b",
+        "breakeven share"
+      ],
+      "note": "Exhibit 3 also lists expected peak shares (20% and 25%); option-specific share asks must go to option_a and option_b, not here."
+    },
+    {
+      "id": "kelvexa_pricing",
+      "names": [
+        "kelvexa price",
+        "price of kelvexa",
+        "kelvexa us price",
+        "gross-to-net discount",
+        "time on treatment",
+        "treatment duration"
+      ],
+      "covers": [
+        "price per patient per year",
+        "rebate rate",
+        "how long patients stay on therapy",
+        "annual cost per patient"
+      ],
+      "notHeld": [
+        "net price per patient",
+        "price in europe",
+        "price increases over time",
+        "rebates by insurer"
+      ],
+      "note": "Holds list price and discount rate but not the net $8,000 itself, which option_shared states; check 'kelvexa price' is not read as the net figure. [Reviewed 19 Oct (Claude): struck discount rate; ]"
+    },
+    {
+      "id": "survey_design",
+      "names": [
+        "survey design",
+        "survey sample",
+        "survey methodology",
+        "sample size",
+        "who was surveyed",
+        "how many specialists surveyed"
+      ],
+      "covers": [
+        "why percentages exceed 100",
+        "multiple answers allowed",
+        "survey respondents"
+      ],
+      "notHeld": [
+        "survey date",
+        "response rate",
+        "breakdown by specialist type"
+      ],
+      "note": "'How many specialists surveyed' must not collide with specialist_concentration's 6,000 treating specialists."
+    },
+    {
+      "id": "reasons_to_prescribe",
+      "names": [
+        "top reasons to prescribe",
+        "reasons for prescribing",
+        "prescribing drivers",
+        "why doctors like kelvexa",
+        "kelvexa's advantages",
+        "drivers of adoption"
+      ],
+      "covers": [
+        "what doctors like",
+        "is price a reason to prescribe",
+        "appeal of the pill",
+        "why switch from nimbrel"
+      ],
+      "notHeld": [
+        "intent to prescribe share",
+        "reasons by specialist type"
+      ],
+      "note": "'Why switch from nimbrel' is a cover because the reasons are stated relative to current options; trial efficacy asks belong to trial_comparison."
+    },
+    {
+      "id": "barriers_to_prescribing",
+      "names": [
+        "top barriers",
+        "prescribing barriers",
+        "reasons not to prescribe",
+        "want more us experience",
+        "obstacles to adoption"
+      ],
+      "covers": [
+        "what holds doctors back",
+        "is price a barrier",
+        "doctor hesitations"
+      ],
+      "notHeld": [
+        "barriers by insurer",
+        "how to overcome barriers",
+        "barriers by specialist type"
+      ],
+      "note": "The existing names 'insurance coverage' and 'prior authorization' also fit insurance_coverage; the reviewer should decide which item owns them."
+    },
+    {
+      "id": "nimbrel",
+      "names": [
+        "main competitor",
+        "the incumbent",
+        "incumbent drug",
+        "competitor price",
+        "competitor's price",
+        "nimbrel dosing"
+      ],
+      "covers": [
+        "how often nimbrel is injected",
+        "how established is nimbrel",
+        "who uses nimbrel",
+        "competitor net price",
+        "price versus competitor"
+      ],
+      "notHeld": [
+        "nimbrel's exact market share",
+        "nimbrel's list price",
+        "nimbrel revenue",
+        "nimbrel's patent expiry",
+        "nimbrel rebates"
+      ],
+      "note": "Value says 'most' patients use Nimbrel; exact share asks must stay refused."
+    },
+    {
+      "id": "trial_comparison",
+      "names": [
+        "trial comparison",
+        "head-to-head data",
+        "clinical data",
+        "safety profile",
+        "kelvexa versus nimbrel",
+        "comparative efficacy"
+      ],
+      "covers": [
+        "is kelvexa better than nimbrel",
+        "is kelvexa as effective",
+        "side effects versus nimbrel",
+        "safety compared to nimbrel"
+      ],
+      "notHeld": [
+        "european real-world results",
+        "trial size",
+        "us trial data",
+        "efficacy percentages"
+      ],
+      "note": "'Efficacy data' is held by reasons_to_prescribe as a survey item; keep it separate from these trial phrases."
+    },
+    {
+      "id": "insurance_coverage",
+      "names": [
+        "payer coverage",
+        "payer access",
+        "insurer coverage",
+        "market access",
+        "formulary coverage",
+        "us reimbursement",
+        "time to broad coverage"
+      ],
+      "covers": [
+        "is nimbrel covered",
+        "how long to get coverage",
+        "will insurers pay",
+        "do insurers require approval"
+      ],
+      "notHeld": [
+        "named us insurers",
+        "rebates per insurer",
+        "kelvexa coverage status",
+        "medicare coverage"
+      ],
+      "note": "'Insurance coverage' and 'prior authorization' were avoided because barriers_to_prescribing already uses them; the overlap should be resolved."
+    },
+    {
+      "id": "specialist_concentration",
+      "names": [
+        "number of specialists",
+        "how many specialists treat",
+        "how many prescribers",
+        "prescriber base",
+        "target doctors",
+        "number of prescribers"
+      ],
+      "covers": [
+        "how concentrated are prescribers",
+        "who prescribes",
+        "which doctors to target"
+      ],
+      "notHeld": [
+        "specialists by region",
+        "rep salaries",
+        "reps per specialist"
+      ],
+      "note": "Guide row 5 routes sales-force-size asks here, but the 60-rep figure is in option_a."
+    },
+    {
+      "id": "diagnosis_gap",
+      "names": [
+        "underdiagnosis",
+        "why patients go undiagnosed",
+        "delayed diagnosis",
+        "missed diagnosis",
+        "reasons for underdiagnosis"
+      ],
+      "covers": [
+        "why only half diagnosed",
+        "misdiagnosis",
+        "how to raise diagnosis",
+        "diagnosis rate trend",
+        "diagnosis rate has trended",
+        "diagnosis rising",
+        "diagnosis improving",
+        "more patients diagnosed"
+      ],
+      "notHeld": [
+        "time to diagnosis in years",
+        "cost of awareness campaign",
+        "diagnosis rate trend"
+      ],
+      "note": "Avoid 'diagnosis rate', a funnel_rates name; this item explains why, not how many. [Reviewed 19 Oct (Claude): covers added for the batch-32 asks]"
+    },
+    {
+      "id": "pipeline",
+      "names": [
+        "aldermoor's pipeline",
+        "future drugs",
+        "late-stage drugs",
+        "pipeline drugs",
+        "follow-on products",
+        "long-term us strategy"
+      ],
+      "covers": [
+        "can the team sell other drugs",
+        "platform value",
+        "future launches"
+      ],
+      "notHeld": [
+        "pipeline approval timing",
+        "pipeline sales forecasts"
+      ],
+      "note": "'Platform value' is a cover because the value says the same specialists treat the next drugs."
+    },
+    {
+      "id": "option_a",
+      "names": [
+        "build option",
+        "own sales force",
+        "build our own",
+        "in-house launch",
+        "self-launch",
+        "option a terms"
+      ],
+      "covers": [
+        "cost of building a team",
+        "how many sales reps",
+        "time to launch alone"
+      ],
+      "notHeld": [
+        "rep salaries",
+        "upfront launch investment",
+        "selling cost breakdown",
+        "selling costs by year"
+      ],
+      "note": "'Launch costs' is left out as a name because it also concerns option_b (partner pays); the reviewer may add it as a group cover."
+    },
+    {
+      "id": "option_b",
+      "names": [
+        "partner option",
+        "option b terms",
+        "us partner",
+        "partnership terms",
+        "royalty rate"
+      ],
+      "covers": [
+        "what does the partner pay",
+        "time to launch with partner",
+        "aldermoor's share under partner"
+      ],
+      "notHeld": [
+        "partner's identity",
+        "upfront payment",
+        "milestone payments",
+        "partner's costs"
+      ],
+      "note": "Avoid 'licensing deal', which is close to the existing 'licensing'."
+    },
+    {
+      "id": "option_shared",
+      "names": [
+        "net price under both options",
+        "shared assumptions",
+        "cost of goods",
+        "cogs",
+        "option net price"
+      ],
+      "covers": [
+        "can we ignore product cost",
+        "is price same under both options"
+      ],
+      "notHeld": [
+        "product cost amount",
+        "net price by year"
+      ],
+      "note": "Generic 'net price' was not added: routing it here before sizing would release Exhibit 3 data early and skip the list-to-net step."
+    }
+  ]
+}

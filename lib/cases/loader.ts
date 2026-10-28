@@ -2,11 +2,14 @@ import fs from 'fs';
 import path from 'path';
 import { CaseSchema, type Case } from './schema';
 import { DataLineVariantsSchema, checkDataLineVariants } from './data-line-variants';
+import { Phase1OverlaySchema, applyPhase1Overlay } from './phase1-overlay';
+import { assertNoEngineSwitchesInProduction } from './engine-switches';
 
 let _cache: Case[] | null = null;
 
 export function loadCases(): Case[] {
   if (_cache) return _cache;
+  assertNoEngineSwitchesInProduction();
 
   const casesDir = path.join(process.cwd(), 'cases');
   const files = fs.readdirSync(casesDir).filter(f => f.endsWith('.json'));
@@ -17,11 +20,20 @@ export function loadCases(): Case[] {
     if (!result.success) {
       throw new Error(`Malformed case file ${file}: ${result.error.message}`);
     }
-    return result.data;
+    return withPhase1Overlay(casesDir, result.data);
   });
   _dataLines = loadDataLineVariants(casesDir, _cache);
 
   return _cache;
+}
+
+// Phase 1 case data (cases/phase1/<caseId>.json; lib/cases/phase1-overlay.ts): checked on load, merged per switch.
+function withPhase1Overlay(casesDir: string, c: Case): Case {
+  const file = path.join(casesDir, 'phase1', `${c.id}.json`);
+  if (!fs.existsSync(file)) return c;
+  const result = Phase1OverlaySchema.safeParse(JSON.parse(fs.readFileSync(file, 'utf-8')));
+  if (!result.success) throw new Error(`Malformed Phase 1 overlay phase1/${c.id}.json: ${result.error.message}`);
+  return applyPhase1Overlay(c, result.data);
 }
 
 // Pre-written data-line versions (cases/variants/<caseId>.data-lines.json; brief

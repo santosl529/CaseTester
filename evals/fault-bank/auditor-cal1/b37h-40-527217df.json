@@ -1,0 +1,29 @@
+{
+ "run": "test runs/batch-37-hollisbay-oct-20-runs-1-5/40-jasmine-the-early-finisher/live-run-2026-10-21-527217df.turns.jsonl.gz",
+ "faults": [
+  {
+   "turn": 4,
+   "class": "bare_partial",
+   "severity": "borderline",
+   "quote": "Hollis Bay's two largest retail partners have agreed to stock the line in all their stores, provided Hollis Bay pays the shelf fees.",
+   "why": "The candidate asked for the number of stores reachable in year one and for turns per store per week. The reply gives only coarse coverage (all stores of the two largest partners) plus household planning assumptions. It never says 'I don't have' a store count or velocity per store."
+  },
+  {
+   "turn": 20,
+   "class": "close_wait_reask",
+   "severity": "borderline",
+   "quote": "Of the risks you named, which one would do the most damage to the break-even, and what would you do in the launch plan to guard against it?",
+   "why": "In t19 the candidate had just named a single risk (conversion coming in a third below history) and its mitigation (a regional pilot), as already stated in t9. The follow-up re-asks what that answer covered."
+  }
+ ],
+ "model": "claude-opus-5-5",
+ "stopReason": "end_turn",
+ "usage": {
+  "input": 11322,
+  "output": 1514,
+  "cacheRead": 0,
+  "cacheWrite": 0
+ },
+ "ms": 15116,
+ "usd": 0.075568
+}

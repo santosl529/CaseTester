@@ -157,6 +157,14 @@ const numbersIn = (t: string) => new Set([...t.replace(/\b(?:19|20)\d{2}\b|\b\d+
 // interviewer can't cite them. Left alone while batch 21 runs on prof-001.
 const KNOWN_UNCOVERED: Record<string, number[]> = { 'prof-001/exhibit-a': [50, 13, 15] };
 
+// Everything the candidate sees of an exhibit: title, column headers, cells, notes.
+const onScreen = (e: { title: string; notes?: string; data: Record<string, unknown>[] }) =>
+  [e.title, e.notes ?? '', ...e.data.flatMap(r => [...Object.keys(r), ...Object.values(r).map(String)])].join(' ');
+// Known, not yet fixed (20 Oct): prof-001's exhibit is the old cost-share chart; its ledger sentences
+// say "of revenue" and other words its cells don't carry. Figures are still checked.
+const KNOWN_PHRASES_NOT_SHOWN = new Set(['prof-001/exhibit-a/cogs_pct', 'prof-001/exhibit-a/labor_pct', 'prof-001/exhibit-a/overhead_pct']);
+const KNOWN_NOT_SHOWN: Record<string, number[]> = {};
+
 describe('every case', () => {
   for (const c of loadCases()) {
     describe(c.id, () => {
@@ -176,6 +184,26 @@ describe('every case', () => {
           const allowed = numbersIn([c.prompt, ...c.dataLedger.filter(d => (e.coversLedgerItems ?? []).includes(d.id)).map(d => d.value)].join(' '));
           const shown = [e.title, e.notes ?? '', ...e.data.flatMap(r => Object.values(r).map(String))].join(' ');
           for (const n of numbersIn(shown)) if (n !== 0 && n !== 100 && !KNOWN_UNCOVERED[`${c.id}/${e.id}`]?.includes(n)) expect(allowed.has(n), `${e.id}: ${n} on screen but in no covered sentence`).toBe(true);
+        }
+      });
+
+      // The other direction (Task 38, D6): an item an exhibit is said to cover is released
+      // by showing it, so the exhibit must carry its figures (cells, title or notes).
+      it('every covered ledger item has its figures on the exhibit (cells, title or notes)', () => {
+        const byId = new Map(c.dataLedger.map(d => [d.id, d]));
+        for (const e of c.exhibits) {
+          const shown = numbersIn(onScreen(e));
+          for (const id of e.coversLedgerItems ?? []) {
+            for (const n of numbersIn(byId.get(id)!.value)) {
+              if (n === 0 || n === 100 || KNOWN_NOT_SHOWN[`${c.id}/${e.id}/${id}`]?.includes(n)) continue;
+              expect(shown.has(n), `${e.id} covers ${id}, whose ${n} is not on the exhibit`).toBe(true);
+            }
+            const text = onScreen(e).toLowerCase();
+            const words = [...new Set(byId.get(id)!.value.toLowerCase().match(/[a-z]{7,}/g) ?? [])];
+            const missing = words.filter(w => !text.includes(w.slice(0, 6)));
+            // Key phrases: the sentence's longer words (first six letters) are on screen too — at least half of them.
+            if (words.length > 0 && !KNOWN_PHRASES_NOT_SHOWN.has(`${c.id}/${e.id}/${id}`)) expect(missing.length * 2, `${e.id} covers ${id}, whose words ${missing.join(', ')} are not on the exhibit`).toBeLessThanOrEqual(words.length);
+          }
         }
       });
 

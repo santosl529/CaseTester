@@ -13,7 +13,9 @@ import type { CheckerClaim, CheckerResult } from '@/lib/orchestrator/math-checke
 import { anyVariant, fill, PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
 // The neutral probes vary (brief B rulings, 18 Oct): any version of the line, as said.
 const lowerFirst = (t: string) => t.charAt(0).toLowerCase() + t.slice(1);
-const CALC_WRAP_UPS = PHRASE_POOLS.probe_calc.map(a => `Before we wrap up — ${lowerFirst(a)}`);
+// Said turns after its t17 claim, the bare probe quotes the claim in his words, at most fifteen of them (round-4 ruling 4).
+const QUOTE_17_1 = 'you said “The 16 points is what survived that dilution … which is why the net decline…” — ';
+const CALC_WRAP_UPS = PHRASE_POOLS.probe_calc.map(a => `Before we wrap up — ${QUOTE_17_1}${lowerFirst(a)}`);
 const saysGotTo = (text: string, x: string) => PHRASE_POOLS.probe_got_to.some(v => text.includes(fill(v, x)));
 
 type Row = Record<string, unknown>;
@@ -62,6 +64,7 @@ const { getCaseById } = await import('@/lib/cases/loader');
 const { INITIAL_STAGES } = await import('@/lib/orchestrator/stage-evidence');
 const { INITIAL_PRESSURE_TEST } = await import('@/lib/orchestrator/pressure-test');
 const { readsFixture } = await import('./fixtures/turn-reads');
+const { brainstormAsks } = await import('@/lib/orchestrator/brainstorm');
 const { modelPlanFixture } = await import('./fixtures/model-plan');
 
 const MIN = 60_000;
@@ -354,7 +357,7 @@ describe("Lorenzo's acceptance test — Jordan 6bd9edf3: the risk at t19, the er
     // The redo holds nothing; t17's other flag gets its own one probe; then the close.
     const r23 = await runTurn('s1', 'It is still forty points, I think.');
     // The session's second wrap-up probe: its lead varies (phrasing.ts), the probe doesn't.
-    expect(PHRASE_POOLS.probe_calc.some(a => new RegExp(`^(?:${anyVariant('wrap_up', lowerFirst(a)).source})$`).test(r23.interviewerText))).toBe(true);
+    expect(PHRASE_POOLS.probe_calc.some(a => new RegExp(`^(?:${anyVariant('wrap_up', `${QUOTE_17_1}${lowerFirst(a)}`).source})$`).test(r23.interviewerText.replace(/(?:you mentioned|earlier you said) “/i, 'you said “')))).toBe(true);   // the opener rotates too (round-4 ruling 6)
     expect((flags().closeHold as Row).probed).toHaveLength(2);
     at(18.6);
     const r25 = await runTurn('s1', 'Sixteen plus two is the eighteen.');
@@ -423,5 +426,165 @@ describe('a due-stage variant: Jasmine\'s probe held back by a recommendation as
     const r33 = await runTurn('s1', 'Waste control, mix shift toward brewed coffee, and loyalty pricing.');
     expect(saysGotTo(r33.interviewerText, 'about 5 points')).toBe(true);   // JASMINE_PROBE, in any version
     expect(r33.interviewerText).not.toMatch(/recommendation/);
+  });
+});
+
+// ── R7 (Lorenzo, 19 Oct): a stage deadline yields to a checker line at most once ──
+// Batch 32 Aldermoor Marisol: a checker line every turn from 6:32 to 22:07 —
+// the brainstorm never asked, the survey exhibit only with the time warning.
+// A correction rides on the overdue stage turn (said first, by code); a probe
+// yields once, then the stage goes and the probe is held for the next model turn.
+describe('R7 through the runner: the overdue brainstorm and the checker line', () => {
+  const CLAIM = 'A 10% price increase recovers about 5 points of margin, and the underlying pressure is about 40 points.';
+  const PRICE: CheckerClaim = {
+    span: 'A 10% price increase recovers about 5 points of margin', quantity: 'margin gain', candidateValue: 'about 5 points', assumptions: '',
+    verdict: 'error', correctValue: 8.5, correctLow: null, correctHigh: null, unit: 'points', derivation: '', errorType: 'conceptual',
+    changesConclusion: true, confidence: 'high', probe: 'You said a 10% price rise recovers about 5 points. Which cost lines did you include?', pointer: '',
+    codeQuantity: { kind: 'gain', stepId: null, price: 10, target: null }, actualShare: null,
+  };
+  const FORTY: CheckerClaim = { ...JORDAN_17_0, span: 'the underlying pressure is about 40 points', candidateValue: 'about 40 points' };
+  const asksBrainstorm = (text: string) => brainstormAsks(getCaseById('prof-001')).some(a => text.includes(a));
+  function seedOwed(o: { attempts?: Record<string, number> } = {}) {
+    const startedAt = new Date(Date.now() - 13.5 * MIN);
+    store.session = {
+      id: 's1', userId: 'u1', caseId: 'prof-001', phase: 'EXHIBIT', elapsedMs: 0, phaseStartedAt: startedAt, status: 'active',
+      abandonPhase: null, startedAt, completedAt: null, coverageJsonb: { structure: 20, quantitative: 20, dataExhibit: 20, judgment: 20, creativity: 20, synthesis: 20, communication: 20, pushback: 20 },
+      flagsJsonb: {
+        conduct: { warnings: 0 }, pressureTest: { ...INITIAL_PRESSURE_TEST, state: 'satisfied', askedAt: 2, satisfiedAt: 3, structureGiven: true }, stagesEnforced: { exhibit: true },
+        ...(o.attempts ? { recomputeAttempts: o.attempts } : {}),
+        stageEvidence: { ...INITIAL_STAGES, structure: ANSWERED, pressure_test: ANSWERED, analysis: { delivered: true, deliveredAt: 2, outcome: 'answered' }, exhibit: { delivered: true, deliveredAt: 2, outcome: 'answered' } },
+      },
+    };
+    const rows = [
+      { role: 'interviewer', text: 'Your client is Brew & Bean. How would you approach this?' }, { role: 'candidate', text: 'I would split profit into revenue and costs.' },
+      { role: 'interviewer', text: 'Go on.' }, { role: 'candidate', text: CLAIM }, { role: 'interviewer', text: 'What would you look at next?' },
+    ];
+    store.turns = rows.map((t, i) => ({ id: `t${i}`, sessionId: 's1', turnIndex: i, role: t.role, text: t.text, timestampMs: startedAt.getTime() + i * 30_000, latencyMs: null }));
+    store.revealed = COSTS.map((ledgerItemId, i) => ({ id: `r${i}`, sessionId: 's1', ledgerItemId, revealedAtMs: startedAt.getTime() }));
+    store.exhibits = [{ id: 'e0', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: startedAt.getTime() }];
+    const claims = vetCheckerClaims([PRICE, FORTY], { caseData: getCaseById('prof-001'), revealedIds: COSTS, shownExhibitIds: ['exhibit-a'], candidateTexts: [CLAIM] });
+    store.events = [{ sessionId: 's1', category: 'math_checker', subtype: 'verdict', turnIndex: 3, phase: 'EXHIBIT', payloadJsonb: { candidateTurnIndex: 3, latencyMs: 6000, model: 'claude-sonnet-5-5', claims, codeFlags: [], stamps: [] } }];
+    calls.length = 0; MODEL.turn = NEUTRAL;
+  }
+  it('a correction due at 13:30: one turn — code says the correction, then the brainstorm; the flag is booked and closed', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    at(13.5);
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\./);
+    expect(asksBrainstorm(r.interviewerText)).toBe(true);
+    const mc = flags().mathChecker as { handled: string[]; closed: string[] };
+    expect(mc.handled).toContain('3:0');
+    expect(mc.closed).toContain('pricing:gain@5');
+    expect((flags().recomputeAttempts as Record<string, number>)['pricing:gain@5']).toBe(2);
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'correct' });
+    expect((flags().stageEvidence as Row & { brainstorm: { delivered: boolean } }).brainstorm.delivered).toBe(true);
+    expect(flags().stageYielded).toBeUndefined();
+  });
+  it('past 16:00 with the recommendation never asked: code\'s recommendation ask, the correction before it (the model\'s "say" first)', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    store.session = { ...store.session, phase: 'BRAINSTORM', flagsJsonb: { ...flags(), stageEvidence: { ...(flags().stageEvidence as Row), brainstorm: { delivered: true, deliveredAt: 2, outcome: 'answered' } } } };
+    at(16.2);
+    MODEL.turn = { ...NEUTRAL, say: 'Understood.' };
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^Understood\. From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\. \S/);
+    expect(r.interviewerText).toMatch(/recommendation/i);
+    expect((flags().mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
+    expect((flags().stageEvidence as Row & { recommendation: { delivered: boolean } }).recommendation.delivered).toBe(true);
+  });
+  it('probes due on three turns: 13:30 the probe (the deadline yields), 14:00 the brainstorm (the next probe held), 14:30 the held probe', async () => {
+    seedOwed();
+    at(13.5);
+    const r5 = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r5.interviewerText).toMatch(/Which cost lines did you include\?/);
+    expect(asksBrainstorm(r5.interviewerText)).toBe(false);
+    expect(flags().stageYielded).toEqual({ brainstorm: true });
+    at(14.0);
+    const r7 = await runTurn('s1', 'Labor and overhead, I think.');
+    expect(asksBrainstorm(r7.interviewerText)).toBe(true);
+    expect(saysGotTo(r7.interviewerText, 'about 40 points')).toBe(false);
+    expect((flags().mathChecker as Row).held).toBe('3:1');
+    at(14.5);
+    const r9 = await runTurn('s1', 'Pricing, procurement and waste reduction.');
+    expect(saysGotTo(r9.interviewerText, 'about 40 points') || /forty points|40 points/.test(r9.interviewerText)).toBe(true);
+    expect((flags().mathChecker as Row).held).toBeUndefined();
+  });
+
+  // A stage turn code wrote because coverage says the case may end — not
+  // because the stage's own deadline passed (Lorenzo, 22 Oct, on the Phase 1
+  // fault bank): b37q Raj's live run dropped two corrections in a row this way
+  // — t24 (stage_exhibit, coverage complete at 13:37, the exhibit deadline not
+  // reached) selected 19:0 "correct" with `used: null`, and t26 (rec_ask)
+  // selected 21:0 "correct" the same way; 19:0 then expired, three messages on,
+  // never said. b35q Marisol t26 is the same turn kind. The correction has
+  // nowhere else to go on a code-written turn, so it rides on it, as it does on
+  // an overdue one; only the probe waits.
+  const FULL_COVERAGE = { structure: 100, quantitative: 100, dataExhibit: 100, judgment: 100, creativity: 100, synthesis: 100, communication: 100, pushback: 100 };
+  it('coverage complete at 10:00, the brainstorm owed but not yet due: the correction rides on the brainstorm turn', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    store.session = { ...store.session, coverageJsonb: FULL_COVERAGE };
+    at(10.0);
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\./);
+    expect(asksBrainstorm(r.interviewerText)).toBe(true);
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'correct' });
+    expect((flags().mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
+  });
+  it('the same at code\'s recommendation ask (the brainstorm already delivered): the correction before code\'s question', async () => {
+    seedOwed({ attempts: { 'pricing:gain@5': 1 } });
+    store.session = { ...store.session, coverageJsonb: FULL_COVERAGE, phase: 'BRAINSTORM',
+      flagsJsonb: { ...flags(), stageEvidence: { ...(flags().stageEvidence as Row), brainstorm: { delivered: true, deliveredAt: 2, outcome: 'answered' } } } };
+    at(10.0);
+    MODEL.turn = { ...NEUTRAL, say: 'Understood.' };
+    const r = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(r.interviewerText).toMatch(/^Understood\. From today's 6% margin, a 10% price rise lifts margin about 8\.5 points, not 5\. \S/);
+    expect(r.interviewerText).toMatch(/recommendation/i);
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'correct' });
+    expect((flags().mathChecker as { closed: string[] }).closed).toContain('pricing:gain@5');
+  });
+
+  // The probe on the same turn (Lorenzo, 22 Oct, on b34l Marisol t26): the due
+  // stage question wins — but the probe must be *held*, not dropped. Only a
+  // turn the deadline alone made held it (`deadlineStage`), so when complete
+  // coverage forced the same overdue stage turn the probe fell out of the plan:
+  // in the b34l replay 23:0 was selected on the t26 brainstorm turn (past the
+  // exhibit budget), never booked, and gone by t28. Held, it takes the next
+  // turn over code's coverage ask (`heldNow`), as a held line already does.
+  it('the brainstorm overdue at 13:30 and coverage complete (no yield): the probe is held, not dropped, and goes out next turn', async () => {
+    seedOwed();
+    store.session = { ...store.session, coverageJsonb: FULL_COVERAGE };
+    at(13.5);
+    const r5 = await runTurn('s1', 'Next I would look at the competitors.');
+    expect(asksBrainstorm(r5.interviewerText)).toBe(true);
+    expect(r5.interviewerText).not.toMatch(/Which cost lines did you include\?/);
+    expect(flags().stageYielded).toBeUndefined();
+    expect((flags().mathChecker as Row).held).toBe('3:0');
+    expect(decisionsFor('3:0').at(-1)).toMatchObject({ outcome: 'undelivered' });
+    at(14.0);
+    const r7 = await runTurn('s1', 'Labor and overhead, I think.');
+    expect(r7.interviewerText).toMatch(/Which cost lines did you include\?/);
+    expect(r7.interviewerText).not.toMatch(/recommendation/i);
+    expect((flags().mathChecker as Row).held).toBeUndefined();
+  });
+});
+
+// Review fix 3 (controller's ruling on R7, 19 Oct): code's own correction rides on an overdue recommendation ask, before code's question.
+describe("Settle: code's own correction on an overdue recommendation ask", () => {
+  const LINE = 'That 25 is points of COGS, not points of revenue: about 10.5 points of revenue.';
+  const recAskPlan = () => {
+    const plan = modelPlanFixture({ distress: null, candidateText: 'I would lead with pricing.', revealed: COSTS, kind: 'rec_ask' });
+    plan.state.pressureTest = { ...INITIAL_PRESSURE_TEST, state: 'satisfied', satisfiedAt: 2 };
+    plan.state.requiredExhibit = undefined; plan.state.analysisOwed = false; plan.state.owedStage = undefined;
+    plan.state.stageCodeLines = [LINE];
+    plan.state.derivedValueTexts.push('25', '10.5');
+    return plan;
+  };
+  it('said first, before code\'s recommendation ask (the model\'s "say" already spoken)', async () => {
+    const s = await settleTurn(recAskPlan(), outcome({ ...NEUTRAL, say: 'Understood.', question: '' }));
+    expect(s.spokenText.startsWith(`Understood. ${LINE} `)).toBe(true);
+    expect(s.spokenText).toMatch(/recommend/i);
+  });
+  it('not twice when the model already said it from its hint', async () => {
+    const s = await settleTurn(recAskPlan(), outcome({ ...NEUTRAL, say: `Understood. ${LINE}`, question: '' }));
+    expect(s.spokenText.split(LINE)).toHaveLength(2);
   });
 });

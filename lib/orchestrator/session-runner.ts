@@ -1,4 +1,5 @@
 import { closeWaitLine } from './close-hold';
+import { ASK_JUDGE_EVENT } from './ask-judge';
 import { TurnTimer } from './turn-timer';
 import { db } from '@/db/client';
 import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
@@ -9,7 +10,8 @@ import {
 } from './silence';
 import { isDistressVerdict, type DistressVerdict } from './distress';
 import { classifyDataRequests, type DetectedDataRequest } from './data-requests';
-import { addressedAskSentences, matchAskDetections } from './request-signal';
+import { addressedAskSentences, matchAskDetections, properNames } from './request-signal';
+import { switchOn } from '@/lib/cases/engine-switches';
 import { logEvent, inDraftScope } from '@/lib/analytics';
 import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
@@ -20,8 +22,9 @@ import { conductEnds } from './stream-turn';
 import type { ConductModelVerdict } from './conduct-model';
 import { planFingerprint, type DraftGate } from './speculation';
 import { promptContextFor } from './prompt-context';
+import { startMessageAsks } from './turn-data';
 import { TurnRecorder, type TurnRecord, type TurnStateBefore } from './turn-record';
-import { revealedValues } from './data-ledger';
+import { revealedValues, canReveal } from './data-ledger';
 import { nextReadyExhibit } from './data-decisions';
 import { brainstormAskLine } from './brainstorm';
 import { analysisAskLine } from './spoken-close';
@@ -135,6 +138,7 @@ async function readTurn(sessionId: string): Promise<TurnReads> {
       where: and(eq(sessionEvents.sessionId, sessionId), or(
         inArray(sessionEvents.category, ['data_request', MATH_CHECKER_CATEGORY]),
         and(eq(sessionEvents.category, VOICE_CHECK_IN.category), eq(sessionEvents.subtype, VOICE_CHECK_IN.subtype)),
+        and(eq(sessionEvents.category, ASK_JUDGE_EVENT.category), eq(sessionEvents.subtype, ASK_JUDGE_EVENT.subtype)),
       )),
     }),
   ]);
@@ -143,6 +147,7 @@ async function readTurn(sessionId: string): Promise<TurnReads> {
     dataRequestEventRows: eventRows.filter(r => r.category === 'data_request'),
     checkerEventRows: eventRows.filter(r => r.category === MATH_CHECKER_CATEGORY),
     checkInEventRows: eventRows.filter(r => r.category === VOICE_CHECK_IN.category && r.subtype === VOICE_CHECK_IN.subtype),
+    askJudgeEventRows: eventRows.filter(r => r.category === ASK_JUDGE_EVENT.category && r.subtype === ASK_JUDGE_EVENT.subtype),
   };
 }
 
@@ -352,8 +357,8 @@ async function runTurnBody(
     // (the classified marker still goes in, so neither the background pass
     // nor scoring's backfill re-reads the exchange); when the case goes on,
     // they are logged as passing mentions so the classifier's record stays.
-    const askSentences = addressedAskSentences(candidateText, currentPhase, { closing: state.kind === 'close' });
-    const { kept, dropped } = matchAskDetections(askSentences, (detected ?? []).filter(r => r.explicit));
+    // A held item asked about in a question is answered too (codeWrittenAsks).
+    const { sentences: askSentences, kept, dropped } = codeWrittenAsks(plan, detected);
     if (detected !== null) {
       checks.record('code_written_requests', dropped.length > 0, 'detected requests no asking sentence covers — not answered', {
         sentences: askSentences, answered: kept.map(r => r.what), dropped: dropped.map(r => r.what),
@@ -365,6 +370,8 @@ async function runTurnBody(
       extraRequestRows: state.kind === 'close' ? [] : dropped.map(r => ({ what: r.what, ledgerItemIds: r.ledgerItemIds, response: 'none' as const, explicit: false })),
     };
   } else {
+    // The message's asks (round 5 Tasks 48, 50; turn-data.ts): classified beside the model call.
+    void startMessageAsks(plan, u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); });
     const isDelivered = { value: false };
     const events = streamInterviewerTurn({
       model,
@@ -396,7 +403,7 @@ async function runTurnBody(
     });
     // Stream (stream-turn.ts): segments go out as they pass, after the
     // distress verdict; the rest of the turn is Settle's.
-    const streamed = await streamTurnSegments(events, plan, deliver, { isDelivered, timer });
+    const streamed = await streamTurnSegments(events, plan, deliver, { isDelivered, timer, onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); } });
     // Interviewer latency is the model call alone (the whole stream); the wait
     // on the distress verdict past it is logged apart (batch 4 conflated them).
     const modelLatencyMs = streamed.modelDoneAt - modelCallStart;
@@ -450,6 +457,31 @@ export const REC_MATH_REVISION_QUESTIONS = PHRASE_POOLS.rec_math_revision;
 export const ANALYSIS_REVISION_QUESTIONS = PHRASE_POOLS.analysis_revision;
 
 
+// The message's asks a code-written turn answers (kept) and the rest (dropped):
+// a detection an addressed asking sentence covers, or — before the goodbye — one
+// whose item is held and a question of the message names (round 5 Task 49,
+// request-signal.ts). At the close (and its hold) the final message's own
+// questions are often the candidate thinking aloud (Jordan 15ad9d8e t25: "Did a
+// competitor promote into those markets?"), and an answer comes too late to use:
+// only addressed asks are answered there, as before.
+// Before the goodbye a question naming an item not yet out is an asking sentence too (round 6 Task 71,
+// audit row 17; request-signal.ts namesLedgerLabel): the labels of the items not yet out.
+export function codeWrittenAsks(plan: ModelPlan, detected: DetectedDataRequest[] | null): { sentences: string[]; kept: DetectedDataRequest[]; dropped: DetectedDataRequest[] } {
+  const { ctx, state } = plan;
+  const goodbye = state.kind === 'close' || state.kind === 'close_wait';
+  const c = state.caseData;
+  const ledger = goodbye ? undefined : { labels: c.dataLedger.filter(i => canReveal(state.ledger, i.id)).map(i => i.label), caseNames: properNames(c.sttKeyterms) };
+  const sentences = addressedAskSentences(ctx.candidateText, ctx.currentPhase, { closing: state.kind === 'close', ledger, wantIs: state.factBase.answerGate, wantBroad: switchOn(c, 'wantCueBroad') });
+  const { kept, dropped } = matchAskDetections(sentences, (detected ?? []).filter(r => r.explicit), goodbye ? undefined : {
+    text: ctx.candidateText,
+    isHeld: id => canReveal(state.ledger, id),
+    itemNames: id => { const item = c.dataLedger.find(i => i.id === id); return item ? [item.label, item.spoken ?? '', ...(c.factAnchors?.names[id] ?? [])] : []; },
+    // The case's proper names (sttKeyterms: the client, products, places) name no item on their own.
+    caseNames: properNames(c.sttKeyterms),
+  });
+  return { sentences, kept, dropped };
+}
+
 // A code-written turn as a turn of the interviewer's shape: the message's data
 // requests (answered by Settle's data line) and the scripted line.
 export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[] | null): ModelTurn {
@@ -475,14 +507,16 @@ export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[]
           : state.kind === 'stage_exhibit' ? line('stage_exhibit_q', uses, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? analysisAskLine(state.caseData.analysisCore.ask, state.recommendationInPlay)
             : state.kind === 'rec_revision' ? line(state.recommendationReceived ? 'rec_revision' : 'analysis_revision', uses, seed)
-              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed, uses)
+              : state.kind === 'close_wait' ? closeWaitLine(state.lastQuestion ?? '', seed, uses, { answer: ctx.candidateText, skipAnswered: switchOn(state.caseData, 'closeWaitMitigation') })
               : recMath?.action === 'correct' ? line(state.recommendationReceived ? 'rec_math_revision' : 'analysis_revision', uses, seed)
               : recMath ? recLine('probe')
             : phrase('stall_lead', restateOnTable(state.lastQuestion ?? ''), uses, seed);
   // The owed exhibit is handed over by code's own data line ("Here's an exhibit: …").
   const exhibit = state.kind === 'stage_exhibit' ? state.requiredExhibit ?? nextReadyExhibit(state.caseData.exhibits, state.shownExhibitIds, state.ledger, state.stagesOut)?.id ?? null : null;
   // Rule 14 past its probe: the figure, flat, before the revision question.
-  const say = recMath?.action === 'correct' ? recLine('correct') : '';
+  // A correction riding on an overdue stage turn (Lorenzo, 19 Oct, R7) — the
+  // checker's or code's own: first, then the data line or exhibit and the stage question.
+  const say = recMath?.action === 'correct' ? recLine('correct') : [state.stageCheckerLine?.line, ...state.stageCodeLines].filter(Boolean).join(' ');
   return { move: 'other', requests, exhibit, rescueItem: null, say, question };
 }
 

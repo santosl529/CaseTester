@@ -8,6 +8,7 @@ import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { CheckerClaim } from '@/lib/orchestrator/math-checker';
 import { checkerClaim, landed } from './helpers/checker-claim';
 import { PHRASE_POOLS } from '@/lib/orchestrator/phrasing';
+import { INITIAL_STALL_STATE } from '@/lib/orchestrator/stall';
 
 // These tests pin the ledger's own data lines: prof-001's pre-written versions
 // are off here (DATA_LINE_VARIANTS=0; on by default since 18 Oct).
@@ -47,8 +48,9 @@ vi.mock('@/lib/orchestrator/distress', async orig => ({
   ...(await orig<object>()),
   classifyDistress: async (p: { candidateText: string; earlier?: { disclosure: string } }) => { distressCalls.push(p); return distressVerdict(p); },
 }));
-const classified: unknown[][] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => classified.shift() ?? [] }));
+// A null queued is the check's no-verdict (failure or timeout).
+const classified: (unknown[] | null)[] = [];
+vi.mock('@/lib/orchestrator/data-requests', async orig => { const { askVia } = await import('./fixtures/ask-check'); const detect = async () => (classified.length > 0 ? classified.shift() : []); return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) }; });
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
 
 const modelQueue: ModelTurn[] = [];
@@ -847,6 +849,44 @@ describe('the question agrees with what code delivered (fact checks F4)', () => 
     expect(r.interviewerText).not.toMatch(/With that in hand/);
     expect(r.interviewerText).toMatch(/\?$/);
     expect(withheldFor('undelivered_claim')).toHaveLength(1);
+  });
+
+  // Lorenzo, 19 Oct (engine-asks round 3, ruling 3): only item-backed deferrals hold the
+  // model's figure question; the check's item-less named deferral holds no data (batch 31
+  // Sofia t10: the math probe was withheld).
+  const FIG_Q = 'Which of those cost lines is driving the margin decline, and why?';
+  it('a named item-less deferral does not hold the model\'s figure question (b31 Sofia t10)', async () => {
+    seed({ phase: 'EXHIBIT', revealed: COST, flags: SATISFIED });
+    // No verdict: the named deferral in the candidate's words (a mapped verdict is decided by code since round 5 E5).
+    classified.push(null);
+    const r = await say('Beans are the lever.', T({
+      say: 'Mm-hm.', requests: [{ what: 'the supplier contract terms', itemIds: [], explicit: true, respond: 'defer' }], question: FIG_Q,
+    }));
+    expect(r.interviewerText).toMatch(/I'll come back to the supplier contract terms|supplier contract terms/);
+    expect(r.interviewerText).toContain(FIG_Q);
+    expect(withheldFor('undelivered_figures')).toHaveLength(0);
+  });
+
+  it('an item-backed hold (the gate\'s deferral) still holds it', async () => {
+    seed({ phase: 'STRUCTURE', revealed: COST });
+    const r = await say('Beans are the lever.', T({
+      say: 'Mm-hm.', requests: [{ what: 'bean price change', itemIds: ['bean_price_change'], explicit: true, respond: 'release' }], question: FIG_Q,
+    }));
+    expect(r.interviewerText).not.toContain(FIG_Q);
+    expect(withheldFor('undelivered_figures')).toHaveLength(1);
+  });
+
+  // Round-3 ruling 4 (Lorenzo, 19 Oct): on a wrap-up turn the gate's hold is "We won't
+  // get to … today." — it holds nothing, so the figure question stays.
+  it('the gate\'s hold after the recommendation is "We won\'t get to … today." and holds nothing', async () => {
+    seed({ phase: 'WRAP', revealed: COST, flags: { stall: { ...INITIAL_STALL_STATE, recommendationDelivered: true } } });
+    const r = await say('Beans are the lever.', T({
+      say: 'Mm-hm.', requests: [{ what: 'bean price change', itemIds: ['bean_price_change'], explicit: true, respond: 'release' }], question: FIG_Q,
+    }));
+    expect(r.interviewerText).toContain("We won't get to bean price change today.");
+    expect(r.interviewerText).not.toMatch(/I'll come back to|bit later/);
+    expect(r.interviewerText).toContain(FIG_Q);
+    expect(withheldFor('undelivered_figures')).toHaveLength(0);
   });
 
   it('a true claim stays: the figure went out this turn', async () => {

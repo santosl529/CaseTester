@@ -20,6 +20,18 @@ Data asked for that the case holds but not yet: the deferral. {x} = what was ask
 4. Hold that thought on {x} — we'll come back to it shortly.
 5. That's for a little later — we'll come back to {x}.
 
+### wont_get_to
+
+Every deferral on a wrap-up or close turn (Lorenzo's line, one version). {x} = what was asked.
+
+1. We won't get to {x} today.
+
+### wont_get_to_that
+
+A deferral on a wrap-up or close turn whose ask is long (more than 8 words as said) or a list (Lorenzo's line, one version).
+
+1. We won't get to that today.
+
 ### refuse
 
 Data the case doesn't hold. {x} = what was asked.
@@ -49,6 +61,36 @@ A fact already given, asked for again. {x} = the ledger line.
 3. Again, for reference: {x}
 4. That's one we've covered: {x}
 5. Repeating what I said before: {x}
+
+### restate_exhibit
+
+A fact that so far came out only on an exhibit, asked for again. {x} = the ledger line.
+
+1. As the exhibit shows: {x}
+2. The exhibit has this — {x}
+3. Again, from the exhibit: {x}
+4. That's on the exhibit: {x}
+5. Reading the exhibit again: {x}
+
+### restate_pointer
+
+Phase 1 (restateRules): a re-ask of data on an exhibit already out — pointed to. {x} = the exhibit's one-line summary.
+
+1. You'll find that on the exhibit — {x}
+2. That one is on the exhibit you have: {x}
+3. The exhibit already shows that — {x}
+4. The exhibit you have covers that: {x}
+5. That's covered on the exhibit — {x}
+
+### restate_recent
+
+Phase 1 (restateRules): a re-ask of a line said within the last four turns — named, not said again. {x} = the item's spoken name.
+
+1. I gave you {x} a moment ago.
+2. We just went over {x}.
+3. I covered {x} just now.
+4. {X} came up a moment ago.
+5. I went through {x} a moment ago.
 
 ### earlier
 
@@ -550,6 +592,16 @@ The checker's neutral probe of a calculation with no figure of theirs to name. F
 4. Can you show me that calculation step by step?
 5. What were the steps in that calculation?
 
+### probe_method
+
+Phase 1 (`probeGuardMethod`): the replacement question when a math challenge of the model's is withheld — the method, never a figure.
+
+1. Walk me through how you worked that out.
+2. How did you get there, step by step?
+3. Walk me through the steps you took.
+4. How do you get there?
+5. Walk me through your reasoning there.
+
 ### probe_there
 
 The checker's neutral probe of a claim with no figures. First use by seed.
@@ -559,6 +611,16 @@ The checker's neutral probe of a claim with no figures. First use by seed.
 3. Take me through your reasoning there.
 4. What got you there?
 5. Talk me through how you got there.
+
+### probe_opener
+
+The lead-in of a checker probe that opens "You said" (a late probe quoting the claim, or the checker's own line); only these words vary. "You put it at" / "You had" are used only before the claim's own figure; before a quoted clause or the checker's own words, the first three.
+
+1. You said
+2. You mentioned
+3. Earlier you said
+4. You put it at
+5. You had
 
 ### check_in
 
@@ -609,6 +671,15 @@ The goodbye when the case is complete. First use by seed.
 3. That's everything I wanted to cover. Thanks for working through the case — your written report will follow.
 4. We've gotten through what I wanted to. Thank you for working through the case; your written report will follow.
 5. I have what I need. Thanks for working through it — your written report will follow.
+
+### ack
+
+The model's opening acknowledgment, replaced by code when the case's `ackRotation` switch is on (Phase 1 4.10).
+
+1. Understood.
+2. Mm-hm.
+3. Got it.
+4. I see.
 
 ### close_unresolved
 

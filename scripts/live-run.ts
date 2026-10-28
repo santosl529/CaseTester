@@ -33,15 +33,20 @@ import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
+import { exhibitAsText } from '@/lib/eval/exhibit-text';
 import { sessions, sessionTurns, sessionEvents, scores, analyticsEvents, revealedData, exhibitsShown } from '@/db/schema';
 import { probeIntents, judgeProbeAnswer, EARLY_PHASES, INITIAL_PRESSURE_TEST, type PressureTestState } from '@/lib/orchestrator/pressure-test';
 import { summarizeCheckEvents } from '@/lib/orchestrator/check-log';
 import { candidateSystem, personaDataAsk } from '@/lib/eval/simulator-prompt';
 import { getCaseById } from '@/lib/cases/loader';
 import { startSession } from '@/lib/orchestrator/start-session';
-import { runTurn, runSilence, type ExhibitDisplay } from '@/lib/orchestrator/session-runner';
+import { runTurn, runSilence } from '@/lib/orchestrator/session-runner';
 import { SILENCE_CHECK_IN_MS, SILENCE_PAUSE_MS, SILENCE_PAUSE_MAX_MS } from '@/lib/orchestrator/silence';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
+import { memoryAskJudgeClaim } from '@/lib/orchestrator/ask-judge';
+// The harness's background-judge claim (asyncAskJudge): in memory, so a wave runs the judge before the claim index's
+// migration is applied. Production (the turn route, the voice agent) keeps the database claim.
+const askJudgeClaim = memoryAskJudgeClaim();
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { scoreSession } from '@/lib/scoring/score-session';
 import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS } from '@/lib/scoring/rubric';
@@ -53,8 +58,9 @@ import { requireRunBudget, BudgetExceededError } from '@/lib/llm-budget';
 import { costOf, isPriced } from '@/lib/llm-pricing';
 import { writeTurnFile, type TurnFileHeader } from '@/lib/eval/turn-file';
 import { gitInfo } from '@/lib/eval/git-info';
+import { engineSwitchNames } from '@/lib/eval/batch-manifest';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
-import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID } from '@/lib/models';
+import { INTERVIEWER_MODEL_ID, SCORING_MODEL_ID, FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { evalInterviewer, checkInterviewerModels, type ModelCheck } from '@/lib/eval/model-guard';
 import { simulatorReplyText, SimulatorReplyError } from '@/lib/eval/simulator-reply';
 
@@ -216,7 +222,7 @@ async function seedSession(sessionId: string): Promise<void> {
   const turns = src.turns.filter(t => t.turnIndex > 0 && t.turnIndex <= through);
   if (turns.length) await db.insert(sessionTurns).values(turns.map(t => ({ sessionId, turnIndex: t.turnIndex, role: t.role, text: t.text, timestampMs: t.timestampMs + shift })));
   const revealed = src.revealed.filter(r => r.revealedAtMs <= cut.timestampMs);
-  if (revealed.length) await db.insert(revealedData).values(revealed.map(r => ({ sessionId, ledgerItemId: r.ledgerItemId, revealedAtMs: r.revealedAtMs + shift })));
+  if (revealed.length) await db.insert(revealedData).values(revealed.map(r => ({ sessionId, ledgerItemId: r.ledgerItemId, revealedAtMs: r.revealedAtMs + shift})));
   const shown = src.analytics.filter(a => a.eventType === 'exhibit_shown' && new Date(a.createdAt).getTime() <= cut.timestampMs);
   if (shown.length) await db.insert(exhibitsShown).values(shown.map(a => ({ sessionId, exhibitId: a.payloadJsonb.exhibitId as string, shownAtMs: new Date(a.createdAt).getTime() + shift })));
   const events = src.events.filter(e => e.category === 'data_request' && (e.payloadJsonb.interviewerTurnIndex as number) <= through);
@@ -253,8 +259,13 @@ async function candidateReply(client: Anthropic, transcript: Line[]): Promise<st
     max_tokens: 4096,
     system: PERSONA ? personaSystem(PERSONA, CASE_ID) : candidateSystem(CASE_ID),
     output_config: { effort: 'low' },
-    betas: ['server-side-fallback-2026-06-01'],
-    fallbacks: [{ model: 'claude-opus-4-8' }],
+    // The simulator's refusal fallback. It used to pin `claude-opus-4-8` by hand with the June beta — the retired
+    // July-2026 interviewer — which is where batch 39's $0.84 of Opus 4.8 came from (22 calls, every one a refusal
+    // fallback; the 64 Tyler runs drive most of them, because that brief asks the simulator to misstate figures on
+    // purpose). It now takes Anthropic's recommended fallback for the refusal category, like every other call in the
+    // product (lib/models.ts), so no retired model id is pinned anywhere.
+    betas: [FALLBACK_BETA],
+    fallbacks: FALLBACKS,
     messages: transcript.map(l => ({ role: l.role === 'interviewer' ? 'user' : 'assistant', content: l.text })),
   });
   candidateUsage.calls += 1;
@@ -272,15 +283,6 @@ async function candidateReply(client: Anthropic, transcript: Line[]): Promise<st
     if (err instanceof SimulatorReplyError) console.error(`[live-run] ${err.message}`);
     throw err;
   }
-}
-
-// The app renders exhibits in a panel beside the chat; a text-only simulated
-// candidate sees none of it, so hand it the same data as a plain table. Run
-// 58cb8061 lost three turns to "nothing is coming through" without this.
-function exhibitAsText(exhibit: ExhibitDisplay): string {
-  const columns = [...new Set(exhibit.data.flatMap(row => Object.keys(row)))];
-  const rows = exhibit.data.map(row => columns.map(c => String(row[c] ?? '')).join(' | '));
-  return `[Exhibit shown: ${exhibit.title}]\n${columns.join(' | ')}\n${rows.join('\n')}`;
 }
 
 function clock(ms: number): string {
@@ -307,6 +309,7 @@ async function main() {
     interviewerConfig: EVAL?.config ?? null,
     persona: PERSONA ? { id: PERSONA.id, name: PERSONA.name, brief: PERSONA.brief } : null,
     sessionId, startedAt: new Date().toISOString(),
+    engineSwitches: engineSwitchNames(caseData),
   };
   console.log(`\n[interviewer · INTRO] ${openingText}`);
 
@@ -362,7 +365,7 @@ async function main() {
       console.log(`\n[interviewer · ${result.phase} · ${clock(Date.now() - startedAt)}] ${result.interviewerText}`);
       phase = result.phase;
 
-      background.push(runPostTurnBackground({ sessionId, userId, caseId, phase: phaseBeforeTurn, result }));
+      background.push(runPostTurnBackground({ sessionId, userId, caseId, phase: phaseBeforeTurn, result, askJudgeClaim }));
       if (EVAL) {
         const check = checkInterviewerModels(EVAL.config, EVAL.model, interviewerUsages());
         if (!check.ok && check.calls > 0) {
@@ -492,6 +495,9 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
   md.push('## Rule 11 / v4.1 checks', '');
   md.push(`- Ledger items revealed: ${revealed.map(r => `\`${r.ledgerItemId}\``).join(', ') || 'none'}`);
   md.push(`- Force-released before the recommendation ask: ${forced.length ? '`' + JSON.stringify(forced) + '`' : 'none'}`);
+  // Must-reach items (round 6 Task 72): released unasked at their point.
+  const volunteered = interventions.filter(e => e.subtype === 'volunteered');
+  if (volunteered.length > 0) md.push(`- Volunteered by the interviewer (not asked for): ${volunteered.map(e => `\`${(e.payloadJsonb as { item?: string }).item}\`@${e.turnIndex}`).join(', ')}`);
   md.push(`- Scoring QA: \`${JSON.stringify(scoringQa ?? {})}\``);
   md.push(`- Assists / interventions: ${interventions.map(i => `${i.subtype}@${i.turnIndex}`).join(', ') || 'none'}`, '');
   md.push('| Candidate turn | Response | Ledger items | Asked for | Revealed by then |', '|---|---|---|---|---|');
@@ -532,7 +538,7 @@ async function writeArtifacts(sessionId: string, caseTitle: string, run?: { ende
       if (d.coverageCaveat) md.push(`_Coverage caveat: ${d.coverageCaveat}_`);
       for (const w of d.wentWell) md.push(`- ✅ ${w.point}${w.quotes.map(q => `\n  > ${q}`).join('')}`);
       for (const n of d.needsWork) md.push(`- ⚠️ ${n.point}${n.quotes.map(q => `\n  > ${q}`).join('')}`);
-      for (const m of d.missedOpportunities) md.push(`- 💡 ${m.moment}\n  > Better: ${m.betterResponse}`);
+      for (const m of d.missedOpportunities) md.push(`- 💡 ${m.moment}${m.betterResponse ? `\n  > Better: ${m.betterResponse}` : ''}`);
       md.push('');
     }
   }

@@ -4,8 +4,8 @@
 // the interviewer model and the background classifiers are mocked (the
 // distress and conduct screens pass, the pressure-test judge returns the
 // saved verdict, the data-request classifier on a code-written turn returns
-// that turn's saved requests). The clock is set to the saved elapsed time
-// before each turn. What would now be delivered is recorded by the real
+// that turn's saved requests and the asks it dropped). The clock is set to
+// the saved elapsed time before each turn. What would now be delivered is recorded by the real
 // TurnRecorder and written as a mirror corpus — a run JSON and a turn file
 // per run — that scripts/fact-check.ts scores like the originals:
 //
@@ -26,10 +26,11 @@
 // longer than the check. Every checker event and turn is written to
 // <REPLAY_OUT>/checker-replay.jsonl. Without REPLAY_CHECKER the checker is off.
 import { describe, it, expect, vi } from 'vitest';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import type { ModelTurn } from '@/lib/agent/models/turn-schema';
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
+import { recordedChecks, recordedCheckVerdict, recordedDroppedAsks, recordedMessageDetections, loadCheckOverrides, overrideVerdict, type RecordedCheck } from '@/lib/eval/recorded-checks';
 
 type Row = Record<string, unknown>;
 // The replay's clock for the checker: rows land when it reaches them.
@@ -64,7 +65,34 @@ vi.mock('@/db/client', async () => {
 vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
 vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => ({ label: 'none', reason: '' }) }));
 let detections: unknown[] = [];
-vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => detections }));
+// The item-less ask check (turn-data.ts checkAsk → classifyAsk, engine-asks R1;
+// its own prompt since round 5b Task 56) gets the verdict the replayed run recorded
+// for that ask (`itemless_defer`; the same turn first, else the run's nearest turn —
+// lib/eval/recorded-checks.ts, round 5 Task 45), else none (null: a named deferral),
+// as before. A verdict recorded without the partial form reads as all full;
+// REPLAY_CHECKS rows may carry `answers` and `missing`.
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({
+  ...(await orig<object>()),
+  // The message classifier (the run's own message): its recorded detections. No other call reads it.
+  classifyDataRequests: async (p: { interviewerText: string | null; candidateText: string }) =>
+    (!(p.interviewerText === null && p.candidateText !== turnText) ? detections : null),
+  classifyAsk: async (p: { what: string; message?: string }) => {
+    const over = overrideVerdict(checkOverrides, currentRunFile, savedTurnIndex, p.what);   // REPLAY_CHECKS, else the recorded verdict
+    if (over !== undefined) return over;
+    // `askCheckRawMessage` (27 Oct): the recorded verdicts answered the old prompt, so none is served; the call is
+    // logged (REPLAY_ASK_NEED) for a paid run to answer through REPLAY_CHECKS.
+    if (p.message !== undefined) {
+      if (process.env.REPLAY_ASK_NEED) appendFileSync(process.env.REPLAY_ASK_NEED, JSON.stringify({ run: currentRunFile, turn: savedTurnIndex, what: p.what, message: p.message }) + '\n');
+      return null;
+    }
+    return recordedCheckVerdict(runChecks, savedTurnIndex, p.what);
+  },
+}));
+let turnText = '';
+let runChecks: RecordedCheck[] = [];
+const checkOverrides = loadCheckOverrides(process.env.REPLAY_CHECKS);
+let currentRunFile = '';
+let savedTurnIndex = -1;
 vi.mock('@/lib/orchestrator/hint-check', async orig => ({ ...(await orig<object>()), checkHintDelivered: async () => null }));
 let modelTurn: ModelTurn | null = null;
 let modelCalled = false;
@@ -87,6 +115,11 @@ vi.mock('@/lib/orchestrator/pressure-test', async orig => ({
 }));
 
 const { runTurn } = await import('@/lib/orchestrator/session-runner');
+// The Phase 1 switches actually on for the replayed case, stamped into the mirror's header so a replay cannot
+// claim switches it never had (finding 14 of the Stream 1 review: a typo'd --switches string would otherwise
+// produce switches-off results silently). scripts/fault-bank.ts asserts it against what it asked for.
+const { engineSwitchNames } = await import('@/lib/eval/batch-manifest');
+const { getCaseById } = await import('@/lib/cases/loader');
 const { readTurnFile, writeTurnFile } = await import('@/lib/eval/turn-file');
 const { runFiles } = await import('@/lib/eval/run-corpus');
 
@@ -108,7 +141,7 @@ const replayIndex = new Map<number, { saved: number; ms: number }>();
 const FILTER = process.env.REPLAY_FILTER ?? '';
 const enabled = process.env.REPLAY_RUNNER === '1' && !!OUT && existsSync(ROOT);
 
-type RunJson = { session: { caseId: string; startedAt: string; coverageJsonb?: unknown }; turns: { turnIndex: number; role: string; text: string; timestampMs: number }[] };
+type RunJson = { session: { caseId: string; startedAt: string; coverageJsonb?: unknown }; turns: { turnIndex: number; role: string; text: string; timestampMs: number }[]; events?: Row[] };
 
 const FULL_COVERAGE = { structure: 100, quantitative: 100, dataExhibit: 100, judgment: 100, creativity: 100, synthesis: 100, communication: 100, pushback: 100 };
 
@@ -134,6 +167,8 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
   void opening;
   store.revealed = []; store.exhibits = []; store.events = [];
   replayIndex.clear();
+  runChecks = recordedChecks(saved);
+  currentRunFile = file;
   const records: TurnRecord[] = [];
   let diverged = 0;
   for (const [k, r] of saved.entries()) {
@@ -141,7 +176,14 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     const savedModel = r.stateBefore.kind === 'model' || r.stateBefore.kind === 'rec_ask';
     modelTurn = savedModel ? r.parsedTurn : null;
     modelCalled = false;
-    detections = !savedModel && r.parsedTurn ? r.parsedTurn.requests.map(q => ({ what: q.what, ledgerItemIds: q.itemIds, explicit: true })) : [];
+    // A code-written turn's classifier: the asks it answered (its requests) and
+    // those it dropped (round 5 Task 49, lib/eval/recorded-checks.ts).
+    // A model turn's own detections (recordedMessageDetections) are served by default since 27 Oct (Lorenzo: the default
+    // for all gates); REPLAY_MESSAGE_DETECTIONS=0 restores the old behaviour (none on model turns) for comparison.
+    detections = !savedModel && r.parsedTurn ? [
+      ...r.parsedTurn.requests.map(q => ({ what: q.what, ledgerItemIds: q.itemIds, explicit: true })),
+      ...recordedDroppedAsks(r, run.events ?? []),
+    ] : savedModel && process.env.REPLAY_MESSAGE_DETECTIONS !== '0' ? recordedMessageDetections(r, run.events ?? []) : [];
     const pt = r.checks.find(c => c.check === 'pressure_test')?.detail as { verdict?: { answered: boolean; reason: string } | null } | undefined;
     const next = saved[k + 1]?.stateBefore.pressureTest as { state?: string; structureGiven?: boolean } | undefined;
     // The structure check's verdict: what the saved state held after this turn.
@@ -162,7 +204,10 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     const startedBefore = pendingChecks.length;
     // The replay's own turn index for this message (a verdict row carries it) → the saved one and its clock.
     replayIndex.set(store.turns.length, { saved: r.turnIndex, ms: r.stateBefore.elapsedMs ?? 0 });
-    await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); } });
+    turnText = r.candidateText;
+    savedTurnIndex = r.turnIndex;
+    // REPLAY_ACK=1 (Phase 2 C3's proof): every turn as if a voice acknowledgment had been spoken.
+    await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); }, ...(process.env.REPLAY_ACK === '1' ? { acknowledged: 'Mm-hm.' } : {}) });
     // The turn has returned: its check is still pending (nothing awaited it).
     const started = pendingChecks.splice(startedBefore);
     checkerTally.started += started.length;
@@ -249,7 +294,8 @@ function finish(records: TurnRecord[], header: ReturnType<typeof readTurnFile>['
     session: { ...run.session, status: endedEarly ? 'completed' : 'completed' }, turns, revealed: [], events: [],
     analytics: [{ eventType: 'llm_usage', createdAt: run.session.startedAt, payloadJsonb: { component: 'interviewer', model: header.models?.interviewer ?? 'unknown' } }],
   }));
-  writeTurnFile(out.replace(/\.json$/, '.turns.jsonl.gz'), header, records, { type: 'end', ended: true, budgetStopped: false, scoring: 'replay', candidateUsage: { calls: 0, input: 0, output: 0, usd: 0 } });
+  const switches = (() => { try { return engineSwitchNames(getCaseById(run.session.caseId)); } catch { return []; } })();
+  writeTurnFile(out.replace(/\.json$/, '.turns.jsonl.gz'), { ...header, engineSwitches: switches }, records, { type: 'end', ended: true, budgetStopped: false, scoring: 'replay', candidateUsage: { calls: 0, input: 0, output: 0, usd: 0 } });
   return { turns: records.length, diverged, endedEarly };
 }
 

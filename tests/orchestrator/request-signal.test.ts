@@ -2,9 +2,26 @@
 // tuned for precision — it only has to catch a turn where the model declared
 // nothing at all. Examples from batches 12–17.
 import { describe, it, expect } from 'vitest';
-import { explicitRequestCues } from '@/lib/orchestrator/request-signal';
+import { explicitRequestCues, lateAskCues } from '@/lib/orchestrator/request-signal';
 
 const fires = (t: string) => explicitRequestCues(t).length > 0;
+
+describe('lateAskCues', () => {
+  it('fires on addressed asks after the brainstorm', () => {
+    expect(lateAskCues('Do we know whether the 30% is negotiable? And does the $80 million hold flat across all five years?', 'BRAINSTORM')).not.toEqual([]);
+  });
+  it('fires on a question naming a given figure', () => {
+    expect(lateAskCues('And does the $80 million hold flat across all five years?', 'BRAINSTORM', ['Revenue is $80 million.'])).toEqual(['addressed ask']);
+    expect(lateAskCues('And does the $80 million hold flat across all five years?', 'BRAINSTORM')).toEqual([]);
+  });
+  it('stays quiet on a how-to-proceed question that names a figure', () => {
+    expect(lateAskCues('Do you want me to work from 25%?', 'RECOMMENDATION', ['Beans are 25% of COGS.'])).toEqual([]);
+  });
+  it('stays quiet on a rhetorical question and on next steps', () => {
+    expect(lateAskCues('Is it worth it? Yes — the payback is under two years.', 'RECOMMENDATION')).toEqual([]);
+    expect(lateAskCues("Next steps: I'd want the store-level data to confirm.", 'RECOMMENDATION')).toEqual([]);
+  });
+});
 
 describe('explicitRequestCues', () => {
   it.each([
@@ -30,6 +47,10 @@ describe('explicitRequestCues', () => {
     'Where would you like me to dig in first?',
     "I'd want to look at which line grew fastest relative to revenue.",
   ])('stays quiet without an ask: %s', t => expect(fires(t)).toBe(false));
+
+  it('reads "I\'d want:" with a colon (batch 32 Aldermoor)', () => {
+    expect(explicitRequestCues("One thing I'd want: how the eligible pool has been trending")).toContain("I'd want the");
+  });
 
   it('names what matched, for the log', () => {
     expect(explicitRequestCues('Could I get the store count? And do we have menu prices?')).toEqual(['could I get', 'do we have']);
@@ -107,10 +128,11 @@ describe('guard B: Plan and Stream', () => {
     return p;
   };
 
-  it('arms the guard on an explicit ask before the brainstorm only', () => {
+  it('arms the guard on an explicit ask before the brainstorm, and on addressed asks from it on', () => {
     expect(plan('STRUCTURE', 'Could I get the cost breakdown?').state.requestCues).toEqual(['could I get']);
     expect(plan('STRUCTURE', 'I think costs drove it.').state.requestCues).toEqual([]);
-    expect(plan('BRAINSTORM', 'Could I get the cost breakdown?').state.requestCues).toEqual([]);
+    expect(plan('BRAINSTORM', 'Could I get the cost breakdown?').state.requestCues).toEqual(['addressed ask']);
+    expect(plan('BRAINSTORM', "I'd want the store-level data to confirm.").state.requestCues).toEqual([]);
   });
 
   it('holds say until the declarations close when the guard is armed', async () => {

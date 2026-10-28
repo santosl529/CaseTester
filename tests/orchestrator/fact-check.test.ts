@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import { getCaseById } from '@/lib/cases/loader';
 import {
-  buildFactBase, findFalseFacts, findCandidateMisquotes, findFalseRefusals, findUndeliveredClaims, findEchoes, echoesOf,
+  factBaseFor, buildFactBase, findFalseFacts, findCandidateMisquotes, findFalseRefusals, findUndeliveredClaims, findEchoes, echoesOf, coverageOf, BASIS,
 } from '@/lib/orchestrator/fact-check';
+import { outsideAskScope } from '@/lib/orchestrator/data-decisions';
 
 const fb = buildFactBase(getCaseById('prof-001') as never);
 const COST_LINES = ['cogs_pct', 'labor_pct', 'overhead_pct'];
@@ -77,6 +78,20 @@ describe('F1 echo — repeating a standing misquote', () => {
   });
 });
 
+describe('probe_opener lead-ins (round-4 ruling 6): a probe opened any way is read as a probe', () => {
+  const [m] = findCandidateMisquotes('The whole swing is COGS: it goes from 42% two years ago to 61% now.', fb, new Set(COST_LINES), ['exhibit-a']);
+  const echoes = echoesOf({ ...m, items: m.items }, fb);
+  const OPENERS = ['You said', 'You mentioned', 'Earlier you said', 'You put it at', 'You had'];
+  it('F1: the quote of a figure in a probe is not an echo, whatever the opener', () => {
+    for (const o of OPENERS) expect(findEchoes(`${o} “the 19 points” — which cost lines did you include?`, echoes, fb), o).toEqual([]);
+  });
+  it('F4: the "you said" exemption covers each opener', () => {
+    const ctx = { revealed: new Set<string>(COST_LINES), exhibitShown: false, deliveredNow: false, deliveredPrev: false, refusedNow: false };
+    expect(findUndeliveredClaims('What does the exhibit tell you?', fb, ctx).map(f => f.why)).toEqual(['no_exhibit']);
+    for (const o of OPENERS) expect(findUndeliveredClaims(`${o} what the exhibit tells you.`, fb, ctx).map(f => f.why), o).toEqual([]);
+  });
+});
+
 describe('F2 — candidate misquotes', () => {
   const mq = (t: string, revealed = COST_LINES) => findCandidateMisquotes(t, fb, new Set(revealed), ['exhibit-a']);
   it('misquotes of revealed data, prompt facts and changes in points (Tyler, batches 12–20)', () => {
@@ -111,6 +126,13 @@ describe('F2 — candidate misquotes', () => {
 });
 
 describe('F3 — false refusals', () => {
+  // Round 5 Task 50 fix round 2: code refuses a question-worded ask as "data on whether …";
+  // read as the question it was ("I don't have whether …" was), the case's covers included.
+  it('"data on whether …" is read as the question, covers included', () => {
+    const t = "I don't have data on whether the 15% growth is total or same-store revenue.";
+    expect(findFalseRefusals(t, fb, new Set(), { covers: true })).toEqual([]);
+    expect(findFalseRefusals("I don't have whether the 15% growth is total or same-store revenue.", fb, new Set(), { covers: true })).toEqual([]);
+  });
   const fr = (t: string, revealed: string[] = []) => findFalseRefusals(t, fb, new Set(revealed)).map(f => f.items).flat();
   it('refusals of items the case holds (batch 20 R10, R23, R28; batch 18 Maya t7; batch 5 Destiny t24; prefix runs; screens)', () => {
     expect(fr('I don\'t have what\'s inside COGS, bean cost per pound and dairy.', COST_LINES)).toEqual(expect.arrayContaining(['bean_share_of_cogs', 'bean_price_change']));
@@ -139,6 +161,8 @@ describe('F3 — false refusals', () => {
       'I don\'t have transaction volume per store across the three years.',
       'I don\'t have COGS, labor, rent and SG&A dollars by year.',
       'I don\'t have whether the 37.5% on other inputs is total spend or per unit.',
+      // Code's refusal form since round 5 Task 50 fix round 2: the same question.
+      'I don\'t have data on whether the 37.5% on other inputs is total spend or per unit.',
       'I don\'t have that detail — treat it as overall net margin.',
       'I don\'t have revenue 2 years ago, annual transaction count, items per transaction.',
       'I don\'t have pounds of beans purchased per year, packaging and cup costs or capex.',
@@ -188,5 +212,54 @@ describe('F4 — delivery claims without delivery', () => {
     expect(why('The question on the table: given those 3 figures, what do you conclude?')).toEqual([]);
     expect(why('With labor as a share of revenue in front of you, what does that tell you?')).toEqual([]);
     expect(why('What does the exhibit tell you?', ctx({ exhibitShown: true }))).toEqual([]);
+  });
+});
+
+describe('F3 reads covers (Lorenzo, 19 Oct; engine-asks task 3)', () => {
+  const fb2 = factBaseFor(getCaseById('prof-002') as never);
+  const ask = 'As for competition on Ashford and Brookhaven, that\'s not something I have.';
+  it('a refusal of what a cover phrase answers is flagged with covers on', () => {
+    const flags = findFalseRefusals(ask, fb2, new Set(), { covers: true });
+    expect(flags.flatMap(f => f.items)).toContain('new_routes_context');
+  });
+  it('a finer cut beside the phrase is not covered', () => {
+    expect(findFalseRefusals('As for competition on Ashford broken down by month, that\'s not something I have.', fb2, new Set(), { covers: true })).toEqual([]);
+  });
+  it('without covers the same refusal flags nothing', () => {
+    expect(findFalseRefusals(ask, fb2, new Set())).toEqual([]);
+  });
+});
+
+describe('"fixed cost breakdown" is no cover (Lorenzo, 19 Oct; engine-asks round-2 task 15; b22 Larkspur Omar t14)', () => {
+  const fb3 = factBaseFor(getCaseById('prof-002') as never);
+  it('"I don\'t have the fixed cost breakdown" is not an F3 flag: the case holds no split of the $20M', () => {
+    expect(findFalseRefusals('A broad list of levers. I don\'t have the fixed cost breakdown. With that in hand, which lever would you recommend?', fb3, new Set(), { covers: true })).toEqual([]);
+  });
+  it('a period-wide cost breakdown still reaches the items it was written for', () => {
+    const got = coverageOf('the FY2023 versus FY2025 cost breakdown', fb3).items;
+    expect(got).toEqual(expect.arrayContaining(['fuel_prices', 'unit_costs', 'network_totals', 'fixed_costs']));
+  });
+  it('a bare "the cost breakdown" (b22 Larkspur Marcus t1: "the cost breakdown and average fare trend") still reaches the four items', () => {
+    expect(coverageOf('the cost breakdown and average fare trend', fb3).items).toEqual(expect.arrayContaining(['fuel_prices', 'unit_costs', 'network_totals', 'fixed_costs']));
+    expect(coverageOf('the fixed cost breakdown', fb3).items).toEqual([]);
+  });
+});
+
+// Round 6 Task 71 (audit row 13; b37 Hollis Bay Tyler 442e37ff t17 → t18): "I'd want to know how that
+// 500,000 was estimated — is it from a comparable past launch?" — the model's `what` puts the subject
+// first, so BASIS ("how was/were … derived") didn't read it and both items' lines were restated.
+describe('Task 71: BASIS reads a basis ask with its subject first', () => {
+  it('row 13: "how the 500,000 household estimate was derived" is a basis ask; neither line says its basis', () => {
+    expect(BASIS.test('how the 500,000 household estimate was derived')).toBe(true);
+    expect(BASIS.test('how the churn figures were calculated')).toBe(true);
+    expect(BASIS.test('how was the 70% load factor estimated')).toBe(true);   // as before
+    // A count is no basis ask (Decisions, Task 71): "how many … were estimated" asks the figure.
+    expect(BASIS.test('how many households were estimated to buy')).toBe(false);
+    expect(BASIS.test('how much revenue was estimated for year one')).toBe(false);
+    expect(BASIS.test('how the price changed over two years')).toBe(false);
+    const launch = getCaseById('launch-001').dataLedger;
+    for (const id of ['planning_assumptions', 'survey_design']) {
+      expect(outsideAskScope('how the 500,000 household estimate was derived', launch.find(i => i.id === id)!)).toBe(true);
+    }
   });
 });

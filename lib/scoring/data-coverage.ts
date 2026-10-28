@@ -19,10 +19,28 @@ export type DataRequestRow = { subtype: string; turnIndex: number | null; payloa
 export type RequestedUnanswered = { ledgerItemId: string; label: string; what: string; turnIndex: number | null };
 export type RequestedNotInCase = { what: string; response: string; turnIndex: number | null };
 
+export type Volunteered = { ledgerItemId: string; label: string; turnIndex: number | null };
+
 export type DataCoverage = {
   requestedUnanswered: RequestedUnanswered[]; // coverage gap
   requestedNotInCase: RequestedNotInCase[];   // fair game — the data doesn't exist
+  // Must-reach items code released unasked (round 6 Task 72): no credit for asking them.
+  volunteered?: Volunteered[];
 };
+
+// Must-reach items the interviewer volunteered (round 6 Task 72; Lorenzo, 21 Oct, round 6: "The report should note
+// when an item was volunteered."): the session's `volunteered` intervention events (settle-turn.ts — written only for
+// an item the candidate got), one per item, in turn order.
+export function volunteeredItems(rows: DataRequestRow[], catalog: { id: string; label: string }[]): Volunteered[] {
+  const labels = new Map(catalog.map(c => [c.id, c.label]));
+  const out: Volunteered[] = [];
+  for (const r of [...rows].sort((a, b) => (a.turnIndex ?? Infinity) - (b.turnIndex ?? Infinity))) {
+    const item = (r.payloadJsonb as { item?: unknown } | null)?.item;
+    if (r.subtype !== 'volunteered' || typeof item !== 'string' || !labels.has(item) || out.some(v => v.ledgerItemId === item)) continue;
+    out.push({ ledgerItemId: item, label: labels.get(item)!, turnIndex: r.turnIndex });
+  }
+  return out;
+}
 
 export function summarizeDataRequests(
   rows: DataRequestRow[],

@@ -1,0 +1,403 @@
+// Phase 1 Stream 3 task 4 — the flat misquote correction (`misquoteFlat`, contract 3.4). Lorenzo: "a flat correction,
+// from the ledger value, only when code finds a mismatch with a revealed item AND the checker rated the span an error
+// (flag or not). Never let the probe guard replace a model question that catches a misquote."
+// b38 Larkspur Tyler cee7d399 verbatim (fixtures/phase1-s3-runs.ts): t5 "fixed costs were $21M" (the ledger says
+// $20.0M) and t29 "Westhaven's $3.6M of contribution" (the line says $4.4M) were both dropped by the gate with the
+// checker rating them error/high and raising no flag; his $19.8M and $8,800 at t21 and t25 are his own figures, with
+// no claim of the checker on them, and must stay dropped.
+import { describe, it, expect, vi, afterEach } from 'vitest';
+
+type Row = Record<string, unknown>;
+vi.mock('@/lib/orchestrator/conduct-model', async orig => ({ ...(await orig<object>()), classifyConductModel: async () => null }));
+vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
+vi.mock('@/db/client', () => ({
+  db: {
+    query: { sessions: { findFirst: async () => ({ status: 'active' }) } },
+    insert: () => ({ values: async () => {} }),
+    update: () => ({ set: (v: Row) => ({ where: async () => { void v; } }) }),
+  },
+}));
+vi.mock('@/lib/orchestrator/data-requests', async orig => ({ ...(await orig<object>()), classifyDataRequests: async () => [] }));
+
+import { planTurn, type ModelPlan } from '@/lib/orchestrator/plan-turn';
+import * as planModule from '@/lib/orchestrator/plan-turn';
+import { WRAP_UP_PROBES } from '@/lib/orchestrator/close-hold';
+import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
+import { challengeVerdict } from '@/lib/orchestrator/probe-guard';
+import { gateCodeFindings, type GateDecision, type CheckerRow, type VerdictPayload } from '@/lib/orchestrator/math-checker-live';
+import { getCaseById } from '@/lib/cases/loader';
+import { MARISOL, TYLER, readsAt, textOf } from './fixtures/phase1-s3-runs';
+
+const PT = { ...INITIAL_PRESSURE_TEST, state: 'satisfied' as const, satisfiedAt: 3 };
+const ON = 'prof-002=misquoteFlat';
+const plan = (n: number, flags: Record<string, unknown> = {}) =>
+  planTurn(readsAt(TYLER, n, { pressureTest: PT, ...flags }), textOf(TYLER, n), { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
+const gateRows = (p: ModelPlan) => p.ctx.events.filter(e => e.category === 'math_checker' && e.subtype === 'code_gate').map(e => e.payload as GateDecision);
+const decisionOn = (p: ModelPlan, id: string) => gateRows(p).find(d => d.id === id);
+
+afterEach(() => { vi.unstubAllEnvs(); });
+
+describe('t5 "You said fixed costs were $21M in both years" — the checker rates it error/high, no flag', () => {
+  it('switches off: dropped by the gate, nothing said (the run\'s own outcome)', () => {
+    vi.stubEnv('ENGINE_SWITCHES', '');
+    const p = plan(7);
+    expect(decisionOn(p, '5:code:0')).toMatchObject({ key: 'misquote:fixed_costs', value: 21, outcome: 'not_rated' });
+    expect(p.state.misquote).toBeNull();
+  });
+  it('on: the flat correction from the ledger value, booked as released with the rating in its reason', () => {
+    vi.stubEnv('ENGINE_SWITCHES', ON);
+    const p = plan(7);
+    expect(decisionOn(p, '5:code:0')).toMatchObject({
+      outcome: 'released',
+      reason: expect.stringMatching(/^code's mismatch with fixed_costs, and the checker rates "\$?21M?" error\/high with no flag \(misquoteFlat\)$/),
+    });
+    expect(p.state.misquote).toMatchObject({ item: 'fixed_costs', cited: 'were $21M' });
+    expect(p.state.misquote!.text).toContain('were $20.0M in both FY2023 and FY2025');
+    expect(p.state.misquoteHint).toContain('Do not repeat, correct, question or build on their figure yourself');
+  });
+});
+
+describe('t29 "Westhaven\'s $3.6M of contribution" in the recommendation — the same rating, no flag', () => {
+  it('switches off: dropped', () => {
+    vi.stubEnv('ENGINE_SWITCHES', '');
+    const p = plan(31);
+    expect(decisionOn(p, '29:code:0')).toMatchObject({ key: 'misquote:route_results_other', value: 3.6, outcome: 'not_rated' });
+    expect(p.state.misquote).toBeNull();
+  });
+  it('on: the correction, in the ledger line\'s own words', () => {
+    vi.stubEnv('ENGINE_SWITCHES', ON);
+    const p = plan(31);
+    expect(decisionOn(p, '29:code:0')).toMatchObject({ outcome: 'released', reason: expect.stringContaining('(misquoteFlat)') });
+    expect(p.state.misquote).toMatchObject({ item: 'route_results_other' });
+    expect(p.state.misquote!.text).toContain('Hub–Westhaven (2,000 flights) held at $24.8M of revenue');
+  });
+});
+
+describe('no rating, no correction — the rule is the checker\'s agreement, not code\'s finding alone', () => {
+  it('t21 "$19.8M against $20M fixed": no claim of the checker on the figure — dropped with the switch on too', () => {
+    for (const switches of ['', ON]) {
+      vi.stubEnv('ENGINE_SWITCHES', switches);
+      const p = plan(23);
+      expect(decisionOn(p, '21:code:0'), switches).toMatchObject({ outcome: 'not_rated', reason: 'no claim of the checker on this figure' });
+      expect(p.state.misquote, switches).toBeNull();
+    }
+  });
+  it('t25 "my $8,800 variable cost error": the same — his own withdrawn figure, no claim on it', () => {
+    for (const switches of ['', ON]) {
+      vi.stubEnv('ENGINE_SWITCHES', switches);
+      const p = plan(27);
+      expect(decisionOn(p, '25:code:0'), switches).toMatchObject({ outcome: 'not_rated', reason: 'no claim of the checker on this figure' });
+      expect(p.state.misquote, switches).toBeNull();
+    }
+  });
+  it('t9 "revenue 46.8 down to 33.6": the checker flags it, so it is released either way (today\'s path, unchanged)', () => {
+    for (const switches of ['', ON]) {
+      vi.stubEnv('ENGINE_SWITCHES', switches);
+      const p = plan(11);
+      expect(decisionOn(p, '9:code:0'), switches).toMatchObject({ outcome: 'released', reason: 'the checker flags "33.6; $13.2M"' });
+      expect(p.state.misquote, switches).toMatchObject({ item: 'route_results_port_avery' });
+    }
+  });
+});
+
+// The false correction the 26 Oct replay caught, pinned on the run itself: b38 Larkspur Marisol f80d981c t15 "So the
+// swap is worth $15.8M of contribution" — her own derived figure, which the misquote grammar read as a misquote of the
+// network totals ($16.0M of contribution). The checker flags it with 11.8 right, so the agreement test drops it; with
+// the agreement relaxed, the turn said "To correct one figure: across all six routes, revenue fell from $200.0M…",
+// correcting a figure she never quoted, and the true correction ("about $11.8M, not $15.8M") was lost.
+describe('b38 Marisol t15 — a derived figure the grammar reads as a misquote is never corrected flat', () => {
+  const at17 = () => planTurn(readsAt(MARISOL, 17, { pressureTest: PT }), textOf(MARISOL, 17), { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
+  it('her figure, the finding and the checker\'s own right figure', () => {
+    expect(textOf(MARISOL, 15)).toContain('the swap is worth $15.8M of contribution');
+    const v = (MARISOL.rows.find(r => (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 15)!.payloadJsonb as VerdictPayload).claims[2];
+    expect(v).toMatchObject({ candidateValue: '$15.8M', verdict: 'error', flag: true, correctValue: 11.8 });
+  });
+  it('dropped with the switch on, as it is off: the checker rated another quantity', () => {
+    for (const switches of ['', 'prof-002=misquoteFlat']) {
+      vi.stubEnv('ENGINE_SWITCHES', switches);
+      const p = at17();
+      expect(gateRows(p).find(d => d.key === 'misquote:network_totals'), switches).toMatchObject({ outcome: 'checker_disagrees' });
+      expect(p.state.misquote, switches).toBeNull();
+    }
+  });
+});
+
+describe('the probe guard never replaces a model question that catches a misquote', () => {
+  // b38 Larkspur Tyler t14, the model's own question after his t13 "the exhibit shows fare down to $125" (it says $120).
+  const SENTENCE = 'Before you size the fix, look at the fare line: what does it show for FY2025, and does your $125 match it?';
+  const ctx = { verified: [], alreadyProbed: new Set<string>(), flaggedThisTurn: false, flagged: [], candidateFigures: [125, 145, 8700, 300] };
+  it('today: withheld as an unsupported challenge (the run\'s own outcome — the replacement was "Where does that leave your analysis?")', () => {
+    expect(challengeVerdict(SENTENCE, ctx)).toMatchObject({ test: 'unsupported_challenge', figure: 125 });
+  });
+  it('with code\'s misquote finding on the message, the model\'s question stands', () => {
+    expect(challengeVerdict(SENTENCE, { ...ctx, misquoteFigures: [125] })).toBeNull();
+  });
+  it('another figure\'s misquote licenses nothing', () => {
+    expect(challengeVerdict(SENTENCE, { ...ctx, misquoteFigures: [120] })).toMatchObject({ test: 'unsupported_challenge' });
+  });
+  it('a doubt of a figure code verified as correct is still withheld, misquote finding or not', () => {
+    const verified = [{ stepId: 'lakeport_contribution_fy2025', value: 125, operands: [], span: 'x', workShown: false }];
+    expect(challengeVerdict('Are you sure the $125 is right?', { ...ctx, verified, misquoteFigures: [125] })).toMatchObject({ test: 'doubt_on_verified' });
+  });
+  it('a figure closed to the report stays closed', () => {
+    expect(challengeVerdict(SENTENCE, { ...ctx, closed: [125], misquoteFigures: [125] })).toMatchObject({ test: 'closed_to_report' });
+  });
+});
+
+describe('plan-turn fills the guard\'s misquote figures only under the switch', () => {
+  it('off: none; on: the message\'s own findings', () => {
+    vi.stubEnv('ENGINE_SWITCHES', '');
+    expect(plan(9).state.misquoteFigures).toEqual([]);
+    vi.stubEnv('ENGINE_SWITCHES', ON);
+    expect(plan(9).state.misquoteFigures).toEqual([33.6]);   // "revenue 46.8 down to 33.6" (the line says $32.4M)
+  });
+});
+
+// The gate's own decision, on the real t5 verdict with one claim changed: the rating is required and a contradicting
+// rating blocks. (gateCodeFindings is what plan-turn calls; the rows are the run's own.)
+describe('gateCodeFindings on t5, claim by claim', () => {
+  const row = TYLER.rows.find(r => (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 5)!;
+  const verdict = row.payloadJsonb as VerdictPayload;
+  const caseData = getCaseById('prof-002');
+  const gate = (claims: VerdictPayload['claims'], switches: string) => {
+    vi.stubEnv('ENGINE_SWITCHES', switches);
+    return gateCodeFindings({
+      rows: [{ ...row, payloadJsonb: { ...verdict, claims } } as CheckerRow], handled: [],
+      turnRows: TYLER.turns.filter(t => t.turnIndex < 7), candidateText: textOf(TYLER, 7), candidateTurnIndex: 7,
+      caseData, revealedIds: TYLER.records['7'].revealed,
+      codeFigures: f => (f.kind === 'misquote' ? [20] : null),
+    }).decisions[0];
+  };
+  const claim = (over: Partial<VerdictPayload['claims'][number]>) => [{ ...verdict.claims[0], ...over }, verdict.claims[1]];
+
+  it('error, no flag → released with the switch, dropped without it', () => {
+    expect(gate(verdict.claims, ON).outcome).toBe('released');
+    expect(gate(verdict.claims, '').outcome).toBe('not_rated');
+  });
+  it('a second claim on the same span rated correct blocks it: the checker contradicts itself', () => {
+    expect(gate([...claim({}), { ...verdict.claims[0], verdict: 'correct', errorType: null }], ON).outcome).toBe('checker_correct');
+  });
+  it('unverifiable is no rating', () => {
+    expect(gate(claim({ verdict: 'unverifiable' }), ON).outcome).toBe('not_rated');
+  });
+  it('error at low confidence is still an error rated by the checker (Lorenzo: flag or not)', () => {
+    const d = gate(claim({ confidence: 'low' }), ON);
+    expect(d.outcome).toBe('released');
+    expect(d.reason).toContain('error/low with no flag');
+  });
+  it('a deterministic flag finding is untouched: the switch is the misquote rule only', () => {
+    const flagRef = { key: 'fixed_costs@21', value: 21, span: verdict.codeFlags[0].span, finding: { kind: 'flag' as const, flag: { stepId: 'op_profit_swing', candidateValue: 21, expected: 20, span: verdict.codeFlags[0].span, quantity: 'fixed costs', kind: 'step' as const } } };
+    const gateFlag = (switches: string) => {
+      vi.stubEnv('ENGINE_SWITCHES', switches);
+      return gateCodeFindings({
+        rows: [{ ...row, payloadJsonb: { ...verdict, codeFlags: [flagRef] } } as CheckerRow], handled: [],
+        turnRows: TYLER.turns.filter(t => t.turnIndex < 7), candidateText: textOf(TYLER, 7), candidateTurnIndex: 7,
+        caseData, revealedIds: TYLER.records['7'].revealed, codeFigures: f => (f.kind === 'misquote' ? [20] : null),
+      }).decisions[0];
+    };
+    expect(gateFlag('').outcome).toBe('not_rated');
+    expect(gateFlag(ON).outcome).toBe('not_rated');   // the checker's claim on "$21M" is an error with no flag: still no line
+  });
+  it('the right-figure agreement is NOT relaxed: a rating whose own right figure is not code\'s stays dropped', () => {
+    // The switch relaxes the flag, not the agreement. The checker's right figure must be one the data line states,
+    // else it rated another quantity — the false correction the 26 Oct replay caught (b38 Marisol, below).
+    expect(gate(claim({ flag: true, correctValue: 18 }), '').outcome).toBe('checker_disagrees');
+    expect(gate(claim({ flag: true, correctValue: 18 }), ON).outcome).toBe('checker_disagrees');
+    expect(gate(claim({ correctValue: 18 }), ON).outcome).toBe('not_rated');
+  });
+});
+
+// Lorenzo's pre-wave ruling 11 (26 Oct): "Name the misquoted input, never a result that's within tolerance.
+// 'Ingredients are $0.70, not $0.75.' — not a correction of the $1.45 contribution that is within 3%."
+// The two tolerance-edge turns are b37h 442e37ff t6 and b37q a2a5921b t12. On both, the checker's error-rated
+// claim is the RESULT built on the misquoted input, and its right figure is the result's — so `rightAgrees`
+// blocked the flat path and nothing was said. The relaxation is narrow: a misquote-typed error claim whose own
+// stated figure is within the checker's own tolerance band of its right figure. The spoken line is still code's
+// ledger line for the misquoted item, so it names the input and never the result.
+describe('ruling 11 — the result is within tolerance, the misquoted input is the fault', () => {
+  const row = TYLER.rows.find(r => (r.payloadJsonb as VerdictPayload).candidateTurnIndex === 5)!;
+  const verdict = row.payloadJsonb as VerdictPayload;
+  const caseData = getCaseById('prof-002');
+  const gate = (claims: VerdictPayload['claims'], switches: string) => {
+    vi.stubEnv('ENGINE_SWITCHES', switches);
+    return gateCodeFindings({
+      rows: [{ ...row, payloadJsonb: { ...verdict, claims } } as CheckerRow], handled: [],
+      turnRows: TYLER.turns.filter(t => t.turnIndex < 7), candidateText: textOf(TYLER, 7), candidateTurnIndex: 7,
+      caseData, revealedIds: TYLER.records['7'].revealed,
+      codeFigures: f => (f.kind === 'misquote' ? [20] : null),
+    }).decisions[0];
+  };
+  const claim = (over: Partial<VerdictPayload['claims'][number]>) => [{ ...verdict.claims[0], ...over }, verdict.claims[1]];
+
+  // a2a5921b t12's shape: "$100 less $22 cost to serve is $78, times 50 is $3,900" — error/misquote, right 4,000,
+  // his own 3,900 inside the checker's 5% band, and 4,000 is no figure of the data line code would read out.
+  it('releases the input correction when the error-rated result sits inside the checker\'s own band', () => {
+    // Same shape, on this fixture's claim: his figure inside the checker's 5% band of a right figure that is
+    // none of code's line's (as 3,900 sits inside the band of 4,000, which is no figure of plan_prices_costs).
+    const edge = claim({ correctValue: 22, errorType: 'misquote' });
+    const d = gate(edge, ON);
+    expect(d.outcome).toBe('released');
+    expect(d.reason).toMatch(/within the checker's tolerance/);
+    expect(gate(edge, '').outcome).toBe('not_rated');     // nothing without the switch
+  });
+
+  it('still blocks a right figure that is simply another quantity (the b38 Marisol false correction)', () => {
+    // Her shape: a right figure that is her own derived quantity, far outside the band around her own figure —
+    // the agreement still blocks it, flagged or not.
+    expect(gate(claim({ correctValue: 11.8, errorType: 'misquote' }), ON).outcome).toBe('not_rated');
+    expect(gate(claim({ correctValue: 11.8, errorType: 'misquote', flag: true }), ON).outcome).toBe('checker_disagrees');
+  });
+
+  it('only a misquote-typed error: a conceptual or arithmetic error inside the band does not license it', () => {
+    for (const errorType of ['conceptual', 'arithmetic'] as const)
+      expect(gate(claim({ candidateValue: '$3,900', correctValue: 4000, errorType }), ON).outcome, errorType).toBe('not_rated');
+  });
+});
+
+// Lorenzo's pre-wave rulings 3 and 4 (26 Oct), behind `correctionRules`:
+//   3 — "Each item is corrected once, on every path." b32 Tyler 51b8cc22 was corrected on
+//       route_results_port_avery at t12, re-misquoted it at t27 and got the identical line at t28.
+//   4 — "No correction on the closing turn. If time is up, leave it for the written report." b38l Tyler cee7d399
+//       t32 prepends a ~70-word read-out of the four-route block to the goodbye to fix $3.6M → $3.8M, never names
+//       which figure was wrong, and the case ends.
+describe('rulings 3 and 4 — one correction per item, none at the goodbye', () => {
+  const STAGES_DONE = {
+    structure: { delivered: true, deliveredAt: 0 }, pressure_test: { delivered: true }, analysis: { delivered: true },
+    exhibit: { delivered: true }, brainstorm: { delivered: true },
+    recommendation: { delivered: true, asks: 1, outcome: 'answered' }, risk: { delivered: true }, pending: null,
+  };
+  const closePlan = (switches: string, flags: Record<string, unknown> = {}) => {
+    vi.stubEnv('ENGINE_SWITCHES', switches);
+    return plan(31, { graceAskFired: true, stageEvidence: STAGES_DONE, ...flags });
+  };
+  const misquoteOf = (p: ModelPlan) => (p.state as { misquote?: { item: string } | null }).misquote ?? null;
+
+  it('ruling 4: the closing turn says no correction, and logs what it held', () => {
+    const off = closePlan('prof-002=misquoteFlat');
+    expect(off.state.kind).toBe('close');
+    expect(misquoteOf(off)?.item).toBe('route_results_other');     // today: the close lifts the cap
+
+    const on = closePlan('prof-002=misquoteFlat,correctionRules');
+    expect(on.state.kind).toBe('close');
+    expect(misquoteOf(on)).toBeNull();
+    const chk = on.ctx.checks.entries.find(c => c.check === 'misquote');
+    expect((chk?.detail as { closeHeld?: string[] } | undefined)?.closeHeld).toContain('route_results_other');
+  });
+
+  it('ruling 3: once per item, on every path — the recommendation reply no longer bypasses the cap', () => {
+    const { correctsItemAgain, MISQUOTE_CORRECTIONS_PER_ITEM } = planModule;
+    expect(MISQUOTE_CORRECTIONS_PER_ITEM).toBe(2);
+    // Today: the reply to a recommendation ask corrects whatever its count, and the cap allows a second.
+    expect(correctsItemAgain({ timesCorrected: 1, recReply: true, onceOnly: false })).toBe(true);
+    expect(correctsItemAgain({ timesCorrected: 1, recReply: false, onceOnly: false })).toBe(true);
+    expect(correctsItemAgain({ timesCorrected: 2, recReply: false, onceOnly: false })).toBe(false);
+    // With the rule: once, on every path.
+    expect(correctsItemAgain({ timesCorrected: 0, recReply: false, onceOnly: true })).toBe(true);
+    expect(correctsItemAgain({ timesCorrected: 1, recReply: true, onceOnly: true })).toBe(false);
+    expect(correctsItemAgain({ timesCorrected: 1, recReply: false, onceOnly: true })).toBe(false);
+  });
+
+  it('an item already corrected is not corrected again on the close path either', () => {
+    const on = closePlan('prof-002=misquoteFlat', { misquoteCorrected: ['route_results_other'] });
+    expect(misquoteOf(on)?.item).toBe('route_results_other');       // today: the close lift ignores the record
+    const ruled = closePlan('prof-002=misquoteFlat,correctionRules', { misquoteCorrected: ['route_results_other'] });
+    expect(misquoteOf(ruled)).toBeNull();
+  });
+});
+
+// Lorenzo's pre-wave ruling 5 (26 Oct): "Keep WRAP_UP_PROBES at 2, and log it — when a correction or probe is
+// dropped because both wrap-up slots are spent, record that fact so the report can show it (b35q Marisol and
+// b35q Tyler both lost a correction this way)." The cap is unchanged; only the record is new.
+describe('ruling 5 — the wrap-up cap is logged when it bites', () => {
+  const STAGES_DONE = {
+    structure: { delivered: true, deliveredAt: 0 }, pressure_test: { delivered: true }, analysis: { delivered: true },
+    exhibit: { delivered: true }, brainstorm: { delivered: true },
+    recommendation: { delivered: true, asks: 1, outcome: 'answered' }, risk: { delivered: true }, pending: null,
+  };
+  const capCheck = (p: ModelPlan) => p.ctx.checks.entries.find(c => c.check === 'wrap_up_cap');
+
+  it('the cap stays at 2', () => {
+    expect(WRAP_UP_PROBES).toBe(2);
+  });
+
+  it('records the cap and what it kept back; passes quietly when a slot is left', () => {
+    vi.stubEnv('ENGINE_SWITCHES', 'prof-002=misquoteFlat');
+    const spent = plan(31, { graceAskFired: true, stageEvidence: STAGES_DONE, closeHold: { probeTurns: [25, 27] } });
+    const c = capCheck(spent);
+    expect(c?.detail).toMatchObject({ cap: 2, left: 0, spentOn: [25, 27] });
+    expect(c?.decision === 'act' ? (c.detail as { dropped: unknown[] }).dropped.length : 0).toBeGreaterThanOrEqual(0);
+
+    const left = plan(31, { graceAskFired: true, stageEvidence: STAGES_DONE, closeHold: { probeTurns: [25] } });
+    expect(capCheck(left)?.decision).toBe('pass');
+    expect(capCheck(left)?.detail).toMatchObject({ cap: 2, left: 1, dropped: [] });
+  });
+});
+
+// Post-wave item 3 (Lorenzo, 26 Oct): Rule 6 option 4 is "one flat sentence", and on today's timing it is never
+// said. Code's correction waits for the checker's verdict, which lands a turn after the message; by then the model's
+// own Socratic question on the misquote turn has made the candidate fix it, so the correction is stale and nothing
+// flat ever goes (batch 39, aldermoor p64 4df38465 t6 → t8 and t10 → t12). `misquoteSameTurn` says it on its own turn.
+describe('`misquoteSameTurn` — the flat sentence on the misquote\'s own turn', () => {
+  it('off: nothing on the misquote\'s own turn (the correction waits for the gate, a turn later)', () => {
+    vi.stubEnv('ENGINE_SWITCHES', ON);
+    expect(plan(5).state.misquote).toBeNull();
+  });
+
+  it('on: the flat correction and the hint, on the turn that answers the message', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = plan(5);
+    expect(p.state.misquote).toMatchObject({ item: 'fixed_costs', cited: 'were $21M' });
+    expect(p.state.misquote!.text).toContain('were $20.0M in both FY2023 and FY2025');
+    expect(p.state.misquoteHint).toContain('Do not repeat, correct, question or build on their figure yourself');
+  });
+
+  it('once said, the gate\'s own release next turn says nothing again (correctionRules)', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn,correctionRules`);
+    const said = plan(5);
+    expect(said.state.misquote).not.toBeNull();
+    const after = plan(7, { misquoteCorrected: ['fixed_costs'] });
+    expect(after.state.misquote).toBeNull();
+  });
+
+  it('a report-only finding is not said on its own turn either — the switch adds no untrusted correction', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = plan(5);
+    // Every item it corrects is one whose misquote code found live on the message (never a report-only one).
+    const reportOnly = p.ctx.checks.entries.find(c => c.check === 'misquote_report_only');
+    expect(reportOnly?.decision).toBe('pass');
+  });
+
+  // Lorenzo's ruling of 26 Oct (evening): only an ATTRIBUTED quote corrects early. t5's "You said fixed costs were
+  // $21M" is attributed; every other finding in these two runs is the candidate showing his own working, and all four
+  // are held. Without this restriction the same switch spoke 45 new corrections across the 31 slices, two of them
+  // provably false (b34a `a1133734` t31, b38l `701443f7` t17).
+  const sameTurn = (p: ModelPlan) => p.ctx.checks.entries.find(c => c.check === 'misquote_same_turn')?.detail as
+    { take: { item: string; cited: string }[]; skipped: { cited: string; why: string }[] } | undefined;
+
+  it('t5 is attributed, so it is taken', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    expect(sameTurn(plan(5))).toEqual({ take: [{ item: 'fixed_costs', cited: 'were $21M' }], skipped: [] });
+  });
+
+  it.each([
+    [9, '33.6'],      // "Port Avery: revenue 46.8 down to 33.6" — his own read of the exhibit, no source named
+    [21, '$19.8M'],   // "contribution around $19.8M against $20M fixed" — his own build
+    [25, '$8,800'],   // "it was built on MY $8,800 variable cost error" — his own, and already withdrawn
+    [29, '$3.6M'],    // "Westhaven's $3.6M of contribution" — his own read
+  ])('t%i\'s unattributed finding (%s) is held, and nothing is corrected on its own turn', (n, cited) => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = plan(n);
+    expect(sameTurn(p)).toEqual({ take: [], skipped: [{ cited, why: 'unattributed' }] });
+    // Nothing corrects THAT figure on this turn. (t9 still carries t5's gate-backed correction, a turn late — the
+    // normal path, which this ruling does not touch.)
+    expect(p.state.misquote?.all.map(m => m.cited) ?? []).not.toContain(cited);
+  });
+
+  it('Marisol\'s own "$15.8M of contribution" is held too', () => {
+    vi.stubEnv('ENGINE_SWITCHES', `${ON},misquoteSameTurn`);
+    const p = planTurn(readsAt(MARISOL, 15, { pressureTest: PT }), textOf(MARISOL, 15),
+      { sessionId: 's1', now: Date.now(), turnStartMs: Date.now(), later: () => {} }) as ModelPlan;
+    expect(sameTurn(p)).toEqual({ take: [], skipped: [{ cited: '$15.8M', why: 'unattributed' }] });
+    expect(p.state.misquote).toBeNull();
+  });
+});
