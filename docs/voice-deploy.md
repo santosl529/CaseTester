@@ -55,6 +55,24 @@ its own Node process: about 225 MB RSS once the agent module is loaded, and 0.6�
    one is live. Both register as `case-interviewer` on the same LiveKit
    project, so dispatches would go to either of them.
 
+## Before every deploy: the production-mode boot check
+
+Added 28 Oct (Lorenzo), after the 27 Oct demo deploy set `ENGINE_SWITCHES` in production and the D2 guard refused
+every voice job and case load until the opt-in existed. Both the site and the worker run the guard at boot and log
+one line: `[engine] ENGINE_SWITCHES "…" (production opt-in: demo) — every case, N on: …`. Before pushing, boot both in
+production mode with the values production will have, and check each starts with them and refuses without the opt-in.
+Free; nothing joins production.
+
+1. **Site** — from a clean worktree at the commit to deploy (the main checkout's untracked scratch scripts break
+   `next build`), with `.env.local` linked in, not read: `npm ci && npm run build`, then
+   `ENGINE_SWITCHES='<Vercel value>' ENGINE_SWITCHES_PRODUCTION=demo npx next start -p 3911` — expect the `[engine]`
+   line and `GET /` 200; the same without `ENGINE_SWITCHES_PRODUCTION` — expect "refusing to start" and 500s.
+2. **Worker** — `NODE_ENV=production ENGINE_SWITCHES='<agent value>' ENGINE_SWITCHES_PRODUCTION=demo
+   LIVEKIT_URL=ws://127.0.0.1:9 node --env-file=.env.local --import tsx scripts/voice-agent.ts start` — expect the
+   `[engine]` line, then connection retries (the dead `LIVEKIT_URL` keeps it from registering as a second
+   `case-interviewer`); without `ENGINE_SWITCHES_PRODUCTION`, expect exit 1 with "refusing to start".
+3. After the deploy, `lk agent logs` shows the worker's `[engine]` line; Vercel's runtime logs show the site's.
+
 ## Secrets
 
 ### Hosted worker (a file you make, e.g. `.env.voice-worker`)
@@ -101,6 +119,10 @@ rooms before a new Start gets "Voice is busy right now. Try again in a few
 minutes." Already there: `LIVEKIT_URL`, `LIVEKIT_API_KEY`,
 `LIVEKIT_API_SECRET` (the token route dispatches and now lists rooms with
 them).
+
+Engine switches (27–28 Oct, the demo): `ENGINE_SWITCHES=*=phase1,phase2,-asyncAskJudge` and
+`ENGINE_SWITCHES_PRODUCTION=demo` (the D2 opt-in; without it production refuses to start with switches set). The
+worker's secrets carry the same two, with `speechNormalization` added to `ENGINE_SWITCHES`.
 
 ## When a session hits its TTS cap
 
