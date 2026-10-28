@@ -1,0 +1,31 @@
+[
+ {
+  "id": "b40q-raj-t20-680-million",
+  "kind": "fault",
+  "p": "07",
+  "turn": 20,
+  "sev": "serious",
+  "cls": "false_correction",
+  "note": "Code's correction \"Value Starter adds per month of sign-ups is about $680 million, not $560k.\" — the checker's figure was 680 in $k/month (the answer key's +$0.68M); the agreeing value was starter_value_added's alt answer 680 (thousands) and the writer appended the step's \"million\". The candidate caught it at t22 (\"thousands not millions\"). Owed: the correction in the checker's units (\"about $680k, not $560k\"), or nothing.",
+  "src": "Lorenzo, 27 Oct (batch 40 grade, wave40-grading.md S1): the code-figure fix before the demo deploy",
+  "a": [
+   {
+    "kind": "says",
+    "pattern": "\\$680 million",
+    "must": false
+   },
+   {
+    "kind": "says",
+    "pattern": "\\$680,000,000",
+    "must": false
+   },
+   {
+    "kind": "spoke",
+    "must": true
+   }
+  ],
+  "rep": false,
+  "stream": "phase2",
+  "rnote": "Not replayable: the replay's reveal state diverges before t20 (not every input of starter_value_added is revealed), so code computes nothing for the step and the record passes on the pre-fix code too (checked 27 Oct, label cf-raj-pre); the live claim is pinned by tests/orchestrator/correction-hundredfold.test.ts. Wave: on pricing-001, a candidate who nets Starter's value in $k (Raj-type) gets any correction in $k (\"about $680k, not $560k\") or none — never a figure in millions or more than 100× off theirs; the auditor (false_correction) and the hand grade see it."
+ }
+]

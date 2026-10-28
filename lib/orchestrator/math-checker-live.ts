@@ -21,7 +21,7 @@ import { normalizeNumberWords } from '@/lib/number-words';
 import { findStepSpans, cueNames } from '@/lib/scoring/math-spans';
 import { boundFigures, type BoundFigure } from './figure-binding';
 import {
-  checkMathClaims, vetCheckerClaims, codeComputed, codeCorrection, boundInput, numbersOf, quantityWords, statedWithinBand, RATIO_SAID,
+  checkMathClaims, vetCheckerClaims, codeComputed, codeCorrection, hundredfoldOff, boundInput, numbersOf, quantityWords, statedWithinBand, RATIO_SAID,
   type CheckerCase, type CheckerClaim, type CheckerInput, type CheckerResult, type VetContext, type VettedClaim,
 } from './math-checker';
 import { clearedByEquation, clearNote, type AnswerSheetEntry, type EquationCheck } from './checker-equations';
@@ -1470,6 +1470,8 @@ export function planCheckerFlags(p: CheckerPlanInput): CheckerPlan {
     const claim: VettedClaim = { ...e.c, codeQuantity: { kind: 'step', stepId: r.step, price: null, target: null }, candidateValue: said, actualShare: null };
     const written = codeCorrection(claim, { value: st.answer, index: 0 }, vetCtx);
     if (!written) return null;
+    // Lorenzo, 27 Oct: a code-written correction more than 100× off their figure is never spoken.
+    if (written.offBy && hundredfoldOff(written.offBy.code, written.offBy.theirs)) return null;
     const definition = rl.definitionOf?.(r.step)?.trim();
     const line = definition ? `${/[.!?]$/.test(definition) ? definition : `${definition}.`} ${written.line}` : written.line;
     const sel: CheckerSelection = { id: e.id, candidateTurnIndex: e.n, key, attempt: (p.attempts[key] ?? 0) + 1, action: 'correct', line, derived: [written.figure], claim: { ...claim, correctionLine: line, correctionFigure: written.figure },

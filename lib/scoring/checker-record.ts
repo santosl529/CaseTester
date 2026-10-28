@@ -29,7 +29,8 @@ function flaggedClaims(rows: CheckerEventRow[]): Flagged[] {
     .sort((a, b) => a.candidateTurnIndex - b.candidateTurnIndex)
     .flatMap(v => v.claims.map((claim, i) => ({ id: `${v.candidateTurnIndex}:${i}`, turn: v.candidateTurnIndex, claim, outcomes: decisions.filter(d => d.id === `${v.candidateTurnIndex}:${i}`) })))
     // A conversion: the figure was right on a reading code computes (own-quantity.ts) — no error of theirs.
-    .filter(f => f.claim.flag && !f.outcomes.some(d => d.outcome === 'dedupe' || d.outcome === 'disagrees_with_code' || d.outcome === 'converted'));
+    // An unclear claim (code's correction > 100× off their figure; Lorenzo, 27 Oct) is listed too, as unclear.
+    .filter(f => (f.claim.flag || !!(f.claim as { unclear?: string }).unclear) && !f.outcomes.some(d => d.outcome === 'dedupe' || d.outcome === 'disagrees_with_code' || d.outcome === 'converted'));
 }
 
 // The candidate figures the checker flagged, by candidate turn (a word
@@ -213,6 +214,8 @@ function rowsOf(rows: CheckerEventRow[], redo?: RedoContext): Row[] {
   const recTurns = redo ? recommendationTurnsOf(redo.candidateTurns) : new Set<number>();
   return flagged.map(f => {
     const { turn, claim: c, outcomes } = f;
+    const unclear = (c as { unclear?: string }).unclear;
+    if (unclear) return { f, text: "Unclear: code's correction would have been more than 100 times off the candidate's figure, so it was not raised in the interview — check this figure yourself before naming it.", changes: '', byCode: false, open: false };
     const said = outcomeText(outcomes, all);
     const credit = redo ? laterRedo(f, rows, redo) : null;
     // A restatement the redo answered is no longer the last word on it; any other outcome stays, the redo after it.
@@ -245,7 +248,8 @@ export function formatCheckerSection(rows: CheckerEventRow[], redo?: RedoContext
     // The tag goes at the END of the row: the shape before it ("WRONG (...): <figure>. <what became of it>") is what
     // every other rule and test reads.
     const tag = mandated.has(r.f.id) ? ` ${MANDATE_TAG}` : '';
-    return `- turn ${turn}: "${c.span}" — WRONG (${c.errorType ?? 'error'}${r.changes}): ${figureText(c)}. ${r.text}${tag}`;
+    const verdict = (c as { unclear?: string }).unclear ? 'UNCLEAR' : `WRONG (${c.errorType ?? 'error'}${r.changes})`;
+    return `- turn ${turn}: "${c.span}" — ${verdict}: ${figureText(c)}. ${r.text}${tag}`;
   });
   // The mandate, narrow (Lorenzo, 27 Oct). Enforced in code afterwards either way (conclusion-mandate.ts), so a judge
   // that ignores it changes nothing but the wording of the item.

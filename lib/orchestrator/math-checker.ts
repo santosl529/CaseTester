@@ -295,6 +295,9 @@ export type VettedClaim = CheckerClaim & {
   pointerLine: string | null;   // the second attempt when it doesn't
   hintLine?: string | null;     // else the second attempt: the draft naming what they raised earlier (absent on verdicts before 13 Oct)
   vetNotes: string[];           // why a line was replaced or dropped
+  // Lorenzo, 27 Oct (batch 40, quillpath Raj 790be3d5 t20 "about $680 million, not $560k"): code's correction was more
+  // than 100× off the candidate's own figure, so nothing is said and the report lists the claim as unclear.
+  unclear?: string;
 };
 
 export const numbersOf = (text: string) => [...normalizeNumberWords(text).matchAll(/\d[\d,]*(?:\.\d+)?/g)].map(m => parseFloat(m[0].replace(/,/g, '')));
@@ -516,7 +519,24 @@ function moneyAsSaid(said: string, scale: string): string | null {
 // it, without the words around it. \`at\` is the code answer to speak and its
 // index (a break-even has one per variable set). null when their value has no
 // figure or the step has no quantity to name.
-export function codeCorrection(c: CheckerClaim, at: { value: number; index: number }, ctx: VetContext): { line: string; figure: string; theirs: string } | null {
+// A money or count figure as said, in base units: "$560k" → 560,000, "$0.68 million" → 680,000, "$780,000" → 780,000.
+const SCALE_OF: [RegExp, number][] = [[/^\s*(?:k|thousand)\b/i, 1e3], [/^\s*(?:bn|b|billion)\b/i, 1e9], [/^\s*(?:m|mm|mn|million|mil)\b/i, 1e6]];
+export function figureInUnits(text: string): number | null {
+  const t = normalizeNumberWords(text);
+  const m = t.match(/\d[\d,]*(?:\.\d+)?/);
+  if (!m) return null;
+  const v = parseFloat(m[0].replace(/,/g, ''));
+  const rest = t.slice((m.index ?? 0) + m[0].length);
+  return v * (SCALE_OF.find(([re]) => re.test(rest))?.[1] ?? 1);
+}
+
+// Lorenzo, 27 Oct: a code-written correction more than 100× off the candidate's figure is never spoken.
+export const CORRECTION_MAX_RATIO = 100;
+export const hundredfoldOff = (codeUnits: number | null, theirUnits: number | null): boolean =>
+  codeUnits !== null && theirUnits !== null && codeUnits !== 0 && theirUnits !== 0
+  && Math.max(Math.abs(codeUnits / theirUnits), Math.abs(theirUnits / codeUnits)) > CORRECTION_MAX_RATIO;
+
+export function codeCorrection(c: CheckerClaim, at: { value: number; index: number }, ctx: VetContext): { line: string; figure: string; theirs: string; offBy?: { code: number; theirs: number } } | null {
   const stepOf = c.codeQuantity.kind === 'step' ? ctx.caseData.mathSteps.find(s => s.id === c.codeQuantity.stepId) as { unit?: string | string[]; scale?: string } | undefined : undefined;
   const firstUnit = Array.isArray(stepOf?.unit) ? stepOf?.unit[0] : stepOf?.unit;
   const ratio = firstUnit === 'ratio';
@@ -534,6 +554,8 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
   // A pricing answer is from today's cost structure: the line names that period (Lorenzo, 15 Oct).
   const pv = q.kind !== 'step' ? pricingValues(ctx.caseData, new Set(ctx.revealedIds)) : null;
   const today = (s: string | null) => (s && pv ? `From today's ${pv.margin}% margin, ${s[0].toLowerCase()}${s.slice(1)}` : s);
+  let offBy: { code: number; theirs: number } | undefined;
+  let spokenAt: number | undefined;
   const line = today((() => {
     switch (q.kind) {
       case 'gain': return `${An(q.price)} ${q.price}% price rise lifts margin about ${x} points, not ${bare}.`;
@@ -573,17 +595,37 @@ export function codeCorrection(c: CheckerClaim, at: { value: number; index: numb
         // plainer "$240,000" states a figure the case does not, and the provenance guard (FR-4, `speakable` in the
         // vetting) then drops the whole correction — the replay showed the true line disappear.
         const inFullFigure = Math.abs(at.value) >= 1000 ? at.value.toLocaleString('en-US', { maximumFractionDigits: 1 }) : String(Math.round(at.value * 1e6) / 1e6);
-        const mismatchFigure = usd ? `$${shown}${million}` : `${inFullFigure}${unit}`;
-        const closer = ratio ? `${shown} times` : inUnits ? `$${Math.round(at.value * 1e6).toLocaleString('en-US')}` : noScale ? `$${shown} million` : scaleMismatch ? mismatchFigure : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? `$${shown}${million}` : `${shown}${unit}`;
+        // Lorenzo, 27 Oct (batch 40, quillpath Raj 790be3d5 t20): the agreeing value can be an alt answer that is the
+        // step's answer at another scale (starter_value_added: 0.68 with alts 680000 and 680), and "$680 million, not
+        // $560k" put the $k alt behind the step's "million". The agreeing value is the checker's own figure, so code
+        // states it in the checker's units: the alt's own scale ("$680k, not $560k"). Any other value is written as before.
+        const stepFactor = million ? 1e6 : 1;
+        const answer = (st as { answer?: number } | undefined)?.answer;
+        const altScale = usd && at.index > 0 && typeof answer === 'number' && answer !== 0
+          ? [1e3, 1e6, 1e9].find(f => Math.abs(at.value / (answer * f) - 1) <= 0.02) : undefined;
+        const baseUnits = altScale ? answer! * stepFactor : at.value * stepFactor;
+        const altUnit = altScale ? Math.round(baseUnits / at.value) : null;
+        const altFigure = altUnit === null ? null : altUnit === 1 ? `$${Math.round(at.value).toLocaleString('en-US')}`
+          : `$${x}${altUnit === 1e3 ? 'k' : altUnit === 1e6 ? ' million' : ' billion'}`;
+        const mismatchFigure = usd ? altFigure ?? `$${shown}${million}` : `${inFullFigure}${unit}`;
+        const closer = ratio ? `${shown} times` : inUnits ? `$${Math.round(baseUnits).toLocaleString('en-US')}` : noScale ? altFigure ?? `$${shown} million` : scaleMismatch ? mismatchFigure : HAS_UNIT.test(theirs) ? theirs.replace(FIGURE, shown) : usd ? altFigure ?? `$${shown}${million}` : `${shown}${unit}`;
         // A bare range ("8 to 9", "8.5-9") is reformatted only when both ends read cleanly ("$8 to $9 million"),
         // else kept as said; a single figure gets separators ("$8800000" → "$8,800,000") (final review I1, 20 Oct).
         const notX = ratio ? theirs : inUnits ? (moneyAsSaid(theirs, '') ?? (theirs.includes('$') ? theirs : `$${theirs}`)) : noScale && theirs.includes('$') ? `${theirs} million` : usd && !HAS_UNIT.test(theirs) ? moneyAsSaid(bare, million) ?? bare : bare;
-        return `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${notX}.`;
+        const line = `${quantity[0].toUpperCase()}${quantity.slice(1)}${quantity.includes(',') ? ',' : ''} is about ${closer}, not ${notX}.`;
+        // The figure code speaks, in base units, against theirs as they said it (the 100× guard reads these).
+        const codeUnits = ratio ? null : figureInUnits(closer);
+        const theirUnits = ratio ? null : figureInUnits(notX);
+        offBy = codeUnits !== null && theirUnits !== null ? { code: codeUnits, theirs: theirUnits } : undefined;
+        spokenAt = numbersOf(closer)[0];
+        return line;
       }
       default: return null;
     }
   })());
-  return line ? { line, figure: x, theirs } : null;
+  // The licensed figure is the one the line speaks (it differs from x when code's figure is written in their scale).
+  const figure = spokenAt !== undefined && !near(spokenAt, at.value) && !near(spokenAt, 0) ? spokenFigure(spokenAt) : x;
+  return line ? { line, figure, theirs, ...(offBy ? { offBy } : {}) } : null;
 }
 
 // A relative change stated as points (Lorenzo, 13 Oct; Jordan 099f33e9 "call
@@ -788,6 +830,13 @@ export function vetCheckerClaims(claims: CheckerClaim[], ctx: VetContext): Vette
         if (!written) vetNotes.push(`no correction: no figure of theirs in "${c.candidateValue}" (or no quantity to name)`);
         else if (!numbersOf(written.theirs).every(n => said.some(a => near(n, a)))) vetNotes.push(`correction withheld: ${written.theirs} is not a figure they said`);
         else if (!speakable(written.line, [written.figure])) vetNotes.push(`correction withheld (provenance/truth): ${written.line}`);
+        else if (written.offBy && hundredfoldOff(written.offBy.code, written.offBy.theirs)) {
+          // Lorenzo, 27 Oct: a correction that would be spoken but is more than 100× off their figure is never
+          // spoken, and the flag goes to the report as unclear — no probe either. A line the provenance guard already
+          // withholds keeps today's path (its probe still goes out: entry-001 fc5eb050 t10's 1.5% probe).
+          const why = `code's correction is more than ${CORRECTION_MAX_RATIO}× off their figure: ${written.line}`;
+          return { ...c, ...(ratio ? { ratio } : {}), flag: false, probeLine: null, correctionLine: null, correctionFigure: null, pointerLine: null, hintLine: null, vetNotes: [...vetNotes, `unclear: ${why}`], unclear: why };
+        }
         else { correctionLine = written.line; correctionFigure = written.figure; }
       }
     }
