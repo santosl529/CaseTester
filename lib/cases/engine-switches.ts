@@ -201,11 +201,23 @@ export function parseEngineSwitches(raw: string): Map<string, Map<EngineSwitch, 
 }
 
 // Lorenzo's D2 guard (22 Oct): ENGINE_SWITCHES is for evaluation only. In production mode (NODE_ENV=production, as
-// on Vercel and `next start`) the case loader refuses to start with it set.
+// on Vercel and `next start`) the case loader refuses to start with it set — unless production opts in explicitly
+// with ENGINE_SWITCHES_PRODUCTION=demo (Lorenzo, 28 Oct: the demo deploy runs both presets in production).
+export const PRODUCTION_OPT_IN = 'demo';
 export function assertNoEngineSwitchesInProduction(env: Env = process.env): void {
-  if (env.NODE_ENV === 'production' && env.ENGINE_SWITCHES?.trim()) {
-    throw new Error(`ENGINE_SWITCHES is set in production mode ("${env.ENGINE_SWITCHES}"): Phase 1 switches are for evaluation only — refusing to start`);
+  if (env.NODE_ENV === 'production' && env.ENGINE_SWITCHES?.trim() && env.ENGINE_SWITCHES_PRODUCTION?.trim() !== PRODUCTION_OPT_IN) {
+    throw new Error(`ENGINE_SWITCHES is set in production mode ("${env.ENGINE_SWITCHES}") without ENGINE_SWITCHES_PRODUCTION=${PRODUCTION_OPT_IN}: Phase 1 switches are for evaluation only — refusing to start`);
   }
+}
+
+// The startup line (Lorenzo, 28 Oct): the switches each case runs with, and how many, logged once per process.
+export function activeSwitchesLine(cases: CaseLike[], env: Env = process.env): string {
+  const raw = env.ENGINE_SWITCHES?.trim();
+  const byCase = cases.map(c => ({ id: c.id, on: ALL_SWITCHES.filter(s => switchOn(c, s, env)) }));
+  const same = byCase.every(x => x.on.join(',') === byCase[0]?.on.join(','));
+  const list = (on: readonly string[]) => `${on.length} on${on.length ? `: ${on.join(', ')}` : ''}`;
+  const head = `[engine] ENGINE_SWITCHES ${raw ? `"${raw}"` : 'unset'}${env.ENGINE_SWITCHES_PRODUCTION ? ` (production opt-in: ${env.ENGINE_SWITCHES_PRODUCTION})` : ''}`;
+  return same ? `${head} — every case, ${list(byCase[0]?.on ?? [])}` : `${head} — ${byCase.map(x => `${x.id} ${list(x.on)}`).join('; ')}`;
 }
 
 export function switchOn(c: CaseLike, name: EngineSwitch, env: Env = process.env): boolean {

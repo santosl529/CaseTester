@@ -5,5 +5,10 @@
 import path from 'node:path';
 import { cli, WorkerOptions } from '@livekit/agents';
 import { AGENT_NAME } from '@/lib/voice/protocol';
+import { loadCases } from '@/lib/cases/loader';
+
+// Lorenzo, 28 Oct: the D2 guard and the active switch list at worker start (loadCases runs both), so a worker with
+// ENGINE_SWITCHES and no production opt-in refuses to start instead of failing every job.
+loadCases();
 
 cli.runApp(new WorkerOptions({ agent: path.resolve('lib/voice/livekit-agent.ts'), agentName: AGENT_NAME }));

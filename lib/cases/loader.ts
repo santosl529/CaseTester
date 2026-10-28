@@ -3,7 +3,7 @@ import path from 'path';
 import { CaseSchema, type Case } from './schema';
 import { DataLineVariantsSchema, checkDataLineVariants } from './data-line-variants';
 import { Phase1OverlaySchema, applyPhase1Overlay } from './phase1-overlay';
-import { assertNoEngineSwitchesInProduction } from './engine-switches';
+import { assertNoEngineSwitchesInProduction, activeSwitchesLine } from './engine-switches';
 
 let _cache: Case[] | null = null;
 
@@ -23,6 +23,7 @@ export function loadCases(): Case[] {
     return withPhase1Overlay(casesDir, result.data);
   });
   _dataLines = loadDataLineVariants(casesDir, _cache);
+  if (process.env.NODE_ENV !== 'test') console.log(activeSwitchesLine(_cache));
 
   return _cache;
 }

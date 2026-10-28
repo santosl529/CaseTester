@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { switchOn, parseEngineSwitches, engineSwitchesOf, PHASE1_SWITCHES, ALL_SWITCHES, NON_PRESET_SWITCHES, assertNoEngineSwitchesInProduction } from '@/lib/cases/engine-switches';
+import { switchOn, parseEngineSwitches, engineSwitchesOf, PHASE1_SWITCHES, ALL_SWITCHES, NON_PRESET_SWITCHES, assertNoEngineSwitchesInProduction, activeSwitchesLine } from '@/lib/cases/engine-switches';
 import { applyPhase1Overlay, Phase1OverlaySchema, overlayProblems } from '@/lib/cases/phase1-overlay';
 import { CaseSchema, noFigure, type Case } from '@/lib/cases/schema';
 import { getCaseById } from '@/lib/cases/loader';
@@ -55,6 +55,21 @@ describe('engine switches', () => {
     expect(() => assertNoEngineSwitchesInProduction({ NODE_ENV: 'production', ENGINE_SWITCHES: '*=phase1' })).toThrow(/refusing to start/);
     expect(() => assertNoEngineSwitchesInProduction({ NODE_ENV: 'production' })).not.toThrow();
     expect(() => assertNoEngineSwitchesInProduction({ NODE_ENV: 'test', ENGINE_SWITCHES: '*=phase1' })).not.toThrow();
+  });
+  // Lorenzo, 28 Oct: production accepts ENGINE_SWITCHES only with ENGINE_SWITCHES_PRODUCTION=demo; unchanged otherwise.
+  it('production opt-in: accepted with ENGINE_SWITCHES_PRODUCTION=demo, refused without it or with any other value', () => {
+    const sw = '*=phase1,phase2,-asyncAskJudge';
+    expect(() => assertNoEngineSwitchesInProduction({ NODE_ENV: 'production', ENGINE_SWITCHES: sw, ENGINE_SWITCHES_PRODUCTION: 'demo' })).not.toThrow();
+    expect(() => assertNoEngineSwitchesInProduction({ NODE_ENV: 'production', ENGINE_SWITCHES: sw })).toThrow(/without ENGINE_SWITCHES_PRODUCTION=demo/);
+    for (const v of ['', 'yes', '1', 'Demo ', 'true']) {
+      expect(() => assertNoEngineSwitchesInProduction({ NODE_ENV: 'production', ENGINE_SWITCHES: sw, ENGINE_SWITCHES_PRODUCTION: v })).toThrow(/refusing to start/);
+    }
+  });
+  it('the startup line names the active switches and their count', () => {
+    const line = activeSwitchesLine([{ id: 'x-001' }, { id: 'y-001' }], { ENGINE_SWITCHES: '*=worksheet,staleProbeDrop' });
+    expect(line).toBe('[engine] ENGINE_SWITCHES "*=worksheet,staleProbeDrop" — every case, 2 on: worksheet, staleProbeDrop');
+    expect(activeSwitchesLine([{ id: 'x-001' }], {})).toBe('[engine] ENGINE_SWITCHES unset — every case, 0 on');
+    expect(activeSwitchesLine([{ id: 'x-001' }, { id: 'y-001' }], { ENGINE_SWITCHES: 'x-001=worksheet' })).toBe('[engine] ENGINE_SWITCHES "x-001=worksheet" — x-001 1 on: worksheet; y-001 0 on');
   });
   it('refuse an unknown name', () => {
     expect(() => parseEngineSwitches('*=wrokSheet')).toThrow(/unknown switch/);
