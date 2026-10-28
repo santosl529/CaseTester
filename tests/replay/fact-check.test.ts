@@ -43,6 +43,16 @@ describe.skipIf(!available)('fact checks over the saved corpus', () => {
   it('batch 20: every F1, F3 and F4 flag matches a graded fault', () => {
     const b20 = flags.filter(f => f.group.startsWith('batch-20') && ['F1', 'F3', 'F4'].includes(f.rule));
     const ungraded = b20.filter(f => !known.some(k => f.run.includes(k.run) && caught(k as never, [f])));
-    expect(ungraded.map(f => `${f.run} t${f.t} ${f.rule}`)).toEqual([]);
+    // Lorenzo, 27 Oct (the phase2 → main merge): flags the broader covers (phase1) now raise, ruled one by one. His
+    // fourth, Owen 6d4a5ce5 t8 ("I don't have COGS breakdown by input" — a true catch), is already graded (R23 in
+    // evals/known-fact-faults.json), so it is matched above and not listed here.
+    expect(ungraded.map(f => `${f.run} t${f.t} ${f.rule}`).sort()).toEqual([
+      // True catch: "I don't have same-store sales" — the unchanged 200-store footprint and +15% revenue answer it (A1).
+      'test runs/batch-20-sonnet-oct-12-runs-8-14/40-jasmine-the-early-finisher/live-run-2026-10-12-766f97c6 t6 F3',
+      // Detector false positive: transaction volume per store isn't held.
+      'test runs/batch-20-haiku-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-57c38899 t10 F3',
+      // Detector false positive: transaction volume per store isn't held.
+      'test runs/batch-20-haikulow-oct-12-runs-8-14/54-owen-the-quiet-dropper/live-run-2026-10-12-6d4a5ce5 t22 F3',
+    ].sort());
   });
 });
