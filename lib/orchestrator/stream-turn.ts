@@ -38,6 +38,7 @@ import { turnDataChecked, pressureTestOutcomeNow, messageAsks, withAsks } from '
 import { renderDataLines } from './data-decisions';
 import { findFalseFacts, findEchoes, findFalseRefusals, refusedItemIds, findUndeliveredClaims, type FactBase, type Echo, type DeliveryContext } from './fact-check';
 import { isGradingSentence } from './grading';
+import { findPresuppositions, type PresuppositionItem } from './presupposition';
 import { sayAfterAckReason, sayFiguresOf } from './say-after-ack';
 
 export type GateContext = {
@@ -65,6 +66,9 @@ export type GateContext = {
   facts?: { fb: FactBase; revealed: Set<string>; echoes: Echo[]; correcting?: Echo[]; delivery?: DeliveryContext;
     // Items code hands over in this turn's data line (releases, restates, the exhibit's covers): the model must not refuse them (Task 39).
     releasedNow?: Set<string> };
+  // `unrevealedPresupposition` (presupposition.ts): the case's items, and those revealed before this turn — "say"
+  // streams before the data line, so only those count for it; the question reads `facts.revealed` (this turn's too).
+  presupposition?: { items: PresuppositionItem[]; revealedBefore: Set<string> };
 };
 
 // A short sentence whose every word is in the filler just said ("Take your
@@ -188,6 +192,8 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   if (g.facts?.releasedNow?.size && refusedItemIds(sentence, g.facts.fb).some(id => g.facts!.releasedNow!.has(id))) return 'refuses_released';
   // A refusal of data the case holds, in the model's own words (code's data line answers asks).
   if (g.facts && findFalseRefusals(sentence, g.facts.fb, g.facts.revealed, { covers: true }).length > 0) return 'false_refusal';
+  if (g.presupposition && findPresuppositions(sentence, g.presupposition.items,
+    opts.inQuestion && g.facts ? g.facts.revealed : g.presupposition.revealedBefore).hits.length > 0) return 'presupposes_unrevealed';
   // The question agrees with what code delivered (fact checks F4): "with the
   // other-input price change in hand" when only the bean figures went out, "the
   // exhibit" before any was shown, "with those figures" when none were given.
@@ -265,6 +271,10 @@ export function gateContext(plan: ModelPlan, extraRevealed: string[] = [], extra
       // The figures of the items code corrects this turn: unsayable, probe or not.
       correcting: state.misquote ? state.factEchoes.filter(e => e.items.some(i => state.misquote!.items.includes(i))) : [],
     },
+    ...(switchOn(state.caseData, 'unrevealedPresupposition') ? { presupposition: {
+      items: state.caseData.dataLedger.map(d => ({ id: d.id, label: d.label, askPhrases: d.askPhrases, spoken: d.spoken })),
+      revealedBefore: new Set(Object.keys(revealedValues(state.ledger))),
+    } } : {}),
   };
 }
 
@@ -384,7 +394,7 @@ export async function streamTurnSegments(
       // too) and streaming goes on — so does a verdict on their work, a
       // doubled acknowledgment and an echo after the voice's acknowledgment.
       // Any other veto stops delivery.
-      if (reason === 'data_talk' || reason === 'refuses_released' || reason === 'double_ack' || reason === 'echo_after_ack' || reason === 'grading') return;
+      if (reason === 'data_talk' || reason === 'refuses_released' || reason === 'double_ack' || reason === 'echo_after_ack' || reason === 'grading' || reason === 'presupposes_unrevealed') return;
       if (reason) { bufferSwitch = reason; return; }
       // Phase 2 C3 (`composeSetup`): after a spoken acknowledgment, a setup sentence ("You said $8,800 per flight.")
       // waits for its question — Settle puts it there, or withholds it with a replaced question. No acknowledgment:

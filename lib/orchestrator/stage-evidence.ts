@@ -18,7 +18,7 @@
 // invented rating (lib/scoring/stage-caps.ts).
 import { asksBrainstorm, asksForConclusion, asksRiskQuestion, type StageAdministration } from './spoken-close';
 import { asksCaseBrainstorm } from './brainstorm';
-import { classifyTurn } from './stall';
+import { classifyTurn, substantiveReply } from './stall';
 import { isRefusalToStart } from './candidate-exit';
 import type { PressureTestState } from './pressure-test';
 
@@ -26,7 +26,9 @@ export const STAGES = ['structure', 'pressure_test', 'analysis', 'exhibit', 'bra
 export type StageKey = (typeof STAGES)[number];
 export type StageOutcome = 'answered' | 'declined' | 'unable' | 'waived' | 'time_up';
 // asks: the turns that put the stage to the candidate (the recommendation's ask limit reads it).
-export type StageEntry = { delivered: boolean; deliveredAt?: number; outcome?: StageOutcome; spontaneous?: boolean; codeAsked?: boolean; asks?: number };
+// withRecommendation / noneNamed (`recLastQuestion`): the risk was asked inside the recommendation question, and the
+// answer named no risk — the report says so (stage-caps.ts describe).
+export type StageEntry = { delivered: boolean; deliveredAt?: number; outcome?: StageOutcome; spontaneous?: boolean; codeAsked?: boolean; asks?: number; withRecommendation?: boolean; noneNamed?: boolean };
 export type StageRecord = Record<StageKey, StageEntry> & {
   pending?: StageKey | null;   // delivered last turn, waiting for the candidate's reply
   pendingReplies?: number;     // replies that only asked something back
@@ -66,6 +68,14 @@ export function namesRiskAndMitigation(text: string): boolean {
   return i >= 0 && MITIGATION.test(sentences.slice(i, i + 3).join(' '));
 }
 
+// `recLastQuestion` (Lorenzo, 29 Oct): the risk asked with the recommendation counts when the answer names a risk — the
+// 16 Oct rule's naming half (RISK_NAMED), or a statement about a risk or a downside. No follow-up when it names none.
+const RISK_WORDS = /\b(?:risks?|downside|could go wrong|might go wrong|the danger|backfire)\b/i;
+export function namesRisk(text: string): boolean {
+  return text.split(/(?<=[.!?])\s+|\n+/).map(x => x.trim()).filter(x => x && !x.endsWith('?'))
+    .some(x => RISK_NAMED.test(x) || RISK_WORDS.test(x));
+}
+
 export function asksBrainstormNow(question: string): boolean {
   return asksBrainstorm(question) || BRAINSTORM_OPEN.test(question);
 }
@@ -95,6 +105,7 @@ export type StageTurn = {
   brainstormAsks?: string[];    // the case's own brainstorm question (brainstorm.ts)
   brainstormDue?: boolean;      // false: the brainstorm waits on exhibits — no question counts as it yet (code's own ask aside)
   move?: string;                // the turn's move as saved: the model's declared move, code's stage move, or code_rec_ask
+  riskWithRecommendation?: boolean;  // `recLastQuestion`: a question that asks both is one stage pair, resolved by one answer
 };
 
 // The stages a delivered question asks, in the record's own reading (below):
@@ -127,7 +138,17 @@ export function updateStages(prev: StageRecord | undefined, t: StageTurn): Stage
   const recInNow = t.recommendationDelivered && !r.recommendation.outcome;
 
   // The reply to what was pending.
-  if (r.pending) {
+  if (r.pending === 'risk' && r.risk.withRecommendation && !r.risk.outcome) {
+    // One answer to the recommendation-and-risk question — the reply plan-turn reads as the recommendation (a
+    // substantive one; a hedge or a question back waits, as the recommendation does): the risk is answered only if
+    // that answer names one.
+    const declined = replyOutcome(t.candidateText) === 'declined';
+    if (declined || substantiveReply(t.candidateText)) {
+      r.risk = namesRisk(t.candidateText) ? { ...r.risk, outcome: 'answered' }
+        : { ...r.risk, outcome: declined ? 'declined' : 'unable', noneNamed: true };
+      r.pending = null; r.pendingReplies = 0;
+    } else r.pendingReplies = (r.pendingReplies ?? 0) + 1;
+  } else if (r.pending) {
     const stage = r.pending;
     const outcome = replyOutcome(t.candidateText);
     if (outcome !== 'pending') {
@@ -178,6 +199,7 @@ export function updateStages(prev: StageRecord | undefined, t: StageTurn): Stage
   if (t.codeAsked === 'brainstorm' || asked.brainstorm) deliver('brainstorm', t.codeAsked === 'brainstorm');
   if (codeRecAsk || asked.recommendation) deliver('recommendation');
   if (asked.risk) deliver('risk');
+  if (t.riskWithRecommendation && asked.risk && (codeRecAsk || asked.recommendation) && r.pending === 'risk') r.risk = { ...r.risk, withRecommendation: true };
 
   if (t.ended === 'time_up') {
     for (const k of STAGES) if (!r[k].outcome && (r[k].delivered || k === 'exhibit' || k === 'brainstorm')) r[k] = { ...r[k], outcome: 'time_up' };

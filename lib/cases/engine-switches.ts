@@ -144,7 +144,14 @@ export const PHASE1_SWITCHES = [
 // asyncAskJudge if it passes its gate.
 // `askCheckRawMessage` (27 Oct, Lorenzo — measure first): the ask check (classifyAsk) reads the candidate's raw message
 // with the declared ask as a hint, plus the prompt's facts. Off and outside every preset.
-export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'checkerEquationsAsync', 'equationClears', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge', 'askCheckRawMessage', 'asyncAskJudgePartial', 'liveAskJudge'] as const;
+// Tester fixes (29 Oct, Lorenzo's rulings on session aae091ff; `.superpowers/sdd/2026-10-29-tester-fixes/`). Outside the
+// presets — production names them in its ENGINE_SWITCHES:
+// `recLastQuestion`: the recommendation ask also asks for the main risks and next steps, the model's own ask is replaced
+// by it, any substantive reply is the recommendation, and the next turn is the close (no risk question, close wait or
+// wrap-up probe after it). `stuckRescue`: a filler word alone is no hedge; a stall gets the ladder's hint or release,
+// never the bare re-ask; at most two questions on one point, then code moves on. `unrevealedPresupposition`: a model
+// sentence that presents an unrevealed item as known ("Given what you now know about prices, …") is withheld.
+export const NON_PRESET_SWITCHES = ['recommendationOpensGate', 'refusalNounCheck', 'speechNormalization', 'checkerEquations', 'checkerEquationsAsync', 'equationClears', 'restatePointerOff', 'refusalCoverage', 'restateOwnLine', 'askPoint', 'restateLineInvite', 'caseNotesDraft', 'itemJudge', 'askCheckRawMessage', 'asyncAskJudgePartial', 'liveAskJudge', 'recLastQuestion', 'stuckRescue', 'unrevealedPresupposition'] as const;
 // Phase 2 (docs/superpowers/plans/2026-10-27-phase2-design.md §4; Lorenzo's rulings, 27 Oct): one switch per migration
 // step, the `phase2` preset naming them all. Session 1 builds the two shadow steps only — they log what the new
 // structures would decide and say, and change nothing the candidate hears.
