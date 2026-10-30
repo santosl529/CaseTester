@@ -395,8 +395,8 @@ export const PHRASE_POOLS = {
   rec_ask_full: [
     'Pull it together: what\'s your recommendation to the CEO, what are the main risks to that recommendation, and what are your next steps?',
     'What would you tell the CEO to do, what are the main risks to that plan, and what would you do next?',
-    'What\'s your recommendation to the client? Give me the recommendation, the main risks to your plan, and your next steps.',
-    'Putting it all together, what would you recommend to the CEO? Include the main risks to that plan and your next steps.',
+    'What\'s your recommendation to the client, what are the main risks to your plan, and what are your next steps?',
+    'Putting it all together, what would you recommend to the CEO, what are the main risks to that plan, and what are your next steps?',
     'If you had to advise the CEO now, what would you recommend? And what are the main risks to that plan, and your next steps?',
   ],
   grace_ask_full: [
@@ -618,6 +618,8 @@ export const SEEDED_FIRST: ReadonlySet<string> = new Set([
   'opener_invite', 'opener_after_q', 'close_time_up', 'close_complete', 'close_unresolved',
   // The checker's neutral probes, the most repeated interviewer line across batches: varied from the first.
   'probe_got_to', 'probe_calc', 'probe_there',
+  // `recLastQuestion` / `stuckRescue` (29 Oct): as the pools they stand in for.
+  'rec_ask_full', 'grace_ask_full', 'time_warning_full', 'move_on',
 ]);
 export type PhrasePool = keyof typeof PHRASE_POOLS;
 // The last uses of each pool this session, newest last (variant indexes).

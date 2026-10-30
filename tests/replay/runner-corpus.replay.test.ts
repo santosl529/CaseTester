@@ -207,7 +207,8 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     turnText = r.candidateText;
     savedTurnIndex = r.turnIndex;
     // REPLAY_ACK=1 (Phase 2 C3's proof): every turn as if a voice acknowledgment had been spoken.
-    await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); }, ...(process.env.REPLAY_ACK === '1' ? { acknowledged: 'Mm-hm.' } : {}) });
+    // REPLAY_VOICE=1 (tester fixes, 29 Oct): every turn a voice turn — a voice session's own replay.
+    await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); }, ...(process.env.REPLAY_ACK === '1' ? { acknowledged: 'Mm-hm.' } : {}), ...(process.env.REPLAY_VOICE === '1' ? { voice: true } : {}) });
     // The turn has returned: its check is still pending (nothing awaited it).
     const started = pendingChecks.splice(startedBefore);
     checkerTally.started += started.length;

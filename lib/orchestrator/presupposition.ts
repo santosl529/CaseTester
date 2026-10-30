@@ -22,7 +22,8 @@ const CUES: RegExp[] = [
   new RegExp(`\\bwhat\\s+you\\s+(?:now\\s+)?know\\s+(?:about|on)\\s+${OBJECT}${END}`, 'i'),
   new RegExp(`\\bnow\\s+that\\s+you\\s+(?:have|know|can see|'ve seen|have seen|'ve got|'ve heard)\\s+(?:about\\s+)?${OBJECT}${END}`, 'i'),
   new RegExp(`\\bas\\s+you(?:'ve|\\s+have)\\s+(?:seen|heard|learned|found)\\s+(?:on|in|from|with|about)\\s+${OBJECT}${END}`, 'i'),
-  new RegExp(`\\bknowing\\s+(?:that\\s+|how\\s+|what\\s+)?${OBJECT}${END}`, 'i'),
+  // "Knowing that the competitor is a low-cost airline, …": the whole clause is what they are said to know.
+  new RegExp(`\\bknowing\\s+(?:that\\s+|how\\s+|what\\s+)?${OBJECT}(?=\\s*(?:[,;:.?!—–]|$))`, 'i'),
   new RegExp(`\\b(?:with|given)\\s+${OBJECT}\\s+(?:in hand|in mind|on the table|you now have|you've now got|you now know)\\b`, 'i'),
 ];
 // A cue with nothing named: "With that in hand", "As you've seen", "Given what you now know".
@@ -38,21 +39,28 @@ function itemWords(i: PresuppositionItem): Set<string> {
   return new Set(contentWords([i.label, i.spoken ?? '', ...(i.askPhrases ?? [])].join(' ')));
 }
 
-export function findPresuppositions(sentence: string, items: PresuppositionItem[], revealed: ReadonlySet<string>): { hits: Presupposition[]; cueOnly: boolean } {
+// `releasedNow`: what this turn's data line hands over. "With those input costs in hand", said after the input
+// changes went out, means them (b18 Maya t49; the corpus scan's five false hits): an item handed over now that reads
+// the object at least half clears it, and so does a demonstrative object ("those …") on a turn that handed anything
+// over. An item revealed on an EARLIER turn clears nothing — t26's "prices" are the menu prices' too.
+export function findPresuppositions(sentence: string, items: PresuppositionItem[], revealed: ReadonlySet<string>, releasedNow: ReadonlySet<string> = new Set()): { hits: Presupposition[]; cueOnly: boolean } {
   const hits: Presupposition[] = [];
   for (const re of CUES) {
     const m = re.exec(sentence);
     if (!m) continue;
+    const demonstrative = /^(?:those|these|that|this)\b/i.test(m[1].trim());
     const object = m[1].trim().replace(/^(?:the|those|these|all the|all)\s+/i, '');
     if (!object || ANAPHORA.test(object) || THEIR_OWN.test(object)) continue;
     // "Knowing that menu prices haven't moved" — the object is a clause: its words as written.
     const words = contentWords(object);
     if (words.length === 0) continue;
-    const matching = items.filter(i => {
-      const iw = itemWords(i);
-      const found = words.filter(w => iw.has(w)).length;
-      return found > 0 && found / words.length >= MATCH_SHARE;
-    });
+    if (demonstrative && releasedNow.size > 0) continue;
+    // The items that read the object best: "the menu price change" is the menu prices', not the bean prices' (two of
+    // its three words) — a tie keeps both ("prices": menu and bean alike).
+    const share = (i: PresuppositionItem) => { const iw = itemWords(i); return words.filter(w => iw.has(w)).length / words.length; };
+    if (items.some(i => releasedNow.has(i.id) && share(i) >= 0.5)) continue;
+    const best = Math.max(0, ...items.map(share));
+    const matching = best >= MATCH_SHARE ? items.filter(i => share(i) === best) : [];
     const unrevealed = matching.filter(i => !revealed.has(i.id)).map(i => i.id);
     if (unrevealed.length === 0) continue;
     hits.push({ cue: m[0].slice(0, 120), object, items: unrevealed, shared: matching.filter(i => revealed.has(i.id)).map(i => i.id) });

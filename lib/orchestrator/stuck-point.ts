@@ -5,9 +5,12 @@
 //
 // A point is a chain of interviewer questions that share their content words, with nothing handed over between them
 // (a release or an exhibit moves the case on: the point is new). Deterministic and soft: two questions are on one
-// point when they share three content words, or two and a third of their words.
+// point when they share three content words, or two and a third of their words. The case prompt's own words don't
+// count — every question is about "the client's margin decline" (aae091ff t30's brainstorm read as t26's point).
 
 export const POINT_ASK_CAP = 2;
+// A reply this short is no convergence, whatever the stall ladder makes of it (aae091ff t47 "Yeah. Ten percent.").
+export const POINT_REPLY_WORDS = 8;
 
 export type PointChain = {
   words: string[];   // the chain's last question, as content words
@@ -24,11 +27,12 @@ const STOP = new Set(`about after again also and any are aren't based been befor
   what what's when where whether which while who why will with would you you'd you're your yours yourself
   not nor haven't hasn't hadn't didn't don't doesn't isn't wasn't weren't won't can't couldn't`.split(/\s+/));
 
-const stem = (w: string) => w.replace(/'s$/, '').replace(/(?:ies)$/, 'y').replace(/(?<=[a-z]{3})(?:es|s)$/, '');
+// Plurals only: "changes" and "change" are one word, "prices" and "price" too ("es" is not stripped: "pric").
+const stem = (w: string) => w.replace(/'s$/, '').replace(/(?<=[a-z]{2})ies$/, 'y').replace(/(?<=[a-z]{2}[^s])s$/, '');
 
-export function contentWords(text: string): string[] {
+export function contentWords(text: string, ignore: ReadonlySet<string> = new Set()): string[] {
   const words = text.toLowerCase().replace(/[’]/g, "'").match(/[a-z][a-z'&-]*/g) ?? [];
-  return [...new Set(words.filter(w => w.length >= 3 && !STOP.has(w)).map(stem).filter(w => w.length >= 3 && !STOP.has(w)))];
+  return [...new Set(words.filter(w => w.length >= 3 && !STOP.has(w)).map(stem).filter(w => w.length >= 3 && !STOP.has(w) && !ignore.has(w)))];
 }
 
 function overlap(a: string[], b: string[]): { shared: number; jaccard: number } {
@@ -43,20 +47,23 @@ const near = (a: string[], b: string[]) => {
   return o.shared >= 3 || (o.shared >= 2 && o.jaccard >= 1 / 3);
 };
 
-export function samePoint(question: string, chain: PointChain | undefined): boolean {
+export function samePoint(question: string, chain: PointChain | undefined, ignore: ReadonlySet<string> = new Set()): boolean {
   if (!chain) return false;
-  const w = contentWords(question);
+  const w = contentWords(question, ignore);
   return near(w, chain.words) || near(w, chain.first);
 }
 
 // The chain after a delivered question: one more ask on the same point, or a new point. A turn that handed data or
 // an exhibit over starts a new point whatever it asks.
-export function nextChain(prev: PointChain | undefined, question: string, turnIndex: number, handedOver: boolean): PointChain | undefined {
+export function nextChain(prev: PointChain | undefined, question: string, turnIndex: number, handedOver: boolean, ignore: ReadonlySet<string> = new Set()): PointChain | undefined {
   if (!question.trim()) return prev;
-  const words = contentWords(question);
-  if (!handedOver && prev && samePoint(question, prev)) return { ...prev, words, asks: prev.asks + 1 };
+  const words = contentWords(question, ignore);
+  if (!handedOver && prev && samePoint(question, prev, ignore)) return { ...prev, words, asks: prev.asks + 1 };
   return { words, first: words, asks: 1, at: turnIndex };
 }
+
+// The words a case's questions share by being about the case: its prompt's.
+export const caseWords = (prompt: string): ReadonlySet<string> => new Set(contentWords(prompt));
 
 // The guidance a capped point puts in the model's prompt; Settle replaces the question if it asks the point again.
 export const POINT_CAP_GUIDANCE = `POINT CAP. The candidate has been asked about the point on the table ${POINT_ASK_CAP} times without getting there. Do NOT ask about it again, in any words. Move the case on: the next branch of their structure, the next piece of data, or the next stage. One question, flat register.`;

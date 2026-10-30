@@ -1860,6 +1860,17 @@ misses.
 
 ## 12. Case close and time-boxing are deterministic
 
+**`recLastQuestion` (29 Oct, Lorenzo's rulings on tester session aae091ff; switch, off unless named):** the
+recommendation is the last question. Code's recommendation ask, the time warning and the grace ask also ask for the
+main risks and the next steps in one question, and the model's own recommendation ask is replaced by code's (once no
+owed stage holds it). The first substantive reply since the ask — not a clarifying question, "give me a minute", a
+request to repeat, a hedge or a refusal to commit — is the recommendation, and the next turn is the close: no risk
+question, no close-wait follow-up, no "Before we wrap up" probe, no revision ask. A math error in the answer goes to
+the report's open claims (`unresolved_at_close`). The risk counts as answered when the answer names one; when it
+names none the stage record says so ("asked within the recommendation question; the candidate's answer named no
+risk"), with no follow-up. Sizing comes before the ask or not at all — a per-case sizing question is a
+case-authoring follow-up (PRD §15).
+
 **v4.7 enforcement:** the close, the time warning and the grace ask are turns
 written by code, with no model call; the coverage-complete recommendation ask
 is a model turn whose question code supplies. The case closes when time is up
@@ -2072,6 +2083,17 @@ candidate performance data, never coverageCaveats (see Rule 13, assisted vs.
 covered).
 
 ## 13. Stall ladder — graduated, trigger-driven
+
+**`stuckRescue` (29 Oct, Lorenzo's rulings on tester session aae091ff; switch, off unless named):** on a voice turn a
+filler word ("um", "uh", "hmm") alone doesn't make an answer a hedge when it has a substantive sentence (typed turns
+unchanged). Two consecutive no-progress replies get the ladder's hint (Level 2) or release (Level 3), never Level 1's
+bare re-ask. At most two questions on one point for a candidate who isn't converging (the reply made no progress or
+is a few words): the third is replaced by code's move-on line and a next question, and the report notes it — counted
+per point (questions sharing their content words, the case prompt's own words aside), not per consecutive
+no-progress reply. **`unrevealedPresupposition`:** a model sentence that presents an unrevealed item as known
+("Given what you now know about prices, …") is withheld unless code hands the item over that turn; as the turn's
+only question it stays with the item released when the candidate is stuck and the item is next in the release
+order, else the question on the table is asked again.
 
 **v4.7 enforcement:** rung 1 (restate) is written by code from the question
 the last turn ended on, so its delivery is certain; rungs 2–3 are the model's,

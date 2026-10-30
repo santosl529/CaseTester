@@ -7,7 +7,7 @@ import { asksRecommendationAsk, asksRiskQuestion, isClosingTurn } from '@/lib/or
 import { stageQuestions, updateStages, namesRisk, INITIAL_STAGES } from '@/lib/orchestrator/stage-evidence';
 import { classifyTurn, evaluateStall, substantiveReply, answersRecommendationAsk, INITIAL_STALL_STATE } from '@/lib/orchestrator/stall';
 import { findPresuppositions } from '@/lib/orchestrator/presupposition';
-import { contentWords, nextChain, samePoint } from '@/lib/orchestrator/stuck-point';
+import { caseWords, contentWords, nextChain, samePoint } from '@/lib/orchestrator/stuck-point';
 import { INITIAL_PRESSURE_TEST } from '@/lib/orchestrator/pressure-test';
 import { getCaseById } from '@/lib/cases/loader';
 
@@ -23,6 +23,8 @@ describe('recLastQuestion: the asks', () => {
       expect(asksRiskQuestion(v, true)).toBe(true);
       expect(stageQuestions(v, { recOnTable: false })).toMatchObject({ recommendation: true, risk: true, brainstorm: false });
       expect(/next step|what comes next|do next/i.test(v)).toBe(true);
+      // The risks and next steps inside a question sentence: every reader of asks reads question sentences.
+      expect(v.split(/(?<=[.?!])\s+/).some(x => x.endsWith('?') && /\brisks?\b/i.test(x) && /next step|what comes next|do next/i.test(x))).toBe(true);
       expect(isClosingTurn(v)).toBe(false);
       expect(/\d/.test(v)).toBe(false);
     });
@@ -38,6 +40,10 @@ describe('recLastQuestion: what counts as the recommendation', () => {
     'Can you repeat the question?', 'Sorry, could you say that again?', 'Give me a minute.', 'Let me think about that for a second.',
     "I'm not sure.", "I can't commit without more data.", 'What happened with prices?', 'Um.', 'Okay.',
   ])('"%s" is not: the normal handling, and the next substantive reply counts', t => expect(substantiveReply(t)).toBe(false));
+  it('a recommendation that mentions "a second" increase counts (b33 Owen t13)', () => {
+    expect(substantiveReply("I'd propose a staged pass-through — roughly 15% to start. Then test a second increase.")).toBe(true);
+    expect(substantiveReply('Let me think about that — I would raise menu prices first, then renegotiate the dairy contract.')).toBe(true);
+  });
   it('a filler word does not stop a recommendation counting', () => {
     expect(substantiveReply("Um, I'd raise prices on the drinks where people are less price sensitive, and renegotiate the bean contract.")).toBe(true);
   });
@@ -127,6 +133,13 @@ describe('stuckRescue: the point cap', () => {
     expect(samePoint('Beyond what we\'ve discussed, what else could the client do to reverse the margin decline?', chain)).toBe(false);
     expect(nextChain(chain, qs[2], 42, true)?.asks).toBe(1);
   });
+  it('the case prompt\'s words link nothing (aae091ff t30\'s brainstorm is no third ask on t26–t28)', () => {
+    const ignore = caseWords(getCaseById('prof-001').prompt);
+    let chain = nextChain(undefined, T26Q, 26, false, ignore);
+    chain = nextChain(chain, 'With that in mind, how does the price movement compare to the input cost increases, and what does that tell you about the root cause of the margin decline?', 28, false, ignore);
+    expect(chain?.asks).toBe(2);
+    expect(samePoint("Beyond what we've discussed, what else could the client do to reverse the margin decline? Give me a few distinct ideas.", chain, ignore)).toBe(false);
+  });
   it('content words drop the question\'s grammar', () => {
     expect(contentWords('What would you do with those numbers?')).toEqual(['number']);
   });
@@ -159,6 +172,21 @@ describe('unrevealedPresupposition', () => {
     'Given what you know about labor, which line matters most?',
     'What would you want to know about prices?',
   ])('no presupposition of unrevealed data: "%s"', s => expect(findPresuppositions(s, items, revealed).hits).toEqual([]));
+  it('what this turn hands over clears the object; an earlier reveal does not (the corpus scan\'s five false hits)', () => {
+    // b18 Maya t49: the input changes released this turn.
+    const before = new Set(['revenue_total', 'stores_count', 'menu_price_change', 'cogs_pct', 'labor_pct', 'overhead_pct']);
+    const now = new Set(['bean_price_change', 'non_bean_input_change']);
+    expect(findPresuppositions('With those input costs in hand, which of your three explanations do they support?', items, new Set([...before, ...now]), now).hits).toEqual([]);
+    // b31 Jordan t4: the exhibit this turn ("those cost lines").
+    expect(findPresuppositions('With those cost lines for both years in hand, what do they tell you?', items, new Set(['cogs_pct', 'labor_pct', 'overhead_pct']), new Set(['cogs_pct', 'labor_pct', 'overhead_pct'])).hits).toEqual([]);
+    // b20 Owen t8: only offered — a true presupposition.
+    expect(findPresuppositions('With those price changes in hand, what do they tell you?', items, new Set(['cogs_pct']), new Set()).hits).toHaveLength(1);
+    // t26: the bean prices out two turns earlier clear nothing.
+    expect(findPresuppositions(T26Q, items, revealed, new Set()).hits[0].items).toEqual(['menu_price_change']);
+  });
+  it('the best-reading item only: "the menu price change" is the menu prices\'', () => {
+    expect(findPresuppositions('Now that you have the menu price change, what could explain it?', items, new Set([...revealed, 'menu_price_change'])).hits).toEqual([]);
+  });
   it('names the item in other words', () => {
     expect(findPresuppositions('Now that you have the menu price history, what does it tell you?', items, revealed).hits[0]?.items).toEqual(['menu_price_change']);
   });

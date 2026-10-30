@@ -38,10 +38,17 @@ export const SLICES = [
   { tag: 'b40l', batch: 'batch-40-larkspur', wave: 'batch-40-larkspur-oct-27-runs-1-5', caseId: 'prof-002', verdicts: null },
   { tag: 'b40ln', batch: 'batch-40-larkspur', wave: 'batch-40-larkspur-oct-27-runs-6-7', caseId: 'prof-002', verdicts: null },
   { tag: 'b40q', batch: 'batch-40-quillpath', wave: 'batch-40-quillpath-oct-27-runs-1-8', caseId: 'pricing-001', verdicts: null },
+  // Voice sessions (29 Oct, tester fixes): a voice session saves no turn file, so its run is rebuilt from the DB dump
+  // and the voice log (scripts/voice-turn-file.ts; no recorded model outputs beyond what was said and withheld) into
+  // the voice replay corpus (`root: 'voice'`), and replayed as voice turns (REPLAY_VOICE=1). aae091ff: Lorenzo's tester.
+  { tag: 'v29', batch: 'voice-live', wave: 'voice-aae091ff-oct-29', caseId: 'prof-001', verdicts: null, root: 'voice' },
 ] as const;
-// A slice's corpus root: its own (`phase1`: REPLAY_ROOT_PHASE1, default the phase1 worktree's corpus), else REPLAY_ROOT.
+// A slice's corpus root: its own (`phase1`: REPLAY_ROOT_PHASE1, default the phase1 worktree's corpus; `voice`:
+// REPLAY_ROOT_VOICE), else REPLAY_ROOT.
 export const PHASE1_RUNS = process.env.REPLAY_ROOT_PHASE1 ?? '/Users/lorenzo/coding/personal-projects/CaseTester/.claude/worktrees/phase1/Case Interview Runs';
-export const sliceRoot = (s: Slice, mainRoot: string): string => ('root' in s && s.root === 'phase1' ? PHASE1_RUNS : mainRoot);
+export const VOICE_RUNS = process.env.REPLAY_ROOT_VOICE ?? '/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs/voice-live/replay-corpus';
+export const sliceRoot = (s: Slice, mainRoot: string): string => ('root' in s && s.root === 'phase1' ? PHASE1_RUNS : 'root' in s && s.root === 'voice' ? VOICE_RUNS : mainRoot);
+export const isVoiceSlice = (s: Slice | undefined): boolean => s !== undefined && 'root' in s && s.root === 'voice';
 export const sliceOfWave = (wave: string): Slice | undefined => SLICES.find(x => x.wave === wave);
 export type Slice = typeof SLICES[number];
 export const sliceOf = (tag: string): Slice => {

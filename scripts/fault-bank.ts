@@ -34,7 +34,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { FaultRecordSchema, bankMoves, bankSkipEscapes, type BankMove, type FaultRecord, type FaultResult } from '@/lib/eval/fault-bank';
-import { SLICES, SpecSchema, sliceOf, sliceOfWave, sliceRoot, specToRecord, findTurnFile, itemLinesOf, isReportRecord, type Slice } from '@/lib/eval/fault-bank-build';
+import { SLICES, SpecSchema, sliceOf, sliceOfWave, sliceRoot, isVoiceSlice, specToRecord, findTurnFile, itemLinesOf, isReportRecord, type Slice } from '@/lib/eval/fault-bank-build';
 import { evaluateRecord, scopeTurns, type BankTurn, type CaseView } from '@/lib/eval/fault-bank-assert';
 import { shadowRead, type ShadowRead } from '@/lib/eval/fault-bank-shadow';
 import { readTurnFile } from '@/lib/eval/turn-file';
@@ -171,8 +171,8 @@ function assertSwitches(mirror: string, caseId: string, switches: string | undef
   if (got.join(',') !== want) throw new Error(`${mirror}: the replay ran with switches [${got.join(',')}], but --switches=${switches ?? '(off)'} means [${want}] for ${caseId}`);
 }
 
-function replayOne(dir: string, filter: string, ck: string, switches: string | undefined, root = ROOT): Promise<number> {
-  const env: NodeJS.ProcessEnv = { ...process.env, REPLAY_RUNNER: '1', REPLAY_OUT: dir, REPLAY_ROOT: root, REPLAY_FILTER: filter, REPLAY_CHECKER: ck };
+function replayOne(dir: string, filter: string, ck: string, switches: string | undefined, root = ROOT, voice = false): Promise<number> {
+  const env: NodeJS.ProcessEnv = { ...process.env, REPLAY_RUNNER: '1', REPLAY_OUT: dir, REPLAY_ROOT: root, REPLAY_FILTER: filter, REPLAY_CHECKER: ck, ...(voice ? { REPLAY_VOICE: '1' } : {}) };
   if (switches) env.ENGINE_SWITCHES = switches; else delete env.ENGINE_SWITCHES;
   return new Promise(resolve => {
     const child = spawn('npx', ['vitest', 'run', 'tests/replay/runner-corpus.replay.test.ts'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -220,7 +220,7 @@ async function run() {
   await pool(runFiles, jobs, async tf => {
     const [, wave, persona] = tf.split('/');
     const slice = sliceOfWave(wave);
-    const code = await replayOne(path.join(out, 'replay', `${wave}--${persona}`), `${wave}/${persona}/`, ck.get(wave)!, switches, slice ? sliceRoot(slice, ROOT) : ROOT);
+    const code = await replayOne(path.join(out, 'replay', `${wave}--${persona}`), `${wave}/${persona}/`, ck.get(wave)!, switches, slice ? sliceRoot(slice, ROOT) : ROOT, isVoiceSlice(slice));
     if (code !== 0) failedRuns.push(tf);
   });
   const replayMs = Date.now() - t0;

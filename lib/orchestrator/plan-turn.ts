@@ -14,7 +14,7 @@ import { candidateFiguresOf } from './math-talk';
 import { changeFigures } from './numeric-provenance';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk, stageDeadlinesMs, timeWarningDue } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
-import { POINT_ASK_CAP, POINT_CAP_GUIDANCE, type PointChain } from './stuck-point';
+import { POINT_ASK_CAP, POINT_CAP_GUIDANCE, POINT_REPLY_WORDS, type PointChain } from './stuck-point';
 import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, clearRecommendation, substantiveReply, INITIAL_STALL_STATE, type StallState } from './stall';
 import { switchOn } from '@/lib/cases/engine-switches';
 import { supersededBy, staleNote } from './checker-equations';
@@ -868,7 +868,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // guidance goes into this turn's prompt.
   const priorStall = (flags.stall as StallState | undefined) ?? INITIAL_STALL_STATE;
   const stuckRescueOn = switchOn(caseData, 'stuckRescue');
-  const rawStall = evaluateStall(candidateText, currentPhase, priorStall, stuckRescueOn ? { fillerHedge: false, skipRestate: true } : {});
+  // The filler rule on voice turns only: typed sessions are unchanged (Lorenzo, ruling 3) — typed personas write "Hmm."
+  // too (4 of 4,645 typed messages in the saved corpus would change).
+  const rawStall = evaluateStall(candidateText, currentPhase, priorStall, stuckRescueOn ? { fillerHedge: !ctx.voice, skipRestate: true } : {});
   // One ladder at a time (v4.10, KF-1; batch 18 v3, Destiny t20: a stall
   // rung-3 rescue released COGS on the turn the pressure-test gate deferred
   // the rest and the narrowed probe was asked). While the probe is open its
@@ -1525,11 +1527,14 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   });
   // A late recommendation ask — past the recommendation deadline — also asks the biggest risk (Lorenzo, 15 Oct).
   const recAskLate = kind === 'rec_ask' && elapsedMs >= deadlines.brainstormEnd;
-  // `stuckRescue`'s point cap (stuck-point.ts): two questions on the point already and the reply asks for nothing new —
-  // the model is told to move on, and Settle replaces a third question on it. Not while the pressure test owns the turn.
+  // `stuckRescue`'s point cap (stuck-point.ts): two questions on the point already and the reply to them isn't
+  // converging — no progress, or a few words ("Ten percent.", "Yes. It does.") — the model is told to move on, and
+  // Settle replaces a third question on it. The ladder's rung goes first when one fires; not while the pressure test
+  // owns the turn; never on a data request.
   const pointChain = flags.pointChain as PointChain | undefined;
+  const converging = rawStall.classification.progress && candidateText.trim().split(/\s+/).length >= POINT_REPLY_WORDS;
   const pointCapped = stuckRescueOn && kind === 'model' && !ptOpen && pointChain !== undefined && pointChain.asks >= POINT_ASK_CAP
-    && rawStall.classification.kind !== 'data_request';
+    && rawStall.classification.kind !== 'data_request' && !converging && !stallDecision.intervene;
   if (pointCapped) stallDecision = { ...stallDecision, guidance: [stallDecision.guidance, POINT_CAP_GUIDANCE].filter(Boolean).join('\n\n') };
   if (stuckRescueOn) checks.record('point_cap', pointCapped, pointCapped ? `asked ${pointChain!.asks} times on this point: move on` : 'no point at its cap', { chain: pointChain ?? null });
   // Stuck: this reply and the one before made no progress (the ladder's own reading) — unrevealedPresupposition's

@@ -100,11 +100,15 @@ export function answersRecommendationAsk(text: string, kind: TurnKind): boolean 
 // reply to the recommendation ask is the recommendation. Not a clarifying question, "give me a minute", a request to
 // repeat, a hedge or a refusal to commit — those get the normal handling, and the next substantive reply counts.
 // The filler rule (`stuckRescue`'s) always: "Um, I'd raise prices on lattes…" is a recommendation.
-const MOMENT = /\b(?:give me|gimme|need|just)\s+(?:a|one)\s+(?:minute|moment|second|sec)\b|\b(?:one|a|just a)\s+(?:sec|second|moment|minute)\b|\blet me (?:think|take a (?:moment|minute|second))\b/i;
+const MOMENT = /\b(?:give me|gimme|i need|need|just|hold on|wait)[,\s]+(?:a|one)\s+(?:minute|moment|second|sec)\b|^\W*(?:one|just a)\s+(?:sec|second|moment|minute)\b|\blet me (?:think|take a (?:moment|minute|second))\b/i;
 const REPEAT = /\b(?:repeat (?:that|the question|it|yourself)|say (?:that|it) again|come again|what was the question|(?:didn'?t|did not) (?:catch|hear) (?:that|you|the question))\b|^\W*(?:sorry|pardon)\W*$/i;
 export function substantiveReply(text: string): boolean {
   const t = text.trim();
-  if (COMMIT_REFUSAL.test(t) || MOMENT.test(t) || REPEAT.test(t)) return false;
+  if (COMMIT_REFUSAL.test(t)) return false;
+  // Asking for a moment or a repeat: only when that is all the message does (b33 Owen t13, "…then test a second increase").
+  const asksForTime = (x: string) => MOMENT.test(x) || REPEAT.test(x);
+  const clauses = sentencesOf(t).flatMap(x => x.split(/\s[—–-]\s|:\s|;\s/)).filter(x => !asksForTime(x));
+  if (asksForTime(t) && !clauses.some(x => wordCount(x) >= SUBSTANTIVE_WORDS && !HEDGE_PHRASE.test(x))) return false;
   return classifyTurn(t, null, { fillerHedge: false }).kind === 'analysis';
 }
 

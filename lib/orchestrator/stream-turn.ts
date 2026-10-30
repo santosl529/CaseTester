@@ -193,7 +193,8 @@ export function vetoReason(sentence: string, g: GateContext, opts: { inQuestion?
   // A refusal of data the case holds, in the model's own words (code's data line answers asks).
   if (g.facts && findFalseRefusals(sentence, g.facts.fb, g.facts.revealed, { covers: true }).length > 0) return 'false_refusal';
   if (g.presupposition && findPresuppositions(sentence, g.presupposition.items,
-    opts.inQuestion && g.facts ? g.facts.revealed : g.presupposition.revealedBefore).hits.length > 0) return 'presupposes_unrevealed';
+    opts.inQuestion && g.facts ? g.facts.revealed : g.presupposition.revealedBefore,
+    opts.inQuestion ? g.facts?.releasedNow : undefined).hits.length > 0) return 'presupposes_unrevealed';
   // The question agrees with what code delivered (fact checks F4): "with the
   // other-input price change in hand" when only the bean figures went out, "the
   // exhibit" before any was shown, "with those figures" when none were given.
