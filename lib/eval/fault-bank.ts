@@ -70,6 +70,11 @@ export const AssertionSchema = z.discriminatedUnion('kind', [
   // Phase 2 (design §2): the shadow decision's outcome for a sub-ask (the `ask_decision_shadow` row): a sub-ask whose
   // words match `about` decided as one of `accept`. Only meaningful on a replay with `askDecisionShadow` on.
   z.object({ kind: z.literal('subAsk'), about: z.string(), accept: z.array(z.enum(['release', 'refuse', 'defer', 'point'])).min(1), must: z.boolean(), scope: Scope.optional() }).strict(),
+  // The written report's math-checker section (lib/scoring/checker-record.ts formatCheckerSection), built from the
+  // replay's checker events: a row naming `figure` (as the claim's span says it) whose outcome matches `outcome`
+  // (default: left open by the close). Read over the run, not a turn — `scope` is not taken. Lorenzo, 31 Oct: the
+  // four post-recommendation probes re-graded to recLastQuestion assert the report, not just the close.
+  z.object({ kind: z.literal('report'), figure: z.string().optional(), outcome: z.string().optional(), must: z.boolean() }).strict(),
 ]).superRefine((a, ctx) => {
   if (a.kind === 'answered' && !a.item && !a.about) ctx.addIssue({ code: z.ZodIssueCode.custom, message: 'an `answered` assertion names the item or the ask (`about`)' });
 });
@@ -105,6 +110,9 @@ export const FaultRecordSchema = z.object({
   // false: the fix needs words only the model writes or a live call the replay doesn't serve (contract §4.3).
   replayable: z.boolean(),
   replayNote: z.string().optional(),
+  // A correct record re-graded to a later ruling (who, when, what): the right behaviour changed, so the recording
+  // no longer shows it — `check` expects it to FAIL on the recording, as a fault record does.
+  regraded: z.string().optional(),
   stream: z.union([z.literal(2), z.literal(3), z.literal(4), z.literal('phase2'), z.literal('none')]),
 }).strict();
 export type FaultRecord = z.infer<typeof FaultRecordSchema>;

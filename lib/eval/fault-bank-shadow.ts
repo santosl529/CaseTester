@@ -19,7 +19,7 @@ const outcomeOf = (a: AskDecided, variant: 'shadow' | 'withHead') => (variant ==
 export function shadowRead(rec: FaultRecord, t: BankTurn | undefined, variant: 'shadow' | 'withHead' = 'shadow'): ShadowRead {
   // Only what the record asks of its own turn: an assertion scoped to other turns (a later release in a window) is
   // about those turns, which one turn's shadow can't speak for.
-  const atTurn = (a: FaultRecord['assertions'][number]) => !a.scope || ('turn' in a.scope ? a.scope.turn === rec.turn : a.scope.fromTurn === rec.turn || a.kind === 'answered');
+  const atTurn = (a: FaultRecord['assertions'][number]) => !('scope' in a) || !a.scope || ('turn' in a.scope ? a.scope.turn === rec.turn : a.scope.fromTurn === rec.turn || a.kind === 'answered');
   const data = rec.assertions.filter(a => (a.kind === 'refusal' || a.kind === 'release' || a.kind === 'answered') && atTurn(a));
   if (data.length === 0) return { verdict: 'na', why: [] };
   const row = t?.checks.find(c => c.check === 'ask_decision_shadow');

@@ -67,6 +67,7 @@ const ROOT = process.env.REPLAY_ROOT ?? '/Users/lorenzo/coding/personal-projects
 // Batch 39's runs live in the phase1 worktree's corpus (the slice's `root`).
 const rootOf = (wave: string) => { const s = sliceOfWave(wave); return s ? sliceRoot(s, ROOT) : ROOT; };
 describe.skipIf(!existsSync(ROOT))('the fault bank on its recordings', () => {
+  // A correct record re-graded to a later ruling fails there, as a fault record does (31 Oct).
   it('every fault record fails and every correct record passes on the recorded turn file', () => {
     const views = new Map<string, Parameters<typeof evaluateRecord>[2]>();
     const view = (caseId: string) => {
@@ -74,7 +75,7 @@ describe.skipIf(!existsSync(ROOT))('the fault bank on its recordings', () => {
       return views.get(caseId)!;
     };
     const wrong = recs.filter(r => !isReportRecord(r)).filter(r =>
-      evaluateRecord(r, readTurnFile(path.join(rootOf(r.wave), r.turnFile)).turns, view(r.caseId)).pass !== (r.kind === 'correct')).map(r => r.id);
+      evaluateRecord(r, readTurnFile(path.join(rootOf(r.wave), r.turnFile)).turns, view(r.caseId)).pass !== (r.kind === 'correct' && !r.regraded)).map(r => r.id);
     expect(wrong).toEqual([]);
   });
 });

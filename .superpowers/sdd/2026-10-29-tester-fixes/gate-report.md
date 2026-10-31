@@ -117,3 +117,17 @@ this branch is deployed would refuse to boot.
 - The persona replies answer the original questions, so a replaced ask's reply was written to a similar ask, not to ours.
 - aae091ff is rebuilt from its export (`scripts/voice-turn-file.ts`), with no recorded model output.
 - The point cap and the voice filler rule have no typed evidence of firing. Their only replay evidence is aae091ff.
+
+## Lorenzo's rulings of 31 Oct, applied
+
+1. **The 4 correct records re-graded** (`rg` in the specs → `regraded` on the record): each now asserts the close at its
+   turn AND a row in the report's math-checker section naming the figure as "Not raised in the interview (the case
+   closed first)". New bank assertion `report` (`lib/eval/fault-bank-assert.ts`): `formatCheckerSection` — the judge's
+   own section — over the run's checker events, which the replay now writes beside each mirror
+   (`*.checker-events.json`); a recording's are read from its run JSON. Figures: b33 Owen "6%" (span "margin moves from
+   6% back toward 14%"), b33 Tyler "19%", b34a Tyler "$83 million", b36l Raj "1" ("about 1 more point of load factor").
+   A re-graded record fails on its recording by design (`check`: 342/342, 0 wrong) and is never skipped as `diverged`
+   (the kind change is what it asserts). Bank: **new 77/77 correct** (was 73/77), fault 74/132 unchanged, no record moved
+   into a skip class; **off and prod 92/96** — the 4 re-graded ones fail there, as they must until the switch is on.
+2. **Cue-only sentences:** counted, never withheld — as built; nothing changed.
+3. **Scoring with no post-recommendation pushback** — read, no code changed: see the report to Lorenzo of 31 Oct (§16).

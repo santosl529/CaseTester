@@ -42,6 +42,7 @@ import { engineSwitchNames } from '@/lib/eval/batch-manifest';
 import { parseEngineSwitches } from '@/lib/cases/engine-switches';
 import { getCaseById, dataLineVersions } from '@/lib/cases/loader';
 import { properNames } from '@/lib/orchestrator/request-signal';
+import { formatCheckerSection, type CheckerEventRow } from '@/lib/scoring/checker-record';
 
 const ROOT = process.env.REPLAY_ROOT ?? '/Users/lorenzo/coding/personal-projects/CaseTester/Case Interview Runs';
 const OUT_BASE = process.env.FAULT_BANK_OUT ?? '/Users/lorenzo/coding/personal-projects/CaseTester-proof-out';
@@ -103,16 +104,26 @@ function build() {
 }
 
 const turnsOf = (file: string): BankTurn[] => readTurnFile(file).turns;
+// The report's math-checker section for a run: the replay's checker events beside its mirror, or a recording's run JSON.
+function reportOf(turnFile: string): string | null {
+  const side = turnFile.replace(/\.turns\.jsonl\.gz$/, '.checker-events.json');
+  const json = turnFile.replace(/\.turns\.jsonl\.gz$/, '.json');
+  const rows = existsSync(side) ? JSON.parse(readFileSync(side, 'utf8')) as CheckerEventRow[]
+    : existsSync(json) ? ((JSON.parse(readFileSync(json, 'utf8')) as { events?: CheckerEventRow[] }).events ?? []) : [];
+  return formatCheckerSection(rows) || null;
+}
 
 // Against the recording itself: a fault record must fail (its assertions describe the right behaviour, which the
-// recording lacks), a correct record must pass. Report records are skipped (scoring, not a turn).
+// recording lacks), a correct record must pass — unless re-graded to a later ruling, when the recording no longer
+// shows the right behaviour and it fails as a fault record does. Report records are skipped (scoring, not a turn).
 function check(): number {
   const recs = loadBank();
   const bad: string[] = [];
   for (const r of recs) {
     if (isReportRecord(r)) continue;
-    const res = evaluateRecord(r, turnsOf(path.join(rootOfRecord(r), r.turnFile)), linesFor(r.caseId));
-    const want = r.kind === 'correct';
+    const recorded = path.join(rootOfRecord(r), r.turnFile);
+    const res = evaluateRecord(r, turnsOf(recorded), linesFor(r.caseId), reportOf(recorded));
+    const want = r.kind === 'correct' && !r.regraded;
     if (res.pass !== want) bad.push(`${r.id}: ${r.kind} record ${res.pass ? 'passes' : 'fails'} on the recording${res.failed.length ? ` — ${res.failed.map(f => `${f.assertion.kind}${f.assertion.must ? '' : ' (must not)'}: ${f.saw}`).join(' / ')}` : ''}`);
   }
   console.log(`checked ${recs.length} records against their recordings: ${bad.length} wrong`);
@@ -233,7 +244,7 @@ async function run() {
     assertSwitches(mirror, r.caseId, switches);
     const replayed = turnsOf(mirror);
     const recorded = turnsOf(path.join(rootOfRecord(r), r.turnFile));
-    const res = evaluateRecord(r, replayed, linesFor(r.caseId));
+    const res = evaluateRecord(r, replayed, linesFor(r.caseId), reportOf(mirror));
     const last = Math.max(...recorded.map(t => t.turnIndex + 1));
     const scopes = [...new Set(r.assertions.flatMap(a => scopeTurns(a, r.turn, last)))];
     const changed = scopes.some(n => wordsAt(replayed, n) !== wordsAt(recorded, n));
@@ -243,7 +254,8 @@ async function run() {
     // flip a turn's kind, so letting `diverged` win over a failure would take failing records out of the gate's
     // denominator and the gate line would *improve*.
     const kindChanged = own && own.stateBefore.kind !== recorded.find(t => t.turnIndex === r.turn - 1)?.stateBefore.kind;
-    const diverged = kindChanged && res.failed.length === 0 ? { skipped: 'diverged' as const } : {};
+    // A re-graded record asserts the new kind itself (the close that replaced a probe, 31 Oct): its turn is its subject.
+    const diverged = kindChanged && res.failed.length === 0 && !r.regraded ? { skipped: 'diverged' as const } : {};
     const result: FaultResult = { ...res, ...diverged, ...(!r.replayable ? { skipped: 'not_replayable' as const } : {}) };
     const gated = r.replayable && !result.skipped && (r.kind === 'correct' || PHASE1_STREAMS.has(String(r.stream)));
     rows.push({ ...result, ...meta, changed, baseline: baselineClass(r, { ...res, ...diverged }, changed), gated });

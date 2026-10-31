@@ -295,6 +295,10 @@ function finish(records: TurnRecord[], header: ReturnType<typeof readTurnFile>['
     session: { ...run.session, status: endedEarly ? 'completed' : 'completed' }, turns, revealed: [], events: [],
     analytics: [{ eventType: 'llm_usage', createdAt: run.session.startedAt, payloadJsonb: { component: 'interviewer', model: header.models?.interviewer ?? 'unknown' } }],
   }));
+  // The run's math-checker events, for the report the bank reads (fault-bank `report` assertions, 31 Oct): what the
+  // written report's checker section is built from.
+  writeFileSync(out.replace(/\.json$/, '.checker-events.json'), JSON.stringify(store.events.filter(e => e.category === 'math_checker')
+    .map(e => ({ category: e.category, subtype: e.subtype, turnIndex: e.turnIndex, payloadJsonb: e.payloadJsonb }))));
   const switches = (() => { try { return engineSwitchNames(getCaseById(run.session.caseId)); } catch { return []; } })();
   writeTurnFile(out.replace(/\.json$/, '.turns.jsonl.gz'), { ...header, engineSwitches: switches }, records, { type: 'end', ended: true, budgetStopped: false, scoring: 'replay', candidateUsage: { calls: 0, input: 0, output: 0, usd: 0 } });
   return { turns: records.length, diverged, endedEarly };

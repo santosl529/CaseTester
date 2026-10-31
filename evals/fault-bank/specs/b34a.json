@@ -587,16 +587,21 @@
   "turn": 28,
   "sev": "correct",
   "cls": "correct_probe",
-  "note": "Wrap-up probe on his \"$83 million\" selling cost (the exhibit says $80M); he corrected to $240M.",
+  "note": "Wrap-up probe on his \"$83 million\" selling cost (the exhibit says $80M); he corrected to $240M. Re-graded 31 Oct: under recLastQuestion the recommendation is the last question, so this turn is the close and the figure is listed in the report's math-checker section as not raised (the case closed first).",
   "a": [
    {
-    "kind": "probe",
+    "kind": "close",
+    "must": true
+   },
+   {
+    "kind": "report",
     "figure": "$83 million",
     "must": true
    }
   ],
   "rep": true,
-  "stream": "none"
+  "stream": "none",
+  "rg": "Lorenzo, 31 Oct (tester-fixes ruling 1): re-graded to recLastQuestion — the case closes on the recommendation, and the figure goes to the report's open claims instead of a probe after it"
  },
  {
   "id": "b34a-marcus-t10-probe",

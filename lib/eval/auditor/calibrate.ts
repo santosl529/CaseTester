@@ -19,7 +19,7 @@ export type Match = { hand: string; predicted: number; sameClass: boolean; sever
 const windowOf = (h: Hand): [number, number] => {
   let lo = h.turn, hi = h.turn;
   for (const a of h.assertions) {
-    const s = a.scope;
+    const s = 'scope' in a ? a.scope : undefined;
     if (!s) continue;
     if ('turn' in s) { lo = Math.min(lo, s.turn); hi = Math.max(hi, s.turn); } else { lo = Math.min(lo, s.fromTurn); hi = Math.max(hi, s.toTurn ?? s.fromTurn); }
   }

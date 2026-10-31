@@ -69,8 +69,10 @@ export const SpecSchema = z.object({
   a: z.array(AssertionSchema).min(1),
   rep: z.boolean(),
   rnote: z.string().optional(),
+  rg: z.string().optional(),               // re-graded: a correct record whose right behaviour a later ruling changed
   stream: FaultRecordSchema.shape.stream,
 }).strict()
+  .refine(s => !s.rg || s.kind === 'correct', { message: 'only a correct record is re-graded' })
   .refine(s => (s.kind === 'correct') === (s.sev === 'correct'), { message: 'a correct record has severity "correct", a fault never' })
   .refine(s => s.rep || (s.rnote ?? '').length > 20, { message: 'a record that is not replayable says what in the wave would show it fixed (replayNote)' });
 export type Spec = z.infer<typeof SpecSchema>;
@@ -97,6 +99,7 @@ export function specToRecord(spec: Spec, slice: Slice, run: RunTurns): FaultReco
     assertions: spec.a,
     replayable: spec.rep,
     ...(spec.rnote ? { replayNote: spec.rnote } : {}),
+    ...(spec.rg ? { regraded: spec.rg } : {}),
     stream: spec.stream,
   });
 }
