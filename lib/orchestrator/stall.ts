@@ -95,6 +95,23 @@ export function answersRecommendationAsk(text: string, kind: TurnKind): boolean 
   return COMMITS.test(text.replace(NEGATED_RECOMMENDATION, ' ')) || ACTION_LEAD.test(text.trim()) || FIRST_LEAD.test(text.trim()) || LEVER_LEAD.test(text.trim());
 }
 
+// `recLastQuestion` (Lorenzo, 29 Oct, aae091ff t35 "I would choose... so, like, the price increases, we haven't
+// increased our price in quite a while…" — no pattern above reads it, so the end gate never opened): any substantive
+// reply to the recommendation ask is the recommendation. Not a clarifying question, "give me a minute", a request to
+// repeat, a hedge or a refusal to commit — those get the normal handling, and the next substantive reply counts.
+// The filler rule (`stuckRescue`'s) always: "Um, I'd raise prices on lattes…" is a recommendation.
+const MOMENT = /\b(?:give me|gimme|i need|need|just|hold on|wait)[,\s]+(?:a|one)\s+(?:minute|moment|second|sec)\b|^\W*(?:one|just a)\s+(?:sec|second|moment|minute)\b|\blet me (?:think|take a (?:moment|minute|second))\b/i;
+const REPEAT = /\b(?:repeat (?:that|the question|it|yourself)|say (?:that|it) again|come again|what was the question|(?:didn'?t|did not) (?:catch|hear) (?:that|you|the question))\b|^\W*(?:sorry|pardon)\W*$/i;
+export function substantiveReply(text: string): boolean {
+  const t = text.trim();
+  if (COMMIT_REFUSAL.test(t)) return false;
+  // Asking for a moment or a repeat: only when that is all the message does (b33 Owen t13, "…then test a second increase").
+  const asksForTime = (x: string) => MOMENT.test(x) || REPEAT.test(x);
+  const clauses = sentencesOf(t).flatMap(x => x.split(/\s[—–-]\s|:\s|;\s/)).filter(x => !asksForTime(x));
+  if (asksForTime(t) && !clauses.some(x => wordCount(x) >= SUBSTANTIVE_WORDS && !HEDGE_PHRASE.test(x))) return false;
+  return classifyTurn(t, null, { fillerHedge: false }).kind === 'analysis';
+}
+
 // 4.9 (Phase 1, `recommendationReceived`; Lorenzo, 22 Oct: "recommendationReceived: set it on a clear
 // recommendation."). Quillpath answers led on a verb neither list reads — b37 Marcus t31 "Keep Starter, and raise the
 // price to $60.", Raj t27, Tyler t25 ("Keep Starter — don't shut it down — and raise the price to $60."), b35 Raj
@@ -144,6 +161,16 @@ function isQuestion(text: string): boolean {
 }
 
 const HEDGE_PATTERN = /\b(i (really )?(don'?t|do not) know|not sure|no idea|i'?m stuck|i am stuck|stuck|can you help|help me|give me a hint|i give up|i can'?t (do|figure|think)|no clue|i'?m lost|i am lost|blank|um+|uh+|hmm+)\b/i;
+// `stuckRescue` (Lorenzo, 29 Oct, ruling 3; aae091ff t21): a filler word alone doesn't make an answer a hedge when it has
+// a substantive sentence — on voice almost every answer carries an "um", and t21's real analysis counted as a stall.
+const HEDGE_PHRASE = /\b(i (really )?(don'?t|do not) know|not sure|no idea|i'?m stuck|i am stuck|stuck|can you help|help me|give me a hint|i give up|i can'?t (do|figure|think)|no clue|i'?m lost|i am lost|blank)\b/i;
+const FILLER = /\b(um+|uh+|hmm+)\b/i;
+const SUBSTANTIVE_WORDS = 8;
+const hasSubstantiveSentence = (text: string) => sentencesOf(text).some(s => wordCount(s) >= SUBSTANTIVE_WORDS && !HEDGE_PHRASE.test(s));
+function isHedge(text: string, fillerHedge: boolean): boolean {
+  if (fillerHedge) return HEDGE_PATTERN.test(text);
+  return HEDGE_PHRASE.test(text) || (FILLER.test(text) && !hasSubstantiveSentence(text));
+}
 
 // Deterministic "analytical progress" signal: a numeric derivation, or an
 // explicit enumerated structure. Intentionally narrow — its job is to
@@ -249,7 +276,7 @@ function hasSubstantiveStatement(text: string): boolean {
 }
 
 // A turn is classified by its content, not its last sentence (Rule 13 v4.5).
-export function classifyTurn(text: string, lastQuestion: string | null): { kind: TurnKind; isRepeat: boolean; reason: string } {
+export function classifyTurn(text: string, lastQuestion: string | null, opts: { fillerHedge?: boolean } = {}): { kind: TurnKind; isRepeat: boolean; reason: string } {
   const trimmed = text.trim();
   const q = isQuestion(trimmed);
   const isRepeat = q && lastQuestion !== null && normalize(trimmed) === normalize(lastQuestion);
@@ -257,7 +284,7 @@ export function classifyTurn(text: string, lastQuestion: string | null): { kind:
   if (hasAnalysisSignal(trimmed)) return { kind: 'analysis', isRepeat: false, reason: 'analysis signal (figures in a derivation, or an enumerated structure)' };
   if (isRepeat) return { kind: 'question', isRepeat, reason: 'verbatim repeat of the previous question' };
   if (isDataRequest(trimmed)) return { kind: 'data_request', isRepeat: false, reason: 'data request' };
-  if (HEDGE_PATTERN.test(trimmed)) return { kind: 'hedge', isRepeat, reason: 'hedge language' };
+  if (isHedge(trimmed, opts.fillerHedge ?? true)) return { kind: 'hedge', isRepeat, reason: 'hedge language' };
   if (wordCount(trimmed) <= 4 && !q) return { kind: 'hedge', isRepeat, reason: 'near-empty turn' };
   if (q && !hasSubstantiveStatement(trimmed)) return { kind: 'question', isRepeat, reason: 'question-only turn' };
   // Substantive prose with no analysis signal: give the benefit of the doubt
@@ -342,14 +369,16 @@ export function recordSilenceStall(prior: StallState): StallState {
 
 // Pure state transition: classify this candidate turn, update counters, and
 // decide whether to fire the next ladder rung.
-export function evaluateStall(candidateText: string, phase: Phase, prior: StallState): StallDecision {
+// `stuckRescue` (opts): `fillerHedge: false` — the filler rule above; `skipRestate` — a stall gets the ladder's hint
+// (rung 2) or release (rung 3), never rung 1's bare re-ask of the question it is stuck on (Lorenzo, 29 Oct; aae091ff t24).
+export function evaluateStall(candidateText: string, phase: Phase, prior: StallState, opts: { fillerHedge?: boolean; skipRestate?: boolean } = {}): StallDecision {
   // Once the recommendation is in, short sign-offs are not stalls (run
   // 1d76e3d9 logged Level 1, Level 2 and synthesis_unresolved on "Goodbye.").
   if (prior.recommendationDelivered) {
     return { state: prior, intervene: false, classification: { kind: 'analysis', isRepeat: false, reason: 'recommendation already delivered — ladder stood down', progress: true } };
   }
 
-  const { kind, isRepeat, reason } = classifyTurn(candidateText, prior.lastCandidateQuestion);
+  const { kind, isRepeat, reason } = classifyTurn(candidateText, prior.lastCandidateQuestion, { fillerHedge: opts.fillerHedge });
   const state: StallState = { ...prior };
   if (SYNTHESIS_PHASES.includes(phase) && isRecommendationStatement(candidateText, kind)) {
     state.recommendationDelivered = true;
@@ -383,7 +412,7 @@ export function evaluateStall(candidateText: string, phase: Phase, prior: StallS
   const cap = SYNTHESIS_PHASES.includes(phase) ? SYNTHESIS_RUNG_CAP : MAX_RUNG;
 
   if (state.consecutiveNoProgress >= STALL_THRESHOLD && state.ladderLevel < cap) {
-    const rung = (state.ladderLevel + 1) as LadderRung;
+    const rung = (opts.skipRestate ? Math.max(2, state.ladderLevel + 1) : state.ladderLevel + 1) as LadderRung;
     state.ladderLevel = rung;
     state.consecutiveNoProgress = 0; // acted this turn; give the rung a chance to land
     const firedOn = state.noProgressReasons ?? [];

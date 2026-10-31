@@ -473,16 +473,21 @@
   "turn": 16,
   "sev": "correct",
   "cls": "correct_probe",
-  "note": "The checker's probe on his false \"revenue is up about 19% on volume alone\".",
+  "note": "The checker's probe on his false \"revenue is up about 19% on volume alone\". Re-graded 31 Oct: under recLastQuestion the recommendation is the last question, so this turn is the close and the figure is listed in the report's math-checker section as not raised (the case closed first).",
   "a": [
    {
-    "kind": "probe",
+    "kind": "close",
+    "must": true
+   },
+   {
+    "kind": "report",
     "figure": "19%",
     "must": true
    }
   ],
   "rep": true,
-  "stream": "none"
+  "stream": "none",
+  "rg": "Lorenzo, 31 Oct (tester-fixes ruling 1): re-graded to recLastQuestion — the case closes on the recommendation, and the figure goes to the report's open claims instead of a probe after it"
  },
  {
   "id": "b33-raj-t16-probe",
@@ -526,15 +531,21 @@
   "turn": 14,
   "sev": "correct",
   "cls": "correct_probe",
-  "note": "Final flag probed (6% back toward 14%).",
+  "note": "Final flag probed (6% back toward 14%). Re-graded 31 Oct: under recLastQuestion the recommendation is the last question, so this turn is the close and the figure is listed in the report's math-checker section as not raised (the case closed first).",
   "a": [
    {
-    "kind": "probe",
+    "kind": "close",
+    "must": true
+   },
+   {
+    "kind": "report",
+    "figure": "6%",
     "must": true
    }
   ],
   "rep": true,
-  "stream": "none"
+  "stream": "none",
+  "rg": "Lorenzo, 31 Oct (tester-fixes ruling 1): re-graded to recLastQuestion — the case closes on the recommendation, and the figure goes to the report's open claims instead of a probe after it"
  },
  {
   "id": "b33-jordan-t2-deferral",

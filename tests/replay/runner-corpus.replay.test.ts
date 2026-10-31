@@ -207,7 +207,8 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     turnText = r.candidateText;
     savedTurnIndex = r.turnIndex;
     // REPLAY_ACK=1 (Phase 2 C3's proof): every turn as if a voice acknowledgment had been spoken.
-    await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); }, ...(process.env.REPLAY_ACK === '1' ? { acknowledged: 'Mm-hm.' } : {}) });
+    // REPLAY_VOICE=1 (tester fixes, 29 Oct): every turn a voice turn — a voice session's own replay.
+    await runTurn(sid, r.candidateText, { onTurnRecord: x => { rec = x; }, defer: t => { deferred.push(t); }, ...(process.env.REPLAY_ACK === '1' ? { acknowledged: 'Mm-hm.' } : {}), ...(process.env.REPLAY_VOICE === '1' ? { voice: true } : {}) });
     // The turn has returned: its check is still pending (nothing awaited it).
     const started = pendingChecks.splice(startedBefore);
     checkerTally.started += started.length;
@@ -294,6 +295,10 @@ function finish(records: TurnRecord[], header: ReturnType<typeof readTurnFile>['
     session: { ...run.session, status: endedEarly ? 'completed' : 'completed' }, turns, revealed: [], events: [],
     analytics: [{ eventType: 'llm_usage', createdAt: run.session.startedAt, payloadJsonb: { component: 'interviewer', model: header.models?.interviewer ?? 'unknown' } }],
   }));
+  // The run's math-checker events, for the report the bank reads (fault-bank `report` assertions, 31 Oct): what the
+  // written report's checker section is built from.
+  writeFileSync(out.replace(/\.json$/, '.checker-events.json'), JSON.stringify(store.events.filter(e => e.category === 'math_checker')
+    .map(e => ({ category: e.category, subtype: e.subtype, turnIndex: e.turnIndex, payloadJsonb: e.payloadJsonb }))));
   const switches = (() => { try { return engineSwitchNames(getCaseById(run.session.caseId)); } catch { return []; } })();
   writeTurnFile(out.replace(/\.json$/, '.turns.jsonl.gz'), { ...header, engineSwitches: switches }, records, { type: 'end', ended: true, budgetStopped: false, scoring: 'replay', candidateUsage: { calls: 0, input: 0, output: 0, usd: 0 } });
   return { turns: records.length, diverged, endedEarly };

@@ -501,8 +501,8 @@ export function codeWrittenTurn(plan: ModelPlan, detected: DetectedDataRequest[]
     .map(r => ({ what: r.what, itemIds: r.ledgerItemIds, explicit: true, respond: 'release' as const }));
   const uses = ctx.flags.phraseUses as PhraseUses | undefined;
   const question = state.kind === 'close' ? closeLine(state.closeReason, seed, uses)
-    : state.kind === 'grace_ask' ? line('grace_ask', uses, seed)
-      : state.kind === 'time_warning' ? line('time_warning', uses, seed)
+    : state.kind === 'grace_ask' ? line(state.recLastOn ? 'grace_ask_full' : 'grace_ask', uses, seed)
+      : state.kind === 'time_warning' ? line(state.recLastOn ? 'time_warning_full' : 'time_warning', uses, seed)
         : state.kind === 'stage_brainstorm' ? brainstormAskLine(state.caseData, uses, seed)
           : state.kind === 'stage_exhibit' ? line('stage_exhibit_q', uses, seed)
           : state.kind === 'stage_analysis' && state.caseData.analysisCore ? analysisAskLine(state.caseData.analysisCore.ask, state.recommendationInPlay)

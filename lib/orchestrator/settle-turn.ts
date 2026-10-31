@@ -13,7 +13,8 @@ import { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } fr
 import { and, eq } from 'drizzle-orm';
 import { logDataRequestClassification } from './data-request-log';
 import type { DetectedDataRequest } from './data-requests';
-import { reveal, revealedValues, markExhibitReveals, nextExhibitOnly } from './data-ledger';
+import { reveal, revealedValues, markExhibitReveals, nextExhibitOnly, canReveal } from './data-ledger';
+import { restateOnTable } from './silence';
 import { auditTurn, auditTurnStyle } from './audit';
 import { changeFigures } from './numeric-provenance';
 import { withholdMathChallenges, challengeVerdict } from './probe-guard';
@@ -37,7 +38,9 @@ import { dataLinePools } from '@/lib/cases/loader';
 import { dataLineVariantsOn } from '@/lib/cases/data-line-variants';
 import { asksForConclusion, analysisAskLine } from './spoken-close';
 import { updateStages, stageQuestions, type StageKey, type StageRecord } from './stage-evidence';
-import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers } from './data-decisions';
+import { renderDataLineParts, decisionRows, nextReadyExhibit, itemBackedDefers, heldForOrder } from './data-decisions';
+import { findPresuppositions } from './presupposition';
+import { caseWords, nextChain, samePoint } from './stuck-point';
 import { brainstormAsks, brainstormAskLine, asksOwnBrainstorm } from './brainstorm';
 import { applyHeard, heardRequestRows, unheardQuestionPressureTest } from './heard';
 import { derivePhase, type TurnMove } from './progress';
@@ -270,7 +273,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // your time. The question on the table: …" after "Take your time.") drops
   // that opening; the model's words are vetted above (vetoReason).
   let question = codeWritten ? dropAckOpening(turn.question, ctx.acknowledged) : keep(turn.question, 'question');
-  if (kind === 'rec_ask') question = line(state.recAskLate ? 'late_rec_ask' : 'rec_ask', phraseUses, seed);
+  if (kind === 'rec_ask') question = line(state.recLastOn ? 'rec_ask_full' : state.recAskLate ? 'late_rec_ask' : 'rec_ask', phraseUses, seed);
   // The model's own words in the question, as the turn goes on — emptied
   // wherever code replaces the question, kept when code only appends. The
   // pressure test is asked by the model's words or code's own probe, never by
@@ -342,6 +345,37 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     const fallback = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
     modelQuestion = question;
     question = question ? `${question} ${fallback}` : fallback;
+  }
+  // `unrevealedPresupposition` (Lorenzo, 29 Oct, ruling 4): a withheld sentence that was the turn's only question.
+  // (a) The candidate is stuck and the item it presupposes is next in the release order: code releases it — at the end
+  // of the data line, as the must-reach items go — and the sentence stays. (b) Otherwise the question on the table is
+  // asked again. Never a turn without a question.
+  let presupposedRelease: { id: string; value: string }[] = [];
+  const presupposed = withheld.filter(w => w.field === 'question' && w.reason === 'presupposes_unrevealed');
+  if (!codeWritten && kind !== 'rec_ask' && presupposed.length > 0 && !question.trim().endsWith('?')) {
+    const items = g.presupposition?.items ?? [];
+    const hits = presupposed.flatMap(w => findPresuppositions(w.sentence, items, g.facts?.revealed ?? new Set(), g.facts?.releasedNow).hits);
+    const ready = (id: string) => canReveal(ledger, id) && !heldForOrder(id, caseData.exhibits, state.shownExhibitIds, ledger, state.stagesOut)
+      && !decisions.releases.some(r => r.id === id) && (state.ptClosed || satisfiedNow || waiving);
+    const rescue = state.stuckNow ? hits.flatMap(h => h.items).find(ready) : undefined;
+    if (rescue) {
+      presupposedRelease = [{ id: rescue, value: caseData.dataLedger.find(d => d.id === rescue)!.value }];
+      question = [question, ...presupposed.map(w => w.sentence)].filter(Boolean).join(' ');
+      modelQuestion = question;
+      for (const w of presupposed) withheld.splice(withheld.indexOf(w), 1);
+    } else {
+      const reask = state.lastQuestion ? restateOnTable(state.lastQuestion)
+        : pickFallbackQuestion({ uses: phraseUses, figuresDelivered: decisions.releases.length > 0 || decisions.exhibit !== null, seed, last: null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+      question = question ? `${question} ${reask}` : reask;
+      modelQuestion = '';
+    }
+    checks.act('presupposition', rescue ? 'a question presupposing an unrevealed item: the candidate is stuck and it is next — released, the question kept'
+      : 'a question presupposing an unrevealed item, withheld: the question on the table again', { hits, rescue: rescue ?? null, stuck: state.stuckNow });
+  }
+  if (g.presupposition) {
+    // Cue-only sentences (no item named) are counted, never withheld — the corpus report reads them.
+    const cueOnly = sentencesOf(`${turn.say} ${turn.question}`).filter(x => findPresuppositions(x, g.presupposition!.items, g.facts?.revealed ?? new Set(), g.facts?.releasedNow).cueOnly);
+    if (cueOnly.length > 0) checks.record('presupposition_cue_only', false, 'a presupposition cue that names no item: counted, kept', { sentences: cueOnly });
   }
   const questionFallback = !codeWritten && kind !== 'rec_ask' && !question;
   if (questionFallback) { question = 'Go on.'; modelQuestion = ''; }
@@ -539,6 +573,31 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
     }
     modelQuestion = '';
   }
+  // `recLastQuestion` (Lorenzo, 29 Oct, ruling 1): the model's own recommendation ask — once no stage holds it — is
+  // code's, which also asks for the main risks and the next steps (aae091ff t34 asked only for the lever). An ask as the
+  // stage record reads it, its move label included (b39 Aldermoor Marcus t20 "do you recommend a US launch…" — the
+  // answer closed the case with no risk ever asked).
+  const recAskNow = stageQuestions(question, { move: turn.move, recOnTable: state.stages.recommendationAsked || state.recommendationReceived, brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue }).recommendation;
+  if (state.recLastOn && !codeWritten && kind === 'model' && !stageAsked && !heldForExhibit && !state.recAnswered && recAskNow) {
+    withheld.push({ sentence: question, reason: 'rec_ask_replaced', field: 'question' });
+    question = line('rec_ask_full', phraseUses, seed);
+    modelQuestion = '';
+    checks.act('rec_ask_replaced', 'the model asked for the recommendation: code\'s ask, with the main risks and next steps (recLastQuestion)', { model: withheld.at(-1)!.sentence });
+  }
+  // `stuckRescue`'s point cap (stuck-point.ts): a third question on a point the candidate hasn't got to — code moves
+  // on, and the report notes it. Not on a turn that hands data or an exhibit over (the case moved on already).
+  // Nor on a stage question (the brainstorm, the recommendation, the risk): those move the case on by definition.
+  const askedStage = stageQuestions(question, { move: turn.move, recOnTable: state.stages.recommendationAsked || state.recommendationReceived, brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue });
+  if (state.pointCapped && !codeWritten && kind === 'model' && modelQuestion && samePoint(question, state.pointChain, caseWords(caseData.prompt))
+    && !askedStage.brainstorm && !askedStage.recommendation && !askedStage.risk
+    && decisions.releases.length === 0 && decisions.exhibit === null && !heldForExhibit) {
+    withheld.push({ sentence: question, reason: 'point_cap', field: 'question' });
+    const next = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: false, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+    question = `${line('move_on', phraseUses, seed)} ${next}`;
+    modelQuestion = '';
+    ctx.events.push({ category: 'intervention', subtype: 'stuck_moved_on', payload: { asks: state.pointChain!.asks, point: state.lastQuestion, withheld: withheld.at(-1)!.sentence } });
+    checks.act('point_cap', 'a third question on the point: code moves on (stuckRescue)', { chain: state.pointChain, withheld: withheld.at(-1)!.sentence });
+  }
   // Code's line back to the analysis on a turn whose own data line completes
   // it (140fb90d replay: the other-input change released with "Let's hold the
   // recommendation…") asks about the figures instead.
@@ -693,6 +752,13 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       dataLines = dataParts.map(p => p.text);
       decisions.releases = [...decisions.releases, ...late];
     }
+  }
+  // `unrevealedPresupposition` rule (a): the presupposed item, at the end of the data line, ahead of the question.
+  if (!ended && presupposedRelease.length > 0) {
+    const parts = renderDataLineParts({ releases: presupposedRelease.map(r => ({ ...r, earlier: false })), restates: [], exhibit: null, refusals: [], defers: [], gateDefers: [], unmatchedDefers: [], offers: [], requests: [] }, seed, phraseUses);
+    dataParts.push(...parts);
+    dataLines = dataParts.map(p => p.text);
+    decisions.releases = [...decisions.releases, ...presupposedRelease.map(r => ({ ...r, earlier: false }))];
   }
   // Phase 2 S1 (`askDecisionShadow`; design §2): the one data decision, logged beside today's — never spoken. After the
   // late must-reach lines, so what Settle volunteers at a point only it sees is in today's decisions too.
@@ -953,6 +1019,10 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       recAsk: ASKS_RECOMMENDATION.has(kind) && qHeard, close: endedSaved,
     }) : nextPhaseValue;
     const lastQuestionSaved = qHeard ? lastQuestion : state.lastQuestion;
+    // `stuckRescue`: the point chain after this turn's question — a code-written turn or a handover starts a new point.
+    const pointChainSaved = switchOn(state.caseData, 'stuckRescue') && qHeard && lastQuestion
+      ? nextChain(state.pointChain, lastQuestion, nextTurnIndex, codeWritten || decisions.releases.length > 0 || decisions.exhibit !== null || heldForExhibit !== undefined, caseWords(caseData.prompt))
+      : state.pointChain;
     const ptSaved = qHeard ? pt : unheardQuestionPressureTest(ptPrev, pt);
     let stallSaved = stallState;
     let rungSpanSaved = rungDeliverySpan;
@@ -999,6 +1069,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       released: bookedReveals.length + exhibitRevealsSaved.length > 0, recAsked: ASKS_RECOMMENDATION.has(kind) && qHeard,
       recommendationDelivered: stallSaved.recommendationDelivered, pressureTest: ptSaved, candidateFigures: state.candidateFigures.length,
       codeAsked: stageAskedSaved, ended: endedSaved && state.timeUp ? 'time_up' : null, brainstormAsks: brainstormAsks(caseData), brainstormDue: state.brainstormDue, move: turnMoveSaved,
+      ...(state.recLastOn ? { riskWithRecommendation: true } : {}),
     });
     const stagesEnforcedSaved = stageAskedSaved ? { ...state.stagesEnforced, [stageAskedSaved]: true } : state.stagesEnforced;
     // The close hold's memory (close-hold.ts; Lorenzo, 16 Oct): the follow-up
@@ -1104,6 +1175,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
             loadShedLogged: Boolean(flags.loadShedLogged) || loadShedLoggedThisTurn,
             moves: movesSaved,
             lastQuestion: lastQuestionSaved,
+            ...(pointChainSaved ? { pointChain: pointChainSaved } : {}),
             askIntents: qHeard ? [...askHistory, { tags: askTags, given: figuresOut }].slice(-2) : askHistory,
             pressureTest: ptSaved,
             stageEvidence: stagesSaved,

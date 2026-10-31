@@ -388,6 +388,38 @@ export const PHRASE_POOLS = {
     'We\'re close to time. What would you recommend to the CEO, and what\'s the biggest risk to it?',
     'Only a little time left — what\'s your bottom-line recommendation, and what\'s the biggest risk to it?',
   ],
+  // `recLastQuestion` (Lorenzo, 29 Oct): the recommendation is the last question, so its ask also asks for the main
+  // risks and the next steps — code's ask (in or past the brainstorm budget), the time warning and the grace ask, and
+  // the model's own ask, which code replaces. Each reads as the recommendation ask and as the risk question
+  // (spoken-close.ts; the phrasing test checks every version).
+  rec_ask_full: [
+    'Pull it together: what\'s your recommendation to the CEO, what are the main risks to that recommendation, and what are your next steps?',
+    'What would you tell the CEO to do, what are the main risks to that plan, and what would you do next?',
+    'What\'s your recommendation to the client, what are the main risks to your plan, and what are your next steps?',
+    'Putting it all together, what would you recommend to the CEO, what are the main risks to that plan, and what are your next steps?',
+    'If you had to advise the CEO now, what would you recommend? And what are the main risks to that plan, and your next steps?',
+  ],
+  grace_ask_full: [
+    'We\'re at time. In a few sentences: your recommendation to the CEO, the main risks to that plan, and your next steps?',
+    'That\'s the clock — before we stop, what\'s your recommendation to the CEO, and briefly, the main risks to that plan and your next steps?',
+    'We\'re at time, so give me the short version: what would you tell the CEO, what are the main risks to that plan, and what comes next?',
+    'We\'re at time — briefly, what would you recommend to the CEO? And the main risks to that plan, and your next steps?',
+    'We\'ve hit the time limit, so briefly: what would you tell the CEO, the main risks to that plan, and your next steps?',
+  ],
+  time_warning_full: [
+    'We\'re near time. What\'s your bottom-line recommendation to the CEO, the main risks to that plan, and your next steps?',
+    'We\'re almost out of time — what would you tell the CEO, what are the main risks to that plan, and what are your next steps?',
+    'Time\'s nearly up. What\'s your bottom-line recommendation, the main risks to that plan, and your next steps?',
+    'We\'re close to time. What would you recommend to the CEO, the main risks to that plan, and your next steps?',
+    'Only a little time left — what\'s your bottom-line recommendation, the main risks to that plan, and your next steps?',
+  ],
+  // `stuckRescue`'s point cap (stuck-point.ts): the lead before code's next question, once a point is asked twice.
+  move_on: [
+    'Let\'s leave that there.',
+    'Let\'s move on from that.',
+    'We\'ll leave that point there.',
+    'Let\'s park that for now.',
+  ],
   // session-runner.ts: after code's correction, one chance to revise.
   rec_revision: [
     'With that corrected, does your recommendation change?',
@@ -586,6 +618,8 @@ export const SEEDED_FIRST: ReadonlySet<string> = new Set([
   'opener_invite', 'opener_after_q', 'close_time_up', 'close_complete', 'close_unresolved',
   // The checker's neutral probes, the most repeated interviewer line across batches: varied from the first.
   'probe_got_to', 'probe_calc', 'probe_there',
+  // `recLastQuestion` / `stuckRescue` (29 Oct): as the pools they stand in for.
+  'rec_ask_full', 'grace_ask_full', 'time_warning_full', 'move_on',
 ]);
 export type PhrasePool = keyof typeof PHRASE_POOLS;
 // The last uses of each pool this session, newest last (variant indexes).

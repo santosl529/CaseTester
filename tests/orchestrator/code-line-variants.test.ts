@@ -50,7 +50,9 @@ const FRAGMENT: PhrasePool[] = ['probe_opener'];
 // Phase 1 4.10 (`ackRotation`) and task 5 (`probeGuardMethod`): pools code did not say before brief B, each with its
 // own block (tests/orchestrator/ack-rotation.test.ts, tests/orchestrator/probe-guard-method.test.ts).
 // `refusalAssume` (27 Oct, measurement): no line said before the brief — tests/orchestrator/refusal-assume.test.ts.
-const OWN_BLOCK: PhrasePool[] = ['ack', 'probe_method', 'assume', 'assume_finer'];
+// Tester fixes (29 Oct; `recLastQuestion`, `stuckRescue`): new lines, no line said before the brief —
+// tests/orchestrator/tester-fixes.test.ts.
+const OWN_BLOCK: PhrasePool[] = ['ack', 'probe_method', 'assume', 'assume_finer', 'rec_ask_full', 'grace_ask_full', 'time_warning_full', 'move_on'];
 const POOLS = (Object.keys(PHRASE_POOLS) as PhrasePool[]).filter(p => !ONE_LINE.includes(p) && !FRAGMENT.includes(p) && !OWN_BLOCK.includes(p));
 const before = BEFORE as Record<string, string[]>;
 const versions = (p: PhrasePool) => PHRASE_POOLS[p] as readonly string[];

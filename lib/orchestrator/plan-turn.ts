@@ -14,7 +14,8 @@ import { candidateFiguresOf } from './math-talk';
 import { changeFigures } from './numeric-provenance';
 import { resolvePhaseBudgets, resolveTimeWarningMs, isUnderTimePressure, shouldGraceAsk, stageDeadlinesMs, timeWarningDue } from './pacing';
 import { canEndCase, formatCoverageSteer, COVERAGE_MIN_GUARD_MS, type CoverageScores } from '@/lib/scoring/coverage';
-import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, clearRecommendation, INITIAL_STALL_STATE, type StallState } from './stall';
+import { POINT_ASK_CAP, POINT_CAP_GUIDANCE, POINT_REPLY_WORDS, type PointChain } from './stuck-point';
+import { evaluateStall, revertUndeliveredRung, isRecommendationStatement, answersRecommendationAsk, clearRecommendation, substantiveReply, INITIAL_STALL_STATE, type StallState } from './stall';
 import { switchOn } from '@/lib/cases/engine-switches';
 import { supersededBy, staleNote } from './checker-equations';
 import { historyWithCheckIns, checkInLinesOf } from './voice-check-in';
@@ -866,7 +867,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Rule 13 stall ladder: evaluate BEFORE the model turn so a triggered rung's
   // guidance goes into this turn's prompt.
   const priorStall = (flags.stall as StallState | undefined) ?? INITIAL_STALL_STATE;
-  const rawStall = evaluateStall(candidateText, currentPhase, priorStall);
+  const stuckRescueOn = switchOn(caseData, 'stuckRescue');
+  // The filler rule on voice turns only: typed sessions are unchanged (Lorenzo, ruling 3) — typed personas write "Hmm."
+  // too (4 of 4,645 typed messages in the saved corpus would change).
+  const rawStall = evaluateStall(candidateText, currentPhase, priorStall, stuckRescueOn ? { fillerHedge: !ctx.voice, skipRestate: true } : {});
   // One ladder at a time (v4.10, KF-1; batch 18 v3, Destiny t20: a stall
   // rung-3 rescue released COGS on the turn the pressure-test gate deferred
   // the rest and the narrowed probe was asked). While the probe is open its
@@ -897,6 +901,25 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const lastCandidate = [...turnRows].reverse().find(t => t.role === 'candidate')?.text ?? '';
   const recJustGiven = recSwitch && [candidateText, lastCandidate].some(clearRecommendation);
   if (ptOpen && rawStall.intervene) checks.act('stall_deferred', 'stall rung withheld: the pressure-test ladder owns this turn', { rung: rawStall.rung });
+  // `recLastQuestion` (Lorenzo, 29 Oct, aae091ff): the reply to a recommendation ask — the first substantive one since the
+  // ask, past clarifying questions, "give me a minute" and requests to repeat — is the recommendation, and the case
+  // closes next (closeDue below). Read from the transcript, so a replay or a resumed session reads it the same way.
+  const recLastOn = switchOn(caseData, 'recLastQuestion');
+  // The ask is the stage record's (its first delivery), not a move label: aae091ff t50 and t54 were labelled
+  // `recommendation` on sizing questions.
+  const recAsk = ((flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES).recommendation;
+  const recAnswer = (() => {
+    if (!recLastOn || !recAsk?.delivered || recAsk.deliveredAt === undefined) return null;
+    const askedAt = recAsk.deliveredAt;
+    const msgs = [...turnRows.filter(t => t.role === 'candidate').map(t => ({ turnIndex: t.turnIndex, text: t.text })), { turnIndex: ctx.nextTurnIndex, text: candidateText }];
+    const reply = msgs.find(t => t.turnIndex > askedAt && substantiveReply(t.text));
+    return reply ? { askedAt, at: reply.turnIndex } : null;
+  })();
+  const recAnsweredNow = recAnswer !== null && recAnswer.at === ctx.nextTurnIndex;
+  if (recAnswer !== null && !stallDecision.state.recommendationDelivered) {
+    stallDecision = { ...stallDecision, state: { ...stallDecision.state, recommendationDelivered: true } };
+  }
+  if (recAnsweredNow) checks.act('rec_answered', 'the substantive reply to the recommendation ask is the recommendation — the close is next (recLastQuestion)', { askedAt: recAnswer!.askedAt });
   const recommendationReceived = stallDecision.state.recommendationDelivered;
 
   // Rule 12 v4.6: a received recommendation plus an administered brainstorm
@@ -940,7 +963,10 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // The end gate reads the stage record — what code owes reads it too (Lorenzo, 13 Oct: one source of truth).
   const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? INITIAL_STAGES;
   const stages = stagesFromRecord(stageRecord, recommendationReceived);
-  const stageGate = stageGateOpen(stages, { brainstormRequired: brainstormRequired(caseData) }) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
+  // `recLastQuestion`: the answered recommendation ask carried the risk question, so the risk is owed no turn of its own.
+  const stageGate = (recAnswer !== null
+    ? (stages.brainstormAsked || !brainstormRequired(caseData))
+    : stageGateOpen(stages, { brainstormRequired: brainstormRequired(caseData) })) && elapsedMs >= COVERAGE_MIN_GUARD_MS;
   const mayEnd = endAllowed({ coverageMayEnd, timeUp, stageGate, stages });
   // Fact guards Phase 5 (batch 20 R33, R32): a recommendation the interviewer
   // never asked for — volunteered mid-case — is asked for by code before the
@@ -983,7 +1009,9 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     recommendationAsked: stages.recommendationAsked, recommendationDelivered: recommendationReceived,
   });
   const closeDue = (timeUp && !graceDue)
-    || (mayEnd && ((recommendationReceived && stages.recommendationAsked && stages.riskAsked) || recommendationUnresolved(stages)));
+    || (mayEnd && ((recommendationReceived && stages.recommendationAsked && stages.riskAsked) || recommendationUnresolved(stages)))
+    // `recLastQuestion`: the recommendation is the last question — its answer closes the case.
+    || (recAnswer !== null && mayEnd);
 
   // Required stages before a normal end (v4.10, Rule 9; batch 18: the exhibit
   // never shown in 8 runs, the brainstorm never asked in 1): when the case
@@ -1035,7 +1063,8 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // closing on it. Not when time is up — the correction still goes out first.
   // With the gate the correction comes a turn after the reply, so: a misquote released from a recommendation reply.
   // No "your recommendation" question before one is received (batch 29 Jordan ea27d1f6 t13).
-  const recRevisionDue = misquote !== null && misquote.all.some(m => recReplyAt(m.n)) && recommendationReceived && !flags.recRevisionAsked && !timeUp;
+  // `recLastQuestion`: nothing is asked after the answered recommendation — an error in it goes to the report's open claims.
+  const recRevisionDue = misquote !== null && misquote.all.some(m => recReplyAt(m.n)) && recommendationReceived && !flags.recRevisionAsked && !timeUp && recAnswer === null;
   // A recommendation that rests on math a check flagged (fact guards Phase 4,
   // 12 Oct; batch 20: "a 10% price increase recovers about 5 points" said first
   // in the final answer, then the close): one code-written probe — or, past
@@ -1046,7 +1075,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // that fact is recorded, so the report can show it (b35q Marisol 087451cb lost "Starter standalone LTV/CAC is
   // about 2 times" to unresolved_at_close, and b35q Tyler lost a correction the same way). The candidates are
   // computed without the cap and the cap is applied after, so what it kept back is known.
-  const recMathFlagUncapped = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue
+  const recMathFlagUncapped = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && recAnswer === null
     ? liveFlags.find(f => recReplyAt(fromOf(f)) && flagSpeaks(f, recomputeAttempts[attemptKey(f)] ?? 1, isUnderTimePressure(elapsedMs, TOTAL_CASE_MS)))
     : undefined;
   const recMathFlag = wrapUps > 0 ? recMathFlagUncapped : undefined;
@@ -1054,7 +1083,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Jordan 099f33e9 t25): one more flag, under the same once-a-case rule — once
   // the reply's verdict flags it too (the gate). It is the correction's second
   // saying: none once its line was said twice (Lorenzo, 19 Oct, round-3 ruling 2; b29 Jordan t20).
-  const closedRecUncapped = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlagUncapped
+  const closedRecUncapped = recommendationReceived && !flags.recMathProbed && !timeUp && !recRevisionDue && !recMathFlagUncapped && recAnswer === null
     ? closedErrorAgreed({
       rows: checkerRows, candidateTurnIndex: ctx.nextTurnIndex, recReply: recReplyAt, closed: closedKeys, keys: checkerPlan.keys,
       restated: checkerMemory.restated, corrected: checkerMemory.corrected, said: checkerMemory.said,
@@ -1208,7 +1237,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   let finalProbeKey: string | null = recMathProbe && 'flag' in recMathProbe && finalAnswer(fromOf(recMathProbe.flag)) ? attemptKey(recMathProbe.flag)
     : closedRec && finalAnswer(closedRec.n) ? closedRec.key : null;
   let finalHold = false;
-  const holdable = kind === 'close' && !timeUp && wrapUps > 0;
+  const holdable = kind === 'close' && !timeUp && wrapUps > 0 && recAnswer === null;
   // A root holds the close with the highest rating riding on it (Lorenzo, 19 Oct, round-2 ruling 4; round-1 final review:
   // a minor carried root whose rider was in the recommendation got no hold — both went to unresolved_at_close): a final
   // answer of its own or a rider's, the redo's apart, the best rank among them, and conclusion-changing if one is.
@@ -1498,6 +1527,19 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   });
   // A late recommendation ask — past the recommendation deadline — also asks the biggest risk (Lorenzo, 15 Oct).
   const recAskLate = kind === 'rec_ask' && elapsedMs >= deadlines.brainstormEnd;
+  // `stuckRescue`'s point cap (stuck-point.ts): two questions on the point already and the reply to them isn't
+  // converging — no progress, or a few words ("Ten percent.", "Yes. It does.") — the model is told to move on, and
+  // Settle replaces a third question on it. The ladder's rung goes first when one fires; not while the pressure test
+  // owns the turn; never on a data request.
+  const pointChain = flags.pointChain as PointChain | undefined;
+  const converging = rawStall.classification.progress && candidateText.trim().split(/\s+/).length >= POINT_REPLY_WORDS;
+  const pointCapped = stuckRescueOn && kind === 'model' && !ptOpen && pointChain !== undefined && pointChain.asks >= POINT_ASK_CAP
+    && rawStall.classification.kind !== 'data_request' && !converging && !stallDecision.intervene;
+  if (pointCapped) stallDecision = { ...stallDecision, guidance: [stallDecision.guidance, POINT_CAP_GUIDANCE].filter(Boolean).join('\n\n') };
+  if (stuckRescueOn) checks.record('point_cap', pointCapped, pointCapped ? `asked ${pointChain!.asks} times on this point: move on` : 'no point at its cap', { chain: pointChain ?? null });
+  // Stuck: this reply and the one before made no progress (the ladder's own reading) — unrevealedPresupposition's
+  // rule (a) releases the item a withheld question presupposes, when it is next in the release order.
+  const stuckNow = stuckRescueOn && !rawStall.classification.progress && (rawStall.intervene || priorStall.consecutiveNoProgress >= 1);
   // A stage question is due at or past its deadline or after the time warning;
   // the risk question once the recommendation is in (Lorenzo, 15 Oct). Not
   // merely because the model asked it — and not once the stage is done.
@@ -1574,6 +1616,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, closedInputs, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, stageCodeLines, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, misquoteFigures, factBase, factEchoes,
       priorStall, stallDecision, recommendationReceived, stages, mayEnd, awaitingRecAsk, coverageSteer,
+      recLastOn, recAnswered: recAnswer !== null, pointChain, pointCapped, stuckNow,
       conductRedirectHint, history, turnRows, distress, conductCheck, conductConfirm: extra.conductConfirm, kind, closeReason, owedStage, ptClosed, stagesEnforced, lastQuestion, moves, pressureTest, probeVerdict, structureVerdict, ptSatisfiedNow: undefined as boolean | undefined, ptWaivingNow: undefined as boolean | undefined, deferChecks: new Map<string, Promise<CheckVerdict>>(), messageAsks: undefined as Promise<MessageAsks> | undefined, messageAsksHeard: undefined as Promise<MessageAsks & { timedOut?: true }> | undefined, requestCues, requestGuardRegenerated: false,
       buffered: bufferReason !== undefined, bufferReason, askJudgeRows: reads.askJudgeEventRows ?? [],
     },

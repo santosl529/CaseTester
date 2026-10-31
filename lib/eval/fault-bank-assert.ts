@@ -20,6 +20,8 @@
 //   close              the turn ended the case
 //   says               the regex over the delivered words
 //   check              a TurnRecord check: its name, and `decision` against its decision, reason or detail
+//   report             over the run: the report's math-checker section (formatCheckerSection over the run's checker
+//                      events) has a row naming `figure` whose outcome matches `outcome` (default: the case closed first)
 import type { TurnRecord } from '@/lib/orchestrator/turn-record';
 import { poolPattern } from '@/lib/orchestrator/phrasing';
 import type { Assertion, FaultRecord, FaultResult } from './fault-bank';
@@ -182,6 +184,7 @@ function happened(a: Assertion, r: TurnReading, t: BankTurn, next: BankTurn | un
       && ((c.detail as { asks?: { words: string; outcome: string }[] } | undefined)?.asks ?? []).some(x => re(a.about).test(x.words) && (a.accept as readonly string[]).includes(x.outcome)));
     case 'check': return t.checks.some(c => c.check === a.check && (!a.decision || c.decision === a.decision
       || re(a.decision).test(c.reason ?? '') || JSON.stringify(c.detail ?? {}).includes(a.decision)));
+    case 'report': return false;   // over the run (reportRow)
   }
 }
 
@@ -226,7 +229,7 @@ function answeredInWindow(a: Extract<Assertion, { kind: 'answered' }>, ns: numbe
 // The interviewer turns an assertion looks at, as grading turns tN (tN = turnIndex + 1).
 // `answered` with no scope reads the record's turn through the close: a deferral's resolution is owed by then.
 export function scopeTurns(a: Assertion, recordTurn: number, lastTurn: number): number[] {
-  const s = a.scope;
+  const s = 'scope' in a ? a.scope : undefined;
   if (!s) {
     if (a.kind !== 'answered') return [recordTurn];
     const out: number[] = [];
@@ -240,15 +243,31 @@ export function scopeTurns(a: Assertion, recordTurn: number, lastTurn: number): 
   return out;
 }
 
+// The report's checker rows ("- turn N: "<span>" — WRONG (…): <figure>. <what became of it>"), one naming the figure in
+// its span with the outcome asked for.
+const REPORT_OPEN = 'the case closed first';
+function reportRow(a: Extract<Assertion, { kind: 'report' }>, report: string | null): string | null {
+  if (!report) return null;
+  const outcome = new RegExp(a.outcome ?? REPORT_OPEN, 'i');
+  return report.split('\n').find(l => l.startsWith('- turn ') && outcome.test(l)
+    && (!a.figure || namesFigure(/^- turn \d+: "(.*)" — /.exec(l)?.[1] ?? '', a.figure))) ?? null;
+}
+
 const short = (s: string, n = 220) => s.length > n ? `${s.slice(0, n)}…` : s;
 
-export function evaluateRecord(rec: FaultRecord, turns: BankTurn[], view: CaseView): FaultResult {
+// `report`: the run's math-checker section as the written report gets it (null: the run has no checker events).
+export function evaluateRecord(rec: FaultRecord, turns: BankTurn[], view: CaseView, report: string | null = null): FaultResult {
   const byT = new Map(turns.map(t => [t.turnIndex + 1, t]));
   if (turns.length === 0) return { id: rec.id, pass: false, failed: [], skipped: 'run_missing' };
   const last = Math.max(...byT.keys());
   const failed: FaultResult['failed'] = [];
   let vacuous = false;
   for (const a of rec.assertions) {
+    if (a.kind === 'report') {
+      const row = reportRow(a, report);
+      if (a.must ? !row : row) failed.push({ assertion: a, saw: row ?? (report ? short(report.split('\n').filter(l => l.startsWith('- turn ')).join(' | ') || '(no rows)') : 'no checker events in the run') });
+      continue;
+    }
     const ns = scopeTurns(a, rec.turn, last);
     const seen = ns.filter(n => byT.has(n));
     // A must-not over turns the replay never wrote looked at nothing: the record is skipped, not passed.

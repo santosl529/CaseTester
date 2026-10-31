@@ -20,14 +20,20 @@ const RUNG_LABEL: Record<string, string> = {
 export function summarizeAssists(events: InterventionEvent[]): string {
   const rescues = events.filter(e => RUNG_LABEL[e.subtype]);
   const synthesisUnresolved = events.some(e => e.subtype === 'synthesis_unresolved');
+  // `stuckRescue`'s point cap (Lorenzo, 29 Oct): the interviewer moved on from a point asked twice without convergence.
+  const movedOn = events.filter(e => e.subtype === 'stuck_moved_on');
 
-  if (rescues.length === 0 && !synthesisUnresolved) return '';
+  if (rescues.length === 0 && !synthesisUnresolved && movedOn.length === 0) return '';
 
   const lines: string[] = [];
   for (const e of rescues) {
     // v4.5: delivered rungs carry the hint text the candidate received.
     const span = (e.payloadJsonb as { span?: string | null } | null)?.span;
     lines.push(`- ${RUNG_LABEL[e.subtype]}${e.phase ? ` during ${e.phase}` : ''}${span ? ` — the interviewer said: "${span}"` : ''}`);
+  }
+  for (const e of movedOn) {
+    const point = (e.payloadJsonb as { point?: string | null } | null)?.point;
+    lines.push(`- The candidate did not get to a point after two questions on it${e.phase ? ` during ${e.phase}` : ''}, and the interviewer moved on${point ? ` — the question was: "${point}"` : ''}.`);
   }
   if (synthesisUnresolved) {
     lines.push('- The candidate could not produce a recommendation even after narrowing; the case closed without one.');

@@ -50,9 +50,9 @@ function describe(e: StageEntry): string {
   const at = e.deliveredAt !== undefined ? ` at turn ${e.deliveredAt}` : '';
   const by = e.codeAsked ? ' (asked by the system)' : '';
   switch (e.outcome) {
-    case 'answered': return `administered${at}${by}; the candidate engaged with it`;
+    case 'answered': return e.withRecommendation ? `asked${at} within the recommendation question; the candidate named a risk` : `administered${at}${by}; the candidate engaged with it`;
     case 'declined': return `administered${at}${by}; the candidate declined it`;
-    case 'unable': return `administered${at}${by}; the candidate could not do it`;
+    case 'unable': return e.noneNamed ? `asked${at} within the recommendation question; the candidate's answer named no risk` : `administered${at}${by}; the candidate could not do it`;
     case 'waived': return `administered${at}; closed by the system's bound without an answer (waived — not answered, not a weakness by itself)`;
     case 'time_up': return `administered${at}; time ran out before an answer`;
     default: return `administered${at}${by}; no reply to it yet when the interview ended`;
