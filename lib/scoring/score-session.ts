@@ -139,14 +139,7 @@ export async function computeScore({ sessionId, userId, persist = true }: { sess
   // before it existed — and whether the candidate ended the interview early.
   const flags = session.flagsJsonb as Record<string, unknown>;
   const partial = Boolean(flags.partial);
-  const exhibitRows = await db.query.exhibitsShown.findMany({ where: eq(exhibitsShown.sessionId, sessionId) });
-  const phaseRows = await db.query.sessionEvents.findMany({ where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'check')) });
-  const phaseAt = (turnIndex: number) => (phaseRows.find(e => e.turnIndex === turnIndex)?.phase ?? 'ANALYSIS') as Phase;
-  const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? reconstructStages({
-    turns: turns.map(t => ({ role: t.role, text: t.text, turnIndex: t.turnIndex, timestampMs: t.timestampMs })),
-    exhibitShownAtMs: exhibitRows.map(e => e.shownAtMs), revealedAtMs: revealedRows.map(r => r.revealedAtMs),
-    pressureTest: flags.pressureTest as never, caseTexts: [caseData.prompt, ...caseData.dataLedger.map(d => d.value)], phaseAt,
-  });
+  const stageRecord = await loadStageRecord(sessionId, flags, turns, revealedRows, caseData);
   // A case with no brainstorm module (Quillpath): the stage is not part of it.
   const notInCase = stagesNotInCase(caseData);
   const stageSection = formatStageRecordSection(stageRecord, partial ? { exitTurn: flags.exitTurn as number | undefined } : null, { notInCase });
@@ -366,6 +359,26 @@ export async function computeScore({ sessionId, userId, persist = true }: { sess
   };
 
   return { rubric, report, mathResults, qa, strongGate, answerKey, assessed, plain };
+}
+
+// The session's stage record, or one rebuilt from the transcript for sessions recorded before it existed. Shared with
+// scripts/report-tone-proof.ts, which rewrites a stored report without re-scoring it.
+export async function loadStageRecord(
+  sessionId: string,
+  flags: Record<string, unknown>,
+  turns: { role: string; text: string; turnIndex: number; timestampMs: number }[],
+  revealedRows: { revealedAtMs: number }[],
+  caseData: ReturnType<typeof getCaseById>,
+): Promise<StageRecord> {
+  if (flags.stageEvidence) return flags.stageEvidence as StageRecord;
+  const exhibitRows = await db.query.exhibitsShown.findMany({ where: eq(exhibitsShown.sessionId, sessionId) });
+  const phaseRows = await db.query.sessionEvents.findMany({ where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'check')) });
+  const phaseAt = (turnIndex: number) => (phaseRows.find(e => e.turnIndex === turnIndex)?.phase ?? 'ANALYSIS') as Phase;
+  return reconstructStages({
+    turns: turns.map(t => ({ role: t.role, text: t.text, turnIndex: t.turnIndex, timestampMs: t.timestampMs })),
+    exhibitShownAtMs: exhibitRows.map(e => e.shownAtMs), revealedAtMs: revealedRows.map(r => r.revealedAtMs),
+    pressureTest: flags.pressureTest as never, caseTexts: [caseData.prompt, ...caseData.dataLedger.map(d => d.value)], phaseAt,
+  });
 }
 
 // Rule 18A (v4.10): the candidate's request to stop — and the exchange about

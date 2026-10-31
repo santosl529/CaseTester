@@ -60,6 +60,8 @@ describe('report tone: plain-words rewrite, audited in code (tester feedback, 31
     expect(partOfCase(stageRecord, 1)).toMatch(/opening question/);
     expect(partOfCase(stageRecord, 3)).toMatch(/follow-up on your opening structure/);
     expect(partOfCase(stageRecord, 51)).toMatch(/recommendation/);
+    // after the risk question, whatever is asked (aae091ff: back to the price math)
+    expect(partOfCase({ ...stageRecord, risk: { delivered: true, deliveredAt: 52 } }, 55)).toBe('the questions after your recommendation');
   });
 
   it('the prompt lists every item with its id, its quotes located, and the better answer kept out of the rewrite', () => {

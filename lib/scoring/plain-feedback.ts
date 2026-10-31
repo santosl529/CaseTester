@@ -50,7 +50,9 @@ const PART: Record<StageKey, string> = {
   exhibit: 'the exhibit',
   brainstorm: 'the brainstorm (ideas to fix the problem)',
   recommendation: 'the recommendation',
-  risk: 'the question on risks',
+  // A stage has one delivery turn, and the interview can go back to the math after the risk question (aae091ff t36,
+  // then t42–t55 sizing the price rise): everything from it on is labelled by what it is sure to be.
+  risk: 'the questions after your recommendation',
 };
 
 export function partOfCase(rec: StageRecord, turnIndex: number): string {
