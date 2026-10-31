@@ -10,7 +10,7 @@ import { PostCaseSurvey } from '@/components/post-case-survey';
 import { PrepareReport } from '@/components/prepare-report';
 import { SiteHeader } from '@/components/site-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { reportDimensions } from '@/lib/scoring/report-dimensions';
+import { reportDimensions, topFixPlain } from '@/lib/scoring/report-dimensions';
 import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
 
 const RATING_COLOR: Record<string, string> = {
@@ -60,6 +60,7 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   };
 
   const DIMENSIONS = reportDimensions(score);
+  const topFix = topFixPlain(score);
   // Rule 18A: the candidate ended the interview early — feedback on what was covered.
   const partial = Boolean((session.flagsJsonb as Record<string, unknown> | null)?.partial);
 
@@ -88,7 +89,15 @@ export default async function ReportPage({ params }: { params: Promise<{ session
       {score.topFix && (
         <Card className="border-amber-200 bg-amber-50">
           <CardHeader><CardTitle className="text-base">Top improvement</CardTitle></CardHeader>
-          <CardContent className="text-sm">{score.topFix}</CardContent>
+          <CardContent className="text-sm">
+            {topFix ? (
+              <>
+                <p className="text-neutral-500 mb-1">{topFix.where}</p>
+                <p className="text-neutral-800 mb-1">{topFix.what} {topFix.why}</p>
+                <p className="text-neutral-900 font-medium">{topFix.next}</p>
+              </>
+            ) : score.topFix}
+          </CardContent>
         </Card>
       )}
 

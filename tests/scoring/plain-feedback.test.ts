@@ -42,6 +42,7 @@ const base = rubric({
     needsWork: [{ point: POINT, quotes: ['Yes. It does.'] }],
     missedOpportunities: [{ moment: 'Turn 52, when the interviewer challenged whether 10% gets back near 24%.', betterResponse: 'Costs are 94% of revenue; at 94/110 the margin is about 14.5%.' }],
   }),
+  topFix: 'Check a recommended figure with arithmetic before agreeing: a 10% price rise does not restore a 24% margin.',
 });
 
 const good: PlainOutput = {
@@ -49,6 +50,7 @@ const good: PlainOutput = {
   'quantitative.wentWell.0': { where: 'In the opening, you said "profit equals revenue minus costs".', what: 'That tied the problem to the profit equation from the start.', why: 'It gives the interviewer a clear map of where you are going.', next: 'Keep anchoring your opening on the economics of the problem.' },
   'quantitative.needsWork.0': { where: 'In the recommendation, asked whether a 10% rise gets back near 24%, you said "Yes. It does."', what: 'The answer agreed without working the numbers: costs are 94% of revenue, so 10% gives a margin of about 14.5%.', why: 'A number you cannot defend undercuts the whole recommendation.', next: 'Next time, try writing the equation out loud before answering.' },
   'quantitative.missedOpportunities.0': { where: 'In the recommendation, the interviewer asked whether 10% gets the margin back near 24%.', what: 'This was the chance to check the figure out loud.', why: 'Checking a number when challenged shows you can be trusted with the client\'s math.' },
+  topFix: { where: 'In the recommendation, asked whether a 10% rise gets the margin back near 24%, you said "Yes. It does."', what: 'The answer agreed before any arithmetic: a 10% price rise does not restore a 24% margin.', why: 'The recommendation rests on that figure, so the interviewer will test it.', next: 'Next time, try working the margin out loud before agreeing to a number.' },
 };
 
 describe('report tone: plain-words rewrite, audited in code (tester feedback, 31 Oct)', () => {
@@ -62,20 +64,24 @@ describe('report tone: plain-words rewrite, audited in code (tester feedback, 31
 
   it('the prompt lists every item with its id, its quotes located, and the better answer kept out of the rewrite', () => {
     const { prompt, entries } = buildPlainPrompt(base, ctx);
-    expect(entries.map(e => e.id)).toEqual(['structure.needsWork.0', 'quantitative.wentWell.0', 'quantitative.needsWork.0', 'quantitative.missedOpportunities.0']);
+    expect(entries.map(e => e.id)).toEqual(['structure.needsWork.0', 'quantitative.wentWell.0', 'quantitative.needsWork.0', 'quantitative.missedOpportunities.0', 'topFix']);
     expect(prompt).toContain('"Yeah. I think it\'s messy." — turn 3, during the follow-up on your opening structure; the interviewer had just said: "Is that structure MECE');
     expect(prompt).toContain('CONTEXT: turn 52, during the recommendation; the interviewer said: "Does a 10% rise');
     expect(prompt).toContain('BETTER ANSWER (printed after your text');
+    expect(prompt).toContain('ID topFix (the TOP IMPROVEMENT — a point to WORK ON)\nPOINT: Check a recommended figure');
   });
 
   it('a rewrite that passes is stored beside the point; nothing else in the report moves', () => {
     const out = applyPlainOutput(base, good, buildPlainPrompt(base, ctx).entries, ctx);
     expect(out.rejected).toEqual([]);
-    expect(out.written).toHaveLength(4);
+    expect(out.written).toHaveLength(5);
+    expect(out.rubric.topFixPlain?.next).toMatch(/^Next time, try/);
+    expect(out.rubric.topFix).toBe(base.topFix);
     expect(out.rubric.quantitative.needsWork[0].plain?.next).toMatch(/^Next time, try/);
     expect(out.rubric.quantitative.missedOpportunities[0].plain?.why).toMatch(/Checking a number/);
     // Strip the new field: what is left is the input, byte for byte.
     const stripped = structuredClone(out.rubric);
+    delete stripped.topFixPlain;
     for (const k of ['structure', 'quantitative'] as const) {
       for (const s of ['wentWell', 'needsWork', 'missedOpportunities'] as const) for (const i of stripped[k][s]) delete (i as { plain?: unknown }).plain;
     }
@@ -87,6 +93,7 @@ describe('report tone: plain-words rewrite, audited in code (tester feedback, 31
     const parsed = RubricScoresSchema.parse(JSON.parse(JSON.stringify(out.rubric)));
     expect(parsed.quantitative.needsWork[0].plain?.where).toContain('"Yes. It does."');
     expect(parsed.quantitative.missedOpportunities[0].plain?.what).toBeTruthy();
+    expect(parsed.topFixPlain?.where).toContain('"Yes. It does."');
     // and an old report, with no plain fields, still parses
     expect(RubricScoresSchema.safeParse(base).success).toBe(true);
   });
@@ -137,11 +144,30 @@ describe('report tone: plain-words rewrite, audited in code (tester feedback, 31
     expect(auditRewrite({ ...a, fields: ['x', 'y', 'z', 'Keep anchoring.'], next: { opens: /^Keep\b/, label: 'Keep' } })).toBeNull();
   });
 
+  it('the top improvement gets the same audit: a dropped figure or the wrong opener keeps the old wording', () => {
+    const entries = buildPlainPrompt(base, ctx).entries;
+    const dropped = structuredClone(good);
+    dropped.topFix.where = 'In the recommendation, you said "Yes. It does."';
+    dropped.topFix.what = 'The answer agreed before any arithmetic.';
+    expect(applyPlainOutput(base, dropped, entries, ctx).rejected).toEqual([{ id: 'topFix', reason: 'figure dropped: 10%' }]);
+    const opener = structuredClone(good);
+    opener.topFix.next = 'Work the margin out loud.';
+    const out = applyPlainOutput(base, opener, entries, ctx);
+    expect(out.rejected).toEqual([{ id: 'topFix', reason: 'does not open with "Next time, try"' }]);
+    expect(out.rubric.topFixPlain).toBeUndefined();
+    expect(out.rubric.topFix).toBe(base.topFix);
+  });
+
+  it('an empty top improvement (the verifier left none) is not sent', () => {
+    expect(buildPlainPrompt({ ...base, topFix: '' }, ctx).entries.map(e => e.id)).not.toContain('topFix');
+  });
+
   it('the output format requires every item id, so none can be left out', () => {
     const { entries } = buildPlainPrompt(base, ctx);
     const schema = JSON.stringify(plainOutputFormat(entries));
     for (const e of entries) expect(schema).toContain(`"${e.id}"`);
     expect(schema).toMatch(/"required":\[[^\]]*"structure.needsWork.0"/);
+    expect(schema).toMatch(/"required":\[[^\]]*"topFix"/);
   });
 
   it('an item the model left out keeps the old wording', () => {

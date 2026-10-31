@@ -1,6 +1,6 @@
 import type { scores } from '@/db/schema';
 import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS, NOT_ASSESSED, type RubricDimensionKey } from './rubric';
-import { RubricScoresSchema, type DimensionFeedback, type FeedbackItem } from './judge';
+import { RubricScoresSchema, type DimensionFeedback, type FeedbackItem, type PlainPoint } from './judge';
 import { normalize } from './evidence-audit';
 
 type ScoreRow = typeof scores.$inferSelect;
@@ -47,6 +47,12 @@ export function reportDimensions(score: ScoreRow): ReportDimension[] {
     feedback: rubric?.[key] ?? null,
     legacyEvidence: LEGACY_EVIDENCE[key](score),
   }));
+}
+
+// The top improvement in plain words, where the rewrite passed its audit; else null and the report shows topFix.
+export function topFixPlain(score: ScoreRow): PlainPoint | null {
+  const parsed = RubricScoresSchema.safeParse(score.rubricJsonb);
+  return parsed.success ? parsed.data.topFixPlain ?? null : null;
 }
 
 // Report tone (31 Oct): an item in plain words quotes the candidate inline; its

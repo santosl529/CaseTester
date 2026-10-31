@@ -76,7 +76,8 @@ describe('report PDF', () => {
     };
     const buffer = await renderToBuffer(
       ReportPdf({
-        caseTitle: 'Test Coffee Case', completedAt: '2026-10-31', overallRating: 'meets_bar', topFix: null,
+        caseTitle: 'Test Coffee Case', completedAt: '2026-10-31', overallRating: 'meets_bar', topFix: 'Size the fix.',
+        topFixPlain: { where: 'In the recommendation, you said "Ten percent."', what: 'The figure went unchecked.', why: 'The recommendation rests on it.', next: 'Next time, try sizing it out loud.' },
         dimensions: [{ key: 'structure', label: 'Problem Structuring', rating: 'meets_bar', feedback: plain, legacyEvidence: null }],
         modelAnswer: null, turns: [],
       }),

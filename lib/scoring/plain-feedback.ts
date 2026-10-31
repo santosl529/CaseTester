@@ -2,7 +2,7 @@
 // to, a plainer tone, and not 'you did this / you did not do this'"). After
 // every other pass — the judge, the quote audit, the verifier, the answer-key
 // pass, reconciliation, the mandate, the strong gate, the stage caps and the
-// floor — each strength, weakness and missed moment is rewritten in plain words:
+// floor — each strength, weakness and missed moment, and the top improvement, is rewritten in plain words:
 //   where:  the part of the case and what was being asked, the candidate's own
 //           words quoted verbatim;
 //   what:   what happened, in plain English;
@@ -10,7 +10,7 @@
 //   next:   "Next time, try …" (a strength: "Keep …"; a missed moment's next
 //           step is its better answer, unchanged).
 // The rewrite is stored beside the judge's point (`plain`), never in place of
-// it: ratings, quotes, points, better answers and the top fix are untouched, so
+// it (the top improvement's beside it as `topFixPlain`): ratings, quotes, points, better answers and the top fix are untouched, so
 // no rating or claim can move. Each rewrite is then audited in code against the
 // item it restates, and one that fails keeps the point alone:
 //   - every quoted span is the candidate's own words (the quote audit's
@@ -34,7 +34,7 @@ import { STAGES, type StageKey, type StageRecord } from '@/lib/orchestrator/stag
 import { withStreamRetry, scoringTimeLeftMs } from './stream-retry';
 
 type Turn = { role: string; text: string; turnIndex: number };
-type Section = 'wentWell' | 'needsWork' | 'missedOpportunities';
+type Section = 'wentWell' | 'needsWork' | 'missedOpportunities' | 'topFix';
 
 export type PlainContext = {
   transcript: Turn[];
@@ -86,7 +86,7 @@ function locateMoment(moment: string, transcript: Turn[], rec: StageRecord): { t
 }
 
 // One item of the report; `asked`: the interviewer's line(s) it answers, whose figures the rewrite may restate.
-type Entry = { id: string; dimension: RubricDimensionKey; section: Section; index: number; asked: string[] };
+type Entry = { id: string; dimension: RubricDimensionKey | null; section: Section; index: number; asked: string[] };
 
 function entriesOf(rubric: RubricScores, ctx: PlainContext): { entries: Entry[]; listing: string } {
   const entries: Entry[] = [];
@@ -117,6 +117,14 @@ MOMENT: ${item.moment}
 BETTER ANSWER (printed after your text as "Next time, try something like: …" — do not repeat or change it): ${item.betterResponse}
 CONTEXT: ${at?.text ?? 'find it in the transcript'}`);
     });
+  }
+  // The top improvement (Lorenzo, 31 Oct): rewritten as a point to work on. It names no quote or turn, so the model
+  // places it from the transcript; the audit is the same.
+  if (rubric.topFix.trim()) {
+    entries.push({ id: 'topFix', dimension: null, section: 'topFix', index: 0, asked: [] });
+    blocks.push(`ID topFix (the TOP IMPROVEMENT — a point to WORK ON)
+POINT: ${rubric.topFix}
+EVIDENCE: none quoted — place it at the moment in the transcript it is about`);
   }
   return { entries, listing: blocks.join('\n\n') };
 }
@@ -241,7 +249,17 @@ export function applyPlainOutput(
   const written: string[] = [];
   const rejected: PlainRejection[] = [];
   for (const e of entries) {
-    const dim = out[e.dimension];
+    if (e.section === 'topFix') {
+      const p = output[e.id];
+      if (!p) { rejected.push({ id: e.id, reason: 'not returned' }); continue; }
+      const fields = [p.where, p.what, p.why, p.next ?? ''];
+      const reason = auditRewrite({ fields, original: out.topFix, sources: [], candidateCorpus: corpus, ideas: ctx.ideas, next: { opens: /^Next time, try\b/, label: 'Next time, try' } });
+      if (reason) { rejected.push({ id: e.id, reason }); continue; }
+      out.topFixPlain = { where: p.where, what: p.what, why: p.why, next: p.next ?? '' };
+      written.push(e.id);
+      continue;
+    }
+    const dim = out[e.dimension!];
     if (e.section === 'missedOpportunities') {
       const item = dim.missedOpportunities[e.index];
       const p = output[e.id];
@@ -251,7 +269,7 @@ export function applyPlainOutput(
       if (reason) { rejected.push({ id: e.id, reason }); continue; }
       item.plain = { where: p.where, what: p.what, why: p.why };
     } else {
-      const item = dim[e.section][e.index];
+      const item = dim[e.section as 'wentWell' | 'needsWork'][e.index];
       const p = output[e.id];
       if (!p) { rejected.push({ id: e.id, reason: 'not returned' }); continue; }
       const next = e.section === 'needsWork' ? { opens: /^Next time, try\b/, label: 'Next time, try' } : { opens: /^Keep\b/, label: 'Keep' };

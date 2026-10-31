@@ -10,7 +10,14 @@
 // (computeScore persist: false — judge, quote audit, verifier, answer-key pass,
 // reconciliation, mandate, strong gate, stage caps, floor), and "old" is its
 // report before the pass.
-import { mkdirSync, writeFileSync } from 'node:fs';
+//
+//   npx tsx --env-file=.env.local scripts/report-tone-proof.ts <out-dir> --reuse=<earlier-out-dir> <session-id-prefix>…
+//
+// --reuse: no LLM call. The model's output is rebuilt from an earlier run's
+// <prefix>.json (its "after" plain fields) and put through this code's audit
+// again, on that run's "before" — the check after a rebase. Its topFix was
+// never sent then, so it shows as not returned.
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { isDeepStrictEqual } from 'node:util';
 import { sql, eq } from 'drizzle-orm';
@@ -23,10 +30,12 @@ import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS, ratingLabel } from '@/l
 import { repairTranscript } from '@/lib/scoring/transcript-artifacts';
 import { auditEvidence } from '@/lib/scoring/evidence-audit';
 import { computeScore, loadStageRecord } from '@/lib/scoring/score-session';
-import { writePlainFeedback, quotedSpans, verbatim, toneLint, type PlainRejection } from '@/lib/scoring/plain-feedback';
+import { writePlainFeedback, buildPlainPrompt, applyPlainOutput, quotedSpans, verbatim, toneLint, type PlainRejection, type PlainOutput } from '@/lib/scoring/plain-feedback';
 import { evidenceQuotes } from '@/lib/scoring/report-dimensions';
 
-const [outDir, ...prefixes] = process.argv.slice(2);
+const [outDir, ...rest] = process.argv.slice(2);
+const reuseDir = rest.find(a => a.startsWith('--reuse='))?.slice('--reuse='.length);
+const prefixes = rest.filter(a => !a.startsWith('--'));
 if (!outDir || prefixes.length === 0) throw new Error('usage: scripts/report-tone-proof.ts <out-dir> <session-id-prefix>…');
 
 const SECTIONS = ['wentWell', 'needsWork', 'missedOpportunities'] as const;
@@ -35,16 +44,17 @@ const SECTION_LABEL = { wentWell: 'Strength', needsWork: 'To work on', missedOpp
 function strip(r: RubricScores): RubricScores {
   const out = structuredClone(r);
   for (const k of RUBRIC_DIMENSION_KEYS) for (const s of SECTIONS) for (const i of out[k][s]) delete (i as { plain?: unknown }).plain;
+  delete out.topFixPlain;
   return out;
 }
 
 const ratingOf = (r: RubricScores, k: (typeof RUBRIC_DIMENSION_KEYS)[number]) => (r[k].notAssessed ? 'not assessed' : ratingLabel(r[k].rating));
-const oldText = (r: RubricScores) => RUBRIC_DIMENSION_KEYS.flatMap(k => [...r[k].wentWell.map(i => i.point), ...r[k].needsWork.map(i => i.point), ...r[k].missedOpportunities.map(m => m.moment)]);
+const oldText = (r: RubricScores) => [...RUBRIC_DIMENSION_KEYS.flatMap(k => [...r[k].wentWell.map(i => i.point), ...r[k].needsWork.map(i => i.point), ...r[k].missedOpportunities.map(m => m.moment)]), r.topFix];
 // What the reader sees after: the plain text where written, the point where it was refused.
 const newText = (r: RubricScores) => RUBRIC_DIMENSION_KEYS.flatMap(k => [
   ...[...r[k].wentWell, ...r[k].needsWork].map(i => (i.plain ? Object.values(i.plain).join(' ') : i.point)),
   ...r[k].missedOpportunities.map(m => (m.plain ? Object.values(m.plain).join(' ') : m.moment)),
-]);
+]).concat(r.topFixPlain ? Object.values(r.topFixPlain).join(' ') : r.topFix);
 const lint = (texts: string[]) => texts.reduce((a, t) => { const l = toneLint(t); return { jargon: a.jargon + l.jargon.length, accusing: a.accusing + l.accusing.length }; }, { jargon: 0, accusing: 0 });
 
 function checks(before: RubricScores, after: RubricScores, candidateTexts: string[], rejected: PlainRejection[]) {
@@ -52,9 +62,10 @@ function checks(before: RubricScores, after: RubricScores, candidateTexts: strin
   const ratingDiffs = RUBRIC_DIMENSION_KEYS.filter(k => ratingOf(before, k) !== ratingOf(after, k)).map(k => `${k}: ${ratingOf(before, k)} → ${ratingOf(after, k)}`);
   if (before.overallRating !== after.overallRating) ratingDiffs.push(`overall: ${before.overallRating} → ${after.overallRating}`);
   const audit = auditEvidence(after, candidateTexts);
-  const spans = RUBRIC_DIMENSION_KEYS.flatMap(k => SECTIONS.flatMap(s => (after[k][s] as (FeedbackItem | MissedOpportunity)[]).flatMap(i => (i.plain ? quotedSpans(Object.values(i.plain).join('\n')) : []))));
+  const spans = RUBRIC_DIMENSION_KEYS.flatMap(k => SECTIONS.flatMap(s => (after[k][s] as (FeedbackItem | MissedOpportunity)[]).flatMap(i => (i.plain ? quotedSpans(Object.values(i.plain).join('\n')) : []))))
+    .concat(after.topFixPlain ? quotedSpans(Object.values(after.topFixPlain).join('\n')) : []);
   const badSpans = spans.filter(sp => !verbatim(sp, corpus));
-  const items = RUBRIC_DIMENSION_KEYS.reduce((n, k) => n + SECTIONS.reduce((m, s) => m + after[k][s].length, 0), 0);
+  const items = RUBRIC_DIMENSION_KEYS.reduce((n, k) => n + SECTIONS.reduce((m, s) => m + after[k][s].length, 0), 0) + (after.topFix.trim() ? 1 : 0);
   return {
     sameRatings: ratingDiffs.length === 0, ratingDiffs,
     sameClaims: isDeepStrictEqual(strip(after), strip(before)),
@@ -110,12 +121,16 @@ function render(title: string, mode: string, before: RubricScores, after: Rubric
       });
     }
   }
-  out.push('', `**Top improvement** (unchanged): ${after.topFix}`);
+  const topFixRejected = c.rejected.find(r => r.id === 'topFix')?.reason;
+  out.push('', '### Top improvement', '', '*Before*', '', before.topFix, '', '*After*', '',
+    after.topFixPlain && !topFixRejected
+      ? [`*${after.topFixPlain.where}*`, '', `${after.topFixPlain.what} ${after.topFixPlain.why}`, '', `**${after.topFixPlain.next}**`].join('\n')
+      : `*(kept in the old wording${topFixRejected ? ` — ${topFixRejected}` : ''})*`);
   return out.join('\n');
 }
 
 async function main() {
-  const budget = requireRunBudget('report-tone-proof');
+  const budget = reuseDir ? { summary: () => '$0 (reused output, no LLM call)' } : requireRunBudget('report-tone-proof');
   process.on('exit', () => console.log(`[budget] ${budget.summary()}`));
   mkdirSync(outDir, { recursive: true });
   const sections: string[] = [];
@@ -129,7 +144,29 @@ async function main() {
     const candidateTexts = transcript.filter(t => t.role === 'candidate').map(t => t.text);
     const stored = await db.query.scores.findFirst({ where: eq(scores.sessionId, session.id) });
     let before: RubricScores, after: RubricScores, rejected: PlainRejection[], mode: string, qa: Record<string, unknown> | null = null;
-    if (stored) {
+    if (reuseDir) {
+      const saved = JSON.parse(readFileSync(path.join(reuseDir, `${session.id.slice(0, 8)}.json`), 'utf8'));
+      before = RubricScoresSchema.parse(saved.before);
+      const savedAfter = RubricScoresSchema.parse(saved.after);
+      const revealedRows = await db.query.revealedData.findMany({ where: eq(revealedData.sessionId, session.id) });
+      const stageRecord = await loadStageRecord(session.id, session.flagsJsonb as Record<string, unknown>, turns, revealedRows, caseData);
+      const ctx = { transcript, stageRecord, ideas: caseData.answerKeyIdeas };
+      const { entries } = buildPlainPrompt(before, ctx);
+      const output: PlainOutput = {};
+      for (const e of entries) {
+        if (e.section === 'topFix') { if (savedAfter.topFixPlain) output[e.id] = savedAfter.topFixPlain; continue; }
+        const p = (savedAfter[e.dimension!][e.section][e.index] as FeedbackItem | MissedOpportunity).plain;
+        if (p) output[e.id] = p;
+      }
+      ({ rubric: after, rejected } = applyPlainOutput(before, output, entries, ctx));
+      // A rewrite that run refused was not saved: show that run's reason, and the topFix as not sent then.
+      const earlier = new Map<string, string>((saved.checks.rejected as PlainRejection[]).map(r => [r.id, r.reason]));
+      rejected = rejected.map(r => (r.reason !== 'not returned' ? r
+        : { id: r.id, reason: earlier.has(r.id) ? `refused in that run: ${earlier.get(r.id)}` : r.id === 'topFix' ? 'not sent in that run (added after it)' : r.reason }));
+      const same = isDeepStrictEqual(after, savedAfter);
+      mode = `reused ${reuseDir}/${session.id.slice(0, 8)}.json (no LLM call): its output through this code's audit — plain fields ${same ? 'identical to that run' : 'DIFFER from that run'}`;
+      qa = saved.qa;
+    } else if (stored) {
       before = RubricScoresSchema.parse(stored.rubricJsonb);
       const revealedRows = await db.query.revealedData.findMany({ where: eq(revealedData.sessionId, session.id) });
       const stageRecord = await loadStageRecord(session.id, session.flagsJsonb as Record<string, unknown>, turns, revealedRows, caseData);

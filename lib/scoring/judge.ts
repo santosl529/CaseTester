@@ -85,6 +85,8 @@ export const RubricScoresSchema = z.object({
   ...dimensions(StoredDimensionFeedbackSchema),
   overallRating: RatingSchema.nullable(),
   topFix: z.string(),
+  // The top improvement in plain words (Lorenzo, 31 Oct: same rewrite and audit as a point to work on).
+  topFixPlain: PlainPointSchema.optional(),
 });
 
 export type RubricScores = z.infer<typeof RubricScoresSchema>;

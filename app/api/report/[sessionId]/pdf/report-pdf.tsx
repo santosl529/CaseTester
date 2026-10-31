@@ -1,6 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
 import { evidenceQuotes, type ReportDimension } from '@/lib/scoring/report-dimensions';
-import type { FeedbackItem } from '@/lib/scoring/judge';
+import type { FeedbackItem, PlainPoint } from '@/lib/scoring/judge';
 import { ratingLabel } from '@/lib/scoring/rubric';
 
 export type ReportPdfProps = {
@@ -9,6 +9,7 @@ export type ReportPdfProps = {
   overallRating: string | null;
   partial?: boolean;      // Rule 18A: the candidate ended early — no overall rating
   topFix: string | null;
+  topFixPlain?: PlainPoint | null;   // the top improvement in plain words (report tone, 31 Oct)
   dimensions: ReportDimension[];
   modelAnswer: { structure?: string; recommendation?: string } | null;
   turns: { role: string; text: string; clock: string; exhibitTitle?: string }[];
@@ -90,7 +91,13 @@ export function ReportPdf(props: ReportPdfProps) {
         {props.topFix && (
           <View style={styles.topFixBox}>
             <Text style={{ fontFamily: 'Helvetica-Bold', marginBottom: 3 }}>Top improvement</Text>
-            <Text style={styles.bodyText}>{props.topFix}</Text>
+            {props.topFixPlain ? (
+              <>
+                <Text style={[styles.bodyText, { color: '#737373' }]}>{props.topFixPlain.where}</Text>
+                <Text style={styles.bodyText}>{props.topFixPlain.what} {props.topFixPlain.why}</Text>
+                <Text style={[styles.bodyText, { fontFamily: 'Helvetica-Bold' }]}>{props.topFixPlain.next}</Text>
+              </>
+            ) : <Text style={styles.bodyText}>{props.topFix}</Text>}
           </View>
         )}
 

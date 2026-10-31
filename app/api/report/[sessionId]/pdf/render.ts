@@ -3,7 +3,7 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns, scores, exhibitsShown } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 import { getCaseById } from '@/lib/cases/loader';
-import { reportDimensions } from '@/lib/scoring/report-dimensions';
+import { reportDimensions, topFixPlain } from '@/lib/scoring/report-dimensions';
 import { ReportPdf } from './report-pdf';
 
 // Build the report PDF for a scored session. Ownership is the caller's job —
@@ -51,6 +51,7 @@ export async function renderReportPdf(sessionId: string): Promise<{ buffer: Buff
       overallRating: score.overallRating,
       partial: Boolean((session.flagsJsonb as Record<string, unknown> | null)?.partial),
       topFix: score.topFix,
+      topFixPlain: topFixPlain(score),
       dimensions: reportDimensions(score),
       modelAnswer: score.modelAnswerJsonb as { structure?: string; recommendation?: string } | null,
       turns: turns.map((t, i) => {
