@@ -1,0 +1,170 @@
+/* Concept 2: The Control Room. Ink throughout, a faint Sky grid, Cobalt as
+   glow and accent, monospace labels. Text on Ink is white or Sky only. */
+
+.page {
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--sky) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--sky) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  background-position: -1px -1px;
+  color: var(--white);
+}
+
+.band {
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--sky) 6%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--sky) 6%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  color: var(--white);
+}
+
+/* Size comes from each use (a utility class), not from here. */
+.mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.muted {
+  color: color-mix(in srgb, var(--white) 74%, transparent);
+}
+
+/* The lit screen: a lighter Ink surface, a Cobalt edge and a soft Cobalt glow. */
+.panel {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--ink) 93%, var(--white));
+  border: 1px solid color-mix(in srgb, var(--cobalt) 60%, transparent);
+  box-shadow: 0 30px 90px -30px color-mix(in srgb, var(--cobalt) 70%, transparent), 0 0 0 4px color-mix(in srgb, var(--cobalt) 10%, transparent);
+}
+
+.glowButton {
+  box-shadow: 0 10px 34px -10px color-mix(in srgb, var(--cobalt) 90%, transparent);
+}
+
+.halo {
+  background: radial-gradient(closest-side, color-mix(in srgb, var(--cobalt) 34%, transparent), transparent);
+}
+
+.card {
+  background: color-mix(in srgb, var(--ink) 93%, var(--white));
+  border: 1px solid color-mix(in srgb, var(--sky) 13%, transparent);
+  border-radius: 14px;
+  transition: border-color 300ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 300ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.cardCobalt {
+  border-color: color-mix(in srgb, var(--cobalt) 60%, transparent);
+}
+
+.card:hover,
+.card:focus-within {
+  border-color: var(--cobalt);
+  box-shadow: 0 18px 60px -28px color-mix(in srgb, var(--cobalt) 85%, transparent);
+}
+
+.chip {
+  border: 1px solid color-mix(in srgb, var(--cobalt) 80%, transparent);
+  color: var(--sky);
+}
+
+.bullets > li {
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.bullets > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.375rem;
+  height: 0.375rem;
+  background: var(--cobalt);
+  box-shadow: 0 0 10px var(--cobalt);
+}
+
+/* Skill-map nodes: final colours by state. */
+.node {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: none;
+  border-radius: 9999px;
+  border: 1.5px solid var(--sky);
+  transition: background-color 500ms cubic-bezier(0.16, 1, 0.3, 1), border-color 500ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 500ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.node[data-state='practiced'] {
+  background: var(--cobalt);
+  border-color: var(--cobalt);
+  box-shadow: 0 0 12px var(--cobalt);
+}
+
+.node[data-state='mastered'] {
+  background: var(--mastery);
+  border-color: var(--mastery);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--mastery) 80%, transparent);
+}
+
+.link {
+  stroke: color-mix(in srgb, var(--sky) 22%, transparent);
+}
+
+/* On scroll (motion allowed, JS on): the screen fills in from the top, and the
+   nodes light one by one. Otherwise the final state shows. */
+@media (prefers-reduced-motion: no-preference) {
+  :global(.mk-js) .fill {
+    clip-path: inset(0 0 100% 0);
+    transition: clip-path 1400ms cubic-bezier(0.16, 1, 0.3, 1) 150ms;
+  }
+
+  :global(.mk-js) [data-shown] .fill,
+  :global(.mk-js) .fill[data-shown] {
+    clip-path: inset(0 0 0 0);
+  }
+
+  :global(.mk-js) .nodes:not([data-shown]) .node {
+    background: transparent;
+    border-color: color-mix(in srgb, var(--sky) 30%, transparent);
+    box-shadow: none;
+  }
+
+}
+
+/* The node rail: each node's line runs to the next node in its row. */
+.rail > li {
+  position: relative;
+  padding-top: 1.5rem;
+  padding-right: 1rem;
+}
+
+.rail > li > .node {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.rail > li::before {
+  content: '';
+  position: absolute;
+  top: calc(0.375rem - 0.75px);
+  left: 0.75rem;
+  right: 0;
+  height: 1.5px;
+  background: color-mix(in srgb, var(--sky) 22%, transparent);
+}
+
+.rail > li:nth-child(2n)::before {
+  display: none;
+}
+
+@media (min-width: 640px) {
+  .rail > li:nth-child(2n)::before {
+    display: block;
+  }
+
+  .rail > li:nth-child(4n)::before {
+    display: none;
+  }
+}

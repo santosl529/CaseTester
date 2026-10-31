@@ -1,0 +1,55 @@
+/* Concept 1: The Case Report. A premium consulting deliverable: Paper,
+   chapters, exhibits, a key-findings slide. */
+
+.display {
+  font-family: var(--font-display), 'Times New Roman', serif;
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  font-optical-sizing: auto;
+}
+
+/* `?type=sans`: the same headlines in Geist, for the serif comparison. */
+.sans {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.035em;
+}
+
+.caps {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.chapterNumber {
+  font-family: var(--font-display), 'Times New Roman', serif;
+  font-weight: 500;
+  font-variant-numeric: lining-nums tabular-nums;
+  line-height: 1;
+}
+
+.chapterNumber.sans {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.bullets > li {
+  position: relative;
+  padding-left: 1.25rem;
+}
+
+.bullets > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.62em;
+  width: 0.375rem;
+  height: 0.375rem;
+  background: var(--cobalt);
+}
+
+.figures {
+  font-variant-numeric: lining-nums tabular-nums;
+}

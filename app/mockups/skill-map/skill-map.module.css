@@ -1,0 +1,204 @@
+/* Concept 3: The Skill Map. Paper, and the skill graph as the page's spine:
+   nodes and lines level up Sky (learning) → Cobalt (practiced) → Mastery
+   green (mastered) as sections are reached and passed. Without JS, and under
+   reduced motion, everything shows its final (mastered) state. */
+
+.main {
+  position: relative;
+}
+
+/* The spine: a Sky line down the left, a Cobalt fill for how far you've read. */
+.spine {
+  position: absolute;
+  top: 4.6rem;
+  bottom: 8rem;
+  left: 1.25rem;
+  width: 2px;
+  background: var(--sky);
+}
+
+.spine::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--cobalt);
+  transform-origin: top;
+  transform: scaleY(var(--progress, 1));
+}
+
+@media (min-width: 1024px) {
+  .spine {
+    left: max(2.5rem, calc(50% - 620px + 2.5rem));
+  }
+}
+
+/* A section's node sits on the spine at its heading. */
+.node {
+  position: absolute;
+  left: calc(1.25rem + 1px);
+  width: 1.125rem;
+  height: 1.125rem;
+  border-radius: 9999px;
+  transform: translate(-50%, 0);
+  background: var(--mastery);
+  box-shadow: 0 0 0 4px var(--paper);
+  transition: background-color 450ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 1024px) {
+  .node {
+    left: calc(max(2.5rem, calc(50% - 620px + 2.5rem)) + 1px);
+  }
+}
+
+[data-level='learning'] > .node {
+  background: var(--white);
+  box-shadow: 0 0 0 4px var(--paper), inset 0 0 0 2px var(--sky);
+}
+
+[data-level='practiced'] > .node {
+  background: var(--cobalt);
+}
+
+/* Plates and cards level up with their section. */
+.plate {
+  border: 1px solid var(--mastery);
+  border-radius: 14px;
+  background: var(--white);
+  transition: border-color 450ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+[data-level='learning'] .plate {
+  border-color: var(--sky);
+}
+
+[data-level='practiced'] .plate {
+  border-color: var(--cobalt);
+}
+
+/* Stats: the number counts up; the level bar steps Sky → Cobalt → green. */
+.bar {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  height: 4px;
+}
+
+.bar > span {
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--ink) 10%, transparent);
+}
+
+.bar > span:nth-child(1) { background: var(--sky); }
+.bar > span:nth-child(2) { background: var(--cobalt); }
+.bar > span:nth-child(3) { background: var(--mastery); }
+
+.figures {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Tech: cards joined to one hub. */
+.hubLines line {
+  stroke: var(--sky);
+  stroke-width: 1.5;
+}
+
+[data-shown] .hubLines line,
+.hubLines[data-final] line {
+  stroke: var(--cobalt);
+}
+
+.hub {
+  fill: var(--mastery);
+}
+
+.card {
+  position: relative;
+  border: 1px solid var(--cobalt);
+  border-radius: 14px;
+  background: var(--white);
+}
+
+.cardNode {
+  width: 0.875rem;
+  height: 0.875rem;
+  border-radius: 9999px;
+  background: var(--mastery);
+  box-shadow: 0 0 0 3px var(--paper);
+}
+
+/* Each card's node sits on its corner facing the hub. */
+.corner {
+  position: absolute;
+}
+
+.corner[data-corner='br'] { right: -0.4375rem; bottom: -0.4375rem; }
+.corner[data-corner='bl'] { left: -0.4375rem; bottom: -0.4375rem; }
+.corner[data-corner='tr'] { right: -0.4375rem; top: -0.4375rem; }
+.corner[data-corner='tl'] { left: -0.4375rem; top: -0.4375rem; }
+
+.bullets > li {
+  position: relative;
+  padding-left: 1.5rem;
+}
+
+.bullets > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.45em;
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 9999px;
+  border: 2px solid var(--cobalt);
+}
+
+.constellation line {
+  stroke: color-mix(in srgb, var(--cobalt) 35%, transparent);
+  stroke-width: 1.25;
+}
+
+@keyframes levelUp {
+  0% { background-color: var(--sky); }
+  45% { background-color: var(--cobalt); }
+  100% { background-color: var(--mastery); }
+}
+
+@keyframes barIn {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(.mk-js) .card:not([data-shown]) {
+    border-color: var(--sky);
+  }
+
+  :global(.mk-js) .card:not([data-shown]) .cardNode {
+    background: var(--sky);
+  }
+
+  :global(.mk-js) .card[data-shown] .cardNode {
+    animation: levelUp 1600ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms) both;
+  }
+
+  .card {
+    transition: border-color 500ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+  }
+
+  :global(.mk-js) .stat:not([data-shown]) .bar > span {
+    transform: scaleX(0);
+  }
+
+  :global(.mk-js) .stat[data-shown] .bar > span {
+    transform-origin: left;
+    animation: barIn 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  :global(.mk-js) .stat[data-shown] .bar > span:nth-child(2) { animation-delay: 350ms; }
+  :global(.mk-js) .stat[data-shown] .bar > span:nth-child(3) { animation-delay: 700ms; }
+
+  .spine::after {
+    transition: transform 120ms linear;
+  }
+}

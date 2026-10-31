@@ -1,0 +1,37 @@
+/* Homepage mockups (Matt, 21 Oct 2026): the Ink & Cobalt palette. These six
+   are the only colours the mockups use; tints are these colours with alpha. */
+:root {
+  --ink: #0E1424;     /* headlines, body text, dark sections */
+  --cobalt: #2D4BD8;  /* brand colour: buttons, links, key highlights */
+  --sky: #DCE5FF;     /* light tints: chips, card backgrounds */
+  --paper: #F7F7F4;   /* page background */
+  --mastery: #1F9D63; /* progress and "Mastered" states only */
+  --white: #FFFFFF;
+}
+
+[data-mockup] {
+  color: var(--ink);
+  background: var(--paper);
+}
+
+[data-mockup] ::selection {
+  background: var(--cobalt);
+  color: var(--white);
+}
+
+/* Focus in Cobalt. On Ink, a white inner ring keeps it visible (Cobalt alone is 2.7:1 there). */
+[data-mockup] :focus-visible {
+  outline: 2px solid var(--cobalt);
+  outline-offset: 3px;
+}
+
+[data-mockup] [data-on-ink] :focus-visible {
+  outline-offset: 2px;
+  box-shadow: 0 0 0 2px var(--white);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html:has([data-mockup]) {
+    scroll-behavior: smooth;
+  }
+}

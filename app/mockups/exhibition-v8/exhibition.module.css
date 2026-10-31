@@ -1,0 +1,684 @@
+/* The exhibition homepage mockup, v2: Paper, white product surfaces,
+   oversized Geist, thin rules; one Ink act. Motion is scroll-driven (pinned
+   chapters that never lock the scroll) or a pausable loop; under reduced
+   motion every piece shows its final state. */
+
+.display {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Size comes from the t-label role. */
+.caps {
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.figures {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Product surfaces ---------- */
+
+.panel {
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent), 0 24px 60px -36px color-mix(in srgb, var(--ink) 35%, transparent);
+}
+
+/* Chapter stages: the same surface, quieter (the hero's panel keeps its lift). */
+.quiet {
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+/* In a White room the panel needs a firmer edge to stand off the page. */
+[data-room='white'] .panel {
+  border-color: color-mix(in srgb, var(--ink) 20%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 20px 44px -32px color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+@media (max-width: 639px) {
+  .bleed {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  transition: opacity 450ms cubic-bezier(0.16, 1, 0.3, 1) 220ms, transform 450ms cubic-bezier(0.16, 1, 0.3, 1) 220ms;
+}
+
+.view[data-active='false'] {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 180ms ease-in, transform 180ms ease-in;
+}
+
+/* Things that appear: data-on="false" hides, "true" shows. */
+.reveal {
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--delay, 0ms);
+}
+
+.reveal[data-on='false'] {
+  opacity: 0;
+  transform: translateY(10px);
+  transition-delay: 0ms;
+  transition-duration: 200ms;
+}
+
+.revealX[data-on='false'] {
+  transform: translateX(16px);
+}
+
+.grow {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 500ms cubic-bezier(0.16, 1, 0.3, 1) 150ms;
+  transition-delay: var(--delay, 0ms);
+}
+
+.grow > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.grow[data-on='false'] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition-delay: 0ms;
+}
+
+.draw {
+  transform-origin: top;
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+}
+
+.draw[data-on='false'] {
+  transform: scaleY(0);
+  transition-duration: 150ms;
+  transition-delay: 0ms;
+}
+
+.drawX {
+  transform-origin: left;
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+}
+
+.drawX[data-on='false'] {
+  transform: scaleX(0);
+  transition-duration: 150ms;
+  transition-delay: 0ms;
+}
+
+.tile {
+  transition: background-color 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms), color 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+}
+
+/* ---------- The call: orb, waveform, captions ---------- */
+
+.orb {
+  position: relative;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--cobalt);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--cobalt) 14%, transparent), 0 10px 30px -8px color-mix(in srgb, var(--cobalt) 80%, transparent);
+}
+
+.orb::before,
+.orb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--cobalt);
+  opacity: 0;
+}
+
+.orb[data-speaking='true']::before,
+.orb[data-speaking='true']::after {
+  animation: ripple 1600ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.orb[data-speaking='true']::after {
+  animation-delay: 800ms;
+}
+
+.orbCore {
+  position: absolute;
+  inset: 30%;
+  border-radius: 9999px;
+  background: var(--sky);
+}
+
+.orb[data-speaking='true'] .orbCore {
+  animation: breathe 900ms ease-in-out infinite alternate;
+}
+
+@keyframes ripple {
+  from { transform: scale(1); opacity: 0.55; }
+  to { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes breathe {
+  from { transform: scale(0.85); }
+  to { transform: scale(1.15); }
+}
+
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.wave > span {
+  width: 3px;
+  flex: none;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--ink) 25%, transparent);
+  height: 3px;
+  transition: height 200ms ease, background-color 200ms ease;
+}
+
+.wave[data-speaking='true'] > span {
+  background: var(--cobalt);
+  height: var(--h);
+  animation: bar var(--d) ease-in-out infinite alternate;
+}
+
+@keyframes bar {
+  from { transform: scaleY(0.35); }
+  to { transform: scaleY(1); }
+}
+
+/* Words not yet spoken hold their place, unseen. */
+.word[data-lit='false'] {
+  visibility: hidden;
+}
+
+.mark {
+  background: var(--sky);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.05em 0.2em;
+  margin: 0 -0.1em;
+  border-radius: 6px;
+}
+
+.capFade {
+  mask-image: linear-gradient(to bottom, transparent 0, transparent 1.5rem, var(--ink) 4.5rem);
+}
+
+/* Paused: every loop in the call stands still. */
+[data-paused='true'] .orb::before,
+[data-paused='true'] .orb::after,
+[data-paused='true'] .orbCore,
+[data-paused='true'] .wave > span {
+  animation-play-state: paused;
+}
+
+/* ---------- Step rail (hero) ---------- */
+
+.railBar {
+  display: block;
+  height: 2px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+
+.railFill {
+  display: block;
+  height: 100%;
+  background: var(--cobalt);
+  transform-origin: left;
+}
+
+/* ---------- Chapters: a track of 1–1.5 screens, a pinned visual ---------- */
+
+/* Phones: the sticky header and the rail bar sit above the pinned visual. */
+.track {
+  position: relative;
+  height: calc(100svh + var(--len) * 100svh);
+}
+
+.pin {
+  position: sticky;
+  top: calc(var(--hdr) + 3.75rem);
+}
+
+@media (min-width: 1024px) {
+  .track {
+    height: calc(100vh + var(--len) * 100vh);
+  }
+
+  .pin,
+  .pinText {
+    position: sticky;
+    top: var(--hdr);
+    height: calc(100vh - var(--hdr));
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ---------- Stats band ---------- */
+
+.statRule {
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--cobalt);
+}
+
+/* ---------- The loop ---------- */
+
+.node {
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.node:hover {
+  border-color: var(--cobalt);
+}
+
+.node:hover .nodeLabel {
+  color: var(--cobalt);
+}
+
+/* ---------- Sticky rail ---------- */
+
+.ride {
+  transition: opacity 300ms ease;
+}
+
+/* Out of the ride the rail fades away but stays in the tab order (right after
+   "Skip the tour"); tabbing into it brings it back. */
+.ride[data-on='false'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ride[data-on='false']:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dot {
+  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease;
+}
+
+/* The loop closing: Your plan gets a steady Cobalt ring (a state, not an animation). */
+.ping {
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 4.5px var(--cobalt);
+}
+
+.railLabel {
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.railItem:hover .railLabel,
+.railItem:focus-visible .railLabel,
+.railItem[aria-current] .railLabel {
+  opacity: 1;
+}
+
+/* The sticky header: quiet, translucent Paper. */
+.header {
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  transition: opacity 200ms ease, visibility 0s linear 200ms, background-color 250ms ease, color 250ms ease;
+}
+
+.header[data-on='false'] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.header[data-on='true'] {
+  transition: opacity 200ms ease, visibility 0s, background-color 250ms ease, color 250ms ease;
+}
+
+/* Over the technology: Ink, white text; the button keeps its Cobalt. */
+.header[data-dark='true'] {
+  background: color-mix(in srgb, var(--ink) 92%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--sky) 22%, transparent);
+  color: var(--white);
+}
+
+.header[data-dark='true'] :global(.link) {
+  color: var(--white);
+}
+
+.header[data-dark='true'] :global(.link):hover {
+  color: var(--sky);
+}
+
+.header[data-dark='true'] :focus-visible {
+  box-shadow: 0 0 0 2px var(--white);
+}
+
+/* The page you're on: Cobalt, a heavier underline (Sky over Ink). */
+.header .navLink[aria-current='page'] {
+  color: var(--cobalt);
+  text-decoration-thickness: 2px;
+}
+
+.header[data-dark='true'] .navLink[aria-current='page'] {
+  color: var(--sky);
+}
+
+.vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+/* ---------- Skill states ---------- */
+
+.level {
+  /* Chapter 06: the scroll picks each chip's level; the colour change is
+     deliberately slow so the green payoff is given room. */
+  transition: background-color 900ms cubic-bezier(0.16, 1, 0.3, 1), color 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------- Technology: the exploded view (v3) ----------
+   The interview window lifts into five glass layers; one answer falls
+   through them. Ink stays still: the only movement is light. */
+
+.xTrack {
+  position: relative;
+  height: calc(100svh + var(--len) * 100svh);
+}
+
+.xPin {
+  position: sticky;
+  top: var(--hdr);
+  height: calc(100svh - var(--hdr));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (min-width: 1024px) {
+  .xTrack {
+    height: calc(100vh + var(--len) * 100vh);
+  }
+
+  .xPin {
+    height: calc(100vh - var(--hdr));
+  }
+}
+
+.xStage {
+  perspective: 1400px;
+  perspective-origin: 50% 45%;
+}
+
+.layer {
+  position: absolute;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--white) 4%, var(--ink));
+  border: 1px solid color-mix(in srgb, var(--cobalt) 45%, transparent);
+  box-shadow: 0 36px 50px -28px color-mix(in srgb, var(--ink) 92%, transparent);
+  transition: border-color 400ms ease, background-color 400ms ease, opacity 300ms ease;
+  will-change: transform;
+}
+
+/* The rim light, faded in by opacity only. */
+.layer::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sky) 60%, transparent), 0 0 28px 2px color-mix(in srgb, var(--cobalt) 60%, transparent);
+  opacity: 0;
+  transition: opacity 400ms ease;
+  pointer-events: none;
+}
+
+.layer[data-lit='true'] {
+  background: color-mix(in srgb, var(--white) 9%, var(--ink));
+  border-color: color-mix(in srgb, var(--sky) 70%, transparent);
+}
+
+.layer[data-lit='true']::after,
+.layer[data-hot='true']::after {
+  opacity: 1;
+}
+
+.layer[data-hot='true'] {
+  border-color: var(--sky);
+  background: color-mix(in srgb, var(--white) 14%, var(--ink));
+}
+
+.layer[data-hot='true']::after {
+  box-shadow: 0 0 0 1px var(--sky), 0 0 40px 6px color-mix(in srgb, var(--cobalt) 75%, transparent);
+}
+
+/* The payoff: the last layer turns Mastery green when the answer lands. */
+.layer[data-done='true'] {
+  background: color-mix(in srgb, var(--mastery) 16%, var(--ink));
+  border-color: var(--mastery);
+}
+
+.layer[data-done='true']::after {
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--mastery) 70%, transparent), 0 0 30px 3px color-mix(in srgb, var(--mastery) 55%, transparent);
+}
+
+.xPill {
+  background: var(--cobalt);
+  color: var(--white);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--sky) 60%, transparent), 0 0 18px 3px color-mix(in srgb, var(--cobalt) 85%, transparent), 0 0 48px 8px color-mix(in srgb, var(--cobalt) 40%, transparent);
+}
+
+.xMove {
+  will-change: transform;
+}
+
+/* Phones: lighter glows (the Android check). */
+@media (max-width: 1023px) {
+  .layer::after {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--sky) 60%, transparent), 0 0 12px 1px color-mix(in srgb, var(--cobalt) 60%, transparent);
+  }
+
+  .layer[data-done='true']::after {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--mastery) 70%, transparent), 0 0 14px 2px color-mix(in srgb, var(--mastery) 55%, transparent);
+  }
+
+  .xPill {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--sky) 60%, transparent), 0 0 14px 2px color-mix(in srgb, var(--cobalt) 85%, transparent);
+  }
+}
+
+/* ---------- What sets us apart: one pinned device (apart.tsx) ---------- */
+
+.bezel {
+  background: var(--ink);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 6%, transparent), 0 40px 70px -40px color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+.base {
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--ink) 14%, var(--white)), color-mix(in srgb, var(--ink) 26%, var(--white)));
+  box-shadow: 0 18px 30px -20px color-mix(in srgb, var(--ink) 45%, transparent);
+}
+
+/* The phone is cut off by a fade rather than drawn full height. */
+.phoneCrop {
+  -webkit-mask-image: linear-gradient(to bottom, #000 88%, transparent);
+  mask-image: linear-gradient(to bottom, #000 88%, transparent);
+}
+
+/* Phones, and reduced motion at any width: a plain stack, each block with its
+   own device. */
+.apartBlocks {
+  display: grid;
+  gap: 5rem;
+  margin-top: 4rem;
+}
+
+.apartStatic {
+  display: grid;
+  gap: 3rem;
+  margin-top: 2.5rem;
+}
+
+.apartPinCol {
+  display: none;
+}
+
+.apartScreen {
+  position: absolute;
+  inset: 0;
+  transition: opacity 350ms cubic-bezier(0.16, 1, 0.3, 1), transform 350ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.apartScreen[data-active='false'] {
+  opacity: 0;
+  transform: translateY(10px);
+  transition-duration: 200ms;
+}
+
+.apartCaption {
+  bottom: auto;
+}
+
+@media (min-width: 1024px) {
+  /* Reduced motion on desktop: text beside its own laptop. */
+  .apartBlock {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .apartStatic {
+    margin-top: 0;
+  }
+}
+
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .apartTrack {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    column-gap: 4rem;
+  }
+
+  /* About a screen per block; block 3 gets one and a half for its two
+     screens. apart.tsx's TAKEOVER points are worked out from these heights. */
+  .apartBlocks {
+    display: block;
+    margin-top: 0;
+  }
+
+  .apartBlock {
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+  }
+
+  /* Block 3's text holds in the middle while its two screens play. */
+  .apartBlock:last-child {
+    min-height: 150vh;
+    align-items: flex-start;
+  }
+
+  .apartBlock:last-child > :first-child {
+    position: sticky;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  /* The blocks' own devices give way to the pinned one, but stay readable
+     by screen readers (the pinned laptop is aria-hidden). */
+  .apartStatic {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .apartPinCol {
+    display: block;
+  }
+
+  .apartPin {
+    position: sticky;
+    top: var(--hdr);
+    height: calc(100vh - var(--hdr));
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ---------- Reduced motion: final states, nothing pinned, nothing moving ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    height: auto;
+  }
+
+  .pin,
+  .pinText {
+    position: static;
+    height: auto;
+  }
+
+  .chapter {
+    padding-block: 5rem;
+  }
+
+  .xTrack {
+    height: auto;
+  }
+
+  .xPin {
+    position: static;
+    height: auto;
+    padding-block: 3rem;
+  }
+
+  .layer,
+  .layer::after {
+    transition: none;
+  }
+
+  .view,
+  .apartScreen,
+  .reveal,
+  .grow,
+  .draw,
+  .drawX,
+  .tile,
+  .wave > span,
+  .node,
+  .dot,
+  .ride,
+  .railLabel,
+  .level,
+  .header {
+    transition: none;
+  }
+
+  .orb::before,
+  .orb::after,
+  .orbCore,
+  .wave > span,
+  .ping {
+    animation: none;
+  }
+}

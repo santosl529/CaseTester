@@ -1,0 +1,470 @@
+/* The exhibition homepage mockup, v2: Paper, white product surfaces,
+   oversized Geist, thin rules; one Ink act. Motion is scroll-driven (pinned
+   chapters that never lock the scroll) or a pausable loop; under reduced
+   motion every piece shows its final state. */
+
+.display {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+.caps {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.figures {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Product surfaces ---------- */
+
+.panel {
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent), 0 24px 60px -36px color-mix(in srgb, var(--ink) 35%, transparent);
+}
+
+/* Chapter stages: the same surface, quieter (the hero's panel keeps its lift). */
+.quiet {
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+@media (max-width: 639px) {
+  .bleed {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  transition: opacity 450ms cubic-bezier(0.16, 1, 0.3, 1) 220ms, transform 450ms cubic-bezier(0.16, 1, 0.3, 1) 220ms;
+}
+
+.view[data-active='false'] {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 180ms ease-in, transform 180ms ease-in;
+}
+
+/* Things that appear: data-on="false" hides, "true" shows. */
+.reveal {
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--delay, 0ms);
+}
+
+.reveal[data-on='false'] {
+  opacity: 0;
+  transform: translateY(10px);
+  transition-delay: 0ms;
+  transition-duration: 200ms;
+}
+
+.revealX[data-on='false'] {
+  transform: translateX(16px);
+}
+
+.grow {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 500ms cubic-bezier(0.16, 1, 0.3, 1) 150ms;
+  transition-delay: var(--delay, 0ms);
+}
+
+.grow > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.grow[data-on='false'] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition-delay: 0ms;
+}
+
+.draw {
+  transform-origin: top;
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+}
+
+.draw[data-on='false'] {
+  transform: scaleY(0);
+  transition-duration: 150ms;
+  transition-delay: 0ms;
+}
+
+.drawX {
+  transform-origin: left;
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+}
+
+.drawX[data-on='false'] {
+  transform: scaleX(0);
+  transition-duration: 150ms;
+  transition-delay: 0ms;
+}
+
+.tile {
+  transition: background-color 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms), color 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+}
+
+/* ---------- The call: orb, waveform, captions ---------- */
+
+.orb {
+  position: relative;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--cobalt);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--cobalt) 14%, transparent), 0 10px 30px -8px color-mix(in srgb, var(--cobalt) 80%, transparent);
+}
+
+.orb::before,
+.orb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--cobalt);
+  opacity: 0;
+}
+
+.orb[data-speaking='true']::before,
+.orb[data-speaking='true']::after {
+  animation: ripple 1600ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.orb[data-speaking='true']::after {
+  animation-delay: 800ms;
+}
+
+.orbCore {
+  position: absolute;
+  inset: 30%;
+  border-radius: 9999px;
+  background: var(--sky);
+}
+
+.orb[data-speaking='true'] .orbCore {
+  animation: breathe 900ms ease-in-out infinite alternate;
+}
+
+@keyframes ripple {
+  from { transform: scale(1); opacity: 0.55; }
+  to { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes breathe {
+  from { transform: scale(0.85); }
+  to { transform: scale(1.15); }
+}
+
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.wave > span {
+  width: 3px;
+  flex: none;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--ink) 25%, transparent);
+  height: 3px;
+  transition: height 200ms ease, background-color 200ms ease;
+}
+
+.wave[data-speaking='true'] > span {
+  background: var(--cobalt);
+  height: var(--h);
+  animation: bar var(--d) ease-in-out infinite alternate;
+}
+
+@keyframes bar {
+  from { transform: scaleY(0.35); }
+  to { transform: scaleY(1); }
+}
+
+/* Words not yet spoken hold their place, unseen. */
+.word[data-lit='false'] {
+  visibility: hidden;
+}
+
+.mark {
+  background: var(--sky);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.05em 0.2em;
+  margin: 0 -0.1em;
+  border-radius: 6px;
+}
+
+.capFade {
+  mask-image: linear-gradient(to bottom, transparent 0, transparent 1.5rem, var(--ink) 4.5rem);
+}
+
+/* Paused: every loop in the call stands still. */
+[data-paused='true'] .orb::before,
+[data-paused='true'] .orb::after,
+[data-paused='true'] .orbCore,
+[data-paused='true'] .wave > span {
+  animation-play-state: paused;
+}
+
+/* ---------- Step rail (hero) ---------- */
+
+.railBar {
+  display: block;
+  height: 2px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+
+.railFill {
+  display: block;
+  height: 100%;
+  background: var(--cobalt);
+  transform-origin: left;
+}
+
+/* ---------- Chapters: a tall track, a pinned visual ---------- */
+
+.track {
+  position: relative;
+  height: calc(80svh + var(--n) * 32svh);
+}
+
+.pin {
+  position: sticky;
+  top: 3.75rem;
+}
+
+@media (min-width: 1024px) {
+  .track {
+    height: calc(100vh + var(--n) * 40vh);
+  }
+
+  .pin,
+  .pinText {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+  }
+}
+
+.stage {
+  height: min(36rem, calc(100svh - 5rem));
+}
+
+.stageShort {
+  height: min(32rem, calc(100svh - 5rem));
+}
+
+@media (min-width: 1024px) {
+  .stage {
+    height: min(37rem, calc(100vh - 6rem));
+  }
+
+  .stageShort {
+    height: min(32rem, calc(100vh - 6rem));
+  }
+}
+
+/* ---------- Stats band ---------- */
+
+.statRule {
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--cobalt);
+}
+
+/* ---------- The loop ---------- */
+
+.node {
+  transition: border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.node:hover {
+  border-color: var(--cobalt);
+  box-shadow: inset 0 0 0 1px var(--cobalt);
+}
+
+.node:hover .nodeLabel {
+  color: var(--cobalt);
+}
+
+/* ---------- Sticky rail ---------- */
+
+.ride {
+  transition: opacity 300ms ease, visibility 0s linear 300ms;
+}
+
+.ride[data-on='false'] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.ride[data-on='true'] {
+  transition: opacity 300ms ease, visibility 0s;
+}
+
+.dot {
+  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease;
+}
+
+.ping {
+  animation: ping 1400ms cubic-bezier(0.16, 1, 0.3, 1) 3;
+}
+
+@keyframes ping {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--cobalt) 60%, transparent); }
+  100% { box-shadow: 0 0 0 12px transparent; }
+}
+
+.railLabel {
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 150ms ease, transform 150ms ease;
+  pointer-events: none;
+}
+
+.railItem:hover .railLabel,
+.railItem:focus-visible .railLabel,
+.railItem[aria-current] .railLabel {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---------- Skill states ---------- */
+
+@keyframes levelMastered {
+  0% { background-color: var(--sky); color: var(--ink); }
+  40% { background-color: var(--cobalt); color: var(--white); }
+  62% { background-color: var(--cobalt); color: var(--white); }
+  100% { background-color: var(--mastery); color: var(--ink); }
+}
+
+@keyframes levelPracticed {
+  0% { background-color: var(--sky); color: var(--ink); }
+  100% { background-color: var(--cobalt); color: var(--white); }
+}
+
+.level {
+  background-color: var(--sky);
+  color: var(--ink);
+}
+
+.level[data-on='true'][data-end='mastered'] {
+  animation: levelMastered 1500ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms) both;
+}
+
+.level[data-on='true'][data-end='practiced'] {
+  animation: levelPracticed 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms) both;
+}
+
+/* ---------- Technology: four nodes, lines, travelling light ---------- */
+
+.vizLine {
+  stroke: color-mix(in srgb, var(--cobalt) 70%, transparent);
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.vizGlow {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--cobalt) 90%, transparent));
+}
+
+.pulse {
+  fill: var(--sky);
+  filter: drop-shadow(0 0 4px var(--cobalt));
+  offset-rotate: 0deg;
+  animation: travel var(--dur) cubic-bezier(0.45, 0, 0.55, 1) var(--delay) infinite;
+}
+
+.pulse[data-reverse] {
+  animation-direction: reverse;
+}
+
+[data-paused='true'] .pulse {
+  animation-play-state: paused;
+}
+
+@keyframes travel {
+  0% { offset-distance: 0%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+/* ---------- Reduced motion: final states, nothing pinned, nothing moving ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    height: auto;
+  }
+
+  .pin,
+  .pinText {
+    position: static;
+    height: auto;
+  }
+
+  .chapter {
+    padding-block: 5rem;
+  }
+
+  .pulse {
+    display: none;
+  }
+
+  .view,
+  .reveal,
+  .grow,
+  .draw,
+  .drawX,
+  .tile,
+  .wave > span,
+  .node,
+  .dot,
+  .ride,
+  .railLabel {
+    transition: none;
+  }
+
+  .orb::before,
+  .orb::after,
+  .orbCore,
+  .wave > span,
+  .ping,
+  .level[data-on='true'][data-end] {
+    animation: none;
+  }
+
+  .level[data-end='mastered'] {
+    background-color: var(--mastery);
+    color: var(--ink);
+  }
+
+  .level[data-end='practiced'] {
+    background-color: var(--cobalt);
+    color: var(--white);
+  }
+}

@@ -1,0 +1,349 @@
+/* The exhibition homepage mockup: Paper, white product surfaces, oversized
+   Geist, thin rules; one Ink act. Motion is scroll-triggered or a pausable
+   loop; under reduced motion every piece shows its final state. */
+
+.display {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 0.98;
+}
+
+.caps {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.mono {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.figures {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Hero stage: a product panel at true UI scale ---------- */
+
+.stage {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent), 0 24px 60px -36px color-mix(in srgb, var(--ink) 35%, transparent);
+}
+
+/* Phones: the hero stage runs edge to edge (module rules outrank utilities, so it lives here). */
+@media (max-width: 639px) {
+  .stageBleed {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  /* The incoming view waits for the outgoing one to clear: no overlap. */
+  transition: opacity 450ms cubic-bezier(0.16, 1, 0.3, 1) 220ms, transform 450ms cubic-bezier(0.16, 1, 0.3, 1) 220ms;
+}
+
+.view[data-active='false'] {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 180ms ease-in, transform 180ms ease-in;
+}
+
+/* The student's buckets type in, one after another. */
+.typed {
+  display: inline-block;
+  clip-path: inset(0 0 0 0);
+}
+
+.bucket {
+  border: 1px solid color-mix(in srgb, var(--ink) 16%, transparent);
+  border-radius: 6px;
+}
+
+.slot {
+  border: 1px dashed color-mix(in srgb, var(--cobalt) 70%, transparent);
+  border-radius: 6px;
+  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.drawLine {
+  width: 1px;
+  height: 1.5rem;
+  background: var(--cobalt);
+  transform-origin: top;
+  transition: transform 450ms cubic-bezier(0.16, 1, 0.3, 1) 150ms;
+}
+
+.chip {
+  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) 500ms, transform 400ms cubic-bezier(0.16, 1, 0.3, 1) 500ms;
+}
+
+/* Leaving the gap state resets at once (the reveal delays apply on the way in only). */
+[data-gap='false'] .slot { opacity: 0; transition: none; }
+[data-gap='false'] .drawLine { transform: scaleY(0); transition: none; }
+[data-gap='false'] .chip { opacity: 0; transform: translateY(-4px); transition: none; }
+
+/* Today's workout: the new row slides in at the top. */
+.newRow {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 500ms cubic-bezier(0.16, 1, 0.3, 1) 150ms, background-color 1200ms ease-out 900ms;
+}
+
+.newRow > div {
+  overflow: hidden;
+}
+
+[data-row='false'] .newRow {
+  grid-template-rows: 0fr;
+  opacity: 0;
+}
+
+.newRowFresh {
+  background: color-mix(in srgb, var(--sky) 70%, transparent);
+}
+
+/* The skill tile: Learning (Sky) → Practiced (Cobalt), with a green rise. */
+.tile {
+  transition: background-color 900ms cubic-bezier(0.16, 1, 0.3, 1), color 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.rise {
+  transition: opacity 400ms cubic-bezier(0.16, 1, 0.3, 1) 600ms, transform 400ms cubic-bezier(0.16, 1, 0.3, 1) 600ms;
+}
+
+[data-progress='false'] .rise {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+/* Step rail: each step's bar fills while it plays. */
+.railBar {
+  height: 2px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+
+.railFill {
+  height: 100%;
+  background: var(--cobalt);
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+.railFill[data-state='done'] { transform: scaleX(1); }
+.railFill[data-state='current'] { animation: railFill var(--ms) linear forwards; }
+.railFill[data-state='current'][data-paused='true'] { animation-play-state: paused; }
+.railFill[data-state='still'] { transform: scaleX(1); }
+
+@keyframes railFill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+@keyframes type {
+  from { clip-path: inset(0 100% 0 0); }
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes appear {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .typing .typed {
+    animation: type var(--dur) steps(var(--n), end) var(--delay) both;
+  }
+
+  .typing .bucket {
+    animation: appear 200ms ease-out var(--delay) both;
+  }
+}
+
+/* ---------- Replay ---------- */
+
+.msg {
+  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.mark {
+  background: color-mix(in srgb, var(--sky) 100%, transparent);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.05em 0.2em;
+  margin: 0 -0.1em;
+  border-radius: 6px;
+}
+
+.connector path {
+  fill: none;
+  stroke: var(--cobalt);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.connector circle {
+  fill: var(--cobalt);
+}
+
+.note {
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1) 450ms, transform 500ms cubic-bezier(0.16, 1, 0.3, 1) 450ms;
+}
+
+.closeRule {
+  height: 1px;
+  background: var(--cobalt);
+  transform-origin: left;
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1) 200ms;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(.mk-js) .msg:not([data-shown]) {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  :global(.mk-js) .msg:not([data-shown]) .note {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+
+  :global(.mk-js) .msg:not([data-shown]) .connector path {
+    stroke-dashoffset: var(--len);
+  }
+
+  .connector path {
+    stroke-dasharray: var(--len) var(--len);
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 700ms cubic-bezier(0.16, 1, 0.3, 1) 200ms;
+  }
+
+  :global(.mk-js) .close:not([data-shown]) .closeRule {
+    transform: scaleX(0);
+  }
+
+  :global(.mk-js) .close:not([data-shown]) .closeBody {
+    opacity: 0;
+  }
+
+  .closeBody {
+    transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1) 700ms;
+  }
+}
+
+/* ---------- Plan timeline ---------- */
+
+.planStep {
+  transition: opacity 600ms cubic-bezier(0.16, 1, 0.3, 1), transform 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--delay, 0ms);
+}
+
+.masteredBadge {
+  transition: background-color 700ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--delay, 0ms) + 300ms), color 700ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--delay, 0ms) + 300ms);
+}
+
+.track {
+  transform-origin: left;
+  transition: transform 2400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(.mk-js) .plan:not([data-shown]) .planStep {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  :global(.mk-js) .plan:not([data-shown]) .track {
+    transform: scaleX(0);
+  }
+
+  :global(.mk-js) .plan:not([data-shown]) .masteredBadge {
+    background-color: var(--cobalt);
+    color: var(--white);
+  }
+}
+
+@media (max-width: 1023px) {
+  .track {
+    transform-origin: top;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    :global(.mk-js) .plan:not([data-shown]) .track {
+      transform: scaleY(0);
+    }
+  }
+}
+
+/* ---------- Technology: four nodes, lines, travelling light ---------- */
+
+.vizLine {
+  stroke: color-mix(in srgb, var(--cobalt) 70%, transparent);
+  stroke-width: 1;
+  fill: none;
+  vector-effect: non-scaling-stroke;
+}
+
+.vizGlow {
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--cobalt) 90%, transparent));
+}
+
+.pulse {
+  fill: var(--sky);
+  filter: drop-shadow(0 0 4px var(--cobalt));
+  offset-rotate: 0deg;
+  animation: travel var(--dur) cubic-bezier(0.45, 0, 0.55, 1) var(--delay) infinite;
+}
+
+.pulse[data-reverse] {
+  animation-direction: reverse;
+}
+
+[data-paused='true'] .pulse {
+  animation-play-state: paused;
+}
+
+@keyframes travel {
+  0% { offset-distance: 0%; opacity: 0; }
+  12% { opacity: 1; }
+  88% { opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pulse {
+    display: none;
+  }
+
+  .view,
+  .drawLine,
+  .chip,
+  .newRow,
+  .tile,
+  .rise,
+  .msg,
+  .note,
+  .closeRule,
+  .closeBody,
+  .planStep,
+  .masteredBadge,
+  .track {
+    transition: none;
+  }
+
+  .railFill[data-state='current'] {
+    animation: none;
+    transform: scaleX(1);
+  }
+}

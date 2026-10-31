@@ -1,0 +1,115 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 420" width="580" height="420" aria-hidden="true">
+<g id="connectors">
+<line x1="30.0" y1="358" x2="30.0" y2="76" stroke="#4C5B8F" stroke-width="1" stroke-dasharray="3 4"/>
+<line x1="170" y1="358" x2="170" y2="76" stroke="#4C5B8F" stroke-width="1" stroke-dasharray="3 4"/>
+<line x1="310.0" y1="358" x2="310.0" y2="76" stroke="#4C5B8F" stroke-width="1" stroke-dasharray="3 4"/>
+</g>
+<g id="layer-04" class="layer">
+<g class="plane">
+<polygon points="170,306.0 310.0,358 170,410.0 30.0,358" fill="rgba(45,75,216,0.28)" stroke="#9DB0F5" stroke-width="1.8"/>
+<line x1="122.0" y1="334.2" x2="122.0" y2="326.2" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<line x1="144.0" y1="342.4" x2="144.0" y2="328.4" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<line x1="166.0" y1="350.6" x2="166.0" y2="330.6" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<line x1="188.0" y1="358.7" x2="188.0" y2="332.7" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<line x1="210.0" y1="366.9" x2="210.0" y2="334.9" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<line x1="232.0" y1="375.1" x2="232.0" y2="337.1" stroke="#FFFFFF" stroke-width="5" stroke-linecap="round"/>
+<circle cx="232.0" cy="328.1" r="5" fill="#1F9D63"/>
+</g>
+<g class="label">
+<line x1="280.0" y1="358" x2="352" y2="358" stroke="#4C5B8F" stroke-width="1"/>
+<circle cx="280.0" cy="358" r="2.5" fill="#9DB0F5"/>
+<text x="362" y="350" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="0.06em" fill="#9DB0F5">04 · MASTERY ENGINE</text>
+<text x="362" y="367.0" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">Every mistake maps to one of</text>
+<text x="362" y="383.5" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">60+ error types, each with</text>
+<text x="362" y="400.0" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">drills to fix it</text>
+</g>
+</g>
+<g id="layer-03" class="layer">
+<g class="plane">
+<polygon points="170,214.0 310.0,266 170,318.0 30.0,266" fill="rgba(220,229,255,0.10)" stroke="#9DB0F5" stroke-width="1.2"/>
+<line x1="156.0" y1="245.5" x2="212.0" y2="266.3" stroke="#9DB0F5" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+<polyline points="225.0,272.0 228.5,275.5 235.0,268.5" fill="none" stroke="#1F9D63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="126.0" y1="256.7" x2="182.0" y2="277.5" stroke="#9DB0F5" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+<polyline points="195.0,283.1 198.5,286.6 205.0,279.6" fill="none" stroke="#1F9D63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+<line x1="96.0" y1="267.8" x2="152.0" y2="288.6" stroke="#9DB0F5" stroke-width="3" stroke-linecap="round" opacity="0.75"/>
+<polyline points="165.0,294.3 168.5,297.8 175.0,290.8" fill="none" stroke="#1F9D63" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<g class="label">
+<line x1="280.0" y1="266" x2="352" y2="266" stroke="#4C5B8F" stroke-width="1"/>
+<circle cx="280.0" cy="266" r="2.5" fill="#9DB0F5"/>
+<text x="362" y="258" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="0.06em" fill="#9DB0F5">03 · VERIFICATION</text>
+<text x="362" y="275.0" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">Numbers and feedback checked</text>
+<text x="362" y="291.5" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">before you see them</text>
+</g>
+</g>
+<g id="layer-02" class="layer">
+<g class="plane">
+<polygon points="170,114.0 310.0,166 170,218.0 30.0,166" fill="rgba(220,229,255,0.10)" stroke="#9DB0F5" stroke-width="1.2"/>
+<line x1="170" y1="166" x2="222.0" y2="185.3" stroke="#9DB0F5" stroke-width="1"/>
+<line x1="170" y1="166" x2="118.0" y2="146.7" stroke="#9DB0F5" stroke-width="1"/>
+<line x1="170" y1="166" x2="118.0" y2="185.3" stroke="#9DB0F5" stroke-width="1"/>
+<line x1="170" y1="166" x2="222.0" y2="146.7" stroke="#9DB0F5" stroke-width="1"/>
+<ellipse cx="222.0" cy="185.3" rx="7" ry="4.2" fill="#0E1424" stroke="#9DB0F5" stroke-width="1.3"/>
+<ellipse cx="118.0" cy="146.7" rx="7" ry="4.2" fill="#0E1424" stroke="#9DB0F5" stroke-width="1.3"/>
+<ellipse cx="118.0" cy="185.3" rx="7" ry="4.2" fill="#0E1424" stroke="#9DB0F5" stroke-width="1.3"/>
+<ellipse cx="222.0" cy="146.7" rx="7" ry="4.2" fill="#0E1424" stroke="#9DB0F5" stroke-width="1.3"/>
+<ellipse cx="170" cy="166" rx="10" ry="6" fill="#2D4BD8" stroke="#9DB0F5" stroke-width="1.2"/>
+</g>
+<g class="label">
+<line x1="280.0" y1="166" x2="352" y2="166" stroke="#4C5B8F" stroke-width="1"/>
+<circle cx="280.0" cy="166" r="2.5" fill="#9DB0F5"/>
+<text x="362" y="158" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="0.06em" fill="#9DB0F5">02 · MULTI-AGENT ARCHITECTURE</text>
+<text x="362" y="175.0" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">Separate agents interview,</text>
+<text x="362" y="191.5" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">share data and grade, so the</text>
+<text x="362" y="208.0" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">case feels real and scores</text>
+<text x="362" y="224.5" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">stay impartial.</text>
+</g>
+</g>
+<g id="layer-01" class="layer">
+<g class="plane">
+<polygon points="170,24.0 310.0,76 170,128.0 30.0,76" fill="rgba(220,229,255,0.10)" stroke="#9DB0F5" stroke-width="1.2"/>
+<circle cx="153" cy="43.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="170" cy="50.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="187" cy="56.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="204" cy="63.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="221" cy="69.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="238" cy="76.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="255" cy="82.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="136" cy="50.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="153" cy="56.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="170" cy="63.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="187" cy="69.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="204" cy="76.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="221" cy="82.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="238" cy="89.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="119" cy="56.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="136" cy="63.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="153" cy="69.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="170" cy="76.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="187" cy="82.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="204" cy="89.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="221" cy="95.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="102" cy="63.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="119" cy="69.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="136" cy="76.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="153" cy="82.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="170" cy="89.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="187" cy="95.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="204" cy="102.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="85" cy="69.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="102" cy="76.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="119" cy="82.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="136" cy="89.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="153" cy="95.5" r="1.8" fill="#9DB0F5"/>
+<circle cx="170" cy="102.0" r="1.8" fill="#9DB0F5"/>
+<circle cx="187" cy="108.5" r="1.8" fill="#9DB0F5"/>
+</g>
+<g class="label">
+<line x1="280.0" y1="76" x2="352" y2="76" stroke="#4C5B8F" stroke-width="1"/>
+<circle cx="280.0" cy="76" r="2.5" fill="#9DB0F5"/>
+<text x="362" y="68" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="0.06em" fill="#9DB0F5">01 · ACCURATE INTERVIEWER</text>
+<text x="362" y="85.0" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">Grounded in real case data,</text>
+<text x="362" y="101.5" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">not improvised numbers</text>
+</g>
+</g>
+</svg>

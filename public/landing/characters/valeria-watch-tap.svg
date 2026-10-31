@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="600" height="400" role="img" aria-label="Valeria, the planner, holding up her wrist and tapping her watch with a raised eyebrow and a half-smile">
+<g transform="translate(112 0)">
+<g transform="translate(0 -4) translate(305 175) scale(0.95) translate(-305 -175)">
+<polygon points="258,62 240,82 232,104 238,118 226,136 234,152 222,170 232,186 220,204 236,216 248,212 262,226 276,214 292,222 300,204 290,172 282,140 280,110 292,84 322,70 350,74 360,62 336,40 290,38" fill="#24170F"/>
+<polygon points="246,92 256,82 252,100 260,116 250,132 256,148 248,150 242,134 248,118 240,102" fill="#4A2E1E"/>
+<polygon points="236,152 246,144 242,162 250,178 240,194 246,206 238,208 232,194 240,178 232,162" fill="#4A2E1E"/>
+<polygon points="262,150 270,146 268,164 276,180 268,196 274,210 266,212 260,196 266,180 258,164" fill="#4A2E1E"/>
+<polygon points="250,108 254,104 256,118 252,122" fill="#6E4630"/>
+<polygon points="240,166 244,163 246,176 242,179" fill="#6E4630"/>
+</g>
+<g transform="translate(300 0) scale(0.92 1) translate(-300 0)">
+<polygon points="292,154 316,158 318,194 294,196" fill="#AE8052"/>
+<polygon points="216,216 290,190 298,400 206,400" fill="#111829"/>
+<polygon points="290,190 350,196 378,250 386,400 298,400" fill="#1B2440"/>
+<polygon points="288,190 322,192 306,286" fill="#2D4BD8"/>
+<polygon points="291,190 319,192 305,210" fill="#CB9A6C"/>
+<polygon points="286,191 306,286 290,252 276,198" fill="#26324F"/>
+<polygon points="322,193 306,286 326,240 338,200" fill="#26324F"/>
+<polygon points="326,194 350,196 364,218 340,206" fill="#34416A"/>
+<polygon points="340,330 384,350 386,400 344,400" fill="#111829" opacity="0.55"/>
+</g>
+<g transform="translate(0 -4) translate(305 175) scale(0.95) translate(-305 -175)">
+<g transform="rotate(-3 304 170)">
+<polygon points="278,86 328,76 346,96 350,114 358,128 352,136 350,147 334,166 314,171 294,160 281,132" fill="#CB9A6C"/>
+<polygon points="278,86 300,82 308,170 294,160 281,132" fill="#AE8052"/>
+<polygon points="316,120 346,118 343,148 320,150" fill="#DDB082"/>
+<polygon points="346,102 358,128 348,132" fill="#AE8052"/>
+<polygon points="304,160 338,154 333,166 314,171" fill="#8E5C40" opacity="0.18"/>
+<polygon points="262,100 262,70 288,46 330,44 354,62 360,94 350,94 340,84 320,84 304,94 292,108 284,120 274,118" fill="#24170F"/>
+<polygon points="330,46 354,62 362,94 352,106 346,84" fill="#24170F"/>
+<polygon points="282,56 312,48 318,54 300,60 288,66" fill="#4A2E1E"/>
+<polygon points="300,62 326,56 328,60 304,68" fill="#6E4630"/>
+<polygon points="338,54 354,68 352,78 342,64" fill="#4A2E1E"/>
+<polygon points="270,112 284,110 288,140 274,144" fill="#AE8052"/>
+<polygon points="275,116 281,115 283,134 277,136" fill="#956C42"/>
+<polygon points="268,118 264,98 278,104 276,124" fill="#24170F"/>
+<polygon points="320,104 329,96 346,91 348,95 331,100 322,107" fill="#24170F"/>
+<path d="M331.0 107.8 Q335.0 105.2 339.4 107.4" stroke="#AE8052" stroke-width="1.1" fill="none" stroke-linecap="round"/><path d="M330.0 112.5 Q334.5 108.4 339.6 111.4 Q335.5 115.0 330.0 112.5 Z" fill="#0E1424"/><circle cx="336.2" cy="111.4" r="0.9" fill="#F7F7F4"/><path d="M329.4 112.0 Q334.5 107.6 340.2 110.8" stroke="#0E1424" stroke-width="1.6" fill="none" stroke-linecap="round"/><path d="M339.8 110.7 L341.6 109.4" stroke="#0E1424" stroke-width="1.1" stroke-linecap="round"/>
+<polygon points="328,150 336,148 342,149.5 350,145 345,151 331,152.5" fill="#8A4A46"/>
+<polygon points="331,152.5 345,151 349,146.5 345,155 334,156" fill="#A0625A"/>
+</g>
+</g>
+<g transform="translate(300 0) scale(0.92 1) translate(-300 0)">
+<polygon points="348,198 376,212 398,300 370,310" fill="#1B2440"/>
+<polygon points="348,198 358,202 380,306 370,310" fill="#111829"/>
+<polygon points="372,306 398,296 426,238 404,228" fill="#111829"/>
+<polygon points="404,228 426,238 429,230 407,220" fill="#26324F"/>
+<polygon points="407,220 429,230 431,222 409,212" fill="#CB9A6C"/>
+<polygon points="409,212 431,222 440,202 432,184 414,186" fill="#CB9A6C"/>
+<polygon points="432,184 440,202 434,206 425,190" fill="#AE8052"/>
+<polygon points="414,186 422,184 418,200 410,204" fill="#DDB082"/>
+<polygon points="406,222 429,232 432,224 409,214" fill="#0E1424"/>
+<circle cx="419" cy="223" r="7" fill="#0E1424"/>
+<circle cx="419" cy="223" r="4.8" fill="#F7F7F4"/>
+<line x1="419" y1="223" x2="419" y2="219.5" stroke="#0E1424" stroke-width="1.1"/>
+<line x1="419" y1="223" x2="421.8" y2="224" stroke="#0E1424" stroke-width="1.1"/>
+<polygon points="206,306 226,300 240,336 210,346" fill="#26324F"/>
+<polygon points="222,314 236,300 398,248 410,268 240,340" fill="#26324F"/>
+<polygon points="236,300 398,248 400,252 238,305" fill="#34416A" opacity="0.6"/>
+<polygon points="396,248 410,268 416,264 404,244" fill="#0E1424"/>
+<polygon points="404,244 416,264 430,256 432,242 418,238" fill="#CB9A6C"/>
+<polygon points="418,240 424,228 429,230 426,244" fill="#CB9A6C"/>
+<polygon points="416,262 430,256 432,248" fill="#AE8052"/>
+</g>
+</g>
+<polygon points="80,344 590,344 600,364 60,364" fill="#EFEDE6"/>
+<rect x="60" y="364" width="540" height="36" fill="#DAD7CD"/>
+<line x1="60" y1="364" x2="600" y2="364" stroke="#F7F7F4" stroke-width="1.5"/>
+<polygon points="196,347 286,347 292,360 190,360" fill="#2D4BD8"/>
+<polygon points="190,360 292,360 292,363 190,363" fill="#1F37A8"/>
+<line x1="262" y1="347" x2="266" y2="360" stroke="#0E1424" stroke-width="2"/>
+</svg>
