@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  applyPlainOutput, auditRewrite, buildPlainPrompt, partOfCase, toneLint, verbatim, type PlainContext, type PlainOutput,
+  applyPlainOutput, auditRewrite, plainOutputFormat, buildPlainPrompt, partOfCase, toneLint, verbatim, type PlainContext, type PlainOutput,
 } from '@/lib/scoring/plain-feedback';
 import { RubricScoresSchema, type RubricScores, type DimensionFeedback } from '@/lib/scoring/judge';
 import { INITIAL_STAGES, type StageRecord } from '@/lib/orchestrator/stage-evidence';
@@ -45,14 +45,10 @@ const base = rubric({
 });
 
 const good: PlainOutput = {
-  points: [
-    { id: 'structure.needsWork.0', where: 'Right after your opening, when the interviewer asked whether the structure had gaps, you said "I think it\'s messy".', what: 'The answer named the problem but stopped before fixing it.', why: 'Interviewers want to see you repair a structure on the spot.', next: 'Next time, try naming the missing piece and restating the structure.' },
-    { id: 'quantitative.wentWell.0', where: 'In the opening, you said "profit equals revenue minus costs".', what: 'That tied the problem to the profit equation from the start.', why: 'It gives the interviewer a clear map of where you are going.', next: 'Keep anchoring your opening on the economics of the problem.' },
-    { id: 'quantitative.needsWork.0', where: 'In the recommendation, asked whether a 10% rise gets back near 24%, you said "Yes. It does."', what: 'The answer agreed without working the numbers: costs are 94% of revenue, so 10% gives a margin of about 14.5%.', why: 'A number you cannot defend undercuts the whole recommendation.', next: 'Next time, try writing the equation out loud before answering.' },
-  ],
-  moments: [
-    { id: 'quantitative.missedOpportunities.0', where: 'In the recommendation, the interviewer asked whether 10% gets the margin back near 24%.', what: 'This was the chance to check the figure out loud.', why: 'Checking a number when challenged shows you can be trusted with the client\'s math.' },
-  ],
+  'structure.needsWork.0': { where: 'Right after your opening, when the interviewer asked whether the structure had gaps, you said "I think it\'s messy".', what: 'The answer named the problem but stopped before fixing it.', why: 'Interviewers want to see you repair a structure on the spot.', next: 'Next time, try naming the missing piece and restating the structure.' },
+  'quantitative.wentWell.0': { where: 'In the opening, you said "profit equals revenue minus costs".', what: 'That tied the problem to the profit equation from the start.', why: 'It gives the interviewer a clear map of where you are going.', next: 'Keep anchoring your opening on the economics of the problem.' },
+  'quantitative.needsWork.0': { where: 'In the recommendation, asked whether a 10% rise gets back near 24%, you said "Yes. It does."', what: 'The answer agreed without working the numbers: costs are 94% of revenue, so 10% gives a margin of about 14.5%.', why: 'A number you cannot defend undercuts the whole recommendation.', next: 'Next time, try writing the equation out loud before answering.' },
+  'quantitative.missedOpportunities.0': { where: 'In the recommendation, the interviewer asked whether 10% gets the margin back near 24%.', what: 'This was the chance to check the figure out loud.', why: 'Checking a number when challenged shows you can be trusted with the client\'s math.' },
 };
 
 describe('report tone: plain-words rewrite, audited in code (tester feedback, 31 Oct)', () => {
@@ -97,7 +93,7 @@ describe('report tone: plain-words rewrite, audited in code (tester feedback, 31
 
   it('a quote that is not the candidate\'s words keeps the old wording', () => {
     const bad = structuredClone(good);
-    bad.points[0].where = 'When asked, you said "my structure is messy and incomplete".';
+    bad['structure.needsWork.0'].where = 'When asked, you said "my structure is messy and incomplete".';
     const out = applyPlainOutput(base, bad, buildPlainPrompt(base, ctx).entries, ctx);
     expect(out.rejected).toEqual([{ id: 'structure.needsWork.0', reason: 'quote not in the candidate\'s words: "my structure is messy and incomplete"' }]);
     expect(out.rubric.structure.needsWork[0].plain).toBeUndefined();
@@ -141,8 +137,15 @@ describe('report tone: plain-words rewrite, audited in code (tester feedback, 31
     expect(auditRewrite({ ...a, fields: ['x', 'y', 'z', 'Keep anchoring.'], next: { opens: /^Keep\b/, label: 'Keep' } })).toBeNull();
   });
 
+  it('the output format requires every item id, so none can be left out', () => {
+    const { entries } = buildPlainPrompt(base, ctx);
+    const schema = JSON.stringify(plainOutputFormat(entries));
+    for (const e of entries) expect(schema).toContain(`"${e.id}"`);
+    expect(schema).toMatch(/"required":\[[^\]]*"structure.needsWork.0"/);
+  });
+
   it('an item the model left out keeps the old wording', () => {
-    const partial = { ...good, points: good.points.slice(1) };
+    const partial = Object.fromEntries(Object.entries(good).filter(([id]) => id !== 'structure.needsWork.0'));
     const out = applyPlainOutput(base, partial, buildPlainPrompt(base, ctx).entries, ctx);
     expect(out.rejected).toEqual([{ id: 'structure.needsWork.0', reason: 'not returned' }]);
   });

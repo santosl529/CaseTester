@@ -148,16 +148,18 @@ ${transcriptText}
 ITEMS:
 ${listing}
 
-Return one entry per ID: "points" for strengths and points to work on ({ "id", "where", "what", "why", "next" }), "moments" for missed moments ({ "id", "where", "what", "why" }).`;
+Return an object keyed by every ID above: for a strength or a point to work on { "where", "what", "why", "next" }, for a missed moment { "where", "what", "why" }.`;
   return { prompt, entries };
 }
 
-const PlainOutputSchema = z.object({
-  points: z.array(z.object({ id: z.string(), where: z.string(), what: z.string(), why: z.string(), next: z.string() })),
-  moments: z.array(z.object({ id: z.string(), where: z.string(), what: z.string(), why: z.string() })),
-});
-export type PlainOutput = z.infer<typeof PlainOutputSchema>;
-export const PLAIN_OUTPUT_FORMAT = betaZodOutputFormat(PlainOutputSchema);
+const PointOut = z.object({ where: z.string(), what: z.string(), why: z.string(), next: z.string() });
+const MomentOut = z.object({ where: z.string(), what: z.string(), why: z.string() });
+export type PlainOutput = Record<string, { where: string; what: string; why: string; next?: string }>;
+// Keyed by every item's id, each required: structured output cannot leave one out. A fixed list let the model stop
+// early — 25 of 150 items missing on the first proof run (31 Oct), always the tail of the list.
+export function plainOutputFormat(entries: { id: string; section: Section }[]) {
+  return betaZodOutputFormat(z.object(Object.fromEntries(entries.map(e => [e.id, e.section === 'missedOpportunities' ? MomentOut : PointOut]))));
+}
 
 // ---- the audit -------------------------------------------------------------
 
@@ -242,7 +244,7 @@ export function applyPlainOutput(
     const dim = out[e.dimension];
     if (e.section === 'missedOpportunities') {
       const item = dim.missedOpportunities[e.index];
-      const p = output.moments.find(m => m.id === e.id);
+      const p = output[e.id];
       if (!p) { rejected.push({ id: e.id, reason: 'not returned' }); continue; }
       const fields = [p.where, p.what, p.why];
       const reason = auditRewrite({ fields, original: item.moment, sources: [item.betterResponse, ...e.asked], candidateCorpus: corpus, ideas: ctx.ideas });
@@ -250,13 +252,13 @@ export function applyPlainOutput(
       item.plain = { where: p.where, what: p.what, why: p.why };
     } else {
       const item = dim[e.section][e.index];
-      const p = output.points.find(m => m.id === e.id);
+      const p = output[e.id];
       if (!p) { rejected.push({ id: e.id, reason: 'not returned' }); continue; }
       const next = e.section === 'needsWork' ? { opens: /^Next time, try\b/, label: 'Next time, try' } : { opens: /^Keep\b/, label: 'Keep' };
-      const fields = [p.where, p.what, p.why, p.next];
+      const fields = [p.where, p.what, p.why, p.next ?? ''];
       const reason = auditRewrite({ fields, original: item.point, sources: [...item.quotes, ...e.asked], candidateCorpus: corpus, ideas: ctx.ideas, next });
       if (reason) { rejected.push({ id: e.id, reason }); continue; }
-      item.plain = { where: p.where, what: p.what, why: p.why, next: p.next };
+      item.plain = { where: p.where, what: p.what, why: p.why, next: p.next ?? '' };
     }
     written.push(e.id);
   }
@@ -282,13 +284,13 @@ export async function writePlainFeedback(
       max_tokens: 24000,
       thinking: { type: 'adaptive' },
       messages: [{ role: 'user', content: prompt }],
-      output_config: { format: PLAIN_OUTPUT_FORMAT, effort: 'low' },
+      output_config: { format: plainOutputFormat(entries), effort: 'low' },
       betas: [FALLBACK_BETA],
       fallbacks: FALLBACKS,
     }, { signal }).finalMessage());
     onUsage?.({ component: 'plain_feedback', model: SCORING_MODEL_ID, inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens });
     if (!response.parsed_output) return { rubric, written: [], rejected: [], skipped: `no structured output (stop_reason: ${response.stop_reason})` };
-    return { ...applyPlainOutput(rubric, response.parsed_output, entries, ctx), skipped: null };
+    return { ...applyPlainOutput(rubric, response.parsed_output as PlainOutput, entries, ctx), skipped: null };
   } catch (err) {
     // A spent budget stops the run; anything else leaves the report in its old wording rather than unscored.
     if (err instanceof BudgetExceededError) throw err;
