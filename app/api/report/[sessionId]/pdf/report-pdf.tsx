@@ -81,9 +81,9 @@ function PdfPoint({ item }: { item: FeedbackItem }) {
 
 export function ReportPdf(props: ReportPdfProps) {
   return (
-    <Document title={`Interview Feedback — ${props.caseTitle}`}>
+    <Document title={`Interview Feedback — ${props.caseTitle} | CasePace`} author="CasePace">
       <Page size="A4" style={styles.page}>
-        <Text style={styles.h1}>Interview Feedback</Text>
+        <Text style={styles.h1}>CasePace · Interview Feedback</Text>
         <Text style={styles.subtitle}>
           {props.caseTitle} · {props.completedAt} · {props.partial ? 'Partial interview — no overall rating' : `Overall: ${formatRating(props.overallRating)}`}
         </Text>

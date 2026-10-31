@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { signOut } from '@/app/actions/auth';
@@ -58,7 +59,7 @@ export function SignInFlow({ initialStep, next }: { initialStep: 'auth' | 'club'
     <main className="min-h-dvh flex items-center justify-center bg-neutral-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Case Interview Practice</CardTitle>
+          <CardTitle><Link href="/" className="hover:underline underline-offset-4">CasePace</Link></CardTitle>
         </CardHeader>
         <CardContent>
           {step === 'auth' && (
