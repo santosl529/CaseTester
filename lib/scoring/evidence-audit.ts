@@ -15,7 +15,7 @@ export type EvidenceViolation = {
 // Loose normalization: judges lightly reformat punctuation when quoting, so
 // compare on lowercased alphanumerics (plus % and $) with collapsed spacing —
 // applied identically to both sides.
-function normalize(s: string): string {
+export function normalize(s: string): string {
   return s
     .toLowerCase()
     .replace(/[^a-z0-9%$]+/g, ' ')

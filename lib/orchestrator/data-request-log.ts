@@ -13,14 +13,24 @@ import {
 // route's backfill. Call only with a successful classification — a failed one
 // must leave no marker. Kept out of data-requests.ts so that module stays
 // DB-free and unit-testable.
-export async function logDataRequestClassification(params: {
+type ClassificationParams = {
   sessionId: string;
   phase: Phase;
   requests: DetectedDataRequest[];
   candidateTurnIndex: number;
   interviewerTurnIndex: number;
   revealedIds: Set<string>;
-}): Promise<DataRequestEvent[]> {
+};
+
+export async function logDataRequestClassification(params: ClassificationParams): Promise<DataRequestEvent[]> {
+  const { events, rows } = dataRequestRows(params);
+  await db.insert(sessionEvents).values(rows);
+  return events;
+}
+
+// The rows one classification writes, without writing them: scoring's dry run
+// (computeScore persist: false) reads them in memory instead.
+export function dataRequestRows(params: ClassificationParams) {
   const events = toDataRequestEvents(params.requests, {
     candidateTurnIndex: params.candidateTurnIndex,
     interviewerTurnIndex: params.interviewerTurnIndex,
@@ -31,13 +41,13 @@ export async function logDataRequestClassification(params: {
     interviewerTurnIndex: params.interviewerTurnIndex,
     requestCount: events.length,
   });
-  await db.insert(sessionEvents).values([...events, marker].map(e => ({
+  const rows = [...events, marker].map(e => ({
     sessionId: params.sessionId,
     category: e.category,
     subtype: e.subtype,
     turnIndex: e.turnIndex,
     phase: params.phase,
     payloadJsonb: e.payload,
-  })));
-  return events;
+  }));
+  return { events, rows };
 }

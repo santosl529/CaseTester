@@ -76,6 +76,10 @@ export function formatStageRecordSection(rec: StageRecord, partial: { exitTurn?:
   const parts = [`STAGE RECORD (from the session's own log — what was actually put to the candidate, not what the interviewer intended):
 ${lines.join('\n')}
 How to score from it: an exhibit shown is not an exhibit interpreted — rate Data & Exhibit Interpretation on what the candidate actually did with the data. A dimension whose stage was never administered may be rated only on real, quoted evidence from elsewhere in the interview (work the candidate did unprompted counts); with none, set notAssessed with a coverageCaveat saying the stage never happened — do not guess a rating. A stage that was administered and that the candidate declined or could not do is performance, not a coverage gap.${notReached.length ? `\nDimensions whose stage never happened: ${notReached.join(', ')}.` : ''}${notPart.length ? `\nDimensions whose stage is not part of this case: ${notPart.join(', ')} — rate only on real, quoted evidence from elsewhere; with none, set notAssessed.` : ''}`];
+  // `recLastQuestion` (29 Oct): the risk was asked inside the recommendation question, and the next turn is the close.
+  if (rec.risk?.withRecommendation) {
+    parts.push(`The recommendation was the interview's last question: it asked for the recommendation, the main risks and next steps together, and nothing after it was put to the candidate — no challenge to the recommendation, no separate risk question, no follow-up. Something the interview never tested is not assessed, never a weakness: do not fault the candidate for not defending the recommendation under pushback or for anything after it, and mark a strong-checklist element with no such moment "no_occasion". Risks and next steps named in answer to that question answer what was asked — not a failure to raise them unprompted. Rate Handling Pushback only on challenges earlier in the interview; with none, set notAssessed with a coverageCaveat saying the interview never challenged the candidate's answers.`);
+  }
   if (partial) {
     parts.push(`PARTIAL INTERVIEW: the candidate chose to end the interview${partial.exitTurn !== undefined ? ` at turn ${partial.exitTurn}` : ''}. Score only what happened before it. Dimensions whose stage was not reached are notAssessed unless there is real evidence elsewhere. Never mention, rate or penalize the decision to stop, or anything said about stopping; the topFix is about the work they did. The overall rating will not be shown.`);
   }
@@ -109,6 +113,17 @@ export function applyStageCaps(
         : `The ${label} stage never happened in this interview; this rating rests on what you did elsewhere.`;
       caveated.push(key);
     }
+  }
+  // Handling Pushback is read across the interview, so it gets no stage caveat; but an interview that never challenged
+  // the candidate — no pressure test, no quoted moment either way — did not test it (report tone, Lorenzo, 31 Oct:
+  // "not assessed, never a weakness"): its unquoted faults and missed moments go with the rating.
+  const pushback = out.pushback;
+  if (!pushback.notAssessed && !administered(rec.pressure_test) && !quoted(pushback.wentWell) && !quoted(pushback.needsWork)) {
+    pushback.notAssessed = true;
+    pushback.needsWork = [];
+    pushback.missedOpportunities = [];
+    pushback.coverageCaveat ||= 'The interview never challenged your answers, so this wasn\'t assessed.';
+    notAssessed.push('pushback');
   }
   if (opts.partial) out.overallRating = null;
   return { rubric: out, notAssessed, caveated };

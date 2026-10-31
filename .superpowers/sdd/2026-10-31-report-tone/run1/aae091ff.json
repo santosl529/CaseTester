@@ -1,0 +1,1091 @@
+{
+ "sessionId": "aae091ff-28da-47d6-9efe-cf19a3ee37f4",
+ "caseId": "prof-001",
+ "mode": "the stored report (scored 2026-10-29), plain-words pass only",
+ "checks": {
+  "sameRatings": true,
+  "ratingDiffs": [],
+  "sameClaims": true,
+  "quoteAudit": {
+   "violations": 0,
+   "droppedPoints": 0
+  },
+  "inlineQuotes": {
+   "spans": 42,
+   "notVerbatim": []
+  },
+  "items": 33,
+  "written": 31,
+  "rejected": [
+   {
+    "id": "quantitative.needsWork.2",
+    "reason": "figure added: 100%"
+   },
+   {
+    "id": "communication.needsWork.1",
+    "reason": "quote not in the candidate's words: \"two parts: first…, second….\""
+   }
+  ],
+  "toneBefore": {
+   "jargon": 8,
+   "accusing": 3
+  },
+  "toneAfter": {
+   "jargon": 1,
+   "accusing": 1
+  }
+ },
+ "qa": null,
+ "before": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "You anchored the opening on the profit equation with revenue and cost branches, a relevant starting point, but the framework stayed generic and left out volume on the revenue side until the interviewer prompted you twice.",
+     "quotes": [
+      "which includes price and, you know, potentially, our mix of products as well as cost, which is, like, fixed and variable cost",
+      "I think potentially the, um, the units sold",
+      "you know, because profit equals revenue minus costs."
+     ]
+    },
+    {
+     "point": "On the MECE pressure test you called your own structure messy but did not fix it or say what was missing, so the interviewer had to lead you through the gaps.",
+     "quotes": [
+      "Yeah. I think it's messy."
+     ]
+    },
+    {
+     "point": "When asked to prioritize, you picked cost first with a reason tied to the case facts, but you did not prioritize until prompted. The cost branch also stayed at fixed vs. variable rather than a coffee chain's real cost lines (COGS, labor, rent/overhead) until the interviewer pushed.",
+     "quotes": [
+      "I'd like to look at, um, like, fixed and variable cost.",
+      "I would like to check cost first because revenue has been increasing."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 1, the opening framework for a margin that fell from 24% to 6% while revenue grew 15%.",
+     "betterResponse": "Our goal is to find why margin fell 18 points despite 15% revenue growth and how to restore it. Profit is revenue minus cost. Revenue is volume times price, plus mix. Costs split into COGS (beans, dairy, packaging, food), labor, and rent/overhead. Since revenue grew, my hypothesis is that costs outpaced pricing, so I'd start with each cost line as a percentage of revenue and then check whether we raised prices and whether competitors face the same input inflation."
+    },
+    {
+     "moment": "Turn 2, when asked \"Is that structure MECE, and what's missing from it?\"",
+     "betterResponse": "Not quite. Fixed vs. variable overlaps with how I'd actually look at the P&L, and I left out volume. Let me restate it: revenue = volume × price × mix, and costs = COGS, labor, overhead. I'd prioritize costs and pricing, since revenue is growing but margin collapsed."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "met",
+     "quote": "they're experiencing, uh, a profit decline from twenty four to six percent even though revenue has been growing"
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "met",
+     "quote": "I would like to check cost first because revenue has been increasing."
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "You asserted a 10% price increase without deriving it and could not explain it when asked.",
+     "quotes": [
+      "Yeah. Ten percent.",
+      "I'm not sure."
+     ]
+    },
+    {
+     "point": "You claimed the 10% increase restores the margin without doing any arithmetic. In fact, costs are 94% of revenue today (58 + 22 + 14), so a 10% price rise brings them to 94/110 ≈ 85.5% of revenue, a margin of about 14.5%, not back near 24%.",
+     "quotes": [
+      "Yes. It does."
+     ]
+    },
+    {
+     "point": "Your revised figure was conceptually wrong. Input costs rising ~40% does not mean prices must rise ~50%. To restore a 24% margin with costs at 94% of today's revenue, revenue must rise to 94/0.76 ≈ 123.7, a price increase of about 23.7%, assuming volume and costs hold.",
+     "quotes": [
+      "Oh, actually, it should be about fifty percent because their cost have increased by about forty percent."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turns 42–44, when the interviewer asked you to work out the gap using the 24% and 6% margins.",
+     "betterResponse": "Costs are 58 + 22 + 14 = 94% of revenue today, which leaves a 6% margin. To get back to 24%, costs must be 76% of revenue, so revenue needs to be 94 / 0.76 ≈ 1.237 times today's level. That's roughly a 24% price increase if volume and costs hold. That's too much to take in one go, so I'd pair a targeted price rise with procurement savings."
+    },
+    {
+     "moment": "Turn 20, after learning beans are 25% of COGS.",
+     "betterResponse": "COGS was 42% of revenue, so beans were about 10.5 points and other inputs about 31.5 points. Beans up 40% adds about 4.2 points. Other inputs up 37.5% add about 11.8 points. That's roughly 16 points total, which matches the COGS jump from 42% to 58%. So non-bean inputs drive about three-quarters of the increase."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Computes accurately",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You went inside COGS, asked for the composition data needed to size each input, and reached the right directional conclusion that non-bean inputs matter more.",
+     "quotes": [
+      "I'd like to see, uh, what percentage, um, these particular line line items, uh, make up.",
+      "And the other input costs make up a much larger portion. And so I think the the problem more so lies in with the increase in the input costs of the dairy packaging and food."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "You read the exhibit line by line and correctly isolated COGS as the main driver, with labor flat and overhead up slightly, but you described it only qualitatively. You never quantified that COGS accounted for 16 of the 18 lost points (42% to 58%) and overhead for 2 (12% to 14%).",
+     "quotes": [
+      "main issue is COGS, which has dramatically increased",
+      "So I see our labor has stayed steady. I see overhead has been slightly increasing over time. However, main issue is COGS, which has dramatically increased and which makes up a large portion of the problem with profit."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 22, when asked how to test whether the cost increase fully explains the margin drop.",
+     "betterResponse": "The cost lines add up exactly: COGS +16 points and overhead +2 equals the 18-point drop, so costs explain it in a mechanical sense. The real question is why revenue didn't keep pace. Revenue grew 15% while inputs rose ~38%, so I'd want to know whether we changed menu prices and whether volume or mix shifted."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "met",
+     "quote": "So I see our labor has stayed steady. I see overhead has been slightly increasing over time."
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "met",
+     "quote": "However, main issue is COGS, which has dramatically increased and which makes up a large portion of the problem with profit."
+    },
+    {
+     "element": "States the implication",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "met",
+     "quote": "I'd like to see, uh, what percentage, um, these particular line line items, uh, make up."
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Your levers were practical and commercially sound: price selectively on less elastic products and secure better supply contracts.",
+     "quotes": [
+      "on the price side, take selective price increases on, uh, less elastic products, and then also on the cost side, try to get better supply contracts."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "You framed the root cause as purely a cost problem even after learning menu prices had not moved in two years. The insight that flat pricing against ~38% input inflation is half the story was not drawn out.",
+     "quotes": [
+      "Because no change in price... in many pricing has occurred, essentially, the problem really is with the cost that we've experienced cost increases."
+     ]
+    },
+    {
+     "point": "Your assumption that a slight price increase would be enough was not realistic. Closing the gap requires roughly a 24% price increase, or a combination of pricing and procurement.",
+     "quotes": [
+      "And so I think consumers would be okay with a slight price price increase, especially when our cost has increased by so much."
+     ]
+    },
+    {
+     "point": "You named a realistic risk (volume loss) and a sensible mitigation (test which products can carry a premium), but only once the interviewer asked. No risks were raised proactively.",
+     "quotes": [
+      "I think the biggest risk is that we'll lose volume if we take price on the wrong type of product."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 29, after hearing menu prices were unchanged for two years.",
+     "betterResponse": "So the root cause is that input costs rose roughly 38% and we passed none of it through to prices. That points to a pricing and procurement fix rather than cutting labor or overhead, which are already flat or lean. I'd also check whether competitors raised prices, since that tells us how much pricing power we have."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "met",
+     "quote": "take selective price increases on, uh, less elastic products"
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You loosely organized your ideas into a price side and a cost side.",
+     "quotes": [
+      "on the price side, take selective price increases on, uh, less elastic products, and then also on the cost side, try to get better supply contracts."
+     ]
+    },
+    {
+     "point": "When pushed for more levers, you added a distinct mix-shift idea.",
+     "quotes": [
+      "Maybe we could advertise our products that have higher margin to begin with, so we force consumers to trade up."
+     ]
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 32, when asked for levers beyond price and supplier terms.",
+     "betterResponse": "I'll think across product, operations, and customer. On product: trim low-margin SKUs, adjust portion and cup sizes, and launch a value blend for budget-sensitive stores. On operations: cut waste in dairy and food, and switch packaging specs. On customer: a loyalty program that nudges people toward higher-margin specialty drinks. I'd prioritize pricing plus procurement first because they hit the biggest gap fastest."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "met",
+     "quote": "on the price side, take selective price increases on, uh, less elastic products, and then also on the cost side, try to get better supply contracts."
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "met",
+     "quote": "Maybe we could advertise our products that have higher margin to begin with, so we force consumers to trade up."
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "met",
+     "quote": "I would choose... so, like, the price increases, we haven't increased our price in quite a while."
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You named the key risk and a next step to mitigate it.",
+     "quotes": [
+      "And so I would do an analysis where I would try to see which products people would pay a premium for."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "You committed to a clear recommendation, price increases, tied to the finding that prices had been flat, but the support was vague and unquantified. It did not reference the 16-point COGS rise, the ~38% input inflation, or how much price is needed.",
+     "quotes": [
+      "And so I think consumers would be okay with a slight price price increase, especially when our cost has increased by so much.",
+      "I would choose... so, like, the price increases, we haven't increased our price in quite a while."
+     ]
+    },
+    {
+     "point": "You could not size the recommendation, even after a Level 2 narrowing hint. The interviewer had to lead, and your answers were unsupported claims rather than a defensible number.",
+     "quotes": [
+      "I would see what the gap is and try to see, you know, if we can make it up for it with the price increase.",
+      "Yes. It does."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 34, when asked which lever to put in front of the CEO first.",
+     "betterResponse": "I'd recommend selective price increases on specialty drinks, paired with procurement across beans, dairy, and packaging. Three reasons. First, COGS drove 16 of the 18 lost margin points. Second, about three-quarters of that came from non-bean inputs. Third, menu prices haven't moved in two years while inputs rose ~38%. Restoring 24% fully would take ~24% on price alone, so I'd combine pricing with supplier savings. The key risk is volume loss, so next I'd test elasticity by SKU and check competitor pricing."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "met",
+     "quote": "I would choose... so, like, the price increases, we haven't increased our price in quite a while."
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Names the key risk",
+     "status": "met",
+     "quote": "I think the biggest risk is that we'll lose volume if we take price on the wrong type of product."
+    },
+    {
+     "element": "Names next steps",
+     "status": "met",
+     "quote": "And so I would do an analysis where I would try to see which products people would pay a premium for."
+    },
+    {
+     "element": "Stays concise",
+     "status": "met",
+     "quote": "I would choose... so, like, the price increases, we haven't increased our price in quite a while."
+    }
+   ]
+  },
+  "communication": {
+   "rating": "needs_work",
+   "wentWell": [
+    {
+     "point": "At times you used hypothesis-driven phrasing to steer the case.",
+     "quotes": [
+      "Um, I'm thinking that maybe it's not a revenue issue. It's more of a cost issue."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Many of your answers were fragmentary or non-answers, which made your reasoning hard to follow and forced the interviewer to re-ask repeatedly.",
+     "quotes": [
+      "Yeah. Ten percent.",
+      "Yes. It does."
+     ]
+    },
+    {
+     "point": "Your delivery had heavy filler and little signposting beyond the opening, and you sometimes lost track of the question.",
+     "quotes": [
+      "Well, I like to see, um, like, fixed cost that would be, like, overhead labor and then variable cost.",
+      "Can you repeat the question?"
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 23, when asked a two-part question about testing the cost explanation and revenue-side data.",
+     "betterResponse": "Let me take that in two parts. First, to test whether costs explain the drop, I'd add up the cost-line changes against the 18-point decline. Second, on revenue, I'd want price changes, volume, and mix over the two years."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States structure before detail",
+     "status": "met",
+     "quote": "Um, and so when dealing with a profit decline, I wanna break it into two parts."
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "Um, I'm thinking that maybe it's not a revenue issue. It's more of a cost issue."
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "On the structure pressure test you conceded without fixing anything, leaving the interviewer to lead.",
+     "quotes": [
+      "Yeah. I think it's messy."
+     ]
+    },
+    {
+     "point": "At points you drove the analysis by asking for the data needed to size the cost drivers, but under challenge you turned passive. You defaulted to \"not sure\" and needed a Level 1 restatement and a Level 2 narrowing hint to move forward.",
+     "quotes": [
+      "I'm not sure. I don't know. I think cost is a problem.",
+      "I'd like to see, uh, what percentage, um, these particular line line items, uh, make up.",
+      "What happened with prices?"
+     ]
+    },
+    {
+     "point": "When the interviewer probed your sizing, you flipped from 10% to 50% without reasoning that holds up, rather than working the numbers to defend or update the figure.",
+     "quotes": [
+      "Oh, actually, it should be about fifty percent because their cost have increased by about forty percent."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 52, when the interviewer challenged whether a 10% price rise gets the client back near 24%.",
+     "betterResponse": "Let me check. Costs are 94% of today's revenue. With a 10% price rise they become 94/110, about 85.5%, so margin is about 14.5%. That's better, but not back to 24%. I'd update: we'd need about 24% on price alone, so I'd combine roughly 10–12% targeted pricing with procurement savings to close the rest."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "met",
+     "quote": "I think potentially the, um, the units sold"
+    }
+   ]
+  },
+  "overallRating": "needs_work",
+  "topFix": "Practice sizing the fix out loud from the P&L: write the equation first, compute, then sanity-check. Here, costs were 94% of revenue (58 + 22 + 14). A 10% price rise gives 94/110 ≈ 85.5% costs, or about a 14.5% margin. Restoring 24% needs 94/0.76 ≈ 1.237, about a 24% price increase. Your claims of \"ten percent\" and then \"about fifty percent\" both fail that check, and that is what turned a sound pricing recommendation into one you couldn't defend."
+ },
+ "after": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "You anchored the opening on the profit equation with revenue and cost branches, a relevant starting point, but the framework stayed generic and left out volume on the revenue side until the interviewer prompted you twice.",
+     "quotes": [
+      "which includes price and, you know, potentially, our mix of products as well as cost, which is, like, fixed and variable cost",
+      "I think potentially the, um, the units sold",
+      "you know, because profit equals revenue minus costs."
+     ],
+     "plain": {
+      "where": "In the opening, when asked how you would approach the drop in margin from 24% to 6%, you said \"profit equals revenue minus costs\" and split revenue into \"price and, you know, potentially, our mix of products\".",
+      "what": "Starting from the profit equation with revenue and cost branches was a relevant first step. The framework stayed generic, though, and volume on the revenue side only came in as \"the units sold\" after the interviewer had asked about gaps twice.",
+      "why": "Interviewers expect an opening framework that fits the specific client and covers the obvious drivers without having to be prompted.",
+      "next": "Next time, try writing revenue as volume times price, plus mix, before you start talking, so every revenue driver is on the page from the start."
+     }
+    },
+    {
+     "point": "On the MECE pressure test you called your own structure messy but did not fix it or say what was missing, so the interviewer had to lead you through the gaps.",
+     "quotes": [
+      "Yeah. I think it's messy."
+     ],
+     "plain": {
+      "where": "In the follow-up on your opening structure, when the interviewer asked whether it had any gaps or overlaps and what was missing, you said \"Yeah. I think it's messy.\"",
+      "what": "You called your own structure messy but left it as it was and named nothing that was missing. The interviewer then had to walk you through the gaps.",
+      "why": "When an interviewer questions your structure, they want to see you repair it on the spot, not only agree that it has problems.",
+      "next": "Next time, try naming the specific gap and restating the corrected structure in the same answer."
+     }
+    },
+    {
+     "point": "When asked to prioritize, you picked cost first with a reason tied to the case facts, but you did not prioritize until prompted. The cost branch also stayed at fixed vs. variable rather than a coffee chain's real cost lines (COGS, labor, rent/overhead) until the interviewer pushed.",
+     "quotes": [
+      "I'd like to look at, um, like, fixed and variable cost.",
+      "I would like to check cost first because revenue has been increasing."
+     ],
+     "plain": {
+      "where": "In the follow-up on your opening structure, you chose \"I would like to check cost first because revenue has been increasing\", after earlier framing cost only as \"fixed and variable cost\".",
+      "what": "Your choice of cost came with a reason tied to the case facts, but you only ranked the branches once prompted. The cost side also stayed at fixed versus variable rather than a coffee chain's real cost lines (COGS, labor, rent/overhead) until the interviewer pushed.",
+      "why": "Ranking your branches on your own initiative and using cost lines that fit the business shows you can lead the case rather than follow it.",
+      "next": "Next time, try stating which branch you would check first, and why, right at the end of your opening, with costs broken into the client's actual cost lines."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 1, the opening framework for a margin that fell from 24% to 6% while revenue grew 15%.",
+     "betterResponse": "Our goal is to find why margin fell 18 points despite 15% revenue growth and how to restore it. Profit is revenue minus cost. Revenue is volume times price, plus mix. Costs split into COGS (beans, dairy, packaging, food), labor, and rent/overhead. Since revenue grew, my hypothesis is that costs outpaced pricing, so I'd start with each cost line as a percentage of revenue and then check whether we raised prices and whether competitors face the same input inflation.",
+     "plain": {
+      "where": "In the opening, when asked how you would approach a margin that fell from 24% to 6% while revenue grew 15%, you began with \"profit equals revenue minus costs.\"",
+      "what": "The framework stayed general, with no goal stated, no volume, and costs split only into fixed and variable.",
+      "why": "A sharp, client-specific opening sets the direction for the whole case and shows the interviewer you can lead it."
+     }
+    },
+    {
+     "moment": "Turn 2, when asked \"Is that structure MECE, and what's missing from it?\"",
+     "betterResponse": "Not quite. Fixed vs. variable overlaps with how I'd actually look at the P&L, and I left out volume. Let me restate it: revenue = volume × price × mix, and costs = COGS, labor, overhead. I'd prioritize costs and pricing, since revenue is growing but margin collapsed.",
+     "plain": {
+      "where": "In the follow-up on your opening structure, when asked whether it had gaps or overlaps and what was missing, you answered \"Yeah. I think it's messy.\"",
+      "what": "This was a chance to name the gap and restate a cleaner structure on the spot.",
+      "why": "Fixing your own structure when questioned shows you can take feedback and improve quickly."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "met",
+     "quote": "they're experiencing, uh, a profit decline from twenty four to six percent even though revenue has been growing"
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "met",
+     "quote": "I would like to check cost first because revenue has been increasing."
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "You asserted a 10% price increase without deriving it and could not explain it when asked.",
+     "quotes": [
+      "Yeah. Ten percent.",
+      "I'm not sure."
+     ],
+     "plain": {
+      "where": "In the questions after your recommendation, when the interviewer asked about the two ways a margin can fall, you answered \"Yeah. Ten percent.\", and earlier, at the exhibit, you answered \"I'm not sure.\" when asked how to test the cost explanation.",
+      "what": "You gave a 10% price increase with no working behind it. When asked how you got it, you could not explain it.",
+      "why": "In a real interview, a number you cannot explain carries no weight and weakens trust in the rest of your analysis.",
+      "next": "Next time, try writing out the calculation step by step before you state any figure."
+     }
+    },
+    {
+     "point": "You claimed the 10% increase restores the margin without doing any arithmetic. In fact, costs are 94% of revenue today (58 + 22 + 14), so a 10% price rise brings them to 94/110 ≈ 85.5% of revenue, a margin of about 14.5%, not back near 24%.",
+     "quotes": [
+      "Yes. It does."
+     ],
+     "plain": {
+      "where": "In the questions after your recommendation, when the interviewer asked how much a 10% price rise would lift the margin and whether that gets the client back near where they were, you said \"Yes. It does.\"",
+      "what": "You said the 10% increase restores the margin without doing any arithmetic. In fact, costs are 94% of revenue today (58 + 22 + 14), so a 10% price rise brings them to 94/110 ≈ 85.5% of revenue, a margin of about 14.5%, not back near 24%.",
+      "why": "Agreeing to a claim without checking the numbers can lead you to a wrong recommendation that the interviewer will spot right away.",
+      "next": "Next time, try dividing today's costs by the new revenue to work out the resulting margin before answering yes or no."
+     }
+    },
+    {
+     "point": "Your revised figure was conceptually wrong. Input costs rising ~40% does not mean prices must rise ~50%. To restore a 24% margin with costs at 94% of today's revenue, revenue must rise to 94/0.76 ≈ 123.7, a price increase of about 23.7%, assuming volume and costs hold.",
+     "quotes": [
+      "Oh, actually, it should be about fifty percent because their cost have increased by about forty percent."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turns 42–44, when the interviewer asked you to work out the gap using the 24% and 6% margins.",
+     "betterResponse": "Costs are 58 + 22 + 14 = 94% of revenue today, which leaves a 6% margin. To get back to 24%, costs must be 76% of revenue, so revenue needs to be 94 / 0.76 ≈ 1.237 times today's level. That's roughly a 24% price increase if volume and costs hold. That's too much to take in one go, so I'd pair a targeted price rise with procurement savings.",
+     "plain": {
+      "where": "In the questions after your recommendation, when the interviewer asked you to work out the gap using the 24% and 6% margins, you answered \"I'm not sure.\"",
+      "what": "The figures needed to size the price increase were already on the table.",
+      "why": "Turning the case figures into a required price change is the calculation that makes a recommendation credible."
+     }
+    },
+    {
+     "moment": "Turn 20, after learning beans are 25% of COGS.",
+     "betterResponse": "COGS was 42% of revenue, so beans were about 10.5 points and other inputs about 31.5 points. Beans up 40% adds about 4.2 points. Other inputs up 37.5% add about 11.8 points. That's roughly 16 points total, which matches the COGS jump from 42% to 58%. So non-bean inputs drive about three-quarters of the increase.",
+     "plain": {
+      "where": "At the exhibit, after learning beans were 25% of COGS, you said \"the other input costs make up a much larger portion.\"",
+      "what": "The direction was right, and the numbers were there to size how much each input added.",
+      "why": "Sizing each driver shows exactly how much of the problem you have explained."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Computes accurately",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You went inside COGS, asked for the composition data needed to size each input, and reached the right directional conclusion that non-bean inputs matter more.",
+     "quotes": [
+      "I'd like to see, uh, what percentage, um, these particular line line items, uh, make up.",
+      "And the other input costs make up a much larger portion. And so I think the the problem more so lies in with the increase in the input costs of the dairy packaging and food."
+     ],
+     "plain": {
+      "where": "At the exhibit, you asked \"I'd like to see, uh, what percentage, um, these particular line line items, uh, make up\" and then concluded \"the problem more so lies in with the increase in the input costs of the dairy packaging and food.\"",
+      "what": "You looked inside COGS and asked for the breakdown needed to size each input. You then reached the right directional conclusion that non-bean inputs matter more.",
+      "why": "Asking for the data that lets you size each driver is exactly how strong candidates find the real cause.",
+      "next": "Keep asking for the breakdown that lets you size each driver before you draw a conclusion."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "You read the exhibit line by line and correctly isolated COGS as the main driver, with labor flat and overhead up slightly, but you described it only qualitatively. You never quantified that COGS accounted for 16 of the 18 lost points (42% to 58%) and overhead for 2 (12% to 14%).",
+     "quotes": [
+      "main issue is COGS, which has dramatically increased",
+      "So I see our labor has stayed steady. I see overhead has been slightly increasing over time. However, main issue is COGS, which has dramatically increased and which makes up a large portion of the problem with profit."
+     ],
+     "plain": {
+      "where": "At the exhibit, when asked which cost line to focus on, you said \"So I see our labor has stayed steady. I see overhead has been slightly increasing over time. However, main issue is COGS, which has dramatically increased\".",
+      "what": "You read the exhibit line by line and correctly singled out COGS as the main driver, with labor flat and overhead up slightly. The description stayed qualitative, though, and the answer left out that COGS accounted for 16 of the 18 lost points (42% to 58%) and overhead for 2 (12% to 14%).",
+      "why": "Putting numbers on each driver shows the interviewer how much of the problem you have explained.",
+      "next": "Next time, try stating the change in each cost line in percentage points and checking that they add up to the total margin drop."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 22, when asked how to test whether the cost increase fully explains the margin drop.",
+     "betterResponse": "The cost lines add up exactly: COGS +16 points and overhead +2 equals the 18-point drop, so costs explain it in a mechanical sense. The real question is why revenue didn't keep pace. Revenue grew 15% while inputs rose ~38%, so I'd want to know whether we changed menu prices and whether volume or mix shifted.",
+     "plain": {
+      "where": "At the exhibit, when asked how to test whether the cost increase fully explains the margin drop and what revenue data you would want, you answered \"I'm not sure.\"",
+      "what": "Adding up the cost-line changes and turning to the revenue side would have answered both parts.",
+      "why": "Checking that the drivers add up to the total, then asking why revenue lagged, is how you get to the real root cause."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "met",
+     "quote": "So I see our labor has stayed steady. I see overhead has been slightly increasing over time."
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "met",
+     "quote": "However, main issue is COGS, which has dramatically increased and which makes up a large portion of the problem with profit."
+    },
+    {
+     "element": "States the implication",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "met",
+     "quote": "I'd like to see, uh, what percentage, um, these particular line line items, uh, make up."
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Your levers were practical and commercially sound: price selectively on less elastic products and secure better supply contracts.",
+     "quotes": [
+      "on the price side, take selective price increases on, uh, less elastic products, and then also on the cost side, try to get better supply contracts."
+     ],
+     "plain": {
+      "where": "In the brainstorm, when asked for ideas to reverse the margin decline, you suggested \"on the price side, take selective price increases on, uh, less elastic products, and then also on the cost side, try to get better supply contracts.\"",
+      "what": "Your ideas were practical and commercially sound: raise prices selectively on less elastic products and secure better supply contracts.",
+      "why": "Ideas a client could actually act on show the interviewer you think like a business adviser.",
+      "next": "Keep offering concrete ideas that a client could put into practice."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "You framed the root cause as purely a cost problem even after learning menu prices had not moved in two years. The insight that flat pricing against ~38% input inflation is half the story was not drawn out.",
+     "quotes": [
+      "Because no change in price... in many pricing has occurred, essentially, the problem really is with the cost that we've experienced cost increases."
+     ],
+     "plain": {
+      "where": "At the exhibit, after hearing menu prices had not changed in two years, you said \"Because no change in price... in many pricing has occurred, essentially, the problem really is with the cost that we've experienced cost increases.\"",
+      "what": "You described the root cause as purely a cost problem even after learning prices had stayed flat. The point that flat pricing against ~38% input inflation is half the story was left unstated.",
+      "why": "Spotting that the client absorbed cost increases without passing them on is the central insight of this case.",
+      "next": "Next time, try comparing how much prices moved against how much costs moved, and stating the gap between them as part of the root cause."
+     }
+    },
+    {
+     "point": "Your assumption that a slight price increase would be enough was not realistic. Closing the gap requires roughly a 24% price increase, or a combination of pricing and procurement.",
+     "quotes": [
+      "And so I think consumers would be okay with a slight price price increase, especially when our cost has increased by so much."
+     ],
+     "plain": {
+      "where": "In the recommendation, you said \"And so I think consumers would be okay with a slight price price increase, especially when our cost has increased by so much.\"",
+      "what": "The assumption that a slight price increase would be enough was not realistic. Closing the gap requires roughly a 24% price increase, or a combination of pricing and procurement.",
+      "why": "A recommendation that falls far short of the problem's size would not hold up in front of a CEO.",
+      "next": "Next time, try sizing the gap first and then checking whether your chosen lever is big enough to close it."
+     }
+    },
+    {
+     "point": "You named a realistic risk (volume loss) and a sensible mitigation (test which products can carry a premium), but only once the interviewer asked. No risks were raised proactively.",
+     "quotes": [
+      "I think the biggest risk is that we'll lose volume if we take price on the wrong type of product."
+     ],
+     "plain": {
+      "where": "In the questions after your recommendation, when asked for the biggest risk, you said \"I think the biggest risk is that we'll lose volume if we take price on the wrong type of product.\"",
+      "what": "You named a realistic risk (volume loss) and a sensible way to reduce it (test which products can carry a premium), but only once the interviewer asked. No risks came up before that.",
+      "why": "Raising risks yourself shows the interviewer you have thought the recommendation through.",
+      "next": "Next time, try ending your recommendation with the main risk and how you would reduce it, before being asked."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 29, after hearing menu prices were unchanged for two years.",
+     "betterResponse": "So the root cause is that input costs rose roughly 38% and we passed none of it through to prices. That points to a pricing and procurement fix rather than cutting labor or overhead, which are already flat or lean. I'd also check whether competitors raised prices, since that tells us how much pricing power we have.",
+     "plain": {
+      "where": "At the exhibit, after hearing menu prices were unchanged for two years, you concluded \"the problem really is with the cost.\"",
+      "what": "This was the moment to connect flat prices with rising input costs as the root cause.",
+      "why": "Drawing out that link is the key insight of the case and points straight to the right fix."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "met",
+     "quote": "take selective price increases on, uh, less elastic products"
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You loosely organized your ideas into a price side and a cost side.",
+     "quotes": [
+      "on the price side, take selective price increases on, uh, less elastic products, and then also on the cost side, try to get better supply contracts."
+     ],
+     "plain": {
+      "where": "In the brainstorm, you grouped your ideas as \"on the price side, take selective price increases on, uh, less elastic products, and then also on the cost side, try to get better supply contracts.\"",
+      "what": "You loosely organized your ideas into a price side and a cost side.",
+      "why": "Grouping ideas makes them easier to follow and shows you are covering the problem in an orderly way.",
+      "next": "Keep sorting your ideas into clear groups as you share them."
+     }
+    },
+    {
+     "point": "When pushed for more levers, you added a distinct mix-shift idea.",
+     "quotes": [
+      "Maybe we could advertise our products that have higher margin to begin with, so we force consumers to trade up."
+     ],
+     "plain": {
+      "where": "In the brainstorm, when asked for ideas beyond price and supplier terms, you said \"Maybe we could advertise our products that have higher margin to begin with, so we force consumers to trade up.\"",
+      "what": "When pushed for more ideas, you added a distinct one: shifting sales toward higher-margin products.",
+      "why": "Coming up with a genuinely different idea under pressure shows range in your thinking.",
+      "next": "Keep adding ideas that differ from the ones already on the table when the interviewer asks for more."
+     }
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 32, when asked for levers beyond price and supplier terms.",
+     "betterResponse": "I'll think across product, operations, and customer. On product: trim low-margin SKUs, adjust portion and cup sizes, and launch a value blend for budget-sensitive stores. On operations: cut waste in dairy and food, and switch packaging specs. On customer: a loyalty program that nudges people toward higher-margin specialty drinks. I'd prioritize pricing plus procurement first because they hit the biggest gap fastest.",
+     "plain": {
+      "where": "In the brainstorm, when asked for ideas beyond price and supplier terms, you offered one: \"Maybe we could advertise our products that have higher margin to begin with, so we force consumers to trade up.\"",
+      "what": "A wider sweep across several areas of the business would have produced more distinct ideas.",
+      "why": "Interviewers reward a broad, organized set of ideas followed by a clear sense of which matter most."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "met",
+     "quote": "on the price side, take selective price increases on, uh, less elastic products, and then also on the cost side, try to get better supply contracts."
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "met",
+     "quote": "Maybe we could advertise our products that have higher margin to begin with, so we force consumers to trade up."
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "met",
+     "quote": "I would choose... so, like, the price increases, we haven't increased our price in quite a while."
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You named the key risk and a next step to mitigate it.",
+     "quotes": [
+      "And so I would do an analysis where I would try to see which products people would pay a premium for."
+     ],
+     "plain": {
+      "where": "In the questions after your recommendation, when asked for the biggest risk and how to reduce it, you said \"And so I would do an analysis where I would try to see which products people would pay a premium for.\"",
+      "what": "You named the key risk and a next step to reduce it.",
+      "why": "Pairing a risk with a concrete next step makes a recommendation feel ready to act on.",
+      "next": "Keep pairing each risk you name with a specific next step."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "You committed to a clear recommendation, price increases, tied to the finding that prices had been flat, but the support was vague and unquantified. It did not reference the 16-point COGS rise, the ~38% input inflation, or how much price is needed.",
+     "quotes": [
+      "And so I think consumers would be okay with a slight price price increase, especially when our cost has increased by so much.",
+      "I would choose... so, like, the price increases, we haven't increased our price in quite a while."
+     ],
+     "plain": {
+      "where": "In the recommendation, when asked which idea to put in front of the CEO first, you said \"I would choose... so, like, the price increases, we haven't increased our price in quite a while.\"",
+      "what": "You committed to a clear recommendation, price increases, tied to the finding that prices had been flat, but the support was vague and had no numbers. It left out the 16-point COGS rise, the ~38% input inflation, and how much price is needed.",
+      "why": "A CEO acts on a recommendation backed by the key numbers, not on a general sense that costs went up.",
+      "next": "Next time, try backing your recommendation with two or three numbers from the case, including how big the change needs to be."
+     }
+    },
+    {
+     "point": "You could not size the recommendation, even after a Level 2 narrowing hint. The interviewer had to lead, and your answers were unsupported claims rather than a defensible number.",
+     "quotes": [
+      "I would see what the gap is and try to see, you know, if we can make it up for it with the price increase.",
+      "Yes. It does."
+     ],
+     "plain": {
+      "where": "In the questions after your recommendation, when asked which figures you would compare to size the price increase, you said \"I would see what the gap is and try to see, you know, if we can make it up for it with the price increase.\"",
+      "what": "The recommendation stayed unsized, even after the interviewer narrowed the question. The interviewer had to lead, and answers such as \"Yes. It does.\" were unsupported claims rather than a number you could defend.",
+      "why": "Being able to put a number on your own recommendation is one of the main things interviewers test at the end of a case.",
+      "next": "Next time, try saying out loud which two figures you would use and doing the division step by step, even if roughly."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 34, when asked which lever to put in front of the CEO first.",
+     "betterResponse": "I'd recommend selective price increases on specialty drinks, paired with procurement across beans, dairy, and packaging. Three reasons. First, COGS drove 16 of the 18 lost margin points. Second, about three-quarters of that came from non-bean inputs. Third, menu prices haven't moved in two years while inputs rose ~38%. Restoring 24% fully would take ~24% on price alone, so I'd combine pricing with supplier savings. The key risk is volume loss, so next I'd test elasticity by SKU and check competitor pricing.",
+     "plain": {
+      "where": "In the recommendation, when asked which idea to put in front of the CEO first, you chose price increases because \"we haven't increased our price in quite a while.\"",
+      "what": "A recommendation with numbered reasons, figures from the case, a risk and next steps would have been much stronger.",
+      "why": "A clear, numbers-backed final answer is what a CEO, and an interviewer, remembers."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "met",
+     "quote": "I would choose... so, like, the price increases, we haven't increased our price in quite a while."
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Names the key risk",
+     "status": "met",
+     "quote": "I think the biggest risk is that we'll lose volume if we take price on the wrong type of product."
+    },
+    {
+     "element": "Names next steps",
+     "status": "met",
+     "quote": "And so I would do an analysis where I would try to see which products people would pay a premium for."
+    },
+    {
+     "element": "Stays concise",
+     "status": "met",
+     "quote": "I would choose... so, like, the price increases, we haven't increased our price in quite a while."
+    }
+   ]
+  },
+  "communication": {
+   "rating": "needs_work",
+   "wentWell": [
+    {
+     "point": "At times you used hypothesis-driven phrasing to steer the case.",
+     "quotes": [
+      "Um, I'm thinking that maybe it's not a revenue issue. It's more of a cost issue."
+     ],
+     "plain": {
+      "where": "In the follow-up on your opening structure, when asked which area to check first, you said \"Um, I'm thinking that maybe it's not a revenue issue. It's more of a cost issue.\"",
+      "what": "At times you stated a working guess about the answer and used it to steer the case.",
+      "why": "Stating a working guess gives your analysis direction and helps the interviewer follow your logic.",
+      "next": "Keep stating your working guess early and using it to pick where to look next."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Many of your answers were fragmentary or non-answers, which made your reasoning hard to follow and forced the interviewer to re-ask repeatedly.",
+     "quotes": [
+      "Yeah. Ten percent.",
+      "Yes. It does."
+     ],
+     "plain": {
+      "where": "In the questions after your recommendation, you answered with short replies such as \"Yeah. Ten percent.\" and \"Yes. It does.\" when asked about how margins fall and to take the interviewer through the arithmetic.",
+      "what": "Many of your answers were fragments or did not answer the question. This made your reasoning hard to follow, and the interviewer had to ask again repeatedly.",
+      "why": "Interviewers judge your reasoning, and they cannot assess reasoning they do not hear.",
+      "next": "Next time, try giving your answer in a full sentence followed by one sentence explaining how you got there."
+     }
+    },
+    {
+     "point": "Your delivery had heavy filler and little signposting beyond the opening, and you sometimes lost track of the question.",
+     "quotes": [
+      "Well, I like to see, um, like, fixed cost that would be, like, overhead labor and then variable cost.",
+      "Can you repeat the question?"
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 23, when asked a two-part question about testing the cost explanation and revenue-side data.",
+     "betterResponse": "Let me take that in two parts. First, to test whether costs explain the drop, I'd add up the cost-line changes against the 18-point decline. Second, on revenue, I'd want price changes, volume, and mix over the two years.",
+     "plain": {
+      "where": "At the exhibit, when asked a two-part question about testing the cost explanation and what revenue data you would want, you answered \"I'm not sure.\"",
+      "what": "Splitting the question into its two parts would have given you a way into an answer.",
+      "why": "Breaking a question into parts helps you think and lets the interviewer follow along."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States structure before detail",
+     "status": "met",
+     "quote": "Um, and so when dealing with a profit decline, I wanna break it into two parts."
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "Um, I'm thinking that maybe it's not a revenue issue. It's more of a cost issue."
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "On the structure pressure test you conceded without fixing anything, leaving the interviewer to lead.",
+     "quotes": [
+      "Yeah. I think it's messy."
+     ],
+     "plain": {
+      "where": "In the follow-up on your opening structure, when the interviewer questioned whether it had gaps or overlaps, you said \"Yeah. I think it's messy.\"",
+      "what": "You agreed with the challenge without fixing anything, which left the interviewer to lead.",
+      "why": "How you respond to a challenge shows whether you can take charge of a case under pressure.",
+      "next": "Next time, try answering a challenge with a corrected version of your structure rather than just agreeing."
+     }
+    },
+    {
+     "point": "At points you drove the analysis by asking for the data needed to size the cost drivers, but under challenge you turned passive. You defaulted to \"not sure\" and needed a Level 1 restatement and a Level 2 narrowing hint to move forward.",
+     "quotes": [
+      "I'm not sure. I don't know. I think cost is a problem.",
+      "I'd like to see, uh, what percentage, um, these particular line line items, uh, make up.",
+      "What happened with prices?"
+     ],
+     "plain": {
+      "where": "At the exhibit, you moved the analysis forward by asking \"I'd like to see, uh, what percentage, um, these particular line line items, uh, make up\", but when challenged later you said \"I'm not sure. I don't know. I think cost is a problem.\"",
+      "what": "At points you drove the analysis by asking for the data needed to size the cost drivers, but under challenge you became passive. You fell back on \"not sure\" and needed the interviewer to repeat the question and then narrow it, with prompts like \"What happened with prices?\" before moving forward.",
+      "why": "Interviewers look for candidates who keep pushing the analysis forward even when they are stuck.",
+      "next": "Next time, try saying what you do know and proposing one piece of data you would check, instead of stopping at \"not sure\"."
+     }
+    },
+    {
+     "point": "When the interviewer probed your sizing, you flipped from 10% to 50% without reasoning that holds up, rather than working the numbers to defend or update the figure.",
+     "quotes": [
+      "Oh, actually, it should be about fifty percent because their cost have increased by about forty percent."
+     ],
+     "plain": {
+      "where": "In the questions after your recommendation, when the interviewer probed your sizing, you said \"Oh, actually, it should be about fifty percent because their cost have increased by about forty percent.\"",
+      "what": "You switched from 10% to 50% with reasoning that does not hold up, rather than working the numbers to defend or update the figure.",
+      "why": "Changing a number without calculations behind it signals guessing and makes the interviewer doubt every figure you give.",
+      "next": "Next time, try recalculating out loud when your number is questioned, then either defend it or update it based on that working."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 52, when the interviewer challenged whether a 10% price rise gets the client back near 24%.",
+     "betterResponse": "Let me check. Costs are 94% of today's revenue. With a 10% price rise they become 94/110, about 85.5%, so margin is about 14.5%. That's better, but not back to 24%. I'd update: we'd need about 24% on price alone, so I'd combine roughly 10–12% targeted pricing with procurement savings to close the rest.",
+     "plain": {
+      "where": "In the questions after your recommendation, when the interviewer asked whether a 10% price rise gets the client back near 24%, you said \"Yes. It does.\"",
+      "what": "This was the moment to check the arithmetic and update the figure if needed.",
+      "why": "Checking and updating your own number under challenge shows composure and builds trust."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "met",
+     "quote": "I think potentially the, um, the units sold"
+    }
+   ]
+  },
+  "overallRating": "needs_work",
+  "topFix": "Practice sizing the fix out loud from the P&L: write the equation first, compute, then sanity-check. Here, costs were 94% of revenue (58 + 22 + 14). A 10% price rise gives 94/110 ≈ 85.5% costs, or about a 14.5% margin. Restoring 24% needs 94/0.76 ≈ 1.237, about a 24% price increase. Your claims of \"ten percent\" and then \"about fifty percent\" both fail that check, and that is what turned a sound pricing recommendation into one you couldn't defend."
+ }
+}

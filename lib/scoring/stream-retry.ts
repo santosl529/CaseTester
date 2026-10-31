@@ -21,6 +21,11 @@ const deadlines = new AsyncLocalStorage<number>();
 export function withScoringDeadline<T>(deadlineAt: number, fn: () => Promise<T>): Promise<T> {
   return deadlines.run(deadlineAt, fn);
 }
+// Time left before the pass's deadline; null outside one (a script's dry run).
+export function scoringTimeLeftMs(now = Date.now()): number | null {
+  const at = deadlines.getStore();
+  return at === undefined ? null : at - now;
+}
 
 // The connection died mid-stream: worth one more try.
 //

@@ -4,7 +4,7 @@ import { and, eq } from 'drizzle-orm';
 import { getCaseById } from '@/lib/cases/loader';
 import { logEvent } from '@/lib/analytics';
 import { classifyDataRequests, findUnclassifiedExchanges } from '@/lib/orchestrator/data-requests';
-import { logDataRequestClassification } from '@/lib/orchestrator/data-request-log';
+import { logDataRequestClassification, dataRequestRows } from '@/lib/orchestrator/data-request-log';
 import { runJudge, type RubricScores } from './judge';
 import { repairTranscript } from './transcript-artifacts';
 import { auditEvidence } from './evidence-audit';
@@ -26,6 +26,7 @@ import type { Phase } from '@/lib/orchestrator/state-machine';
 import { applyCaveatFloor } from './caveat-floor';
 import { applyAnswerKeyPass } from './answer-key-pass';
 import { applyStrongGate } from './strong-gate';
+import { writePlainFeedback } from './plain-feedback';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
 import { scoreOnce, storeIfClaimed, type ScoringClaim } from './scoring-claim';
 import { withScoringDeadline, SCORING_BUDGET_MS } from './stream-retry';
@@ -100,8 +101,11 @@ export async function scoreAndStore(claim: ScoringClaim, userId: string, deps: {
 
 // The scoring pipeline without persisting a score (round-3: lets
 // scripts/regrade.ts re-grade stored sessions as a dry run). Writes only the
-// idempotent data-request backfill and llm_usage events.
-export async function computeScore({ sessionId, userId }: { sessionId: string; userId: string }) {
+// idempotent data-request backfill and llm_usage events — and with
+// `persist: false` not even those (report tone, 31 Oct: a re-score with no DB
+// write): the backfill's rows are read in memory, and usage goes only to the
+// run budget's meter.
+export async function computeScore({ sessionId, userId, persist = true }: { sessionId: string; userId: string; persist?: boolean }) {
   const session = await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) });
   if (!session) throw new Error(`Session not found: ${sessionId}`);
   const start = Date.now();
@@ -135,21 +139,14 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   // before it existed — and whether the candidate ended the interview early.
   const flags = session.flagsJsonb as Record<string, unknown>;
   const partial = Boolean(flags.partial);
-  const exhibitRows = await db.query.exhibitsShown.findMany({ where: eq(exhibitsShown.sessionId, sessionId) });
-  const phaseRows = await db.query.sessionEvents.findMany({ where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'check')) });
-  const phaseAt = (turnIndex: number) => (phaseRows.find(e => e.turnIndex === turnIndex)?.phase ?? 'ANALYSIS') as Phase;
-  const stageRecord = (flags.stageEvidence as StageRecord | undefined) ?? reconstructStages({
-    turns: turns.map(t => ({ role: t.role, text: t.text, turnIndex: t.turnIndex, timestampMs: t.timestampMs })),
-    exhibitShownAtMs: exhibitRows.map(e => e.shownAtMs), revealedAtMs: revealedRows.map(r => r.revealedAtMs),
-    pressureTest: flags.pressureTest as never, caseTexts: [caseData.prompt, ...caseData.dataLedger.map(d => d.value)], phaseAt,
-  });
+  const stageRecord = await loadStageRecord(sessionId, flags, turns, revealedRows, caseData);
   // A case with no brainstorm module (Quillpath): the stage is not part of it.
   const notInCase = stagesNotInCase(caseData);
   const stageSection = formatStageRecordSection(stageRecord, partial ? { exitTurn: flags.exitTurn as number | undefined } : null, { notInCase });
   const interventionSummary = [summarizeAssists(interventions), summarizeCoverage(interventions), summarizePressureTest(interventions, transcript)]
     .filter(Boolean)
     .join('\n\n');
-  const logUsage = (u: Record<string, unknown>) => { void logEvent('llm_usage', u, { sessionId, userId }); };
+  const logUsage = (u: Record<string, unknown>) => { if (persist) void logEvent('llm_usage', u, { sessionId, userId }); };
 
   // Rule 11 data-coverage caveat (docs/scoring-qa.md). Backfill every exchange
   // that was never classified — the final exchange (the turn route skips it so
@@ -162,6 +159,7 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
     where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
   });
   const unclassified = findUnclassifiedExchanges(transcript, priorRequestRows);
+  const backfilled: ReturnType<typeof dataRequestRows>['rows'] = [];
   await Promise.all(unclassified.map(async ({ candidate, interviewer }) => {
     const requests = await classifyDataRequests({
       candidateText: candidate.text,
@@ -170,25 +168,27 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
       onUsage: u => logUsage({ ...u }),
     });
     if (!requests) return; // failed again: stays unmarked; a retried scoring run picks it up
-    await logDataRequestClassification({
+    const classification = {
       sessionId,
       phase: session.phase,
       requests,
       candidateTurnIndex: candidate.turnIndex,
       interviewerTurnIndex: interviewer.turnIndex,
       revealedIds: new Set(revealedIds),
-    });
+    };
+    if (persist) await logDataRequestClassification(classification);
+    else backfilled.push(...dataRequestRows(classification).rows);
   }));
   if (unclassified.length > 0) {
     console.warn('[score] backfilled data-request classification for candidate turns:',
       JSON.stringify(unclassified.map(u => u.candidate.turnIndex)));
   }
-  const dataRequestRows = await db.query.sessionEvents.findMany({
+  const requestRows = persist ? await db.query.sessionEvents.findMany({
     where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'data_request')),
-  });
+  }) : [...priorRequestRows, ...backfilled];
   const dataCoverage = {
     ...summarizeDataRequests(
-      dataRequestRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb })),
+      requestRows.map(r => ({ subtype: r.subtype, turnIndex: r.turnIndex, payloadJsonb: r.payloadJsonb })),
       catalog,
       revealedIds,
     ),
@@ -294,11 +294,17 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
   const caps = applyStageCaps(strongGate.rubric, stageRecord, { partial, notInCase });
   if (caps.notAssessed.length > 0) console.warn('[score] not assessed — stage never happened, no evidence:', JSON.stringify(caps.notAssessed));
   // Rule 9 floor (v4.3 → v4.10: evidence-based) — enforced in code, after every text pass.
-  const { rubric, floored, unassessed } = applyCaveatFloor(caps.rubric);
+  const { rubric: assessed, floored, unassessed } = applyCaveatFloor(caps.rubric);
   if (floored.length > 0) console.warn('[score] caveated dimensions floored at meets_bar:', JSON.stringify(floored));
   if (merges.length > 0) console.warn('[score] reconciliation merged both-sides claims:', JSON.stringify(merges));
   if (gapDrops.length > 0) console.warn('[score] reconciliation dropped coverage-gap faults:', JSON.stringify(gapDrops));
   if (crossDimension.length > 0) console.warn('[score] cross-dimension repetition:', JSON.stringify(crossDimension));
+  // Report tone (tester feedback, 31 Oct): the same points in plain words, LAST — every pass above has run, so no
+  // rating or claim can move; each rewrite is audited and one that fails keeps the point (plain-feedback.ts).
+  const plain = await writePlainFeedback(assessed, { transcript, stageRecord, ideas: caseData.answerKeyIdeas }, u => logUsage({ ...u }));
+  if (plain.rejected.length > 0) console.warn('[score] plain-words rewrites kept in the old wording:', JSON.stringify(plain.rejected));
+  if (plain.skipped) console.warn('[score] plain-words rewrite skipped:', plain.skipped);
+  const rubric = plain.rubric;
 
   const report = assembleReport({
     sessionId,
@@ -346,9 +352,33 @@ export async function computeScore({ sessionId, userId }: { sessionId: string; u
     crossDimensionRepeats: crossDimension.length,
     // Item 4 (27 Oct): open claims that change the conclusion the report had to be made to name.
     conclusionMandateAdded: mandate.added.length,
+    // Report tone (31 Oct): items rewritten in plain words, rewrites the audit refused, a skipped pass.
+    plainWritten: plain.written.length,
+    plainRejected: plain.rejected.length,
+    plainSkipped: plain.skipped !== null,
   };
 
-  return { rubric, report, mathResults, qa, strongGate, answerKey };
+  return { rubric, report, mathResults, qa, strongGate, answerKey, assessed, plain };
+}
+
+// The session's stage record, or one rebuilt from the transcript for sessions recorded before it existed. Shared with
+// scripts/report-tone-proof.ts, which rewrites a stored report without re-scoring it.
+export async function loadStageRecord(
+  sessionId: string,
+  flags: Record<string, unknown>,
+  turns: { role: string; text: string; turnIndex: number; timestampMs: number }[],
+  revealedRows: { revealedAtMs: number }[],
+  caseData: ReturnType<typeof getCaseById>,
+): Promise<StageRecord> {
+  if (flags.stageEvidence) return flags.stageEvidence as StageRecord;
+  const exhibitRows = await db.query.exhibitsShown.findMany({ where: eq(exhibitsShown.sessionId, sessionId) });
+  const phaseRows = await db.query.sessionEvents.findMany({ where: and(eq(sessionEvents.sessionId, sessionId), eq(sessionEvents.category, 'check')) });
+  const phaseAt = (turnIndex: number) => (phaseRows.find(e => e.turnIndex === turnIndex)?.phase ?? 'ANALYSIS') as Phase;
+  return reconstructStages({
+    turns: turns.map(t => ({ role: t.role, text: t.text, turnIndex: t.turnIndex, timestampMs: t.timestampMs })),
+    exhibitShownAtMs: exhibitRows.map(e => e.shownAtMs), revealedAtMs: revealedRows.map(r => r.revealedAtMs),
+    pressureTest: flags.pressureTest as never, caseTexts: [caseData.prompt, ...caseData.dataLedger.map(d => d.value)], phaseAt,
+  });
 }
 
 // Rule 18A (v4.10): the candidate's request to stop — and the exchange about

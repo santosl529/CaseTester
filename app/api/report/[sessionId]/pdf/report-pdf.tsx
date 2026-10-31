@@ -1,5 +1,6 @@
 import { Document, Page, Text, View, StyleSheet } from '@react-pdf/renderer';
-import type { ReportDimension } from '@/lib/scoring/report-dimensions';
+import { evidenceQuotes, type ReportDimension } from '@/lib/scoring/report-dimensions';
+import type { FeedbackItem, PlainPoint } from '@/lib/scoring/judge';
 import { ratingLabel } from '@/lib/scoring/rubric';
 
 export type ReportPdfProps = {
@@ -8,6 +9,7 @@ export type ReportPdfProps = {
   overallRating: string | null;
   partial?: boolean;      // Rule 18A: the candidate ended early — no overall rating
   topFix: string | null;
+  topFixPlain?: PlainPoint | null;   // the top improvement in plain words (report tone, 31 Oct)
   dimensions: ReportDimension[];
   modelAnswer: { structure?: string; recommendation?: string } | null;
   turns: { role: string; text: string; clock: string; exhibitTitle?: string }[];
@@ -57,6 +59,26 @@ function formatRating(rating: string | null): string {
   return ratingLabel(rating);
 }
 
+// A point in plain words (report tone, 31 Oct), else the judge's point.
+function PdfPoint({ item }: { item: FeedbackItem }) {
+  return (
+    <View style={{ marginBottom: 3 }}>
+      {item.plain ? (
+        <>
+          <Text style={[styles.feedbackPoint, { color: '#737373' }]}>{item.plain.where}</Text>
+          <Text style={styles.feedbackPoint}>{item.plain.what} {item.plain.why}</Text>
+          <Text style={[styles.feedbackPoint, { fontFamily: 'Helvetica-Bold' }]}>{item.plain.next}</Text>
+        </>
+      ) : (
+        <Text style={styles.feedbackPoint}>{item.point}</Text>
+      )}
+      {evidenceQuotes(item).map((q, j) => (
+        <Text key={j} style={styles.quote}>&ldquo;{q}&rdquo;</Text>
+      ))}
+    </View>
+  );
+}
+
 export function ReportPdf(props: ReportPdfProps) {
   return (
     <Document title={`Interview Feedback — ${props.caseTitle}`}>
@@ -69,7 +91,13 @@ export function ReportPdf(props: ReportPdfProps) {
         {props.topFix && (
           <View style={styles.topFixBox}>
             <Text style={{ fontFamily: 'Helvetica-Bold', marginBottom: 3 }}>Top improvement</Text>
-            <Text style={styles.bodyText}>{props.topFix}</Text>
+            {props.topFixPlain ? (
+              <>
+                <Text style={[styles.bodyText, { color: '#737373' }]}>{props.topFixPlain.where}</Text>
+                <Text style={styles.bodyText}>{props.topFixPlain.what} {props.topFixPlain.why}</Text>
+                <Text style={[styles.bodyText, { fontFamily: 'Helvetica-Bold' }]}>{props.topFixPlain.next}</Text>
+              </>
+            ) : <Text style={styles.bodyText}>{props.topFix}</Text>}
           </View>
         )}
 
@@ -92,27 +120,13 @@ export function ReportPdf(props: ReportPdfProps) {
                 {d.feedback.wentWell.length > 0 && (
                   <View style={styles.feedbackSection}>
                     <Text style={[styles.feedbackHeading, { color: '#15803d' }]}>What went well</Text>
-                    {d.feedback.wentWell.map((item, i) => (
-                      <View key={i}>
-                        <Text style={styles.feedbackPoint}>{item.point}</Text>
-                        {item.quotes.map((q, j) => (
-                          <Text key={j} style={styles.quote}>&ldquo;{q}&rdquo;</Text>
-                        ))}
-                      </View>
-                    ))}
+                    {d.feedback.wentWell.map((item, i) => <PdfPoint key={i} item={item} />)}
                   </View>
                 )}
                 {d.feedback.needsWork.length > 0 && (
                   <View style={styles.feedbackSection}>
                     <Text style={[styles.feedbackHeading, { color: '#b45309' }]}>What needs work</Text>
-                    {d.feedback.needsWork.map((item, i) => (
-                      <View key={i}>
-                        <Text style={styles.feedbackPoint}>{item.point}</Text>
-                        {item.quotes.map((q, j) => (
-                          <Text key={j} style={styles.quote}>&ldquo;{q}&rdquo;</Text>
-                        ))}
-                      </View>
-                    ))}
+                    {d.feedback.needsWork.map((item, i) => <PdfPoint key={i} item={item} />)}
                   </View>
                 )}
                 {d.feedback.missedOpportunities.length > 0 && (
@@ -120,8 +134,15 @@ export function ReportPdf(props: ReportPdfProps) {
                     <Text style={[styles.feedbackHeading, { color: '#1d4ed8' }]}>Missed opportunities</Text>
                     {d.feedback.missedOpportunities.map((item, i) => (
                       <View key={i}>
-                        <Text style={styles.feedbackPoint}>{item.moment}</Text>
-                        {item.betterResponse ? <Text style={styles.betterResponse}>A great answer: &ldquo;{item.betterResponse}&rdquo;</Text> : null}
+                        {item.plain ? (
+                          <>
+                            <Text style={[styles.feedbackPoint, { color: '#737373' }]}>{item.plain.where}</Text>
+                            <Text style={styles.feedbackPoint}>{item.plain.what} {item.plain.why}</Text>
+                          </>
+                        ) : (
+                          <Text style={styles.feedbackPoint}>{item.moment}</Text>
+                        )}
+                        {item.betterResponse ? <Text style={styles.betterResponse}>{item.plain ? 'Next time, try something like' : 'A great answer'}: &ldquo;{item.betterResponse}&rdquo;</Text> : null}
                       </View>
                     ))}
                   </View>

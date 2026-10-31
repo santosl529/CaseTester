@@ -1,0 +1,1082 @@
+{
+ "sessionId": "904b0b33-3b7f-46ec-b034-3cf2fc00f36a",
+ "caseId": "prof-002",
+ "mode": "the stored report (scored 2026-10-27), plain-words pass only",
+ "checks": {
+  "sameRatings": true,
+  "ratingDiffs": [],
+  "sameClaims": true,
+  "quoteAudit": {
+   "violations": 0,
+   "droppedPoints": 0
+  },
+  "inlineQuotes": {
+   "spans": 54,
+   "notVerbatim": []
+  },
+  "items": 30,
+  "written": 30,
+  "rejected": [],
+  "toneBefore": {
+   "jargon": 1,
+   "accusing": 0
+  },
+  "toneAfter": {
+   "jargon": 0,
+   "accusing": 0
+  }
+ },
+ "qa": null,
+ "before": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "The candidate read the opening numbers well: an equal revenue drop and profit swing meant costs hadn't moved, and full planes pointed to yield. But the candidate then skipped structuring, jumped to a recommendation, and offered an 'input-cost squeeze' diagnosis that contradicted that flat-cost read.",
+     "quotes": [
+      "Honestly, I think the answer's already visible, so let me just give you the recommendation and the structure falls out of it.",
+      "It's an input-cost squeeze.",
+      "a $24 million revenue drop turning into a $24 million profit swing tells me costs didn't come down at all",
+      "If load factor held, that's a yield problem — they're getting less per seat."
+     ]
+    },
+    {
+     "point": "When pressed, the candidate gave a recognizable profit tree and prioritized the fare branch with reasons. However, the route and external/competitive branches were missing until the interviewer pushed, and were then treated as refinements rather than real buckets.",
+     "quotes": [
+      "Fair point in principle — a network average could hide mix.",
+      "That's a cause behind the fare move rather than a new branch.",
+      "revenue is seats times load factor times fare times flights; costs are fuel, labor, maintenance, airport fees, and fixed overhead.",
+      "Fare is the live branch."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 3, when the interviewer asked for a structure before giving any data.",
+     "betterResponse": "The CEO wants to know what caused a $24M swing and how to get back to profit in 12 months. I'd look at four areas. (1) Revenue by route: passengers (seats × load factor) times revenue per passenger (fare + extras). (2) Variable cost per flight: fuel, crew, maintenance, fees. (3) Fixed costs: leases, hub, overhead. (4) External changes: competitor entry, demand, fuel. Revenue and profit both fell $24M with full planes, so I'd start with fare by route and check for a new competitor on specific routes."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "met",
+     "quote": "Fare is the live branch."
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "met",
+     "quote": "So: can I get load factor and average fare by route for FY2023 and FY2025? That tells me where to aim the increase."
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The candidate stress-tested the new-route case at the first-year load factor and stated what the result meant for the 12-month goal.",
+     "quotes": [
+      "At 60%: 48 passengers × $200 = $9,600 revenue, less $9,200 = $400 contribution per flight, × 5,000 = $2.0M.",
+      "So we land roughly at breakeven in the first 12 months, not at $7.8M."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The Port Avery breakeven fare was overstated: $11,000 ÷ 60 = $183 is total revenue per passenger, so the breakeven fare is $183 − $20 extras = $163. The candidate fixed this only after the interviewer probed.",
+     "quotes": [
+      "Port Avery needs $183, they're at $160."
+     ]
+    },
+    {
+     "point": "Later in the case, the candidate set up per-flight economics before computing, narrated each step, and reconciled results back to the exhibit totals. Early on, though, the candidate asserted a fare increase and a profit outcome without deriving either.",
+     "quotes": [
+      "Larkspur needs to raise fares roughly 12–15% to recover the $24 million gap",
+      "That gets you from negative $4 million to positive $15–20 million.",
+      "Port Avery: 80 seats at 75% is 60 passengers. FY23 revenue per flight is 60 × ($240 + $20) = $15,600, less $11,000 variable, so contribution of $4,600.",
+      "Times 3,000 flights, that's roughly negative $0.54M — matches the negative $0.6M in the exhibit. Good, that reconciles."
+     ]
+    },
+    {
+     "point": "The 3% uplift was applied to total revenue on the four routes, which includes extras, and assumed no volume loss. The fare-only uplift is somewhat smaller.",
+     "quotes": [
+      "A 3% fare increase there is roughly $3.8M of near-pure contribution"
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 13, sizing Port Avery's breakeven.",
+     "betterResponse": "Breakeven revenue per passenger is $11,000 ÷ 60 = $183. Take off $20 of extras and the breakeven fare is $163. At $160 they're $3 short — about $180 a flight, or roughly $0.5–0.6M a year across 3,000 flights, which matches the exhibit."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "met",
+     "quote": "FY23: 60 × $220 = $13,200, less $9,000 = $4,200 per flight, × 2,000 flights = $8.4M."
+    },
+    {
+     "element": "Computes accurately",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "met",
+     "quote": "Network: current contribution $16.0M, drop the two bad routes to get $17.8M, add $10.0M = $27.8M. Less $20M fixed = $7.8M operating profit."
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "met",
+     "quote": "Times 3,000 flights, that's roughly negative $0.54M — matches the negative $0.6M in the exhibit. Good, that reconciles."
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "met",
+     "quote": "So both routes are only modestly below breakeven at current fares — the hole is small per flight, which matters for what we do next."
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "The candidate read the route exhibit systematically: the flat routes first, then the two routes that account for exactly $24M.",
+     "quotes": [
+      "Four routes are flat — Cedar Bluff up $0.4M, Granite Falls down $0.2M, Millbrook down $0.2M, Westhaven flat.",
+      "That's $24.0M — the entire swing, exactly."
+     ]
+    },
+    {
+     "point": "The candidate spotted that the best routes collapsed with the same ~$80 fare cut and inferred a competitor. Yet the implication drawn from the exhibit still pointed to raising fares on those contested routes, despite that hypothesis.",
+     "quotes": [
+      "The highest-margin routes collapsed, which smells like someone entered those two markets specifically and Larkspur matched fare down.",
+      "Do we know who entered these two routes and what they're charging?",
+      "Push fare back up on Lakeport and Port Avery, unbundle extras"
+     ]
+    },
+    {
+     "point": "On the new-route exhibit, the candidate flagged that the case depends on the load-factor assumption before being told about the ramp-up.",
+     "quotes": [
+      "The whole case rests on that ramp assumption."
+     ]
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 15, right after isolating the two routes and suspecting a new entrant.",
+     "betterResponse": "If a competitor entered and Larkspur matched, raising fares back will likely lose passengers. So before choosing a lever, I'd check who entered, their cost position, and what the aircraft could earn elsewhere."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "met",
+     "quote": "Four routes are flat — Cedar Bluff up $0.4M, Granite Falls down $0.2M, Millbrook down $0.2M, Westhaven flat."
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "met",
+     "quote": "The only line that moved is fare — $200 to $120, a 40% cut."
+    },
+    {
+     "element": "States the implication",
+     "status": "met",
+     "quote": "Both roughly $80 off the fare, which is interesting: that looks like matching a specific competitor fare, not a demand softening."
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "met",
+     "quote": "Do we know who entered these two routes and what they're charging?"
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The candidate raised risks and practical mitigations: phasing the exit, stage-gating on booking curves, and pricing where there is no competitor.",
+     "quotes": [
+      "I'd phase the Port Avery exit — it's only $0.6M negative — as a hedge, and stage-gate the launch on booking curves at 90 days.",
+      "that's the one place pricing power actually exists."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Once given the competitor data, the candidate correctly judged the fare war unwinnable and tested it with a breakeven load factor. Before that, the candidate held onto raising fares on contested routes for most of the analysis, even after suspecting a competitor had matched, and dropped the idea only when directly challenged.",
+     "quotes": [
+      "So, as I've been saying: price is the lever.",
+      "Push fare back up on Lakeport and Port Avery, unbundle extras",
+      "So Larkspur would need to retain about two-thirds of its traffic at a 67% price premium.",
+      "The LCC is 30% lower cost — Larkspur can't win a price war it structurally loses."
+     ]
+    },
+    {
+     "point": "The opening plan was a blanket fare increase across all six routes, with no regard for competitive response.",
+     "quotes": [
+      "raise base fares across all six routes, phased over two quarters so you don't shock demand."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 17, after noting both fare cuts were about $80 and looked like matching a competitor.",
+     "betterResponse": "If Larkspur is matching a competitor, raising fares will cost passengers. The real question is whether Larkspur has a cost or product advantage on these routes. If it doesn't, the aircraft should go somewhere they aren't fighting a lower-cost rival."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "met",
+     "quote": "Start with the fare increase on the four protected routes — it's the only lever that pays in weeks rather than quarters, needs no aircraft moves, and is reversible if volumes soften."
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "met",
+     "quote": "One thing I'd want: how confident are we in the 70% load factor?"
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Some ideas were non-obvious: keeping a loss-making route flying as a bridge during the ramp-up, and segmenting peak business frequencies.",
+     "quotes": [
+      "keep it flying a few more months while Ashford and Brookhaven ramp, so we're not carrying 5,000 immature flights at once.",
+      "hold a smaller number of peak business frequencies at higher fare."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The candidate offered several distinct levers and ranked them explicitly by confidence. But they came as a flat numbered list with no organizing buckets, leaned on revenue, and included no cost-side or fleet ideas.",
+     "quotes": [
+      "Second, extras. $20 per passenger is low; bags and seat selection on the four safe routes could add a few dollars a head.",
+      "A few levers, roughly in order of how much I trust them."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 27, asked what else could secure first-year profitability.",
+     "betterResponse": "I'd group ideas into three buckets. (1) Revenue on uncontested routes: fares, extras, schedule. (2) Cost: overhead, fees, sub-leasing spare aircraft time. (3) Transition risk: phasing exits, launch promotions, partnerships to feed the new routes. Then I'd rank them by speed and size."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "met",
+     "quote": "Fourth, accelerate the ramp with launch pricing and marketing, though that costs money up front."
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "met",
+     "quote": "Port Avery is only $0.6M negative — keep it flying a few more months while Ashford and Brookhaven ramp"
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "met",
+     "quote": "A few levers, roughly in order of how much I trust them."
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "The candidate led with a clear recommendation backed by quantified reasons. However, the headline said 'exit' outright while the follow-up said not to cut either route until booking evidence arrives; the phased exit belongs in the headline itself.",
+     "quotes": [
+      "Recommendation: exit Hub–Lakeport and Hub–Port Avery, redeploy those 5,000 flights to Ashford and Brookhaven, and raise fares on the four protected routes.",
+      "The entire $24M swing sits on those two routes — $9.6M and $14.4M, exactly $24M — and it's all fare, not load factor or cost.",
+      "Don't cut Lakeport or Port Avery until we see the booking curve on the new routes"
+     ]
+    },
+    {
+     "point": "The candidate named the key risk with a hedge, then gave sequenced next steps.",
+     "quotes": [
+      "Biggest risk: the new routes are unproven.",
+      "So: price test now, new-route sales immediately, exits sequenced behind the booking evidence, Lakeport first since it's the worse of the two."
+     ]
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 29, the final recommendation.",
+     "betterResponse": "Recommendation: redeploy the Lakeport and Port Avery flying to Ashford and Brookhaven, phased — Lakeport first — while lifting fares about 3% on the four uncontested routes to cover the year-one ramp."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "met",
+     "quote": "Recommendation: exit Hub–Lakeport and Hub–Port Avery, redeploy those 5,000 flights to Ashford and Brookhaven, and raise fares on the four protected routes."
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "met",
+     "quote": "The new routes have no nonstop competitor: $2,000 contribution per flight at maturity, $10M a year."
+    },
+    {
+     "element": "Names the key risk",
+     "status": "met",
+     "quote": "Biggest risk: the new routes are unproven. If they ramp slower than 60%, the plan fails."
+    },
+    {
+     "element": "Names next steps",
+     "status": "met",
+     "quote": "stage-gate the launch on booking curves at 90 days."
+    },
+    {
+     "element": "Stays concise",
+     "status": "met",
+     "quote": "That puts year one at roughly $3–4M profit, with $7.8M in year two."
+    }
+   ]
+  },
+  "communication": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Later answers were well signposted and numbered.",
+     "quotes": [
+      "First, the four protected routes."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Early on, the tone was dismissive of the interviewer's structuring prompts, and the candidate repeated the same position rather than listening.",
+     "quotes": [
+      "If you want it organized, fine",
+      "But I'd note we've now spent several rounds on structure and I don't think the shape of the answer is going to move."
+     ]
+    },
+    {
+     "point": "The candidate was answer-first and hypothesis-led, often stating expectations before seeing data. At the opening, though, the candidate gave conclusions before laying out any structure.",
+     "quotes": [
+      "The structure is basically implied by that: revenue levers, cost levers, and the fare is the one that moves.",
+      "let me say upfront what I expect it to show, so we can test me."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 5, after the interviewer redirected to drivers rather than fixes.",
+     "betterResponse": "Fair — let me lay out the full tree first and then tell you where I'd start, so we don't anchor too early."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "met",
+     "quote": "A few levers, roughly in order of how much I trust them."
+    },
+    {
+     "element": "States structure before detail",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "I expect one or two of the six routes to be carrying the whole swing"
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "When probed on the Port Avery figure, the candidate owned the error and corrected it cleanly.",
+     "quotes": [
+      "Let me redo it, because I think I was sloppy."
+     ]
+    },
+    {
+     "point": "The candidate drove the case by repeatedly asking for relevant data.",
+     "quotes": [
+      "Do we know who entered these two routes and what they're charging?"
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "When challenged on fares, the candidate updated with explicit quantitative reasoning rather than simply giving in. Earlier, however, the candidate defended a premature recommendation through several structure prompts and only partly took that feedback on board.",
+     "quotes": [
+      "I hear you, but I'd push back a little — I don't think we're missing much.",
+      "But the recommendation doesn't change — raise fares, unbundle ancillaries, hold capacity.",
+      "Lakeport breakeven at $200 fare plus $20 extras: $9,000 ÷ $220 = 41 passengers, so 51% load factor.",
+      "So I'll concede the blanket fare increase doesn't work on these two routes."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 6, when the interviewer noted that network averages can hide route problems.",
+     "betterResponse": "Good point — that could change the lever, not just where I aim it. If the fall is concentrated on a few routes, I need to know why before assuming price is the fix."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "met",
+     "quote": "So I'll concede the blanket fare increase doesn't work on these two routes. The LCC is 30% lower cost — Larkspur can't win a price war it structurally loses."
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "met",
+     "quote": "Do we know the business versus leisure mix on those routes?"
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "overallRating": "meets_bar",
+  "topFix": "Diagnose before you prescribe. Open with a tailored, route-level profit tree that includes an external/competition bucket, and treat 'price is the lever' as a hypothesis to test, not a conclusion to defend. Your early 'raise fares 12–15%' anchor survived even your own competitor inference until the interviewer forced the issue."
+ },
+ "after": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "The candidate read the opening numbers well: an equal revenue drop and profit swing meant costs hadn't moved, and full planes pointed to yield. But the candidate then skipped structuring, jumped to a recommendation, and offered an 'input-cost squeeze' diagnosis that contradicted that flat-cost read.",
+     "quotes": [
+      "Honestly, I think the answer's already visible, so let me just give you the recommendation and the structure falls out of it.",
+      "It's an input-cost squeeze.",
+      "a $24 million revenue drop turning into a $24 million profit swing tells me costs didn't come down at all",
+      "If load factor held, that's a yield problem — they're getting less per seat."
+     ],
+     "plain": {
+      "where": "In the opening and the first analysis question, when asked how you would structure the problem, you said \"a $24 million revenue drop turning into a $24 million profit swing tells me costs didn't come down at all\" and then \"It's an input-cost squeeze.\"",
+      "what": "Your read of the opening numbers was sharp: an equal revenue drop and profit swing meant costs hadn't moved, and full planes pointed to yield (\"If load factor held, that's a yield problem — they're getting less per seat.\"). But the answer then skipped the structure, went straight to a recommendation (\"let me just give you the recommendation and the structure falls out of it\"), and called it an input-cost squeeze, which contradicts that flat-cost read.",
+      "why": "Interviewers ask for a structure to see how you think, and a diagnosis that contradicts your own earlier logic undermines confidence in the rest.",
+      "next": "Next time, try laying out a full structure first, then checking that your diagnosis matches what you have already worked out from the numbers."
+     }
+    },
+    {
+     "point": "When pressed, the candidate gave a recognizable profit tree and prioritized the fare branch with reasons. However, the route and external/competitive branches were missing until the interviewer pushed, and were then treated as refinements rather than real buckets.",
+     "quotes": [
+      "Fair point in principle — a network average could hide mix.",
+      "That's a cause behind the fare move rather than a new branch.",
+      "revenue is seats times load factor times fare times flights; costs are fuel, labor, maintenance, airport fees, and fixed overhead.",
+      "Fare is the live branch."
+     ],
+     "plain": {
+      "where": "When the interviewer asked for the full set of drivers, you said \"revenue is seats times load factor times fare times flights; costs are fuel, labor, maintenance, airport fees, and fixed overhead\" and \"Fare is the live branch.\"",
+      "what": "Once pressed, you gave a recognizable profit tree and gave reasons for focusing on fare. The route and external/competitive branches only appeared after the interviewer pushed, and were then treated as refinements (\"That's a cause behind the fare move rather than a new branch.\") rather than real buckets.",
+      "why": "In this case the cause sat exactly in the route and competitor areas, so leaving them out of the structure risks missing the real answer.",
+      "next": "Next time, try including a route-level cut and an external-changes bucket (competitors, demand) as full parts of your structure from the start."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 3, when the interviewer asked for a structure before giving any data.",
+     "betterResponse": "The CEO wants to know what caused a $24M swing and how to get back to profit in 12 months. I'd look at four areas. (1) Revenue by route: passengers (seats × load factor) times revenue per passenger (fare + extras). (2) Variable cost per flight: fuel, crew, maintenance, fees. (3) Fixed costs: leases, hub, overhead. (4) External changes: competitor entry, demand, fuel. Revenue and profit both fell $24M with full planes, so I'd start with fare by route and check for a new competitor on specific routes.",
+     "plain": {
+      "where": "Early in the analysis, the interviewer asked for your full approach before sharing any data, and you replied \"Honestly, I think the answer's already visible, so let me just give you the recommendation and the structure falls out of it.\"",
+      "what": "This was the moment to show a complete structure covering revenue by route, costs and outside changes, then say where you would start.",
+      "why": "A clear structure at this point earns trust and points you toward the right data early."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "met",
+     "quote": "Fare is the live branch."
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "met",
+     "quote": "So: can I get load factor and average fare by route for FY2023 and FY2025? That tells me where to aim the increase."
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The candidate stress-tested the new-route case at the first-year load factor and stated what the result meant for the 12-month goal.",
+     "quotes": [
+      "At 60%: 48 passengers × $200 = $9,600 revenue, less $9,200 = $400 contribution per flight, × 5,000 = $2.0M.",
+      "So we land roughly at breakeven in the first 12 months, not at $7.8M."
+     ],
+     "plain": {
+      "where": "On the new-route exhibit, after the interviewer said first-year load factor is often around 60%, you worked out \"At 60%: 48 passengers × $200 = $9,600 revenue, less $9,200 = $400 contribution per flight, × 5,000 = $2.0M.\"",
+      "what": "You re-ran the new-route numbers at the first-year load factor and spelled out what that meant for the 12-month goal: \"So we land roughly at breakeven in the first 12 months, not at $7.8M.\"",
+      "why": "Interviewers value candidates who test their own numbers against realistic conditions and tie the result back to the client's goal.",
+      "next": "Keep re-running key numbers under the realistic case and stating plainly what the result means for the objective."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The Port Avery breakeven fare was overstated: $11,000 ÷ 60 = $183 is total revenue per passenger, so the breakeven fare is $183 − $20 extras = $163. The candidate fixed this only after the interviewer probed.",
+     "quotes": [
+      "Port Avery needs $183, they're at $160."
+     ],
+     "plain": {
+      "where": "On the Lakeport exhibit, while comparing breakeven fares, you said \"Port Avery needs $183, they're at $160.\"",
+      "what": "The $183 figure ($11,000 ÷ 60) is total revenue needed per passenger, so the breakeven fare is $183 − $20 extras = $163. The correction came only after the interviewer asked how you got it.",
+      "why": "Calculation slips on a key number can lead to the wrong conclusion and cost credibility unless you catch them yourself.",
+      "next": "Next time, try pausing after each result to check what it measures (total revenue versus fare) before using it."
+     }
+    },
+    {
+     "point": "Later in the case, the candidate set up per-flight economics before computing, narrated each step, and reconciled results back to the exhibit totals. Early on, though, the candidate asserted a fare increase and a profit outcome without deriving either.",
+     "quotes": [
+      "Larkspur needs to raise fares roughly 12–15% to recover the $24 million gap",
+      "That gets you from negative $4 million to positive $15–20 million.",
+      "Port Avery: 80 seats at 75% is 60 passengers. FY23 revenue per flight is 60 × ($240 + $20) = $15,600, less $11,000 variable, so contribution of $4,600.",
+      "Times 3,000 flights, that's roughly negative $0.54M — matches the negative $0.6M in the exhibit. Good, that reconciles."
+     ],
+     "plain": {
+      "where": "Early in the analysis, you said \"Larkspur needs to raise fares roughly 12–15% to recover the $24 million gap\" and \"That gets you from negative $4 million to positive $15–20 million.\"",
+      "what": "Later in the case your maths was strong: you set up per-flight economics before computing, talked through each step, and checked results against the exhibit totals (\"Good, that reconciles.\"). Early on, though, the fare increase and profit outcome were stated without being worked out.",
+      "why": "Unsupported numbers make an interviewer question whether your later figures can be trusted.",
+      "next": "Next time, try showing the short calculation behind any figure you put forward, even early in the case."
+     }
+    },
+    {
+     "point": "The 3% uplift was applied to total revenue on the four routes, which includes extras, and assumed no volume loss. The fare-only uplift is somewhat smaller.",
+     "quotes": [
+      "A 3% fare increase there is roughly $3.8M of near-pure contribution"
+     ],
+     "plain": {
+      "where": "In the brainstorm on first-year profitability, you said \"A 3% fare increase there is roughly $3.8M of near-pure contribution\".",
+      "what": "The 3% was applied to total revenue on the four routes, which includes extras, and assumed no passengers would be lost. A fare-only increase would be somewhat smaller.",
+      "why": "Overstating a lever's size can make a plan look safer than it is.",
+      "next": "Next time, try applying a price change only to the fare part of revenue and noting what volume loss would do to it."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 13, sizing Port Avery's breakeven.",
+     "betterResponse": "Breakeven revenue per passenger is $11,000 ÷ 60 = $183. Take off $20 of extras and the breakeven fare is $163. At $160 they're $3 short — about $180 a flight, or roughly $0.5–0.6M a year across 3,000 flights, which matches the exhibit.",
+     "plain": {
+      "where": "When the interviewer gave the Port Avery figures, you worked out per-flight contribution correctly and then said \"breakeven fare is about $183 before extras.\"",
+      "what": "This was the moment to separate the revenue needed per passenger from the fare by taking the extras out.",
+      "why": "Getting breakeven right the first time shows the route is only slightly below breakeven, which shapes the recommendation."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "met",
+     "quote": "FY23: 60 × $220 = $13,200, less $9,000 = $4,200 per flight, × 2,000 flights = $8.4M."
+    },
+    {
+     "element": "Computes accurately",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "met",
+     "quote": "Network: current contribution $16.0M, drop the two bad routes to get $17.8M, add $10.0M = $27.8M. Less $20M fixed = $7.8M operating profit."
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "met",
+     "quote": "Times 3,000 flights, that's roughly negative $0.54M — matches the negative $0.6M in the exhibit. Good, that reconciles."
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "met",
+     "quote": "So both routes are only modestly below breakeven at current fares — the hole is small per flight, which matters for what we do next."
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "The candidate read the route exhibit systematically: the flat routes first, then the two routes that account for exactly $24M.",
+     "quotes": [
+      "Four routes are flat — Cedar Bluff up $0.4M, Granite Falls down $0.2M, Millbrook down $0.2M, Westhaven flat.",
+      "That's $24.0M — the entire swing, exactly."
+     ],
+     "plain": {
+      "where": "On the route results exhibit, you started with \"Four routes are flat — Cedar Bluff up $0.4M, Granite Falls down $0.2M, Millbrook down $0.2M, Westhaven flat.\"",
+      "what": "You read the exhibit in an orderly way: the flat routes first, then the two routes that add up to exactly $24M (\"That's $24.0M — the entire swing, exactly.\").",
+      "why": "Interviewers look for candidates who quickly isolate where a problem sits and confirm it adds up.",
+      "next": "Keep reading exhibits in that order: set aside what is stable, then size what moved and tie it to the total."
+     }
+    },
+    {
+     "point": "The candidate spotted that the best routes collapsed with the same ~$80 fare cut and inferred a competitor. Yet the implication drawn from the exhibit still pointed to raising fares on those contested routes, despite that hypothesis.",
+     "quotes": [
+      "The highest-margin routes collapsed, which smells like someone entered those two markets specifically and Larkspur matched fare down.",
+      "Do we know who entered these two routes and what they're charging?",
+      "Push fare back up on Lakeport and Port Avery, unbundle extras"
+     ],
+     "plain": {
+      "where": "On the route results exhibit, you said \"The highest-margin routes collapsed, which smells like someone entered those two markets specifically and Larkspur matched fare down.\"",
+      "what": "You spotted that the best routes collapsed with the same ~$80 fare cut and inferred a competitor, then asked \"Do we know who entered these two routes and what they're charging?\" Yet the conclusion you drew still pointed to raising fares on those contested routes (\"Push fare back up on Lakeport and Port Avery, unbundle extras\").",
+      "why": "Spotting a pattern in the data is valuable, and it carries more weight when the conclusion follows from it.",
+      "next": "Keep looking for patterns that point to a cause, and let that cause shape the action you recommend."
+     }
+    },
+    {
+     "point": "On the new-route exhibit, the candidate flagged that the case depends on the load-factor assumption before being told about the ramp-up.",
+     "quotes": [
+      "The whole case rests on that ramp assumption."
+     ],
+     "plain": {
+      "where": "On the new-route exhibit, you said \"The whole case rests on that ramp assumption.\"",
+      "what": "You flagged that the new-route case depends on the load-factor assumption before the interviewer mentioned the ramp-up.",
+      "why": "Naming the assumption a plan hinges on, unprompted, shows mature judgment about data.",
+      "next": "Keep identifying the single assumption that drives the result before you are asked."
+     }
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 15, right after isolating the two routes and suspecting a new entrant.",
+     "betterResponse": "If a competitor entered and Larkspur matched, raising fares back will likely lose passengers. So before choosing a lever, I'd check who entered, their cost position, and what the aircraft could earn elsewhere.",
+     "plain": {
+      "where": "On the route results exhibit, right after you isolated the two routes and said it \"smells like someone entered those two markets specifically\", you went on to \"Push fare back up on Lakeport and Port Avery\".",
+      "what": "This was the moment to follow your competitor idea through to what it means for raising fares.",
+      "why": "Linking a suspected cause to its effect on your lever prevents recommending something the market will punish."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "met",
+     "quote": "Four routes are flat — Cedar Bluff up $0.4M, Granite Falls down $0.2M, Millbrook down $0.2M, Westhaven flat."
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "met",
+     "quote": "The only line that moved is fare — $200 to $120, a 40% cut."
+    },
+    {
+     "element": "States the implication",
+     "status": "met",
+     "quote": "Both roughly $80 off the fare, which is interesting: that looks like matching a specific competitor fare, not a demand softening."
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "met",
+     "quote": "Do we know who entered these two routes and what they're charging?"
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The candidate raised risks and practical mitigations: phasing the exit, stage-gating on booking curves, and pricing where there is no competitor.",
+     "quotes": [
+      "I'd phase the Port Avery exit — it's only $0.6M negative — as a hedge, and stage-gate the launch on booking curves at 90 days.",
+      "that's the one place pricing power actually exists."
+     ],
+     "plain": {
+      "where": "In your final recommendation, you said \"I'd phase the Port Avery exit — it's only $0.6M negative — as a hedge, and stage-gate the launch on booking curves at 90 days.\"",
+      "what": "You raised risks and practical ways to reduce them: phasing the exit, gating the launch on booking curves, and pricing where there is no competitor (\"that's the one place pricing power actually exists.\").",
+      "why": "Clients trust recommendations that come with realistic ways to limit the downside.",
+      "next": "Keep pairing each risk with a concrete, practical step to manage it."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Once given the competitor data, the candidate correctly judged the fare war unwinnable and tested it with a breakeven load factor. Before that, the candidate held onto raising fares on contested routes for most of the analysis, even after suspecting a competitor had matched, and dropped the idea only when directly challenged.",
+     "quotes": [
+      "So, as I've been saying: price is the lever.",
+      "Push fare back up on Lakeport and Port Avery, unbundle extras",
+      "So Larkspur would need to retain about two-thirds of its traffic at a 67% price premium.",
+      "The LCC is 30% lower cost — Larkspur can't win a price war it structurally loses."
+     ],
+     "plain": {
+      "where": "On the Lakeport exhibit, after noting the fare cuts looked like matching a competitor, you said \"So, as I've been saying: price is the lever.\"",
+      "what": "Once given the competitor data, you rightly judged the fare war unwinnable and tested it with a breakeven load factor (\"The LCC is 30% lower cost — Larkspur can't win a price war it structurally loses.\"). Before that, raising fares on the contested routes stayed in the plan for most of the analysis, even after you suspected a competitor had matched, and was dropped only when directly challenged.",
+      "why": "Interviewers want to see you update your view as soon as your own evidence points elsewhere, not only when pushed.",
+      "next": "Next time, try asking what a new piece of evidence does to your current recommendation the moment you notice it."
+     }
+    },
+    {
+     "point": "The opening plan was a blanket fare increase across all six routes, with no regard for competitive response.",
+     "quotes": [
+      "raise base fares across all six routes, phased over two quarters so you don't shock demand."
+     ],
+     "plain": {
+      "where": "Early in the analysis, your plan began \"raise base fares across all six routes, phased over two quarters so you don't shock demand.\"",
+      "what": "The opening plan was a blanket fare increase on all six routes, with no regard for how competitors would respond.",
+      "why": "Pricing moves that ignore competitors are a common red flag for business sense in interviews.",
+      "next": "Next time, try asking how competitors would react before recommending any price change."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 17, after noting both fare cuts were about $80 and looked like matching a competitor.",
+     "betterResponse": "If Larkspur is matching a competitor, raising fares will cost passengers. The real question is whether Larkspur has a cost or product advantage on these routes. If it doesn't, the aircraft should go somewhere they aren't fighting a lower-cost rival.",
+     "plain": {
+      "where": "On the Lakeport exhibit, after noting both fare cuts were \"roughly $80 off the fare\" and \"that looks like matching a specific competitor fare\", you concluded \"price is the lever.\"",
+      "what": "This was the moment to ask whether Larkspur could win on these routes at all.",
+      "why": "Turning that observation into a strategic question would have led you to the right answer before being challenged."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "met",
+     "quote": "Start with the fare increase on the four protected routes — it's the only lever that pays in weeks rather than quarters, needs no aircraft moves, and is reversible if volumes soften."
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "met",
+     "quote": "One thing I'd want: how confident are we in the 70% load factor?"
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Some ideas were non-obvious: keeping a loss-making route flying as a bridge during the ramp-up, and segmenting peak business frequencies.",
+     "quotes": [
+      "keep it flying a few more months while Ashford and Brookhaven ramp, so we're not carrying 5,000 immature flights at once.",
+      "hold a smaller number of peak business frequencies at higher fare."
+     ],
+     "plain": {
+      "where": "In the brainstorm, you suggested Port Avery \"keep it flying a few more months while Ashford and Brookhaven ramp, so we're not carrying 5,000 immature flights at once.\"",
+      "what": "Some of your ideas were non-obvious: keeping a loss-making route flying as a bridge during the ramp-up, and keeping \"a smaller number of peak business frequencies at higher fare.\"",
+      "why": "Ideas that go beyond the obvious levers make you stand out.",
+      "next": "Keep looking for creative options like bridging and segmenting alongside the standard ones."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The candidate offered several distinct levers and ranked them explicitly by confidence. But they came as a flat numbered list with no organizing buckets, leaned on revenue, and included no cost-side or fleet ideas.",
+     "quotes": [
+      "Second, extras. $20 per passenger is low; bags and seat selection on the four safe routes could add a few dollars a head.",
+      "A few levers, roughly in order of how much I trust them."
+     ],
+     "plain": {
+      "where": "In the brainstorm on first-year profitability, you opened with \"A few levers, roughly in order of how much I trust them.\"",
+      "what": "You offered several distinct levers and ranked them clearly by confidence. They came as a flat numbered list without grouping, leaned on revenue, and included no cost-side or fleet ideas.",
+      "why": "Grouping ideas shows you have covered the full range and makes gaps such as costs easy to spot.",
+      "next": "Next time, try sorting ideas into a few groups such as revenue, cost and fleet before listing them."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 27, asked what else could secure first-year profitability.",
+     "betterResponse": "I'd group ideas into three buckets. (1) Revenue on uncontested routes: fares, extras, schedule. (2) Cost: overhead, fees, sub-leasing spare aircraft time. (3) Transition risk: phasing exits, launch promotions, partnerships to feed the new routes. Then I'd rank them by speed and size.",
+     "plain": {
+      "where": "In the brainstorm, when asked what else could secure first-year profit, you listed levers starting with \"First, the four protected routes.\"",
+      "what": "This was the moment to organize ideas into groups that include costs and the transition.",
+      "why": "A grouped list shows breadth and makes it easier to rank ideas by speed and size."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "met",
+     "quote": "Fourth, accelerate the ramp with launch pricing and marketing, though that costs money up front."
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "met",
+     "quote": "Port Avery is only $0.6M negative — keep it flying a few more months while Ashford and Brookhaven ramp"
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "met",
+     "quote": "A few levers, roughly in order of how much I trust them."
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "The candidate led with a clear recommendation backed by quantified reasons. However, the headline said 'exit' outright while the follow-up said not to cut either route until booking evidence arrives; the phased exit belongs in the headline itself.",
+     "quotes": [
+      "Recommendation: exit Hub–Lakeport and Hub–Port Avery, redeploy those 5,000 flights to Ashford and Brookhaven, and raise fares on the four protected routes.",
+      "The entire $24M swing sits on those two routes — $9.6M and $14.4M, exactly $24M — and it's all fare, not load factor or cost.",
+      "Don't cut Lakeport or Port Avery until we see the booking curve on the new routes"
+     ],
+     "plain": {
+      "where": "For the final recommendation, you opened with \"Recommendation: exit Hub–Lakeport and Hub–Port Avery, redeploy those 5,000 flights to Ashford and Brookhaven, and raise fares on the four protected routes.\"",
+      "what": "You led with a clear recommendation backed by numbers (\"$9.6M and $14.4M, exactly $24M\"). However, the headline said exit outright, while the follow-up said \"Don't cut Lakeport or Port Avery until we see the booking curve on the new routes\"; the phased exit belongs in the headline itself.",
+      "why": "A clear, quantified opening is what clients want, and it needs to match what you say next.",
+      "next": "Keep leading with a numbered-up recommendation, and make sure the headline already includes any phasing."
+     }
+    },
+    {
+     "point": "The candidate named the key risk with a hedge, then gave sequenced next steps.",
+     "quotes": [
+      "Biggest risk: the new routes are unproven.",
+      "So: price test now, new-route sales immediately, exits sequenced behind the booking evidence, Lakeport first since it's the worse of the two."
+     ],
+     "plain": {
+      "where": "In the closing questions, you said \"Biggest risk: the new routes are unproven.\"",
+      "what": "You named the key risk with a hedge, then gave next steps in order: \"price test now, new-route sales immediately, exits sequenced behind the booking evidence, Lakeport first since it's the worse of the two.\"",
+      "why": "A clear risk and an ordered action plan make a recommendation feel ready to act on.",
+      "next": "Keep closing with the main risk, a hedge, and next steps in a clear order."
+     }
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 29, the final recommendation.",
+     "betterResponse": "Recommendation: redeploy the Lakeport and Port Avery flying to Ashford and Brookhaven, phased — Lakeport first — while lifting fares about 3% on the four uncontested routes to cover the year-one ramp.",
+     "plain": {
+      "where": "For the final recommendation, you opened with \"Recommendation: exit Hub–Lakeport and Hub–Port Avery\".",
+      "what": "This was the moment to fold the phasing into the headline so it matched your later advice.",
+      "why": "A headline that already reflects the plan avoids seeming to contradict yourself."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "met",
+     "quote": "Recommendation: exit Hub–Lakeport and Hub–Port Avery, redeploy those 5,000 flights to Ashford and Brookhaven, and raise fares on the four protected routes."
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "met",
+     "quote": "The new routes have no nonstop competitor: $2,000 contribution per flight at maturity, $10M a year."
+    },
+    {
+     "element": "Names the key risk",
+     "status": "met",
+     "quote": "Biggest risk: the new routes are unproven. If they ramp slower than 60%, the plan fails."
+    },
+    {
+     "element": "Names next steps",
+     "status": "met",
+     "quote": "stage-gate the launch on booking curves at 90 days."
+    },
+    {
+     "element": "Stays concise",
+     "status": "met",
+     "quote": "That puts year one at roughly $3–4M profit, with $7.8M in year two."
+    }
+   ]
+  },
+  "communication": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Later answers were well signposted and numbered.",
+     "quotes": [
+      "First, the four protected routes."
+     ],
+     "plain": {
+      "where": "In your later answers, such as the levers list, you began with \"First, the four protected routes.\"",
+      "what": "Your later answers were clearly announced and numbered.",
+      "why": "Numbered, clearly announced points make it easy for an interviewer to follow you.",
+      "next": "Keep numbering your points and telling the listener where you are going."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Early on, the tone was dismissive of the interviewer's structuring prompts, and the candidate repeated the same position rather than listening.",
+     "quotes": [
+      "If you want it organized, fine",
+      "But I'd note we've now spent several rounds on structure and I don't think the shape of the answer is going to move."
+     ],
+     "plain": {
+      "where": "When the interviewer asked how you would organize the drivers, you said \"If you want it organized, fine\".",
+      "what": "Early on, the tone came across as dismissive of the interviewer's requests for a structure, and the same position was repeated rather than heard (\"But I'd note we've now spent several rounds on structure and I don't think the shape of the answer is going to move.\").",
+      "why": "Interviewers also assess how you would come across with clients, and dismissiveness is a strong negative.",
+      "next": "Next time, try acknowledging the request and answering it fully before restating your view."
+     }
+    },
+    {
+     "point": "The candidate was answer-first and hypothesis-led, often stating expectations before seeing data. At the opening, though, the candidate gave conclusions before laying out any structure.",
+     "quotes": [
+      "The structure is basically implied by that: revenue levers, cost levers, and the fare is the one that moves.",
+      "let me say upfront what I expect it to show, so we can test me."
+     ],
+     "plain": {
+      "where": "Early in the analysis, you said \"The structure is basically implied by that: revenue levers, cost levers, and the fare is the one that moves.\"",
+      "what": "You led with your answer and your expectations, often saying what you expected before seeing data (\"let me say upfront what I expect it to show, so we can test me.\"). At the opening, though, conclusions came before any structure.",
+      "why": "Leading with the answer is valued, but only once the interviewer has seen how you got there.",
+      "next": "Next time, try laying out the structure briefly first, then stating your expected answer."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 5, after the interviewer redirected to drivers rather than fixes.",
+     "betterResponse": "Fair — let me lay out the full tree first and then tell you where I'd start, so we don't anchor too early.",
+     "plain": {
+      "where": "When the interviewer redirected you to drivers rather than fixes, you replied \"I hear you, but I'd push back a little — I don't think we're missing much.\"",
+      "what": "This was the moment to accept the redirect and show the full picture before narrowing.",
+      "why": "Accepting a redirect gracefully shows you listen and keeps the interviewer on your side."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "met",
+     "quote": "A few levers, roughly in order of how much I trust them."
+    },
+    {
+     "element": "States structure before detail",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "I expect one or two of the six routes to be carrying the whole swing"
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "When probed on the Port Avery figure, the candidate owned the error and corrected it cleanly.",
+     "quotes": [
+      "Let me redo it, because I think I was sloppy."
+     ],
+     "plain": {
+      "where": "When the interviewer asked how you calculated the Port Avery figure, you said \"Let me redo it, because I think I was sloppy.\"",
+      "what": "You owned the error and corrected it cleanly.",
+      "why": "Calmly owning and fixing a mistake builds more trust than defending it.",
+      "next": "Keep owning errors openly and walking through the corrected calculation."
+     }
+    },
+    {
+     "point": "The candidate drove the case by repeatedly asking for relevant data.",
+     "quotes": [
+      "Do we know who entered these two routes and what they're charging?"
+     ],
+     "plain": {
+      "where": "On the Lakeport exhibit, you asked \"Do we know who entered these two routes and what they're charging?\"",
+      "what": "You drove the case by repeatedly asking for relevant data.",
+      "why": "Asking for the right data shows you are leading the case, not just reacting.",
+      "next": "Keep asking targeted questions for the data that would settle your open questions."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "When challenged on fares, the candidate updated with explicit quantitative reasoning rather than simply giving in. Earlier, however, the candidate defended a premature recommendation through several structure prompts and only partly took that feedback on board.",
+     "quotes": [
+      "I hear you, but I'd push back a little — I don't think we're missing much.",
+      "But the recommendation doesn't change — raise fares, unbundle ancillaries, hold capacity.",
+      "Lakeport breakeven at $200 fare plus $20 extras: $9,000 ÷ $220 = 41 passengers, so 51% load factor.",
+      "So I'll concede the blanket fare increase doesn't work on these two routes."
+     ],
+     "plain": {
+      "where": "When the interviewer asked for the full set of drivers, you said \"I hear you, but I'd push back a little — I don't think we're missing much.\"",
+      "what": "When challenged on fares, you updated using clear numbers (\"Lakeport breakeven at $200 fare plus $20 extras: $9,000 ÷ $220 = 41 passengers, so 51% load factor.\") rather than simply giving in. Earlier, though, the early recommendation was defended through several structure prompts (\"But the recommendation doesn't change — raise fares, unbundle ancillaries, hold capacity.\") and that feedback was only partly taken on board.",
+      "why": "Interviewers repeat a prompt to signal something is missing, and resisting it costs you the hint.",
+      "next": "Next time, try treating a repeated prompt as a cue to step back and widen your answer."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 6, when the interviewer noted that network averages can hide route problems.",
+     "betterResponse": "Good point — that could change the lever, not just where I aim it. If the fall is concentrated on a few routes, I need to know why before assuming price is the fix.",
+     "plain": {
+      "where": "When the interviewer noted that a network average can hide route problems, you replied \"I'd say that's a refinement of the same answer, not a different one.\"",
+      "what": "This was the moment to accept that a route-level problem could change the fix itself.",
+      "why": "Taking the challenge seriously here would have opened up the competitor explanation much earlier."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "met",
+     "quote": "So I'll concede the blanket fare increase doesn't work on these two routes. The LCC is 30% lower cost — Larkspur can't win a price war it structurally loses."
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "met",
+     "quote": "Do we know the business versus leisure mix on those routes?"
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "overallRating": "meets_bar",
+  "topFix": "Diagnose before you prescribe. Open with a tailored, route-level profit tree that includes an external/competition bucket, and treat 'price is the lever' as a hypothesis to test, not a conclusion to defend. Your early 'raise fares 12–15%' anchor survived even your own competitor inference until the interviewer forced the issue."
+ }
+}

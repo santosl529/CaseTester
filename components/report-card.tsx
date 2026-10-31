@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import type { DimensionFeedback } from '@/lib/scoring/judge';
+import type { DimensionFeedback, FeedbackItem } from '@/lib/scoring/judge';
 import { ratingLabel } from '@/lib/scoring/rubric';
+import { evidenceQuotes } from '@/lib/scoring/report-dimensions';
 
 const RATING_COLOR: Record<string, string> = {
   needs_work: 'destructive',
@@ -21,6 +22,24 @@ function Quote({ children }: { children: string }) {
     <blockquote className="border-l-2 border-neutral-300 pl-3 text-sm text-neutral-600 italic mb-1.5">
       &ldquo;{children}&rdquo;
     </blockquote>
+  );
+}
+
+// A point in plain words (report tone, 31 Oct): where, what and why, then what to try; else the judge's point.
+function Point({ item }: { item: FeedbackItem }) {
+  return (
+    <div className="mb-3">
+      {item.plain ? (
+        <>
+          <p className="text-sm text-neutral-500 mb-1">{item.plain.where}</p>
+          <p className="text-sm text-neutral-800 mb-1">{item.plain.what} {item.plain.why}</p>
+          <p className="text-sm text-neutral-900 font-medium mb-1">{item.plain.next}</p>
+        </>
+      ) : (
+        <p className="text-sm text-neutral-800 mb-1">{item.point}</p>
+      )}
+      {evidenceQuotes(item).map((q, j) => <Quote key={j}>{q}</Quote>)}
+    </div>
   );
 }
 
@@ -44,34 +63,31 @@ export function ReportCard({ label, rating, feedback, legacyEvidence }: Props) {
             {feedback.wentWell.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-green-700 mb-1.5">What went well</p>
-                {feedback.wentWell.map((item, i) => (
-                  <div key={i} className="mb-2">
-                    <p className="text-sm text-neutral-800 mb-1">{item.point}</p>
-                    {item.quotes.map((q, j) => <Quote key={j}>{q}</Quote>)}
-                  </div>
-                ))}
+                {feedback.wentWell.map((item, i) => <Point key={i} item={item} />)}
               </div>
             )}
             {feedback.needsWork.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-amber-700 mb-1.5">What needs work</p>
-                {feedback.needsWork.map((item, i) => (
-                  <div key={i} className="mb-2">
-                    <p className="text-sm text-neutral-800 mb-1">{item.point}</p>
-                    {item.quotes.map((q, j) => <Quote key={j}>{q}</Quote>)}
-                  </div>
-                ))}
+                {feedback.needsWork.map((item, i) => <Point key={i} item={item} />)}
               </div>
             )}
             {feedback.missedOpportunities.length > 0 && (
               <div>
                 <p className="text-sm font-medium text-blue-700 mb-1.5">Missed opportunities</p>
                 {feedback.missedOpportunities.map((item, i) => (
-                  <div key={i} className="mb-2">
-                    <p className="text-sm text-neutral-600 mb-1">{item.moment}</p>
+                  <div key={i} className="mb-3">
+                    {item.plain ? (
+                      <>
+                        <p className="text-sm text-neutral-500 mb-1">{item.plain.where}</p>
+                        <p className="text-sm text-neutral-800 mb-1">{item.plain.what} {item.plain.why}</p>
+                      </>
+                    ) : (
+                      <p className="text-sm text-neutral-600 mb-1">{item.moment}</p>
+                    )}
                     {item.betterResponse && (
                       <p className="text-sm text-neutral-900 border-l-2 border-blue-200 pl-3">
-                        A great answer: &ldquo;{item.betterResponse}&rdquo;
+                        {item.plain ? 'Next time, try something like' : 'A great answer'}: &ldquo;{item.betterResponse}&rdquo;
                       </p>
                     )}
                   </div>

@@ -17,9 +17,9 @@ const SCALE: Record<string, number> = { thousand: 1e3, k: 1e3, million: 1e6, m: 
 // "$30M", "3 million", "840,000", "36%", "$2.4".
 const FIGURE = /(\$)?(\d+(?:,\d{3})*(?:\.\d+)?)\s*(%|percent\b|points?\b|(?:thousand|million|billion|bn|[kmb])\b)?/gi;
 
-type Figure = { text: string; raw: number; scaled: number; money: boolean; percent: boolean; scale: boolean; start: number };
+export type Figure = { text: string; raw: number; scaled: number; money: boolean; percent: boolean; scale: boolean; start: number };
 
-function figuresIn(text: string): Figure[] {
+export function figuresIn(text: string): Figure[] {
   const out: Figure[] = [];
   for (const m of normalizeNumberWords(text).matchAll(FIGURE)) {
     const raw = parseFloat(m[2].replace(/,/g, ''));
