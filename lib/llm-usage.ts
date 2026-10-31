@@ -6,7 +6,7 @@
 export type LlmUsage = {
   // 'ask_check': the item-less ask check (turn-data.ts checkAsk → classifyAsk), apart from
   // 'data_request' (the message classifier, post-turn, scoring) for its cost per session.
-  component: 'interviewer' | 'judge' | 'verifier' | 'coverage' | 'data_request' | 'ask_check' | 'reconcile' | 'distress' | 'hint_check' | 'opener' | 'probe_judge' | 'structure_judge' | 'conduct' | 'math_checker' | 'equation_extractor' | 'ask_judge';
+  component: 'interviewer' | 'judge' | 'verifier' | 'coverage' | 'data_request' | 'ask_check' | 'reconcile' | 'plain_feedback' | 'distress' | 'hint_check' | 'opener' | 'probe_judge' | 'structure_judge' | 'conduct' | 'math_checker' | 'equation_extractor' | 'ask_judge';
   model: string;        // the model requested
   // The model the API says answered (response.model). Differs from `model`
   // when a server-side fallback re-ran the request on another model. Recorded

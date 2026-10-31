@@ -68,6 +68,22 @@ describe('report PDF', () => {
     expect(buffer.length).toBeGreaterThan(1000);
   });
 
+  it('renders points in plain words (report tone, 31 Oct)', async () => {
+    const plain: DimensionFeedback = {
+      ...richFeedback,
+      wentWell: [{ ...richFeedback.wentWell[0], plain: { where: 'In the opening, you said "My structure".', what: 'You led with a structure.', why: 'It shows where you are going.', next: 'Keep stating the structure first.' } }],
+      missedOpportunities: [{ ...richFeedback.missedOpportunities[0], plain: { where: 'After the coffee-cost reveal.', what: 'The estimate went unchecked.', why: 'A quick check catches a wrong figure.' } }],
+    };
+    const buffer = await renderToBuffer(
+      ReportPdf({
+        caseTitle: 'Test Coffee Case', completedAt: '2026-10-31', overallRating: 'meets_bar', topFix: null,
+        dimensions: [{ key: 'structure', label: 'Problem Structuring', rating: 'meets_bar', feedback: plain, legacyEvidence: null }],
+        modelAnswer: null, turns: [],
+      }),
+    );
+    expect(buffer.subarray(0, 5).toString()).toBe('%PDF-');
+  });
+
   it('renders legacy rows (flat evidence, no rich feedback)', async () => {
     const buffer = await renderToBuffer(
       ReportPdf({

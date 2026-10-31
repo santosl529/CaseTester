@@ -23,49 +23,69 @@ const MissedOpportunitySchema = z.object({
   betterResponse: z.string(), // what a great candidate would have said there
 });
 
-const DimensionFeedbackSchema = z.object({
-  rating: RatingSchema,
-  wentWell: z.array(FeedbackItemSchema),
-  needsWork: z.array(FeedbackItemSchema),
-  missedOpportunities: z.array(MissedOpportunitySchema),
-  // Set when the interviewer never administered this dimension's primary stage:
-  // the gap is session coverage, not a candidate failing.
-  coverageCaveat: z.string().optional(),
-  // Rule 9 (v4.3): the interviewer's coverage gap left too little evidence to
-  // rate this dimension at all. Shown as "not assessed"; excluded from the
-  // overall rating; stored as a NULL rating column.
-  notAssessed: z.boolean().optional(),
-  // Round-3 fix 3: the strong anchor's elements, each judged with a candidate
-  // quote; lib/scoring/strong-gate.ts allows "strong" only on this evidence.
-  // Optional so reports stored before it still parse.
-  strongElements: z.array(z.object({
-    element: z.string(),
-    status: z.enum(['met', 'not_met', 'no_occasion']),
-    quote: z.string(),
-  })).optional(),
-});
+// Report tone (tester feedback, 31 Oct): the same point in plain words, written
+// after every pass by plain-feedback.ts — where it happened, what happened, why
+// it matters, what to try next. Stored beside the judge's point, never in place
+// of it; the judge never writes it. Absent on older reports and on any item
+// whose rewrite failed its audit: the report shows the point.
+const PlainPointSchema = z.object({ where: z.string(), what: z.string(), why: z.string(), next: z.string() });
+const PlainMomentSchema = z.object({ where: z.string(), what: z.string(), why: z.string() });
 
-export type FeedbackItem = z.infer<typeof FeedbackItemSchema>;
-export type MissedOpportunity = z.infer<typeof MissedOpportunitySchema>;
-export type DimensionFeedback = z.infer<typeof DimensionFeedbackSchema>;
+export type PlainPoint = z.infer<typeof PlainPointSchema>;
+export type PlainMoment = z.infer<typeof PlainMomentSchema>;
+
+function dimensionFeedback<I extends z.ZodTypeAny, M extends z.ZodTypeAny>(item: I, moment: M) {
+  return z.object({
+    rating: RatingSchema,
+    wentWell: z.array(item),
+    needsWork: z.array(item),
+    missedOpportunities: z.array(moment),
+    // Set when the interviewer never administered this dimension's primary stage:
+    // the gap is session coverage, not a candidate failing.
+    coverageCaveat: z.string().optional(),
+    // Rule 9 (v4.3): the interviewer's coverage gap left too little evidence to
+    // rate this dimension at all. Shown as "not assessed"; excluded from the
+    // overall rating; stored as a NULL rating column.
+    notAssessed: z.boolean().optional(),
+    // Round-3 fix 3: the strong anchor's elements, each judged with a candidate
+    // quote; lib/scoring/strong-gate.ts allows "strong" only on this evidence.
+    // Optional so reports stored before it still parse.
+    strongElements: z.array(z.object({
+      element: z.string(),
+      status: z.enum(['met', 'not_met', 'no_occasion']),
+      quote: z.string(),
+    })).optional(),
+  });
+}
+
+const DimensionFeedbackSchema = dimensionFeedback(FeedbackItemSchema, MissedOpportunitySchema);
+const StoredDimensionFeedbackSchema = dimensionFeedback(
+  FeedbackItemSchema.extend({ plain: PlainPointSchema.optional() }),
+  MissedOpportunitySchema.extend({ plain: PlainMomentSchema.optional() }),
+);
+
+export type FeedbackItem = z.infer<typeof FeedbackItemSchema> & { plain?: PlainPoint };
+export type MissedOpportunity = z.infer<typeof MissedOpportunitySchema> & { plain?: PlainMoment };
+export type DimensionFeedback = z.infer<typeof StoredDimensionFeedbackSchema>;
+
+const dimensions = <D extends z.ZodTypeAny>(d: D) => ({
+  structure: d, quantitative: d, dataExhibit: d, judgment: d, creativity: d, synthesis: d, communication: d, pushback: d,
+});
 
 // What the judge writes: every field required, an overall rating included.
 const JudgeOutputSchema = z.object({
-  structure: DimensionFeedbackSchema,
-  quantitative: DimensionFeedbackSchema,
-  dataExhibit: DimensionFeedbackSchema,
-  judgment: DimensionFeedbackSchema,
-  creativity: DimensionFeedbackSchema,
-  synthesis: DimensionFeedbackSchema,
-  communication: DimensionFeedbackSchema,
-  pushback: DimensionFeedbackSchema,
+  ...dimensions(DimensionFeedbackSchema),
   overallRating: RatingSchema,
   topFix: z.string(),
 });
 
-// What a report stores: the same, except a partial interview (Rule 18A
-// v4.10 — the candidate ended it early) has no overall rating.
-export const RubricScoresSchema = JudgeOutputSchema.extend({ overallRating: RatingSchema.nullable() });
+// What a report stores: the same, with the plain-words fields, except a partial
+// interview (Rule 18A v4.10 — the candidate ended it early) has no overall rating.
+export const RubricScoresSchema = z.object({
+  ...dimensions(StoredDimensionFeedbackSchema),
+  overallRating: RatingSchema.nullable(),
+  topFix: z.string(),
+});
 
 export type RubricScores = z.infer<typeof RubricScoresSchema>;
 

@@ -105,3 +105,51 @@ describe('a stage that is not part of the case', () => {
     expect(quoted.rubric.creativity.coverageCaveat).toBe('This case has no brainstorm stage; this rating rests on what you did elsewhere.');
   });
 });
+
+// Report tone (Lorenzo, 31 Oct): "With the recommendation now the last question, a dimension the interview didn't
+// test (e.g. pushback after the recommendation) is 'not assessed', never a weakness."
+describe('what the interview did not test is not assessed, never a weakness', () => {
+  const recLast = (over: Partial<StageRecord> = {}) => rec({ risk: { delivered: true, deliveredAt: 40, outcome: 'answered', withRecommendation: true }, ...over });
+
+  it('the judge is told the recommendation was the last question when the risk was asked inside it', () => {
+    const text = formatStageRecordSection(recLast(), null);
+    expect(text).toMatch(/recommendation was the interview's last question/);
+    expect(text).toMatch(/never a weakness/);
+    expect(text).toMatch(/no_occasion/);
+  });
+
+  it('the same line when the answer named no risk', () => {
+    expect(formatStageRecordSection(recLast({ risk: { delivered: true, outcome: 'unable', withRecommendation: true, noneNamed: true } }), null))
+      .toMatch(/recommendation was the interview's last question/);
+  });
+
+  it('no such line when the risk was its own question', () => {
+    expect(formatStageRecordSection(rec(), null)).not.toMatch(/last question/);
+  });
+
+  it('Handling Pushback with no challenge in the interview and no quoted evidence → not assessed', () => {
+    const r = rubric({ pushback: dim('needs_work', {
+      needsWork: [{ point: 'Did not defend the recommendation under pushback.', quotes: [] }],
+      missedOpportunities: [{ moment: 'After the recommendation.', betterResponse: 'I would hold my position because…' }],
+    }) });
+    const out = applyStageCaps(r, recLast({ pressure_test: { delivered: false } }), { partial: false });
+    expect(out.rubric.pushback.notAssessed).toBe(true);
+    expect(out.rubric.pushback.coverageCaveat).toMatch(/never challenged your answers/);
+    expect(out.notAssessed).toEqual(['pushback']);
+    // never a weakness: the unquoted fault and its missed moment go with the rating
+    expect(out.rubric.pushback.needsWork).toEqual([]);
+    expect(out.rubric.pushback.missedOpportunities).toEqual([]);
+  });
+
+  it('Handling Pushback with quoted evidence is rated as judged, and gets no caveat (it is read across the interview)', () => {
+    const out = applyStageCaps(rubric(), rec({ pressure_test: { delivered: false } }), { partial: false });
+    expect(out.rubric.pushback.notAssessed).toBeUndefined();
+    expect(out.rubric.pushback.coverageCaveat).toBeUndefined();
+    expect(out.caveated).toEqual([]);
+  });
+
+  it('a pressure test that happened is a challenge: Handling Pushback stays rated even without quotes', () => {
+    const r = rubric({ pushback: dim('meets_bar') });
+    expect(applyStageCaps(r, rec(), { partial: false }).rubric.pushback.notAssessed).toBeUndefined();
+  });
+});

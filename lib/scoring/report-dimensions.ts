@@ -1,6 +1,7 @@
 import type { scores } from '@/db/schema';
 import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS, NOT_ASSESSED, type RubricDimensionKey } from './rubric';
-import { RubricScoresSchema, type DimensionFeedback } from './judge';
+import { RubricScoresSchema, type DimensionFeedback, type FeedbackItem } from './judge';
+import { normalize } from './evidence-audit';
 
 type ScoreRow = typeof scores.$inferSelect;
 
@@ -46,4 +47,12 @@ export function reportDimensions(score: ScoreRow): ReportDimension[] {
     feedback: rubric?.[key] ?? null,
     legacyEvidence: LEGACY_EVIDENCE[key](score),
   }));
+}
+
+// Report tone (31 Oct): an item in plain words quotes the candidate inline; its
+// evidence quotes are shown below it only where the text does not already hold them.
+export function evidenceQuotes(item: FeedbackItem): string[] {
+  if (!item.plain) return item.quotes;
+  const text = normalize(Object.values(item.plain).join(' '));
+  return item.quotes.filter(q => !text.includes(normalize(q)));
 }
