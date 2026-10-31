@@ -2,7 +2,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BRAND, HOME_HREF, HOOD_ID, PRODUCT_HREF } from './content';
-import { DiagnosticCta, useAtClose } from './diagnostic-cta';
+import { StartCta, useAtClose } from './cta';
 import s from './exhibition.module.css';
 
 // The sticky header (Matt's v3 brief, 23 Oct 2026; two pages, 24 Oct). It
@@ -57,13 +57,13 @@ export function StickyHeader({ watch, page }: { watch: string; page: 'home' | 'p
       <div className="mx-auto flex h-full w-full max-w-[1240px] items-center justify-between gap-4 px-6 lg:px-12">
         <Link href={HOME_HREF} className="t-card font-semibold tracking-[-0.02em]">{BRAND}</Link>
         <nav aria-label="Site" className="flex items-center gap-4 lg:gap-6">
-          <Link href={PRODUCT_HREF} aria-current={product ? 'page' : undefined} className={`${s.navLink} link t-small`}>Product</Link>
+          <Link href={PRODUCT_HREF} aria-current={product ? 'page' : undefined} className={`${s.navLink} link t-small`}>How it works</Link>
           {/* Same page: an anchor; the stack brings the slide to its resting place (apart.tsx). */}
           <a href={product ? `${HOME_HREF}#${HOOD_ID}` : `#${HOOD_ID}`} className="link t-small hidden lg:inline">Technology</a>
           <span data-off={ctaOff} inert={ctaOff} className={`${s.atClose} ${s.headerCta}`}>
-            <DiagnosticCta className="btn-primary compact">
-              <span className="sm:hidden">Free diagnostic</span><span className="hidden sm:inline">Take the free diagnostic</span>
-            </DiagnosticCta>
+            <StartCta className="btn-primary compact">
+              <span className="sm:hidden">Start</span><span className="hidden sm:inline">Start a mock interview</span>
+            </StartCta>
           </span>
         </nav>
       </div>

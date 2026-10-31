@@ -15,7 +15,7 @@ const PILL: Record<Exclude<ThreadState, 'none'>, { label: string; cls: string }>
   focus: { label: 'Focus area', cls: 'border-(--sky) bg-(--sky) text-(--ink)' },
   learning: { label: 'Learning', cls: 'border-(--sky) bg-(--sky) text-(--ink)' },
   practiced: { label: 'Practiced', cls: 'border-(--cobalt) bg-(--cobalt) text-(--white)' },
-  passed: { label: 'Passed in a new case', cls: 'border-(--mastery) bg-(--white) text-(--ink)' },
+  passed: { label: 'Right in a new case', cls: 'border-(--mastery) bg-(--white) text-(--ink)' },
   mastered: { label: 'Mastered', cls: 'border-(--mastery) bg-(--mastery) text-(--ink)' },
 };
 

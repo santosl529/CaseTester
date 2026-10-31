@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { BRAND, CLOSE, HOME_HREF, PRODUCT_HREF } from './content';
-import { DiagnosticCta } from './diagnostic-cta';
+import { StartCta } from './cta';
 import s from './exhibition.module.css';
 
 // What the homepage and the product page share (Matt's brief, 24 Oct 2026):
@@ -25,7 +25,7 @@ export function CloseCta() {
         <h2 id="ex-close" data-reveal="text" className={`${s.display} t-display mx-auto max-w-[14ch] text-balance`}>{CLOSE.headline}</h2>
         <p data-reveal="text" className={`t-body mx-auto mt-6 max-w-[34rem] ${MUTED}`}>{CLOSE.subhead}</p>
         {/* The wrapper reveals, so the button keeps its own hover transition. */}
-        <div data-reveal="text" className="mt-10"><DiagnosticCta className="btn-primary">{CLOSE.primary}</DiagnosticCta></div>
+        <div data-reveal="text" className="mt-10"><StartCta className="btn-primary">{CLOSE.primary}</StartCta></div>
       </div>
     </section>
   );
@@ -38,7 +38,7 @@ export function SiteFooter() {
         <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
           <p className="t-body font-semibold">{BRAND}</p>
           <nav aria-label="Footer">
-            <Link href={PRODUCT_HREF} className="link t-small">Product</Link>
+            <Link href={PRODUCT_HREF} className="link t-small">How it works</Link>
           </nav>
         </div>
         <p className={`t-label mt-3 max-w-[48rem] ${MUTED}`}>

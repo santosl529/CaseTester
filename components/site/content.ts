@@ -1,20 +1,23 @@
-// The exhibition homepage mockup, v3 (Matt's briefs, 23 Oct 2026): a guided
-// ride through the training loop, told as one student's story. Copy is Matt's; product views are
-// recreations of real product components with sample data. Hardcoded;
-// nothing is sent anywhere.
+// The public site's copy (Matt's exhibition design, 23–28 Oct 2026; live at /
+// and /how-it-works since the site launch, 31 Oct): a guided ride through the
+// training loop, told as one sample student's story. Product views are
+// recreations of real product components with sample data. Every claim
+// matches what is live (Lorenzo, 31 Oct): docs/site-launch/copy-changes.md
+// lists each change from Matt's copy and why. The stats band's numbers are
+// not here: lib/site/stats.ts counts them on the server.
 
 export const HERO = {
-  headline: 'A complete case interview training program, built around you.',
-  subhead: 'Diagnostic, lessons, skill drills, and AI mock interviews, all in one comprehensive, personalized plan that adapts as you improve.',
-  primary: 'Take the free diagnostic',
-  reassurance: 'No experience needed. Free to start.',
+  headline: 'Mock case interviews with an AI interviewer that plays it like the real thing.',
+  subhead: 'Voice or text interviews, a feedback report on the 8 skills case interviews test, and a diagnostic, lessons and drills in a plan that updates as you practice.',
+  primary: 'Start a mock interview',
+  reassurance: 'No experience needed. Free with your consulting club’s access code.',
 };
 
 // The hero loop: interview first, then the system responding (~12 s).
 export const HERO_STEPS = [
   { label: 'Live interview', ms: 5000 },
-  { label: 'Gap caught', ms: 3000 },
-  { label: 'Plan adapts', ms: 4000 },
+  { label: 'Math checked', ms: 3000 },
+  { label: 'In your report', ms: 4000 },
 ] as const;
 
 // The hero previews the story the ride tells: Lorenzo's Day 1 margin slip,
@@ -24,13 +27,14 @@ export const HERO_CALL = {
   ask: 'So where does that leave the margin?',
   answer: 'It went from 6% to 4%.',
   gap: 'Math slip caught: it’s 2%, not 4%.',
-  week: 'Lorenzo’s plan · Week 1 of 6',
-  newRow: { slot: 'Weak spot', drill: 'Consulting math', reason: 'From your interview: margin was 2%, not 4%.', minutes: '8 min', thread: true },
-  rows: [
-    { slot: 'Review', drill: 'Spot the gap', reason: 'Structure: keep it sharp.', minutes: '5 min' },
-    { slot: 'Something new', drill: 'Chart read', reason: 'Exhibits are next week’s focus.', minutes: '7 min' },
-  ],
-  skill: 'Math setup',
+  // Step 3: the report's point on the slip, quoting it (the report is live;
+  // an interview's result does not reach the drills plan).
+  report: {
+    title: 'Feedback report · Sample',
+    skill: 'Quantitative rigor',
+    rating: 'Needs work',
+    text: 'The margin fell to 2%, not 4%: costs rose from 94% to 98% of sales. Set up the margin before you calculate.',
+  },
 };
 
 export const LOOP_INTRO = {
@@ -40,12 +44,12 @@ export const LOOP_INTRO = {
 
 // The loop's nodes, in chapter order; `short` is the sticky rail's label.
 export const NODES = [
-  { id: 'diagnose', label: 'Diagnose', short: 'Diagnose', description: 'Benchmark yourself on the 8 skills top firms test.' },
-  { id: 'plan', label: 'Your plan', short: 'Plan', description: '1 week, 2 weeks, 3 months, or anywhere in between, built around your gaps.' },
+  { id: 'diagnose', label: 'Diagnose', short: 'Diagnose', description: 'A 15-minute diagnostic finds where each skill starts.' },
+  { id: 'plan', label: 'Your plan', short: 'Plan', description: 'A 6-week plan, or a 7-day Sprint, built around your gaps.' },
   { id: 'learn', label: 'Learn', short: 'Learn', description: 'Sharp, focused lessons. No business background required.' },
   { id: 'drill', label: 'Drill', short: 'Drill', description: 'Targeted reps on one skill at a time until it’s automatic.' },
   { id: 'mock', label: 'Mock interview', short: 'Mock', description: 'A full case with an AI interviewer that pushes back like a real consultant.' },
-  { id: 'adapt', label: 'Plan updates', short: 'Updates', description: 'Every result recalibrates your plan to what’s holding you back now.' },
+  { id: 'adapt', label: 'Plan updates', short: 'Updates', description: 'Every drill set updates your plan to what’s holding you back now.' },
 ] as const;
 
 export interface ChapterCopy { id: string; label: string; headline: string; body: string; bullets: string[] }
@@ -59,24 +63,24 @@ export const THREAD = { student: 'Lorenzo', skill: 'Math setup' };
 export type ThreadState = 'none' | 'gap' | 'focus' | 'learning' | 'practiced' | 'passed' | 'mastered';
 
 export const STORY: Record<string, { day: string; left: string; line: string }> = {
-  diagnose: { day: 'Day 1', left: '25 days to his interview', line: 'Lorenzo’s diagnostic. He says the margin fell to 4%. It fell to 2%.' },
-  plan: { day: 'Day 1', left: '25 days to go', line: 'His plan starts with that slip: margin math leads today’s workout.' },
+  diagnose: { day: 'Day 1', left: '25 days to his interview', line: 'Lorenzo’s first mock interview. He says the margin fell to 4%. It fell to 2%.' },
+  plan: { day: 'Day 1', left: '25 days to go', line: 'His diagnostic finds the same slip, so math setup leads today’s workout.' },
   learn: { day: 'Day 2', left: '24 days to go', line: 'Between math reps, a 3-minute lesson on case-specific structure.' },
   drill: { day: 'Day 5', left: '21 days to go', line: 'Math reps: a wrong base is the same kind of setup slip.' },
   mock: { day: 'Day 12', left: '14 days to go', line: 'A new case. He sets up the margin first and gets it right.' },
-  adapt: { day: 'Day 12', left: '14 days to go', line: 'Math setup reaches Mastered. The report found his next weak spot.' },
+  adapt: { day: 'Day 12', left: '14 days to go', line: 'Math setup reaches Mastered in his drills. His report names the next weak spot.' },
 };
 
 // Matt's rewrite (24 Oct 2026): one paragraph per chapter, no bullets.
 export const CHAPTERS: Record<string, ChapterCopy> = {
   diagnose: {
     id: 'diagnose', label: '01 · Diagnose', headline: 'Know exactly where you stand',
-    body: 'Start with a live mock interview. When you say the margin fell to 4% and the case says 2%, the interviewer asks you to walk through your math, the way a real one would. A short skills check follows, and you leave with a score on each of the 8 skills and a ranked list of what to fix first.',
+    body: 'Start with a mock interview. When you say the margin fell to 4% and the case says 2%, the interviewer asks you to walk through your math, the way a real one would, and your report rates each of the 8 skills. Then a 15-minute diagnostic of short questions finds where each skill starts and builds your plan.',
     bullets: [],
   },
   plan: {
     id: 'plan', label: '02 · Your plan', headline: 'Never guess what to practice next',
-    body: 'Tell us your interview date, whether it’s next Friday or next semester, and your plan works backward from it. Each day brings one workout of about 20 minutes: drills on your weakest skill, a quick review of something you’ve already learned, and one thing you haven’t seen yet.',
+    body: 'Choose a 6-week plan, or a 7-day Sprint when your interview is close. Each day brings one workout of 20 to 30 minutes: drills on your weakest skill, a quick review of something you’ve already learned, and one thing you haven’t seen yet.',
     bullets: [],
   },
   learn: {
@@ -91,12 +95,12 @@ export const CHAPTERS: Record<string, ChapterCopy> = {
   },
   mock: {
     id: 'mock', label: '05 · Mock interview', headline: 'Prove it in a full case',
-    body: 'The interviewer shares data only when you ask for the right thing, pushes back when your logic is thin, and runs the case interviewer-led or candidate-led, the two formats firms use. Afterward, each of the 8 skills gets a rating, and every comment quotes the moment in your interview it refers to.',
+    body: 'The interviewer shares data only when you ask for the right thing, pushes back when your logic is thin, and checks your math as you go, by voice or by text. Afterward, each of the 8 skills gets a rating, and every comment quotes the moment in your interview it refers to.',
     bullets: [],
   },
   adapt: {
     id: 'adapt', label: '06 · Plan updates', headline: 'Your next workout comes from your last mistake',
-    body: 'If your mock interview shows you mixing up percentages and percentage points, that goes straight into tomorrow’s workout. A skill moves from learning to practiced once you pass it consistently, and to mastered only after you pass it on problems from an industry you haven’t practiced in.',
+    body: 'Mix up percentages and percentage points in a drill set, and that leads your next workout. A skill moves from learning to practiced once you pass it consistently, and to mastered only after you pass it again days later, on a problem from an industry you haven’t just practiced. Your interview report names what to work on too; the plan doesn’t read it yet, so pick that drill yourself.',
     bullets: [],
   },
 };
@@ -113,7 +117,7 @@ export const TRANSCRIPT: Line[] = [
   { scene: 1, who: 'Lorenzo', text: 'Then I’d split profit into revenue and costs. Since sales are flat, I’d start with costs: product costs, labor, and overhead.' },
   { scene: 1, who: 'Interviewer', text: 'Good. Here’s the cost breakdown.', exhibit: true },
   { scene: 2, who: 'Lorenzo', text: 'So the margin went from 6% to 4%.', mark: 'from 6% to 4%', slip: true },
-  { scene: 2, who: 'Interviewer', text: 'Walk me through how you got 4%.', mark: 'Walk me through', note: 'Math slip caught: it’s 2%. This becomes Lorenzo’s weak spot.' },
+  { scene: 2, who: 'Interviewer', text: 'Walk me through how you got 4%.', mark: 'Walk me through', note: 'Math slip caught: it’s 2%. His report will quote this line.' },
   { scene: 3, who: 'Lorenzo', text: 'Sorry: 100 minus 74, 15, and 9 is 2%. So the margin fell from 6% to 2%.' },
   { scene: 3, who: 'Interviewer', text: 'Our CFO thinks this is a labor problem. Do you agree?', mark: 'Do you agree?', note: 'Pushback, just like a real interviewer.' },
   { scene: 3, who: 'Lorenzo', text: 'No. Labor held at 15% of sales. The 4-point rise in product costs explains the entire drop.', mark: 'The 4-point rise in product costs explains the entire drop.', note: 'Defended with evidence.' },
@@ -142,7 +146,7 @@ export const SAMPLE_PLAN = { owner: 'Lorenzo’s plan', track: 'Standard · 6 we
 export const WEEKS = ['Structure and math', 'Hypotheses and exhibits', 'Judgment and synthesis', 'Integration', 'Interview performance', 'Readiness'];
 
 export const WORKOUT_FROM_SNAPSHOT = [
-  { slot: 'Weak spot', drill: 'Consulting math', reason: 'From your diagnostic: margin was 2%, not 4%.', minutes: '8 min', thread: true },
+  { slot: 'Weak spot', drill: 'Consulting math', reason: 'From your diagnostic: math setup.', minutes: '8 min', thread: true },
   { slot: 'Review', drill: 'Spot the gap', reason: 'Structure: keep it sharp.', minutes: '5 min' },
   { slot: 'Something new', drill: 'Chart read', reason: 'Exhibits are next week’s focus.', minutes: '7 min' },
 ];
@@ -170,7 +174,7 @@ export const DRILL = {
   prompt: 'Profit fell from $3M to $1M. By what percent did it fall?',
   wrong: { answer: '200%', chip: 'Wrong base: percent change divides by the starting value' },
   right: { answer: '67%', chip: 'Correct. $2M ÷ $3M ≈ 67%.' },
-  followup: { meta: 'Follow-up · Framework builder', text: 'Which part of your framework would you investigate first, and why?' },
+  followup: { meta: 'Framework builder · Follow-up', text: 'Which part of your framework would you investigate first, and why?' },
 };
 
 // Chapter 05: a later mock on a new case. Math setup holds up; the same
@@ -180,7 +184,7 @@ export const REPORT = {
   case: 'Harbor Coffee',
   rows: [
     { skill: 'Problem structuring', rating: 'Strong' },
-    { skill: 'Quantitative rigor', rating: 'Strong', was: 'Day 1: Focus area', thread: true },
+    { skill: 'Quantitative rigor', rating: 'Strong', thread: true },
     { skill: 'Exhibit interpretation', rating: 'Strong' },
     { skill: 'Business judgment', rating: 'Adequate' },
     { skill: 'Creativity', rating: 'Adequate' },
@@ -188,7 +192,6 @@ export const REPORT = {
     { skill: 'Communication', rating: 'Adequate' },
     { skill: 'Composure under pushback', rating: 'Strong' },
   ],
-  stages: ['Structure', 'Math', 'Exhibits', 'Brainstorming', 'Synthesis'],
   quote: 'Costs are 92% of sales, so the margin is 100 minus 92: 8%.',
   point: { label: 'Strength · Quantitative rigor', text: 'Set up the margin before calculating. Right the first time.' },
   closing: 'That’s a strong place to stop. Let’s look at your feedback.',
@@ -199,7 +202,7 @@ export const REPORT = {
 // tomorrow's workout; margin math drops to review.
 export const ADAPT = {
   point: { label: 'Work on · Percentages vs. percentage points', text: 'Said the margin “fell 3%”. It fell 3 points, from 11% to 8%.' },
-  newRow: { slot: 'Weak spot', drill: 'Mental math', reason: 'From your mock interview: percent vs. percentage points.', minutes: '8 min' },
+  newRow: { slot: 'Weak spot', drill: 'Mental math', reason: 'From your drills: percent vs. percentage points.', minutes: '8 min' },
   rows: [
     { slot: 'Review', drill: 'Consulting math', reason: 'Math setup: mastered. Kept sharp.', minutes: '5 min', thread: true },
     { slot: 'Something new', drill: 'Initial hypothesis', reason: 'Hypotheses are this week’s focus.', minutes: '7 min' },
@@ -224,27 +227,27 @@ export const ADAPT = {
 // pages, the product screens included, reads it from here.
 export const BRAND = 'CasePace';
 
-// What every "Take the free diagnostic" button says once clicked (Matt, 27 Oct: for now).
-export const CONTACT = 'Contact our team to learn more!';
+// Every call to action (site launch, 31 Oct): sign in, then /home.
+export const START_HREF = '/sign-in?next=/home';
 
 export const HOME_HREF = '/';
 export const PRODUCT_HREF = '/how-it-works';
 
 export const META = {
-  home: { title: `${BRAND} | Case interview training built around you`, description: `${BRAND} is a complete case interview training program: a diagnostic, lessons, skill drills and AI mock interviews in one personalized plan that adapts as you improve.` },
-  product: { title: `How it works | ${BRAND}`, description: `Every step of the ${BRAND} training loop, from the free diagnostic to your plan, lessons, drills and AI mock interviews, to the skill you finally master.` },
+  home: { title: `${BRAND} | AI mock case interviews and training`, description: `${BRAND} runs mock case interviews with an AI interviewer, by voice or text, and rates you on the 8 skills case interviews test, with a diagnostic, lessons and drills to practice between cases.` },
+  product: { title: 'How it works', description: `How ${BRAND} works: the diagnostic, your plan, lessons, drills, AI mock interviews by voice or text, and the 8-skill feedback report.` },
 };
 
 export const PRODUCT_INTRO = {
-  headline: 'From your first case to offer-ready',
+  headline: 'From your first case to interview day',
   subhead: 'Every step of the training loop, from the diagnostic to the skill you finally master.',
-  primary: 'Take the free diagnostic',
+  primary: 'Start a mock interview',
 };
 
 export const CLOSE = {
-  headline: 'Find out where you stand. It’s free.',
-  subhead: 'Take the diagnostic and get a personalized training plan in minutes.',
-  primary: 'Take the free diagnostic',
+  headline: 'Find out where you stand.',
+  subhead: 'Take a mock interview and get your report on all 8 skills in minutes.',
+  primary: 'Start a mock interview',
 };
 
 // "What sets us apart": Matt's copy, one block per slide (SLIDES below). The
@@ -255,32 +258,32 @@ export type ScreenId = 'interview' | 'workout' | 'lesson' | 'drill';
 
 export const APART = {
   eyebrow: `Why ${BRAND}`,
-  headline: 'Most AI case tools stop at the mock interview. We build the plan that gets you ready.',
+  headline: 'Most AI case tools stop at the mock interview. We add the drills and lessons to fix what it finds.',
   blocks: [
     {
       id: 'apart-interviewer', screens: ['interview'] as ScreenId[],
       title: 'An AI interviewer engineered to interview the way consultants do',
-      body: 'It asks for your structure, shares exhibits only when you ask for the right data, and stops you when the math is off. Afterward, every piece of feedback quotes the moment in your interview it refers to.',
+      body: 'It asks for your structure, shares exhibits only when you ask for the right data, and asks you to walk through it when the math is off. Afterward, every piece of feedback quotes the moment in your interview it refers to.',
     },
     {
       id: 'apart-plan', screens: ['workout'] as ScreenId[],
       title: 'A personalized, adaptive plan so you know what to improve next',
-      body: 'Your diagnostic and every case you take reshape what you practice next. Whether your interview is next Friday or next semester, you’ll always know exactly what today’s workout is.',
+      body: 'Your diagnostic sets your plan, and every drill set you finish reshapes it. Whether your interview is six weeks or seven days away, you’ll always know exactly what today’s workout is.',
     },
     {
       id: 'apart-drills', screens: ['lesson', 'drill'] as ScreenId[],
       title: 'A curriculum of lessons and drills, designed to improve your weak spots',
-      body: 'Every mistake you make in a case is matched to a short lesson and a set of targeted drills. Learn the concept in about three minutes, then practice it with drills from a library of 200+ that give instant feedback and test whether you really understand.',
+      body: 'Each skill has a short lesson and targeted drills. Learn the concept in about three minutes, then practice it with drills that give instant feedback and, on harder sets, make you defend your answer.',
     },
   ],
-  primary: 'Take the free diagnostic',
+  primary: 'Start a mock interview',
   tour: 'See the full product tour',
 };
 
 // The slides (Matt's brief, 24 Oct 2026): What sets us apart as three
 // stacking consulting slides, one per block, each with its own exhibit.
 export const SLIDES = [
-  { feature: 'AI Interviewer', sub: 'Live voice', chapter: 'mock', exhibits: [{ id: 'interview', label: 'Exhibit 1', title: 'Live voice interview' }] },
+  { feature: 'AI Interviewer', sub: 'Voice or text', chapter: 'mock', exhibits: [{ id: 'interview', label: 'Exhibit 1', title: 'Live voice interview' }] },
   { feature: 'Adaptive Plan', sub: 'Personalized daily workouts', chapter: 'plan', exhibits: [{ id: 'workout', label: 'Exhibit 2', title: 'Today’s workout' }] },
   { feature: 'Lessons & Drills', sub: 'Targeted curriculum', chapter: 'learn', exhibits: [{ id: 'lesson', label: 'Exhibit 3a', title: 'Lesson' }, { id: 'drill', label: 'Exhibit 3b', title: 'Targeted drill' }] },
 ] as { feature: string; sub: string; chapter: string; exhibits: { id: ScreenId; label: string; title: string }[] }[];
@@ -296,7 +299,7 @@ export const HOOD = {
   feature: 'Technology',
   sub: 'The foundation of every session',
   title: 'All Engineered for YOU to Succeed',
-  body: 'A multi-agent architecture runs each part of your interview, every output is verified, and every mistake becomes a drill built to fix it.',
+  body: 'Separate AI agents run each part of your interview, every number the interviewer says comes from the case, and the report’s quotes are checked against your transcript.',
   button: 'How it works',
   figure: ['FIGURE 1', 'WHAT EVERY SESSION RUNS ON'],
   foot: 'Foundation',
@@ -321,7 +324,7 @@ export const SCREENS = {
   lesson: {
     label: 'The lesson',
     meta: 'Percentages · short lesson',
-    title: 'Percentages vs. percentage points',
+    title: 'Percent change, percent of, and percentage points',
     minutes: '3 min',
     // The idea and the mistake line are the live lesson's (lessons/lesson-qn-percentages.md).
     idea: 'Percent change divides by the starting value, and a change between two percentages is measured in percentage points.',
@@ -334,6 +337,5 @@ export const SCREENS = {
     prompt: 'Operating margin rose from 6% to 8%. By how many percentage points did it rise?',
     answer: '33%',
     chip: 'Percent vs. points: that’s the percent change. The question asked for the point change (2).',
-    followup: { meta: 'Follow-up', text: 'The CFO tells the board the margin “grew 2%”. What would you say instead, and why?' },
   },
 };

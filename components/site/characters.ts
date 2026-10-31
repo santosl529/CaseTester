@@ -10,9 +10,9 @@ export interface Character { name: string; role: string; quote: string; src: str
 
 export const CHARACTERS: Record<CharacterId, Character> = {
   graham: { name: 'Graham', role: 'AI interviewer', quote: 'Before we go further, what’s your hypothesis?', src: '/landing/characters/graham-leaning.svg' },
-  valeria: { name: 'Valeria', role: 'AI planner', quote: '25 days to go. That means a workout today, not tomorrow.', src: '/landing/characters/valeria-watch-tap.svg' },
-  imani: { name: 'Imani', role: 'AI teacher', quote: 'Here’s the trick most people miss.', src: '/landing/characters/imani-whiteboard.svg' },
-  kai: { name: 'Kai', role: 'AI drills coach', quote: 'Three in a row. Now go faster.', src: '/landing/characters/kai-stopwatch.svg' },
+  valeria: { name: 'Valeria', role: 'Your plan', quote: '25 days to go. That means a workout today, not tomorrow.', src: '/landing/characters/valeria-watch-tap.svg' },
+  imani: { name: 'Imani', role: 'Lessons', quote: 'Here’s the trick most people miss.', src: '/landing/characters/imani-whiteboard.svg' },
+  kai: { name: 'Kai', role: 'Drills', quote: 'Three in a row. Now go faster.', src: '/landing/characters/kai-stopwatch.svg' },
 };
 
 // Who appears on each slide, in order (slide 3: Imani, then Kai).

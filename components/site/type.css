@@ -70,21 +70,6 @@
   font-size: var(--t-small);
 }
 
-/* Phones: the header's "Contact our team to learn more!" (diagnostic-cta.tsx)
-   wraps to two lines rather than push the header past the screen. */
-@media (max-width: 639.98px) {
-  [data-exhibition] .btn-primary.compact[data-asked='true'] {
-    height: auto;
-    min-height: 2.25rem;
-    max-width: 9rem;
-    padding: 0.25rem 0.875rem;
-    font-size: 0.75rem;
-    line-height: 1.2;
-    white-space: normal;
-    text-align: center;
-  }
-}
-
 [data-exhibition] .btn-secondary {
   display: inline-flex;
   align-items: center;

@@ -56,7 +56,7 @@ const clock = (pos: number) => { const sec = 41 + Math.floor(pos * 2.4); return 
 export function Snapshot({ on = true, flat = false }: { on?: boolean; flat?: boolean }) {
   return (
     <div className={flat ? 'border-t border-(--ink)/12 bg-(--paper) px-4 py-4 sm:px-5' : 'rounded-[12px] border border-(--ink)/12 bg-(--white) p-4'}>
-      <p className={`${s.caps} t-label text-(--ink)`}>Skill snapshot</p>
+      <p className={`${s.caps} t-label text-(--ink)`}>From his report</p>
       <ul className="mt-2 divide-y divide-(--ink)/10">
         {SNAPSHOT.map((r, i) => (
           <li key={r.skill} className={`${s.reveal} t-small flex items-center justify-between gap-3 py-2`} data-on={on} style={{ '--delay': `${150 + i * 150}ms` } as React.CSSProperties}>
@@ -64,7 +64,7 @@ export function Snapshot({ on = true, flat = false }: { on?: boolean; flat?: boo
               <span className="flex items-center gap-2 font-medium">{r.thread && <ThreadMark />}{r.skill}</span>
               {r.thread && <span className="t-label mt-0.5 block text-(--ink)/70">{r.thread}</span>}
             </span>
-            <span className={`t-label flex-none rounded-full px-2.5 py-0.5 font-semibold ${r.strong ? 'bg-(--mastery) text-(--ink)' : 'bg-(--cobalt) text-(--white)'}`}>{r.strong ? 'Strong start' : 'Focus area'}</span>
+            <span className={`t-label flex-none rounded-full px-2.5 py-0.5 font-semibold ${r.strong ? 'bg-(--mastery) text-(--ink)' : 'bg-(--cobalt) text-(--white)'}`}>{r.strong ? 'Strong' : 'Needs work'}</span>
           </li>
         ))}
       </ul>

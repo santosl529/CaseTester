@@ -27,7 +27,7 @@ const MAX_STEP = { desk: 0.1, phone: 30 };
 // The loop's progress (Matt's brief, 27 Oct 2026): scroll-scrubbed. A Cobalt line fills a grey track along the connectors; a card turns
 // active as the line reaches it (its wordless preview plays once) and gets a
 // green dot once the line has passed. Pass 1 runs Diagnose → Plan updates and
-// fills the Readiness meter to 40%, the return path draws back to Your plan,
+// fills the Progress meter to 40%, the return path draws back to Your plan,
 // then a quicker, brighter pulse runs Your plan → Plan updates (a brief
 // highlight per card, no replays) and takes the meter to 85%, never 100%.
 // Paced (28 Oct): on desktops the diagram sits in a RUNWAY_VH-tall runway,
@@ -139,7 +139,7 @@ const DOWN = <div aria-hidden="true" className="flex h-8 flex-col items-center">
 function Meter({ fillRef }: { fillRef: (el: HTMLSpanElement | null) => void }) {
   return (
     <span className={s.meter}>
-      <span className="text-[12px] leading-4 font-medium text-(--ink)">Readiness</span>
+      <span className="text-[12px] leading-4 font-medium text-(--ink)">Progress</span>
       <span className={s.meterBar}><span ref={fillRef} className={s.meterFill} /></span>
     </span>
   );

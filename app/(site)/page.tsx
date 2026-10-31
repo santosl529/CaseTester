@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { DiagnosticCta } from '@/components/site/diagnostic-cta';
+import { StartCta } from '@/components/site/cta';
 import { HeroDemo } from '@/components/site/hero-demo';
 import { LoopSection, StatsBand } from '@/components/site/loop';
 import { ApartSection } from '@/components/site/apart';
@@ -19,7 +19,7 @@ import '@/components/site/type.css';
 // technology is What sets us apart's fourth slide, Under the hood (v12 has
 // the old section).
 
-export const metadata: Metadata = { title: META.home.title, description: META.home.description };
+export const metadata: Metadata = { title: { absolute: META.home.title }, description: META.home.description };
 
 const WRAP = 'mx-auto w-full max-w-[1240px] px-6 lg:px-12';
 const MUTED = 'text-(--ink)/70';
@@ -38,7 +38,7 @@ export default function ExhibitionMockup() {
               <h1 id="ex-hero" className={`${s.display} t-display text-balance`}>{HERO.headline}</h1>
               <p className={`t-body mt-5 max-w-[30rem] sm:mt-7 ${MUTED}`}>{HERO.subhead}</p>
               <div className="mt-7 sm:mt-9">
-                <DiagnosticCta id="hero-cta" className="btn-primary">{HERO.primary}</DiagnosticCta>
+                <StartCta id="hero-cta" className="btn-primary">{HERO.primary}</StartCta>
                 <p className={`t-small mt-3 ${MUTED}`}>{HERO.reassurance}</p>
               </div>
             </div>

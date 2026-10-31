@@ -227,7 +227,7 @@ function FollowUp({ on }: { on: boolean }) {
     <div className={`${s.reveal} ${s.revealX} rounded-[10px] border border-(--cobalt)/60 bg-(--white) p-4`} data-on={on}>
       <p className="t-label font-semibold text-(--ink)/65">{DRILL.followup.meta}</p>
       <p className="t-body mt-1.5 font-medium">{DRILL.followup.text}</p>
-      <p className="t-small mt-3 rounded-[6px] border border-(--ink)/15 px-3 py-2 text-(--ink)/65">Your reply · up to 60 words</p>
+      <p className="t-small mt-3 rounded-[6px] border border-(--ink)/15 px-3 py-2 text-(--ink)/65">Your reply · up to 40 words</p>
     </div>
   );
 }
@@ -308,7 +308,7 @@ function Point({ quoteOn, pointOn }: { quoteOn: boolean; pointOn: boolean }) {
 function EightLabel({ on }: { on: boolean }) {
   return (
     <p className={`${s.reveal} t-label flex items-baseline gap-2 font-semibold text-(--cobalt)`} data-on={on}>
-      <span className={`${s.figures} rounded-full bg-(--sky) px-1.5 py-0.5 text-(--ink)`}>8</span>The 8 skills top firms hire for
+      <span className={`${s.figures} rounded-full bg-(--sky) px-1.5 py-0.5 text-(--ink)`}>8</span>The 8 skills in every report
     </p>
   );
 }
@@ -317,7 +317,7 @@ export function MockChapter() {
   const { track, p } = useScrub();
   const call = p < 0.18;
   const rows = REPORT.rows.map((_, i) => p >= 0.18 + i * 0.04);
-  const stages = p >= 0.58, quote = p >= 0.7, point = p >= 0.8;
+  const quote = p >= 0.7, point = p >= 0.8;
   const rowsMobile = REPORT.rows.map((_, i) => p >= 0.08 + i * 0.035);
   return (
     <ChapterLayout copy={CHAPTERS.mock} len={1.25} track={track} thread={p >= 0.7 ? 'passed' : 'practiced'}
@@ -343,19 +343,13 @@ export function MockChapter() {
                 <p className="t-small font-semibold">Feedback report</p>
                 <p className="t-label text-(--ink)/65">{REPORT.case} · Day 12 · 24 min</p>
               </div>
-              <ol aria-label="Stages" className="relative mt-3 flex items-center justify-between">
-                <span aria-hidden="true" className="absolute inset-x-2 top-1/2 h-px bg-(--cobalt) transition-opacity duration-300" style={{ opacity: stages ? 1 : 0 }} />
-                {REPORT.stages.map((st, i) => (
-                  <li key={st} className={`${s.reveal} t-label relative rounded-full border border-(--cobalt)/50 bg-(--white) px-2.5 py-0.5 font-medium`} data-on={stages} style={d(i * 80)}>{st}</li>
-                ))}
-              </ol>
               <div className="relative mt-3 pl-3">
                 <span aria-hidden="true" className="absolute top-1 bottom-1 left-0 w-px bg-(--cobalt) transition-opacity duration-300" style={{ opacity: rows[0] ? 1 : 0 }} />
                 <EightLabel on={rows[0]} />
                 <ul className="mt-1 divide-y divide-(--ink)/8">
                   {REPORT.rows.map((r, i) => (
                     <li key={r.skill} className={`${s.reveal} t-small flex items-center justify-between gap-2 py-1.5 ${r.thread ? '-mx-2 rounded-md bg-(--sky)/50 px-2' : ''}`} data-on={rows[i]}>
-                      <span className="flex items-center gap-2">{r.thread && <ThreadMark />}{r.skill}{r.was && <span className="t-label text-(--ink)/65">{r.was}</span>}</span>
+                      <span className="flex items-center gap-2">{r.thread && <ThreadMark />}{r.skill}</span>
                       <span className={`t-label rounded-full px-2 py-0.5 font-semibold ${RATING[r.rating]}`}>{r.rating}</span>
                     </li>
                   ))}

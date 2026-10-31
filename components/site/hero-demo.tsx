@@ -1,6 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { ArrowUp, Pause, Play } from 'lucide-react';
+import { Pause, Play } from 'lucide-react';
 import { HERO_CALL, HERO_STEPS } from './content';
 import { Caption, Orb, Waveform, wordCount } from './call';
 import { useClock, useOnScreen, useReducedMotion } from './motion';
@@ -9,7 +9,9 @@ import s from './exhibition.module.css';
 
 // The hero's product demo (Matt's brief, 23 Oct 2026, v2): a live voice
 // interview first (the interviewer asks, the candidate answers), then the
-// gap is caught, then today's workout gains a row and the skill moves. One
+// math slip is caught, then the feedback report's point on it, quoting the
+// line (site launch, 31 Oct: the mockup's third step had the slip arrive in
+// the drills plan, which the product doesn't do). One
 // clock drives it (~12 s, looping) and stops when paused or off screen. Reduced motion: the last step, still,
 // with the step rail to look at each step by hand.
 
@@ -40,7 +42,7 @@ export function HeroDemo() {
     <div ref={ref}>
       <div data-paused={paused || !on} className={`${s.panel} ${s.bleed} relative -mx-6 h-[33rem] overflow-hidden sm:mx-0 sm:h-[30rem]`}>
         <CallView active={step <= 1} t={t} gap={step >= 1} />
-        <WorkoutView active={step === 2} t={t - STARTS[2]} />
+        <ReportView active={step === 2} t={t - STARTS[2]} />
       </div>
       <div className="mt-4 flex flex-col items-start gap-3 sm:flex-row sm:gap-4">
         {!reduced && (
@@ -106,38 +108,26 @@ function CallView({ active, t, gap }: { active: boolean; t: number; gap: boolean
   );
 }
 
-// Step 3: Today's workout and the skill map, recreated from the drills home.
-function WorkoutView({ active, t }: { active: boolean; t: number }) {
-  const row = active && t >= 300;
-  const progress = active && t >= 1700;
+// Step 3: the feedback report's point on the slip, recreated from the
+// report page: the skill, its rating, the quoted line and what to do.
+function ReportView({ active, t }: { active: boolean; t: number }) {
+  const quote = active && t >= 300;
+  const point = active && t >= 1200;
+  const r = HERO_CALL.report;
   return (
     <div className={`${s.view} p-5 sm:p-7`} data-active={active} aria-hidden={!active}>
-      <p className="t-small text-(--ink)/65">{HERO_CALL.week}</p>
+      <p className={`${s.caps} t-label text-(--ink)`}>{r.title}</p>
       <section className="mt-3 rounded-[8px] border border-(--ink)/12 p-4">
-        <div className="flex items-baseline justify-between gap-2">
-          <h3 className="t-body font-medium">Today’s workout</h3>
-          <span className={`${s.figures} t-small text-(--ink)/65`}>{row ? 'About 20 min · 3 sets' : 'About 12 min · 2 sets'}</span>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="t-body flex items-center gap-2 font-medium"><ThreadMark />{r.skill}</h3>
+          <span className="t-label rounded-full bg-(--cobalt) px-2 py-0.5 font-semibold text-(--white)">{r.rating}</span>
         </div>
-        <ol className="mt-2">
-          <li className={`${s.grow} -mx-2 rounded-md ${row ? 'bg-(--sky)/70' : ''}`} data-on={row}>
-            <div><Row {...HERO_CALL.newRow} /></div>
-          </li>
-          {HERO_CALL.rows.map(r => <li key={r.drill} className="-mx-2"><Row {...r} /></li>)}
-        </ol>
-        <span className="mt-2 inline-flex h-9 items-center rounded-[6px] bg-(--cobalt) px-4 t-small font-medium text-(--white)">Start today’s workout</span>
+        <p className="t-small mt-4 font-semibold">What needs work</p>
+        <p className={`${s.reveal} t-small mt-2 rounded-[6px] bg-(--sky) px-2 py-1 italic`} data-on={quote}>“{HERO_CALL.answer}”</p>
+        <div className="ml-4"><div className={`${s.draw} h-6 w-px bg-(--cobalt)`} data-on={point} /></div>
+        <p className={`${s.reveal} t-small text-(--ink)/80`} data-on={point}>{r.text}</p>
       </section>
-      <p className="t-small mt-5 font-medium">Skill map</p>
-      <ul className="mt-2 grid gap-2 sm:grid-cols-2">
-        <li className="flex items-center justify-between rounded-[6px] border border-(--mastery) bg-(--mastery) px-3 py-2 t-small font-medium text-(--ink)">MECE structure <span>Mastered</span></li>
-        {/* Lorenzo's weak spot joins the skill map: Not started → Learning. */}
-        <li className={`${s.tile} flex items-center justify-between rounded-[6px] border px-3 py-2 t-small font-medium ${progress ? 'border-(--sky) bg-(--sky) text-(--ink)' : 'border-(--ink)/20 bg-(--white) text-(--ink)'}`}>
-          <span className="flex items-center gap-2"><ThreadMark />{HERO_CALL.skill}</span>
-          <span className="flex items-center gap-1.5">
-            {progress ? 'Learning' : 'Not started'}
-            <span aria-hidden="true" className={`${s.reveal} flex h-4 w-4 items-center justify-center rounded-full bg-(--mastery) text-(--ink)`} data-on={progress} style={{ '--delay': '500ms' } as React.CSSProperties}><ArrowUp className="h-3 w-3" strokeWidth={3} /></span>
-          </span>
-        </li>
-      </ul>
+      <p className="t-label mt-4 text-(--ink)/65">Every point quotes the moment it refers to.</p>
     </div>
   );
 }

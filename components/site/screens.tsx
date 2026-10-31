@@ -164,11 +164,6 @@ function DrillScreen() {
           <AnswerBox answer={sc.answer} correct={false} />
           <Chip correct={false}>{sc.chip}</Chip>
         </div>
-        <div className="rounded-[10px] border border-(--cobalt)/60 p-3.5">
-          <p className="t-label font-semibold text-(--ink)/65">{sc.followup.meta}</p>
-          <p className="t-small mt-1 font-medium">{sc.followup.text}</p>
-          <p aria-hidden="true" className="t-label mt-2.5 rounded-[6px] border border-(--ink)/15 px-3 py-2 text-(--ink)/60">Your reply · up to 60 words</p>
-        </div>
       </div>
     </div>
   );

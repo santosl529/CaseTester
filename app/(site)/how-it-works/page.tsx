@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { DiagnosticCta } from '@/components/site/diagnostic-cta';
+import { StartCta } from '@/components/site/cta';
 import { LoopSection } from '@/components/site/loop';
 import { Ride } from '@/components/site/ride';
 import { DiagnoseChapter } from '@/components/site/ch-diagnose';
@@ -32,7 +32,7 @@ export default function ExhibitionProductMockup() {
           <div className={`${WRAP} pt-14 pb-4 sm:pt-20 lg:pt-28`}>
             <h1 id="product-h" className={`${s.display} t-display max-w-[16ch] text-balance`}>{PRODUCT_INTRO.headline}</h1>
             <p className="t-body mt-6 max-w-[34rem] text-(--ink)/70 sm:mt-7">{PRODUCT_INTRO.subhead}</p>
-            <div className="mt-8 sm:mt-10"><DiagnosticCta id="intro-cta" className="btn-primary">{PRODUCT_INTRO.primary}</DiagnosticCta></div>
+            <div className="mt-8 sm:mt-10"><StartCta id="intro-cta" className="btn-primary">{PRODUCT_INTRO.primary}</StartCta></div>
           </div>
         </section>
 

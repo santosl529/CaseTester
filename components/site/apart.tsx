@@ -6,7 +6,7 @@ import { APART, BRAND, HOOD, HOOD_ID, PRODUCT_HREF, SLIDES, SLIDE_SOURCE, type S
 import { seg, useReducedMotion } from './motion';
 import { BrowserFrame, Screen, VOICE_STEPS } from './screens';
 import { Cast } from './cast';
-import { DiagnosticCta, useAtClose } from './diagnostic-cta';
+import { StartCta, useAtClose } from './cta';
 import { HoodFigure } from './hood';
 import { SLIDE_CAST } from './characters';
 import s from './exhibition.module.css';
@@ -316,7 +316,7 @@ export function ApartSection() {
           the stack is pinned (the slide's foot is a gap above the window's). */}
       {/* At the close, it fades out (inert), so the close's button is the only one on screen. */}
       <div data-off={atClose} inert={atClose} className={`${WRAP} ${s.apartAfter} ${s.atClose} mt-14 flex flex-wrap items-center gap-x-8 gap-y-5 lg:mt-16`}>
-        <div data-reveal="text"><DiagnosticCta className="btn-primary">{APART.primary}</DiagnosticCta></div>
+        <div data-reveal="text"><StartCta className="btn-primary">{APART.primary}</StartCta></div>
         <div data-reveal="text">
           <Link href={PRODUCT_HREF} className="link t-body inline-flex items-center gap-2">{APART.tour}<ArrowRight aria-hidden="true" className="h-4 w-4" /></Link>
         </div>
