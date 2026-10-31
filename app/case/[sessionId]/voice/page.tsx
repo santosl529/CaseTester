@@ -14,7 +14,7 @@ export default async function VoiceCasePage({ params }: { params: Promise<{ sess
   const { sessionId } = await params;
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/');
+  if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/case/${sessionId}/voice`)}`);
 
   const session = await db.query.sessions.findFirst({
     where: and(eq(sessions.id, sessionId), eq(sessions.userId, user.id)),

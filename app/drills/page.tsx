@@ -32,7 +32,7 @@ export default async function DrillsHomePage() {
       <Link href="/drills/learn" className="underline-offset-4 hover:underline">Learn</Link>
       <Link href="/drills/progress" className="underline-offset-4 hover:underline">Your progress</Link>
       <Link href="/drills/settings" className="underline-offset-4 hover:underline">Settings</Link>
-      <Link href="/" className="text-muted-foreground underline-offset-4 hover:underline">Cases</Link>
+      <Link href="/home" className="text-muted-foreground underline-offset-4 hover:underline">Cases</Link>
     </nav>
   );
   const resume = home.resume && (
@@ -66,7 +66,7 @@ export default async function DrillsHomePage() {
         </li>
         <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
           <span><span className="block font-medium">Take a full case</span><span className="text-muted-foreground">About 35 minutes. The most accurate.</span></span>
-          <Link href="/" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
+          <Link href="/home" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
         </li>
       </ul>
     </section>
@@ -146,7 +146,7 @@ export default async function DrillsHomePage() {
         {weakest}
         <div className="flex flex-wrap gap-3">
           <Link href="/drills/browse" className={buttonVariants({ variant: 'outline' })}>Browse drills</Link>
-          <Link href="/" className={buttonVariants({ variant: 'ghost' })}>Browse cases</Link>
+          <Link href="/home" className={buttonVariants({ variant: 'ghost' })}>Browse cases</Link>
         </div>
       </main>
     );

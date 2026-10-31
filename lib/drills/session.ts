@@ -12,8 +12,8 @@ export async function studentOrRedirect(): Promise<string> {
   // Verified locally, like lib/drills/http.ts.
   const { data } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
-  if (!userId) redirect('/');
+  if (!userId) redirect('/sign-in');
   const [profile] = await db.select({ userId: studentProfiles.userId }).from(studentProfiles).where(eq(studentProfiles.userId, userId));
-  if (!profile) redirect('/');
+  if (!profile) redirect('/sign-in');
   return userId;
 }
