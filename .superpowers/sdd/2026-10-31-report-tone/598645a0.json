@@ -1,0 +1,827 @@
+{
+ "sessionId": "598645a0-be6a-4400-a267-284e1b5057d5",
+ "caseId": "prof-001",
+ "mode": "never scored — full scoring as a dry run (no DB write); \"before\" is its report before the plain-words pass",
+ "checks": {
+  "sameRatings": true,
+  "ratingDiffs": [],
+  "sameClaims": true,
+  "quoteAudit": {
+   "violations": 0,
+   "droppedPoints": 0
+  },
+  "inlineQuotes": {
+   "spans": 22,
+   "notVerbatim": []
+  },
+  "items": 16,
+  "written": 16,
+  "rejected": [],
+  "toneBefore": {
+   "jargon": 2,
+   "accusing": 0
+  },
+  "toneAfter": {
+   "jargon": 0,
+   "accusing": 0
+  }
+ },
+ "qa": {
+  "transcriptArtifacts": 0,
+  "artifactTypes": [],
+  "evidenceStrips": 0,
+  "evidencePointDrops": 0,
+  "verifierDrops": 0,
+  "dataRequestGaps": 0,
+  "dataRequestsNotInCase": 0,
+  "dataRequestBackfills": 0,
+  "reconcileMerges": 4,
+  "interviewerErrorMarks": 0,
+  "confirmedChallengeErrors": 0,
+  "unsupportedChallenges": 0,
+  "markClaimDrops": 0,
+  "caveatFloors": 0,
+  "caveatUnassessed": 0,
+  "stageNotAssessed": 0,
+  "stageCaveated": 0,
+  "partial": true,
+  "gapClaimDrops": 0,
+  "answerKeyDrops": 0,
+  "caveatTextDrops": 0,
+  "answerKeyReRates": 0,
+  "strongDowngrades": 0,
+  "overallCapped": false,
+  "crossDimensionRepeats": 1,
+  "conclusionMandateAdded": 0,
+  "plainWritten": 16,
+  "plainRejected": 0,
+  "plainSkipped": false
+ },
+ "before": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "Once prompted, the candidate laid out a recognizable profit tree (COGS, overhead and labor on one side, volume and money per transaction on the other), but jumped straight to an answer first, and the framework appeared only after the interviewer asked for it.",
+     "quotes": [
+      "Yeah. I think the problem is COGS.",
+      "the costs, which are split into COGS as well as overhead and the labor cost",
+      "the profits are gonna be based on the volume and, um, the, uh, amount of money you're getting per transaction"
+     ]
+    },
+    {
+     "point": "The objective (restore margin from 6% toward 24% despite 15% revenue growth) was never restated, and the revenue branch was mislabeled as 'profits.'",
+     "quotes": [
+      "And then on the other side, you would need to look at the profits."
+     ]
+    },
+    {
+     "point": "When asked what was missing, the candidate declared the structure MECE, then vaguely conceded 'other costs.' Neither branch got tailored sub-points such as menu pricing, product mix or input categories.",
+     "quotes": [
+      "Yes. I think that is, Macy.",
+      "there are no other really big ones that I would need to cover"
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Opening response to the case prompt at turn 3, where the candidate said only \"I think the problem is COGS.\"",
+     "betterResponse": "Our goal is to explain why net margin fell from 24% to 6% while revenue grew 15%, and to reverse it. I'd use a profit tree. On revenue: volume (transactions per store, store count) and price (menu prices, mix, discounting). On costs: COGS (beans, dairy, food, packaging), labor, overhead and rent, and other. Since revenue is growing, my hypothesis is that costs grew faster than price, most likely COGS. I'd also check whether menu prices kept pace with input costs and whether competitors see the same squeeze."
+    },
+    {
+     "moment": "Interviewer asked at turn 6: \"Is that MECE, and what's missing?\"",
+     "betterResponse": "Mostly, but I'd add an 'other costs' bucket, such as marketing, G&A and one-offs, and split price into list price versus mix and discounting. I'd prioritize the cost side, specifically each cost line as a % of revenue over the two years, because flat or rising revenue with collapsing margin points to costs outpacing price."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "met",
+     "quote": "is COGS, as I think it would have the largest impact here."
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "The interview ended before any analysis or math stage was administered, so there is no evidence to rate quantitative rigor.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Computes accurately",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "No exhibit or case data was shown before the interview ended, so exhibit interpretation could not be assessed.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "States the implication",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "The candidate reasoned that growing revenue alongside a shrinking margin points toward the cost side, which is a sensible first-cut elimination, but then ruled out the revenue side entirely, ignoring the possibility that prices failed to keep pace with costs.",
+     "quotes": [
+      "That's probably not where the problem is going to be. So we need to look at the cost side.",
+      "I know that it's not going to be on the, uh, revenue side of things as the revenue is increasing"
+     ]
+    },
+    {
+     "point": "The candidate dismissed overhead and labor with unverified assumptions. Store count was never confirmed, and 15% revenue growth could easily include new locations.",
+     "quotes": [
+      "most likely, the overhead shouldn't change too much as you're probably not, um, adding more... any more stores or anything like that",
+      "And the labor itself, um, wouldn't be enough by itself to explain the large change."
+     ]
+    },
+    {
+     "point": "When asked again for the basis of the hypothesis, the candidate fell back on intuition rather than a testable rationale.",
+     "quotes": [
+      "I don't know. I just feel like"
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Explaining why COGS is the likely driver (turn 9)",
+     "betterResponse": "Revenue is up, so the margin loss has to come from costs growing faster than price. Specialty coffee is exposed to volatile inputs like beans and dairy, so COGS is my lead hypothesis. But I'd also check whether menu prices have moved at all. If they haven't, part of the fix is pricing, not just costs."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "The interview ended before any brainstorming question was asked, so creativity could not be assessed.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "The interview ended before the recommendation stage, so synthesis could not be assessed.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Names the key risk",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Names next steps",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Stays concise",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "communication": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "The opening was abrupt and unprofessional in tone toward the interviewer.",
+     "quotes": [
+      "Hi. Can you stop talking for a second?"
+     ]
+    },
+    {
+     "point": "Delivery was heavy with filler and self-corrections, and the structure was hard to follow without clear signposting.",
+     "quotes": [
+      "Uh, the first one being the costs or the COGS. Um, well, the costs, which are split into COGS as well as overhead and the labor cost.",
+      "Well, since there was such a large decline in revenue... oh, sorry. Not revenue."
+     ]
+    },
+    {
+     "point": "The candidate opened with a hypothesis, showing an instinct for answer-first delivery, but stated it before laying out any structure and trailed off without finishing a thought when pressed.",
+     "quotes": [
+      "I don't know. I just feel like",
+      "Yeah. I think the problem is COGS."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 5, laying out the structure",
+     "betterResponse": "I'll look at two sides. First, revenue, which is volume times price. Second, costs, in four buckets: COGS, labor, overhead, and other. I'll start with COGS, because..."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States structure before detail",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "Yeah. I think the problem is COGS."
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "On the first challenge, the candidate attempted a reasoned defense of the COGS hypothesis by eliminating revenue, overhead and labor, but when the same challenge was restated, the candidate abandoned that reasoning instead of holding it or proposing a test.",
+     "quotes": [
+      "I don't know. I just feel like",
+      "So I think most likely there has been some change in COGS as that are... would have a direct effect on profits."
+     ]
+    },
+    {
+     "point": "The candidate was passive and never asked for any data (cost lines as % of revenue, menu price history, peer margins) to move the case forward.",
+     "quotes": [
+      "Yes. I think that is, Macy."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Interviewer restated at turn 10: \"What is that based on, since you haven't seen any numbers yet?\"",
+     "betterResponse": "Fair, it's a hypothesis, not a conclusion. It rests on the fact that revenue grew while margin fell 18 points. To test it, I'd want each cost line as a % of revenue now versus two years ago. If COGS explains most of the 18 points, I'd break it down by input. I'd also check whether menu prices changed over that period and whether peers saw similar compression."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "overallRating": null,
+  "topFix": "Before naming a culprit, restate the objective and lay out a full profit tree: revenue as volume × price, and costs as COGS, labor, overhead and other. Then treat your hypothesis as something to test, not defend by feel. When challenged, name the exact data that would confirm or kill it, such as each cost line as a % of revenue over the two years and whether menu prices changed."
+ },
+ "after": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "Once prompted, the candidate laid out a recognizable profit tree (COGS, overhead and labor on one side, volume and money per transaction on the other), but jumped straight to an answer first, and the framework appeared only after the interviewer asked for it.",
+     "quotes": [
+      "Yeah. I think the problem is COGS.",
+      "the costs, which are split into COGS as well as overhead and the labor cost",
+      "the profits are gonna be based on the volume and, um, the, uh, amount of money you're getting per transaction"
+     ],
+     "plain": {
+      "where": "In the opening, when the interviewer invited you to walk through how you would approach the case, you said \"Yeah. I think the problem is COGS.\"",
+      "what": "Once the interviewer asked for a structure, you laid out a recognizable profit tree, with \"COGS as well as overhead and the labor cost\" on one side and volume and money per transaction on the other. But the answer came first, and the framework appeared only after the interviewer asked for it.",
+      "why": "Interviewers want to see how you organize a problem before you land on an answer, so leading with the structure shows your thinking is grounded.",
+      "next": "Next time, try laying out your profit tree first and only then naming which branch you suspect."
+     }
+    },
+    {
+     "point": "The objective (restore margin from 6% toward 24% despite 15% revenue growth) was never restated, and the revenue branch was mislabeled as 'profits.'",
+     "quotes": [
+      "And then on the other side, you would need to look at the profits."
+     ],
+     "plain": {
+      "where": "In the opening, when asked how you would structure the problem, you said \"And then on the other side, you would need to look at the profits.\"",
+      "what": "The goal of restoring margin from 6% toward 24% despite 15% revenue growth was not restated, and the branch covering volume and price, which is revenue, was labeled as profits.",
+      "why": "Restating the goal and naming branches correctly shows the interviewer you have understood the problem and keeps your tree logically sound.",
+      "next": "Next time, try opening with one sentence restating the objective, and label the two sides of your tree as revenue and costs."
+     }
+    },
+    {
+     "point": "When asked what was missing, the candidate declared the structure MECE, then vaguely conceded 'other costs.' Neither branch got tailored sub-points such as menu pricing, product mix or input categories.",
+     "quotes": [
+      "Yes. I think that is, Macy.",
+      "there are no other really big ones that I would need to cover"
+     ],
+     "plain": {
+      "where": "In the follow-up on your structure, when asked whether it had gaps or overlaps and what was missing, you said \"Yes. I think that is, Macy.\" and \"there are no other really big ones that I would need to cover\".",
+      "what": "You stated the structure was complete, then loosely conceded there might be other costs. Neither branch was broken into sub-points specific to this client, such as menu pricing, product mix or input categories.",
+      "why": "Specific sub-points tailored to the client show the interviewer you can turn a generic framework into one that actually finds the problem.",
+      "next": "Next time, try adding two or three client-specific sub-points under each branch, such as menu pricing and product mix under revenue and input categories under COGS."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Opening response to the case prompt at turn 3, where the candidate said only \"I think the problem is COGS.\"",
+     "betterResponse": "Our goal is to explain why net margin fell from 24% to 6% while revenue grew 15%, and to reverse it. I'd use a profit tree. On revenue: volume (transactions per store, store count) and price (menu prices, mix, discounting). On costs: COGS (beans, dairy, food, packaging), labor, overhead and rent, and other. Since revenue is growing, my hypothesis is that costs grew faster than price, most likely COGS. I'd also check whether menu prices kept pace with input costs and whether competitors see the same squeeze.",
+     "plain": {
+      "where": "In the opening, when the interviewer gave you time to ask questions or walk through your approach, you said only \"I think the problem is COGS.\"",
+      "what": "The answer named a likely cause without stating the goal or laying out a structure to test it.",
+      "why": "The first answer sets the interviewer's impression of how you think, so a restated goal plus a clear structure makes a strong start."
+     }
+    },
+    {
+     "moment": "Interviewer asked at turn 6: \"Is that MECE, and what's missing?\"",
+     "betterResponse": "Mostly, but I'd add an 'other costs' bucket, such as marketing, G&A and one-offs, and split price into list price versus mix and discounting. I'd prioritize the cost side, specifically each cost line as a % of revenue over the two years, because flat or rising revenue with collapsing margin points to costs outpacing price.",
+     "plain": {
+      "where": "In the follow-up on your structure, when the interviewer asked whether it had gaps or overlaps, what was missing, and which branch you would look at first, you said \"Yes. I think that is, Macy.\"",
+      "what": "This was a chance to name what was missing and explain your priority with a clear reason.",
+      "why": "When an interviewer asks what is missing, they usually expect you to find something, and naming it shows openness and rigor."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "met",
+     "quote": "is COGS, as I think it would have the largest impact here."
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "The interview ended before any analysis or math stage was administered, so there is no evidence to rate quantitative rigor.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Computes accurately",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "No exhibit or case data was shown before the interview ended, so exhibit interpretation could not be assessed.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "States the implication",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "The candidate reasoned that growing revenue alongside a shrinking margin points toward the cost side, which is a sensible first-cut elimination, but then ruled out the revenue side entirely, ignoring the possibility that prices failed to keep pace with costs.",
+     "quotes": [
+      "That's probably not where the problem is going to be. So we need to look at the cost side.",
+      "I know that it's not going to be on the, uh, revenue side of things as the revenue is increasing"
+     ],
+     "plain": {
+      "where": "In the follow-up on your structure, when asked what your COGS view was based on, you said \"I know that it's not going to be on the, uh, revenue side of things as the revenue is increasing\".",
+      "what": "Reasoning that growing revenue with a shrinking margin points to the cost side was a sensible first cut. But the revenue side was then ruled out entirely, leaving aside the possibility that prices did not keep pace with costs.",
+      "why": "Margin depends on price relative to cost, so dropping the revenue side can lead you to miss part of the cause and part of the fix.",
+      "next": "Next time, try keeping price on the table by asking whether menu prices rose in line with input costs."
+     }
+    },
+    {
+     "point": "The candidate dismissed overhead and labor with unverified assumptions. Store count was never confirmed, and 15% revenue growth could easily include new locations.",
+     "quotes": [
+      "most likely, the overhead shouldn't change too much as you're probably not, um, adding more... any more stores or anything like that",
+      "And the labor itself, um, wouldn't be enough by itself to explain the large change."
+     ],
+     "plain": {
+      "where": "In the follow-up on your structure, when asked what your COGS view was based on, you said overhead \"shouldn't change too much as you're probably not, um, adding more... any more stores or anything like that\" and that labor \"wouldn't be enough by itself to explain the large change.\"",
+      "what": "Overhead and labor were set aside based on assumptions that were not checked. Store count was not confirmed, and 15% revenue growth could easily include new locations.",
+      "why": "Ruling out branches on untested assumptions can send the whole case in the wrong direction.",
+      "next": "Next time, try asking the interviewer to confirm a fact like store count before you rule out a cost branch."
+     }
+    },
+    {
+     "point": "When asked again for the basis of the hypothesis, the candidate fell back on intuition rather than a testable rationale.",
+     "quotes": [
+      "I don't know. I just feel like"
+     ],
+     "plain": {
+      "where": "In the follow-up on your structure, when the interviewer asked a second time what your COGS view was based on, you said \"I don't know. I just feel like\".",
+      "what": "The answer fell back on intuition instead of a reason that could be tested.",
+      "why": "Interviewers look for a hypothesis tied to logic or data, because that is what lets a team check it.",
+      "next": "Next time, try tying your hypothesis to the facts in the prompt and naming the data that would confirm or reject it."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Explaining why COGS is the likely driver (turn 9)",
+     "betterResponse": "Revenue is up, so the margin loss has to come from costs growing faster than price. Specialty coffee is exposed to volatile inputs like beans and dairy, so COGS is my lead hypothesis. But I'd also check whether menu prices have moved at all. If they haven't, part of the fix is pricing, not just costs.",
+     "plain": {
+      "where": "In the follow-up on your structure, when asked what your COGS view was based on, you said \"So we need to look at the cost side.\"",
+      "what": "This was a chance to give a clear reason why COGS leads while keeping pricing in view.",
+      "why": "A reasoned hypothesis that still leaves room for other causes shows sound business judgment."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "The interview ended before any brainstorming question was asked, so creativity could not be assessed.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "The interview ended before the recommendation stage, so synthesis could not be assessed.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Names the key risk",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Names next steps",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Stays concise",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "communication": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "The opening was abrupt and unprofessional in tone toward the interviewer.",
+     "quotes": [
+      "Hi. Can you stop talking for a second?"
+     ],
+     "plain": {
+      "where": "At the very start, right after the interviewer presented the case, you said \"Hi. Can you stop talking for a second?\"",
+      "what": "The opening came across as abrupt and unprofessional in tone toward the interviewer.",
+      "why": "Interviewers also judge whether they could put you in front of a client, and first impressions weigh heavily.",
+      "next": "Next time, try asking politely for a moment, for example by thanking the interviewer and saying you would like to take a minute to organize your thoughts."
+     }
+    },
+    {
+     "point": "Delivery was heavy with filler and self-corrections, and the structure was hard to follow without clear signposting.",
+     "quotes": [
+      "Uh, the first one being the costs or the COGS. Um, well, the costs, which are split into COGS as well as overhead and the labor cost.",
+      "Well, since there was such a large decline in revenue... oh, sorry. Not revenue."
+     ],
+     "plain": {
+      "where": "When laying out your structure, you said \"Uh, the first one being the costs or the COGS. Um, well, the costs, which are split into COGS as well as overhead and the labor cost.\" and later \"Well, since there was such a large decline in revenue... oh, sorry. Not revenue.\"",
+      "what": "The delivery had a lot of filler words and self-corrections, and the structure was hard to follow without clear verbal markers of where each part began.",
+      "why": "If the interviewer cannot follow your structure, good thinking can get lost.",
+      "next": "Next time, try announcing how many parts you have and numbering them as you go, pausing silently instead of using filler."
+     }
+    },
+    {
+     "point": "The candidate opened with a hypothesis, showing an instinct for answer-first delivery, but stated it before laying out any structure and trailed off without finishing a thought when pressed.",
+     "quotes": [
+      "I don't know. I just feel like",
+      "Yeah. I think the problem is COGS."
+     ],
+     "plain": {
+      "where": "In the opening you said \"Yeah. I think the problem is COGS.\" and, when pressed later on its basis, you said \"I don't know. I just feel like\".",
+      "what": "Opening with a hypothesis shows an instinct for leading with the answer, but it came before any structure, and when pressed the thought trailed off unfinished.",
+      "why": "Leading with the answer only works when it is backed by a structure and finished sentences the interviewer can follow.",
+      "next": "Next time, try stating your hypothesis together with your structure, and finish every sentence even if you need a pause first."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 5, laying out the structure",
+     "betterResponse": "I'll look at two sides. First, revenue, which is volume times price. Second, costs, in four buckets: COGS, labor, overhead, and other. I'll start with COGS, because...",
+     "plain": {
+      "where": "In the opening, when asked how you would structure the problem and where COGS sits, you began \"My niche structure would be... basically, you would look at a couple separate things.\"",
+      "what": "This was a chance to lay out the structure in a short, numbered way that is easy to follow.",
+      "why": "A crisp, numbered structure lets the interviewer follow you and makes you sound confident."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States structure before detail",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "Yeah. I think the problem is COGS."
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "On the first challenge, the candidate attempted a reasoned defense of the COGS hypothesis by eliminating revenue, overhead and labor, but when the same challenge was restated, the candidate abandoned that reasoning instead of holding it or proposing a test.",
+     "quotes": [
+      "I don't know. I just feel like",
+      "So I think most likely there has been some change in COGS as that are... would have a direct effect on profits."
+     ],
+     "plain": {
+      "where": "In the follow-up on your structure, when first asked what your COGS view was based on, you said \"So I think most likely there has been some change in COGS as that are... would have a direct effect on profits.\" and when the question was restated you said \"I don't know. I just feel like\".",
+      "what": "On the first challenge you gave a reasoned defense by eliminating revenue, overhead and labor. When the same challenge was restated, that reasoning was dropped instead of being held or turned into a proposed test.",
+      "why": "Interviewers often repeat a challenge to see if you can stand by sound reasoning calmly, so holding your logic shows composure.",
+      "next": "Next time, try restating your earlier reasoning briefly and then proposing the data that would test it."
+     }
+    },
+    {
+     "point": "The candidate was passive and never asked for any data (cost lines as % of revenue, menu price history, peer margins) to move the case forward.",
+     "quotes": [
+      "Yes. I think that is, Macy."
+     ],
+     "plain": {
+      "where": "In the follow-up on your structure, when asked about gaps and which branch to prioritize, you said \"Yes. I think that is, Macy.\"",
+      "what": "The case stayed passive, with no request for data such as cost lines as % of revenue, menu price history or peer margins to move it forward.",
+      "why": "Asking for the right data shows you can lead the case rather than wait to be guided.",
+      "next": "Next time, try asking for one specific piece of data, such as each cost line as % of revenue over the two years, as soon as you name your priority."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Interviewer restated at turn 10: \"What is that based on, since you haven't seen any numbers yet?\"",
+     "betterResponse": "Fair, it's a hypothesis, not a conclusion. It rests on the fact that revenue grew while margin fell 18 points. To test it, I'd want each cost line as a % of revenue now versus two years ago. If COGS explains most of the 18 points, I'd break it down by input. I'd also check whether menu prices changed over that period and whether peers saw similar compression.",
+     "plain": {
+      "where": "In the follow-up on your structure, when the interviewer restated the question of what your COGS view was based on without any numbers, you said \"I don't know. I just feel like\".",
+      "what": "This was a chance to call it a hypothesis, give its basis, and propose how to test it.",
+      "why": "Responding to a repeated challenge with a clear test shows composure and keeps the case moving."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "overallRating": null,
+  "topFix": "Before naming a culprit, restate the objective and lay out a full profit tree: revenue as volume × price, and costs as COGS, labor, overhead and other. Then treat your hypothesis as something to test, not defend by feel. When challenged, name the exact data that would confirm or kill it, such as each cost line as a % of revenue over the two years and whether menu prices changed."
+ }
+}

@@ -1,0 +1,1179 @@
+{
+ "sessionId": "4224252c-02a8-43bd-b738-ee681d543001",
+ "caseId": "prof-001",
+ "mode": "the stored report (scored 2026-10-27), plain-words pass only",
+ "checks": {
+  "sameRatings": true,
+  "ratingDiffs": [],
+  "sameClaims": true,
+  "quoteAudit": {
+   "violations": 0,
+   "droppedPoints": 0
+  },
+  "inlineQuotes": {
+   "spans": 31,
+   "notVerbatim": []
+  },
+  "items": 38,
+  "written": 21,
+  "rejected": [
+   {
+    "id": "structure.missedOpportunities.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "quantitative.missedOpportunities.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "dataExhibit.missedOpportunities.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "judgment.missedOpportunities.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "creativity.missedOpportunities.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "synthesis.wentWell.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "synthesis.wentWell.1",
+    "reason": "not returned"
+   },
+   {
+    "id": "synthesis.wentWell.2",
+    "reason": "not returned"
+   },
+   {
+    "id": "synthesis.needsWork.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "synthesis.missedOpportunities.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "communication.wentWell.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "communication.needsWork.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "communication.missedOpportunities.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "pushback.wentWell.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "pushback.wentWell.1",
+    "reason": "not returned"
+   },
+   {
+    "id": "pushback.needsWork.0",
+    "reason": "not returned"
+   },
+   {
+    "id": "pushback.missedOpportunities.0",
+    "reason": "not returned"
+   }
+  ],
+  "toneBefore": {
+   "jargon": 5,
+   "accusing": 4
+  },
+  "toneAfter": {
+   "jargon": 4,
+   "accusing": 0
+  }
+ },
+ "qa": null,
+ "before": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [
+    {
+     "point": "Once past the opening, you formed a sensible hypothesis that the problem sat on the cost side, using the revenue-up/margin-down tension.",
+     "quotes": [
+      "if revenue grew 15% but margin dropped 18 points, the problem's likely on the cost side, so I'd start there."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The opening was a list of loosely related areas, not a MECE profit tree, and it mixed overlapping lenses such as internal/external and operations.",
+     "quotes": [
+      "So, I'd want to look at the whole business — revenue, costs, the market, maybe competitors, and then figure out what's driving the margin down. I'd also look at internal versus external factors, and operations."
+     ]
+    },
+    {
+     "point": "When asked twice to name specific branches and a starting point, you could not produce a structure.",
+     "quotes": [
+      "hmm, I'm not sure.",
+      "I'm stuck, sorry."
+     ]
+    },
+    {
+     "point": "You never restated the objective (find the root cause of a 24%→6% margin decline and reverse it) or tied the structure to that decision.",
+     "quotes": [
+      "Basically I'd break it into profit drivers and then dig into whichever one looks off."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 2: the interviewer said 'That's a list of areas rather than a structure' and asked for specific branches and a starting point; you answered 'hmm, I'm not sure.'",
+     "betterResponse": "Our goal is to find why margin fell from 24% to 6% while revenue grew 15%, and fix it. Profit is revenue minus costs. Revenue splits into price times volume, with volume split into traffic and items per visit. Costs split into COGS, labor, and overhead/rent. Revenue is up, so I'd start with costs as a percent of revenue, then check whether pricing kept pace with input costs. I'd also ask whether peers are seeing the same squeeze, which tells us how much pricing power we have."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "met",
+     "quote": "the problem's likely on the cost side, so I'd start there."
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You backed traffic growth out of revenue and ticket growth correctly, and drew a business implication from it.",
+     "quotes": [
+      "Revenue up 15%, ticket up 9.7%: 1.15 ÷ 1.097 ≈ 1.05, so traffic is only up about 5%."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "When probed, the candidate set up the break-even equation and solved it correctly (about 23.6%), but first asserted figures before computing them: 20% for full recovery, and a 9% rise recovering 'most' of the gap when it closes only about half (to about 13.8%).",
+     "quotes": [
+      "Rough math: a 9% price increase on a $6.80 ticket adds about $0.61 of near-pure margin per transaction, which recovers most of the gap without touching volume.",
+      "Getting back to 24% would take closer to a 20% increase, which isn't realistic in one move.",
+      "I need (0.41 + 6.80x) ÷ (6.80 × (1+x)) = 0.24.",
+      "So roughly a 24% price increase to fully restore the old margin on price alone — which nobody would do."
+     ]
+    },
+    {
+     "point": "Your first read of the exhibit got the subtraction wrong. You fixed it immediately, but it is another instance of speaking before checking.",
+     "quotes": [
+      "so that's a 14-point increase"
+     ]
+    },
+    {
+     "point": "The candidate split COGS into beans and other inputs, applied each inflation rate, and reconciled exactly to today's 58%, but then rounded blended input inflation up to 39% when those same figures give about 38%.",
+     "quotes": [
+      "input costs rose about 39% over two years",
+      "Two years ago COGS was 42 points of revenue: beans 25% of that is 10.5, other inputs 31.5.",
+      "Total = 58.0 — exactly today's COGS."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 17: you sized the 8–10% price recommendation for the board without running the margin math, and claimed it 'recovers most of the gap.'",
+     "betterResponse": "Today profit is 6% of $6.80, about $0.41. A 9% increase adds $0.61 at no extra input cost, so profit is $1.02 on $7.41, about 13.8%. That closes roughly half the 18-point gap. Pricing is the lead lever, but procurement has to deliver the rest."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "met",
+     "quote": "I need (0.41 + 6.80x) ÷ (6.80 × (1+x)) = 0.24."
+    },
+    {
+     "element": "Computes accurately",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "met",
+     "quote": "Beans up 40%: 10.5 × 1.4 = 14.7. Other inputs up 37.5%: 31.5 × 1.375 = 43.3."
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "met",
+     "quote": "Total = 58.0 — exactly today's COGS."
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "met",
+     "quote": "So pricing is the biggest lever but not sufficient alone; procurement and waste have to carry the rest."
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "The candidate read every cost line systematically and isolated COGS as the driver (16 of the 18 points, with overhead at 2 and labor flat), though the very first read of the exhibit contained a subtraction error that was corrected right away.",
+     "quotes": [
+      "So COGS explains 16 of the 18-point margin drop, about 89%, and overhead the other 2. Labor is completely flat.",
+      "It goes 42 to 50 to 58, so that's a 14-point increase"
+     ]
+    },
+    {
+     "point": "You drew implications from the data: ruling out fixed-cost absorption because the footprint was constant, and reframing the cost story as pricing inaction.",
+     "quotes": [
+      "And since footprint is constant at 200 stores, this isn't a fixed-cost absorption issue.",
+      "So it's really a pricing-inaction story dressed up as a cost story."
+     ]
+    },
+    {
+     "point": "You proposed precise next data pulls: the COGS composition and menu price history.",
+     "quotes": [
+      "Do we have a split of COGS — coffee beans, dairy, cups and packaging, food? And has the menu price changed over the two years?"
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Your decomposition showed beans adding only about 4.2 points versus about 11.8 from dairy, packaging, and food, but you never said so. Your next steps then leaned on beans.",
+     "quotes": [
+      "Next steps: run the pilot, and in parallel start bean contract renegotiation as the second lever."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 11: right after reconciling 10.5→14.7 for beans and 31.5→43.3 for other inputs.",
+     "betterResponse": "Notably, beans add only about 4 of the 16 points; dairy, packaging, and food add almost 12. So a bean-hedging fix alone won't solve this. Procurement has to cover every input."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "met",
+     "quote": "COGS is the story. It goes 42 to 50 to 58"
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "met",
+     "quote": "So COGS explains 16 of the 18-point margin drop, about 89%, and overhead the other 2."
+    },
+    {
+     "element": "States the implication",
+     "status": "met",
+     "quote": "So it's really a pricing-inaction story dressed up as a cost story."
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "met",
+     "quote": "What I'd check: menu price history by item, and transaction volume"
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You named elasticity as the main risk, unprompted, and paired it with a practical pilot against control stores.",
+     "quotes": [
+      "Main risk is elasticity — if traffic falls more than a few percent, the increase self-defeats. I'd mitigate by piloting in 20 stores across two regions for six weeks"
+     ]
+    },
+    {
+     "point": "Your competitive response was commercially savvy: reprice inelastic items while holding the visible headline price.",
+     "quotes": [
+      "reprice the inelastic espresso and food items, hold the headline drip coffee price as the visible price signal, and lean harder on loyalty and procurement savings."
+     ]
+    },
+    {
+     "point": "Asked to assume competitor behavior, you made an explicit and justified assumption.",
+     "quotes": [
+      "I'd assume specialty coffee peers faced the same bean and dairy inflation and passed at least some of it through, since that's the industry norm."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Your claim that volume growth is 'actively diluting margin' is a conceptual error. Each incremental item at flat prices still covers its 58% COGS and contributes positively. Margin fell because input costs were not passed through, not because volume grew.",
+     "quotes": [
+      "so growth is actively diluting margin rather than helping"
+     ]
+    },
+    {
+     "point": "Your board recommendation overstated what pricing alone delivers. The correct framing (pricing plus procurement) only emerged under challenge.",
+     "quotes": [
+      "which recovers most of the gap without touching volume."
+     ]
+    },
+    {
+     "point": "Some cost levers carry risks you didn't flag. Locking forward contracts after a 40% run-up could lock in peak prices, and shrinking portions risks brand damage for a specialty chain.",
+     "quotes": [
+      "renegotiate bean contracts or lock in forward pricing, since 40% spot exposure suggests they're buying unhedged."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 13: interpreting what the ticket growth means for margin.",
+     "betterResponse": "Growth itself isn't the problem. Each extra item still contributes after COGS, and attachment is helping absorb overhead. The issue is that per-item margin shrank because input costs rose about 38% and prices didn't move."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "met",
+     "quote": "Raise menu prices roughly 8–10% across the core menu, starting with espresso and specialty drinks."
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "met",
+     "quote": "Main risk is elasticity — if traffic falls more than a few percent, the increase self-defeats."
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "You organized ideas into cost-side and revenue-side buckets, with several distinct levers in each.",
+     "quotes": [
+      "On the cost side: renegotiate bean contracts or lock in forward pricing",
+      "On the revenue side, beyond a straight price increase: reprice selectively on the most inelastic items like espresso drinks"
+     ]
+    },
+    {
+     "point": "You included non-obvious levers such as waste and over-pouring control and a subscription program to protect traffic.",
+     "quotes": [
+      "And look at waste: in coffee, spoilage and over-pouring can be a few points of COGS on its own.",
+      "Introduce a loyalty or subscription program to hold traffic through a price increase."
+     ]
+    },
+    {
+     "point": "The candidate prioritized the ideas explicitly with a rationale, but the prioritization wasn't backed by sizing, with no estimate of how many margin points each lever could deliver.",
+     "quotes": [
+      "I'd sequence it: pricing first because it's fastest and largest, procurement second, reformulation third."
+     ]
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 15: after listing the levers and sequencing them.",
+     "betterResponse": "Roughly: pricing can recover 7–8 points, procurement across dairy, packaging, and beans perhaps 3–5, and waste 1–2. Together that gets close to the old 24%, which is why I'd run all three."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "met",
+     "quote": "On the cost side: renegotiate bean contracts or lock in forward pricing"
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "met",
+     "quote": "Consolidate suppliers across 200 stores for volume discounts. Reformulate the highest-cost items — portion sizes, dairy specs, swapping to cheaper packaging."
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "met",
+     "quote": "And look at waste: in coffee, spoilage and over-pouring can be a few points of COGS on its own."
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "met",
+     "quote": "I'd sequence it: pricing first because it's fastest and largest, procurement second, reformulation third."
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "You led with a clear, specific recommendation.",
+     "quotes": [
+      "Raise menu prices roughly 8–10% across the core menu, starting with espresso and specialty drinks."
+     ]
+    },
+    {
+     "point": "Your reasons were tied directly to the analysis, ruling out other drivers.",
+     "quotes": [
+      "Nothing else is broken — labor is flat at 22%, overhead moved only two points, footprint is unchanged, and traffic is up 5%."
+     ]
+    },
+    {
+     "point": "You named the key risk and concrete next steps, concisely.",
+     "quotes": [
+      "Next steps: run the pilot, and in parallel start bean contract renegotiation as the second lever."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The supporting sizing in your recommendation was unchecked and overstated, which weakened an otherwise tight answer.",
+     "quotes": [
+      "which recovers most of the gap without touching volume."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 17: the one-line board recommendation.",
+     "betterResponse": "Raise prices 8–10% on specialty SKUs, which restores roughly half the lost margin. Pair it with procurement across dairy, packaging, and beans to close the rest."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "met",
+     "quote": "Raise menu prices roughly 8–10% across the core menu, starting with espresso and specialty drinks."
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "met",
+     "quote": "input costs rose about 39% over two years and Brew & Bean passed through none of it. That alone explains 16 of the 18 points of margin decline."
+    },
+    {
+     "element": "Names the key risk",
+     "status": "met",
+     "quote": "Main risk is elasticity — if traffic falls more than a few percent, the increase self-defeats."
+    },
+    {
+     "element": "Names next steps",
+     "status": "met",
+     "quote": "Next steps: run the pilot, and in parallel start bean contract renegotiation as the second lever."
+    },
+    {
+     "element": "Stays concise",
+     "status": "met",
+     "quote": "This is a pricing-inaction problem, and pricing is the only lever that moves fast enough to matter."
+    }
+   ]
+  },
+  "communication": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You used hypothesis-driven phrasing that framed what the data should show.",
+     "quotes": [
+      "If prices held flat while input costs rose, that alone would push COGS as a percent of revenue up."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "From the analysis onward the candidate was top-down and signposted with explicit enumeration, but the opening meandered and then stalled, so delivery wasn't consistently top-down across the interview.",
+     "quotes": [
+      "So, I'd want to look at the whole business — revenue, costs, the market, maybe competitors",
+      "I'm stuck, sorry.",
+      "First, the direct one: COGS as a percent of revenue should fall from 58% toward the low 50s"
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 3: you were stuck when asked for branches.",
+     "betterResponse": "Let me take thirty seconds to lay this out. Then I'll walk you through two branches, revenue and cost, and say where I'd start."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States structure before detail",
+     "status": "met",
+     "quote": "I'd track a few things against the matched control stores."
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "If prices held flat while input costs rose, that alone would push COGS as a percent of revenue up."
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "met",
+     "quote": "Honestly, I estimated that one rather than computing it, so let me do it properly."
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Probed on the 20% figure, you owned the estimate and solved it properly.",
+     "quotes": [
+      "I should have run that number before quoting 20%."
+     ]
+    },
+    {
+     "point": "You drove the case proactively by requesting relevant data unprompted.",
+     "quotes": [
+      "I'd also want to know whether revenue growth came from new stores or same-store sales, since opening locations adds fixed cost fast."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Challenged on the sizing, the candidate rechecked the math and updated openly with explicit reasoning, but under the first challenge on structure the candidate froze twice without offering a partial answer and needed the interviewer to move on.",
+     "quotes": [
+      "hmm, I'm not sure.",
+      "I'm stuck, sorry.",
+      "That's half the gap, not most of it — I overstated."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 4: the interviewer offered time and repeated 'which branch would you start with, and why?'",
+     "betterResponse": "I'd start with costs. Revenue grew 15% while margin fell 18 points, so the squeeze is almost certainly a cost line growing faster than revenue. I'd want to see each cost line as a percent of revenue then versus now."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "met",
+     "quote": "That's half the gap, not most of it — I overstated."
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "met",
+     "quote": "Do we have a split of COGS — coffee beans, dairy, cups and packaging, food?"
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "met",
+     "quote": "Honestly, I estimated that one rather than computing it, so let me do it properly."
+    }
+   ]
+  },
+  "overallRating": "meets_bar",
+  "topFix": "Open with a real, tailored profit tree instead of a list of areas: restate the objective, then split profit into revenue (price × traffic × items per visit) and costs (COGS, labor, overhead/rent), and say which branch you'd test first and why. In this case that was costs, since revenue grew while margin fell. Your later analysis was excellent, but freezing at the structuring stage is what an interviewer remembers. Second, compute any figure before quoting it."
+ },
+ "after": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [
+    {
+     "point": "Once past the opening, you formed a sensible hypothesis that the problem sat on the cost side, using the revenue-up/margin-down tension.",
+     "quotes": [
+      "if revenue grew 15% but margin dropped 18 points, the problem's likely on the cost side, so I'd start there."
+     ],
+     "plain": {
+      "where": "In the follow-up on your opening structure, when asked what data you would want to see first, you said \"if revenue grew 15% but margin dropped 18 points, the problem's likely on the cost side, so I'd start there.\"",
+      "what": "Once past the opening, you formed a sensible early guess that the problem sat on the cost side, using the tension between revenue going up and margin going down.",
+      "why": "Interviewers want to see you use the facts you are given to pick a likely answer and decide where to look first.",
+      "next": "Keep using the tension in the starting facts to form an early guess about where the problem sits."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The opening was a list of loosely related areas, not a MECE profit tree, and it mixed overlapping lenses such as internal/external and operations.",
+     "quotes": [
+      "So, I'd want to look at the whole business — revenue, costs, the market, maybe competitors, and then figure out what's driving the margin down. I'd also look at internal versus external factors, and operations."
+     ],
+     "plain": {
+      "where": "In the opening, when asked how you would approach the margin decline, you said \"So, I'd want to look at the whole business — revenue, costs, the market, maybe competitors, and then figure out what's driving the margin down. I'd also look at internal versus external factors, and operations.\"",
+      "what": "The opening was a list of loosely related areas rather than a profit breakdown with no gaps or overlaps, and it mixed overlapping lenses such as internal versus external and operations.",
+      "why": "A clean breakdown shows the interviewer you can split a problem into parts that cover everything once, which shapes the rest of the case.",
+      "next": "Next time, try starting from profit equals revenue minus costs and splitting each side into parts that do not overlap before adding anything else."
+     }
+    },
+    {
+     "point": "When asked twice to name specific branches and a starting point, you could not produce a structure.",
+     "quotes": [
+      "hmm, I'm not sure.",
+      "I'm stuck, sorry."
+     ],
+     "plain": {
+      "where": "In the follow-up on your opening structure, when asked twice to name specific branches and where you would start, you said \"hmm, I'm not sure.\" and then \"I'm stuck, sorry.\"",
+      "what": "Across both requests, no structure was produced, and the interviewer moved on.",
+      "why": "Laying out a structure on request is one of the core things a case interview tests, so stalling here costs a lot.",
+      "next": "Next time, try naming even two branches, revenue and costs, and saying which you would start with, rather than leaving the question unanswered."
+     }
+    },
+    {
+     "point": "You never restated the objective (find the root cause of a 24%→6% margin decline and reverse it) or tied the structure to that decision.",
+     "quotes": [
+      "Basically I'd break it into profit drivers and then dig into whichever one looks off."
+     ],
+     "plain": {
+      "where": "In the opening, when asked how you would approach the problem, you closed with \"Basically I'd break it into profit drivers and then dig into whichever one looks off.\"",
+      "what": "The answer went straight to an approach without restating the objective (find the root cause of the 24% to 6% margin decline and reverse it) or tying the structure to that decision.",
+      "why": "Restating the goal shows you have understood the client's question and keeps your structure aimed at answering it.",
+      "next": "Next time, try opening with one sentence restating the goal, such as finding why margin fell from 24% to 6% and how to reverse it, then link each branch to it."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 2: the interviewer said 'That's a list of areas rather than a structure' and asked for specific branches and a starting point; you answered 'hmm, I'm not sure.'",
+     "betterResponse": "Our goal is to find why margin fell from 24% to 6% while revenue grew 15%, and fix it. Profit is revenue minus costs. Revenue splits into price times volume, with volume split into traffic and items per visit. Costs split into COGS, labor, and overhead/rent. Revenue is up, so I'd start with costs as a percent of revenue, then check whether pricing kept pace with input costs. I'd also ask whether peers are seeing the same squeeze, which tells us how much pricing power we have."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "met",
+     "quote": "the problem's likely on the cost side, so I'd start there."
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You backed traffic growth out of revenue and ticket growth correctly, and drew a business implication from it.",
+     "quotes": [
+      "Revenue up 15%, ticket up 9.7%: 1.15 ÷ 1.097 ≈ 1.05, so traffic is only up about 5%."
+     ],
+     "plain": {
+      "where": "In the exhibit discussion, when asked how the ticket figures fit your reading and what they meant for the 15% revenue growth, you said \"Revenue up 15%, ticket up 9.7%: 1.15 ÷ 1.097 ≈ 1.05, so traffic is only up about 5%.\"",
+      "what": "You correctly worked out traffic growth from revenue and ticket growth, and drew a business implication from it.",
+      "why": "Turning given numbers into a new fact and then saying what it means is exactly the kind of math interviewers reward.",
+      "next": "Keep backing out the hidden figure from the numbers you have and stating what it means for the business."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "When probed, the candidate set up the break-even equation and solved it correctly (about 23.6%), but first asserted figures before computing them: 20% for full recovery, and a 9% rise recovering 'most' of the gap when it closes only about half (to about 13.8%).",
+     "quotes": [
+      "Rough math: a 9% price increase on a $6.80 ticket adds about $0.61 of near-pure margin per transaction, which recovers most of the gap without touching volume.",
+      "Getting back to 24% would take closer to a 20% increase, which isn't realistic in one move.",
+      "I need (0.41 + 6.80x) ÷ (6.80 × (1+x)) = 0.24.",
+      "So roughly a 24% price increase to fully restore the old margin on price alone — which nobody would do."
+     ],
+     "plain": {
+      "where": "In the recommendation, you said a 9% rise \"recovers most of the gap without touching volume\", and in the follow-up questions you said \"Getting back to 24% would take closer to a 20% increase, which isn't realistic in one move.\"",
+      "what": "Figures were stated before being computed: 20% for full recovery, and a 9% rise recovering most of the gap when it closes only about half (to about 13.8%). When probed, you set up the break-even equation, \"I need (0.41 + 6.80x) ÷ (6.80 × (1+x)) = 0.24.\", and solved it correctly at about 23.6%, concluding \"So roughly a 24% price increase to fully restore the old margin on price alone — which nobody would do.\"",
+      "why": "Numbers stated without checking can undermine trust in the rest of your analysis, even when you can calculate them correctly later.",
+      "next": "Next time, try running a quick calculation before stating any sizing figure, even if it means pausing for a few seconds."
+     }
+    },
+    {
+     "point": "Your first read of the exhibit got the subtraction wrong. You fixed it immediately, but it is another instance of speaking before checking.",
+     "quotes": [
+      "so that's a 14-point increase"
+     ],
+     "plain": {
+      "where": "In the exhibit discussion, when asked which cost line drove the decline, your first read of the COGS change was \"so that's a 14-point increase\".",
+      "what": "The subtraction in the first read was wrong; you fixed it immediately, but it is another case of speaking before checking.",
+      "why": "Even quickly corrected slips add up and make an interviewer double-check your other numbers.",
+      "next": "Next time, try doing the subtraction silently before saying the result aloud."
+     }
+    },
+    {
+     "point": "The candidate split COGS into beans and other inputs, applied each inflation rate, and reconciled exactly to today's 58%, but then rounded blended input inflation up to 39% when those same figures give about 38%.",
+     "quotes": [
+      "input costs rose about 39% over two years",
+      "Two years ago COGS was 42 points of revenue: beans 25% of that is 10.5, other inputs 31.5.",
+      "Total = 58.0 — exactly today's COGS."
+     ],
+     "plain": {
+      "where": "In the exhibit discussion, you split COGS with \"Two years ago COGS was 42 points of revenue: beans 25% of that is 10.5, other inputs 31.5.\" and reached \"Total = 58.0 — exactly today's COGS.\", but in the recommendation you said \"input costs rose about 39% over two years\".",
+      "what": "You split COGS into beans and other inputs, applied each inflation rate and reconciled exactly to today's 58%, but then rounded blended input inflation up to 39% when those same figures give about 38%.",
+      "why": "Keeping figures consistent with your own earlier math shows care and makes your recommendation more believable.",
+      "next": "Next time, try reusing the exact figures from your earlier calculation when you restate them in the recommendation."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 17: you sized the 8–10% price recommendation for the board without running the margin math, and claimed it 'recovers most of the gap.'",
+     "betterResponse": "Today profit is 6% of $6.80, about $0.41. A 9% increase adds $0.61 at no extra input cost, so profit is $1.02 on $7.41, about 13.8%. That closes roughly half the 18-point gap. Pricing is the lead lever, but procurement has to deliver the rest."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "met",
+     "quote": "I need (0.41 + 6.80x) ÷ (6.80 × (1+x)) = 0.24."
+    },
+    {
+     "element": "Computes accurately",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "met",
+     "quote": "Beans up 40%: 10.5 × 1.4 = 14.7. Other inputs up 37.5%: 31.5 × 1.375 = 43.3."
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "met",
+     "quote": "Total = 58.0 — exactly today's COGS."
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "met",
+     "quote": "So pricing is the biggest lever but not sufficient alone; procurement and waste have to carry the rest."
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "The candidate read every cost line systematically and isolated COGS as the driver (16 of the 18 points, with overhead at 2 and labor flat), though the very first read of the exhibit contained a subtraction error that was corrected right away.",
+     "quotes": [
+      "So COGS explains 16 of the 18-point margin drop, about 89%, and overhead the other 2. Labor is completely flat.",
+      "It goes 42 to 50 to 58, so that's a 14-point increase"
+     ],
+     "plain": {
+      "where": "In the exhibit discussion, when asked which cost line drove the decline and how much it explained, you said \"So COGS explains 16 of the 18-point margin drop, about 89%, and overhead the other 2. Labor is completely flat.\"",
+      "what": "You went through every cost line in order and isolated COGS as the driver (16 of the 18 points, with overhead at 2 and labor flat), though your very first read, \"It goes 42 to 50 to 58, so that's a 14-point increase\", had a subtraction error that you corrected right away.",
+      "why": "Checking every line and quantifying each one's share is how you find the real driver with confidence.",
+      "next": "Keep reading every line of an exhibit and stating how much of the change each explains."
+     }
+    },
+    {
+     "point": "You drew implications from the data: ruling out fixed-cost absorption because the footprint was constant, and reframing the cost story as pricing inaction.",
+     "quotes": [
+      "And since footprint is constant at 200 stores, this isn't a fixed-cost absorption issue.",
+      "So it's really a pricing-inaction story dressed up as a cost story."
+     ],
+     "plain": {
+      "where": "In the exhibit discussion, you said \"And since footprint is constant at 200 stores, this isn't a fixed-cost absorption issue.\" and later \"So it's really a pricing-inaction story dressed up as a cost story.\"",
+      "what": "You drew implications from the data: ruling out spreading fixed costs over fewer sales because the store count was constant, and reframing the cost story as one of prices not being raised.",
+      "why": "Interviewers look for candidates who say what the numbers mean, not just what they are.",
+      "next": "Keep stating what each data point rules in or out."
+     }
+    },
+    {
+     "point": "You proposed precise next data pulls: the COGS composition and menu price history.",
+     "quotes": [
+      "Do we have a split of COGS — coffee beans, dairy, cups and packaging, food? And has the menu price changed over the two years?"
+     ],
+     "plain": {
+      "where": "In the exhibit discussion, after finding COGS as the driver, you asked \"Do we have a split of COGS — coffee beans, dairy, cups and packaging, food? And has the menu price changed over the two years?\"",
+      "what": "You proposed precise next data requests: the makeup of COGS and the menu price history.",
+      "why": "Specific data requests show you know exactly what would confirm or reject your view.",
+      "next": "Keep asking for the specific breakdown that would test your current view."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Your decomposition showed beans adding only about 4.2 points versus about 11.8 from dairy, packaging, and food, but you never said so. Your next steps then leaned on beans.",
+     "quotes": [
+      "Next steps: run the pilot, and in parallel start bean contract renegotiation as the second lever."
+     ],
+     "plain": {
+      "where": "In the recommendation, your next steps were \"Next steps: run the pilot, and in parallel start bean contract renegotiation as the second lever.\"",
+      "what": "Your own breakdown showed beans adding only about 4.2 points versus about 11.8 from dairy, packaging and food, but this went unsaid, and the next steps then leaned on beans.",
+      "why": "Your actions should follow where your numbers show the biggest problem, or the recommendation can aim at the smaller cause.",
+      "next": "Next time, try stating which part of your breakdown is largest and pointing your next steps at it."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 11: right after reconciling 10.5→14.7 for beans and 31.5→43.3 for other inputs.",
+     "betterResponse": "Notably, beans add only about 4 of the 16 points; dairy, packaging, and food add almost 12. So a bean-hedging fix alone won't solve this. Procurement has to cover every input."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "met",
+     "quote": "COGS is the story. It goes 42 to 50 to 58"
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "met",
+     "quote": "So COGS explains 16 of the 18-point margin drop, about 89%, and overhead the other 2."
+    },
+    {
+     "element": "States the implication",
+     "status": "met",
+     "quote": "So it's really a pricing-inaction story dressed up as a cost story."
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "met",
+     "quote": "What I'd check: menu price history by item, and transaction volume"
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You named elasticity as the main risk, unprompted, and paired it with a practical pilot against control stores.",
+     "quotes": [
+      "Main risk is elasticity — if traffic falls more than a few percent, the increase self-defeats. I'd mitigate by piloting in 20 stores across two regions for six weeks"
+     ],
+     "plain": {
+      "where": "In the recommendation, you said \"Main risk is elasticity — if traffic falls more than a few percent, the increase self-defeats. I'd mitigate by piloting in 20 stores across two regions for six weeks\".",
+      "what": "Without being asked, you named price sensitivity as the main risk and paired it with a practical pilot against control stores.",
+      "why": "Naming the biggest risk and a way to test it shows the judgment clients expect before acting.",
+      "next": "Keep naming the main risk of your recommendation and a practical way to test it."
+     }
+    },
+    {
+     "point": "Your competitive response was commercially savvy: reprice inelastic items while holding the visible headline price.",
+     "quotes": [
+      "reprice the inelastic espresso and food items, hold the headline drip coffee price as the visible price signal, and lean harder on loyalty and procurement savings."
+     ],
+     "plain": {
+      "where": "In the questions after your recommendation, when asked what you would do if a competitor held prices flat, you said \"reprice the inelastic espresso and food items, hold the headline drip coffee price as the visible price signal, and lean harder on loyalty and procurement savings.\"",
+      "what": "Your competitive response was commercially savvy: raise prices on items customers are less sensitive to while holding the visible headline price.",
+      "why": "Practical, market-aware responses show you can turn analysis into moves a business would actually make.",
+      "next": "Keep tailoring your response to how customers actually see and react to prices."
+     }
+    },
+    {
+     "point": "Asked to assume competitor behavior, you made an explicit and justified assumption.",
+     "quotes": [
+      "I'd assume specialty coffee peers faced the same bean and dairy inflation and passed at least some of it through, since that's the industry norm."
+     ],
+     "plain": {
+      "where": "In the exhibit discussion, when the interviewer asked you to make a reasonable assumption about competitor pricing, you said \"I'd assume specialty coffee peers faced the same bean and dairy inflation and passed at least some of it through, since that's the industry norm.\"",
+      "what": "You made an explicit assumption and gave a reason for it.",
+      "why": "Stating assumptions with a reason lets the interviewer follow and challenge your logic.",
+      "next": "Keep stating assumptions out loud along with why they are reasonable."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Your claim that volume growth is 'actively diluting margin' is a conceptual error. Each incremental item at flat prices still covers its 58% COGS and contributes positively. Margin fell because input costs were not passed through, not because volume grew.",
+     "quotes": [
+      "so growth is actively diluting margin rather than helping"
+     ],
+     "plain": {
+      "where": "In the exhibit discussion, when asked what the ticket figures meant for revenue growth, you said \"so growth is actively diluting margin rather than helping\".",
+      "what": "This claim is a conceptual error: each extra item at flat prices still covers its 58% COGS and contributes positively. Margin fell because input costs were not passed through, not because volume grew.",
+      "why": "A wrong cause can send the client toward the wrong fix, so interviewers watch closely for this kind of logic.",
+      "next": "Next time, try checking whether each extra unit still earns more than it costs before saying growth hurts margin."
+     }
+    },
+    {
+     "point": "Your board recommendation overstated what pricing alone delivers. The correct framing (pricing plus procurement) only emerged under challenge.",
+     "quotes": [
+      "which recovers most of the gap without touching volume."
+     ],
+     "plain": {
+      "where": "In the recommendation, you said the price rise \"which recovers most of the gap without touching volume.\"",
+      "what": "The board recommendation overstated what pricing alone delivers, and the correct framing of pricing plus procurement only came out when challenged.",
+      "why": "A board recommendation needs to be right the first time, since executives act on what they hear.",
+      "next": "Next time, try checking how far your main lever gets you before presenting it, and name the second lever up front if it falls short."
+     }
+    },
+    {
+     "point": "Some cost levers carry risks you didn't flag. Locking forward contracts after a 40% run-up could lock in peak prices, and shrinking portions risks brand damage for a specialty chain.",
+     "quotes": [
+      "renegotiate bean contracts or lock in forward pricing, since 40% spot exposure suggests they're buying unhedged."
+     ],
+     "plain": {
+      "where": "In the brainstorm, when asked what else could recover margin, you suggested \"renegotiate bean contracts or lock in forward pricing, since 40% spot exposure suggests they're buying unhedged.\"",
+      "what": "Some cost levers came with risks left unflagged: locking forward contracts after a 40% run-up could lock in peak prices, and shrinking portions risks brand damage for a specialty chain.",
+      "why": "Interviewers value candidates who spot the downside of an idea before the client discovers it.",
+      "next": "Next time, try adding one quick risk to each lever you propose."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 13: interpreting what the ticket growth means for margin.",
+     "betterResponse": "Growth itself isn't the problem. Each extra item still contributes after COGS, and attachment is helping absorb overhead. The issue is that per-item margin shrank because input costs rose about 38% and prices didn't move."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "met",
+     "quote": "Raise menu prices roughly 8–10% across the core menu, starting with espresso and specialty drinks."
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "met",
+     "quote": "Main risk is elasticity — if traffic falls more than a few percent, the increase self-defeats."
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "You organized ideas into cost-side and revenue-side buckets, with several distinct levers in each.",
+     "quotes": [
+      "On the cost side: renegotiate bean contracts or lock in forward pricing",
+      "On the revenue side, beyond a straight price increase: reprice selectively on the most inelastic items like espresso drinks"
+     ],
+     "plain": {
+      "where": "In the brainstorm, when asked for ideas beyond a price increase, you began \"On the cost side: renegotiate bean contracts or lock in forward pricing\" and then \"On the revenue side, beyond a straight price increase: reprice selectively on the most inelastic items like espresso drinks\".",
+      "what": "You organized ideas into cost-side and revenue-side groups, with several distinct levers in each.",
+      "why": "Grouping ideas makes them easy to follow and shows you have covered the problem broadly.",
+      "next": "Keep sorting your ideas into clear groups with several distinct levers in each."
+     }
+    },
+    {
+     "point": "You included non-obvious levers such as waste and over-pouring control and a subscription program to protect traffic.",
+     "quotes": [
+      "And look at waste: in coffee, spoilage and over-pouring can be a few points of COGS on its own.",
+      "Introduce a loyalty or subscription program to hold traffic through a price increase."
+     ],
+     "plain": {
+      "where": "In the brainstorm, you added \"And look at waste: in coffee, spoilage and over-pouring can be a few points of COGS on its own.\" and \"Introduce a loyalty or subscription program to hold traffic through a price increase.\"",
+      "what": "You included less obvious levers such as controlling waste and over-pouring, and a subscription program to protect traffic.",
+      "why": "Less obvious ideas show creativity beyond the standard list most candidates give.",
+      "next": "Keep adding a few less obvious, industry-specific ideas alongside the standard ones."
+     }
+    },
+    {
+     "point": "The candidate prioritized the ideas explicitly with a rationale, but the prioritization wasn't backed by sizing, with no estimate of how many margin points each lever could deliver.",
+     "quotes": [
+      "I'd sequence it: pricing first because it's fastest and largest, procurement second, reformulation third."
+     ],
+     "plain": {
+      "where": "In the brainstorm, you closed with \"I'd sequence it: pricing first because it's fastest and largest, procurement second, reformulation third.\"",
+      "what": "You ordered the ideas explicitly with a reason, but the order was not backed by sizing, with no estimate of how many margin points each lever could deliver.",
+      "why": "Ranking ideas with a reason shows judgment about what matters most.",
+      "next": "Keep ranking your ideas with a reason, and attach a rough size to each."
+     }
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 15: after listing the levers and sequencing them.",
+     "betterResponse": "Roughly: pricing can recover 7–8 points, procurement across dairy, packaging, and beans perhaps 3–5, and waste 1–2. Together that gets close to the old 24%, which is why I'd run all three."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "met",
+     "quote": "On the cost side: renegotiate bean contracts or lock in forward pricing"
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "met",
+     "quote": "Consolidate suppliers across 200 stores for volume discounts. Reformulate the highest-cost items — portion sizes, dairy specs, swapping to cheaper packaging."
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "met",
+     "quote": "And look at waste: in coffee, spoilage and over-pouring can be a few points of COGS on its own."
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "met",
+     "quote": "I'd sequence it: pricing first because it's fastest and largest, procurement second, reformulation third."
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "You led with a clear, specific recommendation.",
+     "quotes": [
+      "Raise menu prices roughly 8–10% across the core menu, starting with espresso and specialty drinks."
+     ]
+    },
+    {
+     "point": "Your reasons were tied directly to the analysis, ruling out other drivers.",
+     "quotes": [
+      "Nothing else is broken — labor is flat at 22%, overhead moved only two points, footprint is unchanged, and traffic is up 5%."
+     ]
+    },
+    {
+     "point": "You named the key risk and concrete next steps, concisely.",
+     "quotes": [
+      "Next steps: run the pilot, and in parallel start bean contract renegotiation as the second lever."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The supporting sizing in your recommendation was unchecked and overstated, which weakened an otherwise tight answer.",
+     "quotes": [
+      "which recovers most of the gap without touching volume."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 17: the one-line board recommendation.",
+     "betterResponse": "Raise prices 8–10% on specialty SKUs, which restores roughly half the lost margin. Pair it with procurement across dairy, packaging, and beans to close the rest."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "met",
+     "quote": "Raise menu prices roughly 8–10% across the core menu, starting with espresso and specialty drinks."
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "met",
+     "quote": "input costs rose about 39% over two years and Brew & Bean passed through none of it. That alone explains 16 of the 18 points of margin decline."
+    },
+    {
+     "element": "Names the key risk",
+     "status": "met",
+     "quote": "Main risk is elasticity — if traffic falls more than a few percent, the increase self-defeats."
+    },
+    {
+     "element": "Names next steps",
+     "status": "met",
+     "quote": "Next steps: run the pilot, and in parallel start bean contract renegotiation as the second lever."
+    },
+    {
+     "element": "Stays concise",
+     "status": "met",
+     "quote": "This is a pricing-inaction problem, and pricing is the only lever that moves fast enough to matter."
+    }
+   ]
+  },
+  "communication": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "You used hypothesis-driven phrasing that framed what the data should show.",
+     "quotes": [
+      "If prices held flat while input costs rose, that alone would push COGS as a percent of revenue up."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "From the analysis onward the candidate was top-down and signposted with explicit enumeration, but the opening meandered and then stalled, so delivery wasn't consistently top-down across the interview.",
+     "quotes": [
+      "So, I'd want to look at the whole business — revenue, costs, the market, maybe competitors",
+      "I'm stuck, sorry.",
+      "First, the direct one: COGS as a percent of revenue should fall from 58% toward the low 50s"
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 3: you were stuck when asked for branches.",
+     "betterResponse": "Let me take thirty seconds to lay this out. Then I'll walk you through two branches, revenue and cost, and say where I'd start."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States structure before detail",
+     "status": "met",
+     "quote": "I'd track a few things against the matched control stores."
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "If prices held flat while input costs rose, that alone would push COGS as a percent of revenue up."
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "met",
+     "quote": "Honestly, I estimated that one rather than computing it, so let me do it properly."
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Probed on the 20% figure, you owned the estimate and solved it properly.",
+     "quotes": [
+      "I should have run that number before quoting 20%."
+     ]
+    },
+    {
+     "point": "You drove the case proactively by requesting relevant data unprompted.",
+     "quotes": [
+      "I'd also want to know whether revenue growth came from new stores or same-store sales, since opening locations adds fixed cost fast."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "Challenged on the sizing, the candidate rechecked the math and updated openly with explicit reasoning, but under the first challenge on structure the candidate froze twice without offering a partial answer and needed the interviewer to move on.",
+     "quotes": [
+      "hmm, I'm not sure.",
+      "I'm stuck, sorry.",
+      "That's half the gap, not most of it — I overstated."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 4: the interviewer offered time and repeated 'which branch would you start with, and why?'",
+     "betterResponse": "I'd start with costs. Revenue grew 15% while margin fell 18 points, so the squeeze is almost certainly a cost line growing faster than revenue. I'd want to see each cost line as a percent of revenue then versus now."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "met",
+     "quote": "That's half the gap, not most of it — I overstated."
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "met",
+     "quote": "Do we have a split of COGS — coffee beans, dairy, cups and packaging, food?"
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "met",
+     "quote": "Honestly, I estimated that one rather than computing it, so let me do it properly."
+    }
+   ]
+  },
+  "overallRating": "meets_bar",
+  "topFix": "Open with a real, tailored profit tree instead of a list of areas: restate the objective, then split profit into revenue (price × traffic × items per visit) and costs (COGS, labor, overhead/rent), and say which branch you'd test first and why. In this case that was costs, since revenue grew while margin fell. Your later analysis was excellent, but freezing at the structuring stage is what an interviewer remembers. Second, compute any figure before quoting it."
+ }
+}

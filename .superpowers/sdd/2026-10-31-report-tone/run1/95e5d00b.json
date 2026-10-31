@@ -1,0 +1,1091 @@
+{
+ "sessionId": "95e5d00b-5357-4815-900a-9d58003fcb29",
+ "caseId": "pricing-001",
+ "mode": "the stored report (scored 2026-10-27), plain-words pass only",
+ "checks": {
+  "sameRatings": true,
+  "ratingDiffs": [],
+  "sameClaims": true,
+  "quoteAudit": {
+   "violations": 0,
+   "droppedPoints": 0
+  },
+  "inlineQuotes": {
+   "spans": 40,
+   "notVerbatim": []
+  },
+  "items": 32,
+  "written": 32,
+  "rejected": [],
+  "toneBefore": {
+   "jargon": 1,
+   "accusing": 0
+  },
+  "toneAfter": {
+   "jargon": 0,
+   "accusing": 0
+  }
+ },
+ "qa": null,
+ "before": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "The candidate skipped structuring and opened with a recommendation built on cost inflation and click-price assumptions that no case data supported.",
+     "quotes": [
+      "Honestly, I think I can already give you my answer, and the structure will fall out of it.",
+      "Software businesses like this have seen input costs climb hard: cloud hosting, payment processing on the \"get paid\" feature, and most of all paid acquisition"
+     ]
+    },
+    {
+     "point": "The candidate initially ranked the plan interaction as second-order, which treated the plans as independent even though that is where the answer actually sat, and the four buckets came only after two prompts and had no sub-points. Once pressed, the candidate accepted that the Pro interaction mattered and raised it to a co-equal bucket, with a reason tied to the $60 price gap.",
+     "quotes": [
+      "And I'd test the first two first, because that's literally the 3x ratio the board cares about. Three and four are second-order.",
+      "Fair challenge — if Starter is pulling customers who would otherwise have paid $100, that's a $60 hole per switcher, and it could be big enough to swamp the Starter unit economics entirely. So I'll upgrade it from second-order to co-equal with the other two."
+     ]
+    },
+    {
+     "point": "The candidate claimed the decision didn't depend on the analysis. That cuts the link between the structure and the choice it is meant to inform.",
+     "quotes": [
+      "But I'd note that whichever way those numbers land, the action is the same."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 2, when the interviewer asked for the full structure before any data was shared.",
+     "betterResponse": "The goal is to maximize total value from the plan line, not just to pass a ratio. I'd look at four things. First, standalone economics by plan: margin, churn, CAC, then LTV/CAC. Second, interactions: Starter customers upgrading to Pro, which helps, and Starter taking Pro sign-ups, which hurts. Third, options: keep at $40, reprice, change features, or shut down. Fourth, the market: competitor entry prices and what small businesses will pay. I'd start with the interactions, because a plan can fail 3x on its own and still be worth keeping if it feeds Pro."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "met",
+     "quote": "So the question is whether Starter is worth keeping."
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The price-test valuation was set up and computed correctly: about $2.08M a month at $40 versus $2.32M at $60, a gain of roughly $240k a month.",
+     "quotes": [
+      "At $40: Starter 1,000 × $1,100 net = $1,100k. Pro 350 × ($4,000 − $1,200) = $980k. Total ≈ $2,080k.",
+      "So $60 is worth about $240k a month more, roughly $2.9m a year"
+     ]
+    },
+    {
+     "point": "The candidate built an accurate churn breakeven for the $60 price and stated what it means for the decision.",
+     "quotes": [
+      "If upgrades held at 20% ($800), standalone would need to be $700 — $50/0.0714, a 7.1% cancellation rate. So churn could worsen from 5% to about 7% before $60 stops winning."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The candidate questioned the approximation behind the 4.2% figure and bracketed the result instead of defending a single point. Even so, several conceptual errors went uncaught until the interviewer flagged them. LTV was first built on price ($100/0.02 = $5,000) rather than margin. Starter churn was taken as the 7.4% total exit rate, and later as 4.2%, rather than the 5% read directly from month-1 cancellations. Correct figures: Starter $30 ÷ 5% = $600, plus $800 of upgrade value, gives $1,400 (4.7×).",
+     "quotes": [
+      "LTV ≈ $100/0.02 = $5,000 against $1,200 CAC — about 4.2x.",
+      "Using the total exit rate of 7.4%/month, $30 / 0.074 ≈ $405 of standalone Starter value.",
+      "cancellations and upgrades are competing exits from the same pool, so treating 60% as a clean \"survival\" curve isn't quite right"
+     ]
+    },
+    {
+     "point": "The cannibalization sizing used the wrong $905 net figure and needed an interviewer correction to reach $1,100.",
+     "quotes": [
+      "the blended per-sign-up value is $1,205 less $300 CAC = $905 net"
+     ]
+    },
+    {
+     "point": "The upgrade threshold given in the final answer was imprecise. With churn unchanged, $60 keeps winning until upgrades fall below 12.5% ($1,000 + u × $4,000 = $1,500), not 15%.",
+     "quotes": [
+      "but a drop in upgrades below 15% would hurt more"
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 11, reading the Starter cohort status table.",
+     "betterResponse": "Month 1 shows 5% cancelled and 1% upgraded, and cancellations are steady. So Starter churn is 5%, not the 6% total exit — upgraders don't leave. Using margin, LTV is $30 ÷ 5% = $600, plus 20% × $4,000 = $800 of upgrade value, so $1,400 on a $300 CAC, or 4.7×."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "met",
+     "quote": "Break-even against the $40 arm's $2,080k total: with Pro contributing $1,120k at $60, Starter needs $960k from 800 sign-ups, so $1,200 net each, i.e. $1,500 gross value."
+    },
+    {
+     "element": "Computes accurately",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "met",
+     "quote": "Starter gross margin is $40 − $10 = $30 a month."
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "met",
+     "quote": "Taking 5% as the cancellation rate: Starter standalone at $40 is $30/0.05 = $600, plus $800 upgrade = $1,400, less $300 = $1,100 net. That matches your figure, good."
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "met",
+     "quote": "So churn could worsen from 5% to about 7% before $60 stops winning."
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "From the cohort exhibit, the candidate saw that the 20% who upgrade are what the CFO's standalone test leaves out.",
+     "quotes": [
+      "So the CFO is undercounting upgrades, and I'll concede my cost-inflation read isn't supported — $300 self-serve CAC is cheap."
+     ]
+    },
+    {
+     "point": "On the volume exhibit, the candidate set the 150 lost Pro sign-ups against the 200 upgrades a month and drew a clear so-what.",
+     "quotes": [
+      "But 20% of 1,000 Starters, 200 a month, upgrade to Pro. So Pro intake is actually higher than before, and those 200 cost $300 rather than $1,200 to land."
+     ]
+    },
+    {
+     "point": "The candidate proposed a relevant next question on how many Starter customers were trading down from Pro.",
+     "quotes": [
+      "Do we have any sense of what share of Starter sign-ups are genuinely new versus Pro leads trading down?"
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The candidate misread the Starter cohort, treating the drop in 'still on Starter' as churn, even though upgraders didn't leave and month-1 cancellations were simply 5%.",
+     "quotes": [
+      "Starter: only 40% still on Starter at 12 months, so 0.4^(1/12) ≈ 0.926, about 7.4% leaving per month."
+     ]
+    },
+    {
+     "point": "The economics exhibit was waved through as confirmation rather than read on its own terms, and its definition of lifetime was then applied with a compounding shortcut that gave 4.2%.",
+     "quotes": [
+      "This confirms the numbers I just ran, so no change to the conclusion"
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 25, reading the price-test exhibit.",
+     "betterResponse": "At $60, Starter sign-ups fall by 200 but Pro rises by 50, so some trade-downs come back. That fits the $20 gap, and $60 is still well under Pro. The catch is that eight weeks can't show churn or upgrade rates. Next, I'd work out the churn and upgrade levels at which $60 stops beating $40."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "met",
+     "quote": "So the CFO is undercounting upgrades"
+    },
+    {
+     "element": "States the implication",
+     "status": "met",
+     "quote": "so cannibalization is real but small relative to the volume gained."
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "met",
+     "quote": "Do we have any sense of what share of Starter sign-ups are genuinely new versus Pro leads trading down?"
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The rollout plan was practical: new customers only, existing Starter customers grandfathered, and results tracked by cohort.",
+     "quotes": [
+      "roll $60 to new customers only, grandfather existing Starters, and track month-3 and month-6 cancellation and upgrade rates before touching the base."
+     ]
+    },
+    {
+     "point": "The candidate set explicit monitoring thresholds and a rollback trigger, which mitigates the main risk.",
+     "quotes": [
+      "If it's under $1,200 by month six, I'd roll back to the mid-forties rather than hold."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The opening recommendation rested on invented cost-inflation and price-elasticity assumptions that the case never supported.",
+     "quotes": [
+      "So the $40 price point was set against an older cost base and no longer covers it.",
+      "If you can triple volume with a $60 price cut, you almost certainly didn't need to cut all the way to $40"
+     ]
+    },
+    {
+     "point": "The recommended price moved from $55 to $60 between consecutive turns without any explanation of what changed.",
+     "quotes": [
+      "So: still recommend moving up, but to $55 rather than $60",
+      "Recommendation: keep Starter, and raise the price to $60."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 3, asked for a structure, the candidate instead asserted a cost-inflation story.",
+     "betterResponse": "My working hypothesis is that Starter may fail 3x on its own but create value through upgrades. I'll hold off recommending until I see the economics and the interaction with Pro."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "met",
+     "quote": "roll $60 to new customers only, grandfather existing Starters"
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "met",
+     "quote": "The real risk is that $60 buyers churn faster or upgrade less, and eight weeks can't tell us."
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "This case had no brainstorm stage, and the few options the candidate offered elsewhere are too thin to rate creativity — this reflects session design, not a candidate failing.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "The final answer led with the recommendation and gave three reasons, each tied to the analysis.",
+     "quotes": [
+      "Recommendation: keep Starter, and raise the price to $60.",
+      "Two, Starter is the better Pro acquisition channel: 200 upgrades a month more than replace the 150 cannibalized Pro sign-ups, at a quarter of the cost."
+     ]
+    },
+    {
+     "point": "The answer named the key risk with a quantified threshold, plus concrete next steps, but two figures were imprecise. The upgrade threshold should be 12.5%, not 15%. The ratio also mixed net and gross: $1,100 is the net value, and 4.7× is $1,400 ÷ $300.",
+     "quotes": [
+      "My math says churn can drift from 5% to about 7% before $60 stops winning",
+      "$1,100 net value per sign-up on a $300 CAC, about 4.7x"
+     ]
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 29, closing the recommendation.",
+     "betterResponse": "Starter is worth $1,400 per sign-up against a $300 CAC, or 4.7×. Netting cannibalization, a month of sign-ups is worth $2.08M with Starter versus $1.40M with Pro only. At $60 it rises to $2.32M, and that holds unless churn passes about 7% or upgrades fall below 12.5%."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "met",
+     "quote": "Recommendation: keep Starter, and raise the price to $60."
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "met",
+     "quote": "Three, the price test shows $60 adds roughly $240k a month, about $2.9m a year"
+    },
+    {
+     "element": "Names the key risk",
+     "status": "met",
+     "quote": "Risks: $60 cohorts aren't yet proven on churn or upgrades."
+    },
+    {
+     "element": "Names next steps",
+     "status": "met",
+     "quote": "Next steps: roll $60 to new customers only, grandfather existing Starters, and track month-3 and month-6 cancellation and upgrade rates before touching the base."
+    },
+    {
+     "element": "Stays concise",
+     "status": "met",
+     "quote": "Three reasons."
+    }
+   ]
+  },
+  "communication": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Later turns were answer-first and well signposted, with numbered points.",
+     "quotes": [
+      "Four things. One, month-3 and month-6 cancellation for the $60 cohort versus the 5% monthly baseline"
+     ]
+    },
+    {
+     "point": "The candidate picked up the interviewer's margin cue and reframed cleanly.",
+     "quotes": [
+      "Right — \"worth\" should be gross margin, not revenue."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "In the opening, the candidate brushed off repeated requests for a structure, which made the early turns hard to follow and confrontational.",
+     "quotes": [
+      "That's the recommendation. The areas to check are just the pieces of it — price, cost, retention."
+     ]
+    },
+    {
+     "point": "The candidate repeated the price-raise conclusion at the end of almost every turn, even when it wasn't the question asked.",
+     "quotes": [
+      "So the conclusion doesn't turn on the precision. Keep Starter — and raise price."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 2, when the interviewer asked for the main areas and how they fit together.",
+     "betterResponse": "I'll lay out four areas, say how they connect to the CEO's decision, and then tell you where I'd start and why."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States structure before detail",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "My instinct is that this is a unit economics question"
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "met",
+     "quote": "Right — \"worth\" should be gross margin, not revenue."
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The candidate incorporated the interviewer's 5% correction and used it to drive a quantified stress test.",
+     "quotes": [
+      "Taking 5% as the cancellation rate: Starter standalone at $40 is $30/0.05 = $600, plus $800 upgrade = $1,400, less $300 = $1,100 net."
+     ]
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The candidate was initially defensive when challenged on structure and anchored on a conclusion reached before seeing any data. Later, when the evidence warranted it, the candidate updated with stated reasoning, dropping the cost-inflation thesis and switching to margin.",
+     "quotes": [
+      "Fair, but I'd push back a little — I don't think I'm missing a structure",
+      "Which is the recommendation I've been making since the start, now with evidence behind it.",
+      "I'll concede my cost-inflation read isn't supported — $300 self-serve CAC is cheap."
+     ]
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 6, when the interviewer said the recommendation rested on unevidenced cost inflation and elasticity.",
+     "betterResponse": "That's fair — I got ahead of the data. Let me set the hypothesis aside, lay out the areas properly, and test it against the numbers."
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "met",
+     "quote": "Fair challenge — if Starter is pulling customers who would otherwise have paid $100, that's a $60 hole per switcher"
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "met",
+     "quote": "I'd set it up as a cohort scorecard against the $40 baseline, not aggregate revenue"
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "met",
+     "quote": "That matches your figure, good."
+    }
+   ]
+  },
+  "overallRating": "meets_bar",
+  "topFix": "Before giving any answer, build a structure that doesn't presuppose one: name the goal (total value created), put plan interactions — upgrades and cannibalization — up front as the likely crux, and let the data drive the recommendation instead of opening with an unevidenced hypothesis and defending it."
+ },
+ "after": {
+  "structure": {
+   "rating": "needs_work",
+   "wentWell": [],
+   "needsWork": [
+    {
+     "point": "The candidate skipped structuring and opened with a recommendation built on cost inflation and click-price assumptions that no case data supported.",
+     "quotes": [
+      "Honestly, I think I can already give you my answer, and the structure will fall out of it.",
+      "Software businesses like this have seen input costs climb hard: cloud hosting, payment processing on the \"get paid\" feature, and most of all paid acquisition"
+     ],
+     "plain": {
+      "where": "In the opening, when the interviewer asked for the full structure before any data, you said \"Honestly, I think I can already give you my answer, and the structure will fall out of it.\"",
+      "what": "The answer skipped the structure and went straight to a recommendation built on cost inflation and rising click prices, such as \"Software businesses like this have seen input costs climb hard\", which no case data supported.",
+      "why": "Interviewers want to see how you would break the problem down before you commit to an answer, and a conclusion resting on unsupported assumptions is hard to trust.",
+      "next": "Next time, try laying out the main areas you would examine and how they link to the CEO's decision before offering any recommendation."
+     }
+    },
+    {
+     "point": "The candidate initially ranked the plan interaction as second-order, which treated the plans as independent even though that is where the answer actually sat, and the four buckets came only after two prompts and had no sub-points. Once pressed, the candidate accepted that the Pro interaction mattered and raised it to a co-equal bucket, with a reason tied to the $60 price gap.",
+     "quotes": [
+      "And I'd test the first two first, because that's literally the 3x ratio the board cares about. Three and four are second-order.",
+      "Fair challenge — if Starter is pulling customers who would otherwise have paid $100, that's a $60 hole per switcher, and it could be big enough to swamp the Starter unit economics entirely. So I'll upgrade it from second-order to co-equal with the other two."
+     ],
+     "plain": {
+      "where": "In the opening, when asked which areas you would test first, you said \"Three and four are second-order\", putting the interaction with Pro behind the other areas.",
+      "what": "Ranking the Pro interaction as second-order treated the two plans as independent, even though that is where the answer actually sat, and your four areas came only after two prompts and had no sub-points. Once pressed, you accepted it mattered and raised it to co-equal, with a reason tied to the $60 price gap: \"that's a $60 hole per switcher\".",
+      "why": "In a pricing case with two linked products, how the products affect each other often decides the answer, so it needs to sit at the centre of the plan from the start.",
+      "next": "Next time, try offering your areas on the first request, each with two or three sub-points, and ask yourself which one most likely holds the answer before ranking them."
+     }
+    },
+    {
+     "point": "The candidate claimed the decision didn't depend on the analysis. That cuts the link between the structure and the choice it is meant to inform.",
+     "quotes": [
+      "But I'd note that whichever way those numbers land, the action is the same."
+     ],
+     "plain": {
+      "where": "In the opening, when asked for your main areas and what you would test first, you said \"But I'd note that whichever way those numbers land, the action is the same.\"",
+      "what": "This claimed the decision would not depend on the analysis, which cuts the link between your structure and the choice it is meant to inform.",
+      "why": "A structure is only useful if its results could change the recommendation, so saying they cannot makes the analysis look pointless.",
+      "next": "Next time, try stating for each area what result would push you toward keeping, repricing or shutting down Starter."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 2, when the interviewer asked for the full structure before any data was shared.",
+     "betterResponse": "The goal is to maximize total value from the plan line, not just to pass a ratio. I'd look at four things. First, standalone economics by plan: margin, churn, CAC, then LTV/CAC. Second, interactions: Starter customers upgrading to Pro, which helps, and Starter taking Pro sign-ups, which hurts. Third, options: keep at $40, reprice, change features, or shut down. Fourth, the market: competitor entry prices and what small businesses will pay. I'd start with the interactions, because a plan can fail 3x on its own and still be worth keeping if it feeds Pro.",
+     "plain": {
+      "where": "In the opening, the interviewer asked you to lay out the full structure and how the areas fit together before any data was shared.",
+      "what": "The answer went to a recommendation instead, so the chance to set out a complete plan, including how the two plans affect each other, passed by.",
+      "why": "A clear opening plan shapes the whole case and shows the interviewer where you expect the answer to lie."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Restates the objective",
+     "status": "met",
+     "quote": "So the question is whether Starter is worth keeping."
+    },
+    {
+     "element": "3–4 tailored, non-overlapping buckets with brief sub-points",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes where the answer likely lives",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Ties the structure to the decision",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "quantitative": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The price-test valuation was set up and computed correctly: about $2.08M a month at $40 versus $2.32M at $60, a gain of roughly $240k a month.",
+     "quotes": [
+      "At $40: Starter 1,000 × $1,100 net = $1,100k. Pro 350 × ($4,000 − $1,200) = $980k. Total ≈ $2,080k.",
+      "So $60 is worth about $240k a month more, roughly $2.9m a year"
+     ],
+     "plain": {
+      "where": "When reading the price-test exhibit, you valued both price points, saying \"At $40: Starter 1,000 × $1,100 net = $1,100k. Pro 350 × ($4,000 − $1,200) = $980k. Total ≈ $2,080k.\"",
+      "what": "The valuation was set up and computed correctly: about $2.08M a month at $40 versus $2.32M at $60, a gain of roughly $240k a month.",
+      "why": "Turning a test result into a clear monthly value gap is exactly what lets a client make a pricing call.",
+      "next": "Keep valuing each option in full, including the effect on the other plan, and stating the difference in dollars."
+     }
+    },
+    {
+     "point": "The candidate built an accurate churn breakeven for the $60 price and stated what it means for the decision.",
+     "quotes": [
+      "If upgrades held at 20% ($800), standalone would need to be $700 — $50/0.0714, a 7.1% cancellation rate. So churn could worsen from 5% to about 7% before $60 stops winning."
+     ],
+     "plain": {
+      "where": "When asked what worse churn and upgrades at $60 would do to your recommendation, you said \"So churn could worsen from 5% to about 7% before $60 stops winning.\"",
+      "what": "You built an accurate churn breakeven for the $60 price and stated what it means for the decision.",
+      "why": "A breakeven tells the client how much can go wrong before the decision flips, which is often more useful than a single estimate.",
+      "next": "Keep working out the breakeven point for your key risk and saying plainly what it means for the choice."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The candidate questioned the approximation behind the 4.2% figure and bracketed the result instead of defending a single point. Even so, several conceptual errors went uncaught until the interviewer flagged them. LTV was first built on price ($100/0.02 = $5,000) rather than margin. Starter churn was taken as the 7.4% total exit rate, and later as 4.2%, rather than the 5% read directly from month-1 cancellations. Correct figures: Starter $30 ÷ 5% = $600, plus $800 of upgrade value, gives $1,400 (4.7×).",
+     "quotes": [
+      "LTV ≈ $100/0.02 = $5,000 against $1,200 CAC — about 4.2x.",
+      "Using the total exit rate of 7.4%/month, $30 / 0.074 ≈ $405 of standalone Starter value.",
+      "cancellations and upgrades are competing exits from the same pool, so treating 60% as a clean \"survival\" curve isn't quite right"
+     ],
+     "plain": {
+      "where": "Reading the cohort and economics exhibits, you first said \"LTV ≈ $100/0.02 = $5,000 against $1,200 CAC — about 4.2x.\"",
+      "what": "You did question the approximation behind the 4.2% figure and bracketed the result instead of defending one number, noting \"cancellations and upgrades are competing exits from the same pool\". Even so, several conceptual errors stayed in place until the interviewer flagged them: lifetime value was first built on price rather than margin, and Starter churn was taken as the 7.4% total exit rate and later 4.2%, rather than the 5% read directly from month-1 cancellations; the correct figures are $30 ÷ 5% = $600, plus $800 of upgrade value, giving $1,400 (4.7×).",
+      "why": "Errors in the basic inputs carry through every later number, and an interviewer will notice when the corrections come from them rather than from you.",
+      "next": "Next time, try checking two things before any lifetime value calculation: whether you are using margin, and whether your churn rate counts only customers who actually leave."
+     }
+    },
+    {
+     "point": "The cannibalization sizing used the wrong $905 net figure and needed an interviewer correction to reach $1,100.",
+     "quotes": [
+      "the blended per-sign-up value is $1,205 less $300 CAC = $905 net"
+     ],
+     "plain": {
+      "where": "Sizing cannibalization from the volume exhibit, you said \"the blended per-sign-up value is $1,205 less $300 CAC = $905 net\".",
+      "what": "The sizing rested on the wrong $905 net figure, and it took an interviewer correction to reach $1,100.",
+      "why": "When a key input is off, the whole comparison built on it is off too.",
+      "next": "Next time, try re-checking your per-customer value against the latest data before using it to size anything larger."
+     }
+    },
+    {
+     "point": "The upgrade threshold given in the final answer was imprecise. With churn unchanged, $60 keeps winning until upgrades fall below 12.5% ($1,000 + u × $4,000 = $1,500), not 15%.",
+     "quotes": [
+      "but a drop in upgrades below 15% would hurt more"
+     ],
+     "plain": {
+      "where": "In your final recommendation, you said \"but a drop in upgrades below 15% would hurt more\".",
+      "what": "The upgrade threshold was imprecise: with churn unchanged, $60 keeps winning until upgrades fall below 12.5% ($1,000 + u × $4,000 = $1,500), not 15%.",
+      "why": "Thresholds in a recommendation become monitoring triggers, so an imprecise one can lead the client to act at the wrong time.",
+      "next": "Next time, try writing out the one-line breakeven equation for each threshold before you state it."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 11, reading the Starter cohort status table.",
+     "betterResponse": "Month 1 shows 5% cancelled and 1% upgraded, and cancellations are steady. So Starter churn is 5%, not the 6% total exit — upgraders don't leave. Using margin, LTV is $30 ÷ 5% = $600, plus 20% × $4,000 = $800 of upgrade value, so $1,400 on a $300 CAC, or 4.7×.",
+     "plain": {
+      "where": "Reading the Starter cohort status table, when asked what it told you about the board's rule, you worked from \"only 40% still on Starter at 12 months\".",
+      "what": "The month-1 figures already gave the cancellation rate directly, and using them with margin would have produced the right value without the compounding shortcut.",
+      "why": "Picking the simplest correct figure from an exhibit saves time and avoids errors that ripple through later numbers."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Lays out the equation before computing",
+     "status": "met",
+     "quote": "Break-even against the $40 arm's $2,080k total: with Pro contributing $1,120k at $60, Starter needs $960k from 800 sign-ups, so $1,200 net each, i.e. $1,500 gross value."
+    },
+    {
+     "element": "Computes accurately",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Narrates the steps",
+     "status": "met",
+     "quote": "Starter gross margin is $40 − $10 = $30 a month."
+    },
+    {
+     "element": "Sanity-checks the result",
+     "status": "met",
+     "quote": "Taking 5% as the cancellation rate: Starter standalone at $40 is $30/0.05 = $600, plus $800 upgrade = $1,400, less $300 = $1,100 net. That matches your figure, good."
+    },
+    {
+     "element": "States the business implication of the number",
+     "status": "met",
+     "quote": "So churn could worsen from 5% to about 7% before $60 stops winning."
+    }
+   ]
+  },
+  "dataExhibit": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "From the cohort exhibit, the candidate saw that the 20% who upgrade are what the CFO's standalone test leaves out.",
+     "quotes": [
+      "So the CFO is undercounting upgrades, and I'll concede my cost-inflation read isn't supported — $300 self-serve CAC is cheap."
+     ],
+     "plain": {
+      "where": "Reading the cohort exhibit, you said \"So the CFO is undercounting upgrades, and I'll concede my cost-inflation read isn't supported — $300 self-serve CAC is cheap.\"",
+      "what": "You saw that the 20% who upgrade are what the CFO's standalone test leaves out.",
+      "why": "Spotting what the client's own test misses is often the key insight that resolves the disagreement.",
+      "next": "Keep asking what a client's measure leaves out when it seems to contradict the data."
+     }
+    },
+    {
+     "point": "On the volume exhibit, the candidate set the 150 lost Pro sign-ups against the 200 upgrades a month and drew a clear so-what.",
+     "quotes": [
+      "But 20% of 1,000 Starters, 200 a month, upgrade to Pro. So Pro intake is actually higher than before, and those 200 cost $300 rather than $1,200 to land."
+     ],
+     "plain": {
+      "where": "When the volume figures were shared, you said \"But 20% of 1,000 Starters, 200 a month, upgrade to Pro. So Pro intake is actually higher than before, and those 200 cost $300 rather than $1,200 to land.\"",
+      "what": "You set the 150 lost Pro sign-ups against the 200 upgrades a month and drew a clear so-what.",
+      "why": "Netting the loss against the gain is what turns a worrying number into a usable conclusion.",
+      "next": "Keep weighing each loss against its offsetting gain and stating what the net result means."
+     }
+    },
+    {
+     "point": "The candidate proposed a relevant next question on how many Starter customers were trading down from Pro.",
+     "quotes": [
+      "Do we have any sense of what share of Starter sign-ups are genuinely new versus Pro leads trading down?"
+     ],
+     "plain": {
+      "where": "While discussing the economics exhibit, you asked \"Do we have any sense of what share of Starter sign-ups are genuinely new versus Pro leads trading down?\"",
+      "what": "You proposed a relevant next question on how many Starter customers were trading down from Pro.",
+      "why": "Asking for the data that matters most to the decision shows you are steering the case, not just reacting.",
+      "next": "Keep naming the specific data that would settle your biggest open question."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The candidate misread the Starter cohort, treating the drop in 'still on Starter' as churn, even though upgraders didn't leave and month-1 cancellations were simply 5%.",
+     "quotes": [
+      "Starter: only 40% still on Starter at 12 months, so 0.4^(1/12) ≈ 0.926, about 7.4% leaving per month."
+     ],
+     "plain": {
+      "where": "Reading the Starter cohort exhibit, you said \"Starter: only 40% still on Starter at 12 months, so 0.4^(1/12) ≈ 0.926, about 7.4% leaving per month.\"",
+      "what": "The drop in customers still on Starter was read as churn, even though upgraders did not leave and month-1 cancellations were simply 5%.",
+      "why": "Misreading what a row in an exhibit measures can flip a plan from pass to fail.",
+      "next": "Next time, try stating what each line of a table measures, and reading the simplest figure first, before doing any calculation."
+     }
+    },
+    {
+     "point": "The economics exhibit was waved through as confirmation rather than read on its own terms, and its definition of lifetime was then applied with a compounding shortcut that gave 4.2%.",
+     "quotes": [
+      "This confirms the numbers I just ran, so no change to the conclusion"
+     ],
+     "plain": {
+      "where": "When shown the economics exhibit and asked what you took from it, you said \"This confirms the numbers I just ran, so no change to the conclusion\".",
+      "what": "The exhibit was treated as confirmation rather than read on its own terms, and its definition of lifetime was then applied with a compounding shortcut that gave 4.2%.",
+      "why": "New exhibits often carry the correction the interviewer wants you to find, so reading them as confirmation can hide it.",
+      "next": "Next time, try reading each new exhibit fresh, noting its definitions and figures, before comparing it with your earlier numbers."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 25, reading the price-test exhibit.",
+     "betterResponse": "At $60, Starter sign-ups fall by 200 but Pro rises by 50, so some trade-downs come back. That fits the $20 gap, and $60 is still well under Pro. The catch is that eight weeks can't show churn or upgrade rates. Next, I'd work out the churn and upgrade levels at which $60 stops beating $40.",
+     "plain": {
+      "where": "Reading the price-test exhibit, you went straight to valuation, starting with \"This is the test I was hoping for.\"",
+      "what": "The movement in sign-ups across both plans, and what an eight-week test can and cannot show, was a chance for a short plain reading before the maths.",
+      "why": "Saying what the exhibit shows in plain terms first helps the interviewer follow your logic and see the limits of the data."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Reads the data systematically",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Isolates the driver or anomaly",
+     "status": "met",
+     "quote": "So the CFO is undercounting upgrades"
+    },
+    {
+     "element": "States the implication",
+     "status": "met",
+     "quote": "so cannibalization is real but small relative to the volume gained."
+    },
+    {
+     "element": "Proposes a next step",
+     "status": "met",
+     "quote": "Do we have any sense of what share of Starter sign-ups are genuinely new versus Pro leads trading down?"
+    }
+   ]
+  },
+  "judgment": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The rollout plan was practical: new customers only, existing Starter customers grandfathered, and results tracked by cohort.",
+     "quotes": [
+      "roll $60 to new customers only, grandfather existing Starters, and track month-3 and month-6 cancellation and upgrade rates before touching the base."
+     ],
+     "plain": {
+      "where": "In your final recommendation, you proposed to \"roll $60 to new customers only, grandfather existing Starters, and track month-3 and month-6 cancellation and upgrade rates before touching the base.\"",
+      "what": "The rollout plan was practical: new customers only, existing Starter customers grandfathered, and results tracked by cohort.",
+      "why": "A careful rollout shows the client how to act on the advice without taking on unnecessary risk.",
+      "next": "Keep pairing your recommendation with a low-risk way to put it into practice."
+     }
+    },
+    {
+     "point": "The candidate set explicit monitoring thresholds and a rollback trigger, which mitigates the main risk.",
+     "quotes": [
+      "If it's under $1,200 by month six, I'd roll back to the mid-forties rather than hold."
+     ],
+     "plain": {
+      "where": "Asked how you would know it was working six months in, you said \"If it's under $1,200 by month six, I'd roll back to the mid-forties rather than hold.\"",
+      "what": "You set explicit monitoring thresholds and a rollback trigger, which mitigates the main risk.",
+      "why": "Clear triggers let the client act quickly if the risk you named actually shows up.",
+      "next": "Keep attaching a specific number and a fallback action to each risk you raise."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The opening recommendation rested on invented cost-inflation and price-elasticity assumptions that the case never supported.",
+     "quotes": [
+      "So the $40 price point was set against an older cost base and no longer covers it.",
+      "If you can triple volume with a $60 price cut, you almost certainly didn't need to cut all the way to $40"
+     ],
+     "plain": {
+      "where": "In the opening, explaining your early recommendation, you said \"So the $40 price point was set against an older cost base and no longer covers it\" and \"If you can triple volume with a $60 price cut, you almost certainly didn't need to cut all the way to $40\".",
+      "what": "The opening recommendation rested on cost-inflation and price-elasticity assumptions that you introduced yourself and that the case never supported.",
+      "why": "Building on invented assumptions puts the whole answer at risk once real data arrives.",
+      "next": "Next time, try labelling any early idea as something to test and naming the data that would confirm or reject it."
+     }
+    },
+    {
+     "point": "The recommended price moved from $55 to $60 between consecutive turns without any explanation of what changed.",
+     "quotes": [
+      "So: still recommend moving up, but to $55 rather than $60",
+      "Recommendation: keep Starter, and raise the price to $60."
+     ],
+     "plain": {
+      "where": "Under questioning on the risks of $60, you said \"So: still recommend moving up, but to $55 rather than $60\", then in the final answer said \"Recommendation: keep Starter, and raise the price to $60.\"",
+      "what": "The recommended price moved from $55 to $60 between consecutive answers without any explanation of what changed.",
+      "why": "An unexplained change in the headline number makes the recommendation look unstable.",
+      "next": "Next time, try saying explicitly what new fact moved your number whenever you change it."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 3, asked for a structure, the candidate instead asserted a cost-inflation story.",
+     "betterResponse": "My working hypothesis is that Starter may fail 3x on its own but create value through upgrades. I'll hold off recommending until I see the economics and the interaction with Pro.",
+     "plain": {
+      "where": "In the opening, asked for a structure, you instead offered a cost-inflation story: \"So the $40 price point was set against an older cost base and no longer covers it.\"",
+      "what": "A working idea, held loosely and tied to the data needed to test it, would have kept the door open without committing early.",
+      "why": "Stating an early view as something to test, not a conclusion, shows judgment and keeps you flexible when data arrives."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Recommendations are practical and commercially sound",
+     "status": "met",
+     "quote": "roll $60 to new customers only, grandfather existing Starters"
+    },
+    {
+     "element": "Proactively surfaces risks and mitigations",
+     "status": "met",
+     "quote": "The real risk is that $60 buyers churn faster or upgrade less, and eight weeks can't tell us."
+    },
+    {
+     "element": "Assumptions are realistic and justified",
+     "status": "not_met",
+     "quote": ""
+    }
+   ]
+  },
+  "creativity": {
+   "rating": "meets_bar",
+   "wentWell": [],
+   "needsWork": [],
+   "missedOpportunities": [],
+   "coverageCaveat": "This case had no brainstorm stage, and the few options the candidate offered elsewhere are too thin to rate creativity — this reflects session design, not a candidate failing.",
+   "notAssessed": true,
+   "strongElements": [
+    {
+     "element": "Organizes ideas into buckets",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Produces several distinct ideas",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Includes at least one non-obvious idea",
+     "status": "no_occasion",
+     "quote": ""
+    },
+    {
+     "element": "Prioritizes the ideas",
+     "status": "no_occasion",
+     "quote": ""
+    }
+   ]
+  },
+  "synthesis": {
+   "rating": "strong",
+   "wentWell": [
+    {
+     "point": "The final answer led with the recommendation and gave three reasons, each tied to the analysis.",
+     "quotes": [
+      "Recommendation: keep Starter, and raise the price to $60.",
+      "Two, Starter is the better Pro acquisition channel: 200 upgrades a month more than replace the 150 cannibalized Pro sign-ups, at a quarter of the cost."
+     ],
+     "plain": {
+      "where": "In your final recommendation, you opened with \"Recommendation: keep Starter, and raise the price to $60.\" and supported it with points like \"200 upgrades a month more than replace the 150 cannibalized Pro sign-ups, at a quarter of the cost.\"",
+      "what": "The final answer led with the recommendation and gave three reasons, each tied to the analysis.",
+      "why": "Leading with the answer and backing it with numbers is what a busy executive needs.",
+      "next": "Keep opening with the recommendation and giving a short list of reasons tied to your numbers."
+     }
+    },
+    {
+     "point": "The answer named the key risk with a quantified threshold, plus concrete next steps, but two figures were imprecise. The upgrade threshold should be 12.5%, not 15%. The ratio also mixed net and gross: $1,100 is the net value, and 4.7× is $1,400 ÷ $300.",
+     "quotes": [
+      "My math says churn can drift from 5% to about 7% before $60 stops winning",
+      "$1,100 net value per sign-up on a $300 CAC, about 4.7x"
+     ],
+     "plain": {
+      "where": "In your final recommendation, you said \"My math says churn can drift from 5% to about 7% before $60 stops winning\" and \"$1,100 net value per sign-up on a $300 CAC, about 4.7x\".",
+      "what": "You named the key risk with a quantified threshold, plus concrete next steps, but two figures were imprecise. The upgrade threshold should be 12.5%, not 15%, and the ratio mixed net and gross: $1,100 is the net value, while 4.7× is $1,400 ÷ $300.",
+      "why": "Quantified risks make a recommendation credible, but only if the numbers behind them are consistent.",
+      "next": "Keep naming risks with a number attached, and check that each ratio uses matching figures before you say it."
+     }
+    }
+   ],
+   "needsWork": [],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 29, closing the recommendation.",
+     "betterResponse": "Starter is worth $1,400 per sign-up against a $300 CAC, or 4.7×. Netting cannibalization, a month of sign-ups is worth $2.08M with Starter versus $1.40M with Pro only. At $60 it rises to $2.32M, and that holds unless churn passes about 7% or upgrades fall below 12.5%.",
+     "plain": {
+      "where": "Closing your final recommendation to the CEO, you summed up with \"Recommendation: keep Starter, and raise the price to $60.\"",
+      "what": "The close could have pulled the corrected figures together into a single picture of total monthly value with and without Starter, plus the limits at which the call would change.",
+      "why": "A closing summary built on total value gives the CEO one clear comparison to act on."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Leads with a clear recommendation",
+     "status": "met",
+     "quote": "Recommendation: keep Starter, and raise the price to $60."
+    },
+    {
+     "element": "Gives 2–3 reasons tied to the analysis",
+     "status": "met",
+     "quote": "Three, the price test shows $60 adds roughly $240k a month, about $2.9m a year"
+    },
+    {
+     "element": "Names the key risk",
+     "status": "met",
+     "quote": "Risks: $60 cohorts aren't yet proven on churn or upgrades."
+    },
+    {
+     "element": "Names next steps",
+     "status": "met",
+     "quote": "Next steps: roll $60 to new customers only, grandfather existing Starters, and track month-3 and month-6 cancellation and upgrade rates before touching the base."
+    },
+    {
+     "element": "Stays concise",
+     "status": "met",
+     "quote": "Three reasons."
+    }
+   ]
+  },
+  "communication": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "Later turns were answer-first and well signposted, with numbered points.",
+     "quotes": [
+      "Four things. One, month-3 and month-6 cancellation for the $60 cohort versus the 5% monthly baseline"
+     ],
+     "plain": {
+      "where": "Asked how you would know the change was working, you said \"Four things. One, month-3 and month-6 cancellation for the $60 cohort versus the 5% monthly baseline\".",
+      "what": "Later answers put the answer first and told the listener what was coming, with numbered points.",
+      "why": "Numbered, answer-first replies are easy for an interviewer to follow and note down.",
+      "next": "Keep announcing how many points you have and walking through them in order."
+     }
+    },
+    {
+     "point": "The candidate picked up the interviewer's margin cue and reframed cleanly.",
+     "quotes": [
+      "Right — \"worth\" should be gross margin, not revenue."
+     ],
+     "plain": {
+      "where": "When the interviewer asked whether the board's rule measures worth by price or by margin, you said \"Right — \"worth\" should be gross margin, not revenue.\"",
+      "what": "You picked up the interviewer's margin cue and reframed cleanly.",
+      "why": "Responding quickly and cleanly to a cue shows you can take direction without losing your footing.",
+      "next": "Keep acknowledging a cue directly and showing how it changes your approach."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "In the opening, the candidate brushed off repeated requests for a structure, which made the early turns hard to follow and confrontational.",
+     "quotes": [
+      "That's the recommendation. The areas to check are just the pieces of it — price, cost, retention."
+     ],
+     "plain": {
+      "where": "In the opening, after being asked for a structure, you said \"That's the recommendation. The areas to check are just the pieces of it — price, cost, retention.\"",
+      "what": "The repeated requests for a structure were brushed aside, which made the early answers hard to follow and confrontational.",
+      "why": "When an interviewer asks for something more than once, setting it aside sends a signal about how you would work with a client.",
+      "next": "Next time, try giving the interviewer exactly what they ask for first, then adding your own view after."
+     }
+    },
+    {
+     "point": "The candidate repeated the price-raise conclusion at the end of almost every turn, even when it wasn't the question asked.",
+     "quotes": [
+      "So the conclusion doesn't turn on the precision. Keep Starter — and raise price."
+     ],
+     "plain": {
+      "where": "Asked only for the steps behind your 4.2% figure, you closed with \"So the conclusion doesn't turn on the precision. Keep Starter — and raise price.\"",
+      "what": "The price-raise conclusion was repeated at the end of almost every answer, even when it was not the question asked.",
+      "why": "Repeating the same conclusion can come across as not listening and makes it harder to see the new point in each answer.",
+      "next": "Next time, try ending each answer on the question that was actually asked and saving the recommendation for when it is requested."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 2, when the interviewer asked for the main areas and how they fit together.",
+     "betterResponse": "I'll lay out four areas, say how they connect to the CEO's decision, and then tell you where I'd start and why.",
+     "plain": {
+      "where": "In the opening, the interviewer asked for the main areas and how they fit together.",
+      "what": "A one-line preview of what you were about to lay out would have shown the interviewer you were answering their question.",
+      "why": "Telling the listener the shape of your answer up front makes everything after it easier to follow."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Consistently top-down and signposted",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "States structure before detail",
+     "status": "not_met",
+     "quote": ""
+    },
+    {
+     "element": "Uses hypothesis-driven phrasing",
+     "status": "met",
+     "quote": "My instinct is that this is a unit economics question"
+    },
+    {
+     "element": "Builds on the interviewer's cues",
+     "status": "met",
+     "quote": "Right — \"worth\" should be gross margin, not revenue."
+    }
+   ]
+  },
+  "pushback": {
+   "rating": "meets_bar",
+   "wentWell": [
+    {
+     "point": "The candidate incorporated the interviewer's 5% correction and used it to drive a quantified stress test.",
+     "quotes": [
+      "Taking 5% as the cancellation rate: Starter standalone at $40 is $30/0.05 = $600, plus $800 upgrade = $1,400, less $300 = $1,100 net."
+     ],
+     "plain": {
+      "where": "After the interviewer corrected the cancellation rate, you said \"Taking 5% as the cancellation rate: Starter standalone at $40 is $30/0.05 = $600, plus $800 upgrade = $1,400, less $300 = $1,100 net.\"",
+      "what": "You took on the interviewer's 5% correction and used it to drive a quantified test of how far things could worsen.",
+      "why": "Absorbing a correction smoothly and building on it shows composure under challenge.",
+      "next": "Keep folding corrections straight into your numbers and moving the analysis forward."
+     }
+    }
+   ],
+   "needsWork": [
+    {
+     "point": "The candidate was initially defensive when challenged on structure and anchored on a conclusion reached before seeing any data. Later, when the evidence warranted it, the candidate updated with stated reasoning, dropping the cost-inflation thesis and switching to margin.",
+     "quotes": [
+      "Fair, but I'd push back a little — I don't think I'm missing a structure",
+      "Which is the recommendation I've been making since the start, now with evidence behind it.",
+      "I'll concede my cost-inflation read isn't supported — $300 self-serve CAC is cheap."
+     ],
+     "plain": {
+      "where": "When challenged on structure in the opening, you said \"Fair, but I'd push back a little — I don't think I'm missing a structure\", and later said \"Which is the recommendation I've been making since the start, now with evidence behind it.\"",
+      "what": "Your first response to the challenge was defensive and held on to a conclusion reached before seeing any data. Later, when the evidence warranted it, you updated with stated reasoning, saying \"I'll concede my cost-inflation read isn't supported — $300 self-serve CAC is cheap\" and switching to margin.",
+      "why": "Interviewers watch how you take challenge, and holding to an early view can look like defending a position rather than following the evidence.",
+      "next": "Next time, try treating an early challenge as a prompt to step back, and drop your initial view as readily as you did once the data came in."
+     }
+    }
+   ],
+   "missedOpportunities": [
+    {
+     "moment": "Turn 6, when the interviewer said the recommendation rested on unevidenced cost inflation and elasticity.",
+     "betterResponse": "That's fair — I got ahead of the data. Let me set the hypothesis aside, lay out the areas properly, and test it against the numbers.",
+     "plain": {
+      "where": "In the opening, the interviewer said your recommendation rested on cost inflation and price elasticity that had no evidence, and you replied \"Fair, but I'd push back a little\".",
+      "what": "This was a chance to accept the point briefly and reset, rather than defend the earlier answer.",
+      "why": "Acknowledging a fair challenge quickly builds credibility and gets the case back on track."
+     }
+    }
+   ],
+   "strongElements": [
+    {
+     "element": "Acknowledges a challenge and holds or updates with explicit reasoning",
+     "status": "met",
+     "quote": "Fair challenge — if Starter is pulling customers who would otherwise have paid $100, that's a $60 hole per switcher"
+    },
+    {
+     "element": "Drives next steps proactively",
+     "status": "met",
+     "quote": "I'd set it up as a cohort scorecard against the $40 baseline, not aggregate revenue"
+    },
+    {
+     "element": "Visibly incorporates hints or feedback",
+     "status": "met",
+     "quote": "That matches your figure, good."
+    }
+   ]
+  },
+  "overallRating": "meets_bar",
+  "topFix": "Before giving any answer, build a structure that doesn't presuppose one: name the goal (total value created), put plan interactions — upgrades and cannibalization — up front as the likely crux, and let the data drive the recommendation instead of opening with an unevidenced hypothesis and defending it."
+ }
+}
