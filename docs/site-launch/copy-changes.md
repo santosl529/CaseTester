@@ -95,7 +95,8 @@ Kept as written, flagged for Matt:
 |---|---|---|---|
 | Drills home · "Get your plan" (no plan yet) | Three options: Answer a few questions / Take the diagnostic / **Take a full case — About 35 minutes. The most accurate. [Go to cases]** | Two options: Answer a few questions / Take the diagnostic | Option hidden (Lorenzo, 1 Nov): a case result can't produce a plan until the grader sends its payload (`CASE_RESULTS_WIRED = false` in `lib/drills/case-result.ts`; PRD §15 next build item). |
 
-Seen, not changed: when today's workout is empty, it says "Take the diagnostic or a case so we can find them", and a case doesn't find weak spots yet either.
+| Drills home · empty workout, diagnostic not done | Take the diagnostic or a case so we can find them, or practice any skill in the meantime. | Take the diagnostic so we can find them, or practice any skill in the meantime. | Claim removed (Lorenzo, 1 Nov): a case doesn't find weak spots yet. Behind the same flag. |
+| Drills home · empty workout, diagnostic done | Take a case so we can find them, or practice any skill in the meantime. | Do a drill set so we can find them, or practice any skill in the meantime. | Same reason. Claude's wording, since "Take the diagnostic" would be wrong once it's done. |
 
 ## 3. Rebrand (CaseTester → CasePace)
 

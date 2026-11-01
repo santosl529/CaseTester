@@ -162,6 +162,10 @@ export default async function DrillsHomePage() {
     : `${TRACK[program.track]} · Week ${program.week?.week ?? 0} of ${program.total_weeks} · ${program.week?.theme ?? ''}`;
   const next = workout?.blocks.findIndex(b => b.status !== 'done') ?? -1;
   const started = workout?.blocks.some(b => b.status !== 'todo');
+  // A case finds weak spots only once its result reaches drills (CASE_RESULTS_WIRED).
+  const emptyWorkoutLead = CASE_RESULTS_WIRED
+    ? (d.status === 'completed' ? 'Take a case' : 'Take the diagnostic or a case')
+    : (d.status === 'completed' ? 'Do a drill set' : 'Take the diagnostic');
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-8 p-4 sm:p-6">
@@ -188,7 +192,7 @@ export default async function DrillsHomePage() {
       {workout && workout.blocks.length === 0 && (
         <section aria-labelledby="workout" className="space-y-2 rounded-lg border p-4">
           <h2 id="workout" className="font-medium">Today&apos;s workout</h2>
-          <p className="text-sm">Nothing to work on yet: we build workouts from your weak spots. {d.status === 'completed' ? 'Take a case' : 'Take the diagnostic or a case'} so we can find them, or practice any skill in the meantime.</p>
+          <p className="text-sm">Nothing to work on yet: we build workouts from your weak spots. {emptyWorkoutLead} so we can find them, or practice any skill in the meantime.</p>
           <div className="flex flex-wrap gap-3">
             {d.status !== 'completed' && <Link href="/drills/diagnostic" className={buttonVariants({ size: 'lg' })}>Take the diagnostic</Link>}
             <Link href="/drills/browse" className={buttonVariants({ variant: 'outline', size: 'lg' })}>Browse drills</Link>

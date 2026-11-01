@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { signOut } from '@/app/actions/auth';
+import { signInRedirectUrl } from '@/lib/site/url';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -27,7 +28,9 @@ export function SignInFlow({ initialStep, next }: { initialStep: 'auth' | 'club'
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       // Try sign up
-      const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+      // The confirmation email links back to /sign-in (lib/site/url.ts).
+      const emailRedirectTo = signInRedirectUrl(process.env.NEXT_PUBLIC_SITE_URL, window.location.origin);
+      const { data, error: signUpError } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo } });
       if (signUpError) { setError(signUpError.message); return; }
       if (!data.session) { setError('Check your email to confirm your account, then sign in.'); return; }
     }
