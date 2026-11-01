@@ -15,7 +15,7 @@ export function SiteHeader({ inCase = false }: { inCase?: boolean }) {
   return (
     <header className="border-b bg-white">
       <nav className="mx-auto flex max-w-2xl items-center gap-1 px-4 py-2 text-sm">
-        <Link href="/home" onClick={confirmLeave} className="mr-auto font-semibold text-neutral-900">Case Practice</Link>
+        <Link href="/home" onClick={confirmLeave} className="mr-auto font-semibold text-neutral-900">CasePace</Link>
         <Link href="/home" onClick={confirmLeave} className={link}>Home</Link>
         <Link href="/drills" onClick={confirmLeave} className={link}>Drills</Link>
         <form action={signOut} onSubmit={confirmLeave}>

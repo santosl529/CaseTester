@@ -7,6 +7,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { StartSetButton } from '@/components/drills/start-set-button';
 import { CheckIn } from '@/components/drills/feedback';
 import { homeCheckin } from '@/lib/drills/feedback';
+import { CASE_RESULTS_WIRED } from '@/lib/drills/case-result';
 
 const TRACK = { foundations: 'Foundations', standard: 'Standard', sprint: 'Sprint', self_directed: 'Practice on my own' } as const;
 const SLOT = { review: 'Review', weak: 'Weak spot', unfamiliar: 'Something new' } as const;
@@ -32,7 +33,7 @@ export default async function DrillsHomePage() {
       <Link href="/drills/learn" className="underline-offset-4 hover:underline">Learn</Link>
       <Link href="/drills/progress" className="underline-offset-4 hover:underline">Your progress</Link>
       <Link href="/drills/settings" className="underline-offset-4 hover:underline">Settings</Link>
-      <Link href="/" className="text-muted-foreground underline-offset-4 hover:underline">Cases</Link>
+      <Link href="/home" className="text-muted-foreground underline-offset-4 hover:underline">Cases</Link>
     </nav>
   );
   const resume = home.resume && (
@@ -51,11 +52,12 @@ export default async function DrillsHomePage() {
   ));
   const self = home.kind === 'self_directed';
   // No plan yet: three ways to get one (D6 round 2); the first one done makes it.
+  // Two while a case result can't make a plan (CASE_RESULTS_WIRED).
   const getPlan = !home.plan.source && (
     <section aria-labelledby="get-plan" className="space-y-3 rounded-lg border p-4">
       <h2 id="get-plan" className="font-medium">{self ? 'Find your starting point' : 'Get your plan'}</h2>
       <p className="text-sm">Pick one. {self ? 'Suggestions' : 'Your plan and first workout'} are ready as soon as you finish, and you can do the others later to sharpen {self ? 'them' : 'it'}.</p>
-      <ul className="grid gap-3 sm:grid-cols-3">
+      <ul className={`grid gap-3 ${CASE_RESULTS_WIRED ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
         <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
           <span><span className="block font-medium">Answer a few questions</span><span className="text-muted-foreground">2–3 minutes. The quickest start; your first workouts include short checks.</span></span>
           <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm' })}>Answer questions</Link>
@@ -64,10 +66,12 @@ export default async function DrillsHomePage() {
           <span><span className="block font-medium">Take the diagnostic</span><span className="text-muted-foreground">About 15 minutes of short questions. More accurate.</span></span>
           <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : 'Start the diagnostic'}</Link>
         </li>
-        <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
-          <span><span className="block font-medium">Take a full case</span><span className="text-muted-foreground">About 35 minutes. The most accurate.</span></span>
-          <Link href="/" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
-        </li>
+        {CASE_RESULTS_WIRED && (
+          <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
+            <span><span className="block font-medium">Take a full case</span><span className="text-muted-foreground">About 35 minutes. The most accurate.</span></span>
+            <Link href="/home" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
+          </li>
+        )}
       </ul>
     </section>
   );
@@ -146,7 +150,7 @@ export default async function DrillsHomePage() {
         {weakest}
         <div className="flex flex-wrap gap-3">
           <Link href="/drills/browse" className={buttonVariants({ variant: 'outline' })}>Browse drills</Link>
-          <Link href="/" className={buttonVariants({ variant: 'ghost' })}>Browse cases</Link>
+          <Link href="/home" className={buttonVariants({ variant: 'ghost' })}>Browse cases</Link>
         </div>
       </main>
     );
@@ -158,6 +162,10 @@ export default async function DrillsHomePage() {
     : `${TRACK[program.track]} · Week ${program.week?.week ?? 0} of ${program.total_weeks} · ${program.week?.theme ?? ''}`;
   const next = workout?.blocks.findIndex(b => b.status !== 'done') ?? -1;
   const started = workout?.blocks.some(b => b.status !== 'todo');
+  // A case finds weak spots only once its result reaches drills (CASE_RESULTS_WIRED).
+  const emptyWorkoutLead = CASE_RESULTS_WIRED
+    ? (d.status === 'completed' ? 'Take a case' : 'Take the diagnostic or a case')
+    : (d.status === 'completed' ? 'Do a drill set' : 'Take the diagnostic');
 
   return (
     <main className="mx-auto w-full max-w-3xl space-y-8 p-4 sm:p-6">
@@ -184,7 +192,7 @@ export default async function DrillsHomePage() {
       {workout && workout.blocks.length === 0 && (
         <section aria-labelledby="workout" className="space-y-2 rounded-lg border p-4">
           <h2 id="workout" className="font-medium">Today&apos;s workout</h2>
-          <p className="text-sm">Nothing to work on yet: we build workouts from your weak spots. {d.status === 'completed' ? 'Take a case' : 'Take the diagnostic or a case'} so we can find them, or practice any skill in the meantime.</p>
+          <p className="text-sm">Nothing to work on yet: we build workouts from your weak spots. {emptyWorkoutLead} so we can find them, or practice any skill in the meantime.</p>
           <div className="flex flex-wrap gap-3">
             {d.status !== 'completed' && <Link href="/drills/diagnostic" className={buttonVariants({ size: 'lg' })}>Take the diagnostic</Link>}
             <Link href="/drills/browse" className={buttonVariants({ variant: 'outline', size: 'lg' })}>Browse drills</Link>

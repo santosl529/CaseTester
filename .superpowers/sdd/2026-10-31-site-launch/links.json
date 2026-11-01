@@ -1,0 +1,261 @@
+[
+ {
+  "path": "/",
+  "links": [
+   {
+    "text": "CasePace",
+    "href": "/"
+   },
+   {
+    "text": "How it works",
+    "href": "/how-it-works"
+   },
+   {
+    "text": "Technology",
+    "href": "#under-the-hood"
+   },
+   {
+    "text": "StartStart a mock interview",
+    "href": "/sign-in?next=/home"
+   },
+   {
+    "text": "CasePace",
+    "href": "/"
+   },
+   {
+    "text": "Sign in",
+    "href": "/sign-in"
+   },
+   {
+    "text": "Start a mock interview",
+    "href": "/sign-in?next=/home"
+   },
+   {
+    "text": "DiagnoseA 15-minute diagnostic finds where each skill starts.",
+    "href": "/how-it-works#diagnose"
+   },
+   {
+    "text": "Your planA 6-week plan, or a 7-day Sprint, built around your gaps.",
+    "href": "/how-it-works#plan"
+   },
+   {
+    "text": "LearnSharp, focused lessons. No business background required.",
+    "href": "/how-it-works#learn"
+   },
+   {
+    "text": "DrillTargeted reps on one skill at a time until it’s automatic.",
+    "href": "/how-it-works#drill"
+   },
+   {
+    "text": "Mock interviewA full case with an AI interviewer that pushes back like a real consultant.",
+    "href": "/how-it-works#mock"
+   },
+   {
+    "text": "Plan updatesEvery drill set updates your plan to what’s holding you back now.",
+    "href": "/how-it-works#adapt"
+   },
+   {
+    "text": "DiagnoseA 15-minute diagnostic finds where each skill starts.",
+    "href": "/how-it-works#diagnose"
+   },
+   {
+    "text": "Your planA 6-week plan, or a 7-day Sprint, built around your gaps.",
+    "href": "/how-it-works#plan"
+   },
+   {
+    "text": "LearnSharp, focused lessons. No business background required.",
+    "href": "/how-it-works#learn"
+   },
+   {
+    "text": "DrillTargeted reps on one skill at a time until it’s automatic.",
+    "href": "/how-it-works#drill"
+   },
+   {
+    "text": "Mock interviewA full case with an AI interviewer that pushes back like a real consultant.",
+    "href": "/how-it-works#mock"
+   },
+   {
+    "text": "Plan updatesEvery drill set updates your plan to what’s holding you back now.",
+    "href": "/how-it-works#adapt"
+   },
+   {
+    "text": "How it works",
+    "href": "/how-it-works"
+   },
+   {
+    "text": "Start a mock interview",
+    "href": "/sign-in?next=/home"
+   },
+   {
+    "text": "See the full product tour",
+    "href": "/how-it-works"
+   },
+   {
+    "text": "Start a mock interview",
+    "href": "/sign-in?next=/home"
+   },
+   {
+    "text": "How it works",
+    "href": "/how-it-works"
+   }
+  ],
+  "buttons": [
+   "Pause demo",
+   "Live interview",
+   "Math checked",
+   "In your report",
+   "",
+   "",
+   ""
+  ]
+ },
+ {
+  "path": "/how-it-works",
+  "links": [
+   {
+    "text": "CasePace",
+    "href": "/"
+   },
+   {
+    "text": "How it works",
+    "href": "/how-it-works"
+   },
+   {
+    "text": "Technology",
+    "href": "/#under-the-hood"
+   },
+   {
+    "text": "StartStart a mock interview",
+    "href": "/sign-in?next=/home"
+   },
+   {
+    "text": "CasePace",
+    "href": "/"
+   },
+   {
+    "text": "Sign in",
+    "href": "/sign-in"
+   },
+   {
+    "text": "Start a mock interview",
+    "href": "/sign-in?next=/home"
+   },
+   {
+    "text": "DiagnoseA 15-minute diagnostic finds where each skill starts.",
+    "href": "#diagnose"
+   },
+   {
+    "text": "Your planA 6-week plan, or a 7-day Sprint, built around your gaps.",
+    "href": "#plan"
+   },
+   {
+    "text": "LearnSharp, focused lessons. No business background required.",
+    "href": "#learn"
+   },
+   {
+    "text": "DrillTargeted reps on one skill at a time until it’s automatic.",
+    "href": "#drill"
+   },
+   {
+    "text": "Mock interviewA full case with an AI interviewer that pushes back like a real consultant.",
+    "href": "#mock"
+   },
+   {
+    "text": "Plan updatesEvery drill set updates your plan to what’s holding you back now.",
+    "href": "#adapt"
+   },
+   {
+    "text": "DiagnoseA 15-minute diagnostic finds where each skill starts.",
+    "href": "#diagnose"
+   },
+   {
+    "text": "Your planA 6-week plan, or a 7-day Sprint, built around your gaps.",
+    "href": "#plan"
+   },
+   {
+    "text": "LearnSharp, focused lessons. No business background required.",
+    "href": "#learn"
+   },
+   {
+    "text": "DrillTargeted reps on one skill at a time until it’s automatic.",
+    "href": "#drill"
+   },
+   {
+    "text": "Mock interviewA full case with an AI interviewer that pushes back like a real consultant.",
+    "href": "#mock"
+   },
+   {
+    "text": "Plan updatesEvery drill set updates your plan to what’s holding you back now.",
+    "href": "#adapt"
+   },
+   {
+    "text": "01Diagnose",
+    "href": "#diagnose"
+   },
+   {
+    "text": "02Your plan",
+    "href": "#plan"
+   },
+   {
+    "text": "03Learn",
+    "href": "#learn"
+   },
+   {
+    "text": "04Drill",
+    "href": "#drill"
+   },
+   {
+    "text": "05Mock interview",
+    "href": "#mock"
+   },
+   {
+    "text": "06Plan updates",
+    "href": "#adapt"
+   },
+   {
+    "text": "Start a mock interview",
+    "href": "/sign-in?next=/home"
+   },
+   {
+    "text": "01Diagnose",
+    "href": "#diagnose"
+   },
+   {
+    "text": "02Your plan",
+    "href": "#plan"
+   },
+   {
+    "text": "03Learn",
+    "href": "#learn"
+   },
+   {
+    "text": "04Drill",
+    "href": "#drill"
+   },
+   {
+    "text": "05Mock interview",
+    "href": "#mock"
+   },
+   {
+    "text": "06Plan updates",
+    "href": "#adapt"
+   },
+   {
+    "text": "Start a mock interview",
+    "href": "/sign-in?next=/home"
+   },
+   {
+    "text": "How it works",
+    "href": "/how-it-works"
+   }
+  ],
+  "buttons": []
+ },
+ {
+  "heroCtaLandsOn": "http://localhost:3911/sign-in?next=/home",
+  "signInHas": [
+   "Email",
+   "Password"
+  ]
+ }
+]

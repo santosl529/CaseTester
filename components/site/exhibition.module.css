@@ -1,0 +1,1539 @@
+/* The exhibition homepage mockup, v2: Paper, white product surfaces,
+   oversized Geist, thin rules; one Ink act. Motion is scroll-driven (pinned
+   chapters that never lock the scroll) or a pausable loop; under reduced
+   motion every piece shows its final state. */
+
+.display {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* Size comes from the t-label role. */
+.caps {
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.figures {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- Product surfaces ---------- */
+
+.panel {
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent), 0 24px 60px -36px color-mix(in srgb, var(--ink) 35%, transparent);
+}
+
+/* Chapter stages: the same surface, quieter (the hero's panel keeps its lift). */
+.quiet {
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent);
+}
+
+/* In a White room the panel needs a firmer edge to stand off the page. */
+[data-room='white'] .panel {
+  border-color: color-mix(in srgb, var(--ink) 20%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 20px 44px -32px color-mix(in srgb, var(--ink) 40%, transparent);
+}
+
+@media (max-width: 639px) {
+  .bleed {
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
+  }
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+  transition: opacity 450ms cubic-bezier(0.16, 1, 0.3, 1) 220ms, transform 450ms cubic-bezier(0.16, 1, 0.3, 1) 220ms;
+}
+
+.view[data-active='false'] {
+  opacity: 0;
+  transform: translateY(6px);
+  pointer-events: none;
+  transition: opacity 180ms ease-in, transform 180ms ease-in;
+}
+
+/* Things that appear: data-on="false" hides, "true" shows. */
+.reveal {
+  transition: opacity 500ms cubic-bezier(0.16, 1, 0.3, 1), transform 500ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: var(--delay, 0ms);
+}
+
+.reveal[data-on='false'] {
+  opacity: 0;
+  transform: translateY(10px);
+  transition-delay: 0ms;
+  transition-duration: 200ms;
+}
+
+.revealX[data-on='false'] {
+  transform: translateX(16px);
+}
+
+.grow {
+  display: grid;
+  grid-template-rows: 1fr;
+  transition: grid-template-rows 600ms cubic-bezier(0.16, 1, 0.3, 1), opacity 500ms cubic-bezier(0.16, 1, 0.3, 1) 150ms;
+  transition-delay: var(--delay, 0ms);
+}
+
+.grow > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.grow[data-on='false'] {
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition-delay: 0ms;
+}
+
+.draw {
+  transform-origin: top;
+  transition: transform 500ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+}
+
+.draw[data-on='false'] {
+  transform: scaleY(0);
+  transition-duration: 150ms;
+  transition-delay: 0ms;
+}
+
+.drawX {
+  transform-origin: left;
+  transition: transform 900ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+}
+
+.drawX[data-on='false'] {
+  transform: scaleX(0);
+  transition-duration: 150ms;
+  transition-delay: 0ms;
+}
+
+.tile {
+  transition: background-color 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms), color 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--delay, 0ms);
+}
+
+/* ---------- The call: orb, waveform, captions ---------- */
+
+.orb {
+  position: relative;
+  flex: none;
+  border-radius: 9999px;
+  background: var(--cobalt);
+  box-shadow: 0 0 0 6px color-mix(in srgb, var(--cobalt) 14%, transparent), 0 10px 30px -8px color-mix(in srgb, var(--cobalt) 80%, transparent);
+}
+
+.orb::before,
+.orb::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid var(--cobalt);
+  opacity: 0;
+}
+
+.orb[data-speaking='true']::before,
+.orb[data-speaking='true']::after {
+  animation: ripple 1600ms cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+.orb[data-speaking='true']::after {
+  animation-delay: 800ms;
+}
+
+.orbCore {
+  position: absolute;
+  inset: 30%;
+  border-radius: 9999px;
+  background: var(--sky);
+}
+
+.orb[data-speaking='true'] .orbCore {
+  animation: breathe 900ms ease-in-out infinite alternate;
+}
+
+@keyframes ripple {
+  from { transform: scale(1); opacity: 0.55; }
+  to { transform: scale(1.9); opacity: 0; }
+}
+
+@keyframes breathe {
+  from { transform: scale(0.85); }
+  to { transform: scale(1.15); }
+}
+
+.wave {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.wave > span {
+  width: 3px;
+  flex: none;
+  border-radius: 9999px;
+  background: color-mix(in srgb, var(--ink) 25%, transparent);
+  height: 3px;
+  transition: height 200ms ease, background-color 200ms ease;
+}
+
+.wave[data-speaking='true'] > span {
+  background: var(--cobalt);
+  height: var(--h);
+  animation: bar var(--d) ease-in-out infinite alternate;
+}
+
+@keyframes bar {
+  from { transform: scaleY(0.35); }
+  to { transform: scaleY(1); }
+}
+
+/* The live mic: a soft Cobalt ring. */
+.mic {
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--cobalt) 18%, transparent);
+}
+
+/* Reduced motion: the waveform's shape, standing still. */
+.wave[data-still='true'] > span {
+  height: var(--h);
+  background: color-mix(in srgb, var(--cobalt) 55%, transparent);
+  animation: none;
+}
+
+/* Words not yet spoken hold their place, unseen. */
+.word[data-lit='false'] {
+  visibility: hidden;
+}
+
+.mark {
+  background: var(--sky);
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  padding: 0.05em 0.2em;
+  margin: 0 -0.1em;
+  border-radius: 6px;
+}
+
+.capFade {
+  mask-image: linear-gradient(to bottom, transparent 0, transparent 1.5rem, var(--ink) 4.5rem);
+}
+
+/* Paused: every loop in the call stands still. */
+[data-paused='true'] .orb::before,
+[data-paused='true'] .orb::after,
+[data-paused='true'] .orbCore,
+[data-paused='true'] .wave > span {
+  animation-play-state: paused;
+}
+
+/* ---------- Step rail (hero) ---------- */
+
+.railBar {
+  display: block;
+  height: 2px;
+  background: color-mix(in srgb, var(--ink) 12%, transparent);
+  overflow: hidden;
+}
+
+.railFill {
+  display: block;
+  height: 100%;
+  background: var(--cobalt);
+  transform-origin: left;
+}
+
+/* ---------- Chapters: a track of 1–1.5 screens, a pinned visual ---------- */
+
+/* Phones: the sticky header and the rail bar sit above the pinned visual. */
+.track {
+  position: relative;
+  height: calc(100svh + var(--len) * 100svh);
+}
+
+.pin {
+  position: sticky;
+  top: calc(var(--hdr) + 3.75rem);
+}
+
+@media (min-width: 1024px) {
+  .track {
+    height: calc(100vh + var(--len) * 100vh);
+  }
+
+  .pin,
+  .pinText {
+    position: sticky;
+    top: var(--hdr);
+    height: calc(100vh - var(--hdr));
+    display: flex;
+    align-items: center;
+  }
+}
+
+/* ---------- Stats band ---------- */
+
+.statRule {
+  display: block;
+  width: 2.5rem;
+  height: 2px;
+  background: var(--cobalt);
+}
+
+/* ---------- The loop ---------- */
+
+.node {
+  transition: border-color 200ms ease, box-shadow 200ms ease, transform 250ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.node:hover {
+  border-color: var(--cobalt);
+}
+
+.node:hover .nodeLabel {
+  color: var(--cobalt);
+}
+
+/* The loop's progress (loop.tsx, loop-previews.tsx; Matt's brief, 27 Oct).
+   Active: a 1.5px Ink outline, 2px up, a soft shadow (Diagnose, already
+   dark: a soft Sky glow); the outline and shadow sit on ::after so only its
+   opacity animates. Done: a Mastery dot in the top-right corner. */
+.node::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border: 1.5px solid var(--ink);
+  border-radius: inherit;
+  box-shadow: 0 14px 28px -16px rgb(14 20 36 / 0.4), 0 2px 6px rgb(14 20 36 / 0.06);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 250ms ease;
+}
+
+.nodeEntry::after {
+  border-color: rgb(220 229 255 / 0.55);
+  box-shadow: 0 0 0 3px rgb(220 229 255 / 0.1), 0 0 22px rgb(220 229 255 / 0.22);
+}
+
+.node[data-active='true'] {
+  transform: translateY(-2px);
+}
+
+.node[data-active='true']::after {
+  opacity: 1;
+}
+
+.nodeDot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mastery);
+  opacity: 0;
+  transform: scale(0.4);
+  transition: opacity 250ms ease, transform 300ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.node[data-done='true'] .nodeDot {
+  opacity: 1;
+  transform: none;
+}
+
+/* The runway (desktops): the diagram stays pinned, centred in the window
+   under the header, while the runway scrolls past (loop.tsx: RUNWAY_VH). No
+   runway on phones or with reduced motion. */
+@media (min-width: 1024px) and (prefers-reduced-motion: no-preference) {
+  .loopRunway {
+    height: var(--runway);
+  }
+
+  .loopPin {
+    position: sticky;
+    top: max(calc(var(--hdr) + 1rem), calc(var(--hdr) + (100vh - var(--hdr) - var(--nav-h, 0px)) / 2));
+  }
+}
+
+/* The track: 2px grey, a Cobalt fill scaled along it. The fill's default is
+   full (the end state, for reduced motion and the server render); the
+   scroll handler scales it. */
+.loopTrack {
+  overflow: hidden;
+  background: #D6D4CC;
+}
+
+.loopTrackX {
+  position: relative;
+  height: 2px;
+  flex: 1;
+}
+
+.loopTrackY {
+  position: relative;
+  width: 2px;
+  flex: 1;
+}
+
+.loopFill {
+  position: absolute;
+  inset: 0;
+  background: var(--cobalt);
+  transform-origin: left;
+}
+
+.loopTrackY .loopFill {
+  transform-origin: top;
+}
+
+/* Pass 2's brighter pulse: a short comet run through each connector
+   (desktops) or down the left track (phones). Hidden until it runs. */
+.pulseX {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transform: translateX(-100%);
+}
+
+.pulseHead {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 24px;
+  height: 100%;
+  background: linear-gradient(90deg, rgb(125 151 255 / 0), #7D97FF 60%, #CBD6FF);
+}
+
+.pulseY {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 40px;
+  opacity: 0;
+  background: linear-gradient(180deg, rgb(125 151 255 / 0), #7D97FF 60%, #CBD6FF);
+}
+
+/* Readiness: 120 × 6, filled in Mastery green; 85% at rest (the end state). */
+.meter {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.meterBar {
+  position: relative;
+  overflow: hidden;
+  width: 120px;
+  min-width: 56px;
+  height: 6px;
+  flex-shrink: 1;
+  border-radius: 999px;
+  background: #E3E2DC;
+}
+
+.meterFill {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--mastery);
+  transform: translateX(-15%);
+}
+
+/* The previews: 48px tall on phones, 64px on desktops, 12px above the title.
+   data-pv on the card: rest (nothing set), play (each plays once and holds
+   its last frame), still (the last frame, no motion). */
+.pv {
+  position: relative;
+  display: block;
+  height: 48px;
+  max-width: 18rem;
+  margin-bottom: 12px;
+}
+
+@media (min-width: 1024px) {
+  .pv {
+    height: 64px;
+  }
+}
+
+@keyframes pvGrow {
+  from { transform: scaleX(0); }
+  to { transform: none; }
+}
+
+@keyframes pvPop {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes pvOn {
+  to { opacity: 1; }
+}
+
+/* Diagnose: 8 Sky outlines, filled to varied lengths, staggered (~800ms). */
+.pvBars {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pvBar {
+  position: relative;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  box-shadow: inset 0 0 0 1px rgb(220 229 255 / 0.5);
+}
+
+@media (min-width: 1024px) {
+  .pvBar {
+    height: 5px;
+  }
+}
+
+.pvBarFill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: var(--f);
+  border-radius: inherit;
+  background: var(--sky);
+  transform: scaleX(0);
+  transform-origin: left;
+}
+
+[data-pv='play'] .pvBarFill {
+  animation: pvGrow 380ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--k) * 60ms) both;
+}
+
+[data-pv='still'] .pvBarFill {
+  transform: none;
+}
+
+/* Your plan: a week of 7; days 1–5 fill left to right, today (5) ringed (~600ms). */
+.pvWeek {
+  display: flex;
+  height: 100%;
+  max-width: 13rem;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 5px;
+}
+
+.pvDay {
+  position: relative;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1.5px #C4C2B9;
+}
+
+@media (min-width: 1024px) {
+  .pvDay {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.pvDayFill {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--cobalt);
+  transform: scale(0);
+}
+
+.pvToday {
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--cobalt);
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+[data-pv='play'] .pvDayFill {
+  animation: pvGrowDay 200ms cubic-bezier(0.22, 1, 0.36, 1) calc(var(--k) * 80ms) both;
+}
+
+[data-pv='play'] .pvToday {
+  animation: pvRing 260ms cubic-bezier(0.22, 1, 0.36, 1) 360ms both;
+}
+
+[data-pv='still'] .pvDayFill,
+[data-pv='still'] .pvToday {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes pvGrowDay {
+  from { transform: scale(0); }
+  to { transform: none; }
+}
+
+@keyframes pvRing {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Learn: a faint tree; Cobalt connectors draw in and nodes pop, top-down (~900ms). */
+.pvSvg {
+  display: block;
+  height: 100%;
+  aspect-ratio: 120 / 64;
+  overflow: visible;
+}
+
+.pvTreeBase {
+  fill: none;
+  stroke: #D6D4CC;
+  stroke-width: 1.25;
+}
+
+.pvLine {
+  fill: none;
+  stroke: var(--cobalt);
+  stroke-width: 1.5;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+}
+
+.pvNode {
+  fill: var(--sky);
+  stroke: var(--cobalt);
+  stroke-width: 1.25;
+  opacity: 0;
+  transform: scale(0.85);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.pvRoot {
+  fill: var(--cobalt);
+}
+
+[data-pv='play'] .pvLine {
+  animation: pvDraw 300ms ease-out var(--d) both;
+}
+
+[data-pv='play'] .pvNode {
+  animation: pvPop 200ms cubic-bezier(0.34, 1.56, 0.64, 1) var(--d) both;
+}
+
+[data-pv='still'] .pvLine {
+  stroke-dashoffset: 0;
+}
+
+[data-pv='still'] .pvNode {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes pvDraw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Drill: a full ring runs down like a timer (1.2s), then a streak of 3 lights green. */
+.pvRingTrack {
+  fill: none;
+  stroke: #E3E2DC;
+  stroke-width: 5;
+}
+
+.pvRing {
+  fill: none;
+  stroke: var(--cobalt);
+  stroke-width: 5;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 0;
+}
+
+.pvStreak {
+  fill: var(--mastery);
+  opacity: 0;
+  transform: scale(0.85);
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+[data-pv='play'] .pvRing {
+  animation: pvDeplete 1200ms linear both;
+}
+
+[data-pv='play'] .pvStreak {
+  animation: pvPop 200ms cubic-bezier(0.34, 1.56, 0.64, 1) calc(1250ms + var(--k) * 150ms) both;
+}
+
+[data-pv='still'] .pvRing {
+  stroke-dashoffset: 1;
+}
+
+[data-pv='still'] .pvStreak {
+  opacity: 1;
+  transform: none;
+}
+
+@keyframes pvDeplete {
+  from { stroke-dashoffset: 0; }
+  to { stroke-dashoffset: 1; }
+}
+
+/* Mock interview: 14 grey bars speak in Cobalt for 1.5s, then hold a shape. */
+.pvWave {
+  display: flex;
+  height: 100%;
+  max-width: 13rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.pvWaveBar {
+  position: relative;
+  width: 3px;
+  height: 100%;
+  border-radius: 2px;
+  background: #D6D4CC;
+  transform: scaleY(0.16);
+}
+
+@media (min-width: 1024px) {
+  .pvWaveBar {
+    width: 4px;
+  }
+}
+
+.pvWaveOn {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--cobalt);
+  opacity: 0;
+}
+
+[data-pv='play'] .pvWaveBar {
+  animation: pvWave 1500ms ease-in-out both;
+}
+
+[data-pv='play'] .pvWaveOn {
+  animation: pvOn 150ms linear both;
+}
+
+[data-pv='still'] .pvWaveBar {
+  transform: scaleY(var(--h));
+}
+
+[data-pv='still'] .pvWaveOn {
+  opacity: 1;
+}
+
+@keyframes pvWave {
+  0% { transform: scaleY(0.16); }
+  14% { transform: scaleY(var(--a)); }
+  30% { transform: scaleY(var(--b)); }
+  46% { transform: scaleY(var(--c)); }
+  62% { transform: scaleY(var(--a)); }
+  78% { transform: scaleY(var(--b)); }
+  100% { transform: scaleY(var(--h)); }
+}
+
+/* Plan updates: the bottom row turns Cobalt and rises; the others step down (~600ms). */
+.pvRows {
+  --row: 10px;
+  --step: 19px;
+  position: relative;
+  display: block;
+  height: 100%;
+  max-width: 13rem;
+}
+
+@media (min-width: 1024px) {
+  .pvRows {
+    --row: 12px;
+    --step: 26px;
+  }
+}
+
+.pvRow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--w);
+  height: var(--row);
+  border-radius: 999px;
+  background: #E3E2DC;
+  transform: translateY(calc(var(--k) * var(--step)));
+}
+
+.pvRowUp {
+  z-index: 1;
+}
+
+.pvRowOn {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--cobalt);
+  opacity: 0;
+}
+
+[data-pv='play'] .pvRow {
+  animation: pvStepDown 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+[data-pv='play'] .pvRowUp {
+  animation-name: pvRise;
+}
+
+[data-pv='play'] .pvRowOn {
+  animation: pvOn 200ms linear both;
+}
+
+[data-pv='still'] .pvRow {
+  transform: translateY(calc((var(--k) + 1) * var(--step)));
+}
+
+[data-pv='still'] .pvRowUp {
+  transform: none;
+}
+
+[data-pv='still'] .pvRowOn {
+  opacity: 1;
+}
+
+@keyframes pvStepDown {
+  from { transform: translateY(calc(var(--k) * var(--step))); }
+  to { transform: translateY(calc((var(--k) + 1) * var(--step))); }
+}
+
+@keyframes pvRise {
+  from { transform: translateY(calc(var(--k) * var(--step))); }
+  to { transform: none; }
+}
+
+/* ---------- Sticky rail ---------- */
+
+.ride {
+  transition: opacity 300ms ease;
+}
+
+/* Out of the ride the rail fades away but stays in the tab order (right after
+   "Skip the tour"); tabbing into it brings it back. */
+.ride[data-on='false'] {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ride[data-on='false']:focus-within {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dot {
+  transition: background-color 300ms ease, border-color 300ms ease, color 300ms ease;
+}
+
+/* The loop closing: Your plan gets a steady Cobalt ring (a state, not an animation). */
+.ping {
+  box-shadow: 0 0 0 3px var(--paper), 0 0 0 4.5px var(--cobalt);
+}
+
+.railLabel {
+  opacity: 0;
+  transition: opacity 150ms ease;
+  pointer-events: none;
+}
+
+.railItem:hover .railLabel,
+.railItem:focus-visible .railLabel,
+.railItem[aria-current] .railLabel {
+  opacity: 1;
+}
+
+/* The sticky header: quiet, translucent Paper. */
+.header {
+  background: color-mix(in srgb, var(--paper) 88%, transparent);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid color-mix(in srgb, var(--ink) 14%, transparent);
+  transition: opacity 200ms ease, visibility 0s linear 200ms, background-color 250ms ease, color 250ms ease;
+}
+
+.header[data-on='false'] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.headerCta {
+  display: inline-flex;
+}
+
+/* The buttons that would duplicate the final call to action's (the header's,
+   and the row after What sets us apart): while it is on screen, faded out,
+   then hidden (no focus, no clicks). */
+.atClose {
+  transition: opacity 200ms ease, visibility 0s;
+}
+
+.atClose[data-off='true'] {
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 200ms ease, visibility 0s linear 200ms;
+}
+
+.header[data-on='true'] {
+  transition: opacity 200ms ease, visibility 0s, background-color 250ms ease, color 250ms ease;
+}
+
+/* Over Ink (the Under the hood slide, once the stack scrolls up under the
+   header): white text; the button keeps its Cobalt. */
+.header[data-dark='true'] {
+  background: color-mix(in srgb, var(--ink) 92%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--sky) 22%, transparent);
+  color: var(--white);
+}
+
+.header[data-dark='true'] :global(.link) {
+  color: var(--white);
+}
+
+.header[data-dark='true'] :global(.link):hover {
+  color: var(--sky);
+}
+
+.header[data-dark='true'] :focus-visible {
+  box-shadow: 0 0 0 2px var(--white);
+}
+
+/* The page you're on: Cobalt, a heavier underline (Sky over Ink). */
+.header .navLink[aria-current='page'] {
+  color: var(--cobalt);
+  text-decoration-thickness: 2px;
+}
+
+.header[data-dark='true'] .navLink[aria-current='page'] {
+  color: var(--sky);
+}
+
+.vertical {
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+}
+
+/* ---------- Skill states ---------- */
+
+.level {
+  /* Chapter 06: the scroll picks each chip's level; the colour change is
+     deliberately slow so the green payoff is given room. */
+  transition: background-color 900ms cubic-bezier(0.16, 1, 0.3, 1), color 900ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ---------- What sets us apart: stacking slides (apart.tsx) ---------- */
+
+/* Unstacked (phones, short windows, reduced motion): full cards, one after
+   another. */
+.slideStack {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr); /* the tab's one-line title never widens a slide */
+  gap: 2rem;
+}
+
+/* A slide: white on Paper, a faint Ink border, a soft shadow (it also falls
+   upward onto the slide it covers), a thin Cobalt rule along the top edge.
+   `--tab` is the strip a covered slide leaves showing. */
+.slide {
+  --tab: 3.25rem;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid color-mix(in srgb, var(--ink) 12%, transparent);
+  border-radius: 24px;
+  background: var(--white);
+  box-shadow: inset 0 3px 0 var(--cobalt), 0 -10px 28px -18px color-mix(in srgb, var(--ink) 30%, transparent), 0 28px 56px -36px color-mix(in srgb, var(--ink) 40%, transparent);
+  transform-origin: 50% 0;
+}
+
+.slideContent {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* The one-line tab: hidden until the slide is covered, then over the faded
+   content, on the card's own surface with its Cobalt rule. */
+.tabBar {
+  opacity: 0;
+  border-radius: 24px 24px 0 0;
+  background: var(--white);
+  box-shadow: inset 0 3px 0 var(--cobalt);
+}
+
+.stackHold {
+  display: none;
+}
+
+/* ---------- The cast (cast.tsx, characters.ts) ----------
+   Unstacked (phones, short windows, reduced motion): captions only, a plain
+   left-aligned list under the paragraph, bubbles without tails. */
+.cast {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-top: 1.75rem;
+}
+
+.castCaptions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.castCaption {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.375rem;
+}
+
+/* Sky bubble, Ink text (15:1); the role in #5B6170 on white (6.2:1). */
+.bubble {
+  position: relative;
+  max-width: 190px;
+  padding: 9px 13px;
+  border-radius: 12px;
+  background: #DCE5FF;
+  color: #0E1424;
+  font-size: 14px;
+  line-height: 1.4;
+  text-align: left;
+}
+
+.bubbleCompact {
+  padding: 7px 11px;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.nameTag {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.castName {
+  font-weight: 600;
+  color: #0E1424;
+}
+
+.castRole {
+  color: #5B6170;
+}
+
+.castArt {
+  display: none;
+}
+
+/* Under the hood (Matt's brief, 28 Oct): the fourth slide, the dark layer
+   under the three. Ink with a faint 24px grid, Paper text, #AEB6C8
+   secondary (8.9:1 on Ink), no Cobalt rule. */
+.slide {
+  --tab-c: 30px;
+}
+
+.hood {
+  --hood-2: #AEB6C8;
+  border-color: rgb(157 176 245 / 0.18);
+  background-color: var(--ink);
+  background-image:
+    linear-gradient(rgb(157 176 245 / 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(157 176 245 / 0.07) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: -1px -1px;
+  color: var(--paper);
+  box-shadow: 0 -10px 28px -18px color-mix(in srgb, var(--ink) 45%, transparent), 0 28px 56px -36px color-mix(in srgb, var(--ink) 55%, transparent);
+}
+
+.hood :focus-visible {
+  outline-color: var(--paper);
+}
+
+.hoodMono {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+.hoodFigLabel {
+  font-size: 11.5px;
+  line-height: 1.4;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* "How it works →": the secondary control, outlined in Paper. */
+.hoodBtn {
+  display: inline-flex;
+  height: 2.75rem;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0 1.25rem;
+  border: 1px solid var(--paper);
+  border-radius: 9999px;
+  color: var(--paper);
+  font-size: var(--t-body);
+  font-weight: 500;
+  transition: background-color 150ms ease, color 150ms ease;
+}
+
+.hoodBtn:hover {
+  background: var(--paper);
+  color: var(--ink);
+}
+
+/* Figure 1: the inlined SVG, the page's fonts on its text. */
+.hoodFig {
+  min-height: 0;
+}
+
+.hoodFig svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.hoodFig text[font-family^='Inter'] {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.hoodFig text[font-family^='JetBrains'] {
+  font-family: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+/* Rest: the layers together at the centre (y 216.5), labels and connectors
+   hidden. Play: they separate, 04 first; each label lands after its layer. */
+.hoodFig :global(#layer-01) { --dy: 140.5px; --d: 270ms; }
+.hoodFig :global(#layer-02) { --dy: 50.5px; --d: 180ms; }
+.hoodFig :global(#layer-03) { --dy: -49.5px; --d: 90ms; }
+.hoodFig :global(#layer-04) { --dy: -141.5px; --d: 0ms; }
+
+.hoodFig :global(.layer) {
+  transform: translateY(var(--dy));
+}
+
+.hoodFig :global(.label) {
+  opacity: 0;
+  transform: translateX(6px);
+}
+
+.hoodFig :global(.hood-draw) {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+}
+
+.hoodFig[data-state='play'] :global(.layer) {
+  animation: hoodApart 700ms cubic-bezier(0.16, 1, 0.3, 1) var(--d) both;
+}
+
+.hoodFig[data-state='play'] :global(.label) {
+  animation: hoodLabel 320ms cubic-bezier(0.16, 1, 0.3, 1) calc(var(--d) + 640ms) both;
+}
+
+.hoodFig[data-state='play'] :global(.hood-draw) {
+  animation: hoodDraw 950ms cubic-bezier(0.33, 1, 0.68, 1) 60ms both;
+}
+
+.hoodFig[data-state='still'] :global(.layer),
+.hoodFig[data-state='still'] :global(.label) {
+  opacity: 1;
+  transform: none;
+}
+
+.hoodFig[data-state='still'] :global(.hood-draw) {
+  stroke-dashoffset: 0;
+}
+
+@keyframes hoodApart {
+  from { transform: translateY(var(--dy)); }
+  to { transform: none; }
+}
+
+@keyframes hoodLabel {
+  from { opacity: 0; transform: translateX(6px); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes hoodDraw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+/* Phones (below 640px): the planes only; the key below takes the labels,
+   styled like them. */
+.hoodKey {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.45;
+}
+
+.hoodKeyLabel {
+  color: #9DB0F5;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+}
+
+@media (max-width: 639.98px) {
+  .hoodFig :global(.label) {
+    display: none;
+  }
+}
+
+/* Tab text: small; full size in the full stack. */
+.tabText {
+  font-size: var(--t-small);
+  line-height: var(--t-small-lh);
+}
+
+/* A cropped exhibit: the screen at real size, its top showing, fading out
+   where the frame cuts it. Unstacked, frames take a set height. */
+.cropView {
+  max-height: 26rem;
+}
+
+.cropFill {
+  height: 26rem;
+}
+
+.cropView[data-cut='true'] {
+  -webkit-mask-image: linear-gradient(to bottom, #000 82%, transparent);
+  mask-image: linear-gradient(to bottom, #000 82%, transparent);
+}
+
+.cropView[data-shifted='true'] {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 100%);
+  mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 100%);
+}
+
+.cropView[data-shifted='true'][data-cut='true'] {
+  -webkit-mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 84%, transparent);
+  mask-image: linear-gradient(to bottom, transparent, #000 10%, #000 84%, transparent);
+}
+
+/* The interview's window answers to its own height: captions grow to the
+   body size once there is room for all three lines at that size. */
+.cropFill {
+  container: crop / size;
+}
+
+@container crop (min-height: 450px) {
+  .cropFill .voiceCap.voiceCap {
+    font-size: var(--t-body);
+    line-height: var(--t-body-lh);
+  }
+}
+
+/* Stacking (from 700px tall; apart.tsx's STACKING query matches). Each
+   slide sticks a tab lower than the last, so every slide passed keeps its
+   tab and the stack ends with all three headlines showing. Compact first,
+   for 13-inch laptops (700–859px tall): 40px tabs, section titles a step
+   smaller. Slides are as tall as the window allows under two tabs; their
+   margins give them one shared bottom edge, so they release together after
+   the hold. */
+@media (min-width: 1024px) and (min-height: 700px) and (prefers-reduced-motion: no-preference) {
+  .slideStack {
+    display: block;
+  }
+
+  .slide {
+    --tab: 2.5rem;
+    --gap-top: 1rem;
+    --t-section: 2.5rem;
+    --t-section-lh: 1.04;
+    /* Slide text at the references' sizes, so the cast has room. */
+    --t-body: 1rem;
+    --t-body-lh: 1.55;
+    position: sticky;
+    top: calc(var(--hdr) + var(--gap-top) + var(--i) * var(--tab));
+    height: calc(100vh - var(--hdr) - 2 * var(--gap-top) - 2 * var(--tab));
+    /* Extra scroll between one slide settling and the next: 14rem (Matt, 25 Oct:
+       a bit more time per slide), 20rem since 29 Oct (the characters a bit longer). */
+    margin-bottom: calc((2 - var(--i)) * var(--tab) + 20rem);
+    will-change: transform;
+  }
+
+  .slideBody {
+    min-height: 0;
+    flex: 1;
+    overflow: hidden;
+  }
+
+  .slideContent,
+  .tabBar {
+    will-change: opacity;
+  }
+
+  /* Exhibits take the height the slide gives them. */
+  .cropView {
+    max-height: none;
+  }
+
+  .cropFill {
+    height: auto;
+  }
+
+  .exhibits {
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  .apartAfter {
+    margin-top: -16rem;
+  }
+
+  /* Under the hood rests under three 30px tabs; its top, height and margin
+     keep the stack's shared bottom edge. Its figure fills the column. */
+  .hood {
+    top: calc(var(--hdr) + var(--gap-top) + 3 * var(--tab-c));
+    height: calc(100vh - var(--hdr) - 2 * var(--gap-top) - 3 * var(--tab-c));
+    margin-bottom: 20rem;
+  }
+
+  .hoodFig {
+    flex: 1;
+  }
+
+  .hoodSvg,
+  .hoodFig svg {
+    height: 100%;
+  }
+
+  /* Slide 3's margin carries the same 14rem, so the hold after it is
+     shortened by the 10rem added, keeping the end of the stack as it was. */
+  .stackHold {
+    display: block;
+    height: max(0px, 35vh - 10rem);
+  }
+
+  /* The left column runs to the footer rule, so the cast row's tables can
+     sit on it; the exhibits keep their space above the rule. */
+  .slideLeft {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+  }
+
+  .slideBody {
+    padding-bottom: 0;
+  }
+
+  .slideRight {
+    padding-bottom: 1.5rem;
+  }
+
+  /* The cast row: the room left under the paragraph, at least 20px below it,
+     bottom- and right-aligned, captions then the illustration. */
+  .cast {
+    min-height: 0;
+    flex: 1;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: flex-end;
+    gap: 14px;
+    margin-top: 20px;
+  }
+
+  .castCaptions {
+    flex-shrink: 0;
+    align-items: flex-end;
+    gap: 10px;
+  }
+
+  .castPair {
+    width: 156px;
+  }
+
+  .castCaption {
+    align-items: flex-end;
+  }
+
+  .castPair .bubble {
+    max-width: 100%;
+  }
+
+  /* Slide 03 with no room for the pair: the two captions side by side. */
+  .castPair[data-side='true'] {
+    width: auto;
+    flex-direction: row;
+    gap: 14px;
+  }
+
+  .castPair[data-side='true'] .castCaption {
+    width: 156px;
+  }
+
+  /* The tail: a 12px square turned 45°, on the right edge, toward the character. */
+  .bubble::after {
+    content: '';
+    position: absolute;
+    top: 14px;
+    right: -5px;
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    background: inherit;
+    transform: rotate(45deg);
+  }
+
+  .castArt {
+    display: flex;
+    flex-shrink: 0;
+    align-items: flex-end;
+  }
+
+  .castArt img {
+    display: block;
+  }
+
+  /* No room even for the captions: they stay for screen readers only. */
+  .cast[data-hidden='true'] .castCaptions {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  /* Only on the active slide: the art fades up, then the bubbles 150ms
+     later (the reveal curve, 350ms); hidden again as the slide is covered. */
+  .castArt,
+  .castCaption {
+    opacity: 0;
+    transform: translateY(6px);
+    transition: opacity 150ms ease-out, transform 150ms ease-out;
+  }
+
+  .cast[data-active='true'] .castArt,
+  .cast[data-active='true'] .castCaption {
+    opacity: 1;
+    transform: none;
+    transition: opacity 350ms cubic-bezier(0.25, 0.1, 0.25, 1), transform 350ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  }
+
+  .cast[data-active='true'] .castCaption {
+    transition-delay: 150ms;
+  }
+}
+
+/* 13-inch laptops (stacked, 700–859px tall, the artifact viewer included):
+   tighter spacing on the slides, so all three have room for their
+   characters down to about 745px (slide 3's two bubbles were the limit at
+   about 785). */
+@media (min-width: 1024px) and (min-height: 700px) and (max-height: 859.98px) and (prefers-reduced-motion: no-preference) {
+  .slide {
+    --gap-top: 0.75rem;
+  }
+
+  .slideTop {
+    padding-top: 1rem;
+    padding-bottom: 0.25rem;
+  }
+
+  .slideBody {
+    padding-top: 0.25rem;
+  }
+
+  .slideTitle {
+    padding-bottom: 0.75rem;
+  }
+
+  .slideText {
+    margin-top: 0.75rem;
+  }
+
+  .slideFoot {
+    padding-block: 0.625rem;
+  }
+}
+
+/* Taller windows (860px and up): 52px tabs, 44px titles. */
+@media (min-width: 1024px) and (min-height: 860px) and (prefers-reduced-motion: no-preference) {
+  .slide {
+    --tab: 3.25rem;
+    --gap-top: 1.5rem;
+    --t-section: 2.75rem;
+    --t-section-lh: 1.03;
+  }
+
+  .tabText {
+    font-size: var(--t-body);
+    line-height: var(--t-body-lh);
+  }
+
+  /* Tall windows: Under the hood's content sits in the middle of the slide,
+     the figure at its natural size, rather than leaving the foot empty. */
+  .hood .slideBody {
+    align-content: center;
+  }
+
+  .hood .hoodFig svg {
+    height: auto;
+  }
+}
+
+/* ---------- Reduced motion: final states, nothing pinned, nothing moving ---------- */
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    height: auto;
+  }
+
+  .pin,
+  .pinText {
+    position: static;
+    height: auto;
+  }
+
+  .chapter {
+    padding-block: 5rem;
+  }
+
+  .view,
+  .reveal,
+  .grow,
+  .draw,
+  .drawX,
+  .tile,
+  .wave > span,
+  .atClose,
+  .atClose[data-off='true'],
+  .node,
+  .node::after,
+  .nodeDot,
+  .dot,
+  .ride,
+  .railLabel,
+  .level,
+  .header {
+    transition: none;
+  }
+
+  .orb::before,
+  .orb::after,
+  .orbCore,
+  .wave > span,
+  .ping {
+    animation: none;
+  }
+}

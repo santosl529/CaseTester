@@ -1,16 +1,19 @@
 'use client';
 import { useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { signOut } from '@/app/actions/auth';
+import { signInRedirectUrl } from '@/lib/site/url';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-// Sign in, then the club code once (site flow, 19 Oct). The landing page
-// decides where to start: a signed-in student with a valid code on their
-// profile never sees this; one without a code starts at the club step.
-export function SignInFlow({ initialStep }: { initialStep: 'auth' | 'club' }) {
+// Sign in, then the club code once (site flow, 19 Oct). /sign-in decides
+// where to start: a signed-in student with a valid code on their profile
+// never sees this; one without a code starts at the club step. `next` is
+// already checked (lib/site/safe-next.ts).
+export function SignInFlow({ initialStep, next }: { initialStep: 'auth' | 'club'; next: string }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [clubCode, setClubCode] = useState('');
@@ -25,12 +28,14 @@ export function SignInFlow({ initialStep }: { initialStep: 'auth' | 'club' }) {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       // Try sign up
-      const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
+      // The confirmation email links back to /sign-in (lib/site/url.ts).
+      const emailRedirectTo = signInRedirectUrl(process.env.NEXT_PUBLIC_SITE_URL, window.location.origin);
+      const { data, error: signUpError } = await supabase.auth.signUp({ email, password, options: { emailRedirectTo } });
       if (signUpError) { setError(signUpError.message); return; }
       if (!data.session) { setError('Check your email to confirm your account, then sign in.'); return; }
     }
-    // The landing page decides: /home when the profile already has a valid code.
-    window.location.assign('/');
+    // /sign-in decides: on to `next` when the profile already has a valid code.
+    window.location.assign(`/sign-in?next=${encodeURIComponent(next)}`);
   }
 
   async function handleClubCode(e: React.FormEvent) {
@@ -50,14 +55,14 @@ export function SignInFlow({ initialStep }: { initialStep: 'auth' | 'club' }) {
       setError(data.error === 'Invalid club code' ? 'Invalid club code. Contact your club president.' : 'Could not check your club code. Please try again.');
       return;
     }
-    router.push('/home');
+    router.push(next);
   }
 
   return (
     <main className="min-h-dvh flex items-center justify-center bg-neutral-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Case Interview Practice</CardTitle>
+          <CardTitle><Link href="/" className="hover:underline underline-offset-4">CasePace</Link></CardTitle>
         </CardHeader>
         <CardContent>
           {step === 'auth' && (

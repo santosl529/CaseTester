@@ -7,6 +7,11 @@
 // 8 dimension keys from lib/scoring/rubric.ts with the 3-level rating. The PRD
 // example's numeric scores and key names are an open question ("Rubric scale").
 import { z } from 'zod';
+
+// False until the grader sends this payload (PRD §15, "case result → drills
+// plan"). While false, nothing offers a case as a way to get a plan (the
+// drills home hides "Take a full case"; site launch, Lorenzo 1 Nov 2026).
+export const CASE_RESULTS_WIRED = false;
 import { CASE_TYPES } from '@/lib/case-types';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 import { DRILLS_CONFIG, getMistakeTag } from './config';

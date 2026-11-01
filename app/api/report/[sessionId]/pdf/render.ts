@@ -65,5 +65,5 @@ export async function renderReportPdf(sessionId: string): Promise<{ buffer: Buff
     }),
   );
 
-  return { buffer, filename: `case-report-${session.caseId}-${sessionId.slice(0, 8)}.pdf` };
+  return { buffer, filename: `casepace-report-${session.caseId}-${sessionId.slice(0, 8)}.pdf` };
 }
