@@ -34,6 +34,12 @@ export const HERO_CALL = {
     skill: 'Quantitative rigor',
     rating: 'Needs work',
     text: 'The margin fell to 2%, not 4%: costs rose from 94% to 98% of sales. Set up the margin before you calculate.',
+    // The skills listed around it, as on the report (3 of the 8).
+    others: [
+      { skill: 'Problem structuring', rating: 'Strong' },
+      { skill: 'Exhibit interpretation', rating: 'Strong' },
+      { skill: 'Business judgment', rating: 'Adequate' },
+    ],
   },
 };
 

@@ -27,7 +27,7 @@ Counted from the repo when the page is built (`lib/site/stats.ts`, server only, 
 | 1 | Home · hero headline | A complete case interview training program, built around you. / Diagnostic, lessons, skill drills, and AI mock interviews, all in one comprehensive, personalized plan that adapts as you improve. / [Take the free diagnostic] | Mock case interviews with an AI interviewer that plays it like the real thing. / Voice or text interviews, a feedback report on the 8 skills case interviews test, and a diagnostic, lessons and drills in a plan that updates as you practice. / [Start a mock interview] | Reworded: leads with what is live (voice and text mock interviews, the 8-skill report); "complete program" overclaims with 4 cases; the plan updates from drills, not from interviews. |
 | 2 | Home · under the hero button | No experience needed. Free to start. | No experience needed. Free with your consulting club’s access code. | Reworded: signing up needs a club code (club-code gate); there is no paid tier, so "free" stays, with the condition stated. |
 | 3 | Home · hero demo, step labels | Live interview · Gap caught · Plan adapts | Live interview · Math checked · In your report | Claim removed: an interview result does not reach the plan (lib/drills/case-result.ts: "the grader doesn't emit it yet"). The third step now shows the report quoting the slip, which is live. |
-| 4 | Home · hero demo, third panel | Lorenzo’s plan · Week 1 of 6 / Today’s workout: Weak spot · Consulting math — From your interview: margin was 2%, not 4%. / Skill map: Math setup Not started → Learning | Feedback report · Sample / Quantitative rigor — Needs work / “So the margin went from 6% to 4%.” / The margin fell to 2%, not 4%: costs rose from 94% to 98% of sales. Set up the margin before you calculate. | Claim removed: the panel showed the interview slip arriving in "Lorenzo’s plan" as a new workout row ("From your interview: margin was 2%, not 4%"), which the product does not do. Replaced by the report point quoting the line. |
+| 4 | Home · hero demo, third panel | Lorenzo’s plan · Week 1 of 6 / Today’s workout: Weak spot · Consulting math — From your interview: margin was 2%, not 4%. / Skill map: Math setup Not started → Learning | Feedback report · Sample · Fresh Basket / Problem structuring — Strong / Quantitative rigor — Needs work: What needs work “It went from 6% to 4%.” → The margin fell to 2%, not 4%: costs rose from 94% to 98% of sales. Set up the margin before you calculate. / Exhibit interpretation — Strong / Business judgment — Adequate / 8 skills rated. Every point quotes the moment it refers to. | Claim removed: the panel showed the interview slip arriving in "Lorenzo’s plan" as a new workout row ("From your interview: margin was 2%, not 4%"), which the product does not do. Replaced by the report point quoting the line. |
 | 5 | Loop · Diagnose card | Benchmark yourself on the 8 skills top firms test. | A 15-minute diagnostic finds where each skill starts. | Reworded: the diagnostic is 10 parts of short drill questions (about 15 minutes) placing you per drill skill; it does not score the 8 rubric skills. |
 | 6 | Loop · Your plan card | 1 week, 2 weeks, 3 months, or anywhere in between, built around your gaps. | A 6-week plan, or a 7-day Sprint, built around your gaps. | Claim reworded: the tracks are Foundations and Standard (6 weeks) and Sprint (7 days); there are no 2-week or 3-month plans. |
 | 7 | Loop · Plan updates card | Every result recalibrates your plan to what’s holding you back now. | Every drill set updates your plan to what’s holding you back now. | Claim narrowed: drill results update the plan; interview results do not yet. |
@@ -78,7 +78,7 @@ Counted from the repo when the page is built (`lib/site/stats.ts`, server only, 
 | 52 | Home · Under the hood, layer 02 | Separate agents interview, share data and grade, so the case feels real and scores stay impartial. | Separate agents interview, check the math and grade, so the interviewer never grades its own case. | Reworded: code, not an agent, decides which data is shared; "impartial" is unmeasured. The scorer is a separate model from the interviewer. |
 
 Not a table row, but changed with the copy:
-- **Hero demo, step 3**: the panel showing "Today's workout" and the skill map is replaced by a report card. It shows Quantitative rigor rated Needs work, the quoted line and the point (`hero-demo.tsx` `ReportView`).
+- **Hero demo, step 3**: the panel showing "Today's workout" and the skill map is replaced by a report excerpt (`hero-demo.tsx` `ReportView`, 1 Nov). It has three of the 8 skills with ratings, plus Quantitative rigor opened to the quoted line and the point. It fills the panel's fixed height and fits at 320px wide.
 - **How it works, 05**: the report's stage strip (Structure · Math · Exhibits · Brainstorming · Synthesis) is removed, along with its animation.
 - **Slide 03 drill screen**: the follow-up box is removed. **How it works, 04**: the follow-up box stays (Framework builder has follow-ups), now capped at 40 words.
 - **Every primary button**: `StartCta` is a link to `/sign-in?next=/home`. The old `DiagnosticCta` was a `<button>` that only changed its label. Its phone CSS for the two-line label is removed.
@@ -88,6 +88,14 @@ Kept as written, flagged for Matt:
 - **Lesson sample (03)**: an at-home fitness launch. The live lesson with this title uses a climbing-gym example. Same format, different content.
 - **Character names** (Graham, Valeria, Imani, Kai) are illustrations. The interviewer never gives its name.
 - **"Most prep tools give you generic drills…"** and **"All Engineered for YOU to Succeed"** are opinion or tagline, so they stay.
+
+## 2b. In the product (drills home), 1 Nov
+
+| Where | Old | New | Reason |
+|---|---|---|---|
+| Drills home · "Get your plan" (no plan yet) | Three options: Answer a few questions / Take the diagnostic / **Take a full case — About 35 minutes. The most accurate. [Go to cases]** | Two options: Answer a few questions / Take the diagnostic | Option hidden (Lorenzo, 1 Nov): a case result can't produce a plan until the grader sends its payload (`CASE_RESULTS_WIRED = false` in `lib/drills/case-result.ts`; PRD §15 next build item). |
+
+Seen, not changed: when today's workout is empty, it says "Take the diagnostic or a case so we can find them", and a case doesn't find weak spots yet either.
 
 ## 3. Rebrand (CaseTester → CasePace)
 

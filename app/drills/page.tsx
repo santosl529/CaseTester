@@ -7,6 +7,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { StartSetButton } from '@/components/drills/start-set-button';
 import { CheckIn } from '@/components/drills/feedback';
 import { homeCheckin } from '@/lib/drills/feedback';
+import { CASE_RESULTS_WIRED } from '@/lib/drills/case-result';
 
 const TRACK = { foundations: 'Foundations', standard: 'Standard', sprint: 'Sprint', self_directed: 'Practice on my own' } as const;
 const SLOT = { review: 'Review', weak: 'Weak spot', unfamiliar: 'Something new' } as const;
@@ -51,11 +52,12 @@ export default async function DrillsHomePage() {
   ));
   const self = home.kind === 'self_directed';
   // No plan yet: three ways to get one (D6 round 2); the first one done makes it.
+  // Two while a case result can't make a plan (CASE_RESULTS_WIRED).
   const getPlan = !home.plan.source && (
     <section aria-labelledby="get-plan" className="space-y-3 rounded-lg border p-4">
       <h2 id="get-plan" className="font-medium">{self ? 'Find your starting point' : 'Get your plan'}</h2>
       <p className="text-sm">Pick one. {self ? 'Suggestions' : 'Your plan and first workout'} are ready as soon as you finish, and you can do the others later to sharpen {self ? 'them' : 'it'}.</p>
-      <ul className="grid gap-3 sm:grid-cols-3">
+      <ul className={`grid gap-3 ${CASE_RESULTS_WIRED ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
         <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
           <span><span className="block font-medium">Answer a few questions</span><span className="text-muted-foreground">2–3 minutes. The quickest start; your first workouts include short checks.</span></span>
           <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm' })}>Answer questions</Link>
@@ -64,10 +66,12 @@ export default async function DrillsHomePage() {
           <span><span className="block font-medium">Take the diagnostic</span><span className="text-muted-foreground">About 15 minutes of short questions. More accurate.</span></span>
           <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : 'Start the diagnostic'}</Link>
         </li>
-        <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
-          <span><span className="block font-medium">Take a full case</span><span className="text-muted-foreground">About 35 minutes. The most accurate.</span></span>
-          <Link href="/home" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
-        </li>
+        {CASE_RESULTS_WIRED && (
+          <li className="flex flex-col justify-between gap-3 rounded-lg border p-3 text-sm">
+            <span><span className="block font-medium">Take a full case</span><span className="text-muted-foreground">About 35 minutes. The most accurate.</span></span>
+            <Link href="/home" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
+          </li>
+        )}
       </ul>
     </section>
   );

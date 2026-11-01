@@ -109,25 +109,43 @@ function CallView({ active, t, gap }: { active: boolean; t: number; gap: boolean
 }
 
 // Step 3: the feedback report's point on the slip, recreated from the
-// report page: the skill, its rating, the quoted line and what to do.
+// report page: skills with their ratings, the slip's skill opened to the
+// quoted line and what to do. Fills the panel, footer at the bottom.
+const RATED: Record<string, string> = {
+  Strong: 'bg-(--mastery) text-(--ink)',
+  Adequate: 'bg-(--sky) text-(--ink)',
+  'Needs work': 'bg-(--cobalt) text-(--white)',
+};
 function ReportView({ active, t }: { active: boolean; t: number }) {
   const quote = active && t >= 300;
   const point = active && t >= 1200;
   const r = HERO_CALL.report;
+  const [first, ...rest] = r.others;
+  const other = (o: { skill: string; rating: string }) => (
+    <li key={o.skill} className="t-small flex items-center justify-between gap-2 py-2">
+      <span>{o.skill}</span>
+      <span className={`t-label rounded-full px-2 py-0.5 font-semibold ${RATED[o.rating]}`}>{o.rating}</span>
+    </li>
+  );
   return (
-    <div className={`${s.view} p-5 sm:p-7`} data-active={active} aria-hidden={!active}>
-      <p className={`${s.caps} t-label text-(--ink)`}>{r.title}</p>
-      <section className="mt-3 rounded-[8px] border border-(--ink)/12 p-4">
+    <div className={`${s.view} flex flex-col p-5 sm:p-7`} data-active={active} aria-hidden={!active}>
+      <div className="flex items-baseline justify-between gap-2">
+        <p className={`${s.caps} t-label text-(--ink)`}>{r.title}</p>
+        <p className="t-label text-(--ink)/65">Fresh Basket</p>
+      </div>
+      <ul className="mt-3 divide-y divide-(--ink)/8 border-b border-(--ink)/8">{other(first)}</ul>
+      <section className="my-2 rounded-[8px] border border-(--ink)/12 p-4">
         <div className="flex items-center justify-between gap-2">
           <h3 className="t-body flex items-center gap-2 font-medium"><ThreadMark />{r.skill}</h3>
-          <span className="t-label rounded-full bg-(--cobalt) px-2 py-0.5 font-semibold text-(--white)">{r.rating}</span>
+          <span className={`t-label rounded-full px-2 py-0.5 font-semibold ${RATED[r.rating]}`}>{r.rating}</span>
         </div>
-        <p className="t-small mt-4 font-semibold">What needs work</p>
+        <p className="t-small mt-3 font-semibold">What needs work</p>
         <p className={`${s.reveal} t-small mt-2 rounded-[6px] bg-(--sky) px-2 py-1 italic`} data-on={quote}>“{HERO_CALL.answer}”</p>
-        <div className="ml-4"><div className={`${s.draw} h-6 w-px bg-(--cobalt)`} data-on={point} /></div>
+        <div className="ml-4"><div className={`${s.draw} h-5 w-px bg-(--cobalt)`} data-on={point} /></div>
         <p className={`${s.reveal} t-small text-(--ink)/80`} data-on={point}>{r.text}</p>
       </section>
-      <p className="t-label mt-4 text-(--ink)/65">Every point quotes the moment it refers to.</p>
+      <ul className="divide-y divide-(--ink)/8 border-t border-(--ink)/8">{rest.map(other)}</ul>
+      <p className="t-label mt-auto pt-3 text-(--ink)/65">8 skills rated. Every point quotes the moment it refers to.</p>
     </div>
   );
 }
