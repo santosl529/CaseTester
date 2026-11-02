@@ -125,3 +125,16 @@ Not renamed, as instructed: the repo, the package (`casetester`), env vars, DB t
 - **LiveKit**: the agent name `case-interviewer` is internal and never shown, so no change is needed.
 - **Club codes / onboarding emails** sent to clubs by hand, if they say CaseTester.
 
+
+## 5. Site parity (2 Nov): rows reverted or replaced
+
+Lorenzo, 1 Nov: the site must match Matt's export, with two exceptions only. (a) Where the export's wording claims something untrue, our honest wording stays in the same place and style. (b) Calls to action are real links. Rows that were neither went back to Matt's copy. Full list of what still differs: `.superpowers/sdd/2026-11-01-site-parity/differences.md`.
+
+| Row | Now | Why |
+|---|---|---|
+| 3 (step 2 only) | Gap caught | True: the interviewer catches the slip. Step 3 stays "In your report" (a). |
+| 31 | Live voice | True, if incomplete. |
+| 33 | Percentages vs. percentage points | Accurate to the lesson. The longer real title clipped the lesson card's top line. |
+| 34 | The box is back: "Worked solution · 8% − 6% = 2 percentage points. 33% is the percent change: 2 ÷ 6." and "Correct answer: 2 percentage points" in the reply line's place | Same place and style, holding what a Mental math item really shows after an answer (`components/drills/runner.tsx`). |
+| 45, 46 | Product | A name, not a claim. |
+| 49, 51 | Drill mistakes map to one of 67 error types, so feedback names the exact slip | Counted in `lib/drills/config/taxonomy.v1.json`: 67 mistake tags. Only 50 belong to a skill with a live drill, so "60+ … each with drills to fix it" is false for 17. |
