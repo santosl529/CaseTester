@@ -38,11 +38,11 @@ export function SiteFooter() {
         <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
           <p className="t-body font-semibold">{BRAND}</p>
           <nav aria-label="Footer">
-            <Link href={PRODUCT_HREF} className="link t-small">How it works</Link>
+            <Link href={PRODUCT_HREF} className="link t-small">Product</Link>
           </nav>
         </div>
         <p className={`t-label mt-3 max-w-[48rem] ${MUTED}`}>
-          {BRAND} is not affiliated with or endorsed by McKinsey &amp; Company, Boston Consulting Group, Bain &amp; Company, or any other firm named on this site.
+          {BRAND}{' '}is not affiliated with or endorsed by McKinsey &amp; Company, Boston Consulting Group, Bain &amp; Company, or any other firm named on this site.
         </p>
       </div>
     </footer>

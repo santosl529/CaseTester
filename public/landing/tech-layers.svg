@@ -20,8 +20,8 @@
 <circle cx="280.0" cy="358" r="2.5" fill="#9DB0F5"/>
 <text x="362" y="350" font-family="JetBrains Mono, monospace" font-size="10.5" letter-spacing="0.06em" fill="#9DB0F5">04 · MASTERY ENGINE</text>
 <text x="362" y="367.0" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">Drill mistakes map to one of</text>
-<text x="362" y="383.5" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">60+ error types, each with</text>
-<text x="362" y="400.0" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">drills to fix it</text>
+<text x="362" y="383.5" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">67 error types, so feedback</text>
+<text x="362" y="400.0" font-family="Inter, system-ui, sans-serif" font-size="13" fill="#F7F7F4">names the exact slip</text>
 </g>
 </g>
 <g id="layer-03" class="layer">

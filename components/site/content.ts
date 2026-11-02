@@ -16,7 +16,7 @@ export const HERO = {
 // The hero loop: interview first, then the system responding (~12 s).
 export const HERO_STEPS = [
   { label: 'Live interview', ms: 5000 },
-  { label: 'Math checked', ms: 3000 },
+  { label: 'Gap caught', ms: 3000 },
   { label: 'In your report', ms: 4000 },
 ] as const;
 
@@ -289,7 +289,7 @@ export const APART = {
 // The slides (Matt's brief, 24 Oct 2026): What sets us apart as three
 // stacking consulting slides, one per block, each with its own exhibit.
 export const SLIDES = [
-  { feature: 'AI Interviewer', sub: 'Voice or text', chapter: 'mock', exhibits: [{ id: 'interview', label: 'Exhibit 1', title: 'Live voice interview' }] },
+  { feature: 'AI Interviewer', sub: 'Live voice', chapter: 'mock', exhibits: [{ id: 'interview', label: 'Exhibit 1', title: 'Live voice interview' }] },
   { feature: 'Adaptive Plan', sub: 'Personalized daily workouts', chapter: 'plan', exhibits: [{ id: 'workout', label: 'Exhibit 2', title: 'Today’s workout' }] },
   { feature: 'Lessons & Drills', sub: 'Targeted curriculum', chapter: 'learn', exhibits: [{ id: 'lesson', label: 'Exhibit 3a', title: 'Lesson' }, { id: 'drill', label: 'Exhibit 3b', title: 'Targeted drill' }] },
 ] as { feature: string; sub: string; chapter: string; exhibits: { id: ScreenId; label: string; title: string }[] }[];
@@ -330,7 +330,7 @@ export const SCREENS = {
   lesson: {
     label: 'The lesson',
     meta: 'Percentages · short lesson',
-    title: 'Percent change, percent of, and percentage points',
+    title: 'Percentages vs. percentage points',
     minutes: '3 min',
     // The idea and the mistake line are the live lesson's (lessons/lesson-qn-percentages.md).
     idea: 'Percent change divides by the starting value, and a change between two percentages is measured in percentage points.',
@@ -343,5 +343,8 @@ export const SCREENS = {
     prompt: 'Operating margin rose from 6% to 8%. By how many percentage points did it rise?',
     answer: '33%',
     chip: 'Percent vs. points: that’s the percent change. The question asked for the point change (2).',
+    // Matt’s follow-up box, holding what a Mental math item really shows after
+    // an answer (Mental math has no follow-up questions).
+    solution: { meta: 'Worked solution', text: '8% − 6% = 2 percentage points. 33% is the percent change: 2 ÷ 6.', answer: 'Correct answer: 2 percentage points' },
   },
 };
