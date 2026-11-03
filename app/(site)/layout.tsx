@@ -9,10 +9,7 @@ const display = Bodoni_Moda({ subsets: ['latin'], weight: ['500', '600', '700'],
 
 export default function SiteLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className={`${display.variable} flex min-h-full flex-col`} suppressHydrationWarning>
-      {/* Lets the reveal styles hide what animates in; without JS everything shows in its final state.
-          Set on this wrapper (not <html>) before hydration, hence suppressHydrationWarning above. */}
-      <script dangerouslySetInnerHTML={{ __html: "document.currentScript.parentElement.classList.add('mk-js')" }} />
+    <div className={`${display.variable} flex min-h-full flex-col`}>
       {children}
     </div>
   );
