@@ -20,9 +20,10 @@ export function useAtClose(share = 0.25) {
 }
 
 // The primary call to action (site launch, 31 Oct; Lorenzo: "every call to
-// action goes somewhere real"): sign in, then /home, where a case starts.
-// Replaces the mockup's "Take the free diagnostic", which only changed its
-// label.
+// action goes somewhere real"): Matt's "Take the free diagnostic" (2 Nov), a
+// link to sign in and then the training home (START_HREF), where a new
+// student sets up training and takes the diagnostic. Matt's mockup button
+// only changed its label.
 export function StartCta({ children, className, id }: { children: ReactNode; className: string; id?: string }) {
   return <Link href={START_HREF} id={id} className={className}>{children}</Link>;
 }
