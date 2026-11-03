@@ -2,7 +2,9 @@
 
 Reference: `reference/exhibition-artifact.html` ("CasePace Exhibition", Matt's export of the homepage). Side-by-side screenshots are in `screenshots/<section>/<width>/f<n>-side-by-side.png`. The reference is on the left and ours on the right. The `f<n>` frames step through each section from top to bottom (scroll-driven sections get several). `screenshots/report.json` gives the share of differing pixels per frame.
 
-Exceptions: **(a)** the reference's wording claims something that isn't true, so our honest wording stands in the same place and style. **(b)** calls to action are real links to `/sign-in?next=/home`.
+Updated 2 Nov (copy-changes §6): the diagnostic exists, so Matt's calls to action, close, hero headline and subhead are back.
+
+Exceptions: **(a)** the reference's wording claims something that isn't true, so our honest wording stands in the same place and style. **(b)** calls to action are real links (to `/sign-in?next=/drills` since 2 Nov).
 
 ## Is the reference newer than UI-Overhaul 5b8364b2?
 
@@ -19,9 +21,9 @@ The reference has these. 5b8364b2 does not: they came out on 29 Oct ("taken out 
 
 | Section | Difference | Exception |
 |---|---|---|
-| Sticky header | Button "Start a mock interview" (phone: "Start"), a link, not "Take the free diagnostic" / "Free diagnostic", a button whose label only changed on click. The narrower button moves "Product" right. | b (and a: there is no free diagnostic entry point) |
+| Sticky header | None since 2 Nov: Matt's "Take the free diagnostic" / "Free diagnostic", as a link to `/sign-in?next=/drills` (copy-changes §6). | b (link, not a button) |
 | Sticky header | The hidden header is `inert` in ours and not in the reference. The export runs React 18, which ignores `inert`, so its hidden header stays focusable and clickable. Matt's source sets `inert`, and React 19 applies it. No visual difference. | Not an exception. The export's React version loses the attribute; matching it would bring back a bug. |
-| Hero | Headline, subhead and line under the button reworded (copy-changes rows 1–2). The longer headline wraps one more line, so the hero is 67px taller at 1440, 69px at 768 and 93px at 390. Every section below starts that much lower. | a |
+| Hero | Headline, subhead and button back to Matt's (2 Nov, Lorenzo's ruling). The line under the button keeps the club code ("Free with your consulting club's access code"), which wraps one more line at 390 (the hero is 23px taller there). | a |
 | Hero demo | Step 3 shows the feedback report quoting the slip, not "Lorenzo's plan" gaining a workout row. Step label "In your report", not "Plan adapts" (rows 3–4). | a |
 | Hero demo | Frames catch the 12-second loop at slightly different moments, since load and scroll timing differ. The timings are identical (5s / 3s / 4s). | None (capture timing, not a difference) |
 | Stats band | 8 · 4 · 18 · 23 · 24/7 with our labels, counted on the server, not 8 · 20+ · 200+ · 10+ · 24/7. | a |
@@ -29,9 +31,9 @@ The reference has these. 5b8364b2 does not: they came out on 29 Oct ("taken out 
 | What sets us apart | Headline (row 26): 4 lines, not 3, so the slide stack starts about 53px lower. Bodies of slides 01–03 (rows 27–29). Characters' roles (rows 36–38). | a |
 | What sets us apart | Slide 02 workout row "From your drills…", not "From your mock interview…". | a |
 | What sets us apart | Slide 03 drill: the follow-up box ("The CFO tells the board…", "Your reply · up to 60 words") holds the drill's real feedback in the same box and style: "Worked solution" with the arithmetic, and "Correct answer: 2 percentage points" in the reply line's place. Mental math drills have no follow-up questions. | a |
-| What sets us apart | 4 controls in the reference, 3 in ours. The reference's call to action is a `<button>`; ours is a link. | b |
+| What sets us apart | 4 controls in the reference, 3 in ours. The reference's call to action is a `<button>`; ours is a link with the same label. | b |
 | Under the hood | Body (row 32), layer 02 (rows 50, 52) and layer 04 text: "Drill mistakes map to one of 67 error types, so feedback names the exact slip", not "Every mistake maps to one of 60+ error types, each with drills to fix it". The taxonomy has 67 error types, but only 50 belong to a skill with a live drill, so "each with drills to fix it" is false for 17. The text keeps Matt's three lines. | a |
-| The close | Headline drops "It's free."; subhead reworded (row 25). One line shorter at 390 (475px vs 520px). | a |
+| The close | None since 2 Nov: Matt's headline, subhead and button (copy-changes §6). | None |
 | Footer | None. "Product" is restored (see below). | None |
 
 ## Fixed in this round (they were differences that weren't exceptions)

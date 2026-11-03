@@ -138,3 +138,15 @@ Lorenzo, 1 Nov: the site must match Matt's export, with two exceptions only. (a)
 | 34 | The box is back: "Worked solution · 8% − 6% = 2 percentage points. 33% is the percent change: 2 ÷ 6." and "Correct answer: 2 percentage points" in the reply line's place | Same place and style, holding what a Mental math item really shows after an answer (`components/drills/runner.tsx`). |
 | 45, 46 | Product | A name, not a claim. |
 | 49, 51 | Drill mistakes map to one of 67 error types, so feedback names the exact slip | Counted in `lib/drills/config/taxonomy.v1.json`: 67 mistake tags. Only 50 belong to a skill with a live drill, so "60+ … each with drills to fix it" is false for 17. |
+
+## 6. The free diagnostic (2 Nov): rows reverted
+
+Lorenzo, 2 Nov. The diagnostic exists: `/drills/diagnostic` (drills D4), 10 short parts (24 questions, about 15 minutes), and it makes the plan. Row 44's reason ("the free diagnostic does not exist") was wrong; row 21's real problem was that Matt's button only changed its label. His calls to action and close come back, as links. The hero headline and subhead go back to Matt's too (Lorenzo's ruling).
+
+| Row | Now | Why |
+|---|---|---|
+| 1 | A complete case interview training program, built around you. / Diagnostic, lessons, skill drills, and AI mock interviews, all in one comprehensive, personalized plan that adapts as you improve. / [Take the free diagnostic] | Lorenzo's ruling (2 Nov). |
+| 2 | Unchanged: No experience needed. Free with your consulting club’s access code. | Matt's "Free to start" hides the club code. |
+| 21, 30, 44, 47 | [Take the free diagnostic] (phone header: [Free diagnostic]) → /sign-in?next=/drills | A link, not Matt's label-only button. To the training home, not the diagnostic itself: a new student sets up training there, then takes the diagnostic. A diagnostic finished before setup makes no plan (`recordPlanSource` needs a program, `lib/drills/program/plan-source.ts`). |
+| 24 | Headline unchanged; [Take the free diagnostic] | Same link. |
+| 25 | Find out where you stand. It’s free. / Take the diagnostic and get a personalized training plan in minutes. / [Take the free diagnostic] | True: no paid tier (the club code is stated under the hero), and the diagnostic makes the plan. |

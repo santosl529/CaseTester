@@ -23,3 +23,15 @@ describe('safeNext', () => {
     expect(safeNext(['/drills', '/home'])).toBe('/home');
   });
 });
+
+// The site's call to action (Lorenzo, 2 Nov): "Take the free diagnostic" signs
+// in and lands on the training home, where a new student sets up training and
+// then takes the diagnostic.
+describe('START_HREF', () => {
+  it('signs in, then goes to the training home', async () => {
+    const { START_HREF } = await import('@/components/site/content');
+    const url = new URL(START_HREF, 'https://case-tester.vercel.app');
+    expect(url.pathname).toBe('/sign-in');
+    expect(safeNext(url.searchParams.get('next') ?? undefined)).toBe('/drills');
+  });
+});

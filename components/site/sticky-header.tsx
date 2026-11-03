@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { BRAND, HOME_HREF, HOOD_ID, PRODUCT_HREF } from './content';
+import { BRAND, HOME_HREF, HOOD_ID, PRODUCT_HREF, START_LABEL, START_LABEL_SHORT } from './content';
 import { StartCta, useAtClose } from './cta';
 import s from './exhibition.module.css';
 
@@ -62,7 +62,7 @@ export function StickyHeader({ watch, page }: { watch: string; page: 'home' | 'p
           <a href={product ? `${HOME_HREF}#${HOOD_ID}` : `#${HOOD_ID}`} className="link t-small hidden lg:inline">Technology</a>
           <span data-off={ctaOff} inert={ctaOff} className={`${s.atClose} ${s.headerCta}`}>
             <StartCta className="btn-primary compact">
-              <span className="sm:hidden">Start</span><span className="hidden sm:inline">Start a mock interview</span>
+              <span className="sm:hidden">{START_LABEL_SHORT}</span><span className="hidden sm:inline">{START_LABEL}</span>
             </StartCta>
           </span>
         </nav>

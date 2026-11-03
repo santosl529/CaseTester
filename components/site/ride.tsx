@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Check } from 'lucide-react';
-import { NODES, type ChapterCopy, type ThreadState } from './content';
+import { NODES, START_LABEL, type ChapterCopy, type ThreadState } from './content';
 import { StartCta } from './cta';
 import { StoryLine, StoryPinned, StoryStrip } from './thread';
 import s from './exhibition.module.css';
@@ -83,7 +83,7 @@ function Rail() {
             </li>
           ))}
         </ol>
-        <StartCta className={`${s.vertical} t-label ml-1.5 cursor-pointer font-semibold text-(--cobalt) underline underline-offset-4 hover:text-(--ink)`}>Start a mock interview</StartCta>
+        <StartCta className={`${s.vertical} t-label ml-1.5 cursor-pointer font-semibold text-(--cobalt) underline underline-offset-4 hover:text-(--ink)`}>{START_LABEL}</StartCta>
       </div>
       {/* Phones: a slim bar under the sticky header, full names on two lines. */}
       <ol className="fixed inset-x-0 top-(--hdr) z-30 grid h-14 grid-cols-6 border-b border-(--ink)/12 bg-(--paper)/95 backdrop-blur-sm lg:hidden">

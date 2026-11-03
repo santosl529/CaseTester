@@ -7,9 +7,9 @@
 // not here: lib/site/stats.ts counts them on the server.
 
 export const HERO = {
-  headline: 'Mock case interviews with an AI interviewer that plays it like the real thing.',
-  subhead: 'Voice or text interviews, a feedback report on the 8 skills case interviews test, and a diagnostic, lessons and drills in a plan that updates as you practice.',
-  primary: 'Start a mock interview',
+  headline: 'A complete case interview training program, built around you.',
+  subhead: 'Diagnostic, lessons, skill drills, and AI mock interviews, all in one comprehensive, personalized plan that adapts as you improve.',
+  primary: 'Take the free diagnostic',
   reassurance: 'No experience needed. Free with your consulting club’s access code.',
 };
 
@@ -233,8 +233,13 @@ export const ADAPT = {
 // pages, the product screens included, reads it from here.
 export const BRAND = 'CasePace';
 
-// Every call to action (site launch, 31 Oct): sign in, then /home.
-export const START_HREF = '/sign-in?next=/home';
+// Every call to action is Matt's "Take the free diagnostic" (Lorenzo, 2 Nov):
+// sign in, then the training home. A new student sets up training there and
+// then takes the diagnostic, which makes the plan; a diagnostic taken before
+// setup makes none (recordPlanSource needs a program), so not straight to it.
+export const START_HREF = '/sign-in?next=/drills';
+export const START_LABEL = 'Take the free diagnostic';
+export const START_LABEL_SHORT = 'Free diagnostic';
 
 export const HOME_HREF = '/';
 export const PRODUCT_HREF = '/how-it-works';
@@ -247,13 +252,13 @@ export const META = {
 export const PRODUCT_INTRO = {
   headline: 'From your first case to interview day',
   subhead: 'Every step of the training loop, from the diagnostic to the skill you finally master.',
-  primary: 'Start a mock interview',
+  primary: START_LABEL,
 };
 
 export const CLOSE = {
-  headline: 'Find out where you stand.',
-  subhead: 'Take a mock interview and get your report on all 8 skills in minutes.',
-  primary: 'Start a mock interview',
+  headline: 'Find out where you stand. It’s free.',
+  subhead: 'Take the diagnostic and get a personalized training plan in minutes.',
+  primary: START_LABEL,
 };
 
 // "What sets us apart": Matt's copy, one block per slide (SLIDES below). The
@@ -282,7 +287,7 @@ export const APART = {
       body: 'Each skill has a short lesson and targeted drills. Learn the concept in about three minutes, then practice it with drills that give instant feedback and, on harder sets, make you defend your answer.',
     },
   ],
-  primary: 'Start a mock interview',
+  primary: START_LABEL,
   tour: 'See the full product tour',
 };
 
