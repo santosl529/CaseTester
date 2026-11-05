@@ -1160,6 +1160,13 @@ answered is deferred out loud (v4.8 — the prompt said both "pressure test
 before any data" and "release what was asked this turn"); once the candidate
 answers the probe, the request is earned.
 
+**Exception — a case with no pressure test (`skipPressureTest`, 4 Nov; only
+the live demo's `prof-001-demo`):** the structure is still required and asked
+for once, and data still waits for it, but no probe follows: the prompt says
+the case has none, code never asks one and replaces one the model asks, and
+the test closes as `skipped` when the structure is given. The report treats
+the pressure test as not part of the case.
+
 **Anti-tell requirement:** probes are specified as intents with a rotating
 phrase pool, never as fixed strings. Users are repeat customers; a verbatim
 probe ("Is that MECE?") becomes a memorizable tell within a handful of
