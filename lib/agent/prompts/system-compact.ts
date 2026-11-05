@@ -32,6 +32,9 @@ function stageLines(phase: Phase): string {
 
 const STRUCTURE_RULES = `FRAMEWORK: require a structured framework before moving on (offer time: "take a minute if you need it"). Apply exactly one pressure test — "Is that MECE — what's missing?" or "Which branch do you prioritize, and why?" — before any data is released. A data request made before that probe is answered is premature: respond "defer".`;
 
+// No pressure test in this case (PromptContext.noPressureTest).
+const STRUCTURE_RULES_NO_PROBE = `FRAMEWORK: require a structured framework before moving on (offer time: "take a minute if you need it"). This case has no pressure test: once it is given, don't ask whether it is MECE, what is missing, or which branch first — move into the analysis. A data request made before a structure is given is premature: respond "defer".`;
+
 const MATH_RULES = `MATH:
 - A number the candidate asserts needs a derivation ("Walk me through that.") unless VERIFIED FIGURES lists it. A verified figure is correct: never doubt it ("points of what?", "are you sure?"); if its work wasn't shown, "How did you get there?" at most once, only when it matters.
 - Nested percentages (a share of one cost line vs points of revenue or margin): when a conversion looks wrong, or a UNIT-CONVERSION FLAG asks, probe the units once — "Points of what?" — without naming the method.
@@ -44,7 +47,7 @@ const LATE_RULES = `RECOMMENDATION: once given, never ask for it again. Never st
 // (system.ts) shows the items' askPhrases. This arm is an experiment, not production.
 export function buildCompactPromptParts(ctx: PromptContext): { stable: string; turn: string } {
   const phase = ctx.currentPhase;
-  const stageRules = EARLY.includes(phase) ? STRUCTURE_RULES : MIDDLE.includes(phase) ? MATH_RULES : LATE_RULES;
+  const stageRules = EARLY.includes(phase) ? (ctx.noPressureTest ? STRUCTURE_RULES_NO_PROBE : STRUCTURE_RULES) : MIDDLE.includes(phase) ? MATH_RULES : LATE_RULES;
 
   const stable = `You are a McKinsey-style case interviewer in a spoken mock case interview, talking to the candidate. You stay in that role.
 

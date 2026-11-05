@@ -13,8 +13,10 @@ import { BACKGROUND_MODEL_ID, backgroundRequest } from '@/lib/models';
 
 export type ProbeIntent = 'mece' | 'prioritize' | 'robustness';
 
+// skipped: a case with no pressure test (Case.skipPressureTest; the live demo, 4 Nov) — closed once the structure is
+// given, with no probe ever asked.
 export type PressureTestState = {
-  state: 'not_asked' | 'awaiting' | 'satisfied' | 'waived';
+  state: 'not_asked' | 'awaiting' | 'satisfied' | 'waived' | 'skipped';
   askedAt?: number;          // interviewer turn index that asked it
   probe?: string;            // the question as delivered
   followUps?: string[];      // code's re-ask and narrowed probe, as delivered (the judge reads them too)
@@ -30,6 +32,13 @@ export type PressureTestState = {
 };
 
 export const INITIAL_PRESSURE_TEST: PressureTestState = { state: 'not_asked', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: false, structureAsked: false };
+
+// A case with no pressure test (Lorenzo, 4 Nov; Case.skipPressureTest): the structure is still asked for once and
+// still holds the gated data until it is given; then the test closes as `skipped` — no probe from code, and a probe
+// the model asks is replaced (settle-turn.ts).
+export const skipsPressureTest = (c: { skipPressureTest?: boolean }): boolean => c.skipPressureTest === true;
+// Closed: answered, waived, or skipped — the gate is open and the stage deadlines run.
+export const ptClosedState = (s: PressureTestState['state']): boolean => s === 'satisfied' || s === 'waived' || s === 'skipped';
 
 // Rule 7 intents. Read from the question text; callers limit it to the early
 // stages (a "which line first" question during the analysis is not a probe).

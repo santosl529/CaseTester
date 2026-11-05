@@ -14,7 +14,7 @@ import { liveJudgeVerdict } from '@/lib/cases/live-judge-draft';
 import { selfCorrection, correctionLine } from './self-correct';
 import { askJudgeVerdictFrom } from './ask-judge';
 import { findFalseRefusals, groupItemsAsked, coverageOf, coverageDetail, coverSpans, sentencesOf, BASIS, refusedItemIds } from './fact-check';
-import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing } from './pressure-test';
+import { isGatedItem, exhibitIsGated, PT_REPLY_LIMIT, PT_NOT_ASKED_LIMIT, saysNothingMissing, skipsPressureTest } from './pressure-test';
 import { planForcedReleases, classifyDataRequests, classifyAsk, askCheckCatalog, promptFactCatalog, missingPart, statedIn, dropStatedFigures, type DetectedDataRequest } from './data-requests';
 import { askingSentences, addressedAskSentences, lateAskSentences, requestSentences, matchAskDetections, uncoveredAsks, undeclaredSentences, properNames, namesItem, namesNothing, namingWords, saysItemName, WANT_ASK_PHASES } from './request-signal';
 import { tagsAgree, askGroups, askClauses, askTags, itemTagsAgree } from './item-tags';
@@ -43,7 +43,7 @@ const FORCES_OPEN = new Set(['rec_ask', 'grace_ask', 'time_warning']);
 // Whether the pressure-test gate holds gated items on this turn (turnData's `gateOn`; read by Phase 2's shadow decision).
 export function ptGateOn(plan: ModelPlan): boolean {
   const { state } = plan;
-  const satisfied = (state.ptSatisfiedNow ?? state.pressureTest.state === 'satisfied') || Boolean(state.ptWaivingNow) || state.pressureTest.state === 'waived';
+  const satisfied = (state.ptSatisfiedNow ?? state.pressureTest.state === 'satisfied') || Boolean(state.ptWaivingNow) || state.pressureTest.state === 'waived' || state.pressureTest.state === 'skipped';
   return !satisfied && !FORCES_OPEN.has(state.kind);
 }
 
@@ -63,7 +63,10 @@ export async function pressureTestOutcomeNow(plan: ModelPlan): Promise<{ satisfi
   const judged = pt.state === 'awaiting' && Boolean((await state.probeVerdict)?.answered);
   const nothingMissing = said && !judged;
   if (state.ptSatisfiedNow !== undefined && state.ptWaivingNow !== undefined) return { satisfied: state.ptSatisfiedNow, waiving: state.ptWaivingNow, nothingMissing };
-  const satisfied = pt.state === 'satisfied' || judged || nothingMissing;
+  // No pressure test in this case (skipsPressureTest): satisfied once the structure is given — no probe follows it.
+  const structureNow = skipsPressureTest(state.caseData) && pt.state === 'not_asked'
+    && (pt.structureGiven || Boolean((await state.structureVerdict)?.given));
+  const satisfied = pt.state === 'satisfied' || pt.state === 'skipped' || judged || nothingMissing || structureNow;
   const waiving = !satisfied && state.kind === 'model' && (
     (pt.state === 'awaiting' && (pt.awaitingReplies ?? 0) + 1 >= PT_REPLY_LIMIT)
     || (pt.state === 'not_asked' && pt.structureAsked && pt.gatedTurns + 1 >= PT_NOT_ASKED_LIMIT));
@@ -1693,7 +1696,7 @@ export function turnData(plan: ModelPlan, turn: Pick<ModelTurn, 'requests' | 'ex
   const resolve = caseResolver(plan);
   // Closed: answered, waived (v3), or waiving on this turn — nothing is premature.
   const satisfied = (state.ptSatisfiedNow ?? state.pressureTest.state === 'satisfied')
-    || Boolean(state.ptWaivingNow) || state.pressureTest.state === 'waived';
+    || Boolean(state.ptWaivingNow) || state.pressureTest.state === 'waived' || state.pressureTest.state === 'skipped';
   const forcesOpen = FORCES_OPEN.has(state.kind);
   const gateOn = !satisfied && !forcesOpen;
   const exhibitCovers = new Map(state.caseData.exhibits.map(e => [e.id, (e as { coversLedgerItems?: string[] }).coversLedgerItems ?? []]));

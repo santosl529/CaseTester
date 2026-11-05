@@ -164,7 +164,7 @@ export function updateStages(prev: StageRecord | undefined, t: StageTurn): Stage
 
   // Structure and its probe, from the pressure-test state (code's, not a label).
   const pt = t.pressureTest;
-  if (pt.structureGiven || pt.state === 'awaiting' || pt.state === 'satisfied') r.structure = { ...r.structure, outcome: r.structure.outcome ?? 'answered' };
+  if (pt.structureGiven || pt.state === 'awaiting' || pt.state === 'satisfied' || pt.state === 'skipped') r.structure = { ...r.structure, outcome: r.structure.outcome ?? 'answered' };
   if (pt.askedAt !== undefined && !r.pressure_test.delivered) r.pressure_test = { ...r.pressure_test, delivered: true, deliveredAt: pt.askedAt };
   if (pt.state === 'satisfied') r.pressure_test = { ...r.pressure_test, outcome: 'answered' };
   if (pt.state === 'waived') r.pressure_test = { ...r.pressure_test, outcome: r.pressure_test.outcome ?? 'waived' };

@@ -27,7 +27,7 @@ import { classifyExitIntent, isBareSignOff, isRefusalToStart, exitReplyChoice, E
 import { missingRequiredStages, stagesFromRecord, INITIAL_STAGES, type StageKey, type StageRecord } from './stage-evidence';
 import { caseFinished, hasAssessableEvidence } from './session-outcome';
 import { explicitRequestCues, lateAskCues, WANT_ASK_PHASES } from './request-signal';
-import { judgeProbeAnswer, judgeStructureGiven, probeAsHeard, INITIAL_PRESSURE_TEST, type PressureTestState } from './pressure-test';
+import { judgeProbeAnswer, judgeStructureGiven, probeAsHeard, INITIAL_PRESSURE_TEST, ptClosedState, skipsPressureTest, type PressureTestState } from './pressure-test';
 import { logEvent } from '@/lib/analytics';
 import { caseTotalMs, type Phase } from './state-machine';
 import { stageGateOpen, endAllowed, recommendationUnresolved, asksRecommendationAsk, asksForConclusion } from './spoken-close';
@@ -946,8 +946,11 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // Structure check: the code-asked probe waits for a structure on the table.
   // Run only when code could ask this turn (data already held a turn, probe
   // not yet code-asked); reads every candidate message so far; sticky once true.
+  // A case with no pressure test (skipsPressureTest) runs it on every turn until the structure is given: it is
+  // what opens the gate there, so the turn that gives the structure gets its data.
   const structureVerdict: Promise<{ given: boolean; reason: string } | null> =
-    pressureTest.state === 'not_asked' && !pressureTest.structureGiven && !pressureTest.codeAsked && pressureTest.gatedTurns >= 1 && extra.classify
+    pressureTest.state === 'not_asked' && !pressureTest.structureGiven && !pressureTest.codeAsked
+      && (pressureTest.gatedTurns >= 1 || skipsPressureTest(caseData)) && extra.classify
       ? judgeStructureGiven({
         replies: [...turnRows.filter(t => t.role === 'candidate').map(t => t.text), candidateText],
         onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); },
@@ -1041,7 +1044,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   const brainstormDueNow = brainstormDue(caseData, shownExhibitIds, ledger, timeUp || isUnderTimePressure(elapsedMs, TOTAL_CASE_MS));
   let owedStage = missingStages.find(k => k !== 'brainstorm' || brainstormDueNow);
   if (owedStage === undefined && missingStages.includes('brainstorm') && exhibitReadyNow) owedStage = 'exhibit';
-  const ptClosed = pressureTest.state === 'satisfied' || pressureTest.state === 'waived';
+  const ptClosed = ptClosedState(pressureTest.state);
   // An owed stage is also administered once its deadline passes (Lorenzo, 15
   // Oct): the exhibit after the analysis budget, the brainstorm after the
   // exhibit budget (pacing.ts).

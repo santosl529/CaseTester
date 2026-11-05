@@ -60,8 +60,9 @@ function describe(e: StageEntry): string {
 }
 
 // The stages a case has no module for: the brainstorm when brainstorm.required is false.
-export function stagesNotInCase(c: CaseBrainstorm): StageKey[] {
-  return brainstormRequired(c) ? [] : ['brainstorm'];
+// A case with no pressure test (Case.skipPressureTest; the live demo, 4 Nov) has none to assess either.
+export function stagesNotInCase(c: CaseBrainstorm & { skipPressureTest?: boolean }): StageKey[] {
+  return [...(brainstormRequired(c) ? [] : ['brainstorm' as const]), ...(c.skipPressureTest ? ['pressure_test' as const] : [])];
 }
 
 // `notInCase`: stages the case has no module for (brainstorm.required false,

@@ -38,6 +38,9 @@ export type PromptContext = {
   // or none owed. Absent: the generic question. `after`: the titles of the
   // exhibits it waits on (Larkspur: Exhibit 3).
   brainstorm?: { ask: string; required: boolean; after?: string[] };
+  // A case with no pressure test on the structure (Case.skipPressureTest; the live demo, 4 Nov): the STRUCTURE rule
+  // asks for the framework and moves on. Absent: the one pressure test, as before.
+  noPressureTest?: boolean;
   // Phase 1 contract 2.5 (askPhrasesInPrompt; lib/cases/engine-switches.ts): every ledger item's "answers
   // questions about…" phrases beside its label — no figures, no finding (cases/phase1/<id>.json). In the
   // stable part, so the cached prefix is the same every turn; absent (switch off), the prompt is unchanged.
@@ -116,6 +119,10 @@ function formatClock(ms: number): string {
   return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 
+const STRUCTURE_RULE = `- STRUCTURE: require a structured framework before moving on (offer time: "take a minute if you need it"). When they present it, apply exactly one pressure test — "Is that MECE — what's missing?" or "Which branch do you prioritize, and why?" — before any data is released. A data request made before that probe is answered is premature: declare it with respond "defer".`;
+// No pressure test in this case (PromptContext.noPressureTest).
+const STRUCTURE_RULE_NO_PROBE = `- STRUCTURE: require a structured framework before moving on (offer time: "take a minute if you need it"). This case has no pressure test: once they present it, don't ask whether it is MECE, what is missing, or which branch they would prioritize — move into the analysis. A data request made before they have given a structure is premature: declare it with respond "defer".`;
+
 export function buildPromptParts(ctx: PromptContext): { stable: string; turn: string } {
   const revealedSection = Object.entries(ctx.revealedValues).length > 0
     ? `Revealed data (ALREADY RELEASED — the candidate has these):\n${Object.entries(ctx.revealedValues).map(([id, v]) => `- ${id}: ${v}`).join('\n')}`
@@ -182,7 +189,7 @@ DELIVERY — you are speaking, not writing:
 
 RIGOR — the candidate does the work:
 - Never volunteer the framework, structure the problem for them, or solve the case. Pushback never contains the answer: "Is that the next data you'd pull? Why?", not "Shouldn't we check X first?".
-- STRUCTURE: require a structured framework before moving on (offer time: "take a minute if you need it"). When they present it, apply exactly one pressure test — "Is that MECE — what's missing?" or "Which branch do you prioritize, and why?" — before any data is released. A data request made before that probe is answered is premature: declare it with respond "defer".
+${ctx.noPressureTest ? STRUCTURE_RULE_NO_PROBE : STRUCTURE_RULE}
 - A number the candidate asserts needs a derivation — "Walk me through that." — unless VERIFIED FIGURES lists it. A verified figure is correct: never question it with doubt phrasing ("points of what?", "are you sure?", "is that right?"). If its work wasn't shown you may ask "How did you get there?" once, only when it matters to the decision.
 - Doubt needs a flag: question whether the candidate's math is right — its units, its base, whether it holds, adds up or changes — only when a RECOMPUTE FLAG names that figure. Without one, the most you may ask is how they got there; a doubt with no flag behind it is not spoken. A figure that looks wrong to you may be right.
 - Combine figures only when they share a period and a base: a figure the data gives for one period pairs only with figures from that period.
