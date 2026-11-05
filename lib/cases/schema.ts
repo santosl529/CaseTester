@@ -185,7 +185,8 @@ const PacingSchema = z.object({
 });
 
 export const CaseSchema = z.object({
-  id: z.string().regex(/^[a-z]+-\d{3}$/, 'Case id must match pattern like prof-001'),
+  // An optional suffix names a variant of a case (prof-001-demo, 4 Nov: the live demo's 7-minute Brew & Bean).
+  id: z.string().regex(/^[a-z]+-\d{3}(?:-[a-z]+)?$/, 'Case id must match pattern like prof-001 or prof-001-demo'),
   title: z.string().min(1),
   firmStyle: z.enum(['mckinsey', 'bcg', 'bain', 'generic']).default('mckinsey'),
   difficulty: z.enum(['easy', 'medium', 'hard']),
@@ -226,6 +227,11 @@ export const CaseSchema = z.object({
     required: z.boolean().default(true),
     after: z.array(z.string().min(1)).optional(),
   }).optional(),
+  // No pressure test on the structure (Lorenzo, 4 Nov; the live demo's prof-001-demo): the structure is still asked
+  // for, once, and still holds the case data until it is given (lib/orchestrator/pressure-test.ts), but no "Is that
+  // MECE?" / "Which branch first?" probe follows it — the model is told not to ask one and code replaces one it asks.
+  // The report treats the pressure test as not part of the case. Absent = the probe, as before.
+  skipPressureTest: z.boolean().optional(),
   // The core analysis (fact guards Phase 5, 12 Oct): the ledger items the case
   // turns on — no recommendation ask and no close before they are out, unless
   // the clock is out (batch 20: recommendations asked at 7 min with the COGS

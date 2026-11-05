@@ -22,7 +22,7 @@ import { classifyMathTalk } from './math-talk';
 import { checkTimeframes } from './timeframe-check';
 import { checkHintDelivered } from './hint-check';
 
-import { probeIntents, pickFallbackQuestion, reaskProbe, narrowProbe, refersToFigures, codeProbe, EARLY_PHASES, waiverLead, WHERE_TO_START, type PressureTestState } from './pressure-test';
+import { probeIntents, pickFallbackQuestion, reaskProbe, narrowProbe, refersToFigures, codeProbe, EARLY_PHASES, waiverLead, WHERE_TO_START, skipsPressureTest, type PressureTestState } from './pressure-test';
 import { requestSentences } from './request-signal';
 import { isUnderTimePressure } from './pacing';
 import { rungName, classifyRungDelivery, revertUndeliveredRung } from './stall';
@@ -470,6 +470,27 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
       question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
       modelQuestion = '';
       ptAction = 'replaced_duplicate';
+    } else if (ptPrev.state === 'not_asked' && skipsPressureTest(caseData) && satisfiedNow) {
+      // No pressure test in this case (Lorenzo, 4 Nov): the structure is given, so the test closes with no probe
+      // (pressureTestOutcomeNow opened the gate on this turn). A probe the model asks anyway is replaced.
+      Object.assign(pt, { state: 'skipped', structureGiven: true });
+      ptAction = 'skipped';
+      if (isProbe(modelQuestion)) {
+        question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+        modelQuestion = '';
+        ptAction = 'skipped_probe_replaced';
+      }
+    } else if (ptPrev.state === 'not_asked' && skipsPressureTest(caseData) && isProbe(modelQuestion) && !waiving) {
+      // No structure yet and the model probes one: code asks for the structure instead (once), else a fallback.
+      pt.gatedTurns = decisions.gatedIds.length > 0 ? ptPrev.gatedTurns + 1 : 0;
+      if (!pt.structureAsked) {
+        question = line('structure_ask', phraseUses, seed); pt.structureAsked = true;
+        ptAction = 'code_asked_structure';
+      } else {
+        question = pickFallbackQuestion({ uses: phraseUses, figuresDelivered: figuresOut, seed, last: state.lastQuestion ?? null, lastAnswered, phase: currentPhase, timePressure: isUnderTimePressure(elapsedMs, TOTAL_CASE_MS) });
+        ptAction = 'probe_replaced';
+      }
+      modelQuestion = '';
     } else if (ptPrev.state === 'not_asked') {
       pt.gatedTurns = decisions.gatedIds.length > 0 ? ptPrev.gatedTurns + 1 : 0;
       if (waiving) {
@@ -483,7 +504,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
         pt.structureGiven = pt.structureGiven || Boolean(verdict?.given);
         if (!pt.structureGiven && verdict === null) {
           ptAction = 'structure_unknown';
-        } else if (pt.structureGiven && !pt.codeAsked) {
+        } else if (pt.structureGiven && !pt.codeAsked && !skipsPressureTest(caseData)) {
           question = codeProbe(phraseUses, seed); modelQuestion = '';
           pt.codeAsked = true;
           ptAction = 'code_asked';
@@ -724,7 +745,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   // The probe is asked by the line as delivered: the model's own words, or
   // code's own probe — never a code-written fallback.
   const probeText = ptAction === 'code_asked' ? question : modelQuestion;
-  if (pt.state === 'not_asked' && probeIntents(probeText).length > 0 && (early || ptAction === 'code_asked')) {
+  if (pt.state === 'not_asked' && !skipsPressureTest(caseData) && probeIntents(probeText).length > 0 && (early || ptAction === 'code_asked')) {
     Object.assign(pt, { state: 'awaiting', askedAt: nextTurnIndex + 1, probe: question, intents: probeIntents(probeText), awaitingReplies: 0, followUps: [] });
   }
   checks.record('pressure_test', ptAction !== null || pt.state !== ptPrev.state, ptAction ?? `state ${ptPrev.state} → ${pt.state}`,

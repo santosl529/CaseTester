@@ -548,6 +548,27 @@ case owes the exhibit (if it has one) and the brainstorm before a normal end;
 code administers an owed stage once (interviewer-behavior Rule 9). A
 candidate-led case owes nothing. Only interviewer-led cases exist so far.
 
+## No pressure test (4 Nov)
+
+`skipPressureTest: true` (Lorenzo, 4 Nov; only `prof-001-demo`, the live
+demo's 7-minute Brew & Bean): the structure is still asked for — once, by
+code if the candidate hasn't given one — and still holds the analysis data
+until it is given, but no pressure test follows it. No "Is that MECE?" or
+"Which branch do you prioritize?": the model's STRUCTURE rule says there is
+none, code never asks one, and a probe the model asks anyway is replaced.
+The pressure-test state closes as `skipped` on the turn the structure check
+finds a structure, and that turn gets its data. Scoring treats the pressure
+test as "not part of this case". Absent: the one pressure test, as before.
+
+## Case variants (4 Nov)
+
+A case id may carry a suffix naming a variant of a case (`prof-001-demo`).
+A variant is a copy of its case file, with its own Phase 1 overlay and
+data-line versions under its id; `tests/cases/prof-001-demo.test.ts` fails
+if the copy drifts from prof-001 in anything but its own fields. A
+link-only case (`LINK_ONLY_CASE_IDS`, `lib/cases/listed.ts`) is never on
+/home; it starts from `/start/<caseId>`.
+
 ## The brainstorm (13 Oct)
 
 `brainstorm.ask`: the case's own brainstorm question, from the guide ("What

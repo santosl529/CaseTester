@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { isListedCase } from '@/lib/cases/listed';
+import { isStartableCase } from '@/lib/cases/listed';
 import { startSession } from '@/lib/orchestrator/start-session';
 import { clubOrgId, recordStudentOrg, storedClubOrg } from '@/lib/club';
 
@@ -21,8 +21,8 @@ export async function POST(req: NextRequest) {
   }
   if (typed) await recordStudentOrg(user.id, typed);
 
-  // Only the cases switched on for students (lib/cases/listed.ts).
-  if (!isListedCase(caseId)) {
+  // Only the cases switched on for students (lib/cases/listed.ts): listed on /home, or link-only.
+  if (!isStartableCase(caseId)) {
     return NextResponse.json({ error: 'Unknown case' }, { status: 400 });
   }
 

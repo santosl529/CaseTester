@@ -12,6 +12,11 @@
 //   REPLAY_RUNNER=1 REPLAY_OUT=<dir> [REPLAY_FILTER=batch-20] [REPLAY_ROOT=<runs dir>] npx vitest run tests/replay/runner-corpus.replay.test.ts
 //   npx tsx scripts/fact-check.ts --root=<dir>
 //
+// REPLAY_CASE=<caseId> (4 Nov, the live demo): replay the saved candidate messages against another case — the
+// mirror run carries that case id (prof-001 runs against prof-001-demo's 7-minute clock, at their saved times).
+// REPLAY_TIME_SCALE=<x> (default 1): each message arrives at its saved time × x — a 20-minute run at human pace
+// replayed on a 7-minute clock at 0.35.
+//
 // Per turn, not per interview: the candidate's next message is the saved one
 // whatever the interviewer now says. A turn whose kind changed (code now
 // writes it, or now calls the model where code wrote it) is counted as
@@ -139,6 +144,8 @@ let checkerOut: Row[] = [];
 // (they drift where the saved run had silence check-ins the replay doesn't).
 const replayIndex = new Map<number, { saved: number; ms: number }>();
 const FILTER = process.env.REPLAY_FILTER ?? '';
+const REPLAY_CASE = process.env.REPLAY_CASE ?? '';
+const TIME_SCALE = Number(process.env.REPLAY_TIME_SCALE ?? 1);
 const enabled = process.env.REPLAY_RUNNER === '1' && !!OUT && existsSync(ROOT);
 
 type RunJson = { session: { caseId: string; startedAt: string; coverageJsonb?: unknown }; turns: { turnIndex: number; role: string; text: string; timestampMs: number }[]; events?: Row[] };
@@ -159,7 +166,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
   const startedAt = new Date(run.session.startedAt);
   const sid = header.sessionId;
   store.session = {
-    id: sid, userId: 'u1', caseId: run.session.caseId, phase: 'INTRO', elapsedMs: 0, phaseStartedAt: startedAt, status: 'active',
+    id: sid, userId: 'u1', caseId: REPLAY_CASE || run.session.caseId, phase: 'INTRO', elapsedMs: 0, phaseStartedAt: startedAt, status: 'active',
     abandonPhase: null, startedAt, completedAt: null, coverageJsonb: run.session.coverageJsonb ?? null, flagsJsonb: { conduct: { warnings: 0 } },
   };
   // The opening, and anything said before the first recorded turn (a silence check-in).
@@ -188,12 +195,15 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     const next = saved[k + 1]?.stateBefore.pressureTest as { state?: string; structureGiven?: boolean } | undefined;
     // The structure check's verdict: what the saved state held after this turn.
     structureGiven = next?.structureGiven ?? (r.stateBefore.pressureTest as { structureGiven?: boolean } | undefined)?.structureGiven ?? true;
+    // Against another case (REPLAY_CASE), whose structure check may run where the saved run's never did (a case with
+    // no pressure test runs it every turn): a structure is also on the table once the saved run had its probe out.
+    if (REPLAY_CASE && next?.state !== undefined && next.state !== 'not_asked') structureGiven = true;
     judge = pt?.verdict ?? { answered: next?.state === 'satisfied' || next?.state === 'waived', reason: 'replay' };
     // The clock as it stood when this message arrived, and the coverage the
     // end gate saw (complete or not — the agent's scores aren't saved per turn).
     const gate = r.checks.find(c => c.check === 'end_gate')?.detail as { coverageMayEnd?: boolean } | undefined;
     store.session = {
-      ...store.session, startedAt: new Date(Date.now() - (r.stateBefore.elapsedMs ?? 0)),
+      ...store.session, startedAt: new Date(Date.now() - (r.stateBefore.elapsedMs ?? 0) * TIME_SCALE),
       coverageJsonb: gate?.coverageMayEnd ? FULL_COVERAGE : null,
     };
     let rec: TurnRecord | null = null;
@@ -242,7 +252,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
   for (let i = 0; i < extend && store.session.status === 'active'; i++) {
     lastIndex += 2; lastMs += gap;
     modelTurn = NEUTRAL; modelCalled = false; detections = []; judge = { answered: true, reason: 'replay' };
-    store.session = { ...store.session, startedAt: new Date(Date.now() - lastMs) };
+    store.session = { ...store.session, startedAt: new Date(Date.now() - lastMs * TIME_SCALE) };
     checkerClock.nowMs = lastMs;
     currentKey = `extended#${lastIndex}`;
     let rec: TurnRecord | null = null;
@@ -292,14 +302,14 @@ function finish(records: TurnRecord[], header: ReturnType<typeof readTurnFile>['
     { turnIndex: r.turnIndex + 1, role: 'interviewer', text: r.savedLine, timestampMs: 0 },
   ])];
   writeFileSync(out, JSON.stringify({
-    session: { ...run.session, status: endedEarly ? 'completed' : 'completed' }, turns, revealed: [], events: [],
+    session: { ...run.session, ...(REPLAY_CASE ? { caseId: REPLAY_CASE } : {}), status: endedEarly ? 'completed' : 'completed' }, turns, revealed: [], events: [],
     analytics: [{ eventType: 'llm_usage', createdAt: run.session.startedAt, payloadJsonb: { component: 'interviewer', model: header.models?.interviewer ?? 'unknown' } }],
   }));
   // The run's math-checker events, for the report the bank reads (fault-bank `report` assertions, 31 Oct): what the
   // written report's checker section is built from.
   writeFileSync(out.replace(/\.json$/, '.checker-events.json'), JSON.stringify(store.events.filter(e => e.category === 'math_checker')
     .map(e => ({ category: e.category, subtype: e.subtype, turnIndex: e.turnIndex, payloadJsonb: e.payloadJsonb }))));
-  const switches = (() => { try { return engineSwitchNames(getCaseById(run.session.caseId)); } catch { return []; } })();
+  const switches = (() => { try { return engineSwitchNames(getCaseById(REPLAY_CASE || run.session.caseId)); } catch { return []; } })();
   writeTurnFile(out.replace(/\.json$/, '.turns.jsonl.gz'), { ...header, engineSwitches: switches }, records, { type: 'end', ended: true, budgetStopped: false, scoring: 'replay', candidateUsage: { calls: 0, input: 0, output: 0, usd: 0 } });
   return { turns: records.length, diverged, endedEarly };
 }

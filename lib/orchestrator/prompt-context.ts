@@ -9,6 +9,7 @@ import { caseTotalMs } from './state-machine';
 import { turnNoteFor } from './turn-note';
 import { exhibitReady } from './data-decisions';
 import { brainstormAsks, brainstormRequired } from './brainstorm';
+import { skipsPressureTest } from './pressure-test';
 
 export function promptContextFor(plan: ModelPlan): PromptContext {
   const { ctx, state } = plan;
@@ -32,6 +33,7 @@ export function promptContextFor(plan: ModelPlan): PromptContext {
     turnNote: turnNoteFor(state.kind, ctx.acknowledged, { pressureTest: state.pressureTest.state, phase: ctx.currentPhase }),
     brainstorm: { ask: brainstormAsks(caseData)[0], required: brainstormRequired(caseData),
       after: (caseData.brainstorm?.after ?? []).map(id => caseData.exhibits.find(e => e.id === id)?.title).filter((t): t is string => Boolean(t)) },
+    ...(skipsPressureTest(caseData) ? { noPressureTest: true } : {}),
     // Phase 1 contract 2.5: the items' askPhrases, static for the case (the stable, cached prompt part).
     ...(switchOn(caseData, 'askPhrasesInPrompt')
       ? { askPhrases: caseData.dataLedger.filter(d => d.askPhrases?.length).map(d => ({ id: d.id, label: labelWithPeriod(d), phrases: d.askPhrases! })) }

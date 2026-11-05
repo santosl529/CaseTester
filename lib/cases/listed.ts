@@ -20,3 +20,19 @@ export function listedCases(): ListedCase[] {
 export function isListedCase(caseId: unknown): boolean {
   return typeof caseId === 'string' && listedCases().some(c => c.id === caseId);
 }
+
+// Cases reachable only by a direct start link, /start/<caseId> (Lorenzo, 4 Nov: the live demo's 7-minute Brew &
+// Bean): never on /home, but a signed-in student with a valid club code can start one.
+export const LINK_ONLY_CASE_IDS: readonly string[] = ['prof-001-demo'];
+
+// The case a start link names, when it is one of them and its file loads.
+export function linkOnlyCase(caseId: unknown): ListedCase | null {
+  if (typeof caseId !== 'string' || !LINK_ONLY_CASE_IDS.includes(caseId)) return null;
+  const c = loadCases().find(x => x.id === caseId);
+  return c ? { id: c.id, title: c.title, difficulty: c.difficulty, caseType: c.caseType } : null;
+}
+
+// What /api/session may start: a listed case, or a link-only one.
+export function isStartableCase(caseId: unknown): boolean {
+  return isListedCase(caseId) || linkOnlyCase(caseId) !== null;
+}
