@@ -73,6 +73,55 @@ Free; nothing joins production.
    `case-interviewer`); without `ENGINE_SWITCHES_PRODUCTION`, expect exit 1 with "refusing to start".
 3. After the deploy, `lk agent logs` shows the worker's `[engine]` line; Vercel's runtime logs show the site's.
 
+## Local development: its own LiveKit project
+
+Added 5 Nov (Lorenzo: `npm run dev` + `npm run voice:agent` must never touch production's rooms or cap). A local
+worker on production's project registers as a second `case-interviewer` there — LiveKit may hand it production's
+dispatches — and a local Start counts against production's `VOICE_MAX_CONCURRENT`. So local development uses a
+separate LiveKit Cloud project, set in `.env.local` only:
+
+1. In LiveKit Cloud, create a project (e.g. `case-tester-dev`; Build, free). Settings → Keys: create an API key.
+2. In `.env.local`: `LIVEKIT_URL=wss://<dev-project>.livekit.cloud`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET` from
+   that project. Nothing else changes; Deepgram, Cartesia and the database stay as they are (the TTS month ledger
+   and the database are shared — local sessions still count toward `VOICE_TTS_CHAR_CAP` and write session rows).
+3. `npm run dev` and `npm run voice:agent` then use only the dev project. Production (Vercel, the hosted agent)
+   keeps its own values; nothing to change there.
+
+Enforced: outside production (`NODE_ENV` not `production`), a `LIVEKIT_URL` on production's project
+(`case-tester-t1foysn4`, from `livekit.toml`) makes the token route answer 503 and `npm run voice:agent` exit 1
+(`lib/voice/livekit-env.ts`). `VOICE_DEV_ALLOW_PROD_LIVEKIT=1` overrides it, deliberately. The hosted image sets
+`NODE_ENV=production`, and Vercel runs production builds, so neither is affected.
+
+## Session lifecycle: what frees a voice slot
+
+Added 5 Nov (sessions 53e6ff28 / 7512cb6b; the 2 Nov audit). A slot (one live `case-<sessionId>` room) is freed
+whenever the session's voice ends:
+
+- **The case ends:** after the closing line and the `ended` message, the agent waits 2 s, stops STT and TTS, deletes
+  the room, cancels its dispatch and releases the session's dispatch claim (`flags_jsonb.voiceDispatchAt`).
+- **End:** the end route deletes the room and cancels any pending dispatch before it answers, so a Start right
+  after is never refused as busy; an agent in the room sees it close and finishes the same way.
+- **The candidate leaves / closes the tab — after a 15 s grace (Lorenzo, 5 Nov):** the page sends a beacon to
+  `POST /api/voice/<id>/leave` on pagehide, which a reload fires too. The route answers at once and, 15 s later,
+  frees the room only if the candidate is not back in it (`lib/voice/leave-grace.ts`). The agent likewise pauses
+  when the candidate drops out (nothing plays into an empty room) and finishes only if they aren't back within 15 s
+  (`VOICE_REJOIN_GRACE_MS`). The session stays active either way.
+- **A reload mid-session resumes the same interview:** the tab marks the live session in sessionStorage on
+  pagehide; the reloaded page reconnects on its own (audio may still need the usual click), to the same room and
+  the same agent, which picks up the new mic track and resumes listening. A connection that drops for longer (an app
+  switch) leaves the page saying "The connection dropped. Press Start to pick up where you left off." — Start
+  resumes the session with a fresh agent.
+- **The candidate never arrives** (left during the ~25 s cold start): the agent waits 20 s
+  (`VOICE_CANDIDATE_WAIT_MS`) after joining, then leaves and frees the room. An agent whose session ended before
+  it connected never joins.
+- **Capacity:** the token route counts only rooms whose session is still active; rooms of ended sessions are closed.
+- **One agent per session:** the token route claims the session (one conditional UPDATE) before dispatching; of two
+  concurrent requests one dispatches. A claim nobody released goes stale after 90 s.
+- **STT:** a Deepgram reconnect drops mic frames while the socket is down and resumes after; each loss and reconnect
+  is logged (`[voice] stt connection lost …`, `[voice] stt reconnected (#n) after …ms`).
+- **The page** says "Starting your interviewer — about 30 seconds" while it waits, and gives up after 60 s (then it
+  frees the room too).
+
 ## Secrets
 
 ### Hosted worker (a file you make, e.g. `.env.voice-worker`)

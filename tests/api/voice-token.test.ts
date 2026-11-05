@@ -12,10 +12,16 @@ const h = vi.hoisted(() => ({
 }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: h.user } }) } }) }));
 vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => h.session } } } }));
+// The dispatch claim (lib/voice/dispatch-claim.ts), as Postgres would decide it: the first caller wins.
+const claim = vi.hoisted(() => ({ held: false }));
+vi.mock('@/lib/voice/dispatch-claim', () => ({
+  claimVoiceDispatch: async () => (claim.held ? false : (claim.held = true)),
+  releaseVoiceDispatch: async () => { claim.held = false; },
+}));
 vi.mock('livekit-server-sdk', () => ({
   AccessToken: class { constructor(public key: string, public secret: string, public opts: unknown) {} addGrant(g: unknown) { h.grants.push(g); } async toJwt() { return 'jwt-for-test'; } },
   AgentDispatchClient: class { constructor(public url: string) { (h as Record<string, unknown>).dispatchUrl = url; } listDispatch = h.listDispatch; createDispatch = h.createDispatch; },
-  RoomServiceClient: class { constructor(public url: string) { (h as Record<string, unknown>).roomsUrl = url; } listRooms = async () => h.rooms; },
+  RoomServiceClient: class { constructor(public url: string) { (h as Record<string, unknown>).roomsUrl = url; } listRooms = async () => h.rooms; deleteRoom = async () => {}; },
 }));
 
 const { POST } = await import('@/app/api/voice/[sessionId]/token/route');
@@ -28,6 +34,7 @@ beforeEach(() => {
   h.createDispatch.mockClear();
   h.grants.length = 0;
   h.rooms = [];
+  claim.held = false;
   delete process.env.VOICE_MAX_CONCURRENT;
   process.env.LIVEKIT_URL = 'wss://example.livekit.cloud';
   process.env.LIVEKIT_API_KEY = 'key';

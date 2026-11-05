@@ -6,17 +6,18 @@
 // A session past it is refused before any dispatch; one whose agent never
 // speaks gets the same message from the browser after AGENT_AUDIO_TIMEOUT_MS.
 export const VOICE_BUSY_MESSAGE = 'Voice is busy right now. Try again in a few minutes.';
-// 30s, not 15 (Lorenzo, 19 Oct): a LiveKit Build-plan agent can cold-start
-// 10–20s after idle, which 15s called "busy". The page says it is connecting
-// meanwhile; the token route's 429 (rooms full) stays immediate.
-export const AGENT_AUDIO_TIMEOUT_MS = 30_000;
-export const CONNECTING_MESSAGE = 'Connecting to your interviewer…';
+// 60s (Lorenzo, 5 Nov; was 30s since 19 Oct, 15s before): the hosted agent cold-starts in about 25s after idle
+// (sessions 53e6ff28 / 7512cb6b), which 30s barely covered. The page says so meanwhile; the token route's 429
+// (rooms full) stays immediate.
+export const AGENT_AUDIO_TIMEOUT_MS = 60_000;
+export const CONNECTING_MESSAGE = 'Starting your interviewer — about 30 seconds';
 export const ROOM_PREFIX = 'case-';
 // A room this new counts even before anyone has joined it: the dispatch
 // creates it, and the candidate and the agent join within seconds.
 const JUST_CREATED_SEC = 30;
 
 export const voiceRoomName = (sessionId: string) => `${ROOM_PREFIX}${sessionId}`;
+export const sessionIdOfRoom = (room: string): string | null => (room.startsWith(ROOM_PREFIX) ? room.slice(ROOM_PREFIX.length) || null : null);
 
 export function maxConcurrentVoice(env: Record<string, string | undefined> = process.env): number {
   const n = Number(env.VOICE_MAX_CONCURRENT);
@@ -28,6 +29,8 @@ type RoomInfo = { name: string; numParticipants: number; creationTime: bigint | 
 // The other voice sessions running now: rooms of ours with someone in them,
 // or just created. A room empties and closes once the candidate and the
 // agent leave; the session's own room (a reload, a second Start) never counts.
+// The token route then drops rooms whose session is no longer active (voice lifecycle, 5 Nov: an ended session's
+// room is never counted, even before LiveKit closes it).
 export function liveVoiceRooms(rooms: RoomInfo[], ours: string, nowSec: number): string[] {
   return rooms.filter(r => r.name.startsWith(ROOM_PREFIX) && r.name !== ours
     && (r.numParticipants > 0 || nowSec - Number(r.creationTime) < JUST_CREATED_SEC)).map(r => r.name);
