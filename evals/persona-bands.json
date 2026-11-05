@@ -3479,6 +3479,66 @@
         "confidence": "medium",
         "reason": "\"dispute it confidently\" then \"accept it and carry on with the interviewer's number\""
       }
+    },
+    "68": {
+      "structure": {
+        "expect": [
+          "meets_bar",
+          "strong"
+        ],
+        "confidence": "medium",
+        "reason": "\"A well-prepared, strong candidate\""
+      },
+      "quantitative": {
+        "expect": [
+          "meets_bar",
+          "strong"
+        ],
+        "confidence": "medium",
+        "reason": "\"A well-prepared, strong candidate\""
+      },
+      "dataExhibit": {
+        "expect": [
+          "meets_bar",
+          "strong"
+        ],
+        "confidence": "medium",
+        "reason": "\"A well-prepared, strong candidate\""
+      },
+      "judgment": {
+        "expect": [
+          "meets_bar",
+          "strong"
+        ],
+        "confidence": "medium",
+        "reason": "\"A well-prepared, strong candidate\""
+      },
+      "creativity": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      },
+      "communication": {
+        "expect": [
+          "meets_bar",
+          "strong"
+        ],
+        "confidence": "medium",
+        "reason": "\"A well-prepared, strong candidate\""
+      },
+      "synthesis": {
+        "expect": [
+          "meets_bar",
+          "strong"
+        ],
+        "confidence": "medium",
+        "reason": "\"A well-prepared, strong candidate\""
+      },
+      "pushback": {
+        "expect": null,
+        "confidence": "medium",
+        "reason": ""
+      }
     }
   }
 }

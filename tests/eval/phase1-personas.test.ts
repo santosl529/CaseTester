@@ -7,8 +7,9 @@ const PROF001 = /COGS|coffee|bean|menu|store|Brew|cafe|café/i;
 describe('Phase 1 personas 65–67', () => {
   it('are appended after 64, in order, and nothing before them moved', () => {
     const ids = PERSONAS.map(p => p.id);
-    expect(ids.slice(-3)).toEqual([65, 66, 67]);
-    expect(ids.indexOf(64)).toBe(ids.length - 4);
+    // 68 (Ava, the demo smoke run, 4 Nov) comes after them.
+    expect(ids.slice(ids.indexOf(64), ids.indexOf(64) + 4)).toEqual([64, 65, 66, 67]);
+    expect(ids.slice(ids.indexOf(67) + 1)).toEqual([68]);
     expect(new Set(ids).size).toBe(ids.length);
   });
 
