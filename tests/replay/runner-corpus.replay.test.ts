@@ -14,6 +14,8 @@
 //
 // REPLAY_CASE=<caseId> (4 Nov, the live demo): replay the saved candidate messages against another case — the
 // mirror run carries that case id (prof-001 runs against prof-001-demo's 7-minute clock, at their saved times).
+// REPLAY_TIME_SCALE=<x> (default 1): each message arrives at its saved time × x — a 20-minute run at human pace
+// replayed on a 7-minute clock at 0.35.
 //
 // Per turn, not per interview: the candidate's next message is the saved one
 // whatever the interviewer now says. A turn whose kind changed (code now
@@ -143,6 +145,7 @@ let checkerOut: Row[] = [];
 const replayIndex = new Map<number, { saved: number; ms: number }>();
 const FILTER = process.env.REPLAY_FILTER ?? '';
 const REPLAY_CASE = process.env.REPLAY_CASE ?? '';
+const TIME_SCALE = Number(process.env.REPLAY_TIME_SCALE ?? 1);
 const enabled = process.env.REPLAY_RUNNER === '1' && !!OUT && existsSync(ROOT);
 
 type RunJson = { session: { caseId: string; startedAt: string; coverageJsonb?: unknown }; turns: { turnIndex: number; role: string; text: string; timestampMs: number }[]; events?: Row[] };
@@ -197,7 +200,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     // end gate saw (complete or not — the agent's scores aren't saved per turn).
     const gate = r.checks.find(c => c.check === 'end_gate')?.detail as { coverageMayEnd?: boolean } | undefined;
     store.session = {
-      ...store.session, startedAt: new Date(Date.now() - (r.stateBefore.elapsedMs ?? 0)),
+      ...store.session, startedAt: new Date(Date.now() - (r.stateBefore.elapsedMs ?? 0) * TIME_SCALE),
       coverageJsonb: gate?.coverageMayEnd ? FULL_COVERAGE : null,
     };
     let rec: TurnRecord | null = null;
