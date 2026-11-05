@@ -17,6 +17,7 @@ import { agentAudioWatchdog, CONNECTING_MESSAGE, VOICE_BUSY_MESSAGE } from '@/li
 import { HealthMeter } from '@/lib/voice/health';
 import { ReadyGate } from '@/lib/voice/ready-gate';
 import { SETUP_LINE_DELAY_MS, SetupTimings } from '@/lib/voice/setup-timing';
+import { sendLeave, shouldSendLeave } from '@/lib/voice/leave';
 
 const STATE_LABEL: Record<string, string> = {
   idle: 'Not started', connecting: 'Connecting…', waiting: 'Waiting for audio', listening: 'Listening',
@@ -70,6 +71,21 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
   const timing = useRef<{ ctx: AudioContext | null; mic: (() => number) | null; remote: (() => number) | null; lastMicLoudAt: number; pending: { turnSeq: number; from: number } | null; timer: number | null }>(
     { ctx: null, mic: null, remote: null, lastMicLoudAt: 0, pending: null, timer: null },
   );
+
+  // Leaving the page mid-session frees the room (voice lifecycle, 5 Nov): read from refs, so the pagehide and
+  // unmount handlers see the current state.
+  const leaveState = useRef<{ local: 'idle' | 'connecting' | 'live' | 'ended'; caseOver: boolean; sent: boolean }>({ local: 'idle', caseOver: false, sent: false });
+  const leave = () => {
+    const s = leaveState.current;
+    if (s.sent || !shouldSendLeave(s.local, s.caseOver)) return;
+    s.sent = true;
+    sendLeave(sessionId, { sendBeacon: navigator.sendBeacon?.bind(navigator), fetch: (u, i) => fetch(u, i) });
+  };
+  useEffect(() => {
+    window.addEventListener('pagehide', leave);
+    return () => { window.removeEventListener('pagehide', leave); leave(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // The page's health, reported at the end of each interviewer turn (19 Oct, d).
   const health = useRef<{ meter: HealthMeter; raf: number | null; observer: PerformanceObserver | null } | null>(null);
@@ -243,6 +259,7 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
     watchdog.current = agentAudioWatchdog({ onTimeout: () => {
       setConnecting(false);
       setProblem(VOICE_BUSY_MESSAGE);
+      leave();   // the interviewer never came: free the room and cancel the dispatch
       if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
       timing.current.timer = null;
       room.disconnect();
@@ -309,6 +326,12 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
 
   const phase = local === 'ended' ? 'ended' : local === 'live' ? view.phase : local;
   const caseOver = view.phase === 'ended' || local === 'ended';
+  // Where the leave handlers read it (above); a new Start can leave again.
+  useEffect(() => {
+    const s = leaveState.current;
+    s.caseOver = caseOver;
+    if (s.local !== local) { s.local = local; if (local === 'connecting') s.sent = false; }
+  }, [local, caseOver]);
 
   return (
     <div className="h-full flex flex-col gap-3 p-4">
@@ -332,7 +355,7 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
         {view.exhibits.map(e => <ExhibitTable key={e.id} exhibit={e} />)}
       </div>
 
-      {connecting && local === 'live' && !needsClick && !problem && <p className="text-sm text-neutral-600">{CONNECTING_MESSAGE}</p>}
+      {((connecting && local === 'live') || local === 'connecting') && !needsClick && !problem && <p className="text-sm text-neutral-600">{CONNECTING_MESSAGE}</p>}
       {(problem || view.error) && <p className="text-sm text-red-600">{problem ?? view.error}</p>}
       {view.endedReason && view.endedReason !== 'case_complete' && (
         <p className="text-sm text-neutral-600">{ENDED_TEXT[view.endedReason] ?? 'The session ended.'}{view.canScore ? ' You can score it for a report on what you covered.' : ''}</p>

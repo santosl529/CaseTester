@@ -560,6 +560,19 @@ describe('audio blocked, End, the opening, the TTS cap', () => {
     await h.advance(2000);
     expect(h.sent.at(-1)).toMatchObject({ type: 'ended', reason: 'case_complete' });
   });
+
+  // Voice lifecycle (5 Nov): the agent leaves once the case has ended — told after `ended` is sent, not before.
+  it('tells the agent the case has ended, once, after the closing line and the ended message', async () => {
+    const ended: string[] = [];
+    let sentBefore = 0;
+    const h = harness([{ segs: [seg('tail', 'Thanks, that is the case.')], ended: true }], { ...noAck, onEnded: r => { ended.push(r); sentBefore = h.sent.filter(m => m.type === 'ended').length; } });
+    await h.c.ready(''); h.c.onStt(final('That is my recommendation.'));
+    await h.advance(100);
+    expect(ended).toEqual([]);
+    await h.advance(2000);
+    expect(ended).toEqual(['case_complete']);
+    expect(sentBefore).toBe(1);
+  });
 });
 
 // Item 3 (Lorenzo's brief, 17 Oct): one button for the thinking sounds and the

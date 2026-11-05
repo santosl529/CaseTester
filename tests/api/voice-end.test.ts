@@ -20,6 +20,10 @@ vi.mock('@/db/client', () => ({
   },
 }));
 vi.mock('@/lib/analytics', () => ({ logEvent: async (...a: unknown[]) => { h.events.push(a); } }));
+// The room is freed on End (voice lifecycle, 5 Nov; tests/api/voice-lifecycle.test.ts covers it end to end).
+const freed = vi.hoisted(() => ({ rooms: [] as string[], released: [] as string[] }));
+vi.mock('@/lib/voice/room-lifecycle', () => ({ roomAdminFromEnv: () => ({}), closeVoiceRoom: async (_a: unknown, room: string) => { freed.rooms.push(room); return { dispatchesCancelled: 0, roomDeleted: true }; } }));
+vi.mock('@/lib/voice/dispatch-claim', () => ({ releaseVoiceDispatch: async (id: string) => { freed.released.push(id); } }));
 
 const { POST } = await import('@/app/api/voice/[sessionId]/end/route');
 const call = () => POST(new Request('http://x/api/voice/s1/end', { method: 'POST' }) as never, { params: Promise.resolve({ sessionId: 's1' }) });
@@ -28,6 +32,7 @@ beforeEach(() => {
   h.user = { id: 'u1' };
   h.session = { id: 's1', userId: 'u1', status: 'active', phase: 'ANALYSIS', flagsJsonb: {} };
   h.updates.length = 0; h.events.length = 0; h.rows.length = 0;
+  freed.rooms.length = 0; freed.released.length = 0;
 });
 
 describe('voice end route', () => {
@@ -54,6 +59,12 @@ describe('voice end route', () => {
     h.session = { ...h.session, status: 'completed' };
     expect(await (await call()).json()).toEqual({ status: 'completed', report: true, partial: false });
     expect(h.updates).toEqual([]);
+  });
+
+  it('frees the room every time: a pending dispatch cancelled, the room deleted, the claim released', async () => {
+    await call();
+    expect(freed.rooms).toEqual(['case-s1']);
+    expect(freed.released).toEqual(['s1']);
   });
 
   it('the TTS cap ends the session the same way, under its own reason and event (voice deploy)', async () => {

@@ -2,7 +2,9 @@
 // route dispatches with {sessionId}. It joins the session's room, feeds the
 // owner's mic to Flux and the speech-end tracker, publishes the interviewer
 // track, and runs the VoiceTurnController until the case ends, the candidate
-// leaves, the time limit hits, or a budget refuses. Haiku 5.5 interviews here
+// leaves, the time limit hits, or a budget refuses. Voice lifecycle (5 Nov): whatever ends the job — the case ending,
+// End (the room deleted under us), the candidate leaving or never arriving — stops STT and TTS, leaves, deletes the
+// room, cancels the dispatch and releases the session's dispatch claim (agent-lifecycle.ts, room-lifecycle.ts). Haiku 5.5 interviews here
 // (INTERVIEWER_PROVIDER, set by `npm run voice:agent`); background checks are
 // the production mix.
 import os from 'node:os';
@@ -42,6 +44,11 @@ import { dbLineWriter } from './session-lines-db';
 import { LiveKitSink } from './livekit-media';
 import { SessionRecorder } from './recorder';
 import { findCandidateTrack, pickCandidateTrack, realClock } from './room-rules';
+import { AgentLifecycle, shouldJoin, type FinishReason } from './agent-lifecycle';
+import { pumpMic } from './mic-pump';
+import { closeVoiceRoom, roomAdminFromEnv } from './room-lifecycle';
+import { releaseVoiceDispatch } from './dispatch-claim';
+import { voiceRoomName } from './capacity';
 import type { SttEvent, TTSProvider } from './types';
 
 const OUT_RATE = 24000;   // Cartesia out
@@ -70,13 +77,64 @@ export default defineAgent({
       return r;
     };
     const { sessionId } = JSON.parse(ctx.job.metadata || '{}') as { sessionId?: string };
+    const admin = roomAdminFromEnv();
+    // The room is freed whatever ends the job: the dispatch cancelled, the room deleted, the claim released.
+    const freeRoom = async () => {
+      if (!sessionId) return;
+      await closeVoiceRoom(admin, voiceRoomName(sessionId), m => console.warn(m));
+      await releaseVoiceDispatch(sessionId).catch(e => console.warn('[voice-agent] dispatch claim not released', e));
+    };
     const session = sessionId ? await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) }) : undefined;
     mark('session_read');
-    if (!session || session.status !== 'active') {
-      console.warn('[voice-agent] no active session for', sessionId);
-      ctx.shutdown('no active session');
+    // A late-arriving agent never joins a session that is over (End during the cold start).
+    if (!shouldJoin(session)) {
+      console.warn('[voice-agent] no active session for', sessionId, '— not joining');
+      await freeRoom();
+      ctx.shutdown('session_over');
       return;
     }
+    if (!session) return;   // (narrowing; shouldJoin checked it)
+    await ctx.connect();
+    mark('room_connected');
+    const room = ctx.room;
+    // Ended while we connected: leave at once.
+    const recheck = await db.query.sessions.findFirst({ where: eq(sessions.id, session.id), columns: { status: true } });
+    if (!shouldJoin(recheck)) {
+      console.warn('[voice-agent] session ended while connecting — leaving');
+      await freeRoom();
+      ctx.shutdown('session_over');
+      return;
+    }
+
+    // Whatever ends the job, once (agent-lifecycle.ts). Wired before the slow setup: a candidate who leaves while
+    // we set up, or never arrives, ends the job too. `finish` (below) copes with a job only partly set up.
+    let finishImpl: ((why: FinishReason) => Promise<void>) | null = null;
+    let finishWanted: FinishReason | null = null;
+    const life = new AgentLifecycle({
+      candidate: session.userId,
+      setTimer: (f, ms) => setTimeout(f, ms), clearTimer: h => clearTimeout(h as ReturnType<typeof setTimeout>),
+      candidateWaitMs: num('VOICE_CANDIDATE_WAIT_MS', 20_000),
+      onFinish: why => {
+        console.log(`[voice-agent] finishing: ${why}`);
+        if (finishImpl) void finishImpl(why); else finishWanted = why;
+      },
+    });
+    room.on(RoomEvent.ParticipantDisconnected, (p: RemoteParticipant) => life.left(p.identity));
+    room.on(RoomEvent.Disconnected, () => life.roomClosed());
+    room.on(RoomEvent.ParticipantConnected, (p: RemoteParticipant) => life.joined(p.identity));
+    life.connected([...room.remoteParticipants.values()].map(p => p.identity));
+    // Resources opened so far, closed by `finish` (and by setup itself if the job ended while it ran).
+    const open: { stt?: { close(): Promise<void> }; tts?: CartesiaTTS; mic: (() => void)[] } = { mic: [] };
+    const abandon = async (): Promise<boolean> => {
+      if (!life.over) return false;
+      for (const stop of open.mic) stop();
+      await open.stt?.close().catch(() => {});
+      open.tts?.close();
+      await freeRoom();
+      ctx.shutdown(life.why ?? 'ended');
+      return true;
+    };
+
     // Budgets first: nothing paid starts without them (spec §9). The LLM cap is
     // this session's (LLM_BUDGET_USD, default $1.00; session-budget.ts).
     installSessionBudget();
@@ -87,9 +145,6 @@ export default defineAgent({
     // Opt-in session recording for turn-taking review (VOICE_RECORD=1): mic,
     // interviewer audio and events, local under .voice-cache/recordings.
     const rec = process.env.VOICE_RECORD === '1' ? new SessionRecorder(Date.now(), { candidateRate: IN_RATE, interviewerRate: OUT_RATE }) : null;
-    await ctx.connect();
-    mark('room_connected');
-    const room = ctx.room;
 
     // The owner's mic → Flux + the speech-end tracker, wired before anything
     // slow: the browser's track can be subscribed while the rest is set up,
@@ -101,26 +156,26 @@ export default defineAgent({
     const keyterms = keytermsIfEnabled(caseData);
     console.log(`[voice-agent] stt keyterms: ${keyterms ? `on (${keyterms.length})` : 'off'}`);
     const stt = await new DeepgramFluxSTT({ eotThreshold: 0.7, eagerEotThreshold: 0.5, keyterms }).open({ encoding: 'pcm_s16le', sampleRate: IN_RATE });
+    open.stt = stt;
     mark('stt_open');
+    if (await abandon()) return;
     let onStt: (s: SttEvent) => void = () => {};   // the controller, once it exists
     stt.onSignal(sig => {
       rec?.event('stt', sig.kind === 'resumed' ? { kind: sig.kind } : { kind: sig.kind, transcript: sig.transcript, ...(sig.kind === 'speech' ? { words: sig.words } : {}) });
       onStt(sig);
     });
     let micSid: string | null = null;
+    // A frame a sink can't take costs that frame only; a Deepgram reconnect no longer ends listening (mic-pump.ts).
     const listen = (t: RemoteTrack, sid: string) => {
       micSid = sid;
-      void (async () => {
-        const reader = new AudioStream(t, { sampleRate: IN_RATE, numChannels: 1 }).getReader();
-        for (;;) {
-          const { value: frame, done } = await reader.read();
-          if (done || !frame) break;
-          const now = Date.now();
-          vad.push(frame.data, now);
-          rec?.candidate(frame.data, now);
-          stt.push(new Uint8Array(frame.data.buffer, frame.data.byteOffset, frame.data.byteLength));
-        }
-      })();
+      const reader = new AudioStream(t, { sampleRate: IN_RATE, numChannels: 1 }).getReader();
+      const pump = pumpMic(reader as never, {
+        vad: (data, now) => vad.push(data, now),
+        record: rec ? (data, now) => rec.candidate(data, now) : undefined,
+        stt: pcm => stt.push(pcm),
+      });
+      open.mic.push(pump.stop);
+      void pump.done.then(st => { console.log(`[voice-agent] mic loop ended (${st.ended}; ${st.frames} frames, ${st.sinkErrors} not delivered)`); if (micSid === sid) micSid = null; });
     };
     room.on(RoomEvent.TrackSubscribed, (t: RemoteTrack, pub: RemoteTrackPublication, p: RemoteParticipant) => {
       if (t.kind !== TrackKind.KIND_AUDIO || !pub.sid || pub.sid === micSid || !pickCandidateTrack(session.userId, micSid, p.identity, pub.sid)) return;
@@ -144,8 +199,9 @@ export default defineAgent({
     // TTS: Cartesia (run cap + monthly ledger) or the free tone.
     const voice = fake ? 'tone' : await defaultVoiceId();
     const tts: TTSProvider = fake ? new FakeTTS() : new CartesiaTTS(voice);
-    if (tts instanceof CartesiaTTS) await tts.connect();
+    if (tts instanceof CartesiaTTS) { open.tts = tts; await tts.connect(); }
     mark('tts_connected');
+    if (await abandon()) return;
     const ledger = await openTtsLedger();   // the month's row in voice_tts_usage, shared by every job
     mark('ledger_open');
     const run = runCap === null ? null : new RunCharCap(runCap);
@@ -159,6 +215,7 @@ export default defineAgent({
     const acks = await loadAcks(tts, voice, ttsAllow, { sampleRate: OUT_RATE, gapMs: num('VOICE_FILLER_GAP_MS', FILLER_GAP_MS), tailMs: num('VOICE_FILLER_TAIL_MS', FILLER_TAIL_MS),
       synthesize: process.env.VOICE_ACK_SYNTH !== '0', onMissing: t => missingClips.push(t) });
     mark('acks_loaded');
+    if (await abandon()) return;
     if (missingClips.length) console.warn(`[voice-agent] ${missingClips.length} acknowledgment clip(s) not shipped for ${tts.name} ${voice}, left out: ${missingClips.join(' | ')} — render with scripts/voice-render-acks.ts`);
 
     // Timing records (spec §7): voice_session_lines, and the local jsonl when
@@ -209,6 +266,8 @@ export default defineAgent({
       bargeMinWords: num('VOICE_BARGE_MIN_WORDS', 2), sessionSeed: session.id, fillerDelayMs: num('VOICE_FILLER_DELAY_MS', FILLER_DELAY_MS), fillerRate,
       trace: rec ? (type, data) => rec.event(type, data) : undefined,
       agentTiming,
+      // The case is over (the closing line has played): leave instead of listening on.
+      onEnded: () => life.caseEnded(),
     });
 
     onStt = sig => controller.onStt(sig);
@@ -244,14 +303,12 @@ export default defineAgent({
       }
     });
 
-    // The end: the candidate leaves, or the time limit.
-    let finished = false;
-    const finish = async (why: string) => {
-      if (finished) return;
-      finished = true;
+    // The end, whatever the reason (agent-lifecycle.ts): STT and TTS stop, records flush, the room is freed.
+    const finish = async (why: FinishReason) => {
       clearTimeout(limit);
       loop.disable();
       controller.close();
+      for (const stop of open.mic) stop();
       await stt.close().catch(() => {});
       await controller.idle().catch(() => {});
       await Promise.allSettled(background);
@@ -269,15 +326,15 @@ export default defineAgent({
         console.log('[voice] recording saved:', dir, '— review with: npx tsx scripts/voice-review.ts', dir);
       }
       console.log('[voice] session summary', JSON.stringify(summary));
+      await freeRoom();
       ctx.shutdown(why);
     };
     const limit = setTimeout(() => {
       send({ type: 'ended', reason: 'time_limit', scoringSuppressed: true });
-      void finish('time_limit');
+      life.finish('time_limit');
     }, num('VOICE_MAX_SESSION_MIN', 25) * 60_000);
-    room.on(RoomEvent.ParticipantDisconnected, (p: RemoteParticipant) => {
-      if (p.identity === session.userId) void finish('candidate_left');
-    });
+    finishImpl = finish;
+    if (finishWanted) { void finish(finishWanted); return; }
     // Listening now: announce it, so a `ready` the browser sent before we
     // joined is sent again (and again if the owner joins after us).
     send({ type: 'hello' });

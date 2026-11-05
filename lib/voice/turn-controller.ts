@@ -54,6 +54,8 @@ export type ControllerDeps = {
   ttsAllowClosing?: (chars: number) => boolean;
   // Ends the session for the cap (completed with a report when assessable); default: no report.
   endEarly?: (reason: 'tts_cap') => Promise<{ scoringSuppressed: boolean }>;
+  // The session has ended (after `ended` is sent): the agent leaves the room (voice lifecycle, 5 Nov).
+  onEnded?: (reason: 'case_complete' | 'tts_cap' | 'time_limit' | 'error') => void;
   bargeMinWords: number;
   sessionSeed: string;
   // How long after end of turn the acknowledgment waits (FILLER_DELAY_MS); 0 plays it at once.
@@ -565,6 +567,7 @@ export class VoiceTurnController {
   private end(reason: 'case_complete' | 'tts_cap' | 'time_limit' | 'error', scoringSuppressed: boolean): void {
     this.setState('ended', this.seq);
     this.d.send({ type: 'ended', reason, scoringSuppressed });
+    this.d.onEnded?.(reason);
   }
 
   private setState(state: VoiceState, turnSeq: number): void {

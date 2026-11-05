@@ -59,12 +59,13 @@ describe('the agent-audio watchdog', () => {
 // idle; 15s with no interviewer audio called that "busy". The wait is 30s, and
 // the page says it is connecting meanwhile (the token route's 429 stays immediate).
 describe('the cold-start wait', () => {
-  it('waits 30s by default before calling voice busy', () => {
+  // 60s since 5 Nov (the hosted agent's cold start is about 25s; Lorenzo's brief).
+  it('waits 60s by default before calling voice busy', () => {
     vi.useFakeTimers();
     const onTimeout = vi.fn();
     const w = agentAudioWatchdog({ onTimeout });
     w.arm();
-    vi.advanceTimersByTime(29_999);
+    vi.advanceTimersByTime(59_999);
     expect(onTimeout).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
     expect(onTimeout).toHaveBeenCalledTimes(1);
@@ -72,6 +73,6 @@ describe('the cold-start wait', () => {
   });
 
   it('says it is connecting while it waits', () => {
-    expect(CONNECTING_MESSAGE).toBe('Connecting to your interviewer…');
+    expect(CONNECTING_MESSAGE).toBe('Starting your interviewer — about 30 seconds');
   });
 });
