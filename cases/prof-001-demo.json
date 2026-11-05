@@ -369,16 +369,16 @@
   ],
   "pacing": {
     "totalMs": 420000,
-    "timeWarningMs": 60000,
+    "timeWarningMs": 90000,
     "phaseBudgetsMs": {
       "INTRO": 15000,
       "CLARIFY": 30000,
       "STRUCTURE": 45000,
-      "ANALYSIS": 135000,
+      "ANALYSIS": 120000,
       "EXHIBIT": 60000,
       "BRAINSTORM": 15000,
-      "RECOMMENDATION": 100000,
-      "WRAP": 20000
+      "RECOMMENDATION": 105000,
+      "WRAP": 30000
     }
   },
   "brainstorm": {

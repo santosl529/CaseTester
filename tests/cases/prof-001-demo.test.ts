@@ -33,12 +33,12 @@ describe('prof-001-demo', () => {
     expect(without(demo as never, OWN)).toEqual(without(src as never, OWN));
   });
 
-  it('runs a 7-minute clock whose budgets sum to it; stage deadlines 3:45 / 4:45 / 5:00; 60 s warning', () => {
+  it('runs a 7-minute clock whose budgets sum to it; stage deadlines 3:30 / 4:30 / 4:45; 90 s warning (the load-shed window)', () => {
     const demo = getCaseById('prof-001-demo');
     expect(caseTotalMs(demo)).toBe(420_000);
-    expect(demo.pacing?.timeWarningMs).toBe(60_000);
+    expect(demo.pacing?.timeWarningMs).toBe(90_000);
     const budgets = resolvePhaseBudgets(demo, caseTotalMs(demo));
     expect(Object.values(demo.pacing!.phaseBudgetsMs!).reduce((a, b) => a + (b ?? 0), 0)).toBe(420_000);
-    expect(stageDeadlinesMs(budgets)).toEqual({ analysisEnd: 225_000, exhibitEnd: 285_000, brainstormEnd: 300_000 });
+    expect(stageDeadlinesMs(budgets)).toEqual({ analysisEnd: 210_000, exhibitEnd: 270_000, brainstormEnd: 285_000 });
   });
 });

@@ -195,6 +195,9 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
     const next = saved[k + 1]?.stateBefore.pressureTest as { state?: string; structureGiven?: boolean } | undefined;
     // The structure check's verdict: what the saved state held after this turn.
     structureGiven = next?.structureGiven ?? (r.stateBefore.pressureTest as { structureGiven?: boolean } | undefined)?.structureGiven ?? true;
+    // Against another case (REPLAY_CASE), whose structure check may run where the saved run's never did (a case with
+    // no pressure test runs it every turn): a structure is also on the table once the saved run had its probe out.
+    if (REPLAY_CASE && next?.state !== undefined && next.state !== 'not_asked') structureGiven = true;
     judge = pt?.verdict ?? { answered: next?.state === 'satisfied' || next?.state === 'waived', reason: 'replay' };
     // The clock as it stood when this message arrived, and the coverage the
     // end gate saw (complete or not — the agent's scores aren't saved per turn).
@@ -249,7 +252,7 @@ async function replayRun(file: string): Promise<{ turns: number; diverged: numbe
   for (let i = 0; i < extend && store.session.status === 'active'; i++) {
     lastIndex += 2; lastMs += gap;
     modelTurn = NEUTRAL; modelCalled = false; detections = []; judge = { answered: true, reason: 'replay' };
-    store.session = { ...store.session, startedAt: new Date(Date.now() - lastMs) };
+    store.session = { ...store.session, startedAt: new Date(Date.now() - lastMs * TIME_SCALE) };
     checkerClock.nowMs = lastMs;
     currentKey = `extended#${lastIndex}`;
     let rec: TurnRecord | null = null;
