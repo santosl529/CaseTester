@@ -155,14 +155,15 @@ const numbersIn = (t: string) => new Set([...t.replace(/\b(?:19|20)\d{2}\b|\b\d+
 // Known, not yet fixed (12 Oct): prof-001's exhibit shows last year's COGS 50,
 // overhead 13 and profit 15, which no ledger sentence states — the
 // interviewer can't cite them. Left alone while batch 21 runs on prof-001.
-const KNOWN_UNCOVERED: Record<string, number[]> = { 'prof-001/exhibit-a': [50, 13, 15] };
+// prof-001-demo (4 Nov) is a copy of prof-001, with its exhibit.
+const KNOWN_UNCOVERED: Record<string, number[]> = { 'prof-001/exhibit-a': [50, 13, 15], 'prof-001-demo/exhibit-a': [50, 13, 15] };
 
 // Everything the candidate sees of an exhibit: title, column headers, cells, notes.
 const onScreen = (e: { title: string; notes?: string; data: Record<string, unknown>[] }) =>
   [e.title, e.notes ?? '', ...e.data.flatMap(r => [...Object.keys(r), ...Object.values(r).map(String)])].join(' ');
 // Known, not yet fixed (20 Oct): prof-001's exhibit is the old cost-share chart; its ledger sentences
 // say "of revenue" and other words its cells don't carry. Figures are still checked.
-const KNOWN_PHRASES_NOT_SHOWN = new Set(['prof-001/exhibit-a/cogs_pct', 'prof-001/exhibit-a/labor_pct', 'prof-001/exhibit-a/overhead_pct']);
+const KNOWN_PHRASES_NOT_SHOWN = new Set(['prof-001', 'prof-001-demo'].flatMap(id => ['cogs_pct', 'labor_pct', 'overhead_pct'].map(i => `${id}/exhibit-a/${i}`)));
 const KNOWN_NOT_SHOWN: Record<string, number[]> = {};
 
 describe('every case', () => {

@@ -1,0 +1,943 @@
+{
+  "id": "prof-001-demo",
+  "title": "Brew & Bean Profitability",
+  "sttKeyterms": [
+    "Brew & Bean",
+    "green coffee",
+    "dairy"
+  ],
+  "firmStyle": "mckinsey",
+  "difficulty": "medium",
+  "caseType": "profitability",
+  "prompt": "Your client is Brew & Bean, a specialty coffee chain with 200 locations across the US. Over the past two years, their net profit margin has declined from 24% to 6%, even though revenues have grown 15% over the same period. The CEO has hired us to identify the root cause of this profit decline and recommend how to reverse it. How would you approach this problem?",
+  "interviewerNotes": "Push candidate to disaggregate revenue vs. cost drivers first. If candidate jumps to solutions, redirect to diagnosis. Key insight: COGS explains 16 of the 18 points of margin decline (overhead adds the other 2; labor is flat), driven by broad input-cost inflation (about 38% across inputs) that was never passed through — menu prices have not changed in two years, and the higher average ticket is customers buying more items. Coffee beans (+40%) are the most visible driver but, at 25% of COGS, explain only about 4.2 of the 16 points; other inputs (dairy, packaging, food, up 37.5%) explain the other 11.8. If the candidate stops at beans, probe whether beans alone can explain 16 points. If candidate gets close, probe whether price elasticity was tested.",
+  "dataLedger": [
+    {
+      "id": "revenue_total",
+      "label": "Total annual revenue",
+      "spoken": "the total annual revenue",
+      "value": "Total revenue is $480M a year.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "480": "current"
+      }
+    },
+    {
+      "id": "stores_count",
+      "label": "Number of stores",
+      "spoken": "the number of stores",
+      "value": "200 stores today — and it was 200 stores two years ago, so the footprint hasn’t changed.",
+      "releaseWhen": "CLARIFY",
+      "timeframes": {
+        "200": "both"
+      }
+    },
+    {
+      "id": "revenue_per_store",
+      "label": "Average revenue per store",
+      "spoken": "the average revenue per store",
+      "value": "Average revenue per store is $2.4M a year.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "2.4": "current"
+      }
+    },
+    {
+      "id": "cogs_pct",
+      "label": "COGS as % of revenue",
+      "spoken": "COGS as a percent of revenue",
+      "value": "COGS is 58% of revenue today, up from 42% two years ago.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "58": "current",
+        "42": "prior"
+      }
+    },
+    {
+      "id": "labor_pct",
+      "label": "Labor as % of revenue",
+      "spoken": "labor as a percent of revenue",
+      "value": "Labor is 22% of revenue, and it’s been stable.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "22": "both"
+      }
+    },
+    {
+      "id": "overhead_pct",
+      "label": "Overhead / rent as % of revenue",
+      "spoken": "overhead including rent as a percent of revenue",
+      "value": "Overhead and rent are 14% of revenue, up slightly from 12%.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "14": "current",
+        "12": "prior"
+      }
+    },
+    {
+      "id": "bean_price_change",
+      "label": "Coffee bean price change over 2 years",
+      "spoken": "the coffee bean price change",
+      "value": "Raw coffee bean costs are up 40% over the past two years.",
+      "releaseWhen": "EXHIBIT",
+      "timeframes": {
+        "40": "change"
+      }
+    },
+    {
+      "id": "avg_ticket",
+      "label": "Average transaction value",
+      "spoken": "the average transaction value",
+      "value": "The average transaction is $6.80, up from $6.20 two years ago — about a 10% increase, because customers are buying more items per visit.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {
+        "6.80": "current",
+        "6.20": "prior",
+        "10": "change"
+      }
+    },
+    {
+      "id": "menu_price_change",
+      "label": "Menu price changes over 2 years",
+      "spoken": "the menu price changes",
+      "value": "Menu prices have not changed in two years.",
+      "releaseWhen": "ANALYSIS",
+      "timeframes": {}
+    },
+    {
+      "id": "bean_share_of_cogs",
+      "label": "Composition of COGS: coffee beans' share of COGS",
+      "spoken": "the coffee beans' share of COGS",
+      "value": "Coffee beans were 25% of COGS two years ago.",
+      "releaseWhen": "EXHIBIT",
+      "timeframes": {
+        "25": "prior"
+      }
+    },
+    {
+      "id": "non_bean_input_change",
+      "label": "Price change of the other inputs (dairy, packaging, food) over 2 years",
+      "spoken": "the price change of the other inputs",
+      "value": "Other input costs — dairy, packaging, and food — are up 37.5% over the past two years.",
+      "releaseWhen": "EXHIBIT",
+      "timeframes": {
+        "37.5": "change"
+      }
+    }
+  ],
+  "stepFlagsLive": true,
+  "mathSteps": [
+    {
+      "id": "profit_margin_now",
+      "description": "Current profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 58 - 22 - 14",
+      "answer": 6,
+      "tolerance": 0.5,
+      "cues": [
+        "margin"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+      ],
+      "live": false,
+      "quantity": "net profit margin today",
+      "timeframe": "current"
+    },
+    {
+      "id": "profit_margin_prior",
+      "description": "Prior profit margin = 100% - COGS% - Labor% - Overhead% = 100 - 42 - 22 - 12 = 24",
+      "answer": 24,
+      "tolerance": 0.5,
+      "cues": [
+        "margin"
+      ],
+      "unit": "percent",
+      "inputs": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+      ],
+      "live": false,
+      "quantity": "net profit margin two years ago",
+      "timeframe": "prior"
+    },
+    {
+      "id": "cogs_dollar_impact",
+      "description": "Margin impact of the COGS increase = 16pp × current revenue $480M = $76.8M. This measures the margin compression valued at today's revenue. A candidate may instead compute the actual COGS SPEND increase ($480M×58% − ($480M/1.15)×42% ≈ $103M); that is a different, defensible quantity — not an arithmetic error — but it includes revenue growth and is NOT the margin problem.",
+      "answer": 76.8,
+      "tolerance": 2,
+      "altAnswers": [
+        103.1
+      ],
+      "cues": [
+        "impact",
+        "compression",
+        "hit",
+        "worth",
+        "costing"
+      ],
+      "notCues": [
+        "overhead",
+        "labor",
+        "labour",
+        "wage",
+        "rent"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "cogs_pct",
+        "revenue_total"
+      ],
+      "quantity": "the margin impact of the COGS increase, in dollars at today's revenue",
+      "timeframe": "change"
+    },
+    {
+      "id": "revenue_per_store_check",
+      "description": "$480M / 200 stores = $2.4M per store",
+      "answer": 2.4,
+      "tolerance": 0.05,
+      "cues": [
+        "per store",
+        "per location",
+        "each store",
+        "a store",
+        "store average",
+        "average store",
+        "per-store"
+      ],
+      "unit": "usd",
+      "inputs": [
+        "revenue_total"
+      ],
+      "quantity": "average revenue per store",
+      "timeframe": "current"
+    },
+    {
+      "id": "bean_share_of_revenue",
+      "description": "Beans as a share of revenue two years ago = 25% of COGS × 42% COGS share of revenue = 10.5 points",
+      "answer": 10.5,
+      "tolerance": 0.3,
+      "cues": [
+        "bean",
+        "beans",
+        "green coffee"
+      ],
+      "unit": [
+        "percent",
+        "points"
+      ],
+      "inputs": [
+        "bean_share_of_cogs",
+        "cogs_pct"
+      ],
+      "verifyOnly": true,
+      "operands": [
+        25,
+        42
+      ],
+      "quantity": "coffee beans as a share of revenue two years ago",
+      "timeframe": "prior"
+    },
+    {
+      "id": "bean_points_added",
+      "description": "Bean inflation's contribution to the COGS increase = 10.5 points × 40% = 4.2 points of revenue",
+      "answer": 4.2,
+      "tolerance": 0.3,
+      "cues": [
+        "bean",
+        "beans",
+        "explain",
+        "adds",
+        "contribut"
+      ],
+      "unit": [
+        "points",
+        "percent"
+      ],
+      "inputs": [
+        "bean_share_of_cogs",
+        "cogs_pct",
+        "bean_price_change"
+      ],
+      "verifyOnly": true,
+      "operands": [
+        10.5,
+        40
+      ],
+      "quantity": "bean inflation's contribution to the COGS increase, in points of revenue",
+      "timeframe": "change"
+    },
+    {
+      "id": "non_bean_points_now",
+      "description": "Other inputs as points of revenue today = 31.5 points two years ago × 1.375 = 43.3 points (prices flat, so cost shares scale with input prices)",
+      "answer": 43.3,
+      "tolerance": 0.4,
+      "cues": [
+        "other inputs",
+        "non-bean",
+        "dairy",
+        "packaging",
+        "other input"
+      ],
+      "unit": [
+        "points",
+        "percent"
+      ],
+      "inputs": [
+        "bean_share_of_cogs",
+        "cogs_pct",
+        "non_bean_input_change"
+      ],
+      "verifyOnly": true,
+      "operands": [
+        31.5,
+        1.375
+      ],
+      "quantity": "other inputs as a share of revenue today",
+      "timeframe": "current"
+    },
+    {
+      "id": "non_bean_points_added",
+      "description": "Other inputs' contribution to the COGS increase = 43.3 − 31.5 = 11.8 points of revenue",
+      "answer": 11.8,
+      "tolerance": 0.4,
+      "cues": [
+        "other inputs",
+        "non-bean",
+        "dairy",
+        "packaging",
+        "rest",
+        "remaining",
+        "unexplained"
+      ],
+      "unit": [
+        "points",
+        "percent"
+      ],
+      "inputs": [
+        "bean_share_of_cogs",
+        "cogs_pct",
+        "non_bean_input_change"
+      ],
+      "verifyOnly": true,
+      "operands": [
+        43.3,
+        31.5
+      ],
+      "quantity": "other inputs' contribution to the COGS increase, in points of revenue",
+      "timeframe": "change"
+    }
+  ],
+  "exhibits": [
+    {
+      "id": "exhibit-a",
+      "title": "Brew & Bean Cost Structure Over Time",
+      "chartType": "bar",
+      "required": true,
+      "coversLedgerItems": [
+        "cogs_pct",
+        "labor_pct",
+        "overhead_pct"
+      ],
+      "data": [
+        {
+          "year": "2 years ago",
+          "COGS": 42,
+          "Labor": 22,
+          "Overhead": 12,
+          "Profit": 24
+        },
+        {
+          "year": "Last year",
+          "COGS": 50,
+          "Labor": 22,
+          "Overhead": 13,
+          "Profit": 15
+        },
+        {
+          "year": "Current",
+          "COGS": 58,
+          "Labor": 22,
+          "Overhead": 14,
+          "Profit": 6
+        }
+      ],
+      "interpretationKey": "COGS drives the margin compression: 16 of the 18 points (labor is flat; overhead adds the other 2). A strong candidate names COGS specifically, asks what's inside it, and tests whether the coffee bean spike (+40%) can explain the full 16 points — it can't: beans are 25% of COGS, so they add about 4.2 points, and other inputs up 37.5% add the other 11.8. Weak candidates say 'costs went up' without specifying, or stop at beans."
+    }
+  ],
+  "pacing": {
+    "totalMs": 420000,
+    "timeWarningMs": 60000,
+    "phaseBudgetsMs": {
+      "INTRO": 15000,
+      "CLARIFY": 30000,
+      "STRUCTURE": 45000,
+      "ANALYSIS": 135000,
+      "EXHIBIT": 60000,
+      "BRAINSTORM": 15000,
+      "RECOMMENDATION": 100000,
+      "WRAP": 20000
+    }
+  },
+  "brainstorm": {
+    "ask": [
+      "Beyond what we've discussed, what else could the client do?",
+      "What other levers could the client pull here?",
+      "What else could the client do to protect margin?"
+    ],
+    "required": false
+  },
+  "skipPressureTest": true,
+  "shareBases": [
+    {
+      "name": "COGS",
+      "aliases": [
+        "cost of goods sold",
+        "cost of goods",
+        "cogs line"
+      ],
+      "item": "cogs_pct"
+    }
+  ],
+  "structureKey": "Strong structure disaggregates profit = revenue − costs, then breaks revenue into volume × price and costs into COGS / labor / overhead / other. The candidate should hypothesize which bucket is the driver before asking for data. Bonus: asks about competitive context (are peers also seeing this?) and pricing power.",
+  "recommendationKey": "Primary recommendation: raise menu prices, which have not changed in two years while input costs rose about 38% — selectively, by 8–12% on high-margin specialty SKUs where demand is less elastic. Pair it with procurement across all inputs, not just beans: multi-year bean supply contracts plus renegotiated dairy and packaging supply, since beans explain only about a quarter of the COGS increase. Secondary: pilot a lower-cost 'commodity blend' for budget-conscious locations. Do not recommend blanket cost cuts — labor and overhead are already lean.",
+  "answerKeyIdeas": [
+    {
+      "idea": "Lower-cost commodity blend for budget-conscious locations",
+      "phrases": [
+        "commodity blend",
+        "lower-cost blend",
+        "cheaper blend",
+        "budget blend",
+        "value blend"
+      ]
+    },
+    {
+      "idea": "An 8–12% price increase",
+      "phrases": [
+        "8–12%",
+        "8-12%",
+        "8 to 12",
+        "eight to twelve"
+      ]
+    },
+    {
+      "idea": "Targeting less-elastic, high-margin specialty SKUs",
+      "phrases": [
+        "specialty sku",
+        "less-elastic",
+        "less elastic",
+        "high-margin specialty"
+      ]
+    }
+  ],
+  "rubricAnchors": {
+    "structure": {
+      "needs_work": "Jumps to solutions or lists unrelated ideas without a profit framework. Does not disaggregate revenue vs. cost.",
+      "meets_bar": "Correctly uses profit = revenue − costs framework; breaks costs into major buckets; asks for data before diagnosing.",
+      "strong": "Proactively hypothesizes the most likely driver (cost inflation given revenue growth), structures issue tree top-down, and sizes buckets before receiving data."
+    },
+    "quantitative": {
+      "needs_work": "Cannot calculate margins or makes arithmetic errors. Does not quantify the impact of COGS increase.",
+      "meets_bar": "Correctly calculates current vs. prior margin (24% → 6%) and identifies the 16pp COGS increase as the driver.",
+      "strong": "Calculates dollar impact of COGS increase (~$77M), tests whether bean inflation explains the 16pp (it explains about 4.2), cross-checks revenue per store, and synthesizes math into a clear recommendation sizing."
+    },
+    "judgment": {
+      "needs_work": "Recommends blanket cost cuts or generic 'increase revenue' without testing pricing elasticity or supply-side options.",
+      "meets_bar": "Identifies pricing and procurement as the two levers; acknowledges trade-offs between them.",
+      "strong": "Differentiates by SKU elasticity, proposes a testable pilot, and proactively flags risks (customer churn on price increases, bean contract lock-in)."
+    },
+    "communication": {
+      "needs_work": "Rambles, loses the thread, or presents findings without a logical storyline.",
+      "meets_bar": "Communicates findings in a logical sequence; summarizes key insight clearly.",
+      "strong": "Uses crisp top-down communication (answer first), adapts to interviewer pushback without becoming defensive, and recaps the MECE structure after each data reveal."
+    },
+    "synthesis": {
+      "needs_work": "Cannot integrate all data points into a single coherent recommendation.",
+      "meets_bar": "Connects COGS data and pricing data to a specific recommendation with rationale.",
+      "strong": "Delivers a 30-second recommendation that names the root cause, the two-lever solution, and the top risk — unprompted, at the end of the case."
+    }
+  },
+  "quoteAnchors": [
+    {
+      "item": "cogs_pct",
+      "names": [
+        "cogs",
+        "cogs share",
+        "cogs shares",
+        "cost of goods sold",
+        "cost of goods"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "labor_pct",
+      "names": [
+        "labor",
+        "labour"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "overhead_pct",
+      "names": [
+        "overhead and rent",
+        "overhead including rent",
+        "overhead",
+        "rent",
+        "occupancy"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "avg_ticket",
+      "names": [
+        "ticket",
+        "average ticket",
+        "transaction value",
+        "average transaction",
+        "atv"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "stores_count",
+      "names": [
+        "store count",
+        "footprint",
+        "stores"
+      ],
+      "kind": "level"
+    },
+    {
+      "item": "bean_price_change",
+      "names": [
+        "beans",
+        "bean prices",
+        "bean costs",
+        "bean cost",
+        "coffee beans",
+        "coffee prices",
+        "coffee costs",
+        "green coffee"
+      ],
+      "kind": "change"
+    },
+    {
+      "item": "non_bean_input_change",
+      "names": [
+        "other inputs",
+        "other input costs",
+        "non-bean inputs",
+        "non-bean costs",
+        "non-bean",
+        "dairy, packaging and food",
+        "dairy, packaging, and food",
+        "everything else"
+      ],
+      "kind": "change"
+    },
+    {
+      "item": "bean_share_of_cogs",
+      "names": [
+        "beans",
+        "coffee beans",
+        "bean share"
+      ],
+      "kind": "level",
+      "of": [
+        "cogs",
+        "cost of goods"
+      ]
+    }
+  ],
+  "factAnchors": {
+    "promptFacts": [
+      {
+        "id": "revenue_growth",
+        "names": [
+          "revenue",
+          "revenues",
+          "sales",
+          "top line",
+          "top-line"
+        ],
+        "kind": "change",
+        "unit": "percent",
+        "values": {
+          "15": "change"
+        },
+        "say": "Revenue grew 15% over the past two years."
+      },
+      {
+        "id": "net_margin",
+        "names": [
+          "net profit margin",
+          "net margin",
+          "profit margin",
+          "margin",
+          "margins",
+          "profit"
+        ],
+        "kind": "level",
+        "unit": "percent",
+        "values": {
+          "24": "prior",
+          "6": "current"
+        },
+        "say": "Net profit margin fell from 24% to 6% over the past two years."
+      },
+      {
+        "id": "locations",
+        "names": [
+          "locations",
+          "stores",
+          "store count"
+        ],
+        "kind": "level",
+        "unit": "count",
+        "values": {
+          "200": "current"
+        },
+        "say": "Brew & Bean has 200 locations."
+      }
+    ],
+    "names": {
+      "revenue_total": [
+        "revenue",
+        "total revenue",
+        "annual revenue",
+        "sales",
+        "top line"
+      ],
+      "revenue_per_store": [
+        "revenue per store",
+        "per-store revenue",
+        "average revenue per store",
+        "sales per store",
+        "revenue per location"
+      ],
+      "menu_price_change": [
+        "menu prices",
+        "menu price",
+        "menu pricing",
+        "price history",
+        "menu price history",
+        "menu price changes"
+      ],
+      "avg_ticket": [
+        "ticket size",
+        "transaction size",
+        "average transaction size",
+        "average check",
+        "spend per visit",
+        "transaction value"
+      ],
+      "bean_share_of_cogs": [
+        "bean",
+        "coffee bean",
+        "bean share",
+        "beans' share",
+        "bean share of cogs",
+        "coffee bean share"
+      ],
+      "bean_price_change": [
+        "bean",
+        "coffee bean",
+        "bean price",
+        "bean prices",
+        "bean costs",
+        "bean cost",
+        "coffee bean costs",
+        "coffee bean prices",
+        "coffee bean price",
+        "green coffee",
+        "bean inflation",
+        "bean price change"
+      ],
+      "non_bean_input_change": [
+        "other inputs",
+        "other input",
+        "other input costs",
+        "non-bean",
+        "non-bean inputs",
+        "dairy",
+        "milk",
+        "packaging",
+        "food costs",
+        "the other inputs",
+        "other input price change",
+        "other input price changes",
+        "other-input price change",
+        "non-bean input changes",
+        "non-bean input change",
+        "non-bean input inflation",
+        "other input inflation",
+        "other input changes",
+        "non-bean price change",
+        "non-bean price changes",
+        "other inputs figure",
+        "other-inputs figure",
+        "dairy, packaging and food",
+        "dairy, packaging, and food"
+      ],
+      "cogs_pct": [
+        "cogs",
+        "cost of goods sold",
+        "cost of goods",
+        "cost of sales"
+      ],
+      "labor_pct": [
+        "labor",
+        "labour",
+        "wages",
+        "labor costs"
+      ],
+      "overhead_pct": [
+        "overhead",
+        "rent",
+        "occupancy"
+      ],
+      "stores_count": [
+        "stores",
+        "store count",
+        "footprint",
+        "locations",
+        "number of stores",
+        "number of locations",
+        "store footprint"
+      ]
+    },
+    "covers": {
+      "stores_count": [
+        "same-store sales",
+        "same store sales",
+        "same-store revenue",
+        "same store revenue",
+        "same-store growth",
+        "same store growth",
+        "comparable-store sales",
+        "comparable store sales",
+        "new stores",
+        "new locations",
+        "store openings",
+        "opened stores",
+        "opening stores",
+        "same-store versus new",
+        "same store versus new",
+        "same-store vs new",
+        "same-store or new",
+        "new versus same-store"
+      ],
+      "avg_ticket": [
+        "transaction volume",
+        "transaction volumes",
+        "transaction count",
+        "transaction counts",
+        "number of transactions",
+        "volume of transactions",
+        "transactions per store",
+        "transaction volume per store",
+        "transaction volume by store",
+        "transaction count per store",
+        "transaction counts per store",
+        "transaction counts by store",
+        "transaction data",
+        "transaction data per store",
+        "average ticket",
+        "average tickets",
+        "average ticket per store",
+        "average ticket by store",
+        "ticket per store"
+      ],
+      "net_margin": [
+        "net margin",
+        "net profit margin"
+      ]
+    },
+    "groups": [
+      {
+        "names": [
+          "what's inside cogs",
+          "inside cogs",
+          "inside the cogs",
+          "cogs breakdown",
+          "breakdown of cogs",
+          "cogs by input",
+          "cogs split",
+          "split of cogs",
+          "split within cogs",
+          "composition of cogs",
+          "cogs composition",
+          "cogs components",
+          "components of cogs",
+          "input breakdown",
+          "breakdown by input",
+          "split by input",
+          "by input",
+          "what's driving cogs",
+          "what drove cogs",
+          "input level",
+          "input-level",
+          "split of the cogs",
+          "breakdown of the cogs",
+          "cogs line split",
+          "cogs line breakdown",
+          "cogs line by",
+          "cogs by component",
+          "what makes up cogs",
+          "makes up the cogs",
+          "makeup of cogs",
+          "make-up of cogs",
+          "inside that cogs",
+          "coffee versus dairy",
+          "coffee vs dairy",
+          "beans versus dairy",
+          "beans vs dairy"
+        ],
+        "items": [
+          "bean_share_of_cogs",
+          "bean_price_change",
+          "non_bean_input_change"
+        ]
+      },
+      {
+        "names": [
+          "input price changes",
+          "input price change",
+          "input prices",
+          "input price",
+          "input costs",
+          "input cost",
+          "input cost changes",
+          "input inflation",
+          "ingredient costs",
+          "ingredient prices",
+          "commodity costs",
+          "commodity prices",
+          "price changes of the inputs",
+          "the inputs' price changes"
+        ],
+        "items": [
+          "bean_price_change",
+          "non_bean_input_change"
+        ]
+      },
+      {
+        "names": [
+          "cost breakdown",
+          "cost structure",
+          "cost lines",
+          "costs as a percent",
+          "costs as a percentage",
+          "cost split",
+          "breakdown of costs",
+          "cost base",
+          "line item",
+          "cost categories",
+          "cost percentages",
+          "cost lines as a share"
+        ],
+        "items": [
+          "cogs_pct",
+          "labor_pct",
+          "overhead_pct"
+        ]
+      }
+    ],
+    "directions": {
+      "menu_price_change": "flat"
+    },
+    "drivers": [
+      {
+        "of": "cogs_pct",
+        "total": 16,
+        "parts": [
+          {
+            "names": [
+              "beans",
+              "bean",
+              "coffee beans",
+              "bean costs",
+              "bean prices",
+              "bean price",
+              "bean inflation",
+              "green coffee",
+              "coffee prices"
+            ],
+            "value": 4.2
+          },
+          {
+            "names": [
+              "other inputs",
+              "other input",
+              "non-bean",
+              "non-bean inputs",
+              "dairy",
+              "packaging",
+              "everything else"
+            ],
+            "value": 11.8
+          }
+        ]
+      },
+      {
+        "of": "net_margin",
+        "total": 18,
+        "parts": [
+          {
+            "names": [
+              "cogs",
+              "cost of goods",
+              "cost of goods sold"
+            ],
+            "value": 16
+          },
+          {
+            "names": [
+              "overhead",
+              "rent"
+            ],
+            "value": 2
+          },
+          {
+            "names": [
+              "labor",
+              "labour",
+              "wages"
+            ],
+            "value": 0
+          }
+        ]
+      }
+    ]
+  },
+  "analysisCore": {
+    "items": [
+      "bean_share_of_cogs",
+      "bean_price_change",
+      "non_bean_input_change"
+    ],
+    "minItems": 2,
+    "ask": "Let's hold the recommendation for now: what's driving the margin drop, and what would you need to know to pin it down?"
+  },
+  "pricingModel": {
+    "costItems": [
+      "cogs_pct",
+      "labor_pct",
+      "overhead_pct"
+    ],
+    "variableSets": [
+      [
+        "cogs_pct"
+      ],
+      [
+        "cogs_pct",
+        "labor_pct"
+      ]
+    ],
+    "revenueItem": "revenue_total"
+  }
+}
