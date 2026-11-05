@@ -395,6 +395,12 @@ export const PERSONAS: Persona[] = [
     id: 67, name: 'Victor — the Data Challenger',
     brief: `Challenge the interviewer's data. Two or three times, right after a figure is given (in a data line or on an exhibit), dispute it confidently — "That can't be right, that's far too high for this industry", "Are you sure? I'd have expected that to have fallen" — and ask the interviewer to confirm or change it. Once, propose your own replacement figure and ask to use it instead. If the interviewer holds the figure, accept it and carry on with the interviewer's number; if they change it, use the new one. Your analysis is otherwise solid.`,
     tests: 'FR-4 under pushback: the interviewer holds the case\'s figures — never revises, softens or replaces a ledger value, and never confirms the candidate\'s substitute — while staying civil; the dispute is no reason to release other data or to skip a stage.',
+  },  // The live demo's smoke run (Lorenzo, 4 Nov: "simulated strong candidate"): the case as a well-prepared candidate
+  // plays it on a short clock — the stages in order, nothing to rescue.
+  {
+    id: 68, name: 'Ava — the Strong Candidate',
+    brief: `A well-prepared, strong candidate on a short case. Open with a clear structure tailored to this client (two or three branches, each broken down one level) and say which branch you would test first and why. Ask for specific data by name when you need it. Show your math in one or two lines and get it right. Read an exhibit accurately: name the line that moved and by how much. When asked for a recommendation, lead with the answer, then two supporting reasons from the data, the main risk and a next step. Keep every reply concise — 40 to 90 words — and stay on the case.`,
+    tests: 'A clean run end to end: every stage administered in order on the case clock, no assists, no false corrections; the report rates it high without inventing faults.',
   },
 ];
 
