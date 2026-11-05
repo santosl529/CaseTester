@@ -3,7 +3,8 @@
 import { describe, it, expect, vi } from 'vitest';
 import { closeVoiceRoom, type RoomAdmin } from '@/lib/voice/room-lifecycle';
 import { liveKitEnvProblem } from '@/lib/voice/livekit-env';
-import { sendLeave, shouldSendLeave } from '@/lib/voice/leave';
+import { sendLeave, shouldSendLeave, markLive, clearLive, shouldAutoResume, RESUME_WINDOW_MS } from '@/lib/voice/leave';
+import { freeRoomUnlessBack } from '@/lib/voice/leave-grace';
 
 const admin = (o: Partial<RoomAdmin> = {}): RoomAdmin & { deleted: string[]; cancelled: string[] } => {
   const deleted: string[] = [], cancelled: string[] = [];
@@ -14,6 +15,7 @@ const admin = (o: Partial<RoomAdmin> = {}): RoomAdmin & { deleted: string[]; can
     createDispatch: async () => ({}),
     deleteDispatch: async id => { cancelled.push(id); },
     deleteRoom: async room => { deleted.push(room); },
+    listParticipants: async () => [],
     ...o,
   };
 };
@@ -67,3 +69,43 @@ describe('the leave beacon', () => {
     expect(shouldSendLeave('ended', false)).toBe(false);
   });
 });
+
+describe('reload-and-resume in the browser (sessionStorage mark)', () => {
+  const store = () => { const m = new Map<string, string>(); return { getItem: (k: string) => m.get(k) ?? null, setItem: (k: string, v: string) => { m.set(k, v); }, removeItem: (k: string) => { m.delete(k); } }; };
+  it('a page that left mid-session resumes on reload; not after the case ended; not long after', () => {
+    const s = store();
+    const now = Date.now();
+    expect(shouldAutoResume(s, 's1', now)).toBe(false);
+    markLive(s, 's1');
+    expect(shouldAutoResume(s, 's1', now + 2_000)).toBe(true);
+    expect(shouldAutoResume(s, 's2', now + 2_000)).toBe(false);
+    expect(shouldAutoResume(s, 's1', now + RESUME_WINDOW_MS + 1_000)).toBe(false);
+    clearLive(s, 's1');
+    expect(shouldAutoResume(s, 's1', now + 2_000)).toBe(false);
+    expect(shouldAutoResume(null, 's1', now)).toBe(false);
+  });
+});
+
+describe('the leave grace', () => {
+  const deps = (participants: string[] | Error) => {
+    const a = admin({ listParticipants: async () => { if (participants instanceof Error) throw participants; return participants.map(identity => ({ identity })); } });
+    const released: string[] = [];
+    const slept: number[] = [];
+    return { a, released, slept, d: { admin: a, release: async (id: string) => { released.push(id); }, sleep: async (ms: number) => { slept.push(ms); }, log: () => {} } };
+  };
+  it('back within the grace: nothing freed', async () => {
+    const x = deps(['agent-1', 'u1']);
+    expect(await freeRoomUnlessBack({ sessionId: 's1', room: 'case-s1', candidate: 'u1' }, x.d)).toBe('rejoined');
+    expect(x.slept).toEqual([15_000]);
+    expect([x.a.deleted, x.a.cancelled, x.released]).toEqual([[], [], []]);
+  });
+  it('not back (only the agent, or no room at all): freed', async () => {
+    for (const p of [['agent-1'], new Error('not_found')]) {
+      const x = deps(p);
+      expect(await freeRoomUnlessBack({ sessionId: 's1', room: 'case-s1', candidate: 'u1' }, x.d)).toBe('freed');
+      expect(x.a.deleted).toEqual(['case-s1']);
+      expect(x.released).toEqual(['s1']);
+    }
+  });
+});
+

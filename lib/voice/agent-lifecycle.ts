@@ -1,6 +1,7 @@
 // When the voice agent's job ends (voice lifecycle, 5 Nov; Lorenzo's brief: "Leaving frees everything"). Pure, so it
 // is tested without LiveKit: the agent reports what happens in the room and calls `finish` once for the first reason:
-//   - the candidate leaves (or the tab closes) — at any point, including while the agent is still setting up;
+//   - the candidate leaves (or the tab closes) and is not back within `rejoinGraceMs` (Lorenzo, 5 Nov: a reload or a
+//     mobile app switch must resume the same interview) — at any point, including while the agent is still setting up;
 //   - the candidate never arrives: connected, but the owner isn't in the room within `candidateWaitMs` (a candidate
 //     who left during the cold start; the agent must not sit in an empty room holding the only slot);
 //   - the room closes under the agent (End deleted it);
@@ -11,6 +12,9 @@
 export type FinishReason = 'candidate_left' | 'candidate_absent' | 'room_closed' | 'case_ended' | 'time_limit' | 'session_over';
 
 export const CANDIDATE_WAIT_MS = 20_000;
+// How long a candidate who dropped out of the room (a reload, a network blip, an app switch) has to come back before
+// the job ends — the same 15 s the leave route waits (lib/voice/leave-grace.ts).
+export const REJOIN_GRACE_MS = 15_000;
 // After the case ends: time for the `ended` message to reach the browser before the agent leaves.
 export const ENDED_GRACE_MS = 2_000;
 
@@ -24,8 +28,14 @@ export class AgentLifecycle {
   private reason: FinishReason | null = null;
   private absent: unknown = null;
   private ended: unknown = null;
+  private away: unknown = null;
 
-  constructor(private o: Timers & { candidate: string; candidateWaitMs?: number; endedGraceMs?: number; onFinish: (why: FinishReason) => void }) {}
+  constructor(private o: Timers & { candidate: string; candidateWaitMs?: number; endedGraceMs?: number; rejoinGraceMs?: number;
+    onFinish: (why: FinishReason) => void;
+    // The candidate dropped out (the agent pauses: nothing plays into an empty room) / came back within the grace.
+    onAway?: () => void; onBack?: () => void }) {}
+
+  get candidateAway(): boolean { return this.away !== null; }
 
   get over(): boolean { return this.reason !== null; }
   get why(): FinishReason | null { return this.reason; }
@@ -38,13 +48,16 @@ export class AgentLifecycle {
   }
 
   joined(identity: string): void {
-    if (identity !== this.o.candidate || this.absent === null) return;
-    this.o.clearTimer(this.absent);
-    this.absent = null;
+    if (identity !== this.o.candidate || this.over) return;
+    if (this.absent !== null) { this.o.clearTimer(this.absent); this.absent = null; }
+    if (this.away !== null) { this.o.clearTimer(this.away); this.away = null; this.o.onBack?.(); }
   }
 
+  // The candidate dropped out: the job ends only if they aren't back within the grace.
   left(identity: string): void {
-    if (identity === this.o.candidate) this.finish('candidate_left');
+    if (identity !== this.o.candidate || this.over || this.away !== null) return;
+    this.away = this.o.setTimer(() => { this.away = null; this.finish('candidate_left'); }, this.o.rejoinGraceMs ?? REJOIN_GRACE_MS);
+    this.o.onAway?.();
   }
 
   roomClosed(): void { this.finish('room_closed'); }
@@ -58,8 +71,8 @@ export class AgentLifecycle {
   finish(why: FinishReason): void {
     if (this.over) return;
     this.reason = why;
-    for (const h of [this.absent, this.ended]) if (h !== null) this.o.clearTimer(h);
-    this.absent = this.ended = null;
+    for (const h of [this.absent, this.ended, this.away]) if (h !== null) this.o.clearTimer(h);
+    this.absent = this.ended = this.away = null;
     this.o.onFinish(why);
   }
 }

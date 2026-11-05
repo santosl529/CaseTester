@@ -114,6 +114,11 @@ export default defineAgent({
       candidate: session.userId,
       setTimer: (f, ms) => setTimeout(f, ms), clearTimer: h => clearTimeout(h as ReturnType<typeof setTimeout>),
       candidateWaitMs: num('VOICE_CANDIDATE_WAIT_MS', 20_000),
+      rejoinGraceMs: num('VOICE_REJOIN_GRACE_MS', 15_000),
+      // Away: nothing plays into an empty room (the live turn is cut, as when the browser can't play audio); back:
+      // the page's `ready` resumes listening (controller.ready), on the same session and the same agent.
+      onAway: () => { console.log('[voice-agent] candidate dropped out; waiting for them to rejoin'); dropMic(); pauseForAway(); },
+      onBack: () => { console.log('[voice-agent] candidate rejoined; resuming'); },
       onFinish: why => {
         console.log(`[voice-agent] finishing: ${why}`);
         if (finishImpl) void finishImpl(why); else finishWanted = why;
@@ -123,6 +128,10 @@ export default defineAgent({
     room.on(RoomEvent.Disconnected, () => life.roomClosed());
     room.on(RoomEvent.ParticipantConnected, (p: RemoteParticipant) => life.joined(p.identity));
     life.connected([...room.remoteParticipants.values()].map(p => p.identity));
+    // Set once the controller exists (below); before that there is nothing playing to pause.
+    let pauseForAway: () => void = () => {};
+    // The old mic track goes with the candidate: its loop stops, so the rejoined page's new track is picked up.
+    let dropMic: () => void = () => {};
     // Resources opened so far, closed by `finish` (and by setup itself if the job ended while it ran).
     const open: { stt?: { close(): Promise<void> }; tts?: CartesiaTTS; mic: (() => void)[] } = { mic: [] };
     const abandon = async (): Promise<boolean> => {
@@ -177,6 +186,7 @@ export default defineAgent({
       open.mic.push(pump.stop);
       void pump.done.then(st => { console.log(`[voice-agent] mic loop ended (${st.ended}; ${st.frames} frames, ${st.sinkErrors} not delivered)`); if (micSid === sid) micSid = null; });
     };
+    dropMic = () => { for (const stop of open.mic.splice(0)) stop(); micSid = null; };
     room.on(RoomEvent.TrackSubscribed, (t: RemoteTrack, pub: RemoteTrackPublication, p: RemoteParticipant) => {
       if (t.kind !== TrackKind.KIND_AUDIO || !pub.sid || pub.sid === micSid || !pickCandidateTrack(session.userId, micSid, p.identity, pub.sid)) return;
       listen(t, pub.sid);
@@ -271,6 +281,8 @@ export default defineAgent({
     });
 
     onStt = sig => controller.onStt(sig);
+    pauseForAway = () => controller.audioBlocked();
+    if (life.candidateAway) pauseForAway();
 
     // The browser's back-channel: ready / audio_blocked / exhibit_shown / timing / health / setup.
     const turnRows = await db.query.sessionTurns.findMany({ where: eq(sessionTurns.sessionId, session.id), orderBy: [asc(sessionTurns.turnIndex)] });

@@ -17,7 +17,7 @@ import { agentAudioWatchdog, CONNECTING_MESSAGE, VOICE_BUSY_MESSAGE } from '@/li
 import { HealthMeter } from '@/lib/voice/health';
 import { ReadyGate } from '@/lib/voice/ready-gate';
 import { SETUP_LINE_DELAY_MS, SetupTimings } from '@/lib/voice/setup-timing';
-import { sendLeave, shouldSendLeave } from '@/lib/voice/leave';
+import { clearLive, markLive, sendLeave, shouldAutoResume, shouldSendLeave } from '@/lib/voice/leave';
 
 const STATE_LABEL: Record<string, string> = {
   idle: 'Not started', connecting: 'Connecting…', waiting: 'Waiting for audio', listening: 'Listening',
@@ -29,6 +29,7 @@ const ENDED_TEXT: Record<string, string> = {
   time_limit: 'This session reached its time limit, so it ended here.',
   error: 'The session ended because of a technical problem.',
 };
+const RESUME_MESSAGE = 'The connection dropped. Press Start to pick up where you left off.';
 const MIC_LOUD = 0.02;       // the agent's VAD threshold
 const REMOTE_LOUD = 0.01;
 
@@ -75,14 +76,22 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
   // Leaving the page mid-session frees the room (voice lifecycle, 5 Nov): read from refs, so the pagehide and
   // unmount handlers see the current state.
   const leaveState = useRef<{ local: 'idle' | 'connecting' | 'live' | 'ended'; caseOver: boolean; sent: boolean }>({ local: 'idle', caseOver: false, sent: false });
+  // The server waits 15 s before freeing anything (lib/voice/leave-grace.ts), and the tab remembers the live session
+  // (lib/voice/leave.ts), so a reload reconnects to the same interview.
+  const tabStore = () => { try { return window.sessionStorage; } catch { return null; } };
   const leave = () => {
     const s = leaveState.current;
     if (s.sent || !shouldSendLeave(s.local, s.caseOver)) return;
     s.sent = true;
+    markLive(tabStore(), sessionId);
     sendLeave(sessionId, { sendBeacon: navigator.sendBeacon?.bind(navigator), fetch: (u, i) => fetch(u, i) });
   };
+  // Set when the candidate ends it (End): a disconnect after that is not a dropped connection.
+  const ending = useRef(false);
   useEffect(() => {
     window.addEventListener('pagehide', leave);
+    // A reload mid-session: reconnect on our own (audio may still need the usual click).
+    if (shouldAutoResume(tabStore(), sessionId, Date.now())) { clearLive(tabStore(), sessionId); void start(); }
     return () => { window.removeEventListener('pagehide', leave); leave(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -228,7 +237,15 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
       setNeedsClick(true);
       watchdog.current?.stop();
     });
-    room.on(RoomEvent.Disconnected, () => setLocal(l => (l === 'live' ? 'ended' : l)));
+    // The room went away. After End or the case ending, the case is over; otherwise the connection dropped (a network
+    // blip, an app switch the agent outlasted) — the session is still active, so Start picks it up again.
+    room.on(RoomEvent.Disconnected, () => {
+      if (ending.current || leaveState.current.caseOver) { setLocal(l => (l === 'live' ? 'ended' : l)); return; }
+      watchdog.current?.stop();
+      setConnecting(false);
+      setProblem(RESUME_MESSAGE);
+      setLocal(l => (l === 'live' || l === 'connecting' ? 'idle' : l));
+    });
     try {
       timing.current.ctx = times.span('audioContext', () => new AudioContext());
       await times.spanAsync('connect', () => room.connect(url, token));
@@ -306,6 +323,8 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
 
   // Rule 18A: ending keeps a report on what was covered, when there is one.
   async function end() {
+    ending.current = true;
+    clearLive(tabStore(), sessionId);
     const res = await fetch(`/api/voice/${sessionId}/end`, { method: 'POST' }).catch(() => null);
     const data = res?.ok ? await res.json().catch(() => null) as { report?: boolean } | null : null;
     watchdog.current?.stop();
@@ -330,8 +349,9 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
   useEffect(() => {
     const s = leaveState.current;
     s.caseOver = caseOver;
+    if (caseOver) clearLive(tabStore(), sessionId);
     if (s.local !== local) { s.local = local; if (local === 'connecting') s.sent = false; }
-  }, [local, caseOver]);
+  }, [local, caseOver, sessionId]);
 
   return (
     <div className="h-full flex flex-col gap-3 p-4">

@@ -14,6 +14,7 @@ export type RoomAdmin = {
   createDispatch(room: string, agentName: string, opts: { metadata: string }): Promise<unknown>;
   deleteDispatch(dispatchId: string, room: string): Promise<unknown>;
   deleteRoom(room: string): Promise<unknown>;
+  listParticipants(room: string): Promise<{ identity: string }[]>;
 };
 
 // From LIVEKIT_URL / LIVEKIT_API_KEY / LIVEKIT_API_SECRET (LiveKit Cloud injects them into the hosted agent);
@@ -30,6 +31,7 @@ export function roomAdminFromEnv(env: Record<string, string | undefined> = proce
     createDispatch: (room, agentName, opts) => dispatch.createDispatch(room, agentName, opts),
     deleteDispatch: (id, room) => dispatch.deleteDispatch(id, room),
     deleteRoom: room => rooms.deleteRoom(room),
+    listParticipants: room => rooms.listParticipants(room),
   };
 }
 

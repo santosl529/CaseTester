@@ -12,7 +12,12 @@ const lk = vi.hoisted(() => ({
   created: 0,
   // A pause inside listDispatch, so two token requests overlap where it matters.
   gate: null as Promise<void> | null,
+  // Who is in each room (the agent's identity, the candidate's user id).
+  participants: new Map<string, string[]>(),
 }));
+// The leave route's grace runs after the response (next/server `after`): collected here and run by the test.
+const later = vi.hoisted(() => ({ tasks: [] as (() => Promise<unknown>)[] }));
+vi.mock('next/server', async orig => ({ ...(await orig<object>()), after: (f: () => Promise<unknown>) => { later.tasks.push(f); } }));
 const db = vi.hoisted(() => ({
   user: { id: 'u1' } as { id: string } | null,
   sessions: new Map<string, { id: string; userId: string; status: string; phase: string; flagsJsonb: Record<string, unknown> }>(),
@@ -50,7 +55,8 @@ vi.mock('livekit-server-sdk', () => ({
   },
   RoomServiceClient: class {
     async listRooms() { return [...lk.rooms.values()]; }
-    async deleteRoom(room: string) { if (!lk.rooms.delete(room)) throw new Error('requested room does not exist (not_found)'); }
+    async deleteRoom(room: string) { lk.participants.delete(room); if (!lk.rooms.delete(room)) throw new Error('requested room does not exist (not_found)'); }
+    async listParticipants(room: string) { if (!lk.rooms.has(room)) throw new Error('not_found'); return (lk.participants.get(room) ?? []).map(identity => ({ identity })); }
   },
 }));
 
@@ -63,7 +69,7 @@ const call = (route: Route, id: string) => { currentId = id; return route(new Re
 const old = () => BigInt(Math.floor(Date.now() / 1000) - 600);
 
 beforeEach(() => {
-  lk.rooms.clear(); lk.dispatches = []; lk.created = 0; lk.gate = null;
+  lk.rooms.clear(); lk.dispatches = []; lk.created = 0; lk.gate = null; lk.participants.clear(); later.tasks = [];
   db.user = { id: 'u1' };
   db.sessions.clear(); db.claims.clear();
   for (const id of [A, B]) db.sessions.set(id, { id, userId: 'u1', status: 'active', phase: 'ANALYSIS', flagsJsonb: {} });
@@ -99,21 +105,60 @@ describe('End then an immediate retry', () => {
   });
 });
 
-describe('the candidate leaving (tab closed, navigated away, gave up waiting)', () => {
-  it('during the cold start: the pending dispatch is cancelled and the room deleted; a later Start dispatches afresh', async () => {
+// The leave beacon fires on pagehide, which a reload fires too (Lorenzo, 5 Nov): it starts a 15 s grace, and the
+// room is freed only if the candidate hasn't rejoined by then. End stays immediate (above).
+describe('the leave beacon: a grace, then free only if they are not back', () => {
+  const room = `case-${A}`;
+  const inRoom = (...ids: string[]) => { lk.participants.set(room, ids); lk.rooms.get(room)!.numParticipants = ids.length; };
+  const runGrace = async () => {
+    vi.useFakeTimers();
+    try {
+      const done = Promise.all(later.tasks.splice(0).map(t => t()));
+      await vi.advanceTimersByTimeAsync(15_000);
+      await done;
+    } finally { vi.useRealTimers(); }
+  };
+
+  it('reload and resume: the room, the agent and the claim are untouched; the reloaded page rejoins the same interview', async () => {
     expect((await call(token, A)).status).toBe(200);
-    expect(lk.dispatches).toHaveLength(1);
+    inRoom('agent-AJ_1', 'u1');
+    // The reload: pagehide → beacon. The answer is immediate and frees nothing yet.
     const res = await call(leave, A);
-    expect(await res.json()).toMatchObject({ ok: true, dispatchesCancelled: 1, roomDeleted: true });
+    expect(await res.json()).toEqual({ ok: true, graceMs: 15_000 });
+    expect(lk.rooms.has(room)).toBe(true);
+    inRoom('agent-AJ_1');                              // the old page has gone…
+    expect((await call(token, A)).status).toBe(200);   // …the reloaded page asks for a token again
+    inRoom('agent-AJ_1', 'u1');                        // and is back in the room
+    await runGrace();
+    expect(lk.rooms.has(room)).toBe(true);
+    expect(lk.dispatches).toHaveLength(1);
+    expect(lk.created).toBe(1);                        // the same agent: no second dispatch
+    expect(db.claims.has(A)).toBe(true);
+    expect(db.sessions.get(A)!.status).toBe('active');
+  });
+
+  it('leave without return: after the grace the room is deleted, the dispatch cancelled, the claim released — then another session starts', async () => {
+    expect((await call(token, A)).status).toBe(200);
+    inRoom('agent-AJ_1', 'u1');
+    await call(leave, A);
+    inRoom('agent-AJ_1');                              // the candidate is gone for good
+    expect((await call(token, B)).status).toBe(429);   // within the grace the slot is still held
+    await runGrace();
+    expect(lk.rooms.has(room)).toBe(false);
+    expect(lk.dispatches).toEqual([]);
+    expect(db.claims.has(A)).toBe(false);
+    expect(db.sessions.get(A)!.status).toBe('active');   // they can still come back and press Start
+    expect((await call(token, B)).status).toBe(200);
+    expect((await call(token, A)).status).toBe(429);   // (one slot: B holds it now)
+  });
+
+  it('during the cold start (no agent yet): the pending dispatch is cancelled after the grace, so the late agent never comes', async () => {
+    expect((await call(token, A)).status).toBe(200);
+    await call(leave, A);
+    expect(lk.dispatches).toHaveLength(1);
+    await runGrace();
     expect(lk.dispatches).toEqual([]);
     expect(lk.rooms.size).toBe(0);
-    expect(db.claims.has(A)).toBe(false);
-    expect(db.sessions.get(A)!.status).toBe('active');   // they can come back
-    expect((await call(token, A)).status).toBe(200);
-    expect(lk.created).toBe(2);
-    // …and another session isn't held up by A's abandoned start.
-    expect((await call(leave, A)).status).toBe(200);
-    expect((await call(token, B)).status).toBe(200);
   });
 
   it('401 signed out; 404 for a session that is not theirs', async () => {

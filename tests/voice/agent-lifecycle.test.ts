@@ -2,13 +2,15 @@
 // during the cold start — or never arriving, the room closing under it, or the case ending, each finishes the job
 // exactly once; a late agent never joins a session that is over.
 import { describe, it, expect, vi, afterEach } from 'vitest';
-import { AgentLifecycle, shouldJoin, CANDIDATE_WAIT_MS, ENDED_GRACE_MS, type FinishReason } from '@/lib/voice/agent-lifecycle';
+import { AgentLifecycle, shouldJoin, CANDIDATE_WAIT_MS, ENDED_GRACE_MS, REJOIN_GRACE_MS, type FinishReason } from '@/lib/voice/agent-lifecycle';
 
 const make = () => {
   vi.useFakeTimers();
   const finished: FinishReason[] = [];
-  const life = new AgentLifecycle({ candidate: 'u1', setTimer: (f, ms) => setTimeout(f, ms), clearTimer: h => clearTimeout(h as ReturnType<typeof setTimeout>), onFinish: w => finished.push(w) });
-  return { life, finished };
+  const events: string[] = [];
+  const life = new AgentLifecycle({ candidate: 'u1', setTimer: (f, ms) => setTimeout(f, ms), clearTimer: h => clearTimeout(h as ReturnType<typeof setTimeout>),
+    onFinish: w => finished.push(w), onAway: () => events.push('away'), onBack: () => events.push('back') });
+  return { life, finished, events };
 };
 afterEach(() => { vi.useRealTimers(); });
 
@@ -39,16 +41,58 @@ describe('the candidate leaving during the cold start', () => {
     expect(finished).toEqual([]);
   });
 
-  it('leaving while the agent sets up: finishes once, whatever follows', () => {
+  it('leaving while the agent sets up, for good: finishes once after the rejoin grace, whatever follows', () => {
     const { life, finished } = make();
     life.connected(['u1']);
     life.left('someone-else');
-    expect(finished).toEqual([]);
     life.left('u1');
+    vi.advanceTimersByTime(REJOIN_GRACE_MS - 1);
+    expect(finished).toEqual([]);
+    vi.advanceTimersByTime(1);
     life.roomClosed();
     life.caseEnded();
     vi.advanceTimersByTime(60_000);
     expect(finished).toEqual(['candidate_left']);
+  });
+});
+
+// Lorenzo, 5 Nov: a reload or a mobile app switch mid-session must resume the same interview.
+describe('reload and resume', () => {
+  it('the candidate drops out and rejoins within 15 s: the agent pauses, then carries on — no finish', () => {
+    const { life, finished, events } = make();
+    life.connected(['u1']);
+    life.left('u1');
+    expect(life.candidateAway).toBe(true);
+    vi.advanceTimersByTime(REJOIN_GRACE_MS - 1000);
+    life.joined('u1');
+    expect(life.candidateAway).toBe(false);
+    vi.advanceTimersByTime(REJOIN_GRACE_MS * 4);
+    expect(finished).toEqual([]);
+    expect(events).toEqual(['away', 'back']);
+    // …and a second drop later gets its own grace.
+    life.left('u1');
+    vi.advanceTimersByTime(REJOIN_GRACE_MS);
+    expect(finished).toEqual(['candidate_left']);
+  });
+
+  it('leave without return: the job ends after the grace', () => {
+    const { life, finished, events } = make();
+    life.connected(['u1']);
+    life.left('u1');
+    vi.advanceTimersByTime(REJOIN_GRACE_MS);
+    expect(finished).toEqual(['candidate_left']);
+    expect(events).toEqual(['away']);
+  });
+
+  it('End and the case ending stay immediate, even while the candidate is away', () => {
+    const a = make();
+    a.life.connected(['u1']); a.life.left('u1'); a.life.roomClosed();
+    expect(a.finished).toEqual(['room_closed']);
+    vi.useRealTimers();
+    const b = make();
+    b.life.connected(['u1']); b.life.caseEnded();
+    vi.advanceTimersByTime(ENDED_GRACE_MS);
+    expect(b.finished).toEqual(['case_ended']);
   });
 });
 

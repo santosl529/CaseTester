@@ -101,8 +101,16 @@ whenever the session's voice ends:
   the room, cancels its dispatch and releases the session's dispatch claim (`flags_jsonb.voiceDispatchAt`).
 - **End:** the end route deletes the room and cancels any pending dispatch before it answers, so a Start right
   after is never refused as busy; an agent in the room sees it close and finishes the same way.
-- **The candidate leaves / closes the tab:** the page sends a beacon to `POST /api/voice/<id>/leave` (same
-  freeing; the session stays active, so Start works again); the agent also sees the candidate leave.
+- **The candidate leaves / closes the tab — after a 15 s grace (Lorenzo, 5 Nov):** the page sends a beacon to
+  `POST /api/voice/<id>/leave` on pagehide, which a reload fires too. The route answers at once and, 15 s later,
+  frees the room only if the candidate is not back in it (`lib/voice/leave-grace.ts`). The agent likewise pauses
+  when the candidate drops out (nothing plays into an empty room) and finishes only if they aren't back within 15 s
+  (`VOICE_REJOIN_GRACE_MS`). The session stays active either way.
+- **A reload mid-session resumes the same interview:** the tab marks the live session in sessionStorage on
+  pagehide; the reloaded page reconnects on its own (audio may still need the usual click), to the same room and
+  the same agent, which picks up the new mic track and resumes listening. A connection that drops for longer (an app
+  switch) leaves the page saying "The connection dropped. Press Start to pick up where you left off." — Start
+  resumes the session with a fresh agent.
 - **The candidate never arrives** (left during the ~25 s cold start): the agent waits 20 s
   (`VOICE_CANDIDATE_WAIT_MS`) after joining, then leaves and frees the room. An agent whose session ended before
   it connected never joins.
