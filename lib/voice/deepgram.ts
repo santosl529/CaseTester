@@ -44,22 +44,80 @@ export class DeepgramFluxSTT implements STTProvider {
       // Keyterm prompting (keyterms.ts): the terms the case's checks read.
       ...(this.opts.keyterms?.length ? { keyterm: this.opts.keyterms } : {}),
     });
-    let cb: (s: Signal) => void = () => {};
-    conn.on('message', (m: unknown) => {
-      const s = fluxSignal(m as FluxMessage, Date.now());
-      if (s) cb(s);
-    });
+    const session = fluxSession(conn as unknown as FluxSocket);
     conn.connect();
     await conn.waitForOpen();
-    return {
-      push: pcm => conn.sendMedia(pcm),
-      onSignal: f => { cb = f; },
-      close: async () => {
-        try { conn.sendCloseStream({ type: 'CloseStream' }); } catch { /* already closed */ }
-        conn.close();
-      },
-    };
+    return session;
   }
+}
+
+// The Flux socket as the session uses it (the SDK's V2Socket, whose ReconnectingWebSocket retries a dropped
+// connection on its own — up to 30 times).
+export type FluxSocket = {
+  on(event: 'message' | 'open' | 'close' | 'error', cb: (x: unknown) => void): void;
+  sendMedia(pcm: Uint8Array): void;
+  sendCloseStream(m: { type: 'CloseStream' }): void;
+  close(): void;
+};
+
+export type FluxSessionStats = { reconnects: number; dropped: number; down: boolean };
+
+// The session over one socket, through its reconnects (voice lifecycle, 5 Nov). While the socket is down,
+// `sendMedia` throws "Socket is not open." — `push` drops the frame instead (there is no one to send it to) and
+// counts it; when the socket opens again, audio flows again. Each loss and each reconnect is logged.
+export function fluxSession(conn: FluxSocket, o: { now?: () => number; log?: (m: string) => void } = {}): STTSession & { stats: FluxSessionStats } {
+  const now = o.now ?? (() => Date.now());
+  const log = o.log ?? (m => console.warn(m));
+  let cb: (s: Signal) => void = () => {};
+  let closedByUs = false;
+  let opened = false;
+  let downSince: number | null = null;
+  let droppedThisOutage = 0;
+  const stats: FluxSessionStats = { reconnects: 0, dropped: 0, down: false };
+  const goDown = (why: string) => {
+    if (closedByUs || downSince !== null) return;
+    downSince = now();
+    droppedThisOutage = 0;
+    stats.down = true;
+    log(`[voice] stt connection lost (${why}); reconnecting`);
+  };
+  conn.on('message', (m: unknown) => {
+    const s = fluxSignal(m as FluxMessage, now());
+    if (s) cb(s);
+  });
+  conn.on('open', () => {
+    if (!opened) { opened = true; return; }
+    if (closedByUs) return;
+    stats.reconnects++;
+    const after = downSince === null ? 0 : now() - downSince;
+    log(`[voice] stt reconnected (#${stats.reconnects}) after ${after}ms; ${droppedThisOutage} mic frames dropped while down`);
+    downSince = null;
+    stats.down = false;
+  });
+  conn.on('close', (e: unknown) => {
+    const code = (e as { code?: number } | undefined)?.code;
+    if (!closedByUs) goDown(`close ${code ?? '?'}`);
+  });
+  conn.on('error', (e: unknown) => {
+    if (!closedByUs) log(`[voice] stt socket error: ${(e as { message?: string } | undefined)?.message ?? String(e)}`);
+  });
+  return {
+    stats,
+    push: pcm => {
+      if (closedByUs) return;
+      try { conn.sendMedia(pcm); } catch (e) {
+        goDown(e instanceof Error ? e.message : 'send failed');
+        stats.dropped++;
+        droppedThisOutage++;
+      }
+    },
+    onSignal: f => { cb = f; },
+    close: async () => {
+      closedByUs = true;
+      try { conn.sendCloseStream({ type: 'CloseStream' }); } catch { /* already closed */ }
+      conn.close();
+    },
+  };
 }
 
 // ---- Nova-3 ------------------------------------------------------------
