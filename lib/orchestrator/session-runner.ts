@@ -17,7 +17,7 @@ import type { Phase } from './state-machine';
 import { streamInterviewerTurn } from '@/lib/agent/interviewer';
 import { createInterviewerModel } from '@/lib/agent/models/factory';
 import { SILENCE_PAUSE_EXPIRED, closeLine } from '@/lib/agent/prompts/scripts';
-import { planTurn, scriptedOffer, scriptedOfferFor, terminationPlanFor, type ModelPlan, type TurnReads } from './plan-turn';
+import { CODE_WRITTEN_KINDS, planTurn, scriptedOffer, scriptedOfferFor, terminationPlanFor, type ModelPlan, type TurnReads } from './plan-turn';
 import { conductEnds } from './stream-turn';
 import type { ConductModelVerdict } from './conduct-model';
 import { planFingerprint, type DraftGate } from './speculation';
@@ -338,7 +338,8 @@ async function runTurnBody(
     // applies.
     const [distress, detected, conduct] = await timer.time('code_written_checks', Promise.all([
       state.distress,
-      classifyDataRequests({
+      // Started in Plan beside the two checks (plan-turn.ts codeWrittenAsks).
+      state.codeWrittenAsks ?? classifyDataRequests({
         candidateText, interviewerText: null, catalog: state.catalog,
         onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId }); },
       }),
@@ -447,7 +448,6 @@ async function runTurnBody(
   }, report));
 }
 
-const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_revision', 'rec_math_probe', 'close_wait']);
 // After code corrects a misquote in the recommendation: one chance to revise it.
 export const REC_REVISION_QUESTIONS = PHRASE_POOLS.rec_revision;
 // After code corrects the candidate's own math in the recommendation (Rule 14

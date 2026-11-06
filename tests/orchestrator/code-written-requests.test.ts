@@ -42,7 +42,10 @@ vi.mock('@/db/client', async () => {
   };
 });
 vi.mock('@/lib/analytics', async orig => ({ ...(await orig<object>()), logEvent: async () => {} }));
-vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => null }));
+// The distress check can be held open by a test (order: the data-request classifier starts beside it, 6 Nov).
+const order: string[] = [];
+let distressGate: Promise<void> | null = null;
+vi.mock('@/lib/orchestrator/distress', async orig => ({ ...(await orig<object>()), classifyDistress: async () => { order.push('distress_start'); if (distressGate) await distressGate; order.push('distress_end'); return null; } }));
 // The classifier's verdict for the message, set per test; and the small-model
 // check's on an item-less ask (round-2 ruling 2, 19 Oct) (classifyAsk, served through this file's detection mock as "Could I get <ask>?" — a test adapter, fixtures/ask-check.ts; production sends the ask to the check's own prompt):
 // maps to none unless a test says otherwise.
@@ -50,7 +53,7 @@ let detected: DetectedDataRequest[] | null = [];
 let checkVerdict: DetectedDataRequest[] | null = [];
 vi.mock('@/lib/orchestrator/data-requests', async orig => {
   const { askVia } = await import('./fixtures/ask-check');
-  const detect = async (p: { candidateText: string }) => ((detected ?? []).some(d => p.candidateText === `Could I get ${d.what}?`) ? checkVerdict : detected);
+  const detect = async (p: { candidateText: string }) => { order.push('asks_start'); return ((detected ?? []).some(d => p.candidateText === `Could I get ${d.what}?`) ? checkVerdict : detected); };
   return { ...(await orig<object>()), classifyDataRequests: detect, classifyAsk: askVia(detect) };
 });
 vi.mock('@/lib/agent/models/factory', async () => ({
@@ -315,3 +318,28 @@ describe('rung 1 turn', () => {
     expect(check('code_written_requests')?.decision).toBe('act');
   });
 });
+
+// Session 36e78afc (6 Nov): on code-written turns the line waits 0.9–1.3 s for the distress check, the conduct check
+// and the data-request classifier, awaited together. The classifier now starts in Plan, when the other two start.
+// This test pins that the three overlap and that the classifier runs once; it does not separate "started in Plan"
+// from "started in the runner" (a ≈ 50 ms difference — removing the Plan start leaves it passing).
+describe('a code-written turn runs its data-request classifier beside the distress check, once', () => {
+  it('the time warning: the classifier is called before the distress check has answered, and only once', async () => {
+    resetStore('ANALYSIS', { pressureTest: SATISFIED }, 19 * 60_000);
+    store.exhibits = [{ id: 'x1', sessionId: 's1', exhibitId: 'exhibit-a', shownAtMs: 0 }];
+    detected = [];
+    order.length = 0;
+    let open!: () => void;
+    distressGate = new Promise<void>(r => { open = r; });
+    const turn = runTurn('s1', 'I think the cost side is where it is.', {});
+    await new Promise(r => setTimeout(r, 20));
+    expect(order).toContain('asks_start');
+    expect(order).not.toContain('distress_end');
+    open();
+    await turn;
+    distressGate = null;
+    expect(turnKind()).toBe('time_warning');
+    expect(order.filter(x => x === 'asks_start')).toHaveLength(1);   // once: the runner uses Plan's call
+  });
+});
+
