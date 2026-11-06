@@ -23,7 +23,7 @@ describe('a stage that never happened is rated only on evidence', () => {
     const r = rubric({ creativity: dim('strong') });
     const out = applyStageCaps(r, rec({ brainstorm: { delivered: false } }), { partial: false });
     expect(out.rubric.creativity.notAssessed).toBe(true);
-    expect(out.rubric.creativity.coverageCaveat).toMatch(/brainstorm stage never happened/);
+    expect(out.rubric.creativity.coverageCaveat).toMatch(/The interview never got to the brainstorm/);
     expect(out.notAssessed).toEqual(['creativity']);
   });
 
@@ -99,10 +99,10 @@ describe('a stage that is not part of the case', () => {
   it('the Creativity caveat says the case has no brainstorm; evidence-or-notAssessed is kept', () => {
     const bare = applyStageCaps(rubric({ creativity: dim('strong') }), none, { partial: false, notInCase: ['brainstorm'] });
     expect(bare.rubric.creativity.notAssessed).toBe(true);
-    expect(bare.rubric.creativity.coverageCaveat).toBe("This case has no brainstorm stage, so this wasn't assessed.");
+    expect(bare.rubric.creativity.coverageCaveat).toBe("This case has no brainstorm, so this wasn't assessed.");
     const quoted = applyStageCaps(rubric({ creativity: dim('strong', { wentWell: q('Proposed an annual plan as a pricing lever') }) }), none, { partial: false, notInCase: ['brainstorm'] });
     expect(quoted.rubric.creativity.rating).toBe('strong');
-    expect(quoted.rubric.creativity.coverageCaveat).toBe('This case has no brainstorm stage; this rating rests on what you did elsewhere.');
+    expect(quoted.rubric.creativity.coverageCaveat).toBe('This case has no brainstorm; this rating rests on what you did elsewhere.');
   });
 });
 

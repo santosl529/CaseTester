@@ -10,7 +10,7 @@ import { PostCaseSurvey } from '@/components/post-case-survey';
 import { PrepareReport } from '@/components/prepare-report';
 import { SiteHeader } from '@/components/site-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { reportDimensions, topFixPlain } from '@/lib/scoring/report-dimensions';
+import { reportDimensions, topFixLine, topFixPlain } from '@/lib/scoring/report-dimensions';
 import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
 
 const RATING_COLOR: Record<string, string> = {
@@ -96,7 +96,7 @@ export default async function ReportPage({ params }: { params: Promise<{ session
                 <p className="text-neutral-800 mb-1">{topFix.what} {topFix.why}</p>
                 <p className="text-neutral-900 font-medium">{topFix.next}</p>
               </>
-            ) : score.topFix}
+            ) : topFixLine(score)}
           </CardContent>
         </Card>
       )}

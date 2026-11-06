@@ -101,7 +101,7 @@ export function ReportPdf(props: ReportPdfProps) {
           </View>
         )}
 
-        <Text style={styles.sectionTitle}>Rubric Scores</Text>
+        <Text style={styles.sectionTitle}>Your Scores</Text>
         {props.dimensions.map(d => (
           <View key={d.key} style={styles.dimension}>
             <View style={styles.dimensionHeader} wrap={false}>
