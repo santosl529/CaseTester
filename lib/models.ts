@@ -42,6 +42,9 @@ export const INTERVIEWER_EVAL_CONFIGS: Record<string, InterviewerEvalConfig> = {
   // Sonnet 5.5 with thinking off (between_tools), fallbacks on — the batch-18
   // baseline and, since 12 Oct, the production default (INTERVIEWER_MODEL_ID).
   'sonnet55-baseline': { model: 'claude-sonnet-5-5', thinking: 'between_tools', fallbacks: true },
+  // The same without server-side fallbacks — the latency measurement of 6 Nov (session 36e78afc's 5–8 s first
+  // tokens; arm B). Evaluation only; production keeps fallbacks on.
+  'sonnet55-no-fallback': { model: 'claude-sonnet-5-5', thinking: 'between_tools', fallbacks: false },
   // Batch 20's third arm (12 Oct, Lorenzo): the pilot interviewer at effort
   // low — the replay showed no first-token gain on 8 turns; the head to head
   // measures it on whole interviews. Production stays at medium.

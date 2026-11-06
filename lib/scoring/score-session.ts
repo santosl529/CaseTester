@@ -27,6 +27,7 @@ import { applyCaveatFloor } from './caveat-floor';
 import { applyAnswerKeyPass } from './answer-key-pass';
 import { applyStrongGate } from './strong-gate';
 import { writePlainFeedback } from './plain-feedback';
+import { plainRubric } from './plain-terms';
 import { RUBRIC_DIMENSION_KEYS } from './rubric';
 import { scoreOnce, storeIfClaimed, type ScoringClaim } from './scoring-claim';
 import { withScoringDeadline, SCORING_BUDGET_MS } from './stream-retry';
@@ -304,7 +305,8 @@ export async function computeScore({ sessionId, userId, persist = true }: { sess
   const plain = await writePlainFeedback(assessed, { transcript, stageRecord, ideas: caseData.answerKeyIdeas }, u => logUsage({ ...u }));
   if (plain.rejected.length > 0) console.warn('[score] plain-words rewrites kept in the old wording:', JSON.stringify(plain.rejected));
   if (plain.skipped) console.warn('[score] plain-words rewrite skipped:', plain.skipped);
-  const rubric = plain.rubric;
+  // Plain English (6 Nov): no internal term (load-shedding, probes, stage names as code calls them) on the page.
+  const rubric = plainRubric(plain.rubric);
 
   const report = assembleReport({
     sessionId,

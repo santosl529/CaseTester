@@ -45,7 +45,10 @@ describe('summarizeCoverage (Rule 15 → Rule 9 coverageCaveat)', () => {
   it('attributes thin later-stage coverage to time pressure, not the candidate', () => {
     const summary = summarizeCoverage([{ subtype: 'load_shed', phase: 'ANALYSIS', payloadJsonb: { remainingMs: 80000 } }]);
     expect(summary).toContain('TIME-PRESSURE COVERAGE');
-    expect(summary).toContain('ANALYSIS');
+    // Worded as the candidate reads it — the judge copies it into caveats (6 Nov, session 36e78afc).
+    expect(summary).toContain('running short of time from the analysis on');
+    expect(summary.split('\n')[0]).not.toMatch(/load[- ]?shed|probe/i);
+    expect(summary.split('\n')[0]).not.toMatch(/\bANALYSIS\b/);
     expect(summary).toContain('coverageCaveat rather than a low rating');
   });
 

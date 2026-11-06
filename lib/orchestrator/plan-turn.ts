@@ -4,7 +4,7 @@
 // both are written at commit (settle-turn.ts). The distress and data-request
 // classifiers start here, in parallel with the model call that follows.
 import type { sessions, sessionTurns, revealedData, exhibitsShown, sessionEvents } from '@/db/schema';
-import { formatOpenRequestsHint, formatUnmappedHint, promisedRows } from './data-requests';
+import { classifyDataRequests, formatOpenRequestsHint, formatUnmappedHint, promisedRows, type DetectedDataRequest } from './data-requests';
 import type { CheckVerdict, MessageAsks } from './turn-data';
 import { summarizeDataRequests } from '@/lib/scoring/data-coverage';
 import { getCaseById } from '@/lib/cases/loader';
@@ -282,6 +282,9 @@ export type ExitState = {
   refusals?: number;                          // consecutive refusals to start the case
   refusalOffered?: boolean;                   // the bound's offer to stop was made
 };
+
+// Turn kinds written by code, not the model (session-runner.ts answers their data asks itself).
+export const CODE_WRITTEN_KINDS = new Set(['close', 'grace_ask', 'time_warning', 'rung1', 'stage_exhibit', 'stage_brainstorm', 'stage_analysis', 'rec_revision', 'rec_math_probe', 'close_wait']);
 
 // The case hasn't started: no structure on the table and no probe asked.
 function caseNotStarted(flags: Record<string, unknown>, phase: Phase): boolean {
@@ -1605,6 +1608,16 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
   // log-only audit. Code-written turns classify in the runner, and the
   // background pass (post-turn.ts) still logs every exchange.
 
+  // A code-written turn answers the message's data asks from this classification (session-runner.ts), awaited
+  // together with the distress and conduct checks. Started here, when they start, rather than after Plan (Lorenzo,
+  // 6 Nov). The three were already awaited in parallel, so this saves only Plan's own time (≈ 50 ms); the 0.9–1.3 s
+  // wait in session 36e78afc is the slowest of the three calls. Same inputs as before; a failure is the runner's.
+  const codeWrittenAsks: Promise<DetectedDataRequest[] | null> | undefined = CODE_WRITTEN_KINDS.has(kind) && extra.classify
+    ? classifyDataRequests({ candidateText, interviewerText: null, catalog,
+      onUsage: u => { void logEvent('llm_usage', { ...u }, { sessionId, userId: session.userId }); } })
+    : undefined;
+  codeWrittenAsks?.catch(() => {});
+
   // Model turns stream; the per-sentence gates decide (stream-turn.ts). No
   // whole-turn replacement is left to buffer for — the ending, the time lines
   // and the recommendation ask are turn kinds decided above.
@@ -1614,7 +1627,7 @@ function modelPlan(ctx: TurnCtx, reads: TurnReads, extra: { repliedToDistressOff
     kind: 'model' as const,
     ctx,
     state: {
-      caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
+      codeWrittenAsks, caseData, repliedToDistressOffer, shownExhibitIds, stagesOut, brainstormDue: brainstormDueNow, ledger, catalog, dataRequestRows,
       openDataRequests, openDataRequestsHint, unmappedToResolve, elapsedMs, timeUp, coverage, coverageMayEnd,
       phaseBudgetsMs, shouldFireTimeWarning, recomputeFlags, recomputeAttempts, recomputeHint,
       derivedValueTexts, verifiedNow, verifiedPrev, explainProbedBefore, verifiedHint, candidateFigures, flaggedFigures, closedFigures, closedInputs, convertedFigures: convertedAfter, recMathProbe, checkerLine, stageCheckerLine, stageCodeLines, recAskLate, stagesDue, heldCloseHold, closeHoldPlan: { from: finalFrom, probeKey: finalProbeKey, hold: finalHold }, analysisOwed, recommendationInPlay, requiredExhibit, pressureExhibit, misquote, misquoteHint, misquotesCorrected, misquoteFigures, factBase, factEchoes,

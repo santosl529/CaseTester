@@ -3,6 +3,7 @@ import type { InterviewerModel, TurnContext, TurnEvent, TurnValidation } from '.
 import { INTERVIEWER_MODEL_ID, FALLBACK_BETA, FALLBACKS, interviewerRequestOptions } from '@/lib/models';
 import { TURN_SCHEMA, parseTurn, toRequests, unknownIds, type ModelTurn } from './turn-schema';
 import { TurnStreamParser } from './turn-stream';
+import { withLlmCall } from '@/lib/llm-attempt-log';
 import { collectTurn, NEUTRAL_TURN } from './turn-events';
 import { anthropicClient } from '@/lib/anthropic-client';
 
@@ -97,11 +98,23 @@ export class AnthropicInterviewerModel implements InterviewerModel {
     };
     const which = markPrefix ? 'retry' as const : 'first' as const;
     ctx.onRequest?.({ attempt: which, model: this.modelId, body: params });
-    const stream = this.client.beta.messages.stream(params as never);
+    // Each HTTP attempt on the turn's timer (llm-attempt-log.ts): the response headers of the first good attempt are
+    // the stream opening; a retry or an error status is marked by attempt, so it can't pass for a slow first token.
+    const stream = withLlmCall(a => {
+      if (typeof a.status === 'number' && a.status < 400) ctx.onMark?.(`${markPrefix}model_stream_open`);
+      if (a.attempt > 0 || a.status === 'network_error' || a.status >= 400) ctx.onMark?.(`${markPrefix}model_http_attempt${a.attempt}_${a.status}`);
+    }, () => this.client.beta.messages.stream(params as never));
     const parser = new TurnStreamParser();
     let unknown: string[] = [];
     try {
-      for await (const ev of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string } }>) {
+      let firstEvent = true;
+      for await (const ev of stream as AsyncIterable<{ type: string; delta?: { type: string; text?: string }; content_block?: { type?: string } }>) {
+        // Where the wait before the first token goes (6 Nov, session 36e78afc: 5–8 s on 3 of 7 turns): the stream's
+        // first event and message_start (the server has begun — after any declined fallback attempt), then the first
+        // content block and its type (a thinking block would show here), then the first text.
+        if (firstEvent) { firstEvent = false; ctx.onMark?.(`${markPrefix}model_first_event`); }
+        if (ev.type === 'message_start') ctx.onMark?.(`${markPrefix}model_message_start`);
+        if (ev.type === 'content_block_start') ctx.onMark?.(`${markPrefix}model_block_${ev.content_block?.type ?? 'unknown'}`);
         if (ev.type !== 'content_block_delta' || ev.delta?.type !== 'text_delta') continue;
         ctx.onMark?.(`${markPrefix}model_first_token`);
         for (const p of parser.push(ev.delta.text ?? '')) {

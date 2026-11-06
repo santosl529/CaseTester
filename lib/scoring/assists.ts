@@ -4,6 +4,7 @@
 // laddered, and still failed was covered — it does not get a coverageCaveat.
 // This summarizes the intervention event log for the judge so an assisted
 // candidate is not scored identically to an independent one.
+import { PHASE_PLAIN } from './plain-terms';
 
 export type InterventionEvent = {
   subtype: string;              // 'restate_anchor' | 'narrow_frame' | 'directive_rescue' | 'synthesis_unresolved' | 'rung_not_delivered' (never an assist)
@@ -56,7 +57,9 @@ Scoring implications:
 export function summarizeCoverage(events: InterventionEvent[]): string {
   const shed = events.find(e => e.subtype === 'load_shed');
   if (!shed) return '';
-  return `TIME-PRESSURE COVERAGE: the interview entered load-shedding${shed.phase ? ` during ${shed.phase}` : ''} — the interviewer intentionally dropped optional probes and later-stage depth to protect the final recommendation.
+  // Worded as the candidate would read it: the judge copies this into caveats (6 Nov, session 36e78afc).
+  const from = shed.phase && shed.phase in PHASE_PLAIN ? ` from ${PHASE_PLAIN[shed.phase as keyof typeof PHASE_PLAIN]} on` : '';
+  return `TIME-PRESSURE COVERAGE: the interview was running short of time${from} — the interviewer skipped optional follow-up questions and went lighter on the later parts of the case to leave time for the final recommendation.
 - Attribute thin coverage of later stages (extended analysis, brainstorm depth) to time pressure, NOT to the candidate: apply a coverageCaveat rather than a low rating where a stage was compressed for time.
 - This does not excuse errors the candidate actually made in what they did cover; it only prevents penalizing them for stages the interviewer had no time to run.`;
 }

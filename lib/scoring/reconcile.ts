@@ -28,7 +28,7 @@ import { anthropicClient } from '@/lib/anthropic-client';
 // PROPOSES; code validates ids/sections/dimensions and applies. Fails open.
 
 export const GAP_COVERAGE_CAVEAT =
-  "Part of this dimension's evidence rested on data the candidate asked for but the interviewer never provided — that gap is attributed to session coverage, not counted against the candidate.";
+  "Part of this rating rested on data you asked for that the interviewer never gave you, so that gap is not counted against you.";
 
 const RECONCILE_MODEL_ID = SCORING_MODEL_ID;
 

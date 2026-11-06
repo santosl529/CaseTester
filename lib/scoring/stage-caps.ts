@@ -36,6 +36,12 @@ export const DIMENSION_STAGE: Partial<Record<RubricDimensionKey, StageKey>> = {
   synthesis: 'recommendation',
 };
 
+// How a caveat names a stage, in the candidate's words (6 Nov: never "the pressure test on the structure stage").
+const STAGE_PLAIN: Record<StageKey, string> = {
+  structure: 'opening structure', pressure_test: 'follow-up question on your structure', analysis: 'analysis of the case data',
+  exhibit: 'exhibit discussion', brainstorm: 'brainstorm', recommendation: 'recommendation', risk: 'question on the risks to your recommendation',
+};
+
 const STAGE_LABEL: Record<StageKey, string> = {
   structure: 'Structure (the opening question)', pressure_test: 'Pressure test on the structure', analysis: 'Analysis (case data released and worked)',
   exhibit: 'Exhibit', brainstorm: 'Brainstorm', recommendation: 'Recommendation', risk: 'Risk to the recommendation',
@@ -100,18 +106,18 @@ export function applyStageCaps(
   for (const [key, stage] of Object.entries(DIMENSION_STAGE) as [RubricDimensionKey, StageKey][]) {
     const dim = out[key];
     if (dim.notAssessed || administered(rec[stage])) continue;
-    const label = STAGE_LABEL[stage].toLowerCase();
+    const label = STAGE_PLAIN[stage];
     const notInCase = opts.notInCase?.includes(stage) ?? false;
     if (!quoted(dim.wentWell) && !quoted(dim.needsWork)) {
       dim.notAssessed = true;
-      dim.coverageCaveat ||= notInCase ? `This case has no ${label} stage, so this wasn't assessed.`
+      dim.coverageCaveat ||= notInCase ? `This case has no ${label}, so this wasn't assessed.`
         : opts.partial
-        ? `The interview ended before the ${label} stage, so this wasn't assessed.`
-        : `The ${label} stage never happened in this interview, so this wasn't assessed.`;
+        ? `The interview ended before the ${label}, so this wasn't assessed.`
+        : `The interview never got to the ${label}, so this wasn't assessed.`;
       notAssessed.push(key);
     } else if (!dim.coverageCaveat) {
-      dim.coverageCaveat = notInCase ? `This case has no ${label} stage; this rating rests on what you did elsewhere.`
-        : `The ${label} stage never happened in this interview; this rating rests on what you did elsewhere.`;
+      dim.coverageCaveat = notInCase ? `This case has no ${label}; this rating rests on what you did elsewhere.`
+        : `The interview never got to the ${label}; this rating rests on what you did elsewhere.`;
       caveated.push(key);
     }
   }

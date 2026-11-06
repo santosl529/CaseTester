@@ -2,6 +2,7 @@ import type { scores } from '@/db/schema';
 import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS, NOT_ASSESSED, type RubricDimensionKey } from './rubric';
 import { RubricScoresSchema, type DimensionFeedback, type FeedbackItem, type PlainPoint } from './judge';
 import { normalize } from './evidence-audit';
+import { plainReportLine, plainRubric } from './plain-terms';
 
 type ScoreRow = typeof scores.$inferSelect;
 
@@ -38,7 +39,8 @@ const RATING_COLUMN: Record<RubricDimensionKey, (s: ScoreRow) => string | null> 
 // Single source for the report's dimension list — used by the report page and the PDF export.
 export function reportDimensions(score: ScoreRow): ReportDimension[] {
   const parsed = RubricScoresSchema.safeParse(score.rubricJsonb);
-  const rubric = parsed.success ? parsed.data : null;
+  // Plain English on the page, reports stored before 6 Nov included (plain-terms.ts).
+  const rubric = parsed.success ? plainRubric(parsed.data) : null;
 
   return RUBRIC_DIMENSION_KEYS.map(key => ({
     key,
@@ -52,7 +54,12 @@ export function reportDimensions(score: ScoreRow): ReportDimension[] {
 // The top improvement in plain words, where the rewrite passed its audit; else null and the report shows topFix.
 export function topFixPlain(score: ScoreRow): PlainPoint | null {
   const parsed = RubricScoresSchema.safeParse(score.rubricJsonb);
-  return parsed.success ? parsed.data.topFixPlain ?? null : null;
+  return parsed.success ? plainRubric(parsed.data).topFixPlain ?? null : null;
+}
+
+// The stored top fix line (shown when there is no plain-words version), in plain English.
+export function topFixLine(score: ScoreRow): string | null {
+  return score.topFix ? plainReportLine(score.topFix) : null;
 }
 
 // Report tone (31 Oct): an item in plain words quotes the candidate inline; its
