@@ -1,6 +1,6 @@
 # UI unification plan: the homepage's design system across the app
 
-Branch `design/unify-ui`, cut from origin/main 696531e9 on 7 Nov 2026. This is the audit, written before any change. It waits for Matt's approval.
+Branch `design/unify-ui`, cut from origin/main 696531e9 on 7 Nov 2026. Written as the audit before any change; approved by Matt on 7 Nov with the decisions below (§7).
 
 Source of truth: the homepage (`/`) and How it works (`/how-it-works`) as they are on main, including the accuracy edits logged in `docs/site-launch/copy-changes.md`. No copy on those two pages changes on this branch.
 
@@ -142,3 +142,23 @@ Each phase is one commit (or one per area), after a rebase on main, with typeche
    - A click-through of sign-up and sign-in, the diagnostic, the plan, a lesson, a drill set, a mock interview, feedback and settings.
    - An accessibility pass (axe, contrast, keyboard) on those flows.
    - Push and open a pull request into main with the screenshots. Not merged.
+
+## 7. Matt's decisions (7 Nov 2026)
+
+1. Arrow links: drawn, not typed. Done as the homepage does it: an arrow icon beside the words, hidden from screen readers, so no label changes.
+2. Report verdicts: Strong in Mastery green, Adequate in Sky, Needs work in Cobalt; the Top improvement card becomes Sky. Check text contrast on Sky.
+3. Skill states: Validated is the internal step that makes a skill Mastered. Green only for Mastered.
+4. Charts: the Cobalt-led six without green, in one fixed order everywhere. Chosen and validated with the dataviz skill's checker: #2D4BD8, #D4581C, #0089A8, #A86A00, #C0307E, #7048C8 (each at least 3:1 on white; worst adjacent colour-blind ΔE 12.5). A waterfall's rises and falls keep their colours (the data's direction).
+5. Red: #B42318, for errors and the timer's last 10 seconds only; no flashing or pulsing.
+6. Screenshots and the click-through: no test account. Dev-only preview pages with sample data in `app/dev/ui-preview/` (blocked in production, never writing to the database, no real interview or voice session) for every before-and-after. Matt does the real end-to-end click-through on his own account before merging; the PR carries a checklist of the flows.
+7. Not-found and error pages: styled.
+8. Title Case headings: change the capitalisation only, to sentence case; list every changed heading in the PR. Homepage and product page copy stays untouched.
+9. One primary button per screen: agreed; shown in the pilot.
+
+## 8. How the work was done (so far)
+
+- **Views.** Each page's markup moved, unchanged, into a view component that takes its data as props (`components/drills/views`, `components/views`); pages keep their data loading, redirects and event logging. The drills layout's frame is `DrillsChrome`.
+- **Previews.** `app/dev/ui-preview` renders all 34 screens with sample data, much of it from the app's own pure code (authored items and lessons, scoring, plan and chart builders). A guard in the browser answers the screens' requests from sample answers and refuses everything else; ESLint keeps the database and Supabase clients out of the folder; the layout 404s outside development. Remove the folder when the pass ends.
+- **Foundations.** `app/brand.css` (imported by the root layout) holds the palette, the alert red, the six text roles, the controls, links, surfaces and motion tokens; the homepage's stylesheets read it instead of their own copies. `globals.css` adds Tailwind utilities for the tokens and maps the UI kit's colours onto the palette. Shared pieces in `components/brand`: window frame and exhibit, progress line, meter, step dot, arrow and back links, page shell. Verified: the homepage and How it works are pixel-identical at 1440 and 390 (reduced motion), with identical computed styles on every control and text role.
+- **Pilot.** The drill set (intro, item, feedback, written and graded) and the lesson (summary and full). axe: 0 violations at 1440 and 390, in every state.
+- **Open:** on phones the chart's SVG scales its labels down to about 6px (as before). The data table is the accessible alternative; a narrow-screen chart layout would change the chart's layout code, so it is listed for Matt rather than done.
