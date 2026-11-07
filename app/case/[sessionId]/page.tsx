@@ -8,6 +8,7 @@ import { CaseEndPanel } from '@/components/case-end-panel';
 import { SiteHeader } from '@/components/site-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getCaseById } from '@/lib/cases/loader';
+import { caseHref } from '@/lib/site/case-href';
 
 export default async function CasePage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
@@ -44,8 +45,9 @@ export default async function CasePage({ params }: { params: Promise<{ sessionId
       <header className="border-b px-4 py-3">
         <div className="flex items-center justify-between">
           <div className="text-sm font-medium text-neutral-700">Case Interview — {session.phase} phase</div>
-          {process.env.VOICE_DEV === '1' && session.status === 'active' && (
-            <Link href={`/case/${sessionId}/voice`} className="text-xs text-neutral-500 underline">Voice (dev)</Link>
+          {/* Voice is the default (Lorenzo, 6 Nov); text to voice mid-case is safe — the agent reads the turns so far. */}
+          {session.status === 'active' && (
+            <Link href={caseHref(sessionId, 'voice')} className="text-xs text-neutral-500 underline">Switch to voice</Link>
           )}
         </div>
         {casePrompt && (
