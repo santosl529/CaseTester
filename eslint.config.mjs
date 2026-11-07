@@ -13,6 +13,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local design-tool output (gitignored).
+    ".impeccable/**",
+    "mockups/**",
   ]),
   {
     plugins: {
