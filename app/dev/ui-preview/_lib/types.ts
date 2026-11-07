@@ -8,5 +8,7 @@ export interface Screen {
   title: string;
   // The pilot's screens (the design pass's first restyle).
   pilot?: boolean;
+  // Drills pages sit in the drills layout's header and feedback button.
+  chrome?: 'drills';
   render: () => { node: React.ReactNode; api?: Canned[] } | Promise<{ node: React.ReactNode; api?: Canned[] }>;
 }

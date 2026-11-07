@@ -122,8 +122,8 @@ function results(): ResultsData {
 }
 
 export const SET_SCREENS: Screen[] = [
-  { slug: 'drill-set', area: 'Drills', title: 'Drill set: Chart read (intro → item → feedback)', pilot: true, render: chartRead },
-  { slug: 'drill-set-written', area: 'Drills', title: 'Drill set: Framework builder (written, AI-graded)', render: frameworkBuilder },
-  { slug: 'drill-results', area: 'Drills', title: 'Set results', render: () => ({ node: <ResultsScreen results={results()} checkin={{ id: 'preview-checkin', kind: 'set_usefulness' }} />, api: [{ method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
-  { slug: 'drill-grading', area: 'Drills', title: 'Set results: grading', render: () => ({ node: <ResultsScreen results={{ set_id: 'preview-grading', status: 'grading', delayed: false, drill: { id: 'PS-3', name: 'Framework builder', level: 2 } }} checkin={null} /> }) },
+  { slug: 'drill-set', chrome: 'drills', area: 'Drills', title: 'Drill set: Chart read (intro → item → feedback)', pilot: true, render: chartRead },
+  { slug: 'drill-set-written', chrome: 'drills', area: 'Drills', title: 'Drill set: Framework builder (written, AI-graded)', render: frameworkBuilder },
+  { slug: 'drill-results', chrome: 'drills', area: 'Drills', title: 'Set results', render: () => ({ node: <ResultsScreen results={results()} checkin={{ id: 'preview-checkin', kind: 'set_usefulness' }} />, api: [{ method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
+  { slug: 'drill-grading', chrome: 'drills', area: 'Drills', title: 'Set results: grading', render: () => ({ node: <ResultsScreen results={{ set_id: 'preview-grading', status: 'grading', delayed: false, drill: { id: 'PS-3', name: 'Framework builder', level: 2 } }} checkin={null} /> }) },
 ];

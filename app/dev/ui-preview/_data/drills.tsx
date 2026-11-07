@@ -197,24 +197,24 @@ function diagnostic(state: 'running' | 'done'): DiagnosticData {
 const STARTS: Canned[] = [{ method: 'POST', path: '/api/drills/sets', body: { set_id: 'preview-ex1' } }];
 
 export const DRILL_SCREENS: Screen[] = [
-  { slug: 'training-home', area: 'Plan and dashboard', title: 'Training home: a workout under way', render: () => ({ node: <TrainingHome home={home('plan')} checkin={null} />, api: STARTS }) },
-  { slug: 'training-home-new', area: 'Plan and dashboard', title: 'Training home: no plan yet', render: () => ({ node: <TrainingHome home={home('new')} checkin={{ id: 'preview-checkin', kind: 'week_1' }} />, api: [...STARTS, { method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
-  { slug: 'training-home-self', area: 'Plan and dashboard', title: 'Training home: practice on my own', render: () => ({ node: <TrainingHome home={home('self')} checkin={null} />, api: STARTS }) },
-  { slug: 'plan', area: 'Plan and dashboard', title: 'Your plan', render: () => ({ node: <PlanScreen {...plan()} />, api: STARTS }) },
-  { slug: 'progress', area: 'Plan and dashboard', title: 'Your progress', render: () => ({ node: <ProgressScreen v={dashboard()} window={7} period="2w" group="area" />, api: [...STARTS, { method: 'PATCH', path: '/api/prescriptions/.*', body: { ok: true } }] }) },
-  { slug: 'progress-empty', area: 'Plan and dashboard', title: 'Your progress: before any practice', render: () => ({ node: <ProgressScreen v={dashboard(false)} window={7} period="2w" group="area" /> }) },
-  { slug: 'skill', area: 'Plan and dashboard', title: 'One skill (Chart takeaway)', render: () => ({ node: <SkillDetail s={skill()} />, api: STARTS }) },
-  { slug: 'learn', area: 'Lessons', title: 'Learn library', render: () => ({ node: <LearnLibrary available={new Set(loadLessons().map(l => l.skill_id))} intro={loadIntroLesson()} /> }) },
+  { slug: 'training-home', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: a workout under way', render: () => ({ node: <TrainingHome home={home('plan')} checkin={null} />, api: STARTS }) },
+  { slug: 'training-home-new', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: no plan yet', render: () => ({ node: <TrainingHome home={home('new')} checkin={{ id: 'preview-checkin', kind: 'week_1' }} />, api: [...STARTS, { method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
+  { slug: 'training-home-self', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: practice on my own', render: () => ({ node: <TrainingHome home={home('self')} checkin={null} />, api: STARTS }) },
+  { slug: 'plan', chrome: 'drills', area: 'Plan and dashboard', title: 'Your plan', render: () => ({ node: <PlanScreen {...plan()} />, api: STARTS }) },
+  { slug: 'progress', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress', render: () => ({ node: <ProgressScreen v={dashboard()} window={7} period="2w" group="area" />, api: [...STARTS, { method: 'PATCH', path: '/api/prescriptions/.*', body: { ok: true } }] }) },
+  { slug: 'progress-empty', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress: before any practice', render: () => ({ node: <ProgressScreen v={dashboard(false)} window={7} period="2w" group="area" /> }) },
+  { slug: 'skill', chrome: 'drills', area: 'Plan and dashboard', title: 'One skill (Chart takeaway)', render: () => ({ node: <SkillDetail s={skill()} />, api: STARTS }) },
+  { slug: 'learn', chrome: 'drills', area: 'Lessons', title: 'Learn library', render: () => ({ node: <LearnLibrary available={new Set(loadLessons().map(l => l.skill_id))} intro={loadIntroLesson()} /> }) },
   {
-    slug: 'lesson', area: 'Lessons', title: 'Lesson: Chart takeaway (summary card)', pilot: true,
+    slug: 'lesson', chrome: 'drills', area: 'Lessons', title: 'Lesson: Chart takeaway (summary card)', pilot: true,
     render: () => ({ node: <LessonScreen lesson={lessonFor('EX.takeaway')} mode="summary" source="library" start={{ skill_id: 'EX.takeaway', quick_start: true }} />, api: STARTS }),
   },
   {
-    slug: 'lesson-full', area: 'Lessons', title: 'Lesson: Chart takeaway (full, Foundations)', pilot: true,
+    slug: 'lesson-full', chrome: 'drills', area: 'Lessons', title: 'Lesson: Chart takeaway (full, Foundations)', pilot: true,
     render: () => ({ node: <LessonScreen lesson={lessonFor('EX.takeaway')} mode="full" source="auto" start={{ skill_id: 'EX.takeaway', quick_start: true }} />, api: STARTS }),
   },
   {
-    slug: 'lesson-intro', area: 'Lessons', title: 'How a case interview works',
+    slug: 'lesson-intro', chrome: 'drills', area: 'Lessons', title: 'How a case interview works',
     render: () => {
       const intro = loadIntroLesson()!;
       const withLesson = new Set(loadLessons().map(l => l.skill_id));
@@ -222,17 +222,17 @@ export const DRILL_SCREENS: Screen[] = [
       return { node: <IntroLessonScreen intro={intro} skills={skills} auto={false} /> };
     },
   },
-  { slug: 'browse', area: 'Drills', title: 'Browse drills', render: () => ({ node: <BrowseDrills areas={catalog()} current={{ id: 'preview-ex1' }} />, api: STARTS }) },
-  { slug: 'diagnostic-start', area: 'Diagnostic', title: 'Diagnostic: before starting', render: () => ({ node: <DiagnosticScreen view={null} track="standard" retake={false} />, api: [...STARTS, { method: 'POST', path: '/api/drills/diagnostic/skip', body: { ok: true } }] }) },
-  { slug: 'diagnostic', area: 'Diagnostic', title: 'Diagnostic: part 3 of 6', render: () => ({ node: <DiagnosticScreen view={diagnostic('running')} track="standard" retake={false} />, api: STARTS }) },
-  { slug: 'diagnostic-done', area: 'Diagnostic', title: 'Diagnostic: your starting point', render: () => ({ node: <DiagnosticScreen view={diagnostic('done')} track="standard" retake={false} /> }) },
-  { slug: 'onboarding', area: 'Onboarding', title: 'Set up your training', render: () => ({ node: <StartScreen availability={AVAILABILITY} today={TODAY} />, api: [{ method: 'POST', path: '/api/drills/onboarding', body: { ok: true } }] }) },
+  { slug: 'browse', chrome: 'drills', area: 'Drills', title: 'Browse drills', render: () => ({ node: <BrowseDrills areas={catalog()} current={{ id: 'preview-ex1' }} />, api: STARTS }) },
+  { slug: 'diagnostic-start', chrome: 'drills', area: 'Diagnostic', title: 'Diagnostic: before starting', render: () => ({ node: <DiagnosticScreen view={null} track="standard" retake={false} />, api: [...STARTS, { method: 'POST', path: '/api/drills/diagnostic/skip', body: { ok: true } }] }) },
+  { slug: 'diagnostic', chrome: 'drills', area: 'Diagnostic', title: 'Diagnostic: part 3 of 6', render: () => ({ node: <DiagnosticScreen view={diagnostic('running')} track="standard" retake={false} />, api: STARTS }) },
+  { slug: 'diagnostic-done', chrome: 'drills', area: 'Diagnostic', title: 'Diagnostic: your starting point', render: () => ({ node: <DiagnosticScreen view={diagnostic('done')} track="standard" retake={false} /> }) },
+  { slug: 'onboarding', chrome: 'drills', area: 'Onboarding', title: 'Set up your training', render: () => ({ node: <StartScreen availability={AVAILABILITY} today={TODAY} />, api: [{ method: 'POST', path: '/api/drills/onboarding', body: { ok: true } }] }) },
   {
-    slug: 'questionnaire', area: 'Onboarding', title: 'A few questions',
+    slug: 'questionnaire', chrome: 'drills', area: 'Onboarding', title: 'A few questions',
     render: () => ({ node: <QuestionnaireScreen availability={AVAILABILITY} today={TODAY} showHours initial={{ interview_date: '2026-12-11', cases_done: '1-5', availability: 'standard' }} />, api: [{ method: 'POST', path: '/api/drills/questionnaire', body: { ok: true } }] }),
   },
   {
-    slug: 'settings', area: 'Settings', title: 'Training settings',
+    slug: 'settings', chrome: 'drills', area: 'Settings', title: 'Training settings',
     render: () => ({
       node: <SettingsScreen track="standard" interviewDate="2026-12-11" availabilityId="standard" availability={AVAILABILITY} today={TODAY} timeMultiplier={1} untimed={false} feedbackMode="immediate" />,
       api: [{ method: 'PUT', path: '/api/drills/program', body: { ok: true } }, { method: 'PUT', path: '/api/me/drill-settings', body: { ok: true } }],

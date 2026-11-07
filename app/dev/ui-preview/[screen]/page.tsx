@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import { PreviewApi, type Canned } from '../_lib/guard';
 import { SCREENS } from '../_lib/screens';
+import { DrillsChrome } from '@/components/drills/views/chrome';
 
 // Sample answers every screen may need: the feedback button on drills pages.
 const SHARED: Canned[] = [{ method: 'POST', path: '/api/drills/feedback', body: { ok: true } }];
@@ -13,7 +14,7 @@ export default async function PreviewScreen({ params }: { params: Promise<{ scre
   return (
     <>
       <PreviewApi routes={[...api, ...SHARED]} />
-      {node}
+      {s.chrome === 'drills' ? <DrillsChrome>{node}</DrillsChrome> : node}
     </>
   );
 }
