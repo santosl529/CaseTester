@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import ReactMarkdown from 'react-markdown';
 import { ExhibitTable } from '@/components/exhibit-table';
 import { CaseEndPanel, type EndReport } from '@/components/case-end-panel';
+import { MAX_TURN_CHARS } from '@/lib/turn-limits';
 
 type ExhibitDisplay = {
   id: string;
@@ -40,6 +41,8 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
   // absent when the case ended with no report.
   const [ended, setEnded] = useState<{ report?: EndReport } | null>(null);
   const scoring = useRef(false);
+  // A second Send that lands before the disabled state renders (CLAUDE.md: never charge twice).
+  const sending = useRef(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const busy = status !== 'idle';
 
@@ -90,7 +93,8 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
 
   async function sendTurn(e: React.FormEvent) {
     e.preventDefault();
-    if (!input.trim() || busy) return;
+    if (!input.trim() || busy || sending.current) return;
+    sending.current = true;
     const text = input.trim();
     setInput('');
     setMessages(m => [...m, { role: 'candidate', text }]);
@@ -99,7 +103,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ text }),
-    });
+    }).finally(() => { sending.current = false; });
     if (!res.ok) {
       setMessages(m => [...m, { role: 'interviewer', text: 'Something went wrong. Please try again.' }]);
       setStatus('idle');
@@ -158,6 +162,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
           onChange={e => setInput(e.target.value)}
           placeholder="Type your response…"
           disabled={busy}
+          maxLength={MAX_TURN_CHARS}
           className="flex-1"
         />
         <Button type="submit" disabled={busy}>Send</Button>

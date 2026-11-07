@@ -18,9 +18,7 @@ import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
-import { desc } from 'drizzle-orm';
-import { db } from '@/db/client';
-import { sessions } from '@/db/schema';
+import { scriptOwnerId } from '@/lib/script-owner';
 import { startSession } from '@/lib/orchestrator/start-session';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
@@ -191,8 +189,7 @@ async function main() {
   for (const l of lines) audio.push(await fixture(l, candidateVoice));
   console.log(`[voice] fixtures ready (${audio.map(a => (a.length / 2 / MIC_RATE).toFixed(1)).join('s, ')}s)`);
 
-  const owner = await db.query.sessions.findFirst({ orderBy: [desc(sessions.startedAt)] });
-  if (!owner) throw new Error('No existing session to borrow a user id from.');
+  const owner = { userId: scriptOwnerId() };   // SCRIPT_USER_ID (lib/script-owner.ts)
   const { sessionId } = await startSession(owner.userId, 'prof-001');
   const tts = TTS_OFF ? null : new CartesiaTTS(interviewerVoice);
   await tts?.connect();   // pre-warmed, as a live agent would be

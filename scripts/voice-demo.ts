@@ -14,9 +14,7 @@
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, readdirSync, writeFileSync, rmSync } from 'node:fs';
 import path from 'node:path';
-import { desc } from 'drizzle-orm';
-import { db } from '@/db/client';
-import { sessions } from '@/db/schema';
+import { scriptOwnerId } from '@/lib/script-owner';
 import { startSession } from '@/lib/orchestrator/start-session';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
@@ -108,8 +106,7 @@ async function main() {
   const budget = requireRunBudget('voice-demo');
   process.on('exit', () => console.log(`[budget] ${budget.summary()}`));
   const lines = candidateLines();
-  const owner = await db.query.sessions.findFirst({ orderBy: [desc(sessions.startedAt)] });
-  if (!owner) throw new Error('No existing session to borrow a user id from.');
+  const owner = { userId: scriptOwnerId() };   // SCRIPT_USER_ID (lib/script-owner.ts)
   const { sessionId, openingText } = await startSession(owner.userId, 'prof-001');
   console.log(`[demo] session ${sessionId} · interviewer model ${INTERVIEWER} · ${lines.length} candidate lines from ${RUN} · voice ${VOICE} · end-of-turn gap ${ENDPOINT_MS}ms`);
 

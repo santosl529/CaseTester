@@ -19,6 +19,7 @@ vi.mock('@/lib/voice/dispatch-claim', () => ({
   releaseVoiceDispatch: async () => { claim.held = false; },
 }));
 vi.mock('livekit-server-sdk', () => ({
+  TrackSource: { MICROPHONE: 2, CAMERA: 1, SCREEN_SHARE: 3 },
   AccessToken: class { constructor(public key: string, public secret: string, public opts: unknown) {} addGrant(g: unknown) { h.grants.push(g); } async toJwt() { return 'jwt-for-test'; } },
   AgentDispatchClient: class { constructor(public url: string) { (h as Record<string, unknown>).dispatchUrl = url; } listDispatch = h.listDispatch; createDispatch = h.createDispatch; },
   RoomServiceClient: class { constructor(public url: string) { (h as Record<string, unknown>).roomsUrl = url; } listRooms = async () => h.rooms; deleteRoom = async () => {}; },
@@ -63,6 +64,8 @@ describe('voice token route', () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ url: 'wss://example.livekit.cloud', token: 'jwt-for-test' });
     expect(h.grants[0]).toMatchObject({ roomJoin: true, room: 'case-s1', canPublish: true, canSubscribe: true, canPublishData: true });
+    // Security audit (6 Nov): the candidate may publish their microphone and nothing else (no camera, no screen).
+    expect((h.grants[0] as { canPublishSources?: unknown }).canPublishSources).toEqual([2]);
     expect(h.createDispatch).toHaveBeenCalledWith('case-s1', 'case-interviewer', { metadata: JSON.stringify({ sessionId: 's1' }) });
     expect((h as Record<string, unknown>).dispatchUrl).toBe('https://example.livekit.cloud');
   });

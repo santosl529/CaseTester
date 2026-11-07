@@ -41,6 +41,7 @@ vi.mock('@/lib/voice/dispatch-claim', () => ({
   releaseVoiceDispatch: async (id: string) => { db.claims.delete(id); },
 }));
 vi.mock('livekit-server-sdk', () => ({
+  TrackSource: { MICROPHONE: 2 },
   AccessToken: class { addGrant() {} async toJwt() { return 'jwt'; } },
   AgentDispatchClient: class {
     async listDispatch(room: string) { if (lk.gate) await lk.gate; return lk.dispatches.filter(d => d.room === room); }

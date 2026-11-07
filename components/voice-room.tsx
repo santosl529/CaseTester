@@ -14,6 +14,7 @@ import { LiveCaption } from '@/components/live-caption';
 import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
 import { agentAudioWatchdog, CONNECTING_MESSAGE, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
+import { caseHref } from '@/lib/site/case-href';
 import { HealthMeter } from '@/lib/voice/health';
 import { ReadyGate } from '@/lib/voice/ready-gate';
 import { SETUP_LINE_DELAY_MS, SetupTimings } from '@/lib/voice/setup-timing';
@@ -384,6 +385,14 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
       {/* Before Start, on its own line (Lorenzo, 19 Oct): on speakers the room hears the interviewer. */}
       {local === 'idle' && (
         <p className="text-sm font-medium text-neutral-800">Headphones work best — on laptop speakers the interviewer can hear itself and cut off.</p>
+      )}
+      {/* Voice is the default (Lorenzo, 6 Nov): when it can't start (busy, no microphone, no interviewer) or the
+          student would rather type, the same interview continues in text. Only while no voice is connected, so a
+          typed turn never races the agent. */}
+      {local === 'idle' && !caseOver && (
+        <p className="text-sm text-neutral-600">
+          Prefer to type, or voice isn&apos;t working? <a href={caseHref(sessionId, 'text')} className="underline">Continue this interview in text</a>
+        </p>
       )}
       <div className="flex items-center gap-2">
         {local === 'idle' && <Button onClick={start}>Start</Button>}
