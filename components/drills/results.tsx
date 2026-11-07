@@ -71,7 +71,7 @@ export function SetResults({ results, checkin }: { results: Results; checkin?: C
       <div className="flex flex-wrap gap-3">
         <Link href="/drills" className={buttonVariants({ size: 'lg' })}>{results.from_workout ? 'Continue workout' : 'Back to training'}</Link>
         <RetryButton drillId={results.drill.id} skillId={results.focus_skill} />
-        <Link href="/" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Take a case</Link>
+        <Link href="/home" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Take a case</Link>
         <Link href="/drills/progress" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Your progress</Link>
       </div>
 

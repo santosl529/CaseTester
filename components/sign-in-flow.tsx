@@ -7,10 +7,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-// Sign in, then the club code once (site flow, 19 Oct). The landing page
+// Sign in, then the club code once (site flow, 19 Oct). The sign-in page
 // decides where to start: a signed-in student with a valid code on their
 // profile never sees this; one without a code starts at the club step.
-export function SignInFlow({ initialStep }: { initialStep: 'auth' | 'club' }) {
+export function SignInFlow({ initialStep, next = null }: { initialStep: 'auth' | 'club'; next?: string | null }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [clubCode, setClubCode] = useState('');
@@ -29,8 +29,8 @@ export function SignInFlow({ initialStep }: { initialStep: 'auth' | 'club' }) {
       if (signUpError) { setError(signUpError.message); return; }
       if (!data.session) { setError('Check your email to confirm your account, then sign in.'); return; }
     }
-    // The landing page decides: /home when the profile already has a valid code.
-    window.location.assign('/');
+    // The sign-in page decides: on to `next` (or /home) when the profile already has a valid code.
+    window.location.assign(next ? `/sign-in?next=${encodeURIComponent(next)}` : '/sign-in');
   }
 
   async function handleClubCode(e: React.FormEvent) {
@@ -50,14 +50,14 @@ export function SignInFlow({ initialStep }: { initialStep: 'auth' | 'club' }) {
       setError(data.error === 'Invalid club code' ? 'Invalid club code. Contact your club president.' : 'Could not check your club code. Please try again.');
       return;
     }
-    router.push('/home');
+    router.push(next ?? '/home');
   }
 
   return (
     <main className="min-h-dvh flex items-center justify-center bg-neutral-50 p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Case Interview Practice</CardTitle>
+          <CardTitle>CaseTester</CardTitle>
         </CardHeader>
         <CardContent>
           {step === 'auth' && (

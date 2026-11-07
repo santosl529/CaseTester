@@ -1,0 +1,88 @@
+/* The homepage's few rules Tailwind can't say cleanly. */
+
+/* Smooth in-page scroll (loop boxes, header links), only for visitors who
+   haven't asked for reduced motion. */
+@media (prefers-reduced-motion: no-preference) {
+  :global(html:has([data-landing])) {
+    scroll-behavior: smooth;
+  }
+}
+
+/* A row reached from its loop box: the step marker turns Ink, reading as the
+   box that was pressed. */
+.row {
+  scroll-margin-top: 1.5rem;
+}
+
+.step {
+  transition: background-color 400ms cubic-bezier(0.16, 1, 0.3, 1), color 400ms cubic-bezier(0.16, 1, 0.3, 1), border-color 400ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.row:target .step {
+  background-color: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
+}
+
+/* And back: a step marker returns to its loop box, which turns Ink too. */
+.box:target {
+  background-color: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
+}
+
+.box:target > span,
+.box:target svg {
+  color: color-mix(in oklch, var(--background) 80%, transparent);
+}
+
+.box:target > span:first-child {
+  color: var(--background);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .step {
+    transition: none;
+  }
+}
+
+/* Product captures: the narrow one's shape on phones, the full one's above. */
+.art {
+  aspect-ratio: var(--ar-wide);
+}
+
+@media (max-width: 1023px) {
+  .art {
+    aspect-ratio: var(--ar-narrow);
+  }
+}
+
+/* Bullets: a small Ink square, not a glyph. */
+.bullets > li {
+  position: relative;
+  padding-left: 1.125rem;
+}
+
+.bullets > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 0.375rem;
+  height: 0.375rem;
+  background: var(--foreground);
+}
+
+/* The hero's Mist field runs from behind the screenshot to the viewport's
+   right edge on wide screens (the container is 72rem with 1.5rem padding). */
+@media (min-width: 1024px) {
+  .heroField {
+    right: min(-1.5rem, calc(34.5rem - 50vw));
+  }
+}
+
+/* Selection and focus from the palette, not the browser's blue. */
+.page ::selection {
+  background: var(--foreground);
+  color: var(--background);
+}
