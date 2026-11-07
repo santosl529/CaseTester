@@ -438,7 +438,7 @@
   height: 6px;
   flex-shrink: 1;
   border-radius: 999px;
-  background: #E3E2DC;
+  background: var(--meter-track);
 }
 
 .meterFill {

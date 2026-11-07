@@ -1,14 +1,5 @@
-/* Homepage mockups (Matt, 21 Oct 2026): the Ink & Cobalt palette. These six
-   are the only colours the mockups use; tints are these colours with alpha. */
-:root {
-  --ink: #0E1424;     /* headlines, body text, dark sections */
-  --cobalt: #2D4BD8;  /* brand colour: buttons, links, key highlights */
-  --sky: #DCE5FF;     /* light tints: chips, card backgrounds */
-  --paper: #F7F7F4;   /* page background */
-  --mastery: #1F9D63; /* progress and "Mastered" states only */
-  --white: #FFFFFF;
-}
-
+/* The public site's page colours, selection and focus (Matt, 21 Oct 2026).
+   The Ink & Cobalt palette itself is in app/brand.css. */
 [data-mockup] {
   color: var(--ink);
   background: var(--paper);

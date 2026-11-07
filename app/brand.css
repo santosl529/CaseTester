@@ -1,0 +1,153 @@
+/* CasePace's design system, shared by the public site and the app (the
+   homepage's system, Matt's briefs 21 Oct–6 Nov 2026; one place since the
+   UI unification pass, 7 Nov). Tokens, the six text roles, the controls and
+   the browser surfaces. Plain, unlayered CSS like the homepage's own, so a
+   role or a control wins over a stray utility exactly as it always has.
+   Tailwind utilities for the tokens (bg-cobalt, text-ink/70, rounded-panel,
+   shadow-panel…) are declared in globals.css. */
+
+:root {
+  /* The palette: six colours; tints are these colours with alpha. */
+  --ink: #0E1424;     /* text and dark surfaces */
+  --cobalt: #2D4BD8;  /* the accent: primary buttons, links, highlights */
+  --sky: #DCE5FF;     /* soft highlights */
+  --paper: #F7F7F4;   /* page backgrounds */
+  --mastery: #1F9D63; /* progress and completion only */
+  --white: #FFFFFF;   /* cards */
+  /* Errors and the timer's last 10 seconds only (Matt, 7 Nov). 6.6:1 on white. */
+  --alert: #B42318;
+  /* The readiness meter's track. */
+  --meter-track: #E3E2DC;
+
+  /* Surfaces (Tailwind's rounded-panel, shadow-panel… read these; the names
+     differ from Tailwind's own so a theme variable never points at itself) */
+  --panel-radius: 14px;
+  --window-radius: 10px;
+  --field-radius: 8px;
+  --panel-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent), 0 24px 60px -36px color-mix(in srgb, var(--ink) 35%, transparent);
+  --quiet-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 4%, transparent);
+  --window-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent);
+  --lift-shadow: 0 1px 2px color-mix(in srgb, var(--ink) 6%, transparent), 0 20px 44px -32px color-mix(in srgb, var(--ink) 40%, transparent);
+
+  /* Motion: state changes ease out; small lifts settle a little faster. */
+  --motion-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-lift: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* The six text roles; every size is one of them. */
+  --t-display: 2.75rem;
+  --t-display-lh: 1.02;
+  --t-section: 2.125rem;
+  --t-section-lh: 1.06;
+  --t-card: 1.125rem;
+  --t-card-lh: 1.35;
+  --t-body: 1rem;
+  --t-body-lh: 1.55;
+  --t-small: 0.875rem;
+  --t-small-lh: 1.45;
+  --t-label: 0.75rem;
+  --t-label-lh: 1.35;
+  --hdr: 3.25rem;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --t-display: 4.5rem;
+    --t-display-lh: 0.98;
+    --t-section: 3.25rem;
+    --t-section-lh: 1.02;
+    --t-card: 1.25rem;
+    --t-card-lh: 1.3;
+    --t-body: 1.125rem;
+    --t-body-lh: 1.6;
+    --hdr: 3.5rem;
+  }
+}
+
+.t-display { font-size: var(--t-display); line-height: var(--t-display-lh); font-weight: 600; letter-spacing: -0.04em; }
+.t-section { font-size: var(--t-section); line-height: var(--t-section-lh); font-weight: 600; letter-spacing: -0.035em; }
+.t-card { font-size: var(--t-card); line-height: var(--t-card-lh); }
+.t-body { font-size: var(--t-body); line-height: var(--t-body-lh); }
+.t-small { font-size: var(--t-small); line-height: var(--t-small-lh); }
+.t-label { font-size: var(--t-label); line-height: var(--t-label-lh); }
+
+/* ---------- Controls: a primary and a secondary ---------- */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 3rem;
+  padding: 0 1.75rem;
+  border-radius: 9999px;
+  background: var(--cobalt);
+  color: var(--white);
+  font-size: var(--t-body);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color 150ms ease;
+}
+
+.btn-primary:hover {
+  background: var(--ink);
+}
+
+.btn-primary.compact {
+  height: 2.25rem;
+  padding: 0 1rem;
+  font-size: var(--t-small);
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  height: 2.25rem;
+  padding: 0 0.875rem;
+  border-radius: 9999px;
+  border: 1px solid var(--ink);
+  color: var(--ink);
+  font-size: var(--t-small);
+  font-weight: 500;
+  background: transparent;
+  transition: color 150ms ease, border-color 150ms ease;
+}
+
+.btn-secondary:hover {
+  color: var(--cobalt);
+  border-color: var(--cobalt);
+}
+
+.link {
+  color: var(--ink);
+  font-weight: 500;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.25em;
+  transition: color 150ms ease;
+}
+
+.link:hover {
+  color: var(--cobalt);
+}
+
+/* A quieter link (the skip link). */
+.link-quiet {
+  color: color-mix(in srgb, var(--ink) 70%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 0.25em;
+  transition: color 150ms ease;
+}
+
+.link-quiet:hover,
+.link-quiet:focus-visible {
+  color: var(--cobalt);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .btn-primary,
+  .btn-secondary,
+  .link,
+  .link-quiet {
+    transition: none;
+  }
+}

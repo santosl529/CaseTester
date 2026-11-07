@@ -1,6 +1,7 @@
 'use client';
 import { memo, useLayoutEffect, useRef, useState } from 'react';
 import { BookOpen } from 'lucide-react';
+import { WindowFrame } from '@/components/brand/window';
 import { ADAPT, BRAND, SCREENS, type ScreenId } from './content';
 import { AnswerBox, Chip, SkillLevels, TimerRing, Workout } from './chapters';
 import { useRecent, useReducedMotion } from './motion';
@@ -14,8 +15,8 @@ import s from './exhibition.module.css';
 
 // ---------- The frame ----------
 
-// A browser-style frame: a thin border and a small top bar carrying the app's
-// name. The screen inside is laid out at real size, never scaled down (scaled
+// A browser-style frame (the shared WindowFrame): a thin border and a small
+// top bar carrying the app's name. The screen inside is laid out at real size, never scaled down (scaled
 // to fit a slide, its smallest text fell to about 9px). `crop` (desktop
 // slides): the frame takes the height its slide gives it and shows the top
 // of the screen, its key area, fading out where it is cut; `fill` lets a
@@ -45,17 +46,13 @@ export function BrowserFrame({ crop = false, fill = false, children }: { crop?: 
     return () => ro.disconnect();
   }, [crop]);
   return (
-    <div className={`flex flex-col overflow-hidden rounded-[10px] border border-(--ink)/15 bg-(--white) shadow-[0_1px_2px_color-mix(in_srgb,var(--ink)_6%,transparent)] ${crop ? 'h-full min-h-0' : ''}`}>
-      <div className="relative flex h-7 flex-none items-center gap-1.5 border-b border-(--ink)/10 bg-(--paper) px-2.5">
-        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-(--ink)/15" /><span aria-hidden="true" className="h-2 w-2 rounded-full bg-(--ink)/15" /><span aria-hidden="true" className="h-2 w-2 rounded-full bg-(--ink)/15" />
-        <span className="t-label absolute left-1/2 -translate-x-1/2 font-semibold text-(--ink)/70">{BRAND}</span>
-      </div>
+    <WindowFrame title={BRAND} className={crop ? 'h-full min-h-0' : ''}>
       {crop ? (
         <div ref={view} data-cut={fit.cut} data-shifted={fit.shift > 0} className={`${s.cropView} ${fill ? s.cropFill : ''} relative min-h-0 flex-1 overflow-hidden`}>
           <div ref={inner} className={fill ? 'h-full' : ''} style={fit.shift ? { transform: `translateY(${-fit.shift}px)` } : undefined}>{children}</div>
         </div>
       ) : children}
-    </div>
+    </WindowFrame>
   );
 }
 
