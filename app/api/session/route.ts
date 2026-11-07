@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isStartableCase } from '@/lib/cases/listed';
-import { startSession } from '@/lib/orchestrator/start-session';
+import { startSessionLimited } from '@/lib/orchestrator/start-session';
 import { clubOrgId, recordStudentOrg, storedClubOrg } from '@/lib/club';
 
 export async function POST(req: NextRequest) {
@@ -26,6 +26,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Unknown case' }, { status: 400 });
   }
 
-  const { sessionId, openingText } = await startSession(user.id, caseId);
-  return NextResponse.json({ sessionId, openingText });
+  // Within the student's limits (lib/session-limits.ts: 2 in 24 hours, 8 a month, a site-wide monthly ceiling).
+  const started = await startSessionLimited(user.id, caseId);
+  if (!started.ok) {
+    return NextResponse.json({ error: 'session_limit', reason: started.reason, limit: started.limit, retryAt: started.retryAt.toISOString() }, { status: 429 });
+  }
+  return NextResponse.json({ sessionId: started.sessionId, openingText: started.openingText });
 }

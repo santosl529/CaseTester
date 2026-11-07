@@ -23,7 +23,9 @@ export function StartCaseButton({ caseId, label }: { caseId: string; label: stri
     });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
-      setError(data.error === 'Invalid club code' ? 'Your club code is no longer valid. Contact your club president.' : 'Failed to start case. Please try again.');
+      setError(data.error === 'Invalid club code' ? 'Your club code is no longer valid. Contact your club president.'
+        : data.error === 'session_limit' ? limitMessage(data)
+        : 'Failed to start case. Please try again.');
       setStarting(false);
       inFlight.current = false;
       return;
@@ -38,4 +40,13 @@ export function StartCaseButton({ caseId, label }: { caseId: string; label: stri
       {error && <p className="text-red-600 text-sm">{error}</p>}
     </div>
   );
+}
+
+// The start limits (lib/session-limits.ts), in the student's own time zone.
+function limitMessage({ reason, limit, retryAt }: { reason?: string; limit?: number; retryAt?: string }): string {
+  const when = retryAt ? new Date(retryAt) : null;
+  const at = when ? when.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'later';
+  if (reason === 'daily') return `You've started ${limit} interviews in the last 24 hours, the most allowed. You can start another from ${at}.`;
+  if (reason === 'monthly') return `You've used your ${limit} interviews for this month. Your limit resets on ${when ? when.toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : 'the 1st'}.`;
+  return "We've reached this month's interview limit for the whole site. Please try again next month.";
 }

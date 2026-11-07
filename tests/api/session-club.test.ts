@@ -17,7 +17,7 @@ vi.mock('@/db/client', () => ({
   },
 }));
 vi.mock('@/lib/orchestrator/start-session', () => ({
-  startSession: async (userId: string, caseId: string) => { h.started.push({ userId, caseId }); return { sessionId: 's1', openingText: 'Hi' }; },
+  startSessionLimited: async (userId: string, caseId: string) => { h.started.push({ userId, caseId }); return { ok: true, sessionId: 's1', openingText: 'Hi' }; },
 }));
 
 const { POST } = await import('@/app/api/session/route');
