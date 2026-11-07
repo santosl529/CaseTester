@@ -3,6 +3,11 @@
 // no one can spend the shared AI and voice budgets for everyone. A session bounds everything paid after it: turns
 // run one at a time on the case clock, scoring once (scoring-claim.ts), voice within VOICE_TTS_RUN_CAP.
 //
+// At most CASE_MAX_IN_PROGRESS (5) interviews in progress at once across the site (Lorenzo, 7 Nov: "I just don't
+// want to overload the system"): a sixth start is refused as busy until one frees. In progress = an active session
+// whose latest turn is under 10 minutes old, so a closed tab frees its slot; nobody mid-interview is ever cut off —
+// only starts are checked. Voice has its own, smaller cap (VOICE_MAX_CONCURRENT) inside this one.
+//
 // Users in CASE_LIMIT_EXEMPT_USER_IDS (Lorenzo's own testing) are never limited and never count toward the site
 // ceiling. Scripts that call startSession directly (evals, live-run) are not limited either.
 //
@@ -12,15 +17,19 @@
 // nothing at this traffic.
 import { and, count, eq, gt, gte, notInArray, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { sessions } from '@/db/schema';
+import { sessions, sessionTurns } from '@/db/schema';
 
-export type SessionLimits = { perDay: number; perMonth: number; sitePerMonth: number; exempt: Set<string> };
-export type SessionUsage = { last24h: Date[]; month: number; siteMonth: number };
-export type LimitReason = 'daily' | 'monthly' | 'site';
+export type SessionLimits = { perDay: number; perMonth: number; sitePerMonth: number; maxInProgress: number; exempt: Set<string> };
+export type SessionUsage = { last24h: Date[]; month: number; siteMonth: number; inProgress: number };
+export type LimitReason = 'daily' | 'monthly' | 'site' | 'busy';
 export type SessionDecision = { ok: true } | { ok: false; reason: LimitReason; limit: number; retryAt: Date };
 
 const DAY_MS = 86_400_000;
-const DEFAULTS = { perDay: 2, perMonth: 8, sitePerMonth: 150 };
+const DEFAULTS = { perDay: 2, perMonth: 8, sitePerMonth: 150, maxInProgress: 5 };
+// An active session with no turn for this long no longer holds a slot (a closed tab).
+export const IN_PROGRESS_WINDOW_MS = 10 * 60_000;
+// Not shown to the student ("try again in a few minutes"); a rough guide for API callers.
+const BUSY_RETRY_MS = 5 * 60_000;
 
 function positiveInt(v: string | undefined, fallback: number): number {
   const n = Number(v);
@@ -32,6 +41,7 @@ export function sessionLimitsFromEnv(env: Record<string, string | undefined> = p
     perDay: positiveInt(env.CASE_SESSIONS_PER_DAY, DEFAULTS.perDay),
     perMonth: positiveInt(env.CASE_SESSIONS_PER_MONTH, DEFAULTS.perMonth),
     sitePerMonth: positiveInt(env.CASE_SESSIONS_SITE_PER_MONTH, DEFAULTS.sitePerMonth),
+    maxInProgress: positiveInt(env.CASE_MAX_IN_PROGRESS, DEFAULTS.maxInProgress),
     exempt: new Set((env.CASE_LIMIT_EXEMPT_USER_IDS ?? '').split(',').map(s => s.trim()).filter(Boolean)),
   };
 }
@@ -48,6 +58,8 @@ export function decideSessionStart(usage: SessionUsage, limits: SessionLimits, n
     const freeing = sorted[usage.last24h.length - limits.perDay];
     return { ok: false, reason: 'daily', limit: limits.perDay, retryAt: new Date(freeing.getTime() + DAY_MS) };
   }
+  // Last: the student's own limits say more (and last longer) than a few busy minutes.
+  if (usage.inProgress >= limits.maxInProgress) return { ok: false, reason: 'busy', limit: limits.maxInProgress, retryAt: new Date(now.getTime() + BUSY_RETRY_MS) };
   return { ok: true };
 }
 
@@ -78,15 +90,23 @@ export const sessionStartDeps: StartDeps<Exec> = {
   }),
   usage: async (tx, userId, now, exempt) => {
     const since = monthStart(now);
-    const [recent, [mine], [site]] = await Promise.all([
+    const notExempt = exempt.size ? notInArray(sessions.userId, [...exempt]) : undefined;
+    // Latest turn per session (the opening turn is written at start, so every session has one).
+    const lastTurnMs = sql`(SELECT max(${sessionTurns.timestampMs}) FROM ${sessionTurns} WHERE ${sessionTurns.sessionId} = ${sessions.id})`;
+    const [recent, [mine], [site], [live]] = await Promise.all([
       tx.select({ startedAt: sessions.startedAt }).from(sessions)
         .where(and(eq(sessions.userId, userId), gt(sessions.startedAt, new Date(now.getTime() - DAY_MS)))),
       tx.select({ n: count() }).from(sessions).where(and(eq(sessions.userId, userId), gte(sessions.startedAt, since))),
-      tx.select({ n: count() }).from(sessions).where(exempt.size
-        ? and(gte(sessions.startedAt, since), notInArray(sessions.userId, [...exempt]))
-        : gte(sessions.startedAt, since)),
+      tx.select({ n: count() }).from(sessions).where(and(gte(sessions.startedAt, since), notExempt)),
+      tx.select({ n: count() }).from(sessions).where(and(
+        eq(sessions.status, 'active'),
+        // Only sessions started recently enough could have a recent turn: keeps the subquery to a handful of rows.
+        gt(sessions.startedAt, new Date(now.getTime() - 2 * DAY_MS)),
+        sql`${lastTurnMs} > ${now.getTime() - IN_PROGRESS_WINDOW_MS}`,
+        notExempt,
+      )),
     ]);
-    return { last24h: recent.map(r => r.startedAt), month: mine.n, siteMonth: site.n };
+    return { last24h: recent.map(r => r.startedAt), month: mine.n, siteMonth: site.n, inProgress: live.n };
   },
   create: insertSessionRow,
 };

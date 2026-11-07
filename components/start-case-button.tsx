@@ -3,6 +3,7 @@ import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { caseHref, type CaseMode } from '@/lib/site/case-href';
+import { limitMessage } from '@/lib/site/limit-message';
 
 // Starts a case from /home or a start link (/start/<caseId>). No club code is sent: /api/session reads the one
 // on the student's profile (site flow, 19 Oct). A second click before the disabled state renders is ignored.
@@ -46,13 +47,4 @@ export function StartCaseButton({ caseId, label }: { caseId: string; label: stri
       {error && <p className="text-red-600 text-sm">{error}</p>}
     </div>
   );
-}
-
-// The start limits (lib/session-limits.ts), in the student's own time zone.
-function limitMessage({ reason, limit, retryAt }: { reason?: string; limit?: number; retryAt?: string }): string {
-  const when = retryAt ? new Date(retryAt) : null;
-  const at = when ? when.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'later';
-  if (reason === 'daily') return `You've started ${limit} interviews in the last 24 hours, the most allowed. You can start another from ${at}.`;
-  if (reason === 'monthly') return `You've used your ${limit} interviews for this month. Your limit resets on ${when ? when.toLocaleDateString(undefined, { month: 'long', day: 'numeric' }) : 'the 1st'}.`;
-  return "We've reached this month's interview limit for the whole site. Please try again next month.";
 }

@@ -36,4 +36,10 @@ describe('session start limits at the route', () => {
     expect(res.status).toBe(429);
     expect(await res.json()).toMatchObject({ error: 'session_limit', reason: 'site' });
   });
+  it('all slots in use: 429 with reason busy', async () => {
+    h.result = { ok: false, reason: 'busy', limit: 5, retryAt: new Date('2026-11-07T18:05:00Z') };
+    const res = await call();
+    expect(res.status).toBe(429);
+    expect(await res.json()).toMatchObject({ error: 'session_limit', reason: 'busy', limit: 5 });
+  });
 });
