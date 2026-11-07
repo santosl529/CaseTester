@@ -1,7 +1,8 @@
 import Link from 'next/link';
 import { getSkill } from '@/lib/drills/config';
 import type { Reports } from '@/lib/drills/reports';
-import { FEED_TYPES, type feedbackReports } from '@/lib/drills/reports/feedback';
+import type { feedbackReports } from '@/lib/drills/reports/feedback';
+import { FEED_TYPES } from '@/lib/drills/reports/feedback-compute';
 
 const PERIODS = [7, 28, 90] as const;
 const pct = (x: number | null | undefined) => (x === null || x === undefined ? '–' : `${Math.round(x * 100)}%`);

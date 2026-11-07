@@ -18,6 +18,16 @@ const eslintConfig = defineConfig([
     "mockups/**",
   ]),
   {
+    // The UI previews (app/dev/ui-preview) show sample data only: no database,
+    // no Supabase.
+    files: ["app/dev/ui-preview/**"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [
+        { group: ["@/db/client", "@/lib/supabase/*", "@/lib/drills/session"], message: "UI previews use sample data only." },
+      ] }],
+    },
+  },
+  {
     plugins: {
       boundaries: boundariesPlugin,
     },
