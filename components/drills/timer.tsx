@@ -52,23 +52,25 @@ export function Timer({ deadline, totalMs, onExpire, hidden = false, paused = fa
 
   const share = totalMs > 0 ? remaining / totalMs : 0;
   const warn = remaining > 0 && remaining <= 10_000;
+  // The last 10 seconds turn the time and its line red (Matt, 7 Nov: a colour
+  // change only, no flashing or pulsing).
   return (
-    <div className="space-y-1">
+    <div className="space-y-1.5">
       {hidden ? (
         <>
-          <p className="text-sm text-muted-foreground">{paused ? 'Timer paused' : 'Timer hidden'}</p>
-          {warn && !paused && <p className="rounded-md border border-destructive p-2 text-sm font-medium text-destructive">Less than 10 seconds left.</p>}
+          <p className="t-small text-ink/70">{paused ? 'Timer paused' : 'Timer hidden'}</p>
+          {warn && !paused && <p className="t-small rounded-field border border-alert/40 bg-white px-3 py-2 font-semibold text-alert">Less than 10 seconds left.</p>}
         </>
       ) : (
         <>
-          <div className="flex justify-between text-sm">
-            <span>{paused ? 'Timer paused' : 'Time left'}</span>
-            <span role="timer" aria-live="off" className={`font-mono tabular-nums ${seconds <= 10 ? 'text-destructive' : ''}`}>
+          <div className="t-small flex justify-between">
+            <span className="text-ink/70">{paused ? 'Timer paused' : 'Time left'}</span>
+            <span role="timer" aria-live="off" className={`font-semibold tabular-nums ${seconds <= 10 ? 'text-alert' : 'text-ink'}`}>
               {Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')}
             </span>
           </div>
-          <div className="h-1.5 overflow-hidden rounded bg-muted" aria-hidden="true">
-            <div className={`h-full ${seconds <= 10 ? 'bg-destructive' : 'bg-primary'}`} style={{ width: `${share * 100}%` }} />
+          <div className="h-1 overflow-hidden rounded-full bg-ink/10" aria-hidden="true">
+            <div className={`h-full origin-left rounded-full ${seconds <= 10 ? 'bg-alert' : 'bg-cobalt'}`} style={{ transform: `scaleX(${share})` }} />
           </div>
         </>
       )}

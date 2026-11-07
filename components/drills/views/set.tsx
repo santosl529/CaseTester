@@ -1,4 +1,6 @@
 import Link from 'next/link';
+import { AppPage } from '@/components/brand/page';
+import { BackLink } from '@/components/brand/links';
 import { DrillRunner, type RunnerView } from '@/components/drills/runner';
 import { SetResults } from '@/components/drills/results';
 import { GradingWait } from '@/components/drills/grading-wait';
@@ -10,14 +12,14 @@ import type { setResults } from '@/lib/drills/sets/service';
 
 export function SetScreen({ view, expired }: { view: RunnerView; expired: boolean }) {
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-6 p-6">
-      <nav className="text-sm"><Link href="/drills" className="text-muted-foreground underline-offset-4 hover:underline">← Training home</Link></nav>
+    <AppPage className="space-y-8">
+      <nav><BackLink href="/drills">Training home</BackLink></nav>
       {expired ? (
-        <p className="text-sm">This set expired after 24 hours. Your answers were saved. <Link href="/drills" className="underline underline-offset-4">Start a new one</Link>.</p>
+        <p className="t-body">This set expired after 24 hours. Your answers were saved. <Link href="/drills" className="link">Start a new one</Link>.</p>
       ) : (
         <DrillRunner view={view} />
       )}
-    </main>
+    </AppPage>
   );
 }
 

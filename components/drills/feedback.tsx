@@ -9,8 +9,8 @@ import { Button } from '@/components/ui/button';
 // (focus moves in, Escape closes, focus returns to the button).
 
 const COMMENT_MAX = 500;
-const field = 'w-full rounded-md border bg-background p-2 text-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50';
-const choice = 'flex cursor-pointer items-center gap-2 rounded-md border px-3 py-2 text-sm has-checked:border-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring/50';
+const field = 't-small w-full rounded-field border border-ink/20 bg-white p-3 transition-colors hover:border-ink/35 focus-visible:border-cobalt motion-reduce:transition-none';
+const choice = 't-small flex cursor-pointer items-center gap-2.5 rounded-field border border-ink/15 bg-white px-3 py-2.5 transition-colors hover:border-ink/35 has-checked:border-cobalt has-checked:bg-sky/40 motion-reduce:transition-none [&_input]:accent-cobalt';
 
 async function post(url: string, body: unknown): Promise<string | null> {
   try {
@@ -26,9 +26,9 @@ async function post(url: string, body: unknown): Promise<string | null> {
 function Comment({ id, value, onChange, label }: { id: string; value: string; onChange: (v: string) => void; label: string }) {
   return (
     <div className="space-y-1">
-      <label htmlFor={id} className="text-sm font-medium">{label} <span className="font-normal text-muted-foreground">(optional)</span></label>
+      <label htmlFor={id} className="t-small font-semibold">{label} <span className="font-normal text-ink/70">(optional)</span></label>
       <textarea id={id} rows={3} maxLength={COMMENT_MAX} value={value} onChange={e => onChange(e.target.value)} aria-describedby={`${id}-count`} className={field} />
-      <p id={`${id}-count`} className="text-xs text-muted-foreground">{value.length} of {COMMENT_MAX} characters</p>
+      <p id={`${id}-count`} className="t-label text-ink/70">{value.length} of {COMMENT_MAX} characters</p>
     </div>
   );
 }
@@ -59,12 +59,12 @@ function FeedbackDialog({ dialogRef, title, children, onSend, canSend, reset, pa
   return (
     <dialog ref={dialogRef} aria-labelledby={titleId}
       onClose={() => { setSent(false); setError(''); window.dispatchEvent(new CustomEvent('drills:timer-resume', { detail: pauseReason })); }}
-      className="m-auto w-[min(92vw,28rem)] rounded-lg border bg-background p-0 text-foreground backdrop:bg-black/40">
-      <div className="space-y-4 p-4">
-        <h2 id={titleId} className="text-base font-semibold">{title}</h2>
+      className="m-auto w-[min(92vw,30rem)] rounded-panel border border-ink/12 bg-white p-0 text-ink shadow-panel backdrop:bg-ink/40">
+      <div className="space-y-5 p-6">
+        <h2 id={titleId} className="t-card font-semibold">{title}</h2>
         {sent ? (
           <>
-            <p role="status" className="text-sm">Thanks! We read every message.</p>
+            <p role="status" className="t-small">Thanks! We read every message.</p>
             <div className="flex justify-end"><Button autoFocus onClick={close}>Close</Button></div>
           </>
         ) : (
@@ -78,7 +78,7 @@ function FeedbackDialog({ dialogRef, title, children, onSend, canSend, reset, pa
             else setSent(true);
           }}>
             {children}
-            {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+            {error && <p role="alert" className="t-small text-alert">{error}</p>}
             <div className="flex justify-end gap-2">
               <Button type="button" variant="ghost" onClick={close}>Cancel</Button>
               <Button type="submit" disabled={!canSend || busy}>{busy ? 'Sending…' : 'Send'}</Button>
@@ -110,7 +110,7 @@ export function FeedbackButton() {
   return (
     <>
       <button type="button" onClick={() => openWithPause(ref.current, 'feedback')} aria-label="Feedback"
-        className="fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex size-11 items-center justify-center gap-2 rounded-full border bg-background text-sm font-medium shadow-md hover:bg-muted focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 sm:size-auto sm:px-4 sm:py-2">
+        className="t-small fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex size-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 bg-white font-medium text-ink shadow-lift transition-colors hover:border-cobalt hover:text-cobalt motion-reduce:transition-none sm:size-auto sm:px-4 sm:py-2">
         <MessageSquare aria-hidden="true" className="size-4" />
         <span className="hidden sm:inline">Feedback</span>
       </button>
@@ -120,7 +120,7 @@ export function FeedbackButton() {
           device: `${navigator.userAgent.slice(0, 240)} · ${window.innerWidth}×${window.innerHeight}`,
         })}>
         <fieldset className="space-y-2">
-          <legend className="mb-1 text-sm font-medium">What is it about?</legend>
+          <legend className="t-small mb-2 font-semibold">What is it about?</legend>
           {CATEGORIES.map(c => (
             <label key={c.id} className={choice}>
               <input type="radio" name={`${id}-category`} value={c.id} checked={category === c.id} onChange={() => setCategory(c.id)} />
@@ -129,7 +129,7 @@ export function FeedbackButton() {
           ))}
         </fieldset>
         <Comment id={`${id}-comment`} value={text} onChange={setText} label="Tell us more" />
-        <p className="text-xs text-muted-foreground">We attach this page and your device, so you don&apos;t need to describe them.</p>
+        <p className="t-label text-ink/70">We attach this page and your device, so you don&apos;t need to describe them.</p>
       </FeedbackDialog>
     </>
   );
@@ -153,14 +153,14 @@ export function ReportProblem({ setId, position, screen }: { setId: string; posi
   return (
     <>
       <button type="button" onClick={() => openWithPause(ref.current, 'report')}
-        className="rounded-sm text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+        className="t-small cursor-pointer text-ink/70 underline underline-offset-4 hover:text-cobalt">
         Report a problem
       </button>
       <FeedbackDialog dialogRef={ref} title={`Report a problem with item ${position + 1}`} canSend={reason !== ''} pauseReason="report"
         reset={() => { setReason(''); setText(''); }}
         onSend={() => post(`/api/drills/sets/${setId}/reports`, { position, reason, comment: text, screen })}>
         <fieldset className="space-y-2">
-          <legend className="mb-1 text-sm font-medium">What&apos;s wrong?</legend>
+          <legend className="t-small mb-2 font-semibold">What&apos;s wrong?</legend>
           {REASONS.map(r => (
             <label key={r.id} className={choice}>
               <input type="radio" name={`${id}-reason`} value={r.id} checked={reason === r.id} onChange={() => setReason(r.id)} />
@@ -169,7 +169,7 @@ export function ReportProblem({ setId, position, screen }: { setId: string; posi
           ))}
         </fieldset>
         <Comment id={`${id}-comment`} value={text} onChange={setText} label="Tell us more" />
-        {reason === 'grade_unfair' && <p className="text-xs text-muted-foreground">We review every disputed grade. It won&apos;t change your score now, but it helps us fix the grader.</p>}
+        {reason === 'grade_unfair' && <p className="t-label text-ink/70">We review every disputed grade. It won&apos;t change your score now, but it helps us fix the grader.</p>}
       </FeedbackDialog>
     </>
   );
@@ -198,10 +198,10 @@ export function CheckIn({ id, kind }: { id: string; kind: keyof typeof QUESTION 
     if (problem) { setError(problem); setState('open'); } else setState(done);
   };
   if (state === 'dismissed') return null;
-  if (state === 'sent') return <p role="status" className="rounded-lg border p-4 text-sm">Thanks for telling us.</p>;
+  if (state === 'sent') return <p role="status" className="t-small rounded-panel border border-ink/12 bg-white p-5">Thanks for telling us.</p>;
   return (
-    <section aria-labelledby={`${uid}-q`} className="space-y-3 rounded-lg border p-4">
-      <h2 id={`${uid}-q`} className="text-sm font-medium">{QUESTION[kind]}</h2>
+    <section aria-labelledby={`${uid}-q`} className="space-y-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
+      <h2 id={`${uid}-q`} className="t-small font-semibold">{QUESTION[kind]}</h2>
       <form className="space-y-3" onSubmit={e => {
         e.preventDefault();
         void send({ action: 'answer', rating: rating ?? undefined, comment: text }, 'sent');
@@ -210,7 +210,7 @@ export function CheckIn({ id, kind }: { id: string; kind: keyof typeof QUESTION 
           <fieldset>
             <legend className="sr-only">Rating from 1 (not useful) to 5 (very useful)</legend>
             <div className="flex flex-wrap items-center gap-2">
-              <span aria-hidden="true" className="text-xs text-muted-foreground">Not useful</span>
+              <span aria-hidden="true" className="t-label text-ink/70">Not useful</span>
               {[1, 2, 3, 4, 5].map(n => (
                 <label key={n} className={`${choice} px-3`}>
                   <input type="radio" name={`${uid}-rating`} value={n} checked={rating === n} onChange={() => setRating(n)}
@@ -218,7 +218,7 @@ export function CheckIn({ id, kind }: { id: string; kind: keyof typeof QUESTION 
                   <span aria-hidden="true">{n}</span>
                 </label>
               ))}
-              <span aria-hidden="true" className="text-xs text-muted-foreground">Very useful</span>
+              <span aria-hidden="true" className="t-label text-ink/70">Very useful</span>
             </div>
           </fieldset>
         )}
@@ -230,7 +230,7 @@ export function CheckIn({ id, kind }: { id: string; kind: keyof typeof QUESTION 
               <textarea id={`${uid}-answer`} rows={3} maxLength={COMMENT_MAX} value={text} onChange={e => setText(e.target.value)} className={field} />
             </div>
           )}
-        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        {error && <p role="alert" className="t-small text-alert">{error}</p>}
         <div className="flex gap-2">
           <Button type="submit" size="sm" disabled={state === 'busy' || (usefulness ? rating === null : !text.trim())}>Send</Button>
           <Button type="button" size="sm" variant="ghost" disabled={state === 'busy'} onClick={() => void send({ action: 'dismiss' }, 'dismissed')}>Not now</Button>
