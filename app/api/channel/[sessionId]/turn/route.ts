@@ -2,6 +2,7 @@ import { NextRequest, NextResponse, after } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
+import { parseTurnText, turnOnce } from '@/lib/orchestrator/turn-claim';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -15,8 +16,8 @@ export async function POST(
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { sessionId } = await params;
-  const { text } = await req.json();
-  if (!text?.trim()) return NextResponse.json({ error: 'Empty turn' }, { status: 400 });
+  const parsed = parseTurnText(await req.json().catch(() => null));
+  if (!parsed.ok) return NextResponse.json({ error: parsed.error }, { status: 400 });
 
   // Verify the session belongs to this user
   const session = await db.query.sessions.findFirst({
@@ -27,7 +28,12 @@ export async function POST(
   }
 
   // Analytics writes go after the response (they add nothing the client needs).
-  const result = await runTurn(sessionId, text.trim(), { defer: task => after(task) });
+  // One turn at a time per session (lib/orchestrator/turn-claim.ts): a second request while one runs is refused.
+  const turn = await turnOnce(sessionId, () => runTurn(sessionId, parsed.text, { defer: task => after(task) }));
+  if (turn.status === 'busy') {
+    return NextResponse.json({ error: 'A turn is already in progress for this session' }, { status: 409 });
+  }
+  const result = turn.result;
   console.log('[turn route] result:', JSON.stringify({ exhibit: result.exhibit?.id ?? null, ended: result.ended }));
 
   // Background passes — live coverage agent + Rule 11 data-request audit — run
