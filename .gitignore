@@ -59,3 +59,13 @@ Case Interview Runs/voice-demos/*.m4a
 
 # drills smoke-test failure logs
 logs/
+
+# local design work: mockup recordings and screenshots, design-tool state
+/mockups/
+/.impeccable/
+
+# editor agent config (local; .cursor/rules stays tracked)
+/.cursor/
+
+# raw voice session logs (summaries, transcripts and timings are committed)
+Case Interview Runs/voice-live/**/*.jsonl
