@@ -31,7 +31,8 @@ import Anthropic from '@anthropic-ai/sdk';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+import { scriptOwnerId } from '@/lib/script-owner';
 import { db } from '@/db/client';
 import { exhibitAsText } from '@/lib/eval/exhibit-text';
 import { sessions, sessionTurns, sessionEvents, scores, analyticsEvents, revealedData, exhibitsShown } from '@/db/schema';
@@ -294,9 +295,8 @@ async function main() {
   const caseId = CASE_ID;
   const caseData = getCaseById(caseId);
 
-  const owner = await db.query.sessions.findFirst({ orderBy: [desc(sessions.startedAt)] });
-  if (!owner) throw new Error('No existing session to borrow a user id from — start one through the app first.');
-  const userId = owner.userId;
+  // A fixed owner (SCRIPT_USER_ID, Lorenzo's own id), never a borrowed student (lib/script-owner.ts).
+  const userId = scriptOwnerId();
 
   const client = anthropicClient();
   const { sessionId, openingText } = await startSession(userId, caseId);
