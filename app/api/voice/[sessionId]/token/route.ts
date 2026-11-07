@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { AccessToken } from 'livekit-server-sdk';
+import { AccessToken, TrackSource } from 'livekit-server-sdk';
 import { and, eq, inArray } from 'drizzle-orm';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { db } from '@/db/client';
@@ -45,7 +45,9 @@ export async function POST(
   if (live.length >= maxConcurrentVoice()) return NextResponse.json({ error: 'busy' }, { status: 429 });
 
   const at = new AccessToken(key, secret, { identity: user.id, ttl: '30m' });
-  at.addGrant({ roomJoin: true, room, canPublish: true, canSubscribe: true, canPublishData: true });
+  // The candidate publishes their microphone and nothing else (security audit, 6 Nov); data messages stay on for the
+  // page's check-ins, which the agent reads only from this identity.
+  at.addGrant({ roomJoin: true, room, canPublish: true, canPublishSources: [TrackSource.MICROPHONE], canSubscribe: true, canPublishData: true });
 
   // One agent per room: a reload or a second Start does not dispatch another, and of two requests at once only
   // the one holding the claim dispatches.
