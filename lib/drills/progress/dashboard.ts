@@ -25,10 +25,12 @@ export const STATE_LABEL: Record<SkillStateName, string> = {
 };
 // Stage names students see (the drill chain: spot it, fix it, build it).
 export const STAGE_LABEL: Record<string, string> = { recognize: 'Recognize', repair: 'Repair', construct: 'Construct' };
-// The state scale (Matt, 2026-10-18): light grey for Not started, darker at
-// each step, the same in the skill map and the weekly chart.
+// The state scale (Matt, 2026-10-18), on CasePace's palette (7 Nov): a warm
+// grey for Not started, Sky, Cobalt at 35%, Cobalt, then Mastery green for
+// Mastered. Validated is the step that makes a skill Mastered, so it shares
+// the green: green means done. The same in the skill map and the weekly chart.
 export const STATE_COLOR: Record<SkillStateName, string> = {
-  not_started: '#e5e7eb', learning: '#bfdbfe', recognizes: '#93c5fd', practiced: '#2563eb', mastered: '#1e40af', validated: '#172554',
+  not_started: '#E3E2DC', learning: '#DCE5FF', recognizes: '#B5C0F1', practiced: '#2D4BD8', mastered: '#1F9D63', validated: '#1F9D63',
 };
 
 type Spec = ChartSpec;
