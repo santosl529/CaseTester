@@ -3,6 +3,7 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import { parseTurnText, turnOnce } from '@/lib/orchestrator/turn-claim';
+import { hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
@@ -14,6 +15,10 @@ export async function POST(
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Per student (20 a minute), before anything is read or run.
+  const limited = await hitRateLimit(rateRule('turn'), `user:${user.id}`);
+  if (!limited.ok) return rateLimitedResponse(limited);
 
   const { sessionId } = await params;
   const parsed = parseTurnText(await req.json().catch(() => null));

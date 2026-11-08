@@ -9,6 +9,7 @@ import { liveVoiceRooms, maxConcurrentVoice, sessionIdOfRoom, voiceRoomName } fr
 import { closeVoiceRoom, roomAdminFromEnv } from '@/lib/voice/room-lifecycle';
 import { claimVoiceDispatch } from '@/lib/voice/dispatch-claim';
 import { liveKitEnvProblem } from '@/lib/voice/livekit-env';
+import { hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
 
 // A LiveKit token for the session owner, and one dispatch of the voice agent
 // into the session's room (spec 2026-10-08-voice-phase-b §4). The key and
@@ -24,6 +25,10 @@ export async function POST(
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Per student (30 an hour): every token can dispatch an agent; reloads and rejoins fit well under it.
+  const limited = await hitRateLimit(rateRule('voiceToken'), `user:${user.id}`);
+  if (!limited.ok) return rateLimitedResponse(limited);
 
   const { sessionId } = await params;
   const session = await db.query.sessions.findFirst({
