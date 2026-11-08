@@ -232,7 +232,8 @@ export function CheckIn({ id, kind }: { id: string; kind: keyof typeof QUESTION 
           )}
         {error && <p role="alert" className="t-small text-alert">{error}</p>}
         <div className="flex gap-2">
-          <Button type="submit" size="sm" disabled={state === 'busy' || (usefulness ? rating === null : !text.trim())}>Send</Button>
+          {/* Outline: the page around it keeps the one primary action. */}
+          <Button type="submit" size="sm" variant="outline" disabled={state === 'busy' || (usefulness ? rating === null : !text.trim())}>Send</Button>
           <Button type="button" size="sm" variant="ghost" disabled={state === 'busy'} onClick={() => void send({ action: 'dismiss' }, 'dismissed')}>Not now</Button>
         </div>
       </form>

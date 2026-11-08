@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import { AppPage } from '@/components/brand/page';
 import { getSkill } from '@/lib/drills/config';
 import type { Reports } from '@/lib/drills/reports';
 import type { feedbackReports } from '@/lib/drills/reports/feedback';
@@ -13,25 +14,25 @@ const skillName = (id: string) => { try { return getSkill(id).name; } catch { re
 function Section({ id, title, how, children }: { id: string; title: string; how: string; children: React.ReactNode }) {
   return (
     <section aria-labelledby={id} className="space-y-2">
-      <h2 id={id} className="text-base font-semibold">{title}</h2>
-      <p className="text-xs text-muted-foreground">{how}</p>
+      <h2 id={id} className="t-heading font-semibold">{title}</h2>
+      <p className="t-label max-w-[80ch] text-ink/70">{how}</p>
       {children}
     </section>
   );
 }
 
 function Table({ head, rows, caption }: { head: string[]; rows: (string | number)[][]; caption: string }) {
-  if (rows.length === 0) return <p className="text-sm text-muted-foreground">No data yet.</p>;
+  if (rows.length === 0) return <p className="t-small text-ink/70">No data yet.</p>;
   return (
-    <div role="region" aria-label={caption} tabIndex={0} className="overflow-x-auto rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
-      <table className="w-full border-collapse text-sm">
+    <div role="region" aria-label={caption} tabIndex={0} className="overflow-x-auto rounded-window border border-ink/12 bg-white">
+      <table className="t-small w-full border-collapse">
         <caption className="sr-only">{caption}</caption>
-        <thead><tr>{head.map(h => <th key={h} scope="col" className="border-b px-2 py-1 text-left font-medium">{h}</th>)}</tr></thead>
+        <thead><tr className="bg-paper text-ink/70">{head.map(h => <th key={h} scope="col" className="border-b border-ink/12 px-3 py-2 text-left font-medium">{h}</th>)}</tr></thead>
         <tbody>
           {rows.map((r, i) => (
             <tr key={i}>{r.map((c, j) => (j === 0
-              ? <th key={j} scope="row" className="border-b px-2 py-1 text-left font-normal">{c}</th>
-              : <td key={j} className="border-b px-2 py-1 tabular-nums">{c}</td>))}</tr>
+              ? <th key={j} scope="row" className="border-b border-ink/10 px-3 py-2 text-left font-normal">{c}</th>
+              : <td key={j} className="border-b border-ink/10 px-3 py-2 tabular-nums">{c}</td>))}</tr>
           ))}
         </tbody>
       </table>
@@ -48,33 +49,33 @@ export function PilotReports({ r, fb, orgs, org, days, type, page }: {
   const date = (d: Date) => d.toISOString().slice(0, 16).replace('T', ' ');
 
   return (
-    <main className="mx-auto w-full max-w-4xl space-y-8 p-4 sm:p-6">
-      <header className="space-y-3">
-        <div className="flex items-baseline justify-between">
-          <h1 className="text-xl font-semibold">Pilot reports</h1>
-          <Link href="/drills" className="text-sm text-muted-foreground underline-offset-4 hover:underline">Training home</Link>
+    <AppPage width="wide" className="space-y-12">
+      <header className="space-y-4">
+        <div className="flex items-baseline justify-between gap-4">
+          <h1 className="t-title">Pilot reports</h1>
+          <Link href="/drills" className="link t-small">Training home</Link>
         </div>
-        <form className="flex flex-wrap items-end gap-3 text-sm">
+        <form className="t-small flex flex-wrap items-end gap-3">
           <label className="space-y-1">
-            <span className="block text-muted-foreground">Club</span>
-            <select name="org" defaultValue={org ?? ''} className="rounded-md border bg-background px-2 py-1">
+            <span className="block text-ink/70">Club</span>
+            <select name="org" defaultValue={org ?? ''} className="h-9 rounded-field border border-ink/20 bg-white px-2">
               <option value="">All clubs</option>
               {orgs.map(o => <option key={o} value={o}>{o}</option>)}
             </select>
           </label>
           <label className="space-y-1">
-            <span className="block text-muted-foreground">Period</span>
-            <select name="days" defaultValue={String(days)} className="rounded-md border bg-background px-2 py-1">
+            <span className="block text-ink/70">Period</span>
+            <select name="days" defaultValue={String(days)} className="h-9 rounded-field border border-ink/20 bg-white px-2">
               {PERIODS.map(p => <option key={p} value={p}>Last {p} days</option>)}
             </select>
           </label>
-          <button type="submit" className="rounded-md border px-3 py-1 font-medium hover:bg-muted">Show</button>
+          <button type="submit" className="h-9 cursor-pointer rounded-full border border-ink px-4 font-medium transition-colors hover:border-cobalt hover:text-cobalt motion-reduce:transition-none">Show</button>
         </form>
-        <p className="text-sm text-muted-foreground">{r.students} students. Funnels, mastery and transfer cover all time; activity and cost cover the period.</p>
+        <p className="t-small text-ink/70">{r.students} students. Funnels, mastery and transfer cover all time; activity and cost cover the period.</p>
       </header>
 
       <p role={r.cost_alert.alert ? 'alert' : undefined}
-        className={`rounded-lg border p-3 text-sm ${r.cost_alert.alert ? 'border-destructive font-medium text-destructive' : ''}`}>
+        className={`t-small rounded-panel border bg-white p-4 ${r.cost_alert.alert ? 'border-alert/50 font-semibold text-alert' : 'border-ink/12'}`}>
         {r.cost_alert.alert ? 'Cost alert: ' : 'Grading cost, last 7 days: '}
         {usd(r.cost_alert.per_student_month)} per active student per month, against a {usd(r.cost_alert.budget)} budget.
         {r.cost_alert.alert && ' That is more than 25% over budget.'}
@@ -84,46 +85,46 @@ export function PilotReports({ r, fb, orgs, org, days, type, page }: {
       </p>
 
       <Section id="flagged" title={`Items to review (${flagged.length} flagged, ${fb.reported.length} reported)`} how={r.item_health.how}>
-        <h3 className="text-sm font-medium">Flagged by their numbers</h3>
+        <h3 className="t-small font-semibold">Flagged by their numbers</h3>
         <Table caption="Flagged items" head={['Item', 'Drill', 'Attempts', 'Correct', 'Avg time', 'Flags']}
           rows={flagged.map(i => [i.item, i.drill_id ?? '–', i.attempts, pct(i.correct_rate), `${num(i.avg_time_s, 0)} s`, i.flags.join('; ')])} />
-        <h3 className="pt-2 text-sm font-medium">Reported by students</h3>
+        <h3 className="t-small pt-2 font-semibold">Reported by students</h3>
         <Table caption="Reported items" head={['Item', 'Drill', 'Reports', 'Open', 'Reasons', 'Latest comment']}
           rows={fb.reported.map(i => [i.item, i.drill_id, i.reports, i.open, Object.entries(i.reasons).map(([k, n]) => `${k} ×${n}`).join('; '), i.latest ?? '–'])} />
-        <p className="text-xs text-muted-foreground">Review and label reports in the <Link href="/drills/review/reports" className="underline underline-offset-4">review queue</Link>.</p>
-        <p className="text-xs text-muted-foreground">To pull an item: set its <code>&quot;status&quot;</code> to <code>&quot;in_review&quot;</code> in <code>drill-items/&lt;drill&gt;/&lt;item&gt;.json</code>, then run <code>npm run db:seed-drill-items</code>.</p>
+        <p className="t-label text-ink/70">Review and label reports in the <Link href="/drills/review/reports" className="link">review queue</Link>.</p>
+        <p className="t-label text-ink/70">To pull an item: set its <code>&quot;status&quot;</code> to <code>&quot;in_review&quot;</code> in <code>drill-items/&lt;drill&gt;/&lt;item&gt;.json</code>, then run <code>npm run db:seed-drill-items</code>.</p>
       </Section>
 
       <Section id="feedback" title="Feedback" how="The feedback button, item reports and answered check-ins, newest first (latest 100). The club filter above applies.">
-        <form className="flex flex-wrap items-end gap-3 text-sm">
+        <form className="t-small flex flex-wrap items-end gap-3">
           {org && <input type="hidden" name="org" value={org} />}
           <input type="hidden" name="days" value={days} />
           <label className="space-y-1">
-            <span className="block text-muted-foreground">Type</span>
-            <select name="type" defaultValue={type ?? ''} className="rounded-md border bg-background px-2 py-1">
+            <span className="block text-ink/70">Type</span>
+            <select name="type" defaultValue={type ?? ''} className="h-9 rounded-field border border-ink/20 bg-white px-2">
               <option value="">All types</option>
               {Object.entries(FEED_TYPES).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
             </select>
           </label>
           <label className="space-y-1">
-            <span className="block text-muted-foreground">Page</span>
-            <select name="page" defaultValue={q.page ?? ''} className="rounded-md border bg-background px-2 py-1">
+            <span className="block text-ink/70">Page</span>
+            <select name="page" defaultValue={q.page ?? ''} className="h-9 rounded-field border border-ink/20 bg-white px-2">
               <option value="">All pages</option>
               {fb.feed.pages.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
           </label>
-          <button type="submit" className="rounded-md border px-3 py-1 font-medium hover:bg-muted">Filter</button>
+          <button type="submit" className="h-9 cursor-pointer rounded-full border border-ink px-4 font-medium transition-colors hover:border-cobalt hover:text-cobalt motion-reduce:transition-none">Filter</button>
         </form>
-        <p className="text-sm text-muted-foreground">{fb.feed.total} entries{fb.feed.total > fb.feed.entries.length ? `, showing the latest ${fb.feed.entries.length}` : ''}.</p>
+        <p className="t-small text-ink/70">{fb.feed.total} entries{fb.feed.total > fb.feed.entries.length ? `, showing the latest ${fb.feed.entries.length}` : ''}.</p>
         <Table caption="Feedback" head={['When', 'Type', 'Page', 'Item', 'Comment', 'Club']}
           rows={fb.feed.entries.map(e => [date(e.at), e.detail, e.page, e.item ?? '–', e.comment ?? '–', e.club ?? '–'])} />
-        <h3 className="pt-2 text-sm font-medium">How useful was today’s practice? (1–5, by week)</h3>
+        <h3 className="t-small pt-2 font-semibold">How useful was today’s practice? (1–5, by week)</h3>
         <Table caption="Check-in average by week" head={['Week of', 'Answers', 'Average', 'Dismissed']}
           rows={fb.weeks.map(w => [w.week, w.answered, num(w.average), w.dismissed])} />
       </Section>
 
       <Section id="loop" title="Loop funnel" how={r.loop_funnel.how}>
-        <p className="text-sm">{r.loop_funnel.cases_taken} cases taken.</p>
+        <p className="t-small">{r.loop_funnel.cases_taken} cases taken.</p>
         <Table caption="Loop funnel" head={['Step', 'Count', 'Of previous', 'Of first']}
           rows={r.loop_funnel.steps.map(s => [s.step, s.n, pct(s.of_previous), pct(s.of_first)])} />
       </Section>
@@ -136,7 +137,7 @@ export function PilotReports({ r, fb, orgs, org, days, type, page }: {
       <Section id="feedback-timing" title="Feedback timing" how={r.feedback_modes.how}>
         <Table caption="Results by feedback mode" head={['Mode', 'Students', 'Sets', 'Completed', 'Average score', 'Passed']}
           rows={r.feedback_modes.modes.map(m => [m.mode === 'immediate' ? 'After each question' : 'At the end of the set', m.students, m.sets, pct(m.completion_rate), pct(m.avg_score), pct(m.pass_rate)])} />
-        <p className="text-sm">Immediate grading wait: {r.feedback_modes.immediate_wait_ms.answers} answers, p50 {r.feedback_modes.immediate_wait_ms.p50 === null ? '–' : `${(r.feedback_modes.immediate_wait_ms.p50 / 1000).toFixed(1)} s`}, p95 {r.feedback_modes.immediate_wait_ms.p95 === null ? '–' : `${(r.feedback_modes.immediate_wait_ms.p95 / 1000).toFixed(1)} s`}.</p>
+        <p className="t-small">Immediate grading wait: {r.feedback_modes.immediate_wait_ms.answers} answers, p50 {r.feedback_modes.immediate_wait_ms.p50 === null ? '–' : `${(r.feedback_modes.immediate_wait_ms.p50 / 1000).toFixed(1)} s`}, p95 {r.feedback_modes.immediate_wait_ms.p95 === null ? '–' : `${(r.feedback_modes.immediate_wait_ms.p95 / 1000).toFixed(1)} s`}.</p>
       </Section>
 
       <Section id="pauses" title={`Timer pauses (${r.pauses.total})`} how={r.pauses.how}>
@@ -155,7 +156,7 @@ export function PilotReports({ r, fb, orgs, org, days, type, page }: {
       </Section>
 
       <Section id="transfer" title="Transfer" how={r.transfer.how}>
-        <p className="text-sm">Overall first-attempt pass rate: {pct(r.transfer.overall_pass_rate)}.</p>
+        <p className="t-small">Overall first-attempt pass rate: {pct(r.transfer.overall_pass_rate)}.</p>
         <Table caption="Transfer by skill" head={['Skill', 'First attempts', 'Pass rate', 'Passed practice, failed transfer']}
           rows={r.transfer.skills.map(s => [skillName(s.skill_id), s.first_attempts, pct(s.pass_rate), s.practiced_but_failed])} />
       </Section>
@@ -205,10 +206,10 @@ export function PilotReports({ r, fb, orgs, org, days, type, page }: {
       </Section>
 
       <Section id="events" title="Event health" how={r.event_health.how}>
-        <p className="text-sm">{Object.values(r.event_health.seen).reduce((a, b) => a + b, 0)} rows; {r.event_health.incomplete_count} missing a key property.</p>
-        {r.event_health.incomplete.length > 0 && <ul className="list-disc pl-5 text-sm">{r.event_health.incomplete.slice(0, 10).map(l => <li key={l}>{l}</li>)}</ul>}
-        <p className="text-sm text-muted-foreground">No rows yet: {r.event_health.not_seen.join(', ') || 'none'}.</p>
+        <p className="t-small">{Object.values(r.event_health.seen).reduce((a, b) => a + b, 0)} rows; {r.event_health.incomplete_count} missing a key property.</p>
+        {r.event_health.incomplete.length > 0 && <ul className="t-small list-disc pl-5">{r.event_health.incomplete.slice(0, 10).map(l => <li key={l}>{l}</li>)}</ul>}
+        <p className="t-small text-ink/70">No rows yet: {r.event_health.not_seen.join(', ') || 'none'}.</p>
       </Section>
-    </main>
+    </AppPage>
   );
 }

@@ -27,11 +27,11 @@ export type ResultsData = Awaited<ReturnType<typeof setResults>>;
 
 export function ResultsScreen({ results, checkin }: { results: ResultsData; checkin: Checkin | null }) {
   return (
-    <main className="mx-auto w-full max-w-3xl space-y-6 p-6">
-      <nav className="text-sm"><Link href="/drills" className="text-muted-foreground underline-offset-4 hover:underline">← Training home</Link></nav>
+    <AppPage className="space-y-8">
+      <nav><BackLink href="/drills">Training home</BackLink></nav>
       {results.status === 'grading'
         ? <GradingWait drillName={results.drill.name} delayed={results.delayed} />
         : <SetResults results={results} checkin={checkin} />}
-    </main>
+    </AppPage>
   );
 }

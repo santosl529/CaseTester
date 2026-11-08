@@ -23,7 +23,7 @@ export function StartSetButton({ body, label, variant = 'default', size = 'defau
   return (
     <span className="inline-flex flex-col gap-1">
       <Button variant={variant} size={size} onClick={start} disabled={busy}>{label}</Button>
-      {error && <span role="alert" className="text-xs text-destructive">{error}</span>}
+      {error && <span role="alert" className="t-label text-alert">{error}</span>}
     </span>
   );
 }

@@ -18,19 +18,19 @@ export interface PickableDrill {
 export function PickDrill({ skillId, drill, compact = false }: { skillId: string; drill: PickableDrill; compact?: boolean }) {
   const [tier, setTier] = useState(drill.current_tier ?? Math.max(...drill.tiers));
   return (
-    <div className="flex flex-wrap items-center justify-between gap-3 py-2 text-sm">
-      {compact ? <span className="text-muted-foreground">{STAGE[drill.stage]} drill</span> : (
+    <div className="t-small flex flex-wrap items-center justify-between gap-3 pt-1">
+      {compact ? <span className="text-ink/70">{STAGE[drill.stage]} drill</span> : (
         <span>
-          <span className="text-muted-foreground">{STAGE[drill.stage]} · </span>
-          <span className="font-medium">{drill.name}</span>
-          {drill.items && <span className="text-muted-foreground"> · {drill.items} items</span>}
+          <span className="text-ink/70">{STAGE[drill.stage]} · </span>
+          <span className="font-semibold">{drill.name}</span>
+          {drill.items && <span className="text-ink/70"> · {drill.items} items</span>}
         </span>
       )}
       <span className="flex flex-wrap items-center gap-2">
         <fieldset className="flex items-center gap-1">
           <legend className="sr-only">Tier for {drill.name}</legend>
           {drill.tiers.map(t => (
-            <label key={t} className="flex cursor-pointer items-center gap-1 rounded-md border px-2 py-1 has-[:checked]:border-foreground has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-ring">
+            <label key={t} className="flex h-9 cursor-pointer items-center rounded-full border border-ink/20 bg-white px-3 transition-colors hover:border-ink/40 has-[:checked]:border-cobalt has-[:checked]:bg-sky/50 has-[:checked]:font-semibold has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-cobalt motion-reduce:transition-none">
               <input type="radio" name={`tier-${skillId}-${drill.drill_id}`} checked={tier === t} onChange={() => setTier(t)} className="sr-only" />
               Tier {t}
             </label>

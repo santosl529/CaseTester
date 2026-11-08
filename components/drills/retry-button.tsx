@@ -20,9 +20,9 @@ export function RetryButton({ drillId, skillId }: { drillId: string; skillId: st
     else setError(data.message ?? 'Could not start a new set.');
   }
   return (
-    <span className="inline-flex flex-col">
+    <span className="inline-flex flex-col gap-1">
       <Button variant="outline" size="lg" onClick={retry} disabled={busy}>Retry this drill</Button>
-      {error && <span role="alert" className="text-xs text-destructive">{error}</span>}
+      {error && <span role="alert" className="t-label text-alert">{error}</span>}
     </span>
   );
 }

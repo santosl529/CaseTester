@@ -338,7 +338,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
       <section className="space-y-8">
         <div className="space-y-2">
           {view.diagnostic && <p className="t-small text-ink/70">Diagnostic · Part {view.diagnostic.part} of {view.diagnostic.of}</p>}
-          <h1 className="t-section">{view.drill.name}</h1>
+          <h1 className="t-title">{view.drill.name}</h1>
           <p className="t-body text-ink/70">
             Trains {view.skills.map(s => s.name).join(', ')}.
             {view.focus_skill && view.skills.length > 1 && ` You chose to practice ${view.focus_skill}.`}
@@ -371,7 +371,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
         {view.example && showExample && (
           <section aria-labelledby="example-heading" className="space-y-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
             <div className="flex items-center justify-between gap-3">
-              <h2 id="example-heading" className="t-card font-semibold">Worked example</h2>
+              <h2 id="example-heading" className="t-heading font-semibold">Worked example</h2>
               <Button variant="ghost" size="sm" onClick={skipExample}>Skip example</Button>
             </div>
             <p className="t-small whitespace-pre-line">{view.example.prompt}</p>
