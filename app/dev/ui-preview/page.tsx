@@ -1,8 +1,10 @@
 import Link from 'next/link';
+import { notFound } from 'next/navigation';
 import { AREAS, SCREENS } from './_lib/screens';
 
 // The list of preview screens.
 export default function PreviewIndex() {
+  if (process.env.NODE_ENV !== 'development') notFound();
   return (
     <main className="mx-auto w-full max-w-2xl space-y-8 p-6">
       <header className="space-y-1">

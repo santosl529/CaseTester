@@ -237,7 +237,7 @@ function Plot({ spec, layout, className }: { spec: ChartSpec; layout: Layout; cl
           {l.points.map((p, j) => p && (
             <g key={j}>
               {spec.hollow.includes(j)
-                ? <circle cx={p[0]} cy={p[1]} r={4} fill="var(--background, #fff)" stroke={l.color} strokeWidth={2} />
+                ? <circle cx={p[0]} cy={p[1]} r={4} fill="var(--white)" stroke={l.color} strokeWidth={2} />
                 : <circle cx={p[0]} cy={p[1]} r={3.5} fill={l.color} />}
               {spec.show_values && (
                 <text x={p[0]} y={p[1] - 8} textAnchor="middle" fontSize={layout.small} fill="currentColor">{l.labels[j]}</text>
@@ -250,14 +250,14 @@ function Plot({ spec, layout, className }: { spec: ChartSpec; layout: Layout; cl
       {spec.reference_lines.map((r, i) => (
         <g key={`r${i}`}>
           <line x1={margin.left} x2={WIDTH - margin.right} y1={yl.y(r.value)} y2={yl.y(r.value)} stroke="currentColor" strokeDasharray="6 4" />
-          <text x={WIDTH - margin.right} y={yl.y(r.value) + 14} textAnchor="end" fontSize={layout.small} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{r.label}</text>
+          <text x={WIDTH - margin.right} y={yl.y(r.value) + 14} textAnchor="end" fontSize={layout.small} fill="currentColor" stroke="var(--white)" strokeWidth={4} paintOrder="stroke">{r.label}</text>
         </g>
       ))}
       {spec.markers.map((m, i) => (
         <g key={`m${i}`}>
           <line x1={bandX(m.index)} x2={bandX(m.index)} y1={top} y2={bottom} stroke="currentColor" strokeDasharray="2 3" />
           {/* Past the middle, the label sits left of its line so it isn't cut off. */}
-          <text x={bandX(m.index) + (bandX(m.index) > WIDTH / 2 ? -4 : 4)} y={top + 10 + (i % 2) * 14} textAnchor={bandX(m.index) > WIDTH / 2 ? 'end' : 'start'} fontSize={layout.small} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{m.label}</text>
+          <text x={bandX(m.index) + (bandX(m.index) > WIDTH / 2 ? -4 : 4)} y={top + 10 + (i % 2) * 14} textAnchor={bandX(m.index) > WIDTH / 2 ? 'end' : 'start'} fontSize={layout.small} fill="currentColor" stroke="var(--white)" strokeWidth={4} paintOrder="stroke">{m.label}</text>
         </g>
       ))}
       <line x1={margin.left} x2={WIDTH - margin.right} y1={bottom} y2={bottom} stroke="currentColor" />
