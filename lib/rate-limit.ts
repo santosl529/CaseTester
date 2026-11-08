@@ -39,22 +39,25 @@ export type RateDeps = {
   upsert: (key: string, now: Date, windowMs: number) => Promise<{ hits: number; windowStart: Date }>;
 };
 
+// One statement: a new key or an expired window starts at 1, otherwise the count goes up by one.
+export function rateLimitUpsertQuery(exec: Pick<typeof db, 'insert'>, key: string, now: Date, windowMs: number) {
+  // Timestamps go in as ISO text with a cast: postgres-js can't send a raw Date inside a sql`` fragment.
+  const at = sql`${now.toISOString()}::timestamptz`;
+  const expired = sql`${rateLimits.windowStart} <= ${new Date(now.getTime() - windowMs).toISOString()}::timestamptz`;
+  return exec.insert(rateLimits).values({ key, windowStart: now, hits: 1 })
+    .onConflictDoUpdate({
+      target: rateLimits.key,
+      set: {
+        hits: sql`CASE WHEN ${expired} THEN 1 ELSE ${rateLimits.hits} + 1 END`,
+        windowStart: sql`CASE WHEN ${expired} THEN ${at} ELSE ${rateLimits.windowStart} END`,
+      },
+    })
+    .returning({ hits: rateLimits.hits, windowStart: rateLimits.windowStart });
+}
+
 const dbDeps: RateDeps = {
   now: () => new Date(),
-  // One statement: a new key or an expired window starts at 1, otherwise the count goes up by one.
-  upsert: async (key, now, windowMs) => {
-    const expired = sql`${rateLimits.windowStart} <= ${new Date(now.getTime() - windowMs)}`;
-    const [row] = await db.insert(rateLimits).values({ key, windowStart: now, hits: 1 })
-      .onConflictDoUpdate({
-        target: rateLimits.key,
-        set: {
-          hits: sql`CASE WHEN ${expired} THEN 1 ELSE ${rateLimits.hits} + 1 END`,
-          windowStart: sql`CASE WHEN ${expired} THEN ${now} ELSE ${rateLimits.windowStart} END`,
-        },
-      })
-      .returning({ hits: rateLimits.hits, windowStart: rateLimits.windowStart });
-    return row;
-  },
+  upsert: async (key, now, windowMs) => (await rateLimitUpsertQuery(db, key, now, windowMs))[0],
 };
 
 // Count one hit for `subject` ('ip:<ip>' or 'user:<id>') under `rule`.

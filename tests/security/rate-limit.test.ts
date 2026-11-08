@@ -94,3 +94,15 @@ describe('rateLimitedResponse', () => {
     expect(await res.json()).toEqual({ error: 'rate_limited', retryAfterSec: 120 });
   });
 });
+
+// The real statement (8 Nov): a Date inside a raw sql`` fragment reaches postgres-js unconverted and the query
+// fails ("Received an instance of Date") — which fail-open would have hidden. Every parameter must be a plain value.
+describe('the upsert statement', () => {
+  it('sends no Date objects to the driver', async () => {
+    const { drizzle } = await import('drizzle-orm/postgres-js');
+    const { rateLimitUpsertQuery } = await import('@/lib/rate-limit');
+    const q = rateLimitUpsertQuery(drizzle.mock(), 'turn:user:u1', NOW, HOUR).toSQL();
+    expect(q.params.filter(p => p instanceof Date)).toEqual([]);
+    expect(q.params).toContain('2026-11-08T11:00:00.000Z');
+  });
+});
