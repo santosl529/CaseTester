@@ -7,8 +7,14 @@ import { ChevronRight } from 'lucide-react';
 import { formatValue, type ChartSpec, type ValueFormat } from '@/lib/drills/chart-spec';
 import { WindowFrame } from '@/components/brand/window';
 
-const WIDTH = 640;
-const HEIGHT = 360;
+// Two drawings of the same chart (Matt, 7 Nov: readable on phones, labels at
+// least 11px at 390 wide): the wide one as before, and a narrow one for boxes
+// under 32rem, drawn at a width close to the screen's, with larger type and a
+// legend that wraps. Layout and sizing only: the data, scales and values are
+// the same in both. The box picks one with a container query.
+interface Layout { width: number; height: number; font: number; small: number; left: number; dualRight: number; labelGap: number; charWidth: number }
+const WIDE: Layout = { width: 640, height: 360, font: 12, small: 11, left: 64, dualRight: 64, labelGap: 44, charWidth: 6.5 };
+const NARROW: Layout = { width: 360, height: 320, font: 13, small: 13, left: 52, dualRight: 48, labelGap: 56, charWidth: 7.2 };
 // CasePace's categorical order (Matt, 7 Nov 2026): Cobalt first, no green
 // (green means progress), the same order in every chart so a category keeps
 // its colour. Validated with the dataviz skill's checker: each at least 3:1
@@ -64,27 +70,44 @@ function seriesFormat(spec: ChartSpec, axis: 'left' | 'right'): ValueFormat {
   return (axis === 'right' ? spec.y2_axis?.format : spec.y_axis.format) ?? { prefix: '', suffix: '', decimals: 0 };
 }
 
-function Plot({ spec }: { spec: ChartSpec }) {
+function Plot({ spec, layout, className }: { spec: ChartSpec; layout: Layout; className?: string }) {
+  const WIDTH = layout.width;
   const dual = spec.type === 'dual_axis';
   const legend = spec.series.length > 1;
-  const margin = { top: 20, right: dual ? 64 : 16, bottom: legend ? 72 : 44, left: 64 };
+  const right = dual ? layout.dualRight : 16;
+
+  // Legend entries sit side by side, each as wide as its label, wrapping onto
+  // a new row when the next would run past the plot's right edge.
+  let legendX = layout.left;
+  let legendRow = 0;
+  const placed = spec.series.map(s => {
+    const label = `${s.name}${dual ? ` (${s.axis} axis)` : ''}`;
+    const width = 18 + label.length * layout.charWidth;
+    if (legendX > layout.left && legendX + width > WIDTH - right) { legendX = layout.left; legendRow++; }
+    const entry = { name: s.name, label, x: legendX, row: legendRow };
+    legendX += width + 20;
+    return entry;
+  });
+  const legendRows = legend ? legendRow + 1 : 0;
+  const HEIGHT = layout.height + (legendRows > 1 ? (legendRows - 1) * 18 : 0);
+  const margin = { top: 20, right, bottom: legend ? 44 + 10 + legendRows * 18 : 44, left: layout.left };
   const top = margin.top;
   const bottom = HEIGHT - margin.bottom;
   const plotWidth = WIDTH - margin.left - margin.right;
   const band = plotWidth / spec.categories.length;
   const bandX = (i: number) => margin.left + i * band;
   // Dense categories (a score per set): label every few, so labels don't collide.
-  const labelEvery = Math.max(1, Math.ceil(44 / band));
+  const labelEvery = Math.max(1, Math.ceil(layout.labelGap / band));
   const gap = (i: number) => spec.gaps.includes(i);
 
-  const left = spec.series.filter(s => s.axis === 'left');
-  const right = spec.series.filter(s => s.axis === 'right');
+  const leftSeries = spec.series.filter(s => s.axis === 'left');
+  const rightSeries = spec.series.filter(s => s.axis === 'right');
 
   // Values the left scale must cover, per chart type.
   let leftValues: number[];
   const running: { from: number; to: number }[] = [];
   if (spec.type === 'stacked_bar') {
-    leftValues = spec.categories.map((_, i) => left.reduce((sum, s) => sum + s.values[i], 0)).filter((_, i) => !gap(i));
+    leftValues = spec.categories.map((_, i) => leftSeries.reduce((sum, s) => sum + s.values[i], 0)).filter((_, i) => !gap(i));
   } else if (spec.type === 'waterfall') {
     let total = 0;
     spec.series[0].values.forEach((v, i) => {
@@ -93,12 +116,12 @@ function Plot({ spec }: { spec: ChartSpec }) {
     });
     leftValues = running.flatMap(r => [r.from, r.to]);
   } else {
-    leftValues = left.flatMap(s => s.values.filter((_, i) => !gap(i)));
+    leftValues = leftSeries.flatMap(s => s.values.filter((_, i) => !gap(i)));
   }
   leftValues.push(...spec.reference_lines.map(r => r.value));
   if (leftValues.length === 0) leftValues.push(0);
   const yl = makeScale(leftValues, spec.y_axis, top, bottom);
-  const yr = dual && spec.y2_axis ? makeScale(right.flatMap(s => s.values), spec.y2_axis, top, bottom) : null;
+  const yr = dual && spec.y2_axis ? makeScale(rightSeries.flatMap(s => s.values), spec.y2_axis, top, bottom) : null;
   const base = (scale: Scale) => scale.y(Math.min(Math.max(0, scale.lo), scale.hi));
 
   const bars: Bar[] = [];
@@ -162,40 +185,31 @@ function Plot({ spec }: { spec: ChartSpec }) {
     });
   }
 
-  // Legend entries sit side by side, each as wide as its label (about 6.5px a
-  // character at 12px), so long dual-axis labels don't run into each other.
-  let legendX = margin.left;
-  const legendEntries = spec.series.map(s => {
-    const label = `${s.name}${dual ? ` (${s.axis} axis)` : ''}`;
-    const entry = { name: s.name, label, x: legendX };
-    legendX += 18 + label.length * 6.5 + 20;
-    return entry;
-  });
 
   const leftFmt = seriesFormat(spec, 'left');
   const rightFmt = seriesFormat(spec, 'right');
   return (
-    <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-auto w-full" aria-hidden="true" focusable="false">
+    <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className={`h-auto w-full ${className ?? ''}`} aria-hidden="true" focusable="false">
       {yl.ticks.map(t => (
         <g key={`l${t}`}>
           <line x1={margin.left} x2={WIDTH - margin.right} y1={yl.y(t)} y2={yl.y(t)} stroke="var(--border)" />
-          <text x={margin.left - 8} y={yl.y(t)} textAnchor="end" dominantBaseline="middle" fontSize={12} fill="var(--muted-foreground)">
+          <text x={margin.left - 8} y={yl.y(t)} textAnchor="end" dominantBaseline="middle" fontSize={layout.font} fill="var(--muted-foreground)">
             {formatValue(t, leftFmt)}
           </text>
         </g>
       ))}
       {yr?.ticks.map(t => (
-        <text key={`r${t}`} x={WIDTH - margin.right + 8} y={yr.y(t)} dominantBaseline="middle" fontSize={12} fill="var(--muted-foreground)">
+        <text key={`r${t}`} x={WIDTH - margin.right + 8} y={yr.y(t)} dominantBaseline="middle" fontSize={layout.font} fill="var(--muted-foreground)">
           {formatValue(t, rightFmt)}
         </text>
       ))}
       {spec.y_axis.label && (
-        <text transform={`translate(14 ${(top + bottom) / 2}) rotate(-90)`} textAnchor="middle" fontSize={12} fill="currentColor">
+        <text transform={`translate(14 ${(top + bottom) / 2}) rotate(-90)`} textAnchor="middle" fontSize={layout.font} fill="currentColor">
           {spec.y_axis.label}
         </text>
       )}
       {yr && spec.y2_axis?.label && (
-        <text transform={`translate(${WIDTH - 10} ${(top + bottom) / 2}) rotate(90)`} textAnchor="middle" fontSize={12} fill="currentColor">
+        <text transform={`translate(${WIDTH - 10} ${(top + bottom) / 2}) rotate(90)`} textAnchor="middle" fontSize={layout.font} fill="currentColor">
           {spec.y2_axis.label}
         </text>
       )}
@@ -204,7 +218,7 @@ function Plot({ spec }: { spec: ChartSpec }) {
           <rect x={b.x} width={b.width} y={Math.min(b.from, b.to)} height={Math.max(1, Math.abs(b.to - b.from))} fill={b.fill}
             {...(b.gap && { stroke: 'var(--white)', strokeWidth: 2 })} />
           {spec.show_values && (
-            <text x={b.x + b.width / 2} y={Math.min(b.from, b.to) - 4} textAnchor="middle" fontSize={11} fill="currentColor">
+            <text x={b.x + b.width / 2} y={Math.min(b.from, b.to) - 4} textAnchor="middle" fontSize={layout.small} fill="currentColor">
               {b.label}
             </text>
           )}
@@ -226,7 +240,7 @@ function Plot({ spec }: { spec: ChartSpec }) {
                 ? <circle cx={p[0]} cy={p[1]} r={4} fill="var(--background, #fff)" stroke={l.color} strokeWidth={2} />
                 : <circle cx={p[0]} cy={p[1]} r={3.5} fill={l.color} />}
               {spec.show_values && (
-                <text x={p[0]} y={p[1] - 8} textAnchor="middle" fontSize={11} fill="currentColor">{l.labels[j]}</text>
+                <text x={p[0]} y={p[1] - 8} textAnchor="middle" fontSize={layout.small} fill="currentColor">{l.labels[j]}</text>
               )}
             </g>
           ))}
@@ -236,24 +250,24 @@ function Plot({ spec }: { spec: ChartSpec }) {
       {spec.reference_lines.map((r, i) => (
         <g key={`r${i}`}>
           <line x1={margin.left} x2={WIDTH - margin.right} y1={yl.y(r.value)} y2={yl.y(r.value)} stroke="currentColor" strokeDasharray="6 4" />
-          <text x={WIDTH - margin.right} y={yl.y(r.value) + 14} textAnchor="end" fontSize={11} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{r.label}</text>
+          <text x={WIDTH - margin.right} y={yl.y(r.value) + 14} textAnchor="end" fontSize={layout.small} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{r.label}</text>
         </g>
       ))}
       {spec.markers.map((m, i) => (
         <g key={`m${i}`}>
           <line x1={bandX(m.index)} x2={bandX(m.index)} y1={top} y2={bottom} stroke="currentColor" strokeDasharray="2 3" />
           {/* Past the middle, the label sits left of its line so it isn't cut off. */}
-          <text x={bandX(m.index) + (bandX(m.index) > WIDTH / 2 ? -4 : 4)} y={top + 10 + (i % 2) * 14} textAnchor={bandX(m.index) > WIDTH / 2 ? 'end' : 'start'} fontSize={11} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{m.label}</text>
+          <text x={bandX(m.index) + (bandX(m.index) > WIDTH / 2 ? -4 : 4)} y={top + 10 + (i % 2) * 14} textAnchor={bandX(m.index) > WIDTH / 2 ? 'end' : 'start'} fontSize={layout.small} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{m.label}</text>
         </g>
       ))}
       <line x1={margin.left} x2={WIDTH - margin.right} y1={bottom} y2={bottom} stroke="currentColor" />
       {spec.categories.map((c, i) => i % labelEvery === 0 && (
-        <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 18} textAnchor="middle" fontSize={12} fill="currentColor">{c}</text>
+        <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 18} textAnchor="middle" fontSize={layout.font} fill="currentColor">{c}</text>
       ))}
-      {legend && legendEntries.map(({ name, label, x }, i) => (
-        <g key={`k${i}`} transform={`translate(${x} ${HEIGHT - 22})`}>
+      {legend && placed.map(({ name, label, x, row }, i) => (
+        <g key={`k${i}`} transform={`translate(${x} ${HEIGHT - 22 - (legendRows - 1 - row) * 18})`}>
           <rect width={12} height={12} y={-10} rx={2} fill={colorOf(name)} />
-          <text x={18} fontSize={12} fill="currentColor">{label}</text>
+          <text x={18} fontSize={layout.font} fill="currentColor">{label}</text>
         </g>
       ))}
     </svg>
@@ -307,7 +321,8 @@ export function DrillChart({ spec, exhibit = false }: { spec: ChartSpec; exhibit
         <DataTable spec={spec} visible />
       ) : (
         <>
-          <Plot spec={spec} />
+          <Plot spec={spec} layout={WIDE} className="hidden @lg:block" />
+          <Plot spec={spec} layout={NARROW} className="@lg:hidden" />
           <details className="group t-small">
             <summary className="inline-flex cursor-pointer list-none items-center gap-1 font-medium text-ink/80 hover:text-cobalt [&::-webkit-details-marker]:hidden">
               <ChevronRight aria-hidden="true" className="size-4 transition-transform duration-150 group-open:rotate-90 motion-reduce:transition-none" />Show data table
@@ -331,7 +346,7 @@ export function DrillChart({ spec, exhibit = false }: { spec: ChartSpec; exhibit
   );
   if (exhibit) {
     return (
-      <figure className="space-y-2" aria-label={`${TYPE_NAMES[spec.type]}: ${spec.title}`}>
+      <figure className="@container space-y-2" aria-label={`${TYPE_NAMES[spec.type]}: ${spec.title}`}>
         <figcaption className="t-label"><span className="font-semibold">Exhibit</span><span className="text-ink/70"> · {spec.title}</span></figcaption>
         <WindowFrame>
           <div className="space-y-3 p-4 sm:p-5">
@@ -344,7 +359,7 @@ export function DrillChart({ spec, exhibit = false }: { spec: ChartSpec; exhibit
     );
   }
   return (
-    <figure className="space-y-2" aria-label={`${TYPE_NAMES[spec.type]}: ${spec.title}`}>
+    <figure className="@container space-y-2" aria-label={`${TYPE_NAMES[spec.type]}: ${spec.title}`}>
       <figcaption>
         <span className="t-small font-semibold">{spec.title}</span>
         {spec.units_label && <span className="t-label block text-ink/70">{spec.units_label}</span>}
