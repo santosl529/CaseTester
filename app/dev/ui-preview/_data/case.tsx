@@ -16,12 +16,12 @@ const OPENING = 'Thanks for joining. Here is the case: Brew & Bean, a specialty 
 const turn = (interviewerText: string, extra: Record<string, unknown> = {}) => ({ interviewerText, ended: false, ...extra });
 
 const EXHIBIT = {
-  id: 'preview-costs', title: 'Exhibit 1 · Cost structure, % of revenue', chartType: 'table',
+  id: 'preview-costs', title: 'Cost structure, % of revenue', chartType: 'table',
   data: [
-    { 'Cost line': 'Coffee beans and milk', '2023': '28%', '2025': '31%' },
-    { 'Cost line': 'Store labor', '2023': '24%', '2025': '33%' },
-    { 'Cost line': 'Rent', '2023': '14%', '2025': '15%' },
-    { 'Cost line': 'Corporate overhead', '2023': '10%', '2025': '15%' },
+    { 'Cost line': 'Coffee beans and milk', 'FY2023': '28%', 'FY2025': '31%' },
+    { 'Cost line': 'Store labor', 'FY2023': '24%', 'FY2025': '33%' },
+    { 'Cost line': 'Rent', 'FY2023': '14%', 'FY2025': '15%' },
+    { 'Cost line': 'Corporate overhead', 'FY2023': '10%', 'FY2025': '15%' },
   ],
   notes: 'Sample data for the preview.',
 };

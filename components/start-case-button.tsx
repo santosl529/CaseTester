@@ -7,7 +7,8 @@ import { caseHref, type CaseMode } from '@/lib/site/case-href';
 // Starts a case from /home or a start link (/start/<caseId>). No club code is sent: /api/session reads the one
 // on the student's profile (site flow, 19 Oct). A second click before the disabled state renders is ignored.
 // Voice is the default (Lorenzo, 6 Nov); "Prefer to type?" starts the same case in text.
-export function StartCaseButton({ caseId, label }: { caseId: string; label: string }) {
+// `variant`: outline where several cases are listed, so a page keeps one primary button.
+export function StartCaseButton({ caseId, label, variant = 'default' }: { caseId: string; label: string; variant?: 'default' | 'outline' }) {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -37,13 +38,13 @@ export function StartCaseButton({ caseId, label }: { caseId: string; label: stri
   }
 
   return (
-    <div className="space-y-1">
-      <Button onClick={() => start('voice')} disabled={starting} className="w-full" size="lg">{starting ? 'Starting…' : label}</Button>
-      <p className="text-center text-xs text-neutral-500">
+    <div className="space-y-2">
+      <Button onClick={() => start('voice')} disabled={starting} className="w-full" size="lg" variant={variant}>{starting ? 'Starting…' : label}</Button>
+      <p className="t-label text-center text-ink/70">
         Spoken out loud — headphones work best.{' '}
-        <button type="button" onClick={() => start('text')} disabled={starting} className="underline disabled:opacity-50">Prefer to type? Start in text</button>
+        <button type="button" onClick={() => start('text')} disabled={starting} className="cursor-pointer font-medium text-ink underline underline-offset-4 hover:text-cobalt disabled:opacity-50">Prefer to type? Start in text</button>
       </p>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+      {error && <p className="t-small text-alert">{error}</p>}
     </div>
   );
 }

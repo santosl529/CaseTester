@@ -16,10 +16,10 @@ export function CaseEndPanel({ sessionId, report, onRetry, note }: {
   note?: string;
 }) {
   return (
-    <section aria-label="The case has ended" className="space-y-3 rounded-lg border bg-white p-4">
-      <p className="text-sm font-medium">{note ?? 'The case has ended.'}</p>
-      {report === 'preparing' && <p className="text-sm text-neutral-600">Preparing your report — this can take a couple of minutes.</p>}
-      {report === 'failed' && <p className="text-sm text-red-600">Generating your report hit an error.</p>}
+    <section aria-label="The case has ended" className="space-y-4 rounded-panel border border-ink/12 bg-white p-6 shadow-panel animate-enter motion-reduce:animate-none">
+      <p className="t-heading font-semibold">{note ?? 'The case has ended.'}</p>
+      {report === 'preparing' && <p className="t-small text-ink/70">Preparing your report — this can take a couple of minutes.</p>}
+      {report === 'failed' && <p className="t-small text-alert">Generating your report hit an error.</p>}
       <div className="grid gap-2 sm:grid-cols-2">
         {report === 'ready' && <Link href={`/case/${sessionId}/report`} className={cn(buttonVariants({ size: 'lg' }))}>Get my report</Link>}
         {report === 'preparing' && <Button size="lg" disabled>Preparing your report…</Button>}

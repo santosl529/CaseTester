@@ -48,13 +48,13 @@
   --t-label-lh: 1.35;
   --hdr: 3.25rem;
 
-  /* The app's page titles and the headings under them (Matt, 7 Nov: titles
-     at the card size, not the homepage's section size; headings one step
-     below). Two variables, so the in-between step is one change. */
-  --t-title: var(--t-card);
-  --t-title-lh: var(--t-card-lh);
-  --t-heading: var(--t-body);
-  --t-heading-lh: var(--t-body-lh);
+  /* The app's page titles and the headings under them (Matt, 7 Nov: the
+     step between the card and section roles, 26px, 32px on desktops;
+     headings at the card size). */
+  --t-title: 1.625rem;
+  --t-title-lh: 1.15;
+  --t-heading: var(--t-card);
+  --t-heading-lh: var(--t-card-lh);
 }
 
 @media (min-width: 1024px) {
@@ -68,6 +68,8 @@
     --t-body: 1.125rem;
     --t-body-lh: 1.6;
     --hdr: 3.5rem;
+    --t-title: 2rem;
+    --t-title-lh: 1.12;
   }
 }
 
