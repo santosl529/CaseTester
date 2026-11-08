@@ -34,9 +34,10 @@ export function PrescriptionActions({ id, paused, extra = {}, startLabel }: { id
 
   return (
     <span className="flex flex-wrap items-center gap-2">
-      {!paused && <Button size="sm" onClick={start} disabled={busy}>{startLabel ?? 'Start'}</Button>}
+      {/* Outline: these sit in lists, so a page keeps one primary button. */}
+      {!paused && <Button size="sm" variant="outline" onClick={start} disabled={busy}>{startLabel ?? 'Start'}</Button>}
       <Button size="sm" variant="ghost" onClick={dismiss} disabled={busy}>Dismiss</Button>
-      {error && <span role="alert" className="text-xs text-destructive">{error}</span>}
+      {error && <span role="alert" className="t-label text-alert">{error}</span>}
     </span>
   );
 }
