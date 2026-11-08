@@ -2,6 +2,9 @@ import { HomeView } from '@/components/home-view';
 import { SignInFlow } from '@/components/sign-in-flow';
 import { StartCaseScreen, TextCaseScreen, VoiceCaseScreen } from '@/components/views/case';
 import { ReportScreen, UnscoredReportScreen } from '@/components/views/report';
+import { StatusScreen } from '@/components/views/status';
+import { buttonVariants } from '@/components/ui/button';
+import Link from 'next/link';
 import { listedCases, linkOnlyCase } from '@/lib/cases/listed';
 import { getCaseById } from '@/lib/cases/loader';
 import type { ReportDimension } from '@/lib/scoring/report-dimensions';
@@ -116,6 +119,14 @@ export const CASE_SCREENS: Screen[] = [
         turns={TURNS} />,
       api: [{ method: 'POST', path: '/api/feedback/preview-report', body: { ok: true } }],
     }),
+  },
+  {
+    slug: 'not-found', area: 'Other', title: 'Not found (404)',
+    render: () => ({ node: <StatusScreen code="404" title="This page could not be found." body="The link may be out of date, or the page has moved."><Link href="/" className={buttonVariants({ size: 'lg' })}>Go to the homepage</Link></StatusScreen> }),
+  },
+  {
+    slug: 'error', area: 'Other', title: 'Error page',
+    render: () => ({ node: <StatusScreen code="Error" title="Something went wrong." body="This page didn’t load. Try again, or go back to the homepage."><span className={buttonVariants({ size: 'lg' })}>Try again</span><Link href="/" className="link t-body">Go to the homepage</Link></StatusScreen> }),
   },
   { slug: 'report-unscored', area: 'Feedback', title: 'Feedback report, not prepared yet', render: () => ({ node: <UnscoredReportScreen sessionId="preview-unscored" /> }) },
 ];
