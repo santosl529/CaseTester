@@ -15,42 +15,52 @@ export type ReportPdfProps = {
   turns: { role: string; text: string; clock: string; exhibitTitle?: string }[];
 };
 
-const RATING_COLOR: Record<string, string> = {
-  needs_work: '#b91c1c',
-  meets_bar: '#525252',
-  strong: '#15803d',
+// CasePace's palette (app/brand.css) as plain values: react-pdf can't read
+// CSS variables. A rating is a pill as on the report page (Matt, 7 Nov):
+// Strong in Mastery green, Adequate in Sky, Needs work in Cobalt.
+const INK = '#0E1424';
+const MUTED = '#565B66';   // Ink at 70% on white
+const RULE = '#C5C7CC';    // Ink at 25% on white
+const COBALT = '#2D4BD8';
+const SKY = '#DCE5FF';
+const MASTERY = '#1F9D63';
+const PAPER = '#F7F7F4';
+const RATING_PILL: Record<string, { backgroundColor: string; color: string }> = {
+  needs_work: { backgroundColor: COBALT, color: '#FFFFFF' },
+  meets_bar: { backgroundColor: SKY, color: INK },
+  strong: { backgroundColor: MASTERY, color: INK },
 };
 
 const styles = StyleSheet.create({
-  page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica', color: '#171717' },
+  page: { padding: 40, fontSize: 10, fontFamily: 'Helvetica', color: INK },
   h1: { fontSize: 18, fontFamily: 'Helvetica-Bold', marginBottom: 2 },
-  subtitle: { fontSize: 10, color: '#737373', marginBottom: 16 },
+  subtitle: { fontSize: 10, color: MUTED, marginBottom: 16 },
   sectionTitle: { fontSize: 13, fontFamily: 'Helvetica-Bold', marginTop: 16, marginBottom: 8 },
   dimension: { marginBottom: 10 },
   dimensionHeader: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 3 },
   dimensionLabel: { fontFamily: 'Helvetica-Bold', fontSize: 11 },
-  rating: { fontSize: 10, fontFamily: 'Helvetica-Bold' },
+  rating: { fontSize: 9, fontFamily: 'Helvetica-Bold', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 8, borderWidth: 1, borderColor: RULE },
   quote: {
-    fontSize: 9, color: '#525252', fontFamily: 'Helvetica-Oblique',
-    borderLeftWidth: 2, borderLeftColor: '#d4d4d4', paddingLeft: 6, marginBottom: 3,
+    fontSize: 9, color: MUTED, fontFamily: 'Helvetica-Oblique',
+    borderLeftWidth: 1, borderLeftColor: RULE, paddingLeft: 6, marginBottom: 3,
   },
   feedbackSection: { marginTop: 4, marginBottom: 2 },
   feedbackHeading: { fontSize: 9, fontFamily: 'Helvetica-Bold', marginBottom: 2 },
   feedbackPoint: { fontSize: 9.5, lineHeight: 1.35, marginBottom: 2 },
   betterResponse: {
-    fontSize: 9.5, lineHeight: 1.35, borderLeftWidth: 2, borderLeftColor: '#bfdbfe',
-    paddingLeft: 6, marginBottom: 3,
+    fontSize: 9.5, lineHeight: 1.35, backgroundColor: PAPER, borderRadius: 4,
+    padding: 5, marginBottom: 3,
   },
   topFixBox: {
-    backgroundColor: '#fffbeb', borderWidth: 1, borderColor: '#fde68a',
+    backgroundColor: SKY, borderWidth: 0, borderColor: SKY,
     borderRadius: 4, padding: 8, marginBottom: 4,
   },
   bodyText: { fontSize: 10, lineHeight: 1.4 },
   turn: { marginBottom: 8 },
-  turnMeta: { fontSize: 8, color: '#737373', marginBottom: 2 },
+  turnMeta: { fontSize: 8, color: MUTED, marginBottom: 2 },
   turnText: { fontSize: 9, lineHeight: 1.4 },
   exhibitMarker: {
-    fontSize: 8.5, color: '#1d4ed8', fontFamily: 'Helvetica-Oblique', marginTop: 2,
+    fontSize: 8.5, color: COBALT, fontFamily: 'Helvetica-Oblique', marginTop: 2,
   },
 });
 
@@ -65,7 +75,7 @@ function PdfPoint({ item }: { item: FeedbackItem }) {
     <View style={{ marginBottom: 3 }}>
       {item.plain ? (
         <>
-          <Text style={[styles.feedbackPoint, { color: '#737373' }]}>{item.plain.where}</Text>
+          <Text style={[styles.feedbackPoint, { color: MUTED }]}>{item.plain.where}</Text>
           <Text style={styles.feedbackPoint}>{item.plain.what} {item.plain.why}</Text>
           <Text style={[styles.feedbackPoint, { fontFamily: 'Helvetica-Bold' }]}>{item.plain.next}</Text>
         </>
@@ -81,9 +91,9 @@ function PdfPoint({ item }: { item: FeedbackItem }) {
 
 export function ReportPdf(props: ReportPdfProps) {
   return (
-    <Document title={`Interview Feedback — ${props.caseTitle} | CasePace`} author="CasePace">
+    <Document title={`Interview feedback — ${props.caseTitle} | CasePace`} author="CasePace">
       <Page size="A4" style={styles.page}>
-        <Text style={styles.h1}>CasePace · Interview Feedback</Text>
+        <Text style={styles.h1}>CasePace · Interview feedback</Text>
         <Text style={styles.subtitle}>
           {props.caseTitle} · {props.completedAt} · {props.partial ? 'Partial interview — no overall rating' : `Overall: ${formatRating(props.overallRating)}`}
         </Text>
@@ -93,7 +103,7 @@ export function ReportPdf(props: ReportPdfProps) {
             <Text style={{ fontFamily: 'Helvetica-Bold', marginBottom: 3 }}>Top improvement</Text>
             {props.topFixPlain ? (
               <>
-                <Text style={[styles.bodyText, { color: '#737373' }]}>{props.topFixPlain.where}</Text>
+                <Text style={[styles.bodyText, { color: MUTED }]}>{props.topFixPlain.where}</Text>
                 <Text style={styles.bodyText}>{props.topFixPlain.what} {props.topFixPlain.why}</Text>
                 <Text style={[styles.bodyText, { fontFamily: 'Helvetica-Bold' }]}>{props.topFixPlain.next}</Text>
               </>
@@ -101,42 +111,42 @@ export function ReportPdf(props: ReportPdfProps) {
           </View>
         )}
 
-        <Text style={styles.sectionTitle}>Your Scores</Text>
+        <Text style={styles.sectionTitle}>Your scores</Text>
         {props.dimensions.map(d => (
           <View key={d.key} style={styles.dimension}>
             <View style={styles.dimensionHeader} wrap={false}>
               <Text style={styles.dimensionLabel}>{d.label}</Text>
-              <Text style={[styles.rating, { color: RATING_COLOR[d.rating ?? ''] ?? '#525252' }]}>
+              <Text style={[styles.rating, RATING_PILL[d.rating ?? ''] ? { ...RATING_PILL[d.rating ?? ''], borderColor: RATING_PILL[d.rating ?? ''].backgroundColor } : { color: MUTED }]}>
                 {formatRating(d.rating)}
               </Text>
             </View>
             {d.feedback ? (
               <>
                 {d.feedback.coverageCaveat && (
-                  <Text style={{ fontSize: 9, color: '#737373', fontFamily: 'Helvetica-Oblique', marginBottom: 3 }}>
+                  <Text style={{ fontSize: 9, color: MUTED, fontFamily: 'Helvetica-Oblique', marginBottom: 3 }}>
                     {d.feedback.coverageCaveat}
                   </Text>
                 )}
                 {d.feedback.wentWell.length > 0 && (
                   <View style={styles.feedbackSection}>
-                    <Text style={[styles.feedbackHeading, { color: '#15803d' }]}>What went well</Text>
+                    <Text style={styles.feedbackHeading}>What went well</Text>
                     {d.feedback.wentWell.map((item, i) => <PdfPoint key={i} item={item} />)}
                   </View>
                 )}
                 {d.feedback.needsWork.length > 0 && (
                   <View style={styles.feedbackSection}>
-                    <Text style={[styles.feedbackHeading, { color: '#b45309' }]}>What needs work</Text>
+                    <Text style={styles.feedbackHeading}>What needs work</Text>
                     {d.feedback.needsWork.map((item, i) => <PdfPoint key={i} item={item} />)}
                   </View>
                 )}
                 {d.feedback.missedOpportunities.length > 0 && (
                   <View style={styles.feedbackSection}>
-                    <Text style={[styles.feedbackHeading, { color: '#1d4ed8' }]}>Missed opportunities</Text>
+                    <Text style={styles.feedbackHeading}>Missed opportunities</Text>
                     {d.feedback.missedOpportunities.map((item, i) => (
                       <View key={i}>
                         {item.plain ? (
                           <>
-                            <Text style={[styles.feedbackPoint, { color: '#737373' }]}>{item.plain.where}</Text>
+                            <Text style={[styles.feedbackPoint, { color: MUTED }]}>{item.plain.where}</Text>
                             <Text style={styles.feedbackPoint}>{item.plain.what} {item.plain.why}</Text>
                           </>
                         ) : (
@@ -159,7 +169,7 @@ export function ReportPdf(props: ReportPdfProps) {
 
         {props.modelAnswer && (
           <>
-            <Text style={styles.sectionTitle}>Model Answer</Text>
+            <Text style={styles.sectionTitle}>Model answer</Text>
             {props.modelAnswer.structure && (
               <View style={{ marginBottom: 8 }}>
                 <Text style={{ fontFamily: 'Helvetica-Bold', marginBottom: 2 }}>Structure</Text>

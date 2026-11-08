@@ -1,4 +1,6 @@
+import { ChevronRight, Download } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { AppPage } from '@/components/brand/page';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { ReportCard } from '@/components/report-card';
@@ -9,10 +11,12 @@ import type { ReportDimension } from '@/lib/scoring/report-dimensions';
 import type { PlainPoint } from '@/lib/scoring/judge';
 import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
 
-const RATING_COLOR: Record<string, string> = {
-  needs_work: 'destructive',
-  meets_bar: 'secondary',
-  strong: 'default',
+// A rating's pill (Matt, 7 Nov): Strong in Mastery green, Adequate in Sky,
+// Needs work in Cobalt.
+const RATING_BADGE: Record<string, 'strong' | 'adequate' | 'needsWork'> = {
+  needs_work: 'needsWork',
+  meets_bar: 'adequate',
+  strong: 'strong',
 };
 
 // The feedback report; app/case/[sessionId]/report/page.tsx checks access
@@ -23,10 +27,10 @@ export function UnscoredReportScreen({ sessionId }: { sessionId: string }) {
   return (
       <>
         <SiteHeader />
-        <main className="w-full max-w-2xl mx-auto py-8 px-4 space-y-6">
-          <h1 className="text-2xl font-bold">Interview Feedback</h1>
+        <AppPage className="space-y-8">
+          <h1 className="t-title">Interview feedback</h1>
           <PrepareReport sessionId={sessionId} />
-        </main>
+        </AppPage>
       </>
   );
 }
@@ -48,13 +52,13 @@ export function ReportScreen({ sessionId, partial, overallRating, hasTopFix, top
   return (
     <>
     <SiteHeader />
-    <main className="w-full max-w-2xl mx-auto py-8 px-4 space-y-6">
-      <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-bold">Interview Feedback</h1>
+    <AppPage className="space-y-10">
+      <header className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        <h1 className="t-title">Interview feedback</h1>
         {partial ? (
           <Badge variant="outline">Partial interview — no overall rating</Badge>
         ) : (
-          <Badge variant={RATING_COLOR[overallRating ?? 'meets_bar'] as 'destructive' | 'secondary' | 'default'}>
+          <Badge variant={RATING_BADGE[overallRating ?? 'meets_bar'] ?? 'adequate'}>
             {overallRating ? RATING_LABELS[overallRating as Rating] : null}
           </Badge>
         )}
@@ -63,23 +67,24 @@ export function ReportScreen({ sessionId, partial, overallRating, hasTopFix, top
           download
           className={`${buttonVariants({ variant: 'outline', size: 'sm' })} ml-auto`}
         >
-          Download PDF
+          <Download aria-hidden="true" />Download PDF
         </a>
-      </div>
+      </header>
 
+      {/* The top improvement in Sky (Matt, 7 Nov), Ink text on it. */}
       {hasTopFix && (
-        <Card className="border-amber-200 bg-amber-50">
-          <CardHeader><CardTitle className="text-base">Top improvement</CardTitle></CardHeader>
-          <CardContent className="text-sm">
+        <section aria-labelledby="top-fix" className="space-y-2 rounded-panel bg-sky/60 p-5 sm:p-6">
+          <h2 id="top-fix" className="t-heading font-semibold">Top improvement</h2>
+          <div className="t-body">
             {topFix ? (
               <>
-                <p className="text-neutral-500 mb-1">{topFix.where}</p>
-                <p className="text-neutral-800 mb-1">{topFix.what} {topFix.why}</p>
-                <p className="text-neutral-900 font-medium">{topFix.next}</p>
+                <p className="t-small mb-1 text-ink/75">{topFix.where}</p>
+                <p className="mb-2">{topFix.what} {topFix.why}</p>
+                <p className="font-semibold">{topFix.next}</p>
               </>
             ) : topFixLine}
-          </CardContent>
-        </Card>
+          </div>
+        </section>
       )}
 
       <div className="space-y-4">
@@ -92,15 +97,15 @@ export function ReportScreen({ sessionId, partial, overallRating, hasTopFix, top
         const ma = modelAnswer;
         return (
           <Card>
-            <CardHeader><CardTitle className="text-base">Model Answer</CardTitle></CardHeader>
-            <CardContent className="text-sm space-y-3">
+            <CardHeader><CardTitle>Model answer</CardTitle></CardHeader>
+            <CardContent className="t-body space-y-4">
               <div>
-                <p className="font-medium mb-1">Structure</p>
-                <p className="text-neutral-700">{ma.structure}</p>
+                <p className="t-small mb-1 font-semibold">Structure</p>
+                <p className="text-ink/85">{ma.structure}</p>
               </div>
               <div>
-                <p className="font-medium mb-1">Recommendation</p>
-                <p className="text-neutral-700">{ma.recommendation}</p>
+                <p className="t-small mb-1 font-semibold">Recommendation</p>
+                <p className="text-ink/85">{ma.recommendation}</p>
               </div>
             </CardContent>
           </Card>
@@ -111,22 +116,22 @@ export function ReportScreen({ sessionId, partial, overallRating, hasTopFix, top
 
       {turns.length > 0 && (
         <Card>
-          <CardHeader><CardTitle className="text-base">Transcript</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Transcript</CardTitle></CardHeader>
           <CardContent>
-            <details>
-              <summary className="text-sm text-neutral-600 cursor-pointer select-none">
-                Show full conversation ({turns.length} turns)
+            <details className="group">
+              <summary className="t-small inline-flex cursor-pointer list-none items-center gap-1 font-semibold select-none hover:text-cobalt [&::-webkit-details-marker]:hidden">
+                <ChevronRight aria-hidden="true" className="size-4 transition-transform duration-150 group-open:rotate-90 motion-reduce:transition-none" />Show full conversation ({turns.length} turns)
               </summary>
               <div className="mt-4 space-y-3">
                 {turns.map(t => (
-                  <div key={t.id} className="text-sm">
-                    <p className="font-medium text-neutral-500 text-xs mb-0.5">
-                      {t.role === 'candidate' ? 'You' : 'Interviewer'} · {t.clock}
+                  <div key={t.id} className="t-small">
+                    <p className={`t-label mb-1 font-semibold ${t.role === 'candidate' ? 'text-cobalt' : 'text-ink/70'}`}>
+                      {t.role === 'candidate' ? 'You' : 'Interviewer'} <span className="font-normal text-ink/70">· {t.clock}</span>
                     </p>
-                    <p className={`whitespace-pre-wrap rounded-md px-3 py-2 ${
+                    <p className={`whitespace-pre-wrap rounded-window px-3 py-2 ${
                       t.role === 'candidate'
-                        ? 'bg-blue-50 text-neutral-900'
-                        : 'bg-neutral-100 text-neutral-900'
+                        ? 'bg-sky/50'
+                        : 'bg-paper'
                     }`}>
                       {t.text}
                     </p>
@@ -137,7 +142,7 @@ export function ReportScreen({ sessionId, partial, overallRating, hasTopFix, top
           </CardContent>
         </Card>
       )}
-    </main>
+    </AppPage>
     </>
   );
 }
