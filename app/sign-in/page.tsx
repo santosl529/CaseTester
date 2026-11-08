@@ -7,18 +7,19 @@ import { SignInFlow } from '@/components/sign-in-flow';
 
 export const metadata: Metadata = {
   title: 'Sign in',
-  description: 'Sign in to CasePace with your email, then your consulting club’s access code.',
+  description: 'Log in to CasePace.',
   alternates: { canonical: '/sign-in' },
 };
 
-// Sign in once (site flow, 19 Oct; at /sign-in since the site launch, 31 Oct):
-// a signed-in student whose profile holds a valid club code goes straight on,
-// to `next` when it is a path on this site, else /home; signed in without one,
-// the club step.
-export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string | string[] }> }) {
-  const next = safeNext((await searchParams).next);
+// Log in (site flow, 19 Oct; at /sign-in since the site launch, 31 Oct; log-in only since 8 Nov — new accounts
+// are made at /sign-up with a club code). A signed-in student whose profile holds a valid club code goes straight
+// on, to `next` when it is a path on this site, else /home; signed in without one (an account from before 8 Nov,
+// or a code since removed from CLUB_CODES), the club step. `created` = just signed up.
+export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string | string[]; created?: string | string[] }> }) {
+  const params = await searchParams;
+  const next = safeNext(params.next);
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (user && await storedClubOrg(user.id)) redirect(next);
-  return <SignInFlow initialStep={user ? 'club' : 'auth'} next={next} />;
+  return <SignInFlow initialStep={user ? 'club' : 'auth'} next={next} created={params.created === '1'} />;
 }
