@@ -29,7 +29,7 @@ function Md({ children }: { children: string }) {
 function Section({ id, title, children, boxed }: { id: string; title: string; children: string; boxed?: boolean }) {
   return (
     <section aria-labelledby={id} className={`space-y-3${boxed ? ' rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6' : ''}`}>
-      <h2 id={id} className="t-card font-semibold">{title}</h2>
+      <h2 id={id} className="t-heading font-semibold">{title}</h2>
       <Md>{children}</Md>
     </section>
   );
@@ -43,7 +43,7 @@ function Rest({ lesson }: { lesson: LessonContent }) {
       {lesson.another_example && <Section id="another-example" title="Another example" boxed>{lesson.another_example}</Section>}
       {lesson.tricky_cases && <Section id="tricky" title="Tricky cases">{lesson.tricky_cases}</Section>}
       <section aria-labelledby="mistakes" className="space-y-3">
-        <h2 id="mistakes" className="t-card font-semibold">Common mistakes</h2>
+        <h2 id="mistakes" className="t-heading font-semibold">Common mistakes</h2>
         <ul className="t-body max-w-[65ch] divide-y divide-ink/10 border-y border-ink/10">
           {lesson.mistakes.map(m => (
             <li key={m.tag} className="py-3"><span className="font-semibold">{m.label[0].toUpperCase() + m.label.slice(1)}:</span> <span className="text-ink/90">{m.line}</span></li>
@@ -52,7 +52,7 @@ function Rest({ lesson }: { lesson: LessonContent }) {
       </section>
       {lesson.quick_check && (
         <section aria-labelledby="quick-check" className="space-y-3 rounded-panel bg-sky/60 p-5 sm:p-6">
-          <h2 id="quick-check" className="t-card font-semibold">Quick check</h2>
+          <h2 id="quick-check" className="t-heading font-semibold">Quick check</h2>
           <Md>{lesson.quick_check.question}</Md>
           {/* Not graded: the answer is revealed on request, with no AI call. */}
           <details className="group">
@@ -74,16 +74,17 @@ function Rest({ lesson }: { lesson: LessonContent }) {
 // `embedded` (inside another page, such as set results) titles it with an h2.
 export function LessonBody({ lesson, mode = 'full', embedded = false }: { lesson: LessonContent; mode?: 'full' | 'summary'; embedded?: boolean }) {
   const Title = embedded ? 'h2' : 'h1';
-  // The title leads; the skill and the kind of lesson follow it.
+  // The skill and the kind of lesson above the title, in the homepage's
+  // small slide-label style (Matt, 7 Nov).
   const head = (
     <>
-      <header className="space-y-3">
-        <Title className={embedded ? 't-card font-semibold' : 't-section text-balance'}>{lesson.title}</Title>
-        <p className="t-small text-ink/70">{lesson.skill_name} · {mode === 'summary' ? 'lesson summary' : 'short lesson'}</p>
+      <header className="space-y-2">
+        <p className="t-label text-ink/70"><span className="font-semibold text-ink">{lesson.skill_name}</span> · {mode === 'summary' ? 'lesson summary' : 'short lesson'}</p>
+        <Title className={embedded ? 't-heading font-semibold' : 't-title text-balance'}>{lesson.title}</Title>
       </header>
       <section aria-labelledby="idea">
         <h2 id="idea" className="sr-only">The idea</h2>
-        <div className="t-card rounded-panel bg-sky/60 p-5 font-medium text-ink sm:p-6 [&_strong]:font-semibold"><ReactMarkdown>{lesson.idea}</ReactMarkdown></div>
+        <div className="t-heading rounded-panel bg-sky/60 p-5 font-medium text-ink sm:p-6 [&_strong]:font-semibold"><ReactMarkdown>{lesson.idea}</ReactMarkdown></div>
       </section>
     </>
   );
@@ -128,23 +129,23 @@ export interface IntroLessonContent {
 // full cases.
 export function IntroLessonBody({ lesson, skills }: { lesson: IntroLessonContent; skills: Record<string, { name: string; href: string | null }> }) {
   return (
-    <article className="space-y-6">
-      <header className="space-y-1">
-        <p className="text-sm text-muted-foreground">Start here · short lesson</p>
-        <h1 className="text-xl font-semibold">{lesson.title}</h1>
+    <article className="space-y-8">
+      <header className="space-y-2">
+        <p className="t-label text-ink/70"><span className="font-semibold text-ink">Start here</span> · short lesson</p>
+        <h1 className="t-title text-balance">{lesson.title}</h1>
       </header>
-      <div className="rounded-lg border-l-4 border-foreground/70 bg-muted/40 p-4 text-base font-medium"><ReactMarkdown>{lesson.idea}</ReactMarkdown></div>
+      <div className="t-heading rounded-panel bg-sky/60 p-5 font-medium text-ink sm:p-6 [&_strong]:font-semibold"><ReactMarkdown>{lesson.idea}</ReactMarkdown></div>
       {lesson.sections.map((s, i) => (
-        <section key={s.heading} aria-labelledby={`intro-${i}`} className={`space-y-2${s.skills ? ' rounded-lg border p-4' : ''}`}>
-          <h2 id={`intro-${i}`} className="font-medium">{s.heading}</h2>
+        <section key={s.heading} aria-labelledby={`intro-${i}`} className={`space-y-3${s.skills ? ' rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6' : ''}`}>
+          <h2 id={`intro-${i}`} className="t-heading font-semibold">{s.heading}</h2>
           <Md>{s.body}</Md>
           {s.skills && (
-            <p className="text-sm">
-              <span className="font-medium">Skills: </span>
+            <p className="t-small border-t border-ink/10 pt-3">
+              <span className="font-semibold">Skills: </span>
               {s.skills.map((id, j) => (
                 <span key={id}>
                   {j > 0 && ' · '}
-                  {skills[id]?.href ? <a href={skills[id].href!} className="underline underline-offset-4">{skills[id].name}</a> : <>{skills[id]?.name ?? id} <span className="text-muted-foreground">(practiced in full cases)</span></>}
+                  {skills[id]?.href ? <a href={skills[id].href!} className="link">{skills[id].name}</a> : <>{skills[id]?.name ?? id} <span className="text-ink/70">(practiced in full cases)</span></>}
                 </span>
               ))}
             </p>

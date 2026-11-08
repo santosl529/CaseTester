@@ -47,6 +47,14 @@
   --t-label: 0.75rem;
   --t-label-lh: 1.35;
   --hdr: 3.25rem;
+
+  /* The app's page titles and the headings under them (Matt, 7 Nov: titles
+     at the card size, not the homepage's section size; headings one step
+     below). Two variables, so the in-between step is one change. */
+  --t-title: var(--t-card);
+  --t-title-lh: var(--t-card-lh);
+  --t-heading: var(--t-body);
+  --t-heading-lh: var(--t-body-lh);
 }
 
 @media (min-width: 1024px) {
@@ -69,6 +77,8 @@
 .t-body { font-size: var(--t-body); line-height: var(--t-body-lh); }
 .t-small { font-size: var(--t-small); line-height: var(--t-small-lh); }
 .t-label { font-size: var(--t-label); line-height: var(--t-label-lh); }
+.t-title { font-size: var(--t-title); line-height: var(--t-title-lh); font-weight: 600; letter-spacing: -0.02em; }
+.t-heading { font-size: var(--t-heading); line-height: var(--t-heading-lh); letter-spacing: -0.01em; }
 
 /* ---------- Controls: a primary and a secondary ---------- */
 
