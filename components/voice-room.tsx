@@ -6,7 +6,10 @@
 // end-of-speech → first-sound time as a cross-check (headphones required).
 import { useEffect, useReducer, useRef, useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
-import { Room, RoomEvent, Track, type RemoteTrack } from 'livekit-client';
+import { Room, RoomEvent, Track, type RemoteParticipant, type RemoteTrack } from 'livekit-client';
+import { postJson } from '@/lib/site/fetch-json';
+import { voiceStartFailure, OFFLINE } from '@/lib/site/failure-messages';
+import { runScoring } from '@/lib/site/run-scoring';
 import { Button } from '@/components/ui/button';
 import { fillerPrefStore } from '@/lib/voice/filler-pref';
 import { ExhibitTable } from '@/components/exhibit-table';
@@ -89,6 +92,9 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
   };
   // Set when the candidate ends it (End): a disconnect after that is not a dropped connection.
   const ending = useRef(false);
+  // Set when we hang up ourselves after a failure (mic denied, the interviewer never came): the Disconnected that
+  // follows must not replace that message with "the connection dropped" (8 Nov audit).
+  const givingUp = useRef(false);
   useEffect(() => {
     window.addEventListener('pagehide', leave);
     // A reload mid-session: reconnect on our own (audio may still need the usual click).
@@ -193,14 +199,16 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
     }
     setLocal('connecting');
     setProblem(null);
-    const res = await fetch(`/api/voice/${sessionId}/token`, { method: 'POST' });
-    if (!res.ok) {
+    givingUp.current = false;
+    // Never throws (lib/site/fetch-json.ts): offline, busy vs rate-limited, ended, signed out each say so.
+    const res = await postJson(`/api/voice/${sessionId}/token`);
+    const url = res.data?.url, token = res.data?.token;
+    if (!res.ok || typeof url !== 'string' || typeof token !== 'string') {
       stopSetupObserver();
-      setProblem(res.status === 429 ? VOICE_BUSY_MESSAGE : res.status === 409 ? 'This case is no longer active.' : res.status === 503 ? 'Voice is not configured on the server.' : 'Could not start the voice session.');
+      setProblem(voiceStartFailure(res.ok ? 500 : res.status, res.data));
       setLocal('idle');
       return;
     }
-    const { url, token } = await res.json() as { url: string; token: string };
     const room = new Room({ adaptiveStream: false });
     roomRef.current = room;
     const readyGate = new ReadyGate({ canPlay: () => room.canPlaybackAudio, sendReady, onFallback: () => times.mark('playingFallback') });
@@ -242,10 +250,21 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
     // blip, an app switch the agent outlasted) — the session is still active, so Start picks it up again.
     room.on(RoomEvent.Disconnected, () => {
       if (ending.current || leaveState.current.caseOver) { setLocal(l => (l === 'live' ? 'ended' : l)); return; }
+      if (givingUp.current) { setLocal(l => (l === 'live' || l === 'connecting' ? 'idle' : l)); return; }
       watchdog.current?.stop();
       setConnecting(false);
       setProblem(RESUME_MESSAGE);
       setLocal(l => (l === 'live' || l === 'connecting' ? 'idle' : l));
+    });
+    // The interviewer left while the room stayed up (the agent crashed or was stopped): without this the screen froze
+    // on its last state (8 Nov audit). Give the case end a moment to arrive first; if it isn't over, hang up, which
+    // shows the usual "press Start to pick up where you left off".
+    room.on(RoomEvent.ParticipantDisconnected, (p: RemoteParticipant) => {
+      if (!p.isAgent && !p.identity.startsWith('agent-')) return;
+      window.setTimeout(() => {
+        if (ending.current || leaveState.current.caseOver || room.state === 'disconnected') return;
+        room.disconnect();
+      }, 2_000);
     });
     try {
       timing.current.ctx = times.span('audioContext', () => new AudioContext());
@@ -257,7 +276,10 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
       if (micTrack && ctx) timing.current.mic = times.span('micMeter', () => levelMeter(ctx, micTrack));
     } catch (e) {
       stopSetupObserver();
-      setProblem(e instanceof Error && e.name === 'NotAllowedError' ? 'Microphone permission was denied.' : 'Could not connect the audio.');
+      setProblem(e instanceof Error && e.name === 'NotAllowedError'
+        ? 'Microphone access was blocked. Allow the microphone for this site (the icon in the address bar), then press Start — or continue in text.'
+        : 'The audio couldn’t connect. Press Start to try again, or continue in text.');
+      givingUp.current = true;
       room.disconnect();
       setLocal('idle');
       return;
@@ -280,6 +302,7 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
       leave();   // the interviewer never came: free the room and cancel the dispatch
       if (timing.current.timer !== null) window.clearInterval(timing.current.timer);
       timing.current.timer = null;
+      givingUp.current = true;
       room.disconnect();
       setLocal('idle');
     } });
@@ -307,7 +330,10 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
   async function enableAudio() {
     const room = roomRef.current;
     if (!room) return;
-    await room.startAudio();
+    try { await room.startAudio(); } catch {
+      setProblem('Your browser didn’t let the audio start. Click again, or continue in text.');
+      return;
+    }
     if (room.canPlaybackAudio) {
       setNeedsClick(false);
       gate.current?.audioUnlocked();
@@ -325,9 +351,15 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
   // Rule 18A: ending keeps a report on what was covered, when there is one.
   async function end() {
     ending.current = true;
+    const res = await postJson(`/api/voice/${sessionId}/end`);
+    if (!res.ok) {
+      // Not ended on the server: stay in the room and say so, so End can be pressed again (8 Nov audit).
+      ending.current = false;
+      setProblem(res.status === 0 ? OFFLINE : 'The interview couldn’t be ended just now. Press End again.');
+      return;
+    }
     clearLive(tabStore(), sessionId);
-    const res = await fetch(`/api/voice/${sessionId}/end`, { method: 'POST' }).catch(() => null);
-    const data = res?.ok ? await res.json().catch(() => null) as { report?: boolean } | null : null;
+    const data = res.data as { report?: boolean } | null;
     watchdog.current?.stop();
     roomRef.current?.disconnect();
     setLocal('ended');
@@ -337,11 +369,11 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
   async function score() {
     // A math check still running on the last message reaches the report (…/finalize waits for it, ≤30s).
     setScoring('finalizing');
-    await fetch(`/api/channel/${sessionId}/finalize`, { method: 'POST' }).catch(() => null);
-    setScoring('scoring');
-    const res = await fetch(`/api/channel/${sessionId}/score`, { method: 'POST' });
-    if (res.ok) router.push(`/case/${sessionId}/report`);
-    else { setScoring(false); setProblem('Scoring failed — try again.'); }
+    setProblem(null);
+    // finalize, then score; a pass already running is waited out (lib/site/run-scoring.ts).
+    const result = await runScoring(sessionId, { request: u => postJson(u), sleep: ms => new Promise(r => setTimeout(r, ms)), now: () => Date.now(), onScoring: () => setScoring('scoring') });
+    if (result === 'ready') router.push(`/case/${sessionId}/report`);
+    else { setScoring(false); setProblem('Your report couldn’t be prepared just now. Press “Score this interview” to try again; your interview is saved.'); }
   }
 
   const phase = local === 'ended' ? 'ended' : local === 'live' ? view.phase : local;

@@ -9,6 +9,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { ReportCard } from '@/components/report-card';
 import { PostCaseSurvey } from '@/components/post-case-survey';
 import { PrepareReport } from '@/components/prepare-report';
+import { PdfDownloadButton } from '@/components/pdf-download-button';
 import { noReportView } from '@/lib/site/report-fallback';
 import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
@@ -94,13 +95,7 @@ export default async function ReportPage({ params }: { params: Promise<{ session
             {score.overallRating ? RATING_LABELS[score.overallRating as Rating] : null}
           </Badge>
         )}
-        <a
-          href={`/api/report/${sessionId}/pdf`}
-          download
-          className={`${buttonVariants({ variant: 'outline', size: 'sm' })} ml-auto`}
-        >
-          Download PDF
-        </a>
+        <span className="ml-auto"><PdfDownloadButton sessionId={sessionId} /></span>
       </div>
 
       {score.topFix && (

@@ -6,6 +6,9 @@ import ReactMarkdown from 'react-markdown';
 import { ExhibitTable } from '@/components/exhibit-table';
 import { CaseEndPanel, type EndReport } from '@/components/case-end-panel';
 import { MAX_TURN_CHARS } from '@/lib/turn-limits';
+import { postJson } from '@/lib/site/fetch-json';
+import { turnFailure, OFFLINE } from '@/lib/site/failure-messages';
+import { runScoring } from '@/lib/site/run-scoring';
 
 type ExhibitDisplay = {
   id: string;
@@ -37,6 +40,8 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
   ]);
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'waiting' | 'closed'>('idle');
+  // What went wrong with the last send or End (8 Nov), shown above the box; cleared on the next try.
+  const [notice, setNotice] = useState('');
   // The end screen (site flow, 19 Oct): shown once the case ends; `report`
   // absent when the case ended with no report.
   const [ended, setEnded] = useState<{ report?: EndReport } | null>(null);
@@ -57,19 +62,10 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
     scoring.current = true;
     setStatus('closed');
     setEnded({ report: 'preparing' });
-    // A math check still running on the last message reaches the report (…/finalize waits for it, ≤30s).
-    await fetch(`/api/channel/${sessionId}/finalize`, { method: 'POST' }).catch(() => null);
-    // The score endpoint is idempotent, so one retry on failure is safe
-    for (let attempt = 0; attempt < 2; attempt++) {
-      const res = await fetch(`/api/channel/${sessionId}/score`, { method: 'POST' }).catch(() => null);
-      if (res?.ok) {
-        scoring.current = false;
-        setEnded({ report: 'ready' });
-        return;
-      }
-    }
+    // finalize, then score; a pass already running elsewhere is waited out, not shown as a failure (run-scoring.ts).
+    const result = await runScoring(sessionId);
     scoring.current = false;
-    setEnded({ report: 'failed' });
+    setEnded({ report: result === 'ready' ? 'ready' : 'failed' });
   }
 
   // Rule 18A: the candidate can end the interview at any time. With work done,
@@ -77,18 +73,21 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
   async function endInterview() {
     if (busy || !window.confirm('End the interview now? You\'ll get feedback on what you covered so far.')) return;
     setStatus('waiting');
-    const res = await fetch(`/api/channel/${sessionId}/end`, { method: 'POST' });
-    const data = res.ok ? await res.json() as { status: string; report: boolean } : null;
+    setNotice('');
+    const res = await postJson(`/api/channel/${sessionId}/end`);
+    const data = res.ok ? res.data as { status: string; report: boolean } | null : null;
     if (data?.report) {
       await prepareReport();
       return;
     }
-    setMessages(m => [...m, {
-      role: 'interviewer',
-      text: data ? 'The interview has ended. We hadn\'t got into the case, so there\'s no report this time — start a new case whenever you like.' : 'Something went wrong ending the interview. Please try again.',
-    }]);
-    setStatus(data ? 'closed' : 'idle');
-    if (data) setEnded({});
+    if (!data) {
+      setNotice(res.status === 0 ? OFFLINE : 'The interview couldn’t be ended just now. Press End again.');
+      setStatus('idle');
+      return;
+    }
+    setMessages(m => [...m, { role: 'interviewer', text: 'The interview has ended. We hadn\'t got into the case, so there\'s no report this time — start a new case whenever you like.' }]);
+    setStatus('closed');
+    setEnded({});
   }
 
   async function sendTurn(e: React.FormEvent) {
@@ -99,17 +98,19 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
     setInput('');
     setMessages(m => [...m, { role: 'candidate', text }]);
     setStatus('waiting');
-    const res = await fetch(`/api/channel/${sessionId}/turn`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ text }),
-    }).finally(() => { sending.current = false; });
-    if (!res.ok) {
-      setMessages(m => [...m, { role: 'interviewer', text: 'Something went wrong. Please try again.' }]);
+    setNotice('');
+    const res = await postJson(`/api/channel/${sessionId}/turn`, { text });
+    sending.current = false;
+    if (!res.ok || !res.data) {
+      // Not sent (or the answer was lost): take the bubble back, say why, and put the text back to send again.
+      const failure = turnFailure(res.status, res.data);
+      setMessages(m => (m[m.length - 1]?.role === 'candidate' && m[m.length - 1].text === text ? m.slice(0, -1) : m));
+      if (failure.restoreInput) setInput(prev => prev || text);
+      setNotice(failure.message);
       setStatus('idle');
       return;
     }
-    const data = await res.json();
+    const data = res.data as { interviewerText?: string; exhibit?: ExhibitDisplay; ended?: boolean; scoringSuppressed?: boolean };
     // Render the turn if there's text OR an exhibit — an exhibit-only turn (the
     // model showed a chart without speaking) must not be dropped.
     if (data.interviewerText || data.exhibit) {
@@ -156,6 +157,7 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
         {ended && <CaseEndPanel sessionId={sessionId} report={ended.report} onRetry={prepareReport} />}
         <div ref={bottomRef} />
       </div>
+      {!ended && notice && <p role="alert" className="border-t px-3 pt-2 sm:px-4 text-sm text-red-600">{notice}</p>}
       {!ended && <form onSubmit={sendTurn} className="border-t p-3 sm:p-4 flex gap-2">
         <Input
           value={input}
