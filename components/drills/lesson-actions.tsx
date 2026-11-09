@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { drillFetch } from '@/lib/drills/client-fetch';
 
 type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'follow_up';
 
@@ -57,7 +58,7 @@ export function LessonActions({ lessonId, version, source, start, skippable }: {
   async function go(skipped: boolean) {
     log(skipped);
     setBusy(true);
-    const res = await fetch('/api/drills/sets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(start) });
+    const res = await drillFetch('/api/drills/sets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(start) });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
     if (res.ok || data.error === 'set_in_progress') router.push(`/drills/sets/${data.set_id}`);

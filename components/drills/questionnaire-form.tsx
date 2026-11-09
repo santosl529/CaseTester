@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import type { AvailabilityOption } from '@/components/drills/onboarding-form';
+import { drillFetch } from '@/lib/drills/client-fetch';
 
 // The 2–3 minute questionnaire (docs/prd-drills.md "Getting a plan"): the
 // onboarding answers, prefilled and editable, plus a 1–5 self-rating for four
@@ -35,7 +36,7 @@ export function QuestionnaireForm({ availability, today, initial, showHours }: {
     if (missing.length) { setError(`Rate yourself on ${missing.map(a => a.label.toLowerCase()).join(', ')}.`); return; }
     setBusy(true);
     setError('');
-    const res = await fetch('/api/drills/questionnaire', {
+    const res = await drillFetch('/api/drills/questionnaire', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         interview_date: interviewDate || null, cases_done: casesDone, availability: showHours ? hours : undefined,

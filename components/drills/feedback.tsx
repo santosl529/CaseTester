@@ -3,6 +3,7 @@ import { useId, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { drillFetch } from '@/lib/drills/client-fetch';
 
 // D6 pilot feedback (docs/prd-drills.md "Pilot feedback"): the feedback
 // button, "Report a problem" and check-ins. Dialogs are native <dialog>s
@@ -14,7 +15,7 @@ const choice = 'flex cursor-pointer items-center gap-2 rounded-md border px-3 py
 
 async function post(url: string, body: unknown): Promise<string | null> {
   try {
-    const res = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const res = await drillFetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     if (res.ok) return null;
     const data = await res.json().catch(() => ({}));
     return typeof data.message === 'string' ? data.message : 'Could not send. Please try again.';
