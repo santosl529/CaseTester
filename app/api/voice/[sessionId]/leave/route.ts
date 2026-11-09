@@ -7,6 +7,7 @@ import { voiceRoomName } from '@/lib/voice/capacity';
 import { roomAdminFromEnv } from '@/lib/voice/room-lifecycle';
 import { releaseVoiceDispatch } from '@/lib/voice/dispatch-claim';
 import { freeRoomUnlessBack, LEAVE_GRACE_MS } from '@/lib/voice/leave-grace';
+import { sessionRoute } from '@/lib/http/route-guard';
 
 // The candidate leaves the voice page without ending the case — the tab closes, they navigate away, they reload, or
 // the page gives up waiting for the interviewer (voice lifecycle, 5 Nov). Sent with navigator.sendBeacon on
@@ -16,7 +17,7 @@ import { freeRoomUnlessBack, LEAVE_GRACE_MS } from '@/lib/voice/leave-grace';
 // released. The session itself stays active: the candidate can come back and press Start.
 export const maxDuration = 60;
 
-export async function POST(
+async function handlePOST(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
@@ -37,3 +38,6 @@ export async function POST(
   ).then(() => {}));
   return NextResponse.json({ ok: true, graceMs: LEAVE_GRACE_MS });
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const POST = sessionRoute(handlePOST);

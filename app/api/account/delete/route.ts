@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { deleteAccount } from '@/lib/account/delete-account';
+import { jsonRoute } from '@/lib/http/route-guard';
 
 // Delete my account (Lorenzo, 9 Nov; lib/account/delete-account.ts). The student types their email to confirm.
 // On success they're signed out; on failure they stay signed in so they can try again.
-export async function POST(req: NextRequest) {
+async function handlePOST(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -20,3 +21,6 @@ export async function POST(req: NextRequest) {
   await supabase.auth.signOut().catch(() => {});
   return NextResponse.json({ ok: true });
 }
+
+// A throw answers JSON 500 (lib/http/route-guard.ts).
+export const POST = jsonRoute(handlePOST);

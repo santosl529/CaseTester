@@ -3,8 +3,9 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isStartableCase } from '@/lib/cases/listed';
 import { startSessionLimited } from '@/lib/orchestrator/start-session';
 import { clubOrgId, recordStudentOrg, storedClubOrg } from '@/lib/club';
+import { jsonRoute } from '@/lib/http/route-guard';
 
-export async function POST(req: NextRequest) {
+async function handlePOST(req: NextRequest) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
@@ -33,3 +34,6 @@ export async function POST(req: NextRequest) {
   }
   return NextResponse.json({ sessionId: started.sessionId, openingText: started.openingText });
 }
+
+// A throw answers JSON 500 (lib/http/route-guard.ts).
+export const POST = jsonRoute(handlePOST);

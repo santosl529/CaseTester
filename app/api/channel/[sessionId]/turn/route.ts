@@ -7,8 +7,9 @@ import { hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
+import { sessionRoute } from '@/lib/http/route-guard';
 
-export async function POST(
+async function handlePOST(
   req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
@@ -57,3 +58,6 @@ export async function POST(
   // "evaluating" state.
   return NextResponse.json(result);
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const POST = sessionRoute(handlePOST);

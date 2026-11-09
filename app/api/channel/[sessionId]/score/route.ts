@@ -5,6 +5,7 @@ import { finalizeCheckerVerdicts } from '@/lib/scoring/checker-wait-db';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
+import { sessionRoute } from '@/lib/http/route-guard';
 
 // Scores a completed session. Split out of the turn route so the client can
 // show an "evaluating" state during the ~30s judge run — and so a failed
@@ -17,7 +18,7 @@ import { and, eq } from 'drizzle-orm';
 // explicit budget instead of the platform default.
 export const maxDuration = 300;
 
-export async function POST(
+async function handlePOST(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
@@ -47,3 +48,6 @@ export async function POST(
 
   return NextResponse.json({ scored: true });
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const POST = sessionRoute(handlePOST);

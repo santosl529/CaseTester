@@ -13,7 +13,7 @@ vi.mock('@/lib/rate-limit', async () => {
 });
 vi.mock('next/server', async () => ({ ...(await vi.importActual<object>('next/server')), after: () => {} }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: 'u1' } } }) } }) }));
-vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => ({ id: 's1', userId: 'u1', caseId: 'prof-001', status: 'active' }) } } } }));
+vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => ({ id: '51111111-1111-4111-8111-111111111111', userId: 'u1', caseId: 'prof-001', status: 'active' }) } } } }));
 vi.mock('@/lib/club', () => ({ clubOrgId: (c: string) => (c === 'ALPHA' ? 'ALPHA' : null), assignClub: async () => { h.work.push('assignClub'); return { changed: true, from: null }; } }));
 vi.mock('@/lib/orchestrator/post-turn', () => ({ runPostTurnBackground: async () => {} }));
 vi.mock('@/lib/orchestrator/session-runner', () => ({ runTurn: async () => { h.work.push('runTurn'); return { interviewerText: 'ok', ended: false, exhibit: null }; } }));
@@ -29,7 +29,7 @@ const { POST: turn } = await import('@/app/api/channel/[sessionId]/turn/route');
 const { POST: token } = await import('@/app/api/voice/[sessionId]/token/route');
 const { GET: pdf } = await import('@/app/api/report/[sessionId]/pdf/route');
 
-const ctx = { params: Promise.resolve({ sessionId: 's1' }) };
+const ctx = { params: Promise.resolve({ sessionId: '51111111-1111-4111-8111-111111111111' }) };
 const req = (body?: unknown) => new Request('http://x', { method: 'POST', headers: { 'x-real-ip': '9.9.9.9' }, body: body === undefined ? undefined : JSON.stringify(body) }) as never;
 
 const routes = [

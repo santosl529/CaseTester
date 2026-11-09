@@ -3,6 +3,7 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns } from '@/db/schema';
 import { eq, asc, and } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
+import { isUuid } from '@/lib/http/route-guard';
 import { ChatWindow } from '@/components/chat-window';
 import { CaseEndPanel } from '@/components/case-end-panel';
 import { SiteHeader } from '@/components/site-header';
@@ -12,6 +13,8 @@ import { caseHref } from '@/lib/site/case-href';
 
 export default async function CasePage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
+  // A malformed id is a 404, not a database error (lib/http/route-guard.ts).
+  if (!isUuid(sessionId)) notFound();
 
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();

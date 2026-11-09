@@ -4,13 +4,14 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { endByCandidate } from '@/lib/orchestrator/session-end';
+import { sessionRoute } from '@/lib/http/route-guard';
 
 // The candidate ends a text interview with the End button (Rule 18A v4.10):
 // the same rule as a typed "can we stop" — a report on what was covered when
 // something assessable happened, none otherwise; the request is never graded
 // (lib/orchestrator/session-end.ts). A turn still running when this lands is
 // dropped by Settle's status re-check.
-export async function POST(
+async function handlePOST(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
@@ -27,3 +28,6 @@ export async function POST(
   const end = await endByCandidate(sessionId, user.id, 'button');
   return NextResponse.json(end);
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const POST = sessionRoute(handlePOST);

@@ -10,6 +10,7 @@ import { closeVoiceRoom, roomAdminFromEnv } from '@/lib/voice/room-lifecycle';
 import { claimVoiceDispatch } from '@/lib/voice/dispatch-claim';
 import { liveKitEnvProblem } from '@/lib/voice/livekit-env';
 import { hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
+import { sessionRoute } from '@/lib/http/route-guard';
 
 // A LiveKit token for the session owner, and one dispatch of the voice agent
 // into the session's room (spec 2026-10-08-voice-phase-b §4). The key and
@@ -18,7 +19,7 @@ import { hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
 // a new session is refused before any dispatch: 429 { error: 'busy' }.
 // Voice lifecycle (5 Nov): a room whose session is no longer active doesn't count (and is closed); the dispatch is
 // claimed first (lib/voice/dispatch-claim.ts), so two requests at once start one agent.
-export async function POST(
+async function handlePOST(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
@@ -75,3 +76,6 @@ async function activeRooms(rooms: string[], admin: NonNullable<ReturnType<typeof
   for (const r of rooms) if (over(r)) void closeVoiceRoom(admin, r);
   return rooms.filter(r => !over(r));
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const POST = sessionRoute(handlePOST);
