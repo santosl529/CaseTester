@@ -395,11 +395,13 @@ export const drillGradingCalls = pgTable('drill_grading_calls', {
 // the daily circuit breaker and the reports' cost figures read. A 'billing'
 // row (a spend-limit or billing error) also trips the breaker for the day.
 // Server-only.
+// The links are optional and cleared, not cascaded, when the set, job or attempt goes (Lorenzo, 9 Nov: a deleted
+// account's grading costs are kept, unlinked — lib/account/delete-plan.ts).
 export const drillGradingSpend = pgTable('drill_grading_spend', {
   id: uuid('id').primaryKey().defaultRandom(),
-  setId: uuid('set_id').notNull().references(() => drillSets.id, { onDelete: 'cascade' }),
-  jobId: uuid('job_id').references(() => gradingJobs.id, { onDelete: 'cascade' }),
-  attemptId: uuid('attempt_id').references(() => drillAttempts.id, { onDelete: 'cascade' }),
+  setId: uuid('set_id').references(() => drillSets.id, { onDelete: 'set null' }),
+  jobId: uuid('job_id').references(() => gradingJobs.id, { onDelete: 'set null' }),
+  attemptId: uuid('attempt_id').references(() => drillAttempts.id, { onDelete: 'set null' }),
   call: text('call').notNull(),
   modelId: text('model_id').notNull(),
   outcome: text('outcome').notNull(),

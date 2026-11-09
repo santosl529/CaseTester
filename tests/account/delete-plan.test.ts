@@ -30,10 +30,25 @@ describe('the delete plan', () => {
     const missing = [...personalTables()].filter(t => !planned.includes(t) && !(t in KEPT_TABLES));
     expect(missing).toEqual([]);
   });
-  it('analytics events are kept with the user and session ids removed; everything else personal is deleted', () => {
-    const analytics = DELETE_PLAN.filter(s => nameOf(s.table) === 'analytics_events');
-    expect(analytics.map(s => s.action)).toEqual(['anonymize']);
-    expect(DELETE_PLAN.filter(s => s.action === 'anonymize').map(s => nameOf(s.table))).toEqual(['analytics_events']);
+  it('cost and usage records are kept with their links to the student removed; everything else personal is deleted', () => {
+    const kept = DELETE_PLAN.filter(s => s.action === 'anonymize').map(s => [nameOf(s.table), s.nulls]);
+    expect(kept).toEqual([
+      ['analytics_events', ['userId', 'sessionId']],
+      // Lorenzo, 9 Nov: keep drill grading costs when an account is deleted (the small fix, not a new ledger).
+      ['drill_grading_spend', ['setId', 'jobId', 'attemptId']],
+    ]);
+  });
+  it('the columns cleared on a kept row can be null, and the cost rows outlive their set (ON DELETE SET NULL)', () => {
+    for (const step of DELETE_PLAN.filter(s => s.action === 'anonymize')) {
+      const cfg = getTableConfig(step.table);
+      const cols = Object.entries(step.table as unknown as Record<string, { name: string; notNull: boolean }>);
+      for (const key of step.nulls ?? []) {
+        const col = cols.find(([k]) => k === key)?.[1];
+        expect({ table: cfg.name, key, nullable: col && !col.notNull }).toEqual({ table: cfg.name, key, nullable: true });
+      }
+    }
+    const spend = getTableConfig(schema.drillGradingSpend);
+    expect(spend.foreignKeys.map(fk => fk.onDelete)).toEqual(['set null', 'set null', 'set null']);
   });
   it('the rate-limit counters keyed by the user go too', () => {
     expect(DELETE_PLAN.some(s => nameOf(s.table) === 'rate_limits' && s.scope === 'rateLimitKeys')).toBe(true);

@@ -176,6 +176,13 @@
       "when": 1794174596955,
       "tag": "0024_rate_limits",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1794253522522,
+      "tag": "0025_drill_spend_keep",
+      "breakpoints": true
     }
   ]
 }

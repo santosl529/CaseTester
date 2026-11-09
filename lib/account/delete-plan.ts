@@ -1,5 +1,6 @@
 // "Delete my account" (Lorenzo, 9 Nov): everything personal is deleted; the analytics events (model usage and
-// cost, timings, ratings — numbers only) are kept with the user and session ids removed, so spend totals stay right.
+// cost, timings, ratings — numbers only) and the drill grading cost rows are kept with their links to the student
+// removed, so spend totals stay right.
 // One transaction, children before parents (tests/account/delete-plan.test.ts checks the order and that every table
 // holding a student's data is here, against db/schema.ts).
 import { eq, inArray, like, or, type SQL } from 'drizzle-orm';
@@ -11,10 +12,11 @@ import * as t from '@/db/schema';
 export type Scope =
   | 'user' | 'student' | 'session' | 'userOrSession'
   | 'set' | 'studentOrSet' | 'attempt' | 'studentOrProgram' | 'rateLimitKeys';
-export type Step = { table: PgTable; action: 'delete' | 'anonymize'; scope: Scope };
+// anonymize: keep the rows, set `nulls` (schema keys) to null.
+export type Step = { table: PgTable; action: 'delete' | 'anonymize'; scope: Scope; nulls?: string[] };
 
 export const DELETE_PLAN: Step[] = [
-  { table: t.analyticsEvents, action: 'anonymize', scope: 'userOrSession' },
+  { table: t.analyticsEvents, action: 'anonymize', scope: 'userOrSession', nulls: ['userId', 'sessionId'] },
   // An interview and what hangs off it.
   { table: t.sessionTurns, action: 'delete', scope: 'session' },
   { table: t.revealedData, action: 'delete', scope: 'session' },
@@ -25,9 +27,8 @@ export const DELETE_PLAN: Step[] = [
   { table: t.sessions, action: 'delete', scope: 'user' },
   // Drills: grading records, then attempts, sets, programs.
   { table: t.drillGradingCalls, action: 'delete', scope: 'attempt' },
-  // Drill grading cost rows can't outlive their set (set_id NOT NULL, ON DELETE CASCADE); keeping them needs a
-  // migration (flagged to Lorenzo, 9 Nov).
-  { table: t.drillGradingSpend, action: 'delete', scope: 'set' },
+  // Drill grading costs are kept, unlinked (Lorenzo, 9 Nov; migration 0025 made the links nullable, ON DELETE SET NULL).
+  { table: t.drillGradingSpend, action: 'anonymize', scope: 'set', nulls: ['setId', 'jobId', 'attemptId'] },
   { table: t.drillItemReports, action: 'delete', scope: 'studentOrSet' },
   { table: t.drillFeedback, action: 'delete', scope: 'studentOrSet' },
   { table: t.drillCheckins, action: 'delete', scope: 'studentOrSet' },
@@ -85,7 +86,7 @@ export async function deleteStudentData(userId: string, exec: Pick<typeof db, 't
     for (const step of DELETE_PLAN) {
       const w = where(tx, step, userId);
       const res = step.action === 'anonymize'
-        ? await tx.update(step.table).set({ userId: null, sessionId: null } as never).where(w)
+        ? await tx.update(step.table).set(Object.fromEntries((step.nulls ?? []).map(k => [k, null])) as never).where(w)
         : await tx.delete(step.table).where(w);
       const name = (step.table as unknown as Record<symbol, string>)[Symbol.for('drizzle:Name')];
       counts[name] = (counts[name] ?? 0) + Number((res as unknown as { count?: number }).count ?? 0);
