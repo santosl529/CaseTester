@@ -61,6 +61,8 @@ export async function loadReportData(filter: ReportFilter): Promise<ReportData> 
   const spend = setIds.length
     ? await db.select({ setId: drillGradingSpend.setId, costUsd: drillGradingSpend.costUsd, outcome: drillGradingSpend.outcome, createdAt: drillGradingSpend.createdAt })
       .from(drillGradingSpend).where(inArray(drillGradingSpend.setId, setIds))
+      // Matched on set_id, so it's set; the type allows null since a deleted account's costs are kept unlinked (9 Nov).
+      .then(rows => rows.flatMap(r => (r.setId ? [{ ...r, setId: r.setId }] : [])))
     : [];
 
   // Authored item versions with attempts: their options, tier and Defend type.
