@@ -2,12 +2,16 @@ import { db } from '@/db/client';
 import { sessions, sessionTurns, scores } from '@/db/schema';
 import { eq, and } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
+import { isUuid } from '@/lib/http/route-guard';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { buttonVariants } from '@/components/ui/button';
 import { ReportCard } from '@/components/report-card';
 import { PostCaseSurvey } from '@/components/post-case-survey';
 import { PrepareReport } from '@/components/prepare-report';
+import { PdfDownloadButton } from '@/components/pdf-download-button';
+import { noReportView } from '@/lib/site/report-fallback';
+import Link from 'next/link';
 import { SiteHeader } from '@/components/site-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { reportDimensions, topFixLine, topFixPlain } from '@/lib/scoring/report-dimensions';
@@ -21,6 +25,8 @@ const RATING_COLOR: Record<string, string> = {
 
 export default async function ReportPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
+  // A malformed id is a 404, not a database error (lib/http/route-guard.ts).
+  if (!isUuid(sessionId)) notFound();
 
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -37,7 +43,19 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   // A completed case not scored yet (left before scoring ended, or it failed):
   // offer to prepare it (site flow, 19 Oct). Other sessions have no report.
   if (!score) {
-    if (session.status !== 'completed') notFound();
+    if (session.status !== 'completed') {
+      const view = noReportView(session.status, sessionId);
+      return (
+        <>
+          <SiteHeader />
+          <main className="w-full max-w-2xl mx-auto py-8 px-4 space-y-4">
+            <h1 className="text-2xl font-bold">Interview Feedback</h1>
+            <p className="text-sm">{view.message}</p>
+            <Link href={view.link.href} className={buttonVariants({ size: 'lg' })}>{view.link.label}</Link>
+          </main>
+        </>
+      );
+    }
     return (
       <>
         <SiteHeader />
@@ -77,13 +95,7 @@ export default async function ReportPage({ params }: { params: Promise<{ session
             {score.overallRating ? RATING_LABELS[score.overallRating as Rating] : null}
           </Badge>
         )}
-        <a
-          href={`/api/report/${sessionId}/pdf`}
-          download
-          className={`${buttonVariants({ variant: 'outline', size: 'sm' })} ml-auto`}
-        >
-          Download PDF
-        </a>
+        <span className="ml-auto"><PdfDownloadButton sessionId={sessionId} /></span>
       </div>
 
       {score.topFix && (

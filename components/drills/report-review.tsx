@@ -2,6 +2,7 @@
 import { useId, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { drillFetch } from '@/lib/drills/client-fetch';
 
 interface Check { id: string; grader: boolean; by: 'ai' | 'code'; evidence: string; label: boolean }
 interface Flag { id: string; grader: boolean; label: boolean }
@@ -22,7 +23,7 @@ export function ReportReview({ id, status, notes, checks, flags, exported }: {
 
   async function save(next: 'labeled' | 'resolved' | 'dismissed' | 'open') {
     setMsg('');
-    const res = await fetch(`/api/drills/review/reports/${id}`, {
+    const res = await drillFetch(`/api/drills/review/reports/${id}`, {
       method: 'PUT', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: next, notes: note, ...(next === 'labeled' && { labels, red_flags: redFlags }) }),
     });

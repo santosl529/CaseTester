@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { drillFetch } from '@/lib/drills/client-fetch';
 
 // Starts a drill set (a workout block, a suggestion or a quick start) and
 // opens it. If another set is in progress, opens that one instead.
@@ -14,7 +15,7 @@ export function StartSetButton({ body, label, variant = 'default', size = 'defau
   const [error, setError] = useState('');
   async function start() {
     setBusy(true);
-    const res = await fetch('/api/drills/sets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const res = await drillFetch('/api/drills/sets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
     if (res.ok || data.error === 'set_in_progress') router.push(`/drills/sets/${data.set_id}`);

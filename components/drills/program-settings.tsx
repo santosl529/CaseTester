@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import type { AvailabilityOption } from './onboarding-form';
+import { drillFetch, type DrillResponse } from '@/lib/drills/client-fetch';
 
 type Track = 'foundations' | 'standard' | 'sprint' | 'self_directed';
 const TRACKS: { id: Track; label: string; hint: string }[] = [
@@ -39,14 +40,14 @@ export function ProgramSettings({ track, interviewDate, availabilityId, availabi
     if (t !== track) changes.track = t;
     if ((date || null) !== interviewDate) changes.interview_date = date || null;
     if (hours !== availabilityId) changes.availability = hours;
-    const calls: Promise<Response>[] = [];
-    if (Object.keys(changes).length) calls.push(fetch('/api/drills/program', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(changes) }));
+    const calls: Promise<DrillResponse>[] = [];
+    if (Object.keys(changes).length) calls.push(drillFetch('/api/drills/program', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(changes) }));
     if (time !== savedTime || feedback !== feedbackMode) {
       const body = {
         ...(time !== savedTime && (time === 'untimed' ? { untimed: true } : { time_multiplier: Number(time), untimed: false })),
         ...(feedback !== feedbackMode && { feedback_mode: feedback }),
       };
-      calls.push(fetch('/api/me/drill-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }));
+      calls.push(drillFetch('/api/me/drill-settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }));
     }
     const results = await Promise.all(calls);
     setBusy(false);

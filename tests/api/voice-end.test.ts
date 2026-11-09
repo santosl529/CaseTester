@@ -26,11 +26,11 @@ vi.mock('@/lib/voice/room-lifecycle', () => ({ roomAdminFromEnv: () => ({}), clo
 vi.mock('@/lib/voice/dispatch-claim', () => ({ releaseVoiceDispatch: async (id: string) => { freed.released.push(id); } }));
 
 const { POST } = await import('@/app/api/voice/[sessionId]/end/route');
-const call = () => POST(new Request('http://x/api/voice/s1/end', { method: 'POST' }) as never, { params: Promise.resolve({ sessionId: 's1' }) });
+const call = () => POST(new Request('http://x/api/voice/51111111-1111-4111-8111-111111111111/end', { method: 'POST' }) as never, { params: Promise.resolve({ sessionId: '51111111-1111-4111-8111-111111111111' }) });
 
 beforeEach(() => {
   h.user = { id: 'u1' };
-  h.session = { id: 's1', userId: 'u1', status: 'active', phase: 'ANALYSIS', flagsJsonb: {} };
+  h.session = { id: '51111111-1111-4111-8111-111111111111', userId: 'u1', status: 'active', phase: 'ANALYSIS', flagsJsonb: {} };
   h.updates.length = 0; h.events.length = 0; h.rows.length = 0;
   freed.rooms.length = 0; freed.released.length = 0;
 });
@@ -63,17 +63,17 @@ describe('voice end route', () => {
 
   it('frees the room every time: a pending dispatch cancelled, the room deleted, the claim released', async () => {
     await call();
-    expect(freed.rooms).toEqual(['case-s1']);
-    expect(freed.released).toEqual(['s1']);
+    expect(freed.rooms).toEqual(['case-51111111-1111-4111-8111-111111111111']);
+    expect(freed.released).toEqual(['51111111-1111-4111-8111-111111111111']);
   });
 
   it('the TTS cap ends the session the same way, under its own reason and event (voice deploy)', async () => {
     const { endByCandidate } = await import('@/lib/orchestrator/session-end');
     h.session = { ...h.session, flagsJsonb: { pressureTest: { state: 'satisfied', structureGiven: true } } };
-    expect(await endByCandidate('s1', 'u1', 'voice_tts_cap')).toEqual({ status: 'completed', report: true, partial: true });
+    expect(await endByCandidate('51111111-1111-4111-8111-111111111111', 'u1', 'voice_tts_cap')).toEqual({ status: 'completed', report: true, partial: true });
     expect(h.updates[0]).toMatchObject({ status: 'completed', flagsJsonb: { endReason: 'voice_tts_cap', partial: true } });
     expect(h.rows[0]).toMatchObject({ category: 'intervention', subtype: 'voice_tts_cap', payloadJsonb: { via: 'voice_tts_cap', report: true } });
-    expect(h.events[0]).toMatchObject(['case_complete', { reason: 'voice_tts_cap' }, { sessionId: 's1' }]);
+    expect(h.events[0]).toMatchObject(['case_complete', { reason: 'voice_tts_cap' }, { sessionId: '51111111-1111-4111-8111-111111111111' }]);
   });
 });
 

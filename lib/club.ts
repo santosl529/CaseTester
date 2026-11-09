@@ -5,6 +5,7 @@
 import { db } from '@/db/client';
 import { eq } from 'drizzle-orm';
 import { studentProfiles } from '@/db/schema';
+import { logEvent } from '@/lib/analytics';
 
 // The org id for a valid club code, or null.
 export function clubOrgId(clubCode: unknown): string | null {
@@ -24,4 +25,30 @@ export async function recordStudentOrg(userId: string, orgId: string): Promise<v
 export async function storedClubOrg(userId: string): Promise<string | null> {
   const [profile] = await db.select({ orgId: studentProfiles.orgId }).from(studentProfiles).where(eq(studentProfiles.userId, userId));
   return clubOrgId(profile?.orgId);
+}
+
+// Set or change the student's club (Lorenzo, 9 Nov: students can change their club code; for future club
+// statistics, "record now, decide later"). The new club applies from now; every change is logged with its date as
+// club_changed { from, to }, so history can later be counted with the old club or the new. The same club: no-op.
+// Used by sign-up, the club step and /account (recordStudentOrg, set-once, stays for /api/session).
+export type AssignClubDeps = {
+  read: (userId: string) => Promise<string | null>;
+  write: (userId: string, orgId: string) => Promise<void>;
+  logEvent: (type: string, payload: Record<string, unknown>, ids: { userId: string }) => Promise<void>;
+};
+
+const assignDeps: AssignClubDeps = {
+  read: async userId => (await db.select({ orgId: studentProfiles.orgId }).from(studentProfiles).where(eq(studentProfiles.userId, userId)))[0]?.orgId ?? null,
+  write: async (userId, orgId) => {
+    await db.insert(studentProfiles).values({ userId, orgId }).onConflictDoUpdate({ target: studentProfiles.userId, set: { orgId } });
+  },
+  logEvent,
+};
+
+export async function assignClub(userId: string, orgId: string, deps: AssignClubDeps = assignDeps): Promise<{ changed: boolean; from: string | null }> {
+  const from = await deps.read(userId);
+  if (from === orgId) return { changed: false, from };
+  await deps.write(userId, orgId);
+  await deps.logEvent('club_changed', { from, to: orgId }, { userId });
+  return { changed: true, from };
 }

@@ -3,17 +3,23 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import { parseTurnText, turnOnce } from '@/lib/orchestrator/turn-claim';
+import { hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
+import { sessionRoute } from '@/lib/http/route-guard';
 
-export async function POST(
+async function handlePOST(
   req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Per student (20 a minute), before anything is read or run.
+  const limited = await hitRateLimit(rateRule('turn'), `user:${user.id}`);
+  if (!limited.ok) return rateLimitedResponse(limited);
 
   const { sessionId } = await params;
   const parsed = parseTurnText(await req.json().catch(() => null));
@@ -52,3 +58,6 @@ export async function POST(
   // "evaluating" state.
   return NextResponse.json(result);
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const POST = sessionRoute(handlePOST);

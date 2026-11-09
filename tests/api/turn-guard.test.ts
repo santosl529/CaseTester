@@ -9,7 +9,7 @@ const h = vi.hoisted(() => ({
 }));
 vi.mock('next/server', async () => ({ ...(await vi.importActual<object>('next/server')), after: () => {} }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: h.user } }) } }) }));
-vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => ({ id: 's1', userId: 'u1', caseId: 'prof-001', phase: 'framing' }) } } } }));
+vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => ({ id: '51111111-1111-4111-8111-111111111111', userId: 'u1', caseId: 'prof-001', phase: 'framing' }) } } } }));
 vi.mock('@/lib/orchestrator/post-turn', () => ({ runPostTurnBackground: async () => {} }));
 vi.mock('@/lib/orchestrator/session-runner', () => ({ runTurn: (...a: unknown[]) => h.runTurn(...a) }));
 vi.mock('@/lib/orchestrator/turn-claim', async () => {
@@ -27,7 +27,7 @@ vi.mock('@/lib/orchestrator/turn-claim', async () => {
 const { POST } = await import('@/app/api/channel/[sessionId]/turn/route');
 const send = (body: string) => POST(
   new Request('http://x', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body }) as never,
-  { params: Promise.resolve({ sessionId: 's1' }) },
+  { params: Promise.resolve({ sessionId: '51111111-1111-4111-8111-111111111111' }) },
 );
 
 beforeEach(() => {
@@ -57,7 +57,7 @@ describe('turn route guards', () => {
   });
 
   it('a turn already running on the session: 409, the interviewer is not run again', async () => {
-    h.claimed.add('s1');
+    h.claimed.add('51111111-1111-4111-8111-111111111111');
     const res = await send(JSON.stringify({ text: 'hello' }));
     expect(res.status).toBe(409);
     expect(h.runTurn).not.toHaveBeenCalled();
@@ -79,7 +79,7 @@ describe('turn route guards', () => {
   it('a normal turn: runs with the trimmed text and frees the session for the next one', async () => {
     const res = await send(JSON.stringify({ text: '  hello  ' }));
     expect(res.status).toBe(200);
-    expect(h.runTurn).toHaveBeenCalledWith('s1', 'hello', expect.anything());
+    expect(h.runTurn).toHaveBeenCalledWith('51111111-1111-4111-8111-111111111111', 'hello', expect.anything());
     expect(h.claimed.size).toBe(0);
   });
 });

@@ -12,7 +12,7 @@ const isT19Verdict = (r: Row) => r.category === 'math_checker' && r.subtype === 
 const h = vi.hoisted(() => ({ rows: [] as unknown[], events: [] as unknown[][], scoredWith: null as string | null, user: { id: 'u1' } as { id: string } | null }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: h.user } }) } }) }));
 vi.mock('@/db/client', () => ({ db: { query: {
-  sessions: { findFirst: async () => ({ id: 's1', userId: 'u1', status: 'completed' }) },
+  sessions: { findFirst: async () => ({ id: '51111111-1111-4111-8111-111111111111', userId: 'u1', status: 'completed' }) },
   sessionEvents: { findMany: async () => [...h.rows] },
 } } }));
 vi.mock('@/lib/analytics', () => ({ logEvent: async (...a: unknown[]) => { h.events.push(a); } }));
@@ -25,7 +25,7 @@ vi.mock('@/lib/scoring/score-session', async () => {
 const { POST: score } = await import('@/app/api/channel/[sessionId]/score/route');
 const { POST: finalize } = await import('@/app/api/channel/[sessionId]/finalize/route');
 const { pendingCheckerTurns, waitForCheckerVerdicts } = await import('@/lib/scoring/checker-wait');
-const call = (route: (r: never, c: { params: Promise<{ sessionId: string }> }) => Promise<Response>) => route(new Request('http://x', { method: 'POST' }) as never, { params: Promise.resolve({ sessionId: 's1' }) });
+const call = (route: (r: never, c: { params: Promise<{ sessionId: string }> }) => Promise<Response>) => route(new Request('http://x', { method: 'POST' }) as never, { params: Promise.resolve({ sessionId: '51111111-1111-4111-8111-111111111111' }) });
 
 beforeEach(() => { h.rows = fixture.rows.filter(r => !isT19Verdict(r)); h.events.length = 0; h.scoredWith = null; h.user = { id: 'u1' }; });
 afterEach(() => { vi.useRealTimers(); });
@@ -58,7 +58,7 @@ describe('Score pressed right after the close (Marisol t19\'s shape)', () => {
     const done = call(score);
     await vi.advanceTimersByTimeAsync(31_000);
     expect((await done).status).toBe(200);
-    expect(h.events).toContainEqual(['checker_wait_timeout', expect.objectContaining({ pending: [19] }), { sessionId: 's1', userId: 'u1' }]);
+    expect(h.events).toContainEqual(['checker_wait_timeout', expect.objectContaining({ pending: [19] }), { sessionId: '51111111-1111-4111-8111-111111111111', userId: 'u1' }]);
     expect(h.scoredWith).not.toMatch(/turn 19:/);
   });
   it('nothing pending: no wait', async () => {

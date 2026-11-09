@@ -4,8 +4,10 @@ import { sessions } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { renderReportPdf } from './render';
+import { hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
+import { sessionRoute } from '@/lib/http/route-guard';
 
-export async function GET(
+async function handleGET(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
@@ -20,6 +22,10 @@ export async function GET(
   });
   if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
+  // Per student (10 an hour): rendering a PDF is the heaviest CPU work on the site.
+  const limited = await hitRateLimit(rateRule('reportPdf'), `user:${user.id}`);
+  if (!limited.ok) return rateLimitedResponse(limited);
+
   const pdf = await renderReportPdf(sessionId);
   if (!pdf) return NextResponse.json({ error: 'No report for this session' }, { status: 404 });
 
@@ -30,3 +36,6 @@ export async function GET(
     },
   });
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const GET = sessionRoute(handleGET);

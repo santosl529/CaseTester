@@ -7,6 +7,7 @@ import { endByCandidate } from '@/lib/orchestrator/session-end';
 import { voiceRoomName } from '@/lib/voice/capacity';
 import { closeVoiceRoom, roomAdminFromEnv } from '@/lib/voice/room-lifecycle';
 import { releaseVoiceDispatch } from '@/lib/voice/dispatch-claim';
+import { sessionRoute } from '@/lib/http/route-guard';
 
 // The candidate ends a voice interview (spec 2026-10-08-voice-phase-b §5.8;
 // Rule 18A v4.10): the session ends without another case question. With
@@ -17,7 +18,7 @@ import { releaseVoiceDispatch } from '@/lib/voice/dispatch-claim';
 // Voice lifecycle (5 Nov): the room is freed here — a pending dispatch cancelled, the room deleted (the agent in it
 // sees it close and finishes), the dispatch claim released — before the response, so a Start right after is never
 // refused as busy.
-export async function POST(
+async function handlePOST(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
@@ -36,3 +37,6 @@ export async function POST(
   await releaseVoiceDispatch(sessionId).catch(e => console.warn('[voice] dispatch claim not released', e));
   return NextResponse.json(end);
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const POST = sessionRoute(handlePOST);

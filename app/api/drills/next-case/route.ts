@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { requireStudent } from '@/lib/drills/http';
 import { logDrillEvent } from '@/lib/drills/events';
+import { isStartableCase } from '@/lib/cases/listed';
 
 // The Next case card's link: logs next_case_card_clicked, then opens the
-// case page (drills can't start a case itself yet).
+// recommended case's start page, or the cases on /home (8 Nov audit: it went to the marketing page).
 export async function GET(req: Request) {
   const caseId = new URL(req.url).searchParams.get('case');
   try {
@@ -12,5 +13,6 @@ export async function GET(req: Request) {
   } catch {
     // Not signed in: just go to the case page.
   }
-  return NextResponse.redirect(new URL('/', req.url));
+  const to = caseId && isStartableCase(caseId) ? `/start/${encodeURIComponent(caseId)}` : '/home#cases';
+  return NextResponse.redirect(new URL(to, req.url));
 }

@@ -4,6 +4,7 @@ import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
 import { finalizeCheckerVerdicts } from '@/lib/scoring/checker-wait-db';
+import { sessionRoute } from '@/lib/http/route-guard';
 
 // Before scoring: waits for any math-checker verdict still running for the
 // session, up to the checker's 30s timeout (Lorenzo, 18 Oct; batch 31 Marisol
@@ -11,7 +12,7 @@ import { finalizeCheckerVerdicts } from '@/lib/scoring/checker-wait-db';
 // report…" while this runs, then calls …/score (which waits again — the guarantee).
 export const maxDuration = 60;
 
-export async function POST(
+async function handlePOST(
   _req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
@@ -24,3 +25,6 @@ export async function POST(
   const wait = await finalizeCheckerVerdicts(sessionId, user.id);
   return NextResponse.json({ pending: wait.pending.length, waitedMs: wait.waitedMs, timedOut: wait.timedOut });
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const POST = sessionRoute(handlePOST);

@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { drillFetch } from '@/lib/drills/client-fetch';
 
 export function RetryButton({ drillId, skillId }: { drillId: string; skillId: string | null }) {
   const router = useRouter();
@@ -9,7 +10,7 @@ export function RetryButton({ drillId, skillId }: { drillId: string; skillId: st
   const [error, setError] = useState('');
   async function retry() {
     setBusy(true);
-    const res = await fetch('/api/drills/sets', {
+    const res = await drillFetch('/api/drills/sets', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ drill_id: drillId, ...(skillId && { skill_id: skillId }) }),

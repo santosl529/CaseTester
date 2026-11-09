@@ -678,3 +678,11 @@ export const voiceSessionLines = pgTable('voice_session_lines', {
   line: jsonb('line').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
 }, t => [index('voice_session_lines_session_idx').on(t.sessionId)]).enableRLS();
+
+// Rate limits (8 Nov; lib/rate-limit.ts): one row per rule and subject ('turn:user:<id>', 'clubCode:ip:<ip>'),
+// a fixed window counted by one atomic upsert. Server-only, like every table here (RLS on, no policies).
+export const rateLimits = pgTable('rate_limits', {
+  key: text('key').primaryKey(),
+  windowStart: timestamp('window_start', { withTimezone: true }).notNull(),
+  hits: integer('hits').notNull(),
+}).enableRLS();

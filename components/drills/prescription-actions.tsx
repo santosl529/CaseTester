@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { drillFetch } from '@/lib/drills/client-fetch';
 
 // Start or dismiss a prescription (docs/prd-drills.md "Lifecycle"). Starting
 // lets the progress engine pick the drill, stage and tier.
@@ -13,7 +14,7 @@ export function PrescriptionActions({ id, paused, extra = {}, startLabel }: { id
 
   async function start() {
     setBusy(true);
-    const res = await fetch('/api/drills/sets', {
+    const res = await drillFetch('/api/drills/sets', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prescription_id: id, ...extra }),
     });
     const data = await res.json().catch(() => ({}));
@@ -24,7 +25,7 @@ export function PrescriptionActions({ id, paused, extra = {}, startLabel }: { id
 
   async function dismiss() {
     setBusy(true);
-    const res = await fetch(`/api/prescriptions/${id}`, {
+    const res = await drillFetch(`/api/prescriptions/${id}`, {
       method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status: 'dismissed' }),
     });
     setBusy(false);

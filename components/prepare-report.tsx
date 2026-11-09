@@ -2,6 +2,7 @@
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { runScoring } from '@/lib/site/run-scoring';
 
 // A completed case with no score yet (the student left before scoring ended,
 // or it failed): one click runs the same finalize → score as the case page;
@@ -17,10 +18,10 @@ export function PrepareReport({ sessionId }: { sessionId: string }) {
     if (running.current) return;
     running.current = true;
     setState('preparing');
-    await fetch(`/api/channel/${sessionId}/finalize`, { method: 'POST' }).catch(() => null);
-    const res = await fetch(`/api/channel/${sessionId}/score`, { method: 'POST' }).catch(() => null);
+    // A pass already running (another tab) is waited out, not shown as a failure (lib/site/run-scoring.ts).
+    const result = await runScoring(sessionId);
     running.current = false;
-    if (res?.ok) router.refresh();
+    if (result === 'ready') router.refresh();
     else setState('failed');
   }
 
@@ -28,7 +29,7 @@ export function PrepareReport({ sessionId }: { sessionId: string }) {
     <div className="space-y-3 rounded-lg border p-4">
       <p className="text-sm">Your report for this case isn’t ready yet.</p>
       {state === 'preparing' && <p className="text-sm text-neutral-600">Preparing your report — this can take a couple of minutes. Please keep this page open.</p>}
-      {state === 'failed' && <p className="text-sm text-red-600">Generating your report hit an error.</p>}
+      {state === 'failed' && <p className="text-sm text-red-600">Your report couldn’t be prepared just now. Your interview is saved: press Try again in a minute.</p>}
       <Button size="lg" onClick={prepare} disabled={state === 'preparing'}>
         {state === 'preparing' ? 'Preparing your report…' : state === 'failed' ? 'Try again' : 'Prepare my report'}
       </Button>

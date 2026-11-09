@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { drillFetch } from '@/lib/drills/client-fetch';
 
 export interface AvailabilityOption { id: string; label: string; workouts_per_week: number; default?: boolean }
 
@@ -22,7 +23,7 @@ export function OnboardingForm({ availability, today }: { availability: Availabi
     if (!casesDone) { setError('Tell us how many practice cases you have done.'); return; }
     setBusy(true);
     setError('');
-    const res = await fetch('/api/drills/onboarding', {
+    const res = await drillFetch('/api/drills/onboarding', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         wants_plan: wantsPlan, interview_date: interviewDate || null, cases_done: casesDone,

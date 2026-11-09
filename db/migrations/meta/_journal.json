@@ -169,6 +169,13 @@
       "when": 1792361661166,
       "tag": "0023_drills_feedback_timing",
       "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1794174596955,
+      "tag": "0024_rate_limits",
+      "breakpoints": true
     }
   ]
 }

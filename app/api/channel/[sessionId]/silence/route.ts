@@ -4,12 +4,13 @@ import { runSilence } from '@/lib/orchestrator/session-runner';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { and, eq } from 'drizzle-orm';
+import { sessionRoute } from '@/lib/http/route-guard';
 
 // Text-mode silence tick (Rules 13/16/19, lib/orchestrator/silence.ts): the
 // channel reports how long the candidate has been silent since the
 // interviewer's last turn. Returns a scripted check-in or pause line, or
 // nothing. Idempotent per silence.
-export async function POST(
+async function handlePOST(
   req: NextRequest,
   { params }: { params: Promise<{ sessionId: string }> },
 ) {
@@ -30,3 +31,6 @@ export async function POST(
 
   return NextResponse.json(await runSilence(sessionId, silentMs));
 }
+
+// A throw answers JSON 500, a malformed id JSON 404 (lib/http/route-guard.ts).
+export const POST = sessionRoute(handlePOST);

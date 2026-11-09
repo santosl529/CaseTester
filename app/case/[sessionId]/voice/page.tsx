@@ -1,5 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
+import { isUuid } from '@/lib/http/route-guard';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
@@ -12,6 +13,8 @@ import { SiteHeader } from '@/components/site-header';
 // as the text case page.
 export default async function VoiceCasePage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
+  // A malformed id is a 404, not a database error (lib/http/route-guard.ts).
+  if (!isUuid(sessionId)) notFound();
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/sign-in?next=${encodeURIComponent(`/case/${sessionId}/voice`)}`);

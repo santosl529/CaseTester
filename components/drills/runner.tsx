@@ -12,6 +12,7 @@ import { parseNumericInput } from '@/lib/drills/numeric';
 import type { ChartSpec } from '@/lib/drills/chart-spec';
 import type { PublicItem } from '@/lib/drills/public-item';
 import type { ItemFeedback, StepFeedback, WorkedExample } from '@/lib/drills/sets/service';
+import { drillFetch, type DrillResponse } from '@/lib/drills/client-fetch';
 
 export interface RunnerView {
   set_id: string;
@@ -161,11 +162,11 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     const onPause = (e: Event) => {
       if (phaseRef.current !== 'item' || untimed) return;
       setPaused(true);
-      void fetch(`/api/drills/sets/${view.set_id}/pause`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'pause', reason: (e as CustomEvent).detail }) });
+      void drillFetch(`/api/drills/sets/${view.set_id}/pause`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'pause', reason: (e as CustomEvent).detail }) });
     };
     const onResume = async (e: Event) => {
       if (phaseRef.current !== 'item' || untimed) return;
-      const res = await fetch(`/api/drills/sets/${view.set_id}/pause`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resume', reason: (e as CustomEvent).detail }) }).catch(() => null);
+      const res = await drillFetch(`/api/drills/sets/${view.set_id}/pause`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'resume', reason: (e as CustomEvent).detail }) }).catch(() => null);
       const data = res?.ok ? await res.json().catch(() => null) : null;
       if (data && typeof data.remaining_ms === 'number') setDeadline(Date.now() + data.remaining_ms);
       setPaused(false);
@@ -177,7 +178,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
 
   const finish = useCallback(async () => {
     setPhase('finishing');
-    const res = await fetch(`/api/drills/sets/${view.set_id}/complete`, { method: 'POST' });
+    const res = await drillFetch(`/api/drills/sets/${view.set_id}/complete`, { method: 'POST' });
     if (!res.ok) {
       const data = await res.json().catch(() => ({}));
       setError(data.message ?? 'Could not finish the set.');
@@ -193,10 +194,10 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     // If the server says another position is current (a second tab, a
     // retried submit), follow it once.
     let position = requested;
-    let res: Response | null = null;
+    let res: DrillResponse | null = null;
     let data: Record<string, unknown> = {};
     for (let tries = 0; tries < 2; tries++) {
-      res = await fetch(`/api/drills/sets/${view.set_id}/items/${position}`);
+      res = await drillFetch(`/api/drills/sets/${view.set_id}/items/${position}`);
       data = await res.json().catch(() => ({}));
       if (res.ok || data.error !== 'out_of_order' || typeof data.position !== 'number' || data.position === position) break;
       position = data.position;
@@ -243,7 +244,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     setBusy(true);
     setError('');
     const slot = `${loaded.position}:${opts.skip ? 'skip' : stepIndex}`;
-    const res = await fetch(`/api/drills/sets/${view.set_id}/attempts`, {
+    const res = await drillFetch(`/api/drills/sets/${view.set_id}/attempts`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -298,7 +299,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     };
     const poll = async () => {
       if (stop) return;
-      const res = await fetch(`/api/drills/sets/${view.set_id}/items/${loaded.position}/feedback`).catch(() => null);
+      const res = await drillFetch(`/api/drills/sets/${view.set_id}/items/${loaded.position}/feedback`).catch(() => null);
       const data = res?.ok ? await res.json().catch(() => null) : null;
       if (stop) return;
       if (data?.status === 'ready') {
@@ -323,7 +324,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
 
   async function skipExample() {
     setShowExample(false);
-    await fetch('/api/me/drill-settings', {
+    await drillFetch('/api/me/drill-settings', {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ skip_example_for: view.drill.id }),
@@ -563,7 +564,9 @@ export function DrillRunner({ view }: { view: RunnerView }) {
       {phase === 'feedback' && (
         <Button size="lg" onClick={next} autoFocus>{loaded.position + 1 < loaded.size ? 'Next item' : 'See results'}</Button>
       )}
-      {phase === 'finishing' && <p className="text-sm text-muted-foreground">{view.ai_graded ? 'Sending your answers for grading…' : 'Scoring your set…'}</p>}
+      {phase === 'finishing' && !error && <p className="text-sm text-muted-foreground">{view.ai_graded ? 'Sending your answers for grading…' : 'Scoring your set…'}</p>}
+      {/* Finishing failed (8 Nov audit: it stayed on "Scoring your set…" with no way on): try again. */}
+      {phase === 'finishing' && error && <Button onClick={() => { setError(''); void finish(); }}>Try again</Button>}
       {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
     </section>
   );

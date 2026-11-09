@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { drillFetch } from '@/lib/drills/client-fetch';
 
 // Approve / request changes for one lesson on the review page.
 export function LessonReviewButtons({ lessonId, status, notes }: { lessonId: string; status: string; notes: string }) {
@@ -14,7 +15,7 @@ export function LessonReviewButtons({ lessonId, status, notes }: { lessonId: str
   async function send(approve: boolean) {
     setBusy(true);
     setError('');
-    const res = await fetch('/api/drills/review/lessons', {
+    const res = await drillFetch('/api/drills/review/lessons', {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(approve ? { lesson_id: lessonId, approve } : { lesson_id: lessonId, approve, notes: text }),
     });

@@ -4,7 +4,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const h = vi.hoisted(() => ({
   user: { id: 'u1' } as { id: string } | null,
-  session: { id: 's1', userId: 'u1', status: 'active', phase: 'CLARIFY' } as Record<string, unknown> | undefined,
+  session: { id: '51111111-1111-4111-8111-111111111111', userId: 'u1', status: 'active', phase: 'CLARIFY' } as Record<string, unknown> | undefined,
   listDispatch: vi.fn(async (): Promise<{ agentName: string }[]> => []),
   createDispatch: vi.fn(async () => ({ id: 'AD_1' })),
   grants: [] as unknown[],
@@ -26,11 +26,11 @@ vi.mock('livekit-server-sdk', () => ({
 }));
 
 const { POST } = await import('@/app/api/voice/[sessionId]/token/route');
-const call = () => POST(new Request('http://x/api/voice/s1/token', { method: 'POST' }) as never, { params: Promise.resolve({ sessionId: 's1' }) });
+const call = () => POST(new Request('http://x/api/voice/51111111-1111-4111-8111-111111111111/token', { method: 'POST' }) as never, { params: Promise.resolve({ sessionId: '51111111-1111-4111-8111-111111111111' }) });
 
 beforeEach(() => {
   h.user = { id: 'u1' };
-  h.session = { id: 's1', userId: 'u1', status: 'active', phase: 'CLARIFY' };
+  h.session = { id: '51111111-1111-4111-8111-111111111111', userId: 'u1', status: 'active', phase: 'CLARIFY' };
   h.listDispatch.mockReset().mockResolvedValue([]);
   h.createDispatch.mockClear();
   h.grants.length = 0;
@@ -63,10 +63,10 @@ describe('voice token route', () => {
     const res = await call();
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ url: 'wss://example.livekit.cloud', token: 'jwt-for-test' });
-    expect(h.grants[0]).toMatchObject({ roomJoin: true, room: 'case-s1', canPublish: true, canSubscribe: true, canPublishData: true });
+    expect(h.grants[0]).toMatchObject({ roomJoin: true, room: 'case-51111111-1111-4111-8111-111111111111', canPublish: true, canSubscribe: true, canPublishData: true });
     // Security audit (6 Nov): the candidate may publish their microphone and nothing else (no camera, no screen).
     expect((h.grants[0] as { canPublishSources?: unknown }).canPublishSources).toEqual([2]);
-    expect(h.createDispatch).toHaveBeenCalledWith('case-s1', 'case-interviewer', { metadata: JSON.stringify({ sessionId: 's1' }) });
+    expect(h.createDispatch).toHaveBeenCalledWith('case-51111111-1111-4111-8111-111111111111', 'case-interviewer', { metadata: JSON.stringify({ sessionId: '51111111-1111-4111-8111-111111111111' }) });
     expect((h as Record<string, unknown>).dispatchUrl).toBe('https://example.livekit.cloud');
   });
   it('does not dispatch a second agent into a room that has one (Review Focus 3)', async () => {
@@ -93,7 +93,7 @@ describe('voice token route', () => {
     });
     it('lets the session back into its own room (a reload), and counts only live voice rooms', async () => {
       h.rooms = [
-        { name: 'case-s1', numParticipants: 1, creationTime: now() - BigInt(60) },
+        { name: 'case-51111111-1111-4111-8111-111111111111', numParticipants: 1, creationTime: now() - BigInt(60) },
         { name: 'case-closing', numParticipants: 0, creationTime: now() - BigInt(600) },
         { name: 'playground', numParticipants: 3, creationTime: now() - BigInt(60) },
       ];
