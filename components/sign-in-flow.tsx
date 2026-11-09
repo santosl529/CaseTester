@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 // wrong password says so instead of quietly trying a sign-up. /sign-in decides where to start: a signed-in student
 // with a valid code on their profile never sees this; one without a code (an account from before 8 Nov, or a code
 // since removed) starts at the club step. `next` is already checked (lib/site/safe-next.ts).
-export function SignInFlow({ initialStep, next, created = false }: { initialStep: 'auth' | 'club'; next: string; created?: boolean }) {
+export function SignInFlow({ initialStep, next, created = false, deleted = false }: { initialStep: 'auth' | 'club'; next: string; created?: boolean; deleted?: boolean }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [clubCode, setClubCode] = useState('');
@@ -82,6 +82,7 @@ export function SignInFlow({ initialStep, next, created = false }: { initialStep
             <>
               <form onSubmit={handleAuth} className="space-y-3">
                 {created && <p role="status" className="text-sm text-green-700">Account created. Log in to continue.</p>}
+                {deleted && <p role="status" className="text-sm text-neutral-700">Your account and its data have been deleted.</p>}
                 <Input placeholder="Email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} required />
                 <Input placeholder="Password" type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
                 {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}

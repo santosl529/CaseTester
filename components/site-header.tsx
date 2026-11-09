@@ -18,6 +18,7 @@ export function SiteHeader({ inCase = false }: { inCase?: boolean }) {
         <Link href="/home" onClick={confirmLeave} className="mr-auto font-semibold text-neutral-900">CasePace</Link>
         <Link href="/home" onClick={confirmLeave} className={link}>Home</Link>
         <Link href="/drills" onClick={confirmLeave} className={link}>Drills</Link>
+        <Link href="/account" onClick={confirmLeave} className={link}>Account</Link>
         <form action={signOut} onSubmit={confirmLeave}>
           <button type="submit" className={link}>Sign out</button>
         </form>

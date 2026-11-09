@@ -14,7 +14,7 @@ vi.mock('@/lib/rate-limit', async () => {
 vi.mock('next/server', async () => ({ ...(await vi.importActual<object>('next/server')), after: () => {} }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: 'u1' } } }) } }) }));
 vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => ({ id: 's1', userId: 'u1', caseId: 'prof-001', status: 'active' }) } } } }));
-vi.mock('@/lib/club', () => ({ clubOrgId: (c: string) => (c === 'ALPHA' ? 'ALPHA' : null), recordStudentOrg: async () => { h.work.push('recordStudentOrg'); } }));
+vi.mock('@/lib/club', () => ({ clubOrgId: (c: string) => (c === 'ALPHA' ? 'ALPHA' : null), assignClub: async () => { h.work.push('assignClub'); return { changed: true, from: null }; } }));
 vi.mock('@/lib/orchestrator/post-turn', () => ({ runPostTurnBackground: async () => {} }));
 vi.mock('@/lib/orchestrator/session-runner', () => ({ runTurn: async () => { h.work.push('runTurn'); return { interviewerText: 'ok', ended: false, exhibit: null }; } }));
 vi.mock('@/lib/orchestrator/turn-claim', async () => {
@@ -33,7 +33,7 @@ const ctx = { params: Promise.resolve({ sessionId: 's1' }) };
 const req = (body?: unknown) => new Request('http://x', { method: 'POST', headers: { 'x-real-ip': '9.9.9.9' }, body: body === undefined ? undefined : JSON.stringify(body) }) as never;
 
 const routes = [
-  { name: 'club code', call: () => club(req({ clubCode: 'ALPHA' })), hit: 'clubCode:ip:9.9.9.9', work: 'recordStudentOrg' },
+  { name: 'club code', call: () => club(req({ clubCode: 'ALPHA' })), hit: 'clubCode:ip:9.9.9.9', work: 'assignClub' },
   { name: 'turn', call: () => turn(req({ text: 'hello' }), ctx), hit: 'turn:user:u1', work: 'runTurn' },
   { name: 'voice token', call: () => token(req(), ctx), hit: 'voiceToken:user:u1', work: 'livekit' },
   { name: 'report PDF', call: () => pdf(req(), ctx), hit: 'reportPdf:user:u1', work: 'renderReportPdf' },

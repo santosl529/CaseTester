@@ -29,3 +29,22 @@ export function signInErrorMessage(err: { code?: string; status?: number; name?:
   if (err.status === 429 || err.code === 'over_request_rate_limit') return 'Too many log-in attempts. Wait a few minutes and try again.';
   return "Log-in isn't working right now. Please try again in a minute.";
 }
+
+const OFFLINE = "We couldn't reach the server. Check your connection and try again.";
+
+// /account: change club code (POST /api/account/club).
+export function clubChangeErrorMessage(body: { error?: string; retryAfterSec?: number } | null): string {
+  if (!body) return OFFLINE;
+  if (body.error === 'invalid_club_code') return "That club code isn't valid. Check it with your club president.";
+  if (body.error === 'rate_limited') return `Too many attempts. Try again in ${retryWait(body.retryAfterSec)}.`;
+  if (body.error === 'Unauthorized') return 'Your session has ended. Log in again to change your club.';
+  return "We couldn't change your club just now. Please try again in a minute.";
+}
+
+// /account: delete account (POST /api/account/delete).
+export function deleteErrorMessage(body: { error?: string } | null): string {
+  if (!body) return OFFLINE;
+  if (body.error === 'email_mismatch') return "That doesn't match your account's email. Type it exactly to confirm.";
+  if (body.error === 'Unauthorized') return 'Your session has ended. Log in again to delete your account.';
+  return "We couldn't finish deleting your account. Nothing is lost by trying again: please try again in a minute.";
+}

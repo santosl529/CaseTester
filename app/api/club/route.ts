@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { clubOrgId, recordStudentOrg } from '@/lib/club';
+import { assignClub, clubOrgId } from '@/lib/club';
 import { clientIp, hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
 
 // Checks the club code at the club step and records the student's org, so
@@ -18,6 +18,7 @@ export async function POST(req: NextRequest) {
   const orgId = clubOrgId(clubCode);
   if (!orgId) return NextResponse.json({ error: 'Invalid club code' }, { status: 403 });
 
-  await recordStudentOrg(user.id, orgId);
+  // Replaces a stored code that is no longer valid (it used to keep the old one, so the student looped back here).
+  await assignClub(user.id, orgId);
   return NextResponse.json({ ok: true });
 }

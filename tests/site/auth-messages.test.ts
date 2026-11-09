@@ -40,3 +40,20 @@ describe('signInErrorMessage', () => {
     expect(signInErrorMessage({ code: 'unexpected_failure', status: 500 })).toBe("Log-in isn't working right now. Please try again in a minute.");
   });
 });
+
+describe('account page messages (9 Nov)', async () => {
+  const { clubChangeErrorMessage, deleteErrorMessage } = await import('@/lib/site/auth-messages');
+  it('club change', () => {
+    expect(clubChangeErrorMessage({ error: 'invalid_club_code' })).toBe("That club code isn't valid. Check it with your club president.");
+    expect(clubChangeErrorMessage({ error: 'rate_limited', retryAfterSec: 120 })).toBe('Too many attempts. Try again in 2 minutes.');
+    expect(clubChangeErrorMessage({ error: 'Unauthorized' })).toBe('Your session has ended. Log in again to change your club.');
+    expect(clubChangeErrorMessage(null)).toBe("We couldn't reach the server. Check your connection and try again.");
+    expect(clubChangeErrorMessage({})).toBe("We couldn't change your club just now. Please try again in a minute.");
+  });
+  it('delete', () => {
+    expect(deleteErrorMessage({ error: 'email_mismatch' })).toBe("That doesn't match your account's email. Type it exactly to confirm.");
+    expect(deleteErrorMessage({ error: 'delete_failed' })).toBe("We couldn't finish deleting your account. Nothing is lost by trying again: please try again in a minute.");
+    expect(deleteErrorMessage({ error: 'Unauthorized' })).toBe('Your session has ended. Log in again to delete your account.');
+    expect(deleteErrorMessage(null)).toBe("We couldn't reach the server. Check your connection and try again.");
+  });
+});

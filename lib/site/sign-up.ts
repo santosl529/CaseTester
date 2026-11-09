@@ -5,7 +5,7 @@
 //
 // No confirmation email: admin-created accounts are confirmed at once. Email confirmation can come back once the
 // site has its own email sender (Lorenzo's to-do).
-import { clubOrgId, recordStudentOrg } from '@/lib/club';
+import { assignClub, clubOrgId } from '@/lib/club';
 import { PASSWORD_MAX, PASSWORD_MIN } from '@/lib/site/sign-up-rules';
 
 export { PASSWORD_MAX, PASSWORD_MIN };
@@ -54,6 +54,6 @@ function adminDeps(): SignUpDeps {
       }
       return { ok: true, userId: data.user.id };
     },
-    recordOrg: recordStudentOrg,
+    recordOrg: async (userId, orgId) => { await assignClub(userId, orgId); },
   };
 }
