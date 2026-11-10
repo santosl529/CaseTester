@@ -16,6 +16,7 @@
     "voice:agent": "VOICE_RECORDS_DIR=\"${VOICE_RECORDS_DIR:-Case Interview Runs/voice-live}\" tsx --env-file=${VOICE_ENV_FILE:-.env.local} scripts/voice-agent.ts dev",
     "db:seed-drill-items": "tsx --conditions=react-server --env-file=.env.local scripts/seed-drill-items.ts",
     "db:seed-lessons": "tsx --conditions=react-server --env-file=.env.local scripts/seed-lessons.ts",
+    "password:reset-link": "tsx --conditions=react-server --env-file=.env.local scripts/password-reset-link.ts",
     "drills:smoke": "tsx --conditions=react-server --env-file=.env.local scripts/drills-smoke.ts",
     "drills:review": "tsx scripts/drill-review.tsx",
     "drills:import": "tsx scripts/import-drill-content.ts",

@@ -48,3 +48,20 @@ export function deleteErrorMessage(body: { error?: string } | null): string {
   if (body.error === 'Unauthorized') return 'Your session has ended. Log in again to delete your account.';
   return "We couldn't finish deleting your account. Nothing is lost by trying again: please try again in a minute.";
 }
+
+// /forgot-password (POST /api/password/forgot).
+export function forgotErrorMessage(body: { error?: string; retryAfterSec?: number } | null): string {
+  if (!body) return OFFLINE;
+  if (body.error === 'invalid_email') return 'Enter a valid email address.';
+  if (body.error === 'rate_limited') return `Too many reset requests. Try again in ${retryWait(body.retryAfterSec)}.`;
+  return "We couldn't send the reset email just now. Try again in a few minutes, or ask the CasePace team for a reset link.";
+}
+
+// /reset-password (POST /api/password/update).
+export function resetErrorMessage(body: { error?: string } | null): string {
+  if (!body) return OFFLINE;
+  if (body.error === 'weak_password') return `Use a password of ${PASSWORD_MIN} to ${PASSWORD_MAX} characters.`;
+  if (body.error === 'same_password') return 'Choose a password different from your old one.';
+  if (body.error === 'Unauthorized') return 'This reset link has expired. Request a new one.';
+  return "We couldn't change your password just now. Please try again in a minute.";
+}

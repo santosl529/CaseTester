@@ -85,6 +85,7 @@ export function SignInFlow({ initialStep, next, created = false, deleted = false
                 {deleted && <p role="status" className="text-sm text-neutral-700">Your account and its data have been deleted.</p>}
                 <Input placeholder="Email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} required />
                 <Input placeholder="Password" type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
+                <p className="text-right text-sm"><Link href="/forgot-password" className="text-neutral-600 underline">Forgot password?</Link></p>
                 {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
                 <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</Button>
               </form>

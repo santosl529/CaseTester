@@ -17,6 +17,7 @@ describe('rateRule', () => {
       turn: { limit: 20, windowMs: 60_000, env: 'RATE_LIMIT_TURNS_PER_MINUTE' },
       voiceToken: { limit: 30, windowMs: HOUR, env: 'RATE_LIMIT_VOICE_TOKENS_PER_HOUR' },
       reportPdf: { limit: 10, windowMs: HOUR, env: 'RATE_LIMIT_REPORT_PDFS_PER_HOUR' },
+      passwordReset: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_PASSWORD_RESETS_PER_HOUR' },   // 10 Nov, Claude's proposal
     });
     expect(rateRule('turn', {})).toEqual({ name: 'turn', limit: 20, windowMs: 60_000 });
   });
