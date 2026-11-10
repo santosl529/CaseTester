@@ -183,6 +183,13 @@
       "when": 1794253522522,
       "tag": "0025_drill_spend_keep",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1794344627442,
+      "tag": "0026_ask_judge_once",
+      "breakpoints": true
     }
   ]
 }

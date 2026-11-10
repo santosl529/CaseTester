@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "session_events_ask_judge_once" ON "session_events" USING btree ("session_id","turn_index") WHERE "session_events"."subtype" = 'ask_judge_claim';
