@@ -15,7 +15,9 @@ const h = vi.hoisted(() => ({
   verifyError: null as AuthErr,
   exchangeCalls: [] as string[],
   exchangeError: null as AuthErr,
+  account: { id: 'u1', confirmed: true } as { id: string; confirmed: boolean } | null,
 }));
+vi.mock('@/lib/account/auth-user', () => ({ findAuthUserByEmail: async () => h.account }));
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/rate-limit', async () => {
   const real = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit');
@@ -52,6 +54,7 @@ beforeEach(() => {
   h.limited = { ok: true }; h.hits = []; h.resetCalls = []; h.resetError = null; h.resetThrows = false;
   h.user = { id: 'u1' }; h.updates = []; h.updateError = null;
   h.verifyCalls = []; h.verifyError = null; h.exchangeCalls = []; h.exchangeError = null;
+  h.account = { id: 'u1', confirmed: true };
 });
 
 describe('POST /api/password/forgot', () => {
@@ -61,6 +64,13 @@ describe('POST /api/password/forgot', () => {
     expect(await res.json()).toEqual({ ok: true });
     expect(h.resetCalls).toEqual([['ann@example.com', { redirectTo: 'https://casepace.example/auth/confirm' }]]);
     expect(h.hits).toEqual(['passwordReset:ip:9.9.9.9']);
+  });
+  it('no account uses the email: 404 no_account, said plainly (Lorenzo, 11 Nov); no email', async () => {
+    h.account = null;
+    const res = await forgot(post({ email: 'ghost@example.com' }));
+    expect(res.status).toBe(404);
+    expect(await res.json()).toEqual({ error: 'no_account' });
+    expect(h.resetCalls).toEqual([]);
   });
   it('past our limit: 429, no email', async () => {
     h.limited = { ok: false, retryAfterSec: 900 };
@@ -151,6 +161,14 @@ describe('GET /auth/confirm', () => {
     expect(await redirectOf('http://x/auth/confirm')).toBe('/forgot-password?expired=1');
     expect(await redirectOf('http://x/auth/confirm?token_hash=abc&type=signup')).toBe('/forgot-password?expired=1');
     expect(h.verifyCalls).toEqual([]);
+  });
+  it('a confirmation link (type=email): confirmed and signed in, on to /sign-in?confirmed=1', async () => {
+    expect(await redirectOf('http://x/auth/confirm?token_hash=abc&type=email')).toBe('/sign-in?confirmed=1');
+    expect(h.verifyCalls).toEqual([{ type: 'email', token_hash: 'abc' }]);
+  });
+  it('an expired or used confirmation link: /sign-in?link_expired=1 (log in to get a new one)', async () => {
+    h.verifyError = { status: 403, code: 'otp_expired' };
+    expect(await redirectOf('http://x/auth/confirm?token_hash=abc&type=email')).toBe('/sign-in?link_expired=1');
   });
   it('ignores any next= (never an open redirect)', async () => {
     expect(await redirectOf('http://x/auth/confirm?token_hash=abc&type=recovery&next=https://evil.example')).toBe('/reset-password');

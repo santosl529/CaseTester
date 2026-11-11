@@ -2,7 +2,7 @@
 // the email and the manual script both use, and what each failure tells the student.
 import { describe, it, expect } from 'vitest';
 import { parseResetEmail, parseNewPassword, resetLink, confirmUrl } from '@/lib/site/password-reset';
-import { forgotErrorMessage, resetErrorMessage } from '@/lib/site/auth-messages';
+import { forgotErrorMessage, resetErrorMessage, resendMessage, signUpErrorMessage } from '@/lib/site/auth-messages';
 
 describe('parseResetEmail', () => {
   it('trims and lowercases a valid email', () => {
@@ -50,6 +50,7 @@ describe('forgotErrorMessage', () => {
     expect(forgotErrorMessage({ error: 'invalid_email' })).toBe('Enter a valid email address.');
     expect(forgotErrorMessage({ error: 'rate_limited', retryAfterSec: 1200 })).toBe('Too many reset requests. Try again in 20 minutes.');
     expect(forgotErrorMessage({ error: 'reset_unavailable' })).toMatch(/couldn't send the reset email/);
+    expect(forgotErrorMessage({ error: 'no_account' })).toBe('No account uses this email. Check the address, or sign up with your club code.');
   });
 });
 
@@ -60,5 +61,19 @@ describe('resetErrorMessage', () => {
     expect(resetErrorMessage({ error: 'same_password' })).toBe('Choose a password different from your old one.');
     expect(resetErrorMessage({ error: 'Unauthorized' })).toMatch(/link has expired.*new one/);
     expect(resetErrorMessage({ error: 'update_failed' })).toMatch(/couldn't change your password/);
+  });
+});
+
+describe('confirmation email messages (11 Nov)', () => {
+  it('sign-up: the email could not be sent, so no account was made', () => {
+    expect(signUpErrorMessage({ error: 'email_unavailable' })).toBe("We couldn't send your confirmation email, so your account wasn't created. Please try again in a few minutes.");
+  });
+  it('resend: each outcome said plainly', () => {
+    expect(resendMessage(200, { ok: true }, 'ann@example.com')).toEqual({ ok: true, text: 'We sent a new confirmation link to ann@example.com.' });
+    expect(resendMessage(404, { error: 'no_account' }, 'x')).toEqual({ ok: false, text: 'No account uses this email. Sign up with your club code.' });
+    expect(resendMessage(409, { error: 'already_confirmed' }, 'x')).toEqual({ ok: false, text: 'This account is already confirmed. Log in.' });
+    expect(resendMessage(429, { error: 'rate_limited', retryAfterSec: 300 }, 'x').text).toBe('Too many emails requested. Try again in 5 minutes.');
+    expect(resendMessage(0, null, 'x').text).toMatch(/couldn't reach the server/);
+    expect(resendMessage(503, { error: 'email_unavailable' }, 'x').text).toMatch(/couldn't send the email/);
   });
 });

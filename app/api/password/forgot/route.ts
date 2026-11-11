@@ -3,10 +3,11 @@ import { clientIp, hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rat
 import { confirmUrl, parseResetEmail } from '@/lib/site/password-reset';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { jsonRoute } from '@/lib/http/route-guard';
+import { findAuthUserByEmail } from '@/lib/account/auth-user';
 
 // Email a password-reset link (Lorenzo, 10 Nov; lib/site/password-reset.ts). Limited per IP (5 an hour) before
-// anything else. The answer is the same whether or not an account has that email, so it can't be used to find
-// accounts. Errors are logged without the email.
+// anything else. No account for the email: said plainly, 404 no_account (Lorenzo, 11 Nov: clear over hiding whether
+// an address is registered). Errors are logged without the email.
 async function handlePOST(req: NextRequest) {
   const limited = await hitRateLimit(rateRule('passwordReset'), `ip:${clientIp(req)}`);
   if (!limited.ok) return rateLimitedResponse(limited);
@@ -15,6 +16,7 @@ async function handlePOST(req: NextRequest) {
   if (!form.ok) return NextResponse.json({ error: form.error }, { status: 400 });
 
   try {
+    if (!(await findAuthUserByEmail(form.email))) return NextResponse.json({ error: 'no_account' }, { status: 404 });
     const supabase = await createServerSupabaseClient();
     const { error } = await supabase.auth.resetPasswordForEmail(form.email, {
       redirectTo: confirmUrl(process.env.NEXT_PUBLIC_SITE_URL, new URL(req.url).origin),

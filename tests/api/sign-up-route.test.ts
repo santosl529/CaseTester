@@ -25,10 +25,11 @@ const good = { email: 'ann@example.com', password: 'longenough', clubCode: 'alph
 beforeEach(() => { h.limited = { ok: true }; h.hits = []; h.result = { ok: true }; h.thrown = null; h.signUps = 0; });
 
 describe('POST /api/sign-up', () => {
-  it('created: 200, one sign-up hit for the IP', async () => {
+  it('created: 200 saying whether a confirmation email went out, one sign-up hit for the IP', async () => {
+    h.result = { ok: true, verify: true };
     const res = await call(good);
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true });
+    expect(await res.json()).toEqual({ ok: true, verify: true });
     expect(h.hits).toEqual(['signUp:ip:9.9.9.9']);
   });
   it('past the limit: 429 with Retry-After, no account attempted', async () => {
@@ -51,6 +52,12 @@ describe('POST /api/sign-up', () => {
     const res = await call(good);
     expect(res.status).toBe(409);
     expect(await res.json()).toEqual({ error: 'email_exists' });
+  });
+  it('the confirmation email could not be sent: 503 email_unavailable (the account was removed)', async () => {
+    h.result = { ok: false, error: 'email_unavailable' };
+    const res = await call(good);
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: 'email_unavailable' });
   });
   it('Supabase down or misconfigured: 503 sign_up_unavailable, logged', async () => {
     const err = vi.spyOn(console, 'error').mockImplementation(() => {});

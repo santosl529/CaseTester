@@ -19,6 +19,7 @@ export const RATE_LIMIT_DEFAULTS = {
   voiceToken: { limit: 30, windowMs: HOUR, env: 'RATE_LIMIT_VOICE_TOKENS_PER_HOUR' },
   reportPdf: { limit: 10, windowMs: HOUR, env: 'RATE_LIMIT_REPORT_PDFS_PER_HOUR' },
   passwordReset: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_PASSWORD_RESETS_PER_HOUR' },
+  verifyResend: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_VERIFY_EMAILS_PER_HOUR' },
 } as const;
 export type RateRuleName = keyof typeof RATE_LIMIT_DEFAULTS;
 export type RateRule = { name: string; limit: number; windowMs: number };

@@ -32,16 +32,35 @@ describe('signUpStudent', () => {
     return {
       calls,
       d: {
-        createUser: async (email: string) => { calls.push(`create:${email}`); return { ok: true as const, userId: 'u1' }; },
+        createUser: async (email: string, _password: string, confirmed: boolean) => { calls.push(`create:${email}:${confirmed ? 'confirmed' : 'unconfirmed'}`); return { ok: true as const, userId: 'u1' }; },
         recordOrg: async (userId: string, orgId: string) => { calls.push(`org:${userId}:${orgId}`); },
+        deleteUser: async (userId: string) => { calls.push(`delete:${userId}`); },
+        sendVerification: null as ((email: string) => Promise<void>) | null,
         ...over,
       },
     };
   };
-  it('creates the account and records the club on the profile', async () => {
+  it('no email sender configured: the account is confirmed at once (as before 11 Nov) and the club recorded', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     const f = deps();
-    expect(await signUpStudent(input, f.d)).toEqual({ ok: true });
-    expect(f.calls).toEqual(['create:ann@example.com', 'org:u1:ALPHA']);
+    expect(await signUpStudent(input, f.d)).toEqual({ ok: true, verify: false });
+    expect(f.calls).toEqual(['create:ann@example.com:confirmed', 'org:u1:ALPHA']);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
+  });
+  it('with an email sender: the account is created unconfirmed, the link emailed, then the club recorded', async () => {
+    const f = deps();
+    f.d.sendVerification = async (email: string) => { f.calls.push(`email:${email}`); };
+    expect(await signUpStudent(input, f.d)).toEqual({ ok: true, verify: true });
+    expect(f.calls).toEqual(['create:ann@example.com:unconfirmed', 'email:ann@example.com', 'org:u1:ALPHA']);
+  });
+  it('the email fails to send: the new account is removed so a retry works; email_unavailable', async () => {
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const f = deps();
+    f.d.sendVerification = async () => { throw new Error('resend 403'); };
+    expect(await signUpStudent(input, f.d)).toEqual({ ok: false, error: 'email_unavailable' });
+    expect(f.calls).toEqual(['create:ann@example.com:unconfirmed', 'delete:u1']);
+    err.mockRestore();
   });
   it('an email already registered: email_exists, nothing recorded', async () => {
     const f = deps({ createUser: async () => ({ ok: false as const, error: 'email_exists' as const }) });
@@ -55,7 +74,8 @@ describe('signUpStudent', () => {
   it('the account is made but the club fails to save: still ok — log-in asks for the code once instead', async () => {
     const err = vi.spyOn(console, 'error').mockImplementation(() => {});
     const f = deps({ recordOrg: async () => { throw new Error('db down'); } });
-    expect(await signUpStudent(input, f.d)).toEqual({ ok: true });
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect(await signUpStudent(input, f.d)).toEqual({ ok: true, verify: false });
     expect(err).toHaveBeenCalled();
     err.mockRestore();
   });

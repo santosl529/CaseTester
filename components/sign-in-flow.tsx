@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { createBrowserSupabaseClient } from '@/lib/supabase/client';
 import { signOut } from '@/app/actions/auth';
 import { signInErrorMessage, retryWait } from '@/lib/site/auth-messages';
+import { ResendVerification } from '@/components/resend-verification';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,11 +14,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 // wrong password says so instead of quietly trying a sign-up. /sign-in decides where to start: a signed-in student
 // with a valid code on their profile never sees this; one without a code (an account from before 8 Nov, or a code
 // since removed) starts at the club step. `next` is already checked (lib/site/safe-next.ts).
-export function SignInFlow({ initialStep, next, created = false, deleted = false }: { initialStep: 'auth' | 'club'; next: string; created?: boolean; deleted?: boolean }) {
+export function SignInFlow({ initialStep, next, created = false, deleted = false, linkExpired = false }: { initialStep: 'auth' | 'club'; next: string; created?: boolean; deleted?: boolean; linkExpired?: boolean }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [clubCode, setClubCode] = useState('');
   const [error, setError] = useState('');
+  const [unconfirmed, setUnconfirmed] = useState('');   // the email to resend a confirmation link to
   const [busy, setBusy] = useState(false);
   const inFlight = useRef(false);
   const step = initialStep;
@@ -43,7 +45,11 @@ export function SignInFlow({ initialStep, next, created = false, deleted = false
         setError(signInErrorMessage(null));
         return false;
       }
-      if (result.error) { setError(signInErrorMessage(result.error)); return false; }
+      if (result.error) {
+        setError(signInErrorMessage(result.error));
+        setUnconfirmed(result.error.code === 'email_not_confirmed' ? email.trim() : '');
+        return false;
+      }
       // /sign-in decides: on to `next` when the profile already has a valid code, else the club step.
       window.location.assign(`/sign-in?next=${encodeURIComponent(next)}`);
       return true;
@@ -83,12 +89,14 @@ export function SignInFlow({ initialStep, next, created = false, deleted = false
               <form onSubmit={handleAuth} className="space-y-3">
                 {created && <p role="status" className="text-sm text-green-700">Account created. Log in to continue.</p>}
                 {deleted && <p role="status" className="text-sm text-neutral-700">Your account and its data have been deleted.</p>}
+                {linkExpired && <p role="status" className="text-sm text-amber-700">That confirmation link has expired or was already used. Log in below to get a new one.</p>}
                 <Input placeholder="Email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} required />
                 <Input placeholder="Password" type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
                 <p className="text-right text-sm"><Link href="/forgot-password" className="text-neutral-600 underline">Forgot password?</Link></p>
                 {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
                 <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</Button>
               </form>
+              {unconfirmed && <div className="mt-3"><ResendVerification email={unconfirmed} /></div>}
               <p className="mt-4 text-center text-sm text-neutral-600">
                 New here? <Link href={`/sign-up?next=${encodeURIComponent(next)}`} className="underline">Create an account with your club code</Link>
               </p>

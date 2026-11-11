@@ -6,8 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { forgotErrorMessage } from '@/lib/site/auth-messages';
 
-// Ask for a reset link (Lorenzo, 10 Nov; lib/site/password-reset.ts). The same answer whether or not the email has
-// an account. A second click before the disabled state renders is ignored.
+// Ask for a reset link (Lorenzo, 10 Nov; lib/site/password-reset.ts). No account for the email is said plainly
+// (11 Nov). A second click before the disabled state renders is ignored.
 export function ForgotPasswordForm({ expired }: { expired: boolean }) {
   const [email, setEmail] = useState('');
   const [error, setError] = useState('');
@@ -41,7 +41,7 @@ export function ForgotPasswordForm({ expired }: { expired: boolean }) {
         <CardContent>
           {sentTo ? (
             <div role="status" className="space-y-2 text-sm text-neutral-700">
-              <p>If an account exists for <span className="font-medium">{sentTo}</span>, we&apos;ve emailed it a link to reset your password. The link works once and expires in an hour.</p>
+              <p>We&apos;ve emailed a link to reset your password to <span className="font-medium">{sentTo}</span>. It works once and expires in an hour.</p>
               <p>Nothing after a few minutes? Check your spam folder, or ask the CasePace team for a reset link.</p>
             </div>
           ) : (
