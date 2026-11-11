@@ -1,0 +1,11 @@
+item_id,tag,hint,fix
+ex5-0001,M.trivial_takeaway,it states a true fact that doesn't explain why profit fell,"says what drove the fall: cost of goods sold grew faster than revenue (25% against 10%), cutting gross profit"
+ex5-0002,M.misread_trend,"it says both regions fell, but the North held between 94% and 96%","says the decline is almost all in the South, which fell from 94% to 78% while the North held near 95%"
+ex5-0003,M.unsupported_claim,"it blames the competitor's advertising, which the chart doesn't show","replaces the advertising claim with what the chart shows: the competitor cut its price 20%, from $10 to $8"
+ex5-0004,M.misread_trend,it reads warehouse C's bar as similar to the others,"says C takes 85 minutes, about twice the 38–42 minutes at the other warehouses"
+ex5-0005,M.trivial_takeaway,"it describes the early rise, not whether the success is lasting","says sales peaked at 220k in week 3 and have halved since, to 110k in week 6"
+ex5-0006,M.unsupported_claim,"it forecasts next year's material prices, which the chart doesn't show","drops the forecast, or replaces it with something the chart shows, such as cost per unit rising from $50 to $57"
+ex5-0007,M.trivial_takeaway,"it picks the project with the most cash a year, not one that pays back within 3 years","says only Project C pays back within 3 years ($6M ÷ $2M), against 4 years for B and 5 for A"
+ex5-0007,M.unsupported_claim,"it calls Project A the safest bet, which the table doesn't show","drops the claim about safety, or replaces it with something the table shows"
+ex5-0008,M.misread_trend,"it says all three components rose, but vehicle costs fell","says driver pay rose $3, from $5 to $8, while fuel rose $1 and vehicle costs fell $1"
+ex5-0008,M.unsupported_claim,"it blames a driver shortage, which the chart doesn't show","drops the driver-shortage cause, or frames it as something to check"

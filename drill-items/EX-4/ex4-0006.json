@@ -1,0 +1,180 @@
+{
+  "item_id": "ex4-0006",
+  "version": 1,
+  "drill_id": "EX-4",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "profitability",
+  "prompt": "A kitchen-appliance maker sells three blender lines. Its factory can keep making only two, and it wants to know which line to drop.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "exhibit": {
+    "type": "table",
+    "title": "Blender lines, 2025",
+    "categories": [],
+    "series": [],
+    "y_axis": {
+      "format": {
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0
+      }
+    },
+    "totals": [],
+    "show_values": true,
+    "table": {
+      "columns": [
+        "Line",
+        "Units sold",
+        "Price ($)",
+        "Cost per unit ($)"
+      ],
+      "rows": [
+        [
+          "Classic",
+          "8,000",
+          "90",
+          "70"
+        ],
+        [
+          "Pro",
+          "3,000",
+          "150",
+          "100"
+        ],
+        [
+          "Basic",
+          "15,000",
+          "40",
+          "33"
+        ]
+      ]
+    },
+    "footnotes": [],
+    "reference_lines": [],
+    "markers": [],
+    "gaps": [],
+    "hollow": [],
+    "notes": []
+  },
+  "input": {
+    "type": "free_text",
+    "max_words": 40
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "key_insight",
+      "question": "Does the answer state the key insight: Basic earns the least profit, about $105,000 (15,000 × $7), despite selling the most units, so it's the line to drop?",
+      "weight": 0.5,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "The takeaway that matters: Basic earns the least profit, about $105,000 (15,000 × $7), despite selling the most units, so it's the line to drop.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_number",
+      "question": "Does the answer state a specific figure that the chart shows or that follows from it?",
+      "weight": 0.25,
+      "fail_tag": "M.unsupported_claim",
+      "feedback": "Back the takeaway with a number from the chart.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "tied_to_question",
+      "question": "Does the answer say what the insight means for the question the client asked?",
+      "weight": 0.25,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "Say what the takeaway means for the client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "contradicts_chart",
+      "definition": "The answer states something the chart shows to be false.",
+      "cap": 0.3,
+      "tag": "M.misread_trend",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "Basic is the line to drop: its 15,000 blenders earn only $7 each, about $105,000, against $160,000 for Classic and $150,000 for Pro.",
+  "defend": {
+    "type": "justify",
+    "text": "What does this mean for the client's decision?",
+    "checks": [
+      {
+        "check_id": "defend_implication",
+        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes?",
+        "weight": 0.4,
+        "fail_tag": "M.no_implication",
+        "feedback": "Say what the takeaway means for the client's decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_objective",
+        "question": "Is the implication tied to the client's objective as the question states it?",
+        "weight": 0.35,
+        "fail_tag": "M.implication_off_objective",
+        "feedback": "Tie the implication to what the client is trying to achieve.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own takeaway?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own takeaway.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Drop Basic and give its factory time to Classic and Pro, which earn $20 and $50 a unit; first check whether Basic's buyers would switch to Classic or leave the brand."
+  },
+  "explanation": "The takeaway that matters: Basic earns the least profit, about $105,000 (15,000 × $7), despite selling the most units, so it's the line to drop. Figures: Classic profit $160,000 (8,000 × $20); Pro profit $150,000 (3,000 × $50); Basic profit $105,000 (15,000 × $7); Basic sells the most units, 15,000; Profit per unit: Classic $20, Pro $50, Basic $7.",
+  "extras": {
+    "key_insight": "Basic earns the least profit, about $105,000 (15,000 × $7), despite selling the most units, so it's the line to drop",
+    "chart_figures": [
+      "Classic profit $160,000 (8,000 × $20)",
+      "Pro profit $150,000 (3,000 × $50)",
+      "Basic profit $105,000 (15,000 × $7)",
+      "Basic sells the most units, 15,000",
+      "Profit per unit: Classic $20, Pro $50, Basic $7"
+    ],
+    "grading_rules": [
+      "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",
+      "Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure (\"most\", \"a big drop\") fail, and so does a wrong figure.",
+      "Client's question: the answer says what the insight means for the question the client asked (\"so $12 is the price that maximizes revenue\", \"so labor, not rent, explains the margin fall\"). Describing the chart with no link to the question fails.",
+      "Contradicts the chart (red flag): the answer states something the chart shows to be false: a trend in the wrong direction, the wrong largest or smallest item, or a figure off by more than the margins above. A claim the chart doesn't address is not a contradiction.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending",
+    "similarity_note": null,
+    "similarity_checked_at": null,
+    "similarity_method": null
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}
