@@ -1,0 +1,2 @@
+item_id,tag,hint,fix
+EXAMPLE-ex5-01,M.trivial_takeaway,"it picks the price with the most subscribers, not the most revenue","names the price that brings in the most revenue, $12, with price × subscribers"

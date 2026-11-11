@@ -24,7 +24,7 @@ for (const file of fs.readdirSync(dir).filter(f => f.endsWith('.csv'))) {
 }
 // Repair items are derived from the authored Level 1 items on disk.
 const sources = new Map<string, Item>();
-for (const drill of ['PS-1', 'HY-1', 'SY-1']) {
+for (const drill of ['PS-1', 'HY-1', 'SY-1', 'EX-1']) {
   const folder = path.join('drill-items', drill);
   for (const f of fs.existsSync(folder) ? fs.readdirSync(folder).filter(f => f.endsWith('.json')) : []) {
     const item = ItemSchema.parse(JSON.parse(fs.readFileSync(path.join(folder, f), 'utf-8')));

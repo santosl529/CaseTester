@@ -5,7 +5,7 @@
 // "<id>+defend"). QN-5 and the code-settled checks are covered by
 // tests/drills/model-answers.test.ts.
 //
-//   npm run drills:models                 PS-3, HY-2, SY-2, CL-3, PS-4, HY-3 and SY-3
+//   npm run drills:models                 PS-3, HY-2, SY-2, CL-3, PS-4, HY-3, SY-3, EX-4, EX-5 and CL-4
 //   npm run drills:models -- --drill PS-3 one drill
 //   npm run drills:models -- --runs 3     grade each three times, report scores that change
 //   npm run drills:models -- --d5         only the Repair drills and the follow-ups
@@ -20,7 +20,7 @@ import { modelAnswerSteps } from '@/lib/drills/model-answers';
 import { withDefend } from '@/lib/drills/defend';
 import { scoreStep, type StepResult } from '@/lib/drills/sets/scoring';
 
-const AI_DRILLS = ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'PS-4', 'HY-3', 'SY-3'];
+const AI_DRILLS = ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'PS-4', 'HY-3', 'SY-3', 'EX-4', 'EX-5', 'CL-4'];
 // Answers sent at once. Each is still graded in its own call, as in a drill set.
 const BATCH = 4;
 const only = process.argv.includes('--drill') ? process.argv[process.argv.indexOf('--drill') + 1] : null;
@@ -32,7 +32,7 @@ const items: Item[] = (only ? [only] : AI_DRILLS).flatMap(d => {
   return fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.json')).sort()
     .map(f => ItemSchema.parse(JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8'))))
     .flatMap(item => (item.defend ? [item, { ...withDefend(item), item_id: `${item.item_id}+defend` }] : [item])) : [];
-}).filter(i => !D5_ONLY || ['PS-4', 'HY-3', 'SY-3'].includes(i.drill_id) || i.item_id.endsWith('+defend'));
+}).filter(i => !D5_ONLY || ['PS-4', 'HY-3', 'SY-3', 'EX-5'].includes(i.drill_id) || i.item_id.endsWith('+defend'));
 
 const steps = (item: Item): StepResult[] => {
   const out: StepResult[] = [];

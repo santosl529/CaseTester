@@ -25,7 +25,7 @@ import { getDrill } from '@/lib/drills/config';
 const TEMPLATES = path.join(process.cwd(), 'docs/drills-content-templates');
 const tables = (): Tables => Object.fromEntries(fs.readdirSync(TEMPLATES).filter(f => f.endsWith('.csv'))
   .map(f => [path.basename(f, '.csv'), parseCsv(fs.readFileSync(path.join(TEMPLATES, f), 'utf-8'))]));
-const sources = new Map(loadAuthoredItems().filter(i => ['PS-1', 'HY-1', 'SY-1'].includes(i.drill_id)).map(i => [i.item_id, i]));
+const sources = new Map(loadAuthoredItems().filter(i => ['PS-1', 'HY-1', 'SY-1', 'EX-1'].includes(i.drill_id)).map(i => [i.item_id, i]));
 const imported = importContent(tables(), { includeExamples: true, sources });
 const byId = (id: string) => imported.items.find(i => i.item_id === id)!;
 

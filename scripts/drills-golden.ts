@@ -101,9 +101,11 @@ async function main() {
           v[`red flag ${id}`] = machine;
           count(drill, `red flag ${id}`, machine === human, `${g.answer_id} red flag ${id}: human ${human ? 'Y' : 'N'}, grader ${machine ? 'Y' : 'N'}`);
         }
-        if (drill === 'HY-2' && g.family) v.family = grade.family;
-        if (drill === 'HY-2' && g.family) {
-          count(drill, 'hypothesis family', (grade.family ?? 'other').toLowerCase() === g.family.toLowerCase(), `${g.answer_id} family: human ${g.family}, grader ${grade.family}`);
+        // HY-2's hypothesis family and CL-4's step family (gated too: the
+        // decision's grade depends on it).
+        if ((drill === 'HY-2' || drill === 'CL-4') && g.family) {
+          v.family = grade.family;
+          count(drill, drill === 'CL-4' ? 'step family' : 'hypothesis family', (grade.family ?? 'other').toLowerCase() === g.family.toLowerCase(), `${g.answer_id} family: human ${g.family}, grader ${grade.family}`);
         }
       }
     }

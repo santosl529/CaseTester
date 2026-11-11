@@ -15,7 +15,7 @@ const TEMPLATES = path.join(process.cwd(), 'docs/drills-content-templates');
 const tables = (): Tables => Object.fromEntries(fs.readdirSync(TEMPLATES).filter(f => f.endsWith('.csv'))
   .map(f => [path.basename(f, '.csv'), parseCsv(fs.readFileSync(path.join(TEMPLATES, f), 'utf-8'))]));
 // D5's Repair rows are derived from authored Level 1 items.
-const sources = new Map(loadAuthoredItems().filter(i => ['PS-1', 'HY-1', 'SY-1'].includes(i.drill_id)).map(i => [i.item_id, i]));
+const sources = new Map(loadAuthoredItems().filter(i => ['PS-1', 'HY-1', 'SY-1', 'EX-1'].includes(i.drill_id)).map(i => [i.item_id, i]));
 const imported = importContent(tables(), { includeExamples: true, sources });
 const item = (drill: string) => imported.items.find(i => i.drill_id === drill)!;
 
@@ -28,9 +28,9 @@ describe('content import (docs/drills-content-templates)', () => {
 
   it('turns the template examples into valid items and graded answers', () => {
     expect(imported.problems).toEqual([]);
-    expect(imported.items.map(i => i.drill_id).sort()).toEqual(['CL-3', 'HY-2', 'HY-3', 'PS-3', 'PS-4', 'QN-5', 'SY-2', 'SY-3']);
+    expect(imported.items.map(i => i.drill_id).sort()).toEqual(['CL-3', 'CL-4', 'EX-4', 'EX-5', 'HY-2', 'HY-3', 'PS-3', 'PS-4', 'QN-5', 'SY-2', 'SY-3']);
     expect(imported.golden.map(g => `${g.drill_id}${g.part === 'defend' ? ' defend' : ''}`).sort())
-      .toEqual(['CL-3', 'HY-2', 'HY-3', 'PS-3', 'PS-3 defend', 'PS-4', 'SY-2', 'SY-2 defend', 'SY-3']);
+      .toEqual(['CL-3', 'CL-4', 'EX-4', 'EX-4 defend', 'EX-5', 'HY-2', 'HY-3', 'PS-3', 'PS-3 defend', 'PS-4', 'SY-2', 'SY-2 defend', 'SY-3']);
     for (const i of imported.items) expect(i.status).toBe('draft');
   });
 

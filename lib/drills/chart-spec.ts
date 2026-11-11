@@ -109,3 +109,23 @@ export function formatValue(value: number, format: ValueFormat): string {
   });
   return `${sign}${format.prefix}${body}${format.suffix}`;
 }
+
+// The chart as plain text, for the grader of written chart answers (EX-4,
+// EX-5): what the student sees, value by value.
+export function chartText(spec: ChartSpec): string {
+  const lines = [`Title: ${spec.title}`, ...(spec.units_label ? [`Units: ${spec.units_label}`] : []), `Chart type: ${spec.type.replace(/_/g, ' ')}`];
+  if (spec.type === 'table' && spec.table) {
+    lines.push(spec.table.columns.join(' | '), ...spec.table.rows.map(r => r.join(' | ')));
+  } else {
+    if (spec.y_axis.label) lines.push(`Left axis: ${spec.y_axis.label}`);
+    if (spec.y2_axis?.label) lines.push(`Right axis: ${spec.y2_axis.label}`);
+    for (const s of spec.series) {
+      const format = s.axis === 'right' && spec.y2_axis ? spec.y2_axis.format : spec.y_axis.format;
+      const side = spec.type === 'dual_axis' ? ` (${s.axis} axis)` : '';
+      lines.push(`${s.name}${side}: ${spec.categories.map((c, i) => `${c} ${formatValue(s.values[i], format)}`).join('; ')}`);
+    }
+    if (spec.type === 'waterfall' && spec.totals.length) lines.push(`Totals drawn from zero: ${spec.totals.map(i => spec.categories[i]).join(', ')}; the other bars are steps from the running total.`);
+  }
+  for (const f of spec.footnotes) lines.push(`Footnote: ${f}`);
+  return lines.join('\n');
+}

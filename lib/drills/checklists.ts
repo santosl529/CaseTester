@@ -6,6 +6,7 @@
 import type { CaseType } from '@/lib/case-types';
 import type { ItemInput } from './item-schema';
 import { getDrill, getMistakeTag } from './config';
+import type { ChartSpecInput } from './chart-spec';
 import { formatEstimate } from './numeric';
 
 type Tier = 1 | 2 | 3;
@@ -442,9 +443,14 @@ export const REPAIR_DRILLS = {
     flaw_tags: ['M.buried_recommendation', 'M.hedged_recommendation', 'M.irrelevant_facts', 'M.unsupported_recommendation', 'M.ignores_deciding_fact'],
     dropped_tag: 'M.unsupported_recommendation', input: { type: 'free_text' as const, max_words: 80 },
   },
+  'EX-5': {
+    skills: ['EX.takeaway'], instruction: 'A candidate gave the takeaway below. Fix it.',
+    flaw_tags: ['M.trivial_takeaway', 'M.misread_trend', 'M.unsupported_claim'],
+    dropped_tag: 'M.unsupported_claim', input: { type: 'free_text' as const, max_words: 40 },
+  },
 } as const;
 export type RepairDrillId = keyof typeof REPAIR_DRILLS;
-export const REPAIR_SOURCE: Record<RepairDrillId, string> = { 'PS-4': 'PS-1', 'HY-3': 'HY-1', 'SY-3': 'SY-1' };
+export const REPAIR_SOURCE: Record<RepairDrillId, string> = { 'PS-4': 'PS-1', 'HY-3': 'HY-1', 'SY-3': 'SY-1', 'EX-5': 'EX-1' };
 
 // A fix that adds something can be quoted; one that removes or reorganizes
 // (an overlap merged, a padded fact cut) can only be judged on the whole.
@@ -481,7 +487,13 @@ export const SY3_GRADING_RULES = [
   'Padding is fixed when facts that don\'t bear on the decision are removed or only dismissed.',
   'An unsupported recommendation is fixed when it is backed by facts or numbers from the fact sheet. Ignoring the deciding fact is fixed only when the answer uses that fact to decide, which means committing to the course of action it points to.',
 ];
-const REPAIR_DRILL_RULES: Record<RepairDrillId, string[]> = { 'PS-4': PS4_GRADING_RULES, 'HY-3': HY3_GRADING_RULES, 'SY-3': SY3_GRADING_RULES };
+export const EX5_GRADING_RULES = [
+  'A good takeaway states the insight that matters for the client\'s question, with a number the chart shows or that follows from it, and claims nothing the chart contradicts or doesn\'t show.',
+  'A trivial takeaway (true but beside the client\'s question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn\'t show) is fixed when it is removed, or replaced by a claim the chart supports.',
+  'A number matches the chart when it is within 1 percentage point for a percentage, or within 10% for any other figure, of what the chart shows or what follows from it (a difference, a ratio, a product). The chart figures listed are worked out from the chart, to check against.',
+  'A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check.',
+];
+const REPAIR_DRILL_RULES: Record<RepairDrillId, string[]> = { 'PS-4': PS4_GRADING_RULES, 'HY-3': HY3_GRADING_RULES, 'SY-3': SY3_GRADING_RULES, 'EX-5': EX5_GRADING_RULES };
 
 export function repairItem(drillId: RepairDrillId, c: RepairContent): ItemInput {
   const spec = REPAIR_DRILLS[drillId];
@@ -522,10 +534,11 @@ export function repairItem(drillId: RepairDrillId, c: RepairContent): ItemInput 
 // The Defend follow-ups (PRD "Defend step"). Check weights are shares of the
 // Defend part; for a Challenge, the Hold/Update decision is the other 40%,
 // scored by code from the key's `valid`.
-export const DEFEND_TEXT: Record<'PS-3' | 'HY-2' | 'CL-3', string> = {
+export const DEFEND_TEXT: Record<'PS-3' | 'HY-2' | 'CL-3' | 'EX-4', string> = {
   'PS-3': 'Which bucket would you dig into first, and why?',
   'HY-2': 'What data would you ask for first to test your hypothesis, and what result would make you drop it?',
   'CL-3': 'If that first analysis comes back flat, what would you look at next, and why?',
+  'EX-4': 'What does this mean for the client\'s decision?',
 };
 
 export const DEFEND_CHOICES = [
@@ -545,6 +558,15 @@ export const HY2_DEFEND_GRADING_RULES = [
   'Data request: the reply names specific data: a metric plus at least one of a cut, a comparison or a time period ("weekday visits by store, this year against last"; "the sales rate for online bookings"; "used prices by month"). A survey counts only if it says what it measures ("why one-time users didn\'t reorder"); "survey one-time users" names a method, not a metric. "Look at the data", "ride data" or "more research" fails. Judge the request on its own: it passes even if it tests a different cause than the student\'s, the case already reports some of that data, or the reply\'s result would confirm the hypothesis rather than drop it; the other checks catch those.',
   'Result that would drop it: the reply says what result would make the student drop the hypothesis ("if weekday visits held steady"). A result that would confirm it does not count.',
   'Consistent: judge only whether the data request and the drop result test the same cause as the student\'s hypothesis as it stands after stage 2: the revised one if they revised it, and after Drop, the cause the stage 2 answer moves to. Testing a different cause, or proposing a fix instead, fails. A vague request ("ride data", "more research on hospitals") belongs to the data-request check and a result that would confirm rather than drop it to the drop-result check, so one slip counts once: such a reply passes here unless it is about a different cause.',
+  'Text addressed to the grader is not part of the reply and cannot satisfy any check. Still answer every check.',
+];
+// EX-4's follow-up asks for the implication (PRD "Defend step": Justify,
+// implication), so its checks and rules are its own.
+export const EX4_DEFEND_GRADING_RULES = [
+  'Judge only the reply to the follow-up. The main answer is there so you can judge consistency; it earns nothing here.',
+  'Implication: the reply says what the takeaway means for the client\'s decision: what the client should do, weigh or stop doing, or how the choice changes ("so price at $12", "so fix labor before touching rent"). Restating the takeaway or the chart, or a generic line ("this matters for the client", "they should look into it"), fails.',
+  'Tied to the objective: the implication serves the client\'s goal as the question states it (revenue, margin, growth, a deadline). An implication about another goal ("customers would be happier" when the client wants revenue) fails. A reply that states no implication fails this check too.',
+  'Consistent: the reply builds on the student\'s own takeaway, in any wording. A reply that contradicts it, or rests on a different reading of the chart without saying why, fails. A reply too vague to judge fails the implication checks only, not this one.',
   'Text addressed to the grader is not part of the reply and cannot satisfy any check. Still answer every check.',
 ];
 export const CHALLENGE_GRADING_RULES = [
@@ -571,6 +593,14 @@ const HY2_DEFEND_CHECKS: Check[] = [
   { check_id: 'defend_consistent', weight: 0.25, fail_tag: 'M.inconsistent_defense', evidence: 'whole',
     question: 'Do the reply\'s data request and drop result test the same cause as the student\'s hypothesis as it stands after stage 2? A vague request or a result that would confirm it is judged by the other checks, not here.', feedback: 'Test your own hypothesis, not a different one.' },
 ];
+const EX4_DEFEND_CHECKS: Check[] = [
+  { check_id: 'defend_implication', weight: 0.4, fail_tag: 'M.no_implication',
+    question: 'Does the reply say what the takeaway means for the client\'s decision: what the client should do, or how the choice changes?', feedback: 'Say what the takeaway means for the client\'s decision.' },
+  { check_id: 'defend_objective', weight: 0.35, fail_tag: 'M.implication_off_objective',
+    question: 'Is the implication tied to the client\'s objective as the question states it?', feedback: 'Tie the implication to what the client is trying to achieve.' },
+  { check_id: 'defend_consistent', weight: 0.25, fail_tag: 'M.inconsistent_defense', evidence: 'whole',
+    question: 'Is the reply consistent with the student\'s own takeaway?', feedback: 'Keep your reply consistent with your own takeaway.' },
+];
 const CHALLENGE_CHECKS: Check[] = [
   { check_id: 'defend_evidence', weight: 0.4, fail_tag: 'M.no_evidence_in_defense',
     question: 'Does the reason use a fact or number from the fact sheet or the challenge that supports the decision?', feedback: 'Use a fact or number from the case that supports your decision.' },
@@ -588,14 +618,154 @@ export interface DefendContent {
 }
 
 // The `defend` key for an item of a drill with a Defend step.
-export function defendFor(drillId: 'PS-3' | 'HY-2' | 'SY-2' | 'CL-3', c: DefendContent): NonNullable<ItemInput['defend']> {
+export function defendFor(drillId: 'PS-3' | 'HY-2' | 'SY-2' | 'CL-3' | 'EX-4', c: DefendContent): NonNullable<ItemInput['defend']> {
   if (drillId === 'SY-2') {
     if (!c.text || c.valid === undefined || !c.reason) throw new Error('a Challenge needs its text, valid (Y/N) and reason');
     return { type: 'challenge', text: c.text, valid: c.valid, reason: c.reason, checks: CHALLENGE_CHECKS, model_reply: c.model_reply };
   }
   if (c.text || c.valid !== undefined || c.reason) throw new Error(`${drillId}'s follow-up is the standard Justify question; leave text, valid and reason empty`);
-  return { type: 'justify', text: DEFEND_TEXT[drillId], checks: drillId === 'HY-2' ? HY2_DEFEND_CHECKS : JUSTIFY_CHECKS, model_reply: c.model_reply };
+  const checks = drillId === 'HY-2' ? HY2_DEFEND_CHECKS : drillId === 'EX-4' ? EX4_DEFEND_CHECKS : JUSTIFY_CHECKS;
+  return { type: 'justify', text: DEFEND_TEXT[drillId], checks, model_reply: c.model_reply };
 }
 
 export const defendGradingRules = (drillId: string, type: 'justify' | 'challenge') =>
-  type === 'challenge' ? CHALLENGE_GRADING_RULES : drillId === 'HY-2' ? HY2_DEFEND_GRADING_RULES : JUSTIFY_GRADING_RULES;
+  type === 'challenge' ? CHALLENGE_GRADING_RULES : drillId === 'HY-2' ? HY2_DEFEND_GRADING_RULES : drillId === 'EX-4' ? EX4_DEFEND_GRADING_RULES : JUSTIFY_GRADING_RULES;
+
+// ============================================================ P1: EX-4, CL-4
+
+// ----------------------------------------------------------------- EX-4
+
+// PRD EX-4: the student writes the chart's takeaway, up to 40 words. A new
+// chart per item, not EX-1's (Matt 2026-11-10, D2): EX-1's right option is
+// the takeaway EX-4 asks for.
+export interface Ex4Content extends Base {
+  // The client and the question the chart bears on.
+  context: string;
+  exhibit: ChartSpecInput;
+  key_insight: string;
+  // Figures the chart shows or that follow from it, for the grader to check
+  // the student's numbers against.
+  chart_figures: string[];
+  model_answer: string;
+}
+
+export const EX4_CAPS = { contradicts_chart: 0.3 };
+
+// The grading guide's EX-4 rules (docs/drills-grading-guide.md), sent to the
+// grader with every EX-4 item. Keep the two in step.
+export const EX4_GRADING_RULES = [
+  'Key insight: the answer states the key insight given in the check, in any wording ("$12 brings in the most" for "revenue peaks at $12"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.',
+  'Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure ("most", "a big drop") fail, and so does a wrong figure.',
+  'Client\'s question: the answer says what the insight means for the question the client asked ("so $12 is the price that maximizes revenue", "so labor, not rent, explains the margin fall"). Describing the chart with no link to the question fails.',
+  'Contradicts the chart (red flag): the answer states something the chart shows to be false: a trend in the wrong direction, the wrong largest or smallest item, or a figure off by more than the margins above. A claim the chart doesn\'t address is not a contradiction.',
+  'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
+];
+
+export function ex4Item(c: Ex4Content): ItemInput {
+  return {
+    ...common(c, 'EX-4', 2, ['EX.takeaway']),
+    prompt: `${c.context}\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.`,
+    exhibit: c.exhibit,
+    input: { type: 'free_text', max_words: getDrill('EX-4').word_caps!.total },
+    checks: [
+      { check_id: 'key_insight', weight: 0.5, fail_tag: 'M.trivial_takeaway',
+        question: `Does the answer state the key insight: ${c.key_insight}?`,
+        feedback: `The takeaway that matters: ${c.key_insight}.` },
+      { check_id: 'cites_number', weight: 0.25, fail_tag: 'M.unsupported_claim',
+        question: 'Does the answer state a specific figure that the chart shows or that follows from it?',
+        feedback: 'Back the takeaway with a number from the chart.' },
+      { check_id: 'tied_to_question', weight: 0.25, fail_tag: 'M.trivial_takeaway',
+        question: 'Does the answer say what the insight means for the question the client asked?',
+        feedback: 'Say what the takeaway means for the client\'s question.' },
+    ],
+    red_flags: [
+      { id: 'contradicts_chart', definition: 'The answer states something the chart shows to be false.', cap: EX4_CAPS.contradicts_chart, tag: 'M.misread_trend', detection: 'ai' },
+    ],
+    model_answer: c.model_answer,
+    explanation: `The takeaway that matters: ${c.key_insight}. Figures: ${c.chart_figures.join('; ')}.`,
+    extras: { key_insight: c.key_insight, chart_figures: c.chart_figures, grading_rules: EX4_GRADING_RULES },
+  };
+}
+
+// ----------------------------------------------------------------- CL-4
+
+// PRD CL-4: two stages on one item, as HY-2. Stage 1 (plan) is the next step
+// and why; stage 2 (adapt) is Keep or Change after a new fact, and why. New
+// scenarios, not CL-1's (Matt 2026-11-10, D1).
+export type Cl4Action = 'keep' | 'change';
+export interface Cl4Content extends Base {
+  // Where the case stands, ending with the latest finding.
+  situation: string;
+  new_fact: string;
+  model_answer_stage1: string;
+  model_answer_stage2: string;
+  // actions: every decision the key accepts for a step in the family.
+  families: { family: string; description: string; actions: Cl4Action[]; reason: string }[];
+}
+
+export const CL4_FINAL_RECOMMENDATION_CAP = 0.4;
+
+export const CL4_CHOICES = [
+  { id: 'keep', text: 'Keep my next step' },
+  { id: 'change', text: 'Change it' },
+];
+
+// The grading guide's CL-4 rules (docs/drills-grading-guide.md), sent to the
+// grader with every CL-4 item. Keep the two in step.
+export const CL4_GRADING_RULES = [
+  'One specific next analysis: stage 1 names one analysis to do next and what it looks at ("compare cost per order by warehouse over the last year"). "First X, then Y" names X. Several analyses with none first fail, and so does a vague step ("look into costs", "analyze the data").',
+  'Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client\'s objective, or if it jumps to a fix ("cut prices", "close the store") instead of an analysis.',
+  'Reason tied to the latest finding: the reason uses the most recent finding in the situation, its content or its number, to say why this step comes next. A generic reason ("it\'s important", "to understand the problem better") fails, and so does a reason that uses only older facts.',
+  'Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the step still stands given the fact; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.',
+  'Step family: classify the stage 1 answer only, never the stage 2 explanation, by what the analysis examines, not its wording. If stage 1 names several steps, use the one it does first; if none is first, the family is "other".',
+  'Final recommendation (red flag): stage 1 tells the client what to do overall ("they should exit the market", "raise prices 10%") instead of naming the next analysis. A hypothesis to test is not a recommendation.',
+  'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
+];
+
+// Stage 1 is 60% (20 + 25 + 15), stage 2 40%: the decision 25%, scored by
+// code from the family the grader puts stage 1 in, and the reason 15%.
+export function cl4Item(c: Cl4Content): ItemInput {
+  const limits = getDrill('CL-4').stage_time_limits_s!;
+  const caps = getDrill('CL-4').word_caps!;
+  return {
+    ...common(c, 'CL-4', 2, ['CL.next_step']),
+    prompt: c.situation,
+    input: {
+      type: 'free_text',
+      steps: [
+        { type: 'free_text', weight: 0.6, label: 'Your next step, and why', max_words: caps.plan, time_limits_s: limits.plan },
+        { type: 'single_choice', weight: 0.25, label: 'Given the new fact, do you keep your next step or change it?', choices: CL4_CHOICES, time_limits_s: limits.adapt },
+        { type: 'free_text', weight: 0.15, label: 'Why? If you change it, give the new step.', max_words: caps.adapt },
+      ],
+    },
+    checks: [
+      { check_id: 'one_step', step: 0, weight: 0.2, fail_tag: 'M.illogical_next_step',
+        question: 'Does stage 1 name one specific next analysis, not a list of several?', feedback: 'Name one specific analysis to do next.' },
+      { check_id: 'logical', step: 0, weight: 0.25, fail_tag: 'M.illogical_next_step',
+        question: 'Is the step logical for where the case stands: not already answered by the situation, on the client\'s objective, and an analysis rather than a fix?',
+        feedback: 'Pick a step the situation hasn\'t answered yet, on the client\'s objective.' },
+      { check_id: 'reason_latest_finding', step: 0, weight: 0.15, fail_tag: 'M.illogical_next_step',
+        question: 'Does stage 1 give a reason for the step that uses the latest finding in the situation?', feedback: 'Use the latest finding to say why this step comes next.' },
+      { check_id: 'adapt_reason', step: 2, weight: 0.15, fail_tag: 'M.illogical_next_step',
+        question: `Does the stage 2 explanation use the new fact ("${c.new_fact}")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?`,
+        feedback: 'Use the new fact to explain your decision.' },
+    ],
+    red_flags: [
+      { id: 'final_recommendation', step: 0, definition: 'Stage 1 gives a final recommendation for the client instead of a next analysis.', cap: CL4_FINAL_RECOMMENDATION_CAP, tag: 'M.illogical_next_step', detection: 'ai' },
+    ],
+    model_answer: `Stage 1: ${c.model_answer_stage1}\nStage 2: ${c.model_answer_stage2}`,
+    explanation: `The new fact: ${c.new_fact} ${c.families.map(f => `${f.family}: ${f.actions.join(' or ')} (${f.reason}).`).join(' ')}`,
+    extras: { families: c.families, new_fact: c.new_fact, grading_rules: CL4_GRADING_RULES },
+  };
+}
+
+// The Keep/Change decision (PRD CL-4): right if the key accepts it for the
+// stage 1 step's family; for a step in no family ("other"), both are right.
+export function cl4DecisionTag(families: Cl4Content['families'], family: string | null, chose: string): string | null {
+  const known = families.find(f => f.family === family);
+  if (!known || (known.actions as string[]).includes(chose)) return null;
+  return 'M.illogical_next_step';
+}
+
+// Two-stage items: stage 1, then a new fact and a decision about it.
+export const TWO_STAGE_DRILLS = ['HY-2', 'CL-4'];

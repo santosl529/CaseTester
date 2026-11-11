@@ -12,6 +12,7 @@ import { DRILL_GRADER_MODELS, assertDrillGraderModel, drillGraderModel, type Gra
 import { DRILLS_CONFIG, getDrill, getMistakeTag } from '../config';
 import type { Item, RepairExtras } from '../item-schema';
 import { REPAIR_DRILLS, defendGradingRules, type RepairDrillId } from '../checklists';
+import { chartText } from '../chart-spec';
 import { defendParts } from '../defend';
 import { answerText, itemSteps, writtenLimitProblem, type StepResult } from '../sets/scoring';
 import type { ItemGrade } from './apply';
@@ -39,7 +40,10 @@ import type { ItemGrade } from './apply';
 // moves to, and has both HY-2 follow-up calls write a reason before each
 // verdict. v33 routes the HY-2 follow-up's two calls to Sonnet 5.5 (rules in
 // its cached system prompt); every other call stays on Haiku 4.5 as in v32.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v34';
+// v35 adds the next-7 priority 1 drills: EX-4 and EX-5 show the grader the
+// chart as text, CL-4 classifies next-step families (NEXT_STEP_SYSTEM). Every
+// other drill's calls are byte-for-byte as in v34.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v35';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -105,6 +109,11 @@ For each check, write "reason" first: one or two sentences on what the reply doe
 const DEFEND_DATA_SYSTEM = `
 
 Follow-up data request: the student replied to an interviewer's follow-up, in <student_answer> tags. You see only the follow-up and the reply, because this check is judged on the reply alone. Evidence quotes come from the reply.`;
+// CL-4 (P1): its families are next-step families. Added only to CL-4's
+// calls, so every other drill's prompt stays as its gate passed.
+const NEXT_STEP_SYSTEM = `
+
+Next-step items: the item lists next-step families in <step_families>. Set "hypothesis_family" to the family the stage 1 next step belongs to, or "other" if it fits none; it is never null. Set "backup_family" to null.`;
 export const HY2_DATA_CHECK = 'defend_data_request';
 export type CallKind = 'standard' | 'repair' | 'reasoned';
 
@@ -139,11 +148,14 @@ export function buildItemBlock(e: GradingEntry): string {
   const aiChecks = item.checks.filter(c => c.detection === 'ai' && c.step < main);
   const aiFlags = item.red_flags.filter(f => f.detection === 'ai');
   const parts = [`<item key="${e.key}">`, `<drill>${drill.id} ${drill.name}</drill>`, `<question>${item.prompt}</question>`];
-  if (item.drill_id === 'HY-2') {
-    const families = item.extras.families as { family: string; description: string }[];
+  if (item.drill_id === 'HY-2' || item.drill_id === 'CL-4') {
     parts.push(`<new_fact_shown_in_stage_2>${item.extras.new_fact}</new_fact_shown_in_stage_2>`);
-    parts.push(`<hypothesis_families>\n${families.map(f => `- ${f.family}: ${f.description}`).join('\n')}\n</hypothesis_families>`);
+    parts.push(familiesBlock(item));
   }
+  // EX-4, EX-5: the chart the student wrote about, and figures worked out from it.
+  if (item.exhibit) parts.push(`<chart>\n${chartText(item.exhibit)}\n</chart>`);
+  const chartFigures = item.extras.chart_figures as string[] | undefined;
+  if (chartFigures?.length) parts.push(`<chart_figures>\nFigures read or worked out from the chart. Use them only to check the numbers the answer states; a correct figure not listed here still counts.\n${chartFigures.map(f => `- ${f}`).join('\n')}\n</chart_figures>`);
   if (drill.stage === 'repair') {
     parts.push(`<original_answer>\n${(item.extras as RepairExtras).flawed_answer}\n</original_answer>`);
     const kinds = REPAIR_DRILLS[item.drill_id as RepairDrillId].flaw_tags;
@@ -170,6 +182,14 @@ export function buildItemBlock(e: GradingEntry): string {
   return parts.join('\n');
 }
 
+// HY-2's hypothesis families, CL-4's next-step families.
+function familiesBlock(item: Item): string {
+  const families = item.extras.families as { family: string; description: string }[];
+  const tag = item.drill_id === 'CL-4' ? 'step_families' : 'hypothesis_families';
+  return `<${tag}>\n${families.map(f => `- ${f.family}: ${f.description}`).join('\n')}\n</${tag}>`;
+}
+const familySystem = (item: Item) => (item.drill_id === 'CL-4' ? SYSTEM + NEXT_STEP_SYSTEM : SYSTEM);
+
 // The Defend call (PRD "Defend step"): its own call per reply, with the item
 // prompt, the student's main answer and reply as delimited data, the
 // follow-up and its checks.
@@ -193,6 +213,7 @@ export function buildDefendBlock(e: GradingEntry): string {
   const parts = [
     '<item key="answer">', `<drill>${drill.id} ${drill.name}</drill>`, `<question>${item.prompt}</question>`,
     ...(item.drill_id === 'HY-2' ? [`<new_fact_shown_in_stage_2>${item.extras.new_fact}</new_fact_shown_in_stage_2>`] : []),
+    ...(item.exhibit ? [`<chart>\n${chartText(item.exhibit)}\n</chart>`] : []),
     `<grading_rules>\n${rules.map(r => `- ${r}`).join('\n')}\n</grading_rules>`,
     `<checks>\n${checks.map(c => `- check_id "${c.check_id}"${c.evidence === 'whole' ? ' [judges the whole answer]' : ''}: ${c.question}`).join('\n')}\n</checks>`,
     '<red_flags>\n(none)\n</red_flags>',
@@ -232,13 +253,12 @@ export function buildDefendDataBlock(e: GradingEntry): string {
 // answer. The grader never sees stage 2 or the new fact here, so a correct
 // revision can't pull stage 1 into the family the student revised to.
 export function buildFamilyBlock(e: GradingEntry): string {
-  const families = e.item.extras.families as { family: string; description: string }[];
   return [
     '<item key="answer">',
     `<question>${e.item.prompt}</question>`,
     ...((e.item.extras.grading_rules as string[] | undefined)?.length ? [`<grading_rules>\n${(e.item.extras.grading_rules as string[]).map(r => `- ${r}`).join('\n')}\n</grading_rules>`] : []),
-    `<hypothesis_families>\n${families.map(f => `- ${f.family}: ${f.description}`).join('\n')}\n</hypothesis_families>`,
-    '<checks>\n(none: only classify the hypothesis)\n</checks>',
+    familiesBlock(e.item),
+    `<checks>\n(none: only classify the ${e.item.drill_id === 'CL-4' ? 'next step' : 'hypothesis'})\n</checks>`,
     '<red_flags>\n(none)\n</red_flags>',
     `<student_answer stage="1">\n${fence(answerText(e.steps[0]?.response ?? { type: 'empty' })) || '(blank)'}\n</student_answer>`,
     '</item>',
@@ -495,7 +515,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
     const d = defendParts(e.item);
     const repair = getDrill(e.item.drill_id).stage === 'repair';
     const main: Part = {
-      slot: 'main', system: repair ? SYSTEM + REPAIR_SYSTEM : SYSTEM, block: buildItemBlock, kind: repair ? 'repair' : 'standard',
+      slot: 'main', system: repair ? SYSTEM + REPAIR_SYSTEM : familySystem(e.item), block: buildItemBlock, kind: repair ? 'repair' : 'standard',
       inPart: step => !d || step < d.start, owns: c => !d || c.step < d.start, model: drillGraderModel(),
     };
     const replied = d && answerText(e.steps[d.reply]?.response ?? { type: 'empty' });
@@ -565,7 +585,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
   // buildFamilyBlock). If it fails twice, the main call's family is used.
   const classify = async (e: GradingEntry) => {
     const model = drillGraderModel();
-    const { system, user } = DRILL_GRADER_MODELS[model].rulesInSystem ? splitRules(SYSTEM, buildFamilyBlock(e)) : { system: SYSTEM, user: buildFamilyBlock(e) };
+    const { system, user } = DRILL_GRADER_MODELS[model].rulesInSystem ? splitRules(familySystem(e.item), buildFamilyBlock(e)) : { system: familySystem(e.item), user: buildFamilyBlock(e) };
     for (let attempt = 0; attempt < 2; attempt++) {
       const sent = await send(e, 'family', model, system, `<items>\n${user}\n</items>`, 'standard', attempt);
       if (sent.kind === 'capped') break;

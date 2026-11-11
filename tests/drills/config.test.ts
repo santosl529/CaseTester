@@ -11,15 +11,15 @@ const raw = () => ({ taxonomy: clone(taxonomyJson), drills: clone(drillsJson), r
 describe('drills config v1 (docs/prd-drills.md)', () => {
   const { taxonomy, drills } = DRILLS_CONFIG;
 
-  it('matches the PRD counts: 9 areas, 29 skills, 67 tags, 29 drills (CL-4 not yet configured)', () => {
+  it('matches the PRD counts: 9 areas, 29 skills, 67 tags, 30 drills', () => {
     expect(taxonomy.areas).toHaveLength(9);
     expect(taxonomy.skills).toHaveLength(29);
     expect(taxonomy.mistake_tags).toHaveLength(67);
     expect(taxonomy.system_tags.map(t => t.id).sort()).toEqual(['M.skipped', 'M.timeout']);
-    expect(drills.drills).toHaveLength(29);
+    expect(drills.drills).toHaveLength(30);
     expect(drills.drills.filter(d => d.stage === 'recognize')).toHaveLength(13);
     expect(drills.drills.filter(d => d.stage === 'repair').map(d => d.id)).toEqual(['PS-4', 'HY-3', 'EX-5', 'SY-3']);
-    expect(drills.drills.filter(d => d.stage === 'construct')).toHaveLength(12);
+    expect(drills.drills.filter(d => d.stage === 'construct')).toHaveLength(13);
   });
 
   it('has 18 P0 drills across the six MVP skill areas', () => {
@@ -28,10 +28,10 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     expect(new Set(p0.map(d => d.id.slice(0, 2)))).toEqual(new Set(['PS', 'HY', 'QN', 'EX', 'SY', 'CL']));
   });
 
-  it('scores 17 drills entirely by code, and 9 P0/P1 drills need an AI call', () => {
+  it('scores 17 drills entirely by code, and 11 P0/P1 drills need an AI call', () => {
     expect(drills.drills.filter(d => d.scoring === 'auto')).toHaveLength(17);
     const ai = drills.drills.filter(d => d.scoring !== 'auto' && d.priority !== 'P2').map(d => d.id).sort();
-    expect(ai).toEqual(['CL-3', 'CR-1', 'EX-5', 'HY-2', 'HY-3', 'PS-3', 'PS-4', 'SY-2', 'SY-3']);
+    expect(ai).toEqual(['CL-3', 'CL-4', 'CR-1', 'EX-4', 'EX-5', 'HY-2', 'HY-3', 'PS-3', 'PS-4', 'SY-2', 'SY-3']);
   });
 
   it('turns Defend on and the P0 Repair drills live once D5 passed its gate (Matt, 2026-10-16)', () => {
@@ -39,10 +39,11 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     expect(drills.drills.filter(d => d.stage === 'repair' && d.live).map(d => d.id).sort()).toEqual(['HY-3', 'PS-4', 'SY-3']);
   });
 
-  it('gives PS-3, HY-2, SY-2 and CL-3 a Defend step, one item shorter at T2 and T3 (PRD "Defend step")', () => {
+  it('gives PS-3, HY-2, SY-2, CL-3 and EX-4 a Defend step, one item shorter at T2 and T3 (PRD "Defend step")', () => {
     const defend = Object.fromEntries(drills.drills.filter(d => d.defend).map(d => [d.id, [d.defend!.type, d.set_size, ...d.defend!.set_size]]));
     expect(defend).toEqual({
       'PS-3': ['justify', 4, 4, 3, 3], 'HY-2': ['justify', 4, 4, 3, 3], 'SY-2': ['challenge', 3, 3, 3, 3], 'CL-3': ['justify', 4, 4, 3, 3],
+      'EX-4': ['justify', 6, 6, 5, 5],
     });
   });
 
@@ -52,6 +53,16 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
       'PS.mece': 'PS-4', 'PS.case_specific': 'PS-4', 'PS.depth': 'PS-4', 'HY.form': 'HY-3', 'EX.takeaway': 'EX-5',
       'SY.answer_first': 'SY-3', 'SY.evidence': 'SY-3',
     });
+  });
+
+  it('sets the next-7 priority 1 drills as approved (Matt, 2026-11-10: D8, §7)', () => {
+    const ex4 = drills.drills.find(d => d.id === 'EX-4')!;
+    expect(ex4).toMatchObject({ priority: 'P1', time_limits_s: [90, 75, 60], primary_skills: ['EX.takeaway'], skills: ['EX.takeaway', 'BJ.so_what'] });
+    const cl4 = drills.drills.find(d => d.id === 'CL-4')!;
+    expect(cl4).toMatchObject({ level: 2, stage: 'construct', scoring: 'checklist_auto', set_size: 4, stage_time_limits_s: { plan: [75, 60, 45], adapt: [60, 45, 35] }, word_caps: { plan: 40, adapt: 30 } });
+    expect(drills.drills.find(d => d.id === 'EX-5')!.time_limits_s).toEqual([60, 45, 35]);
+    expect(DRILLS_CONFIG.rules.skill_drills['CL.next_step']).toEqual({ l1: 'CL-1', repair: null, l2: 'CL-4' });
+    expect(DRILLS_CONFIG.rules.skill_drills['EX.takeaway']).toEqual({ l1: 'EX-1', repair: 'EX-5', l2: 'EX-4' });
   });
 
   it('rejects a Repair drill mapped as a Construct drill', () => {
@@ -94,6 +105,7 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     const primary = Object.fromEntries(drills.drills.filter(d => d.primary_skills.length < d.skills.length).map(d => [d.id, d.primary_skills]));
     expect(primary).toEqual({
       'QN-4': ['QN.setup'], 'QN-5': ['QN.sizing_structure', 'QN.assumptions', 'QN.sanity_check'], 'EX-3': ['EX.extraction'],
+      'EX-4': ['EX.takeaway'],
     });
   });
 

@@ -1,0 +1,2 @@
+item_id,derived_from,tier,prompt,flawed_answer,right_parts,model_repair
+EXAMPLE-ex5-01,ex1-0003,1,The client tested four prices for a subscription and wants the one that maximizes revenue.,"$8 is the best price: it attracts the most subscribers, at 100k.",it reads the subscriber count at $8 correctly (100k),"$12 maximizes revenue: 80k subscribers × $12 = $960k, more than $920k at $10 or $800k at $8, where subscribers peak at 100k."

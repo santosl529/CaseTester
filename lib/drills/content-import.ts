@@ -4,10 +4,12 @@
 import { z } from 'zod';
 import { CASE_TYPES, type CaseType } from '@/lib/case-types';
 import {
-  cl3Item, defendFor, hy2Item, ps3Item, qn5Item, repairItem, sy2Item, REPAIR_SOURCE, type Cl3Content, type Hy2Action, type Hy2Content,
+  cl3Item, cl4Item, defendFor, ex4Item, hy2Item, ps3Item, qn5Item, repairItem, sy2Item, REPAIR_SOURCE, type Cl3Content, type Cl4Action, type Cl4Content,
+  type Ex4Content, type Hy2Action, type Hy2Content,
   type Ps3Content, type Qn5Content, type RepairDrillId, type Sy2Content, QN5_CARD_ROLES, type Qn5CardRole,
 } from './checklists';
 import { ItemSchema, type Item } from './item-schema';
+import { ChartTypeSchema, type ChartSpecInput } from './chart-spec';
 import type { StepResponse } from './sets/scoring';
 
 // ------------------------------------------------------------------ CSV
@@ -64,6 +66,33 @@ const num = (v: string, what: string) => {
 };
 
 export type Tables = Record<string, Record<string, string>[]>;
+
+// An EX-4 chart from its CSV columns (docs/drills-content-templates README):
+// categories "a | b | c"; one series per line, "Name: 1 | 2 | 3". A table
+// takes its column headers in categories and one row per line in series.
+const cells = (v: string) => v.split('|').map(x => x.trim());
+const lines = (v: string) => (v ?? '').split(/\n+/).map(l => l.trim()).filter(Boolean);
+export function chartFromColumns(r: Record<string, string>): ChartSpecInput {
+  const type = ChartTypeSchema.parse(r.chart_type.trim().toLowerCase().replace(/[\s-]+/g, '_'));
+  const categories = cells(r.categories);
+  const base = { type, title: r.chart_title, ...(r.units_label && { units_label: r.units_label }), footnotes: lines(r.footnotes) };
+  if (type === 'table') return { ...base, table: { columns: categories, rows: lines(r.series).map(cells) } };
+  if (type === 'dual_axis') throw new Error('EX-4 charts don\'t use dual_axis (that is EX-2\'s trap)');
+  const series = lines(r.series).map(l => {
+    const colon = l.lastIndexOf(':');
+    if (colon === -1) throw new Error(`series line "${l}" needs "Name: values"`);
+    return { name: l.slice(0, colon).trim(), values: cells(l.slice(colon + 1)).map(v => num(v, `a value of ${l.slice(0, colon).trim()}`)) };
+  });
+  const totals = cells(r.totals ?? '').filter(Boolean).map(t => {
+    const i = categories.indexOf(t);
+    if (i === -1) throw new Error(`totals: "${t}" isn't a category`);
+    return i;
+  });
+  return {
+    ...base, categories, series, ...(totals.length && { totals }),
+    y_axis: { ...(r.y_axis_label && { label: r.y_axis_label }), format: { prefix: r.value_prefix ?? '', suffix: r.value_suffix ?? '', decimals: r.decimals ? num(r.decimals, 'decimals') : 0 } },
+  };
+}
 
 export interface ImportResult {
   items: Item[];
@@ -174,9 +203,34 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
     } satisfies Cl3Content);
   });
 
-  // D5 Repair drills: a flawed answer from a Level 1 item, its planted flaws,
-  // what was right and the model repair.
-  for (const [drillId, file] of [['PS-4', 'ps4'], ['HY-3', 'hy3'], ['SY-3', 'sy3']] as const) {
+  // P1 EX-4: a new chart per item (D2), its key insight and the figures the
+  // grader checks numbers against.
+  build('ex4-questions.csv', t['ex4-questions'] ?? [], r => ex4Item({
+    item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: caseTypeOf(r.case_type), context: r.context,
+    exhibit: chartFromColumns(r), key_insight: r.key_insight, chart_figures: splitList(r.chart_figures ?? ''), model_answer: r.model_answer,
+  } satisfies Ex4Content));
+
+  // P1 CL-4: new scenarios (D1), 3–4 next-step families, and a new fact that
+  // supports at least one family (keep) and undercuts at least one (change).
+  build('cl4-questions.csv', t['cl4-questions'] ?? [], r => {
+    const families = rowsFor('cl4-families', r.item_id);
+    if (families.length < 3 || families.length > 4) throw new Error(`needs 3–4 step families in cl4-families.csv, has ${families.length}`);
+    const actions = families.map(f => f.correct_action_after_new_fact.toLowerCase().split('|').map(a => a.trim()));
+    for (const a of actions.flat()) if (!['keep', 'change'].includes(a)) throw new Error(`correct_action_after_new_fact must be keep or change (or keep|change), got "${a}"`);
+    if (!actions.some(a => a.length === 1 && a[0] === 'keep') || !actions.some(a => a.length === 1 && a[0] === 'change')) {
+      throw new Error('the new fact must support at least one family (keep) and undercut at least one (change)');
+    }
+    return cl4Item({
+      item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: caseTypeOf(r.case_type), situation: r.situation, new_fact: r.new_fact,
+      model_answer_stage1: r.model_answer_stage1, model_answer_stage2: r.model_answer_stage2,
+      families: families.map((f, i) => ({ family: f.family, description: f.description, actions: actions[i] as Cl4Action[], reason: f.reason })),
+    } satisfies Cl4Content);
+  });
+
+  // D5 Repair drills (and P1 EX-5): a flawed answer from a Level 1 item, its
+  // planted flaws, what was right and the model repair. EX-5 keeps its EX-1
+  // item's chart in view.
+  for (const [drillId, file] of [['PS-4', 'ps4'], ['HY-3', 'hy3'], ['SY-3', 'sy3'], ['EX-5', 'ex5']] as const) {
     build(`${file}-questions.csv`, t[`${file}-questions`] ?? [], r => {
       const source = o.sources?.get(r.derived_from);
       if (!source) throw new Error(`derived_from ${r.derived_from} isn't an authored item`);
@@ -186,7 +240,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
         item_id: idOf(r.item_id), tier: tierOf(r.tier), case_type: source.case_type ?? caseTypeOf(r.case_type), derived_from: r.derived_from,
         prompt: r.prompt, flawed_answer: r.flawed_answer, flaws, right_parts: r.right_parts, model_repair: r.model_repair,
       });
-      return { ...item, industry: source.industry ?? null };
+      return { ...item, industry: source.industry ?? null, ...(drillId === 'EX-5' && { exhibit: source.exhibit }) };
     });
   }
 
@@ -218,9 +272,9 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
   // above. Justify uses the drill's standard question; a Challenge has its own.
   for (const r of (t['defend'] ?? []).filter(keep(o))) {
     const i = items.findIndex(x => x.item_id === idOf(r.item_id));
-    if (i === -1) { problems.push({ file: 'defend.csv', row: r.item_id, message: 'no such PS-3, HY-2, SY-2 or CL-3 question' }); continue; }
+    if (i === -1) { problems.push({ file: 'defend.csv', row: r.item_id, message: 'no such PS-3, HY-2, SY-2, CL-3 or EX-4 question' }); continue; }
     try {
-      const drill = items[i].drill_id as 'PS-3' | 'HY-2' | 'SY-2' | 'CL-3';
+      const drill = items[i].drill_id as 'PS-3' | 'HY-2' | 'SY-2' | 'CL-3' | 'EX-4';
       const defend = defendFor(drill, {
         text: r.text || undefined, valid: r.valid ? yes(r.valid) : undefined, reason: r.reason || undefined, model_reply: r.model_reply,
       });
@@ -276,7 +330,7 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
   }));
   // Repair: which planted flaws the edit fixed (by number), whether it added a
   // new flaw, whether it kept what was right.
-  for (const file of ['ps4', 'hy3', 'sy3']) {
+  for (const file of ['ps4', 'hy3', 'sy3', 'ex5']) {
     gold(`${file}-graded-answers.csv`, t[`${file}-graded-answers`] ?? [], (r, item) => {
       const fixed = splitList(r.flaws_fixed).map(Number);
       const flaws = (item.extras.flaws as unknown[]).length;
@@ -305,6 +359,24 @@ export function importContent(t: Tables, o: ImportOptions = {}): ImportResult {
         return [c.check_id, yes(v)];
       })),
       red_flags: {}, family: null,
+    };
+  });
+  gold('ex4-graded-answers.csv', t['ex4-graded-answers'] ?? [], r => ({
+    responses: [{ type: 'text', value: r.answer }],
+    labels: { key_insight: yes(r.key_insight), cites_number: yes(r.cites_number), tied_to_question: yes(r.tied_to_question) },
+    red_flags: { contradicts_chart: yes(r.red_flag_contradicts_chart) },
+    family: null,
+  }));
+  gold('cl4-graded-answers.csv', t['cl4-graded-answers'] ?? [], (r, item) => {
+    const action = r.stage2_action.toLowerCase();
+    if (!['keep', 'change'].includes(action)) throw new Error('stage2_action must be keep or change');
+    const family = r.family || 'other';
+    if (family !== 'other' && !(item.extras.families as { family: string }[]).some(f => f.family === family)) throw new Error(`"${family}" isn't one of this question's step families`);
+    return {
+      responses: [{ type: 'text', value: r.stage1_answer }, { type: 'choice', option_id: action }, { type: 'text', value: r.stage2_answer }],
+      labels: { one_step: yes(r.one_step), logical: yes(r.logical), reason_latest_finding: yes(r.reason_latest_finding), adapt_reason: yes(r.adapt_reason) },
+      red_flags: { final_recommendation: yes(r.red_flag_final_recommendation) },
+      family,
     };
   });
   gold('cl3-graded-answers.csv', t['cl3-graded-answers'] ?? [], (r, item) => ({

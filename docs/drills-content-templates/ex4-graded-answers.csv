@@ -1,0 +1,2 @@
+answer_id,item_id,answer_type,answer,key_insight,cites_number,tied_to_question,red_flag_contradicts_chart,notes
+EXAMPLE-ex4-01-a,EXAMPLE-ex4-01,normal,"Ingredients are the biggest cost at 31% of revenue, so the CEO should renegotiate flour prices.",N,Y,Y,N,"Names the biggest cost, not the one that moved (key insight rule); 31% is on the chart; ties it to which cost to tackle."

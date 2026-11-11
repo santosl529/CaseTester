@@ -1,0 +1,2 @@
+answer_id,item_id,answer_type,answer,flaws_fixed,no_new_flaw,keeps_right,notes
+EXAMPLE-ex5-01-a,EXAMPLE-ex5-01,normal,"$12 is best: 80k × $12 = $960k, the most revenue.",1,Y,N,Fixes the trivial takeaway with the revenue math; drops the 100k at $8 (keeps-right rule).
