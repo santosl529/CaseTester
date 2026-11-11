@@ -13,8 +13,8 @@ import { WindowFrame } from '@/components/brand/window';
 // legend that wraps. Layout and sizing only: the data, scales and values are
 // the same in both. The box picks one with a container query.
 interface Layout { width: number; height: number; font: number; small: number; left: number; dualRight: number; labelGap: number; charWidth: number }
-const WIDE: Layout = { width: 640, height: 360, font: 12, small: 11, left: 64, dualRight: 64, labelGap: 44, charWidth: 6.5 };
-const NARROW: Layout = { width: 360, height: 320, font: 13, small: 13, left: 52, dualRight: 48, labelGap: 56, charWidth: 7.2 };
+export const WIDE: Layout = { width: 640, height: 360, font: 12, small: 11, left: 64, dualRight: 64, labelGap: 44, charWidth: 6.5 };
+export const NARROW: Layout = { width: 360, height: 320, font: 13, small: 13, left: 52, dualRight: 48, labelGap: 56, charWidth: 7.2 };
 // CasePace's categorical order (Matt, 7 Nov 2026): Cobalt first, no green
 // (green means progress), the same order in every chart so a category keeps
 // its colour. Validated with the dataviz skill's checker: each at least 3:1
@@ -64,13 +64,53 @@ function makeScale(values: number[], axis: ChartSpec['y_axis'], top: number, bot
   return { lo, hi, ticks, y };
 }
 
-interface Bar { x: number; width: number; from: number; to: number; fill: string; label: string; gap?: boolean }
+// A stacked segment's value sits inside it, as ink on a white chip: no text
+// colour reaches 4.5:1 on every palette colour (orange, teal and amber stay
+// under it in both ink and white). The stack's total sits above the bar.
+interface Bar { x: number; width: number; from: number; to: number; fill: string; label: string; gap?: boolean; inside?: boolean }
+
+// Space kept between neighbouring category labels.
+const LABEL_PAD = 6;
+// The angle of category labels that fit neither on one line nor on two.
+const LABEL_ANGLE = 40;
+
+// A label's width in the chart's font (Geist), from each character's class,
+// measured at 13px: within a few percent of the browser's own measure.
+export function textWidth(text: string, font: number): number {
+  let em = 0;
+  for (const ch of text) {
+    em += /[0-9]/.test(ch) ? 0.58 : /[mwMW]/.test(ch) ? 0.8 : /[A-Z]/.test(ch) ? 0.66 : /[ilj.,:;'|!]/.test(ch) ? 0.3 : ch === ' ' ? 0.28 : 0.52;
+  }
+  return em * font;
+}
+
+// An exhibit's category labels: every category is named, even on a phone,
+// because the student writes about the bars by name. Each label goes on one
+// line; if any is wider than its band, they wrap onto two lines at a space;
+// if even that doesn't fit, they're angled. (Your progress thins its labels
+// instead: a score per set needn't name every set.)
+export function categoryLabels(categories: string[], band: number, font: number): { lines: string[][]; mode: 'line' | 'wrap' | 'angle' } {
+  const fits = (t: string) => textWidth(t, font) + LABEL_PAD <= band;
+  if (categories.every(fits)) return { lines: categories.map(c => [c]), mode: 'line' };
+  const wrapped = categories.map(c => {
+    const words = c.split(' ');
+    // The split whose longer line is narrowest.
+    let best = [c];
+    for (let k = 1; k < words.length; k++) {
+      const pair = [words.slice(0, k).join(' '), words.slice(k).join(' ')];
+      if (best.length === 1 || Math.max(...pair.map(l => textWidth(l, font))) < Math.max(...best.map(l => textWidth(l, font)))) best = pair;
+    }
+    return best;
+  });
+  if (wrapped.flat().every(fits)) return { lines: wrapped, mode: 'wrap' };
+  return { lines: categories.map(c => [c]), mode: 'angle' };
+}
 
 function seriesFormat(spec: ChartSpec, axis: 'left' | 'right'): ValueFormat {
   return (axis === 'right' ? spec.y2_axis?.format : spec.y_axis.format) ?? { prefix: '', suffix: '', decimals: 0 };
 }
 
-function Plot({ spec, layout, className }: { spec: ChartSpec; layout: Layout; className?: string }) {
+function Plot({ spec, layout, exhibit, className }: { spec: ChartSpec; layout: Layout; exhibit: boolean; className?: string }) {
   const WIDTH = layout.width;
   const dual = spec.type === 'dual_axis';
   const legend = spec.series.length > 1;
@@ -89,15 +129,19 @@ function Plot({ spec, layout, className }: { spec: ChartSpec; layout: Layout; cl
     return entry;
   });
   const legendRows = legend ? legendRow + 1 : 0;
-  const HEIGHT = layout.height + (legendRows > 1 ? (legendRows - 1) * 18 : 0);
-  const margin = { top: 20, right, bottom: legend ? 44 + 10 + legendRows * 18 : 44, left: layout.left };
+  const plotWidth = WIDTH - layout.left - right;
+  const band = plotWidth / spec.categories.length;
+  const labels = exhibit ? categoryLabels(spec.categories, band, layout.font) : { lines: spec.categories.map(c => [c]), mode: 'line' as const };
+  // Dense categories on Your progress (a score per set): label every few, so labels don't collide.
+  const labelEvery = exhibit ? 1 : Math.max(1, Math.ceil(layout.labelGap / band));
+  // Room for a second line of labels, or for angled ones.
+  const extra = labels.mode === 'wrap' ? layout.font + 3
+    : labels.mode === 'angle' ? Math.ceil(Math.max(...spec.categories.map(c => textWidth(c, layout.font))) * Math.sin(LABEL_ANGLE * Math.PI / 180)) : 0;
+  const HEIGHT = layout.height + (legendRows > 1 ? (legendRows - 1) * 18 : 0) + extra;
+  const margin = { top: 20, right, bottom: (legend ? 44 + 10 + legendRows * 18 : 44) + extra, left: layout.left };
   const top = margin.top;
   const bottom = HEIGHT - margin.bottom;
-  const plotWidth = WIDTH - margin.left - margin.right;
-  const band = plotWidth / spec.categories.length;
   const bandX = (i: number) => margin.left + i * band;
-  // Dense categories (a score per set): label every few, so labels don't collide.
-  const labelEvery = Math.max(1, Math.ceil(layout.labelGap / band));
   const gap = (i: number) => spec.gaps.includes(i);
 
   const leftSeries = spec.series.filter(s => s.axis === 'left');
@@ -125,6 +169,7 @@ function Plot({ spec, layout, className }: { spec: ChartSpec; layout: Layout; cl
   const base = (scale: Scale) => scale.y(Math.min(Math.max(0, scale.lo), scale.hi));
 
   const bars: Bar[] = [];
+  const totals: { x: number; y: number; label: string }[] = [];
   const lines: { points: ([number, number] | null)[]; color: string; labels: string[]; values: number[] }[] = [];
   const barSeries = dual ? spec.series.filter(s => (s.mark ?? (s.axis === 'left' ? 'bar' : 'line')) === 'bar') : spec.series;
   const lineSeries = dual ? spec.series.filter(s => !barSeries.includes(s)) : [];
@@ -154,10 +199,11 @@ function Plot({ spec, layout, className }: { spec: ChartSpec; layout: Layout; cl
         bars.push({
           x: bandX(i) + band * 0.2, width: band * 0.6,
           from: yl.y(acc), to: yl.y(acc + v),
-          fill: colorOf(s.name), label: formatValue(v, fmt), gap: true,
+          fill: colorOf(s.name), label: formatValue(v, fmt), gap: true, inside: true,
         });
         acc += v;
       }
+      totals.push({ x: bandX(i) + band / 2, y: yl.y(acc), label: formatValue(acc, fmt) });
     });
   } else {
     const group = barSeries.length;
@@ -214,15 +260,27 @@ function Plot({ spec, layout, className }: { spec: ChartSpec; layout: Layout; cl
         </text>
       )}
       {bars.map((b, i) => (
-        <g key={`b${i}`}>
-          <rect x={b.x} width={b.width} y={Math.min(b.from, b.to)} height={Math.max(1, Math.abs(b.to - b.from))} fill={b.fill}
-            {...(b.gap && { stroke: 'var(--white)', strokeWidth: 2 })} />
-          {spec.show_values && (
-            <text x={b.x + b.width / 2} y={Math.min(b.from, b.to) - 4} textAnchor="middle" fontSize={layout.small} fill="currentColor">
-              {b.label}
-            </text>
-          )}
-        </g>
+        <rect key={`b${i}`} x={b.x} width={b.width} y={Math.min(b.from, b.to)} height={Math.max(1, Math.abs(b.to - b.from))} fill={b.fill}
+          {...(b.gap && { stroke: 'var(--white)', strokeWidth: 2 })} />
+      ))}
+      {/* Values after every bar, so no later bar covers one. */}
+      {spec.show_values && bars.map((b, i) => {
+        if (!b.inside) {
+          return <text key={`v${i}`} x={b.x + b.width / 2} y={Math.min(b.from, b.to) - 4} textAnchor="middle" fontSize={layout.small} fill="currentColor">{b.label}</text>;
+        }
+        const chip = { w: b.label.length * layout.charWidth * (layout.small / layout.font) + 8, h: layout.small + 5 };
+        // Left out where the segment is too small for it; the data table has every value.
+        if (chip.w > b.width - 4 || chip.h > Math.abs(b.to - b.from) - 4) return null;
+        const cy = (b.from + b.to) / 2;
+        return (
+          <g key={`v${i}`}>
+            <rect x={b.x + (b.width - chip.w) / 2} y={cy - chip.h / 2} width={chip.w} height={chip.h} rx={3} fill="var(--white)" />
+            <text x={b.x + b.width / 2} y={cy} textAnchor="middle" dominantBaseline="central" fontSize={layout.small} fill="currentColor">{b.label}</text>
+          </g>
+        );
+      })}
+      {spec.show_values && totals.map((t, i) => (
+        <text key={`t${i}`} x={t.x} y={t.y - 4} textAnchor="middle" fontSize={layout.small} fontWeight={600} fill="currentColor">{t.label}</text>
       ))}
       {lines.map((l, i) => (
         <g key={`p${i}`}>
@@ -261,9 +319,13 @@ function Plot({ spec, layout, className }: { spec: ChartSpec; layout: Layout; cl
         </g>
       ))}
       <line x1={margin.left} x2={WIDTH - margin.right} y1={bottom} y2={bottom} stroke="currentColor" />
-      {spec.categories.map((c, i) => i % labelEvery === 0 && (
-        <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 18} textAnchor="middle" fontSize={layout.font} fill="currentColor">{c}</text>
-      ))}
+      {labels.lines.map((lines, i) => i % labelEvery === 0 && (labels.mode === 'angle' ? (
+        <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 14} transform={`rotate(-${LABEL_ANGLE} ${bandX(i) + band / 2} ${bottom + 14})`} textAnchor="end" fontSize={layout.font} fill="currentColor">{lines[0]}</text>
+      ) : (
+        <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 18} textAnchor="middle" fontSize={layout.font} fill="currentColor">
+          {lines.map((l, k) => <tspan key={k} x={bandX(i) + band / 2} dy={k ? layout.font + 3 : 0}>{l}</tspan>)}
+        </text>
+      )))}
       {legend && placed.map(({ name, label, x, row }, i) => (
         <g key={`k${i}`} transform={`translate(${x} ${HEIGHT - 22 - (legendRows - 1 - row) * 18})`}>
           <rect width={12} height={12} y={-10} rx={2} fill={colorOf(name)} />
@@ -321,8 +383,8 @@ export function DrillChart({ spec, exhibit = false }: { spec: ChartSpec; exhibit
         <DataTable spec={spec} visible />
       ) : (
         <>
-          <Plot spec={spec} layout={WIDE} className="hidden @lg:block" />
-          <Plot spec={spec} layout={NARROW} className="@lg:hidden" />
+          <Plot spec={spec} layout={WIDE} exhibit={exhibit} className="hidden @lg:block" />
+          <Plot spec={spec} layout={NARROW} exhibit={exhibit} className="@lg:hidden" />
           <details className="group t-small">
             <summary className="inline-flex cursor-pointer list-none items-center gap-1 font-medium text-ink/80 hover:text-cobalt [&::-webkit-details-marker]:hidden">
               <ChevronRight aria-hidden="true" className="size-4 transition-transform duration-150 group-open:rotate-90 motion-reduce:transition-none" />Show data table
