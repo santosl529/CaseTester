@@ -3,12 +3,12 @@
 // /reset-password; it expires per Supabase's email OTP expiry (default an hour). Treat it like a password.
 //
 //   npm run password:reset-link -- student@example.com
-//   npm run password:reset-link -- student@example.com --site=https://casepace.example
+//   npm run password:reset-link -- student@example.com --site=http://localhost:3000
 import { createAdminSupabaseClient } from '@/lib/supabase/admin';
 import { parseResetEmail, resetLink } from '@/lib/site/password-reset';
 import { findAuthUserByEmail } from '@/lib/account/auth-user';
 
-const PRODUCTION = 'https://case-tester.vercel.app';
+const PRODUCTION = 'https://casepace.io';
 
 async function main() {
   const args = process.argv.slice(2);
