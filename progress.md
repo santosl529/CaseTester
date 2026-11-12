@@ -756,3 +756,14 @@ Matt's request, proposal approved with decisions: case data option B behind `rul
 - Raised for Matt, not changed: on HY-2 and CL-4 stage 2, the student's own stage 1 answer isn't shown above the new fact (only before a follow-up).
 - Next: Matt's review of batch 1a (rules, items, previews) and his go on the pilot similarity run; then batch 1b (32 more of each, the CL.next_step lesson v2, the three cards, ~120 golden answers with the blind sheets).
 
+**2026-11-11 — Matt's batch 1a rulings, built**
+
+- Rules approved and marked so in `docs/drills-grading-guide.md`, with Matt's change to CL-4 rule 5: a first answer listing several steps with none first is classified by the first step listed (it still fails one-specific-analysis); "other" is only for a single step outside the families. The 24 drafts re-imported with it. Grader stays `drills-grader-v35` (nothing has been graded with it yet).
+- Similarity run on the 24 pilot items (Matt's go): 24 passed, 0 flagged, about $2.49.
+- Stage 2 now shows the student's own first answer, read-only, above the new fact (HY-2 and CL-4; `components/drills/runner.tsx`).
+- Chart fix audit (Matt asked): every live EX-1 item and every EX-2/EX-3 template (3 tiers × 8 seeds, 261 exhibits) rendered with the old and new chart code and what each shows compared. EX-2 and EX-3: no difference. EX-1: 13 items read differently, all by showing more; no correct answer, wrong-option tag or trap depended on the old drawing (EX-1 has no traps; EX-2, the trap drill, has no stacked bars).
+  - Stacked bars (all widths): ex1-0004, 0009, 0020, 0029, 0042 now show every segment and the totals; before, only the top segment's value showed above each stack (ex1-0042's showed only vehicle costs, 3 → 2). Their right answers are easier to confirm and some distractors easier to rule out (ex1-0004 "labor and materials grew by similar amounts", ex1-0020 "both channels contributed growth", ex1-0042 "all three components rose").
+  - Phone only, category labels that were hidden and are now named: ex1-0006, 0010, 0024, 0026, 0037, 0044 (alternate months, weeks, hours or years), and the waterfalls ex1-0008 (Price, Materials, 2025 profit) and ex1-0033 (Materials, Labor, 2025 cost), where the bar the right answer names was unlabeled on a phone.
+- Content checks rerun: EX-1 passes every check (rule player 28% against 25% chance; no length, phrase or odd-one-out cues); the authored pool as a whole is clean. EX-2 is generated, so the wording checks don't apply to it (the generator harness does; 104 tests pass); run anyway, they show a pre-existing repetition: `ex2_truncated_axis` has only three right answers ("about 60% / 43% / 33% higher") and its "about 4 times as high" option is always wrong. Not changed; raised with Matt.
+- Checks: typecheck, lint, 7,230 tests; axe 0 on the drill set screens.
+

@@ -172,7 +172,7 @@ Each question marks one driver as critical, the one to start with, or two where 
 
 ## EX-4 Written chart takeaway
 
-*Draft rules, batch 1a: for Matt's approval before any EX-4 label is written.*
+*Approved by Matt, 2026-11-11 (batch 1a).*
 
 A new chart per item (not EX-1's). Checks: states the key insight in the key (50%, `M.trivial_takeaway`), cites a figure from the chart (25%, `M.unsupported_claim`), ties it to the client's question (25%, `M.trivial_takeaway`). The grader sees the chart as text, value by value, and the item's `chart_figures`: figures read or worked out from the chart, so it checks numbers instead of redoing the math.
 
@@ -188,7 +188,7 @@ A new chart per item (not EX-1's). Checks: states the key insight in the key (50
 
 ## CL-4 Your next move
 
-*Draft rules, batch 1a: for Matt's approval before any CL-4 label is written.*
+*Approved by Matt, 2026-11-11 (batch 1a), with his change to rule 5: a list is classified by its first step.*
 
 Two stages, as HY-2. Stage 1 (60%): one specific next analysis (20%), logical (25%), a reason tied to the latest finding (15%). Stage 2 (40%): Keep or Change (25%, scored by code from the step family), and the reason (15%). All checks log `M.illogical_next_step`. The step family comes from a separate call that sees only stage 1; label `family` with one of the item's families or `other`. The family is gated too (90%), since the Keep/Change grade depends on it. For `other`, both decisions are right.
 
@@ -196,7 +196,7 @@ Two stages, as HY-2. Stage 1 (60%): one specific next analysis (20%), logical (2
 2. **(grader)** Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix ("cut prices", "close the store") instead of an analysis.
 3. **(grader)** Reason tied to the latest finding: the reason uses the most recent finding in the situation, its content or its number, to say why this step comes next. A generic reason ("it's important", "to understand the problem better") fails, and so does a reason that uses only older facts.
 4. **(grader)** Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the step still stands given the fact; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.
-5. **(grader)** Step family: classify the stage 1 answer only, never the stage 2 explanation, by what the analysis examines, not its wording. If stage 1 names several steps, use the one it does first; if none is first, the family is "other".
+5. **(grader)** Step family: classify the stage 1 answer only, never the stage 2 explanation, by what the analysis examines, not its wording. If stage 1 names several steps, use the one it does first; if none is first, use the first one it lists. A list still fails the one-specific-analysis check. The family is "other" only for a step that fits none of the families.
 6. **(grader)** Final recommendation (red flag): stage 1 tells the client what to do overall ("they should exit the market", "raise prices 10%") instead of naming the next analysis. A hypothesis to test is not a recommendation.
 7. **(grader)** Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.
 
@@ -240,7 +240,7 @@ The student edits a flawed answer taken from a Level 1 item. Checks: fixes each 
 
 ### EX-5 Fix the takeaway
 
-*Draft rules, batch 1a: for Matt's approval before any EX-5 label is written.*
+*Approved by Matt, 2026-11-11 (batch 1a).*
 
 The flawed takeaway comes from an EX-1 item's wrong option (trivial, misread or unsupported), with that item's chart in view. The grader sees the chart as text. "Dropped right part" logs `M.unsupported_claim`.
 
@@ -281,7 +281,7 @@ Half the challenges in the pool are valid (Update is right) and half are not (Ho
 
 ### EX-4: implication
 
-*Draft rules, batch 1a: for Matt's approval before any label is written.*
+*Approved by Matt, 2026-11-11 (batch 1a): a reply with no implication also fails rule 17.*
 
 The follow-up is always "What does this mean for the client's decision?" Checks: states an implication for the decision (40%, `M.no_implication`), tied to the client's objective (35%, `M.implication_off_objective`), consistent with the student's takeaway (25%, `M.inconsistent_defense`). The grader sees the chart too.
 

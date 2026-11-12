@@ -497,7 +497,8 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           ) : s.pending || view.diagnostic ? (
             <>
               <p className="font-medium">{multi ? `Step ${i + 1}: saved` : 'Your answer: saved'}</p>
-              {followup && s.your_answer && <p className="whitespace-pre-line text-ink/70">{s.your_answer}</p>}
+              {/* The student's own words, read-only, before a follow-up or a new fact (HY-2, CL-4 stage 2). */}
+              {(followup || s.reveal) && s.your_answer && <p className="whitespace-pre-line text-ink/70">{s.your_answer}</p>}
             </>
           ) : (
             <>
