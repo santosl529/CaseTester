@@ -1263,12 +1263,15 @@ New in v2:
 - Tiers control number difficulty: T1 uses round numbers, T2 adds one uneven figure, T3 uses two significant figures and uneven zeros.
 - Generated items are not stored as rows. Each attempt stores `template_id`, `template_version` and `seed`, so the exact item can be rebuilt for review.
 - Each generator ships with unit tests that confirm: the answer recomputes correctly, all options are distinct, trap values differ from the correct answer and from each other, and no answer depends on a calculator-only step at T1.
+- **Answers that can't be memorized** (Matt, 2026-11-11). Every served EX-2, EX-3, QN-1, QN-3 and QN-4 template, at each tier over 400 seeds, gives at least 10 different right answers, none in more than 20% of items; and an option text that recurs in at least 10% of items is right in some and wrong in others. A formula option carries the item's own numbers and recurs less often, and its shape being wrong is what QN-1 trains. The first run failed ten templates (EX-2's truncated-axis "About 4 times as high" was always wrong, and its right answer one of three); each now has a version 2. In EX-2's truncated-axis version 2, about a third of items have an axis that starts at zero, so the bars are true to scale and reading them is right.
+- **Versions.** A change that alters the items a seed produces bumps `template_version`. The old version stays registered as `retired`: it rebuilds the attempts that used it, and no new set is served it.
 
 ### Chart renderer
 
 - One shared component turns a JSON chart spec (type, series, axes, units, footnotes) into an accessible SVG with a matching data table for screen readers. It is hand-rolled SVG with no charting dependency.
 - Supported types at launch: bar, grouped bar, stacked bar, line, waterfall, dual axis and table.
 - The spec supports deliberate traps (truncated axis start, units label, footnote) as explicit fields, so EX-2 generators can set them.
+- An exhibit names every category, even on a phone: its labels go on one line, wrap onto two at a space, or angle at 40°, never thinned (Your progress may thin a score per set). A stacked bar shows each segment's value inside it, as ink on a white chip (left out when the segment is too small; the data table has every value), and the stack's total above it (2026-11-11).
 - If possible, the same renderer should be used for case exhibits so students see a consistent style.
 
 ### Authored items

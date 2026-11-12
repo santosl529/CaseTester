@@ -5,6 +5,8 @@ import { getDrill } from '@/lib/drills/config';
 import { parseNumericInput, scoreNumeric } from '@/lib/drills/numeric';
 import { createRng } from '@/lib/drills/rng';
 import { checkGenerator, sigFigs } from './generator-harness';
+import type { Item, Tier } from '@/lib/drills/item-schema';
+import type { Generator } from '@/lib/drills/generators/types';
 
 // 100 seeds per tier per template in the normal suite (9,600+ items, above
 // the D1 gate's 1,000 sampled items). DRILLS_FULL_HARNESS=1 runs 1,000 each.
@@ -52,6 +54,59 @@ describe.each(GENERATORS.map(g => [`${g.template_id}@${g.template_version}`, g] 
   it(`passes the generator rules on ${SEED_COUNT} seeds at every tier`, () => {
     expect(checkGenerator(generator, SEEDS)).toEqual([]);
   }, 120_000);
+});
+
+// Matt, 2026-11-11: a template's right answers must vary enough that they
+// can't be memorized, and a recurring option must not always be right or
+// always be wrong ("About 4 times as high" once was always wrong). Each
+// served template, at each tier, over SPREAD_SEEDS seeds: at least
+// SPREAD_MIN_DISTINCT different right answers, none in more than
+// SPREAD_MAX_TOP of the items; and any option text in at least
+// RECURRING_SHARE of the items is right in some and wrong in others. (A
+// formula option such as "$30 − $5" recurs less often: it carries the item's
+// own numbers, and its shape being wrong is the skill the drill trains.)
+const SPREAD_SEEDS = 400;
+const SPREAD_MIN_DISTINCT = 10;
+const SPREAD_MAX_TOP = 0.2;
+const RECURRING_SHARE = 0.1;
+const rightAnswer = (item: Item) => [item.options.find(o => o.correct)?.text, item.numeric ? String(item.numeric.answer) : undefined].filter(Boolean).join(' | ');
+
+export function spreadProblems(generator: Generator, tier: Tier, seeds = SPREAD_SEEDS): string[] {
+  const items = Array.from({ length: seeds }, (_, s) => generator.generate(s + 1, tier));
+  const where = `${generator.template_id}@${generator.template_version} t${tier}`;
+  const counts = new Map<string, number>();
+  for (const i of items) counts.set(rightAnswer(i), (counts.get(rightAnswer(i)) ?? 0) + 1);
+  const problems: string[] = [];
+  const [top, n] = [...counts].sort((a, b) => b[1] - a[1])[0];
+  if (counts.size < SPREAD_MIN_DISTINCT) problems.push(`${where}: only ${counts.size} different right answers`);
+  if (n / items.length > SPREAD_MAX_TOP) problems.push(`${where}: "${top}" is the right answer in ${Math.round((n / items.length) * 100)}% of items`);
+  const options = new Map<string, { right: number; wrong: number }>();
+  for (const i of items) for (const o of i.options) {
+    const e = options.get(o.text) ?? { right: 0, wrong: 0 };
+    e[o.correct ? 'right' : 'wrong']++;
+    options.set(o.text, e);
+  }
+  for (const [text, e] of options) {
+    if (e.right + e.wrong < RECURRING_SHARE * items.length) continue;
+    if (!e.right) problems.push(`${where}: "${text}" is in ${e.wrong} items and always wrong`);
+    if (!e.wrong) problems.push(`${where}: "${text}" is in ${e.right} items and always right`);
+  }
+  return problems;
+}
+
+describe('answer spread (EX-2, EX-3, QN-1, QN-3, QN-4)', () => {
+  const served = GENERATORS.filter(g => ['EX-2', 'EX-3', 'QN-1', 'QN-3', 'QN-4'].includes(g.drill_id) && !g.retired);
+  it.each(served.map(g => [`${g.template_id}@${g.template_version}`, g] as const))('%s varies its right answers and options', (_, generator) => {
+    expect(([1, 2, 3] as const).flatMap(t => spreadProblems(generator, t))).toEqual([]);
+  }, 120_000);
+
+  it('serves only current versions; retired ones still rebuild', () => {
+    for (const g of GENERATORS.filter(x => x.retired)) {
+      expect(generatorsForDrill(g.drill_id)).not.toContain(g);
+      expect(getGenerator(g.template_id, g.template_version)).toBe(g);
+      expect(GENERATORS.some(x => x.template_id === g.template_id && !x.retired && x.template_version > g.template_version)).toBe(true);
+    }
+  });
 });
 
 describe('percent_change', () => {

@@ -269,10 +269,10 @@ function answerOf(f: Formula, v: Vals): number {
   return Number(f.correct.calc(v).toPrecision(12));
 }
 
-function setupGenerator(f: Formula): Generator {
+function setupGenerator(f: Formula, version = 1, retired = false): Generator {
   const templateId = `setup_${f.id}`;
   return {
-    template_id: templateId, template_version: 1, drill_id: 'QN-1',
+    template_id: templateId, template_version: version, ...(retired && { retired }), drill_id: 'QN-1',
     skills: ['QN.setup'], focus_tags: ['M.wrong_formula', 'M.missing_term'],
     generate(seed, tier) {
       const rng = createRng(seed);
@@ -283,7 +283,7 @@ function setupGenerator(f: Formula): Generator {
         if (!options) return null;
         const answer = answerOf(f, v);
         return generatedItem({
-          templateId, templateVersion: 1, drillId: 'QN-1', level: 1, tier, seed,
+          templateId, templateVersion: version, drillId: 'QN-1', level: 1, tier, seed,
           skills: ['QN.setup'],
           prompt: `${f.scenario(v)} Which calculation gives ${f.target}?`,
           input: { type: 'single_choice' },
@@ -297,10 +297,10 @@ function setupGenerator(f: Formula): Generator {
   };
 }
 
-function calcGenerator(f: Formula): Generator {
+function calcGenerator(f: Formula, version = 1, retired = false): Generator {
   const templateId = `calc_${f.id}`;
   return {
-    template_id: templateId, template_version: 1, drill_id: 'QN-4',
+    template_id: templateId, template_version: version, ...(retired && { retired }), drill_id: 'QN-4',
     skills: ['QN.setup', 'QN.arithmetic', 'QN.magnitude'],
     focus_tags: ['M.wrong_formula', 'M.missing_term', 'M.zeros_error', 'M.arithmetic_error'],
     generate(seed, tier) {
@@ -318,7 +318,7 @@ function calcGenerator(f: Formula): Generator {
           steps: [{ type: 'single_choice', weight: 0.4 }, { type: 'numeric', weight: 0.6 }],
         };
         return generatedItem({
-          templateId, templateVersion: 1, drillId: 'QN-4', level: 2, tier, seed,
+          templateId, templateVersion: version, drillId: 'QN-4', level: 2, tier, seed,
           skills: ['QN.setup', 'QN.arithmetic', 'QN.magnitude'],
           prompt: `${f.scenario(v)} Find ${f.target}.`,
           input,
@@ -350,5 +350,24 @@ function showAnswer(f: Formula, answer: number): string {
 }
 const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
-export const QN1_GENERATORS: Generator[] = FORMULAS.map(setupGenerator);
-export const QN4_GENERATORS: Generator[] = FORMULAS.map(calcGenerator);
+// Version 2 of NPV (Matt, 2026-11-11): T1 and T2 draw their discount factors
+// from several sets, so "cash flow × the factors" (the option that forgets
+// the investment) isn't the same text in one item in eight.
+const NPV = FORMULAS.find(f => f.id === 'npv')!;
+const NPV_V2: Formula = {
+  ...NPV,
+  draw: (rng, tier) => {
+    const [d1, d2, d3] = pick(rng, tier, {
+      1: [[0.9, 0.8, 0.7], [0.95, 0.9, 0.85], [0.9, 0.85, 0.8], [0.8, 0.7, 0.6]],
+      2: [[0.91, 0.83, 0.75], [0.93, 0.87, 0.81], [0.89, 0.79, 0.7], [0.94, 0.88, 0.83]],
+      3: [[0.93, 0.86, 0.8], [0.95, 0.9, 0.86]],
+    });
+    const CF = draw(rng, tier, [100_000, 1_000_000]);
+    const I = draw(rng, tier, [100_000, 1_000_000]);
+    const npv = CF * (d1 + d2 + d3) - I;
+    return Math.abs(npv) > 0.05 * I ? { I, CF, d1, d2, d3 } : null;
+  },
+};
+
+export const QN1_GENERATORS: Generator[] = [...FORMULAS.map(f => setupGenerator(f, 1, f === NPV)), setupGenerator(NPV_V2, 2)];
+export const QN4_GENERATORS: Generator[] = [...FORMULAS.map(f => calcGenerator(f, 1, f === NPV)), calcGenerator(NPV_V2, 2)];

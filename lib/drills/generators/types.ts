@@ -10,6 +10,9 @@ export interface Generator {
   // Bump on any change that alters the items a seed produces, and keep the
   // old version registered so stored attempts still rebuild.
   template_version: number;
+  // A version replaced by a newer one: still rebuilds the attempts that used
+  // it, but no new set is served it.
+  retired?: boolean;
   drill_id: string;
   skills: string[];
   // Mistake tags a focused set can target with this template (PRD
