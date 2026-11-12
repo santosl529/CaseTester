@@ -35,6 +35,7 @@
     "drills:a11y": "tsx --conditions=react-server --env-file=.env.local scripts/drills-a11y.ts",
     "drills:reports": "tsx --conditions=react-server --env-file=.env.local scripts/drills-reports.ts",
     "drills:export-disputes": "tsx --conditions=react-server --env-file=.env.local scripts/drills-export-disputes.ts",
+    "drills:first-written-review": "tsx --conditions=react-server --env-file=.env.local scripts/drills-first-written-review.ts",
     "drills:similarity": "tsx --env-file=.env.local scripts/drills-similarity.ts",
     "drills:industry": "tsx --env-file=.env.local scripts/drills-industry.ts",
     "drills:review-sheet": "tsx --conditions=react-server scripts/drills-review-sheet.ts",

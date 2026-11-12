@@ -767,3 +767,24 @@ Matt's request, proposal approved with decisions: case data option B behind `rul
 - Content checks rerun: EX-1 passes every check (rule player 28% against 25% chance; no length, phrase or odd-one-out cues); the authored pool as a whole is clean. EX-2 is generated, so the wording checks don't apply to it (the generator harness does; 104 tests pass); run anyway, they show a pre-existing repetition: `ex2_truncated_axis` has only three right answers ("about 60% / 43% / 33% higher") and its "about 4 times as high" option is always wrong. Not changed; raised with Matt.
 - Checks: typecheck, lint, 7,230 tests; axe 0 on the drill set screens.
 
+**2026-11-11 — generated drills' answer spread; batch 1b code-side**
+
+- Matt accepted the 13 EX-1 drawing changes ("accuracy matters more than difficulty; item health will flag any that become too easy").
+- Generators (fec1a957): new test in `tests/drills/generators.test.ts` for every served EX-2, EX-3, QN-1, QN-3 and QN-4 template (400 seeds, each tier): at least 10 different right answers, none in over 20% of items, and any option text in 10%+ of items both right and wrong somewhere. Formula options carry the item's own numbers and recur less, so that threshold doesn't fault QN-1's wrong shapes (which is what QN-1 trains). Ten templates failed; each has a version 2, version 1 retired (rebuilds old attempts, never served; new `retired` flag, `generatorsForDrill` skips it):
+
+  | Template | Before (T1 / T2 / T3 distinct answers, top share) | Version 2 |
+  | --- | --- | --- |
+  | ex2_truncated_axis | 3 / 3 / 3, top 46% | 34, top 9%; a third of axes start at zero, where "N times as high" (or its % form) is right; "About 4 times as high" right in 17 of 96 T2 items it appears in |
+  | ex2_dual_axis | 4 / 8 / 8 | 14 / 20 / 20; also asks for revenue |
+  | ex2_points | 8 / 12 / 15, top 29% | 20 / 18 / 55 |
+  | ex2_period | 3 / 3 / 3, top 50% | 10 each, top ≤17% |
+  | ex3_yoy_growth | 4 / 5 / 50, top 48% | 10 / 10 / 78; no longer redraws toward 100% or 60% |
+  | percent_change | 4 / 6 / 7 | 10 / 12 / 11 |
+  | percentage_points | 9 / 14 / 32, top 27% | 19 / 20 / 62 |
+  | fraction_to_percent | T1 11, top 31% (1/2) | T1 19, top 8% |
+  | setup_npv, calc_npv | a "forgot the investment" option in 12% of T1 items, always wrong | several discount-factor sets at T1 and T2 |
+
+  Full harness (1,000 seeds per tier) passes. PRD Generators and Chart renderer sections updated.
+- Batch 1b, code-side (Matt's go): a Mastered or Validated skill's review on a Construct drill the student never did runs at tier 2 (`nextSetFor`; D3), so EX-4's first written review comes with its follow-up; `npm run drills:first-written-review` (dry run by default, `--apply` at ship time) makes those reviews due now: 0 rows today. Draft drill cards for EX-5, EX-4 and CL-4 (`drill-descriptions.json` and its CSV; Browse and Learn list a drill once it's live, so nothing else to wire). Model-answer test covers EX-4, EX-5 and CL-4 (every one scores 100% on what code settles). Smokes: `drills:smoke:d2` adds EX-4 and CL-4 (CL-4 must reveal its new fact), `drills:smoke:d5` adds EX-5 and EX-4's follow-up; not run yet (they need the drafts seeded to the shared database; at ship). `scripts/drills-blind-compare.ts` lists where Matt's blind labels and Claude's disagree. Events, reports, timer options, feedback timing and Report a problem are drill-generic.
+- Not yet: batch 1b content (32 more of each drill, CL.next_step lesson v2, ~120 golden answers, the blind sheets).
+

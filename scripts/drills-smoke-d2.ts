@@ -1,6 +1,6 @@
 // End-to-end check of the D2 drills against the real database and the real
 // grader, using live items plus the draft placeholders (DRILLS_PREVIEW_DRAFTS). Runs one
-// set of each D2 drill as a throwaway student, checks no key leaks before
+// set of each D2 drill, and of EX-4 and CL-4 (next 7, priority 1), as a throwaway student, checks no key leaks before
 // submission, that written answers are graded after the set and shown with
 // evidence, that QN-5 is scored by code, and that a failed grading run leaves
 // the set "delayed" until the results page's poll re-runs it. Deletes
@@ -14,7 +14,7 @@ import { randomUUID } from 'crypto';
 import { eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { analyticsEvents, drillAttempts, drillSets, drillTiers, gradingJobs, prescriptions, skillStateEvents, skillStates, studentDrillSettings } from '@/db/schema';
-import { D2_DRILLS, modelAnswerSteps } from '@/lib/drills/model-answers';
+import { D2_DRILLS, P1_DRILLS, modelAnswerSteps } from '@/lib/drills/model-answers';
 import { withDefend } from '@/lib/drills/defend';
 import { loadAuthoredItems } from '@/lib/drills/authored';
 import { enqueueGrading, runGradingJob } from '@/lib/drills/grading/jobs';
@@ -56,7 +56,8 @@ const ANSWERS: Record<string, StepResponse[]> = {
 
 // Each question is answered from its own key, so the run checks grading
 // rather than an answer written for a different question.
-const d2Items = loadAuthoredItems().filter(i => D2_DRILLS.includes(i.drill_id));
+// The next-7 Construct drills (EX-4, CL-4) run the same way.
+const d2Items = loadAuthoredItems().filter(i => [...D2_DRILLS, ...P1_DRILLS].includes(i.drill_id));
 // A set at tier 2 or 3 runs the Defend follow-up on items that have one, so
 // those items need the follow-up answered too (withDefend's model steps).
 function keyAnswers(drillId: string, prompt: string, withFollowup = false): StepResponse[] {
@@ -84,7 +85,7 @@ async function answerSet(setId: string, drillId: string, key = 'k') {
       last = await submitAttempt(student, setId, { position, idempotency_key: `${key}-${drillId}-${position}-${i}`, step: i, response, skip: false, timed_out: false });
       if (i < answers.length - 1) {
         check(last.done === false, `${drillId}: step ${i} finished the item early`);
-        if (drillId === 'HY-2' && i === 0) check(Boolean((last as StepReply).step.reveal), 'HY-2: stage 1 did not reveal the new fact');
+        if ((drillId === 'HY-2' || drillId === 'CL-4') && i === 0) check(Boolean((last as StepReply).step.reveal), `${drillId}: stage 1 did not reveal the new fact`);
       }
     }
   }
@@ -96,7 +97,7 @@ async function answerSet(setId: string, drillId: string, key = 'k') {
 
 async function main() {
   try {
-    for (const drillId of ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'QN-5']) {
+    for (const drillId of ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'QN-5', 'EX-4', 'CL-4']) {
       const { set_id } = await startSet(student, { drill_id: drillId });
       const final = await answerSet(set_id, drillId);
       const aiGraded = drillId !== 'QN-5';

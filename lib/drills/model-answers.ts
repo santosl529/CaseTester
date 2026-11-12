@@ -11,7 +11,7 @@ import { defendStart } from './defend';
 
 export const D2_DRILLS = ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'QN-5'];
 // D5's Repair drills: the model repair should score 100% too.
-export const REPAIR_DRILL_IDS = ['PS-4', 'HY-3', 'SY-3'];
+export const REPAIR_DRILL_IDS = ['PS-4', 'HY-3', 'SY-3', 'EX-5'];
 // The next-7 build's AI-graded drills (priority 1: EX-4, EX-5, CL-4).
 export const P1_DRILLS = ['EX-4', 'EX-5', 'CL-4'];
 

@@ -1,6 +1,6 @@
 {
   "status": "approved",
-  "note": "Two lines per drill for Browse drills and Learn: what you do, and how it helps in the interview. Approved by Matt 2026-10-18 (review sheet: docs/drills-content/drill-descriptions.csv).",
+  "note": "Two lines per drill for Browse drills and Learn: what you do, and how it helps in the interview. Approved by Matt 2026-10-18 (review sheet: docs/drills-content/drill-descriptions.csv). EX-5, EX-4 and CL-4 are drafts (the next-7 proposal's appendix, 2026-11-10); Matt finalizes them with their review batch.",
   "drills": {
     "PS-1": {
       "what": "Find the one flaw in a candidate's framework: an overlap, a gap, or a bucket that doesn't belong.",
@@ -54,6 +54,14 @@
       "what": "Find the one or two numbers that matter in a dense table and do a quick calculation.",
       "why": "Data-heavy exhibits test whether you can find what's relevant fast instead of reading everything."
     },
+    "EX-5": {
+      "what": "Fix a flawed chart takeaway so it answers the client's question with a number the chart supports.",
+      "why": "A takeaway that's beside the point, or reads the chart wrong, costs trust fast; this trains you to catch it before you say it."
+    },
+    "EX-4": {
+      "what": "Write the one takeaway from a chart that matters to the client, with the number that proves it.",
+      "why": "In the interview there are no options to choose from: you find the \"so what\" yourself, in seconds."
+    },
     "SY-1": {
       "what": "Choose the best recommendation from four, given the case facts.",
       "why": "The recommendation is what the interviewer remembers; this trains your ear for answer-first summaries."
@@ -73,6 +81,10 @@
     "CL-3": {
       "what": "Say what data you'd ask for and where you'd start, in up to 60 words.",
       "why": "Specific, prioritized requests show the interviewer you have a plan, not a wish list."
+    },
+    "CL-4": {
+      "what": "Propose the next analysis and why, then keep or change it when a new fact arrives.",
+      "why": "Interviewers expect you to drive the case, and to change course when the data surprises you."
     }
   }
 }

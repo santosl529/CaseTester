@@ -1,14 +1,14 @@
 // End-to-end check of D5 against the real database and the real grader, with
 // the draft Repair items and Defend follow-ups (DRILLS_PREVIEW_DRAFTS). As a
 // throwaway student it runs:
-//   - a set of each Repair drill (PS-4, HY-3, SY-3) at tier 1: the editor
+//   - a set of each Repair drill (PS-4, HY-3, SY-3, EX-5) at tier 1: the editor
 //     starts from the flawed answer, the hint names the flaw, nothing in the
 //     key reaches the client, a model repair scores well, and an answer left
 //     unchanged scores 0 with the planted flaw's tag and no AI call;
 //   - the 14-day rule: after a PS-1 set, PS-4 skips items derived from the
 //     PS-1 items just seen;
 //   - a tier 2 set of each Construct drill with Defend (PS-3, HY-2, SY-2,
-//     CL-3): the follow-up stays hidden until the main answer is in, then
+//     CL-3, EX-4): the follow-up stays hidden until the main answer is in, then
 //     arrives with its own clock; replies are graded in their own call and
 //     shown with checks and the model reply; a skipped follow-up keeps the
 //     main answer and logs M.skipped; the Defend columns are filled in.
@@ -172,9 +172,9 @@ async function defendSet(drillId: string) {
 
 async function main() {
   try {
-    for (const drillId of ['PS-4', 'HY-3', 'SY-3']) await repairSet(drillId);
+    for (const drillId of ['PS-4', 'HY-3', 'SY-3', 'EX-5']) await repairSet(drillId);
     await fourteenDayRule();
-    for (const drillId of ['PS-3', 'HY-2', 'SY-2', 'CL-3']) await defendSet(drillId);
+    for (const drillId of ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'EX-4']) await defendSet(drillId);
   } finally {
     await printSmokeSpend([student]);
     const sets = await db.select({ id: drillSets.id }).from(drillSets).where(eq(drillSets.studentId, student));

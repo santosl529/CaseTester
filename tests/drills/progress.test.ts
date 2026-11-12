@@ -245,6 +245,16 @@ describe('transfer checks and spaced review (PRD "Transfer check", "Spaced revie
     expect(applySet(mastered, review(0.7), at(14)).progress.get('QN.setup')!.next_review_at).toEqual(at(21).now);
     expect(applySet(mastered, review(0.5), at(14)).transitions.map(t => t.to)).toEqual(['recognizes']);
   });
+
+  it('a first review on a Construct drill the student never did runs at tier 2, not tier 1 (D3: EX-4 and CL-4)', () => {
+    const live = (id: string) => ['EX-1', 'EX-5', 'EX-4', 'CL-1', 'CL-4'].includes(id);
+    const ctx = { ...at(0), isLive: live };
+    for (const [skill, drill] of [['EX.takeaway', 'EX-4'], ['CL.next_step', 'CL-4']] as const) {
+      const mastered = progress({ skill_id: skill, state: 'mastered', next_review_at: at(0).now });
+      expect(nextSetFor(mastered.get(skill)!, { 'EX-1': 3, 'CL-1': 3 }, ctx)).toMatchObject({ drill_id: drill, kind: 'review', tier: 2 });
+      expect(nextSetFor(mastered.get(skill)!, { [drill]: 1 }, ctx)).toMatchObject({ drill_id: drill, kind: 'review', tier: 1 });
+    }
+  });
 });
 
 describe('the stuck rule (PRD "Skill tree")', () => {
