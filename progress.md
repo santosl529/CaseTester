@@ -810,5 +810,11 @@ Matt's request, proposal approved with decisions: case data option B behind `rul
 - Check: `nextStepCueProblems` now covers CL-4 and HY-2 (`updateCueProblems`; HY-2's echo feature reads the whole question; `example-` items left out). On the 40 live items alone it reports exactly the two problems above (test).
 - Items (drafts): hy2-0041 car washes, T1 profitability, Revise; 0042 furniture deliveries, T1 operations, Revise; 0043 garden centers, T2 growth, Revise; 0044 mattress factory, T2 operations, Revise; 0045 cork flooring UK entry, T3, Keep; 0046 ski-resort snowmaking, T3 investment, Keep. Facts written as a breakdown, a cluster, a category split, a product split, a regional comparison and timing. Families, follow-up model replies (defend.csv), 6 graded answers (2 code-wrong decisions, 1 borderline, 1 short) and 3 follow-up answers. Pool now 22 Keep, 10 Revise, 14 Drop of 46; tier 1 9/3/2, tier 2 8/5/5, tier 3 5/2/7 (Keep/Revise/Drop); check clean. Similarity: 6 passed ($0.80).
 - Guidance: `docs/drills-content-templates/README.md` HY-2 (vary the fact's form; balance); PRD Content system "Keep, Revise or Drop (HY-2)" and HY-2's item source.
-- Not run: the HY-2 gate with the 9 new graded answers (estimate about $0.85; ask Matt first). The 6 items join Matt's next review batch.
+- The 6 items join Matt's next review batch.
+
+**2026-11-12 — HY-2 gate rerun with the new answers (Matt approved ~$0.85; spent $0.52)**
+
+- Pushed 6b478324. hy2-0046-a: its stage 1 is the "Busy days already full" family, for which the key says Drop (lift lines under 10 minutes rule it out; no backup named), so the label stands; note added saying so.
+- Gate (`npm run drills:golden -- --drill HY-2`, grader v35, HY-2 prompts unchanged): follow-up gate passes (consistency 100%, data request 94%, drop result 100%). Main gate fails one check: **directional 86% (32/37)**, before 90% (27/30). Misses, all human N and grader Y: three older ones (0013-a "fewer appointments end in a sale", 0015-a "Price elasticity", 0025-a "Digital pianos") and two new (0043-a "losing customers to competition", 0044-a "Too many orders."). Every other check ≥ 92%; 0 refusals.
+- Not changed: labels follow the written rules (not the grader). Proposed to Matt: a directional-rule sentence on bare labels and naming rivals without the driver, then one more HY-2 gate run (~$0.55). Live grading is unchanged by this run.
 
