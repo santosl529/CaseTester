@@ -47,7 +47,9 @@ export default async function CasePage({ params }: { params: Promise<{ sessionId
     <main className="flex-1 min-h-0 w-full flex flex-col max-w-2xl mx-auto">
       <header className="border-b px-4 py-3">
         <div className="flex items-center justify-between">
-          <div className="text-sm font-medium text-neutral-700">Case Interview — {session.phase} phase</div>
+          {/* "text", like the voice page's "voice" (12 Nov): the phase here was read once at page load and stayed "INTRO"
+              to the end, and the phase names are internal. */}
+          <div className="text-sm font-medium text-neutral-700">Case Interview — text</div>
           {/* Voice is the default (Lorenzo, 6 Nov); text to voice mid-case is safe — the agent reads the turns so far. */}
           {session.status === 'active' && (
             <Link href={caseHref(sessionId, 'voice')} className="text-xs text-neutral-500 underline">Switch to voice</Link>
