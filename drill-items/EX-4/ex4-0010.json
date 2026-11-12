@@ -1,0 +1,174 @@
+{
+  "item_id": "ex4-0010",
+  "version": 1,
+  "drill_id": "EX-4",
+  "status": "draft",
+  "level": 2,
+  "tier": 1,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "profitability",
+  "prompt": "A courier company's profit fell to $3M, and the CFO wants to know which delivery zone loses money.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "exhibit": {
+    "type": "grouped_bar",
+    "title": "Revenue and cost by delivery zone ($M)",
+    "categories": [
+      "Urban",
+      "Suburban",
+      "Rural"
+    ],
+    "series": [
+      {
+        "name": "Revenue",
+        "values": [
+          40,
+          25,
+          6
+        ],
+        "axis": "left"
+      },
+      {
+        "name": "Cost",
+        "values": [
+          32,
+          22,
+          14
+        ],
+        "axis": "left"
+      }
+    ],
+    "y_axis": {
+      "format": {
+        "prefix": "$",
+        "suffix": "M",
+        "decimals": 0
+      }
+    },
+    "totals": [],
+    "show_values": true,
+    "footnotes": [],
+    "reference_lines": [],
+    "markers": [],
+    "gaps": [],
+    "hollow": [],
+    "notes": []
+  },
+  "input": {
+    "type": "free_text",
+    "max_words": 40
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "key_insight",
+      "question": "Does the answer state the key insight: rural deliveries lose money: they cost $14M against $6M of revenue, an $8M loss that wipes out most of the $11M the other zones earn?",
+      "weight": 0.5,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "The takeaway that matters: rural deliveries lose money: they cost $14M against $6M of revenue, an $8M loss that wipes out most of the $11M the other zones earn.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_number",
+      "question": "Does the answer state a specific figure that the chart shows or that follows from it?",
+      "weight": 0.25,
+      "fail_tag": "M.unsupported_claim",
+      "feedback": "Back the takeaway with a number from the chart.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "tied_to_question",
+      "question": "Does the answer say what the insight means for the question the client asked?",
+      "weight": 0.25,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "Say what the takeaway means for the client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "contradicts_chart",
+      "definition": "The answer states something the chart shows to be false.",
+      "cap": 0.3,
+      "tag": "M.misread_trend",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "Rural deliveries lose money: they cost $14M to run but bring in $6M, an $8M loss that wipes out most of the $11M the urban and suburban zones earn.",
+  "defend": {
+    "type": "justify",
+    "text": "What does this mean for the client's decision?",
+    "checks": [
+      {
+        "check_id": "defend_implication",
+        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes?",
+        "weight": 0.4,
+        "fail_tag": "M.no_implication",
+        "feedback": "Say what the takeaway means for the client's decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_objective",
+        "question": "Is the implication tied to the client's objective as the question states it?",
+        "weight": 0.35,
+        "fail_tag": "M.implication_off_objective",
+        "feedback": "Tie the implication to what the client is trying to achieve.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own takeaway?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own takeaway.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "The CFO should fix rural delivery first, such as by raising rural prices or cutting delivery days, since closing that $8M loss would nearly quadruple profit."
+  },
+  "explanation": "The takeaway that matters: rural deliveries lose money: they cost $14M against $6M of revenue, an $8M loss that wipes out most of the $11M the other zones earn. Figures: Rural: $6M revenue, $14M cost, an $8M loss; Urban profit $8M; Suburban profit $3M; Total profit $3M ($71M − $68M).",
+  "extras": {
+    "key_insight": "rural deliveries lose money: they cost $14M against $6M of revenue, an $8M loss that wipes out most of the $11M the other zones earn",
+    "chart_figures": [
+      "Rural: $6M revenue, $14M cost, an $8M loss",
+      "Urban profit $8M",
+      "Suburban profit $3M",
+      "Total profit $3M ($71M − $68M)"
+    ],
+    "grading_rules": [
+      "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",
+      "Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure (\"most\", \"a big drop\") fail, and so does a wrong figure.",
+      "Client's question: the answer says what the insight means for the question the client asked (\"so $12 is the price that maximizes revenue\", \"so labor, not rent, explains the margin fall\"). Describing the chart with no link to the question fails.",
+      "Contradicts the chart (red flag): the answer states something the chart shows to be false: a trend in the wrong direction, the wrong largest or smallest item, or a figure off by more than the margins above. A claim the chart doesn't address is not a contradiction.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending",
+    "similarity_note": null,
+    "similarity_checked_at": null,
+    "similarity_method": null
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

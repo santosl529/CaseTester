@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0016-a",
+  "item_id": "cl4-0016",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–4 met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Compare the new stores' foot traffic with the older ones, since they sell half as much per square foot."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: traffic fell 40% after the anchors closed, so I'd weigh moving or closing them."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Location and foot traffic"
+}

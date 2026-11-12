@@ -1,0 +1,25 @@
+{
+  "answer_id": "ex4-0019-d1",
+  "item_id": "ex4-0019",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Rules 16–18 met.",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "One customer is 45% of the rival's revenue."
+    },
+    {
+      "type": "text",
+      "value": "Check that customer's contract before agreeing the price, and offer less if it could leave."
+    }
+  ],
+  "labels": {
+    "defend_implication": true,
+    "defend_objective": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

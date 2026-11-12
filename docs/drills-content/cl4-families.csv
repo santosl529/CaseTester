@@ -27,3 +27,112 @@ cl4-0008,Opening hours and events,"Looks at when the garden is open on Saturdays
 cl4-0008,Ticket prices,"Looks at ticket prices, memberships or discounts",change,"Visits in the hours still open held, so lost hours, not prices, explain the fall"
 cl4-0008,Competing attractions,Looks at other places families go on their days off,change,"Visits in the hours still open held, so lost hours, not competitors, explain the fall"
 cl4-0008,The gardens and exhibits,"Looks at the plants, exhibits or facilities",change,"The fall follows the shorter hours, not the gardens themselves"
+cl4-0009,Water and energy used per groom,Looks at how much water or energy each groom or station uses,keep,"The new stations use twice the water, which supports it"
+cl4-0009,Utility prices and contracts,"Looks at water or energy prices, or the supply contracts",change,Utility prices were flat
+cl4-0009,Staff and rent,"Looks at labor, rent or other fixed costs",change,"The fact points to water use, not fixed costs"
+cl4-0010,Time at each step of a claim,"Breaks settlement time down by step (estimate, review, payment)",keep,"The estimate step went from 3 to 15 days, which supports it"
+cl4-0010,Staff and workload,"Looks at claims handlers' numbers, workload or skills",change,Claims are flat and the delay sits with the garages
+cl4-0010,Fraud checks,Looks at fraud reviews holding claims up,change,"The delay comes from repair estimates, not fraud checks"
+cl4-0012,How bills and payments reach the county,Looks at how bills are sent or how payments arrive,keep,"Paper bills stopped and some homeowners got no bill, which supports it"
+cl4-0012,Homeowners' ability to pay,"Looks at hardship, incomes or house prices",change,"The drop follows the billing change, not hardship"
+cl4-0012,Payment options and late fees,Looks at adding payment methods or changing penalties,change,Homeowners without a bill can't pay however they're offered
+cl4-0014,Printing by department and document,"Looks at who prints what, and why",keep,"Two departments print every draft, which supports it"
+cl4-0014,Printer leases and supplies,"Looks at printer contracts, paper or toner prices",change,Prices aren't the driver; the volume of drafts is
+cl4-0014,Rent and space,Looks at office rent or space use,change,"The fact points to printing habits, not rent"
+cl4-0015,Supply and stock,"Looks at production, shipments or stock in stores",keep,"The factory made half the planned units, which supports it"
+cl4-0015,Demand and marketing,"Looks at advertising, awareness or demand",change,"It sold out, so demand wasn't the problem"
+cl4-0015,Price,Looks at the set's price,change,It sold out at its price
+cl4-0016,Location and foot traffic,Looks at how many shoppers pass or enter the new stores,keep,"Traffic fell 40% after the anchors closed, which supports it"
+cl4-0016,Staffing and store costs,"Looks at staff, rent or running costs",change,"The problem is too few shoppers, not costs"
+cl4-0016,Product range,Looks at what the new stores stock,change,"The fact points to traffic, not range"
+cl4-0016,Prices,Looks at prices or promotions,change,"The fact points to traffic, not prices"
+cl4-0017,What weekend buyers would pay,Looks at willingness to pay or demand at weekends,keep,Resale at twice face value supports it
+cl4-0017,Weekday attendance,Looks at filling weekday shows,change,The fact is about weekend demand
+cl4-0017,Costs of putting on shows,Looks at production or staff costs,change,"The fact points to demand and price, not costs"
+cl4-0018,The two offers in the three towns,"Compares the rival's and the client's speed, price or plans",keep,Five times the speed at the same price supports it
+cl4-0018,Price cuts,Looks at cutting prices to keep customers,change,"The rival wins on speed, not price"
+cl4-0018,Customer service,Looks at service quality or complaints,change,The fact points to speed
+cl4-0018,Contracts and loyalty,Looks at contract terms or loyalty offers,change,The fact points to speed
+cl4-0019,What insurers pay,Looks at payments per prescription by insurer,keep,"Two insurers cut payments 30%, which supports it"
+cl4-0019,Drug purchase costs,Looks at what the chain pays suppliers for drugs,change,"The fall comes from what insurers pay, not purchase costs"
+cl4-0019,Mix of generic and brand drugs,Looks at which drugs are filled,change,The fact points to insurer payments
+cl4-0019,Store costs,Looks at staff or rent,change,Profit per prescription fell on the payment side
+cl4-0020,Night-shift workers and training,Looks at who works nights and how they're trained,keep,"Temps skip the scan twice as often, which supports it"
+cl4-0020,Warehouse layout and labels,Looks at where items sit or how they're labeled,change,"Errors follow the workers, not the layout"
+cl4-0020,Order system and software,Looks at errors in the order or picking software,change,"The scan is being skipped, not failing"
+cl4-0021,How bakeries and cafés buy,"Looks at business buyers, their suppliers or prices",keep,"They buy through three importers, which supports it"
+cl4-0021,Supermarket shoppers,Looks at selling in supermarkets,change,Most syrup goes to bakeries and cafés
+cl4-0021,Export costs and prices,"Looks at shipping, tariffs or price",change,Getting an importer comes first
+cl4-0022,Why customers call about claims,Looks at claim-status calls and what triggers them,keep,"Status isn't shown online, which supports it"
+cl4-0022,Agent staffing and pay,"Looks at agent numbers, pay or shifts",change,The calls themselves can be avoided
+cl4-0022,Outsourcing the call center,Looks at moving calls to a cheaper provider,change,Cutting the calls comes before cutting their cost
+cl4-0024,Tiers by features used,Looks at what different customers use and would pay for,keep,"Small customers use only 2 features, which supports it"
+cl4-0024,Price cut for everyone,Looks at lowering the single price,change,Large customers use 8 features and aren't leaving
+cl4-0024,Help for small customers,Looks at onboarding or support for small customers,change,They leave over price for features they don't use
+cl4-0025,The big clinic and who runs it,Looks at why one clinic earns so much,keep,Its lead vet retiring supports it
+cl4-0025,Savings from combining the chains,Looks at shared costs or purchasing,change,The deal's value depends on that clinic first
+cl4-0025,Price and valuation,Looks at whether $25M is fair,keep|change,"Still worth checking, though the clinic's future decides the value"
+cl4-0027,Stock on store shelves,"Looks at stock, shelf space or availability",keep,"Stores pulled it for six weeks, which supports it"
+cl4-0027,Advertising,Looks at marketing or awareness,change,It sold on plan until it left the shelves
+cl4-0027,Price,Looks at its price,change,"The fall follows the recall, not price"
+cl4-0027,Weather,Looks at sunny days or temperatures,change,The fact points to the recall
+cl4-0028,Buying up small daycares,Looks at acquiring and combining independent sites,keep,"Owners sell at about four times profit, which supports it"
+cl4-0028,Future demand,Looks at whether growth will continue,change,"The fact points to how to enter, through acquisitions"
+cl4-0028,Costs and margins at a site,Looks at a typical site's economics,keep|change,"Still worth checking, though the roll-up is the deciding question"
+cl4-0029,The occasional customers who left,Looks at who left and what they were worth,keep,"The weekly customers stayed, which supports it"
+cl4-0029,Matching free delivery for everyone,Looks at cutting the client's fee to zero,change,Most orders come from customers who stayed
+cl4-0029,Weekly customers' loyalty,Looks at whether weekly customers will leave,change,The fact shows they kept ordering
+cl4-0030,Demand for winter play,Looks at whether members would come back or pay for winter courts,change,Half-empty courts nearby suggest weaker demand than the survey
+cl4-0030,Using the nearby courts,Looks at renting or partnering for the sports center's courts,keep,"They are half empty in winter, which supports it"
+cl4-0030,Building cost and payback,Looks at what the courts would cost and earn,change,A cheaper option nearby comes first
+cl4-0031,Unbilled time by team and reason,"Looks at admin, training or idle time",change,The drop comes from overruns on fixed-price projects
+cl4-0031,Fixed-price projects,"Looks at how fixed-price work is estimated, priced or run",keep,"They overran by 30%, which supports it"
+cl4-0031,Salaries and pay,Looks at pay rates or raises,change,The fact points to unbilled hours on projects
+cl4-0031,Hourly prices,Looks at billing rates on hourly work,change,The problem sits in fixed-price work
+cl4-0032,Batch sizes and scheduling,Looks at how often lines switch products,keep,"Smaller batches tripled changeovers, which supports it"
+cl4-0032,Faster changeovers,Looks at cutting the time each changeover takes,keep|change,"Still useful, though the number of changeovers matters more"
+cl4-0032,Breakdowns and maintenance,Looks at machine failures,change,"Changeovers, not breakdowns, cause most lost hours"
+cl4-0032,Staffing and shifts,Looks at operators or shift patterns,change,The fact points to batch sizes
+cl4-0033,Customer demand,Looks at how many people would race or pay,change,Demand looks strong; costs are now the open question
+cl4-0033,"Sites, rents and permits",Looks at finding and fitting out a building,keep,"Space costs three times as much, which supports it"
+cl4-0033,Competition,Looks at the 3 existing tracks,change,The fact points to costs
+cl4-0033,Prices,Looks at what to charge,keep|change,"Still worth checking, since higher costs may need higher prices"
+cl4-0034,Overlap and new revenue,Looks at how much of the rival's revenue the client doesn't already have,keep,"Shared customers would drop the rival's product, which supports it"
+cl4-0034,Cost savings from combining,Looks at shared costs,keep|change,Still worth checking alongside the overlap
+cl4-0034,The rival's growth,Looks at whether 40% growth will last,change,Much of that growth comes from customers the client already has
+cl4-0035,Produce ordering,Looks at how stores order produce,keep,"Over-ordering doubles waste, and the pilot halved it, which supports it"
+cl4-0035,Causes of produce loss by store,Breaks produce shrink down by store or cause,keep|change,"A fair first cut, though the fact already points to ordering"
+cl4-0035,Theft and security,Looks at theft or security,change,Produce waste comes from over-ordering
+cl4-0035,Suppliers and freshness,Looks at supplier quality or delivery times,change,The fact points to how stores order
+cl4-0036,Pricing against rivals,Looks at rivals' offices and prices,change,The client's own members would pay far less
+cl4-0036,What members would pay,Looks at willingness to pay among members or other buyers,keep,"Most interested members cap at $600, which supports it"
+cl4-0036,Cost to build and run offices,Looks at the cost of each office,keep|change,Needed to check payback at the price members would pay
+cl4-0037,More policies for existing clients,Looks at what existing clients hold or could buy,keep,"Rivals sell more through yearly reviews, which supports it"
+cl4-0037,Winning new small businesses,Looks at new clients,change,Existing clients are the faster lever
+cl4-0037,Moving into larger businesses,Looks at a new segment,change,The fact points to existing small clients
+cl4-0037,Commissions and prices,Looks at fees or commission rates,change,The gap is in policies per client
+cl4-0038,Service speed and staffing,Looks at wait times or staff levels,keep,"Kitchen cuts nearly doubled waits, which supports it"
+cl4-0038,Menu and prices,Looks at dishes or prices,change,The fact points to service speed
+cl4-0038,Marketing,Looks at advertising or promotions,change,"Guests leave over slow service, not awareness"
+cl4-0038,Locations,Looks at closing or moving restaurants,change,The fact points to staffing across the chain
+cl4-0040,How the leaders compete,Looks at how the two leaders win and keep users,keep|change,"Fair, though the fact points to the cost of winning users"
+cl4-0040,Cost to win a user against what a user pays,Compares acquisition cost with revenue per user,keep,$100 to win a user worth about $120 supports it
+cl4-0040,Market growth,Looks at whether growth will continue,change,"The fact points to economics, not growth"
+cl4-0040,Niches the leaders miss,Looks at languages or users the leaders don't serve,keep|change,"A possible way in, if users are cheaper to win there"
+cl4-0011,Cooking classes,"Looks at classes: who takes them, what they spend, or adding more",keep,"Only 4 stores hold classes and they're full, which supports it"
+cl4-0011,Online sales,Looks at selling kitchenware online,change,The fact points to a lever in the stores
+cl4-0011,Prices,Looks at prices or discounts,change,"The fact points to classes, not prices"
+cl4-0011,New stores,Looks at opening more stores,change,The existing stores can grow by adding classes first
+cl4-0013,Selling through the two websites,"Looks at the websites' terms, fees or rules for brands",keep,"Both require an in-home repair service, which supports it"
+cl4-0013,Shoppers' preferences,Looks at what French shoppers want in a kettle,change,"Meeting the listing rules, not shopper taste, is the first hurdle"
+cl4-0013,Competitors and prices,Looks at rival brands and their prices,change,The fact points to the listing rules
+cl4-0023,More grocery stores,Looks at getting into more grocery stores,change,The plant can't supply more stores at full capacity
+cl4-0023,Plant capacity,Looks at expanding how much the plant can make,keep,Sell-outs at full capacity support it
+cl4-0023,Restaurants,Looks at growing sales to restaurants,change,The fact points to grocery demand and capacity
+cl4-0023,Prices,Looks at raising prices,keep|change,"Sell-outs suggest room to raise prices, though capacity limits growth"
+cl4-0026,Which refunds get flagged,Looks at the flagging rule or how many refunds it catches,keep,"The rule flags 60% with almost no fraud, which supports it"
+cl4-0026,Staff for identity checks,Looks at staff hours or capacity for checks,change,The rule over-flags; more staff treats the symptom
+cl4-0026,Number of returns filed,Looks at the rise in returns,change,Returns rose only 8%
+cl4-0039,Arrival booking and slots,Looks at how trucks book and keep their slots,keep,"Trucks off their slot cause half the waiting, which supports it"
+cl4-0039,Building the new docks,"Looks at the docks' cost, savings or payback",change,Better booking may cut waits without them
+cl4-0039,Unloading speed,Looks at how fast trucks are unloaded,keep|change,"Still worth checking, though booking explains half the waiting"

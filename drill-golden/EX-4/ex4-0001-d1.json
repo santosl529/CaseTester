@@ -1,0 +1,25 @@
+{
+  "answer_id": "ex4-0001-d1",
+  "item_id": "ex4-0001",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Says what to do (rule 16), on the board's question of where to focus (rule 17), from its own takeaway (rule 18).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Riverside lost 26,000 of the 28,000 visits."
+    },
+    {
+      "type": "text",
+      "value": "The board should focus its budget on Riverside and find out what changed there."
+    }
+  ],
+  "labels": {
+    "defend_implication": true,
+    "defend_objective": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

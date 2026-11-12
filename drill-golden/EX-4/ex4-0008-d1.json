@@ -1,0 +1,25 @@
+{
+  "answer_id": "ex4-0008-d1",
+  "item_id": "ex4-0008",
+  "drill_id": "EX-4",
+  "answer_type": "short",
+  "notes": "Short, but says what to do to cut complaints (rules 16, 17), from its takeaway (rule 18).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Billing errors are 60% of complaints."
+    },
+    {
+      "type": "text",
+      "value": "Fix billing."
+    }
+  ],
+  "labels": {
+    "defend_implication": true,
+    "defend_objective": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

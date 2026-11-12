@@ -1,7 +1,8 @@
 // Matt's blind labels against Claude's (the next-7 golden-set plan): Matt
 // labels a set of answers in docs/drills-content/blind/<drill>-blind.csv
-// before seeing Claude's labels for them, which sit in that drill's
-// graded-answers CSV under the same answer_id. Lists, per column, where the
+// before seeing Claude's labels for them, which wait in blind/claude/ under
+// the same file name (then that drill's graded-answers CSV, once merged).
+// A cell Matt isn't asked to label reads "(yours)". Lists, per column, where the
 // two disagree. A disagreement means a rule needs clarifying before the gate
 // runs; neither label moves to match the other until it is settled.
 //
@@ -22,14 +23,16 @@ if (!sheets.length) { console.log(`No blind sheets in ${BLIND}.`); process.exit(
 let disagreements = 0, compared = 0, unlabeled = 0;
 for (const sheet of sheets) {
   const drill = sheet.replace('-blind.csv', '');
-  const mine = path.join(DIR, `${drill.replace(/-defend$/, '')}-graded-answers.csv`);
-  const golden = drill.endsWith('-defend') ? path.join(DIR, 'defend-graded-answers.csv') : mine;
+  const held = path.join(BLIND, 'claude', sheet);
+  const golden = fs.existsSync(held) ? held
+    : drill.endsWith('-defend') ? path.join(DIR, 'defend-graded-answers.csv') : path.join(DIR, `${drill}-graded-answers.csv`);
   const claude = new Map(parseCsv(fs.readFileSync(golden, 'utf-8')).map(r => [r.answer_id, r]));
   console.log(`\n${sheet} against ${path.basename(golden)}`);
   for (const r of parseCsv(fs.readFileSync(path.join(BLIND, sheet), 'utf-8'))) {
     const c = claude.get(r.answer_id);
     if (!c) { console.log(`- ${r.answer_id}: no label of Claude's yet`); continue; }
     for (const col of Object.keys(r).filter(k => !NOT_LABELS.has(k))) {
+      if (r[col] === '(yours)') continue;
       if (!r[col]) { unlabeled++; continue; }
       compared++;
       if (norm(r[col]) !== norm(c[col] ?? '')) {

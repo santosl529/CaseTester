@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0024-a",
+  "item_id": "ex4-0024",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–3 all met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Only 40% of suburban cars are rented each day, against 85–90% elsewhere, so cars should move out of the suburbs before buying more."
+    }
+  ],
+  "labels": {
+    "key_insight": true,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

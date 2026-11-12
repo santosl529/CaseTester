@@ -1,0 +1,20 @@
+{
+  "answer_id": "ex5-0013-a",
+  "item_id": "ex5-0013",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "Matches the chart (rule 19); the price gain is still used, condensed (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Materials were the biggest drag, costing $22M, more than price and volume added."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0029-a",
+  "item_id": "cl4-0029",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "A fix (rule 2) and a recommendation (rule 6); no reason (rule 3); the keep doesn't use the new fact (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Match the free delivery right away to stop the losses."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: losing customers is bad."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": false,
+    "reason_latest_finding": false,
+    "adapt_reason": false
+  },
+  "red_flags": {
+    "final_recommendation": true
+  },
+  "family": "Matching free delivery for everyone"
+}

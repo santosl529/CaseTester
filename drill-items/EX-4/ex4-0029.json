@@ -1,0 +1,177 @@
+{
+  "item_id": "ex4-0029",
+  "version": 1,
+  "drill_id": "EX-4",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "industry_analysis",
+  "prompt": "A private-equity firm wants to invest in the olive-oil industry and asks which stage of the chain earns the most.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "exhibit": {
+    "type": "grouped_bar",
+    "title": "Share of the industry's revenue and profit, by stage",
+    "categories": [
+      "Farming",
+      "Pressing",
+      "Distribution",
+      "Retail"
+    ],
+    "series": [
+      {
+        "name": "Revenue",
+        "values": [
+          20,
+          30,
+          15,
+          35
+        ],
+        "axis": "left"
+      },
+      {
+        "name": "Profit",
+        "values": [
+          10,
+          15,
+          45,
+          30
+        ],
+        "axis": "left"
+      }
+    ],
+    "y_axis": {
+      "format": {
+        "prefix": "",
+        "suffix": "%",
+        "decimals": 0
+      }
+    },
+    "totals": [],
+    "show_values": true,
+    "footnotes": [],
+    "reference_lines": [],
+    "markers": [],
+    "gaps": [],
+    "hollow": [],
+    "notes": []
+  },
+  "input": {
+    "type": "free_text",
+    "max_words": 40
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "key_insight",
+      "question": "Does the answer state the key insight: distribution is where the profit is: it takes 45% of the industry's profit on only 15% of its revenue?",
+      "weight": 0.5,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "The takeaway that matters: distribution is where the profit is: it takes 45% of the industry's profit on only 15% of its revenue.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_number",
+      "question": "Does the answer state a specific figure that the chart shows or that follows from it?",
+      "weight": 0.25,
+      "fail_tag": "M.unsupported_claim",
+      "feedback": "Back the takeaway with a number from the chart.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "tied_to_question",
+      "question": "Does the answer say what the insight means for the question the client asked?",
+      "weight": 0.25,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "Say what the takeaway means for the client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "contradicts_chart",
+      "definition": "The answer states something the chart shows to be false.",
+      "cap": 0.3,
+      "tag": "M.misread_trend",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "Distribution is where the profit is: it takes 45% of the industry's profit on only 15% of its revenue, while pressing earns 15% of the profit on 30% of the revenue.",
+  "defend": {
+    "type": "justify",
+    "text": "What does this mean for the client's decision?",
+    "checks": [
+      {
+        "check_id": "defend_implication",
+        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes?",
+        "weight": 0.4,
+        "fail_tag": "M.no_implication",
+        "feedback": "Say what the takeaway means for the client's decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_objective",
+        "question": "Is the implication tied to the client's objective as the question states it?",
+        "weight": 0.35,
+        "fail_tag": "M.implication_off_objective",
+        "feedback": "Tie the implication to what the client is trying to achieve.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own takeaway?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own takeaway.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "The firm should look for distribution businesses to buy, since that stage earns the most profit per dollar of revenue, and find out why its margins are so high before paying for them."
+  },
+  "explanation": "The takeaway that matters: distribution is where the profit is: it takes 45% of the industry's profit on only 15% of its revenue. Figures: Distribution 45% of profit, 15% of revenue; Retail 30% of profit, 35% of revenue; Pressing 15% of profit, 30% of revenue; Farming 10% of profit, 20% of revenue.",
+  "extras": {
+    "key_insight": "distribution is where the profit is: it takes 45% of the industry's profit on only 15% of its revenue",
+    "chart_figures": [
+      "Distribution 45% of profit, 15% of revenue",
+      "Retail 30% of profit, 35% of revenue",
+      "Pressing 15% of profit, 30% of revenue",
+      "Farming 10% of profit, 20% of revenue"
+    ],
+    "grading_rules": [
+      "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",
+      "Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure (\"most\", \"a big drop\") fail, and so does a wrong figure.",
+      "Client's question: the answer says what the insight means for the question the client asked (\"so $12 is the price that maximizes revenue\", \"so labor, not rent, explains the margin fall\"). Describing the chart with no link to the question fails.",
+      "Contradicts the chart (red flag): the answer states something the chart shows to be false: a trend in the wrong direction, the wrong largest or smallest item, or a figure off by more than the margins above. A claim the chart doesn't address is not a contradiction.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending",
+    "similarity_note": null,
+    "similarity_checked_at": null,
+    "similarity_method": null
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

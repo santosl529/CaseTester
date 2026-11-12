@@ -1,0 +1,20 @@
+{
+  "answer_id": "ex5-0009-a",
+  "item_id": "ex5-0009",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "States the growth insight (rule 19) with chart figures (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Enter the South: it grew 75% in three years, from $40M to $70M."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

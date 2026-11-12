@@ -1,0 +1,164 @@
+{
+  "item_id": "cl4-0030",
+  "version": 1,
+  "drill_id": "CL-4",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "CL.next_step"
+  ],
+  "case_type": "investment_decision",
+  "prompt": "Objective: decide whether a tennis club should build indoor courts for $3M. What you've learned: the club has 900 members, and membership has been flat for five years. Latest finding: 60% of members who quit say they had nowhere to play in winter.",
+  "exhibit": null,
+  "input": {
+    "type": "free_text",
+    "steps": [
+      {
+        "type": "free_text",
+        "weight": 0.6,
+        "label": "Your next step, and why",
+        "max_words": 40,
+        "time_limits_s": [
+          75,
+          60,
+          45
+        ]
+      },
+      {
+        "type": "single_choice",
+        "weight": 0.25,
+        "label": "Given the new fact, do you keep your next step or change it?",
+        "choices": [
+          {
+            "id": "keep",
+            "text": "Keep my next step"
+          },
+          {
+            "id": "change",
+            "text": "Change it"
+          }
+        ],
+        "time_limits_s": [
+          60,
+          45,
+          35
+        ]
+      },
+      {
+        "type": "free_text",
+        "weight": 0.15,
+        "label": "Why? If you change it, give the new step.",
+        "max_words": 30
+      }
+    ]
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "one_step",
+      "question": "Does stage 1 name one specific next analysis, not a list of several?",
+      "weight": 0.2,
+      "fail_tag": "M.illogical_next_step",
+      "feedback": "Name one specific analysis to do next.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "logical",
+      "question": "Is the step logical for where the case stands: not already answered by the situation, on the client's objective, and an analysis rather than a fix?",
+      "weight": 0.25,
+      "fail_tag": "M.illogical_next_step",
+      "feedback": "Pick a step the situation hasn't answered yet, on the client's objective.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "reason_latest_finding",
+      "question": "Does stage 1 give a reason for the step that uses the latest finding in the situation?",
+      "weight": 0.15,
+      "fail_tag": "M.illogical_next_step",
+      "feedback": "Use the latest finding to say why this step comes next.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "adapt_reason",
+      "question": "Does the stage 2 explanation use the new fact (\"A sports center nearby opened four indoor courts last year, and they are booked only half the time in winter.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "weight": 0.15,
+      "fail_tag": "M.illogical_next_step",
+      "feedback": "Use the new fact to explain your decision.",
+      "step": 2,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "final_recommendation",
+      "definition": "Stage 1 gives a final recommendation for the client instead of a next analysis.",
+      "cap": 0.4,
+      "tag": "M.illogical_next_step",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "Stage 1: Survey members who quit in the last two years about whether they'd return for winter play, and at what fee, since 60% cite having nowhere to play in winter.\nStage 2: Change: the nearby courts sit half empty in winter, so I'd check whether members would pay to use them before spending $3M on our own.",
+  "explanation": "The new fact: A sports center nearby opened four indoor courts last year, and they are booked only half the time in winter. Demand for winter play: change (Half-empty courts nearby suggest weaker demand than the survey). Using the nearby courts: keep (They are half empty in winter, which supports it). Building cost and payback: change (A cheaper option nearby comes first).",
+  "extras": {
+    "families": [
+      {
+        "family": "Demand for winter play",
+        "description": "Looks at whether members would come back or pay for winter courts",
+        "actions": [
+          "change"
+        ],
+        "reason": "Half-empty courts nearby suggest weaker demand than the survey"
+      },
+      {
+        "family": "Using the nearby courts",
+        "description": "Looks at renting or partnering for the sports center's courts",
+        "actions": [
+          "keep"
+        ],
+        "reason": "They are half empty in winter, which supports it"
+      },
+      {
+        "family": "Building cost and payback",
+        "description": "Looks at what the courts would cost and earn",
+        "actions": [
+          "change"
+        ],
+        "reason": "A cheaper option nearby comes first"
+      }
+    ],
+    "new_fact": "A sports center nearby opened four indoor courts last year, and they are booked only half the time in winter.",
+    "grading_rules": [
+      "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
+      "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",
+      "Reason tied to the latest finding: the reason uses the most recent finding in the situation, its content or its number, to say why this step comes next. A generic reason (\"it's important\", \"to understand the problem better\") fails, and so does a reason that uses only older facts.",
+      "Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the step still stands given the fact; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.",
+      "Step family: classify the stage 1 answer only, never the stage 2 explanation, by what the analysis examines, not its wording. If stage 1 names several steps, use the one it does first; if none is first, use the first one it lists. A list still fails the one-specific-analysis check. The family is \"other\" only for a step that fits none of the families.",
+      "Final recommendation (red flag): stage 1 tells the client what to do overall (\"they should exit the market\", \"raise prices 10%\") instead of naming the next analysis. A hypothesis to test is not a recommendation.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending",
+    "similarity_note": null,
+    "similarity_checked_at": null,
+    "similarity_method": null
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

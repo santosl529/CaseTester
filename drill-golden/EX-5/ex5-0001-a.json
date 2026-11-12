@@ -1,0 +1,20 @@
+{
+  "answer_id": "ex5-0001-a",
+  "item_id": "ex5-0001",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "Says what drove the fall (rule 19); figures read right, so the right part is kept (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Profit fell because cost of goods sold rose 25%, from $120M to $150M, faster than revenue's 10%."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

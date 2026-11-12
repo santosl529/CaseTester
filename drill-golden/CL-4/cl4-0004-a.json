@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0004-a",
+  "item_id": "cl4-0004",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "One step (rule 1), but a fix the situation already rules out, with prices fixed until 2028 (rule 2); no reason from the finding (rule 3) or the new fact (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Renegotiate the energy contract to get a lower price per unit."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: prices matter most."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": false,
+    "reason_latest_finding": false,
+    "adapt_reason": false
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Energy contract and prices"
+}

@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0025-a",
+  "item_id": "cl4-0025",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–4 met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Find out why one clinic earns 40% of the rival's revenue, since the price depends on it."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: its lead vet retires next year, so I'd estimate how many customers would leave and adjust the price."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "The big clinic and who runs it"
+}

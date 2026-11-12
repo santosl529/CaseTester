@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0027-a",
+  "item_id": "ex4-0027",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Print ads lost $10M: the wrong largest item (rule 4); $8M is right for print subscriptions (rule 2); answers which product (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Print subscriptions lost the most revenue, $8M, so that's the product to fix first."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": true
+  },
+  "family": null
+}

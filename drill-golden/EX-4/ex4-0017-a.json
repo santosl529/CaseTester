@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0017-a",
+  "item_id": "ex4-0017",
+  "drill_id": "EX-4",
+  "answer_type": "short",
+  "notes": "Terse, but states the peak and its share (rule 1) with a figure (rule 2); nothing on staffing (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Jan and Feb, 60%."
+    }
+  ],
+  "labels": {
+    "key_insight": true,
+    "cites_number": true,
+    "tied_to_question": false
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

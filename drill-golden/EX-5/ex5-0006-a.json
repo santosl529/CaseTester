@@ -1,0 +1,20 @@
+{
+  "answer_id": "ex5-0006-a",
+  "item_id": "ex5-0006",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "The forecast is gone (rule 19); materials' $6 kept (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Materials added $6 per unit, the biggest increase in cost."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

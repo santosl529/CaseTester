@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0022-a",
+  "item_id": "cl4-0022",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "A fix (rule 2) and a recommendation (rule 6), with no reason (rule 3); the change is well made (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Outsource the call center to cut cost per call."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change: claim status isn't online, so I'd estimate the calls saved by showing it in the app."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": false,
+    "reason_latest_finding": false,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": true
+  },
+  "family": "Outsourcing the call center"
+}

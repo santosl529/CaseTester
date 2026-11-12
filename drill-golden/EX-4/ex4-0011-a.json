@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0011-a",
+  "item_id": "ex4-0011",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "True but not where a discount helps (rule 1); figures right (rule 2); answers a different question, pricing weekends up (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Weekends are packed at 95% and 90%, so the park should raise weekend prices."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": true,
+    "tied_to_question": false
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

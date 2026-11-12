@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0008-a",
+  "item_id": "cl4-0008",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–4 met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Survey families who stopped coming about ticket prices, since family visits on Saturdays and Sundays fell 38%."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change: closing moved to 2pm and visits in open hours held, so I'd compare afternoon visits before the change with the cost of reopening."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Ticket prices"
+}

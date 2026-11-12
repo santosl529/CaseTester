@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0021-a",
+  "item_id": "ex4-0021",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–3 all met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "After six months only 28% of 2025 sign-ups are active, against 50% in 2024, so the new sign-up process is losing customers."
+    }
+  ],
+  "labels": {
+    "key_insight": true,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

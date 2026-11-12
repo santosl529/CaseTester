@@ -1,0 +1,178 @@
+{
+  "item_id": "ex4-0037",
+  "version": 1,
+  "drill_id": "EX-4",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "cost_reduction",
+  "prompt": "A solar-panel maker must close one of its three plants and wants to close the most expensive one.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "exhibit": {
+    "type": "table",
+    "title": "Plant costs",
+    "categories": [],
+    "series": [],
+    "y_axis": {
+      "format": {
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0
+      }
+    },
+    "totals": [],
+    "show_values": true,
+    "table": {
+      "columns": [
+        "Plant",
+        "Units a year",
+        "Fixed cost ($M a year)",
+        "Variable cost per unit"
+      ],
+      "rows": [
+        [
+          "A",
+          "250,000",
+          "25",
+          "$150"
+        ],
+        [
+          "B",
+          "100,000",
+          "18",
+          "$140"
+        ],
+        [
+          "C",
+          "120,000",
+          "12",
+          "$160"
+        ]
+      ]
+    },
+    "footnotes": [],
+    "reference_lines": [],
+    "markers": [],
+    "gaps": [],
+    "hollow": [],
+    "notes": []
+  },
+  "input": {
+    "type": "free_text",
+    "max_words": 40
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "key_insight",
+      "question": "Does the answer state the key insight: Plant B is the most expensive: $320 a unit ($18M ÷ 100,000 = $180 fixed plus $140 variable), against $250 at A and $260 at C, despite its lowest variable cost?",
+      "weight": 0.5,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "The takeaway that matters: Plant B is the most expensive: $320 a unit ($18M ÷ 100,000 = $180 fixed plus $140 variable), against $250 at A and $260 at C, despite its lowest variable cost.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_number",
+      "question": "Does the answer state a specific figure that the chart shows or that follows from it?",
+      "weight": 0.25,
+      "fail_tag": "M.unsupported_claim",
+      "feedback": "Back the takeaway with a number from the chart.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "tied_to_question",
+      "question": "Does the answer say what the insight means for the question the client asked?",
+      "weight": 0.25,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "Say what the takeaway means for the client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "contradicts_chart",
+      "definition": "The answer states something the chart shows to be false.",
+      "cap": 0.3,
+      "tag": "M.misread_trend",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "Plant B is the one to close: it costs $320 a unit ($18M ÷ 100,000 = $180 fixed plus $140 variable), against $250 at A and $260 at C, despite its lower variable cost.",
+  "defend": {
+    "type": "justify",
+    "text": "What does this mean for the client's decision?",
+    "checks": [
+      {
+        "check_id": "defend_implication",
+        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes?",
+        "weight": 0.4,
+        "fail_tag": "M.no_implication",
+        "feedback": "Say what the takeaway means for the client's decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_objective",
+        "question": "Is the implication tied to the client's objective as the question states it?",
+        "weight": 0.35,
+        "fail_tag": "M.implication_off_objective",
+        "feedback": "Tie the implication to what the client is trying to achieve.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own takeaway?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own takeaway.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Close Plant B and move its 100,000 units to A and C if they have room, since spreading their fixed costs over more units would cut their cost per unit further."
+  },
+  "explanation": "The takeaway that matters: Plant B is the most expensive: $320 a unit ($18M ÷ 100,000 = $180 fixed plus $140 variable), against $250 at A and $260 at C, despite its lowest variable cost. Figures: Cost per unit: A $100 + $150 = $250; B $180 + $140 = $320; C $100 + $160 = $260.",
+  "extras": {
+    "key_insight": "Plant B is the most expensive: $320 a unit ($18M ÷ 100,000 = $180 fixed plus $140 variable), against $250 at A and $260 at C, despite its lowest variable cost",
+    "chart_figures": [
+      "Cost per unit: A $100 + $150 = $250",
+      "B $180 + $140 = $320",
+      "C $100 + $160 = $260"
+    ],
+    "grading_rules": [
+      "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",
+      "Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure (\"most\", \"a big drop\") fail, and so does a wrong figure.",
+      "Client's question: the answer says what the insight means for the question the client asked (\"so $12 is the price that maximizes revenue\", \"so labor, not rent, explains the margin fall\"). Describing the chart with no link to the question fails.",
+      "Contradicts the chart (red flag): the answer states something the chart shows to be false: a trend in the wrong direction, the wrong largest or smallest item, or a figure off by more than the margins above. A claim the chart doesn't address is not a contradiction.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending",
+    "similarity_note": null,
+    "similarity_checked_at": null,
+    "similarity_method": null
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

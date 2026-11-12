@@ -1,13 +1,13 @@
 ---
 lesson_id: lesson-cl-next_step
 skill_id: CL.next_step
-version: 1
-status: live
+version: 2
+status: draft
 title: Propose the next step yourself
 drafting_model: claude-opus-5-5
-reviewed_by: Matthew Santos
-reviewed_at: 2026-10-17
-review_notes: 
+reviewed_by: 
+reviewed_at: 
+review_notes: v2 (next-7 build, D14): adds keeping or changing your step when a new fact arrives, which CL-4 grades.
 ---
 ## The idea
 After each finding, propose the next analysis yourself: the one that moves the case furthest toward the answer.
@@ -24,6 +24,7 @@ Each analysis should shrink the space where the answer can be. The step that tes
 3. Skip steps that are already answered or off the objective.
 4. Don't jump to a solution before you know the cause.
 5. Propose it: "Next, I'd like to look at…"
+6. When a new fact arrives, decide: keep your step if the fact leaves it the best test; change it if the fact answers it or points elsewhere. Say why, using the fact.
 
 ## Worked example
 Objective: find out why an online cookware shop's orders fell 25%.
@@ -32,6 +33,8 @@ Latest finding: site visits are flat.
 "Visits are flat, so fewer visitors are ordering. **Next, I'd look at where visitors drop off between product page, cart and checkout.**"
 
 Weaker choices: "Let's look at the number of visits" (already answered); "Let's cut prices" (a fix before the cause); "Let's review the supplier contracts" (sensible, but it matters less right now).
+
+Then a new fact: checkout errors doubled after a site update. "**I'd keep my step**: the drop-off is likely at checkout, so I'd confirm it there first."
 
 ## Another example
 Objective: decide whether a planetarium should open a café.
@@ -44,6 +47,8 @@ Weaker choices: "Let's survey visitors about food" (already answered); "Let's de
 ## Tricky cases
 - **A sensible step at the wrong time.** Checking supplier contracts isn't wrong, but when the finding points to checkout, it matters less right now.
 - **A hypothesis to test isn't a fix.** "Next, I'd check whether checkout errors rose" tests a cause. "Fix the checkout" jumps to a solution.
+- **Keeping is a decision too.** "Keep" needs a reason from the new fact, not "it still makes sense."
+- **A fact that answers your step means change.** If the fact already tells you what your analysis would have found, move to the next open question.
 
 ## Common mistakes
 - `M.waited_for_interviewer`: stopping after a finding without proposing what to do next.

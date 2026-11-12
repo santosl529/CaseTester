@@ -1,0 +1,164 @@
+{
+  "item_id": "ex5-0036",
+  "version": 1,
+  "drill_id": "EX-5",
+  "status": "draft",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
+  "prompt": "A warehouse club asks whether its revenue is growing.\n\nA candidate gave the takeaway below. Fix it.",
+  "exhibit": {
+    "type": "dual_axis",
+    "title": "Members and annual spend per member",
+    "categories": [
+      "2022",
+      "2023",
+      "2024",
+      "2025"
+    ],
+    "series": [
+      {
+        "name": "Members (thousands)",
+        "values": [
+          100,
+          120,
+          135,
+          150
+        ],
+        "axis": "left"
+      },
+      {
+        "name": "Spend per member ($)",
+        "values": [
+          500,
+          420,
+          360,
+          300
+        ],
+        "axis": "right"
+      }
+    ],
+    "y_axis": {
+      "label": "Members (thousands)",
+      "format": {
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0
+      }
+    },
+    "y2_axis": {
+      "label": "Spend per member ($)",
+      "format": {
+        "prefix": "$",
+        "suffix": "",
+        "decimals": 0
+      }
+    },
+    "totals": [],
+    "show_values": false,
+    "footnotes": [],
+    "reference_lines": [],
+    "markers": [],
+    "gaps": [],
+    "hollow": [],
+    "notes": []
+  },
+  "input": {
+    "type": "free_text",
+    "max_words": 40
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "fix_1",
+      "question": "The original had this flaw: it says revenue grew, but it fell about 10%, from $50M to $45M. Does the edited answer fix it? One way to fix it: says revenue fell about 10%: 100k × $500 = $50M in 2022 against 150k × $300 = $45M in 2025. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
+      "weight": 0.25,
+      "fail_tag": "M.misread_trend",
+      "feedback": "The flaw is still there: it says revenue grew, but it fell about 10%, from $50M to $45M.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "fix_2",
+      "question": "The original had this flaw: it calls new members bargain hunters, which the chart doesn't show. Does the edited answer fix it? One way to fix it: drops the bargain-hunter claim, or frames it as something to check. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
+      "weight": 0.25,
+      "fail_tag": "M.unsupported_claim",
+      "feedback": "The flaw is still there: it calls new members bargain hunters, which the chart doesn't show.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "no_new_flaw",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: trivial takeaway, misread trend, unsupported claim? The original's own flaws (it says revenue grew, but it fell about 10%, from $50M to $45M; it calls new members bargain hunters, which the chart doesn't show) don't count as new, even if the edit leaves them in place or rewords them, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "weight": 0.3,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "Your edit added a new flaw. Change only what needs fixing.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    },
+    {
+      "check_id": "keeps_right",
+      "question": "Does the edit keep the substance of each part of the original that was right: it weighs member growth against falling spend per member? Rewording or condensing a part is fine; dropping one fails.",
+      "weight": 0.2,
+      "fail_tag": "M.unsupported_claim",
+      "feedback": "Keep what was already right: it weighs member growth against falling spend per member.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "whole"
+    }
+  ],
+  "red_flags": [],
+  "model_answer": "Revenue fell about 10% despite 50% more members: 100k members at $500 brought $50M in 2022, and 150k at $300 brought $45M in 2025.",
+  "explanation": "The flaws: it says revenue grew, but it fell about 10%, from $50M to $45M; it calls new members bargain hunters, which the chart doesn't show. What was right: it weighs member growth against falling spend per member.",
+  "extras": {
+    "derived_from": "ex1-0043",
+    "flawed_answer": "Revenue grew, since members rose faster than spend fell, and new members are bargain hunters.",
+    "flaws": [
+      {
+        "tag": "M.misread_trend",
+        "hint": "it says revenue grew, but it fell about 10%, from $50M to $45M",
+        "fix": "says revenue fell about 10%: 100k × $500 = $50M in 2022 against 150k × $300 = $45M in 2025"
+      },
+      {
+        "tag": "M.unsupported_claim",
+        "hint": "it calls new members bargain hunters, which the chart doesn't show",
+        "fix": "drops the bargain-hunter claim, or frames it as something to check"
+      }
+    ],
+    "right_parts": "it weighs member growth against falling spend per member",
+    "grading_rules": [
+      "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
+      "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it. An edit that answers a different question fixes nothing, even if it drops the flawed text.",
+      "A new flaw is one the original did not have, of the kinds listed. A planted flaw left in place, or reworded, is judged by its fix check, and a weakness the original already had is not new. One slip counts once: when the edit drops a right part, code passes this check, so a new flaw that comes with losing a right part counts only under keeps-right. When the edit adds a new flaw, name its kind in new_flaw_tag.",
+      "Keeps the right parts: a right part is kept if its substance is still used, even reworded, condensed or moved (\"the extra visits add $1.2M\" keeps \"40% joined and visited 12% more\"). Deleting it, or changing it so it is no longer right, fails.",
+      "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.",
+      "A good takeaway states the insight that matters for the client's question, with a number the chart shows or that follows from it, and claims nothing the chart contradicts or doesn't show.",
+      "A trivial takeaway (true but beside the client's question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn't show) is fixed when it is removed, or replaced by a claim the chart supports.",
+      "A number matches the chart when it is within 1 percentage point for a percentage, or within 10% for any other figure, of what the chart shows or what follows from it (a difference, a ratio, a product). The chart figures listed are worked out from the chart, to check against.",
+      "A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending",
+    "similarity_note": null,
+    "similarity_checked_at": null,
+    "similarity_method": null
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

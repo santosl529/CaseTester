@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0019-a",
+  "item_id": "cl4-0019",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–4 met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Compare drug purchase costs for the top drugs this year against last, since profit per prescription fell 25%."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change: two insurers cut payments 30%, so I'd look at payments by insurer and renegotiating."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Drug purchase costs"
+}

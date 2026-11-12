@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0005-a",
+  "item_id": "cl4-0005",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–4 met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Compare loyalty sign-up rates store by store, since members spend three times as much."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: only 20% are members and asking at checkout doubles sign-ups, so I'd estimate the gain from asking at every store."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Loyalty membership"
+}

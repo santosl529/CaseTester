@@ -1,0 +1,6 @@
+answer_id,item_id,answer_type,answer,key_insight,cites_number,tied_to_question,red_flag_contradicts_chart,notes
+ex4-0005-a,ex4-0005,borderline,"Germany has the most clinics, 40,000, but 70% already use software, so Italy, where only 30% do, is the better bet.",,,,,
+ex4-0010-a,ex4-0010,borderline,"Rural deliveries bring in only $6M, the smallest zone, so they matter least to profit.",,,,,
+ex4-0015-a,ex4-0015,borderline,"Installations more than doubled from 40,000 in 2021, though they've slipped since 2023, so it's still a sizable market.",,,,,
+ex4-0020-a,ex4-0020,borderline,"Sales grew 12%, but the market grew 30%, so the client is falling behind.",,,,,
+ex4-0026-a,ex4-0026,borderline,"Win rates fell in every segment, most of all with mid-size firms, from 35% to 18%.",,,,,

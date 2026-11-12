@@ -1,0 +1,173 @@
+{
+  "item_id": "ex4-0026",
+  "version": 1,
+  "drill_id": "EX-4",
+  "status": "draft",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "competitive_response",
+  "prompt": "A payroll-software company is losing deals to a new rival and wants to know where.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "exhibit": {
+    "type": "grouped_bar",
+    "title": "Share of sales pitches won",
+    "categories": [
+      "Small firms",
+      "Mid-size firms",
+      "Large firms"
+    ],
+    "series": [
+      {
+        "name": "2024",
+        "values": [
+          40,
+          35,
+          30
+        ],
+        "axis": "left"
+      },
+      {
+        "name": "2025",
+        "values": [
+          38,
+          18,
+          29
+        ],
+        "axis": "left"
+      }
+    ],
+    "y_axis": {
+      "format": {
+        "prefix": "",
+        "suffix": "%",
+        "decimals": 0
+      }
+    },
+    "totals": [],
+    "show_values": true,
+    "footnotes": [],
+    "reference_lines": [],
+    "markers": [],
+    "gaps": [],
+    "hollow": [],
+    "notes": []
+  },
+  "input": {
+    "type": "free_text",
+    "max_words": 40
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "key_insight",
+      "question": "Does the answer state the key insight: the rival is winning mid-size firms: the client's win rate there fell from 35% to 18%, while small and large firms barely moved?",
+      "weight": 0.5,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "The takeaway that matters: the rival is winning mid-size firms: the client's win rate there fell from 35% to 18%, while small and large firms barely moved.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_number",
+      "question": "Does the answer state a specific figure that the chart shows or that follows from it?",
+      "weight": 0.25,
+      "fail_tag": "M.unsupported_claim",
+      "feedback": "Back the takeaway with a number from the chart.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "tied_to_question",
+      "question": "Does the answer say what the insight means for the question the client asked?",
+      "weight": 0.25,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "Say what the takeaway means for the client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "contradicts_chart",
+      "definition": "The answer states something the chart shows to be false.",
+      "cap": 0.3,
+      "tag": "M.misread_trend",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "The rival is winning mid-size firms: the client's win rate there fell from 35% to 18%, while it barely moved with small firms (40% to 38%) and large ones (30% to 29%).",
+  "defend": {
+    "type": "justify",
+    "text": "What does this mean for the client's decision?",
+    "checks": [
+      {
+        "check_id": "defend_implication",
+        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes?",
+        "weight": 0.4,
+        "fail_tag": "M.no_implication",
+        "feedback": "Say what the takeaway means for the client's decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_objective",
+        "question": "Is the implication tied to the client's objective as the question states it?",
+        "weight": 0.35,
+        "fail_tag": "M.implication_off_objective",
+        "feedback": "Tie the implication to what the client is trying to achieve.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own takeaway?",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own takeaway.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "The client should focus its response on mid-size firms, for example by finding out what the rival offers them, instead of cutting prices for every segment."
+  },
+  "explanation": "The takeaway that matters: the rival is winning mid-size firms: the client's win rate there fell from 35% to 18%, while small and large firms barely moved. Figures: Mid-size: 35% to 18% (−17 points); Small: 40% to 38%; Large: 30% to 29%.",
+  "extras": {
+    "key_insight": "the rival is winning mid-size firms: the client's win rate there fell from 35% to 18%, while small and large firms barely moved",
+    "chart_figures": [
+      "Mid-size: 35% to 18% (−17 points)",
+      "Small: 40% to 38%",
+      "Large: 30% to 29%"
+    ],
+    "grading_rules": [
+      "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",
+      "Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure (\"most\", \"a big drop\") fail, and so does a wrong figure.",
+      "Client's question: the answer says what the insight means for the question the client asked (\"so $12 is the price that maximizes revenue\", \"so labor, not rent, explains the margin fall\"). Describing the chart with no link to the question fails.",
+      "Contradicts the chart (red flag): the answer states something the chart shows to be false: a trend in the wrong direction, the wrong largest or smallest item, or a figure off by more than the margins above. A claim the chart doesn't address is not a contradiction.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Draft — awaiting human review",
+    "drafting_model": null,
+    "reviewed_by": null,
+    "reviewed_at": null,
+    "similarity_check": "pending",
+    "similarity_note": null,
+    "similarity_checked_at": null,
+    "similarity_method": null
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

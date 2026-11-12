@@ -1,0 +1,20 @@
+{
+  "answer_id": "ex5-0012-a",
+  "item_id": "ex5-0012",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "Matches the table (rule 19); still commits to one company (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Company A is the target: 25% growth with an 18% margin."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

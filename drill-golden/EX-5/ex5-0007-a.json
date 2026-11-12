@@ -1,0 +1,21 @@
+{
+  "answer_id": "ex5-0007-a",
+  "item_id": "ex5-0007",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "The payback pick is fixed (rule 19); 'safest bet' moved to C is the planted unsupported claim reworded, so flaw 2 isn't fixed and isn't new (rule 3); figures read right (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Project C pays back in 3 years ($6M ÷ $2M), the only one within the limit, and it is the safest bet."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

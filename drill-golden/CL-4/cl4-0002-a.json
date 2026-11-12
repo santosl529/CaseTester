@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0002-a",
+  "item_id": "cl4-0002",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "One analysis, on the objective (rules 1, 2); doesn't use the latest finding, the two airports (rule 3); 'crews still matter' gives no reason from the new fact (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Look at crew schedules across the network to see if pilots are running late."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: crews still matter."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": false,
+    "adapt_reason": false
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Crew and scheduling"
+}

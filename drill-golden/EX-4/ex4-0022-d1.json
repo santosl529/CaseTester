@@ -1,0 +1,25 @@
+{
+  "answer_id": "ex4-0022-d1",
+  "item_id": "ex4-0022",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "An action (rule 16), but $40 earns less per tour, the client's goal (rule 17), and contradicts its own takeaway (rule 18).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "$50 brings in $1,500 a tour."
+    },
+    {
+      "type": "text",
+      "value": "Set afternoon tours at $40, which sells more tickets."
+    }
+  ],
+  "labels": {
+    "defend_implication": true,
+    "defend_objective": false,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

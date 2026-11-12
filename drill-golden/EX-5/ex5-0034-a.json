@@ -1,0 +1,21 @@
+{
+  "answer_id": "ex5-0034-a",
+  "item_id": "ex5-0034",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "The misread is fixed; the price cut is framed as likely, which the key's fix accepts (rules 2, 19); still weighs growth against margins (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "EBITDA fell from $10M to about $7M despite 72% revenue growth, likely because the target is cutting prices."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

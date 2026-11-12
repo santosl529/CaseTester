@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0015-a",
+  "item_id": "cl4-0015",
+  "drill_id": "CL-4",
+  "answer_type": "off_topic",
+  "notes": "Two fixes and a recommendation, no analysis (rules 1, 2, 6); no reason (rule 3); the change names no new step (rule 4); classified by the first listed (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The toy maker should cut the price for next Christmas and advertise more."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change: they need more stock."
+    }
+  ],
+  "labels": {
+    "one_step": false,
+    "logical": false,
+    "reason_latest_finding": false,
+    "adapt_reason": false
+  },
+  "red_flags": {
+    "final_recommendation": true
+  },
+  "family": "Price"
+}

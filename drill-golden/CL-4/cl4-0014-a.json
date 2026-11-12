@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0014-a",
+  "item_id": "cl4-0014",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–4 met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Break printing costs down by department, since printing rose from 8% to 25% of office costs."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: two departments print every draft, so I'd estimate the saving from stopping."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Printing by department and document"
+}
