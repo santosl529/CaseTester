@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"In those towns the rival offers speeds five times faster than the client's, at the same price.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"In those towns the rival matches the client's speeds and prices, and customers who left mostly cite outages, which tripled there this year.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -107,17 +107,17 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Compare what the rival offers in the three towns with the client's plans, speed and price side by side, since nearly all the losses are there.\nStage 2: Keep: the rival is five times faster at the same price, so I'd cost upgrading the network in those three towns against losing more customers.",
-  "explanation": "The new fact: In those towns the rival offers speeds five times faster than the client's, at the same price. The two offers in the three towns: keep (Five times the speed at the same price supports it). Price cuts: change (The rival wins on speed, not price). Customer service: change (The fact points to speed). Contracts and loyalty: change (The fact points to speed).",
+  "model_answer": "Stage 1: Compare what the rival offers in the three towns with the client's plans, speed and price side by side, since nearly all the losses are there.\nStage 2: Change: the offers match on speed and price, and leavers cite outages, which tripled, so I'd find what is causing the outages in those three towns.",
+  "explanation": "The new fact: In those towns the rival matches the client's speeds and prices, and customers who left mostly cite outages, which tripled there this year. The two offers in the three towns: change (The offers match on speed and price). Price cuts: change (Prices already match). Service and outages: keep (Leavers cite outages, which tripled, which supports it). Contracts and loyalty: change (The fact points to outages).",
   "extras": {
     "families": [
       {
         "family": "The two offers in the three towns",
         "description": "Compares the rival's and the client's speed, price or plans",
         "actions": [
-          "keep"
+          "change"
         ],
-        "reason": "Five times the speed at the same price supports it"
+        "reason": "The offers match on speed and price"
       },
       {
         "family": "Price cuts",
@@ -125,15 +125,15 @@
         "actions": [
           "change"
         ],
-        "reason": "The rival wins on speed, not price"
+        "reason": "Prices already match"
       },
       {
-        "family": "Customer service",
-        "description": "Looks at service quality or complaints",
+        "family": "Service and outages",
+        "description": "Looks at service quality, outages or complaints",
         "actions": [
-          "change"
+          "keep"
         ],
-        "reason": "The fact points to speed"
+        "reason": "Leavers cite outages, which tripled, which supports it"
       },
       {
         "family": "Contracts and loyalty",
@@ -141,10 +141,10 @@
         "actions": [
           "change"
         ],
-        "reason": "The fact points to speed"
+        "reason": "The fact points to outages"
       }
     ],
-    "new_fact": "In those towns the rival offers speeds five times faster than the client's, at the same price.",
+    "new_fact": "In those towns the rival matches the client's speeds and prices, and customers who left mostly cite outages, which tripled there this year.",
     "grading_rules": [
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",

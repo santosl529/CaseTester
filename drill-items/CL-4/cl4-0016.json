@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"The 6 new stores sit in shopping centers where foot traffic fell 40% after their anchor stores closed.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"The 6 new stores draw as many shoppers as the older ones, but only half of those shoppers buy anything, and the new stores carry 40% fewer products.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -107,17 +107,17 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Compare foot traffic at the 6 new stores with the older ones, month by month, since they sell half as much per square foot.\nStage 2: Keep: traffic at their shopping centers fell 40% after the anchors closed, so I'd weigh moving or closing those stores against cutting their costs.",
-  "explanation": "The new fact: The 6 new stores sit in shopping centers where foot traffic fell 40% after their anchor stores closed. Location and foot traffic: keep (Traffic fell 40% after the anchors closed, which supports it). Staffing and store costs: change (The problem is too few shoppers, not costs). Product range: change (The fact points to traffic, not range). Prices: change (The fact points to traffic, not prices).",
+  "model_answer": "Stage 1: Compare foot traffic at the 6 new stores with the older ones, month by month, since they sell half as much per square foot.\nStage 2: Change: the new stores draw as many shoppers, but only half buy and they carry 40% fewer products, so I'd compare their range with the older stores'.",
+  "explanation": "The new fact: The 6 new stores draw as many shoppers as the older ones, but only half of those shoppers buy anything, and the new stores carry 40% fewer products. Location and foot traffic: change (They draw as many shoppers as the older stores). Staffing and store costs: change (Shoppers come but don't buy, so the gap is in sales, not costs). Product range: keep (Half of shoppers leave without buying and the stores carry 40% fewer products, which supports it). Prices: change (The fact points to the range, not prices).",
   "extras": {
     "families": [
       {
         "family": "Location and foot traffic",
         "description": "Looks at how many shoppers pass or enter the new stores",
         "actions": [
-          "keep"
+          "change"
         ],
-        "reason": "Traffic fell 40% after the anchors closed, which supports it"
+        "reason": "They draw as many shoppers as the older stores"
       },
       {
         "family": "Staffing and store costs",
@@ -125,15 +125,15 @@
         "actions": [
           "change"
         ],
-        "reason": "The problem is too few shoppers, not costs"
+        "reason": "Shoppers come but don't buy, so the gap is in sales, not costs"
       },
       {
         "family": "Product range",
         "description": "Looks at what the new stores stock",
         "actions": [
-          "change"
+          "keep"
         ],
-        "reason": "The fact points to traffic, not range"
+        "reason": "Half of shoppers leave without buying and the stores carry 40% fewer products, which supports it"
       },
       {
         "family": "Prices",
@@ -141,10 +141,10 @@
         "actions": [
           "change"
         ],
-        "reason": "The fact points to traffic, not prices"
+        "reason": "The fact points to the range, not prices"
       }
     ],
-    "new_fact": "The 6 new stores sit in shopping centers where foot traffic fell 40% after their anchor stores closed.",
+    "new_fact": "The 6 new stores draw as many shoppers as the older ones, but only half of those shoppers buy anything, and the new stores carry 40% fewer products.",
     "grading_rules": [
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",

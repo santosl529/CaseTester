@@ -11,11 +11,11 @@
     },
     {
       "type": "choice",
-      "option_id": "keep"
+      "option_id": "change"
     },
     {
       "type": "text",
-      "value": "Keep: traffic fell 40% after the anchors closed, so I'd weigh moving or closing them."
+      "value": "Change: they draw as many shoppers, so I'd compare their product range with the older stores'."
     }
   ],
   "labels": {

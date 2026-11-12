@@ -7,11 +7,16 @@
 // its grading rules, or the wording of its check questions) is written as a
 // new draft version, keeping its similarity check, for review.
 //
+// Authorship (drafting, review, similarity check) is restored from
+// drill-items/review-records.json whenever the text the similarity check
+// judged is unchanged, so deleting or rewriting item files can't lose it.
+//
 //   npm run drills:import -- <folder with the CSVs> [--include-examples] [--dry-run]
 import fs from 'fs';
 import path from 'path';
 import { importContent, parseCsv, type Tables } from '@/lib/drills/content-import';
 import { ItemSchema, type Item } from '@/lib/drills/item-schema';
+import { carryAuthorship, loadReviewRecords, recordReview, saveReviewRecords } from '@/lib/drills/review-records';
 
 const args = process.argv.slice(2);
 const dir = args.find(a => !a.startsWith('--')) ?? 'docs/drills-content-templates';
@@ -51,11 +56,22 @@ const studentFacing = (i: Record<string, unknown>) => {
 const inOrder = (existing: Record<string, unknown>, item: Record<string, unknown>) =>
   Object.fromEntries([...new Set([...Object.keys(existing), ...Object.keys(item)])].filter(k => item[k] !== undefined).map(k => [k, item[k]]));
 
+// Every authored item on disk is recorded before anything is overwritten,
+// as parsed (schema defaults filled in), so its fingerprint matches a build's.
+const parsed = (raw: unknown) => ItemSchema.safeParse(raw).data ?? null;
+const records = loadReviewRecords();
+for (const drill of fs.readdirSync('drill-items', { withFileTypes: true }).filter(d => d.isDirectory())) {
+  for (const f of fs.readdirSync(path.join('drill-items', drill.name)).filter(f => f.endsWith('.json'))) {
+    const item = parsed(JSON.parse(fs.readFileSync(path.join('drill-items', drill.name, f), 'utf-8')));
+    if (item) recordReview(records, item);
+  }
+}
+
 let written = 0, kept = 0;
 for (const item of items) {
   const file = path.join('drill-items', item.drill_id, `${item.item_id}.json`);
-  if (fs.existsSync(file)) {
-    const existing = JSON.parse(fs.readFileSync(file, 'utf-8'));
+  const existing = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf-8')) : null;
+  if (existing) {
     if (existing.status !== 'draft') {
       if (content(existing) !== content(item) && studentFacing(existing) === studentFacing(item)) {
         // Only grader-facing text changed (follow-up, rules, check questions):
@@ -66,6 +82,7 @@ for (const item of items) {
           authorship: { ...existing.authorship, author_of_record: 'Draft — awaiting human review', drafting_model: 'claude-opus-5-5', reviewed_by: null, reviewed_at: null },
         });
         if (!dryRun) fs.writeFileSync(file, JSON.stringify(inOrder(existing, item), null, 2) + '\n');
+        recordReview(records, item);
         written++;
         continue;
       }
@@ -74,21 +91,22 @@ for (const item of items) {
       kept++;
       continue;
     }
-    // Same case and model answer: keep the review record (drafting model,
-    // similarity check). A changed case starts over and is checked again.
-    if (existing.prompt === item.prompt && existing.model_answer === item.model_answer) item.authorship = existing.authorship;
     // The industry tag is set by npm run drills:industry and Matt's review, not the CSV.
     if (existing.industry !== undefined && existing.prompt === item.prompt) (item as Record<string, unknown>).industry = existing.industry;
     // A draft may be a new version of a live item: keep its version number.
     item.version = existing.version;
   }
+  // Same text the similarity check judged: keep the review record (drafting
+  // model, similarity check). A changed case starts over and is checked again.
+  item.authorship = carryAuthorship(item, existing && parsed(existing), records);
   if (!dryRun) {
     fs.mkdirSync(path.dirname(file), { recursive: true });
-    const existing = fs.existsSync(file) ? JSON.parse(fs.readFileSync(file, 'utf-8')) : {};
-    fs.writeFileSync(file, JSON.stringify(inOrder(existing, item), null, 2) + '\n');
+    fs.writeFileSync(file, JSON.stringify(inOrder(existing ?? {}, item), null, 2) + '\n');
   }
+  recordReview(records, item);
   written++;
 }
+if (!dryRun) saveReviewRecords(records);
 for (const g of golden) {
   const file = path.join('drill-golden', g.drill_id, `${g.answer_id}.json`);
   if (!dryRun) {

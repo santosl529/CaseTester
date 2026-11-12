@@ -3,7 +3,7 @@
   "item_id": "cl4-0025",
   "drill_id": "CL-4",
   "answer_type": "normal",
-  "notes": "Rules 1–4 met.",
+  "notes": "Rules 1–4 met; code scores the keep.",
   "responses": [
     {
       "type": "text",
@@ -15,7 +15,7 @@
     },
     {
       "type": "text",
-      "value": "Keep: its lead vet retires next year, so I'd estimate how many customers would leave and adjust the price."
+      "value": "Keep: it's the only emergency hospital, so I'd confirm its revenue will hold."
     }
   ],
   "labels": {

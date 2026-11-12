@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"In a survey, customers who use both products say they'd drop the rival's product if the two were combined, keeping only the client's.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"In a survey, shared customers say they use the two products for different jobs and would keep both; the rival's growth came from a payments feature 60% of its customers took up this year.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -107,17 +107,17 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Estimate how much of the rival's revenue would be new to the client, given that 70% of its customers already use the client's software, before judging the $80M price.\nStage 2: Keep: shared customers would drop the rival's product, so 70% of its customers add little; I'd value the deal on the other 30% and cost savings.",
-  "explanation": "The new fact: In a survey, customers who use both products say they'd drop the rival's product if the two were combined, keeping only the client's. Overlap and new revenue: keep (Shared customers would drop the rival's product, which supports it). Cost savings from combining: keep or change (Still worth checking alongside the overlap). The rival's growth: change (Much of that growth comes from customers the client already has).",
+  "model_answer": "Stage 1: Estimate how much of the rival's revenue would be new to the client, given that 70% of its customers already use the client's software, before judging the $80M price.\nStage 2: Change: shared customers would keep both products, so the overlap costs little; I'd check whether the payments feature behind the 40% growth can keep growing.",
+  "explanation": "The new fact: In a survey, shared customers say they use the two products for different jobs and would keep both; the rival's growth came from a payments feature 60% of its customers took up this year. Overlap and new revenue: change (Shared customers would keep both products, so the overlap costs little). Cost savings from combining: keep or change (Still worth checking, though the fact points to the payments feature). The rival's growth: keep (Growth came from a payments feature 60% of customers took up, which supports it).",
   "extras": {
     "families": [
       {
         "family": "Overlap and new revenue",
         "description": "Looks at how much of the rival's revenue the client doesn't already have",
         "actions": [
-          "keep"
+          "change"
         ],
-        "reason": "Shared customers would drop the rival's product, which supports it"
+        "reason": "Shared customers would keep both products, so the overlap costs little"
       },
       {
         "family": "Cost savings from combining",
@@ -126,18 +126,18 @@
           "keep",
           "change"
         ],
-        "reason": "Still worth checking alongside the overlap"
+        "reason": "Still worth checking, though the fact points to the payments feature"
       },
       {
         "family": "The rival's growth",
         "description": "Looks at whether 40% growth will last",
         "actions": [
-          "change"
+          "keep"
         ],
-        "reason": "Much of that growth comes from customers the client already has"
+        "reason": "Growth came from a payments feature 60% of customers took up, which supports it"
       }
     ],
-    "new_fact": "In a survey, customers who use both products say they'd drop the rival's product if the two were combined, keeping only the client's.",
+    "new_fact": "In a survey, shared customers say they use the two products for different jobs and would keep both; the rival's growth came from a payments feature 60% of its customers took up this year.",
     "grading_rules": [
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",

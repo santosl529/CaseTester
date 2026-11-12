@@ -18,6 +18,8 @@ import { answerText, scoreStep, type StepResponse, type StepResult } from '@/lib
 import { itemLimitsMs, startsStage } from '@/lib/drills/sets/timing';
 import { stepFeedback } from '@/lib/drills/sets/feedback';
 import { getDrill } from '@/lib/drills/config';
+import { nextStepCueProblems, nextStepDecision } from '@/lib/drills/content-checks';
+import { carryAuthorship, fingerprint, loadReviewRecords, recordReview, type ReviewRecords } from '@/lib/drills/review-records';
 
 const TEMPLATES = path.join(process.cwd(), 'docs/drills-content-templates');
 const tables = (): Tables => Object.fromEntries(fs.readdirSync(TEMPLATES).filter(f => f.endsWith('.csv'))
@@ -226,6 +228,80 @@ describe('P1 items on disk', () => {
     const titles = items.filter(i => i.drill_id === 'EX-4').map(i => i.exhibit!.title);
     expect(new Set(titles).size).toBe(titles.length);
     expect(defendParts(ex4)).toBeNull();
+  });
+});
+
+describe('CL-4 Keep or Change balance (content-checks.ts nextStepCueProblems)', () => {
+  const pool = loadAuthoredItems().filter(i => i.drill_id === 'CL-4');
+  const withDecision = (i: Item, d: 'Keep' | 'Change') => ({ ...i, model_answer: i.model_answer!.replace(/^Stage 2: (Keep|Change)\b/m, `Stage 2: ${d}`) });
+  it('passes on the pool: Change is right in 40–60% of items, and no feature predicts it', () => {
+    const change = pool.filter(i => nextStepDecision(i) === 'change').length;
+    expect(change / pool.length).toBeGreaterThanOrEqual(0.4);
+    expect(change / pool.length).toBeLessThanOrEqual(0.6);
+    expect(nextStepCueProblems(pool)).toEqual([]);
+  });
+  it('fails a pool where Change is rarely right', () => {
+    expect(nextStepCueProblems(pool.map(i => withDecision(i, 'Keep'))).join(' ')).toMatch(/Change is right in 0% of items/);
+  });
+  it('fails a pool where Change is right only at tier 3', () => {
+    const skewed = pool.map(i => withDecision(i, i.tier === 3 || (i.tier === 2 && Number(i.item_id.slice(-2)) % 2 === 0) ? 'Change' : 'Keep'));
+    expect(nextStepCueProblems(skewed).join(' ')).toMatch(/predictable from tier: it is right in 0% of the 13 that are "tier 1"/);
+  });
+  it('fails a pool where Change is right only when the new fact names a rival or the market', () => {
+    const skewed = pool.map(i => withDecision(i, /\b(rivals?|competitors?|leaders|market|industry|other brands)\b/i.test(String(i.extras.new_fact)) ? 'Change' : 'Keep'));
+    expect(nextStepCueProblems(skewed).join(' ')).toMatch(/predictable from who or what the new fact is about/);
+  });
+  it('needs a Keep or Change model answer', () => {
+    const bad = { ...pool[0], model_answer: pool[0].model_answer!.replace(/Stage 2: (Keep|Change):/, 'Stage 2:') };
+    expect(nextStepCueProblems([bad, ...pool.slice(1)])).toEqual([`${bad.item_id}: the model answer's stage 2 must open with "Keep:" or "Change:"`]);
+  });
+});
+
+describe('review records survive re-imports (review-records.ts)', () => {
+  const passed = { ...cl4.authorship!, similarity_check: 'passed' as const, similarity_checked_at: '2026-11-12', similarity_method: 'web' as const };
+  const checked: Item = { ...cl4, authorship: passed };
+  const fresh = cl4; // a new build of the same CSV row: pending
+  it('restores authorship after the item file was deleted', () => {
+    const records: ReviewRecords = {};
+    recordReview(records, checked);
+    expect(fresh.authorship!.similarity_check).toBe('pending');
+    expect(carryAuthorship(fresh, null, records)).toEqual(passed);
+  });
+  it('keeps the existing file\'s authorship for the same text, even with no record', () => {
+    expect(carryAuthorship(fresh, checked, {})).toEqual(passed);
+  });
+  it('starts a changed item over, including a change only to its new fact', () => {
+    const records: ReviewRecords = {};
+    recordReview(records, checked);
+    const rebuilt = importContent({ ...tables(), 'cl4-questions': tables()['cl4-questions'].map(r => ({ ...r, new_fact: `${r.new_fact} Rents also rose.` })) }, { includeExamples: true, sources })
+      .items.find(i => i.item_id === cl4.item_id)!;
+    expect(rebuilt.prompt).toBe(cl4.prompt);
+    expect(rebuilt.model_answer).toBe(cl4.model_answer);
+    expect(carryAuthorship(rebuilt, checked, records)!.similarity_check).toBe('pending');
+  });
+  it('restores the result for text the item had before', () => {
+    const records: ReviewRecords = {};
+    recordReview(records, checked);
+    recordReview(records, { ...checked, prompt: `${cl4.prompt} Edited.`, authorship: { ...passed, similarity_checked_at: '2026-11-13' } });
+    expect(records[cl4.item_id]).toHaveLength(2);
+    expect(carryAuthorship(fresh, null, records)).toEqual(passed);
+  });
+  it('ignores the exhibit\'s key order', () => {
+    const exhibit = ex4.exhibit!;
+    const reordered = { ...ex4, exhibit: Object.fromEntries(Object.entries(exhibit).reverse()) as typeof exhibit };
+    expect(fingerprint(reordered)).toBe(fingerprint(ex4));
+  });
+  it('records nothing for a pending, unreviewed draft', () => {
+    const records: ReviewRecords = {};
+    recordReview(records, fresh);
+    expect(records).toEqual({});
+  });
+  it('holds every checked or reviewed item on disk, for its current text (run npm run drills:import to record)', () => {
+    const records = loadReviewRecords();
+    const missing = loadAuthoredItems().filter(i => i.generator === null && i.authorship && (i.authorship.similarity_check !== 'pending' || i.authorship.reviewed_by))
+      .filter(i => !records[i.item_id]?.some(r => r.fingerprint === fingerprint(i) && JSON.stringify({ ...i.authorship, ...r.authorship }) === JSON.stringify(i.authorship)))
+      .map(i => i.item_id);
+    expect(missing).toEqual([]);
   });
 });
 

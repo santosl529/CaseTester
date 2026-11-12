@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"That clinic's lead vet, who brings in most of its customers, plans to retire next year.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"That clinic is the region's only 24-hour emergency hospital, with steady visits for ten years, while the rival's other nine clinics lost money last year.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -107,17 +107,25 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Find out why one clinic brings in 40% of the rival's revenue, such as its location or its vets, since the $25M price depends on that clinic.\nStage 2: Keep: its lead vet, who brings most customers, retires next year, so I'd estimate how many would stay and lower the price to reflect the risk.",
-  "explanation": "The new fact: That clinic's lead vet, who brings in most of its customers, plans to retire next year. The big clinic and who runs it: keep (Its lead vet retiring supports it). Savings from combining the chains: change (The deal's value depends on that clinic first). Price and valuation: keep or change (Still worth checking, though the clinic's future decides the value).",
+  "model_answer": "Stage 1: Find out why one clinic brings in 40% of the rival's revenue, such as its location or its vets, since the $25M price depends on that clinic.\nStage 2: Change: the big clinic is a steady, one-of-a-kind emergency hospital, so I'd find why the other nine clinics lost money and whether the client could fix them.",
+  "explanation": "The new fact: That clinic is the region's only 24-hour emergency hospital, with steady visits for ten years, while the rival's other nine clinics lost money last year. The big clinic and who runs it: change (It's a steady, one-of-a-kind emergency hospital, so it isn't the risk). The other nine clinics: keep (They lost money last year, which supports it). Savings from combining the chains: change (The nine clinics' losses come first). Price and valuation: keep or change (Still worth checking, though the nine clinics' losses decide the value).",
   "extras": {
     "families": [
       {
         "family": "The big clinic and who runs it",
         "description": "Looks at why one clinic earns so much",
         "actions": [
+          "change"
+        ],
+        "reason": "It's a steady, one-of-a-kind emergency hospital, so it isn't the risk"
+      },
+      {
+        "family": "The other nine clinics",
+        "description": "Looks at the rival's other clinics and why they lose money",
+        "actions": [
           "keep"
         ],
-        "reason": "Its lead vet retiring supports it"
+        "reason": "They lost money last year, which supports it"
       },
       {
         "family": "Savings from combining the chains",
@@ -125,7 +133,7 @@
         "actions": [
           "change"
         ],
-        "reason": "The deal's value depends on that clinic first"
+        "reason": "The nine clinics' losses come first"
       },
       {
         "family": "Price and valuation",
@@ -134,10 +142,10 @@
           "keep",
           "change"
         ],
-        "reason": "Still worth checking, though the clinic's future decides the value"
+        "reason": "Still worth checking, though the nine clinics' losses decide the value"
       }
     ],
-    "new_fact": "That clinic's lead vet, who brings in most of its customers, plans to retire next year.",
+    "new_fact": "That clinic is the region's only 24-hour emergency hospital, with steady visits for ten years, while the rival's other nine clinics lost money last year.",
     "grading_rules": [
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",

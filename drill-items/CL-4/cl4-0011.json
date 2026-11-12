@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"Only 4 of the 15 stores hold classes, and those 4 are fully booked with waiting lists.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"Class students spent twice as much before their first class too, but the chain sells almost nothing online, where half of all kitchenware is now bought.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -107,25 +107,25 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Compare yearly kitchenware spending by class students and other shoppers, store by store, since class students spend twice as much and classes grew 40%.\nStage 2: Keep: only 4 stores hold classes and they're full, so I'd estimate the revenue from adding classes at the other 11 stores.",
-  "explanation": "The new fact: Only 4 of the 15 stores hold classes, and those 4 are fully booked with waiting lists. Cooking classes: keep (Only 4 stores hold classes and they're full, which supports it). Online sales: change (The fact points to a lever in the stores). Prices: change (The fact points to classes, not prices). New stores: change (The existing stores can grow by adding classes first).",
+  "model_answer": "Stage 1: Compare yearly kitchenware spending by class students and other shoppers, store by store, since class students spend twice as much and classes grew 40%.\nStage 2: Change: class students spent twice as much before their first class, so classes don't raise spending; I'd size the revenue from selling online, where half of kitchenware is bought.",
+  "explanation": "The new fact: Class students spent twice as much before their first class too, but the chain sells almost nothing online, where half of all kitchenware is now bought. Cooking classes: change (Students spent twice as much before their first class, so classes don't raise spending). Online sales: keep (Half of kitchenware is bought online, where the chain sells almost nothing). Prices: change (The fact points to online sales, not prices). New stores: change (The fact points to online sales, where the chain is missing).",
   "extras": {
     "families": [
       {
         "family": "Cooking classes",
         "description": "Looks at classes: who takes them, what they spend, or adding more",
         "actions": [
-          "keep"
+          "change"
         ],
-        "reason": "Only 4 stores hold classes and they're full, which supports it"
+        "reason": "Students spent twice as much before their first class, so classes don't raise spending"
       },
       {
         "family": "Online sales",
         "description": "Looks at selling kitchenware online",
         "actions": [
-          "change"
+          "keep"
         ],
-        "reason": "The fact points to a lever in the stores"
+        "reason": "Half of kitchenware is bought online, where the chain sells almost nothing"
       },
       {
         "family": "Prices",
@@ -133,7 +133,7 @@
         "actions": [
           "change"
         ],
-        "reason": "The fact points to classes, not prices"
+        "reason": "The fact points to online sales, not prices"
       },
       {
         "family": "New stores",
@@ -141,10 +141,10 @@
         "actions": [
           "change"
         ],
-        "reason": "The existing stores can grow by adding classes first"
+        "reason": "The fact points to online sales, where the chain is missing"
       }
     ],
-    "new_fact": "Only 4 of the 15 stores hold classes, and those 4 are fully booked with waiting lists.",
+    "new_fact": "Class students spent twice as much before their first class too, but the chain sells almost nothing online, where half of all kitchenware is now bought.",
     "grading_rules": [
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",

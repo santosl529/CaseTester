@@ -370,7 +370,7 @@ it('keeps the D5 grading rules in the guide word for word', () => {
 describe('the high-confidence injection match (grading/injection.ts)', () => {
   const golden = (() => {
     const dir = path.join(process.cwd(), 'drill-golden');
-    return fs.readdirSync(dir).flatMap(d => fs.readdirSync(path.join(dir, d)).map(f => JSON.parse(fs.readFileSync(path.join(dir, d, f), 'utf-8'))));
+    return fs.readdirSync(dir).filter(d => fs.statSync(path.join(dir, d)).isDirectory()).flatMap(d => fs.readdirSync(path.join(dir, d)).map(f => JSON.parse(fs.readFileSync(path.join(dir, d, f), 'utf-8'))));
   })() as { answer_id: string; answer_type: string; responses: StepResponse[] }[];
   const texts = (g: { responses: StepResponse[] }) => g.responses.map(r => answerText(r)).filter(Boolean);
 

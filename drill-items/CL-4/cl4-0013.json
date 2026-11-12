@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"Both websites require brands to offer a two-year in-home repair service in France, and the client has no repair partner there.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"Both websites list any brand that meets EU safety rules, as the client's kettles do, and their best-selling kettles cost under €40, half the client's price.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -107,36 +107,37 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Find out what it takes to get listed on the two big websites, such as their terms, fees and rules for new brands, since most French kettles sell through them.\nStage 2: Keep: both websites require a two-year in-home repair service, so I'd find and cost a French repair partner before deciding to enter.",
-  "explanation": "The new fact: Both websites require brands to offer a two-year in-home repair service in France, and the client has no repair partner there. Selling through the two websites: keep (Both require an in-home repair service, which supports it). Shoppers' preferences: change (Meeting the listing rules, not shopper taste, is the first hurdle). Competitors and prices: change (The fact points to the listing rules).",
+  "model_answer": "Stage 1: Find out what it takes to get listed on the two big websites, such as their terms, fees and rules for new brands, since most French kettles sell through them.\nStage 2: Change: any brand meeting EU rules gets listed, so I'd compare the client's price and features with the best-selling kettles, which cost under €40, half of ours.",
+  "explanation": "The new fact: Both websites list any brand that meets EU safety rules, as the client's kettles do, and their best-selling kettles cost under €40, half the client's price. Selling through the two websites: change (Any brand meeting EU rules gets listed, so access isn't the question). Shoppers' preferences: keep or change (Fair if it asks whether shoppers would pay more, though the fact points to price). Competitors and prices: keep (Best-sellers cost half the client's price, which supports it).",
   "extras": {
     "families": [
       {
         "family": "Selling through the two websites",
         "description": "Looks at the websites' terms, fees or rules for brands",
         "actions": [
-          "keep"
+          "change"
         ],
-        "reason": "Both require an in-home repair service, which supports it"
+        "reason": "Any brand meeting EU rules gets listed, so access isn't the question"
       },
       {
         "family": "Shoppers' preferences",
         "description": "Looks at what French shoppers want in a kettle",
         "actions": [
+          "keep",
           "change"
         ],
-        "reason": "Meeting the listing rules, not shopper taste, is the first hurdle"
+        "reason": "Fair if it asks whether shoppers would pay more, though the fact points to price"
       },
       {
         "family": "Competitors and prices",
         "description": "Looks at rival brands and their prices",
         "actions": [
-          "change"
+          "keep"
         ],
-        "reason": "The fact points to the listing rules"
+        "reason": "Best-sellers cost half the client's price, which supports it"
       }
     ],
-    "new_fact": "Both websites require brands to offer a two-year in-home repair service in France, and the client has no repair partner there.",
+    "new_fact": "Both websites list any brand that meets EU safety rules, as the client's kettles do, and their best-selling kettles cost under €40, half the client's price.",
     "grading_rules": [
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",

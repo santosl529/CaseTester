@@ -11,11 +11,11 @@
     },
     {
       "type": "choice",
-      "option_id": "keep"
+      "option_id": "change"
     },
     {
       "type": "text",
-      "value": "Keep: two departments print every draft, so I'd estimate the saving from stopping."
+      "value": "Change: pages printed are flat, so the lease's price per page is the problem; I'd compare it with market rates."
     }
   ],
   "labels": {

@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"Bakeries and cafés buy through three food importers, each of which already carries a Canadian brand.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"Bakeries and cafés buy only the cheapest grade, at prices 40% below the client's cost to land it in Japan, while premium syrup in supermarkets grew 30% last year.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -107,36 +107,37 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Find out how bakeries and cafés buy maple syrup, through which suppliers and at what prices, since most of Japan's imports go to them rather than supermarkets.\nStage 2: Keep: all three importers already carry a Canadian brand, so I'd test whether one would add ours, for example on price or a specialty grade.",
-  "explanation": "The new fact: Bakeries and cafés buy through three food importers, each of which already carries a Canadian brand. How bakeries and cafés buy: keep (They buy through three importers, which supports it). Supermarket shoppers: change (Most syrup goes to bakeries and cafés). Export costs and prices: change (Getting an importer comes first).",
+  "model_answer": "Stage 1: Find out how bakeries and cafés buy maple syrup, through which suppliers and at what prices, since most of Japan's imports go to them rather than supermarkets.\nStage 2: Change: bakeries buy the cheapest grade at 40% below our landed cost, so I'd size premium syrup in supermarkets, which grew 30% last year.",
+  "explanation": "The new fact: Bakeries and cafés buy only the cheapest grade, at prices 40% below the client's cost to land it in Japan, while premium syrup in supermarkets grew 30% last year. How bakeries and cafés buy: change (They buy below the client's cost, so that channel is closed). Supermarket shoppers: keep (Premium syrup in supermarkets grew 30%, which supports it). Export costs and prices: keep or change (Fair if it asks whether costs could fall 40%, though the fact points to supermarkets).",
   "extras": {
     "families": [
       {
         "family": "How bakeries and cafés buy",
         "description": "Looks at business buyers, their suppliers or prices",
         "actions": [
-          "keep"
+          "change"
         ],
-        "reason": "They buy through three importers, which supports it"
+        "reason": "They buy below the client's cost, so that channel is closed"
       },
       {
         "family": "Supermarket shoppers",
         "description": "Looks at selling in supermarkets",
         "actions": [
-          "change"
+          "keep"
         ],
-        "reason": "Most syrup goes to bakeries and cafés"
+        "reason": "Premium syrup in supermarkets grew 30%, which supports it"
       },
       {
         "family": "Export costs and prices",
         "description": "Looks at shipping, tariffs or price",
         "actions": [
+          "keep",
           "change"
         ],
-        "reason": "Getting an importer comes first"
+        "reason": "Fair if it asks whether costs could fall 40%, though the fact points to supermarkets"
       }
     ],
-    "new_fact": "Bakeries and cafés buy through three food importers, each of which already carries a Canadian brand.",
+    "new_fact": "Bakeries and cafés buy only the cheapest grade, at prices 40% below the client's cost to land it in Japan, while premium syrup in supermarkets grew 30% last year.",
     "grading_rules": [
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",

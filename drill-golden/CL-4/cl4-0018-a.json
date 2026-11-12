@@ -3,7 +3,7 @@
   "item_id": "cl4-0018",
   "drill_id": "CL-4",
   "answer_type": "normal",
-  "notes": "Rules 1–3 met; the change uses the fact and names a new step (rule 4); code scores the decision.",
+  "notes": "Rules 1–3 met; the change uses the fact and names a new step (rule 4).",
   "responses": [
     {
       "type": "text",
@@ -15,7 +15,7 @@
     },
     {
       "type": "text",
-      "value": "Change: they're faster, so I'd cut our prices there."
+      "value": "Change: the offers match, so I'd look at why outages tripled in those towns."
     }
   ],
   "labels": {

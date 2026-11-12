@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"Most printing comes from two departments that print every draft contract, even though clients now sign contracts electronically.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"Pages printed haven't changed in five years; the cost rose because a printer lease signed three years ago charges four times the market price per page.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -107,25 +107,25 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Break printing costs down by department and type of document, this year against five years ago, since printing tripled as a share of office costs.\nStage 2: Keep: two departments print every draft though clients sign electronically, so I'd estimate the saving from ending draft printing there.",
-  "explanation": "The new fact: Most printing comes from two departments that print every draft contract, even though clients now sign contracts electronically. Printing by department and document: keep (Two departments print every draft, which supports it). Printer leases and supplies: change (Prices aren't the driver; the volume of drafts is). Rent and space: change (The fact points to printing habits, not rent).",
+  "model_answer": "Stage 1: Break printing costs down by department and type of document, this year against five years ago, since printing tripled as a share of office costs.\nStage 2: Change: pages printed are flat but the lease charges four times the market price per page, so I'd cost moving to a lease at market rates.",
+  "explanation": "The new fact: Pages printed haven't changed in five years; the cost rose because a printer lease signed three years ago charges four times the market price per page. Printing by department and document: change (Pages printed haven't changed; the price per page has). Printer leases and supplies: keep (The lease charges four times the market price, which supports it). Rent and space: change (The fact points to the printer lease, not rent).",
   "extras": {
     "families": [
       {
         "family": "Printing by department and document",
         "description": "Looks at who prints what, and why",
         "actions": [
-          "keep"
+          "change"
         ],
-        "reason": "Two departments print every draft, which supports it"
+        "reason": "Pages printed haven't changed; the price per page has"
       },
       {
         "family": "Printer leases and supplies",
         "description": "Looks at printer contracts, paper or toner prices",
         "actions": [
-          "change"
+          "keep"
         ],
-        "reason": "Prices aren't the driver; the volume of drafts is"
+        "reason": "The lease charges four times the market price, which supports it"
       },
       {
         "family": "Rent and space",
@@ -133,10 +133,10 @@
         "actions": [
           "change"
         ],
-        "reason": "The fact points to printing habits, not rent"
+        "reason": "The fact points to the printer lease, not rent"
       }
     ],
-    "new_fact": "Most printing comes from two departments that print every draft contract, even though clients now sign contracts electronically.",
+    "new_fact": "Pages printed haven't changed in five years; the cost rose because a printer lease signed three years ago charges four times the market price per page.",
     "grading_rules": [
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",

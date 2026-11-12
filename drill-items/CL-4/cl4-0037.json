@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"Rival brokers review every client's coverage once a year; the client's brokers call only at renewal.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"The gap is workers' compensation, which brokers in other states sell but which the client's state requires small businesses to buy from a state fund; new small businesses in the region grow 8% a year.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -107,33 +107,34 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Compare which policies the client's small-business customers hold with rivals' customers, by industry, since the client sells one policy each against rivals' three.\nStage 2: Keep: rivals review every client's coverage yearly while ours call only at renewal, so I'd test yearly reviews and estimate the extra policies sold.",
-  "explanation": "The new fact: Rival brokers review every client's coverage once a year; the client's brokers call only at renewal. More policies for existing clients: keep (Rivals sell more through yearly reviews, which supports it). Winning new small businesses: change (Existing clients are the faster lever). Moving into larger businesses: change (The fact points to existing small clients). Commissions and prices: change (The gap is in policies per client).",
+  "model_answer": "Stage 1: Compare which policies the client's small-business customers hold with rivals' customers, by industry, since the client sells one policy each against rivals' three.\nStage 2: Change: the policy gap is workers' compensation, which only the state fund may sell here, so I'd size winning new small businesses, which grow 8% a year.",
+  "explanation": "The new fact: The gap is workers' compensation, which brokers in other states sell but which the client's state requires small businesses to buy from a state fund; new small businesses in the region grow 8% a year. More policies for existing clients: change (The gap is a policy the client isn't allowed to sell). Winning new small businesses: keep (New small businesses grow 8% a year and the policy gap can't be closed, which supports it). Moving into larger businesses: keep or change (Fair as another source of growth, though the fact points to new small businesses). Commissions and prices: change (The gap is a policy the client can't sell, not its fees).",
   "extras": {
     "families": [
       {
         "family": "More policies for existing clients",
         "description": "Looks at what existing clients hold or could buy",
         "actions": [
-          "keep"
+          "change"
         ],
-        "reason": "Rivals sell more through yearly reviews, which supports it"
+        "reason": "The gap is a policy the client isn't allowed to sell"
       },
       {
         "family": "Winning new small businesses",
         "description": "Looks at new clients",
         "actions": [
-          "change"
+          "keep"
         ],
-        "reason": "Existing clients are the faster lever"
+        "reason": "New small businesses grow 8% a year and the policy gap can't be closed, which supports it"
       },
       {
         "family": "Moving into larger businesses",
         "description": "Looks at a new segment",
         "actions": [
+          "keep",
           "change"
         ],
-        "reason": "The fact points to existing small clients"
+        "reason": "Fair as another source of growth, though the fact points to new small businesses"
       },
       {
         "family": "Commissions and prices",
@@ -141,10 +142,10 @@
         "actions": [
           "change"
         ],
-        "reason": "The gap is in policies per client"
+        "reason": "The gap is a policy the client can't sell, not its fees"
       }
     ],
-    "new_fact": "Rival brokers review every client's coverage once a year; the client's brokers call only at renewal.",
+    "new_fact": "The gap is workers' compensation, which brokers in other states sell but which the client's state requires small businesses to buy from a state fund; new small businesses in the region grow 8% a year.",
     "grading_rules": [
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",
