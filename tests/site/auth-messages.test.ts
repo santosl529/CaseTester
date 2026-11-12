@@ -28,7 +28,7 @@ describe('signUpErrorMessage', () => {
 describe('signInErrorMessage', () => {
   it("Supabase's answers", () => {
     expect(signInErrorMessage({ code: 'invalid_credentials', status: 400 })).toBe('Wrong email or password.');
-    expect(signInErrorMessage({ code: 'email_not_confirmed', status: 400 })).toBe('Confirm your email first: open the link we sent you, then log in.');
+    expect(signInErrorMessage({ code: 'email_not_confirmed', status: 400 })).toBe("Confirm your email first: open the link we sent you. Can't find it? Send a new one below.");
     expect(signInErrorMessage({ code: 'over_request_rate_limit', status: 429 })).toBe('Too many log-in attempts. Wait a few minutes and try again.');
     expect(signInErrorMessage({ status: 429 })).toBe('Too many log-in attempts. Wait a few minutes and try again.');
   });
