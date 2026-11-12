@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0045-a",
+  "item_id": "hy2-0045",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Rules 1–5 met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Since architects rate it highly, the product isn't the issue; sales are likely low because UK fitters don't know cork and won't install it. I'd compare sales where installers fit cork with where they don't."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: trained regions reached 90% of plan at the same prices, so the missing fitters are the cause."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "No installers who fit cork"
+}

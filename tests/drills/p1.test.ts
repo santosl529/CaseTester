@@ -257,6 +257,31 @@ describe('CL-4 Keep or Change balance (content-checks.ts nextStepCueProblems)', 
   });
 });
 
+describe('HY-2 Keep, Revise or Drop balance (content-checks.ts nextStepCueProblems)', () => {
+  const pool = loadAuthoredItems().filter(i => i.drill_id === 'HY-2' && !i.item_id.startsWith('example-'));
+  const live = pool.filter(i => i.status === 'live');
+  const withDecision = (i: Item, d: string) => ({ ...i, model_answer: i.model_answer!.replace(/^Stage 2: (Keep|Revise|Drop)\b/m, `Stage 2: ${d}`) });
+  it('passes on the pool: Revise or Drop right in 40–60%, each decision 20%+ and 2+ per tier', () => {
+    expect(nextStepCueProblems(pool)).toEqual([]);
+    for (const d of ['keep', 'revise', 'drop']) expect(pool.filter(i => nextStepDecision(i) === d).length / pool.length).toBeGreaterThanOrEqual(0.2);
+  });
+  it('failed on the 40 live items alone, which the 6 added items fix', () => {
+    expect(live).toHaveLength(40);
+    expect(nextStepCueProblems(live)).toEqual([
+      'HY-2: Revise is right in 15% of items; each decision needs at least 20%',
+      'HY-2: tier 1 has 1 item where Revise is right; each tier needs at least 2',
+    ]);
+  });
+  it('fails a pool where Drop never comes up at tier 3', () => {
+    const skewed = pool.map(i => (i.tier === 3 && nextStepDecision(i) === 'drop' ? withDecision(i, 'Revise') : i));
+    expect(nextStepCueProblems(skewed)).toContain('HY-2: tier 3 has 0 items where Drop is right; each tier needs at least 2');
+  });
+  it('needs a Keep, Revise or Drop model answer', () => {
+    const bad = withDecision(pool[0], 'Change');
+    expect(nextStepCueProblems([bad, ...pool.slice(1)])).toEqual([`${bad.item_id}: the model answer's stage 2 must open with "Keep:" or "Revise:" or "Drop:"`]);
+  });
+});
+
 describe('review records survive re-imports (review-records.ts)', () => {
   const passed = { ...cl4.authorship!, similarity_check: 'passed' as const, similarity_checked_at: '2026-11-12', similarity_method: 'web' as const };
   const checked: Item = { ...cl4, authorship: passed };

@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0043-a",
+  "item_id": "hy2-0043",
+  "drill_id": "HY-2",
+  "answer_type": "borderline",
+  "notes": "'Losing customers to competition' names no driver (rule 1), and 'sales data' names no comparison (rule 3). It uses the 1% against 7% (rule 2) and is framed as likely (rule 4). Family: customers going to rivals (rule 6). Stage 2 names the cause the fact points to (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The chain probably grew 1% against the market's 7% because it's losing customers to competition. I'd look at sales data."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "It's houseplants: they grew 30% and we barely stock them."
+    }
+  ],
+  "labels": {
+    "directional": false,
+    "evidence_based": true,
+    "testable": false,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Rivals take customers"
+}

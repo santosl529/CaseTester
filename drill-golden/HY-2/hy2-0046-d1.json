@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0046-d1",
+  "item_id": "hy2-0046",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "A metric plus a comparison (rule 7) and a drop result (rule 8), but both test price, not when the added days fall (rule 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Visits likely rose only 4% because the extra snow days fall in weeks when few people ski anyway, such as early December. I'd compare visits by week with the days the snowmaking added."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: 24 of the 28 extra days fall in early season, when 300 skiers a day come, so the added days add few visits."
+    },
+    {
+      "type": "text",
+      "value": "Ticket prices at rival resorts this season against ours. If ours are cheaper, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": false
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -433,26 +433,36 @@ function predictableFrom(pool: Item[], yes: (i: Item) => boolean, features: [str
   return problems;
 }
 
-// CL-4 Keep or Change (Matt, 2026-11-11, after SY-2's Challenge rule): for the
-// step the latest finding suggests (the model answer's), Change is right in
-// 40–60% of the pool, and isn't predictable from the tier, who or what the
-// new fact is about, whether it repeats the latest finding's words, whether
-// it brings a new number, contrast wording, or its length.
+// Keep or update after a new fact (Matt, 2026-11-11, after SY-2's Challenge
+// rule). For the step or hypothesis the model answer takes (the obvious one),
+// updating it is right in 40–60% of the pool, and isn't predictable from the
+// tier, who or what the new fact is about, whether it repeats the case's
+// words, whether it brings a new number, contrast wording, or its length.
+// CL-4 updates by Change; HY-2 by Revise or Drop, and also needs each of Keep,
+// Revise and Drop right in 20%+ of the pool and in 2+ items of every tier.
 export const NEXT_STEP_POOL_MIN = 8;
-const NEXT_STEP_OVERALL = { min: 0.4, max: 0.6 };
+const UPDATE_OVERALL = { min: 0.4, max: 0.6 };
+const DECISION_MIN_SHARE = 0.2;
+const DECISION_MIN_PER_TIER = 2;
+const UPDATE_DRILLS: Record<string, { decisions: string[]; update: string; threeWay: boolean }> = {
+  'CL-4': { decisions: ['Keep', 'Change'], update: 'Change', threeWay: false },
+  'HY-2': { decisions: ['Keep', 'Revise', 'Drop'], update: 'Revise or Drop', threeWay: true },
+};
 const CONTRAST = /\b(but|though|although|however|yet|while|whereas|even|only|already|instead|still)\b/i;
 const SUBJECTS: [string, RegExp][] = [
   ['rivals or the market', /\b(rivals?|competitors?|leaders|market|industry|other brands)\b/i],
   ['customers', /\b(customers?|shoppers?|members?|buyers?|users?|homeowners?|visitors?|subscribers?|moviegoers?|survey)\b/i],
 ];
 
-export function nextStepDecision(item: Item): 'keep' | 'change' | null {
-  const m = item.model_answer?.match(/^Stage 2:\s*(Keep|Change)\b/m);
-  return m ? (m[1].toLowerCase() as 'keep' | 'change') : null;
+// The model answer's stage 2 decision: keep, change (CL-4), revise or drop (HY-2).
+export function nextStepDecision(item: Item): string | null {
+  const m = item.model_answer?.match(/^Stage 2:\s*(Keep|Change|Revise|Drop)\b/m);
+  return m ? m[1].toLowerCase() : null;
 }
 
 const newFact = (item: Item) => String(item.extras.new_fact ?? '');
-const latestFinding = (item: Item) => item.prompt.match(/Latest finding:\s*([\s\S]*)$/)?.[1] ?? '';
+// CL-4's latest finding; HY-2 has none, so its whole question.
+const latestFinding = (item: Item) => item.prompt.match(/Latest finding:\s*([\s\S]*)$/)?.[1] ?? item.prompt;
 
 // Who or what the new fact is about: whichever of rivals or the market, or
 // customers, it names first; otherwise the client itself.
@@ -468,23 +478,41 @@ export function newFactEchoes(item: Item): boolean {
 }
 
 export function nextStepCueProblems(items: Item[]): string[] {
-  const pool = items.filter(i => i.drill_id === 'CL-4');
-  const problems = pool.filter(i => !nextStepDecision(i)).map(i => `${i.item_id}: the model answer's stage 2 must open with "Keep:" or "Change:"`);
+  return Object.keys(UPDATE_DRILLS).flatMap(drill => updateCueProblems(drill, items.filter(i => i.drill_id === drill && !i.item_id.startsWith('example-'))));
+}
+
+function updateCueProblems(drill: string, pool: Item[]): string[] {
+  const { decisions, update, threeWay } = UPDATE_DRILLS[drill];
+  const allowed = decisions.map(d => d.toLowerCase());
+  const problems = pool.filter(i => !allowed.includes(nextStepDecision(i) ?? ''))
+    .map(i => `${i.item_id}: the model answer's stage 2 must open with ${decisions.map(d => `"${d}:"`).join(' or ')}`);
   if (pool.length < NEXT_STEP_POOL_MIN || problems.length) return problems;
-  const change = (i: Item) => nextStepDecision(i) === 'change';
-  const overall = pool.filter(change).length / pool.length;
-  if (overall < NEXT_STEP_OVERALL.min || overall > NEXT_STEP_OVERALL.max) problems.push(`CL-4: Change is right in ${Math.round(overall * 100)}% of items; keep it between 40% and 60%`);
+  const updates = (i: Item) => nextStepDecision(i) !== 'keep';
+  const overall = pool.filter(updates).length / pool.length;
+  if (overall < UPDATE_OVERALL.min || overall > UPDATE_OVERALL.max) problems.push(`${drill}: ${update} is right in ${Math.round(overall * 100)}% of items; keep it between 40% and 60%`);
+  if (threeWay) {
+    for (const d of decisions) {
+      const share = pool.filter(i => nextStepDecision(i) === d.toLowerCase()).length / pool.length;
+      if (share < DECISION_MIN_SHARE) problems.push(`${drill}: ${d} is right in ${Math.round(share * 100)}% of items; each decision needs at least ${DECISION_MIN_SHARE * 100}%`);
+    }
+    for (const tier of [...new Set(pool.map(i => i.tier))].sort()) {
+      for (const d of decisions) {
+        const n = pool.filter(i => i.tier === tier && nextStepDecision(i) === d.toLowerCase()).length;
+        if (n < DECISION_MIN_PER_TIER) problems.push(`${drill}: tier ${tier} has ${n} item${n === 1 ? '' : 's'} where ${d} is right; each tier needs at least ${DECISION_MIN_PER_TIER}`);
+      }
+    }
+  }
   const length = (i: Item) => (newFact(i).match(/\S+/g) ?? []).length;
   const median = [...pool.map(length)].sort((a, b) => a - b)[Math.floor(pool.length / 2)];
   const known = (i: Item) => caseNumbers(i.prompt);
-  return [...problems, ...predictableFrom(pool, change, [
+  return [...problems, ...predictableFrom(pool, updates, [
     ['tier', i => `tier ${i.tier}`],
     ['who or what the new fact is about', i => newFactSubject(newFact(i))],
-    ['whether it repeats the latest finding', i => (newFactEchoes(i) ? 'repeats it' : 'new words')],
+    [drill === 'CL-4' ? 'whether it repeats the latest finding' : 'whether it repeats the case\'s words', i => (newFactEchoes(i) ? 'repeats it' : 'new words')],
     ['whether it brings a new number', i => (caseNumbers(newFact(i)).some(n => !known(i).some(f => Math.abs(n - f) <= Math.abs(f) * 0.005)) ? 'brings a number' : 'no new number')],
     ['contrast wording', i => (CONTRAST.test(newFact(i)) ? 'contrast word' : 'no contrast word')],
     ['length', i => (length(i) >= median ? 'longer' : 'shorter')],
-  ], (name, value, v, n) => `CL-4: Change is predictable from ${name}: it is right in ${Math.round(v * 100)}% of the ${n} that are "${value}"`)];
+  ], (name, value, v, n) => `${drill}: ${update} is predictable from ${name}: it is right in ${Math.round(v * 100)}% of the ${n} that are "${value}"`)];
 }
 
 // SY padding (the irrelevant fact in SY-1, SY-2 and SY-3 cases): each one is

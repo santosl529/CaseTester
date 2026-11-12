@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0044-a",
+  "item_id": "hy2-0044",
+  "drill_id": "HY-2",
+  "answer_type": "short",
+  "notes": "A bare label still names a mechanism, so the family is capacity (rule 6), but it says nothing about through which driver lateness rose (rule 1), uses no given fact (rule 2), names no data (rule 3) and is stated as fact (rule 4). 'It's the custom sizes' names the cause the fact points to (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Too many orders."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "It's the custom sizes."
+    }
+  ],
+  "labels": {
+    "directional": false,
+    "evidence_based": false,
+    "testable": false,
+    "tentative": false,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Orders exceed capacity"
+}

@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0041-a",
+  "item_id": "hy2-0041",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "One directional cause, framed as likely, with the data named (rules 1–4); the revision uses the $4 against $12 (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Revenue likely fell because customers switched to cheaper basic washes instead of premium ones. I'd compare the share of premium washes sold with last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "Unlimited members pay about $4 a wash against $12, so the plan's price is the problem, not basic washes."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": true
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Cheaper wash packages"
+}
