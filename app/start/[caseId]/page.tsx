@@ -10,8 +10,8 @@ import { caseTotalMs } from '@/lib/orchestrator/state-machine';
 import { SiteHeader } from '@/components/site-header';
 import { StartCaseButton } from '@/components/start-case-button';
 
-// A link-only case's start page, /start/<caseId> (Lorenzo, 4 Nov: the live demo's 7-minute Brew & Bean). Never
-// linked from /home. Signed in with a valid club code, as /home; otherwise sign-in, then back here.
+// A start-link case's page, /start/<caseId> (Lorenzo, 4 Nov: the live demo's 7-minute Brew & Bean; also listed on
+// /home since 12 Nov, which starts it directly). Signed in with a valid club code, as /home; otherwise sign-in, then back here.
 export default async function StartCasePage({ params }: { params: Promise<{ caseId: string }> }) {
   const { caseId } = await params;
   const c = linkOnlyCase(caseId);
