@@ -140,7 +140,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: With attendance steady, revenue per show likely fell because guests spend less on food and drink, not on tickets. I'd compare bar sales per guest by month.\nStage 2: Keep: ticket prices are unchanged, and food and drink spending per guest fell 30% after the switch to app-only ordering.",
+  "model_answer": "Stage 1: With attendance steady, revenue per show likely fell because guests spend less on food and drink, not on tickets. I'd compare bar sales per guest by month.\nStage 2: Keep: ticket prices are unchanged, and food and drink spending per guest fell 30% after the switch to app-only ordering, so the drop is in food and drink.",
   "explanation": "The new fact: The average ticket price is unchanged, but food and drink spending per guest fell 30% after the venue replaced its bars with app-only ordering. Lower ticket prices: drop (The average ticket price is unchanged). Less spending per guest: keep (Spending per guest fell 30% after app-only ordering). Fewer premium tickets: drop (The average ticket price is unchanged).",
   "extras": {
     "families": [
@@ -186,10 +186,10 @@
     "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
     "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-11-12",
+    "reviewed_at": "2026-11-13",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-11-13",
     "similarity_method": "web"
   },
   "generator": null,

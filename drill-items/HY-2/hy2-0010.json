@@ -140,7 +140,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: With volume flat, late jobs likely come from delays outside the presses, probably waiting for customer approvals. I'd measure how long each job spends at each step.\nStage 2: Keep: presses and staff are normal, but jobs wait two days for proof approval since the online portal.",
+  "model_answer": "Stage 1: With volume flat, late jobs likely come from delays outside the presses, probably waiting for customer approvals. I'd measure how long each job spends at each step.\nStage 2: Keep: presses and staff are normal, but jobs wait two days for proof approval since the online portal, so approvals are what makes jobs late.",
   "explanation": "The new fact: Press uptime and staffing are normal, but jobs now wait two days on average for customers to approve proofs since proofing moved from in person to an online portal. Machine breakdowns: drop (Press uptime is normal). Staff shortages: drop (Staffing is normal). Slow customer approvals: keep (Jobs wait two days for approval since the portal). Bigger, harder jobs: revise (Possible, but the delay is in approvals, not production).",
   "extras": {
     "families": [
@@ -194,10 +194,10 @@
     "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
     "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-11-12",
+    "reviewed_at": "2026-11-13",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-11-13",
     "similarity_method": "web"
   },
   "generator": null,

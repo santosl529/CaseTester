@@ -140,7 +140,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: The brand likely lost attention after the deal, probably because the buyer's sales team has many other products to sell. I'd compare sales by store, by which team covers it.\nStage 2: Keep: sales held where the brand's own team stayed and fell 20% where the buyer's busy sales force took over.",
+  "model_answer": "Stage 1: The brand likely lost attention after the deal, probably because the buyer's sales team has many other products to sell. I'd compare sales by store, by which team covers it.\nStage 2: Keep: sales held where the brand's own team stayed and fell 20% where the buyer's busy sales force took over, so the brand is losing sales attention.",
   "explanation": "The new fact: Prices are unchanged. Sales held in the 3,000 stores where the brand kept its own sales team and fell 20% in the 2,000 stores moved to the buyer's sales force, which handles 300 other products. Shrinking snack category: drop (Sales held in stores with the brand's own team). Lost sales focus: keep (Sales fell 20% where the buyer's team took over). Price rise after the deal: drop (Prices are unchanged).",
   "extras": {
     "families": [
@@ -186,10 +186,10 @@
     "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
     "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-11-12",
+    "reviewed_at": "2026-11-13",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-11-13",
     "similarity_method": "web"
   },
   "generator": null,

@@ -140,7 +140,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: With car sales steady, owners are likely taking routine work to cheaper or faster shops. I'd split lost visits by type of service and check where those owners now go.\nStage 2: Keep: warranty visits held, but oil changes and tires fell 35% after cheaper quick-service chains opened.",
+  "model_answer": "Stage 1: With car sales steady, owners are likely taking routine work to cheaper or faster shops. I'd split lost visits by type of service and check where those owners now go.\nStage 2: Keep: warranty visits held, but oil changes and tires fell 35% after cheaper quick-service chains opened, so owners are taking routine work to cheaper shops.",
   "explanation": "The new fact: Warranty repair visits were flat. Visits for oil changes and tires fell 35% after two quick-service chains opened nearby, charging 30% less. Poor service: drop or revise (Warranty visits held; the losses are in routine work where price matters). Cheaper rivals for routine work: keep (Routine visits fell 35% after rivals 30% cheaper opened). Fewer cars to service: drop (Car sales held and warranty visits were flat).",
   "extras": {
     "families": [
@@ -187,10 +187,10 @@
     "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
     "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-11-12",
+    "reviewed_at": "2026-11-13",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-11-13",
     "similarity_method": "web"
   },
   "generator": null,

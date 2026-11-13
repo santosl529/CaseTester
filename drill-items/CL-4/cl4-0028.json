@@ -108,7 +108,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Estimate whether 15% growth will last, for example from dog ownership and how many owners work away from home, since the market grew 15% a year for five years.\nStage 2: Change: owners sell single sites at about four times profit, so I'd assess buying and combining them, and what a combined chain could earn.",
+  "model_answer": "Stage 1: Estimate whether 15% growth will last, for example from dog ownership and how many owners work away from home, since with the top three holding only 10%, there's room to enter if demand keeps growing.\nStage 2: Change: owners sell single sites at about four times profit, so I'd assess buying and combining them, and what a combined chain could earn.",
   "explanation": "The new fact: Most daycares are single sites run by their owners, and several regional operators have grown by buying them at about four times yearly profit. Buying up small daycares: keep (Owners sell at about four times profit, which supports it). Future demand: change (The fact points to how to enter, through acquisitions). Costs and margins at a site: change (The fact points to buying up sites, a different driver).",
   "extras": {
     "families": [

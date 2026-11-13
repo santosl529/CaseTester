@@ -1630,6 +1630,19 @@
         "similarity_checked_at": "2026-11-13",
         "similarity_method": "web"
       }
+    },
+    {
+      "fingerprint": "e400e06e64316269",
+      "authorship": {
+        "author_of_record": "Matthew Santos",
+        "drafting_model": null,
+        "reviewed_by": "Matthew Santos",
+        "reviewed_at": "2026-11-13",
+        "similarity_check": "passed",
+        "similarity_note": null,
+        "similarity_checked_at": "2026-11-13",
+        "similarity_method": "web"
+      }
     }
   ],
   "cl4-0029": [
@@ -4627,6 +4640,19 @@
         "similarity_checked_at": "2026-10-11",
         "similarity_method": "web"
       }
+    },
+    {
+      "fingerprint": "7300554d17987fff",
+      "authorship": {
+        "author_of_record": "Matthew Santos",
+        "drafting_model": "claude-opus-5-5",
+        "reviewed_by": "Matthew Santos",
+        "reviewed_at": "2026-11-13",
+        "similarity_check": "passed",
+        "similarity_note": null,
+        "similarity_checked_at": "2026-11-13",
+        "similarity_method": "web"
+      }
     }
   ],
   "hy2-0006": [
@@ -4655,6 +4681,19 @@
         "similarity_check": "passed",
         "similarity_note": null,
         "similarity_checked_at": "2026-10-11",
+        "similarity_method": "web"
+      }
+    },
+    {
+      "fingerprint": "47e7b5a76b854232",
+      "authorship": {
+        "author_of_record": "Matthew Santos",
+        "drafting_model": "claude-opus-5-5",
+        "reviewed_by": "Matthew Santos",
+        "reviewed_at": "2026-11-13",
+        "similarity_check": "passed",
+        "similarity_note": null,
+        "similarity_checked_at": "2026-11-13",
         "similarity_method": "web"
       }
     }
@@ -4687,6 +4726,19 @@
         "similarity_checked_at": "2026-10-11",
         "similarity_method": "web"
       }
+    },
+    {
+      "fingerprint": "56b86b12a3b7d8ca",
+      "authorship": {
+        "author_of_record": "Matthew Santos",
+        "drafting_model": "claude-opus-5-5",
+        "reviewed_by": "Matthew Santos",
+        "reviewed_at": "2026-11-13",
+        "similarity_check": "passed",
+        "similarity_note": null,
+        "similarity_checked_at": "2026-11-13",
+        "similarity_method": "web"
+      }
     }
   ],
   "hy2-0010": [
@@ -4700,6 +4752,19 @@
         "similarity_check": "passed",
         "similarity_note": null,
         "similarity_checked_at": "2026-10-11",
+        "similarity_method": "web"
+      }
+    },
+    {
+      "fingerprint": "77607716c2d2a17c",
+      "authorship": {
+        "author_of_record": "Matthew Santos",
+        "drafting_model": "claude-opus-5-5",
+        "reviewed_by": "Matthew Santos",
+        "reviewed_at": "2026-11-13",
+        "similarity_check": "passed",
+        "similarity_note": null,
+        "similarity_checked_at": "2026-11-13",
         "similarity_method": "web"
       }
     }
@@ -4730,6 +4795,19 @@
         "similarity_check": "passed",
         "similarity_note": null,
         "similarity_checked_at": "2026-10-11",
+        "similarity_method": "web"
+      }
+    },
+    {
+      "fingerprint": "a1ea74b4a39661a2",
+      "authorship": {
+        "author_of_record": "Matthew Santos",
+        "drafting_model": "claude-opus-5-5",
+        "reviewed_by": "Matthew Santos",
+        "reviewed_at": "2026-11-13",
+        "similarity_check": "passed",
+        "similarity_note": null,
+        "similarity_checked_at": "2026-11-13",
         "similarity_method": "web"
       }
     }
@@ -4837,6 +4915,19 @@
         "similarity_checked_at": "2026-10-11",
         "similarity_method": "web"
       }
+    },
+    {
+      "fingerprint": "e6ba87960a98001a",
+      "authorship": {
+        "author_of_record": "Matthew Santos",
+        "drafting_model": "claude-opus-5-5",
+        "reviewed_by": "Matthew Santos",
+        "reviewed_at": "2026-11-13",
+        "similarity_check": "passed",
+        "similarity_note": null,
+        "similarity_checked_at": "2026-11-13",
+        "similarity_method": "web"
+      }
     }
   ],
   "hy2-0020": [
@@ -4925,6 +5016,19 @@
         "similarity_check": "passed",
         "similarity_note": null,
         "similarity_checked_at": "2026-10-11",
+        "similarity_method": "web"
+      }
+    },
+    {
+      "fingerprint": "9511909ebcd9023a",
+      "authorship": {
+        "author_of_record": "Matthew Santos",
+        "drafting_model": "claude-opus-5-5",
+        "reviewed_by": "Matthew Santos",
+        "reviewed_at": "2026-11-13",
+        "similarity_check": "passed",
+        "similarity_note": null,
+        "similarity_checked_at": "2026-11-13",
         "similarity_method": "web"
       }
     }
@@ -5150,6 +5254,19 @@
         "similarity_check": "passed",
         "similarity_note": null,
         "similarity_checked_at": "2026-10-11",
+        "similarity_method": "web"
+      }
+    },
+    {
+      "fingerprint": "d49b7b3c68646013",
+      "authorship": {
+        "author_of_record": "Matthew Santos",
+        "drafting_model": "claude-opus-5-5",
+        "reviewed_by": "Matthew Santos",
+        "reviewed_at": "2026-11-13",
+        "similarity_check": "passed",
+        "similarity_note": null,
+        "similarity_checked_at": "2026-11-13",
         "similarity_method": "web"
       }
     }

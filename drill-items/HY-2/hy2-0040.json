@@ -140,7 +140,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: Profit likely missed the plan by 30% because fewer families than planned are enrolling children at the newly bought centers. I'd compare enrollment and waitlists by center with plan.\nStage 2: Drop: demand matches plan, with waitlists. Fifteen centers run at 60% of capacity because they can't hire teachers.",
+  "model_answer": "Stage 1: Profit likely missed the plan by 30% because fewer families than planned are enrolling children at the newly bought centers. I'd compare enrollment and waitlists by center with plan.\nStage 2: Drop: demand matches plan, with waitlists. Fifteen centers run at 60% of capacity because they can't hire teachers, so the problem is staffing, not enrollment.",
   "explanation": "The new fact: Parent demand matches plan, with waitlists at most centers. But 15 centers bought last year run at 60% of their licensed capacity because they can't hire enough teachers to meet required ratios. Weak demand: drop (Demand matches plan, with waitlists). Teacher shortages: keep (15 centers run at 60% of capacity for lack of teachers). Higher costs at acquired centers: revise (The fact shows lost capacity, not higher costs).",
   "extras": {
     "families": [
@@ -186,10 +186,10 @@
     "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
     "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-11-12",
+    "reviewed_at": "2026-11-13",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-11-13",
     "similarity_method": "web"
   },
   "generator": null,

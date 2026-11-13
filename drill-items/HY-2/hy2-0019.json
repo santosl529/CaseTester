@@ -140,7 +140,7 @@
       "evidence": "whole"
     }
   ],
-  "model_answer": "Stage 1: Buyers likely aren't coming back for refills because they can't find them in stores. I'd compare refill sales in stores that stock refills with those that don't.\nStage 2: Keep: only 20% of stores stock refills, and where they do, refill sales match plan.",
+  "model_answer": "Stage 1: Buyers likely aren't coming back for refills because they can't find them in stores. I'd compare refill sales in stores that stock refills with those that don't.\nStage 2: Keep: only 20% of stores stock refills, and where they do, refill sales match plan, so buyers can't find refills.",
   "explanation": "The new fact: Only 20% of stores stock the refills. In stores that stock them, refill sales per lipstick sold match plan. Buyers don't refill: drop (Where refills are stocked, sales match plan). Refills hard to find: keep (Only 20% of stores stock them). Refills priced too high: drop (Refills sell on plan where stocked, at the same price).",
   "extras": {
     "families": [
@@ -186,10 +186,10 @@
     "author_of_record": "Matthew Santos",
     "drafting_model": "claude-opus-5-5",
     "reviewed_by": "Matthew Santos",
-    "reviewed_at": "2026-11-12",
+    "reviewed_at": "2026-11-13",
     "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": "2026-10-11",
+    "similarity_checked_at": "2026-11-13",
     "similarity_method": "web"
   },
   "generator": null,
