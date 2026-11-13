@@ -42,8 +42,10 @@ import type { ItemGrade } from './apply';
 // its cached system prompt); every other call stays on Haiku 4.5 as in v32.
 // v35 adds the next-7 priority 1 drills: EX-4 and EX-5 show the grader the
 // chart as text, CL-4 classifies next-step families (NEXT_STEP_SYSTEM). Every
-// other drill's calls are byte-for-byte as in v34.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v35';
+// other drill's calls are byte-for-byte as in v34. v36 adds to HY-2's
+// directional rule: a bare label, or rivals named without the driver, is not
+// directional (Matt, 2026-11-12, after the HY-2 gate fell to 86%).
+export const GRADER_PROMPT_VERSION = 'drills-grader-v36';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 

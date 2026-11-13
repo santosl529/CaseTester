@@ -54,7 +54,7 @@ Fewer than 2 buckets is also capped (30%) by code.
 
 The update decision (keep, revise or drop) is HY-2's critical element. Code scores it at 25% from the family the grader assigns, so HY-2 has no separate critical-area cap. The key can accept more than one action for a family (hy2-0007 "Poor service": drop or revise). "Other" accepts revise or drop. Revise is also right when the student moves to their own stated backup and the new fact supports the backup's family.
 
-1. **(grader)** Directional: the cause says what changed and through which driver ("customers buy fewer units per visit"). A generic cause ("operational problems", "market conditions", "costs went up") is not directional, and neither is the facts re-stated as a ratio ("fewer appointments end in a sale", "revenue per customer fell").
+1. **(grader)** Directional: the cause says what changed and through which driver ("customers buy fewer units per visit"). A generic cause ("operational problems", "market conditions", "costs went up") is not directional, and neither is the facts re-stated as a ratio ("fewer appointments end in a sale", "revenue per customer fell"). A bare label or noun phrase that doesn't say what changed ("price elasticity", "digital pianos", "too many orders") is not directional, even though it still names a family, and neither is naming rivals or "competition" without the driver (price, range, location, service).
    - *hy2-0003-a:* "Waits are longer." names no cause.
    - *hy2-0013-a:* "fewer appointments end in a sale" re-states revenue down and appointments up as a ratio.
    - *hy2-0015-a:* "Price elasticity." is a label, not what changed.
