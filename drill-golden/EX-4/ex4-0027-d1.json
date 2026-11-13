@@ -1,0 +1,25 @@
+{
+  "answer_id": "ex4-0027-d1",
+  "item_id": "ex4-0027",
+  "drill_id": "EX-4",
+  "answer_type": "borderline",
+  "notes": "An action on restoring profit (rules 16, 17); turning to digital doesn't contradict its takeaway that print ads lost about $4M, and a reply on another subject is consistent (rule 18, v39).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Print ads lost about $4M of profit."
+    },
+    {
+      "type": "text",
+      "value": "The publisher should focus on digital subscriptions, which grew $7M."
+    }
+  ],
+  "labels": {
+    "defend_implication": true,
+    "defend_objective": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

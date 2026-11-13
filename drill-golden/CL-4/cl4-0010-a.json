@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0010-a",
+  "item_id": "cl4-0010",
+  "drill_id": "CL-4",
+  "answer_type": "borderline",
+  "notes": "Three things with none first (rule 1); no use of the flat claims (rule 3); the keep uses the new fact (rule 4); the aim, where the delay is, makes it a step-by-step map (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Look at claims, staff and estimates to see where the delay is."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: the estimate step went from 3 to 15 days, so I'd compare the new garages."
+    }
+  ],
+  "labels": {
+    "one_step": false,
+    "logical": true,
+    "reason_latest_finding": false,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Time at each step of a claim"
+}

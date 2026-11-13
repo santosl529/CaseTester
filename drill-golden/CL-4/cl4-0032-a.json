@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0032-a",
+  "item_id": "cl4-0032",
+  "drill_id": "CL-4",
+  "answer_type": "borderline",
+  "notes": "One analysis of changeovers (rule 1) on the latest finding (rules 2, 3); the keep uses the fact (rule 4); of its two parts, time per changeover is listed first (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Study changeovers: how long each takes and how often lines switch, since they cause 60% of lost hours."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: smaller batches tripled changeovers, so I'd weigh bigger batches against inventory."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Faster changeovers"
+}

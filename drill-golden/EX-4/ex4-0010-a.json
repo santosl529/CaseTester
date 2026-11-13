@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0010-a",
+  "item_id": "ex4-0010",
+  "drill_id": "EX-4",
+  "answer_type": "borderline",
+  "notes": "Smallest revenue, not the $8M loss (rule 1); $6M right (rule 2); speaks to profit by zone (rule 3); 'matter least to profit' is false: rural's loss is the biggest effect (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Rural deliveries bring in only $6M, the smallest zone, so they matter least to profit."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": true
+  },
+  "family": null
+}

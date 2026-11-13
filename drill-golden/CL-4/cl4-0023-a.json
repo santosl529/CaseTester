@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0023-a",
+  "item_id": "cl4-0023",
+  "drill_id": "CL-4",
+  "answer_type": "borderline",
+  "notes": "Two steps with none first (rule 1); no reason from the latest finding (rule 3); the change uses the fact and names capacity (rule 4); classified by the first listed (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Estimate sales from more grocery stores using sales per store today, and check plant capacity."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change: the plant is full, so capacity comes first."
+    }
+  ],
+  "labels": {
+    "one_step": false,
+    "logical": true,
+    "reason_latest_finding": false,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "More grocery stores"
+}

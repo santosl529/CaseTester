@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0005-a",
+  "item_id": "ex4-0005",
+  "drill_id": "EX-4",
+  "answer_type": "borderline",
+  "notes": "Reaches Italy through the share using software, without saying Italy has the most clinics without it (rule 1); figures right (rule 2); answers where to enter (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Germany has the most clinics, 40,000, but 70% already use software, so Italy, where only 30% do, is the better bet."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

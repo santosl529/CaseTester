@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0015-a",
+  "item_id": "ex4-0015",
+  "drill_id": "EX-4",
+  "answer_type": "borderline",
+  "notes": "Leads with the doubling and calls the market sizable; the turn is a side note, so the insight isn't the lead (rule 1); 40,000 right (rule 2); answers whether it's a growth market (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Installations more than doubled from 40,000 in 2021, though they've slipped since 2023, so it's still a sizable market."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

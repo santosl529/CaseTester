@@ -1,6 +1,0 @@
-answer_id,item_id,answer_type,main_answer,reply,defend_implication,defend_objective,defend_consistent,notes
-ex4-0004-d1,ex4-0004,borderline,Staffing drove the fall: $11M of costs.,"Patient revenue still grew $5M, so the hospital is doing fine on the revenue side.",N,N,Y,"Describes revenue; says nothing about what to fix (rules 16, 17); doesn't contradict its takeaway (rule 18)."
-ex4-0014-d1,ex4-0014,borderline,Mango's repeat rate is only 12%.,"Mango buyers don't come back, which makes mango expensive to sell.",N,N,Y,"A consequence, not what to keep or drop (rules 16, 17); consistent (rule 18)."
-ex4-0020-d1,ex4-0020,borderline,Sales grew 12% but the market grew 30%.,"So the client is losing share, about 1.4 points.",N,N,Y,"Works out the share loss but says nothing about what to do (rules 16, 17); consistent (rule 18)."
-ex4-0027-d1,ex4-0027,borderline,Print ads lost about $4M of profit.,"The publisher should focus on digital subscriptions, which grew $7M.",Y,Y,N,"An action on restoring profit (rules 16, 17), but it turns to digital without saying why, away from its own takeaway (rule 18)."
-ex4-0029-d1,ex4-0029,borderline,Distribution earns 45% of profit on 15% of revenue.,That makes distribution the most attractive stage.,N,N,Y,"Restates the finding as an assessment; no investment decision (rules 16, 17); consistent (rule 18)."

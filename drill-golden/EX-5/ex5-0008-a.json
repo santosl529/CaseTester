@@ -1,0 +1,21 @@
+{
+  "answer_id": "ex5-0008-a",
+  "item_id": "ex5-0008",
+  "drill_id": "EX-5",
+  "answer_type": "borderline",
+  "notes": "The misread is fixed (rule 19); 'maybe because drivers are hard to find' hedges the shortage cause but still asserts it, so flaw 2 stays (rule 19, as ex5-0034-a); components kept (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Driver pay rose $3, from $5 to $8, while fuel rose $1 and vehicle costs fell $1, maybe because drivers are hard to find."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

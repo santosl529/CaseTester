@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0026-a",
+  "item_id": "cl4-0026",
+  "drill_id": "CL-4",
+  "answer_type": "off_topic",
+  "notes": "Two fixes and a recommendation (rules 1, 2, 6); no reasons (rules 3, 4); the first listed, software, fits no family (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The agency should buy new software and hire 50 more staff."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep."
+    }
+  ],
+  "labels": {
+    "one_step": false,
+    "logical": false,
+    "reason_latest_finding": false,
+    "adapt_reason": false
+  },
+  "red_flags": {
+    "final_recommendation": true
+  },
+  "family": "other"
+}

@@ -1,0 +1,21 @@
+{
+  "answer_id": "ex5-0020-a",
+  "item_id": "ex5-0020",
+  "drill_id": "EX-5",
+  "answer_type": "borderline",
+  "notes": "The revenue misread is fixed (rule 19); satisfaction moved to Plus is the planted claim reworded, not fixed and not new (rules 2, 3); Basic's customer count kept (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Plus earns the most, $700k a month, though Basic has the most customers, and Plus customers are the most satisfied."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

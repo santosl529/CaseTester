@@ -1,8 +1,0 @@
-answer_id,item_id,answer_type,stage1_answer,stage2_action,stage2_answer,family,one_step,logical,reason_latest_finding,adapt_reason,red_flag_final_recommendation,notes
-cl4-0003-a,cl4-0003,borderline,"Find out why buyers prefer the two local brands, such as price or design, since they hold 70% of the market.",change,"Change: the local brands control 240 of the 300 stores, so I'd look at how we could get into stores, maybe online first.",,,,,,,
-cl4-0009-a,cl4-0009,normal,"Check utility prices and contracts, then water use per groom.",change,"Change: prices were flat and the new stations use twice the water, so I'd measure water per bath by station.",,(yours),(yours),(yours),(yours),(yours),Label only the family.
-cl4-0010-a,cl4-0010,borderline,"Look at claims, staff and estimates to see where the delay is.",keep,"Keep: the estimate step went from 3 to 15 days, so I'd compare the new garages.",,,,,,,
-cl4-0017-a,cl4-0017,borderline,"Look at weekday attendance by show, since weekdays are only 55% full.",change,"Change: resale is at twice face value, so I'd test raising weekend prices.",,,,,,,
-cl4-0023-a,cl4-0023,borderline,"Estimate sales from more grocery stores using sales per store today, and check plant capacity.",change,"Change: the plant is full, so capacity comes first.",,,,,,,
-cl4-0026-a,cl4-0026,off_topic,The agency should buy new software and hire 50 more staff.,keep,Keep.,,(yours),(yours),(yours),(yours),(yours),Label only the family.
-cl4-0032-a,cl4-0032,borderline,"Study changeovers: how long each takes and how often lines switch, since they cause 60% of lost hours.",keep,"Keep: smaller batches tripled changeovers, so I'd weigh bigger batches against inventory.",,,,,,,

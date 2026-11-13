@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0009-a",
+  "item_id": "cl4-0009",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "'X, then Y' names X (rule 1); no reason (rule 3); the change uses the fact and names the new step (rule 4); classified by the step done first (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Check utility prices and contracts, then water use per groom."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change: prices were flat and the new stations use twice the water, so I'd measure water per bath by station."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": false,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Utility prices and contracts"
+}
