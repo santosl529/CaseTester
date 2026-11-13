@@ -64,7 +64,7 @@
   "checks": [
     {
       "check_id": "key_insight",
-      "question": "Does the answer state the key insight: rural deliveries lose money: they cost $14M against $6M of revenue, an $8M loss that wipes out most of the $11M the other zones earn?",
+      "question": "Does the answer state, in any wording, the key insight: rural deliveries lose money: they cost $14M against $6M of revenue, an $8M loss that wipes out most of the $11M the other zones earn?",
       "weight": 0.5,
       "fail_tag": "M.trivial_takeaway",
       "feedback": "The takeaway that matters: rural deliveries lose money: they cost $14M against $6M of revenue, an $8M loss that wipes out most of the $11M the other zones earn.",
@@ -110,7 +110,7 @@
     "checks": [
       {
         "check_id": "defend_implication",
-        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes?",
+        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes? A short action that names what to act on counts; a generic one (\"Review them.\") or a restated takeaway doesn't.",
         "weight": 0.4,
         "fail_tag": "M.no_implication",
         "feedback": "Say what the takeaway means for the client's decision.",
@@ -130,7 +130,7 @@
       },
       {
         "check_id": "defend_consistent",
-        "question": "Does the reply avoid contradicting the student's own takeaway? A reply on another subject is consistent unless it contradicts it.",
+        "question": "Is the reply consistent with the student's own takeaway? A side topic is consistent; a reply that contradicts the takeaway, rests on a different reading of the chart without saying why, or gives a different answer to the client's question than the takeaway is not.",
         "weight": 0.25,
         "fail_tag": "M.inconsistent_defense",
         "feedback": "Keep your reply consistent with your own takeaway.",

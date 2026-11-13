@@ -68,7 +68,7 @@
     },
     {
       "check_id": "no_new_flaw",
-      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: trivial takeaway, misread trend, unsupported claim? The original's own flaw (it says $10 earns the most, but $12 brings in more, $960k) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: trivial takeaway, misread trend, unsupported claim? The original's own flaw (it says $10 earns the most, but $12 brings in more, $960k) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here. A different unsupported cause in place of a planted one is that flaw reworded, not new.",
       "weight": 0.3,
       "fail_tag": "M.trivial_takeaway",
       "feedback": "Your edit added a new flaw. Change only what needs fixing.",
@@ -78,7 +78,7 @@
     },
     {
       "check_id": "keeps_right",
-      "question": "Does the edit keep the substance of each part of the original that was right: it works out revenue as subscribers times price ($920k at $10)? Rewording or condensing a part is fine; dropping one fails.",
+      "question": "Does the edit keep the substance of each part of the original that was right: it works out revenue as subscribers times price ($920k at $10)? Rewording or condensing a part is fine; dropping one fails. A condensed or implied keep counts, including one the edit's own figures state.",
       "weight": 0.2,
       "fail_tag": "M.unsupported_claim",
       "feedback": "Keep what was already right: it works out revenue as subscribers times price ($920k at $10).",
@@ -112,7 +112,7 @@
       "A trivial takeaway (true but beside the client's question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn't show) is fixed when it is removed, replaced by a claim the chart supports, or framed as something to check (\"worth checking whether prices were cut\"). Hedging it (\"likely because\", \"probably\") still asserts it and does not fix it. Replacing an unsupported cause with a different unsupported cause leaves the planted flaw unfixed; it isn't a new flaw.",
       "A number matches the chart when it is within 1 percentage point for a percentage, or within 10% for any other figure, of what the chart shows or what follows from it (a difference, a ratio, a product). The chart figures listed are worked out from the chart, to check against.",
       "A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check.",
-      "A right part counts as kept when the edit's own figures state it (\"the client fell to 31% while the rival rose to 23%\" keeps \"the client still has the larger share\")."
+      "A right part counts as kept when the edit's own figures state it (\"the client fell to 31% while the rival rose to 23%\" keeps \"the client still has the larger share\"). A condensed or implied keep counts too: \"more than price and volume added\" keeps \"the $8M gain from price\"."
     ]
   },
   "sources": [],

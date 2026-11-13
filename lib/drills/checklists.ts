@@ -135,10 +135,10 @@ export const HY2_CHOICES = [
 // grader with every HY-2 item. Keep the two in step.
 export const HY2_GRADING_RULES = [
   'Directional: the cause says what changed and through which driver ("customers buy fewer units per visit"). A generic cause ("operational problems", "market conditions", "costs went up") is not directional, and neither is the facts re-stated as a ratio ("fewer appointments end in a sale", "revenue per customer fell"). A bare label or noun phrase that doesn\'t say what changed ("price elasticity", "digital pianos", "too many orders") is not directional, even though it still names a family, and neither is naming rivals or "competition" without the driver (price, range, location, service).',
-  'Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails. Using a given fact means building on it, in words or numbers; it needn\'t quote the figure.',
+  'Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails. Using a given fact means building on it, in words or numbers; it needn\'t quote the figure. A bare label ("price elasticity", "too many orders") builds on no fact.',
   'Testable: it names the data or comparison that would confirm or reject it ("units per customer by month"). "Look into it" or "analyze the data" is not enough.',
   'Tentative: it is framed as something to check ("likely", "my hypothesis is", "I would test") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.',
-  'Update reason: it uses the new fact (its content or its number) and draws a conclusion from it. Any of these counts: naming the cause the fact points to ("so it\'s the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). The reason must use what the fact actually says: a conclusion that misreads it fails ("reports doubled, which shows there are more potholes", when the fact says a new app brought the reports). An inference that fits the fact is not a misread ("so it\'s less serious shoppers", when sales fell mostly on appointments from a new free booking page). Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them"). A reason passes if it draws the conclusion the new fact points to, however briefly (e.g., \'It\'s the custom sizes\'); a reason that only repeats the fact fails.',
+  'Update reason: it uses the new fact (its content or its number) and draws a conclusion from it. Any of these counts: naming the cause the fact points to ("so it\'s the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). The reason must use what the fact actually says: a conclusion that misreads it fails ("reports doubled, which shows there are more potholes", when the fact says a new app brought the reports). An inference that fits the fact is not a misread ("so it\'s less serious shoppers", when sales fell mostly on appointments from a new free booking page). Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them"). A reason passes if it draws the conclusion the new fact points to, however briefly (e.g., \'It\'s the custom sizes\'); a reason that only repeats the fact fails. These pass: "Sales held where the brand\'s own team stayed, so it isn\'t the category"; "Weekday shows hurt sales, so move them back to Saturdays" (a cause before the fix); "Lighting use fell 55% as planned; the plan wrongly assumed lighting was 55% of store use, not 20%".',
   'Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. Even a bare label names a mechanism ("price elasticity" is a price cause). If it names a lead cause and a backup, use the lead for the family and report the backup\'s family as backup_family; when causes are joined by "or", the first is the lead. If it names several causes and none leads, the family is "other" and there is no backup.',
   'Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.',
   'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
@@ -161,16 +161,16 @@ export function hy2Item(c: Hy2Content): ItemInput {
     },
     checks: [
       { check_id: 'directional', step: 0, weight: 0.15, fail_tag: 'M.restates_facts',
-        question: `Does the hypothesis name a specific likely cause, either one of the listed hypothesis families or another specific cause consistent with the facts?`,
+        question: `Does the hypothesis name a specific likely cause that says what changed and through which driver, either one of the listed hypothesis families or another specific cause consistent with the facts? A bare label, a generic cause, the facts restated as a ratio, or rivals named without the driver don't count.`,
         feedback: 'Name a specific likely cause, not a restatement of what happened.' },
       { check_id: 'evidence_based', step: 0, weight: 0.15, fail_tag: 'M.ignores_facts',
-        question: 'Does the hypothesis use at least one of the facts given in the question, in words or numbers (it needn\'t quote the figure)? Quote the student\'s own words that use it, not the question.', feedback: 'Tie the hypothesis to the facts you were given.' },
+        question: 'Does the hypothesis use at least one of the facts given in the question, in words or numbers (it needn\'t quote the figure; a bare label builds on no fact)? Quote the student\'s own words that use it, not the question.', feedback: 'Tie the hypothesis to the facts you were given.' },
       { check_id: 'testable', step: 0, weight: 0.15, fail_tag: 'M.untestable_hypothesis',
         question: 'Is it clear what data would confirm or reject the hypothesis?', feedback: 'Say what data would confirm or reject it.' },
       { check_id: 'tentative', step: 0, weight: 0.15, fail_tag: 'M.overconfident_hypothesis',
         question: 'Is the hypothesis framed as something to verify, while still committing to one direction?', feedback: 'Frame it as something to test, not a conclusion.' },
       { check_id: 'update_reason', step: 2, weight: 0.15, fail_tag: 'M.sticky_hypothesis',
-        question: `Does the stage 2 explanation use the new fact ("${c.new_fact}"), its content or a number from it, and draw a conclusion from it about the hypothesis? Any of these counts as a conclusion: naming the cause the fact points to ("so it's the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). A conclusion passes however brief ("It's the custom sizes"); only repeating the fact fails.`,
+        question: `Does the stage 2 explanation use the new fact ("${c.new_fact}"), its content or a number from it, and draw a conclusion from it about the hypothesis? Any of these counts as a conclusion: naming the cause the fact points to ("so it's the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). A conclusion passes however brief ("It's the custom sizes", "so it isn't the category"), including a cause named before a fix; only repeating the fact fails.`,
         feedback: 'Use the new fact to explain your decision.' },
     ],
     red_flags: [
@@ -492,7 +492,7 @@ export const EX5_GRADING_RULES = [
   'A trivial takeaway (true but beside the client\'s question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn\'t show) is fixed when it is removed, replaced by a claim the chart supports, or framed as something to check ("worth checking whether prices were cut"). Hedging it ("likely because", "probably") still asserts it and does not fix it. Replacing an unsupported cause with a different unsupported cause leaves the planted flaw unfixed; it isn\'t a new flaw.',
   'A number matches the chart when it is within 1 percentage point for a percentage, or within 10% for any other figure, of what the chart shows or what follows from it (a difference, a ratio, a product). The chart figures listed are worked out from the chart, to check against.',
   'A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check.',
-  'A right part counts as kept when the edit\'s own figures state it ("the client fell to 31% while the rival rose to 23%" keeps "the client still has the larger share").',
+  'A right part counts as kept when the edit\'s own figures state it ("the client fell to 31% while the rival rose to 23%" keeps "the client still has the larger share"). A condensed or implied keep counts too: "more than price and volume added" keeps "the $8M gain from price".',
 ];
 const REPAIR_DRILL_RULES: Record<RepairDrillId, string[]> = { 'PS-4': PS4_GRADING_RULES, 'HY-3': HY3_GRADING_RULES, 'SY-3': SY3_GRADING_RULES, 'EX-5': EX5_GRADING_RULES };
 
@@ -510,14 +510,14 @@ export function repairItem(drillId: RepairDrillId, c: RepairContent): ItemInput 
       ...c.flaws.map((f, i) => ({
         check_id: `fix_${i + 1}`, weight: REPAIR_WEIGHTS.fixes / n, fail_tag: f.tag,
         ...(WHOLE_FIX.has(f.tag) && { evidence: 'whole' as const }),
-        question: `The original had this flaw: ${f.hint}. Does the edited answer fix it? One way to fix it: ${f.fix}. Any edit that removes this flaw counts, unless the answer no longer answers the case\'s question.`,
+        question: `The original had this flaw: ${f.hint}. Does the edited answer fix it? One way to fix it: ${f.fix}. Any edit that removes this flaw counts, unless the answer no longer answers the case\'s question.${drillId === 'EX-5' && f.tag === 'M.unsupported_claim' ? ' Hedging the claim ("likely because"), or swapping it for another unsupported cause, doesn\'t fix it.' : ''}`,
         feedback: `The flaw is still there: ${f.hint}.`,
       })),
       { check_id: 'no_new_flaw', weight: REPAIR_WEIGHTS.no_new_flaw, fail_tag: spec.flaw_tags[0], evidence: 'whole' as const,
-        question: `Compared with the original, does the edit avoid adding a new flaw of these kinds: ${kinds}? The original's own flaw${n > 1 ? 's' : ''} (${c.flaws.map(f => f.hint).join('; ')}) ${n > 1 ? "don't" : "doesn't"} count as new, even if the edit leaves ${n > 1 ? 'them' : 'it'} in place or rewords ${n > 1 ? 'them' : 'it'}, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.`,
+        question: `Compared with the original, does the edit avoid adding a new flaw of these kinds: ${kinds}? The original's own flaw${n > 1 ? 's' : ''} (${c.flaws.map(f => f.hint).join('; ')}) ${n > 1 ? "don't" : "doesn't"} count as new, even if the edit leaves ${n > 1 ? 'them' : 'it'} in place or rewords ${n > 1 ? 'them' : 'it'}, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.${drillId === 'EX-5' ? ' A different unsupported cause in place of a planted one is that flaw reworded, not new.' : ''}`,
         feedback: 'Your edit added a new flaw. Change only what needs fixing.' },
       { check_id: 'keeps_right', weight: REPAIR_WEIGHTS.keeps_right, fail_tag: spec.dropped_tag, evidence: 'whole' as const,
-        question: `Does the edit keep the substance of each part of the original that was right: ${c.right_parts}? Rewording or condensing a part is fine; dropping one fails.`,
+        question: `Does the edit keep the substance of each part of the original that was right: ${c.right_parts}? Rewording or condensing a part is fine; dropping one fails.${drillId === 'EX-5' ? ' A condensed or implied keep counts, including one the edit\'s own figures state.' : ''}`,
         feedback: `Keep what was already right: ${c.right_parts}.` },
     ],
     red_flags: [],
@@ -596,11 +596,11 @@ const HY2_DEFEND_CHECKS: Check[] = [
 ];
 const EX4_DEFEND_CHECKS: Check[] = [
   { check_id: 'defend_implication', weight: 0.4, fail_tag: 'M.no_implication',
-    question: 'Does the reply say what the takeaway means for the client\'s decision: what the client should do, or how the choice changes?', feedback: 'Say what the takeaway means for the client\'s decision.' },
+    question: 'Does the reply say what the takeaway means for the client\'s decision: what the client should do, or how the choice changes? A short action that names what to act on counts; a generic one ("Review them.") or a restated takeaway doesn\'t.', feedback: 'Say what the takeaway means for the client\'s decision.' },
   { check_id: 'defend_objective', weight: 0.35, fail_tag: 'M.implication_off_objective',
     question: 'Does the implication serve the client\'s objective as the question states it? Judge the goal, not whether the action is right; the reply needn\'t name the goal.', feedback: 'Tie the implication to what the client is trying to achieve.' },
   { check_id: 'defend_consistent', weight: 0.25, fail_tag: 'M.inconsistent_defense', evidence: 'whole',
-    question: 'Does the reply avoid contradicting the student\'s own takeaway? A reply on another subject is consistent unless it contradicts it.', feedback: 'Keep your reply consistent with your own takeaway.' },
+    question: 'Is the reply consistent with the student\'s own takeaway? A side topic is consistent; a reply that contradicts the takeaway, rests on a different reading of the chart without saying why, or gives a different answer to the client\'s question than the takeaway is not.', feedback: 'Keep your reply consistent with your own takeaway.' },
 ];
 const CHALLENGE_CHECKS: Check[] = [
   { check_id: 'defend_evidence', weight: 0.4, fail_tag: 'M.no_evidence_in_defense',
@@ -670,7 +670,7 @@ export function ex4Item(c: Ex4Content): ItemInput {
     input: { type: 'free_text', max_words: getDrill('EX-4').word_caps!.total },
     checks: [
       { check_id: 'key_insight', weight: 0.5, fail_tag: 'M.trivial_takeaway',
-        question: `Does the answer state the key insight: ${c.key_insight}?`,
+        question: `Does the answer state, in any wording, the key insight: ${c.key_insight}?`,
         feedback: `The takeaway that matters: ${c.key_insight}.` },
       { check_id: 'cites_number', weight: 0.25, fail_tag: 'M.unsupported_claim',
         question: 'Does the answer state a specific figure that the chart shows or that follows from it?',
@@ -715,7 +715,7 @@ export const CL4_CHOICES = [
 // grader with every CL-4 item. Keep the two in step.
 export const CL4_GRADING_RULES = [
   'One specific next analysis: stage 1 names one analysis to do next and what it looks at ("compare cost per order by warehouse over the last year"). "First X, then Y" names X. Several analyses with none first fail, and so does a vague step ("look into costs", "analyze the data"). A fix ("cut prices", "outsource the call center") names no analysis, so it fails too.',
-  'Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client\'s objective, or if it jumps to a fix ("cut prices", "close the store") instead of an analysis. Ignoring the latest finding is judged by the reason check, not here, so it isn\'t counted twice.',
+  'Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client\'s objective, or if it jumps to a fix ("cut prices", "close the store") instead of an analysis. Ignoring the latest finding is judged by the reason check, not here, so it isn\'t counted twice. A list or a vague step is judged by the one-step check, not here. Both pass here: "Survey supermarket shoppers about maple syrup, since we\'d want to sell in supermarkets" (it ignores the finding that most syrup goes to bakeries) and "Look at claims, staff and estimates to see where the delay is" (a list).',
   'Reason tied to the latest finding: the reason uses the most recent finding in the situation, its content or its number, to say why this step comes next. A generic reason ("it\'s important", "to understand the problem better") fails, and so does a reason that uses only older facts.',
   'Adapt reason: this check judges only whether the stage 2 explanation uses the new fact, not whether Keep or Change was the right call (code scores that). The explanation uses the new fact, its content or its number. After Keep, it says why the fact leaves the step on the same driver, such as what it would look at one level deeper; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step.',
   'Step family: classify the stage 1 answer only, never the stage 2 explanation, by what the analysis examines, not its wording. If stage 1 names several steps, use the one it does first; if none is first, use the first one it lists. A list still fails the one-specific-analysis check. The family is "other" only for a step that fits none of the families.',
@@ -743,7 +743,7 @@ export function cl4Item(c: Cl4Content): ItemInput {
       { check_id: 'one_step', step: 0, weight: 0.2, fail_tag: 'M.illogical_next_step',
         question: 'Does stage 1 name one specific next analysis, not a list of several and not a fix?', feedback: 'Name one specific analysis to do next.' },
       { check_id: 'logical', step: 0, weight: 0.25, fail_tag: 'M.illogical_next_step',
-        question: 'Is the step logical for where the case stands: not already answered by the situation, on the client\'s objective, and an analysis rather than a fix?',
+        question: 'Is the step logical for where the case stands: not already answered by the situation, on the client\'s objective, and an analysis rather than a fix? Ignoring the latest finding, a list or a vague step is judged by other checks, not here.',
         feedback: 'Pick a step the situation hasn\'t answered yet, on the client\'s objective.' },
       { check_id: 'reason_latest_finding', step: 0, weight: 0.15, fail_tag: 'M.illogical_next_step',
         question: 'Does stage 1 give a reason for the step that uses the latest finding in the situation?', feedback: 'Use the latest finding to say why this step comes next.' },

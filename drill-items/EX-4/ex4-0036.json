@@ -69,7 +69,7 @@
   "checks": [
     {
       "check_id": "key_insight",
-      "question": "Does the answer state the key insight: mortgages earn the most: $1,500 profit each on 20,000 customers is $30M, against $12M from credit cards and $5M from checking, despite checking's 500,000 customers?",
+      "question": "Does the answer state, in any wording, the key insight: mortgages earn the most: $1,500 profit each on 20,000 customers is $30M, against $12M from credit cards and $5M from checking, despite checking's 500,000 customers?",
       "weight": 0.5,
       "fail_tag": "M.trivial_takeaway",
       "feedback": "The takeaway that matters: mortgages earn the most: $1,500 profit each on 20,000 customers is $30M, against $12M from credit cards and $5M from checking, despite checking's 500,000 customers.",
@@ -115,7 +115,7 @@
     "checks": [
       {
         "check_id": "defend_implication",
-        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes?",
+        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes? A short action that names what to act on counts; a generic one (\"Review them.\") or a restated takeaway doesn't.",
         "weight": 0.4,
         "fail_tag": "M.no_implication",
         "feedback": "Say what the takeaway means for the client's decision.",
@@ -135,7 +135,7 @@
       },
       {
         "check_id": "defend_consistent",
-        "question": "Does the reply avoid contradicting the student's own takeaway? A reply on another subject is consistent unless it contradicts it.",
+        "question": "Is the reply consistent with the student's own takeaway? A side topic is consistent; a reply that contradicts the takeaway, rests on a different reading of the chart without saying why, or gives a different answer to the client's question than the takeaway is not.",
         "weight": 0.25,
         "fail_tag": "M.inconsistent_defense",
         "feedback": "Keep your reply consistent with your own takeaway.",

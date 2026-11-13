@@ -111,7 +111,7 @@ describe('EX-4 Written chart takeaway', () => {
     const block = buildItemBlock({ key: 'answer', item: ex4, steps: run(ex4) });
     expect(block).toContain('<chart>\nTitle: Costs as a share of revenue\nUnits: % of revenue\nChart type: grouped bar\n2023: Ingredients 30%; Labor 28%; Rent 12%; Delivery 4%\n2025: Ingredients 31%; Labor 35%; Rent 12%; Delivery 5%\n</chart>');
     expect(block).toContain('- Labor rose 7 points (28% to 35%)');
-    expect(block).toContain('check_id "key_insight": Does the answer state the key insight: labor rose 7 points');
+    expect(block).toContain('check_id "key_insight": Does the answer state, in any wording, the key insight: labor rose 7 points');
     const reply = buildDefendBlock({ key: 'answer', item: withDefend(ex4), steps: run(withDefend(ex4)) });
     expect(reply).toContain('<chart>');
     expect(reply).toContain(EX4_DEFEND_GRADING_RULES[1]);

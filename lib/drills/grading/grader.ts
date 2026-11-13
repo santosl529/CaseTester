@@ -62,8 +62,11 @@ import type { ItemGrade } from './apply';
 // the follow-up objective judges the goal, not whether the action is right.
 // v43 (Matt, 2026-11-12): a wrong answer is still tied; the goal needn't be
 // named; HY-2's update reason passes a brief conclusion, and evidence counts a
-// fact built on in words; check questions reworded to match.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v43';
+// fact built on in words; check questions reworded to match. v44 (Matt,
+// 2026-11-12): worked examples in EX-5 keeps-right, CL-4 logical and HY-2's
+// update reason; bare labels build on no fact; CL-4 logical leaves lists to
+// one-step; every P1 and HY-2 check question matches its rule.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v44';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
