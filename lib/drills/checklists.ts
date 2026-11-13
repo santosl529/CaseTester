@@ -658,7 +658,7 @@ export const EX4_GRADING_RULES = [
   'Key insight: the answer states the key insight given in the check, in any wording ("$12 brings in the most" for "revenue peaks at $12"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.',
   'Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure ("most", "a big drop") fail, and so does a wrong figure.',
   'Client\'s question: the answer says what the insight means for the question the client asked ("so $12 is the price that maximizes revenue", "so labor, not rent, explains the margin fall"). Describing the chart with no link to the question fails.',
-  'Contradicts the chart (red flag): a contradiction is a fact the answer states, or directly implies as its answer to the client\'s question, that the chart shows is false, such as naming the wrong largest item or the wrong driver. A takeaway that\'s merely less important, or a weak recommendation, is not a contradiction. A figure off by more than the margins above is false; a claim the chart doesn\'t address is not a contradiction.',
+  'Contradicts the chart (red flag): a contradiction is a fact the answer states, or directly implies as its answer to the client\'s question, that the chart shows is false, such as naming the wrong largest item or the wrong driver. A takeaway that\'s merely less important, or a weak recommendation, is not a contradiction. When the client\'s question asks for a fact (what drove it, which is largest), a wrong answer is a contradiction; when it asks for a decision (which to drop, whether to spend), a wrong recommendation isn\'t. A figure off by more than the margins above is false; a claim the chart doesn\'t address is not a contradiction.',
   'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
 ];
 
@@ -714,10 +714,10 @@ export const CL4_CHOICES = [
 // The grading guide's CL-4 rules (docs/drills-grading-guide.md), sent to the
 // grader with every CL-4 item. Keep the two in step.
 export const CL4_GRADING_RULES = [
-  'One specific next analysis: stage 1 names one analysis to do next and what it looks at ("compare cost per order by warehouse over the last year"). "First X, then Y" names X. Several analyses with none first fail, and so does a vague step ("look into costs", "analyze the data").',
-  'Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client\'s objective, or if it jumps to a fix ("cut prices", "close the store") instead of an analysis.',
+  'One specific next analysis: stage 1 names one analysis to do next and what it looks at ("compare cost per order by warehouse over the last year"). "First X, then Y" names X. Several analyses with none first fail, and so does a vague step ("look into costs", "analyze the data"). A fix ("cut prices", "outsource the call center") names no analysis, so it fails too.',
+  'Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client\'s objective, or if it jumps to a fix ("cut prices", "close the store") instead of an analysis. Ignoring the latest finding is judged by the reason check, not here, so it isn\'t counted twice.',
   'Reason tied to the latest finding: the reason uses the most recent finding in the situation, its content or its number, to say why this step comes next. A generic reason ("it\'s important", "to understand the problem better") fails, and so does a reason that uses only older facts.',
-  'Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the fact leaves the step on the same driver, such as what it would look at one level deeper; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.',
+  'Adapt reason: this check judges only whether the stage 2 explanation uses the new fact, not whether Keep or Change was the right call (code scores that). The explanation uses the new fact, its content or its number. After Keep, it says why the fact leaves the step on the same driver, such as what it would look at one level deeper; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step.',
   'Step family: classify the stage 1 answer only, never the stage 2 explanation, by what the analysis examines, not its wording. If stage 1 names several steps, use the one it does first; if none is first, use the first one it lists. A list still fails the one-specific-analysis check. The family is "other" only for a step that fits none of the families.',
   'Final recommendation (red flag): stage 1 tells the client what to do overall ("they should exit the market", "raise prices 10%") instead of naming the next analysis. A hypothesis to test is not a recommendation.',
   'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
@@ -741,14 +741,14 @@ export function cl4Item(c: Cl4Content): ItemInput {
     },
     checks: [
       { check_id: 'one_step', step: 0, weight: 0.2, fail_tag: 'M.illogical_next_step',
-        question: 'Does stage 1 name one specific next analysis, not a list of several?', feedback: 'Name one specific analysis to do next.' },
+        question: 'Does stage 1 name one specific next analysis, not a list of several and not a fix?', feedback: 'Name one specific analysis to do next.' },
       { check_id: 'logical', step: 0, weight: 0.25, fail_tag: 'M.illogical_next_step',
         question: 'Is the step logical for where the case stands: not already answered by the situation, on the client\'s objective, and an analysis rather than a fix?',
         feedback: 'Pick a step the situation hasn\'t answered yet, on the client\'s objective.' },
       { check_id: 'reason_latest_finding', step: 0, weight: 0.15, fail_tag: 'M.illogical_next_step',
         question: 'Does stage 1 give a reason for the step that uses the latest finding in the situation?', feedback: 'Use the latest finding to say why this step comes next.' },
       { check_id: 'adapt_reason', step: 2, weight: 0.15, fail_tag: 'M.illogical_next_step',
-        question: `Does the stage 2 explanation use the new fact ("${c.new_fact}")? After Keep, does it say why the fact leaves the step on the same driver; after Change, does it give the new step and why?`,
+        question: `Judge only whether the stage 2 explanation uses the new fact ("${c.new_fact}"), not whether Keep or Change was right. After Keep, does it say why the fact leaves the step on the same driver; after Change, does it give the new step and why?`,
         feedback: 'Use the new fact to explain your decision.' },
     ],
     red_flags: [

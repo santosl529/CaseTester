@@ -3,7 +3,7 @@
   "item_id": "cl4-0029",
   "drill_id": "CL-4",
   "answer_type": "normal",
-  "notes": "A fix (rule 2) and a recommendation (rule 6); no reason (rule 3); the keep doesn't use the new fact (rule 4).",
+  "notes": "A fix, so no analysis (rules 1, 2; Matt 2026-11-12) and a recommendation (rule 6); no reason (rule 3); the keep doesn't use the new fact (rule 4).",
   "responses": [
     {
       "type": "text",
@@ -19,7 +19,7 @@
     }
   ],
   "labels": {
-    "one_step": true,
+    "one_step": false,
     "logical": false,
     "reason_latest_finding": false,
     "adapt_reason": false

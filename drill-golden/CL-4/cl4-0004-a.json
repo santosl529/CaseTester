@@ -3,7 +3,7 @@
   "item_id": "cl4-0004",
   "drill_id": "CL-4",
   "answer_type": "normal",
-  "notes": "One step (rule 1), but a fix the situation already rules out, with prices fixed until 2028 (rule 2); renegotiating tells the client what to do instead of naming an analysis (rule 6, as in 0011-a, 0022-a and 0029-a); no reason from the finding (rule 3) or the new fact (rule 4).",
+  "notes": "A fix the situation already rules out, with prices fixed until 2028: it names no analysis (rules 1, 2; Matt 2026-11-12) and tells the client what to do instead (rule 6, as in 0011-a, 0022-a and 0029-a); no reason from the finding (rule 3) or the new fact (rule 4).",
   "responses": [
     {
       "type": "text",
@@ -19,7 +19,7 @@
     }
   ],
   "labels": {
-    "one_step": true,
+    "one_step": false,
     "logical": false,
     "reason_latest_finding": false,
     "adapt_reason": false

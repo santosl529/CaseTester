@@ -3,7 +3,7 @@
   "item_id": "cl4-0011",
   "drill_id": "CL-4",
   "answer_type": "normal",
-  "notes": "A fix, not an analysis (rule 2), with no reason (rule 3), and a final recommendation (rule 6); the change is well made (rule 4).",
+  "notes": "A fix, not an analysis (rules 1, 2; a fix names no analysis, Matt 2026-11-12), with no reason (rule 3), and a final recommendation (rule 6); the change is well made (rule 4).",
   "responses": [
     {
       "type": "text",
@@ -19,7 +19,7 @@
     }
   ],
   "labels": {
-    "one_step": true,
+    "one_step": false,
     "logical": false,
     "reason_latest_finding": false,
     "adapt_reason": true

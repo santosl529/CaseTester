@@ -3,7 +3,7 @@
   "item_id": "cl4-0024",
   "drill_id": "CL-4",
   "answer_type": "off_topic",
-  "notes": "A fix (rule 2) and a recommendation (rule 6), with no reason (rule 3); the change is well made (rule 4).",
+  "notes": "A fix, so no analysis (rules 1, 2; Matt 2026-11-12) and a recommendation (rule 6), with no reason (rule 3); the change is well made (rule 4).",
   "responses": [
     {
       "type": "text",
@@ -19,7 +19,7 @@
     }
   ],
   "labels": {
-    "one_step": true,
+    "one_step": false,
     "logical": false,
     "reason_latest_finding": false,
     "adapt_reason": true

@@ -52,7 +52,11 @@ import type { ItemGrade } from './apply';
 // (Matt, 2026-11-12): CL-4 grades stage 1 in its own call (no new fact, no
 // stage 2); EX-4's contradiction flag, follow-up consistency and short
 // replies reworded; HY-2's update reason says a fair inference isn't a misread.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v39';
+// v40 (Matt, 2026-11-12): CL-4 one-step fails a fix, logical leaves an ignored
+// finding to the reason check, adapt reason judges only the use of the fact;
+// EX-4's flag separates questions that ask for a fact from ones that ask for
+// a decision.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v40';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
