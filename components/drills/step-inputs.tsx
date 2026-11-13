@@ -55,18 +55,18 @@ export function BucketsEditor({ value, onChange, cap }: { value: Bucket[]; onCha
   // A change is allowed if it keeps the framework under the total cap.
   const within = (next: Bucket[]) => countWords(next.map(b => [b.title, ...b.points].join(' ')).join(' ')) <= cap;
   return (
-    <fieldset className="space-y-3" aria-describedby={`${id}-count`}>
+    <fieldset className="min-w-0 space-y-3" aria-describedby={`${id}-count`}>
       <legend className="t-small mb-1 font-semibold">Your framework: 2–{PS3.maxBuckets} buckets, each with 1–{PS3.maxPoints} sub-points</legend>
       {value.map((b, i) => (
         <div key={i} className="space-y-2 rounded-window border border-ink/12 bg-white p-4">
           <div className="flex items-center gap-2">
             <input
               aria-label={`Bucket ${i + 1} title`} placeholder={`Bucket ${i + 1}`} value={b.title}
-              className="t-small h-9 flex-1 rounded-field border border-ink/20 bg-white transition-colors hover:border-ink/35 focus-visible:border-cobalt motion-reduce:transition-none px-3 font-semibold"
+              className="t-small h-9 min-w-0 flex-1 rounded-field border border-ink/20 bg-white transition-colors hover:border-ink/35 focus-visible:border-cobalt motion-reduce:transition-none px-3 font-semibold"
               onChange={e => { const next = value.map((x, j) => (j === i ? { ...x, title: e.target.value } : x)); if (within(next)) onChange(next); }}
             />
             {value.length > 1 && (
-              <button type="button" className="t-label cursor-pointer text-ink/70 underline underline-offset-4 hover:text-cobalt" onClick={() => onChange(value.filter((_, j) => j !== i))}>
+              <button type="button" className="t-label flex-none cursor-pointer text-ink/70 underline underline-offset-4 hover:text-cobalt" onClick={() => onChange(value.filter((_, j) => j !== i))}>
                 Remove bucket
               </button>
             )}
@@ -76,7 +76,7 @@ export function BucketsEditor({ value, onChange, cap }: { value: Bucket[]; onCha
               <span aria-hidden="true" className="size-1.5 flex-none rounded-full bg-ink/30" />
               <input
                 aria-label={`Bucket ${i + 1}, sub-point ${k + 1}`} value={p} placeholder="A specific thing to look at"
-                className="t-small h-9 flex-1 rounded-field border border-ink/20 bg-white transition-colors hover:border-ink/35 focus-visible:border-cobalt motion-reduce:transition-none px-3"
+                className="t-small h-9 min-w-0 flex-1 rounded-field border border-ink/20 bg-white transition-colors hover:border-ink/35 focus-visible:border-cobalt motion-reduce:transition-none px-3"
                 onChange={e => {
                   const text = e.target.value;
                   if (countWords(text) > PS3.pointWords) return;

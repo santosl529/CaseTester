@@ -47,18 +47,18 @@ export function ReportReview({ id, status, notes, checks, flags, exported }: {
       {graded && (
         <table className="w-full t-small">
           <caption className="sr-only">Grader verdicts and your labels</caption>
-          <thead><tr className="text-left t-label text-ink/70"><th scope="col">Check</th><th scope="col">Grader</th><th scope="col">Your label</th></tr></thead>
+          <thead><tr className="text-left t-label text-ink/70"><th scope="col" className="pr-2">Check</th><th scope="col" className="pr-2">Grader</th><th scope="col">Your label</th></tr></thead>
           <tbody>
             {checks.map(c => (
               <tr key={c.id} className={labels[c.id] !== c.grader ? 'font-medium' : ''}>
-                <th scope="row" className="py-1 pr-2 text-left font-normal">{c.id}{c.by === 'code' ? ' (code)' : ''}{c.evidence && <span className="block t-label text-ink/70">“{c.evidence}”</span>}</th>
+                <th scope="row" className="py-1 pr-2 text-left font-normal [overflow-wrap:anywhere]">{c.id}{c.by === 'code' ? ' (code)' : ''}{c.evidence && <span className="block t-label text-ink/70">“{c.evidence}”</span>}</th>
                 <td className="py-1 pr-2">{c.grader ? 'Y' : 'N'}</td>
                 <td className="py-1">{yn(`${uid}-${c.id}`, labels[c.id], v => setLabels(l => ({ ...l, [c.id]: v })), `Your label for ${c.id}`)}</td>
               </tr>
             ))}
             {flags.map(f => (
               <tr key={f.id} className={redFlags[f.id] !== f.grader ? 'font-medium' : ''}>
-                <th scope="row" className="py-1 pr-2 text-left font-normal">red flag: {f.id}</th>
+                <th scope="row" className="py-1 pr-2 text-left font-normal [overflow-wrap:anywhere]">red flag: {f.id}</th>
                 <td className="py-1 pr-2">{f.grader ? 'Y' : 'N'}</td>
                 <td className="py-1">{yn(`${uid}-flag-${f.id}`, redFlags[f.id], v => setRedFlags(r => ({ ...r, [f.id]: v })), `Your label for red flag ${f.id}`)}</td>
               </tr>

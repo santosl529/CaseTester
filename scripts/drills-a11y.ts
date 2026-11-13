@@ -51,6 +51,7 @@ interface PageResult {
   tab_stops: number;
   // Wider than the 320 px viewport (sideways scrolling).
   reflow_overflow_px: number;
+  overflowing?: string[];
   error?: string;
 }
 const results: PageResult[] = [];
@@ -137,12 +138,20 @@ async function scan(page: Page, name: string, url: string, ready?: (p: Page) => 
     await page.setViewportSize({ width: 320, height: 800 });
     await page.waitForTimeout(300);
     result.reflow_overflow_px = await page.evaluate('document.documentElement.scrollWidth - document.documentElement.clientWidth') as number;
+    // What sticks out: the innermost elements past the right edge.
+    if (result.reflow_overflow_px > 0) result.overflowing = await page.evaluate(`(() => {
+      const w = document.documentElement.clientWidth;
+      const past = [...document.body.querySelectorAll('*')].filter(e => e.getBoundingClientRect().right > w + 0.5);
+      return past.filter(e => !past.some(o => o !== e && e.contains(o))).slice(0, 5)
+        .map(e => e.tagName.toLowerCase() + ' ' + Math.round(e.getBoundingClientRect().right - w) + 'px: ' + e.outerHTML.slice(0, 160));
+    })()`) as string[];
   } catch (e) {
     result.error = e instanceof Error ? e.message.split('\n')[0] : String(e);
   }
   results.push(result);
   const issues = result.violations.length + result.no_focus_ring.length + (result.reflow_overflow_px > 0 ? 1 : 0);
   console.log(`${issues || result.error ? '✗' : '✓'} ${name}: ${result.violations.length} axe rule(s), ${result.no_focus_ring.length}/${result.tab_stops} stops without a focus ring, overflow ${result.reflow_overflow_px}px${result.error ? `, error: ${result.error}` : ''}`);
+  for (const o of result.overflowing ?? []) console.log(`    past the edge: ${o}`);
 }
 
 // A set opens on its intro screen; Start (or Resume) shows the item, ready
@@ -175,7 +184,8 @@ async function main() {
     await db.insert(studentProfiles).values({ userId: student, orgId: 'a11y-test', timezone: 'America/New_York' });
     const context = await browser.newContext();
     const page = await context.newPage();
-    await page.goto(BASE, { waitUntil: 'networkidle' });
+    // Sign-in moved off the homepage at the site launch (1 Nov).
+    await page.goto(`${BASE}/sign-in`, { waitUntil: 'networkidle' });
     await page.getByPlaceholder('Email').fill(email);
     await page.getByPlaceholder('Password').fill(password);
     await page.getByRole('button', { name: 'Continue' }).click();

@@ -26,6 +26,7 @@ import { recordLessonView } from '@/lib/drills/program/lessons-store';
 import { loadAuthoredItems } from '@/lib/drills/authored';
 import { modelAnswerSteps } from '@/lib/drills/model-answers';
 import { withDefend } from '@/lib/drills/defend';
+import { previewDrafts } from '@/lib/drills/live';
 import type { Item } from '@/lib/drills/item-schema';
 import type { ItemRef } from '@/lib/drills/sets/plan';
 import type { StepResponse } from '@/lib/drills/sets/scoring';
@@ -116,9 +117,12 @@ async function defendSet(drillId: string) {
   // move to yesterday so the daily cap (cost controls) doesn't stop the run.
   await db.update(drillSets).set({ startedAt: new Date(Date.now() - 86_400_000) }).where(eq(drillSets.studentId, student));
   const { set_id } = await startSet(student, { drill_id: drillId, tier: 2 });
-  // Live since D5 shipped (2026-10-16); drafts carried the follow-ups before.
-  const rows = await db.select().from(drillItems).where(and(eq(drillItems.drillId, drillId), eq(drillItems.status, 'live')));
+  // Live since D5 shipped (2026-10-16); drafts carried the follow-ups before,
+  // and still do for a drill not yet seeded (scripts/smoke-with-items.ts).
+  const rows = await db.select().from(drillItems).where(and(eq(drillItems.drillId, drillId), inArray(drillItems.status, previewDrafts() ? ['live', 'draft'] : ['live'])));
   const withFollowup = rows.filter(r => (r.payload as Item).defend).slice(0, 3);
+  check(withFollowup.length === 3, `${drillId}: ${withFollowup.length} items with a follow-up in the database, need 3`);
+  if (withFollowup.length < 3) return;
   const plan: ItemRef[] = withFollowup.map(r => ({ kind: 'authored', item_id: r.itemId, version: r.version, defend: true }));
   await db.update(drillSets).set({ itemPlan: plan, size: plan.length }).where(eq(drillSets.id, set_id));
   const view = await setView(student, set_id);
