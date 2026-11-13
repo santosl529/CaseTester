@@ -3,7 +3,7 @@
   "item_id": "ex4-0027",
   "drill_id": "EX-4",
   "answer_type": "borderline",
-  "notes": "An action on restoring profit (rules 16, 17); turning to digital doesn't contradict its takeaway that print ads lost about $4M, and a reply on another subject is consistent (rule 18, v39).",
+  "notes": "An action on restoring profit (rules 16, 17), but it gives a different answer to which product to fix first (digital) than its own takeaway (print ads), so it's inconsistent (rule 18, Matt 2026-11-12, as ex4-0006-d1).",
   "part": "defend",
   "responses": [
     {
@@ -18,7 +18,7 @@
   "labels": {
     "defend_implication": true,
     "defend_objective": true,
-    "defend_consistent": true
+    "defend_consistent": false
   },
   "red_flags": {},
   "family": null

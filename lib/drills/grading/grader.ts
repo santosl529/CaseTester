@@ -55,8 +55,10 @@ import type { ItemGrade } from './apply';
 // v40 (Matt, 2026-11-12): CL-4 one-step fails a fix, logical leaves an ignored
 // finding to the reason check, adapt reason judges only the use of the fact;
 // EX-4's flag separates questions that ask for a fact from ones that ask for
-// a decision.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v40';
+// a decision. v41 (Matt, 2026-11-12): EX-4 follow-up consistency fails a
+// different answer to the client's question; EX-5 says a swapped unsupported
+// cause leaves the planted flaw unfixed and isn't new.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v41';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
