@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "operations",
+  "industry": "Industrials / Manufacturing",
   "prompt": "Objective: raise an auto-parts factory's output 15% without new machines. What you've learned: machines run 85% of their scheduled hours. Latest finding: 60% of the lost hours come from changeovers between product types.",
   "exhibit": null,
   "input": {

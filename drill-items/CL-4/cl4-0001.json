@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: find why a cinema chain's profit fell $3M this year. What you've learned: revenue was flat across its 30 cinemas. Latest finding: snack and drink sales, which earn most of the margin, fell 20%.",
   "exhibit": null,
   "input": {

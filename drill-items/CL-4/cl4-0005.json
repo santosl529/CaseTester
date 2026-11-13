@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: grow revenue 15% next year at a chain of 25 craft-supply stores. What you've learned: revenue per store has been flat for two years. Latest finding: loyalty-card members spend three times as much a year as other shoppers.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "investment_decision",
+  "industry": "Logistics / Transportation",
   "prompt": "Objective: decide whether a distribution center should build four more loading docks for $20M. What you've learned: its 12 docks are 90% busy. Latest finding: trucks waited an average of 3 hours for a dock last year, up from 30 minutes.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "turnaround",
+  "industry": "Telecom / Media",
   "prompt": "A regional magazine publisher's profit fell by about $3.4M in two years, and the new CEO wants to know which product to fix first.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
     "type": "table",
@@ -106,7 +107,7 @@
   "red_flags": [
     {
       "id": "contradicts_chart",
-      "definition": "The answer states something the chart shows to be false.",
+      "definition": "The answer states, or directly implies as its answer to the client's question, something the chart shows to be false.",
       "cap": 0.3,
       "tag": "M.misread_trend",
       "detection": "ai",
@@ -140,7 +141,7 @@
       },
       {
         "check_id": "defend_consistent",
-        "question": "Is the reply consistent with the student's own takeaway?",
+        "question": "Does the reply avoid contradicting the student's own takeaway? A reply on another subject is consistent unless it contradicts it.",
         "weight": 0.25,
         "fail_tag": "M.inconsistent_defense",
         "feedback": "Keep your reply consistent with your own takeaway.",
@@ -165,7 +166,7 @@
       "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",
       "Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure (\"most\", \"a big drop\") fail, and so does a wrong figure.",
       "Client's question: the answer says what the insight means for the question the client asked (\"so $12 is the price that maximizes revenue\", \"so labor, not rent, explains the margin fall\"). Describing the chart with no link to the question fails.",
-      "Contradicts the chart (red flag): the answer states something the chart shows to be false: a trend in the wrong direction, the wrong largest or smallest item, or a figure off by more than the margins above. A claim the chart doesn't address is not a contradiction.",
+      "Contradicts the chart (red flag): a contradiction is a fact the answer states, or directly implies as its answer to the client's question, that the chart shows is false, such as naming the wrong largest item or the wrong driver. A takeaway that's merely less important, or a weak recommendation, is not a contradiction. A figure off by more than the margins above is false; a claim the chart doesn't address is not a contradiction.",
       "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
     ]
   },

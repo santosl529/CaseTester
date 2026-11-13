@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "operations",
+  "industry": "Logistics / Transportation",
   "prompt": "Objective: cut wrong-item shipments at an office-supplies distributor, which rose from 1% to 4% of orders this year. What you've learned: order volume rose 10%. Latest finding: most errors happen on the night shift.",
   "exhibit": null,
   "input": {

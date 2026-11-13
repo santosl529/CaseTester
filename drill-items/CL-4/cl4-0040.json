@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "industry_analysis",
+  "industry": "Tech / SaaS",
   "prompt": "Objective: assess whether language-learning apps are an attractive market for a new entrant. What you've learned: the market grew 20% a year. Latest finding: two apps hold 75% of users.",
   "exhibit": null,
   "input": {

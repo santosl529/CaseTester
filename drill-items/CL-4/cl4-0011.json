@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: grow revenue 10% next year at a chain of 15 kitchenware stores. What you've learned: store sales have been flat for two years. Latest finding: cooking classes held in the stores grew 40%, and class students spend twice as much on kitchenware.",
   "exhibit": null,
   "input": {

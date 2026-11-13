@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "cost_reduction",
+  "industry": "Other",
   "prompt": "Objective: cut a law firm's office costs by 12%. What you've learned: office costs are $5M a year. Latest finding: printing makes up 25% of them, up from 8% five years ago.",
   "exhibit": null,
   "input": {

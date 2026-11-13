@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "market_entry",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: decide whether a US maker of premium baby strollers should enter Canada. What you've learned: Canada's premium stroller market is about $150M a year and growing 8%. Latest finding: two local brands hold 70% of it.",
   "exhibit": null,
   "input": {

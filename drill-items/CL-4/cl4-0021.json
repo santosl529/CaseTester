@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "market_entry",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: decide whether a Canadian maple-syrup brand should start selling in Japan. What you've learned: Japan imports about $40M of maple syrup a year. Latest finding: most of it is sold to bakeries and cafés, not in supermarkets.",
   "exhibit": null,
   "input": {

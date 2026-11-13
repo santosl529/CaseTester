@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: decide whether a regional theater should raise ticket prices. What you've learned: shows are 97% sold out at weekends and 55% on weekdays. Latest finding: weekend tickets sell out two months ahead.",
   "exhibit": null,
   "input": {

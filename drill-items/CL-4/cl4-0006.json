@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "m_and_a",
+  "industry": "Other",
   "prompt": "Objective: decide whether a hotel-linen laundry company should buy a smaller rival for $60M. What you've learned: the rival would add $50M of revenue. Latest finding: the rival's profit margin is 4%, against the client's 11%.",
   "exhibit": null,
   "input": {

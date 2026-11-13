@@ -48,8 +48,11 @@ import type { ItemGrade } from './apply';
 // 2026-11-12): CL-4's adapt reason says a Keep stays on the same driver, one
 // level deeper; EX-5 says hedging an unsupported cause doesn't fix it. v38
 // (Matt, 2026-11-12): HY-2's update reason fails a misread of the new fact;
-// EX-5 counts a right part as kept when the edit's own figures state it.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v38';
+// EX-5 counts a right part as kept when the edit's own figures state it. v39
+// (Matt, 2026-11-12): CL-4 grades stage 1 in its own call (no new fact, no
+// stage 2); EX-4's contradiction flag, follow-up consistency and short
+// replies reworded; HY-2's update reason says a fair inference isn't a misread.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v39';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -146,16 +149,22 @@ function stageNote(item: Item, step: number) {
 // Ids exactly as listed: tolerate a model that echoes the note or quotes.
 const cleanId = (id: string) => id.replace(/\s*[[(].*$/, '').replace(/["'`]/g, '').trim();
 
-export function buildItemBlock(e: GradingEntry): string {
+// scope: CL-4 grades stage 1 in a call of its own ('stage1': stage 1's checks
+// and answer only, no new fact, no stage 2) and stage 2 in the main call
+// ('stage2': its checks only, with both stages for context).
+export type BlockScope = 'all' | 'stage1' | 'stage2';
+const inScope = (scope: BlockScope, step: number) => scope === 'all' || (scope === 'stage1' ? step === 0 : step > 0);
+
+export function buildItemBlock(e: GradingEntry, scope: BlockScope = 'all'): string {
   const { item, steps } = e;
   const drill = getDrill(item.drill_id);
   const main = mainCount(item);
-  const spec = itemSteps(item).slice(0, main);
-  const aiChecks = item.checks.filter(c => c.detection === 'ai' && c.step < main);
-  const aiFlags = item.red_flags.filter(f => f.detection === 'ai');
+  const spec = itemSteps(item).slice(0, scope === 'stage1' ? 1 : main);
+  const aiChecks = item.checks.filter(c => c.detection === 'ai' && c.step < main && inScope(scope, c.step));
+  const aiFlags = item.red_flags.filter(f => f.detection === 'ai' && inScope(scope, f.step));
   const parts = [`<item key="${e.key}">`, `<drill>${drill.id} ${drill.name}</drill>`, `<question>${item.prompt}</question>`];
   if (item.drill_id === 'HY-2' || item.drill_id === 'CL-4') {
-    parts.push(`<new_fact_shown_in_stage_2>${item.extras.new_fact}</new_fact_shown_in_stage_2>`);
+    if (scope !== 'stage1') parts.push(`<new_fact_shown_in_stage_2>${item.extras.new_fact}</new_fact_shown_in_stage_2>`);
     parts.push(familiesBlock(item));
   }
   // EX-4, EX-5: the chart the student wrote about, and figures worked out from it.
@@ -170,7 +179,7 @@ export function buildItemBlock(e: GradingEntry): string {
   // SY-2: figures worked out from the sheet, to check the student's numbers against.
   const figures = item.extras.key_figures as string[] | undefined;
   if (figures?.length) parts.push(`<key_figures>\nExact figures worked out from the fact sheet. Use them only to check the numbers the answer states (within 10%, or 1 percentage point for a percentage); they are not reasons the answer must give.\n${figures.map(f => `- ${f}`).join('\n')}\n</key_figures>`);
-  const rules = item.extras.grading_rules as string[] | undefined;
+  const rules = (item.extras.grading_rules as string[] | undefined)?.filter(r => scope !== 'stage1' || !r.startsWith('Adapt reason:'));
   if (rules?.length) parts.push(`<grading_rules>\n${rules.map(r => `- ${r}`).join('\n')}\n</grading_rules>`);
   parts.push(`<checks>\n${aiChecks.map(c => `- check_id "${c.check_id}"${stageNote(item, c.step)}${c.evidence === 'whole' ? ' [judges the whole answer]' : ''}: ${c.question}`).join('\n')}\n</checks>`);
   parts.push(`<red_flags>\n${aiFlags.length ? aiFlags.map(f => `- id "${f.id}"${stageNote(item, f.step)}${f.evidence === 'whole' ? ' [judges the whole answer]' : ''}: ${f.definition}`).join('\n') : '(none)'}\n</red_flags>`);
@@ -404,7 +413,7 @@ export function splitRules(system: string, block: string): { system: string; use
 // ungraded ("Grading delayed"), and a billing error stops every call left.
 const ANSWER_KEY = 'answer';
 
-export type CallSlot = 'main' | 'family' | 'followup' | 'followup_data';
+export type CallSlot = 'main' | 'stage1' | 'family' | 'followup' | 'followup_data';
 export type RequestOutcome = 'ok' | 'invalid_output' | 'refused' | 'billing' | 'error';
 export type UngradedReason = 'request_cap' | 'refused' | 'billing' | 'over_word_limit' | 'error';
 export interface RequestRecord { key: string; call: CallSlot; model: GraderModel; outcome: RequestOutcome; usage: RequestUsage; cost_usd: number; latency_ms: number; error?: string }
@@ -517,13 +526,23 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
   // One call: the main answer, or (PRD "Defend step") the follow-up reply.
   // inPart: the steps whose red flags the call answers; owns: its checks.
   interface Part { slot: CallSlot; system: string; block: (e: GradingEntry) => string; kind: CallKind; inPart: (step: number) => boolean; owns: (c: { step: number; check_id: string }) => boolean; model: GraderModel }
-  const partsOf = (e: GradingEntry): { main: Part | null; defend: Part[] } => {
+  const partsOf = (e: GradingEntry): { main: Part | null; stage1: Part | null; defend: Part[] } => {
     const d = defendParts(e.item);
     const repair = getDrill(e.item.drill_id).stage === 'repair';
-    const main: Part = {
+    // CL-4: stage 1's checks in a call that can't see the new fact or stage 2,
+    // which the grader otherwise judged stage 1 against (Matt, 2026-11-12).
+    const split = e.item.drill_id === 'CL-4';
+    const main: Part = split ? {
+      slot: 'main', system: familySystem(e.item), block: x => buildItemBlock(x, 'stage2'), kind: 'standard',
+      inPart: step => step > 0, owns: c => c.step > 0, model: drillGraderModel(),
+    } : {
       slot: 'main', system: repair ? SYSTEM + REPAIR_SYSTEM : familySystem(e.item), block: buildItemBlock, kind: repair ? 'repair' : 'standard',
       inPart: step => !d || step < d.start, owns: c => !d || c.step < d.start, model: drillGraderModel(),
     };
+    const stage1: Part | null = split ? {
+      slot: 'stage1', system: familySystem(e.item), block: x => buildItemBlock(x, 'stage1'), kind: 'standard',
+      inPart: step => step === 0, owns: c => c.step === 0, model: drillGraderModel(),
+    } : null;
     const replied = d && answerText(e.steps[d.reply]?.response ?? { type: 'empty' });
     const inDefend = (step: number) => Boolean(d) && step >= d!.start;
     // HY-2: the data request in a call of its own that sees only the reply;
@@ -532,7 +551,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
       { slot: 'followup_data', system: SYSTEM + DEFEND_DATA_SYSTEM + REASONED_SYSTEM, block: buildDefendDataBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id === HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
       { slot: 'followup', system: SYSTEM + DEFEND_SYSTEM + REASONED_SYSTEM, block: buildDefendBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id !== HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
     ] : [{ slot: 'followup', system: SYSTEM + DEFEND_SYSTEM, block: buildDefendBlock, kind: 'standard', inPart: inDefend, owns: c => inDefend(c.step), model: drillGraderModel() }];
-    return { main: e.part === 'defend' ? null : main, defend: e.part === 'main' ? [] : defend };
+    return { main: e.part === 'defend' ? null : main, stage1: e.part === 'defend' ? null : stage1, defend: e.part === 'main' ? [] : defend };
   };
 
   // The call's output for this answer, or what was wrong with it.
@@ -551,6 +570,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
     if (!item || gaps.length) return `grader output left out: ${gaps.join(', ')} (returned keys: ${items.map(o => o.item_key).join(', ')})`;
     // Keep only what this call was asked about.
     item.checks = item.checks.filter(c => e.item.checks.some(x => x.check_id === c.check_id && part.owns(x)));
+    item.red_flags = item.red_flags.filter(f => e.item.red_flags.some(x => x.id === f.id && part.inPart(x.step)));
     return item;
   };
 
@@ -612,7 +632,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
     const family = e.item.extras.families && parts.main ? classify(e).catch(() => null) : Promise.resolve(null);
     const settled = await Promise.allSettled([
       parts.main ? askVerified(e, parts.main) : null,
-      ...parts.defend.map(p => askVerified(e, p)),
+      ...[parts.stage1, ...parts.defend].flatMap(p => (p ? [askVerified(e, p)] : [])),
     ]);
     const families = await family;
     const failed = settled.flatMap(r => (r.status === 'rejected' ? [r.reason] : []));

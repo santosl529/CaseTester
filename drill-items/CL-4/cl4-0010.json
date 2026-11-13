@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "operations",
+  "industry": "Financial Services",
   "prompt": "Objective: cut how long an insurer takes to settle car-damage claims. What you've learned: claims now take 30 days to settle, up from 18. Latest finding: the number of claims is flat.",
   "exhibit": null,
   "input": {

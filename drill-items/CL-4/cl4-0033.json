@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "market_entry",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: decide whether a US chain of indoor go-kart tracks should open in São Paulo. What you've learned: São Paulo has 3 indoor tracks for 12 million people. Latest finding: the 3 tracks are full at weekends and charge about $30 a race, near US prices.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "operations",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: get a regional airline's flights leaving on time again. What you've learned: flights now leave 25 minutes late on average, up from 8 minutes last year. Latest finding: most of the delay is at its two busiest airports, which handle 60% of flights.",
   "exhibit": null,
   "input": {

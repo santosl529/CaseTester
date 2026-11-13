@@ -186,24 +186,42 @@ describe('CL-4 Your next move', () => {
     expect(r.score).toBeCloseTo(0.6 * 0.4 + 0.4, 9);
   });
 
-  it('classifies the step in a call that sees only stage 1, with next-step families', async () => {
+  it('classifies the step, and grades stage 1, in calls that see only stage 1', async () => {
     const steps = run(cl4);
     const family = buildFamilyBlock({ key: 'answer', item: cl4, steps });
     expect(family).toContain('<step_families>\n- New-club costs:');
     expect(family).toContain('(none: only classify the next step)');
     expect(family).not.toContain(cl4.extras.new_fact as string);
     expect(family).not.toContain('older clubs\' costs per member are flat, so the rise');
-    const seen: string[] = [];
+    const seen: string[] = [], users: string[] = [];
     const call: CallModel = async (system, user) => {
-      seen.push(system);
+      seen.push(system); users.push(user);
       const isFamily = user.includes('only classify');
-      const checks = isFamily ? [] : cl4.checks.map(c => ({ check_id: c.check_id, pass: true, evidence: firstSentence(answerText(steps[c.step].response)) }));
-      return { output: { items: [{ item_key: 'answer', checks, red_flags: isFamily ? [] : [{ id: 'final_recommendation', present: false, evidence: '' }], hypothesis_family: 'New-club costs', backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
+      const asked = cl4.checks.filter(c => user.includes(`check_id "${c.check_id}"`));
+      const checks = asked.map(c => ({ check_id: c.check_id, pass: true, evidence: firstSentence(answerText(steps[c.step].response)) }));
+      const flags = !isFamily && user.includes('id "final_recommendation"') ? [{ id: 'final_recommendation', present: false, evidence: '' }] : [];
+      return { output: { items: [{ item_key: 'answer', checks, red_flags: flags, hypothesis_family: 'New-club costs', backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
     };
     const out = await gradeSet([{ key: 'a', item: cl4, steps }], call);
-    expect(seen).toHaveLength(2);
+    expect(seen).toHaveLength(3);
     for (const s of seen) expect(s).toContain('Next-step items: the item lists next-step families in <step_families>.');
-    expect(out.grades.get('a')!.family).toBe('New-club costs');
+    // Stage 1's call: its checks and red flag, no new fact, no stage 2.
+    const stage1 = users.find(u => u.includes('check_id "one_step"'))!;
+    expect(stage1).not.toContain(cl4.extras.new_fact as string);
+    expect(stage1).not.toContain(answerText(steps[2].response));
+    expect(stage1).not.toContain('<student_choice');
+    expect(stage1).not.toContain('check_id "adapt_reason"');
+    expect(stage1).not.toContain('Adapt reason:');
+    expect(stage1).toContain('id "final_recommendation"');
+    // The main call grades stage 2 only.
+    const main = users.find(u => u.includes('check_id "adapt_reason"'))!;
+    expect(main).toContain(cl4.extras.new_fact as string);
+    expect(main).not.toContain('check_id "one_step"');
+    expect(main).not.toContain('id "final_recommendation"');
+    const g = out.grades.get('a')!;
+    expect(g.family).toBe('New-club costs');
+    expect(Object.keys(g.checks).sort()).toEqual(cl4.checks.map(c => c.check_id).sort());
+    expect(Object.keys(g.red_flags)).toEqual(['final_recommendation']);
   });
 
   it('never sends the families, the new fact or a keep/change key to the client', () => {

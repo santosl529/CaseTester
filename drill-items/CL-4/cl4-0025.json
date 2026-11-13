@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "m_and_a",
+  "industry": "Other",
   "prompt": "Objective: decide whether a chain of 30 veterinary clinics should buy a rival chain of 10 for $25M. What you've learned: the rival earns $2.5M a year. Latest finding: 40% of the rival's revenue comes from one clinic.",
   "exhibit": null,
   "input": {

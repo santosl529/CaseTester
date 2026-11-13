@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Objective: raise the share of homeowners who pay a county's property tax on time. What you've learned: on-time payment fell from 92% to 80% this year. Latest finding: almost all the drop is among homeowners who used to pay by mailed check.",
   "exhibit": null,
   "input": {

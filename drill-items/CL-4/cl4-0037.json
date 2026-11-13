@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
+  "industry": "Financial Services",
   "prompt": "Objective: double a regional insurance broker's revenue in five years. What you've learned: 80% of revenue comes from small businesses. Latest finding: small-business clients hold one policy on average, against three at rival brokers.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "turnaround",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: return a chain of 50 restaurants to profit; it loses $5M a year. What you've learned: sales per restaurant fell 15% in two years. Latest finding: online reviews mention slow service three times as often as two years ago.",
   "exhibit": null,
   "input": {

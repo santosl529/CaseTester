@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "public_sector",
+  "industry": "Public / Education / Nonprofit",
   "prompt": "Objective: cut the backlog of tax refunds at a state revenue agency. What you've learned: the backlog doubled to 40,000 in six months, while returns filed rose 8%. Latest finding: refunds flagged for identity checks take 30 days, against 5 for the rest.",
   "exhibit": null,
   "input": {

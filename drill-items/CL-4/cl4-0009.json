@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
+  "industry": "Other",
   "prompt": "Objective: find why a chain of 20 dog-grooming salons' profit fell 30% this year. What you've learned: revenue held steady. Latest finding: water and energy cost per groom rose 40%.",
   "exhibit": null,
   "input": {

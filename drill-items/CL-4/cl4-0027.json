@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: find why a cosmetics brand's new sunscreen missed its first-summer sales target by 30%. What you've learned: sales were on plan in May and June. Latest finding: sales fell 55% in July and August, the busiest months.",
   "exhibit": null,
   "input": {

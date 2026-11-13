@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "turnaround",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: return a chain of 20 hardware stores to profit after two years of losses. What you've learned: the losses come from 6 stores opened in the last three years. Latest finding: the 6 new stores sell half as much per square foot as the older ones.",
   "exhibit": null,
   "input": {

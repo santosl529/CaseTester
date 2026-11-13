@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "industry_analysis",
+  "industry": "Other",
   "prompt": "Objective: assess whether the dog-daycare industry is attractive to a private-equity investor. What you've learned: industry revenue grew 15% a year for five years. Latest finding: the three largest operators hold only 10% of the market.",
   "exhibit": null,
   "input": {

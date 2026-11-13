@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
+  "industry": "Healthcare Provider / Payor",
   "prompt": "Objective: find why a chain of 40 pharmacies' profit fell $6M this year. What you've learned: prescriptions filled rose 5%. Latest finding: profit per prescription fell 25%.",
   "exhibit": null,
   "input": {

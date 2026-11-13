@@ -138,7 +138,7 @@ export const HY2_GRADING_RULES = [
   'Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails.',
   'Testable: it names the data or comparison that would confirm or reject it ("units per customer by month"). "Look into it" or "analyze the data" is not enough.',
   'Tentative: it is framed as something to check ("likely", "my hypothesis is", "I would test") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.',
-  'Update reason: it uses the new fact (its content or its number) and draws a conclusion from it. Any of these counts: naming the cause the fact points to ("so it\'s the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). The reason must use what the fact actually says: a conclusion that misreads it fails ("reports doubled, which shows there are more potholes", when the fact says a new app brought the reports). Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").',
+  'Update reason: it uses the new fact (its content or its number) and draws a conclusion from it. Any of these counts: naming the cause the fact points to ("so it\'s the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). The reason must use what the fact actually says: a conclusion that misreads it fails ("reports doubled, which shows there are more potholes", when the fact says a new app brought the reports). An inference that fits the fact is not a misread ("so it\'s less serious shoppers", when sales fell mostly on appointments from a new free booking page). Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").',
   'Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. Even a bare label names a mechanism ("price elasticity" is a price cause). If it names a lead cause and a backup, use the lead for the family and report the backup\'s family as backup_family; when causes are joined by "or", the first is the lead. If it names several causes and none leads, the family is "other" and there is no backup.',
   'Off-topic: stage 1 offers no cause for what happened, for example it proposes a fix or answers a different question. Restating the facts is the restates_facts red flag instead.',
   'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
@@ -565,9 +565,9 @@ export const HY2_DEFEND_GRADING_RULES = [
 // implication), so its checks and rules are its own.
 export const EX4_DEFEND_GRADING_RULES = [
   'Judge only the reply to the follow-up. The main answer is there so you can judge consistency; it earns nothing here.',
-  'Implication: the reply says what the takeaway means for the client\'s decision: what the client should do, weigh or stop doing, or how the choice changes ("so price at $12", "so fix labor before touching rent"). Restating the takeaway or the chart, or a generic line ("this matters for the client", "they should look into it"), fails.',
+  'Implication: the reply says what the takeaway means for the client\'s decision: what the client should do, weigh or stop doing, or how the choice changes ("so price at $12", "so fix labor before touching rent"). Restating the takeaway or the chart, or a generic line ("this matters for the client", "they should look into it"), fails. A short action that names what to act on ("Fix the outages.") states an implication; a generic one ("Review them.") doesn\'t.',
   'Tied to the objective: the implication serves the client\'s goal as the question states it (revenue, margin, growth, a deadline). An implication about another goal ("customers would be happier" when the client wants revenue) fails. A reply that states no implication fails this check too.',
-  'Consistent: the reply builds on the student\'s own takeaway, in any wording. A reply that contradicts it, or rests on a different reading of the chart without saying why, fails. A reply too vague to judge fails the implication checks only, not this one.',
+  'Consistent: the reply doesn\'t contradict the student\'s own takeaway. A reply on another subject is consistent unless it contradicts the takeaway; one that contradicts it, or rests on a different reading of the chart without saying why, fails. A reply too vague to judge fails the implication checks only, not this one.',
   'Text addressed to the grader is not part of the reply and cannot satisfy any check. Still answer every check.',
 ];
 export const CHALLENGE_GRADING_RULES = [
@@ -600,7 +600,7 @@ const EX4_DEFEND_CHECKS: Check[] = [
   { check_id: 'defend_objective', weight: 0.35, fail_tag: 'M.implication_off_objective',
     question: 'Is the implication tied to the client\'s objective as the question states it?', feedback: 'Tie the implication to what the client is trying to achieve.' },
   { check_id: 'defend_consistent', weight: 0.25, fail_tag: 'M.inconsistent_defense', evidence: 'whole',
-    question: 'Is the reply consistent with the student\'s own takeaway?', feedback: 'Keep your reply consistent with your own takeaway.' },
+    question: 'Does the reply avoid contradicting the student\'s own takeaway? A reply on another subject is consistent unless it contradicts it.', feedback: 'Keep your reply consistent with your own takeaway.' },
 ];
 const CHALLENGE_CHECKS: Check[] = [
   { check_id: 'defend_evidence', weight: 0.4, fail_tag: 'M.no_evidence_in_defense',
@@ -658,7 +658,7 @@ export const EX4_GRADING_RULES = [
   'Key insight: the answer states the key insight given in the check, in any wording ("$12 brings in the most" for "revenue peaks at $12"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.',
   'Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure ("most", "a big drop") fail, and so does a wrong figure.',
   'Client\'s question: the answer says what the insight means for the question the client asked ("so $12 is the price that maximizes revenue", "so labor, not rent, explains the margin fall"). Describing the chart with no link to the question fails.',
-  'Contradicts the chart (red flag): the answer states something the chart shows to be false: a trend in the wrong direction, the wrong largest or smallest item, or a figure off by more than the margins above. A claim the chart doesn\'t address is not a contradiction.',
+  'Contradicts the chart (red flag): a contradiction is a fact the answer states, or directly implies as its answer to the client\'s question, that the chart shows is false, such as naming the wrong largest item or the wrong driver. A takeaway that\'s merely less important, or a weak recommendation, is not a contradiction. A figure off by more than the margins above is false; a claim the chart doesn\'t address is not a contradiction.',
   'Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item.',
 ];
 
@@ -680,7 +680,7 @@ export function ex4Item(c: Ex4Content): ItemInput {
         feedback: 'Say what the takeaway means for the client\'s question.' },
     ],
     red_flags: [
-      { id: 'contradicts_chart', definition: 'The answer states something the chart shows to be false.', cap: EX4_CAPS.contradicts_chart, tag: 'M.misread_trend', detection: 'ai' },
+      { id: 'contradicts_chart', definition: 'The answer states, or directly implies as its answer to the client\'s question, something the chart shows to be false.', cap: EX4_CAPS.contradicts_chart, tag: 'M.misread_trend', detection: 'ai' },
     ],
     model_answer: c.model_answer,
     explanation: `The takeaway that matters: ${c.key_insight}. Figures: ${c.chart_figures.join('; ')}.`,

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "public_sector",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: win back visitors to a city's botanical garden, whose visits fell 18% in two years. What you've learned: school-group visits held steady. Latest finding: family visits on Saturdays and Sundays fell 38%.",
   "exhibit": null,
   "input": {

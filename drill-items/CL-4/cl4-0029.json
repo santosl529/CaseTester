@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "competitive_response",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: respond to a rival grocery-delivery service that cut its delivery fee to zero. What you've learned: the client's orders fell 12% in the month since. Latest finding: the losses are almost all among customers who order less than once a month.",
   "exhibit": null,
   "input": {

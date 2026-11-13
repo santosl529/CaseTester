@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: find why a toy maker's new building set sold 50% below plan in its first holiday season. What you've learned: buyers gave it top ratings. Latest finding: it sold out in most stores by early December.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "cost_reduction",
+  "industry": "Financial Services",
   "prompt": "Objective: cut a home insurer's call-center costs by 20%. What you've learned: calls rose 35% in two years while customers rose 5%. Latest finding: 40% of calls are customers asking about the status of a claim.",
   "exhibit": null,
   "input": {

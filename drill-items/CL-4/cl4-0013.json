@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "market_entry",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: decide whether a Swedish maker of electric kettles should start selling in France. What you've learned: France's kettle market is about €150M a year. Latest finding: French shoppers buy most kettles online, through two large websites.",
   "exhibit": null,
   "input": {

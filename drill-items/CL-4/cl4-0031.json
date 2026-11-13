@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "profitability",
+  "industry": "Other",
   "prompt": "Objective: find why an architecture firm's profit margin fell from 16% to 7%, though revenue grew 25%. What you've learned: staff costs rose faster than revenue. Latest finding: the share of staff hours billed to clients fell from 75% to 62%.",
   "exhibit": null,
   "input": {

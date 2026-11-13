@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "investment_decision",
+  "industry": "Other",
   "prompt": "Objective: decide whether a tennis club should build indoor courts for $3M. What you've learned: the club has 900 members, and membership has been flat for five years. Latest finding: 60% of members who quit say they had nowhere to play in winter.",
   "exhibit": null,
   "input": {

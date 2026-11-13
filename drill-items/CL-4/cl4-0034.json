@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "m_and_a",
+  "industry": "Tech / SaaS",
   "prompt": "Objective: decide whether a hotel-booking software company should buy a smaller rival for $80M. What you've learned: the rival's revenue grew 40% last year. Latest finding: 70% of the rival's customers also use the client's software.",
   "exhibit": null,
   "input": {

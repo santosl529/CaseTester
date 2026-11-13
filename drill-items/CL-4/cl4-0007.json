@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "new_product_launch",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: find why a cereal maker's new high-protein granola sold 40% below plan in its first six months. What you've learned: shoppers who try it rate it highly. Latest finding: 70% of stores shelve it with diet and health foods, not with the cereals.",
   "exhibit": null,
   "input": {

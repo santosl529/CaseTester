@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "growth_strategy",
+  "industry": "Consumer / CPG",
   "prompt": "Objective: grow a regional ice-cream maker's sales 15% in two years. What you've learned: sales to restaurants are flat. Latest finding: grocery-store sales grew 30% this year, but the brand is in only 20% of the region's grocery stores.",
   "exhibit": null,
   "input": {

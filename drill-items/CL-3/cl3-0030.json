@@ -9,6 +9,7 @@
     "CL.data_requests"
   ],
   "case_type": "m_and_a",
+  "industry": "Retail / E-commerce",
   "prompt": "A national car-dealer group is deciding whether to buy an online used-car platform. The platform's sales grew 60% last year, but it has never made a profit.\n\nWhat information would you ask for, and where would you start?",
   "exhibit": null,
   "input": {

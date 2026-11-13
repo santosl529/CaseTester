@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "pricing",
+  "industry": "Tech / SaaS",
   "prompt": "Objective: decide whether a software company should move from one price to three tiers. What you've learned: it charges $30 per user a month to every customer. Latest finding: small customers cancel at three times the rate of large ones, citing price.",
   "exhibit": null,
   "input": {

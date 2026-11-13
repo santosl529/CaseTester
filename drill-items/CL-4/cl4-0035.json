@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "cost_reduction",
+  "industry": "Retail / E-commerce",
   "prompt": "Objective: cut a regional grocery chain's shrink (stock lost to waste and theft) by a third. What you've learned: shrink is 4% of sales, against 2% for peers. Latest finding: fresh produce accounts for 60% of shrink.",
   "exhibit": null,
   "input": {

@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "cost_reduction",
+  "industry": "Airlines / Travel / Hospitality",
   "prompt": "Objective: cut the energy bill of a chain of 40 indoor ice rinks by 10%, from $12M a year. What you've learned: its energy prices are fixed by contract until 2028. Latest finding: making and cooling the ice uses half of all the energy.",
   "exhibit": null,
   "input": {

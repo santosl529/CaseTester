@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "competitive_response",
+  "industry": "Telecom / Media",
   "prompt": "Objective: respond to a new rival taking customers from a regional internet provider. What you've learned: the client lost 8% of its customers this year. Latest finding: the losses are almost all in the three towns where the rival laid fiber.",
   "exhibit": null,
   "input": {

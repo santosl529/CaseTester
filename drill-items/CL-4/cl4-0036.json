@@ -9,6 +9,7 @@
     "CL.next_step"
   ],
   "case_type": "pricing",
+  "industry": "Other",
   "prompt": "Objective: decide the price of a coworking company's new private-office membership. What you've learned: its desk membership costs $300 a month. Latest finding: rivals charge $800 to $1,200 a month for a private office.",
   "exhibit": null,
   "input": {
