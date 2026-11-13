@@ -3,7 +3,7 @@
   "item_id": "ex4-0017",
   "drill_id": "EX-4",
   "answer_type": "short",
-  "notes": "Terse, but states the peak and its share (rule 1) with a figure (rule 2); nothing on staffing (rule 3).",
+  "notes": "States the peak and its share (rule 1) with a figure (rule 2); naming the months answers when staff are needed, so it's tied without a 'so…' clause (rule 3, Matt 2026-11-12).",
   "responses": [
     {
       "type": "text",
@@ -13,7 +13,7 @@
   "labels": {
     "key_insight": true,
     "cites_number": true,
-    "tied_to_question": false
+    "tied_to_question": true
   },
   "red_flags": {
     "contradicts_chart": false

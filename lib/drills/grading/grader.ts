@@ -57,8 +57,10 @@ import type { ItemGrade } from './apply';
 // EX-4's flag separates questions that ask for a fact from ones that ask for
 // a decision. v41 (Matt, 2026-11-12): EX-4 follow-up consistency fails a
 // different answer to the client's question; EX-5 says a swapped unsupported
-// cause leaves the planted flaw unfixed and isn't new.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v41';
+// cause leaves the planted flaw unfixed and isn't new. v42 (Matt, 2026-11-12):
+// EX-4 tied-to-question passes a takeaway that itself answers the question;
+// the follow-up objective judges the goal, not whether the action is right.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v42';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
