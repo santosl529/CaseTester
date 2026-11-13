@@ -131,6 +131,7 @@ describe('model allowlist', () => {
     process.env.DRILL_GRADER_MODEL = 'claude-haiku-5-5';
     expect(drillGraderModel()).toBe('claude-haiku-4-5');
     expect(drillGraderModel('hy2_followup')).toBe('claude-sonnet-5-5');
+    expect(drillGraderModel('hy2_main')).toBe('claude-sonnet-5-5');
     expect(drillGraderModel('ex4')).toBe('claude-sonnet-5-5');
     expect(drillGraderModel('ex5')).toBe('claude-sonnet-5-5');
     expect(drillGraderModel('cl4_stage1')).toBe('claude-sonnet-5-5');

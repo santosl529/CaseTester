@@ -547,7 +547,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
     // which the grader otherwise judged stage 1 against (Matt, 2026-11-12).
     const split = e.item.drill_id === 'CL-4';
     // The approved model per call (lib/models.ts): EX-4 and EX-5 on their own.
-    const graderCall = e.item.drill_id === 'EX-4' ? 'ex4' : e.item.drill_id === 'EX-5' ? 'ex5' : 'default';
+    const graderCall = e.item.drill_id === 'EX-4' ? 'ex4' : e.item.drill_id === 'EX-5' ? 'ex5' : e.item.drill_id === 'HY-2' ? 'hy2_main' : 'default';
     const main: Part = split ? {
       slot: 'main', system: familySystem(e.item), block: x => buildItemBlock(x, 'stage2'), kind: 'standard',
       inPart: step => step > 0, owns: c => c.step > 0, model: drillGraderModel('cl4_stage2'),
