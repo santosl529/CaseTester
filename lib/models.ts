@@ -180,11 +180,18 @@ export const DRILL_GRADER_MODELS: Record<GraderModel, { price: typeof DRILL_GRAD
 // The approved model for each grading call, hard-coded (Matt, 2026-10-16,
 // after the comparison; made the allowlist 2026-10-18): Haiku 4.5 everywhere
 // except the HY-2 follow-up's two calls (data request; drop result and
-// consistency), which Sonnet 5.5 grades. In production no other model may
-// grade, and DRILL_GRADER_MODEL is ignored; elsewhere it forces one model for
-// every call, for testing a candidate with one gate run.
-export type GraderCall = 'default' | 'hy2_followup';
-export const DRILL_GRADER_APPROVED: Record<GraderCall, GraderModel> = { default: DRILL_GRADER_MODEL_ID, hy2_followup: 'claude-sonnet-5-5' };
+// consistency), which Sonnet 5.5 grades. Added 2026-11-12 (Matt, after the
+// comparison on grader v41–v43): EX-4 (main and follow-up) and EX-5 on Sonnet
+// 5.5; CL-4's stage 1 on Sonnet 5.5, its stage 2 and step family on Haiku 5.5.
+// In production no other model may grade, and DRILL_GRADER_MODEL is ignored;
+// elsewhere it forces one model for every call, for testing a candidate with
+// one gate run.
+export type GraderCall = 'default' | 'hy2_followup' | 'ex4' | 'ex5' | 'cl4_stage1' | 'cl4_stage2' | 'cl4_family';
+export const DRILL_GRADER_APPROVED: Record<GraderCall, GraderModel> = {
+  default: DRILL_GRADER_MODEL_ID, hy2_followup: 'claude-sonnet-5-5',
+  ex4: 'claude-sonnet-5-5', ex5: 'claude-sonnet-5-5',
+  cl4_stage1: 'claude-sonnet-5-5', cl4_stage2: 'claude-haiku-5-5', cl4_family: 'claude-haiku-5-5',
+};
 export const DRILL_GRADER_HY2_FOLLOWUP_MODEL: GraderModel = DRILL_GRADER_APPROVED.hy2_followup;
 
 // The production deployment: Vercel's production environment (previews and

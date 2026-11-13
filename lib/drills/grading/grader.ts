@@ -60,7 +60,10 @@ import type { ItemGrade } from './apply';
 // cause leaves the planted flaw unfixed and isn't new. v42 (Matt, 2026-11-12):
 // EX-4 tied-to-question passes a takeaway that itself answers the question;
 // the follow-up objective judges the goal, not whether the action is right.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v42';
+// v43 (Matt, 2026-11-12): a wrong answer is still tied; the goal needn't be
+// named; HY-2's update reason passes a brief conclusion, and evidence counts a
+// fact built on in words; check questions reworded to match.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v43';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -540,16 +543,18 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
     // CL-4: stage 1's checks in a call that can't see the new fact or stage 2,
     // which the grader otherwise judged stage 1 against (Matt, 2026-11-12).
     const split = e.item.drill_id === 'CL-4';
+    // The approved model per call (lib/models.ts): EX-4 and EX-5 on their own.
+    const graderCall = e.item.drill_id === 'EX-4' ? 'ex4' : e.item.drill_id === 'EX-5' ? 'ex5' : 'default';
     const main: Part = split ? {
       slot: 'main', system: familySystem(e.item), block: x => buildItemBlock(x, 'stage2'), kind: 'standard',
-      inPart: step => step > 0, owns: c => c.step > 0, model: drillGraderModel(),
+      inPart: step => step > 0, owns: c => c.step > 0, model: drillGraderModel('cl4_stage2'),
     } : {
       slot: 'main', system: repair ? SYSTEM + REPAIR_SYSTEM : familySystem(e.item), block: buildItemBlock, kind: repair ? 'repair' : 'standard',
-      inPart: step => !d || step < d.start, owns: c => !d || c.step < d.start, model: drillGraderModel(),
+      inPart: step => !d || step < d.start, owns: c => !d || c.step < d.start, model: drillGraderModel(graderCall),
     };
     const stage1: Part | null = split ? {
       slot: 'stage1', system: familySystem(e.item), block: x => buildItemBlock(x, 'stage1'), kind: 'standard',
-      inPart: step => step === 0, owns: c => c.step === 0, model: drillGraderModel(),
+      inPart: step => step === 0, owns: c => c.step === 0, model: drillGraderModel('cl4_stage1'),
     } : null;
     const replied = d && answerText(e.steps[d.reply]?.response ?? { type: 'empty' });
     const inDefend = (step: number) => Boolean(d) && step >= d!.start;
@@ -558,7 +563,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
     const defend: Part[] = !replied ? [] : e.item.drill_id === 'HY-2' ? [
       { slot: 'followup_data', system: SYSTEM + DEFEND_DATA_SYSTEM + REASONED_SYSTEM, block: buildDefendDataBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id === HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
       { slot: 'followup', system: SYSTEM + DEFEND_SYSTEM + REASONED_SYSTEM, block: buildDefendBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id !== HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
-    ] : [{ slot: 'followup', system: SYSTEM + DEFEND_SYSTEM, block: buildDefendBlock, kind: 'standard', inPart: inDefend, owns: c => inDefend(c.step), model: drillGraderModel() }];
+    ] : [{ slot: 'followup', system: SYSTEM + DEFEND_SYSTEM, block: buildDefendBlock, kind: 'standard', inPart: inDefend, owns: c => inDefend(c.step), model: drillGraderModel(graderCall) }];
     return { main: e.part === 'defend' ? null : main, stage1: e.part === 'defend' ? null : stage1, defend: e.part === 'main' ? [] : defend };
   };
 
@@ -618,7 +623,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
   // HY-2: the family comes from a call that sees only stage 1 (see
   // buildFamilyBlock). If it fails twice, the main call's family is used.
   const classify = async (e: GradingEntry) => {
-    const model = drillGraderModel();
+    const model = drillGraderModel(e.item.drill_id === 'CL-4' ? 'cl4_family' : 'default');
     const { system, user } = DRILL_GRADER_MODELS[model].rulesInSystem ? splitRules(familySystem(e.item), buildFamilyBlock(e)) : { system: familySystem(e.item), user: buildFamilyBlock(e) };
     for (let attempt = 0; attempt < 2; attempt++) {
       const sent = await send(e, 'family', model, system, `<items>\n${user}\n</items>`, 'standard', attempt);

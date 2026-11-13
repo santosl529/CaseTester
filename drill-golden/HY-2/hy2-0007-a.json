@@ -3,7 +3,7 @@
   "item_id": "hy2-0007",
   "drill_id": "HY-2",
   "answer_type": "normal",
-  "notes": "Uses none of the given facts (car sales steady, 15% fewer visits), so evidence-based fails (rule 2). The reason ignores the new fact (rule 5), and keep is the wrong update for this family.",
+  "notes": "'Going elsewhere' builds on the 15% fewer visits in words, so evidence-based passes (rule 2, building on a fact counts, Matt 2026-11-12). The reason ignores the new fact (rule 5), and keep is the wrong update for this family.",
   "responses": [
     {
       "type": "text",
@@ -20,7 +20,7 @@
   ],
   "labels": {
     "directional": true,
-    "evidence_based": false,
+    "evidence_based": true,
     "testable": true,
     "tentative": true,
     "update_reason": false

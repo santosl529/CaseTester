@@ -3,7 +3,7 @@
   "item_id": "hy2-0015",
   "drill_id": "HY-2",
   "answer_type": "short",
-  "notes": "A label, not what changed and through which driver, so directional fails (rule 1); the family is still price by its mechanism (rule 6), and the key accepts keep or revise for it, so the decision passes. The reason mentions the new fact but doesn't say what it means (rule 5).",
+  "notes": "A label, not what changed and through which driver, so directional fails (rule 1); the family is still price by its mechanism (rule 6), and the key accepts keep or revise for it, so the decision passes. The reason mentions the new fact but doesn't say what it means (rule 5). 'Price elasticity' builds on the 20% price rise against 2% revenue growth in words, so evidence-based passes (rule 2, Matt 2026-11-12).",
   "responses": [
     {
       "type": "text",
@@ -20,7 +20,7 @@
   ],
   "labels": {
     "directional": false,
-    "evidence_based": false,
+    "evidence_based": true,
     "testable": false,
     "tentative": false,
     "update_reason": false

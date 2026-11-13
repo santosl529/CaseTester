@@ -3,7 +3,7 @@
   "item_id": "hy2-0044",
   "drill_id": "HY-2",
   "answer_type": "short",
-  "notes": "A bare label still names a mechanism, so the family is capacity (rule 6), but it says nothing about through which driver lateness rose (rule 1), uses no given fact (rule 2), names no data (rule 3) and is stated as fact (rule 4). 'It's the custom sizes' names the cause the fact points to (rule 5).",
+  "notes": "A bare label still names a mechanism, so the family is capacity (rule 6), but it says nothing about through which driver lateness rose (rule 1), builds on the 5% order growth in words, so evidence passes (rule 2, Matt 2026-11-12), names no data (rule 3) and is stated as fact (rule 4). 'It's the custom sizes' names the cause the fact points to (rule 5).",
   "responses": [
     {
       "type": "text",
@@ -20,7 +20,7 @@
   ],
   "labels": {
     "directional": false,
-    "evidence_based": false,
+    "evidence_based": true,
     "testable": false,
     "tentative": false,
     "update_reason": true

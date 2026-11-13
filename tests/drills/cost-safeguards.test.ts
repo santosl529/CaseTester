@@ -131,7 +131,13 @@ describe('model allowlist', () => {
     process.env.DRILL_GRADER_MODEL = 'claude-haiku-5-5';
     expect(drillGraderModel()).toBe('claude-haiku-4-5');
     expect(drillGraderModel('hy2_followup')).toBe('claude-sonnet-5-5');
-    expect(() => assertDrillGraderModel('claude-haiku-5-5')).toThrow(/approved/);
+    expect(drillGraderModel('ex4')).toBe('claude-sonnet-5-5');
+    expect(drillGraderModel('ex5')).toBe('claude-sonnet-5-5');
+    expect(drillGraderModel('cl4_stage1')).toBe('claude-sonnet-5-5');
+    expect(drillGraderModel('cl4_stage2')).toBe('claude-haiku-5-5');
+    expect(drillGraderModel('cl4_family')).toBe('claude-haiku-5-5');
+    // Haiku 5.5 is approved for CL-4's stage 2 and family (2026-11-12).
+    expect(() => assertDrillGraderModel('claude-haiku-5-5')).not.toThrow();
     expect(() => assertDrillGraderModel('claude-opus-5-5')).toThrow(/approved/);
     expect(() => assertDrillGraderModel('claude-sonnet-5-5')).not.toThrow();
   });

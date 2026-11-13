@@ -3,7 +3,7 @@
   "item_id": "hy2-0017",
   "drill_id": "HY-2",
   "answer_type": "normal",
-  "notes": "Evidence-based passes: 'cheaper options now that DIY cameras exist' ties the cause to the facts (rule 2). The stage 2 reason restates the new fact with no conclusion (rule 5).",
+  "notes": "The DIY cameras appear only in the stage 2 fact, so stage 1 uses no given fact (rule 2, Matt 2026-11-12). The stage 2 reason restates the new fact with no conclusion (rule 5).",
   "responses": [
     {
       "type": "text",
@@ -20,7 +20,7 @@
   ],
   "labels": {
     "directional": true,
-    "evidence_based": true,
+    "evidence_based": false,
     "testable": true,
     "tentative": true,
     "update_reason": false

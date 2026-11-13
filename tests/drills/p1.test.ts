@@ -193,9 +193,9 @@ describe('CL-4 Your next move', () => {
     expect(family).toContain('(none: only classify the next step)');
     expect(family).not.toContain(cl4.extras.new_fact as string);
     expect(family).not.toContain('older clubs\' costs per member are flat, so the rise');
-    const seen: string[] = [], users: string[] = [];
-    const call: CallModel = async (system, user) => {
-      seen.push(system); users.push(user);
+    const seen: string[] = [], users: string[] = [], models: string[] = [];
+    const call: CallModel = async (system, user, _kind, model) => {
+      seen.push(system); users.push(user); models.push(model!);
       const isFamily = user.includes('only classify');
       const asked = cl4.checks.filter(c => user.includes(`check_id "${c.check_id}"`));
       const checks = asked.map(c => ({ check_id: c.check_id, pass: true, evidence: firstSentence(answerText(steps[c.step].response)) }));
@@ -222,6 +222,11 @@ describe('CL-4 Your next move', () => {
     expect(g.family).toBe('New-club costs');
     expect(Object.keys(g.checks).sort()).toEqual(cl4.checks.map(c => c.check_id).sort());
     expect(Object.keys(g.red_flags)).toEqual(['final_recommendation']);
+    // The approved models (Matt, 2026-11-12): stage 1 on Sonnet 5.5, stage 2 and the family on Haiku 5.5.
+    const modelOf = (pred: (u: string) => boolean) => models[users.findIndex(pred)];
+    expect(modelOf(u => u.includes('check_id "one_step"'))).toBe('claude-sonnet-5-5');
+    expect(modelOf(u => u.includes('check_id "adapt_reason"'))).toBe('claude-haiku-5-5');
+    expect(modelOf(u => u.includes('only classify'))).toBe('claude-haiku-5-5');
   });
 
   it('never sends the families, the new fact or a keep/change key to the client', () => {
@@ -229,6 +234,25 @@ describe('CL-4 Your next move', () => {
     for (const f of families) expect(pub).not.toContain(f.family);
     expect(pub).not.toContain('6 newest clubs opened');
     expect(pub).toContain('Keep my next step');
+  });
+});
+
+describe('grader models (Matt, 2026-11-12)', () => {
+  it('sends EX-4 (main and follow-up) and EX-5 to Sonnet 5.5', async () => {
+    const seen: string[] = [];
+    const ex4d = withDefend(ex4);
+    const call: CallModel = async (_system, user, kind, model) => {
+      seen.push(model!);
+      const item = user.includes('<original_answer>') ? ex5 : ex4d;
+      const checks = item.checks.filter(c => user.includes(`check_id "${c.check_id}"`)).map(c => ({ check_id: c.check_id, pass: false, evidence: '' }));
+      const flags = item.red_flags.filter(f => user.includes(`id "${f.id}"`)).map(f => ({ id: f.id, present: false, evidence: '' }));
+      const out = { item_key: 'answer', checks, red_flags: flags, hypothesis_family: null, backup_family: null, injection_suspected: false, ...(kind === 'repair' && { new_flaw_tag: null, new_flaw_quote: '' }) };
+      return { output: { items: [out] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
+    };
+    await gradeSet([{ key: 'x', item: ex5, steps: run(ex5) }], call);
+    await gradeSet([{ key: 'y', item: ex4d, steps: run(ex4d) }], call);
+    expect(seen.length).toBeGreaterThanOrEqual(3);
+    for (const m of seen) expect(m).toBe('claude-sonnet-5-5');
   });
 });
 
