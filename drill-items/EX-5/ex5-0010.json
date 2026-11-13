@@ -2,7 +2,7 @@
   "item_id": "ex5-0010",
   "version": 1,
   "drill_id": "EX-5",
-  "status": "draft",
+  "status": "live",
   "level": 2,
   "tier": 2,
   "skills": [
@@ -117,10 +117,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": null,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-11-13",
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-11-13",

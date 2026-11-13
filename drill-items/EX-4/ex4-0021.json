@@ -2,7 +2,7 @@
   "item_id": "ex4-0021",
   "version": 1,
   "drill_id": "EX-4",
-  "status": "draft",
+  "status": "live",
   "level": 2,
   "tier": 2,
   "skills": [
@@ -112,7 +112,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Customers who joined in 2025 leave much faster: 28% are still active after six months, against 50% of 2024's, and the gap opens in month one, 55% against 70%.",
+  "model_answer": "New customers don't stay as long: 28% of 2025 sign-ups are still active after six months, against 50% of 2024's, and the gap opens in month one, 55% against 70%.",
   "defend": {
     "type": "justify",
     "text": "What does this mean for the client's decision?",
@@ -168,10 +168,10 @@
   },
   "sources": [],
   "authorship": {
-    "author_of_record": "Draft — awaiting human review",
+    "author_of_record": "Matthew Santos",
     "drafting_model": null,
-    "reviewed_by": null,
-    "reviewed_at": null,
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-11-13",
     "similarity_check": "passed",
     "similarity_note": null,
     "similarity_checked_at": "2026-11-13",

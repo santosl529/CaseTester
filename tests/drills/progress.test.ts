@@ -203,10 +203,17 @@ describe('a student climbing one skill (PRD "Where a student starts")', () => {
   });
 
   it('skills with no live Construct drill reach Practiced from Level 1, and transfer on Level 1 at tier 3', () => {
+    let u = applySet(progress({ skill_id: 'EX.traps', state: 'learning' }), set('EX-2', 2, { 'EX.traps': 0.9 }), at(0));
+    u = applySet(u.progress, set('EX-2', 2, { 'EX.traps': 0.9 }), at(0));
+    expect(u.transitions.map(t => t.to)).toEqual(['practiced']);
+    expect(nextSetFor(u.progress.get('EX.traps')!, {}, at(2))).toEqual({ drill_id: 'EX-2', stage: 'recognize', tier: 3, kind: 'transfer', test_out: false });
+  });
+
+  it('a skill whose Construct drill went live climbs to it: CL.next_step goes on to CL-4 (Matt, 2026-11-13)', () => {
     let u = applySet(progress({ skill_id: 'CL.next_step', state: 'learning' }), set('CL-1', 2, { 'CL.next_step': 0.9 }), at(0));
     u = applySet(u.progress, set('CL-1', 2, { 'CL.next_step': 0.9 }), at(0));
-    expect(u.transitions.map(t => t.to)).toEqual(['practiced']);
-    expect(nextSetFor(u.progress.get('CL.next_step')!, {}, at(2))).toEqual({ drill_id: 'CL-1', stage: 'recognize', tier: 3, kind: 'transfer', test_out: false });
+    expect(u.transitions.map(t => t.to)).toEqual(['recognizes']);
+    expect(nextSetFor(u.progress.get('CL.next_step')!, {}, at(0))).toMatchObject({ drill_id: 'CL-4', stage: 'construct' });
   });
 
   it('a newly prescribed skill with no Construct drill starts at Recognize tier 2', () => {

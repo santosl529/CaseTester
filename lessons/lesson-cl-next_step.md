@@ -2,12 +2,12 @@
 lesson_id: lesson-cl-next_step
 skill_id: CL.next_step
 version: 2
-status: draft
+status: live
 title: Propose the next step yourself
 drafting_model: claude-opus-5-5
-reviewed_by: 
-reviewed_at: 
-review_notes: v2 (next-7 build, D14): adds keeping or changing your step when a new fact arrives, which CL-4 grades. Keep = same driver, one level deeper; Change = the fact rules the driver out or points to a different one (Matt, 2026-11-12).
+reviewed_by: Matthew Santos
+reviewed_at: 2026-11-13
+review_notes: 
 ---
 ## The idea
 After each finding, propose the next analysis yourself: the one that moves the case furthest toward the answer.

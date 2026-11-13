@@ -483,7 +483,7 @@
       "pass_bar": 0.8,
       "priority": "P1",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "EX-3",
@@ -544,10 +544,10 @@
       "pass_bar": 0.8,
       "priority": "P1",
       "item_source": "authored",
-      "live": false,
+      "live": true,
       "defend": {
         "type": "justify",
-        "live": false,
+        "live": true,
         "set_size": [
           6,
           5,
@@ -944,7 +944,7 @@
       "pass_bar": 0.8,
       "priority": "P1",
       "item_source": "authored",
-      "live": false
+      "live": true
     }
   ]
 }

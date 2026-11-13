@@ -11,8 +11,9 @@ describe('questionnaire (D6 round 2)', () => {
     expect(placeFromRating('PS.mece', 1, isLiveDrill)).toBe('recognize');
     expect(placeFromRating('PS.mece', 3, isLiveDrill)).toBe('recognize_t2');
     expect(placeFromRating('PS.mece', 5, isLiveDrill)).toBe('repair');
-    // No Repair drill for chart takeaways: tier 2 Recognize instead.
-    expect(placeFromRating('EX.takeaway', 5, isLiveDrill)).toBe('recognize_t2');
+    expect(placeFromRating('EX.takeaway', 5, isLiveDrill)).toBe('repair');
+    // No Repair drill for chart traps: tier 2 Recognize instead.
+    expect(placeFromRating('EX.traps', 5, isLiveDrill)).toBe('recognize_t2');
     const places = Object.values(questionnairePlacements(ratings, isLiveDrill)).map(p => p.place);
     expect(places).not.toContain('test_out');
   });

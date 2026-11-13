@@ -1,6 +1,6 @@
 {
   "status": "approved",
-  "note": "Two lines per drill for Browse drills and Learn: what you do, and how it helps in the interview. Approved by Matt 2026-10-18 (review sheet: docs/drills-content/drill-descriptions.csv). EX-5, EX-4 and CL-4 are drafts (the next-7 proposal's appendix, 2026-11-10); Matt finalizes them with their review batch.",
+  "note": "Two lines per drill for Browse drills and Learn: what you do, and how it helps in the interview. Approved by Matt 2026-10-18 (review sheet: docs/drills-content/drill-descriptions.csv). EX-5, EX-4 and CL-4 (the next-7 proposal's appendix, 2026-11-10) approved by Matt 2026-11-13 as drafted.",
   "drills": {
     "PS-1": {
       "what": "Find the one flaw in a candidate's framework: an overlap, a gap, or a bucket that doesn't belong.",

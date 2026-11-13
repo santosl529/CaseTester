@@ -9,6 +9,7 @@
 //   npm run drills:models -- --drill PS-3 one drill
 //   npm run drills:models -- --runs 3     grade each three times, report scores that change
 //   npm run drills:models -- --d5         only the Repair drills and the follow-ups
+//   npm run drills:models -- --items ex4-0013,ex5-0028   just these items (with their follow-ups)
 //
 // Costs real money (Haiku, roughly 15 cents for all 150 items).
 import fs from 'fs';
@@ -26,13 +27,15 @@ const BATCH = 4;
 const only = process.argv.includes('--drill') ? process.argv[process.argv.indexOf('--drill') + 1] : null;
 const RUNS = process.argv.includes('--runs') ? Number(process.argv[process.argv.indexOf('--runs') + 1]) : 1;
 const D5_ONLY = process.argv.includes('--d5');
+const ONLY_ITEMS = process.argv.includes('--items') ? new Set(process.argv[process.argv.indexOf('--items') + 1].split(',')) : null;
 
 const items: Item[] = (only ? [only] : AI_DRILLS).flatMap(d => {
   const dir = path.join('drill-items', d);
   return fs.existsSync(dir) ? fs.readdirSync(dir).filter(f => f.endsWith('.json')).sort()
     .map(f => ItemSchema.parse(JSON.parse(fs.readFileSync(path.join(dir, f), 'utf-8'))))
     .flatMap(item => (item.defend ? [item, { ...withDefend(item), item_id: `${item.item_id}+defend` }] : [item])) : [];
-}).filter(i => !D5_ONLY || ['PS-4', 'HY-3', 'SY-3', 'EX-5'].includes(i.drill_id) || i.item_id.endsWith('+defend'));
+}).filter(i => !D5_ONLY || ['PS-4', 'HY-3', 'SY-3', 'EX-5'].includes(i.drill_id) || i.item_id.endsWith('+defend'))
+  .filter(i => !ONLY_ITEMS || ONLY_ITEMS.has(i.item_id.replace(/\+defend$/, '')));
 
 const steps = (item: Item): StepResult[] => {
   const out: StepResult[] = [];
