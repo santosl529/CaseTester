@@ -44,8 +44,10 @@ import type { ItemGrade } from './apply';
 // chart as text, CL-4 classifies next-step families (NEXT_STEP_SYSTEM). Every
 // other drill's calls are byte-for-byte as in v34. v36 adds to HY-2's
 // directional rule: a bare label, or rivals named without the driver, is not
-// directional (Matt, 2026-11-12, after the HY-2 gate fell to 86%).
-export const GRADER_PROMPT_VERSION = 'drills-grader-v36';
+// directional (Matt, 2026-11-12, after the HY-2 gate fell to 86%). v37 (Matt,
+// 2026-11-12): CL-4's adapt reason says a Keep stays on the same driver, one
+// level deeper; EX-5 says hedging an unsupported cause doesn't fix it.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v37';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 

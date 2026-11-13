@@ -3,11 +3,11 @@
   "item_id": "ex5-0019",
   "drill_id": "EX-5",
   "answer_type": "normal",
-  "notes": "Fixed (rule 19); the $10M dividend figure is gone (rule 4), so no-new-flaw passes by code (rule 3).",
+  "notes": "Capex named as the largest outflow, so the misread is fixed (rule 19); the $20M fall is gone (rule 4), so no-new-flaw passes by code (rule 3).",
   "responses": [
     {
       "type": "text",
-      "value": "Cash falls because capex, $25M, is the biggest outflow, and outflows of $50M exceed $30M of operating cash."
+      "value": "Cash falls because capex is the biggest outflow, at $25M."
     }
   ],
   "labels": {

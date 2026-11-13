@@ -3,7 +3,7 @@
   "item_id": "cl4-0004",
   "drill_id": "CL-4",
   "answer_type": "normal",
-  "notes": "One step (rule 1), but a fix the situation already rules out, with prices fixed until 2028 (rule 2); no reason from the finding (rule 3) or the new fact (rule 4).",
+  "notes": "One step (rule 1), but a fix the situation already rules out, with prices fixed until 2028 (rule 2); renegotiating tells the client what to do instead of naming an analysis (rule 6, as in 0011-a, 0022-a and 0029-a); no reason from the finding (rule 3) or the new fact (rule 4).",
   "responses": [
     {
       "type": "text",
@@ -25,7 +25,7 @@
     "adapt_reason": false
   },
   "red_flags": {
-    "final_recommendation": false
+    "final_recommendation": true
   },
   "family": "Energy contract and prices"
 }

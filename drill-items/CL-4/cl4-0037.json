@@ -108,7 +108,7 @@
     }
   ],
   "model_answer": "Stage 1: Compare which policies the client's small-business customers hold with rivals' customers, by industry, since the client sells one policy each against rivals' three.\nStage 2: Change: the policy gap is workers' compensation, which only the state fund may sell here, so I'd size winning new small businesses, which grow 8% a year.",
-  "explanation": "The new fact: The gap is workers' compensation, which brokers in other states sell but which the client's state requires small businesses to buy from a state fund; new small businesses in the region grow 8% a year. More policies for existing clients: change (The gap is a policy the client isn't allowed to sell). Winning new small businesses: keep (New small businesses grow 8% a year and the policy gap can't be closed, which supports it). Moving into larger businesses: keep or change (Fair as another source of growth, though the fact points to new small businesses). Commissions and prices: change (The gap is a policy the client can't sell, not its fees).",
+  "explanation": "The new fact: The gap is workers' compensation, which brokers in other states sell but which the client's state requires small businesses to buy from a state fund; new small businesses in the region grow 8% a year. More policies for existing clients: change (The gap is a policy the client isn't allowed to sell). Winning new small businesses: keep (New small businesses grow 8% a year and the policy gap can't be closed, which supports it). Moving into larger businesses: change (The fact points to new small businesses). Commissions and prices: change (The gap is a policy the client can't sell, not its fees).",
   "extras": {
     "families": [
       {
@@ -131,10 +131,9 @@
         "family": "Moving into larger businesses",
         "description": "Looks at a new segment",
         "actions": [
-          "keep",
           "change"
         ],
-        "reason": "Fair as another source of growth, though the fact points to new small businesses"
+        "reason": "The fact points to new small businesses"
       },
       {
         "family": "Commissions and prices",
@@ -150,7 +149,7 @@
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",
       "Reason tied to the latest finding: the reason uses the most recent finding in the situation, its content or its number, to say why this step comes next. A generic reason (\"it's important\", \"to understand the problem better\") fails, and so does a reason that uses only older facts.",
-      "Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the step still stands given the fact; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.",
+      "Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the fact leaves the step on the same driver, such as what it would look at one level deeper; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.",
       "Step family: classify the stage 1 answer only, never the stage 2 explanation, by what the analysis examines, not its wording. If stage 1 names several steps, use the one it does first; if none is first, use the first one it lists. A list still fails the one-specific-analysis check. The family is \"other\" only for a step that fits none of the families.",
       "Final recommendation (red flag): stage 1 tells the client what to do overall (\"they should exit the market\", \"raise prices 10%\") instead of naming the next analysis. A hypothesis to test is not a recommendation.",
       "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."

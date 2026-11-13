@@ -3,7 +3,7 @@
   "item_id": "ex4-0011",
   "drill_id": "EX-4",
   "answer_type": "normal",
-  "notes": "True but not where a discount helps (rule 1); figures right (rule 2); answers a different question, pricing weekends up (rule 3).",
+  "notes": "True but not where there's room for more visitors (rule 1); figures right (rule 2); answers a different question, pricing weekends up (rule 3).",
   "responses": [
     {
       "type": "text",

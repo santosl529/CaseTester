@@ -130,7 +130,7 @@ hy2-0041,Single-wash discounts,Lower prices or promotions on single washes,drop,
 hy2-0042,Crews overloaded by volume,Too few crews for the extra orders,revise,"Crews fall behind only at the moved warehouse, so distance is the cause"
 hy2-0042,Longer drives from the new site,The moved warehouse is farther from customers,keep,Late deliveries cluster at the warehouse 40 miles farther out
 hy2-0042,Slower suppliers,Furniture arrives late from suppliers,drop,"Suppliers serve all four warehouses, and three still deliver 94% on time"
-hy2-0043,Younger buyers shop online,Customers who drive growth buy online,revise,"The growth is houseplants, so the gap is the range, whoever buys them"
+hy2-0043,Younger buyers shop online,Customers who drive growth buy online,revise|drop,"The growth is houseplants, which the centers barely stock: revising to the range fits, and so does dropping the online cause, which the fact gives no support"
 hy2-0043,Small houseplant range,Too little of the growing category on the shelves,keep,Houseplants grew 30% and the centers stock them in one small corner
 hy2-0043,Rivals take customers,Customers buy at rival stores instead,drop,"Outdoor sales grew in line with the market, so the chain isn't losing ground there"
 hy2-0044,Orders exceed capacity,More orders than the factory can make,revise,Capacity falls short only because custom sizes take three times as long to cut

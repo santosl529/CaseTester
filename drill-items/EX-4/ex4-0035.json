@@ -9,7 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "investment_decision",
-  "prompt": "A data-center operator is deciding when to start building a new hall, which takes two years to build.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "prompt": "It is late 2025. A data-center operator is deciding when to start building a new hall, which takes two years to build.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
     "type": "line",
     "title": "Share of data-center capacity in use",
@@ -58,10 +58,10 @@
   "checks": [
     {
       "check_id": "key_insight",
-      "question": "Does the answer state the key insight: use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, when a hall started now would open?",
+      "question": "Does the answer state the key insight: use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, when a hall started now, in late 2025, would open?",
       "weight": 0.5,
       "fail_tag": "M.trivial_takeaway",
-      "feedback": "The takeaway that matters: use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, when a hall started now would open.",
+      "feedback": "The takeaway that matters: use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, when a hall started now, in late 2025, would open.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
@@ -97,7 +97,7 @@
       "step": 0
     }
   ],
-  "model_answer": "The new hall should start now: use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, just when a hall begun now would open.",
+  "model_answer": "The new hall should start now: use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, just when a hall begun now, in late 2025, would open.",
   "defend": {
     "type": "justify",
     "text": "What does this mean for the client's decision?",
@@ -133,11 +133,11 @@
         "evidence": "whole"
       }
     ],
-    "model_reply": "Approve the build this year, since waiting a year would leave a year with no room for new customers, and check that the 8-point growth is likely to continue."
+    "model_reply": "Approve the build now, since waiting a year would leave a year with no room for new customers, and check that the 8-point growth is likely to continue."
   },
-  "explanation": "The takeaway that matters: use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, when a hall started now would open. Figures: Rise of 8 points a year (55%, 63%, 71%, 79%, 87%); 95% in 2026 and over 100% in 2027 at that rate.",
+  "explanation": "The takeaway that matters: use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, when a hall started now, in late 2025, would open. Figures: Rise of 8 points a year (55%, 63%, 71%, 79%, 87%); 95% in 2026 and over 100% in 2027 at that rate.",
   "extras": {
-    "key_insight": "use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, when a hall started now would open",
+    "key_insight": "use has risen 8 points a year, from 55% to 87%, so capacity runs out in about 2027, when a hall started now, in late 2025, would open",
     "chart_figures": [
       "Rise of 8 points a year (55%, 63%, 71%, 79%, 87%)",
       "95% in 2026 and over 100% in 2027 at that rate"

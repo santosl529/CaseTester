@@ -1,6 +1,6 @@
 item_id,tag,hint,fix
 ex5-0001,M.trivial_takeaway,it states a true fact that doesn't explain why profit fell,"says what drove the fall: cost of goods sold grew faster than revenue (25% against 10%), cutting gross profit"
-ex5-0002,M.misread_trend,"it says both regions fell, but the North held between 94% and 96%","says the decline is almost all in the South, which fell from 94% to 78% while the North held near 95%"
+ex5-0002,M.misread_trend,"it says the North slipped too, but the North held between 94% and 96%","says the decline is almost all in the South, while the North held near 95%"
 ex5-0003,M.unsupported_claim,"it blames the competitor's advertising, which the chart doesn't show","replaces the advertising claim with what the chart shows: the competitor cut its price 20%, from $10 to $8"
 ex5-0004,M.misread_trend,it reads warehouse C's bar as similar to the others,"says C takes 85 minutes, about twice the 38–42 minutes at the other warehouses"
 ex5-0005,M.trivial_takeaway,"it describes the early rise, not whether the success is lasting","says sales peaked at 220k in week 3 and have halved since, to 110k in week 6"
@@ -10,7 +10,7 @@ ex5-0007,M.unsupported_claim,"it calls Project A the safest bet, which the table
 ex5-0008,M.misread_trend,"it says all three components rose, but vehicle costs fell","says driver pay rose $3, from $5 to $8, while fuel rose $1 and vehicle costs fell $1"
 ex5-0008,M.unsupported_claim,"it blames a driver shortage, which the chart doesn't show","drops the driver-shortage cause, or frames it as something to check"
 ex5-0009,M.trivial_takeaway,"it picks the biggest market, not the one the chart shows growing fastest","says the South is growing far faster: 75% in three years ($40M to $70M), against about 10% for the West and the North"
-ex5-0010,M.misread_trend,"it says $10 earns the most, but $12 brings in more revenue","says $12 earns the most: $12 × 80k = $960k, against $920k at $10 and $800k at $8"
+ex5-0010,M.misread_trend,"it says $10 earns the most, but $12 brings in more, $960k","says $12 earns the most: $12 × 80k = $960k, against $920k at $10 and $800k at $8"
 ex5-0011,M.trivial_takeaway,"it points to the biggest cost, not the one driving the rise",says materials drive most of the rise: up $18M (from $30M to $48M) of the $22M total increase
 ex5-0012,M.misread_trend,"it calls C's 2% growth solid, and C has the weakest margin, 12%","picks A, which grows 25% a year at an 18% margin; C grows only 2%"
 ex5-0013,M.misread_trend,"it calls labor the biggest drag, but materials cost $22M","says materials cost $22M, wiping out the $12M gained from price and volume"
@@ -20,7 +20,7 @@ ex5-0016,M.misread_trend,"it says sales and marketing added similar amounts, but
 ex5-0016,M.unsupported_claim,"it says the marketing increase hasn't paid off, which the table doesn't show","drops the payoff claim, or frames it as something to check"
 ex5-0017,M.misread_trend,"it assumes the highest price earns the most, but only 20% would buy at $9","says $7 earns the most per 100 shoppers: $7 × 45 = $315, against $300 at $5 and $180 at $9"
 ex5-0018,M.misread_trend,"it calls the client's share stable, but it fell from 40% to 31%",says the rival gained 13 points (10% to 23%) while the client lost 9 (40% to 31%)
-ex5-0019,M.misread_trend,"it calls dividends the largest outflow, but capex was $25M","says total outflows of $50M exceed operating cash of $30M, with capex the largest at $25M"
+ex5-0019,M.misread_trend,"it calls dividends the largest outflow, but they were $10M against capex's $25M","says total outflows of $50M exceed operating cash of $30M, with capex the largest at $25M"
 ex5-0020,M.misread_trend,"it says Basic earns the most, but Plus brings in $700k a month against Basic's $600k","says Plus earns the most: 28,000 × $25 = $700k a month, against $600k for Basic and $200k for Pro"
 ex5-0020,M.unsupported_claim,"it says Basic's customers are the most satisfied, which the table doesn't show","drops the satisfaction claim, or replaces it with something the table shows"
 ex5-0021,M.misread_trend,"it says both channels grew, but stores fell from $80M to $72M",says online drives all the growth: up $43M (from $20M to $63M) while stores fell $8M
@@ -35,7 +35,7 @@ ex5-0028,M.unsupported_claim,"it says pastries are the best-selling product, whi
 ex5-0029,M.trivial_takeaway,"it picks the bigger segment, not the one that is growing",says premium grew 75% in three years ($20B to $35B) while budget shrank ($80B to $75B)
 ex5-0030,M.misread_trend,"it says the client trails on service, but the client leads there, 8 to 7","says the rival's lead on speed, 9 to 5, is the widest gap, while the client leads on service"
 ex5-0031,M.misread_trend,"it says referral grew faster, but referral added 1k against social's 10k",says social drove most of the growth: 10k of the 12k added
-ex5-0032,M.misread_trend,"it says waits build all day, but they spike only at 12pm and 1pm",says waits spike to 12–14 minutes at midday and stay at 6 minutes or less otherwise
+ex5-0032,M.misread_trend,"it says waits build through the day, but they spike only at 12pm and 1pm and fall back to 2 minutes by 5pm",says waits spike to 12–14 minutes at midday and stay at 6 minutes or less otherwise
 ex5-0033,M.unsupported_claim,"it blames a lack of bins, which the chart doesn't show",replaces the bins claim with what the chart shows: East recycles a third as much as the others (42–45%)
 ex5-0034,M.misread_trend,"it says EBITDA grew, but it shrank from $10M to about $7M",says EBITDA fell from $10M (50 × 20%) to about $7M (86 × 8%) despite 72% revenue growth
 ex5-0034,M.unsupported_claim,"it says the target is cutting prices, which the chart doesn't show","drops the price claim, or frames it as something to check"
@@ -48,4 +48,4 @@ ex5-0037,M.unsupported_claim,"it says South's growth came from new stores, which
 ex5-0038,M.misread_trend,"it says the longest-tenure group loses the most, but first-year customers lose about 5,500 a year against 4,800","says first-year customers account for the most losses: 10,000 × 55% = 5,500, against 4,800 for three years or more"
 ex5-0038,M.unsupported_claim,"it says long-time customers get bored, which the table doesn't show",drops the boredom claim
 ex5-0039,M.unsupported_claim,"it blames staff leaving, which the chart doesn't show","drops the cause, or frames it as something to check"
-ex5-0040,M.misread_trend,"it says units held up, but they fell from 90k to 70k at $13, cutting revenue",says the latest increase cut revenue: $12 × 90k = $1.08M fell to $13 × 70k = $0.91M
+ex5-0040,M.misread_trend,"it says units held up, but they fell from 90k to 70k with the last increase, cutting revenue",says the latest increase cut revenue: $12 × 90k = $1.08M fell to $13 × 70k = $0.91M

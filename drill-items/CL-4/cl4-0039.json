@@ -108,7 +108,7 @@
     }
   ],
   "model_answer": "Stage 1: Estimate what four more docks would save in truck waiting and missed deliveries, against their $20M cost, since waits rose from 30 minutes to 3 hours.\nStage 2: Change: half the waiting comes from trucks arriving outside their slot, so I'd first see how far stricter booking cuts waits before spending $20M.",
-  "explanation": "The new fact: Half of the waiting comes from trucks that arrive outside their booked slot; trucks that keep their slot wait under 20 minutes. Arrival booking and slots: keep (Trucks off their slot cause half the waiting, which supports it). Building the new docks: change (Better booking may cut waits without them). Unloading speed: keep or change (Still worth checking, though booking explains half the waiting).",
+  "explanation": "The new fact: Half of the waiting comes from trucks that arrive outside their booked slot; trucks that keep their slot wait under 20 minutes. Arrival booking and slots: keep (Trucks off their slot cause half the waiting, which supports it). Building the new docks: change (Better booking may cut waits without them). Unloading speed: change (The fact points to trucks arriving outside their slots).",
   "extras": {
     "families": [
       {
@@ -131,10 +131,9 @@
         "family": "Unloading speed",
         "description": "Looks at how fast trucks are unloaded",
         "actions": [
-          "keep",
           "change"
         ],
-        "reason": "Still worth checking, though booking explains half the waiting"
+        "reason": "The fact points to trucks arriving outside their slots"
       }
     ],
     "new_fact": "Half of the waiting comes from trucks that arrive outside their booked slot; trucks that keep their slot wait under 20 minutes.",
@@ -142,7 +141,7 @@
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",
       "Reason tied to the latest finding: the reason uses the most recent finding in the situation, its content or its number, to say why this step comes next. A generic reason (\"it's important\", \"to understand the problem better\") fails, and so does a reason that uses only older facts.",
-      "Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the step still stands given the fact; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.",
+      "Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the fact leaves the step on the same driver, such as what it would look at one level deeper; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.",
       "Step family: classify the stage 1 answer only, never the stage 2 explanation, by what the analysis examines, not its wording. If stage 1 names several steps, use the one it does first; if none is first, use the first one it lists. A list still fails the one-specific-analysis check. The family is \"other\" only for a step that fits none of the families.",
       "Final recommendation (red flag): stage 1 tells the client what to do overall (\"they should exit the market\", \"raise prices 10%\") instead of naming the next analysis. A hypothesis to test is not a recommendation.",
       "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."

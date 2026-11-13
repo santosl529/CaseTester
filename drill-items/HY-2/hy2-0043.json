@@ -177,16 +177,17 @@
     ],
     "model_reply": "Houseplant sales per store against houseplant shelf space, and the market's growth by category. If stores with more houseplants grew no faster, I'd drop it."
   },
-  "explanation": "The new fact: Nearly all of the market's growth came from indoor houseplants, up 30%, which the centers stock in one small corner. Outdoor plants and tools grew 1%, in line with the chain. Younger buyers shop online: revise (The growth is houseplants, so the gap is the range, whoever buys them). Small houseplant range: keep (Houseplants grew 30% and the centers stock them in one small corner). Rivals take customers: drop (Outdoor sales grew in line with the market, so the chain isn't losing ground there).",
+  "explanation": "The new fact: Nearly all of the market's growth came from indoor houseplants, up 30%, which the centers stock in one small corner. Outdoor plants and tools grew 1%, in line with the chain. Younger buyers shop online: revise or drop (The growth is houseplants, which the centers barely stock: revising to the range fits, and so does dropping the online cause, which the fact gives no support). Small houseplant range: keep (Houseplants grew 30% and the centers stock them in one small corner). Rivals take customers: drop (Outdoor sales grew in line with the market, so the chain isn't losing ground there).",
   "extras": {
     "families": [
       {
         "family": "Younger buyers shop online",
         "description": "Customers who drive growth buy online",
         "actions": [
-          "revise"
+          "revise",
+          "drop"
         ],
-        "reason": "The growth is houseplants, so the gap is the range, whoever buys them"
+        "reason": "The growth is houseplants, which the centers barely stock: revising to the range fits, and so does dropping the online cause, which the fact gives no support"
       },
       {
         "family": "Small houseplant range",
@@ -207,7 +208,7 @@
     ],
     "new_fact": "Nearly all of the market's growth came from indoor houseplants, up 30%, which the centers stock in one small corner. Outdoor plants and tools grew 1%, in line with the chain.",
     "grading_rules": [
-      "Directional: the cause says what changed and through which driver (\"customers buy fewer units per visit\"). A generic cause (\"operational problems\", \"market conditions\", \"costs went up\") is not directional, and neither is the facts re-stated as a ratio (\"fewer appointments end in a sale\", \"revenue per customer fell\").",
+      "Directional: the cause says what changed and through which driver (\"customers buy fewer units per visit\"). A generic cause (\"operational problems\", \"market conditions\", \"costs went up\") is not directional, and neither is the facts re-stated as a ratio (\"fewer appointments end in a sale\", \"revenue per customer fell\"). A bare label or noun phrase that doesn't say what changed (\"price elasticity\", \"digital pianos\", \"too many orders\") is not directional, even though it still names a family, and neither is naming rivals or \"competition\" without the driver (price, range, location, service).",
       "Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails.",
       "Testable: it names the data or comparison that would confirm or reject it (\"units per customer by month\"). \"Look into it\" or \"analyze the data\" is not enough.",
       "Tentative: it is framed as something to check (\"likely\", \"my hypothesis is\", \"I would test\") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.",
@@ -223,10 +224,10 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "passed",
+    "similarity_check": "pending",
     "similarity_note": null,
-    "similarity_checked_at": "2026-11-12",
-    "similarity_method": "web"
+    "similarity_checked_at": null,
+    "similarity_method": null
   },
   "generator": null,
   "is_example": false,

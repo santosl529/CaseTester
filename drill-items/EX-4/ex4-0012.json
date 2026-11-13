@@ -9,11 +9,11 @@
     "EX.takeaway"
   ],
   "case_type": "market_entry",
-  "prompt": "A gym chain is choosing which of four cities to open in next, and wants the one with the fewest gyms for its population.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "prompt": "A gym chain is choosing which of four cities to open in next, and wants the one where it would face the least competition.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
     "type": "bar",
-    "title": "Residents per gym (thousands)",
-    "units_label": "Thousands of residents per gym",
+    "title": "Gyms per 100,000 residents",
+    "units_label": "Gyms per 100,000 residents",
     "categories": [
       "Leeds",
       "Bristol",
@@ -22,11 +22,11 @@
     ],
     "series": [
       {
-        "name": "Residents per gym",
+        "name": "Gyms",
         "values": [
-          8,
-          9,
-          21,
+          12,
+          11,
+          5,
           10
         ],
         "axis": "left"
@@ -57,10 +57,10 @@
   "checks": [
     {
       "check_id": "key_insight",
-      "question": "Does the answer state the key insight: Cardiff is the least served: about 21,000 residents per gym, roughly twice the 8,000 to 10,000 in the other cities?",
+      "question": "Does the answer state the key insight: Cardiff has the least competition: about 5 gyms per 100,000 residents, half or less of the 10 to 12 in the other cities?",
       "weight": 0.5,
       "fail_tag": "M.trivial_takeaway",
-      "feedback": "The takeaway that matters: Cardiff is the least served: about 21,000 residents per gym, roughly twice the 8,000 to 10,000 in the other cities.",
+      "feedback": "The takeaway that matters: Cardiff has the least competition: about 5 gyms per 100,000 residents, half or less of the 10 to 12 in the other cities.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
@@ -96,7 +96,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Cardiff is the city to open in: it has about 21,000 residents per gym, roughly twice the 8,000 to 10,000 in the other cities, so it is the least served.",
+  "model_answer": "Cardiff is the city to open in: it has about 5 gyms per 100,000 residents, half or less of the 10 to 12 in the other cities, so it faces the least competition.",
   "defend": {
     "type": "justify",
     "text": "What does this mean for the client's decision?",
@@ -132,17 +132,17 @@
         "evidence": "whole"
       }
     ],
-    "model_reply": "Open in Cardiff next, and check that its residents would pay for a membership, since a shortage of gyms only matters if there is demand to fill it."
+    "model_reply": "Open in Cardiff next, and check that its residents would pay for a membership, since few rival gyms only matter if there is demand to fill."
   },
-  "explanation": "The takeaway that matters: Cardiff is the least served: about 21,000 residents per gym, roughly twice the 8,000 to 10,000 in the other cities. Figures: Cardiff 21k residents per gym; Leeds 8k; Bristol 9k; Belfast 10k; Cardiff about 2 to 2.6 times the others.",
+  "explanation": "The takeaway that matters: Cardiff has the least competition: about 5 gyms per 100,000 residents, half or less of the 10 to 12 in the other cities. Figures: Cardiff 5 per 100,000 residents; Leeds 12; Bristol 11; Belfast 10; Cardiff about half of Belfast and under half of Leeds and Bristol.",
   "extras": {
-    "key_insight": "Cardiff is the least served: about 21,000 residents per gym, roughly twice the 8,000 to 10,000 in the other cities",
+    "key_insight": "Cardiff has the least competition: about 5 gyms per 100,000 residents, half or less of the 10 to 12 in the other cities",
     "chart_figures": [
-      "Cardiff 21k residents per gym",
-      "Leeds 8k",
-      "Bristol 9k",
-      "Belfast 10k",
-      "Cardiff about 2 to 2.6 times the others"
+      "Cardiff 5 per 100,000 residents",
+      "Leeds 12",
+      "Bristol 11",
+      "Belfast 10",
+      "Cardiff about half of Belfast and under half of Leeds and Bristol"
     ],
     "grading_rules": [
       "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",

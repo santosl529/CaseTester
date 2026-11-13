@@ -9,10 +9,10 @@
     "EX.takeaway"
   ],
   "case_type": "operations",
-  "prompt": "A power utility wants to cut customer complaints, which reached 70,000 this year.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "prompt": "A power utility's customer complaints rose from 61,000 last year to 70,000 this year, and the board wants to know what drove the rise.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
-    "type": "bar",
-    "title": "Complaints by reason, 2025 (thousands)",
+    "type": "grouped_bar",
+    "title": "Complaints by reason (thousands)",
     "units_label": "Thousands of complaints",
     "categories": [
       "Billing errors",
@@ -22,7 +22,17 @@
     ],
     "series": [
       {
-        "name": "Complaints",
+        "name": "Last year",
+        "values": [
+          41,
+          4,
+          9,
+          7
+        ],
+        "axis": "left"
+      },
+      {
+        "name": "This year",
         "values": [
           42,
           12,
@@ -57,10 +67,10 @@
   "checks": [
     {
       "check_id": "key_insight",
-      "question": "Does the answer state the key insight: billing errors cause most complaints: 42,000 of 70,000, about 60%, so fixing billing would cut complaints the most?",
+      "question": "Does the answer state the key insight: power outages drove the rise: outage complaints tripled from 4,000 to 12,000, 8,000 of the 9,000 added, while billing errors, still the biggest cause, rose only 1,000?",
       "weight": 0.5,
       "fail_tag": "M.trivial_takeaway",
-      "feedback": "The takeaway that matters: billing errors cause most complaints: 42,000 of 70,000, about 60%, so fixing billing would cut complaints the most.",
+      "feedback": "The takeaway that matters: power outages drove the rise: outage complaints tripled from 4,000 to 12,000, 8,000 of the 9,000 added, while billing errors, still the biggest cause, rose only 1,000.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
@@ -96,7 +106,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Billing errors cause most complaints, 42,000 of 70,000 or about 60%, so fixing billing would cut complaints the most.",
+  "model_answer": "Power outages drove the rise: outage complaints tripled from 4,000 to 12,000, 8,000 of the 9,000 added, while billing errors, still the biggest cause, rose only 1,000.",
   "defend": {
     "type": "justify",
     "text": "What does this mean for the client's decision?",
@@ -132,16 +142,17 @@
         "evidence": "whole"
       }
     ],
-    "model_reply": "The utility should find and fix the main causes of billing errors first, since that one fix could cut complaints by more than half."
+    "model_reply": "The board should find out why outages tripled, such as storms or ageing lines, since they drove the rise, rather than putting the money into billing, which barely moved."
   },
-  "explanation": "The takeaway that matters: billing errors cause most complaints: 42,000 of 70,000, about 60%, so fixing billing would cut complaints the most. Figures: Billing errors 42k of 70k (60%); Power outages 12k (17%); Meter readings 9k (13%); Call wait times 7k (10%).",
+  "explanation": "The takeaway that matters: power outages drove the rise: outage complaints tripled from 4,000 to 12,000, 8,000 of the 9,000 added, while billing errors, still the biggest cause, rose only 1,000. Figures: Power outages +8k (4k to 12k), three times; Billing errors +1k (41k to 42k); Meter readings flat at 9k; Call wait times flat at 7k; Total +9k (61k to 70k).",
   "extras": {
-    "key_insight": "billing errors cause most complaints: 42,000 of 70,000, about 60%, so fixing billing would cut complaints the most",
+    "key_insight": "power outages drove the rise: outage complaints tripled from 4,000 to 12,000, 8,000 of the 9,000 added, while billing errors, still the biggest cause, rose only 1,000",
     "chart_figures": [
-      "Billing errors 42k of 70k (60%)",
-      "Power outages 12k (17%)",
-      "Meter readings 9k (13%)",
-      "Call wait times 7k (10%)"
+      "Power outages +8k (4k to 12k), three times",
+      "Billing errors +1k (41k to 42k)",
+      "Meter readings flat at 9k",
+      "Call wait times flat at 7k",
+      "Total +9k (61k to 70k)"
     ],
     "grading_rules": [
       "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",
@@ -157,10 +168,10 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "passed",
+    "similarity_check": "pending",
     "similarity_note": null,
-    "similarity_checked_at": "2026-11-12",
-    "similarity_method": "web"
+    "similarity_checked_at": null,
+    "similarity_method": null
   },
   "generator": null,
   "is_example": false,

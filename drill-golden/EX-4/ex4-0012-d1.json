@@ -8,7 +8,7 @@
   "responses": [
     {
       "type": "text",
-      "value": "Cardiff has 21,000 residents per gym."
+      "value": "Cardiff has 5 gyms per 100,000 residents."
     },
     {
       "type": "text",

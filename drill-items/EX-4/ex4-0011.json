@@ -9,7 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "pricing",
-  "prompt": "A theme park charges the same price every day and wants to know where a discount could bring in more visitors.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "prompt": "A theme park charges the same price every day and wants to bring in more visitors.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
     "type": "bar",
     "title": "Share of capacity used, by day",
@@ -62,10 +62,10 @@
   "checks": [
     {
       "check_id": "key_insight",
-      "question": "Does the answer state the key insight: weekdays are where a discount could help: Monday to Thursday fill only 30% to 38% of capacity, against 90% to 95% at weekends?",
+      "question": "Does the answer state the key insight: weekdays are where there is room for more visitors: Monday to Thursday fill only 30% to 38% of capacity, against 90% to 95% at weekends, so that is where a discount could help?",
       "weight": 0.5,
       "fail_tag": "M.trivial_takeaway",
-      "feedback": "The takeaway that matters: weekdays are where a discount could help: Monday to Thursday fill only 30% to 38% of capacity, against 90% to 95% at weekends.",
+      "feedback": "The takeaway that matters: weekdays are where there is room for more visitors: Monday to Thursday fill only 30% to 38% of capacity, against 90% to 95% at weekends, so that is where a discount could help.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
@@ -101,7 +101,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Weekdays are where to discount: the park fills only 30% to 38% of capacity Monday to Thursday, against 90% to 95% at weekends, which need no discount.",
+  "model_answer": "Weekdays are where the room is: the park fills only 30% to 38% of capacity Monday to Thursday, against 90% to 95% at weekends, so a weekday discount could bring in more visitors.",
   "defend": {
     "type": "justify",
     "text": "What does this mean for the client's decision?",
@@ -139,9 +139,9 @@
     ],
     "model_reply": "Test a weekday discount, since Monday to Thursday run at about a third of capacity, and keep weekend prices, which already fill 90% or more of the park."
   },
-  "explanation": "The takeaway that matters: weekdays are where a discount could help: Monday to Thursday fill only 30% to 38% of capacity, against 90% to 95% at weekends. Figures: Mon 30%; Tue 32%; Wed 35%; Thu 38%; Fri 70%; Sat 95%; Sun 90%; Monday–Thursday average about 34%.",
+  "explanation": "The takeaway that matters: weekdays are where there is room for more visitors: Monday to Thursday fill only 30% to 38% of capacity, against 90% to 95% at weekends, so that is where a discount could help. Figures: Mon 30%; Tue 32%; Wed 35%; Thu 38%; Fri 70%; Sat 95%; Sun 90%; Monday–Thursday average about 34%.",
   "extras": {
-    "key_insight": "weekdays are where a discount could help: Monday to Thursday fill only 30% to 38% of capacity, against 90% to 95% at weekends",
+    "key_insight": "weekdays are where there is room for more visitors: Monday to Thursday fill only 30% to 38% of capacity, against 90% to 95% at weekends, so that is where a discount could help",
     "chart_figures": [
       "Mon 30%",
       "Tue 32%",

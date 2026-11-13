@@ -62,17 +62,17 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it calls dividends the largest outflow, but capex was $25M. Does the edited answer fix it? One way to fix it: says total outflows of $50M exceed operating cash of $30M, with capex the largest at $25M. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
+      "question": "The original had this flaw: it calls dividends the largest outflow, but they were $10M against capex's $25M. Does the edited answer fix it? One way to fix it: says total outflows of $50M exceed operating cash of $30M, with capex the largest at $25M. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.misread_trend",
-      "feedback": "The flaw is still there: it calls dividends the largest outflow, but capex was $25M.",
+      "feedback": "The flaw is still there: it calls dividends the largest outflow, but they were $10M against capex's $25M.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
     },
     {
       "check_id": "no_new_flaw",
-      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: trivial takeaway, misread trend, unsupported claim? The original's own flaw (it calls dividends the largest outflow, but capex was $25M) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: trivial takeaway, misread trend, unsupported claim? The original's own flaw (it calls dividends the largest outflow, but they were $10M against capex's $25M) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
       "weight": 0.3,
       "fail_tag": "M.trivial_takeaway",
       "feedback": "Your edit added a new flaw. Change only what needs fixing.",
@@ -82,29 +82,29 @@
     },
     {
       "check_id": "keeps_right",
-      "question": "Does the edit keep the substance of each part of the original that was right: it reads the dividend outflow correctly ($10M)? Rewording or condensing a part is fine; dropping one fails.",
+      "question": "Does the edit keep the substance of each part of the original that was right: it gives the net fall in cash correctly ($20M)? Rewording or condensing a part is fine; dropping one fails.",
       "weight": 0.2,
       "fail_tag": "M.unsupported_claim",
-      "feedback": "Keep what was already right: it reads the dividend outflow correctly ($10M).",
+      "feedback": "Keep what was already right: it gives the net fall in cash correctly ($20M).",
       "step": 0,
       "detection": "ai",
       "evidence": "whole"
     }
   ],
   "red_flags": [],
-  "model_answer": "Cash is falling because outflows of $50M (capex $25M, interest $15M, dividends $10M) exceed the $30M of operating cash, a net outflow of $20M.",
-  "explanation": "The flaw: it calls dividends the largest outflow, but capex was $25M. What was right: it reads the dividend outflow correctly ($10M).",
+  "model_answer": "Cash fell $20M because outflows of $50M (capex $25M, interest $15M, dividends $10M) exceed the $30M of operating cash.",
+  "explanation": "The flaw: it calls dividends the largest outflow, but they were $10M against capex's $25M. What was right: it gives the net fall in cash correctly ($20M).",
   "extras": {
     "derived_from": "ex1-0017",
-    "flawed_answer": "Cash is falling because dividends were the largest outflow, at $10M.",
+    "flawed_answer": "Cash fell $20M because dividends were the largest outflow.",
     "flaws": [
       {
         "tag": "M.misread_trend",
-        "hint": "it calls dividends the largest outflow, but capex was $25M",
+        "hint": "it calls dividends the largest outflow, but they were $10M against capex's $25M",
         "fix": "says total outflows of $50M exceed operating cash of $30M, with capex the largest at $25M"
       }
     ],
-    "right_parts": "it reads the dividend outflow correctly ($10M)",
+    "right_parts": "it gives the net fall in cash correctly ($20M)",
     "grading_rules": [
       "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
       "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it. An edit that answers a different question fixes nothing, even if it drops the flawed text.",
@@ -113,7 +113,7 @@
       "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
       "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.",
       "A good takeaway states the insight that matters for the client's question, with a number the chart shows or that follows from it, and claims nothing the chart contradicts or doesn't show.",
-      "A trivial takeaway (true but beside the client's question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn't show) is fixed when it is removed, or replaced by a claim the chart supports.",
+      "A trivial takeaway (true but beside the client's question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn't show) is fixed when it is removed, replaced by a claim the chart supports, or framed as something to check (\"worth checking whether prices were cut\"). Hedging it (\"likely because\", \"probably\") still asserts it and does not fix it.",
       "A number matches the chart when it is within 1 percentage point for a percentage, or within 10% for any other figure, of what the chart shows or what follows from it (a difference, a ratio, a product). The chart figures listed are worked out from the chart, to check against.",
       "A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check."
     ]

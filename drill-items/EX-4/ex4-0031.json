@@ -31,16 +31,8 @@
       ],
       "rows": [
         [
-          "Households",
-          "20 million"
-        ],
-        [
-          "Share of households with a cat",
-          "25%"
-        ],
-        [
-          "Cats per cat-owning household",
-          "1.5"
+          "Cats in the country",
+          "7.5 million"
         ],
         [
           "Share of cats insured today",
@@ -68,10 +60,10 @@
   "checks": [
     {
       "check_id": "key_insight",
-      "question": "Does the answer state the key insight: the market is mostly untapped: of about 7.5 million cats only about 300,000 are insured, about $90M of premiums against about $2.25B if all were?",
+      "question": "Does the answer state the key insight: the market is mostly untapped: only 4% of 7.5 million cats, about 300,000, are insured, about $90M of premiums against about $2.25B if all were?",
       "weight": 0.5,
       "fail_tag": "M.trivial_takeaway",
-      "feedback": "The takeaway that matters: the market is mostly untapped: of about 7.5 million cats only about 300,000 are insured, about $90M of premiums against about $2.25B if all were.",
+      "feedback": "The takeaway that matters: the market is mostly untapped: only 4% of 7.5 million cats, about 300,000, are insured, about $90M of premiums against about $2.25B if all were.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
@@ -107,7 +99,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Cat insurance is almost untapped: there are about 7.5 million cats (5 million households × 1.5), but only 4%, about 300,000, are insured, $90M of premiums against $2.25B if all were.",
+  "model_answer": "Cat insurance is almost untapped: only 4% of the 7.5 million cats, about 300,000, are insured, $90M of premiums against $2.25B if all were.",
   "defend": {
     "type": "justify",
     "text": "What does this mean for the client's decision?",
@@ -145,12 +137,12 @@
     ],
     "model_reply": "The insurer has plenty of room to grow, so it should focus on why 96% of owners don't insure, such as price or awareness, rather than on winning rivals' customers."
   },
-  "explanation": "The takeaway that matters: the market is mostly untapped: of about 7.5 million cats only about 300,000 are insured, about $90M of premiums against about $2.25B if all were. Figures: Cats: 20M × 25% × 1.5 = 7.5M; Insured: 7.5M × 4% = 300k; Premiums today: 300k × $300 = $90M; If all insured: 7.5M × $300 = $2.25B.",
+  "explanation": "The takeaway that matters: the market is mostly untapped: only 4% of 7.5 million cats, about 300,000, are insured, about $90M of premiums against about $2.25B if all were. Figures: Insured: 7.5M × 4% = 300k; Uninsured: about 7.2M cats (96%); Premiums today: 300k × $300 = $90M; If all insured: 7.5M × $300 = $2.25B.",
   "extras": {
-    "key_insight": "the market is mostly untapped: of about 7.5 million cats only about 300,000 are insured, about $90M of premiums against about $2.25B if all were",
+    "key_insight": "the market is mostly untapped: only 4% of 7.5 million cats, about 300,000, are insured, about $90M of premiums against about $2.25B if all were",
     "chart_figures": [
-      "Cats: 20M × 25% × 1.5 = 7.5M",
       "Insured: 7.5M × 4% = 300k",
+      "Uninsured: about 7.2M cats (96%)",
       "Premiums today: 300k × $300 = $90M",
       "If all insured: 7.5M × $300 = $2.25B"
     ],

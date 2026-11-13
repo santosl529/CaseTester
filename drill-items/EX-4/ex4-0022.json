@@ -131,7 +131,7 @@
         "evidence": "whole"
       }
     ],
-    "model_reply": "Set weekday tours at $50, since it brings in the most per tour, and check that the lower crowds don't hurt sales of drinks and souvenirs on board."
+    "model_reply": "Set afternoon tours at $50, since it brings in the most per tour, and check that the lower crowds don't hurt sales of drinks and souvenirs on board."
   },
   "explanation": "The takeaway that matters: $50 brings in the most: 30 tickets × $50 = $1,500 a tour, against $1,440 at $40, $1,200 at $30 and $1,080 at $60. Figures: $30: 40 × $30 = $1,200; $40: 36 × $40 = $1,440; $50: 30 × $50 = $1,500; $60: 18 × $60 = $1,080.",
   "extras": {

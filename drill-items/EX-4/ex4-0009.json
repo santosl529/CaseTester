@@ -9,7 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "growth_strategy",
-  "prompt": "An online glasses store is selling less than planned and wants to know where shoppers drop off.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "prompt": "An online glasses store is selling less than planned and wants to know where to focus to sell more.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
     "type": "bar",
     "title": "Shoppers at each step, last month (thousands)",

@@ -28,27 +28,23 @@
       "columns": [
         "Source",
         "Cost to win a customer",
-        "Profit per customer each month",
-        "Months a customer stays"
+        "Profit from a customer over the months they stay"
       ],
       "rows": [
         [
           "Online ads",
           "$110",
-          "$18",
-          "10"
+          "$180"
         ],
         [
           "Flyers",
           "$55",
-          "$18",
-          "4"
+          "$72"
         ],
         [
           "Friends of customers",
           "$35",
-          "$22",
-          "11"
+          "$242"
         ]
       ]
     },
@@ -68,10 +64,10 @@
   "checks": [
     {
       "check_id": "key_insight",
-      "question": "Does the answer state the key insight: customers who come through friends are the most profitable: about $207 each after the cost to win them ($22 × 11 − $35), against $70 from online ads and $17 from flyers?",
+      "question": "Does the answer state the key insight: customers who come through friends are the most profitable: about $207 each after the cost to win them ($242 − $35), against $70 from online ads and $17 from flyers?",
       "weight": 0.5,
       "fail_tag": "M.trivial_takeaway",
-      "feedback": "The takeaway that matters: customers who come through friends are the most profitable: about $207 each after the cost to win them ($22 × 11 − $35), against $70 from online ads and $17 from flyers.",
+      "feedback": "The takeaway that matters: customers who come through friends are the most profitable: about $207 each after the cost to win them ($242 − $35), against $70 from online ads and $17 from flyers.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
@@ -107,7 +103,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Customers who come through friends are the most profitable: about $207 each after the $35 to win them ($22 × 11 months), against $70 from online ads and $17 from flyers.",
+  "model_answer": "Customers who come through friends are the most profitable: about $207 each after the $35 to win them ($242 − $35), against $70 from online ads and $17 from flyers.",
   "defend": {
     "type": "justify",
     "text": "What does this mean for the client's decision?",
@@ -145,13 +141,13 @@
     ],
     "model_reply": "The service should put more into customer referrals, such as a reward for customers who bring a friend, and cut flyers, which barely cover the cost of winning each customer."
   },
-  "explanation": "The takeaway that matters: customers who come through friends are the most profitable: about $207 each after the cost to win them ($22 × 11 − $35), against $70 from online ads and $17 from flyers. Figures: Friends of customers: $22 × 11 = $242 − $35 = $207; Online ads: $18 × 10 = $180 − $110 = $70; Flyers: $18 × 4 = $72 − $55 = $17.",
+  "explanation": "The takeaway that matters: customers who come through friends are the most profitable: about $207 each after the cost to win them ($242 − $35), against $70 from online ads and $17 from flyers. Figures: Friends of customers: $242 − $35 = $207; Online ads: $180 − $110 = $70; Flyers: $72 − $55 = $17.",
   "extras": {
-    "key_insight": "customers who come through friends are the most profitable: about $207 each after the cost to win them ($22 × 11 − $35), against $70 from online ads and $17 from flyers",
+    "key_insight": "customers who come through friends are the most profitable: about $207 each after the cost to win them ($242 − $35), against $70 from online ads and $17 from flyers",
     "chart_figures": [
-      "Friends of customers: $22 × 11 = $242 − $35 = $207",
-      "Online ads: $18 × 10 = $180 − $110 = $70",
-      "Flyers: $18 × 4 = $72 − $55 = $17"
+      "Friends of customers: $242 − $35 = $207",
+      "Online ads: $180 − $110 = $70",
+      "Flyers: $72 − $55 = $17"
     ],
     "grading_rules": [
       "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",

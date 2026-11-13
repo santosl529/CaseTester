@@ -58,17 +58,17 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it says $10 earns the most, but $12 brings in more revenue. Does the edited answer fix it? One way to fix it: says $12 earns the most: $12 × 80k = $960k, against $920k at $10 and $800k at $8. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
+      "question": "The original had this flaw: it says $10 earns the most, but $12 brings in more, $960k. Does the edited answer fix it? One way to fix it: says $12 earns the most: $12 × 80k = $960k, against $920k at $10 and $800k at $8. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.misread_trend",
-      "feedback": "The flaw is still there: it says $10 earns the most, but $12 brings in more revenue.",
+      "feedback": "The flaw is still there: it says $10 earns the most, but $12 brings in more, $960k.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
     },
     {
       "check_id": "no_new_flaw",
-      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: trivial takeaway, misread trend, unsupported claim? The original's own flaw (it says $10 earns the most, but $12 brings in more revenue) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: trivial takeaway, misread trend, unsupported claim? The original's own flaw (it says $10 earns the most, but $12 brings in more, $960k) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
       "weight": 0.3,
       "fail_tag": "M.trivial_takeaway",
       "feedback": "Your edit added a new flaw. Change only what needs fixing.",
@@ -78,10 +78,10 @@
     },
     {
       "check_id": "keeps_right",
-      "question": "Does the edit keep the substance of each part of the original that was right: it reads subscribers at $10 correctly (92k)? Rewording or condensing a part is fine; dropping one fails.",
+      "question": "Does the edit keep the substance of each part of the original that was right: it works out revenue as subscribers times price ($920k at $10)? Rewording or condensing a part is fine; dropping one fails.",
       "weight": 0.2,
       "fail_tag": "M.unsupported_claim",
-      "feedback": "Keep what was already right: it reads subscribers at $10 correctly (92k).",
+      "feedback": "Keep what was already right: it works out revenue as subscribers times price ($920k at $10).",
       "step": 0,
       "detection": "ai",
       "evidence": "whole"
@@ -89,18 +89,18 @@
   ],
   "red_flags": [],
   "model_answer": "$12 maximizes revenue: 80k × $12 = $960k, against 92k × $10 = $920k and 100k × $8 = $800k.",
-  "explanation": "The flaw: it says $10 earns the most, but $12 brings in more revenue. What was right: it reads subscribers at $10 correctly (92k).",
+  "explanation": "The flaw: it says $10 earns the most, but $12 brings in more, $960k. What was right: it works out revenue as subscribers times price ($920k at $10).",
   "extras": {
     "derived_from": "ex1-0003",
-    "flawed_answer": "$10 is the best price: it loses only 8% of subscribers compared with $8, so it earns the most.",
+    "flawed_answer": "$10 is the best price: it earns $920k (92k × $10), more than the $800k at $8.",
     "flaws": [
       {
         "tag": "M.misread_trend",
-        "hint": "it says $10 earns the most, but $12 brings in more revenue",
+        "hint": "it says $10 earns the most, but $12 brings in more, $960k",
         "fix": "says $12 earns the most: $12 × 80k = $960k, against $920k at $10 and $800k at $8"
       }
     ],
-    "right_parts": "it reads subscribers at $10 correctly (92k)",
+    "right_parts": "it works out revenue as subscribers times price ($920k at $10)",
     "grading_rules": [
       "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
       "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it. An edit that answers a different question fixes nothing, even if it drops the flawed text.",
@@ -109,7 +109,7 @@
       "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
       "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.",
       "A good takeaway states the insight that matters for the client's question, with a number the chart shows or that follows from it, and claims nothing the chart contradicts or doesn't show.",
-      "A trivial takeaway (true but beside the client's question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn't show) is fixed when it is removed, or replaced by a claim the chart supports.",
+      "A trivial takeaway (true but beside the client's question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn't show) is fixed when it is removed, replaced by a claim the chart supports, or framed as something to check (\"worth checking whether prices were cut\"). Hedging it (\"likely because\", \"probably\") still asserts it and does not fix it.",
       "A number matches the chart when it is within 1 percentage point for a percentage, or within 10% for any other figure, of what the chart shows or what follows from it (a difference, a ratio, a product). The chart figures listed are worked out from the chart, to check against.",
       "A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check."
     ]

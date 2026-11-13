@@ -307,6 +307,13 @@
         "sy1-0024"
       ],
       "reason": "A hospital's surplus bridge with agency nurses (EX-4) vs a loyalty program's rollout (SY-1); 'agency' and the figures match by coincidence. Different clients and questions."
+    },
+    {
+      "items": [
+        "ex4-0004",
+        "sy2-0027"
+      ],
+      "reason": "A hospital's surplus bridge from last year to this year (EX-4) vs a business-events company's 12 new events (SY-2); 'year' and the figures match by coincidence. Different clients and questions."
     }
   ]
 }

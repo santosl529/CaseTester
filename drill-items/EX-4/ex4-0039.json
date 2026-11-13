@@ -28,27 +28,23 @@
       "columns": [
         "Program",
         "Budget ($M)",
-        "Graduates",
-        "Employed six months later"
+        "Graduates in work six months later"
       ],
       "rows": [
         [
           "Coding",
           "10",
-          "1,000",
-          "70%"
+          "700"
         ],
         [
           "Trades",
           "6",
-          "1,500",
-          "60%"
+          "900"
         ],
         [
           "Retail",
           "2",
-          "1,000",
-          "25%"
+          "250"
         ]
       ]
     },
@@ -107,7 +103,7 @@
       "step": 0
     }
   ],
-  "model_answer": "Trades is the best value: about 900 graduates find jobs (1,500 × 60%) for $6M, about $6,700 each, against $8,000 for retail and about $14,300 for coding.",
+  "model_answer": "Trades is the best value: about 900 graduates find jobs for $6M, about $6,700 each, against $8,000 for retail and about $14,300 for coding.",
   "defend": {
     "type": "justify",
     "text": "What does this mean for the client's decision?",
@@ -145,13 +141,13 @@
     ],
     "model_reply": "The state should shift money toward trades, checking first that employers can hire more of its graduates, since each job costs half what coding's does."
   },
-  "explanation": "The takeaway that matters: trades is the best value: about 900 graduates get jobs for $6M, about $6,700 each, against $8,000 for retail and about $14,300 for coding. Figures: Trades: 1,500 × 60% = 900 jobs, $6M ÷ 900 ≈ $6,667 each; Retail: 250 jobs, $8,000 each; Coding: 700 jobs, about $14,286 each.",
+  "explanation": "The takeaway that matters: trades is the best value: about 900 graduates get jobs for $6M, about $6,700 each, against $8,000 for retail and about $14,300 for coding. Figures: Trades: $6M ÷ 900 ≈ $6,667 a job; Retail: $2M ÷ 250 = $8,000; Coding: $10M ÷ 700 ≈ $14,286.",
   "extras": {
     "key_insight": "trades is the best value: about 900 graduates get jobs for $6M, about $6,700 each, against $8,000 for retail and about $14,300 for coding",
     "chart_figures": [
-      "Trades: 1,500 × 60% = 900 jobs, $6M ÷ 900 ≈ $6,667 each",
-      "Retail: 250 jobs, $8,000 each",
-      "Coding: 700 jobs, about $14,286 each"
+      "Trades: $6M ÷ 900 ≈ $6,667 a job",
+      "Retail: $2M ÷ 250 = $8,000",
+      "Coding: $10M ÷ 700 ≈ $14,286"
     ],
     "grading_rules": [
       "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",

@@ -9,17 +9,17 @@
     "EX.takeaway"
   ],
   "case_type": "cost_reduction",
-  "prompt": "A city's street-cleaning budget rose from $20M to $26M, and the council wants to know what to review first.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "prompt": "A city's street-cleaning budget rose from $20M last year to $26M this year, and the council wants to know what to review first.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
     "type": "waterfall",
-    "title": "Street-cleaning budget, 2024 to 2025 ($M)",
+    "title": "Street-cleaning budget, last year to this year ($M)",
     "categories": [
-      "2024 budget",
+      "Last year's budget",
       "Fuel",
       "Wages",
       "New districts",
       "Equipment leases",
-      "2025 budget"
+      "This year's budget"
     ],
     "series": [
       {

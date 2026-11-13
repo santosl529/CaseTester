@@ -12,14 +12,14 @@
   "prompt": "A hospital's yearly surplus fell from $9M to $2M, and the board wants to know what to fix first.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
     "type": "waterfall",
-    "title": "Surplus, 2024 to 2025 ($M)",
+    "title": "Surplus, last year to this year ($M)",
     "categories": [
-      "2024 surplus",
+      "Last year's surplus",
       "Patient revenue",
       "Staff pay",
       "Agency nurses",
       "Supplies",
-      "2025 surplus"
+      "This year's surplus"
     ],
     "series": [
       {
@@ -165,10 +165,10 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "passed",
+    "similarity_check": "pending",
     "similarity_note": null,
-    "similarity_checked_at": "2026-11-12",
-    "similarity_method": "web"
+    "similarity_checked_at": null,
+    "similarity_method": null
   },
   "generator": null,
   "is_example": false,

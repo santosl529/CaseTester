@@ -207,7 +207,7 @@
     ],
     "new_fact": "Nine-tenths of the lost revenue comes from members of a $20-a-month unlimited plan launched in March. Members average five washes a month, about $4 a wash, against $12 for a single wash.",
     "grading_rules": [
-      "Directional: the cause says what changed and through which driver (\"customers buy fewer units per visit\"). A generic cause (\"operational problems\", \"market conditions\", \"costs went up\") is not directional, and neither is the facts re-stated as a ratio (\"fewer appointments end in a sale\", \"revenue per customer fell\").",
+      "Directional: the cause says what changed and through which driver (\"customers buy fewer units per visit\"). A generic cause (\"operational problems\", \"market conditions\", \"costs went up\") is not directional, and neither is the facts re-stated as a ratio (\"fewer appointments end in a sale\", \"revenue per customer fell\"). A bare label or noun phrase that doesn't say what changed (\"price elasticity\", \"digital pianos\", \"too many orders\") is not directional, even though it still names a family, and neither is naming rivals or \"competition\" without the driver (price, range, location, service).",
       "Evidence-based: the hypothesis uses at least one given fact and contradicts none. A cause that a given fact rules out fails.",
       "Testable: it names the data or comparison that would confirm or reject it (\"units per customer by month\"). \"Look into it\" or \"analyze the data\" is not enough.",
       "Tentative: it is framed as something to check (\"likely\", \"my hypothesis is\", \"I would test\") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.",

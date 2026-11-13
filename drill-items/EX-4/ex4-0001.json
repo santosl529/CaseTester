@@ -22,7 +22,7 @@
     ],
     "series": [
       {
-        "name": "2024",
+        "name": "Last year",
         "values": [
           120,
           80,
@@ -32,7 +32,7 @@
         "axis": "left"
       },
       {
-        "name": "2025",
+        "name": "This year",
         "values": [
           118,
           79,
@@ -169,10 +169,10 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "passed",
+    "similarity_check": "pending",
     "similarity_note": null,
-    "similarity_checked_at": "2026-11-12",
-    "similarity_method": "web"
+    "similarity_checked_at": null,
+    "similarity_method": null
   },
   "generator": null,
   "is_example": false,

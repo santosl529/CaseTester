@@ -9,7 +9,7 @@
     "EX.takeaway"
   ],
   "case_type": "competitive_response",
-  "prompt": "A regional grocery chain lost shoppers after a discount rival opened nearby, and wants to know which shoppers left.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "prompt": "A regional grocery chain lost shoppers this year after a discount rival opened nearby, and wants to know which shoppers left.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
     "type": "grouped_bar",
     "title": "Weekly shoppers by age group (thousands)",
@@ -21,7 +21,7 @@
     ],
     "series": [
       {
-        "name": "2024",
+        "name": "Last year",
         "values": [
           20,
           35,
@@ -31,7 +31,7 @@
         "axis": "left"
       },
       {
-        "name": "2025",
+        "name": "This year",
         "values": [
           12,
           33,

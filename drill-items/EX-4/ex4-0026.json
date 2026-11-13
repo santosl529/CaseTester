@@ -20,7 +20,7 @@
     ],
     "series": [
       {
-        "name": "2024",
+        "name": "Last year",
         "values": [
           40,
           35,
@@ -29,7 +29,7 @@
         "axis": "left"
       },
       {
-        "name": "2025",
+        "name": "This year",
         "values": [
           38,
           18,

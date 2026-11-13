@@ -69,17 +69,17 @@
   "checks": [
     {
       "check_id": "fix_1",
-      "question": "The original had this flaw: it says waits build all day, but they spike only at 12pm and 1pm. Does the edited answer fix it? One way to fix it: says waits spike to 12–14 minutes at midday and stay at 6 minutes or less otherwise. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
+      "question": "The original had this flaw: it says waits build through the day, but they spike only at 12pm and 1pm and fall back to 2 minutes by 5pm. Does the edited answer fix it? One way to fix it: says waits spike to 12–14 minutes at midday and stay at 6 minutes or less otherwise. Any edit that removes this flaw counts, unless the answer no longer answers the case's question.",
       "weight": 0.5,
       "fail_tag": "M.misread_trend",
-      "feedback": "The flaw is still there: it says waits build all day, but they spike only at 12pm and 1pm.",
+      "feedback": "The flaw is still there: it says waits build through the day, but they spike only at 12pm and 1pm and fall back to 2 minutes by 5pm.",
       "step": 0,
       "detection": "ai",
       "evidence": "quote"
     },
     {
       "check_id": "no_new_flaw",
-      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: trivial takeaway, misread trend, unsupported claim? The original's own flaw (it says waits build all day, but they spike only at 12pm and 1pm) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
+      "question": "Compared with the original, does the edit avoid adding a new flaw of these kinds: trivial takeaway, misread trend, unsupported claim? The original's own flaw (it says waits build through the day, but they spike only at 12pm and 1pm and fall back to 2 minutes by 5pm) doesn't count as new, even if the edit leaves it in place or rewords it, and losing a right part (including the original's framing) is judged by the keeps-right check, not here.",
       "weight": 0.3,
       "fail_tag": "M.trivial_takeaway",
       "feedback": "Your edit added a new flaw. Change only what needs fixing.",
@@ -89,10 +89,10 @@
     },
     {
       "check_id": "keeps_right",
-      "question": "Does the edit keep the substance of each part of the original that was right: it reads the chart correctly and backs the point with a figure from it? Rewording or condensing a part is fine; dropping one fails.",
+      "question": "Does the edit keep the substance of each part of the original that was right: it reads the longest wait correctly (14 minutes at 1pm)? Rewording or condensing a part is fine; dropping one fails.",
       "weight": 0.2,
       "fail_tag": "M.unsupported_claim",
-      "feedback": "Keep what was already right: it reads the chart correctly and backs the point with a figure from it.",
+      "feedback": "Keep what was already right: it reads the longest wait correctly (14 minutes at 1pm).",
       "step": 0,
       "detection": "ai",
       "evidence": "whole"
@@ -100,18 +100,18 @@
   ],
   "red_flags": [],
   "model_answer": "Waits spike only at midday, reaching 12 to 14 minutes at 12pm and 1pm, and stay at 6 minutes or less the rest of the day, so moving agents to midday is the lever.",
-  "explanation": "The flaw: it says waits build all day, but they spike only at 12pm and 1pm. What was right: it reads the chart correctly and backs the point with a figure from it.",
+  "explanation": "The flaw: it says waits build through the day, but they spike only at 12pm and 1pm and fall back to 2 minutes by 5pm. What was right: it reads the longest wait correctly (14 minutes at 1pm).",
   "extras": {
     "derived_from": "ex1-0037",
-    "flawed_answer": "Waits build steadily through the day, so the center needs more agents all day.",
+    "flawed_answer": "Waits build through the day to 14 minutes at 1pm, so the center needs more agents all day.",
     "flaws": [
       {
         "tag": "M.misread_trend",
-        "hint": "it says waits build all day, but they spike only at 12pm and 1pm",
+        "hint": "it says waits build through the day, but they spike only at 12pm and 1pm and fall back to 2 minutes by 5pm",
         "fix": "says waits spike to 12–14 minutes at midday and stay at 6 minutes or less otherwise"
       }
     ],
-    "right_parts": "it reads the chart correctly and backs the point with a figure from it",
+    "right_parts": "it reads the longest wait correctly (14 minutes at 1pm)",
     "grading_rules": [
       "Compare the edited answer with the original answer. Judge the edited answer as a whole, as an interviewer would read it.",
       "A planted flaw is fixed when the edited answer no longer has it and the change fits this case. Rewording the flaw without removing it does not fix it. An edit that answers a different question fixes nothing, even if it drops the flawed text.",
@@ -120,7 +120,7 @@
       "Judge each check on its own. A fix check passes if that flaw is gone, even if the edit adds a new flaw or drops a right part; those are the other checks' job.",
       "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check.",
       "A good takeaway states the insight that matters for the client's question, with a number the chart shows or that follows from it, and claims nothing the chart contradicts or doesn't show.",
-      "A trivial takeaway (true but beside the client's question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn't show) is fixed when it is removed, or replaced by a claim the chart supports.",
+      "A trivial takeaway (true but beside the client's question: the biggest bar, the latest value, the title restated) is fixed only when the edit states the insight that matters for the question. A misread (a trend in the wrong direction, a wrong number, the wrong largest or smallest item) is fixed when what the edit says matches the chart. An unsupported claim (a cause, a competitor, a forecast or anything else the chart doesn't show) is fixed when it is removed, replaced by a claim the chart supports, or framed as something to check (\"worth checking whether prices were cut\"). Hedging it (\"likely because\", \"probably\") still asserts it and does not fix it.",
       "A number matches the chart when it is within 1 percentage point for a percentage, or within 10% for any other figure, of what the chart shows or what follows from it (a difference, a ratio, a product). The chart figures listed are worked out from the chart, to check against.",
       "A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check."
     ]

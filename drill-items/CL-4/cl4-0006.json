@@ -107,17 +107,17 @@
       "step": 0
     }
   ],
-  "model_answer": "Stage 1: Compare the rival's costs per pound of linen with ours, line by line, since its 4% margin against our 11% decides whether the $60M buys a business we can fix.\nStage 2: Change: half-empty plants explain the margin, so I'd size the savings from moving the rival's volume into our nearby plant, which has 40% spare capacity.",
-  "explanation": "The new fact: The rival's low margin comes from running two half-empty plants, and the client's nearest plant has 40% spare capacity. Why the rival's margin is low: change (The fact answers it: half-empty plants; the next step is to size the savings from combining them). Savings from combining plants: keep (The client's nearby plant has 40% spare capacity, which supports it). Customers and contracts: keep or change (Still worth checking, though the fact makes plant savings the deciding question). Price and valuation: keep or change (Still worth checking, though the savings decide what the rival is worth to the client).",
+  "model_answer": "Stage 1: Compare the rival's costs per pound of linen with ours, line by line, since its 4% margin against our 11% decides whether the $60M buys a business we can fix.\nStage 2: Keep: half-empty plants explain the margin, so I'd go a level deeper: size the savings from moving the rival's volume into our nearby plant, with 40% spare capacity.",
+  "explanation": "The new fact: The rival's low margin comes from running two half-empty plants, and the client's nearest plant has 40% spare capacity. Why the rival's margin is low: keep (The fact confirms it: half-empty plants explain the margin, so the next level is sizing the savings from filling them). Savings from combining plants: keep (The client's nearby plant has 40% spare capacity, which supports it). Customers and contracts: change (The fact points to plant savings, a different driver). Price and valuation: change (The fact points to plant savings, which decide what the rival is worth to the client).",
   "extras": {
     "families": [
       {
         "family": "Why the rival's margin is low",
         "description": "Compares the rival's costs with the client's, line by line",
         "actions": [
-          "change"
+          "keep"
         ],
-        "reason": "The fact answers it: half-empty plants; the next step is to size the savings from combining them"
+        "reason": "The fact confirms it: half-empty plants explain the margin, so the next level is sizing the savings from filling them"
       },
       {
         "family": "Savings from combining plants",
@@ -131,19 +131,17 @@
         "family": "Customers and contracts",
         "description": "Looks at whether the rival's hotel customers would stay, or their contract terms",
         "actions": [
-          "keep",
           "change"
         ],
-        "reason": "Still worth checking, though the fact makes plant savings the deciding question"
+        "reason": "The fact points to plant savings, a different driver"
       },
       {
         "family": "Price and valuation",
         "description": "Looks at whether $60M is a fair price, such as a multiple of profit",
         "actions": [
-          "keep",
           "change"
         ],
-        "reason": "Still worth checking, though the savings decide what the rival is worth to the client"
+        "reason": "The fact points to plant savings, which decide what the rival is worth to the client"
       }
     ],
     "new_fact": "The rival's low margin comes from running two half-empty plants, and the client's nearest plant has 40% spare capacity.",
@@ -151,7 +149,7 @@
       "One specific next analysis: stage 1 names one analysis to do next and what it looks at (\"compare cost per order by warehouse over the last year\"). \"First X, then Y\" names X. Several analyses with none first fail, and so does a vague step (\"look into costs\", \"analyze the data\").",
       "Logical: the step follows from where the case stands. It fails if the situation already answers it, if it is about something other than the client's objective, or if it jumps to a fix (\"cut prices\", \"close the store\") instead of an analysis.",
       "Reason tied to the latest finding: the reason uses the most recent finding in the situation, its content or its number, to say why this step comes next. A generic reason (\"it's important\", \"to understand the problem better\") fails, and so does a reason that uses only older facts.",
-      "Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the step still stands given the fact; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.",
+      "Adapt reason: the stage 2 explanation uses the new fact, its content or its number. After Keep, it says why the fact leaves the step on the same driver, such as what it would look at one level deeper; after Change, it names the new step and why. Restating the fact or the decision with no reason fails, and so does a Change with no new step. Whether Keep or Change was the right call is scored by code, not here.",
       "Step family: classify the stage 1 answer only, never the stage 2 explanation, by what the analysis examines, not its wording. If stage 1 names several steps, use the one it does first; if none is first, use the first one it lists. A list still fails the one-specific-analysis check. The family is \"other\" only for a step that fits none of the families.",
       "Final recommendation (red flag): stage 1 tells the client what to do overall (\"they should exit the market\", \"raise prices 10%\") instead of naming the next analysis. A hypothesis to test is not a recommendation.",
       "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
@@ -163,10 +161,10 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "passed",
+    "similarity_check": "pending",
     "similarity_note": null,
-    "similarity_checked_at": "2026-11-12",
-    "similarity_method": "web"
+    "similarity_checked_at": null,
+    "similarity_method": null
   },
   "generator": null,
   "is_example": false,

@@ -3,7 +3,7 @@
   "item_id": "cl4-0031",
   "drill_id": "CL-4",
   "answer_type": "short",
-  "notes": "Names a specific measure (rules 1, 2) but no reason (rule 3); 'Change' alone names no new step (rule 4).",
+  "notes": "Names a specific measure (rule 1), but 'unbilled hours' restates the latest finding, which the situation already answers (rule 2); no reason (rule 3); 'Change' alone names no new step (rule 4).",
   "responses": [
     {
       "type": "text",
@@ -20,7 +20,7 @@
   ],
   "labels": {
     "one_step": true,
-    "logical": true,
+    "logical": false,
     "reason_latest_finding": false,
     "adapt_reason": false
   },

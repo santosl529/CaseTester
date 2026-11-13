@@ -259,7 +259,8 @@ describe('CL-4 Keep or Change balance (content-checks.ts nextStepCueProblems)', 
 
 describe('HY-2 Keep, Revise or Drop balance (content-checks.ts nextStepCueProblems)', () => {
   const pool = loadAuthoredItems().filter(i => i.drill_id === 'HY-2' && !i.item_id.startsWith('example-'));
-  const live = pool.filter(i => i.status === 'live');
+  // The 40 items live before the six drafts (hy2-0041–0046) were added.
+  const live = pool.filter(i => Number(i.item_id.slice(4)) <= 40);
   const withDecision = (i: Item, d: string) => ({ ...i, model_answer: i.model_answer!.replace(/^Stage 2: (Keep|Revise|Drop)\b/m, `Stage 2: ${d}`) });
   it('passes on the pool: Revise or Drop right in 40–60%, each decision 20%+ and 2+ per tier', () => {
     expect(nextStepCueProblems(pool)).toEqual([]);

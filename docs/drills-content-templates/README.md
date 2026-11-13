@@ -77,7 +77,7 @@ A Repair drill, as below: `ex5-questions.csv` (`derived_from` an EX-1 item, whos
 
 ### CL-4 Your next move
 - `cl4-questions.csv`: the `situation` (where the case stands, ending with the latest finding), the `new_fact` revealed in stage 2, and a model answer for each stage. Stage 2's model answer starts with `Keep:` or `Change:`. Each item is a new case, not a CL-1 scenario.
-- `cl4-families.csv`: 3–4 kinds of next step ("step families"). For each, whether the new fact means the student should **keep** or **change** it, and why. The new fact must support at least one family and undercut at least one.
+- `cl4-families.csv`: 3–4 kinds of next step ("step families"). For each, whether the new fact means the student should **keep** or **change** it, and why. The new fact must support at least one family and undercut at least one. Call each family by one rule (Matt, 2026-11-12): **keep** when the fact leaves the step on the same driver, so the student stays on it and goes one level deeper (a fact that answers the step by confirming its driver is a keep); **change** when the fact rules the driver out or points to a different one. One call per family, and a model answer's stage 2 describes a step that fits its call: a Keep goes deeper on the same driver, a Change names a step on another.
 - `cl4-graded-answers.csv`: stage 1 (up to 40 words), the student's keep/change choice, stage 2 (up to 30 words), which family stage 1 belongs to (or `other`), and your grading: `one_step`, `logical`, `reason_latest_finding`, `adapt_reason`, `red_flag_final_recommendation`.
 
 ### Irrelevant facts (SY-1, SY-2, SY-3)

@@ -9,16 +9,16 @@
     "EX.takeaway"
   ],
   "case_type": "turnaround",
-  "prompt": "A sporting-goods retailer raised prices last year, yet revenue fell from $100M to $92M. The CEO wants to know why.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "prompt": "A sporting-goods retailer raised prices this year, yet revenue fell from $100M last year to $92M. The CEO wants to know why.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
   "exhibit": {
     "type": "waterfall",
-    "title": "Revenue, 2024 to 2025 ($M)",
+    "title": "Revenue, last year to this year ($M)",
     "categories": [
-      "2024 revenue",
+      "Last year's revenue",
       "Price",
       "Volume",
       "Product mix",
-      "2025 revenue"
+      "This year's revenue"
     ],
     "series": [
       {

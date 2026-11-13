@@ -259,11 +259,11 @@ ex4-0003-d1,ex4-0003,normal,Adult learners tripled from $4M to $12M.,,,,The CEO 
 ex4-0005-d1,ex4-0005,normal,"Italy has about 21,000 clinics without software.",,,,Enter Italy first and hire Italian-speaking sales reps for those clinics.,,,Y,,,Rules 16–18 met.,Y,Y
 ex4-0006-d1,ex4-0006,normal,"Basic earns the least, about $105,000.",,,,"Drop Pro, since it sells the fewest units.",,,N,,,"An action on which line to drop (rules 16, 17), but it contradicts its own takeaway that Basic earns least (rule 18).",Y,Y
 ex4-0007-d1,ex4-0007,normal,Dinner is worst: 38 minutes at 7pm.,,,,"Put the new drivers on dinner shifts, 6 to 8pm.",,,Y,,,Rules 16–18 met.,Y,Y
-ex4-0008-d1,ex4-0008,short,Billing errors are 60% of complaints.,,,,Fix billing.,,,Y,,,"Short, but says what to do to cut complaints (rules 16, 17), from its takeaway (rule 18).",Y,Y
+ex4-0008-d1,ex4-0008,short,"Outage complaints tripled, to 12,000.",,,,Fix the outages.,,,Y,,,"Short, but says what to do about the rise the board asked about (rules 16, 17), from its takeaway (rule 18).",Y,Y
 ex4-0009-d1,ex4-0009,normal,Checkout loses 80% of the shoppers who start it.,,,,This shows checkout is the weak point.,,,Y,,,"Restates the takeaway (rule 16), so no implication on the goal (rule 17); consistent (rule 18).",N,N
 ex4-0010-d1,ex4-0010,normal,Rural deliveries lose $8M.,,,,The CFO should raise rural delivery prices or cut rural delivery days to stop the loss.,,,Y,,,Rules 16–18 met.,Y,Y
 ex4-0011-d1,ex4-0011,normal,Weekdays fill only 30–38% of capacity.,,,,Offer a weekday discount to fill the empty capacity.,,,Y,,,Rules 16–18 met.,Y,Y
-ex4-0012-d1,ex4-0012,off_topic,"Cardiff has 21,000 residents per gym.",,,,Gyms should offer more yoga classes to keep members.,,,Y,,,"About classes, not which city to open in (rules 16, 17); nothing in it contradicts the takeaway (rule 18).",N,N
+ex4-0012-d1,ex4-0012,off_topic,"Cardiff has 5 gyms per 100,000 residents.",,,,Gyms should offer more yoga classes to keep members.,,,Y,,,"About classes, not which city to open in (rules 16, 17); nothing in it contradicts the takeaway (rule 18).",N,N
 ex4-0013-d1,ex4-0013,normal,Energy rose $10 of the $12 per bed.,,,,The COO should audit heating and cooling in empty rooms first.,,,Y,,,Rules 16–18 met.,Y,Y
 ex4-0015-d1,ex4-0015,normal,"Installations fell two years running, to 85,000.",,,,"The investor should value companies on a shrinking market, not on past growth.",,,Y,,,Rules 16–18 met.,Y,Y
 ex4-0016-d1,ex4-0016,normal,"Under-30 shoppers fell from 20,000 to 12,000 a week.",,,,"The chain should focus on older shoppers, who are its most loyal.",,,Y,,,"An action (rule 16), but it serves the shoppers who stayed, not winning back those who left (rule 17); doesn't contradict its takeaway (rule 18).",Y,N
