@@ -3,7 +3,7 @@
   "item_id": "hy2-0042",
   "drill_id": "HY-2",
   "answer_type": "normal",
-  "notes": "Rules 1–4 met. The reason uses the moved warehouse and says whether it supports the hypothesis, so it counts even though it misreads the fact (rule 5); code scores the keep wrong.",
+  "notes": "Rules 1–4 met. The reason misreads the new fact: it blames the moved warehouse's crews keeping up, but the fact says the warehouse moved 40 miles farther out, so it fails (rule 5, Matt 2026-11-12); code scores the keep wrong.",
   "responses": [
     {
       "type": "text",
@@ -23,7 +23,7 @@
     "evidence_based": true,
     "testable": true,
     "tentative": true,
-    "update_reason": true
+    "update_reason": false
   },
   "red_flags": {
     "restates_facts": false,

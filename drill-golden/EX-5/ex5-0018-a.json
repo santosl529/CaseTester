@@ -3,7 +3,7 @@
   "item_id": "ex5-0018",
   "drill_id": "EX-5",
   "answer_type": "normal",
-  "notes": "The misread is fixed (rule 19); drops that the client is still larger, so keeps-right fails and no-new-flaw passes by code (rules 3, 4).",
+  "notes": "The misread is fixed (rule 19); its own figures (the client at 31%, the rival at 23%) state that the client is still larger, so the right part is kept (rule 22, Matt 2026-11-12).",
   "responses": [
     {
       "type": "text",
@@ -13,7 +13,7 @@
   "labels": {
     "fix_1": true,
     "no_new_flaw": true,
-    "keeps_right": false
+    "keeps_right": true
   },
   "red_flags": {},
   "family": null

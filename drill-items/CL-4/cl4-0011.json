@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"Class students spent twice as much before their first class too, but the chain sells almost nothing online, where half of all kitchenware is now bought.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"Class students spent twice as much before their first class too, but the chain sells almost nothing online, where half of all kitchenware is now bought.\")? After Keep, does it say why the fact leaves the step on the same driver; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",
@@ -161,10 +161,10 @@
     "drafting_model": null,
     "reviewed_by": null,
     "reviewed_at": null,
-    "similarity_check": "pending",
+    "similarity_check": "passed",
     "similarity_note": null,
-    "similarity_checked_at": null,
-    "similarity_method": null
+    "similarity_checked_at": "2026-11-13",
+    "similarity_method": "web"
   },
   "generator": null,
   "is_example": false,

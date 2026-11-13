@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"Most rinks keep the ice at the same temperature around the clock, though they sit empty about 10 hours a day. The five rinks that let the ice warm slightly overnight use 25% less energy on it.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"Most rinks keep the ice at the same temperature around the clock, though they sit empty about 10 hours a day. The five rinks that let the ice warm slightly overnight use 25% less energy on it.\")? After Keep, does it say why the fact leaves the step on the same driver; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",

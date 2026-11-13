@@ -88,7 +88,7 @@
     },
     {
       "check_id": "adapt_reason",
-      "question": "Does the stage 2 explanation use the new fact (\"At those two airports, turning a plane around between flights now takes 65 minutes, up from 45, since a new ground-handling contractor took over in the spring.\")? After Keep, does it say why the step still stands; after Change, does it give the new step and why?",
+      "question": "Does the stage 2 explanation use the new fact (\"At those two airports, turning a plane around between flights now takes 65 minutes, up from 45, since a new ground-handling contractor took over in the spring.\")? After Keep, does it say why the fact leaves the step on the same driver; after Change, does it give the new step and why?",
       "weight": 0.15,
       "fail_tag": "M.illogical_next_step",
       "feedback": "Use the new fact to explain your decision.",

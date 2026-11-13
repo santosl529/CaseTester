@@ -67,11 +67,11 @@ The update decision (keep, revise or drop) is HY-2's critical element. Code scor
 4. **(grader)** Tentative: it is framed as something to check ("likely", "my hypothesis is", "I would test") while leading with one cause. Stating it as settled fact fails; so do two causes with neither as the lead.
    - *hy2-0019-a:* "Refill sales are low because few stores stock refills." is stated as settled fact.
    - *hy2-0004-a:* price leads and weather is a "maybe", so it passes.
-5. **(grader)** Update reason: it uses the new fact (its content or its number) and draws a conclusion from it. Any of these counts: naming the cause the fact points to ("so it's the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). A conclusion that misreads the fact still counts here, since the decision check catches the wrong update. Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").
+5. **(grader)** Update reason: it uses the new fact (its content or its number) and draws a conclusion from it. Any of these counts: naming the cause the fact points to ("so it's the rainy days", "the issue is that 40% of stores ran out"), saying what the fact does to the mechanism ("so fewer ambulances are free", "cutting capacity"), or saying whether it supports the hypothesis ("which confirms it"). The reason must use what the fact actually says: a conclusion that misreads it fails ("reports doubled, which shows there are more potholes", when the fact says a new app brought the reports). Restating the fact with no conclusion fails, restating the decision ("I keep it because it still makes sense") fails, and so does a fix with no hypothesis behind it ("so reopen them").
    - *hy2-0025-a:* "Yes." fails.
    - *hy2-0004-a:* "so it's mostly the rainy days" is a conclusion, so it passes; *hy2-0006-a:* "Waste went from 2% to 9%" only restates the fact, so it fails.
    - *hy2-0008-a*, *hy2-0023-a*, *hy2-0036-a:* fixes ("so reopen them") fail.
-   - *hy2-0020-a:* uses the new fact but misreads it: the reason passes, and the decision check catches the wrong update, so the mistake counts once.
+   - *hy2-0020-a, hy2-0042-a:* each uses the new fact but misreads it, so the reason fails (Matt, 2026-11-12; until then a misread passed here).
    - *hy2-0006-a*, *hy2-0017-a:* restate the new fact with no conclusion, so they fail.
 6. **(grader)** Hypothesis family: classify the stage 1 answer only, never the stage 2 explanation, by its mechanism, not its wording. Even a bare label names a mechanism ("price elasticity" is a price cause). If it names a lead cause and a backup, use the lead for the family and report the backup's family as backup_family; when causes are joined by "or", the first is the lead. If it names several causes and none leads, the family is "other" and there is no backup.
    - *hy2-0027-a:* "losing shoppers ... or it lost shelf space" is classified by its lead, losing shoppers.
@@ -251,6 +251,8 @@ The flawed takeaway comes from an EX-1 item's wrong option (trivial, misread or 
    - *ex5-0034-a:* "likely because the target is cutting prices" still asserts the price cut, so that flaw isn't fixed. HY-3 differs: there the flaw is certainty, so hedged words do fix it (rule 12). (Matt, 2026-11-12.)
 20. **(grader)** A number matches the chart when it is within 1 percentage point for a percentage, or within 10% for any other figure, of what the chart shows or what follows from it (a difference, a ratio, a product). The chart figures listed are worked out from the chart, to check against.
 21. **(grader)** A fix answers the planted flaw only: an edit that fixes the flaw but still lacks something the original also lacked passes the fix check.
+22. **(grader)** A right part counts as kept when the edit's own figures state it ("the client fell to 31% while the rival rose to 23%" keeps "the client still has the larger share").
+   - *ex5-0018-a:* "the client fell from 40% to 31%" next to the rival's 23% states that the client is still larger, so that right part is kept. (Matt, 2026-11-12.)
 
 ## Defend follow-ups (PS-3, HY-2, SY-2, CL-3, EX-4)
 

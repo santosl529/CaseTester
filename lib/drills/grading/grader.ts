@@ -46,8 +46,10 @@ import type { ItemGrade } from './apply';
 // directional rule: a bare label, or rivals named without the driver, is not
 // directional (Matt, 2026-11-12, after the HY-2 gate fell to 86%). v37 (Matt,
 // 2026-11-12): CL-4's adapt reason says a Keep stays on the same driver, one
-// level deeper; EX-5 says hedging an unsupported cause doesn't fix it.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v37';
+// level deeper; EX-5 says hedging an unsupported cause doesn't fix it. v38
+// (Matt, 2026-11-12): HY-2's update reason fails a misread of the new fact;
+// EX-5 counts a right part as kept when the edit's own figures state it.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v38';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
