@@ -25,6 +25,24 @@ export function fluxSignal(msg: FluxMessage, atMs: number): Signal | null {
 
 export type FluxOptions = { eotThreshold?: number; eagerEotThreshold?: number; eotTimeoutMs?: number; keyterms?: string[] };
 
+// Deepgram model training off (Lorenzo, 13 Nov): every connection sends mip_opt_out=true — the audio is kept only
+// while it is transcribed and is not used to train Deepgram's models (its Model Improvement Program).
+const MIP_OPT_OUT = { mip_opt_out: true } as const;
+
+export function fluxConnectArgs(format: PcmFormat, opts: FluxOptions) {
+  return {
+    model: 'flux-general-en' as const,
+    encoding: 'linear16' as const,
+    sample_rate: format.sampleRate,
+    ...(opts.eotThreshold !== undefined ? { eot_threshold: opts.eotThreshold } : {}),
+    ...(opts.eagerEotThreshold !== undefined ? { eager_eot_threshold: opts.eagerEotThreshold } : {}),
+    ...(opts.eotTimeoutMs !== undefined ? { eot_timeout_ms: opts.eotTimeoutMs } : {}),
+    // Keyterm prompting (keyterms.ts): the terms the case's checks read.
+    ...(opts.keyterms?.length ? { keyterm: opts.keyterms } : {}),
+    ...MIP_OPT_OUT,
+  };
+}
+
 export class DeepgramFluxSTT implements STTProvider {
   get name(): string {
     const o = this.opts;
@@ -34,16 +52,7 @@ export class DeepgramFluxSTT implements STTProvider {
 
   async open(format: PcmFormat): Promise<STTSession> {
     const client = new DeepgramClient();
-    const conn = await client.listen.v2.connect({
-      model: 'flux-general-en',
-      encoding: 'linear16',
-      sample_rate: format.sampleRate,
-      ...(this.opts.eotThreshold !== undefined ? { eot_threshold: this.opts.eotThreshold } : {}),
-      ...(this.opts.eagerEotThreshold !== undefined ? { eager_eot_threshold: this.opts.eagerEotThreshold } : {}),
-      ...(this.opts.eotTimeoutMs !== undefined ? { eot_timeout_ms: this.opts.eotTimeoutMs } : {}),
-      // Keyterm prompting (keyterms.ts): the terms the case's checks read.
-      ...(this.opts.keyterms?.length ? { keyterm: this.opts.keyterms } : {}),
-    });
+    const conn = await client.listen.v2.connect(fluxConnectArgs(format, this.opts));
     const session = fluxSession(conn as unknown as FluxSocket);
     conn.connect();
     await conn.waitForOpen();
@@ -157,25 +166,30 @@ export class NovaTurnReducer {
 
 export type NovaOptions = { endpointingMs?: number; utteranceEndMs?: number; closeOn?: 'speech_final' | 'utterance_end' };
 
+export function novaConnectArgs(format: PcmFormat, opts: NovaOptions) {
+  return {
+    model: 'nova-3' as const,
+    language: 'en' as const,
+    encoding: 'linear16' as const,
+    sample_rate: format.sampleRate,
+    channels: 1,
+    punctuate: 'true' as const,
+    smart_format: 'true' as const,
+    interim_results: 'true' as const,
+    endpointing: opts.endpointingMs ?? 300,
+    utterance_end_ms: opts.utteranceEndMs ?? 1000,
+    vad_events: 'true' as const,
+    ...MIP_OPT_OUT,
+  };
+}
+
 export class DeepgramNovaSTT implements STTProvider {
   get name(): string { return `deepgram-nova-3${this.opts.closeOn === 'utterance_end' ? '-utterance-end' : ''}`; }
   constructor(private opts: NovaOptions = {}) {}
 
   async open(format: PcmFormat): Promise<STTSession> {
     const client = new DeepgramClient();
-    const conn = await client.listen.v1.connect({
-      model: 'nova-3',
-      language: 'en',
-      encoding: 'linear16',
-      sample_rate: format.sampleRate,
-      channels: 1,
-      punctuate: 'true',
-      smart_format: 'true',
-      interim_results: 'true',
-      endpointing: this.opts.endpointingMs ?? 300,
-      utterance_end_ms: this.opts.utteranceEndMs ?? 1000,
-      vad_events: 'true',
-    });
+    const conn = await client.listen.v1.connect(novaConnectArgs(format, this.opts));
     const reducer = new NovaTurnReducer(this.opts.closeOn);
     let cb: (s: Signal) => void = () => {};
     conn.on('message', (m: unknown) => {
