@@ -319,7 +319,7 @@ describe('gradeSet with a follow-up', () => {
     expect([data.model, rest.model]).toEqual(['claude-sonnet-5-5', 'claude-sonnet-5-5']);
   });
 
-  it('keeps every other call on Haiku 4.5 with the rules inside the item', async () => {
+  it('grades HY-2\'s main answer on Sonnet 5.5 and its family on Haiku 4.5 (Matt, 2026-11-12)', async () => {
     const x = withDefend(hy2);
     const steps = run(x);
     const seen: { system: string; user: string; model?: string }[] = [];
@@ -329,9 +329,12 @@ describe('gradeSet with a follow-up', () => {
       return { output: { items: [{ item_key: 'answer', checks: own.map(c => ({ check_id: c.check_id, pass: false, evidence: '' })), red_flags: x.red_flags.filter(f => f.detection === 'ai').map(f => ({ id: f.id, present: false, evidence: '' })), hypothesis_family: 'other', backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
     };
     await gradeSet([{ key: 'a', item: x, steps, part: 'main' }], call);
-    expect(seen.length).toBeGreaterThan(0);
-    for (const c of seen) expect(c.model).toBe('claude-haiku-4-5');
-    expect(seen.some(c => c.user.includes('<grading_rules>'))).toBe(true);
+    const main = seen.find(c => c.user.includes('check_id "directional"'))!;
+    const family = seen.find(c => c.user.includes('only classify'))!;
+    expect(main.model).toBe('claude-sonnet-5-5');
+    // Sonnet keeps the rules in its cached system prompt; Haiku 4.5 gets them in the item.
+    expect(main.user).not.toContain('<grading_rules>');
+    expect(family.model).toBe('claude-haiku-4-5');
   });
   const ok = (ids: string[], flags: string[]) => ({ output: { items: [{ item_key: 'answer', checks: ids.map(id => ({ check_id: id, pass: false, evidence: '' })), red_flags: flags.map(id => ({ id, present: false, evidence: '' })), hypothesis_family: null, backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } });
 
