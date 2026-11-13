@@ -154,6 +154,7 @@ Each phase is one commit (or one per area), after a rebase on main, with typeche
 7. Not-found and error pages: styled.
 8. Title Case headings: change the capitalisation only, to sentence case; list every changed heading in the PR. Homepage and product page copy stays untouched.
 9. One primary button per screen: agreed; shown in the pilot.
+10. The before-and-after review (`.impeccable/review/unify/all.html`, 36 screens): approved by Matt, 13 Nov 2026, with no changes. His click-through on his own account is the last step before the PR.
 
 ## 8. How the work was done
 
