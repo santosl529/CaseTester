@@ -59,6 +59,12 @@ export function drillCards(tierOf: (drillId: string) => number = () => 1): { sta
   return INTERVIEW_STAGES.map(stage => ({ stage, drills: cards.filter(c => (c.stages[0] ?? 'Analyze') === stage) }));
 }
 
+// Browse drills' stages (Matt, 13 Nov): only those with a live drill
+// (Clarify has none yet; it's practised in full cases).
+export function browseStages(tierOf?: (drillId: string) => number) {
+  return drillCards(tierOf).filter(g => g.drills.length > 0);
+}
+
 // The live drills that practice a skill (for Learn).
 export function drillsForSkill(skillId: string): { drill_id: string; name: string }[] {
   return DRILLS_CONFIG.drills.drills.filter(d => isLiveDrill(d.id) && d.skills.includes(skillId)).map(d => ({ drill_id: d.id, name: d.name }));

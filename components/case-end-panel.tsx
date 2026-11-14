@@ -2,9 +2,11 @@
 import Link from 'next/link';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useEndFocus } from '@/components/app-nav';
 
-// The end screen when a case ends (site flow, 19 Oct): Get my report, Start
-// another case, Go to drills, Home. `report` is absent when there is no report
+// The end screen when a case ends (site flow, 19 Oct): Get my report and Start
+// another case; the app's bar, back in full here, covers the rest (Matt, 13
+// Nov). `report` is absent when there is no report
 // (nothing assessable, a conduct end) or the page shows its own report button
 // (the voice room's "Score this interview").
 export type EndReport = 'ready' | 'preparing' | 'failed';
@@ -15,6 +17,7 @@ export function CaseEndPanel({ sessionId, report, onRetry, note }: {
   onRetry?: () => void;
   note?: string;
 }) {
+  useEndFocus();
   return (
     <section aria-label="The case has ended" className="space-y-4 rounded-panel border border-ink/12 bg-white p-6 shadow-panel animate-enter motion-reduce:animate-none">
       <p className="t-heading font-semibold">{note ?? 'The case has ended.'}</p>
@@ -25,8 +28,6 @@ export function CaseEndPanel({ sessionId, report, onRetry, note }: {
         {report === 'preparing' && <Button size="lg" disabled>Preparing your report…</Button>}
         {report === 'failed' && <Button size="lg" onClick={onRetry}>Try again</Button>}
         <Link href="/home#cases" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>Start another case</Link>
-        <Link href="/drills" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>Go to drills</Link>
-        <Link href="/home" className={cn(buttonVariants({ variant: 'outline', size: 'lg' }))}>Home</Link>
       </div>
     </section>
   );

@@ -468,6 +468,8 @@ export async function setView(studentId: string, setId: string) {
     diagnostic,
     lesson_skill: lessonSkill,
     set_id: set.id, status: set.status, position: set.currentPosition, size: set.size, tier: set.tier,
+    // Started from today's workout: the app's bar marks Today, not Drills.
+    from_workout: set.workoutId !== null,
     drill: { id: drill.id, name: drill.name, level: drill.level },
     skills: skills.map(s => ({ id: s.id, name: s.name })),
     focus_skill: set.focusSkill ? skills.find(s => s.id === set.focusSkill)?.name ?? null : null,
@@ -787,7 +789,7 @@ export async function setResults(studentId: string, setId: string) {
   if (set.status === 'grading') {
     // Still grading: report progress, and re-run grading that failed or died.
     const state = await kickGrading(set.id);
-    return { set_id: set.id, status: 'grading' as const, delayed: state.delayed, drill: { id: drill.id, name: drill.name, level: drill.level } };
+    return { set_id: set.id, status: 'grading' as const, delayed: state.delayed, from_workout: set.workoutId !== null, drill: { id: drill.id, name: drill.name, level: drill.level } };
   }
   if (set.status !== 'completed') throw new DrillError('set_not_completed', 409, `This set is ${set.status}`);
   const attempts = await db.select().from(drillAttempts).where(eq(drillAttempts.setId, set.id)).orderBy(asc(drillAttempts.position));

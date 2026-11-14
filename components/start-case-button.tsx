@@ -8,14 +8,17 @@ import { caseHref, type CaseMode } from '@/lib/site/case-href';
 // on the student's profile (site flow, 19 Oct). A second click before the disabled state renders is ignored.
 // Voice is the default (Lorenzo, 6 Nov); "Prefer to type?" starts the same case in text.
 // `variant`: outline where several cases are listed, so a page keeps one primary button.
-export function StartCaseButton({ caseId, label, variant = 'default' }: { caseId: string; label: string; variant?: 'default' | 'outline' }) {
+// `mode` (the Cases page, Matt 13 Nov: voice or text chosen once above the cards): a single button in that mode.
+// `blocked`: a start limit is reached (the page says why): announced as unavailable, muted, does nothing.
+// The server still checks the limit on every start.
+export function StartCaseButton({ caseId, label, variant = 'default', mode, name, blocked = false }: { caseId: string; label: string; variant?: 'default' | 'outline'; mode?: CaseMode; name?: string; blocked?: boolean }) {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState('');
   const router = useRouter();
   const inFlight = useRef(false);
 
   async function start(mode: CaseMode) {
-    if (inFlight.current) return;
+    if (blocked || inFlight.current) return;
     inFlight.current = true;
     setStarting(true);
     setError('');
@@ -37,6 +40,14 @@ export function StartCaseButton({ caseId, label, variant = 'default' }: { caseId
     router.push(caseHref(sessionId, mode));
   }
 
+  if (mode) {
+    return (
+      <div className="space-y-2">
+        <Button onClick={() => start(mode)} disabled={starting} aria-disabled={blocked || undefined} className={`w-full ${blocked ? 'cursor-not-allowed opacity-50' : ''}`} size="lg" variant={variant} aria-label={name}>{starting ? 'Starting…' : label}</Button>
+        {error && <p className="t-small text-alert">{error}</p>}
+      </div>
+    );
+  }
   return (
     <div className="space-y-2">
       <Button onClick={() => start('voice')} disabled={starting} className="w-full" size="lg" variant={variant}>{starting ? 'Starting…' : label}</Button>
@@ -50,7 +61,7 @@ export function StartCaseButton({ caseId, label, variant = 'default' }: { caseId
 }
 
 // The start limits (lib/session-limits.ts), in the student's own time zone.
-function limitMessage({ reason, limit, retryAt }: { reason?: string; limit?: number; retryAt?: string }): string {
+export function limitMessage({ reason, limit, retryAt }: { reason?: string; limit?: number; retryAt?: string }): string {
   const when = retryAt ? new Date(retryAt) : null;
   const at = when ? when.toLocaleString(undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : 'later';
   if (reason === 'daily') return `You've started ${limit} interviews in the last 24 hours, the most allowed. You can start another from ${at}.`;

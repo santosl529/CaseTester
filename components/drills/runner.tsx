@@ -112,7 +112,9 @@ function responseFor(step: Step, draft: Draft, timedOut: boolean): { response: u
 // One drill set, item by item (docs/prd-drills.md "Drill intro screen",
 // "Item screen", "Feedback timing"). The server owns timing, order and keys;
 // this screen shows them and submits.
-export function DrillRunner({ view }: { view: RunnerView }) {
+// `about` (Matt, 13 Nov, moved from the Browse drills card): the drill's kind
+// and why it matters, on the intro screen.
+export function DrillRunner({ view, about }: { view: RunnerView; about?: { kind: string; why: string | null } }) {
   const router = useRouter();
   const [phase, setPhase] = useState<'intro' | 'item' | 'grading' | 'feedback' | 'finishing'>('intro');
   const [loaded, setLoaded] = useState<LoadedItem | null>(null);
@@ -337,12 +339,15 @@ export function DrillRunner({ view }: { view: RunnerView }) {
     return (
       <section className="space-y-8">
         <div className="space-y-2">
-          {view.diagnostic && <p className="t-small text-ink/70">Diagnostic · Part {view.diagnostic.part} of {view.diagnostic.of}</p>}
+          {view.diagnostic
+            ? <p className="t-small text-ink/70">Diagnostic · Part {view.diagnostic.part} of {view.diagnostic.of}</p>
+            : about && <p className="t-label font-semibold text-ink">{about.kind}</p>}
           <h1 className="t-title">{view.drill.name}</h1>
           <p className="t-body text-ink/70">
             Trains {view.skills.map(s => s.name).join(', ')}.
             {view.focus_skill && view.skills.length > 1 && ` You chose to practice ${view.focus_skill}.`}
           </p>
+          {!view.diagnostic && about?.why && <p className="t-small max-w-[65ch]">{about.why}</p>}
         </div>
         <ul className={`grid divide-x divide-ink/12 border-y border-ink/12 ${view.diagnostic ? 'grid-cols-2' : 'grid-cols-3'}`}>
           <li className="py-3 pr-4"><span className="t-label block text-ink/70">Items</span><span className="t-card font-semibold tabular-nums">{view.size}</span></li>

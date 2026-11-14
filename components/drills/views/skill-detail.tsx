@@ -6,7 +6,9 @@ import { Source } from '@/components/drills/progress';
 import type { skillDetailView } from '@/lib/drills/progress/dashboard-store';
 import { Check } from 'lucide-react';
 import { AppPage } from '@/components/brand/page';
-import { BackLink } from '@/components/brand/links';
+import { Breadcrumbs } from '@/components/brand/breadcrumbs';
+import { TermTip } from '@/components/brand/term-tip';
+import { STATE_DESCRIPTION } from '@/lib/drills/progress/dashboard';
 
 export type SkillDetailData = NonNullable<Awaited<ReturnType<typeof skillDetailView>>>;
 
@@ -16,8 +18,8 @@ export function SkillDetail({ s }: { s: SkillDetailData }) {
 
   return (
     <AppPage width="reading" className="space-y-10">
-      <nav><BackLink href="/drills/progress">Your progress</BackLink></nav>
       <header className="space-y-2">
+        <Breadcrumbs trail={[{ label: 'Progress', href: '/drills/progress' }, { label: s.name }]} />
         <h1 className="t-title">{s.name}</h1>
         <p className="t-small text-ink/70">{s.area}</p>
       </header>
@@ -32,7 +34,8 @@ export function SkillDetail({ s }: { s: SkillDetailData }) {
               className={`rounded-full border px-3 py-1 ${i === current
                 ? (l.state === 'mastered' || l.state === 'validated' ? 'border-mastery bg-mastery font-semibold text-ink' : 'border-cobalt bg-cobalt font-semibold text-white')
                 : i < current ? 'border-cobalt/50 bg-white text-ink' : 'border-ink/15 bg-white text-ink/70'}`}>
-              {l.label}
+              {/* Each step's meaning on hover, focus or tap (Matt, 13 Nov). */}
+              <TermTip tip={STATE_DESCRIPTION[l.state]}>{l.label}</TermTip>
               {l.state === 'validated' && i > current && <span className="sr-only"> (needs a full case)</span>}
             </li>
           ))}

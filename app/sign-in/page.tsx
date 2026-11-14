@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 
 // Sign in once (site flow, 19 Oct; at /sign-in since the site launch, 31 Oct):
 // a signed-in student whose profile holds a valid club code goes straight on,
-// to `next` when it is a path on this site, else /home; signed in without one,
+// to `next` when it is a path on this site, else Today (/drills); signed in without one,
 // the club step.
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ next?: string | string[] }> }) {
   const next = safeNext((await searchParams).next);

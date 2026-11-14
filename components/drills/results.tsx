@@ -20,8 +20,10 @@ const STATE_LABEL = {
 
 // Set results (docs/prd-drills.md "Set results screen"): score against the
 // bar, time against target, the mistake summary, the per-item breakdown and
-// next actions, and any skill state change. Workouts arrive in D4.
-export function SetResults({ results, checkin }: { results: Results; checkin?: Checkin | null }) {
+// next actions, and any skill state change. Workouts arrive in D4. One main
+// button (Matt, 13 Nov): Continue workout while today's has sets left, else
+// Back to Today; the app's bar covers the rest.
+export function SetResults({ results, checkin, blocksLeft }: { results: Results; checkin?: Checkin | null; blocksLeft: boolean }) {
   const tierMoved = results.tier.after !== results.tier.before;
   return (
     <div className="space-y-10">
@@ -39,7 +41,7 @@ export function SetResults({ results, checkin }: { results: Results; checkin?: C
           {results.score !== null && <>
             {/* Green is for completion: a pass. Not yet passing is not an error. */}
             <Badge variant={results.passed ? 'strong' : 'outline'} className="mr-1 align-[1px]">{results.passed ? 'Passed' : 'Not passed yet'}</Badge>
-            {' '}— the bar is {Math.round(results.pass_bar * 100)}%.
+            {' '}Score {Math.round(results.score * 100)}% · pass mark {Math.round(results.pass_bar * 100)}%.
           </>}
           {results.untimed
             ? <>{' '}Time: {seconds(results.time_ms)}, untimed (the timed target is {seconds(results.target_ms)}).</>
@@ -57,7 +59,7 @@ export function SetResults({ results, checkin }: { results: Results; checkin?: C
         ))}
         {tierMoved && (
           <p className="t-small text-ink/70">
-            Next set: tier {results.tier.after} ({results.tier.after > results.tier.before ? 'harder items, less time' : 'easier items, more time'}).
+            Next set: Level {results.tier.after} ({results.tier.after > results.tier.before ? 'harder items, less time' : 'easier items, more time'}).
           </p>
         )}
       </header>
@@ -71,10 +73,8 @@ export function SetResults({ results, checkin }: { results: Results; checkin?: C
       )}
 
       <div className="flex flex-wrap gap-3">
-        <Link href="/drills" className={buttonVariants({ size: 'lg' })}>{results.from_workout ? 'Continue workout' : 'Back to training'}</Link>
+        <Link href="/drills" className={buttonVariants({ size: 'lg' })}>{blocksLeft ? 'Continue workout' : 'Back to Today'}</Link>
         <RetryButton drillId={results.drill.id} skillId={results.focus_skill} />
-        <Link href="/home" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Take a case</Link>
-        <Link href="/drills/progress" className={buttonVariants({ variant: 'ghost', size: 'lg' })}>Your progress</Link>
       </div>
 
       {checkin && <CheckIn id={checkin.id} kind={checkin.kind} />}

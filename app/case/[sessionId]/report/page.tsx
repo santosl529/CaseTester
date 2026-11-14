@@ -5,6 +5,7 @@ import { notFound, redirect } from 'next/navigation';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { reportDimensions, topFixLine, topFixPlain } from '@/lib/scoring/report-dimensions';
 import { ReportScreen, UnscoredReportScreen } from '@/components/views/report';
+import { getCaseById } from '@/lib/cases/loader';
 
 export default async function ReportPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
@@ -17,6 +18,9 @@ export default async function ReportPage({ params }: { params: Promise<{ session
     where: and(eq(sessions.id, sessionId), eq(sessions.userId, user.id)),
   });
   if (!session) notFound();
+  // The breadcrumb's case title (Cases / <title> report).
+  let caseTitle = 'Case';
+  try { caseTitle = getCaseById(session.caseId).title; } catch { /* a retired case: the generic name */ }
 
   const score = await db.query.scores.findFirst({
     where: eq(scores.sessionId, sessionId),
@@ -25,7 +29,7 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   // offer to prepare it (site flow, 19 Oct). Other sessions have no report.
   if (!score) {
     if (session.status !== 'completed') notFound();
-    return <UnscoredReportScreen sessionId={sessionId} />;
+    return <UnscoredReportScreen sessionId={sessionId} caseTitle={caseTitle} />;
   }
 
   const turns = await db.query.sessionTurns.findMany({
@@ -39,7 +43,7 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   };
 
   return (
-    <ReportScreen sessionId={sessionId}
+    <ReportScreen sessionId={sessionId} caseTitle={caseTitle}
       // Rule 18A: the candidate ended the interview early — feedback on what was covered.
       partial={Boolean((session.flagsJsonb as Record<string, unknown> | null)?.partial)}
       overallRating={score.overallRating} hasTopFix={Boolean(score.topFix)} topFix={topFixPlain(score)} topFixLine={topFixLine(score)}

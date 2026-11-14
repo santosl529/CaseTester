@@ -72,6 +72,12 @@ export function setMinutes(drillId: string, tier: number, size: number, multipli
   return (size * perItem * multiplier * programs.workout.minutes_per_item_factor) / 60;
 }
 
+// A quick-start set's length (the Today page's Quick fix button): what the
+// set service sizes it at, a review half-size above the threshold.
+export function quickSetMinutes(drillId: string, tier: number, kind: string, multiplier = 1): number {
+  return setMinutes(drillId, tier, kind === 'review' ? reviewSize(drillId, tier) : fullSize(drillId, tier), multiplier);
+}
+
 // Sets that run Defend are one item shorter at T2 and T3.
 const fullSize = (drillId: string, tier: number) => setSizeAt(getDrill(drillId), tier, defendRuns(getDrill(drillId), tier, null));
 const reviewSize = (drillId: string, tier: number) => {

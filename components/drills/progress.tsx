@@ -3,7 +3,8 @@
 // for screen readers.
 import Link from 'next/link';
 import { ArrowDown, ArrowRight, ArrowUp } from 'lucide-react';
-import { STATE_COLOR, STATE_LABEL, type Arrow } from '@/lib/drills/progress/dashboard';
+import { STATE_COLOR, STATE_DESCRIPTION, STATE_LABEL, type Arrow } from '@/lib/drills/progress/dashboard';
+import { TermTip } from '@/components/brand/term-tip';
 import type { SkillStateName } from '@/lib/drills/progress/engine';
 
 // A tile's fill is its state's colour (as in the weekly chart); white text on
@@ -11,13 +12,20 @@ import type { SkillStateName } from '@/lib/drills/progress/engine';
 const DARK: SkillStateName[] = ['practiced'];
 export const stateStyle = (state: SkillStateName) => ({ backgroundColor: STATE_COLOR[state], color: DARK.includes(state) ? 'var(--white)' : 'var(--ink)' });
 
+// The states as one ordered scale (Matt, 13 Nov), Not started → Mastered,
+// each with its meaning on hover, focus or tap. Validated, the step a full
+// case adds, shares Mastered's green and isn't a separate step here.
+const SCALE: SkillStateName[] = ['not_started', 'learning', 'recognizes', 'practiced', 'mastered'];
 export function StateLegend() {
   return (
-    <ul aria-label="States, from Not started to Validated" className="t-label flex flex-wrap gap-2">
-      {(Object.keys(STATE_COLOR) as SkillStateName[]).map(s => (
-        <li key={s} className="rounded-full px-2.5 py-0.5 font-semibold" style={stateStyle(s)}>{STATE_LABEL[s]}</li>
+    <ol aria-label="States, from Not started to Mastered" className="t-label flex flex-wrap items-center gap-x-1.5 gap-y-2">
+      {SCALE.map((s, i) => (
+        <li key={s} className="flex items-center gap-1.5">
+          <TermTip tip={STATE_DESCRIPTION[s]} className="rounded-full px-2.5 py-0.5 font-semibold" style={stateStyle(s)}>{STATE_LABEL[s]}</TermTip>
+          {i < SCALE.length - 1 && <ArrowRight aria-hidden="true" className="size-3.5 text-ink/40" />}
+        </li>
       ))}
-    </ul>
+    </ol>
   );
 }
 

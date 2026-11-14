@@ -1,5 +1,6 @@
 import { AppPage } from '@/components/brand/page';
-import { BackLink } from '@/components/brand/links';
+import { Breadcrumbs } from '@/components/brand/breadcrumbs';
+import { ArrowLink } from '@/components/brand/links';
 import { drillsForSkill } from '@/lib/drills/drill-info';
 import { IntroLessonBody, LessonBody, type IntroLessonContent, type LessonContent } from '@/components/drills/lesson';
 import { IntroLessonActions, LessonActions } from '@/components/drills/lesson-actions';
@@ -17,17 +18,17 @@ export function LessonScreen({ lesson, mode, source, start }: {
 }) {
   return (
     <AppPage className="space-y-10">
-      <nav className="flex flex-wrap gap-x-6 gap-y-2">
-        <BackLink href="/drills">Training home</BackLink>
-        <BackLink href="/drills/learn">All lessons</BackLink>
-      </nav>
-      <LessonBody lesson={lesson} mode={mode} />
+      <div className="space-y-4">
+        <Breadcrumbs trail={[{ label: 'Learn', href: '/drills/learn' }, { label: lesson.skill_name }]} />
+        <LessonBody lesson={lesson} mode={mode} />
+      </div>
       <div className="space-y-6 border-t border-ink/12 pt-8">
+        {/* Where this is practised, as links to the drill on Drills (Matt, 13 Nov; it used to be on Learn's list). */}
         {drillsForSkill(lesson.skill_id).length > 0 && (
-          <section aria-labelledby="practice" className="space-y-2">
-            <h2 id="practice" className="t-small font-semibold">Drills that practice this</h2>
-            <ul className="t-small flex flex-wrap gap-2">
-              {drillsForSkill(lesson.skill_id).map(d => <li key={d.drill_id} className="rounded-full border border-ink/20 bg-white px-3 py-1">{d.name}</li>)}
+          <section aria-labelledby="practice" className="t-small flex flex-wrap items-baseline gap-x-4 gap-y-1.5">
+            <h2 id="practice" className="font-semibold">Practice this in:</h2>
+            <ul className="contents">
+              {drillsForSkill(lesson.skill_id).map(d => <li key={d.drill_id}><ArrowLink href={`/drills/browse#drill-${d.drill_id}`}>{d.name}</ArrowLink></li>)}
             </ul>
           </section>
         )}
@@ -44,11 +45,10 @@ export function IntroLessonScreen({ intro, skills, auto }: {
 }) {
   return (
     <AppPage className="space-y-10">
-      <nav className="flex flex-wrap gap-x-6 gap-y-2">
-        <BackLink href="/drills">Training home</BackLink>
-        <BackLink href="/drills/learn">All lessons</BackLink>
-      </nav>
-      <IntroLessonBody lesson={intro} skills={skills} />
+      <div className="space-y-4">
+        <Breadcrumbs trail={[{ label: 'Learn', href: '/drills/learn' }, { label: intro.title }]} />
+        <IntroLessonBody lesson={intro} skills={skills} />
+      </div>
       <div className="border-t border-ink/12 pt-8">
         <IntroLessonActions lessonId={intro.lesson_id} version={intro.version} source={auto ? 'auto' : 'library'}
           next={auto ? { href: '/drills', label: 'Start training' } : { href: '/drills/learn', label: 'Back to lessons' }} />

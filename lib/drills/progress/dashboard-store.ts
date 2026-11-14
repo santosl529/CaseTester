@@ -126,7 +126,7 @@ export async function dashboardView(studentId: string, opts: { window: number; p
         at: s.completedAt!, text: `${getDrill(s.drillId).name}${s.isTransferCheck ? ' (transfer check)' : ''}${s.source === 'diagnostic' ? ' (diagnostic)' : ''}`,
         score: s.setScore,
       })),
-      ...d.cases.map(c => ({ at: c.completedAt, text: `Full case (tier ${c.tier})`, score: null as number | null })),
+      ...d.cases.map(c => ({ at: c.completedAt, text: `Full case (${['Easy', 'Medium', 'Hard'][c.tier - 1] ?? `tier ${c.tier}`})`, score: null as number | null })),
     ].sort((a, b) => b.at.getTime() - a.at.getTime()).slice(0, 20).map(h => ({ ...h, date: label(h.at) })),
   };
 }

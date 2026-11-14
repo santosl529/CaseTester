@@ -62,7 +62,7 @@ function chartRead(): { node: React.ReactNode; api: Canned[] } {
     byAnswer[`${position}:none`] = itemFeedback(item, scoreItem(item, { skipped: true, timedOut: false, steps: [] }));
   });
   return {
-    node: <SetScreen view={view} expired={false} />,
+    node: <SetScreen view={view} expired={false} fromWorkout={false} />,
     api: [
       { method: 'PUT', path: `/api/drills/sets/${setId}/timer`, body: { ok: true } },
       { method: 'PUT', path: '/api/me/drill-settings', body: { ok: true } },
@@ -94,7 +94,7 @@ function frameworkBuilder(): { node: React.ReactNode; api: Canned[] } {
     },
   };
   return {
-    node: <SetScreen view={view} expired={false} />,
+    node: <SetScreen view={view} expired={false} fromWorkout={false} />,
     api: [
       { method: 'PUT', path: `/api/drills/sets/${setId}/timer`, body: { ok: true } },
       { method: 'PUT', path: '/api/me/drill-settings', body: { ok: true } },
@@ -145,7 +145,7 @@ function draftSet(drillId: string, setId: string, opts: { tier: 1 | 2 | 3; defen
     });
   });
   return {
-    node: <SetScreen view={view} expired={false} />,
+    node: <SetScreen view={view} expired={false} fromWorkout={false} />,
     api: [
       { method: 'PUT', path: `/api/drills/sets/${setId}/timer`, body: { ok: true } },
       { method: 'PUT', path: '/api/me/drill-settings', body: { ok: true } },
@@ -181,11 +181,11 @@ function results(): ResultsData {
 }
 
 export const SET_SCREENS: Screen[] = [
-  { slug: 'drill-set', chrome: 'drills', area: 'Drills', title: 'Drill set: Chart read (intro → item → feedback)', pilot: true, render: chartRead },
-  { slug: 'drill-set-written', chrome: 'drills', area: 'Drills', title: 'Drill set: Framework builder (written, AI-graded)', render: frameworkBuilder },
-  { slug: 'drill-set-ex4', chrome: 'drills', area: 'Drills (next 7, drafts)', title: 'EX-4 Written chart takeaway, with its follow-up (tier 2, draft items)', render: () => draftSet('EX-4', 'preview-ex4', { tier: 2, defend: true }) },
-  { slug: 'drill-set-ex5', chrome: 'drills', area: 'Drills (next 7, drafts)', title: 'EX-5 Fix the takeaway (tier 1, draft items)', render: () => draftSet('EX-5', 'preview-ex5', { tier: 1 }) },
-  { slug: 'drill-set-cl4', chrome: 'drills', area: 'Drills (next 7, drafts)', title: 'CL-4 Your next move: plan, new fact, keep or change (tier 2, draft items)', render: () => draftSet('CL-4', 'preview-cl4', { tier: 2 }) },
-  { slug: 'drill-results', chrome: 'drills', area: 'Drills', title: 'Set results', render: () => ({ node: <ResultsScreen results={results()} checkin={{ id: 'preview-checkin', kind: 'set_usefulness' }} />, api: [{ method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
-  { slug: 'drill-grading', chrome: 'drills', area: 'Drills', title: 'Set results: grading', render: () => ({ node: <ResultsScreen results={{ set_id: 'preview-grading', status: 'grading', delayed: false, drill: { id: 'PS-3', name: 'Framework builder', level: 2 } }} checkin={null} /> }) },
+  { slug: 'drill-set', path: '/drills/sets/preview-ex1', chrome: 'drills', area: 'Drills', title: 'Drill set: Chart read (intro → item → feedback)', pilot: true, render: chartRead },
+  { slug: 'drill-set-written', path: '/drills/sets/preview-ps3', chrome: 'drills', area: 'Drills', title: 'Drill set: Framework builder (written, AI-graded)', render: frameworkBuilder },
+  { slug: 'drill-set-ex4', path: '/drills/sets/preview-ex4', chrome: 'drills', area: 'Drills (next 7, drafts)', title: 'EX-4 Written chart takeaway, with its follow-up (tier 2, draft items)', render: () => draftSet('EX-4', 'preview-ex4', { tier: 2, defend: true }) },
+  { slug: 'drill-set-ex5', path: '/drills/sets/preview-ex5', chrome: 'drills', area: 'Drills (next 7, drafts)', title: 'EX-5 Fix the takeaway (tier 1, draft items)', render: () => draftSet('EX-5', 'preview-ex5', { tier: 1 }) },
+  { slug: 'drill-set-cl4', path: '/drills/sets/preview-cl4', chrome: 'drills', area: 'Drills (next 7, drafts)', title: 'CL-4 Your next move: plan, new fact, keep or change (tier 2, draft items)', render: () => draftSet('CL-4', 'preview-cl4', { tier: 2 }) },
+  { slug: 'drill-results', path: '/drills/sets/preview-results/results', chrome: 'drills', area: 'Drills', title: 'Set results', render: () => ({ node: <ResultsScreen results={results()} checkin={{ id: 'preview-checkin', kind: 'set_usefulness' }} blocksLeft />, api: [{ method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
+  { slug: 'drill-grading', path: '/drills/sets/preview-grading/results', chrome: 'drills', area: 'Drills', title: 'Set results: grading', render: () => ({ node: <ResultsScreen results={{ set_id: 'preview-grading', status: 'grading', delayed: false, from_workout: false, drill: { id: 'PS-3', name: 'Framework builder', level: 2 } }} checkin={null} blocksLeft={false} /> }) },
 ];

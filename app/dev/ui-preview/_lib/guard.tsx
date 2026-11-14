@@ -69,6 +69,8 @@ function install() {
   };
   navigator.sendBeacon = () => true;
   // Links stay on the preview: a click on one to the real app goes nowhere.
+  // The link's own click handler still runs (the bar's "are you sure?" on
+  // Exit, a menu closing); with the default prevented here, it doesn't navigate.
   document.addEventListener('click', e => {
     const a = (e.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
     if (!a) return;
@@ -76,7 +78,6 @@ function install() {
     if (url.origin === location.origin && isPreview(url.pathname)) return;
     if (url.origin === location.origin && url.pathname === location.pathname && url.hash) return;
     e.preventDefault();
-    e.stopImmediatePropagation();
     say(`Stayed on the preview: ${url.pathname}`);
   }, true);
 }

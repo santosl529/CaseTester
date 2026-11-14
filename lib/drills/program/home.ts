@@ -7,17 +7,18 @@ import { db } from '@/db/client';
 import { drillSets, skillStateEvents, studentDrillSettings } from '@/db/schema';
 import { getDrill, getSkill } from '../config';
 import { logDrillEvent } from '../events';
-import { newProgress, stateRank, type SkillStateName } from '../progress/engine';
+import { newProgress, nextSetFor, stateRank, type SkillStateName } from '../progress/engine';
 import { loadProgress, loadTiers, progressContext } from '../progress/store';
 import { openPrescriptions, skillProfile } from '../progress/profile';
 import { inProgressSet } from '../sets/service';
 import { DIAGNOSTIC_PARTS, diagnosticView } from './diagnostic-store';
 import { hasSeenLesson, introLesson, lessonForSkill } from './lessons-store';
 import { INTRO_LESSON_ID } from '../lessons';
-import { blockFor, buildWorkout, planPrescriptionSkill, type WorkoutBlock } from './workout';
+import { blockFor, buildWorkout, planPrescriptionSkill, quickSetMinutes, type WorkoutBlock } from './workout';
 import { buildPlan, daysBetween, localDate } from './plan';
 import { pendingChecks, planFromCase, type PlanSource } from './plan-source';
 import { healDiagnostic } from '../grading/jobs';
+import { isFirstWeek } from '../today-page';
 import { isLiveDrill } from '../live';
 import {
   activeProgram, latestEvidence, nextCaseFor, noteWeekRollover, programView, studentToday, todayWorkout, weekStatus,
@@ -27,11 +28,27 @@ import {
 
 const DAY = 86_400_000;
 
+// The most frequent mistake of the last 30 days (drills and cases) and its
+// skill. `practice_minutes`: how long a quick-start set on the skill runs, as
+// the set service would pick it (the Today page's Quick fix button); null
+// when the skill has no live drill. Read only.
 async function weakestSkill(studentId: string, profile: Awaited<ReturnType<typeof skillProfile>>) {
   const top = profile.top_mistakes[0];
   if (!top) return null;
   const skillId = profile.areas.flatMap(a => a.skills).find(s => s.name === top.skill_name)?.id ?? null;
-  return { skill_name: top.skill_name, mistake: top.label, count: top.count, evidence: skillId ? await latestEvidence(studentId, skillId) : null };
+  let practiceMinutes: number | null = null;
+  if (skillId) {
+    const [progress, tiers, ctx, [settings]] = await Promise.all([
+      loadProgress(db, studentId), loadTiers(db, studentId), progressContext(db, studentId),
+      db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId)),
+    ]);
+    const next = nextSetFor(progress.get(skillId) ?? newProgress(skillId), tiers, ctx);
+    if (next) practiceMinutes = Math.max(1, Math.round(quickSetMinutes(next.drill_id, next.tier, next.kind, settings?.m ?? 1)));
+  }
+  return {
+    skill_id: skillId, skill_name: top.skill_name, mistake: top.label, count: top.count, practice_minutes: practiceMinutes,
+    evidence: skillId ? await latestEvidence(studentId, skillId) : null,
+  };
 }
 
 export async function homeView(studentId: string, now = new Date()) {
@@ -50,7 +67,11 @@ export async function homeView(studentId: string, now = new Date()) {
   const d = await diagnosticView(studentId);
   const diagnostic = { status: d?.status ?? 'not_started', done: d?.done ?? 0, of: DIAGNOSTIC_PARTS };
 
-  if (program.track === 'self_directed') return { kind: 'self_directed' as const, resume, weakest, diagnostic, plan, ...(await selfDirected(studentId, profile, view!, now)) };
+  // "How CasePace works" in the first plan week (isFirstWeek).
+  const firstWeek = isFirstWeek(
+    view?.plan.kind === 'weeks' ? { kind: 'weeks', week: view.week?.week ?? null } : { kind: view?.plan.kind === 'days' && program.track !== 'self_directed' ? 'days' : 'none', week: null },
+    program.startedAt, now);
+  if (program.track === 'self_directed') return { kind: 'self_directed' as const, resume, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
 
   const progress = await loadProgress(db, studentId);
   const { timezone } = await studentToday(studentId, now);
@@ -88,7 +109,7 @@ export async function homeView(studentId: string, now = new Date()) {
   });
 
   return {
-    kind: 'plan' as const, resume, weakest, diagnostic, plan, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
+    kind: 'plan' as const, resume, weakest, diagnostic, plan, first_week: firstWeek, program: view!, week_status: status, workout, lesson_first: lessonFirst, intro_first: introFirst,
     estimated_minutes: workout ? Math.round(workout.blocks.reduce((s, b) => s + b.minutes, 0)) : null,
     diagnose_today: !workout && ((view!.plan.kind === 'weeks' && week?.week === 0) || (view!.plan.kind === 'days' && view!.day?.day === 1)),
     next_case: nextCase,

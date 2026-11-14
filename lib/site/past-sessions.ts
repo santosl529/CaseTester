@@ -1,9 +1,10 @@
 // The past sessions on /home (site flow, 19 Oct): date, case, status and a
 // link to the report. Completed sessions have a report (lib/orchestrator/
-// session-end.ts: completed ⇔ something assessable); a completed one with no
-// score yet links to the report page, which offers to prepare it.
+// session-end.ts: completed ⇔ something assessable). Both open the report page:
+// "View report" when it is scored, "Get my report" when not yet (the page then
+// offers to prepare it).
 import 'server-only';
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { scores, sessions } from '@/db/schema';
 import { loadCases } from '@/lib/cases/loader';
@@ -34,7 +35,7 @@ export function pastSessionRows(rows: PastSessionInput[], titles: Record<string,
     const report = `/case/${r.id}/report`;
     const [status, link] =
       r.status === 'completed'
-        ? [partial ? 'Ended early' : 'Completed', r.scored ? { href: report, label: 'Report' } : { href: report, label: 'Get my report' }]
+        ? [partial ? 'Ended early' : 'Completed', r.scored ? { href: report, label: 'View report' } : { href: report, label: 'Get my report' }]
         : r.status === 'active' ? ['Not finished', null]
         : r.status === 'abandoned' ? ['Ended — no report', null]
         : ['Ended', null];
@@ -46,6 +47,25 @@ export function pastSessionRows(rows: PastSessionInput[], titles: Record<string,
       link,
     };
   });
+}
+
+// Each case's finished attempts (the Cases page's "Done 2× · View last
+// report", Matt 13 Nov): how many completed sessions, and the latest one.
+export function caseAttemptRows(rows: { id: string; caseId: string; startedAt: Date }[]): Record<string, { done: number; last: string }> {
+  const out: Record<string, { done: number; last: string; at: number }> = {};
+  for (const r of rows) {
+    const o = out[r.caseId] ?? { done: 0, last: r.id, at: -Infinity };
+    o.done++;
+    if (r.startedAt.getTime() > o.at) { o.last = r.id; o.at = r.startedAt.getTime(); }
+    out[r.caseId] = o;
+  }
+  return Object.fromEntries(Object.entries(out).map(([k, v]) => [k, { done: v.done, last: v.last }]));
+}
+
+export async function loadCaseAttempts(userId: string) {
+  const rows = await db.select({ id: sessions.id, caseId: sessions.caseId, startedAt: sessions.startedAt }).from(sessions)
+    .where(and(eq(sessions.userId, userId), eq(sessions.status, 'completed')));
+  return caseAttemptRows(rows);
 }
 
 export async function loadPastSessions(userId: string, timeZone?: string | null): Promise<PastSession[]> {

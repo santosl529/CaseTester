@@ -1,5 +1,5 @@
 import { TrainingHome, type TrainingHomeData } from '@/components/drills/views/training-home';
-import { PlanScreen, type PlanData } from '@/components/drills/views/plan';
+import { PlanEmpty, PlanScreen, type PlanData } from '@/components/drills/views/plan';
 import { ProgressScreen, type DashboardData } from '@/components/drills/views/progress';
 import { SkillDetail, type SkillDetailData } from '@/components/drills/views/skill-detail';
 import { LearnLibrary } from '@/components/drills/views/learn-library';
@@ -54,11 +54,18 @@ const RX = [
   { id: 'rx3', skill_id: 'SY.answer_first', skill_name: 'Answer first', drill_name: 'Pick the best summary', reason: 'Your diagnostic: the recommendation came last.', status: 'open' as const, priority: 1, source: 'diagnostic' as const },
 ];
 
-function home(kind: 'plan' | 'new' | 'self'): TrainingHomeData {
-  const program = programView(kind === 'self' ? 'self_directed' : 'standard');
+// 'done': today's workout finished (extras offered); 'intro': a new Foundations
+// student who hasn't opened the intro lesson.
+function home(kind: 'plan' | 'new' | 'self' | 'done' | 'intro' | 'first'): TrainingHomeData {
+  const program = programView(kind === 'self' ? 'self_directed' : kind === 'intro' ? 'foundations' : 'standard');
   const base = {
-    resume: kind === 'plan' ? { set_id: 'preview-ex1', drill_name: 'Chart read' } : null,
-    weakest: kind === 'new' ? null : { skill_name: 'Math setup', mistake: 'wrong base for a percent change', count: 3, evidence: 'Margin fell from 24% to 6%, so it fell 18%.' },
+    resume: kind === 'plan' || kind === 'done' ? { set_id: 'preview-ex1', drill_name: 'Chart read' } : null,
+    // How CasePace works: a new student's first plan week.
+    first_week: kind === 'first' || kind === 'intro' || kind === 'new',
+    // Your example (Matt, 13 Nov): arithmetic tops the mistakes but isn't in today's workout.
+    weakest: kind === 'new' || kind === 'first' ? null : kind === 'self'
+      ? { skill_id: 'QN.setup', skill_name: 'Math setup', mistake: 'wrong base for a percent change', count: 3, practice_minutes: 6, evidence: 'Margin fell from 24% to 6%, so it fell 18%.' }
+      : { skill_id: 'QN.arithmetic', skill_name: 'Arithmetic', mistake: 'arithmetic error', count: 5, practice_minutes: 5, evidence: '1.2 million times 15% is 1.8 million.' },
     diagnostic: kind === 'new' ? { status: 'not_started', done: 0, of: 6 } : { status: 'completed', done: 6, of: 6 },
     plan: kind === 'new' ? { source: null, seen: false } : { source: 'diagnostic' as const, seen: true },
   };
@@ -79,17 +86,25 @@ function home(kind: 'plan' | 'new' | 'self'): TrainingHomeData {
   }
   return {
     kind: 'plan', ...base, program,
-    week_status: { workouts: { done: 2, target: 4 }, cases: { done: 0, target: 1 }, milestone_met: false,
-      milestone_skills: [{ id: 'PS.mece', name: 'MECE structure', state: 'practiced' }, { id: 'QN.setup', name: 'Math setup', state: 'learning' }] },
-    workout: kind === 'new' ? null : WORKOUT, lesson_first: false, intro_first: false, estimated_minutes: kind === 'new' ? null : 21,
-    diagnose_today: false, next_case: kind === 'new' ? null : { case_id: 'prof-002', title: 'Larkspur Pricing', retake: false, matched: { area: true, tier: true } },
-    extra: [], rediagnose: null,
+    week_status: { workouts: { done: kind === 'done' ? 3 : 2, target: 4 }, cases: { done: 1, target: 1 }, milestone_met: false,
+      milestone_skills: [
+        { id: 'PS.mece', name: 'MECE structure', state: 'practiced' }, { id: 'QN.setup', name: 'Math setup', state: 'learning' },
+        { id: 'HY.form', name: 'Forming a hypothesis', state: 'learning' }, { id: 'EX.takeaway', name: 'Chart takeaway', state: 'learning' },
+        { id: 'QN.percentages', name: 'Percentages', state: 'not_started' },
+      ] },
+    workout: kind === 'new' ? null
+      : kind === 'done' ? { ...WORKOUT, status: 'completed' as const, blocks: WORKOUT.blocks.map((b, i) => ({ ...b, status: 'done' as const, set_id: 'preview-set', score: [0.9, 0.85, 0.75][i] ?? 0.8 })) }
+      : kind === 'intro' || kind === 'first' ? { ...WORKOUT, status: 'planned' as const, blocks: WORKOUT.blocks.map(b => ({ ...b, status: 'todo' as const, set_id: null, score: null })) }
+      : WORKOUT,
+    lesson_first: false, intro_first: kind === 'intro', estimated_minutes: kind === 'new' ? null : 21,
+    diagnose_today: false, next_case: kind === 'new' || kind === 'intro' ? null : { case_id: 'prof-002', title: 'Larkspur Pricing', retake: false, matched: { area: true, tier: true } },
+    extra: kind === 'done' ? [block('weak', 'QN.percentages', 'QN-2', 'Percentages slipped in this workout.', 'todo')] : [], rediagnose: null,
   };
 }
 
 function plan(): PlanData {
   const view = programView('standard');
-  return { track: 'standard', source: 'Built from your diagnostic.', rx: RX, checks: [], view, workout: { ...WORKOUT, blocks: WORKOUT.blocks.map(b => ({ ...b, status: 'todo' as const, score: null })) }, next: 0, startHref: null };
+  return { track: 'standard', source: 'Built from your diagnostic.', rx: RX, checks: [], view, workout: { ...WORKOUT, blocks: WORKOUT.blocks.map(b => ({ ...b, status: 'todo' as const, score: null })) }, next: 0, startHref: null, counts: { 1: { workouts: 0, cases: 0 } }, anyWorkout: false };
 }
 
 // Your progress: states and charts computed by the app's own pure builders
@@ -197,24 +212,48 @@ function diagnostic(state: 'running' | 'done'): DiagnosticData {
 const STARTS: Canned[] = [{ method: 'POST', path: '/api/drills/sets', body: { set_id: 'preview-ex1' } }];
 
 export const DRILL_SCREENS: Screen[] = [
-  { slug: 'training-home', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: a workout under way', render: () => ({ node: <TrainingHome home={home('plan')} checkin={null} />, api: STARTS }) },
-  { slug: 'training-home-new', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: no plan yet', render: () => ({ node: <TrainingHome home={home('new')} checkin={{ id: 'preview-checkin', kind: 'week_1' }} />, api: [...STARTS, { method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
-  { slug: 'training-home-self', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: practice on my own', render: () => ({ node: <TrainingHome home={home('self')} checkin={null} />, api: STARTS }) },
-  { slug: 'plan', chrome: 'drills', area: 'Plan and dashboard', title: 'Your plan', render: () => ({ node: <PlanScreen {...plan()} />, api: STARTS }) },
-  { slug: 'progress', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress', render: () => ({ node: <ProgressScreen v={dashboard()} window={7} period="2w" group="area" />, api: [...STARTS, { method: 'PATCH', path: '/api/prescriptions/.*', body: { ok: true } }] }) },
-  { slug: 'progress-empty', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress: before any practice', render: () => ({ node: <ProgressScreen v={dashboard(false)} window={7} period="2w" group="area" /> }) },
-  { slug: 'skill', chrome: 'drills', area: 'Plan and dashboard', title: 'One skill (Chart takeaway)', render: () => ({ node: <SkillDetail s={skill()} />, api: STARTS }) },
-  { slug: 'learn', chrome: 'drills', area: 'Lessons', title: 'Learn library', render: () => ({ node: <LearnLibrary available={new Set(loadLessons().map(l => l.skill_id))} intro={loadIntroLesson()} /> }) },
+  { slug: 'training-home', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: a workout under way', render: () => ({ node: <TrainingHome home={home('plan')} checkin={null} />, api: STARTS }) },
+  { slug: 'training-home-new', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: no plan yet', render: () => ({ node: <TrainingHome home={home('new')} checkin={{ id: 'preview-checkin', kind: 'week_1' }} />, api: [...STARTS, { method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
+  { slug: 'training-home-done', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: today’s workout done', render: () => ({ node: <TrainingHome home={home('done')} checkin={null} />, api: STARTS }) },
+  { slug: 'training-home-first', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: first week (How CasePace works)', render: () => ({ node: <TrainingHome home={home('first')} checkin={null} />, api: STARTS }) },
+  { slug: 'training-home-intro', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: Foundations, intro lesson not opened', render: () => ({ node: <TrainingHome home={home('intro')} checkin={null} />, api: STARTS }) },
+  { slug: 'training-home-self', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: practice on my own', render: () => ({ node: <TrainingHome home={home('self')} checkin={null} />, api: STARTS }) },
+  { slug: 'plan', path: '/drills/plan', chrome: 'drills', area: 'Plan and dashboard', title: 'Your plan', render: () => ({ node: <PlanScreen {...plan()} />, api: STARTS }) },
+  // Week 4 of 6, Integration: the config sets no focus, so no "Focus:" line.
+  { slug: 'plan-integration', path: '/drills/plan', chrome: 'drills', area: 'Plan and dashboard', title: 'Your plan: Integration week (no focus line)', render: () => {
+    const p = plan();
+    const week = p.view.plan.kind === 'weeks' ? p.view.plan.weeks.find(w => w.theme === 'Integration') ?? p.view.week : p.view.week;
+    // This sample plan is 5 weeks (it ends at the interview), so Integration is week 3. Weeks 1–2 behind it,
+    // one workout short in week 2; this week, no workouts yet and its 2 cases done (Matt's example).
+    const counts = { 1: { workouts: 4, cases: 1 }, 2: { workouts: 3, cases: 1 }, 3: { workouts: 0, cases: 2 } };
+    return { node: <PlanScreen {...p} view={{ ...p.view, week }} counts={counts} anyWorkout />, api: STARTS };
+  } },
+  // A workout done: no "Your first workout" card.
+  { slug: 'plan-started', path: '/drills/plan', chrome: 'drills', area: 'Plan and dashboard', title: 'Your plan: after the first workout', render: () => ({ node: <PlanScreen {...plan()} counts={{ 1: { workouts: 2, cases: 1 } }} anyWorkout />, api: STARTS }) },
+  { slug: 'plan-empty', path: '/drills/plan', chrome: 'drills', area: 'Plan and dashboard', title: 'Your plan: practice on my own, no starting point yet', render: () => ({ node: <PlanEmpty /> }) },
+  { slug: 'plan-self', path: '/drills/plan', chrome: 'drills', area: 'Plan and dashboard', title: 'Your plan: practice on my own, with a starting point', render: () => ({ node: <PlanScreen {...plan()} track="self_directed" source="Built from your answers." checks={['EX.takeaway']} />, api: STARTS }) },
+  { slug: 'progress', path: '/drills/progress', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress', render: () => ({ node: <ProgressScreen v={dashboard()} window={7} period="2w" group="area" />, api: [...STARTS, { method: 'PATCH', path: '/api/prescriptions/.*', body: { ok: true } }] }) },
+  // Early days (Matt, 13 Nov): one week of practice, so no trends yet; no strengths yet.
+  { slug: 'progress-early', path: '/drills/progress', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress: first week, no strengths yet', render: () => {
+    const v = dashboard();
+    const lastWeek = <T extends { categories: string[]; series: { values: number[] }[]; gaps: number[] }>(c: T): T => ({ ...c, series: c.series.map(x => ({ ...x, values: x.values.map((n, i) => (i === x.values.length - 1 ? n : 0)) })), gaps: c.categories.map((_, i) => i).filter(i => i !== c.categories.length - 1) });
+    return { node: <ProgressScreen v={{ ...v, strengths: [], trends: { ...v.trends, states: { ...v.trends.states, series: v.trends.states.series.map(x => ({ ...x, values: x.values.map((n, i) => (x.name === 'Not started' || i === x.values.length - 1 ? n : 0)) })) }, misses: lastWeek(v.trends.misses), pace: lastWeek(v.trends.pace) } }} window={7} period="2w" group="area" />, api: [...STARTS, { method: 'PATCH', path: '/api/prescriptions/.*', body: { ok: true } }] };
+  } },
+  { slug: 'progress-empty', path: '/drills/progress', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress: before any practice', render: () => ({ node: <ProgressScreen v={dashboard(false)} window={7} period="2w" group="area" /> }) },
+  { slug: 'skill', path: '/drills/progress/EX.takeaway', chrome: 'drills', area: 'Plan and dashboard', title: 'One skill (Chart takeaway)', render: () => ({ node: <SkillDetail s={skill()} />, api: STARTS }) },
+    // Three lessons read (the intro among them); For you: the weakest skill, then this week's.
+  { slug: 'learn', path: '/drills/learn', chrome: 'drills', area: 'Lessons', title: 'Learn library', render: () => ({ node: <LearnLibrary available={new Set(loadLessons().map(l => l.skill_id))} intro={loadIntroLesson()} read={new Set(['PS.mece', 'QN.setup'])} introRead forYou={[{ skill_id: 'QN.arithmetic', reason: 'weakest' }, { skill_id: 'EX.takeaway', reason: 'week' }, { skill_id: 'HY.form', reason: 'week' }]} /> }) },
+  { slug: 'learn-new', path: '/drills/learn', chrome: 'drills', area: 'Lessons', title: 'Learn library: nothing read yet, no plan', render: () => ({ node: <LearnLibrary available={new Set(loadLessons().map(l => l.skill_id))} intro={loadIntroLesson()} read={new Set()} introRead={false} forYou={[]} /> }) },
   {
-    slug: 'lesson', chrome: 'drills', area: 'Lessons', title: 'Lesson: Chart takeaway (summary card)', pilot: true,
+    slug: 'lesson', path: '/drills/learn/EX.takeaway', chrome: 'drills', area: 'Lessons', title: 'Lesson: Chart takeaway (summary card)', pilot: true,
     render: () => ({ node: <LessonScreen lesson={lessonFor('EX.takeaway')} mode="summary" source="library" start={{ skill_id: 'EX.takeaway', quick_start: true }} />, api: STARTS }),
   },
   {
-    slug: 'lesson-full', chrome: 'drills', area: 'Lessons', title: 'Lesson: Chart takeaway (full, Foundations)', pilot: true,
+    slug: 'lesson-full', path: '/drills/learn/EX.takeaway', chrome: 'drills', area: 'Lessons', title: 'Lesson: Chart takeaway (full, Foundations)', pilot: true,
     render: () => ({ node: <LessonScreen lesson={lessonFor('EX.takeaway')} mode="full" source="auto" start={{ skill_id: 'EX.takeaway', quick_start: true }} />, api: STARTS }),
   },
   {
-    slug: 'lesson-intro', chrome: 'drills', area: 'Lessons', title: 'How a case interview works',
+    slug: 'lesson-intro', path: '/drills/learn/intro', chrome: 'drills', area: 'Lessons', title: 'How a case interview works',
     render: () => {
       const intro = loadIntroLesson()!;
       const withLesson = new Set(loadLessons().map(l => l.skill_id));
@@ -222,17 +261,18 @@ export const DRILL_SCREENS: Screen[] = [
       return { node: <IntroLessonScreen intro={intro} skills={skills} auto={false} /> };
     },
   },
-  { slug: 'browse', chrome: 'drills', area: 'Drills', title: 'Browse drills', render: () => ({ node: <BrowseDrills areas={catalog()} current={{ id: 'preview-ex1' }} />, api: STARTS }) },
-  { slug: 'diagnostic-start', chrome: 'drills', area: 'Diagnostic', title: 'Diagnostic: before starting', render: () => ({ node: <DiagnosticScreen view={null} track="standard" retake={false} />, api: [...STARTS, { method: 'POST', path: '/api/drills/diagnostic/skip', body: { ok: true } }] }) },
-  { slug: 'diagnostic', chrome: 'drills', area: 'Diagnostic', title: 'Diagnostic: part 3 of 6', render: () => ({ node: <DiagnosticScreen view={diagnostic('running')} track="standard" retake={false} />, api: STARTS }) },
-  { slug: 'diagnostic-done', chrome: 'drills', area: 'Diagnostic', title: 'Diagnostic: your starting point', render: () => ({ node: <DiagnosticScreen view={diagnostic('done')} track="standard" retake={false} /> }) },
-  { slug: 'onboarding', chrome: 'drills', area: 'Onboarding', title: 'Set up your training', render: () => ({ node: <StartScreen availability={AVAILABILITY} today={TODAY} />, api: [{ method: 'POST', path: '/api/drills/onboarding', body: { ok: true } }] }) },
+  { slug: 'browse', path: '/drills/browse', chrome: 'drills', area: 'Drills', title: 'Browse drills', render: () => ({ node: <BrowseDrills areas={catalog()} current={{ id: 'preview-ex1', name: 'Chart read', done: 3, size: 8 }} />, api: STARTS }) },
+  { slug: 'browse-idle', path: '/drills/browse', chrome: 'drills', area: 'Drills', title: 'Browse drills: no set in progress', render: () => ({ node: <BrowseDrills areas={catalog()} current={null} />, api: STARTS }) },
+  { slug: 'diagnostic-start', path: '/drills/diagnostic', chrome: 'drills', area: 'Diagnostic', title: 'Diagnostic: before starting', render: () => ({ node: <DiagnosticScreen view={null} track="standard" retake={false} />, api: [...STARTS, { method: 'POST', path: '/api/drills/diagnostic/skip', body: { ok: true } }] }) },
+  { slug: 'diagnostic', path: '/drills/diagnostic', chrome: 'drills', area: 'Diagnostic', title: 'Diagnostic: part 3 of 6', render: () => ({ node: <DiagnosticScreen view={diagnostic('running')} track="standard" retake={false} />, api: STARTS }) },
+  { slug: 'diagnostic-done', path: '/drills/diagnostic', chrome: 'drills', area: 'Diagnostic', title: 'Diagnostic: your starting point', render: () => ({ node: <DiagnosticScreen view={diagnostic('done')} track="standard" retake={false} /> }) },
+  { slug: 'onboarding', path: '/drills/start', chrome: 'drills', area: 'Onboarding', title: 'Set up your training', render: () => ({ node: <StartScreen availability={AVAILABILITY} today={TODAY} />, api: [{ method: 'POST', path: '/api/drills/onboarding', body: { ok: true } }] }) },
   {
-    slug: 'questionnaire', chrome: 'drills', area: 'Onboarding', title: 'A few questions',
+    slug: 'questionnaire', path: '/drills/questionnaire', chrome: 'drills', area: 'Onboarding', title: 'A few questions',
     render: () => ({ node: <QuestionnaireScreen availability={AVAILABILITY} today={TODAY} showHours initial={{ interview_date: '2026-12-11', cases_done: '1-5', availability: 'standard' }} />, api: [{ method: 'POST', path: '/api/drills/questionnaire', body: { ok: true } }] }),
   },
   {
-    slug: 'settings', chrome: 'drills', area: 'Settings', title: 'Training settings',
+    slug: 'settings', path: '/drills/settings', chrome: 'drills', area: 'Settings', title: 'Training settings',
     render: () => ({
       node: <SettingsScreen track="standard" interviewDate="2026-12-11" availabilityId="standard" availability={AVAILABILITY} today={TODAY} timeMultiplier={1} untimed={false} feedbackMode="immediate" />,
       api: [{ method: 'PUT', path: '/api/drills/program', body: { ok: true } }, { method: 'PUT', path: '/api/me/drill-settings', body: { ok: true } }],

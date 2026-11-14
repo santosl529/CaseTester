@@ -2,6 +2,7 @@ import { studentOrRedirect } from '@/lib/drills/session';
 import { catalog } from '@/lib/drills/program/catalog';
 import { inProgressSet } from '@/lib/drills/sets/service';
 import { logDrillEvent } from '@/lib/drills/events';
+import { getDrill } from '@/lib/drills/config';
 import { BrowseDrills } from '@/components/drills/views/browse';
 
 // Browse drills (docs/prd-drills.md "Browse drills"): every drill as a card,
@@ -13,5 +14,7 @@ export default async function BrowseDrillsPage() {
   const studentId = await studentOrRedirect();
   const [areas, current] = await Promise.all([catalog(studentId), inProgressSet(studentId)]);
   await logDrillEvent(studentId, 'drill_catalog_viewed', {});
-  return <BrowseDrills areas={areas} current={current} />;
+  // The set in progress, for the Continue card: its drill and how far through it is.
+  const set = current && { id: current.id, name: getDrill(current.drillId).name, done: current.currentPosition, size: current.size };
+  return <BrowseDrills areas={areas} current={set} />;
 }

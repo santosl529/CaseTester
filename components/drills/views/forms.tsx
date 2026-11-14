@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { AppPage } from '@/components/brand/page';
-import { BackLink } from '@/components/brand/links';
 import { OnboardingForm, type AvailabilityOption } from '@/components/drills/onboarding-form';
 import { QuestionnaireForm } from '@/components/drills/questionnaire-form';
 import { ProgramSettings } from '@/components/drills/program-settings';
@@ -24,7 +23,6 @@ export function StartScreen({ availability, today }: { availability: Availabilit
 export function QuestionnaireScreen(props: React.ComponentProps<typeof QuestionnaireForm>) {
   return (
     <AppPage width="narrow" className="space-y-8">
-      <nav><BackLink href="/drills">Training home</BackLink></nav>
       <header className="space-y-2">
         <h1 className="t-title">A few questions</h1>
         <p className="t-small text-ink/70">About 2–3 minutes. Your answers set where each skill starts; your first workouts include short checks that adjust it. A diagnostic or a full case later makes it more accurate.</p>
@@ -37,7 +35,6 @@ export function QuestionnaireScreen(props: React.ComponentProps<typeof Questionn
 export function SettingsScreen(props: React.ComponentProps<typeof ProgramSettings>) {
   return (
     <AppPage width="narrow" className="space-y-8">
-      <nav><BackLink href="/drills">Training home</BackLink></nav>
       <h1 className="t-title">Training settings</h1>
       <ProgramSettings {...props} />
     </AppPage>

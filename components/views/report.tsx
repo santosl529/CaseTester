@@ -6,7 +6,8 @@ import { buttonVariants } from '@/components/ui/button';
 import { ReportCard } from '@/components/report-card';
 import { PostCaseSurvey } from '@/components/post-case-survey';
 import { PrepareReport } from '@/components/prepare-report';
-import { SiteHeader } from '@/components/site-header';
+import { AppNav } from '@/components/app-nav';
+import { Breadcrumbs } from '@/components/brand/breadcrumbs';
 import type { ReportDimension } from '@/lib/scoring/report-dimensions';
 import type { PlainPoint } from '@/lib/scoring/judge';
 import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
@@ -22,13 +23,19 @@ const RATING_BADGE: Record<string, 'strong' | 'adequate' | 'needsWork'> = {
 // The feedback report; app/case/[sessionId]/report/page.tsx checks access
 // and loads the score and the transcript.
 
+// The trail above the title: Cases / <case> report.
+const trail = (caseTitle: string) => <Breadcrumbs trail={[{ label: 'Cases', href: '/home' }, { label: `${caseTitle} report` }]} />;
+
 // A completed case not scored yet: the page offers to prepare it.
-export function UnscoredReportScreen({ sessionId }: { sessionId: string }) {
+export function UnscoredReportScreen({ sessionId, caseTitle }: { sessionId: string; caseTitle: string }) {
   return (
       <>
-        <SiteHeader />
+        <AppNav />
         <AppPage className="space-y-8">
-          <h1 className="t-title">Interview feedback</h1>
+          <div className="space-y-3">
+            {trail(caseTitle)}
+            <h1 className="t-title">Interview feedback</h1>
+          </div>
           <PrepareReport sessionId={sessionId} />
         </AppPage>
       </>
@@ -37,6 +44,7 @@ export function UnscoredReportScreen({ sessionId }: { sessionId: string }) {
 
 export interface ReportData {
   sessionId: string;
+  caseTitle: string;
   // Rule 18A: the candidate ended the interview early — feedback on what was covered.
   partial: boolean;
   overallRating: string | null;
@@ -48,11 +56,13 @@ export interface ReportData {
   turns: { id: string; role: string; text: string; clock: string }[];
 }
 
-export function ReportScreen({ sessionId, partial, overallRating, hasTopFix, topFix, topFixLine, dimensions, modelAnswer, turns }: ReportData) {
+export function ReportScreen({ sessionId, caseTitle, partial, overallRating, hasTopFix, topFix, topFixLine, dimensions, modelAnswer, turns }: ReportData) {
   return (
     <>
-    <SiteHeader />
+    <AppNav />
     <AppPage className="space-y-10">
+      <div className="space-y-3">
+      {trail(caseTitle)}
       <header className="flex flex-wrap items-center gap-x-4 gap-y-3">
         <h1 className="t-title">Interview feedback</h1>
         {partial ? (
@@ -70,6 +80,7 @@ export function ReportScreen({ sessionId, partial, overallRating, hasTopFix, top
           <Download aria-hidden="true" />Download PDF
         </a>
       </header>
+      </div>
 
       {/* The top improvement in Sky (Matt, 7 Nov), Ink text on it. */}
       {hasTopFix && (

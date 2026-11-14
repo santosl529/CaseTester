@@ -14,13 +14,21 @@ describe('safeNext', () => {
       'https://evil.example', 'http://evil.example/home', '//evil.example', '//evil.example/home',
       '/\\evil.example', '\\\\evil.example', '/%2F%2Fevil.example', '/%5Cevil.example', 'javascript:alert(1)',
       'home', ' /home', '/home\n', '/\t/evil.example', 'mailto:a@b.c', '/sign-in', '/sign-in?next=/home',
-    ]) expect(safeNext(bad), bad).toBe('/home');
+    ]) expect(safeNext(bad), bad).toBe('/drills');
   });
 
-  it('falls back to /home when missing or not a single string', () => {
-    expect(safeNext(undefined)).toBe('/home');
-    expect(safeNext('')).toBe('/home');
-    expect(safeNext(['/drills', '/home'])).toBe('/home');
+  // After sign-in, Today (Matt, 13 Nov): the training home, which sends a
+  // student with no training set up to "Set up your training" first.
+  it('falls back to Today (/drills) when missing or not a single string', () => {
+    expect(safeNext(undefined)).toBe('/drills');
+    expect(safeNext('')).toBe('/drills');
+    expect(safeNext(['/drills', '/home'])).toBe('/drills');
+  });
+
+  it('still honours ?next= exactly as before', () => {
+    expect(safeNext('/home')).toBe('/home');
+    expect(safeNext('/home#cases')).toBe('/home#cases');
+    expect(safeNext('/start/brew-and-bean')).toBe('/start/brew-and-bean');
   });
 });
 

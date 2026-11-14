@@ -77,14 +77,14 @@ function queue(): ReportQueueData {
 }
 
 export const INTERNAL_SCREENS: Screen[] = [
-  { slug: 'pilot-reports', chrome: 'drills', area: 'Internal', title: 'Pilot reports (local development only)', render: () => { const { r, fb } = reports(); return { node: <PilotReports r={r} fb={fb} orgs={['harvard-cc', 'wharton-cc']} org={null} days={28} type={undefined} page={undefined} /> }; } },
+  { slug: 'pilot-reports', path: '/drills/reports', chrome: 'drills', area: 'Internal', title: 'Pilot reports (local development only)', render: () => { const { r, fb } = reports(); return { node: <PilotReports r={r} fb={fb} orgs={['harvard-cc', 'wharton-cc']} org={null} days={28} type={undefined} page={undefined} /> }; } },
   {
-    slug: 'lesson-review', chrome: 'drills', area: 'Internal', title: 'Lesson review (local development only)',
+    slug: 'lesson-review', path: '/drills/review/lessons', chrome: 'drills', area: 'Internal', title: 'Lesson review (local development only)',
     render: () => {
       const order = DRILLS_CONFIG.taxonomy.skills.map(x => x.id);
       const all = loadLessons().sort((a, b) => order.indexOf(a.skill_id) - order.indexOf(b.skill_id));
       return { node: <LessonReviewScreen lessons={all.slice(0, 3)} missing={P0_LESSON_SKILLS().filter(id => !all.some(l => l.skill_id === id))} intro={loadIntroLesson()} />, api: [{ method: 'POST', path: '/api/drills/review/lessons', body: { ok: true } }] };
     },
   },
-  { slug: 'report-queue', chrome: 'drills', area: 'Internal', title: 'Report queue (local development only)', render: () => ({ node: <ReportQueueScreen {...queue()} />, api: [{ method: 'PUT', path: '/api/drills/review/reports/.*', body: { ok: true } }] }) },
+  { slug: 'report-queue', path: '/drills/review/reports', chrome: 'drills', area: 'Internal', title: 'Report queue (local development only)', render: () => ({ node: <ReportQueueScreen {...queue()} />, api: [{ method: 'PUT', path: '/api/drills/review/reports/.*', body: { ok: true } }] }) },
 ];

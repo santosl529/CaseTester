@@ -4,21 +4,26 @@ import { AppPage } from '@/components/brand/page';
 import { ChatWindow } from '@/components/chat-window';
 import { CaseEndPanel } from '@/components/case-end-panel';
 import { VoiceRoom } from '@/components/voice-room';
-import { SiteHeader } from '@/components/site-header';
+import { AppNav, FocusScope } from '@/components/app-nav';
 import { StartCaseButton } from '@/components/start-case-button';
 import { caseHref } from '@/lib/site/case-href';
 import type { ListedCase } from '@/lib/cases/listed';
 
 // The interview screens: text, voice and a link-only case's start page.
 // Their pages (app/case/[sessionId], …/voice, app/start/[caseId]) check
-// access and load the session.
+// access and load the session. While an interview runs the bar is in focus
+// mode (the logo and Exit); the end panel brings the full bar back.
+
+// Leaving stops the interview, so Exit asks first.
+const LEAVE_CASE = 'Leave this page? If the interview is still going, it stops here and won’t be scored.';
 
 export function TextCaseScreen({ sessionId, active, completed, phase, casePrompt, initialMessage }: {
   sessionId: string; active: boolean; completed: boolean; phase: string; casePrompt: string | null; initialMessage: string;
 }) {
   return (
+    <FocusScope>
     <div className="h-dvh flex flex-col">
-    <SiteHeader inCase={active} />
+    <AppNav focus={active ? { confirm: LEAVE_CASE } : undefined} />
     <main className="flex-1 min-h-0 w-full flex flex-col max-w-3xl mx-auto">
       <header className="border-b border-ink/12 px-6 py-3">
         <div className="flex items-center justify-between gap-4">
@@ -39,6 +44,7 @@ export function TextCaseScreen({ sessionId, active, completed, phase, casePrompt
       </div>
     </main>
     </div>
+    </FocusScope>
   );
 }
 
@@ -58,8 +64,9 @@ export function VoiceCaseScreen({ sessionId, active, completed, casePrompt }: {
   sessionId: string; active: boolean; completed: boolean; casePrompt: string | null;
 }) {
   return (
+    <FocusScope>
     <div className="h-dvh flex flex-col">
-    <SiteHeader inCase={active} />
+    <AppNav focus={active ? { confirm: LEAVE_CASE } : undefined} />
     <main className="flex-1 min-h-0 w-full flex flex-col max-w-3xl mx-auto">
       <header className="t-small border-b border-ink/12 px-6 py-3 font-semibold">Case interview <span className="font-normal text-ink/70">— voice</span></header>
       <div className="flex-1 min-h-0">
@@ -70,13 +77,14 @@ export function VoiceCaseScreen({ sessionId, active, completed, casePrompt }: {
       </div>
     </main>
     </div>
+    </FocusScope>
   );
 }
 
 export function StartCaseScreen({ c, minutes }: { c: ListedCase; minutes: number }) {
   return (
     <>
-      <SiteHeader />
+      <AppNav />
       <AppPage width="narrow" className="space-y-6">
         <header className="space-y-3">
           <h1 className="t-title text-balance">{c.title}</h1>

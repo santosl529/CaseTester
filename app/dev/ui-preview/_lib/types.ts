@@ -10,5 +10,7 @@ export interface Screen {
   pilot?: boolean;
   // Drills pages sit in the drills layout's header and feedback button.
   chrome?: 'drills';
+  // The app path it previews, for the app's bar (its highlighted area).
+  path?: string;
   render: () => { node: React.ReactNode; api?: Canned[] } | Promise<{ node: React.ReactNode; api?: Canned[] }>;
 }

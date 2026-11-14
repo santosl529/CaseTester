@@ -1,7 +1,7 @@
 'use client';
-import { useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState } from 'react';
 import { usePathname } from 'next/navigation';
-import { MessageSquare } from 'lucide-react';
+import { ArrowRight, MessageSquare, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 // D6 pilot feedback (docs/prd-drills.md "Pilot feedback"): the feedback
@@ -183,9 +183,18 @@ const QUESTION = {
   week_1: 'You’ve finished your first week. What would make this more useful?',
 } as const;
 
+// Folded on the training home (Matt, 13 Nov): one line at the end of the
+// page that opens the question.
+const FOLDED = {
+  set_usefulness: QUESTION.set_usefulness,
+  first_case: 'Finished your first full case? Tell us what would make CasePace more useful',
+  week_1: 'Finished your first week? Tell us what would make CasePace more useful',
+} as const;
+
 // Inline on the results page (usefulness) or the training home (the open
-// questions). "Not now" dismisses it for good.
-export function CheckIn({ id, kind }: { id: string; kind: keyof typeof QUESTION }) {
+// questions, `folded`). "Not now" and × dismiss it for good.
+export function CheckIn({ id, kind, folded = false }: { id: string; kind: keyof typeof QUESTION; folded?: boolean }) {
+  const [unfolded, setUnfolded] = useState(!folded);
   const [rating, setRating] = useState<number | null>(null);
   const [text, setText] = useState('');
   const [state, setState] = useState<'open' | 'busy' | 'sent' | 'dismissed'>('open');
@@ -197,12 +206,32 @@ export function CheckIn({ id, kind }: { id: string; kind: keyof typeof QUESTION 
     const problem = await post(`/api/drills/checkins/${id}`, body);
     if (problem) { setError(problem); setState('open'); } else setState(done);
   };
+  // Opened from its line: focus moves to the question's first field.
+  const form = useRef<HTMLFormElement>(null);
+  useEffect(() => {
+    if (folded && unfolded) form.current?.querySelector<HTMLElement>('input, textarea')?.focus();
+  }, [folded, unfolded]);
   if (state === 'dismissed') return null;
+  if (!unfolded) {
+    return (
+      <button type="button" aria-expanded={false} onClick={() => setUnfolded(true)}
+        className="t-small group inline-flex cursor-pointer items-center gap-1.5 text-left text-ink/75 underline-offset-4 transition-colors hover:text-cobalt hover:underline motion-reduce:transition-none">
+        {FOLDED[kind]}<ArrowRight aria-hidden="true" className="size-4 flex-none" />
+      </button>
+    );
+  }
   if (state === 'sent') return <p role="status" className="t-small rounded-panel border border-ink/12 bg-white p-5">Thanks for telling us.</p>;
   return (
     <section aria-labelledby={`${uid}-q`} className="space-y-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
-      <h2 id={`${uid}-q`} className="t-small font-semibold">{QUESTION[kind]}</h2>
-      <form className="space-y-3" onSubmit={e => {
+      <div className="flex items-start justify-between gap-3">
+        <h2 id={`${uid}-q`} className="t-small font-semibold">{QUESTION[kind]}</h2>
+        {/* × does what Not now does (Matt, 13 Nov). */}
+        <button type="button" aria-label="Dismiss" disabled={state === 'busy'} onClick={() => void send({ action: 'dismiss' }, 'dismissed')}
+          className="-mt-1 -mr-1 flex size-8 flex-none cursor-pointer items-center justify-center rounded-full text-ink/60 transition-colors hover:bg-paper hover:text-ink disabled:opacity-50 motion-reduce:transition-none">
+          <X aria-hidden="true" className="size-4" />
+        </button>
+      </div>
+      <form ref={form} className="space-y-3" onSubmit={e => {
         e.preventDefault();
         void send({ action: 'answer', rating: rating ?? undefined, comment: text }, 'sent');
       }}>

@@ -5,8 +5,9 @@ import { Button } from '@/components/ui/button';
 
 // Starts a drill set (a workout block, a suggestion or a quick start) and
 // opens it. If another set is in progress, opens that one instead.
-export function StartSetButton({ body, label, variant = 'default', size = 'default' }: {
-  body: Record<string, unknown>; label: string;
+// `name`: the accessible name when the visible label is short ("Start" on a drill card).
+export function StartSetButton({ body, label, name, variant = 'default', size = 'default' }: {
+  body: Record<string, unknown>; label: string; name?: string;
   variant?: 'default' | 'outline' | 'ghost'; size?: 'default' | 'sm' | 'lg';
 }) {
   const router = useRouter();
@@ -22,7 +23,7 @@ export function StartSetButton({ body, label, variant = 'default', size = 'defau
   }
   return (
     <span className="inline-flex flex-col gap-1">
-      <Button variant={variant} size={size} onClick={start} disabled={busy}>{label}</Button>
+      <Button variant={variant} size={size} onClick={start} disabled={busy} aria-label={name}>{label}</Button>
       {error && <span role="alert" className="t-label text-alert">{error}</span>}
     </span>
   );

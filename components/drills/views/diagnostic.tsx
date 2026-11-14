@@ -1,6 +1,5 @@
 import Link from 'next/link';
 import { AppPage } from '@/components/brand/page';
-import { BackLink } from '@/components/brand/links';
 import { ProgressLine, StepDot } from '@/components/brand/progress';
 import { DRILLS_CONFIG } from '@/lib/drills/config';
 import type { diagnosticView } from '@/lib/drills/program/diagnostic-store';
@@ -11,7 +10,7 @@ import { RefreshWhileGrading, SkipDiagnosticButton } from '@/components/drills/d
 
 const PLACE = {
   recognize: 'Starts with recognizing good answers',
-  recognize_t2: 'Starts with recognizing good answers, at tier 2',
+  recognize_t2: 'Starts with recognizing good answers, at Level 2',
   repair: 'Starts with fixing flawed answers',
   test_out: 'Starts with building answers (test-out)',
 } as const;
@@ -23,12 +22,10 @@ export type DiagnosticData = Awaited<ReturnType<typeof diagnosticView>>;
 export function DiagnosticScreen({ view, track, retake }: { view: DiagnosticData; track: ProgramRow['track'] | null; retake: boolean }) {
   const parts = DRILLS_CONFIG.programs.diagnostic.parts.length;
   const running = view && (view.status === 'in_progress' || (view.status === 'skipped' && view.done < parts));
-  const nav = <nav><BackLink href="/drills">Training home</BackLink></nav>;
 
   if (!view || (view.status === 'skipped' && view.done === 0) || retake) {
     return (
       <AppPage width="narrow" className="space-y-8">
-        {nav}
         <header className="space-y-3">
           <h1 className="t-title">{retake ? 'Take the diagnostic again' : 'Find your starting point'}</h1>
           <p className="t-small">A 15-minute check across structuring, hypotheses, math, charts, recommendations and next steps: {parts} short parts, one after another.</p>
@@ -49,7 +46,6 @@ export function DiagnosticScreen({ view, track, retake }: { view: DiagnosticData
   const next = view.next;
   return (
     <AppPage width="narrow" className="space-y-8">
-      {nav}
       {view.grading && <RefreshWhileGrading />}
       <header className="space-y-3">
         <h1 className="t-title">{view.status === 'completed' ? 'Your starting point' : 'Diagnostic'}</h1>

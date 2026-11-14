@@ -24,5 +24,6 @@ export default async function ProgressPage({ searchParams }: { searchParams: Pro
     await logDrillEvent(studentId, 'dashboard_filter_changed', { filter: q.changed, value: params[q.changed as keyof typeof params] });
   }
 
-  return <ProgressScreen v={v} window={window} period={period} group={group} />;
+  // The summary's window lives in More detail: keep it open after changing it.
+  return <ProgressScreen v={v} window={window} period={period} group={group} openDetail={q.changed === 'window'} />;
 }

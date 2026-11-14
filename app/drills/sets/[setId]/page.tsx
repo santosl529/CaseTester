@@ -12,5 +12,5 @@ export default async function DrillSetPage({ params }: { params: Promise<{ setId
   });
   if (view.status === 'completed') redirect(`/drills/sets/${setId}/results`);
 
-  return <SetScreen view={view} expired={view.status === 'expired'} />;
+  return <SetScreen view={view} expired={view.status === 'expired'} fromWorkout={view.from_workout} />;
 }
