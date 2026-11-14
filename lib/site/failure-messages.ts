@@ -3,6 +3,7 @@
 import { VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
 import { MAX_TURN_CHARS } from '@/lib/turn-limits';
 import { limitMessage } from '@/lib/site/limit-message';
+import { PROBLEM_REPORT_MAX } from '@/lib/site/problem-report';
 
 type Body = Record<string, unknown> | null;
 export const OFFLINE = 'We couldn’t reach the server. Check your connection and try again.';
@@ -52,4 +53,14 @@ export function downloadFailure(status: number, data: Body): string {
   if (status === 404) return 'This report isn’t available to download.';
   if (status === 401) return SIGNED_OUT('to download your report.');
   return 'The PDF couldn’t be made just now. Please try again in a minute.';
+}
+
+// Report a problem (lib/site/problem-report.ts).
+export function reportFailure(status: number, data: Body): string {
+  if (status === 0) return OFFLINE;
+  if (status === 400 && data?.error === 'too_long') return `Keep it under ${PROBLEM_REPORT_MAX} characters.`;
+  if (status === 400) return 'Write what went wrong first.';
+  if (status === 429) return `You’ve sent several reports in the last hour. Try again in ${wait(data?.retryAfterSec)}.`;
+  if (status === 401) return SIGNED_OUT('to send your report.');
+  return 'Your report couldn’t be sent just now. Please try again in a few minutes.';
 }

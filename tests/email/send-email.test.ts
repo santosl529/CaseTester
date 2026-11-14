@@ -30,3 +30,12 @@ describe('sendEmail', () => {
     expect(err.message).not.toContain('secret-key');
   });
 });
+
+describe('sendEmail reply-to (Report a problem, 14 Nov)', () => {
+  it('passes reply_to when given, so a reply goes to the student', async () => {
+    let body: Record<string, unknown> = {};
+    const fake = (async (_u: string, init: RequestInit) => { body = JSON.parse(init.body as string); return new Response('{}', { status: 200 }); }) as unknown as typeof fetch;
+    await sendEmail({ apiKey: 'k', from: 'a@b.io' }, { to: 'us@casepace.io', subject: 's', text: 't', html: 'h', replyTo: 'ann@example.com' }, fake);
+    expect(body.reply_to).toBe('ann@example.com');
+  });
+});
