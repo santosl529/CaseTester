@@ -243,6 +243,8 @@ export const START_LABEL_SHORT = 'Free diagnostic';
 
 export const HOME_HREF = '/';
 export const PRODUCT_HREF = '/how-it-works';
+export const PRIVACY_HREF = '/privacy';
+export const VOICE_POLICY_HREF = '/voice-policy';
 
 export const META = {
   home: { title: `${BRAND} | AI mock case interviews and training`, description: `${BRAND} runs mock case interviews with an AI interviewer, by voice or text, and rates you on the 8 skills case interviews test, with a diagnostic, lessons and drills to practice between cases.` },

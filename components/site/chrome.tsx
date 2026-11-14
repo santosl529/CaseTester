@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { BRAND, CLOSE, HOME_HREF, PRODUCT_HREF } from './content';
+import { BRAND, CLOSE, HOME_HREF, PRIVACY_HREF, PRODUCT_HREF, VOICE_POLICY_HREF } from './content';
 import { StartCta } from './cta';
 import s from './exhibition.module.css';
 
@@ -37,8 +37,10 @@ export function SiteFooter() {
       <div className="border-t border-(--ink)/12 py-8">
         <div className="flex flex-wrap items-baseline justify-between gap-x-8 gap-y-3">
           <p className="t-body font-semibold">{BRAND}</p>
-          <nav aria-label="Footer">
+          <nav aria-label="Footer" className="flex flex-wrap gap-x-6 gap-y-2">
             <Link href={PRODUCT_HREF} className="link t-small">Product</Link>
+            <Link href={PRIVACY_HREF} className="link t-small">Privacy Policy</Link>
+            <Link href={VOICE_POLICY_HREF} className="link t-small">Voice and Biometric Data Policy</Link>
           </nav>
         </div>
         <p className={`t-label mt-3 max-w-[48rem] ${MUTED}`}>
