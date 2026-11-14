@@ -34,7 +34,7 @@ export function ChangeClubForm() {
 
   return (
     <form
-      className="flex max-w-md flex-col gap-2 sm:flex-row"
+      className="flex max-w-md flex-col gap-2 sm:flex-row sm:flex-wrap"
       onSubmit={e => {
         e.preventDefault();
         void run(async () => {
@@ -51,7 +51,7 @@ export function ChangeClubForm() {
         });
       }}
     >
-      <Input placeholder="New club code" aria-label="New club code" autoCapitalize="characters" autoComplete="off" value={code} onChange={e => setCode(e.target.value)} required />
+      <Input className="sm:min-w-0 sm:flex-1" placeholder="New club code" aria-label="New club code" autoCapitalize="characters" autoComplete="off" value={code} onChange={e => setCode(e.target.value)} required />
       <Button type="submit" disabled={busy}>{busy ? 'Checking…' : 'Change club'}</Button>
       {message && <p role={message.ok ? 'status' : 'alert'} className={`t-small sm:basis-full ${message.ok ? 'text-ink' : 'text-alert'}`}>{message.text}</p>}
     </form>
