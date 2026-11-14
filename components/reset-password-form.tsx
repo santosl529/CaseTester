@@ -3,7 +3,7 @@ import { useRef, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { resetErrorMessage } from '@/lib/site/auth-messages';
 import { PASSWORD_MAX, PASSWORD_MIN } from '@/lib/site/sign-up-rules';
 
@@ -40,22 +40,23 @@ export function ResetPasswordForm() {
   }
 
   return (
-    <main className="min-h-dvh flex items-center justify-center bg-neutral-50 p-4">
+    <main className="flex min-h-dvh items-center justify-center bg-paper px-6 py-12">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle><Link href="/" className="hover:underline underline-offset-4">CasePace</Link></CardTitle>
+          {/* The page's heading: the brand, a link home (as on /sign-in). */}
+          <h1 className="t-title"><Link href="/" className="transition-colors hover:text-cobalt motion-reduce:transition-none">CasePace</Link></h1>
         </CardHeader>
         <CardContent>
           {done ? (
-            <p role="status" className="text-sm text-green-700">Password changed. Taking you to your home page…</p>
+            <p role="status" className="t-body text-ink">Password changed. Taking you to your home page…</p>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
-              <p className="text-sm text-neutral-600">Choose a new password.</p>
-              <Input placeholder={`New password (at least ${PASSWORD_MIN} characters)`} type="password" autoComplete="new-password" minLength={PASSWORD_MIN} maxLength={PASSWORD_MAX} value={password} onChange={e => setPassword(e.target.value)} required />
-              <Input placeholder="Type it again" type="password" autoComplete="new-password" minLength={PASSWORD_MIN} maxLength={PASSWORD_MAX} value={confirm} onChange={e => setConfirm(e.target.value)} required />
-              {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
-              {error === resetErrorMessage({ error: 'Unauthorized' }) && <p className="text-sm"><Link href="/forgot-password" className="underline">Request a new link</Link></p>}
-              <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Saving…' : 'Set new password'}</Button>
+              <p className="t-small text-ink/70">Choose a new password.</p>
+              <Input placeholder={`New password (at least ${PASSWORD_MIN} characters)`} aria-label="New password" type="password" autoComplete="new-password" minLength={PASSWORD_MIN} maxLength={PASSWORD_MAX} value={password} onChange={e => setPassword(e.target.value)} required />
+              <Input placeholder="Type it again" aria-label="New password, again" type="password" autoComplete="new-password" minLength={PASSWORD_MIN} maxLength={PASSWORD_MAX} value={confirm} onChange={e => setConfirm(e.target.value)} required />
+              {error && <p role="alert" className="t-small text-alert">{error}</p>}
+              {error === resetErrorMessage({ error: 'Unauthorized' }) && <p className="t-small"><Link href="/forgot-password" className="link">Request a new link</Link></p>}
+              <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? 'Saving…' : 'Set new password'}</Button>
             </form>
           )}
         </CardContent>
