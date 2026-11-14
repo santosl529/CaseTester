@@ -27,7 +27,7 @@ export function ResendVerification({ email }: { email: string }) {
   return (
     <div className="space-y-2">
       <Button type="button" variant="outline" className="w-full" onClick={resend} disabled={busy}>{busy ? 'Sending…' : 'Resend the email'}</Button>
-      {result && <p role={result.ok ? 'status' : 'alert'} className={`text-sm ${result.ok ? 'text-green-700' : 'text-red-600'}`}>{result.text}</p>}
+      {result && <p role={result.ok ? 'status' : 'alert'} className={`t-small ${result.ok ? 'text-ink' : 'text-alert'}`}>{result.text}</p>}
     </div>
   );
 }

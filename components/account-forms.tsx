@@ -51,9 +51,9 @@ export function ChangeClubForm() {
         });
       }}
     >
-      <Input placeholder="New club code" autoCapitalize="characters" autoComplete="off" value={code} onChange={e => setCode(e.target.value)} required />
+      <Input placeholder="New club code" aria-label="New club code" autoCapitalize="characters" autoComplete="off" value={code} onChange={e => setCode(e.target.value)} required />
       <Button type="submit" disabled={busy}>{busy ? 'Checking…' : 'Change club'}</Button>
-      {message && <p role={message.ok ? 'status' : 'alert'} className={`text-sm sm:basis-full ${message.ok ? 'text-green-700' : 'text-red-600'}`}>{message.text}</p>}
+      {message && <p role={message.ok ? 'status' : 'alert'} className={`t-small sm:basis-full ${message.ok ? 'text-ink' : 'text-alert'}`}>{message.text}</p>}
     </form>
   );
 }
@@ -68,14 +68,14 @@ export function DeleteAccountForm({ email }: { email: string }) {
   if (!open) {
     return (
       <div className="space-y-2">
-        <p className="text-sm text-neutral-600">Permanently delete your account and everything in it.</p>
-        <Button type="button" variant="outline" className="border-red-300 text-red-700 hover:bg-red-50" onClick={() => setOpen(true)}>Delete my account…</Button>
+        <p className="t-small text-ink/70">Permanently delete your account and everything in it.</p>
+        <Button type="button" variant="destructive" onClick={() => setOpen(true)}>Delete my account…</Button>
       </div>
     );
   }
   return (
     <form
-      className="max-w-md space-y-3 rounded-md border border-red-200 bg-red-50/50 p-4"
+      className="max-w-md space-y-3 rounded-panel border border-alert/30 bg-white p-5"
       onSubmit={e => {
         e.preventDefault();
         if (!matches) return;
@@ -88,16 +88,16 @@ export function DeleteAccountForm({ email }: { email: string }) {
         });
       }}
     >
-      <p className="text-sm">
+      <p className="t-small text-ink">
         This deletes your login, your interviews, transcripts and reports, and your drills progress. It can’t be undone.
       </p>
-      <label className="block space-y-1 text-sm">
+      <label className="t-small block space-y-1">
         <span>Type your email (<strong>{email}</strong>) to confirm:</span>
         <Input type="email" autoComplete="off" value={typed} onChange={e => setTyped(e.target.value)} />
       </label>
-      {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
+      {error && <p role="alert" className="t-small text-alert">{error}</p>}
       <div className="flex gap-2">
-        <Button type="submit" disabled={!matches || busy} className="bg-red-600 text-white hover:bg-red-700">{busy ? 'Deleting…' : 'Delete my account'}</Button>
+        <Button type="submit" disabled={!matches || busy} className="border-alert bg-alert text-white hover:bg-alert/90">{busy ? 'Deleting…' : 'Delete my account'}</Button>
         <Button type="button" variant="ghost" disabled={busy} onClick={() => { setOpen(false); setTyped(''); setError(''); }}>Cancel</Button>
       </div>
     </form>
