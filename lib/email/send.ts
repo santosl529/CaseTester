@@ -4,7 +4,8 @@
 import 'server-only';
 
 export type EmailConfig = { apiKey: string; from: string };
-export type EmailMessage = { to: string; subject: string; text: string; html: string };
+// `replyTo`: where a reply goes (Report a problem: the student).
+export type EmailMessage = { to: string; subject: string; text: string; html: string; replyTo?: string };
 const DEFAULT_FROM = 'CasePace <noreply@casepace.io>';
 
 export function emailConfig(env: Record<string, string | undefined> = process.env): EmailConfig | null {
@@ -17,7 +18,7 @@ export async function sendEmail(cfg: EmailConfig, msg: EmailMessage, fetchImpl: 
   const res = await fetchImpl('https://api.resend.com/emails', {
     method: 'POST',
     headers: { Authorization: `Bearer ${cfg.apiKey}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ from: cfg.from, to: [msg.to], subject: msg.subject, text: msg.text, html: msg.html }),
+    body: JSON.stringify({ from: cfg.from, to: [msg.to], subject: msg.subject, text: msg.text, html: msg.html, ...(msg.replyTo ? { reply_to: msg.replyTo } : {}) }),
     signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) {

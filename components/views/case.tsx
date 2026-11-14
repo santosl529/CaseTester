@@ -5,6 +5,7 @@ import { ChatWindow } from '@/components/chat-window';
 import { CaseEndPanel } from '@/components/case-end-panel';
 import { VoiceRoom } from '@/components/voice-room';
 import { AppNav, FocusScope } from '@/components/app-nav';
+import { ReportProblem } from '@/components/report-problem-link';
 import { StartCaseButton } from '@/components/start-case-button';
 import { caseHref } from '@/lib/site/case-href';
 import type { ListedCase } from '@/lib/cases/listed';
@@ -31,9 +32,12 @@ export function TextCaseScreen({ sessionId, active, completed, casePrompt, initi
               to the end, and the phase names are internal. */}
           <div className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— text</span></div>
           {/* Voice is the default (Lorenzo, 6 Nov); text to voice mid-case is safe — the agent reads the turns so far. */}
-          {active && (
-            <Link href={caseHref(sessionId, 'voice')} className="link t-small whitespace-nowrap">Switch to voice</Link>
-          )}
+          <div className="flex items-center gap-4">
+            <ReportProblem sessionId={sessionId} />
+            {active && (
+              <Link href={caseHref(sessionId, 'voice')} className="link t-small whitespace-nowrap">Switch to voice</Link>
+            )}
+          </div>
         </div>
         {casePrompt && <CasePrompt text={casePrompt} />}
       </header>
@@ -72,7 +76,10 @@ export function VoiceCaseScreen({ sessionId, active, completed, casePrompt, cons
     <div className="h-dvh flex flex-col">
     <AppNav focus={active ? { confirm: LEAVE_CASE } : undefined} />
     <main className="flex-1 min-h-0 w-full flex flex-col max-w-3xl mx-auto">
-      <header className="t-small border-b border-ink/12 px-6 py-3 font-semibold">Case interview <span className="font-normal text-ink/70">— voice</span></header>
+      <header className="flex items-center justify-between gap-4 border-b border-ink/12 px-6 py-3">
+        <div className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— voice</span></div>
+        <ReportProblem sessionId={sessionId} />
+      </header>
       <div className="flex-1 min-h-0">
         {active
           // The room's own "Score this interview" is the report button; the end screen adds the links (site flow, 19 Oct).

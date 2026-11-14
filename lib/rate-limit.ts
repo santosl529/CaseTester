@@ -20,6 +20,8 @@ export const RATE_LIMIT_DEFAULTS = {
   reportPdf: { limit: 10, windowMs: HOUR, env: 'RATE_LIMIT_REPORT_PDFS_PER_HOUR' },
   passwordReset: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_PASSWORD_RESETS_PER_HOUR' },
   verifyResend: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_VERIFY_EMAILS_PER_HOUR' },
+  // Report a problem (14 Nov): each report is an email to the founders.
+  problemReport: { limit: 5, windowMs: HOUR, env: 'RATE_LIMIT_PROBLEM_REPORTS_PER_HOUR' },
 } as const;
 export type RateRuleName = keyof typeof RATE_LIMIT_DEFAULTS;
 export type RateRule = { name: string; limit: number; windowMs: number };

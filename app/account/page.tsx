@@ -8,6 +8,7 @@ import { clubOrgId } from '@/lib/club';
 import { AppNav } from '@/components/app-nav';
 import { AppPage } from '@/components/brand/page';
 import { ChangeClubForm, DeleteAccountForm } from '@/components/account-forms';
+import { ReportProblem } from '@/components/report-problem-link';
 
 export const metadata: Metadata = { title: 'Account', robots: { index: false } };
 
@@ -32,6 +33,12 @@ export default async function AccountPage() {
           <h2 className="t-heading font-semibold">Change club</h2>
           <p className="t-small text-ink/70">Moved to a different consulting club? Enter its access code.</p>
           <ChangeClubForm />
+        </section>
+        {/* The policies send questions, data requests and voice-consent withdrawals here (Lorenzo, 14 Nov). */}
+        <section className="space-y-3">
+          <h2 className="t-heading font-semibold">Need help?</h2>
+          <p className="t-small text-ink/70">Questions, a copy or correction of your data, or withdrawing voice consent: send us a note and we’ll reply by email.</p>
+          <ReportProblem />
         </section>
         <section className="space-y-3 border-t border-ink/14 pt-8">
           <h2 className="t-heading font-semibold text-alert">Delete account</h2>
