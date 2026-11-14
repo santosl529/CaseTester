@@ -10,6 +10,8 @@ const h = vi.hoisted(() => ({
   grants: [] as unknown[],
   rooms: [] as { name: string; numParticipants: number; creationTime: bigint }[],
 }));
+// Voice consent on file unless a test says otherwise (lib/voice/consent.ts).
+vi.mock('@/lib/voice/consent', () => ({ voiceConsentFor: async () => (globalThis as { __noVoiceConsent?: boolean }).__noVoiceConsent !== true }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: h.user } }) } }) }));
 vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => h.session } } } }));
 // The dispatch claim (lib/voice/dispatch-claim.ts), as Postgres would decide it: the first caller wins.
@@ -54,6 +56,17 @@ describe('voice token route', () => {
   it('409 when the session is no longer active', async () => {
     h.session = { ...h.session, status: 'completed' };
     expect((await call()).status).toBe(409);
+  });
+  it('403 consent_required without voice consent on file, before any LiveKit work or dispatch (Lorenzo, 14 Nov)', async () => {
+    (globalThis as { __noVoiceConsent?: boolean }).__noVoiceConsent = true;
+    try {
+      const res = await call();
+      expect(res.status).toBe(403);
+      expect(await res.json()).toEqual({ error: 'consent_required' });
+      expect(h.createDispatch).not.toHaveBeenCalled();
+    } finally {
+      delete (globalThis as { __noVoiceConsent?: boolean }).__noVoiceConsent;
+    }
   });
   it('503 when LiveKit is not configured', async () => {
     delete process.env.LIVEKIT_API_SECRET;

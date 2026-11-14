@@ -18,6 +18,8 @@ import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
 import { agentAudioWatchdog, CONNECTING_MESSAGE, VOICE_BUSY_MESSAGE } from '@/lib/voice/capacity';
 import { caseHref } from '@/lib/site/case-href';
+import { VoiceConsentGate } from '@/components/voice-consent';
+import { VOICE_CONSENT_VERSION } from '@/lib/voice/consent-rules';
 import { HealthMeter } from '@/lib/voice/health';
 import { ReadyGate } from '@/lib/voice/ready-gate';
 import { SETUP_LINE_DELAY_MS, SetupTimings } from '@/lib/voice/setup-timing';
@@ -57,8 +59,11 @@ const fillerPref = fillerPrefStore(() => { try { return typeof window === 'undef
 
 // `endActions`: shown once the case is over (the site's end screen links, site
 // flow 19 Oct) — display only; ending and scoring are unchanged.
-export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: string; casePrompt: string | null; endActions?: React.ReactNode }) {
+// `consented`: the student's voice consent is on file (lib/voice/consent.ts). Without it Start is the consent panel
+// (components/voice-consent.tsx), and the token route refuses anyway.
+export function VoiceRoom({ sessionId, casePrompt, endActions, consented: consentedAtLoad }: { sessionId: string; casePrompt: string | null; endActions?: React.ReactNode; consented: boolean }) {
   const router = useRouter();
+  const [consented, setConsented] = useState(consentedAtLoad);
   const [view, dispatch] = useReducer(applyMessage, initialView);
   const [local, setLocal] = useState<'idle' | 'connecting' | 'live' | 'ended'>('idle');
   const [needsClick, setNeedsClick] = useState(false);
@@ -98,7 +103,8 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
   useEffect(() => {
     window.addEventListener('pagehide', leave);
     // A reload mid-session: reconnect on our own (audio may still need the usual click).
-    if (shouldAutoResume(tabStore(), sessionId, Date.now())) { clearLive(tabStore(), sessionId); void start(); }
+    // Only with consent on file: a session that never started voice has nothing to resume.
+    if (consentedAtLoad && shouldAutoResume(tabStore(), sessionId, Date.now())) { clearLive(tabStore(), sessionId); void start(); }
     return () => { window.removeEventListener('pagehide', leave); leave(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -378,6 +384,17 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
 
   const phase = local === 'ended' ? 'ended' : local === 'live' ? view.phase : local;
   const caseOver = view.phase === 'ended' || local === 'ended';
+
+  // Records the consent the panel collected; says why when it can't.
+  async function recordConsent(): Promise<boolean> {
+    setProblem(null);
+    const res = await postJson('/api/voice/consent', { agree: true, version: VOICE_CONSENT_VERSION });
+    if (res.ok) { setConsented(true); return true; }
+    setProblem(res.status === 0 ? OFFLINE
+      : res.data?.error === 'stale_policy' ? 'The Voice and Biometric Data Policy has changed. Reload the page to read the current version.'
+      : 'Your consent couldn’t be saved just now. Try again, or continue in text.');
+    return false;
+  }
   // Where the leave handlers read it (above); a new Start can leave again.
   useEffect(() => {
     const s = leaveState.current;
@@ -393,6 +410,12 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
           {phase !== 'idle' && phase !== 'ended' && <span aria-hidden="true" className="size-1.5 rounded-full bg-cobalt" />}
           {STATE_LABEL[phase] ?? phase}
         </span>
+        {/* The visible recording indicator the voice policy promises: on while the microphone is captured. */}
+        {(local === 'connecting' || local === 'live') && !caseOver && (
+          <span role="status" className="t-label inline-flex items-center gap-1.5 rounded-full border border-alert/30 bg-white px-3 py-1 font-semibold text-alert">
+            <span aria-hidden="true" className="size-2 rounded-full bg-alert motion-safe:animate-pulse" />Recording
+          </span>
+        )}
       </div>
 
       {casePrompt && (
@@ -424,13 +447,12 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
       {/* Voice is the default (Lorenzo, 6 Nov): when it can't start (busy, no microphone, no interviewer) or the
           student would rather type, the same interview continues in text. Only while no voice is connected, so a
           typed turn never races the agent. */}
+      {/* Start: the consent panel the first time, then the per-session notice (lib/voice/consent.ts). Both offer
+          "Use text instead": the same interview continues in text. */}
       {local === 'idle' && !caseOver && (
-        <p className="t-small text-ink/70">
-          Prefer to type, or voice isn&apos;t working? <a href={caseHref(sessionId, 'text')} className="link">Continue this interview in text</a>
-        </p>
+        <VoiceConsentGate consented={consented} textHref={caseHref(sessionId, 'text')} busy={false} onStart={start} onConsent={recordConsent} />
       )}
       <div className="flex flex-wrap items-center gap-2">
-        {local === 'idle' && <Button size="lg" onClick={start}>Start</Button>}
         {needsClick && local === 'live' && <Button onClick={enableAudio}>Click to enable audio</Button>}
         {local === 'live' && !caseOver && <Button variant="outline" onClick={end}>End</Button>}
         <Button variant="ghost" size="sm" onClick={toggleFillers} aria-pressed={fillers}

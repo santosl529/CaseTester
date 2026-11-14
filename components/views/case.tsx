@@ -62,8 +62,10 @@ function CasePrompt({ text }: { text: string }) {
   );
 }
 
-export function VoiceCaseScreen({ sessionId, active, completed, casePrompt }: {
+export function VoiceCaseScreen({ sessionId, active, completed, casePrompt, consented }: {
   sessionId: string; active: boolean; completed: boolean; casePrompt: string | null;
+  // Voice consent on file (lib/voice/consent.ts).
+  consented: boolean;
 }) {
   return (
     <FocusScope>
@@ -74,7 +76,7 @@ export function VoiceCaseScreen({ sessionId, active, completed, casePrompt }: {
       <div className="flex-1 min-h-0">
         {active
           // The room's own "Score this interview" is the report button; the end screen adds the links (site flow, 19 Oct).
-          ? <VoiceRoom sessionId={sessionId} casePrompt={casePrompt} endActions={<CaseEndPanel sessionId={sessionId} />} />
+          ? <VoiceRoom sessionId={sessionId} casePrompt={casePrompt} consented={consented} endActions={<CaseEndPanel sessionId={sessionId} />} />
           : <div className="p-6"><CaseEndPanel sessionId={sessionId} report={completed ? 'ready' : undefined} /></div>}
       </div>
     </main>

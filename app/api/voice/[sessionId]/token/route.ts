@@ -11,12 +11,14 @@ import { claimVoiceDispatch } from '@/lib/voice/dispatch-claim';
 import { liveKitEnvProblem } from '@/lib/voice/livekit-env';
 import { hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
 import { sessionRoute } from '@/lib/http/route-guard';
+import { voiceConsentFor } from '@/lib/voice/consent';
 
 // A LiveKit token for the session owner, and one dispatch of the voice agent
 // into the session's room (spec 2026-10-08-voice-phase-b §4). The key and
 // secret stay on the server; the browser gets the wss:// URL and a token.
 // Past VOICE_MAX_CONCURRENT live voice rooms (default 1; lib/voice/capacity.ts)
-// a new session is refused before any dispatch: 429 { error: 'busy' }.
+// a new session is refused before any dispatch: 429 { error: 'busy' }. Without voice consent on file: 403
+// { error: 'consent_required' } (lib/voice/consent.ts).
 // Voice lifecycle (5 Nov): a room whose session is no longer active doesn't count (and is closed); the dispatch is
 // claimed first (lib/voice/dispatch-claim.ts), so two requests at once start one agent.
 async function handlePOST(
@@ -37,6 +39,8 @@ async function handlePOST(
   });
   if (!session) return NextResponse.json({ error: 'Not found' }, { status: 404 });
   if (session.status !== 'active') return NextResponse.json({ error: 'Session is not active' }, { status: 409 });
+  // No voice without the student's consent on file for the current policy (lib/voice/consent.ts; Lorenzo, 14 Nov).
+  if (!(await voiceConsentFor(user.id))) return NextResponse.json({ error: 'consent_required' }, { status: 403 });
 
   const { LIVEKIT_URL: url, LIVEKIT_API_KEY: key, LIVEKIT_API_SECRET: secret } = process.env;
   const admin = roomAdminFromEnv();

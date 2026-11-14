@@ -42,7 +42,7 @@ import { summarize, type TurnRecord } from './records';
 import { SessionLines } from './session-lines';
 import { dbLineWriter } from './session-lines-db';
 import { LiveKitSink } from './livekit-media';
-import { SessionRecorder } from './recorder';
+import { SessionRecorder, pruneRecordings } from './recorder';
 import { findCandidateTrack, pickCandidateTrack, realClock } from './room-rules';
 import { AgentLifecycle, shouldJoin, type FinishReason } from './agent-lifecycle';
 import { pumpMic } from './mic-pump';
@@ -333,6 +333,9 @@ export default defineAgent({
       lines.add({ summary });
       await lines.flush();
       if (rec) {
+        // Nothing older than 30 days is kept (lib/voice/recorder.ts pruneRecordings).
+        const pruned = pruneRecordings('.voice-cache/recordings', Date.now());
+        if (pruned.length) console.log('[voice] recordings older than 30 days deleted:', pruned.length);
         const dir = path.join('.voice-cache/recordings', `${session.id}-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`);
         rec.flush(dir);
         console.log('[voice] recording saved:', dir, '— review with: npx tsx scripts/voice-review.ts', dir);

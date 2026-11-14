@@ -7,6 +7,8 @@ const h = vi.hoisted(() => ({
   hits: [] as string[],
   work: [] as string[],
 }));
+// Voice consent on file unless a test says otherwise (lib/voice/consent.ts).
+vi.mock('@/lib/voice/consent', () => ({ voiceConsentFor: async () => (globalThis as { __noVoiceConsent?: boolean }).__noVoiceConsent !== true }));
 vi.mock('@/lib/rate-limit', async () => {
   const real = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit');
   return { ...real, hitRateLimit: async (rule: { name: string }, subject: string) => { h.hits.push(`${rule.name}:${subject}`); return h.decision; } };

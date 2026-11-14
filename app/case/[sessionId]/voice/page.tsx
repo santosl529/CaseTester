@@ -1,5 +1,6 @@
 import { and, eq } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
+import { voiceConsentFor } from '@/lib/voice/consent';
 import { isUuid } from '@/lib/http/route-guard';
 import { db } from '@/db/client';
 import { sessions } from '@/db/schema';
@@ -25,5 +26,6 @@ export default async function VoiceCasePage({ params }: { params: Promise<{ sess
   let casePrompt: string | null = null;
   try { casePrompt = getCaseById(session.caseId).prompt; } catch { casePrompt = null; }
 
-  return <VoiceCaseScreen sessionId={sessionId} active={session.status === 'active'} completed={session.status === 'completed'} casePrompt={casePrompt} />;
+  return <VoiceCaseScreen sessionId={sessionId} active={session.status === 'active'} completed={session.status === 'completed'} casePrompt={casePrompt}
+    consented={await voiceConsentFor(user.id)} />;
 }

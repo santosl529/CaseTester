@@ -33,6 +33,8 @@ export function voiceStartFailure(status: number, data: Body): string {
   if (status === 409) return 'This interview has ended, so voice can’t start. Go back to your home page to start another.';
   if (status === 503) return 'Voice isn’t available right now. Continue this interview in text.';
   if (status === 401) return SIGNED_OUT('to continue this interview; it’s saved.');
+  // No voice consent on file (lib/voice/consent.ts): the consent panel is the way on.
+  if (status === 403 && data?.error === 'consent_required') return 'Check the consent box and press “I agree, start voice” to start, or continue in text.';
   return 'Voice couldn’t start. Press Start to try again, or continue in text.';
 }
 
