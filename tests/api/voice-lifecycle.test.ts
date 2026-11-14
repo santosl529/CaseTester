@@ -17,6 +17,8 @@ const lk = vi.hoisted(() => ({
 }));
 // The leave route's grace runs after the response (next/server `after`): collected here and run by the test.
 const later = vi.hoisted(() => ({ tasks: [] as (() => Promise<unknown>)[] }));
+// Voice consent on file unless a test says otherwise (lib/voice/consent.ts).
+vi.mock('@/lib/voice/consent', () => ({ voiceConsentFor: async () => (globalThis as { __noVoiceConsent?: boolean }).__noVoiceConsent !== true }));
 vi.mock('next/server', async orig => ({ ...(await orig<object>()), after: (f: () => Promise<unknown>) => { later.tasks.push(f); } }));
 const db = vi.hoisted(() => ({
   user: { id: 'u1' } as { id: string } | null,

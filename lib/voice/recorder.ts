@@ -4,7 +4,7 @@
 // playout clock (audio queued past a cut is dropped, as it was never heard
 // as such), a stereo mix to listen to, and a timeline of events — all in ms
 // from the session's start. scripts/voice-review.ts reads them.
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 
 export function wavBytes(samples: Int16Array, sampleRate: number, channels: number): Uint8Array {
@@ -117,4 +117,18 @@ export class SessionRecorder {
     writeFileSync(path.join(dir, 'mix.wav'), wavBytes(mixStereo(cand, this.candidateTrack.sampleRate, intv, this.interviewerTrack.sampleRate), this.candidateTrack.sampleRate, 2));
     writeFileSync(path.join(dir, 'events.jsonl'), this.events.map(e => JSON.stringify(e)).join('\n') + '\n');
   }
+}
+
+// Recordings hold the candidate's voice, so none is kept past 30 days (Lorenzo, 14 Nov; the Voice and Biometric
+// Data Policy's schedule). Called before each write; returns the folders it deleted.
+export const RECORDING_MAX_AGE_MS = 30 * 86_400_000;
+
+export function pruneRecordings(root: string, now: number, maxAgeMs = RECORDING_MAX_AGE_MS): string[] {
+  if (!existsSync(root)) return [];
+  const gone: string[] = [];
+  for (const name of readdirSync(root)) {
+    const p = path.join(root, name);
+    if (now - statSync(p).mtimeMs > maxAgeMs) { rmSync(p, { recursive: true, force: true }); gone.push(name); }
+  }
+  return gone;
 }

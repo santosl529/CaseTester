@@ -120,7 +120,7 @@ export const CASE_SCREENS: Screen[] = [
   },
   {
     slug: 'voice', path: '/case/preview-voice/voice', area: 'Mock interview', title: 'Voice interview, before connecting',
-    render: () => ({ node: <VoiceCaseScreen sessionId="preview-voice" active completed={false} casePrompt={getCaseById('prof-001').prompt} /> }),
+    render: () => ({ node: <VoiceCaseScreen sessionId="preview-voice" active completed={false} casePrompt={getCaseById('prof-001').prompt} consented={false} /> }),
   },
   {
     slug: 'report', path: '/case/preview-report/report', area: 'Feedback', title: 'Feedback report',
