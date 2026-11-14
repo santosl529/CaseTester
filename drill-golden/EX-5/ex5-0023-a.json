@@ -1,0 +1,21 @@
+{
+  "answer_id": "ex5-0023-a",
+  "item_id": "ex5-0023",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "The rent misread is fixed (rule 19); the lease claim is still there (rule 2); Store 3's loss kept (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Store 3 loses $150k mainly because its revenue, $600k, is far below the others', and its lease is up for renewal soon."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

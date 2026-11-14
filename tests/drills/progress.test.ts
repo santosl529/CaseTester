@@ -203,10 +203,17 @@ describe('a student climbing one skill (PRD "Where a student starts")', () => {
   });
 
   it('skills with no live Construct drill reach Practiced from Level 1, and transfer on Level 1 at tier 3', () => {
+    let u = applySet(progress({ skill_id: 'EX.traps', state: 'learning' }), set('EX-2', 2, { 'EX.traps': 0.9 }), at(0));
+    u = applySet(u.progress, set('EX-2', 2, { 'EX.traps': 0.9 }), at(0));
+    expect(u.transitions.map(t => t.to)).toEqual(['practiced']);
+    expect(nextSetFor(u.progress.get('EX.traps')!, {}, at(2))).toEqual({ drill_id: 'EX-2', stage: 'recognize', tier: 3, kind: 'transfer', test_out: false });
+  });
+
+  it('a skill whose Construct drill went live climbs to it: CL.next_step goes on to CL-4 (Matt, 2026-11-13)', () => {
     let u = applySet(progress({ skill_id: 'CL.next_step', state: 'learning' }), set('CL-1', 2, { 'CL.next_step': 0.9 }), at(0));
     u = applySet(u.progress, set('CL-1', 2, { 'CL.next_step': 0.9 }), at(0));
-    expect(u.transitions.map(t => t.to)).toEqual(['practiced']);
-    expect(nextSetFor(u.progress.get('CL.next_step')!, {}, at(2))).toEqual({ drill_id: 'CL-1', stage: 'recognize', tier: 3, kind: 'transfer', test_out: false });
+    expect(u.transitions.map(t => t.to)).toEqual(['recognizes']);
+    expect(nextSetFor(u.progress.get('CL.next_step')!, {}, at(0))).toMatchObject({ drill_id: 'CL-4', stage: 'construct' });
   });
 
   it('a newly prescribed skill with no Construct drill starts at Recognize tier 2', () => {
@@ -244,6 +251,16 @@ describe('transfer checks and spaced review (PRD "Transfer check", "Spaced revie
     expect(applySet(mastered, review(0.9), at(14)).progress.get('QN.setup')!.next_review_at).toEqual(at(28).now);
     expect(applySet(mastered, review(0.7), at(14)).progress.get('QN.setup')!.next_review_at).toEqual(at(21).now);
     expect(applySet(mastered, review(0.5), at(14)).transitions.map(t => t.to)).toEqual(['recognizes']);
+  });
+
+  it('a first review on a Construct drill the student never did runs at tier 2, not tier 1 (D3: EX-4 and CL-4)', () => {
+    const live = (id: string) => ['EX-1', 'EX-5', 'EX-4', 'CL-1', 'CL-4'].includes(id);
+    const ctx = { ...at(0), isLive: live };
+    for (const [skill, drill] of [['EX.takeaway', 'EX-4'], ['CL.next_step', 'CL-4']] as const) {
+      const mastered = progress({ skill_id: skill, state: 'mastered', next_review_at: at(0).now });
+      expect(nextSetFor(mastered.get(skill)!, { 'EX-1': 3, 'CL-1': 3 }, ctx)).toMatchObject({ drill_id: drill, kind: 'review', tier: 2 });
+      expect(nextSetFor(mastered.get(skill)!, { [drill]: 1 }, ctx)).toMatchObject({ drill_id: drill, kind: 'review', tier: 1 });
+    }
   });
 });
 

@@ -1,0 +1,21 @@
+{
+  "answer_id": "ex5-0037-a",
+  "item_id": "ex5-0037",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "Both fixed: the index is read and the new-stores claim is gone (rule 19); uses the 2020 sizes (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "South added about $30M against North's $20M, since South's index rose 60% on a $50M base."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

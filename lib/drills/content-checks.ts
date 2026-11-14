@@ -411,21 +411,108 @@ export function challengeCueProblems(items: Item[]): string[] {
   const share = (xs: Item[]) => xs.filter(i => i.defend!.valid).length / xs.length;
   const overall = share(pool);
   if (overall < CHALLENGE_OVERALL.min || overall > CHALLENGE_OVERALL.max) problems.push(`Challenges: ${Math.round(overall * 100)}% are valid; keep it near half`);
-  const features: [string, (i: Item) => string][] = [
+  return [...problems, ...predictableFrom(pool, i => i.defend!.valid!, [
     ['who raises it', i => challengeSpeaker(i.defend!.text) ?? 'unknown'],
     ['whether it brings a new number', i => (challengeBringsNumber(i) ? 'brings a number' : 'no new number')],
-  ];
+  ], (name, value, v, n) => `Challenges: valid is predictable from ${name}: ${Math.round(v * 100)}% of the ${n} that are "${value}" are valid`)];
+}
+
+// Within every group of at least CHALLENGE_FEATURE_MIN items that share a
+// feature's value, the share of "yes" items stays within CHALLENGE_SHARE.
+function predictableFrom(pool: Item[], yes: (i: Item) => boolean, features: [string, (i: Item) => string][],
+  say: (name: string, value: string, share: number, n: number) => string): string[] {
+  const problems: string[] = [];
   for (const [name, f] of features) {
     const groups = new Map<string, Item[]>();
     for (const i of pool) groups.set(f(i), [...(groups.get(f(i)) ?? []), i]);
     for (const [value, xs] of groups) {
-      const v = share(xs);
-      if (xs.length >= CHALLENGE_FEATURE_MIN && (v < CHALLENGE_SHARE.min || v > CHALLENGE_SHARE.max)) {
-        problems.push(`Challenges: valid is predictable from ${name}: ${Math.round(v * 100)}% of the ${xs.length} that are "${value}" are valid`);
-      }
+      const v = xs.filter(yes).length / xs.length;
+      if (xs.length >= CHALLENGE_FEATURE_MIN && (v < CHALLENGE_SHARE.min || v > CHALLENGE_SHARE.max)) problems.push(say(name, value, v, xs.length));
     }
   }
   return problems;
+}
+
+// Keep or update after a new fact (Matt, 2026-11-11, after SY-2's Challenge
+// rule). For the step or hypothesis the model answer takes (the obvious one),
+// updating it is right in 40–60% of the pool, and isn't predictable from the
+// tier, who or what the new fact is about, whether it repeats the case's
+// words, whether it brings a new number, contrast wording, or its length.
+// CL-4 updates by Change; HY-2 by Revise or Drop, and also needs each of Keep,
+// Revise and Drop right in 20%+ of the pool and in 2+ items of every tier.
+export const NEXT_STEP_POOL_MIN = 8;
+const UPDATE_OVERALL = { min: 0.4, max: 0.6 };
+const DECISION_MIN_SHARE = 0.2;
+const DECISION_MIN_PER_TIER = 2;
+const UPDATE_DRILLS: Record<string, { decisions: string[]; update: string; threeWay: boolean }> = {
+  'CL-4': { decisions: ['Keep', 'Change'], update: 'Change', threeWay: false },
+  'HY-2': { decisions: ['Keep', 'Revise', 'Drop'], update: 'Revise or Drop', threeWay: true },
+};
+const CONTRAST = /\b(but|though|although|however|yet|while|whereas|even|only|already|instead|still)\b/i;
+const SUBJECTS: [string, RegExp][] = [
+  ['rivals or the market', /\b(rivals?|competitors?|leaders|market|industry|other brands)\b/i],
+  ['customers', /\b(customers?|shoppers?|members?|buyers?|users?|homeowners?|visitors?|subscribers?|moviegoers?|survey)\b/i],
+];
+
+// The model answer's stage 2 decision: keep, change (CL-4), revise or drop (HY-2).
+export function nextStepDecision(item: Item): string | null {
+  const m = item.model_answer?.match(/^Stage 2:\s*(Keep|Change|Revise|Drop)\b/m);
+  return m ? m[1].toLowerCase() : null;
+}
+
+const newFact = (item: Item) => String(item.extras.new_fact ?? '');
+// CL-4's latest finding; HY-2 has none, so its whole question.
+const latestFinding = (item: Item) => item.prompt.match(/Latest finding:\s*([\s\S]*)$/)?.[1] ?? item.prompt;
+
+// Who or what the new fact is about: whichever of rivals or the market, or
+// customers, it names first; otherwise the client itself.
+export function newFactSubject(fact: string): string {
+  const hits = SUBJECTS.map(([name, re]) => [name, fact.search(re)] as const).filter(([, at]) => at >= 0).sort((a, b) => a[1] - b[1]);
+  return hits[0]?.[0] ?? 'the client';
+}
+
+// Two or more of the latest finding's content words.
+export function newFactEchoes(item: Item): boolean {
+  const finding = wordsOf(latestFinding(item).toLowerCase());
+  return [...wordsOf(newFact(item).toLowerCase())].filter(w => finding.has(w)).length >= 2;
+}
+
+export function nextStepCueProblems(items: Item[]): string[] {
+  return Object.keys(UPDATE_DRILLS).flatMap(drill => updateCueProblems(drill, items.filter(i => i.drill_id === drill && !i.item_id.startsWith('example-'))));
+}
+
+function updateCueProblems(drill: string, pool: Item[]): string[] {
+  const { decisions, update, threeWay } = UPDATE_DRILLS[drill];
+  const allowed = decisions.map(d => d.toLowerCase());
+  const problems = pool.filter(i => !allowed.includes(nextStepDecision(i) ?? ''))
+    .map(i => `${i.item_id}: the model answer's stage 2 must open with ${decisions.map(d => `"${d}:"`).join(' or ')}`);
+  if (pool.length < NEXT_STEP_POOL_MIN || problems.length) return problems;
+  const updates = (i: Item) => nextStepDecision(i) !== 'keep';
+  const overall = pool.filter(updates).length / pool.length;
+  if (overall < UPDATE_OVERALL.min || overall > UPDATE_OVERALL.max) problems.push(`${drill}: ${update} is right in ${Math.round(overall * 100)}% of items; keep it between 40% and 60%`);
+  if (threeWay) {
+    for (const d of decisions) {
+      const share = pool.filter(i => nextStepDecision(i) === d.toLowerCase()).length / pool.length;
+      if (share < DECISION_MIN_SHARE) problems.push(`${drill}: ${d} is right in ${Math.round(share * 100)}% of items; each decision needs at least ${DECISION_MIN_SHARE * 100}%`);
+    }
+    for (const tier of [...new Set(pool.map(i => i.tier))].sort()) {
+      for (const d of decisions) {
+        const n = pool.filter(i => i.tier === tier && nextStepDecision(i) === d.toLowerCase()).length;
+        if (n < DECISION_MIN_PER_TIER) problems.push(`${drill}: tier ${tier} has ${n} item${n === 1 ? '' : 's'} where ${d} is right; each tier needs at least ${DECISION_MIN_PER_TIER}`);
+      }
+    }
+  }
+  const length = (i: Item) => (newFact(i).match(/\S+/g) ?? []).length;
+  const median = [...pool.map(length)].sort((a, b) => a - b)[Math.floor(pool.length / 2)];
+  const known = (i: Item) => caseNumbers(i.prompt);
+  return [...problems, ...predictableFrom(pool, updates, [
+    ['tier', i => `tier ${i.tier}`],
+    ['who or what the new fact is about', i => newFactSubject(newFact(i))],
+    [drill === 'CL-4' ? 'whether it repeats the latest finding' : 'whether it repeats the case\'s words', i => (newFactEchoes(i) ? 'repeats it' : 'new words')],
+    ['whether it brings a new number', i => (caseNumbers(newFact(i)).some(n => !known(i).some(f => Math.abs(n - f) <= Math.abs(f) * 0.005)) ? 'brings a number' : 'no new number')],
+    ['contrast wording', i => (CONTRAST.test(newFact(i)) ? 'contrast word' : 'no contrast word')],
+    ['length', i => (length(i) >= median ? 'longer' : 'shorter')],
+  ], (name, value, v, n) => `${drill}: ${update} is predictable from ${name}: it is right in ${Math.round(v * 100)}% of the ${n} that are "${value}"`)];
 }
 
 // SY padding (the irrelevant fact in SY-1, SY-2 and SY-3 cases): each one is
@@ -563,9 +650,9 @@ export function staleDurationProblems(items: Item[], padding: PaddingTypes | nul
 }
 
 // Every content check, for validation and the seed script: wording within
-// each pool, scenarios across drills, Challenge cues, padding variety, dates
+// each pool, scenarios across drills, Challenge and Keep-or-Change cues, padding variety, dates
 // and stale durations.
 export function contentCheckProblems(items: Item[], reviewedPairs: ReviewedPair[] = [], padding: PaddingTypes | null = null): string[] {
-  return [...lengthCueProblems(items), ...phraseCueProblems(items), ...rulePlayerProblems(items), ...scenarioProblems(items, reviewedPairs), ...challengeCueProblems(items),
+  return [...lengthCueProblems(items), ...phraseCueProblems(items), ...rulePlayerProblems(items), ...scenarioProblems(items, reviewedPairs), ...challengeCueProblems(items), ...nextStepCueProblems(items),
     ...(padding ? [...paddingTypeProblems(items, padding), ...datedFactProblems(items, padding)] : []), ...staleDurationProblems(items, padding)];
 }

@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0025-a",
+  "item_id": "ex4-0025",
+  "drill_id": "EX-4",
+  "answer_type": "off_topic",
+  "notes": "Doesn't read the chart or answer whether growth is healthy (rules 1–3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "The company should add more flower types and a gift option to attract new customers."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": false,
+    "tied_to_question": false
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

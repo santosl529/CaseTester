@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0002-a",
+  "item_id": "ex4-0002",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Tripling is true but isn't the insight, the stall (rule 1); figures right (rule 2); says what it means for the budget, if weakly (rule 3); nothing the chart contradicts (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Online sales tripled from $10M to $31M since 2021, so the online budget is paying off and should keep growing."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

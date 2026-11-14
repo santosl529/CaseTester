@@ -4,11 +4,11 @@
 //
 // Each step's share of the score is the weighted share of its checks passed;
 // a red flag caps its step's share; the item score adds the steps by their
-// weights. HY-2's update decision (stage 2) is scored here from the family the
-// grader put the stage 1 hypothesis in.
+// weights. HY-2's update decision and CL-4's Keep/Change (stage 2) are scored
+// here from the family the grader put stage 1 in.
 import { getDrill, getMistakeTag } from '../config';
 import type { Item, RepairExtras } from '../item-schema';
-import { hy2DecisionTag, PS3_INJECTION_FAILS, PS3_NO_OVERLAP_MIN_BUCKETS, REPAIR_DRILLS, REPAIR_INJECTION_FAILS, SY2_OFF_TOPIC_SUPPRESSES, type Hy2Content, type RepairDrillId } from '../checklists';
+import { cl4DecisionTag, hy2DecisionTag, PS3_INJECTION_FAILS, PS3_NO_OVERLAP_MIN_BUCKETS, REPAIR_DRILLS, REPAIR_INJECTION_FAILS, SY2_OFF_TOPIC_SUPPRESSES, type Cl4Content, type Hy2Content, type RepairDrillId } from '../checklists';
 import { parseFramework } from '../content-import';
 import { challengeTag, defendParts } from '../defend';
 import { parseNumericInput } from '../numeric';
@@ -34,7 +34,8 @@ export interface CheckResults {
   family: string | null;
   injection_suspected: boolean;
   qa_flags: string[];
-  // HY-2: the keep/revise/drop choice and whether it was right for the family.
+  // HY-2: the keep/revise/drop choice, CL-4: keep/change, and whether it was
+  // right for the family.
   decision: { chose: string; right: boolean } | null;
   // Defend Challenge: the Hold/Update choice and whether it was right.
   defend_decision?: { chose: string; right: boolean } | null;
@@ -200,13 +201,16 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
     return { id: f.id, present: v.pass, evidence: v.evidence, cap: f.cap, step: f.step, tag: f.tag };
   });
 
-  // HY-2's decision step: right action for the stage 1 hypothesis's family.
+  // HY-2's and CL-4's decision step: right action for the stage 1 family.
   let decisionTag: string | null = null;
   let decision: CheckResults['decision'] = null;
   const choiceStep = spec.findIndex(s => s.type === 'single_choice' && s.choices && !s.defend);
-  if (item.drill_id === 'HY-2' && choiceStep >= 0) {
+  const decides = (item.drill_id === 'HY-2' || item.drill_id === 'CL-4') && choiceStep >= 0;
+  if (decides) {
     const chose = steps[choiceStep]?.response.type === 'choice' ? (steps[choiceStep].response as { option_id: string }).option_id : null;
-    decisionTag = chose ? hy2DecisionTag(item.extras.families as Hy2Content['families'], grade?.family ?? null, chose, grade?.backup_family ?? null) : 'M.timeout';
+    decisionTag = !chose ? 'M.timeout'
+      : item.drill_id === 'CL-4' ? cl4DecisionTag(item.extras.families as Cl4Content['families'], grade?.family ?? null, chose)
+      : hy2DecisionTag(item.extras.families as Hy2Content['families'], grade?.family ?? null, chose, grade?.backup_family ?? null);
     if (chose) decision = { chose, right: decisionTag === null };
   }
 
@@ -222,7 +226,7 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
   }
 
   const stepScores = spec.map((s, i) => {
-    if (i === choiceStep && item.drill_id === 'HY-2') return decisionTag ? 0 : 1;
+    if (i === choiceStep && decides) return decisionTag ? 0 : 1;
     if (defend && i === defend.decision) return defendTag ? 0 : 1;
     const mine = checks.filter(c => c.step === i);
     const total = mine.reduce((a, c) => a + c.weight, 0);
@@ -256,7 +260,7 @@ export function applyGrade(item: Item, steps: StepResult[], timedOut: boolean, g
     : known([skillOf(c.fail_tag)]);
   const contributions = [
     ...checks.map(c => ({ skills: skillsFor(c), score: c.pass ? 1 : 0, weight: c.weight })),
-    ...(item.drill_id === 'HY-2' && choiceStep >= 0 ? [{ skills: ['HY.update'], score: decisionTag ? 0 : 1, weight: spec[choiceStep].weight }] : []),
+    ...(decides ? [{ skills: [item.drill_id === 'CL-4' ? 'CL.next_step' : 'HY.update'], score: decisionTag ? 0 : 1, weight: spec[choiceStep].weight }] : []),
     ...(defend && defend.decision >= 0 ? [{ skills: known([...item.skills, 'CL.pushback']), score: defendTag ? 0 : 1, weight: spec[defend.decision].weight }] : []),
   ];
 

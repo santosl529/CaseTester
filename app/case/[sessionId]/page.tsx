@@ -1,15 +1,11 @@
-import Link from 'next/link';
 import { db } from '@/db/client';
 import { sessions, sessionTurns } from '@/db/schema';
 import { eq, asc, and } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
 import { isUuid } from '@/lib/http/route-guard';
-import { ChatWindow } from '@/components/chat-window';
-import { CaseEndPanel } from '@/components/case-end-panel';
-import { SiteHeader } from '@/components/site-header';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getCaseById } from '@/lib/cases/loader';
-import { caseHref } from '@/lib/site/case-href';
+import { TextCaseScreen } from '@/components/views/case';
 
 export default async function CasePage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
@@ -42,34 +38,7 @@ export default async function CasePage({ params }: { params: Promise<{ sessionId
   }
 
   return (
-    <div className="h-dvh flex flex-col">
-    <SiteHeader inCase={session.status === 'active'} />
-    <main className="flex-1 min-h-0 w-full flex flex-col max-w-2xl mx-auto">
-      <header className="border-b px-4 py-3">
-        <div className="flex items-center justify-between">
-          {/* "text", like the voice page's "voice" (12 Nov): the phase here was read once at page load and stayed "INTRO"
-              to the end, and the phase names are internal. */}
-          <div className="text-sm font-medium text-neutral-700">Case Interview — text</div>
-          {/* Voice is the default (Lorenzo, 6 Nov); text to voice mid-case is safe — the agent reads the turns so far. */}
-          {session.status === 'active' && (
-            <Link href={caseHref(sessionId, 'voice')} className="text-xs text-neutral-500 underline">Switch to voice</Link>
-          )}
-        </div>
-        {casePrompt && (
-          <details className="mt-1">
-            <summary className="text-xs text-neutral-500 cursor-pointer select-none">Case prompt</summary>
-            <p className="mt-2 text-sm text-neutral-700 whitespace-pre-wrap">{casePrompt}</p>
-          </details>
-        )}
-      </header>
-      <div className="flex-1 min-h-0">
-        {session.status === 'active'
-          ? <ChatWindow sessionId={sessionId} initialMessage={initialMessage} />
-          // An ended case reopened: the end screen (site flow, 19 Oct). The
-          // report page prepares a report not scored yet.
-          : <div className="p-4"><CaseEndPanel sessionId={sessionId} report={session.status === 'completed' ? 'ready' : undefined} /></div>}
-      </div>
-    </main>
-    </div>
+    <TextCaseScreen sessionId={sessionId} active={session.status === 'active'} completed={session.status === 'completed'}
+      casePrompt={casePrompt} initialMessage={initialMessage} />
   );
 }

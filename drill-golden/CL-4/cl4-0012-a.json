@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0012-a",
+  "item_id": "cl4-0012",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–4 met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Compare how check payers received their bills this year and last, since nearly all the drop is among them."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: paper bills stopped and some got none, so I'd count those homeowners and send paper bills."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "How bills and payments reach the county"
+}

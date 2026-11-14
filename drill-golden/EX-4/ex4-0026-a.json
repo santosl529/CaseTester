@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0026-a",
+  "item_id": "ex4-0026",
+  "drill_id": "EX-4",
+  "answer_type": "borderline",
+  "notes": "Leads with mid-size as the big fall (rule 1); figures right (rule 2); says where deals are lost (rule 3); small and large did dip a point (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Win rates fell in every segment, most of all with mid-size firms, from 35% to 18%."
+    }
+  ],
+  "labels": {
+    "key_insight": true,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

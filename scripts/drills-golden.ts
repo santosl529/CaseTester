@@ -15,7 +15,8 @@ import path from 'path';
 import { GoldenAnswerSchema, type GoldenAnswer } from '@/lib/drills/content-import';
 import { ItemSchema, type Item } from '@/lib/drills/item-schema';
 import { applyGrade } from '@/lib/drills/grading/apply';
-import { gradeSet, type GradingEntry, type GradingUsage } from '@/lib/drills/grading/grader';
+import { gradeSet, memoryLedger, type GradingEntry, type GradingUsage } from '@/lib/drills/grading/grader';
+import { DRILL_GRADER_MODELS } from '@/lib/models';
 import { itemSteps, type StepResult } from '@/lib/drills/sets/scoring';
 import { withDefend } from '@/lib/drills/defend';
 
@@ -50,6 +51,9 @@ async function main() {
   const usage: GradingUsage = { input_tokens: 0, output_tokens: 0, cache_creation_input_tokens: 0, cache_read_input_tokens: 0, calls: 0, refusals: 0 };
   const verdicts: Record<string, Record<string, boolean | string | null>> = {};
   const errored: string[] = [];
+  // Every request, for cost by call (drill, call slot and model).
+  const ledger = memoryLedger();
+  const ledgerDrill = new Map<string, string>();
   const count = (drill: string, id: string, agree: boolean, detail: string) => {
     const key = `${drill} ${id}`;
     const t = tally.get(key) ?? { agree: 0, total: 0 };
@@ -70,7 +74,8 @@ async function main() {
       });
       // Each answer in its own guarded call: a refusal or failed answer counts
       // as a miss on its checks instead of ending the run.
-      const results = await Promise.all(entries.map(e => gradeSet([e]).catch((err: Error) => { errored.push(`${e.key}: ${err.message}`); return null; })));
+      for (const e of entries) ledgerDrill.set(e.key, drill);
+      const results = await Promise.all(entries.map(e => gradeSet([e], undefined, { ledger }).catch((err: Error) => { errored.push(`${e.key}: ${err.message}`); return null; })));
       for (const r of results) {
         if (!r) continue;
         cost += r.cost_usd; calls += r.usage.calls; noCache += r.cost_usd_no_cache;
@@ -101,9 +106,11 @@ async function main() {
           v[`red flag ${id}`] = machine;
           count(drill, `red flag ${id}`, machine === human, `${g.answer_id} red flag ${id}: human ${human ? 'Y' : 'N'}, grader ${machine ? 'Y' : 'N'}`);
         }
-        if (drill === 'HY-2' && g.family) v.family = grade.family;
-        if (drill === 'HY-2' && g.family) {
-          count(drill, 'hypothesis family', (grade.family ?? 'other').toLowerCase() === g.family.toLowerCase(), `${g.answer_id} family: human ${g.family}, grader ${grade.family}`);
+        // HY-2's hypothesis family and CL-4's step family (gated too: the
+        // decision's grade depends on it).
+        if ((drill === 'HY-2' || drill === 'CL-4') && g.family) {
+          v.family = grade.family;
+          count(drill, drill === 'CL-4' ? 'step family' : 'hypothesis family', (grade.family ?? 'other').toLowerCase() === g.family.toLowerCase(), `${g.answer_id} family: human ${g.family}, grader ${grade.family}`);
         }
       }
     }
@@ -130,6 +137,16 @@ async function main() {
   const answers = golden.length;
   console.log(`model ${model}: ${answers} graded answers; input ${allInput} tokens (${usage.cache_read_input_tokens} read from cache, ${usage.cache_creation_input_tokens} written), output ${usage.output_tokens}`);
   console.log(`cost with caching $${cost.toFixed(4)} ($${(cost / answers).toFixed(5)} per answer); without caching $${noCache.toFixed(4)} ($${(noCache / answers).toFixed(5)} per answer)`);
+  // Cost per graded answer by call, without caching (the planning figure).
+  const byCall = new Map<string, { cost: number; answers: Set<string> }>();
+  for (const r of ledger.records) {
+    const p = DRILL_GRADER_MODELS[r.model].price;
+    const c = ((r.usage.input_tokens + r.usage.cache_creation_input_tokens + r.usage.cache_read_input_tokens) * p.input + r.usage.output_tokens * p.output) / 1_000_000;
+    const k = `${ledgerDrill.get(r.key)} ${r.call} (${r.model})`;
+    const t = byCall.get(k) ?? { cost: 0, answers: new Set<string>() };
+    t.cost += c; t.answers.add(r.key); byCall.set(k, t);
+  }
+  console.log(`\nCost per graded answer by call, without caching:\n${[...byCall].sort().map(([k, t]) => `- ${k}: $${(t.cost / t.answers.size).toFixed(5)} (${t.answers.size} answers)`).join('\n')}`);
   console.log(`refusals ${usage.refusals}; answers not graded ${errored.length}${errored.length ? `:\n- ${errored.join('\n- ')}` : ''}`);
   if (save) fs.writeFileSync(save, JSON.stringify({ model, tally: Object.fromEntries(tally), usage, cost, no_cache_cost: noCache, answers, errored, verdicts }, null, 1));
   if (failed) process.exitCode = 1;

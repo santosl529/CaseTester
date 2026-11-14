@@ -1,0 +1,21 @@
+{
+  "answer_id": "ex5-0034-a",
+  "item_id": "ex5-0034",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "The misread is fixed (rule 19). 'Likely because the target is cutting prices' still asserts a cause the chart doesn't show; hedging it isn't framing it as something to check, so flaw 2 stays (rule 19, Matt 2026-11-12). Still weighs growth against margins (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "EBITDA fell from $10M to about $7M despite 72% revenue growth, likely because the target is cutting prices."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

@@ -15,6 +15,17 @@ export const HOME_DEMO_CASE_IDS: readonly string[] = ['prof-001-demo'];
 
 export type ListedCase = Pick<Case, 'id' | 'title' | 'difficulty' | 'caseType'>;
 
+// The Cases page's order (Matt, 13 Nov): Easy, then Medium, then Hard; the
+// listed order within each.
+const DIFFICULTY_ORDER = { easy: 0, medium: 1, hard: 2 } as const;
+export const byDifficulty = <T extends { difficulty: keyof typeof DIFFICULTY_ORDER }>(cases: T[]): T[] =>
+  cases.map((c, i) => ({ c, i })).sort((a, b) => DIFFICULTY_ORDER[a.c.difficulty] - DIFFICULTY_ORDER[b.c.difficulty] || a.i - b.i).map(x => x.c);
+
+// "Good first case" (Matt, 13 Nov): one Easy case, named here like the lists
+// above, not a case-file field. Larkspur: profitability, the classic first
+// structure (revenue and costs) and the one week 1 of every plan trains.
+export const FIRST_CASE_ID = 'prof-002';
+
 export function listedCases(): ListedCase[] {
   const cases = loadCases();
   const pick = (ids: readonly string[], title: (c: Case) => string) => ids.flatMap(id => {

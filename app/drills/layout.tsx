@@ -1,15 +1,7 @@
-import { FeedbackButton } from '@/components/drills/feedback';
-import { SiteHeader } from '@/components/site-header';
+import { DrillsChrome } from '@/components/drills/views/chrome';
 
-// Every drills page gets the shared header (site flow, 19 Oct) and the
-// feedback button (D6 pilot feedback). The padding keeps the end of each page
-// clear of the button's corner on phones.
+// Every drills page gets the shared header and the feedback button
+// (components/drills/views/chrome.tsx).
 export default function DrillsLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <>
-      <SiteHeader />
-      <div className="pb-20">{children}</div>
-      <FeedbackButton />
-    </>
-  );
+  return <DrillsChrome>{children}</DrillsChrome>;
 }

@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0024-a",
+  "item_id": "cl4-0024",
+  "drill_id": "CL-4",
+  "answer_type": "off_topic",
+  "notes": "A fix, so no analysis (rules 1, 2; Matt 2026-11-12) and a recommendation (rule 6), with no reason (rule 3); the change is well made (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Cut the price to $20 for everyone."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change: small customers use 2 features, so I'd price a basic tier around them."
+    }
+  ],
+  "labels": {
+    "one_step": false,
+    "logical": false,
+    "reason_latest_finding": false,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": true
+  },
+  "family": "Price cut for everyone"
+}

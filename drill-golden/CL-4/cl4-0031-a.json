@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0031-a",
+  "item_id": "cl4-0031",
+  "drill_id": "CL-4",
+  "answer_type": "short",
+  "notes": "Names a specific measure (rule 1), but 'unbilled hours' restates the latest finding, which the situation already answers (rule 2); no reason (rule 3); 'Change' alone names no new step (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Look at unbilled hours."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": false,
+    "reason_latest_finding": false,
+    "adapt_reason": false
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Unbilled time by team and reason"
+}

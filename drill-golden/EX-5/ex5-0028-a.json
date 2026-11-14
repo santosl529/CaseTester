@@ -1,0 +1,20 @@
+{
+  "answer_id": "ex5-0028-a",
+  "item_id": "ex5-0028",
+  "drill_id": "EX-5",
+  "answer_type": "borderline",
+  "notes": "Swaps one unsupported cause for another, so the flaw isn't fixed (rule 19) and the reworded claim isn't new (rule 3); the 10% kept (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Pastries earn the weakest margin, 10%, because they cost more to make."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

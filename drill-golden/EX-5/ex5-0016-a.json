@@ -1,0 +1,21 @@
+{
+  "answer_id": "ex5-0016-a",
+  "item_id": "ex5-0016",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "Both flaws fixed: the amounts match and the payoff claim is gone (rule 19); still about sales and marketing (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Marketing added about $7M of the $10M rise, against $2M for sales."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

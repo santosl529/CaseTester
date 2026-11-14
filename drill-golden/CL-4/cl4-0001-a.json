@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0001-a",
+  "item_id": "cl4-0001",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "One specific analysis on the latest finding (rules 1–3); keep explained with the new fact (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Break snack sales into the share of moviegoers buying and spend per buyer, month by month, since snacks earn most of the margin and fell 20%."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: fewer moviegoers buy snacks since the March price rise, so I'd compare buying before and after it."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Snack and drink sales"
+}

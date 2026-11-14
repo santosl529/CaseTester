@@ -1,8 +1,7 @@
-import Link from 'next/link';
 import { notFound, redirect } from 'next/navigation';
 import { DrillError, setView } from '@/lib/drills/sets/service';
 import { studentOrRedirect } from '@/lib/drills/session';
-import { DrillRunner } from '@/components/drills/runner';
+import { SetScreen } from '@/components/drills/views/set';
 
 export default async function DrillSetPage({ params }: { params: Promise<{ setId: string }> }) {
   const studentId = await studentOrRedirect();
@@ -13,14 +12,5 @@ export default async function DrillSetPage({ params }: { params: Promise<{ setId
   });
   if (view.status === 'completed') redirect(`/drills/sets/${setId}/results`);
 
-  return (
-    <main className="mx-auto w-full max-w-3xl space-y-6 p-6">
-      <nav className="text-sm"><Link href="/drills" className="text-muted-foreground underline-offset-4 hover:underline">← Training home</Link></nav>
-      {view.status === 'expired' ? (
-        <p className="text-sm">This set expired after 24 hours. Your answers were saved. <Link href="/drills" className="underline underline-offset-4">Start a new one</Link>.</p>
-      ) : (
-        <DrillRunner view={view} />
-      )}
-    </main>
-  );
+  return <SetScreen view={view} expired={view.status === 'expired'} fromWorkout={view.from_workout} />;
 }

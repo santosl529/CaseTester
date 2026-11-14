@@ -24,11 +24,12 @@ type Message =
 function TypingIndicator({ label }: { label?: string }) {
   return (
     <div className="flex justify-start">
-      <div className="bg-neutral-100 rounded-lg px-4 py-3 flex items-center gap-1">
-        {label && <span className="text-sm text-neutral-600 mr-2">{label}</span>}
-        <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.3s]" />
-        <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce [animation-delay:-0.15s]" />
-        <span className="w-2 h-2 bg-neutral-400 rounded-full animate-bounce" />
+      {/* A soft pulse while the interviewer replies (opacity only; still under reduced motion). */}
+      <div className="flex items-center gap-1 rounded-[14px] rounded-tl-md border border-ink/10 bg-white px-4 py-3">
+        {label && <span className="t-small mr-2 text-ink/70">{label}</span>}
+        <span className="size-1.5 rounded-full bg-ink/40 motion-safe:animate-pulse [animation-delay:-0.3s]" />
+        <span className="size-1.5 rounded-full bg-ink/40 motion-safe:animate-pulse [animation-delay:-0.15s]" />
+        <span className="size-1.5 rounded-full bg-ink/40 motion-safe:animate-pulse" />
       </div>
     </div>
   );
@@ -130,18 +131,19 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
 
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-1 overflow-y-auto space-y-4 p-4">
+      {/* Focusable, so the conversation can be scrolled from the keyboard. */}
+      <div role="region" aria-label="Conversation" tabIndex={0} className="flex-1 overflow-y-auto space-y-4 px-6 py-6">
         {messages.map((m, i) => (
-          <div key={i} className={`flex ${m.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] sm:max-w-[75%] rounded-lg px-4 py-2 text-sm ${
+          <div key={i} className={`flex animate-enter motion-reduce:animate-none ${m.role === 'candidate' ? 'justify-end' : 'justify-start'}`}>
+            <div className={`t-small max-w-[85%] sm:max-w-[75%] px-4 py-3 ${
               m.role === 'candidate'
-                ? 'bg-blue-600 text-white'
-                : 'bg-neutral-100 text-neutral-900'
+                ? 'rounded-[14px] rounded-tr-md bg-cobalt text-white'
+                : 'rounded-[14px] rounded-tl-md border border-ink/10 bg-white text-ink'
             }`}>
               {m.role === 'interviewer' ? (
                 <>
                   {m.text && (
-                    <div className="prose prose-sm max-w-none prose-p:my-1 prose-strong:font-semibold">
+                    <div className="space-y-2 [&_strong]:font-semibold">
                       <ReactMarkdown>{m.text}</ReactMarkdown>
                     </div>
                   )}
@@ -157,8 +159,8 @@ export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; i
         {ended && <CaseEndPanel sessionId={sessionId} report={ended.report} onRetry={prepareReport} />}
         <div ref={bottomRef} />
       </div>
-      {!ended && notice && <p role="alert" className="border-t px-3 pt-2 sm:px-4 text-sm text-red-600">{notice}</p>}
-      {!ended && <form onSubmit={sendTurn} className="border-t p-3 sm:p-4 flex gap-2">
+      {!ended && notice && <p role="alert" className="t-small border-t border-ink/12 bg-paper px-6 pt-3 text-alert">{notice}</p>}
+      {!ended && <form onSubmit={sendTurn} className="flex gap-2 border-t border-ink/12 bg-paper px-6 py-4">
         <Input
           value={input}
           onChange={e => setInput(e.target.value)}

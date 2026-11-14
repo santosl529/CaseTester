@@ -3,14 +3,25 @@
 // as an HTML table for screen readers and keyboard users (WCAG 2.1 AA: "every
 // chart has an accessible data-table alternative"). No hooks, so it renders
 // in server and client components alike.
+import { ChevronRight } from 'lucide-react';
 import { formatValue, type ChartSpec, type ValueFormat } from '@/lib/drills/chart-spec';
+import { WindowFrame } from '@/components/brand/window';
 
-const WIDTH = 640;
-const HEIGHT = 360;
-// Drill charts carry their own palette rather than the app theme's chart
-// colors, which are near-gray and fail non-text contrast (WCAG 1.4.11). Each
-// color is at least 3:1 against white.
-const COLORS = ['#2f6fb5', '#c9822b', '#2f8f62', '#8b5fbf', '#c4515a', '#5b6472'];
+// Two drawings of the same chart (Matt, 7 Nov: readable on phones, labels at
+// least 11px at 390 wide): the wide one as before, and a narrow one for boxes
+// under 32rem, drawn at a width close to the screen's, with larger type and a
+// legend that wraps. Layout and sizing only: the data, scales and values are
+// the same in both. The box picks one with a container query.
+interface Layout { width: number; height: number; font: number; small: number; left: number; dualRight: number; labelGap: number; charWidth: number }
+export const WIDE: Layout = { width: 640, height: 360, font: 12, small: 11, left: 64, dualRight: 64, labelGap: 44, charWidth: 6.5 };
+export const NARROW: Layout = { width: 360, height: 320, font: 13, small: 13, left: 52, dualRight: 48, labelGap: 56, charWidth: 7.2 };
+// CasePace's categorical order (Matt, 7 Nov 2026): Cobalt first, no green
+// (green means progress), the same order in every chart so a category keeps
+// its colour. Validated with the dataviz skill's checker: each at least 3:1
+// on white (WCAG 1.4.11), adjacent pairs apart for colour-blind readers
+// (worst ΔE 12.5), the first three apart in any pairing.
+const COLORS = ['#2D4BD8', '#D4581C', '#0089A8', '#A86A00', '#C0307E', '#7048C8'];
+// A waterfall's rises and falls: the case data's direction, kept as they were.
 const UP = '#2f8f62';
 const DOWN = '#c4515a';
 
@@ -53,33 +64,94 @@ function makeScale(values: number[], axis: ChartSpec['y_axis'], top: number, bot
   return { lo, hi, ticks, y };
 }
 
-interface Bar { x: number; width: number; from: number; to: number; fill: string; label: string }
+// A stacked segment's value sits inside it, as ink on a white chip: no text
+// colour reaches 4.5:1 on every palette colour (orange, teal and amber stay
+// under it in both ink and white). The stack's total sits above the bar.
+interface Bar { x: number; width: number; from: number; to: number; fill: string; label: string; gap?: boolean; inside?: boolean }
+
+// Space kept between neighbouring category labels.
+const LABEL_PAD = 6;
+// The angle of category labels that fit neither on one line nor on two.
+const LABEL_ANGLE = 40;
+
+// A label's width in the chart's font (Geist), from each character's class,
+// measured at 13px: within a few percent of the browser's own measure.
+export function textWidth(text: string, font: number): number {
+  let em = 0;
+  for (const ch of text) {
+    em += /[0-9]/.test(ch) ? 0.58 : /[mwMW]/.test(ch) ? 0.8 : /[A-Z]/.test(ch) ? 0.66 : /[ilj.,:;'|!]/.test(ch) ? 0.3 : ch === ' ' ? 0.28 : 0.52;
+  }
+  return em * font;
+}
+
+// An exhibit's category labels: every category is named, even on a phone,
+// because the student writes about the bars by name. Each label goes on one
+// line; if any is wider than its band, they wrap onto two lines at a space;
+// if even that doesn't fit, they're angled. (Your progress thins its labels
+// instead: a score per set needn't name every set.)
+export function categoryLabels(categories: string[], band: number, font: number): { lines: string[][]; mode: 'line' | 'wrap' | 'angle' } {
+  const fits = (t: string) => textWidth(t, font) + LABEL_PAD <= band;
+  if (categories.every(fits)) return { lines: categories.map(c => [c]), mode: 'line' };
+  const wrapped = categories.map(c => {
+    const words = c.split(' ');
+    // The split whose longer line is narrowest.
+    let best = [c];
+    for (let k = 1; k < words.length; k++) {
+      const pair = [words.slice(0, k).join(' '), words.slice(k).join(' ')];
+      if (best.length === 1 || Math.max(...pair.map(l => textWidth(l, font))) < Math.max(...best.map(l => textWidth(l, font)))) best = pair;
+    }
+    return best;
+  });
+  if (wrapped.flat().every(fits)) return { lines: wrapped, mode: 'wrap' };
+  return { lines: categories.map(c => [c]), mode: 'angle' };
+}
 
 function seriesFormat(spec: ChartSpec, axis: 'left' | 'right'): ValueFormat {
   return (axis === 'right' ? spec.y2_axis?.format : spec.y_axis.format) ?? { prefix: '', suffix: '', decimals: 0 };
 }
 
-function Plot({ spec }: { spec: ChartSpec }) {
+function Plot({ spec, layout, exhibit, className }: { spec: ChartSpec; layout: Layout; exhibit: boolean; className?: string }) {
+  const WIDTH = layout.width;
   const dual = spec.type === 'dual_axis';
   const legend = spec.series.length > 1;
-  const margin = { top: 20, right: dual ? 64 : 16, bottom: legend ? 72 : 44, left: 64 };
+  const right = dual ? layout.dualRight : 16;
+
+  // Legend entries sit side by side, each as wide as its label, wrapping onto
+  // a new row when the next would run past the plot's right edge.
+  let legendX = layout.left;
+  let legendRow = 0;
+  const placed = spec.series.map(s => {
+    const label = `${s.name}${dual ? ` (${s.axis} axis)` : ''}`;
+    const width = 18 + label.length * layout.charWidth;
+    if (legendX > layout.left && legendX + width > WIDTH - right) { legendX = layout.left; legendRow++; }
+    const entry = { name: s.name, label, x: legendX, row: legendRow };
+    legendX += width + 20;
+    return entry;
+  });
+  const legendRows = legend ? legendRow + 1 : 0;
+  const plotWidth = WIDTH - layout.left - right;
+  const band = plotWidth / spec.categories.length;
+  const labels = exhibit ? categoryLabels(spec.categories, band, layout.font) : { lines: spec.categories.map(c => [c]), mode: 'line' as const };
+  // Dense categories on Your progress (a score per set): label every few, so labels don't collide.
+  const labelEvery = exhibit ? 1 : Math.max(1, Math.ceil(layout.labelGap / band));
+  // Room for a second line of labels, or for angled ones.
+  const extra = labels.mode === 'wrap' ? layout.font + 3
+    : labels.mode === 'angle' ? Math.ceil(Math.max(...spec.categories.map(c => textWidth(c, layout.font))) * Math.sin(LABEL_ANGLE * Math.PI / 180)) : 0;
+  const HEIGHT = layout.height + (legendRows > 1 ? (legendRows - 1) * 18 : 0) + extra;
+  const margin = { top: 20, right, bottom: (legend ? 44 + 10 + legendRows * 18 : 44) + extra, left: layout.left };
   const top = margin.top;
   const bottom = HEIGHT - margin.bottom;
-  const plotWidth = WIDTH - margin.left - margin.right;
-  const band = plotWidth / spec.categories.length;
   const bandX = (i: number) => margin.left + i * band;
-  // Dense categories (a score per set): label every few, so labels don't collide.
-  const labelEvery = Math.max(1, Math.ceil(44 / band));
   const gap = (i: number) => spec.gaps.includes(i);
 
-  const left = spec.series.filter(s => s.axis === 'left');
-  const right = spec.series.filter(s => s.axis === 'right');
+  const leftSeries = spec.series.filter(s => s.axis === 'left');
+  const rightSeries = spec.series.filter(s => s.axis === 'right');
 
   // Values the left scale must cover, per chart type.
   let leftValues: number[];
   const running: { from: number; to: number }[] = [];
   if (spec.type === 'stacked_bar') {
-    leftValues = spec.categories.map((_, i) => left.reduce((sum, s) => sum + s.values[i], 0)).filter((_, i) => !gap(i));
+    leftValues = spec.categories.map((_, i) => leftSeries.reduce((sum, s) => sum + s.values[i], 0)).filter((_, i) => !gap(i));
   } else if (spec.type === 'waterfall') {
     let total = 0;
     spec.series[0].values.forEach((v, i) => {
@@ -88,15 +160,16 @@ function Plot({ spec }: { spec: ChartSpec }) {
     });
     leftValues = running.flatMap(r => [r.from, r.to]);
   } else {
-    leftValues = left.flatMap(s => s.values.filter((_, i) => !gap(i)));
+    leftValues = leftSeries.flatMap(s => s.values.filter((_, i) => !gap(i)));
   }
   leftValues.push(...spec.reference_lines.map(r => r.value));
   if (leftValues.length === 0) leftValues.push(0);
   const yl = makeScale(leftValues, spec.y_axis, top, bottom);
-  const yr = dual && spec.y2_axis ? makeScale(right.flatMap(s => s.values), spec.y2_axis, top, bottom) : null;
+  const yr = dual && spec.y2_axis ? makeScale(rightSeries.flatMap(s => s.values), spec.y2_axis, top, bottom) : null;
   const base = (scale: Scale) => scale.y(Math.min(Math.max(0, scale.lo), scale.hi));
 
   const bars: Bar[] = [];
+  const totals: { x: number; y: number; label: string }[] = [];
   const lines: { points: ([number, number] | null)[]; color: string; labels: string[]; values: number[] }[] = [];
   const barSeries = dual ? spec.series.filter(s => (s.mark ?? (s.axis === 'left' ? 'bar' : 'line')) === 'bar') : spec.series;
   const lineSeries = dual ? spec.series.filter(s => !barSeries.includes(s)) : [];
@@ -126,10 +199,11 @@ function Plot({ spec }: { spec: ChartSpec }) {
         bars.push({
           x: bandX(i) + band * 0.2, width: band * 0.6,
           from: yl.y(acc), to: yl.y(acc + v),
-          fill: colorOf(s.name), label: formatValue(v, fmt),
+          fill: colorOf(s.name), label: formatValue(v, fmt), gap: true, inside: true,
         });
         acc += v;
       }
+      totals.push({ x: bandX(i) + band / 2, y: yl.y(acc), label: formatValue(acc, fmt) });
     });
   } else {
     const group = barSeries.length;
@@ -141,7 +215,7 @@ function Plot({ spec }: { spec: ChartSpec }) {
         bars.push({
           x: bandX(i) + band * 0.15 + (inner / group) * k, width: inner / group,
           from: base(scale), to: scale.y(v),
-          fill: group > 1 ? colorOf(s.name) : COLORS[0], label: formatValue(v, fmt),
+          fill: group > 1 ? colorOf(s.name) : COLORS[0], label: formatValue(v, fmt), gap: group > 1,
         });
       });
     });
@@ -157,52 +231,56 @@ function Plot({ spec }: { spec: ChartSpec }) {
     });
   }
 
-  // Legend entries sit side by side, each as wide as its label (about 6.5px a
-  // character at 12px), so long dual-axis labels don't run into each other.
-  let legendX = margin.left;
-  const legendEntries = spec.series.map(s => {
-    const label = `${s.name}${dual ? ` (${s.axis} axis)` : ''}`;
-    const entry = { name: s.name, label, x: legendX };
-    legendX += 18 + label.length * 6.5 + 20;
-    return entry;
-  });
 
   const leftFmt = seriesFormat(spec, 'left');
   const rightFmt = seriesFormat(spec, 'right');
   return (
-    <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="h-auto w-full" aria-hidden="true" focusable="false">
+    <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className={`h-auto w-full ${className ?? ''}`} aria-hidden="true" focusable="false">
       {yl.ticks.map(t => (
         <g key={`l${t}`}>
           <line x1={margin.left} x2={WIDTH - margin.right} y1={yl.y(t)} y2={yl.y(t)} stroke="var(--border)" />
-          <text x={margin.left - 8} y={yl.y(t)} textAnchor="end" dominantBaseline="middle" fontSize={12} fill="currentColor">
+          <text x={margin.left - 8} y={yl.y(t)} textAnchor="end" dominantBaseline="middle" fontSize={layout.font} fill="var(--muted-foreground)">
             {formatValue(t, leftFmt)}
           </text>
         </g>
       ))}
       {yr?.ticks.map(t => (
-        <text key={`r${t}`} x={WIDTH - margin.right + 8} y={yr.y(t)} dominantBaseline="middle" fontSize={12} fill="currentColor">
+        <text key={`r${t}`} x={WIDTH - margin.right + 8} y={yr.y(t)} dominantBaseline="middle" fontSize={layout.font} fill="var(--muted-foreground)">
           {formatValue(t, rightFmt)}
         </text>
       ))}
       {spec.y_axis.label && (
-        <text transform={`translate(14 ${(top + bottom) / 2}) rotate(-90)`} textAnchor="middle" fontSize={12} fill="currentColor">
+        <text transform={`translate(14 ${(top + bottom) / 2}) rotate(-90)`} textAnchor="middle" fontSize={layout.font} fill="currentColor">
           {spec.y_axis.label}
         </text>
       )}
       {yr && spec.y2_axis?.label && (
-        <text transform={`translate(${WIDTH - 10} ${(top + bottom) / 2}) rotate(90)`} textAnchor="middle" fontSize={12} fill="currentColor">
+        <text transform={`translate(${WIDTH - 10} ${(top + bottom) / 2}) rotate(90)`} textAnchor="middle" fontSize={layout.font} fill="currentColor">
           {spec.y2_axis.label}
         </text>
       )}
       {bars.map((b, i) => (
-        <g key={`b${i}`}>
-          <rect x={b.x} width={b.width} y={Math.min(b.from, b.to)} height={Math.max(1, Math.abs(b.to - b.from))} fill={b.fill} />
-          {spec.show_values && (
-            <text x={b.x + b.width / 2} y={Math.min(b.from, b.to) - 4} textAnchor="middle" fontSize={11} fill="currentColor">
-              {b.label}
-            </text>
-          )}
-        </g>
+        <rect key={`b${i}`} x={b.x} width={b.width} y={Math.min(b.from, b.to)} height={Math.max(1, Math.abs(b.to - b.from))} fill={b.fill}
+          {...(b.gap && { stroke: 'var(--white)', strokeWidth: 2 })} />
+      ))}
+      {/* Values after every bar, so no later bar covers one. */}
+      {spec.show_values && bars.map((b, i) => {
+        if (!b.inside) {
+          return <text key={`v${i}`} x={b.x + b.width / 2} y={Math.min(b.from, b.to) - 4} textAnchor="middle" fontSize={layout.small} fill="currentColor">{b.label}</text>;
+        }
+        const chip = { w: b.label.length * layout.charWidth * (layout.small / layout.font) + 8, h: layout.small + 5 };
+        // Left out where the segment is too small for it; the data table has every value.
+        if (chip.w > b.width - 4 || chip.h > Math.abs(b.to - b.from) - 4) return null;
+        const cy = (b.from + b.to) / 2;
+        return (
+          <g key={`v${i}`}>
+            <rect x={b.x + (b.width - chip.w) / 2} y={cy - chip.h / 2} width={chip.w} height={chip.h} rx={3} fill="var(--white)" />
+            <text x={b.x + b.width / 2} y={cy} textAnchor="middle" dominantBaseline="central" fontSize={layout.small} fill="currentColor">{b.label}</text>
+          </g>
+        );
+      })}
+      {spec.show_values && totals.map((t, i) => (
+        <text key={`t${i}`} x={t.x} y={t.y - 4} textAnchor="middle" fontSize={layout.small} fontWeight={600} fill="currentColor">{t.label}</text>
       ))}
       {lines.map((l, i) => (
         <g key={`p${i}`}>
@@ -217,10 +295,10 @@ function Plot({ spec }: { spec: ChartSpec }) {
           {l.points.map((p, j) => p && (
             <g key={j}>
               {spec.hollow.includes(j)
-                ? <circle cx={p[0]} cy={p[1]} r={4} fill="var(--background, #fff)" stroke={l.color} strokeWidth={2} />
+                ? <circle cx={p[0]} cy={p[1]} r={4} fill="var(--white)" stroke={l.color} strokeWidth={2} />
                 : <circle cx={p[0]} cy={p[1]} r={3.5} fill={l.color} />}
               {spec.show_values && (
-                <text x={p[0]} y={p[1] - 8} textAnchor="middle" fontSize={11} fill="currentColor">{l.labels[j]}</text>
+                <text x={p[0]} y={p[1] - 8} textAnchor="middle" fontSize={layout.small} fill="currentColor">{l.labels[j]}</text>
               )}
             </g>
           ))}
@@ -230,24 +308,28 @@ function Plot({ spec }: { spec: ChartSpec }) {
       {spec.reference_lines.map((r, i) => (
         <g key={`r${i}`}>
           <line x1={margin.left} x2={WIDTH - margin.right} y1={yl.y(r.value)} y2={yl.y(r.value)} stroke="currentColor" strokeDasharray="6 4" />
-          <text x={WIDTH - margin.right} y={yl.y(r.value) + 14} textAnchor="end" fontSize={11} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{r.label}</text>
+          <text x={WIDTH - margin.right} y={yl.y(r.value) + 14} textAnchor="end" fontSize={layout.small} fill="currentColor" stroke="var(--white)" strokeWidth={4} paintOrder="stroke">{r.label}</text>
         </g>
       ))}
       {spec.markers.map((m, i) => (
         <g key={`m${i}`}>
           <line x1={bandX(m.index)} x2={bandX(m.index)} y1={top} y2={bottom} stroke="currentColor" strokeDasharray="2 3" />
           {/* Past the middle, the label sits left of its line so it isn't cut off. */}
-          <text x={bandX(m.index) + (bandX(m.index) > WIDTH / 2 ? -4 : 4)} y={top + 10 + (i % 2) * 14} textAnchor={bandX(m.index) > WIDTH / 2 ? 'end' : 'start'} fontSize={11} fill="currentColor" stroke="var(--background, #fff)" strokeWidth={4} paintOrder="stroke">{m.label}</text>
+          <text x={bandX(m.index) + (bandX(m.index) > WIDTH / 2 ? -4 : 4)} y={top + 10 + (i % 2) * 14} textAnchor={bandX(m.index) > WIDTH / 2 ? 'end' : 'start'} fontSize={layout.small} fill="currentColor" stroke="var(--white)" strokeWidth={4} paintOrder="stroke">{m.label}</text>
         </g>
       ))}
       <line x1={margin.left} x2={WIDTH - margin.right} y1={bottom} y2={bottom} stroke="currentColor" />
-      {spec.categories.map((c, i) => i % labelEvery === 0 && (
-        <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 18} textAnchor="middle" fontSize={12} fill="currentColor">{c}</text>
-      ))}
-      {legend && legendEntries.map(({ name, label, x }, i) => (
-        <g key={`k${i}`} transform={`translate(${x} ${HEIGHT - 22})`}>
-          <rect width={12} height={12} y={-10} fill={colorOf(name)} />
-          <text x={18} fontSize={12} fill="currentColor">{label}</text>
+      {labels.lines.map((lines, i) => i % labelEvery === 0 && (labels.mode === 'angle' ? (
+        <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 14} transform={`rotate(-${LABEL_ANGLE} ${bandX(i) + band / 2} ${bottom + 14})`} textAnchor="end" fontSize={layout.font} fill="currentColor">{lines[0]}</text>
+      ) : (
+        <text key={`c${i}`} x={bandX(i) + band / 2} y={bottom + 18} textAnchor="middle" fontSize={layout.font} fill="currentColor">
+          {lines.map((l, k) => <tspan key={k} x={bandX(i) + band / 2} dy={k ? layout.font + 3 : 0}>{l}</tspan>)}
+        </text>
+      )))}
+      {legend && placed.map(({ name, label, x, row }, i) => (
+        <g key={`k${i}`} transform={`translate(${x} ${HEIGHT - 22 - (legendRows - 1 - row) * 18})`}>
+          <rect width={12} height={12} y={-10} rx={2} fill={colorOf(name)} />
+          <text x={18} fontSize={layout.font} fill="currentColor">{label}</text>
         </g>
       ))}
     </svg>
@@ -255,7 +337,7 @@ function Plot({ spec }: { spec: ChartSpec }) {
 }
 
 function DataTable({ spec, visible }: { spec: ChartSpec; visible: boolean }) {
-  const cell = 'border border-border px-2 py-1 text-left';
+  const cell = 'border-b border-ink/10 px-3 py-1.5 text-left tabular-nums';
   const table = spec.type === 'table' && spec.table
     ? { columns: spec.table.columns, rows: spec.table.rows.map(r => r.map(String)) }
     : {
@@ -271,17 +353,17 @@ function DataTable({ spec, visible }: { spec: ChartSpec; visible: boolean }) {
   // users can scroll it too.
   return (
     <div role="region" aria-label={`${spec.title}: data table`} tabIndex={0}
-      className={`overflow-x-auto rounded-sm focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50 ${visible ? '' : 'mt-2'}`}>
-    <table className="w-full border-collapse text-sm">
+      className={`overflow-x-auto rounded-sm ${visible ? '' : 'mt-2'}`}>
+    <table className="t-small w-full border-collapse">
       <caption className="sr-only">{spec.title}{spec.units_label ? ` (${spec.units_label})` : ''}</caption>
       <thead>
-        <tr>{table.columns.map((c, i) => <th key={i} scope="col" className={cell}>{c}</th>)}</tr>
+        <tr className="text-ink/70">{table.columns.map((c, i) => <th key={i} scope="col" className={`${cell} border-ink/20 font-medium`}>{c}</th>)}</tr>
       </thead>
       <tbody>
         {table.rows.map((row, i) => (
           <tr key={i}>
             {row.map((v, j) => j === 0
-              ? <th key={j} scope="row" className={cell}>{v}</th>
+              ? <th key={j} scope="row" className={`${cell} font-medium`}>{v}</th>
               : <td key={j} className={cell}>{v}</td>)}
           </tr>
         ))}
@@ -291,31 +373,61 @@ function DataTable({ spec, visible }: { spec: ChartSpec; visible: boolean }) {
   );
 }
 
-export function DrillChart({ spec }: { spec: ChartSpec }) {
-  return (
-    <figure className="space-y-2" aria-label={`${TYPE_NAMES[spec.type]}: ${spec.title}`}>
-      <figcaption>
-        <span className="font-medium">{spec.title}</span>
-        {spec.units_label && <span className="block text-sm text-muted-foreground">{spec.units_label}</span>}
-      </figcaption>
+// `exhibit`: case material (a drill item, its worked example and results),
+// in the homepage's window with its label above ("Exhibit · Market share by
+// player"); otherwise a plain chart (Your progress).
+export function DrillChart({ spec, exhibit = false }: { spec: ChartSpec; exhibit?: boolean }) {
+  const body = (
+    <>
       {spec.type === 'table' ? (
         <DataTable spec={spec} visible />
       ) : (
         <>
-          <Plot spec={spec} />
-          <details className="text-sm">
-            <summary className="cursor-pointer">Show data table</summary>
+          <Plot spec={spec} layout={WIDE} exhibit={exhibit} className="hidden @lg:block" />
+          <Plot spec={spec} layout={NARROW} exhibit={exhibit} className="@lg:hidden" />
+          <details className="group t-small">
+            <summary className="inline-flex cursor-pointer list-none items-center gap-1 font-medium text-ink/80 hover:text-cobalt [&::-webkit-details-marker]:hidden">
+              <ChevronRight aria-hidden="true" className="size-4 transition-transform duration-150 group-open:rotate-90 motion-reduce:transition-none" />Show data table
+            </summary>
             <DataTable spec={spec} visible={false} />
           </details>
         </>
       )}
+    </>
+  );
+  const notes = (
+    <>
       {spec.reference_lines.map((r, i) => (
-        <p key={`ref${i}`} className="text-xs text-muted-foreground">Dashed line: {r.label}.</p>
+        <p key={`ref${i}`} className="t-label text-ink/70">Dashed line: {r.label}.</p>
       ))}
-      {spec.markers.length > 0 && <p className="text-xs text-muted-foreground">▲ ▼ mark a move up or down a tier, or to another kind of drill: a dip right after moving up is expected.</p>}
+      {spec.markers.length > 0 && <p className="t-label text-ink/70">▲ ▼ mark a move up or down a tier, or to another kind of drill: a dip right after moving up is expected.</p>}
       {spec.footnotes.map((note, i) => (
-        <p key={i} className="text-xs text-muted-foreground">{note}</p>
+        <p key={i} className="t-label text-ink/70">{note}</p>
       ))}
+    </>
+  );
+  if (exhibit) {
+    return (
+      <figure className="@container space-y-2" aria-label={`${TYPE_NAMES[spec.type]}: ${spec.title}`}>
+        <figcaption className="t-label"><span className="font-semibold">Exhibit</span><span className="text-ink/70"> · {spec.title}</span></figcaption>
+        <WindowFrame>
+          <div className="space-y-3 p-4 sm:p-5">
+            {spec.units_label && <p className="t-label text-ink/70">{spec.units_label}</p>}
+            {body}
+          </div>
+        </WindowFrame>
+        {notes}
+      </figure>
+    );
+  }
+  return (
+    <figure className="@container space-y-2" aria-label={`${TYPE_NAMES[spec.type]}: ${spec.title}`}>
+      <figcaption>
+        <span className="t-small font-semibold">{spec.title}</span>
+        {spec.units_label && <span className="t-label block text-ink/70">{spec.units_label}</span>}
+      </figcaption>
+      {body}
+      {notes}
     </figure>
   );
 }

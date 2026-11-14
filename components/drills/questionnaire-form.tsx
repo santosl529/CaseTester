@@ -49,18 +49,18 @@ export function QuestionnaireForm({ availability, today, initial, showHours }: {
     router.push('/drills/plan');
   }
 
-  const box = 'flex items-start gap-3 rounded-lg border p-3 text-sm has-[:checked]:border-foreground';
-  const pill = 'flex items-center gap-2 rounded-lg border px-3 py-2 text-sm has-[:checked]:border-foreground';
+  const box = 'flex cursor-pointer items-start gap-3 rounded-window border border-ink/15 bg-white p-4 t-small transition-colors hover:border-ink/35 has-[:checked]:border-cobalt has-[:checked]:bg-sky/40 motion-reduce:transition-none [&_input]:accent-cobalt';
+  const pill = 'flex cursor-pointer items-center gap-2 rounded-full border border-ink/20 bg-white px-4 py-2 t-small transition-colors hover:border-ink/40 has-[:checked]:border-cobalt has-[:checked]:bg-sky/40 motion-reduce:transition-none [&_input]:accent-cobalt';
   return (
     <form onSubmit={submit} className="space-y-6">
       <div className="space-y-2">
-        <label htmlFor="interview" className="block font-medium">When is your interview? <span className="font-normal text-muted-foreground">(optional)</span></label>
+        <label htmlFor="interview" className="t-small block font-semibold">When is your interview? <span className="font-normal text-ink/70">(optional)</span></label>
         <input id="interview" type="date" min={today} value={interviewDate} onChange={e => setInterviewDate(e.target.value)}
-          className="w-full rounded-md border bg-background px-3 py-2 text-sm sm:w-auto" />
+          className="h-10 w-full rounded-field border border-ink/20 bg-white px-3 t-small text-ink transition-colors hover:border-ink/35 focus-visible:border-cobalt motion-reduce:transition-none sm:w-auto" />
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="mb-2 font-medium">How many practice cases have you done?</legend>
+        <legend className="t-small mb-2 font-semibold">How many practice cases have you done?</legend>
         <div className="flex flex-wrap gap-2">
           {(['0', '1-5', '6+'] as const).map(v => (
             <label key={v} className={pill}>
@@ -73,11 +73,11 @@ export function QuestionnaireForm({ availability, today, initial, showHours }: {
 
       {showHours && (
         <fieldset className="space-y-2">
-          <legend className="mb-2 font-medium">How much time do you have each week?</legend>
+          <legend className="t-small mb-2 font-semibold">How much time do you have each week?</legend>
           {availability.map(a => (
             <label key={a.id} className={box}>
               <input type="radio" name="hours" checked={hours === a.id} onChange={() => setHours(a.id)} className="mt-1" />
-              <span>{a.label} <span className="text-muted-foreground">({a.workouts_per_week} workouts a week, plus cases)</span></span>
+              <span>{a.label} <span className="text-ink/70">({a.workouts_per_week} workouts a week, plus cases)</span></span>
             </label>
           ))}
         </fieldset>
@@ -85,12 +85,12 @@ export function QuestionnaireForm({ availability, today, initial, showHours }: {
 
       <div className="space-y-4">
         <div>
-          <p className="font-medium">How confident are you in each?</p>
-          <p className="text-sm text-muted-foreground">1 means new to it, 5 means confident. A rough guess is fine.</p>
+          <p className="t-small font-semibold">How confident are you in each?</p>
+          <p className="t-small text-ink/70">1 means new to it, 5 means confident. A rough guess is fine.</p>
         </div>
         {AREAS.map(a => (
           <fieldset key={a.id} className="space-y-2">
-            <legend className="text-sm"><span className="font-medium">{a.label}</span> <span className="text-muted-foreground">· {a.hint}</span></legend>
+            <legend className="t-small"><span className="font-semibold">{a.label}</span> <span className="text-ink/70">· {a.hint}</span></legend>
             <div className="flex flex-wrap gap-2">
               {[1, 2, 3, 4, 5].map(n => (
                 <label key={n} className={pill}>
@@ -105,7 +105,7 @@ export function QuestionnaireForm({ availability, today, initial, showHours }: {
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="mb-2 font-medium">What do you find hardest? <span className="font-normal text-muted-foreground">(optional)</span></legend>
+        <legend className="t-small mb-2 font-semibold">What do you find hardest? <span className="font-normal text-ink/70">(optional)</span></legend>
         <div className="flex flex-wrap gap-2">
           {[...AREAS.map(a => ({ id: a.id, label: a.label })), { id: 'not_sure' as const, label: 'Not sure' }].map(o => (
             <label key={o.id} className={pill}>
@@ -116,7 +116,7 @@ export function QuestionnaireForm({ availability, today, initial, showHours }: {
         </div>
       </fieldset>
 
-      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      {error && <p role="alert" className="t-small text-alert">{error}</p>}
       <Button type="submit" size="lg" disabled={busy}>{busy ? 'Building your plan…' : 'Build my plan'}</Button>
     </form>
   );

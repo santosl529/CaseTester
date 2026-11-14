@@ -24,7 +24,7 @@ export function LiveCaption({ segments }: { segments: CaptionSegment[] }) {
     <span>
       {split.map((x, i) => (
         <span key={x.key}>
-          {i > 0 ? ' ' : ''}{x.lit}<span className="text-neutral-400">{x.dim}</span>
+          {i > 0 ? ' ' : ''}{x.lit}<span className="text-ink/45">{x.dim}</span>
         </span>
       ))}
     </span>

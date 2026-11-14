@@ -37,6 +37,12 @@ Placement rules (Matt, 2026-10-11):
 - Professional services and vet care → Other. Consumer and local services (salons, gyms, laundromats, cleaning, repair, pest control) → Other.
 - Investor or fund clients → the industry being invested in.
 
+Added rules (Matt, 2026-11-12):
+- Distributors and wholesalers → Logistics / Transportation.
+- Property rental and space (student housing, coworking, offices) → Other.
+- Pharmacies → Healthcare Provider / Payor.
+- Whether a product is one households buy is decided by who buys the item in the case, even for building products.
+
 If the item never says what the client does or what market it is in (only generic revenue, cost or market figures), set stated to false and industry to Other.
 
 Set sure to true when the rules above or the item make the choice clear. Set it to false only when two industries still fit about equally well. Give a one-sentence reason naming what in the item decided it.`;

@@ -10,7 +10,6 @@ import { generatorInputs, type Generator } from './types';
 import { calculatorFree, fmt, generatedItem, keyAmbiguities, money, pct, redraw } from './util';
 
 const TEMPLATE_ID = 'percent_change';
-const TEMPLATE_VERSION = 1;
 
 // Tier number rules (PRD): T1 round numbers, T2 one uneven figure, T3 two
 // significant figures with uneven zeros.
@@ -21,10 +20,15 @@ const START_MANTISSAS: Record<Tier, readonly number[]> = {
 };
 // No changes under 7.5%: below that, the wrong-base result rounds to the right
 // answer (5% → 4.76%), so the trap can't be told apart from a correct answer.
-const PERCENTS: Record<Tier, readonly number[]> = {
-  1: [10, 20, 25, 50],
-  2: [15, 30, 35, 40, 60, 75],
-  3: [7.5, 12.5, 35, 45, 62.5, 120, 150],
+// Version 2 (Matt, 2026-11-11): at least ten changes per tier, so the right
+// answer can't be memorized (version 1 had four at T1).
+const PERCENTS: Record<1 | 2, Record<Tier, readonly number[]>> = {
+  1: { 1: [10, 20, 25, 50], 2: [15, 30, 35, 40, 60, 75], 3: [7.5, 12.5, 35, 45, 62.5, 120, 150] },
+  2: {
+    1: [10, 20, 25, 30, 40, 50, 60, 75, 80, 100],
+    2: [12, 15, 18, 30, 35, 40, 45, 60, 65, 75, 80, 90],
+    3: [7.5, 12.5, 17.5, 35, 45, 62.5, 87.5, 120, 135, 150, 175],
+  },
 };
 const SCALES: Record<Tier, readonly number[]> = {
   1: [100, 1_000, 10_000, 100_000],
@@ -40,11 +44,11 @@ const METRICS = [
   { noun: 'Marketing spend', money: true, plural: false },
 ] as const;
 
-function generate(seed: number, tier: Tier): Item {
+const generate = (version: 1 | 2) => (seed: number, tier: Tier): Item => {
   const rng: Rng = createRng(seed);
   return redraw(TEMPLATE_ID, () => {
     const start = rng.pick(START_MANTISSAS[tier]) * rng.pick(SCALES[tier]);
-    const percent = rng.pick(PERCENTS[tier]);
+    const percent = rng.pick(PERCENTS[version][tier]);
     const up = percent > 100 || rng.next() < 0.5;
     const end = start * (1 + (up ? percent : -percent) / 100);
     if (!Number.isInteger(end) || end <= 0) return null;
@@ -62,7 +66,7 @@ function generate(seed: number, tier: Tier): Item {
     const show = (n: number) => (metric.money ? money(n) : fmt(n));
     const pronoun = metric.plural ? 'they' : 'it';
     return generatedItem({
-      templateId: TEMPLATE_ID, templateVersion: TEMPLATE_VERSION, drillId: 'QN-3', level: 2, tier, seed,
+      templateId: TEMPLATE_ID, templateVersion: version, drillId: 'QN-3', level: 2, tier, seed,
       skills: ['QN.percentages'],
       prompt: `${metric.noun} ${up ? 'grew' : 'fell'} from ${show(start)} to ${show(end)}. By what percent did ${pronoun} ${up ? 'increase' : 'decrease'}?`,
       numeric,
@@ -72,19 +76,23 @@ function generate(seed: number, tier: Tier): Item {
       inputs: { start, end },
     });
   });
-}
+};
 
 function recompute(item: Item): number {
   const { start, end } = generatorInputs(item);
   return Math.abs((end - start) / start) * 100;
 }
 
-export const percentChange: Generator = {
+const template = (version: 1 | 2, retired = false): Generator => ({
   template_id: TEMPLATE_ID,
-  template_version: TEMPLATE_VERSION,
+  template_version: version,
+  ...(retired && { retired }),
   drill_id: 'QN-3',
   skills: ['QN.percentages'],
   focus_tags: ['M.wrong_base', 'M.zeros_error', 'M.arithmetic_error'],
-  generate,
+  generate: generate(version),
   recompute,
-};
+});
+
+export const percentChangeV1 = template(1, true);
+export const percentChange = template(2);

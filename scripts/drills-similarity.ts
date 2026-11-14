@@ -3,6 +3,8 @@
 // well-known published case-prep material, and records the result on the
 // item's authorship: passed, or flagged with a note for a human to review.
 // A flagged live item goes back to in_review, since a live item must pass.
+// Results are also kept in drill-items/review-records.json, which the
+// importer restores them from.
 // Generated items are built from our own templates and aren't checked.
 //
 // It relies on the model's knowledge of published material plus a few web
@@ -19,6 +21,7 @@ import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
 import { FALLBACK_BETA, FALLBACKS } from '@/lib/models';
 import { ItemSchema, type Item } from '@/lib/drills/item-schema';
+import { loadReviewRecords, recordReview, saveReviewRecords, similarityInput } from '@/lib/drills/review-records';
 
 const MODEL_ID = 'claude-opus-5-5';
 const CONCURRENCY = 6;
@@ -47,17 +50,6 @@ const OutputSchema = z.object({
 });
 const OUTPUT_FORMAT = betaZodOutputFormat(OutputSchema);
 
-function render(item: Item): string {
-  const parts = [`Drill: ${item.drill_id}`, `Question: ${item.prompt}`];
-  if (item.exhibit) parts.push(`Exhibit: ${JSON.stringify(item.exhibit)}`);
-  if (item.options.length) parts.push(`Options:\n${item.options.map(o => `- ${o.text}`).join('\n')}`);
-  // Repair items: the flawed answer the student edits.
-  if (typeof item.extras.flawed_answer === 'string') parts.push(`Answer to fix: ${item.extras.flawed_answer}`);
-  if (item.defend) parts.push(`Interviewer follow-up: ${item.defend.text}\nModel reply: ${item.defend.model_reply}`);
-  if (item.model_answer) parts.push(`Model answer: ${item.model_answer}`);
-  parts.push(`Explanation: ${item.explanation}`);
-  return parts.join('\n\n');
-}
 
 const client = new Anthropic();
 const usage = { input: 0, output: 0, searches: 0 };
@@ -71,7 +63,7 @@ const WEB = !process.argv.includes('--no-web');
 const WEB_NOTE = `\n\nYou can search the web. Search for published practice cases with this item's premise (for example "<client type> <decision> practice case" or "<client type> case interview"), especially on consulting firms' careers pages and case-prep sites, before deciding.`;
 
 async function check(item: Item): Promise<z.infer<typeof OutputSchema>> {
-  const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: 'user', content: render(item) }];
+  const messages: Anthropic.Beta.BetaMessageParam[] = [{ role: 'user', content: similarityInput(item) }];
   let response;
   // A server-side search can pause a long turn; send it back to continue.
   for (let turn = 0; turn < 4; turn++) {
@@ -123,6 +115,7 @@ async function main() {
   console.log(`Checking ${targets.length} authored items with ${MODEL_ID}…`);
 
   const today = new Date().toISOString().slice(0, 10);
+  const records = loadReviewRecords();
   const flagged: string[] = [];
   const errors: string[] = [];
   let next = 0;
@@ -146,11 +139,14 @@ async function main() {
           flagged.push(`${item.item_id}: ${v.resembles} — ${v.reason}`);
         }
         fs.writeFileSync(file, `${JSON.stringify(raw, null, 2)}\n`);
+        recordReview(records, { ...item, authorship: raw.authorship });
       } catch (e) {
         errors.push(`${item.item_id}: ${(e as Error).message}`);
       }
     }
   }));
+  // Kept apart from the item files, so a re-import can't lose them.
+  saveReviewRecords(records);
 
   const cost = (usage.input * PRICE.input + usage.output * PRICE.output) / 1_000_000 + usage.searches * PRICE.search;
   console.log(`\n${targets.length - flagged.length - errors.length} passed, ${flagged.length} flagged, ${errors.length} errors (about $${cost.toFixed(2)})`);

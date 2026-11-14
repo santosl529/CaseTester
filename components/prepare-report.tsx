@@ -26,10 +26,10 @@ export function PrepareReport({ sessionId }: { sessionId: string }) {
   }
 
   return (
-    <div className="space-y-3 rounded-lg border p-4">
-      <p className="text-sm">Your report for this case isn’t ready yet.</p>
-      {state === 'preparing' && <p className="text-sm text-neutral-600">Preparing your report — this can take a couple of minutes. Please keep this page open.</p>}
-      {state === 'failed' && <p className="text-sm text-red-600">Your report couldn’t be prepared just now. Your interview is saved: press Try again in a minute.</p>}
+    <div className="space-y-4 rounded-panel border border-ink/12 bg-white p-6 shadow-quiet">
+      <p className="t-body">Your report for this case isn’t ready yet.</p>
+      {state === 'preparing' && <p className="t-small text-ink/70">Preparing your report — this can take a couple of minutes. Please keep this page open.</p>}
+      {state === 'failed' && <p className="t-small text-alert">Your report couldn’t be prepared just now. Your interview is saved: press Try again in a minute.</p>}
       <Button size="lg" onClick={prepare} disabled={state === 'preparing'}>
         {state === 'preparing' ? 'Preparing your report…' : state === 'failed' ? 'Try again' : 'Prepare my report'}
       </Button>

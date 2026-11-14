@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0011-a",
+  "item_id": "cl4-0011",
+  "drill_id": "CL-4",
+  "answer_type": "normal",
+  "notes": "A fix, not an analysis (rules 1, 2; a fix names no analysis, Matt 2026-11-12), with no reason (rule 3), and a final recommendation (rule 6); the change is well made (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Open 3 new stores in nearby towns to reach new customers."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change: students spent more before classes too, so I'd size selling online, where half of kitchenware is bought."
+    }
+  ],
+  "labels": {
+    "one_step": false,
+    "logical": false,
+    "reason_latest_finding": false,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": true
+  },
+  "family": "New stores"
+}

@@ -483,7 +483,7 @@
       "pass_bar": 0.8,
       "priority": "P1",
       "item_source": "authored",
-      "live": false
+      "live": true
     },
     {
       "id": "EX-3",
@@ -522,6 +522,10 @@
         {
           "id": "EX.takeaway",
           "primary": true
+        },
+        {
+          "id": "BJ.so_what",
+          "primary": false
         }
       ],
       "input_types": [
@@ -530,17 +534,26 @@
       "scoring": "checklist",
       "set_size": 6,
       "time_limits_s": [
-        60,
-        45,
-        35
+        90,
+        75,
+        60
       ],
       "word_caps": {
         "total": 40
       },
       "pass_bar": 0.8,
-      "priority": "P2",
+      "priority": "P1",
       "item_source": "authored",
-      "live": false
+      "live": true,
+      "defend": {
+        "type": "justify",
+        "live": true,
+        "set_size": [
+          6,
+          5,
+          5
+        ]
+      }
     },
     {
       "id": "BJ-1",
@@ -894,6 +907,44 @@
           3
         ]
       }
+    },
+    {
+      "id": "CL-4",
+      "name": "Your next move",
+      "level": 2,
+      "skills": [
+        {
+          "id": "CL.next_step",
+          "primary": true
+        }
+      ],
+      "input_types": [
+        "free_text",
+        "single_choice"
+      ],
+      "scoring": "checklist_auto",
+      "set_size": 4,
+      "time_limits_s": null,
+      "stage_time_limits_s": {
+        "plan": [
+          75,
+          60,
+          45
+        ],
+        "adapt": [
+          60,
+          45,
+          35
+        ]
+      },
+      "word_caps": {
+        "plan": 40,
+        "adapt": 30
+      },
+      "pass_bar": 0.8,
+      "priority": "P1",
+      "item_source": "authored",
+      "live": true
     }
   ]
 }

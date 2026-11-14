@@ -20,6 +20,9 @@ const DIR = path.join(process.cwd(), 'logs', 'e2e', `${RUN}-${PHASE}`);
 const STATE = path.join(process.cwd(), 'logs', 'e2e', 'state.json');
 fs.mkdirSync(DIR, { recursive: true });
 if (!EMAIL) throw new Error('set E2E_EMAIL');
+// Where a log-in lands: Today (/drills, or /drills/start before training is set up) since Matt's one navigation bar
+// (13 Nov); /home (the cases) before it.
+const SIGNED_IN_HOME = /\/(home|drills)(\/|\?|$)/;
 const CODES = (process.env.CLUB_CODES ?? '').split(',').map(s => s.trim()).filter(Boolean);   // never printed
 
 type Result = { step: string; ok: boolean; detail: string };
@@ -99,7 +102,7 @@ async function phaseA(page: Page) {
   });
   await check(page, 'log in: right password → home', async () => {
     await logIn(page, p1);
-    await page.waitForURL(/\/home/, { timeout: 20_000 });
+    await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
     return `at ${new URL(page.url()).pathname}`;
   });
   await check(page, 'account page shows the email', async () => {
@@ -178,7 +181,7 @@ async function phaseA(page: Page) {
     await page.getByPlaceholder(/^New password/).fill(p2);
     await page.getByPlaceholder('Type it again').fill(p2);
     await page.getByRole('button', { name: 'Set new password' }).click();
-    await page.waitForURL(/\/home/, { timeout: 20_000 });
+    await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
     return 'password changed';
   });
   await signOut(page);
@@ -188,7 +191,7 @@ async function phaseA(page: Page) {
   });
   await check(page, 'new password works', async () => {
     await logIn(page, p2);
-    await page.waitForURL(/\/home/, { timeout: 20_000 });
+    await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
     return 'home';
   });
   await signOut(page);
@@ -216,7 +219,7 @@ async function phaseA(page: Page) {
   });
 
   await logIn(page, p2);
-  await page.waitForURL(/\/home/, { timeout: 20_000 });
+  await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
   await check(page, 'unknown page → 404 page', async () => {
     const res = await page.goto(`${BASE}/no-such-page`);
     if (res?.status() !== 404) throw new Error(`status ${res?.status()}`);
@@ -286,7 +289,7 @@ const lastInterviewer = async (page: Page) =>
 async function phaseB(page: Page) {
   const { password } = JSON.parse(fs.readFileSync(STATE, 'utf8')) as { password: string };
   await logIn(page, password);
-  await page.waitForURL(/\/home/, { timeout: 20_000 });
+  await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
   let sessionId = '';
   await check(page, 'start the demo case in text', async () => {
     await page.goto(`${BASE}/start/prof-001-demo`);
@@ -361,7 +364,7 @@ async function phaseC(page: Page) {
   let { password } = state;
   // B's account may already be gone (an earlier C run deleted it): sign up again, confirmed at once (no email key here).
   await logIn(page, password);
-  if (!(await page.waitForURL(/\/home/, { timeout: 15_000 }).then(() => true, () => false))) {
+  if (!(await page.waitForURL(SIGNED_IN_HOME, { timeout: 15_000 }).then(() => true, () => false))) {
     password = `Test-${Math.random().toString(36).slice(2, 10)}-3`;
     fs.writeFileSync(STATE, JSON.stringify({ password, sessionId }));
     await check(page, 'sign up again for the drill', async () => {
@@ -372,7 +375,7 @@ async function phaseC(page: Page) {
       await page.getByRole('button', { name: 'Create account' }).click();
       await page.waitForURL(/\/sign-in\?created=1/, { timeout: 20_000 });
       await logIn(page, password);
-      await page.waitForURL(/\/home/, { timeout: 20_000 });
+      await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
       return 'signed up and logged in';
     });
   }

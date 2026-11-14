@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0016-a",
+  "item_id": "ex4-0016",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Rules 1–3 all met.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Shoppers under 30 dropped from 20,000 to 12,000 a week, nearly all the loss, so those are the ones who left for the rival."
+    }
+  ],
+  "labels": {
+    "key_insight": true,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

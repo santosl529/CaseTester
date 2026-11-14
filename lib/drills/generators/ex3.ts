@@ -13,6 +13,13 @@ import { calculatorFree, draw, fmt, generatedItem, keyAmbiguities, possessive, r
 const NAMES = ['North', 'South', 'East', 'West', 'Central', 'Coastal', 'Mountain', 'Lakes', 'Metro', 'Plains', 'Valley', 'Harbor'];
 const ROWS: Record<Tier, number> = { 1: 6, 2: 8, 3: 11 };
 const GROWTH: Record<Tier, readonly number[]> = { 1: [10, 20, 25, 50], 2: [15, 30, 35, 40, 60], 3: [8, 12.5, 18, 22, 35] };
+// The asked row's growth in ex3_yoy_growth version 2 (Matt, 2026-11-11): ten
+// or more per tier, so the answer can't be memorized (version 1 had four at T1).
+const ASKED_GROWTH: Record<Tier, readonly number[]> = {
+  1: [10, 20, 25, 30, 40, 50, 60, 75, 80, 100],
+  2: [12, 15, 18, 24, 30, 35, 40, 45, 60, 65],
+  3: [8, 12.5, 18, 22, 35, 14, 26, 32, 45, 55],
+};
 
 interface Row { name: string; rev22: number; rev23: number; rev24: number; units23: number; units24: number; stores: number }
 
@@ -59,8 +66,8 @@ function neighbors(rows: Row[], i: number): Row[] {
   return [rows[i - 1], rows[i + 1]].filter((r): r is Row => Boolean(r));
 }
 
-export const tableYoy: Generator = {
-  template_id: 'ex3_yoy_growth', template_version: 1, drill_id: 'EX-3',
+const tableYoyAt = (version: 1 | 2): Generator => ({
+  template_id: 'ex3_yoy_growth', template_version: version, ...(version === 1 && { retired: true }), drill_id: 'EX-3',
   skills: ['EX.extraction', 'QN.arithmetic'], focus_tags: ['M.wrong_data_point', 'M.wrong_base'],
   generate(seed, tier) {
     const rng = createRng(seed);
@@ -69,7 +76,17 @@ export const tableYoy: Generator = {
       const i = rng.int(0, rows.length - 1);
       const r = rows[i];
       // The target row's growth is set exactly so the answer is clean.
-      r.rev24 = r.rev23 * (1 + rng.pick(GROWTH[tier]) / 100);
+      const g = rng.pick((version === 1 ? GROWTH : ASKED_GROWTH)[tier]);
+      // Version 2: below T3, 2023 revenue moves to the nearest value that grows
+      // to a whole number, so every rate stays in play (version 1 redrew, which
+      // left 100% or 60% in a third of items); 2023 units move with it.
+      if (version === 2 && tier < 3) {
+        const m = 100 / gcd(100, g);
+        const rev23 = Math.max(m, Math.round(r.rev23 / m) * m);
+        r.units23 = Math.round((r.units23 * rev23) / r.rev23);
+        r.rev23 = rev23;
+      }
+      r.rev24 = r.rev23 * (1 + g / 100);
       if (tier < 3 && !Number.isInteger(r.rev24)) return null;
       r.rev24 = Number(r.rev24.toFixed(4));
       const answer = growth(r.rev23, r.rev24);
@@ -88,7 +105,7 @@ export const tableYoy: Generator = {
       };
       if (keyAmbiguities(numeric).length || traps.some(t => Math.abs(t - answer) < 1e-9)) return null;
       return generatedItem({
-        templateId: 'ex3_yoy_growth', templateVersion: 1, drillId: 'EX-3', level: 2, tier, seed,
+        templateId: 'ex3_yoy_growth', templateVersion: version, drillId: 'EX-3', level: 2, tier, seed,
         skills: ['EX.extraction', 'QN.arithmetic'],
         prompt: `By what percent did ${possessive(r.name)} revenue grow from 2023 to 2024?`,
         exhibit: table(rows, tier), numeric,
@@ -101,7 +118,9 @@ export const tableYoy: Generator = {
     const { rev23, rev24 } = generatorInputs(item);
     return growth(rev23, rev24);
   },
-};
+});
+export const tableYoyV1 = tableYoyAt(1);
+export const tableYoy = tableYoyAt(2);
 
 export const tablePerUnit: Generator = {
   template_id: 'ex3_revenue_per_unit', template_version: 1, drill_id: 'EX-3',
@@ -142,4 +161,8 @@ export const tablePerUnit: Generator = {
   },
 };
 
-export const EX3_GENERATORS: Generator[] = [tableYoy, tablePerUnit];
+export const EX3_GENERATORS: Generator[] = [tableYoyV1, tableYoy, tablePerUnit];
+
+function gcd(a: number, b: number): number {
+  return b === 0 ? a : gcd(b, a % b);
+}

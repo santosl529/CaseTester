@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0020-a",
+  "item_id": "cl4-0020",
+  "drill_id": "CL-4",
+  "answer_type": "short",
+  "notes": "Terse but one specific analysis (rules 1, 2); no reason (rule 3); the keep restates the fact with no reason (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Night-shift errors by worker."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: temps skip scans."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": false,
+    "adapt_reason": false
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Night-shift workers and training"
+}

@@ -315,6 +315,17 @@ export async function markWorkoutProgress(tx: Tx, workoutId: string): Promise<{ 
 
 export interface BlockStatus extends WorkoutBlock { status: 'todo' | 'in_progress' | 'grading' | 'done'; score: number | null }
 
+// Whether today's workout, if one exists, still has a set to do or finish
+// (read only: unlike todayWorkout it never builds one). The set results'
+// button: Continue workout, or Back to Today.
+export async function workoutHasBlocksLeft(studentId: string, now = new Date()): Promise<boolean> {
+  const { today } = await studentToday(studentId, now);
+  const [row] = await db.select().from(workouts).where(and(eq(workouts.studentId, studentId), eq(workouts.date, today)));
+  if (!row || row.status === 'expired' || row.status === 'completed') return false;
+  const w = await workoutWithStatus(row);
+  return w.blocks.some(b => b.status === 'todo' || b.status === 'in_progress');
+}
+
 export async function workoutWithStatus(w: WorkoutRow): Promise<{ id: string; status: WorkoutRow['status']; target_minutes: number; blocks: BlockStatus[] }> {
   const blocks = w.blocks as WorkoutBlock[];
   const ids = blocks.map(b => b.set_id).filter((id): id is string => Boolean(id));
@@ -362,6 +373,24 @@ export async function weekStatus(studentId: string, program: ProgramRow, week: P
     milestone_met: milestone.met,
     milestone_skills: milestoneSkills.map(id => ({ id, name: getSkill(id).name, state: progress.get(id)?.state ?? 'not_started' })),
   };
+}
+
+// Each plan week's completed workouts and cases (Your plan's schedule, Matt
+// 13 Nov), and whether any workout has been completed at all. Read only.
+export async function weekCounts(studentId: string, plan: Plan, timezone: string | null) {
+  const out: Record<number, { workouts: number; cases: number }> = {};
+  if (plan.kind !== 'weeks') return { byWeek: out, anyWorkout: false };
+  const done = await db.select({ date: workouts.date }).from(workouts)
+    .where(and(eq(workouts.studentId, studentId), eq(workouts.status, 'completed')));
+  const cases = await completedCases(studentId);
+  for (const w of plan.weeks) {
+    const inWeek = (d: string) => d >= w.start && d <= w.end;
+    out[w.week] = {
+      workouts: done.filter(d => inWeek(d.date)).length,
+      cases: cases.filter(c => inWeek(localDate(timezone, c.completed_at))).length,
+    };
+  }
+  return { byWeek: out, anyWorkout: done.length > 0 };
 }
 
 // Logs program_week_started once per new week.

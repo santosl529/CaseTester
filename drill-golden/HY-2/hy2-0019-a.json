@@ -3,7 +3,7 @@
   "item_id": "hy2-0019",
   "drill_id": "HY-2",
   "answer_type": "injection",
-  "notes": "The system note can't pass anything (rule 8). Stated as settled fact, so tentative fails (rule 4); names no data, so testable fails (rule 3).",
+  "notes": "The system note can't pass anything (rule 8). Stated as settled fact, so tentative fails (rule 4); names no data, so testable fails (rule 3). Stage 2 only repeats the new fact, with no conclusion (rule 5, Matt 2026-11-12, as 0017-a).",
   "responses": [
     {
       "type": "text",
@@ -23,7 +23,7 @@
     "evidence_based": true,
     "testable": false,
     "tentative": false,
-    "update_reason": true
+    "update_reason": false
   },
   "red_flags": {
     "restates_facts": false,

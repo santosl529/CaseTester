@@ -8,7 +8,7 @@ import { signInErrorMessage, retryWait } from '@/lib/site/auth-messages';
 import { ResendVerification } from '@/components/resend-verification';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
 
 // Log in (site flow, 19 Oct; log-in only since 8 Nov). New accounts are made at /sign-up with a club code, so a
 // wrong password says so instead of quietly trying a sign-up. /sign-in decides where to start: a signed-in student
@@ -78,40 +78,41 @@ export function SignInFlow({ initialStep, next, created = false, deleted = false
   }
 
   return (
-    <main className="min-h-dvh flex items-center justify-center bg-neutral-50 p-4">
+    <main className="flex min-h-dvh items-center justify-center bg-paper px-6 py-12">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle><Link href="/" className="hover:underline underline-offset-4">CasePace</Link></CardTitle>
+          {/* The page's heading: the brand, a link home (as on the homepage). */}
+          <h1 className="t-title"><Link href="/" className="transition-colors hover:text-cobalt motion-reduce:transition-none">CasePace</Link></h1>
         </CardHeader>
         <CardContent>
           {step === 'auth' && (
             <>
               <form onSubmit={handleAuth} className="space-y-3">
-                {created && <p role="status" className="text-sm text-green-700">Account created. Log in to continue.</p>}
-                {deleted && <p role="status" className="text-sm text-neutral-700">Your account and its data have been deleted.</p>}
-                {linkExpired && <p role="status" className="text-sm text-amber-700">That confirmation link has expired or was already used. Log in below to get a new one.</p>}
-                <Input placeholder="Email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} required />
-                <Input placeholder="Password" type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
-                <p className="text-right text-sm"><Link href="/forgot-password" className="text-neutral-600 underline">Forgot password?</Link></p>
-                {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
-                <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</Button>
+                {created && <p role="status" className="t-small text-ink">Account created. Log in to continue.</p>}
+                {deleted && <p role="status" className="t-small text-ink/80">Your account and its data have been deleted.</p>}
+                {linkExpired && <p role="status" className="t-small text-ink">That confirmation link has expired or was already used. Log in below to get a new one.</p>}
+                <Input placeholder="Email" aria-label="Email" type="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} required />
+                <Input placeholder="Password" aria-label="Password" type="password" autoComplete="current-password" value={password} onChange={e => setPassword(e.target.value)} required />
+                <p className="t-small text-right"><Link href="/forgot-password" className="link">Forgot password?</Link></p>
+                {error && <p role="alert" className="t-small text-alert">{error}</p>}
+                <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? 'Logging in…' : 'Log in'}</Button>
               </form>
               {unconfirmed && <div className="mt-3"><ResendVerification email={unconfirmed} /></div>}
-              <p className="mt-4 text-center text-sm text-neutral-600">
-                New here? <Link href={`/sign-up?next=${encodeURIComponent(next)}`} className="underline">Create an account with your club code</Link>
+              <p className="t-small mt-4 text-center text-ink/70">
+                New here? <Link href={`/sign-up?next=${encodeURIComponent(next)}`} className="link">Create an account with your club code</Link>
               </p>
             </>
           )}
           {step === 'club' && (
             <div className="space-y-3">
               <form onSubmit={handleClubCode} className="space-y-3">
-                <p className="text-sm text-neutral-600">Enter your consulting club access code. You only need to do this once.</p>
-                <Input placeholder="Club code" autoCapitalize="characters" value={clubCode} onChange={e => setClubCode(e.target.value)} required />
-                {error && <p role="alert" className="text-red-600 text-sm">{error}</p>}
-                <Button type="submit" className="w-full" disabled={busy}>{busy ? 'Checking…' : 'Verify'}</Button>
+                <p className="t-small text-ink/70">Enter your consulting club access code. You only need to do this once.</p>
+                <Input placeholder="Club code" aria-label="Club code" autoCapitalize="characters" value={clubCode} onChange={e => setClubCode(e.target.value)} required />
+                {error && <p role="alert" className="t-small text-alert">{error}</p>}
+                <Button type="submit" size="lg" className="w-full" disabled={busy}>{busy ? 'Checking…' : 'Verify'}</Button>
               </form>
               <form action={signOut} className="text-center">
-                <button type="submit" className="text-xs text-neutral-500 underline">Use a different account</button>
+                <button type="submit" className="link-quiet t-small cursor-pointer">Use a different account</button>
               </form>
             </div>
           )}

@@ -2,10 +2,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Check, Flag, LoaderCircle, Minus, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { DrillChart } from '@/components/drills/chart';
 import { NumericInput } from '@/components/drills/numeric-input';
 import { Timer } from '@/components/drills/timer';
+import { ProgressLine } from '@/components/brand/progress';
 import { ReportProblem } from '@/components/drills/feedback';
 import { BucketsEditor, CardPicker, ChoiceList, NumberFields, WrittenAnswer, type Bucket } from '@/components/drills/step-inputs';
 import { parseNumericInput } from '@/lib/drills/numeric';
@@ -111,7 +113,9 @@ function responseFor(step: Step, draft: Draft, timedOut: boolean): { response: u
 // One drill set, item by item (docs/prd-drills.md "Drill intro screen",
 // "Item screen", "Feedback timing"). The server owns timing, order and keys;
 // this screen shows them and submits.
-export function DrillRunner({ view }: { view: RunnerView }) {
+// `about` (Matt, 13 Nov, moved from the Browse drills card): the drill's kind
+// and why it matters, on the intro screen.
+export function DrillRunner({ view, about }: { view: RunnerView; about?: { kind: string; why: string | null } }) {
   const router = useRouter();
   const [phase, setPhase] = useState<'intro' | 'item' | 'grading' | 'feedback' | 'finishing'>('intro');
   const [loaded, setLoaded] = useState<LoadedItem | null>(null);
@@ -334,96 +338,104 @@ export function DrillRunner({ view }: { view: RunnerView }) {
   if (phase === 'intro') {
     const time = view.stage_limits_ms.map(ms => `${Math.round(ms / 1000)} s`).join(', then ');
     return (
-      <section className="space-y-5">
-        <div className="space-y-1">
-          {view.diagnostic && <p className="text-sm text-muted-foreground">Diagnostic · Part {view.diagnostic.part} of {view.diagnostic.of}</p>}
-          <h1 className="text-xl font-semibold">{view.drill.name}</h1>
-          <p className="text-sm text-muted-foreground">
+      <section className="space-y-8">
+        <div className="space-y-2">
+          {view.diagnostic
+            ? <p className="t-small text-ink/70">Diagnostic · Part {view.diagnostic.part} of {view.diagnostic.of}</p>
+            : about && <p className="t-label font-semibold text-ink">{about.kind}</p>}
+          <h1 className="t-title">{view.drill.name}</h1>
+          <p className="t-body text-ink/70">
             Trains {view.skills.map(s => s.name).join(', ')}.
             {view.focus_skill && view.skills.length > 1 && ` You chose to practice ${view.focus_skill}.`}
           </p>
+          {!view.diagnostic && about?.why && <p className="t-small max-w-[65ch]">{about.why}</p>}
         </div>
-        <ul className={`grid gap-3 text-sm ${view.diagnostic ? 'grid-cols-2' : 'grid-cols-3'}`}>
-          <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Items</span><span className="font-medium">{view.size}</span></li>
-          <li className="rounded-lg border p-3">
-            <span className="block text-muted-foreground">Time per item</span>
+        <ul className={`grid divide-x divide-ink/12 border-y border-ink/12 ${view.diagnostic ? 'grid-cols-2' : 'grid-cols-3'}`}>
+          <li className="py-3 pr-4"><span className="t-label block text-ink/70">Items</span><span className="t-card font-semibold tabular-nums">{view.size}</span></li>
+          <li className="px-4 py-3">
+            <span className="t-label block text-ink/70">Time per item</span>
             {untimed
-              ? <><span className="font-medium">No time limit</span><span className="block text-xs text-muted-foreground">Timed target: {time}</span></>
-              : <span className="font-medium">{time}</span>}
+              ? <><span className="t-card font-semibold">No time limit</span><span className="t-label block text-ink/70">Timed target: {time}</span></>
+              : <span className="t-card font-semibold tabular-nums">{time}</span>}
           </li>
-          {!view.diagnostic && <li className="rounded-lg border p-3"><span className="block text-muted-foreground">Pass bar</span><span className="font-medium">{Math.round(view.pass_bar * 100)}%</span></li>}
+          {!view.diagnostic && <li className="px-4 py-3"><span className="t-label block text-ink/70">Pass bar</span><span className="t-card font-semibold tabular-nums">{Math.round(view.pass_bar * 100)}%</span></li>}
         </ul>
-        {view.diagnostic && <p className="text-sm text-muted-foreground">No feedback during the diagnostic: answer and move on. You&apos;ll see where you start at the end.</p>}
+        {view.diagnostic && <p className="t-small text-ink/70">No feedback during the diagnostic: answer and move on. You&apos;ll see where you start at the end.</p>}
         {view.lesson_skill && (
-          <p className="text-sm"><Link href={`/drills/learn/${encodeURIComponent(view.lesson_skill)}?source=intro`} className="underline underline-offset-4">Read the short lesson</Link> first if this skill is new to you.</p>
+          <p className="t-small"><Link href={`/drills/learn/${encodeURIComponent(view.lesson_skill)}?source=intro`} className="link">Read the short lesson</Link> first if this skill is new to you.</p>
         )}
-        {view.repair_hint && <p className="text-sm">{view.repair_hint}</p>}
+        {view.repair_hint && <p className="t-small">{view.repair_hint}</p>}
         {view.defend && (
-          <p className="text-sm">
+          <p className="t-small">
             After each answer, the interviewer asks one follow-up{view.defend.type === 'challenge' ? ' that pushes back on your recommendation: hold it or update it, then say why' : ' about it'}.
             {untimed ? `Write up to ${view.defend.max_words} words.` : `You get ${view.defend.seconds} s and up to ${view.defend.max_words} words.`}
           </p>
         )}
         {!view.diagnostic && view.ai_graded && feedbackMode !== 'immediate' && (
-          <p className="text-sm text-muted-foreground">Your written answers are graded together after the last item, so there is no feedback until then.</p>
+          <p className="t-small text-ink/70">Your written answers are graded together after the last item, so there is no feedback until then.</p>
         )}
         {view.example && showExample && (
-          <section aria-labelledby="example-heading" className="space-y-3 rounded-lg border bg-muted/40 p-4">
-            <div className="flex items-baseline justify-between">
-              <h2 id="example-heading" className="text-sm font-medium">Worked example</h2>
+          <section aria-labelledby="example-heading" className="space-y-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
+            <div className="flex items-center justify-between gap-3">
+              <h2 id="example-heading" className="t-heading font-semibold">Worked example</h2>
               <Button variant="ghost" size="sm" onClick={skipExample}>Skip example</Button>
             </div>
-            <p className="whitespace-pre-line text-sm">{view.example.prompt}</p>
-            {view.example.exhibit && <DrillChart spec={view.example.exhibit as ChartSpec} />}
+            <p className="t-small whitespace-pre-line">{view.example.prompt}</p>
+            {view.example.exhibit && <DrillChart spec={view.example.exhibit as ChartSpec} exhibit />}
             {view.example.options.length > 0 && (
-              <ul className="space-y-1 text-sm">
+              <ul className="t-small space-y-2">
                 {view.example.options.map(o => (
-                  <li key={o.id} className={o.correct ? 'font-medium' : 'text-muted-foreground'}>{o.correct ? '✓ ' : '• '}{o.text}</li>
+                  <li key={o.id} className={`flex gap-2.5 ${o.correct ? 'font-medium' : 'text-ink/70'}`}>
+                    {o.correct
+                      ? <span className="mt-0.5 flex size-4 flex-none items-center justify-center rounded-full bg-mastery text-ink"><Check aria-hidden="true" className="size-2.5" strokeWidth={3} /><span className="sr-only">Correct: </span></span>
+                      : <span aria-hidden="true" className="mt-[0.45rem] size-1.5 flex-none rounded-full bg-ink/30" />}
+                    <span>{o.text}</span>
+                  </li>
                 ))}
               </ul>
             )}
-            <p className="whitespace-pre-line text-sm"><span className="font-medium">Answer:</span> {view.example.answer}</p>
-            <p className="text-sm text-muted-foreground">{view.example.explanation}</p>
+            <p className="t-small whitespace-pre-line"><span className="font-semibold">Answer:</span> {view.example.answer}</p>
+            <p className="t-small rounded-field bg-paper p-3 text-ink/80">{view.example.explanation}</p>
           </section>
         )}
-        <fieldset className="space-y-2">
-          <legend className="mb-1 text-sm font-medium">Timer</legend>
+        <fieldset className="space-y-3">
+          <legend className="t-small mb-2 font-semibold">Timer</legend>
           {view.timer_choice_open ? (
             <div className="flex flex-wrap gap-2">
               {[{ v: false, label: `Timed (${time} per item)` }, { v: true, label: 'No timer' }].map(o => (
-                <label key={String(o.v)} className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm has-checked:border-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
-                  <input type="radio" name="timer" checked={untimed === o.v} onChange={() => setUntimed(o.v)} />
+                <label key={String(o.v)} className="flex cursor-pointer items-center gap-2 rounded-full border border-ink/20 bg-white px-4 py-2 t-small transition-colors hover:border-ink/40 has-checked:border-cobalt has-checked:bg-sky/40 motion-reduce:transition-none">
+                  <input type="radio" name="timer" className="accent-cobalt" checked={untimed === o.v} onChange={() => setUntimed(o.v)} />
                   {o.label}
                 </label>
               ))}
             </div>
           ) : (
-            <p className="text-sm text-muted-foreground">{untimed ? 'This set has no timer.' : 'This set is timed.'}</p>
+            <p className="t-small text-ink/70">{untimed ? 'This set has no timer.' : 'This set is timed.'}</p>
           )}
           {!untimed && (
-            <label className="flex items-start gap-2 text-sm">
-              <input type="checkbox" checked={hidden} onChange={e => setHidden(e.target.checked)} className="mt-1" />
-              <span>Hide the countdown <span className="text-muted-foreground">(the time limit still applies; we warn you 10 seconds before it runs out)</span></span>
+            <label className="t-small flex items-start gap-2.5">
+              <input type="checkbox" checked={hidden} onChange={e => setHidden(e.target.checked)} className="mt-1 accent-cobalt" />
+              <span>Hide the countdown <span className="text-ink/70">(the time limit still applies; we warn you 10 seconds before it runs out)</span></span>
             </label>
           )}
-          <p className="text-xs text-muted-foreground">{untimed ? 'Untimed sets count fully toward your progress, and your results show how long you took.' : 'You can show or hide the timer during the set.'}</p>
+          <p className="t-label text-ink/70">{untimed ? 'Untimed sets count fully toward your progress, and your results show how long you took.' : 'You can show or hide the timer during the set.'}</p>
         </fieldset>
         {feedbackMode && (
-          <fieldset className="space-y-2">
-            <legend className="mb-1 text-sm font-medium">Feedback</legend>
+          <fieldset className="space-y-3">
+            <legend className="t-small mb-2 font-semibold">Feedback</legend>
             {view.timer_choice_open ? (
               <div className="flex flex-wrap gap-2">
                 {([['immediate', 'After each question'], ['end', 'At the end of the set']] as const).map(([v, label]) => (
-                  <label key={v} className="flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm has-checked:border-foreground has-focus-visible:ring-3 has-focus-visible:ring-ring/50">
-                    <input type="radio" name="feedback" checked={feedbackMode === v} onChange={() => setFeedbackMode(v)} />
+                  <label key={v} className="flex cursor-pointer items-center gap-2 rounded-full border border-ink/20 bg-white px-4 py-2 t-small transition-colors hover:border-ink/40 has-checked:border-cobalt has-checked:bg-sky/40 motion-reduce:transition-none">
+                    <input type="radio" name="feedback" className="accent-cobalt" checked={feedbackMode === v} onChange={() => setFeedbackMode(v)} />
                     {label}
                   </label>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">{feedbackMode === 'immediate' ? 'Feedback after each question.' : 'Feedback at the end of the set.'}</p>
+              <p className="t-small text-ink/70">{feedbackMode === 'immediate' ? 'Feedback after each question.' : 'Feedback at the end of the set.'}</p>
             )}
-            <p className="text-xs text-muted-foreground">
+            <p className="t-label text-ink/70">
               {feedbackMode === 'end' && view.drill.id === 'QN-5' && <span className="block">You&apos;ll see which drivers to use before entering your numbers.</span>}
               {feedbackMode === 'immediate'
                 ? view.ai_graded
@@ -434,13 +446,13 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           </fieldset>
         )}
         <Button size="lg" onClick={startOrResume}>{view.position > 0 ? 'Resume' : 'Start'}</Button>
-        {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+        {error && <p role="alert" className="t-small text-alert">{error}</p>}
       </section>
     );
   }
 
   if (!loaded) {
-    return <p className="text-sm text-muted-foreground">{error || 'Loading…'}</p>;
+    return <p className={`t-small ${error ? 'text-alert' : 'text-ink/70'}`}>{error || 'Loading…'}</p>;
   }
 
   const { item } = loaded;
@@ -454,22 +466,25 @@ export function DrillRunner({ view }: { view: RunnerView }) {
   // QN-5: the driver cards the numbers step asks about, from step 1's feedback.
   const drivers = steps.find(s => s.drivers)?.drivers ?? [];
   return (
-    <section className="space-y-5">
-      <div className="flex items-baseline justify-between text-sm text-muted-foreground">
-        <span>{view.diagnostic ? `Diagnostic · Part ${view.diagnostic.part} of ${view.diagnostic.of}` : view.drill.name}</span>
-        <span className="flex items-baseline gap-3">
-          <ReportProblem setId={view.set_id} position={loaded.position} screen="item" />
-          <span>Item {loaded.position + 1} of {loaded.size}</span>
-        </span>
+    <section className="space-y-6">
+      <div className="space-y-3">
+        <div className="t-small flex items-baseline justify-between gap-3 text-ink/70">
+          <span className="font-medium text-ink">{view.diagnostic ? `Diagnostic · Part ${view.diagnostic.part} of ${view.diagnostic.of}` : view.drill.name}</span>
+          <span className="flex items-baseline gap-4">
+            <ReportProblem setId={view.set_id} position={loaded.position} screen="item" />
+            <span className="tabular-nums">Item {loaded.position + 1} of {loaded.size}</span>
+          </span>
+        </div>
+        <ProgressLine value={loaded.position + (phase === 'feedback' ? 1 : 0)} max={loaded.size} />
       </div>
-      <h1 ref={headingRef} tabIndex={-1} className="whitespace-pre-line text-base font-medium leading-relaxed outline-none">{item.prompt}</h1>
-      {item.exhibit && <DrillChart spec={item.exhibit} />}
+      <h1 ref={headingRef} tabIndex={-1} className="t-card whitespace-pre-line font-medium outline-none">{item.prompt}</h1>
+      {item.exhibit && <DrillChart spec={item.exhibit} exhibit />}
 
       {phase === 'item' && !untimed && (
-        <div className="space-y-1">
+        <div className="space-y-1.5">
           <Timer key={`${loaded.position}-${limitMs}`} deadline={deadline} totalMs={limitMs} hidden={hidden} paused={paused} onExpire={() => submit({ timedOut: true })} />
           <button type="button" onClick={() => toggleHidden(!hidden)} aria-pressed={hidden}
-            className="rounded-sm text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground focus-visible:outline-none focus-visible:ring-3 focus-visible:ring-ring/50">
+            className="t-label cursor-pointer text-ink/70 underline underline-offset-4 hover:text-cobalt">
             {hidden ? 'Show timer' : 'Hide timer'}
           </button>
         </div>
@@ -479,7 +494,7 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           before the calculation); AI-graded ones are just saved, and show the
           student's own words, read-only, once a follow-up asks about them. */}
       {steps.map((s, i) => i >= mainSteps ? null : (
-        <div key={i} className="space-y-1 rounded-lg border p-3 text-sm">
+        <div key={i} className="t-small space-y-1 rounded-window border border-ink/12 bg-white p-4">
           {s.held && !s.pending && !view.diagnostic ? (
             <>
               <p className="font-medium">{multi ? `Step ${i + 1}: saved` : 'Your answer: saved'}</p>
@@ -488,32 +503,33 @@ export function DrillRunner({ view }: { view: RunnerView }) {
           ) : s.pending || view.diagnostic ? (
             <>
               <p className="font-medium">{multi ? `Step ${i + 1}: saved` : 'Your answer: saved'}</p>
-              {followup && s.your_answer && <p className="whitespace-pre-line text-muted-foreground">{s.your_answer}</p>}
+              {/* The student's own words, read-only, before a follow-up or a new fact (HY-2, CL-4 stage 2). */}
+              {(followup || s.reveal) && s.your_answer && <p className="whitespace-pre-line text-ink/70">{s.your_answer}</p>}
             </>
           ) : (
             <>
               <p className="font-medium">Step {i + 1}: {s.correct ? 'Correct' : 'Not quite'}</p>
               {!s.correct && s.your_answer && <p>You answered: {s.your_answer}</p>}
               <p>{s.drivers ? 'Use these drivers' : 'Correct'}: <span className="font-medium">{s.correct_answer}</span></p>
-              {s.feedback && <p className="text-muted-foreground">{s.feedback}</p>}
+              {s.feedback && <p className="text-ink/70">{s.feedback}</p>}
             </>
           )}
           {s.reveal && (
-            <p className="rounded-md bg-muted p-2"><span className="font-medium">New fact:</span> {s.reveal}</p>
+            <p className="rounded-field bg-sky/50 p-3"><span className="font-semibold">New fact:</span> {s.reveal}</p>
           )}
         </div>
       ))}
 
       {/* The Defend step (PRD "Defend step screen"). */}
       {followup && phase === 'item' && (
-        <div role="note" className="space-y-1 rounded-lg border-2 border-primary/60 p-3 text-sm">
-          <p className="font-medium">Interviewer follow-up</p>
+        <div role="note" className="t-small space-y-1 rounded-window border border-cobalt/40 bg-sky/40 p-4 animate-enter motion-reduce:animate-none">
+          <p className="font-semibold">Interviewer follow-up</p>
           <p>{followup.type === 'challenge' ? `“${followup.text}”` : followup.text}</p>
         </div>
       )}
 
       {phase === 'item' && item.repair && stepIndex === 0 && (
-        <p className="rounded-md bg-muted p-2 text-sm"><span className="font-medium">Fix this answer.</span> {item.repair.hint}</p>
+        <p className="t-small rounded-field border border-ink/12 bg-paper p-3"><span className="font-semibold">Fix this answer.</span> {item.repair.hint}</p>
       )}
 
       {phase === 'item' && current && (
@@ -549,101 +565,126 @@ export function DrillRunner({ view }: { view: RunnerView }) {
 
       <p role="status" aria-live="polite" className="sr-only">{announce}</p>
       {phase === 'grading' && (
-        <div ref={gradingRef} tabIndex={-1} className="flex items-center gap-3 rounded-lg border p-4 text-sm outline-none">
-          <span aria-hidden="true" className="size-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+        <div ref={gradingRef} tabIndex={-1} className="t-small flex items-center gap-3 rounded-panel border border-ink/12 bg-white p-5 outline-none">
+          <LoaderCircle aria-hidden="true" className="size-4 text-cobalt motion-safe:animate-spin" />
           <span>Grading your answer…</span>
         </div>
       )}
       {phase === 'feedback' && gradingDelayed && (
-        <div className="space-y-1 rounded-lg border p-4 text-sm">
-          <p className="font-medium">Grading delayed</p>
-          <p className="text-muted-foreground">You&apos;ll see it on your results. Carry on with the set.</p>
+        <div className="t-small space-y-1 rounded-panel border border-ink/12 bg-white p-5">
+          <p className="font-semibold">Grading delayed</p>
+          <p className="text-ink/70">You&apos;ll see it on your results. Carry on with the set.</p>
         </div>
       )}
       {phase === 'feedback' && final && !gradingDelayed && <section aria-label="Feedback"><ItemFeedbackPanel feedback={final} /></section>}
       {phase === 'feedback' && (
         <Button size="lg" onClick={next} autoFocus>{loaded.position + 1 < loaded.size ? 'Next item' : 'See results'}</Button>
       )}
-      {phase === 'finishing' && !error && <p className="text-sm text-muted-foreground">{view.ai_graded ? 'Sending your answers for grading…' : 'Scoring your set…'}</p>}
+      {phase === 'finishing' && !error && <p className="t-small text-ink/70">{view.ai_graded ? 'Sending your answers for grading…' : 'Scoring your set…'}</p>}
       {/* Finishing failed (8 Nov audit: it stayed on "Scoring your set…" with no way on): try again. */}
       {phase === 'finishing' && error && <Button onClick={() => { setError(''); void finish(); }}>Try again</Button>}
-      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      {error && <p role="alert" className="t-small text-alert">{error}</p>}
     </section>
+  );
+}
+
+// The verdict's mark: a green check for a right answer (green means
+// correct and done), a Cobalt bar for part marks, a quiet cross otherwise.
+function VerdictMark({ tone }: { tone: 'right' | 'part' | 'miss' }) {
+  const Icon = tone === 'right' ? Check : tone === 'part' ? Minus : X;
+  return (
+    <span aria-hidden="true" className={`flex size-6 flex-none items-center justify-center rounded-full ${tone === 'right' ? 'bg-mastery text-ink' : tone === 'part' ? 'bg-cobalt text-white' : 'bg-ink/10 text-ink'}`}>
+      <Icon className="size-3.5" strokeWidth={3} />
+    </span>
+  );
+}
+
+const panel = 't-small space-y-3 rounded-panel border bg-white p-5 shadow-quiet sm:p-6 animate-enter motion-reduce:animate-none';
+
+// A check's mark in a graded answer: passed or missed, said in words for screen readers.
+function CheckMark({ pass }: { pass: boolean }) {
+  return (
+    <>
+      <span aria-hidden="true" className={`mt-0.5 flex size-4 flex-none items-center justify-center rounded-full ${pass ? 'bg-mastery text-ink' : 'bg-ink/10 text-ink'}`}>
+        {pass ? <Check className="size-2.5" strokeWidth={3} /> : <X className="size-2.5" strokeWidth={3} />}
+      </span>
+      <span className="sr-only">{pass ? 'Passed:' : 'Missed:'}</span>
+    </>
   );
 }
 
 export function ItemFeedbackPanel({ feedback }: { feedback: ItemFeedback }) {
   if (feedback.held) {
     return (
-      <div className="space-y-1 rounded-lg border p-4 text-sm">
-        <p className="font-medium">{feedback.skipped ? 'Skipped' : 'Answer saved'}</p>
-        <p className="text-muted-foreground">You chose feedback at the end of the set: it&apos;s all on your results screen.</p>
+      <div className={`${panel} border-ink/12`}>
+        <p className="font-semibold">{feedback.skipped ? 'Skipped' : 'Answer saved'}</p>
+        <p className="text-ink/70">You chose feedback at the end of the set: it&apos;s all on your results screen.</p>
       </div>
     );
   }
   if (feedback.pending) {
     return (
-      <div role="status" className="space-y-1 rounded-lg border p-4 text-sm">
-        <p className="font-medium">{feedback.skipped ? 'Skipped' : 'Answer saved'}</p>
-        <p className="text-muted-foreground">Written answers are graded together after the last item.</p>
+      <div role="status" className={`${panel} border-ink/12`}>
+        <p className="font-semibold">{feedback.skipped ? 'Skipped' : 'Answer saved'}</p>
+        <p className="text-ink/70">Written answers are graded together after the last item.</p>
       </div>
     );
   }
   if (feedback.ungraded) {
     return (
-      <div role="status" className="space-y-2 rounded-lg border p-4 text-sm">
-        <p className="font-medium">Grading delayed</p>
-        <p className="text-muted-foreground">We couldn&apos;t grade this answer, so it doesn&apos;t count toward your score or progress, either way. If something looks wrong, use Report a problem.</p>
+      <div role="status" className={`${panel} border-ink/12`}>
+        <p className="font-semibold">Grading delayed</p>
+        <p className="text-ink/70">We couldn&apos;t grade this answer, so it doesn&apos;t count toward your score or progress, either way. If something looks wrong, use Report a problem.</p>
         {feedback.model_answer && (
           <div className="space-y-1">
-            <p className="font-medium">A strong answer</p>
-            <p className="whitespace-pre-line text-muted-foreground">{feedback.model_answer}</p>
+            <p className="font-semibold">A strong answer</p>
+            <p className="whitespace-pre-line text-ink/80">{feedback.model_answer}</p>
           </div>
         )}
       </div>
     );
   }
   const verdict = feedback.skipped ? 'Skipped' : feedback.correct ? 'Correct' : feedback.score > 0 ? 'Partly correct' : feedback.timed_out ? 'Time ran out' : 'Not quite';
-  if (feedback.grading) return <GradedPanel feedback={feedback} verdict={verdict} />;
+  const tone = feedback.correct ? 'right' : feedback.score > 0 ? 'part' : 'miss';
+  if (feedback.grading) return <GradedPanel feedback={feedback} verdict={verdict} tone={tone} />;
   return (
-    <div role="status" className={`space-y-2 rounded-lg border p-4 text-sm ${feedback.correct ? 'border-primary' : 'border-destructive/60'}`}>
-      <p className="font-medium">{verdict}{feedback.score > 0 && feedback.score < 1 ? ` (${Math.round(feedback.score * 100)}%)` : ''}</p>
+    <div role="status" className={`${panel} ${feedback.correct ? 'border-mastery/60' : 'border-ink/15'}`}>
+      <p className="t-card flex items-center gap-2.5 font-semibold"><VerdictMark tone={tone} />{verdict}{feedback.score > 0 && feedback.score < 1 ? ` (${Math.round(feedback.score * 100)}%)` : ''}</p>
       {feedback.steps.map((s, i) => (
-        <div key={i} className="space-y-0.5">
-          {feedback.steps.length > 1 && <p className="text-muted-foreground">Step {i + 1}</p>}
-          {s.your_answer !== null && !s.correct && <p>Your answer: {s.your_answer}</p>}
-          {s.correct_answer && <p>Correct answer: <span className="font-medium">{s.correct_answer}</span></p>}
+        <div key={i} className="space-y-1">
+          {feedback.steps.length > 1 && <p className="t-label font-semibold text-ink/70">Step {i + 1}</p>}
+          {s.your_answer !== null && !s.correct && <p><span className="text-ink/70">Your answer:</span> {s.your_answer}</p>}
+          {s.correct_answer && <p><span className="text-ink/70">Correct answer:</span> <span className="font-semibold">{s.correct_answer}</span></p>}
           {!s.correct && s.feedback && <p>{s.feedback}</p>}
         </div>
       ))}
       {feedback.model_answer && (
         <div className="space-y-1">
-          <p className="font-medium">A strong answer</p>
-          <p className="whitespace-pre-line text-muted-foreground">{feedback.model_answer}</p>
+          <p className="font-semibold">A strong answer</p>
+          <p className="whitespace-pre-line text-ink/80">{feedback.model_answer}</p>
         </div>
       )}
-      <p className="text-muted-foreground"><span className="font-medium text-foreground">Worked solution:</span> {feedback.explanation}</p>
+      <p className="rounded-field bg-paper p-3 text-ink/80"><span className="font-semibold text-ink">Worked solution:</span> {feedback.explanation}</p>
     </div>
   );
 }
 
 // AI-graded items (PRD "Set results screen"): each check passed or failed,
 // the quote that shows it, any red flag, and the model answer.
-function GradedPanel({ feedback, verdict }: { feedback: ItemFeedback; verdict: string }) {
+function GradedPanel({ feedback, verdict, tone }: { feedback: ItemFeedback; verdict: string; tone: 'right' | 'part' | 'miss' }) {
   const g = feedback.grading!;
   return (
-    <div className="space-y-3 rounded-lg border p-4 text-sm">
-      <p className="font-medium">{verdict} ({Math.round(feedback.score * 100)}%)</p>
+    <div className={`${panel} ${feedback.correct ? 'border-mastery/60' : 'border-ink/15'}`}>
+      <p className="t-card flex items-center gap-2.5 font-semibold"><VerdictMark tone={tone} />{verdict} ({Math.round(feedback.score * 100)}%)</p>
       {/* An unchanged Repair answer was scored by code; its checks' tips don't apply. */}
       {!g.unchanged && <ul className="space-y-2">
         {g.checks.map(c => (
-          <li key={c.check_id} className="flex gap-2">
-            <span aria-hidden="true" className={c.pass ? 'text-primary' : 'text-destructive'}>{c.pass ? '✓' : '✗'}</span>
-            <span className="sr-only">{c.pass ? 'Passed:' : 'Missed:'}</span>
+          <li key={c.check_id} className="flex gap-2.5">
+            <CheckMark pass={c.pass} />
             <span className="space-y-0.5">
               <span className="block">{c.question}</span>
-              {c.pass && c.evidence && <span className="block text-muted-foreground">You wrote: “{c.evidence}”</span>}
-              {!c.pass && <span className="block text-muted-foreground">{c.feedback}</span>}
+              {c.pass && c.evidence && <span className="block text-ink/70">You wrote: “{c.evidence}”</span>}
+              {!c.pass && <span className="block text-ink/70">{c.feedback}</span>}
             </span>
           </li>
         ))}
@@ -652,26 +693,27 @@ function GradedPanel({ feedback, verdict }: { feedback: ItemFeedback; verdict: s
         <p>Your choice after the new fact: <span className="font-medium">{g.decision.chose}</span>, {g.decision.right ? 'the right call.' : 'not the right call for your hypothesis.'}</p>
       )}
       {g.red_flags.map(f => (
-        <p key={f.id} className="rounded-md border border-destructive/60 p-2">
-          <span className="font-medium">Red flag:</span> {f.definition}{f.evidence ? ` (“${f.evidence}”)` : ''} This caps the score.
+        <p key={f.id} className="flex gap-2 rounded-field bg-sky/50 p-3">
+          <Flag aria-hidden="true" className="mt-0.5 size-4 flex-none text-cobalt" />
+          <span><span className="font-semibold">Red flag:</span> {f.definition}{f.evidence ? ` (“${f.evidence}”)` : ''} This caps the score.</span>
         </p>
       ))}
-      {g.unchanged && <p className="rounded-md border border-destructive/60 p-2">Your answer was the original, unchanged, so it scores 0.</p>}
+      {g.unchanged && <p className="rounded-field bg-sky/50 p-3">Your answer was the original, unchanged, so it scores 0.</p>}
       {g.original && (
         <div className="space-y-1">
-          <p className="font-medium">The answer you were fixing</p>
-          <p className="whitespace-pre-line text-muted-foreground">{g.original}</p>
+          <p className="font-semibold">The answer you were fixing</p>
+          <p className="whitespace-pre-line text-ink/70">{g.original}</p>
         </div>
       )}
       {g.model_answer && (
         <div className="space-y-1">
-          <p className="font-medium">{g.original ? 'A strong fix' : 'A strong answer'}</p>
-          <p className="whitespace-pre-line text-muted-foreground">{g.model_answer}</p>
+          <p className="font-semibold">{g.original ? 'A strong fix' : 'A strong answer'}</p>
+          <p className="whitespace-pre-line text-ink/80">{g.model_answer}</p>
         </div>
       )}
-      <p className="text-muted-foreground">{feedback.explanation}</p>
+      <p className="rounded-field bg-paper p-3 text-ink/80">{feedback.explanation}</p>
       {g.defend && <DefendPanel defend={g.defend} />}
-      {g.review_flagged && <p className="text-xs text-muted-foreground">Part of this grade has been flagged for a human check.</p>}
+      {g.review_flagged && <p className="t-label text-ink/70">Part of this grade has been flagged for a human check.</p>}
     </div>
   );
 }
@@ -680,31 +722,30 @@ function GradedPanel({ feedback, verdict }: { feedback: ItemFeedback; verdict: s
 // reply (PRD "Set results screen").
 function DefendPanel({ defend }: { defend: NonNullable<NonNullable<ItemFeedback['grading']>['defend']> }) {
   return (
-    <div className="space-y-2 border-t pt-3">
-      <p className="font-medium">Interviewer follow-up</p>
+    <div className="space-y-2 border-t border-ink/10 pt-4">
+      <p className="font-semibold">Interviewer follow-up</p>
       <p>{defend.type === 'challenge' ? `“${defend.text}”` : defend.text}</p>
-      {defend.skipped ? <p className="text-muted-foreground">You skipped the follow-up.</p> : (
-        <p className="whitespace-pre-line"><span className="font-medium">Your reply:</span> {defend.reply || '(no reply)'}</p>
+      {defend.skipped ? <p className="text-ink/70">You skipped the follow-up.</p> : (
+        <p className="whitespace-pre-line"><span className="font-semibold">Your reply:</span> {defend.reply || '(no reply)'}</p>
       )}
       {defend.decision && (
         <p>You chose to <span className="font-medium">{defend.decision.chose.toLowerCase()}</span>: {defend.decision.right ? 'the right call.' : 'not the right call here.'}</p>
       )}
       <ul className="space-y-2">
         {defend.checks.map(c => (
-          <li key={c.check_id} className="flex gap-2">
-            <span aria-hidden="true" className={c.pass ? 'text-primary' : 'text-destructive'}>{c.pass ? '✓' : '✗'}</span>
-            <span className="sr-only">{c.pass ? 'Passed:' : 'Missed:'}</span>
+          <li key={c.check_id} className="flex gap-2.5">
+            <CheckMark pass={c.pass} />
             <span className="space-y-0.5">
               <span className="block">{c.question}</span>
-              {c.pass && c.evidence && <span className="block text-muted-foreground">You wrote: “{c.evidence}”</span>}
-              {!c.pass && <span className="block text-muted-foreground">{c.feedback}</span>}
+              {c.pass && c.evidence && <span className="block text-ink/70">You wrote: “{c.evidence}”</span>}
+              {!c.pass && <span className="block text-ink/70">{c.feedback}</span>}
             </span>
           </li>
         ))}
       </ul>
       <div className="space-y-1">
-        <p className="font-medium">A strong reply</p>
-        <p className="whitespace-pre-line text-muted-foreground">{defend.model_reply}</p>
+        <p className="font-semibold">A strong reply</p>
+        <p className="whitespace-pre-line text-ink/80">{defend.model_reply}</p>
       </div>
     </div>
   );

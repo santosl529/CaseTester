@@ -63,6 +63,17 @@ export function decideSessionStart(usage: SessionUsage, limits: SessionLimits, n
   return { ok: true };
 }
 
+// How many more interviews a student can start now (the Cases page, Matt 13
+// Nov), and which limit is closest: 'day' (any 24 hours), 'month' or 'site'.
+export function casesLeft(usage: SessionUsage, limits: SessionLimits): { n: number; scope: 'day' | 'month' | 'site' } {
+  const left = [
+    { scope: 'day' as const, n: limits.perDay - usage.last24h.length },
+    { scope: 'month' as const, n: limits.perMonth - usage.month },
+    { scope: 'site' as const, n: limits.sitePerMonth - usage.siteMonth },
+  ].sort((a, b) => a.n - b.n)[0];
+  return { n: Math.max(0, left.n), scope: left.scope };
+}
+
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Exec = Pick<Tx, 'select' | 'insert' | 'execute'>;
 

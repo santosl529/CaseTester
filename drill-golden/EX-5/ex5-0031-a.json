@@ -1,0 +1,20 @@
+{
+  "answer_id": "ex5-0031-a",
+  "item_id": "ex5-0031",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "Matches the chart (rule 19); still compares channels by growth (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Social drove most of the growth, adding 10k of the 12k new customers."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

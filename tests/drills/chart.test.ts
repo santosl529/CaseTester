@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { DrillChart } from '@/components/drills/chart';
+import { DrillChart, categoryLabels, textWidth } from '@/components/drills/chart';
 import { ChartSpecSchema, formatValue, type ChartSpecInput } from '@/lib/drills/chart-spec';
 
 const render = (input: ChartSpecInput) => renderToStaticMarkup(createElement(DrillChart, { spec: ChartSpecSchema.parse(input) }));
@@ -83,5 +83,31 @@ describe('DrillChart', () => {
 
   it('labels the dual-axis legend with each side', () => {
     expect(render(SPECS.dual_axis)).toContain('Margin (right axis)');
+  });
+
+  it('names every category of an exhibit on a phone: one line, wrapped, or angled, never thinned', () => {
+    expect(categoryLabels(['11am', '12pm', '1pm', '5pm', '6pm', '7pm', '8pm'], 41.7, 13).mode).toBe('line');
+    expect(categoryLabels(['Billing errors', 'Power outages', 'Meter readings', 'Call wait times'], 73, 13)).toEqual({
+      mode: 'wrap', lines: [['Billing', 'errors'], ['Power', 'outages'], ['Meter', 'readings'], ['Call wait', 'times']],
+    });
+    expect(categoryLabels(['2024 surplus', 'Patient revenue', 'Staff pay', 'Agency nurses', 'Supplies', '2025 surplus'], 48.7, 13).mode).toBe('angle');
+    const html = renderToStaticMarkup(createElement(DrillChart, { exhibit: true, spec: ChartSpecSchema.parse({ ...SPECS.waterfall, categories: ['2024 surplus', 'Patient revenue', 'Staff pay', 'Agency nurses', '2025 surplus'] }) }));
+    // Both drawings (wide and narrow) name every category, whole or wrapped.
+    const drawings = html.split('<svg').slice(1).map(d => d.split('</svg>')[0]).filter(d => /viewBox="0 0 (640|360) /.test(d));
+    expect(drawings).toHaveLength(2);
+    for (const d of drawings) {
+      const shown = [...d.matchAll(/>([^<>]+)<\/t(?:span|ext)>/g)].map(m => m[1]).join(' ');
+      for (const c of ['2024 surplus', 'Patient revenue', 'Staff pay', 'Agency nurses', '2025 surplus']) expect(shown).toContain(c.split(' ').pop());
+    }
+    // Geist at 13px, as the browser measures it (within a few percent).
+    expect(textWidth('surplus', 13)).toBeCloseTo(43.6, -1);
+    expect(textWidth('Supplies', 13)).toBeCloseTo(51.4, -1);
+  });
+
+  it("shows each stacked segment's value inside it and the stack's total above", () => {
+    const html = render(SPECS.stacked_bar);
+    expect(html).toContain('font-weight="600" fill="currentColor">40</text>');
+    expect(html).toContain('font-weight="600" fill="currentColor">45</text>');
+    for (const v of ['10', '30', '20', '25']) expect(html).toContain(`dominant-baseline="central" font-size="13" fill="currentColor">${v}</text>`);
   });
 });

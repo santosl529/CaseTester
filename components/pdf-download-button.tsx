@@ -1,5 +1,6 @@
 'use client';
 import { useRef, useState } from 'react';
+import { Download } from 'lucide-react';
 import { buttonVariants } from '@/components/ui/button';
 import { downloadFailure } from '@/lib/site/failure-messages';
 
@@ -39,9 +40,9 @@ export function PdfDownloadButton({ sessionId }: { sessionId: string }) {
   return (
     <span className="inline-flex flex-col items-start gap-1">
       <button type="button" onClick={download} disabled={busy} className={buttonVariants({ variant: 'outline', size: 'sm' })}>
-        {busy ? 'Preparing PDF…' : 'Download PDF'}
+        <Download aria-hidden="true" />{busy ? 'Preparing PDF…' : 'Download PDF'}
       </button>
-      {error && <span role="alert" className="text-xs text-red-600">{error}</span>}
+      {error && <span role="alert" className="t-label text-alert">{error}</span>}
     </span>
   );
 }

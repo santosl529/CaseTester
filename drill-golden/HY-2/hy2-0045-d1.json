@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0045-d1",
+  "item_id": "hy2-0045",
+  "drill_id": "HY-2",
+  "answer_type": "borderline",
+  "notes": "'Survey shops about cork' names a method, not what it measures (rule 7). The drop result is specific and about the installer cause (rules 8, 9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Sales are likely behind because few UK installers know how to fit cork, so they steer buyers to floors they know. I'd compare sales in areas with and without installers who fit cork."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: where installers were trained, sales hit 90% of plan at the same prices, and elsewhere buyers can't find a fitter."
+    },
+    {
+      "type": "text",
+      "value": "I'd survey shops about cork. If most say fitters are happy to lay it, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": false,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

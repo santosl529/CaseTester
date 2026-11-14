@@ -28,10 +28,10 @@ export function LessonReviewButtons({ lessonId, status, notes }: { lessonId: str
   }
 
   return (
-    <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
-      <p className="text-sm">
+    <div className="space-y-3 rounded-panel bg-sky/50 p-5">
+      <p className="t-small">
         <span className="font-medium">Status: {status === 'live' ? 'Approved' : status === 'in_review' ? 'Changes requested' : 'Draft'}</span>
-        {notes && <span className="block text-muted-foreground">Your notes: {notes}</span>}
+        {notes && <span className="block text-ink/70">Your notes: {notes}</span>}
       </p>
       <div className="flex flex-wrap gap-3">
         <Button onClick={() => send(true)} disabled={busy || status === 'live'}>Approve</Button>
@@ -39,13 +39,13 @@ export function LessonReviewButtons({ lessonId, status, notes }: { lessonId: str
       </div>
       {open && (
         <div className="space-y-2">
-          <label htmlFor={`notes-${lessonId}`} className="block text-sm font-medium">What should change?</label>
+          <label htmlFor={`notes-${lessonId}`} className="block t-small font-medium">What should change?</label>
           <textarea id={`notes-${lessonId}`} value={text} onChange={e => setText(e.target.value)} rows={3}
-            className="w-full rounded-md border bg-background p-2 text-sm" />
+            className="w-full rounded-field border border-ink/20 bg-white p-3 t-small hover:border-ink/35 focus-visible:border-cobalt" />
           <Button onClick={() => send(false)} disabled={busy || !text.trim()}>Send</Button>
         </div>
       )}
-      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      {error && <p role="alert" className="t-small text-alert">{error}</p>}
     </div>
   );
 }

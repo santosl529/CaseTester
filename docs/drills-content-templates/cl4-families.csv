@@ -1,0 +1,4 @@
+item_id,family,description,correct_action_after_new_fact,reason
+EXAMPLE-cl4-01,New-club costs,"Breaks down costs at the 6 newest clubs, by line or per member",keep,The new fact confirms the rise sits in the new clubs
+EXAMPLE-cl4-01,Chain-wide cost lines,"Looks at a cost line (rent, staff, energy) across all clubs",change,"Older clubs' costs are flat, so a chain-wide view dilutes the cause"
+EXAMPLE-cl4-01,Revenue side,"Looks at prices, members or revenue per club",change,Revenue is flat; the profit fall is a cost problem in the new clubs

@@ -13,7 +13,7 @@ const titles = { 'prof-001': 'Brew & Bean Profitability' };
 describe('pastSessionRows', () => {
   it('a scored completed case links to its report', () => {
     expect(pastSessionRows([row({})], titles)).toEqual([
-      { id: 's1', date: 'Oct 19, 2026', caseTitle: 'Brew & Bean Profitability', status: 'Completed', link: { href: '/case/s1/report', label: 'Report' } },
+      { id: 's1', date: 'Oct 19, 2026', caseTitle: 'Brew & Bean Profitability', status: 'Completed', link: { href: '/case/s1/report', label: 'View report' } },
     ]);
   });
 

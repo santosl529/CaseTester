@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0008-a",
+  "item_id": "ex4-0008",
+  "drill_id": "EX-4",
+  "answer_type": "short",
+  "notes": "Names the biggest category, which barely moved, not what drove the rise (rule 1); no figure (rule 2); naming a driver answers the board's question, so it's tied (rule 3, Matt 2026-11-12), and as that answer it implies billing drove the rise, which the chart contradicts (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Billing errors."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": false,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": true
+  },
+  "family": null
+}

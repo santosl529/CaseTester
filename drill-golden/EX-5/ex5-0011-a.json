@@ -1,0 +1,20 @@
+{
+  "answer_id": "ex5-0011-a",
+  "item_id": "ex5-0011",
+  "drill_id": "EX-5",
+  "answer_type": "short",
+  "notes": "One word: doesn't say materials drive the rise (rule 19), and drops the chart figure, so keeps-right fails and no-new-flaw passes by code (rules 3, 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Materials."
+    }
+  ],
+  "labels": {
+    "fix_1": false,
+    "no_new_flaw": true,
+    "keeps_right": false
+  },
+  "red_flags": {},
+  "family": null
+}

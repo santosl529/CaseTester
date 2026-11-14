@@ -69,7 +69,7 @@ export function LessonActions({ lessonId, version, source, start, skippable }: {
     <div className="flex flex-wrap items-center gap-3">
       <Button size="lg" onClick={() => go(false)} disabled={busy}>Try it</Button>
       {skippable && <Button variant="ghost" onClick={() => go(true)} disabled={busy}>Skip the lesson</Button>}
-      {error && <span role="alert" className="text-sm text-destructive">{error}</span>}
+      {error && <span role="alert" className="t-small text-alert">{error}</span>}
     </div>
   );
 }

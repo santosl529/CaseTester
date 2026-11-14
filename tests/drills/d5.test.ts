@@ -25,7 +25,7 @@ import { getDrill } from '@/lib/drills/config';
 const TEMPLATES = path.join(process.cwd(), 'docs/drills-content-templates');
 const tables = (): Tables => Object.fromEntries(fs.readdirSync(TEMPLATES).filter(f => f.endsWith('.csv'))
   .map(f => [path.basename(f, '.csv'), parseCsv(fs.readFileSync(path.join(TEMPLATES, f), 'utf-8'))]));
-const sources = new Map(loadAuthoredItems().filter(i => ['PS-1', 'HY-1', 'SY-1'].includes(i.drill_id)).map(i => [i.item_id, i]));
+const sources = new Map(loadAuthoredItems().filter(i => ['PS-1', 'HY-1', 'SY-1', 'EX-1'].includes(i.drill_id)).map(i => [i.item_id, i]));
 const imported = importContent(tables(), { includeExamples: true, sources });
 const byId = (id: string) => imported.items.find(i => i.item_id === id)!;
 
@@ -319,7 +319,7 @@ describe('gradeSet with a follow-up', () => {
     expect([data.model, rest.model]).toEqual(['claude-sonnet-5-5', 'claude-sonnet-5-5']);
   });
 
-  it('keeps every other call on Haiku 4.5 with the rules inside the item', async () => {
+  it('grades HY-2\'s main answer on Sonnet 5.5 and its family on Haiku 4.5 (Matt, 2026-11-12)', async () => {
     const x = withDefend(hy2);
     const steps = run(x);
     const seen: { system: string; user: string; model?: string }[] = [];
@@ -329,9 +329,12 @@ describe('gradeSet with a follow-up', () => {
       return { output: { items: [{ item_key: 'answer', checks: own.map(c => ({ check_id: c.check_id, pass: false, evidence: '' })), red_flags: x.red_flags.filter(f => f.detection === 'ai').map(f => ({ id: f.id, present: false, evidence: '' })), hypothesis_family: 'other', backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } };
     };
     await gradeSet([{ key: 'a', item: x, steps, part: 'main' }], call);
-    expect(seen.length).toBeGreaterThan(0);
-    for (const c of seen) expect(c.model).toBe('claude-haiku-4-5');
-    expect(seen.some(c => c.user.includes('<grading_rules>'))).toBe(true);
+    const main = seen.find(c => c.user.includes('check_id "directional"'))!;
+    const family = seen.find(c => c.user.includes('only classify'))!;
+    expect(main.model).toBe('claude-sonnet-5-5');
+    // Sonnet keeps the rules in its cached system prompt; Haiku 4.5 gets them in the item.
+    expect(main.user).not.toContain('<grading_rules>');
+    expect(family.model).toBe('claude-haiku-4-5');
   });
   const ok = (ids: string[], flags: string[]) => ({ output: { items: [{ item_key: 'answer', checks: ids.map(id => ({ check_id: id, pass: false, evidence: '' })), red_flags: flags.map(id => ({ id, present: false, evidence: '' })), hypothesis_family: null, backup_family: null, injection_suspected: false }] }, usage: { input_tokens: 1, output_tokens: 1, cache_creation_input_tokens: 0, cache_read_input_tokens: 0 } });
 
@@ -370,7 +373,7 @@ it('keeps the D5 grading rules in the guide word for word', () => {
 describe('the high-confidence injection match (grading/injection.ts)', () => {
   const golden = (() => {
     const dir = path.join(process.cwd(), 'drill-golden');
-    return fs.readdirSync(dir).flatMap(d => fs.readdirSync(path.join(dir, d)).map(f => JSON.parse(fs.readFileSync(path.join(dir, d, f), 'utf-8'))));
+    return fs.readdirSync(dir).filter(d => fs.statSync(path.join(dir, d)).isDirectory()).flatMap(d => fs.readdirSync(path.join(dir, d)).map(f => JSON.parse(fs.readFileSync(path.join(dir, d, f), 'utf-8'))));
   })() as { answer_id: string; answer_type: string; responses: StepResponse[] }[];
   const texts = (g: { responses: StepResponse[] }) => g.responses.map(r => answerText(r)).filter(Boolean);
 

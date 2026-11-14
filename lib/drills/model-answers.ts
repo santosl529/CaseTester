@@ -11,7 +11,9 @@ import { defendStart } from './defend';
 
 export const D2_DRILLS = ['PS-3', 'HY-2', 'SY-2', 'CL-3', 'QN-5'];
 // D5's Repair drills: the model repair should score 100% too.
-export const REPAIR_DRILL_IDS = ['PS-4', 'HY-3', 'SY-3'];
+export const REPAIR_DRILL_IDS = ['PS-4', 'HY-3', 'SY-3', 'EX-5'];
+// The next-7 build's AI-graded drills (priority 1: EX-4, EX-5, CL-4).
+export const P1_DRILLS = ['EX-4', 'EX-5', 'CL-4'];
 
 // With the Defend steps when the item runs them (lib/drills/defend.ts
 // withDefend): the model reply, after Update when the challenge is valid and
@@ -26,9 +28,9 @@ export function modelAnswerSteps(item: Item): StepResponse[] {
 function mainModelSteps(item: Item): StepResponse[] {
   const model = item.model_answer ?? '';
   if (item.drill_id === 'PS-3' || item.drill_id === 'PS-4') return [parseFramework(model)];
-  if (item.drill_id === 'HY-3' || item.drill_id === 'SY-3') return [{ type: 'text', value: model }];
-  if (item.drill_id === 'SY-2' || item.drill_id === 'CL-3') return [{ type: 'text', value: model }];
-  if (item.drill_id === 'HY-2') {
+  if (item.drill_id === 'HY-3' || item.drill_id === 'SY-3' || item.drill_id === 'EX-5') return [{ type: 'text', value: model }];
+  if (item.drill_id === 'SY-2' || item.drill_id === 'CL-3' || item.drill_id === 'EX-4') return [{ type: 'text', value: model }];
+  if (item.drill_id === 'HY-2' || item.drill_id === 'CL-4') {
     const [stage1, stage2] = model.split('\n').map(l => l.replace(/^Stage [12]: /, ''));
     return [{ type: 'text', value: stage1 }, { type: 'choice', option_id: stage2.split(':')[0].toLowerCase() }, { type: 'text', value: stage2 }];
   }

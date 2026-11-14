@@ -1,0 +1,25 @@
+{
+  "answer_id": "ex4-0031-d1",
+  "item_id": "ex4-0031",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Rules 16–18 met.",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Only 4% of 7.5 million cats are insured."
+    },
+    {
+      "type": "text",
+      "value": "There's plenty of room, so the insurer should find out why owners don't insure, such as price or awareness."
+    }
+  ],
+  "labels": {
+    "defend_implication": true,
+    "defend_objective": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

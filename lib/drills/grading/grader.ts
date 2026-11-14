@@ -12,6 +12,7 @@ import { DRILL_GRADER_MODELS, assertDrillGraderModel, drillGraderModel, type Gra
 import { DRILLS_CONFIG, getDrill, getMistakeTag } from '../config';
 import type { Item, RepairExtras } from '../item-schema';
 import { REPAIR_DRILLS, defendGradingRules, type RepairDrillId } from '../checklists';
+import { chartText } from '../chart-spec';
 import { defendParts } from '../defend';
 import { answerText, itemSteps, writtenLimitProblem, type StepResult } from '../sets/scoring';
 import type { ItemGrade } from './apply';
@@ -39,7 +40,33 @@ import type { ItemGrade } from './apply';
 // moves to, and has both HY-2 follow-up calls write a reason before each
 // verdict. v33 routes the HY-2 follow-up's two calls to Sonnet 5.5 (rules in
 // its cached system prompt); every other call stays on Haiku 4.5 as in v32.
-export const GRADER_PROMPT_VERSION = 'drills-grader-v34';
+// v35 adds the next-7 priority 1 drills: EX-4 and EX-5 show the grader the
+// chart as text, CL-4 classifies next-step families (NEXT_STEP_SYSTEM). Every
+// other drill's calls are byte-for-byte as in v34. v36 adds to HY-2's
+// directional rule: a bare label, or rivals named without the driver, is not
+// directional (Matt, 2026-11-12, after the HY-2 gate fell to 86%). v37 (Matt,
+// 2026-11-12): CL-4's adapt reason says a Keep stays on the same driver, one
+// level deeper; EX-5 says hedging an unsupported cause doesn't fix it. v38
+// (Matt, 2026-11-12): HY-2's update reason fails a misread of the new fact;
+// EX-5 counts a right part as kept when the edit's own figures state it. v39
+// (Matt, 2026-11-12): CL-4 grades stage 1 in its own call (no new fact, no
+// stage 2); EX-4's contradiction flag, follow-up consistency and short
+// replies reworded; HY-2's update reason says a fair inference isn't a misread.
+// v40 (Matt, 2026-11-12): CL-4 one-step fails a fix, logical leaves an ignored
+// finding to the reason check, adapt reason judges only the use of the fact;
+// EX-4's flag separates questions that ask for a fact from ones that ask for
+// a decision. v41 (Matt, 2026-11-12): EX-4 follow-up consistency fails a
+// different answer to the client's question; EX-5 says a swapped unsupported
+// cause leaves the planted flaw unfixed and isn't new. v42 (Matt, 2026-11-12):
+// EX-4 tied-to-question passes a takeaway that itself answers the question;
+// the follow-up objective judges the goal, not whether the action is right.
+// v43 (Matt, 2026-11-12): a wrong answer is still tied; the goal needn't be
+// named; HY-2's update reason passes a brief conclusion, and evidence counts a
+// fact built on in words; check questions reworded to match. v44 (Matt,
+// 2026-11-12): worked examples in EX-5 keeps-right, CL-4 logical and HY-2's
+// update reason; bare labels build on no fact; CL-4 logical leaves lists to
+// one-step; every P1 and HY-2 check question matches its rule.
+export const GRADER_PROMPT_VERSION = 'drills-grader-v44';
 
 const SYSTEM = `You grade written answers in a case-interview practice tool for university students.
 
@@ -105,6 +132,11 @@ For each check, write "reason" first: one or two sentences on what the reply doe
 const DEFEND_DATA_SYSTEM = `
 
 Follow-up data request: the student replied to an interviewer's follow-up, in <student_answer> tags. You see only the follow-up and the reply, because this check is judged on the reply alone. Evidence quotes come from the reply.`;
+// CL-4 (P1): its families are next-step families. Added only to CL-4's
+// calls, so every other drill's prompt stays as its gate passed.
+const NEXT_STEP_SYSTEM = `
+
+Next-step items: the item lists next-step families in <step_families>. Set "hypothesis_family" to the family the stage 1 next step belongs to, or "other" if it fits none; it is never null. Set "backup_family" to null.`;
 export const HY2_DATA_CHECK = 'defend_data_request';
 export type CallKind = 'standard' | 'repair' | 'reasoned';
 
@@ -131,19 +163,28 @@ function stageNote(item: Item, step: number) {
 // Ids exactly as listed: tolerate a model that echoes the note or quotes.
 const cleanId = (id: string) => id.replace(/\s*[[(].*$/, '').replace(/["'`]/g, '').trim();
 
-export function buildItemBlock(e: GradingEntry): string {
+// scope: CL-4 grades stage 1 in a call of its own ('stage1': stage 1's checks
+// and answer only, no new fact, no stage 2) and stage 2 in the main call
+// ('stage2': its checks only, with both stages for context).
+export type BlockScope = 'all' | 'stage1' | 'stage2';
+const inScope = (scope: BlockScope, step: number) => scope === 'all' || (scope === 'stage1' ? step === 0 : step > 0);
+
+export function buildItemBlock(e: GradingEntry, scope: BlockScope = 'all'): string {
   const { item, steps } = e;
   const drill = getDrill(item.drill_id);
   const main = mainCount(item);
-  const spec = itemSteps(item).slice(0, main);
-  const aiChecks = item.checks.filter(c => c.detection === 'ai' && c.step < main);
-  const aiFlags = item.red_flags.filter(f => f.detection === 'ai');
+  const spec = itemSteps(item).slice(0, scope === 'stage1' ? 1 : main);
+  const aiChecks = item.checks.filter(c => c.detection === 'ai' && c.step < main && inScope(scope, c.step));
+  const aiFlags = item.red_flags.filter(f => f.detection === 'ai' && inScope(scope, f.step));
   const parts = [`<item key="${e.key}">`, `<drill>${drill.id} ${drill.name}</drill>`, `<question>${item.prompt}</question>`];
-  if (item.drill_id === 'HY-2') {
-    const families = item.extras.families as { family: string; description: string }[];
-    parts.push(`<new_fact_shown_in_stage_2>${item.extras.new_fact}</new_fact_shown_in_stage_2>`);
-    parts.push(`<hypothesis_families>\n${families.map(f => `- ${f.family}: ${f.description}`).join('\n')}\n</hypothesis_families>`);
+  if (item.drill_id === 'HY-2' || item.drill_id === 'CL-4') {
+    if (scope !== 'stage1') parts.push(`<new_fact_shown_in_stage_2>${item.extras.new_fact}</new_fact_shown_in_stage_2>`);
+    parts.push(familiesBlock(item));
   }
+  // EX-4, EX-5: the chart the student wrote about, and figures worked out from it.
+  if (item.exhibit) parts.push(`<chart>\n${chartText(item.exhibit)}\n</chart>`);
+  const chartFigures = item.extras.chart_figures as string[] | undefined;
+  if (chartFigures?.length) parts.push(`<chart_figures>\nFigures read or worked out from the chart. Use them only to check the numbers the answer states; a correct figure not listed here still counts.\n${chartFigures.map(f => `- ${f}`).join('\n')}\n</chart_figures>`);
   if (drill.stage === 'repair') {
     parts.push(`<original_answer>\n${(item.extras as RepairExtras).flawed_answer}\n</original_answer>`);
     const kinds = REPAIR_DRILLS[item.drill_id as RepairDrillId].flaw_tags;
@@ -152,7 +193,7 @@ export function buildItemBlock(e: GradingEntry): string {
   // SY-2: figures worked out from the sheet, to check the student's numbers against.
   const figures = item.extras.key_figures as string[] | undefined;
   if (figures?.length) parts.push(`<key_figures>\nExact figures worked out from the fact sheet. Use them only to check the numbers the answer states (within 10%, or 1 percentage point for a percentage); they are not reasons the answer must give.\n${figures.map(f => `- ${f}`).join('\n')}\n</key_figures>`);
-  const rules = item.extras.grading_rules as string[] | undefined;
+  const rules = (item.extras.grading_rules as string[] | undefined)?.filter(r => scope !== 'stage1' || !r.startsWith('Adapt reason:'));
   if (rules?.length) parts.push(`<grading_rules>\n${rules.map(r => `- ${r}`).join('\n')}\n</grading_rules>`);
   parts.push(`<checks>\n${aiChecks.map(c => `- check_id "${c.check_id}"${stageNote(item, c.step)}${c.evidence === 'whole' ? ' [judges the whole answer]' : ''}: ${c.question}`).join('\n')}\n</checks>`);
   parts.push(`<red_flags>\n${aiFlags.length ? aiFlags.map(f => `- id "${f.id}"${stageNote(item, f.step)}${f.evidence === 'whole' ? ' [judges the whole answer]' : ''}: ${f.definition}`).join('\n') : '(none)'}\n</red_flags>`);
@@ -169,6 +210,14 @@ export function buildItemBlock(e: GradingEntry): string {
   parts.push('</item>');
   return parts.join('\n');
 }
+
+// HY-2's hypothesis families, CL-4's next-step families.
+function familiesBlock(item: Item): string {
+  const families = item.extras.families as { family: string; description: string }[];
+  const tag = item.drill_id === 'CL-4' ? 'step_families' : 'hypothesis_families';
+  return `<${tag}>\n${families.map(f => `- ${f.family}: ${f.description}`).join('\n')}\n</${tag}>`;
+}
+const familySystem = (item: Item) => (item.drill_id === 'CL-4' ? SYSTEM + NEXT_STEP_SYSTEM : SYSTEM);
 
 // The Defend call (PRD "Defend step"): its own call per reply, with the item
 // prompt, the student's main answer and reply as delimited data, the
@@ -193,6 +242,7 @@ export function buildDefendBlock(e: GradingEntry): string {
   const parts = [
     '<item key="answer">', `<drill>${drill.id} ${drill.name}</drill>`, `<question>${item.prompt}</question>`,
     ...(item.drill_id === 'HY-2' ? [`<new_fact_shown_in_stage_2>${item.extras.new_fact}</new_fact_shown_in_stage_2>`] : []),
+    ...(item.exhibit ? [`<chart>\n${chartText(item.exhibit)}\n</chart>`] : []),
     `<grading_rules>\n${rules.map(r => `- ${r}`).join('\n')}\n</grading_rules>`,
     `<checks>\n${checks.map(c => `- check_id "${c.check_id}"${c.evidence === 'whole' ? ' [judges the whole answer]' : ''}: ${c.question}`).join('\n')}\n</checks>`,
     '<red_flags>\n(none)\n</red_flags>',
@@ -232,13 +282,12 @@ export function buildDefendDataBlock(e: GradingEntry): string {
 // answer. The grader never sees stage 2 or the new fact here, so a correct
 // revision can't pull stage 1 into the family the student revised to.
 export function buildFamilyBlock(e: GradingEntry): string {
-  const families = e.item.extras.families as { family: string; description: string }[];
   return [
     '<item key="answer">',
     `<question>${e.item.prompt}</question>`,
     ...((e.item.extras.grading_rules as string[] | undefined)?.length ? [`<grading_rules>\n${(e.item.extras.grading_rules as string[]).map(r => `- ${r}`).join('\n')}\n</grading_rules>`] : []),
-    `<hypothesis_families>\n${families.map(f => `- ${f.family}: ${f.description}`).join('\n')}\n</hypothesis_families>`,
-    '<checks>\n(none: only classify the hypothesis)\n</checks>',
+    familiesBlock(e.item),
+    `<checks>\n(none: only classify the ${e.item.drill_id === 'CL-4' ? 'next step' : 'hypothesis'})\n</checks>`,
     '<red_flags>\n(none)\n</red_flags>',
     `<student_answer stage="1">\n${fence(answerText(e.steps[0]?.response ?? { type: 'empty' })) || '(blank)'}\n</student_answer>`,
     '</item>',
@@ -378,7 +427,7 @@ export function splitRules(system: string, block: string): { system: string; use
 // ungraded ("Grading delayed"), and a billing error stops every call left.
 const ANSWER_KEY = 'answer';
 
-export type CallSlot = 'main' | 'family' | 'followup' | 'followup_data';
+export type CallSlot = 'main' | 'stage1' | 'family' | 'followup' | 'followup_data';
 export type RequestOutcome = 'ok' | 'invalid_output' | 'refused' | 'billing' | 'error';
 export type UngradedReason = 'request_cap' | 'refused' | 'billing' | 'over_word_limit' | 'error';
 export interface RequestRecord { key: string; call: CallSlot; model: GraderModel; outcome: RequestOutcome; usage: RequestUsage; cost_usd: number; latency_ms: number; error?: string }
@@ -491,13 +540,25 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
   // One call: the main answer, or (PRD "Defend step") the follow-up reply.
   // inPart: the steps whose red flags the call answers; owns: its checks.
   interface Part { slot: CallSlot; system: string; block: (e: GradingEntry) => string; kind: CallKind; inPart: (step: number) => boolean; owns: (c: { step: number; check_id: string }) => boolean; model: GraderModel }
-  const partsOf = (e: GradingEntry): { main: Part | null; defend: Part[] } => {
+  const partsOf = (e: GradingEntry): { main: Part | null; stage1: Part | null; defend: Part[] } => {
     const d = defendParts(e.item);
     const repair = getDrill(e.item.drill_id).stage === 'repair';
-    const main: Part = {
-      slot: 'main', system: repair ? SYSTEM + REPAIR_SYSTEM : SYSTEM, block: buildItemBlock, kind: repair ? 'repair' : 'standard',
-      inPart: step => !d || step < d.start, owns: c => !d || c.step < d.start, model: drillGraderModel(),
+    // CL-4: stage 1's checks in a call that can't see the new fact or stage 2,
+    // which the grader otherwise judged stage 1 against (Matt, 2026-11-12).
+    const split = e.item.drill_id === 'CL-4';
+    // The approved model per call (lib/models.ts): EX-4 and EX-5 on their own.
+    const graderCall = e.item.drill_id === 'EX-4' ? 'ex4' : e.item.drill_id === 'EX-5' ? 'ex5' : e.item.drill_id === 'HY-2' ? 'hy2_main' : 'default';
+    const main: Part = split ? {
+      slot: 'main', system: familySystem(e.item), block: x => buildItemBlock(x, 'stage2'), kind: 'standard',
+      inPart: step => step > 0, owns: c => c.step > 0, model: drillGraderModel('cl4_stage2'),
+    } : {
+      slot: 'main', system: repair ? SYSTEM + REPAIR_SYSTEM : familySystem(e.item), block: buildItemBlock, kind: repair ? 'repair' : 'standard',
+      inPart: step => !d || step < d.start, owns: c => !d || c.step < d.start, model: drillGraderModel(graderCall),
     };
+    const stage1: Part | null = split ? {
+      slot: 'stage1', system: familySystem(e.item), block: x => buildItemBlock(x, 'stage1'), kind: 'standard',
+      inPart: step => step === 0, owns: c => c.step === 0, model: drillGraderModel('cl4_stage1'),
+    } : null;
     const replied = d && answerText(e.steps[d.reply]?.response ?? { type: 'empty' });
     const inDefend = (step: number) => Boolean(d) && step >= d!.start;
     // HY-2: the data request in a call of its own that sees only the reply;
@@ -505,8 +566,8 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
     const defend: Part[] = !replied ? [] : e.item.drill_id === 'HY-2' ? [
       { slot: 'followup_data', system: SYSTEM + DEFEND_DATA_SYSTEM + REASONED_SYSTEM, block: buildDefendDataBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id === HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
       { slot: 'followup', system: SYSTEM + DEFEND_SYSTEM + REASONED_SYSTEM, block: buildDefendBlock, kind: 'reasoned', inPart: inDefend, owns: c => inDefend(c.step) && c.check_id !== HY2_DATA_CHECK, model: drillGraderModel('hy2_followup') },
-    ] : [{ slot: 'followup', system: SYSTEM + DEFEND_SYSTEM, block: buildDefendBlock, kind: 'standard', inPart: inDefend, owns: c => inDefend(c.step), model: drillGraderModel() }];
-    return { main: e.part === 'defend' ? null : main, defend: e.part === 'main' ? [] : defend };
+    ] : [{ slot: 'followup', system: SYSTEM + DEFEND_SYSTEM, block: buildDefendBlock, kind: 'standard', inPart: inDefend, owns: c => inDefend(c.step), model: drillGraderModel(graderCall) }];
+    return { main: e.part === 'defend' ? null : main, stage1: e.part === 'defend' ? null : stage1, defend: e.part === 'main' ? [] : defend };
   };
 
   // The call's output for this answer, or what was wrong with it.
@@ -525,6 +586,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
     if (!item || gaps.length) return `grader output left out: ${gaps.join(', ')} (returned keys: ${items.map(o => o.item_key).join(', ')})`;
     // Keep only what this call was asked about.
     item.checks = item.checks.filter(c => e.item.checks.some(x => x.check_id === c.check_id && part.owns(x)));
+    item.red_flags = item.red_flags.filter(f => e.item.red_flags.some(x => x.id === f.id && part.inPart(x.step)));
     return item;
   };
 
@@ -564,8 +626,8 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
   // HY-2: the family comes from a call that sees only stage 1 (see
   // buildFamilyBlock). If it fails twice, the main call's family is used.
   const classify = async (e: GradingEntry) => {
-    const model = drillGraderModel();
-    const { system, user } = DRILL_GRADER_MODELS[model].rulesInSystem ? splitRules(SYSTEM, buildFamilyBlock(e)) : { system: SYSTEM, user: buildFamilyBlock(e) };
+    const model = drillGraderModel(e.item.drill_id === 'CL-4' ? 'cl4_family' : 'default');
+    const { system, user } = DRILL_GRADER_MODELS[model].rulesInSystem ? splitRules(familySystem(e.item), buildFamilyBlock(e)) : { system: familySystem(e.item), user: buildFamilyBlock(e) };
     for (let attempt = 0; attempt < 2; attempt++) {
       const sent = await send(e, 'family', model, system, `<items>\n${user}\n</items>`, 'standard', attempt);
       if (sent.kind === 'capped') break;
@@ -586,7 +648,7 @@ export async function gradeAnswers(entries: GradingEntry[], call: CallModel = an
     const family = e.item.extras.families && parts.main ? classify(e).catch(() => null) : Promise.resolve(null);
     const settled = await Promise.allSettled([
       parts.main ? askVerified(e, parts.main) : null,
-      ...parts.defend.map(p => askVerified(e, p)),
+      ...[parts.stage1, ...parts.defend].flatMap(p => (p ? [askVerified(e, p)] : [])),
     ]);
     const families = await family;
     const failed = settled.flatMap(r => (r.status === 'rejected' ? [r.reason] : []));

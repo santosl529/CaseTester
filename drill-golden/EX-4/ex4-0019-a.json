@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0019-a",
+  "item_id": "ex4-0019",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "'Biggest customer at 45%' reads the bar but doesn't say the revenue is concentrated (rule 1, Matt 2026-11-12); its figure is right (rule 2); it doesn't say what that means for the risk (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Customer A is the biggest customer at 45%."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": true,
+    "tied_to_question": false
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

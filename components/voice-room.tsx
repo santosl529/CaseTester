@@ -387,55 +387,58 @@ export function VoiceRoom({ sessionId, casePrompt, endActions }: { sessionId: st
   }, [local, caseOver, sessionId]);
 
   return (
-    <div className="h-full flex flex-col gap-3 p-4">
+    <div className="h-full flex flex-col gap-4 px-6 py-5">
       <div className="flex items-center gap-2">
-        <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-medium text-neutral-700">{STATE_LABEL[phase] ?? phase}</span>
+        <span className={`t-label inline-flex items-center gap-1.5 rounded-full border px-3 py-1 font-semibold ${phase === 'idle' || phase === 'ended' ? 'border-ink/15 bg-white text-ink/75' : 'border-cobalt/30 bg-sky/60 text-ink'}`}>
+          {phase !== 'idle' && phase !== 'ended' && <span aria-hidden="true" className="size-1.5 rounded-full bg-cobalt" />}
+          {STATE_LABEL[phase] ?? phase}
+        </span>
       </div>
 
       {casePrompt && (
-        <details className="text-sm">
-          <summary className="text-xs text-neutral-500 cursor-pointer select-none">Case prompt</summary>
-          <p className="mt-2 text-neutral-700 whitespace-pre-wrap">{casePrompt}</p>
+        <details className="group">
+          <summary className="t-label inline-flex cursor-pointer list-none items-center gap-1 font-semibold text-ink/70 select-none hover:text-cobalt [&::-webkit-details-marker]:hidden">Case prompt</summary>
+          <p className="t-small mt-2 max-w-[65ch] whitespace-pre-wrap text-ink/85">{casePrompt}</p>
         </details>
       )}
 
-      <div className="flex-1 min-h-0 overflow-y-auto space-y-2">
+      <div className="flex-1 min-h-0 overflow-y-auto space-y-3">
         {view.captions.map(c => (
-          <div key={`${c.who}:${c.turnSeq}`} className={c.who === 'interviewer' ? 'text-sm text-neutral-900' : 'text-sm text-neutral-500 text-right'}>
+          <div key={`${c.who}:${c.turnSeq}`} className={c.who === 'interviewer' ? 't-body text-ink' : 't-small text-ink/70 text-right'}>
             {c.segments ? <LiveCaption segments={c.segments} /> : <span className={c.final ? '' : 'opacity-70'}>{c.text}</span>}
           </div>
         ))}
         {view.exhibits.map(e => <ExhibitTable key={e.id} exhibit={e} />)}
       </div>
 
-      {((connecting && local === 'live') || local === 'connecting') && !needsClick && !problem && <p className="text-sm text-neutral-600">{CONNECTING_MESSAGE}</p>}
-      {(problem || view.error) && <p className="text-sm text-red-600">{problem ?? view.error}</p>}
+      {((connecting && local === 'live') || local === 'connecting') && !needsClick && !problem && <p className="t-small text-ink/70">{CONNECTING_MESSAGE}</p>}
+      {(problem || view.error) && <p className="t-small text-alert">{problem ?? view.error}</p>}
       {view.endedReason && view.endedReason !== 'case_complete' && (
-        <p className="text-sm text-neutral-600">{ENDED_TEXT[view.endedReason] ?? 'The session ended.'}{view.canScore ? ' You can score it for a report on what you covered.' : ''}</p>
+        <p className="t-small text-ink/70">{ENDED_TEXT[view.endedReason] ?? 'The session ended.'}{view.canScore ? ' You can score it for a report on what you covered.' : ''}</p>
       )}
 
       {/* Before Start, on its own line (Lorenzo, 19 Oct): on speakers the room hears the interviewer. */}
       {local === 'idle' && (
-        <p className="text-sm font-medium text-neutral-800">Headphones work best — on laptop speakers the interviewer can hear itself and cut off.</p>
+        <p className="t-small font-semibold">Headphones work best — on laptop speakers the interviewer can hear itself and cut off.</p>
       )}
       {/* Voice is the default (Lorenzo, 6 Nov): when it can't start (busy, no microphone, no interviewer) or the
           student would rather type, the same interview continues in text. Only while no voice is connected, so a
           typed turn never races the agent. */}
       {local === 'idle' && !caseOver && (
-        <p className="text-sm text-neutral-600">
-          Prefer to type, or voice isn&apos;t working? <a href={caseHref(sessionId, 'text')} className="underline">Continue this interview in text</a>
+        <p className="t-small text-ink/70">
+          Prefer to type, or voice isn&apos;t working? <a href={caseHref(sessionId, 'text')} className="link">Continue this interview in text</a>
         </p>
       )}
-      <div className="flex items-center gap-2">
-        {local === 'idle' && <Button onClick={start}>Start</Button>}
+      <div className="flex flex-wrap items-center gap-2">
+        {local === 'idle' && <Button size="lg" onClick={start}>Start</Button>}
         {needsClick && local === 'live' && <Button onClick={enableAudio}>Click to enable audio</Button>}
         {local === 'live' && !caseOver && <Button variant="outline" onClick={end}>End</Button>}
-        <Button variant="outline" size="sm" onClick={toggleFillers} aria-pressed={fillers}
+        <Button variant="ghost" size="sm" onClick={toggleFillers} aria-pressed={fillers}
           title="The interviewer's thinking sounds (“Hmm…”) and the “So,” that follows them. Applies from the next turn.">
           Thinking sounds: {fillers ? 'on' : 'off'}
         </Button>
         {(view.canScore || endedWithReport) && <Button onClick={score} disabled={scoring !== false}>{scoring === 'finalizing' ? 'Finalizing your report…' : scoring ? 'Scoring…' : 'Score this interview'}</Button>}
-        <span className="ml-auto text-xs text-neutral-400">
+        <span className="t-label ml-auto text-ink/65 tabular-nums">
           {view.latency ? `first sound ${view.latency.firstSoundMs ?? '–'}ms · first useful ${view.latency.firstUsefulMs ?? '–'}ms` : ''}
         </span>
       </div>

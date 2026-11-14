@@ -57,28 +57,28 @@ export function ProgramSettings({ track, interviewDate, availabilityId, availabi
     router.refresh();
   }
 
-  const radio = 'flex items-start gap-3 rounded-lg border p-3 text-sm has-[:checked]:border-foreground';
+  const radio = 'flex cursor-pointer items-start gap-3 rounded-window border border-ink/15 bg-white p-4 t-small transition-colors hover:border-ink/35 has-[:checked]:border-cobalt has-[:checked]:bg-sky/40 motion-reduce:transition-none [&_input]:accent-cobalt';
   return (
     <form onSubmit={save} className="space-y-6">
       <fieldset className="space-y-2">
-        <legend className="mb-2 font-medium">Track</legend>
+        <legend className="t-small mb-2 font-semibold">Track</legend>
         {TRACKS.map(x => (
           <label key={x.id} className={radio}>
             <input type="radio" name="track" checked={t === x.id} onChange={() => setT(x.id)} className="mt-1" />
-            <span><span className="font-medium">{x.label}</span><br /><span className="text-muted-foreground">{x.hint}</span></span>
+            <span><span className="font-semibold">{x.label}</span><br /><span className="text-ink/70">{x.hint}</span></span>
           </label>
         ))}
       </fieldset>
       <div className="space-y-2">
-        <label htmlFor="interview" className="block font-medium">Interview date</label>
+        <label htmlFor="interview" className="t-small block font-semibold">Interview date</label>
         <div className="flex flex-wrap items-center gap-3">
-          <input id="interview" type="date" min={today} value={date} onChange={e => setDate(e.target.value)} className="rounded-md border bg-background px-3 py-2 text-sm" />
-          {date && <button type="button" onClick={() => setDate('')} className="text-sm underline underline-offset-4">Clear</button>}
+          <input id="interview" type="date" min={today} value={date} onChange={e => setDate(e.target.value)} className="h-10 w-full rounded-field border border-ink/20 bg-white px-3 t-small text-ink transition-colors hover:border-ink/35 focus-visible:border-cobalt motion-reduce:transition-none sm:w-auto" />
+          {date && <button type="button" onClick={() => setDate('')} className="t-small link">Clear</button>}
         </div>
       </div>
       {t !== 'self_directed' && t !== 'sprint' && (
         <fieldset className="space-y-2">
-          <legend className="mb-2 font-medium">Time each week</legend>
+          <legend className="t-small mb-2 font-semibold">Time each week</legend>
           {availability.map(a => (
             <label key={a.id} className={radio}>
               <input type="radio" name="hours" checked={hours === a.id} onChange={() => setHours(a.id)} className="mt-1" />
@@ -88,31 +88,31 @@ export function ProgramSettings({ track, interviewDate, availabilityId, availabi
         </fieldset>
       )}
       <fieldset className="space-y-2">
-        <legend className="mb-2 font-medium">Time per item</legend>
+        <legend className="t-small mb-2 font-semibold">Time per item</legend>
         <div className="flex flex-wrap gap-2">
           {[['1', 'Standard'], ['1.5', '1.5×'], ['2', '2×'], ['untimed', 'No time limit']].map(([value, label]) => (
-            <label key={value} className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm has-[:checked]:border-foreground">
+            <label key={value} className="flex cursor-pointer items-center gap-2 rounded-full border border-ink/20 bg-white px-4 py-2 t-small transition-colors hover:border-ink/40 has-[:checked]:border-cobalt has-[:checked]:bg-sky/40 motion-reduce:transition-none [&_input]:accent-cobalt">
               <input type="radio" name="time" checked={time === value} onChange={() => setTime(value)} />
               {label}
             </label>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground">No time limit hides the timer. Your results still show how long you took against the timed target, so you can work on pace.</p>
+        <p className="t-small text-ink/70">No time limit hides the timer. Your results still show how long you took against the timed target, so you can work on pace.</p>
       </fieldset>
       <fieldset className="space-y-2">
-        <legend className="mb-2 font-medium">Feedback</legend>
+        <legend className="t-small mb-2 font-semibold">Feedback</legend>
         <div className="flex flex-wrap gap-2">
           {([['immediate', 'After each question'], ['end', 'At the end of the set']] as const).map(([value, label]) => (
-            <label key={value} className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm has-[:checked]:border-foreground">
+            <label key={value} className="flex cursor-pointer items-center gap-2 rounded-full border border-ink/20 bg-white px-4 py-2 t-small transition-colors hover:border-ink/40 has-[:checked]:border-cobalt has-[:checked]:bg-sky/40 motion-reduce:transition-none [&_input]:accent-cobalt">
               <input type="radio" name="feedback" checked={feedback === value} onChange={() => setFeedback(value)} />
               {label}
             </label>
           ))}
         </div>
-        <p className="text-sm text-muted-foreground">The default for new sets; you can change it on each set&apos;s first screen. Scores and progress are the same either way.</p>
+        <p className="t-small text-ink/70">The default for new sets; you can change it on each set&apos;s first screen. Scores and progress are the same either way.</p>
       </fieldset>
-      <p className="text-sm text-muted-foreground">Changes rebuild your plan from today. Your skill progress is kept.</p>
-      {msg && <p role="alert" className="text-sm text-destructive">{msg}</p>}
+      <p className="t-small text-ink/70">Changes rebuild your plan from today. Your skill progress is kept.</p>
+      {msg && <p role="alert" className="t-small text-alert">{msg}</p>}
       <Button type="submit" disabled={busy}>Save</Button>
     </form>
   );

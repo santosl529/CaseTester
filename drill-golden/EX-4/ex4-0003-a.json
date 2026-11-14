@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0003-a",
+  "item_id": "ex4-0003",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Explains the flat total, not whether any group is growing (rules 1, 3); figures right (rule 2).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Primary-school revenue fell from $24M to $16M, which is why total revenue is flat."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": true,
+    "tied_to_question": false
+  },
+  "red_flags": {
+    "contradicts_chart": false
+  },
+  "family": null
+}

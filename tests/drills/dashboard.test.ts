@@ -82,12 +82,12 @@ describe('Your progress: skill arrows and the score chart (A3, A4)', () => {
   it('marks tier and stage changes, with the bar drawn in', () => {
     const pts = scorePoints([scored(0.9, 5), scored(0.6, 4, { tier: 2 }), scored(0.7, 3, { tier: 2, stage: 'construct' })], 'PS.mece');
     const chart = scoreChart('MECE structure', pts, d => d.toISOString().slice(5, 10))!;
-    expect(chart.markers).toEqual([{ index: 1, label: '▲ Up to tier 2' }, { index: 2, label: '▲ Construct drills' }]);
-    // Tier 1 sets don't count toward a state: hollow, with the reason in the table.
+    expect(chart.markers).toEqual([{ index: 1, label: '▲ Up to Level 2' }, { index: 2, label: '▲ “Build it” drills' }]);
+    // Level 1 (tier 1) sets don't count toward a state: hollow, with the reason in the table.
     expect(chart.hollow).toEqual([0]);
-    expect(chart.notes[0].text).toMatch(/^Doesn't count: Tier 1 sets/);
+    expect(chart.notes[0].text).toMatch(/^Doesn't count: Level 1 sets/);
     const down = scoreChart('MECE structure', scorePoints([scored(0.9, 5, { tier: 2 }), scored(0.6, 4)], 'PS.mece'), d => d.toISOString())!;
-    expect(down.markers[0].label).toBe('▼ Down to tier 1');
+    expect(down.markers[0].label).toBe('▼ Down to Level 1');
     expect(chart.reference_lines[0].value).toBe(80);
     expect(chart.series[0].values).toEqual([90, 60, 70]);
   });

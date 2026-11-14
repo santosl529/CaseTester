@@ -1,0 +1,34 @@
+{
+  "answer_id": "hy2-0042-a",
+  "item_id": "hy2-0042",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Rules 1–4 met. The reason misreads the new fact: it blames the moved warehouse's crews keeping up, but the fact says the warehouse moved 40 miles farther out, so it fails (rule 5, Matt 2026-11-12); code scores the keep wrong.",
+  "responses": [
+    {
+      "type": "text",
+      "value": "With 10% more orders, the crews probably can't keep up. I'd check deliveries per crew each day against last year."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep: the moved warehouse's crews can't keep up with their orders, which confirms it."
+    }
+  ],
+  "labels": {
+    "directional": true,
+    "evidence_based": true,
+    "testable": true,
+    "tentative": true,
+    "update_reason": false
+  },
+  "red_flags": {
+    "restates_facts": false,
+    "three_plus_causes": false,
+    "off_topic": false
+  },
+  "family": "Crews overloaded by volume"
+}

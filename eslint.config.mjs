@@ -13,7 +13,20 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Local design-tool output (gitignored).
+    ".impeccable/**",
+    "mockups/**",
   ]),
+  {
+    // The UI previews (app/dev/ui-preview) show sample data only: no database,
+    // no Supabase.
+    files: ["app/dev/ui-preview/**"],
+    rules: {
+      "no-restricted-imports": ["error", { patterns: [
+        { group: ["@/db/client", "@/lib/supabase/*", "@/lib/drills/session"], message: "UI previews use sample data only." },
+      ] }],
+    },
+  },
   {
     plugins: {
       boundaries: boundariesPlugin,

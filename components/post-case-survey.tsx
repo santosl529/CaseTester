@@ -15,7 +15,7 @@ function RatingRow({ label, value, onChange }: {
 }) {
   return (
     <div className="flex items-center justify-between gap-4">
-      <span className="text-sm">{label}</span>
+      <span className="t-small">{label}</span>
       <div className="flex gap-1">
         {[1, 2, 3, 4, 5].map(n => (
           <button
@@ -24,10 +24,10 @@ function RatingRow({ label, value, onChange }: {
             aria-label={`${label}: ${n} of 5`}
             aria-pressed={value === n}
             onClick={() => onChange(n)}
-            className={`size-8 rounded-md border text-sm transition-colors ${
+            className={`t-small size-9 cursor-pointer rounded-full border tabular-nums transition-colors motion-reduce:transition-none ${
               value === n
-                ? 'border-blue-600 bg-blue-600 text-white'
-                : 'border-neutral-300 bg-white text-neutral-700 hover:bg-neutral-100'
+                ? 'border-cobalt bg-cobalt font-semibold text-white'
+                : 'border-ink/20 bg-white text-ink hover:border-ink/45'
             }`}
           >
             {n}
@@ -47,7 +47,7 @@ export function PostCaseSurvey({ sessionId }: { sessionId: string }) {
   if (state === 'done') {
     return (
       <Card>
-        <CardContent className="text-sm text-neutral-600">
+        <CardContent className="t-small text-ink/70">
           Thanks — your feedback helps us improve the interviewer.
         </CardContent>
       </Card>
@@ -71,24 +71,24 @@ export function PostCaseSurvey({ sessionId }: { sessionId: string }) {
 
   return (
     <Card>
-      <CardHeader><CardTitle className="text-base">How was this interview?</CardTitle></CardHeader>
+      <CardHeader><CardTitle>How was this interview?</CardTitle></CardHeader>
       <CardContent className="space-y-4">
         <RatingRow label="How realistic did the interviewer feel?" value={realism} onChange={setRealism} />
         <RatingRow label="How useful is this feedback?" value={usefulness} onChange={setUsefulness} />
-        <label className="flex items-start gap-2 text-sm text-neutral-700">
+        <label className="t-small flex items-start gap-2.5 text-ink/80">
           <input
             type="checkbox"
             checked={blindOptIn}
             onChange={e => setBlindOptIn(e.target.checked)}
-            className="mt-0.5"
+            className="mt-1 accent-cobalt"
           />
           I&apos;m open to comparing this feedback against another AI&apos;s feedback on the same answers (helps us measure quality).
         </label>
         <div className="flex items-center gap-3">
-          <Button size="sm" onClick={submit} disabled={realism === null || usefulness === null || state === 'submitting'}>
+          <Button size="sm" variant="outline" onClick={submit} disabled={realism === null || usefulness === null || state === 'submitting'}>
             {state === 'submitting' ? 'Submitting…' : 'Submit'}
           </Button>
-          {state === 'error' && <span className="text-sm text-red-600">Something went wrong — try again.</span>}
+          {state === 'error' && <span className="t-small text-alert">Something went wrong — try again.</span>}
         </div>
       </CardContent>
     </Card>

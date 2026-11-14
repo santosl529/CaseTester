@@ -1,0 +1,25 @@
+{
+  "answer_id": "ex4-0004-d1",
+  "item_id": "ex4-0004",
+  "drill_id": "EX-4",
+  "answer_type": "borderline",
+  "notes": "Describes revenue; says nothing about what to fix (rules 16, 17); doesn't contradict its takeaway (rule 18).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Staffing drove the fall: $11M of costs."
+    },
+    {
+      "type": "text",
+      "value": "Patient revenue still grew $5M, so the hospital is doing fine on the revenue side."
+    }
+  ],
+  "labels": {
+    "defend_implication": false,
+    "defend_objective": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

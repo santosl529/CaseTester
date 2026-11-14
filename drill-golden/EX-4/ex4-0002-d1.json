@@ -1,0 +1,25 @@
+{
+  "answer_id": "ex4-0002-d1",
+  "item_id": "ex4-0002",
+  "drill_id": "EX-4",
+  "answer_type": "short",
+  "notes": "Restates the takeaway; no decision about the budget (rules 16, 17); fits its takeaway (rule 18).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Online growth stalled: $8M a year, then $1M in 2025."
+    },
+    {
+      "type": "text",
+      "value": "It means online is maturing."
+    }
+  ],
+  "labels": {
+    "defend_implication": false,
+    "defend_objective": false,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

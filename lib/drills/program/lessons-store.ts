@@ -76,6 +76,16 @@ export async function hasSeenLesson(studentId: string, lessonId: string): Promis
   return Boolean(row);
 }
 
+// The lessons a student has read (Learn's "Read ✓", Matt 13 Nov): any view
+// not skipped. A view is recorded when the student leaves the lesson.
+export async function readLessons(studentId: string): Promise<{ skills: Set<string>; intro: boolean }> {
+  const views = await db.selectDistinct({ lessonId: lessonViews.lessonId }).from(lessonViews)
+    .where(and(eq(lessonViews.studentId, studentId), eq(lessonViews.skipped, false)));
+  const ids = views.map(v => v.lessonId);
+  const rows = ids.length ? await db.selectDistinct({ skillId: lessons.skillId }).from(lessons).where(inArray(lessons.lessonId, ids)) : [];
+  return { skills: new Set(rows.map(r => r.skillId)), intro: ids.includes(INTRO_LESSON_ID) };
+}
+
 export const LessonViewSchema = z.object({
   version: z.number().int().positive(),
   source: z.enum(['auto', 'intro', 'library', 'low_score', 'follow_up']),

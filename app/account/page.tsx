@@ -5,7 +5,8 @@ import { db } from '@/db/client';
 import { studentProfiles } from '@/db/schema';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { clubOrgId } from '@/lib/club';
-import { SiteHeader } from '@/components/site-header';
+import { AppNav } from '@/components/app-nav';
+import { AppPage } from '@/components/brand/page';
 import { ChangeClubForm, DeleteAccountForm } from '@/components/account-forms';
 
 export const metadata: Metadata = { title: 'Account', robots: { index: false } };
@@ -20,23 +21,23 @@ export default async function AccountPage() {
 
   return (
     <>
-      <SiteHeader />
-      <main className="mx-auto w-full max-w-2xl space-y-8 px-4 py-6">
-        <h1 className="text-xl font-semibold">Account</h1>
-        <section className="space-y-1 text-sm">
-          <p><span className="text-neutral-500">Email:</span> {user.email}</p>
-          <p><span className="text-neutral-500">Club:</span> {club ?? 'None on file (you’ll be asked for a code to start an interview)'}</p>
+      <AppNav />
+      <AppPage width="narrow" className="space-y-10">
+        <h1 className="t-title">Your account</h1>
+        <section className="t-body space-y-1">
+          <p><span className="text-ink/70">Email:</span> {user.email}</p>
+          <p><span className="text-ink/70">Club:</span> {club ?? 'None on file (you’ll be asked for a code to start an interview)'}</p>
         </section>
-        <section className="space-y-2">
-          <h2 className="font-medium">Change club</h2>
-          <p className="text-sm text-neutral-600">Moved to a different consulting club? Enter its access code.</p>
+        <section className="space-y-3">
+          <h2 className="t-heading font-semibold">Change club</h2>
+          <p className="t-small text-ink/70">Moved to a different consulting club? Enter its access code.</p>
           <ChangeClubForm />
         </section>
-        <section className="space-y-2 border-t pt-6">
-          <h2 className="font-medium text-red-700">Delete account</h2>
+        <section className="space-y-3 border-t border-ink/14 pt-8">
+          <h2 className="t-heading font-semibold text-alert">Delete account</h2>
           <DeleteAccountForm email={user.email ?? ''} />
         </section>
-      </main>
+      </AppPage>
     </>
   );
 }

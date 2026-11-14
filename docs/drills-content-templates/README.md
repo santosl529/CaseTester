@@ -1,6 +1,6 @@
 # Drill content templates
 
-These files collect the content for the D2 and D5 drills. Open them in Excel or Google Sheets. Each file has a header row and one row starting with `EXAMPLE-` that shows what a filled row looks like; delete it or leave it, it is ignored.
+These files collect the content for the D2 and D5 drills and the next-7 build (EX-4, EX-5, CL-4 so far). Open them in Excel or Google Sheets. Each file has a header row and one row starting with `EXAMPLE-` that shows what a filled row looks like; delete it or leave it, it is ignored.
 
 Fill in the files, keep them as CSV, and say when they're ready. They get converted into the app's item format and checked automatically.
 
@@ -13,6 +13,9 @@ Fill in the files, keep them as CSV, and say when they're ready. They get conver
 | SY-2 60-second recommendation | 30 | 30 |
 | CL-3 What do you need to know? | 40 | 30 |
 | QN-5 Market sizing | 30 | none (scored by code) |
+| EX-4 Written chart takeaway | 40, with follow-up replies | 30+, plus 30+ follow-up replies |
+| EX-5 Fix the takeaway | 40 | 30+ |
+| CL-4 Your next move | 40 | 30+ |
 
 Questions can arrive in batches. A drill can go live once it has enough reviewed questions **and** the AI's grading agrees with yours on at least 90% of every check.
 
@@ -34,6 +37,8 @@ Each drill has a questions file, a file for its list parts (one row per area, fa
 ### HY-2 Initial hypothesis
 - `hy2-questions.csv`: the opening facts (with numbers), the new fact revealed in stage 2, and a model answer for each stage.
 - `hy2-families.csv`: 3–4 likely causes ("hypothesis families"). For each, whether the new fact means the student should **keep**, **revise** or **drop** it, and why. The new fact must support at least one family and contradict at least one.
+- **Vary how the new fact is written.** Don't default to "X is unchanged, but Y" (31 of the first 40 items used it, and it leans toward Keep or Drop). Mix in other forms: a breakdown ("nine-tenths of the lost revenue comes from members of a new plan"), where the problem clusters ("late deliveries cluster at one of its four warehouses"), a split by product or group ("late orders are almost all custom sizes"), a comparison across regions or groups ("where it trained installers, sales reached 90% of plan"), or timing ("24 of the 28 added days fall in November and early December").
+- **Balance the decisions.** Write the model answer for the obvious hypothesis, and open its stage 2 with "Keep:", "Revise:" or "Drop:". Across the pool, Revise or Drop is right in 40–60% of items, and Keep, Revise and Drop are each right in at least 20%, with at least 2 of each in every tier. Revise is the fact that doesn't rule the cause out but shows the main cause is elsewhere or narrower. A content check fails the pool otherwise, or if the decision is predictable from the tier, who or what the new fact is about, whether it repeats the case's words, whether it brings a new number, contrast wording or its length.
 - `hy2-graded-answers.csv`: stage 1 (up to 50 words), the student's keep/revise/drop choice, stage 2 (up to 30 words), which family the stage 1 answer belongs to (or `other`), and your grading, including `red_flag_off_topic`.
 
 ### SY-2 60-second recommendation
@@ -51,15 +56,29 @@ Each drill has a questions file, a file for its list parts (one row per area, fa
 - `qn5-driver-cards.csv`: 6–8 cards per question. Set `role` to `driver`, `double_count` (counts something a driver already counts, like "number of dogs" next to "dog-owning households") or `not_a_driver` (doesn't belong in the estimate, like "number of pet stores"). Real drivers get a believable low–high range and its reasoning, or a looked-up source with its link (typically about ±50% around a central value). Leave distractors' range blank.
 - Every range needs a source or a written derivation, including the total's range in `qn5-questions.csv`. Don't name a source unless the figure has been looked up; then add the link. Otherwise write it as reasoning, for example "about 130M households: 330M people ÷ about 2.5 per household".
 
-### D5: Repair drills (PS-4, HY-3, SY-3)
+### D5: Repair drills (PS-4, HY-3, SY-3; EX-5 above)
 Each Repair item is a flawed answer taken from a Level 1 item, for the student to fix. The case comes from that item, so the "one case, one drill" rule doesn't apply to it.
 - `ps4-questions.csv`, `hy3-questions.csv`, `sy3-questions.csv`: `derived_from` (the PS-1, HY-1 or SY-1 item), the case as the student sees it (`prompt`, without the flawed answer), the `flawed_answer` (PS-4: one bucket per line, `Bucket: sub-point; sub-point`, within PS-3's limits; HY-3: 40 words at most; SY-3: 80 words at most), the parts that were right (`right_parts`) and a `model_repair`. The case type and industry come from the source item.
 - `ps4-flaws.csv`, `hy3-flaws.csv`, `sy3-flaws.csv`: one row per planted flaw (one, or two at tier 3): its mistake tag, the `hint` a tier 1 student sees (it follows "The flaw:", so start it lowercase, and name buckets by their title, not their number), and what a `fix` looks like.
 - `ps4-graded-answers.csv`, `hy3-graded-answers.csv`, `sy3-graded-answers.csv`: the student's edited answer and your grading. `flaws_fixed` lists the flaw numbers the edit fixes, separated by `;`.
 
-### D5: Defend follow-ups (PS-3, HY-2, SY-2, CL-3)
+### D5: Defend follow-ups (PS-3, HY-2, SY-2, CL-3; EX-4 above)
 - `defend.csv`: one row per question that gets a follow-up. PS-3, HY-2 and CL-3 use their drill's standard question, so only `model_reply` is filled in (40 words at most). SY-2 needs the interviewer's challenge (`text`), whether it is right (`valid`: `Y` means Update is the right call, `N` means Hold), why (`reason`), and the model reply. Open each challenge with who raises it: "Our CFO says…" for the client's own people, "A lumber analyst says…" for outsiders. Aim for half valid and half not, and don't let either kind give itself away: both insiders and outsiders raise valid and invalid challenges, valid ones can point out a flaw in the reasoning, and invalid ones can bring a true fact that doesn't change the decision. A content check fails the pool if valid is predictable from who raises the challenge or from whether it brings a new number. Every fact a challenge's reason or model reply relies on must be on the fact sheet, in the challenge, or worked out from them. Adding a follow-up to a reviewed question makes a new draft version of it.
 - `defend-graded-answers.csv`: a main answer (PS-3 as a framework; HY-2 as stage 1 plus `main_decision` and `main_stage2`), the student's `decision` (SY-2: `hold` or `update`), their `reply`, and Y/N in the columns for that drill's follow-up checks: `defend_answers`, `defend_evidence` and `defend_consistent` (PS-3, CL-3); `defend_data_request`, `defend_drop_result` and `defend_consistent` (HY-2); `defend_evidence` and `defend_consistent` (SY-2).
+
+### EX-4 Written chart takeaway
+- `ex4-questions.csv`: the `context` (the client and the question the chart bears on, 1–2 sentences), the chart, the `key_insight` (the takeaway that matters, as the check will read it: "labor rose 7 points of revenue, most of the 9-point margin fall"), `chart_figures` (figures read or worked out from the chart that an answer might state, with their working, separated by `;`) and a `model_answer` (40 words at most). Each item needs a new chart: not an EX-1 chart, and not another EX-4 item's.
+- The chart's columns: `chart_type` (`bar`, `grouped_bar`, `stacked_bar`, `line`, `waterfall` or `table`; EX-4 doesn't use `dual_axis`), `chart_title`, `units_label`, `categories` (separated by `|`), `series` (one per line, `Name: 1 | 2 | 3`), `value_prefix` / `value_suffix` / `decimals` for how values are shown, `y_axis_label`, `totals` (waterfall: the categories drawn from zero) and `footnotes` (one per line). A table puts its column headers in `categories` and one row per line in `series`.
+- `ex4-graded-answers.csv`: a student takeaway (40 words at most) and your grading: `key_insight`, `cites_number`, `tied_to_question`, `red_flag_contradicts_chart`.
+- The follow-up ("What does this mean for the client's decision?") goes in `defend.csv` (only `model_reply`) and its graded replies in `defend-graded-answers.csv`, with `defend_implication`, `defend_objective` and `defend_consistent`.
+
+### EX-5 Fix the takeaway
+A Repair drill, as below: `ex5-questions.csv` (`derived_from` an EX-1 item, whose chart the student sees), `ex5-flaws.csv` (`M.trivial_takeaway`, `M.misread_trend` or `M.unsupported_claim`; two at tier 3) and `ex5-graded-answers.csv`. The flawed answer is usually that EX-1 item's wrong option, lightly reworded into a sentence a candidate would say (40 words at most).
+
+### CL-4 Your next move
+- `cl4-questions.csv`: the `situation` (where the case stands, ending with the latest finding), the `new_fact` revealed in stage 2, and a model answer for each stage. Stage 2's model answer starts with `Keep:` or `Change:`. Each item is a new case, not a CL-1 scenario.
+- `cl4-families.csv`: 3–4 kinds of next step ("step families"). For each, whether the new fact means the student should **keep** or **change** it, and why. The new fact must support at least one family and undercut at least one. Call each family by one rule (Matt, 2026-11-12): **keep** when the fact leaves the step on the same driver, so the student stays on it and goes one level deeper (a fact that answers the step by confirming its driver is a keep); **change** when the fact rules the driver out or points to a different one. One call per family, and a model answer's stage 2 describes a step that fits its call: a Keep goes deeper on the same driver, a Change names a step on another.
+- `cl4-graded-answers.csv`: stage 1 (up to 40 words), the student's keep/change choice, stage 2 (up to 30 words), which family stage 1 belongs to (or `other`), and your grading: `one_step`, `logical`, `reason_latest_finding`, `adapt_reason`, `red_flag_final_recommendation`.
 
 ### Irrelevant facts (SY-1, SY-2, SY-3)
 The padding in a fact sheet should tempt, not announce itself.

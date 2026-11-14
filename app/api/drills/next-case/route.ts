@@ -11,7 +11,7 @@ export async function GET(req: Request) {
     const studentId = await requireStudent({ profile: false });
     await logDrillEvent(studentId, 'next_case_card_clicked', { recommended_case_id: caseId });
   } catch {
-    // Not signed in: just go to the case page.
+    // Not signed in: just go to the cases list (sign-in comes first).
   }
   const to = caseId && isStartableCase(caseId) ? `/start/${encodeURIComponent(caseId)}` : '/home#cases';
   return NextResponse.redirect(new URL(to, req.url));

@@ -376,7 +376,12 @@ export function nextSetFor(p: SkillProgress, tiers: Record<string, number>, ctx:
   }
   if ((p.state === 'mastered' || p.state === 'validated') && p.next_review_at && p.next_review_at.getTime() <= now) {
     const drill = d.construct ?? d.recognize!;
-    return { drill_id: drill, stage: d.construct ? 'construct' : 'recognize', tier: tierOf(drill), kind: 'review', test_out: false };
+    // A review on a Construct drill the student has never done (one that went
+    // live after the skill was mastered, as EX-4 and CL-4 did) runs at the
+    // transfer check's tier, not tier 1, so it tests the skill (Matt,
+    // 2026-11-10, D3).
+    const tier = d.construct && tiers[drill] === undefined ? Math.max(rules.tiers.start, rules.transfer.tier) : tierOf(drill);
+    return { drill_id: drill, stage: d.construct ? 'construct' : 'recognize', tier, kind: 'review', test_out: false };
   }
   if (p.stage === null && (p.state === 'not_started' || p.state === 'learning')) {
     // The test-out: Construct at tier 2 (or the student's tier on that drill,

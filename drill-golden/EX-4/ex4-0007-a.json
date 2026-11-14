@@ -1,0 +1,22 @@
+{
+  "answer_id": "ex4-0007-a",
+  "item_id": "ex4-0007",
+  "drill_id": "EX-4",
+  "answer_type": "normal",
+  "notes": "Calls noon the worst, but 7pm is 38 minutes: the wrong largest item (rule 4); 31 is on the chart (rule 2); answers lunch or dinner (rule 3).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Noon is the biggest problem at 31 minutes, so drivers should go to lunch first."
+    }
+  ],
+  "labels": {
+    "key_insight": false,
+    "cites_number": true,
+    "tied_to_question": true
+  },
+  "red_flags": {
+    "contradicts_chart": true
+  },
+  "family": null
+}

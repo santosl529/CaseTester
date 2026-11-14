@@ -24,11 +24,14 @@ export const STATE_LABEL: Record<SkillStateName, string> = {
   not_started: 'Not started', learning: 'Learning', recognizes: 'Recognizes', practiced: 'Practiced', mastered: 'Mastered', validated: 'Validated',
 };
 // Stage names students see (the drill chain: spot it, fix it, build it).
-export const STAGE_LABEL: Record<string, string> = { recognize: 'Recognize', repair: 'Repair', construct: 'Construct' };
-// The state scale (Matt, 2026-10-18): light grey for Not started, darker at
-// each step, the same in the skill map and the weekly chart.
+// The drill kinds in plain words (Matt, 13 Nov), as on the cards and intro screens.
+export const STAGE_LABEL: Record<string, string> = { recognize: '“Spot it”', repair: '“Fix it”', construct: '“Build it”' };
+// The state scale (Matt, 2026-10-18), on CasePace's palette (7 Nov): a warm
+// grey for Not started, Sky, Cobalt at 35%, Cobalt, then Mastery green for
+// Mastered. Validated is the step that makes a skill Mastered, so it shares
+// the green: green means done. The same in the skill map and the weekly chart.
 export const STATE_COLOR: Record<SkillStateName, string> = {
-  not_started: '#e5e7eb', learning: '#bfdbfe', recognizes: '#93c5fd', practiced: '#2563eb', mastered: '#1e40af', validated: '#172554',
+  not_started: '#E3E2DC', learning: '#DCE5FF', recognizes: '#B5C0F1', practiced: '#2D4BD8', mastered: '#1F9D63', validated: '#1F9D63',
 };
 
 type Spec = ChartSpec;
@@ -141,9 +144,9 @@ export interface ScorePoint { setId: string; at: Date; score: number; tier: numb
 // lib/drills/progress/engine.ts applySet), or null if it counts.
 function notCounted(s: DashSet, skillId: string): string | null {
   if (s.isTransferCheck || s.source === 'review') return null;
-  if (stageOfDrill(s.drillId, skillId) === 'repair') return 'Repair sets move you on to Construct; they don\'t change the state.';
+  if (stageOfDrill(s.drillId, skillId) === 'repair') return '“Fix it” sets move you on to “Build it”; they don\'t change the state.';
   const min = DRILLS_CONFIG.rules.mastery.min_counting_tier;
-  if (s.tier < min) return `Tier ${s.tier} sets don't count; tier ${min} and up do.`;
+  if (s.tier < min) return `Level ${s.tier} sets don't count; Level ${min} and up do.`;
   return null;
 }
 
@@ -192,7 +195,7 @@ export function scoreChart(skillName: string, points: ScorePoint[], dateLabel: (
     const labels: string[] = [];
     const order = ['recognize', 'repair', 'construct'];
     if (p.stage !== before.stage && p.stage) labels.push(`${order.indexOf(p.stage) > order.indexOf(before.stage ?? '') ? '▲' : '▼'} ${STAGE_LABEL[p.stage] ?? p.stage} drills`);
-    if (p.tier !== before.tier) labels.push(`${p.tier > before.tier ? '▲ Up' : '▼ Down'} to tier ${p.tier}`);
+    if (p.tier !== before.tier) labels.push(`${p.tier > before.tier ? '▲ Up' : '▼ Down'} to Level ${p.tier}`);
     return labels.length ? [{ index: i, label: labels.join(', ') }] : [];
   });
   return chart({
@@ -242,6 +245,25 @@ export function firstCompletions(cases: DashCase[]): DashCase[] {
   return [...cases].sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime()).filter(c => !seen.has(c.caseId) && (seen.add(c.caseId), true));
 }
 
+// What each state means, from the rules in engine.ts and case.ts (Matt, 13
+// Nov: a line on hover or tap on the legend and a skill's ladder). "Passing"
+// is rules.mastery: 80% or more on a set at Level 2 or above.
+export const STATE_DESCRIPTION: Record<SkillStateName, string> = {
+  not_started: 'No sets on this skill yet.',
+  learning: 'Practicing, not yet 2 passing sets in a row (80% or more, at Level 2 or above).',
+  recognizes: 'Passed 2 “Spot it” sets in a row: you can spot it. Next, fixing and building answers.',
+  practiced: 'Passed 2 “Build it” sets in a row: you can do it yourself.',
+  mastered: 'Passed a transfer check: it held up on kinds of cases you hadn’t practiced it on.',
+  validated: 'Mastered, then used in a full case with no mistakes on it.',
+};
+
+// "Medium or Hard" for tier 2 (DIFFICULTY_TIER: easy 1, medium 2, hard 3).
+const DIFFICULTY_NAMES = ['Easy', 'Medium', 'Hard'] as const;
+export function difficultyFrom(tier: number): string {
+  const names = DIFFICULTY_NAMES.slice(Math.max(0, tier - 1));
+  return names.length === 1 ? names[0] : `${names.slice(0, -1).join(', ')} or ${names.at(-1)}`;
+}
+
 export function readiness(progress: Map<string, SkillProgress>, live: string[], cases: DashCase[], caseDataAvailable: boolean): Readiness {
   const r = cfg().readiness;
   const state = (id: string) => progress.get(id)?.state ?? 'not_started';
@@ -254,15 +276,17 @@ export function readiness(progress: Map<string, SkillProgress>, live: string[], 
   const metBar = eligible.filter(c => metTheBar(c.ratings)).length;
   const casesMet = eligible.length === r.cases_needed && metBar === r.cases_needed;
   const lines: ReadinessLine[] = [
+    // Plain English (Matt, 13 Nov), same rules: a case's tier is its difficulty
+    // (next-case.ts DIFFICULTY_TIER), and only each case's first completion counts (firstCompletions).
     { key: 'milestones', met: mDone === milestones.length, detail: `${mDone} of ${milestones.length}`,
-      text: `All ${milestones.length} milestone skills from the six-week plan at ${STATE_LABEL[r.milestone_min_state]} or above` },
+      text: `All ${milestones.length} key skills in your plan at ${STATE_LABEL[r.milestone_min_state]} or above` },
     { key: 'others', met: oDone === others.length, detail: `${oDone} of ${others.length}`,
       text: `Every other skill at ${STATE_LABEL[r.other_min_state]} or above` },
     { key: 'cases', met: casesMet,
       detail: !caseDataAvailable ? 'Case results reach your training once full cases send them.'
-        : eligible.length === 0 ? `No tier ${r.case_min_tier}+ cases yet.`
+        : eligible.length === 0 ? `No ${difficultyFrom(r.case_min_tier)} cases yet.`
         : `${metBar} of your last ${eligible.length === r.cases_needed ? r.cases_needed : eligible.length} met the bar.`,
-      text: `Your last ${r.cases_needed} different full cases at tier ${r.case_min_tier} or higher meet the bar (no area at "needs work", at least half "strong"; retakes don't count)` },
+      text: `On your last ${r.cases_needed} different full cases at ${difficultyFrom(r.case_min_tier)}, score at least “adequate” in every area and “strong” in at least half. Only your first attempt at each case counts` },
   ];
   const met = lines.filter(l => l.met).length;
   const status = [...r.statuses].sort((a, b) => b.min_met - a.min_met).find(s => met >= s.min_met)!.label;
@@ -376,7 +400,7 @@ export function rubricByTier(cases: DashCase[], dimLabel: (key: string) => strin
       return `${text} ${RATING_RANK[c.ratings[d]] > RATING_RANK[prev] ? '↑' : '↓'}`;
     };
     return chart({
-      type: 'table', title: `Case ratings, tier ${tier} cases`, show_values: false,
+      type: 'table', title: `Case ratings, ${DIFFICULTY_NAMES[tier - 1] ?? `tier ${tier}`} cases`, show_values: false,
       table: { columns: ['Area', ...shown.map(c => dateLabel(c.completedAt))], rows: dims.map(d => [dimLabel(d), ...shown.map((c, i) => cell(c, i, d))]) },
       footnotes: ['↑ better than the case before, ↓ worse.'],
     });
@@ -385,3 +409,17 @@ export function rubricByTier(cases: DashCase[], dimLabel: (key: string) => strin
 
 export const skillName = (id: string) => getSkill(id).name;
 export const tagSkill = (tag: string) => getMistakeTag(tag)?.skill ?? null;
+
+// ------------------------------------------------------------- sparse trends
+
+// Your progress hides a trend with fewer than two weeks of data (Matt, 13
+// Nov: "Appears after 2 weeks of practice"). The states chart counts a week
+// once any skill has left Not started; the others count the weeks that aren't
+// gaps (a week with no answers).
+export const TREND_MIN_WEEKS = 2;
+export function trendWeeks(spec: ChartSpec, kind: 'states' | 'gapped'): number {
+  const weeks = spec.categories.map((_, i) => i);
+  if (kind === 'gapped') return weeks.filter(i => !spec.gaps.includes(i)).length;
+  return weeks.filter(i => spec.series.some(s => s.name !== STATE_LABEL.not_started && (s.values[i] ?? 0) > 0)).length;
+}
+export const enoughTrend = (spec: ChartSpec, kind: 'states' | 'gapped') => trendWeeks(spec, kind) >= TREND_MIN_WEEKS;

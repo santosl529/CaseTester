@@ -3,7 +3,7 @@
   "item_id": "hy2-0020",
   "drill_id": "HY-2",
   "answer_type": "normal",
-  "notes": "The reason uses the new fact and draws a conclusion from it, a wrong one: the reason check passes (rule 5) and the decision check catches keep as the wrong update, so the mistake is counted once.",
+  "notes": "Rules 1–4 met. The reason misreads the new fact: reports doubled because of the app, while crews fix as many potholes, so 'more potholes' isn't what the fact says (rule 5, Matt 2026-11-12); code scores the keep wrong too.",
   "responses": [
     {
       "type": "text",
@@ -23,7 +23,7 @@
     "evidence_based": true,
     "testable": true,
     "tentative": true,
-    "update_reason": true
+    "update_reason": false
   },
   "red_flags": {
     "restates_facts": false,

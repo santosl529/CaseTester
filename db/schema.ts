@@ -381,7 +381,7 @@ export const gradingJobs = pgTable('grading_jobs', {
 // Cost controls (PRD "Cost controls"): the requests each grading call of an
 // answer has made, across retries, quote re-asks and every run of the job,
 // so no call passes rules.grading_limits.requests_per_call. A request is
-// reserved here before it is sent. call: 'main', 'family', 'followup' or
+// reserved here before it is sent. call: 'main', 'stage1' (CL-4), 'family', 'followup' or
 // 'followup_data'. Server-only.
 export const drillGradingCalls = pgTable('drill_grading_calls', {
   attemptId: uuid('attempt_id').notNull().references(() => drillAttempts.id, { onDelete: 'cascade' }),

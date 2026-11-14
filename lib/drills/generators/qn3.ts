@@ -62,20 +62,21 @@ const SHARE_START: Record<Tier, readonly number[]> = {
   2: [12, 15, 16, 24, 30, 32, 36, 45],
   3: [12.5, 17.5, 22.5, 27.5, 32.5, 8.5, 14.5],
 };
-const SHARE_GROWTH: Record<Tier, readonly number[]> = {
-  1: [10, 20, 50],
-  2: [25, 50, 75],
-  3: [20, 40, 60, 80],
+// Version 2 (Matt, 2026-11-11): more growth rates, so the percent answer
+// isn't one of three.
+const SHARE_GROWTH: Record<1 | 2, Record<Tier, readonly number[]>> = {
+  1: { 1: [10, 20, 50], 2: [25, 50, 75], 3: [20, 40, 60, 80] },
+  2: { 1: [10, 20, 25, 40, 50, 60, 75, 100], 2: [20, 25, 30, 40, 50, 60, 75, 80], 3: [15, 20, 35, 40, 45, 60, 70, 80] },
 };
 
-export const percentagePoints: Generator = {
-  template_id: 'percentage_points', template_version: 1, drill_id: 'QN-3',
+const percentagePointsAt = (version: 1 | 2): Generator => ({
+  template_id: 'percentage_points', template_version: version, ...(version === 1 && { retired: true }), drill_id: 'QN-3',
   skills: ['QN.percentages'], focus_tags: ['M.percent_vs_points', 'M.arithmetic_error'],
   generate(seed, tier) {
     const rng = createRng(seed);
     return redraw('percentage_points', () => {
       const start = rng.pick(SHARE_START[tier]);
-      const growth = rng.pick(SHARE_GROWTH[tier]);
+      const growth = rng.pick(SHARE_GROWTH[version][tier]);
       const end = Number((start * (1 + growth / 100)).toFixed(4));
       const points = Number((end - start).toFixed(4));
       if (end >= 100 || (tier < 3 && !Number.isInteger(end))) return null;
@@ -90,7 +91,7 @@ export const percentagePoints: Generator = {
       if (tier === 1 && !calculatorFree({ start, end }, answer)) return null;
       if (keyAmbiguities(numeric).length) return null;
       return generatedItem({
-        templateId: 'percentage_points', templateVersion: 1, drillId: 'QN-3', level: 2, tier, seed,
+        templateId: 'percentage_points', templateVersion: version, drillId: 'QN-3', level: 2, tier, seed,
         skills: ['QN.percentages'],
         prompt: `The client's market share rose from ${pct(start)} to ${pct(end)}. ` +
           (askPoints ? 'By how many percentage points did it rise?' : 'By what percent did it rise?'),
@@ -107,7 +108,9 @@ export const percentagePoints: Generator = {
     const { start, end } = generatorInputs(item);
     return item.extras.asks === 'points' ? end - start : ((end - start) / start) * 100;
   },
-};
+});
+export const percentagePointsV1 = percentagePointsAt(1);
+export const percentagePoints = percentagePointsAt(2);
 
 const pointsText = (n: number) => `${fmt(n)} percentage ${n === 1 ? 'point' : 'points'}`;
 
@@ -206,18 +209,28 @@ const DENOMINATORS: Record<Tier, readonly number[]> = {
   3: [3, 6, 7, 9, 12, 16],
 };
 
-export const fractionToPercent: Generator = {
-  template_id: 'fraction_to_percent', template_version: 1, drill_id: 'QN-3',
+// Version 2 (Matt, 2026-11-11): every fraction in lowest terms is equally
+// likely (version 1 picked the denominator first, so 1/2 came up in a third
+// of T1 items), and T1 adds twentieths.
+const DENOMINATORS_V2: Record<Tier, readonly number[]> = { ...DENOMINATORS, 1: [2, 4, 5, 10, 20] };
+const fractions = (dens: readonly number[]) => dens.flatMap(den => Array.from({ length: den - 1 }, (_, k) => [k + 1, den] as const).filter(([n]) => gcd(n, den) === 1));
+
+const fractionToPercentAt = (version: 1 | 2): Generator => ({
+  template_id: 'fraction_to_percent', template_version: version, ...(version === 1 && { retired: true }), drill_id: 'QN-3',
   skills: ['QN.percentages'], focus_tags: ['M.zeros_error', 'M.arithmetic_error'],
   generate(seed, tier) {
     const rng = createRng(seed);
     return redraw('fraction_to_percent', () => {
-      const den = rng.pick(DENOMINATORS[tier]);
-      const num = rng.int(1, den - 1);
-      if (gcd(num, den) !== 1) return null;
-      const answer = (num / den) * 100;
+      let num: number, den: number;
+      if (version === 1) {
+        den = rng.pick(DENOMINATORS[tier]);
+        num = rng.int(1, den - 1);
+        if (gcd(num, den) !== 1) return null;
+      } else [num, den] = rng.pick(fractions(DENOMINATORS_V2[tier]));
+      // Version 2 trims float noise (11/20 → 55, not 55.00000000000001).
+      const answer = version === 1 ? (num / den) * 100 : Number(((num / den) * 100).toPrecision(12));
       return generatedItem({
-        templateId: 'fraction_to_percent', templateVersion: 1, drillId: 'QN-3', level: 2, tier, seed,
+        templateId: 'fraction_to_percent', templateVersion: version, drillId: 'QN-3', level: 2, tier, seed,
         skills: ['QN.percentages'],
         prompt: rng.pick([
           `What is ${num}/${den} as a percent?`,
@@ -233,10 +246,12 @@ export const fractionToPercent: Generator = {
     const { num, den } = generatorInputs(item);
     return (num / den) * 100;
   },
-};
+});
+export const fractionToPercentV1 = fractionToPercentAt(1);
+export const fractionToPercent = fractionToPercentAt(2);
 
 function gcd(a: number, b: number): number {
   return b === 0 ? a : gcd(b, a % b);
 }
 
-export const QN3_GENERATORS: Generator[] = [percentOf, percentagePoints, compoundGrowth, zerosMath, fractionToPercent];
+export const QN3_GENERATORS: Generator[] = [percentOf, percentagePointsV1, percentagePoints, compoundGrowth, zerosMath, fractionToPercentV1, fractionToPercent];

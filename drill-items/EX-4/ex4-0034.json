@@ -1,0 +1,182 @@
+{
+  "item_id": "ex4-0034",
+  "version": 1,
+  "drill_id": "EX-4",
+  "status": "live",
+  "level": 2,
+  "tier": 3,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "operations",
+  "industry": "Consumer / CPG",
+  "prompt": "A commercial bakery makes 30,000 loaves a day and wants to make more. It can expand one step of its line this year.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "exhibit": {
+    "type": "table",
+    "title": "Bakery line capacity",
+    "categories": [],
+    "series": [],
+    "y_axis": {
+      "format": {
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0
+      }
+    },
+    "totals": [],
+    "show_values": true,
+    "table": {
+      "columns": [
+        "Step",
+        "Loaves per hour",
+        "Hours run per day"
+      ],
+      "rows": [
+        [
+          "Mixing",
+          "3,000",
+          "20"
+        ],
+        [
+          "Proofing",
+          "2,000",
+          "20"
+        ],
+        [
+          "Baking",
+          "1,500",
+          "20"
+        ],
+        [
+          "Packing",
+          "2,500",
+          "16"
+        ]
+      ]
+    },
+    "footnotes": [],
+    "reference_lines": [],
+    "markers": [],
+    "gaps": [],
+    "hollow": [],
+    "notes": []
+  },
+  "input": {
+    "type": "free_text",
+    "max_words": 40
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "key_insight",
+      "question": "Does the answer state, in any wording, the key insight: baking is the bottleneck: 1,500 loaves an hour for 20 hours caps output at 30,000 a day, while proofing and packing allow 40,000?",
+      "weight": 0.5,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "The takeaway that matters: baking is the bottleneck: 1,500 loaves an hour for 20 hours caps output at 30,000 a day, while proofing and packing allow 40,000.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_number",
+      "question": "Does the answer state a specific figure that the chart shows or that follows from it?",
+      "weight": 0.25,
+      "fail_tag": "M.unsupported_claim",
+      "feedback": "Back the takeaway with a number from the chart.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "tied_to_question",
+      "question": "Does the answer tie its insight to the client's question, by saying what it means for that question or by itself answering it? A wrong answer still counts as tied.",
+      "weight": 0.25,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "Say what the takeaway means for the client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "contradicts_chart",
+      "definition": "The answer states, or directly implies as its answer to the client's question, something the chart shows to be false.",
+      "cap": 0.3,
+      "tag": "M.misread_trend",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "Baking is the bottleneck: 1,500 loaves an hour for 20 hours caps output at 30,000 a day, while proofing and packing allow 40,000, so expanding baking could add 10,000 loaves.",
+  "defend": {
+    "type": "justify",
+    "text": "What does this mean for the client's decision?",
+    "checks": [
+      {
+        "check_id": "defend_implication",
+        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes? A short action that names what to act on counts; a generic one (\"Review them.\") or a restated takeaway doesn't.",
+        "weight": 0.4,
+        "fail_tag": "M.no_implication",
+        "feedback": "Say what the takeaway means for the client's decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_objective",
+        "question": "Does the implication serve the client's objective as the question states it? Judge the goal, not whether the action is right; the reply needn't name the goal.",
+        "weight": 0.35,
+        "fail_tag": "M.implication_off_objective",
+        "feedback": "Tie the implication to what the client is trying to achieve.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own takeaway? A side topic is consistent; a reply that contradicts the takeaway, rests on a different reading of the chart without saying why, or gives a different answer to the client's question than the takeaway is not.",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own takeaway.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "The bakery should add oven capacity first, since that alone could lift output by a third, to 40,000 loaves, before proofing and packing become the limit."
+  },
+  "explanation": "The takeaway that matters: baking is the bottleneck: 1,500 loaves an hour for 20 hours caps output at 30,000 a day, while proofing and packing allow 40,000. Figures: Mixing 60,000 a day; Proofing 40,000; Baking 30,000; Packing 40,000 (2,500 × 16); expanding baking adds up to 10,000 a day.",
+  "extras": {
+    "key_insight": "baking is the bottleneck: 1,500 loaves an hour for 20 hours caps output at 30,000 a day, while proofing and packing allow 40,000",
+    "chart_figures": [
+      "Mixing 60,000 a day",
+      "Proofing 40,000",
+      "Baking 30,000",
+      "Packing 40,000 (2,500 × 16)",
+      "expanding baking adds up to 10,000 a day"
+    ],
+    "grading_rules": [
+      "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",
+      "Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure (\"most\", \"a big drop\") fail, and so does a wrong figure.",
+      "Client's question: the answer says what the insight means for the question the client asked (\"so $12 is the price that maximizes revenue\", \"so labor, not rent, explains the margin fall\"). Describing the chart with no link to the question fails. When the takeaway itself answers the client's question (the price, the zone, where), it's tied to the question without a 'so…' clause. A wrong answer to the question is still tied to it; whether it's right is judged by the key-insight check and the contradiction flag.",
+      "Contradicts the chart (red flag): a contradiction is a fact the answer states, or directly implies as its answer to the client's question, that the chart shows is false, such as naming the wrong largest item or the wrong driver. A takeaway that's merely less important, or a weak recommendation, is not a contradiction. When the client's question asks for a fact (what drove it, which is largest), a wrong answer is a contradiction; when it asks for a decision (which to drop, whether to spend), a wrong recommendation isn't. A figure off by more than the margins above is false; a claim the chart doesn't address is not a contradiction.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": null,
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-11-13",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-11-13",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

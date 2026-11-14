@@ -12,6 +12,7 @@ import type { Item } from '../item-schema';
 import type { CheckResults } from '../grading/apply';
 import { qn5DriverSet } from './qn5';
 import { defendParts } from '../defend';
+import { TWO_STAGE_DRILLS } from '../checklists';
 import { answerText, itemSteps, tagFeedback, tagLabel, type ItemResult, type StepResult } from './scoring';
 
 const fmt = (n: number) => n.toLocaleString('en-US', { maximumFractionDigits: 2 });
@@ -95,8 +96,8 @@ export function stepFeedback(item: Item, i: number, step: StepResult | null, pre
   const base = { type, correct: right, correct_option_id: null as string | null };
 
   if (step?.pending) {
-    // HY-2: stage 1 is in; show the new fact for stage 2.
-    const reveal = item.drill_id === 'HY-2' && i === 0 ? String(item.extras.new_fact) : undefined;
+    // HY-2, CL-4: stage 1 is in; show the new fact for stage 2.
+    const reveal = TWO_STAGE_DRILLS.includes(item.drill_id) && i === 0 ? String(item.extras.new_fact) : undefined;
     // The main answer is in: show the interviewer's follow-up.
     const d = defendParts(item);
     const followup = d && i === d.start - 1 && item.defend ? { type: item.defend.type, text: item.defend.text } : undefined;

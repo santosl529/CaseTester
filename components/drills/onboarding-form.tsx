@@ -38,32 +38,32 @@ export function OnboardingForm({ availability, today }: { availability: Availabi
     router.push('/drills');
   }
 
-  const radio = 'flex items-start gap-3 rounded-lg border p-3 text-sm has-[:checked]:border-foreground';
+  const radio = 'flex cursor-pointer items-start gap-3 rounded-window border border-ink/15 bg-white p-4 t-small transition-colors hover:border-ink/35 has-[:checked]:border-cobalt has-[:checked]:bg-sky/40 motion-reduce:transition-none [&_input]:accent-cobalt';
   return (
     <form onSubmit={submit} className="space-y-6">
       <fieldset className="space-y-2">
-        <legend className="mb-2 font-medium">How do you want to practice?</legend>
+        <legend className="t-small mb-2 font-semibold">How do you want to practice?</legend>
         <label className={radio}>
           <input type="radio" name="mode" checked={wantsPlan} onChange={() => setWantsPlan(true)} className="mt-1" />
-          <span><span className="font-medium">Follow a plan</span><br /><span className="text-muted-foreground">A week-by-week program with a daily workout, built around your weak spots.</span></span>
+          <span><span className="font-semibold">Follow a plan</span><br /><span className="text-ink/70">A week-by-week program with a daily workout, built around your weak spots.</span></span>
         </label>
         <label className={radio}>
           <input type="radio" name="mode" checked={!wantsPlan} onChange={() => setWantsPlan(false)} className="mt-1" />
-          <span><span className="font-medium">Practice on my own</span><br /><span className="text-muted-foreground">Pick drills and cases yourself. We still track your weaknesses and suggest what to do next.</span></span>
+          <span><span className="font-semibold">Practice on my own</span><br /><span className="text-ink/70">Pick drills and cases yourself. We still track your weaknesses and suggest what to do next.</span></span>
         </label>
       </fieldset>
 
       <div className="space-y-2">
-        <label htmlFor="interview" className="block font-medium">When is your interview? <span className="font-normal text-muted-foreground">(optional)</span></label>
+        <label htmlFor="interview" className="t-small block font-semibold">When is your interview? <span className="font-normal text-ink/70">(optional)</span></label>
         <input id="interview" type="date" min={today} value={interviewDate} onChange={e => setInterviewDate(e.target.value)}
-          className="w-full rounded-md border bg-background px-3 py-2 text-sm sm:w-auto" />
+          className="h-10 w-full rounded-field border border-ink/20 bg-white px-3 t-small text-ink transition-colors hover:border-ink/35 focus-visible:border-cobalt motion-reduce:transition-none sm:w-auto" />
       </div>
 
       <fieldset className="space-y-2">
-        <legend className="mb-2 font-medium">How many practice cases have you done?</legend>
+        <legend className="t-small mb-2 font-semibold">How many practice cases have you done?</legend>
         <div className="flex flex-wrap gap-2">
           {(['0', '1-5', '6+'] as const).map(v => (
-            <label key={v} className="flex items-center gap-2 rounded-lg border px-4 py-2 text-sm has-[:checked]:border-foreground">
+            <label key={v} className="flex cursor-pointer items-center gap-2 rounded-full border border-ink/20 bg-white px-4 py-2 t-small transition-colors hover:border-ink/40 has-[:checked]:border-cobalt has-[:checked]:bg-sky/40 motion-reduce:transition-none [&_input]:accent-cobalt">
               <input type="radio" name="cases" checked={casesDone === v} onChange={() => setCasesDone(v)} />
               {v === '1-5' ? '1–5' : v}
             </label>
@@ -73,17 +73,17 @@ export function OnboardingForm({ availability, today }: { availability: Availabi
 
       {wantsPlan && (
         <fieldset className="space-y-2">
-          <legend className="mb-2 font-medium">How much time do you have each week?</legend>
+          <legend className="t-small mb-2 font-semibold">How much time do you have each week?</legend>
           {availability.map(a => (
             <label key={a.id} className={radio}>
               <input type="radio" name="hours" checked={hours === a.id} onChange={() => setHours(a.id)} className="mt-1" />
-              <span>{a.label} <span className="text-muted-foreground">({a.workouts_per_week} workouts a week, plus cases)</span></span>
+              <span>{a.label} <span className="text-ink/70">({a.workouts_per_week} workouts a week, plus cases)</span></span>
             </label>
           ))}
         </fieldset>
       )}
 
-      {error && <p role="alert" className="text-sm text-destructive">{error}</p>}
+      {error && <p role="alert" className="t-small text-alert">{error}</p>}
       <Button type="submit" size="lg" disabled={busy}>{wantsPlan ? 'Next: get your plan' : 'Next: find your starting point'}</Button>
     </form>
   );

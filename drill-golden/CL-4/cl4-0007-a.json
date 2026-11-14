@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0007-a",
+  "item_id": "cl4-0007",
+  "drill_id": "CL-4",
+  "answer_type": "short",
+  "notes": "A bare label: no analysis named (rule 1) or judged (rule 2), no reason (rules 3, 4); the label still names the family (rule 5).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Shelf placement."
+    },
+    {
+      "type": "choice",
+      "option_id": "keep"
+    },
+    {
+      "type": "text",
+      "value": "Keep."
+    }
+  ],
+  "labels": {
+    "one_step": false,
+    "logical": false,
+    "reason_latest_finding": false,
+    "adapt_reason": false
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Where stores shelve it"
+}

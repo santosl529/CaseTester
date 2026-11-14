@@ -1,0 +1,33 @@
+{
+  "answer_id": "hy2-0043-d1",
+  "item_id": "hy2-0043",
+  "drill_id": "HY-2",
+  "answer_type": "normal",
+  "notes": "Metric plus a cut and a period; a result that would reject the revised cause (rules 7–9).",
+  "part": "defend",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Sales likely lagged the market because younger homeowners, who drive its growth, buy plants online instead. I'd compare the chain's sales growth by customer age with the market's."
+    },
+    {
+      "type": "choice",
+      "option_id": "revise"
+    },
+    {
+      "type": "text",
+      "value": "Revise: the market's growth is houseplants, up 30%, which the centers barely stock; outdoor sales kept pace, so the gap is the range."
+    },
+    {
+      "type": "text",
+      "value": "Houseplant sales by store against how much shelf space each gives them, this year against last. If stores with bigger houseplant sections grew no faster, I'd drop it."
+    }
+  ],
+  "labels": {
+    "defend_data_request": true,
+    "defend_drop_result": true,
+    "defend_consistent": true
+  },
+  "red_flags": {},
+  "family": null
+}

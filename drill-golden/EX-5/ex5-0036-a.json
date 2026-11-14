@@ -1,0 +1,21 @@
+{
+  "answer_id": "ex5-0036-a",
+  "item_id": "ex5-0036",
+  "drill_id": "EX-5",
+  "answer_type": "normal",
+  "notes": "The revenue misread is fixed (rule 19); the bargain-hunter claim stays (rule 2); still weighs members against spend (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Revenue fell about 10%, from $50M to $45M, because new members are bargain hunters who spend less."
+    }
+  ],
+  "labels": {
+    "fix_1": true,
+    "fix_2": false,
+    "no_new_flaw": true,
+    "keeps_right": true
+  },
+  "red_flags": {},
+  "family": null
+}

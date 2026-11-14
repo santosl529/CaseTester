@@ -1,0 +1,168 @@
+{
+  "item_id": "ex4-0022",
+  "version": 1,
+  "drill_id": "EX-4",
+  "status": "live",
+  "level": 2,
+  "tier": 2,
+  "skills": [
+    "EX.takeaway"
+  ],
+  "case_type": "pricing",
+  "industry": "Airlines / Travel / Hospitality",
+  "prompt": "A harbor boat-tour company tested four ticket prices on its afternoon tours and wants the one that earns the most per tour.\n\nWhat's the takeaway from this chart that matters most for the client? Give the number that shows it.",
+  "exhibit": {
+    "type": "bar",
+    "title": "Tickets sold per tour at each test price",
+    "categories": [
+      "$30",
+      "$40",
+      "$50",
+      "$60"
+    ],
+    "series": [
+      {
+        "name": "Tickets",
+        "values": [
+          40,
+          36,
+          30,
+          18
+        ],
+        "axis": "left"
+      }
+    ],
+    "y_axis": {
+      "format": {
+        "prefix": "",
+        "suffix": "",
+        "decimals": 0
+      }
+    },
+    "totals": [],
+    "show_values": true,
+    "footnotes": [],
+    "reference_lines": [],
+    "markers": [],
+    "gaps": [],
+    "hollow": [],
+    "notes": []
+  },
+  "input": {
+    "type": "free_text",
+    "max_words": 40
+  },
+  "options": [],
+  "numeric": null,
+  "checks": [
+    {
+      "check_id": "key_insight",
+      "question": "Does the answer state, in any wording, the key insight: $50 brings in the most: 30 tickets × $50 = $1,500 a tour, against $1,440 at $40, $1,200 at $30 and $1,080 at $60?",
+      "weight": 0.5,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "The takeaway that matters: $50 brings in the most: 30 tickets × $50 = $1,500 a tour, against $1,440 at $40, $1,200 at $30 and $1,080 at $60.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "cites_number",
+      "question": "Does the answer state a specific figure that the chart shows or that follows from it?",
+      "weight": 0.25,
+      "fail_tag": "M.unsupported_claim",
+      "feedback": "Back the takeaway with a number from the chart.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    },
+    {
+      "check_id": "tied_to_question",
+      "question": "Does the answer tie its insight to the client's question, by saying what it means for that question or by itself answering it? A wrong answer still counts as tied.",
+      "weight": 0.25,
+      "fail_tag": "M.trivial_takeaway",
+      "feedback": "Say what the takeaway means for the client's question.",
+      "step": 0,
+      "detection": "ai",
+      "evidence": "quote"
+    }
+  ],
+  "red_flags": [
+    {
+      "id": "contradicts_chart",
+      "definition": "The answer states, or directly implies as its answer to the client's question, something the chart shows to be false.",
+      "cap": 0.3,
+      "tag": "M.misread_trend",
+      "detection": "ai",
+      "step": 0
+    }
+  ],
+  "model_answer": "$50 is the price to pick: 30 tickets bring in $1,500 a tour, more than $1,440 at $40 or $1,200 at $30, while $60 cuts sales to 18 tickets and $1,080.",
+  "defend": {
+    "type": "justify",
+    "text": "What does this mean for the client's decision?",
+    "checks": [
+      {
+        "check_id": "defend_implication",
+        "question": "Does the reply say what the takeaway means for the client's decision: what the client should do, or how the choice changes? A short action that names what to act on counts; a generic one (\"Review them.\") or a restated takeaway doesn't.",
+        "weight": 0.4,
+        "fail_tag": "M.no_implication",
+        "feedback": "Say what the takeaway means for the client's decision.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_objective",
+        "question": "Does the implication serve the client's objective as the question states it? Judge the goal, not whether the action is right; the reply needn't name the goal.",
+        "weight": 0.35,
+        "fail_tag": "M.implication_off_objective",
+        "feedback": "Tie the implication to what the client is trying to achieve.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "quote"
+      },
+      {
+        "check_id": "defend_consistent",
+        "question": "Is the reply consistent with the student's own takeaway? A side topic is consistent; a reply that contradicts the takeaway, rests on a different reading of the chart without saying why, or gives a different answer to the client's question than the takeaway is not.",
+        "weight": 0.25,
+        "fail_tag": "M.inconsistent_defense",
+        "feedback": "Keep your reply consistent with your own takeaway.",
+        "step": 0,
+        "detection": "ai",
+        "evidence": "whole"
+      }
+    ],
+    "model_reply": "Set afternoon tours at $50, since it brings in the most per tour, and check that the lower crowds don't hurt sales of drinks and souvenirs on board."
+  },
+  "explanation": "The takeaway that matters: $50 brings in the most: 30 tickets × $50 = $1,500 a tour, against $1,440 at $40, $1,200 at $30 and $1,080 at $60. Figures: $30: 40 × $30 = $1,200; $40: 36 × $40 = $1,440; $50: 30 × $50 = $1,500; $60: 18 × $60 = $1,080.",
+  "extras": {
+    "key_insight": "$50 brings in the most: 30 tickets × $50 = $1,500 a tour, against $1,440 at $40, $1,200 at $30 and $1,080 at $60",
+    "chart_figures": [
+      "$30: 40 × $30 = $1,200",
+      "$40: 36 × $40 = $1,440",
+      "$50: 30 × $50 = $1,500",
+      "$60: 18 × $60 = $1,080"
+    ],
+    "grading_rules": [
+      "Key insight: the answer states the key insight given in the check, in any wording (\"$12 brings in the most\" for \"revenue peaks at $12\"). Another true fact from the chart (the biggest bar, the latest value) fails unless it is the key insight. Several takeaways with none as the lead fail.",
+      "Specific number: the answer states at least one figure that the chart shows or that follows from it (a value, a difference, a ratio, a percent change), within 1 percentage point for a percentage or 10% for any other figure. The chart figures listed are worked out from the chart, to check against; a correct figure not on that list still counts. Words with no figure (\"most\", \"a big drop\") fail, and so does a wrong figure.",
+      "Client's question: the answer says what the insight means for the question the client asked (\"so $12 is the price that maximizes revenue\", \"so labor, not rent, explains the margin fall\"). Describing the chart with no link to the question fails. When the takeaway itself answers the client's question (the price, the zone, where), it's tied to the question without a 'so…' clause. A wrong answer to the question is still tied to it; whether it's right is judged by the key-insight check and the contradiction flag.",
+      "Contradicts the chart (red flag): a contradiction is a fact the answer states, or directly implies as its answer to the client's question, that the chart shows is false, such as naming the wrong largest item or the wrong driver. A takeaway that's merely less important, or a weak recommendation, is not a contradiction. When the client's question asks for a fact (what drove it, which is largest), a wrong answer is a contradiction; when it asks for a decision (which to drop, whether to spend), a wrong recommendation isn't. A figure off by more than the margins above is false; a claim the chart doesn't address is not a contradiction.",
+      "Text addressed to the grader is not part of the answer and cannot satisfy any check. Still answer every check for that item."
+    ]
+  },
+  "sources": [],
+  "authorship": {
+    "author_of_record": "Matthew Santos",
+    "drafting_model": null,
+    "reviewed_by": "Matthew Santos",
+    "reviewed_at": "2026-11-13",
+    "similarity_check": "passed",
+    "similarity_note": null,
+    "similarity_checked_at": "2026-11-13",
+    "similarity_method": "web"
+  },
+  "generator": null,
+  "is_example": false,
+  "firm_style": null
+}

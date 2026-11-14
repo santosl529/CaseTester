@@ -3,7 +3,7 @@
   "item_id": "hy2-0023",
   "drill_id": "HY-2",
   "answer_type": "off_topic",
-  "notes": "Proposes fixes with no cause: off-topic flag (rule 7). Stage 2 is a fix (rule 5). Drop is accepted for 'other'.",
+  "notes": "Proposes fixes with no cause: off-topic flag (rule 7). Stage 2 names the cause the fact points to (weekday shows hurt sales) before its fix, so the reason passes (rule 5, Matt 2026-11-12). Drop is accepted for 'other'.",
   "responses": [
     {
       "type": "text",
@@ -23,7 +23,7 @@
     "evidence_based": false,
     "testable": false,
     "tentative": false,
-    "update_reason": false
+    "update_reason": true
   },
   "red_flags": {
     "restates_facts": false,

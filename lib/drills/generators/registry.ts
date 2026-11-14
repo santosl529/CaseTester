@@ -3,14 +3,14 @@
 import 'server-only';
 import type { Item, Tier } from '../item-schema';
 import type { Generator } from './types';
-import { percentChange } from './percent-change';
+import { percentChange, percentChangeV1 } from './percent-change';
 import { QN3_GENERATORS } from './qn3';
 import { QN1_GENERATORS, QN4_GENERATORS } from './formulas';
 import { EX2_GENERATORS } from './ex2';
 import { EX3_GENERATORS } from './ex3';
 
 export const GENERATORS: readonly Generator[] = [
-  percentChange, ...QN3_GENERATORS,
+  percentChangeV1, percentChange, ...QN3_GENERATORS,
   ...QN1_GENERATORS, ...QN4_GENERATORS,
   ...EX2_GENERATORS, ...EX3_GENERATORS,
 ];
@@ -24,8 +24,9 @@ export function getGenerator(templateId: string, version: number): Generator {
   return generator;
 }
 
+// The templates a new set is served: retired versions only rebuild old attempts.
 export function generatorsForDrill(drillId: string): Generator[] {
-  return GENERATORS.filter(g => g.drill_id === drillId);
+  return GENERATORS.filter(g => g.drill_id === drillId && !g.retired);
 }
 
 // Rebuilds the exact item an attempt saw, for review and grading.

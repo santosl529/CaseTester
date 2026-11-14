@@ -1,0 +1,31 @@
+{
+  "answer_id": "cl4-0003-a",
+  "item_id": "cl4-0003",
+  "drill_id": "CL-4",
+  "answer_type": "borderline",
+  "notes": "One analysis on the latest finding (rules 1–3); the change uses the store deals and names a new step (rule 4).",
+  "responses": [
+    {
+      "type": "text",
+      "value": "Find out why buyers prefer the two local brands, such as price or design, since they hold 70% of the market."
+    },
+    {
+      "type": "choice",
+      "option_id": "change"
+    },
+    {
+      "type": "text",
+      "value": "Change: the local brands control 240 of the 300 stores, so I'd look at how we could get into stores, maybe online first."
+    }
+  ],
+  "labels": {
+    "one_step": true,
+    "logical": true,
+    "reason_latest_finding": true,
+    "adapt_reason": true
+  },
+  "red_flags": {
+    "final_recommendation": false
+  },
+  "family": "Why buyers choose the local brands"
+}

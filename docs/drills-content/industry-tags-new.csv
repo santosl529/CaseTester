@@ -1,0 +1,250 @@
+item_id,drill,industry,check,matt_industry,reason,question
+cl3-0033,CL-3,Consumer / CPG,unsure,,"The market being sized is home EV chargers that households buy and install, which the rules place in Consumer / CPG, though Energy / Utilities fits almost as well because chargers are EV-charging equipment.","A startup needs to estimate how many home electric-car chargers are installed in the US each year. Most home chargers are installed within a month of buying an EV.
+
+What information would you ask for, and where would you start?"
+cl4-0019,CL-4,Retail / E-commerce,unsure,,"The client is a chain of 40 pharmacies, a store chain selling drugs (Retail), though pharmacy dispensing paid by insurers could also fit Healthcare Provider / Payor.",Objective: find why a chain of 40 pharmacies' profit fell $6M this year. What you've learned: prescriptions filled rose 5%. Latest finding: profit per prescription fell 25%.
+cl4-0020,CL-4,Logistics / Transportation,unsure,,"The client is an office-supplies distributor whose problem centers on warehouse picking and shipping, which fits Logistics / Transportation; as a seller of goods to businesses, it could also fit Industrials / Manufacturing or Retail / E-commerce.","Objective: cut wrong-item shipments at an office-supplies distributor, which rose from 1% to 4% of orders this year. What you've learned: order volume rose 10%. Latest finding: most errors happen on the night shift."
+cl4-0029,CL-4,Retail / E-commerce,unsure,,"The client is a grocery-delivery service, which could be an online platform (Tech / SaaS) or a grocer selling its own goods (Retail / E-commerce); the item doesn't say which, and Retail / E-commerce was chosen as the slightly more likely fit.",Objective: respond to a rival grocery-delivery service that cut its delivery fee to zero. What you've learned: the client's orders fell 12% in the month since. Latest finding: the losses are almost all among customers who order less than on
+cl4-0030,CL-4,Other,unsure,,"The client is a membership tennis club, which resembles a gym-style consumer service (Other) but could also be read as a sports venue (Airlines / Travel / Hospitality).","Objective: decide whether a tennis club should build indoor courts for $3M. What you've learned: the club has 900 members, and membership has been flat for five years. Latest finding: 60% of members who quit say they had nowhere to play in "
+cl4-0036,CL-4,Other,unsure,,"The client is a coworking company renting desk and office memberships, which is closest to a business/local service (Other), though it could also be read as real estate or hospitality-like space provision.","Objective: decide the price of a coworking company's new private-office membership. What you've learned: its desk membership costs $300 a month. Latest finding: rivals charge $800 to $1,200 a month for a private office."
+ex4-0013,EX-4,Airlines / Travel / Hospitality,unsure,,"The client is a student-housing company renting beds, which reads as lodging/hospitality but could also fit Other (real estate) about equally well.","A student-housing company's cost per occupied bed rose from $60 to $72, and the COO wants to know which cost to tackle first.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0015,EX-4,Energy / Utilities,unsure,,"The investor client is assessing the home solar installation market, which is energy, though installation could arguably be a household product/service purchase.","An investor asks whether home solar installation is still a growth market.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0017,EX-4,Other,unsure,,"The client is a ski-rental shop, which rents equipment as a consumer service (Other) but could also be read as a store (Retail / E-commerce) or tied to ski tourism (Hospitality).","A ski-rental shop wants to know when it needs seasonal staff.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0018,EX-4,Public / Education / Nonprofit,unsure,,"The client is a state choosing where to spend its road-safety budget, which reads as a government policy decision, though it could also count as a government running transport infrastructure (Logistics / Transportation).","A state wants to cut road deaths and asks which kind of road to focus its safety budget on.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0019,EX-4,Logistics / Transportation,unsure,,"The client is a medical-supplies distributor, which could fit Logistics / Transportation as a distributor or Healthcare / Industrials by its products, so the choice is not clear-cut.","A medical-supplies distributor is considering buying a smaller rival and wants to know how risky the rival's revenue is.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0020,EX-4,Consumer / CPG,unsure,,"The client is a paint maker, and paint is bought by both households (Consumer / CPG) and businesses such as contractors (Industrials / Manufacturing), so the two fit about equally well.","A paint maker's sales grew 12% in two years, and the CEO wants to know whether it is gaining ground.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0023,EX-4,Public / Education / Nonprofit,unsure,,"The client is a city council reviewing its municipal street-cleaning budget; this is a government service, though street cleaning could arguably fall under Other as a cleaning service.","A city's street-cleaning budget rose from $20M last year to $26M this year, and the council wants to know what to review first.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0024,EX-4,Airlines / Travel / Hospitality,unsure,,"The client is a car-rental company, a travel-related rental service that fits Travel / Hospitality but could also be read as Logistics / Transportation.","A car-rental company wants to know whether it has cars in the wrong places before it buys more.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0025,EX-4,Retail / E-commerce,unsure,,"The client is a flower-subscription company selling its own goods directly to subscribers, which fits Retail / E-commerce, though flowers as a household farm product could also put it in Consumer / CPG.","A flower-subscription company launched in January and wants to know whether its growth is healthy.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0035,EX-4,Tech / SaaS,unsure,,"The client is a data-center operator, which is closest to tech infrastructure, though it could also fit Telecom / Media or Industrials / Manufacturing about equally well.","It is late 2025. A data-center operator is deciding when to start building a new hall, which takes two years to build.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0037,EX-4,Industrials / Manufacturing,unsure,,"The client is a solar-panel maker with manufacturing plants, which fits Industrials / Manufacturing, though solar panels could also be read as Energy / Utilities.","A solar-panel maker must close one of its three plants and wants to close the most expensive one.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+hy2-0044,HY-2,Consumer / CPG,unsure,,"The client is a mattress maker, a household product, though its factory operations and sales through a retailer could also suggest Industrials / Manufacturing.","A mattress maker's factory ships 12% of orders late, up from 3% last year. Orders grew 5%."
+hy2-0045,HY-2,Industrials / Manufacturing,unsure,,"The client is a manufacturer of cork flooring, a building product that could count as a household purchase (Consumer / CPG) or as a product bought by architects and installers (Industrials / Manufacturing), so the two fit about equally.","A Portuguese maker of cork flooring entered the UK 18 months ago. Sales are 35% of plan, although architects who see samples rate it above rival floors."
+sy2-0001,SY-2,Industrials / Manufacturing,unsure,,"The client is a dental lab that makes crowns sold to dentists, which fits products businesses buy, though its dental role could also place it in Healthcare Provider / Payor.","The client asks: ""Should our dental lab buy a $250,000 3D printer for making crowns?""
+
+Fact sheet:
+- The printer costs $250,000, lasts about 7 years, and would save $70,000 a year in outsourced milling
+- Two technicians would need a 3-week "
+sy2-0005,SY-2,Retail / E-commerce,unsure,,"The client is a print-on-demand T-shirt company that sells its own goods to customers (suggesting Retail / E-commerce), though it could also be read as apparel manufacturing (Consumer / CPG).","The client asks: ""Should our print-on-demand T-shirt company add a weekend shift to clear its order backlog?""
+
+Fact sheet:
+- Orders now wait 9 days to ship, against a 3-day promise
+- The backlog is in printing: printers run 5 days a week at"
+sy2-0011,SY-2,Airlines / Travel / Hospitality,unsure,,"The client is a catering company, a food-service business closest to the restaurants rule for hospitality, though catering is not explicitly listed and could also be read as a services business (Other).","The client asks: ""How should our catering company restore its profit margin?""
+
+Fact sheet:
+- Margin fell from 15% to 6% in two years
+- Food costs held at 30% of revenue
+- Event-staff overtime doubled after we began taking same-week bookings"
+sy2-0018,SY-2,Industrials / Manufacturing,unsure,,"The fund is investing in a vinyl-record pressing plant, a manufacturer that presses records for labels (a business buyer), though the music/media angle of vinyl could also fit Telecom / Media.","The client asks: ""Should our fund invest in a vinyl-record pressing plant?""
+
+Fact sheet:
+- Vinyl sales grew 10% a year for five years
+- Pressing plants have 6-month waitlists for new orders
+- A new pressing line costs $1.5M and can press 1 "
+sy2-0025,SY-2,Pharma / Biotech,unsure,,"The client is a medical-device company buying a glucose-monitoring patch that needs regulatory approval, which fits Pharma / Biotech, though Industrials / Manufacturing could also fit since doctors and businesses buy the device.","The client asks: ""Should our medical-device company buy a startup for $80M to get its glucose-monitoring patch?""
+
+Fact sheet:
+- The patch is approved in Europe and awaits US approval, expected in 18 months
+- Our sales force already calls on"
+sy2-0027,SY-2,Airlines / Travel / Hospitality,unsure,,"The client is a business-events company running conferences/events with venues and sponsorships, which fits venues/attractions under hospitality but could also be seen as a professional/business service (Other).","The client asks: ""How should our business-events company restore profit?""
+
+Fact sheet:
+- Revenue grew 10% to $40M, but profit fell from $6M to $2M
+- The company added 12 smaller events this year; attendance per event is flat
+- The 12 new ev"
+cl3-0030,CL-3,Retail / E-commerce,sample,,"The client is a national car-dealer group (a chain selling goods) acquiring an online used-car seller that sells its own inventory, both of which fall under Retail / E-commerce.","A national car-dealer group is deciding whether to buy an online used-car platform. The platform's sales grew 60% last year, but it has never made a profit.
+
+What information would you ask for, and where would you start?"
+cl4-0002,CL-4,Airlines / Travel / Hospitality,sample,,The client is explicitly a regional airline working on flight punctuality.,"Objective: get a regional airline's flights leaving on time again. What you've learned: flights now leave 25 minutes late on average, up from 8 minutes last year. Latest finding: most of the delay is at its two busiest airports, which handl"
+cl4-0004,CL-4,Airlines / Travel / Hospitality,sample,,"The client is a chain of indoor ice rinks, which are venues/attractions placed under Hospitality by the rules.","Objective: cut the energy bill of a chain of 40 indoor ice rinks by 10%, from $12M a year. What you've learned: its energy prices are fixed by contract until 2028. Latest finding: making and cooling the ice uses half of all the energy."
+cl4-0006,CL-4,Other,sample,,"The client is a hotel-linen laundry company, a laundry service that the rules place under Other, even though its customers are hotels.","Objective: decide whether a hotel-linen laundry company should buy a smaller rival for $60M. What you've learned: the rival would add $50M of revenue. Latest finding: the rival's profit margin is 4%, against the client's 11%."
+cl4-0007,CL-4,Consumer / CPG,sample,,"The client is a cereal maker selling granola, a packaged food households buy.","Objective: find why a cereal maker's new high-protein granola sold 40% below plan in its first six months. What you've learned: shoppers who try it rate it highly. Latest finding: 70% of stores shelve it with diet and health foods, not with"
+cl4-0008,CL-4,Airlines / Travel / Hospitality,sample,,"The client is a city's botanical garden, a visitor attraction, which the rules place in Airlines / Travel / Hospitality.","Objective: win back visitors to a city's botanical garden, whose visits fell 18% in two years. What you've learned: school-group visits held steady. Latest finding: family visits on Saturdays and Sundays fell 38%."
+cl4-0009,CL-4,Other,sample,,"The client is a chain of dog-grooming salons, a consumer/local service like salons, which the rules place in Other.",Objective: find why a chain of 20 dog-grooming salons' profit fell 30% this year. What you've learned: revenue held steady. Latest finding: water and energy cost per groom rose 40%.
+cl4-0010,CL-4,Financial Services,sample,,"The client is an insurer settling car-damage claims, and insurance falls under financial services.","Objective: cut how long an insurer takes to settle car-damage claims. What you've learned: claims now take 30 days to settle, up from 18. Latest finding: the number of claims is flat."
+cl4-0011,CL-4,Retail / E-commerce,sample,,"The client is a chain of 15 kitchenware stores selling goods, which is retail even though it also runs cooking classes.","Objective: grow revenue 10% next year at a chain of 15 kitchenware stores. What you've learned: store sales have been flat for two years. Latest finding: cooking classes held in the stores grew 40%, and class students spend twice as much on"
+cl4-0012,CL-4,Public / Education / Nonprofit,sample,,"The client is a county government collecting property tax, which is a public-sector administrative function rather than transport, hospitals, or utilities.",Objective: raise the share of homeowners who pay a county's property tax on time. What you've learned: on-time payment fell from 92% to 80% this year. Latest finding: almost all the drop is among homeowners who used to pay by mailed check.
+cl4-0013,CL-4,Consumer / CPG,sample,,"The client is a maker of electric kettles, a product households buy, which places it in Consumer / CPG.","Objective: decide whether a Swedish maker of electric kettles should start selling in France. What you've learned: France's kettle market is about €150M a year. Latest finding: French shoppers buy most kettles online, through two large webs"
+cl4-0014,CL-4,Other,sample,,"The client is a law firm, a professional services business, which the rules place under Other.","Objective: cut a law firm's office costs by 12%. What you've learned: office costs are $5M a year. Latest finding: printing makes up 25% of them, up from 8% five years ago."
+cl4-0015,CL-4,Consumer / CPG,sample,,"The client is a toy maker selling a building set, a product households buy, which places it in Consumer / CPG.",Objective: find why a toy maker's new building set sold 50% below plan in its first holiday season. What you've learned: buyers gave it top ratings. Latest finding: it sold out in most stores by early December.
+cl4-0016,CL-4,Retail / E-commerce,sample,,"The client is a chain of 20 hardware stores selling goods, which falls under stores and chains that sell goods.",Objective: return a chain of 20 hardware stores to profit after two years of losses. What you've learned: the losses come from 6 stores opened in the last three years. Latest finding: the 6 new stores sell half as much per square foot as th
+cl4-0017,CL-4,Airlines / Travel / Hospitality,sample,,"The client is a regional theater, a venue, which the placement rules assign to Airlines / Travel / Hospitality.",Objective: decide whether a regional theater should raise ticket prices. What you've learned: shows are 97% sold out at weekends and 55% on weekdays. Latest finding: weekend tickets sell out two months ahead.
+cl4-0018,CL-4,Telecom / Media,sample,,"The client is a regional internet provider competing with a rival that laid fiber, which is a telecom business.",Objective: respond to a new rival taking customers from a regional internet provider. What you've learned: the client lost 8% of its customers this year. Latest finding: the losses are almost all in the three towns where the rival laid fibe
+cl4-0023,CL-4,Consumer / CPG,sample,,"The client is a regional ice-cream maker selling a packaged food product households buy through grocery stores, which is Consumer / CPG.","Objective: grow a regional ice-cream maker's sales 15% in two years. What you've learned: sales to restaurants are flat. Latest finding: grocery-store sales grew 30% this year, but the brand is in only 20% of the region's grocery stores."
+cl4-0024,CL-4,Tech / SaaS,sample,,"The client is a software company charging $30 per user a month, which places it in Tech / SaaS.","Objective: decide whether a software company should move from one price to three tiers. What you've learned: it charges $30 per user a month to every customer. Latest finding: small customers cancel at three times the rate of large ones, ci"
+cl4-0025,CL-4,Other,sample,,"The client is a chain of veterinary clinics, and the rules place vet care under Other.",Objective: decide whether a chain of 30 veterinary clinics should buy a rival chain of 10 for $25M. What you've learned: the rival earns $2.5M a year. Latest finding: 40% of the rival's revenue comes from one clinic.
+cl4-0026,CL-4,Public / Education / Nonprofit,sample,,"The client is a state revenue agency processing tax refunds, a government function that is not transport, hospitals or utilities.","Objective: cut the backlog of tax refunds at a state revenue agency. What you've learned: the backlog doubled to 40,000 in six months, while returns filed rose 8%. Latest finding: refunds flagged for identity checks take 30 days, against 5 "
+cl4-0027,CL-4,Consumer / CPG,sample,,"The client is a cosmetics brand selling sunscreen, a household consumer product.","Objective: find why a cosmetics brand's new sunscreen missed its first-summer sales target by 30%. What you've learned: sales were on plan in May and June. Latest finding: sales fell 55% in July and August, the busiest months."
+cl4-0032,CL-4,Industrials / Manufacturing,sample,,"The client is an auto-parts factory, a manufacturer of components sold to businesses, so it falls under Industrials / Manufacturing.",Objective: raise an auto-parts factory's output 15% without new machines. What you've learned: machines run 85% of their scheduled hours. Latest finding: 60% of the lost hours come from changeovers between product types.
+cl4-0034,CL-4,Tech / SaaS,sample,,"The client is a hotel-booking software company, and software maps to Tech / SaaS regardless of the hospitality customers it serves.",Objective: decide whether a hotel-booking software company should buy a smaller rival for $80M. What you've learned: the rival's revenue grew 40% last year. Latest finding: 70% of the rival's customers also use the client's software.
+cl4-0035,CL-4,Retail / E-commerce,sample,,"The client is a regional grocery chain, a store chain selling goods, which maps to Retail / E-commerce.","Objective: cut a regional grocery chain's shrink (stock lost to waste and theft) by a third. What you've learned: shrink is 4% of sales, against 2% for peers. Latest finding: fresh produce accounts for 60% of shrink."
+cl4-0038,CL-4,Airlines / Travel / Hospitality,sample,,"The client is a chain of 50 restaurants, which the placement rules assign to Airlines / Travel / Hospitality.",Objective: return a chain of 50 restaurants to profit; it loses $5M a year. What you've learned: sales per restaurant fell 15% in two years. Latest finding: online reviews mention slow service three times as often as two years ago.
+cl4-0039,CL-4,Logistics / Transportation,sample,,"The client is a distribution center deciding on loading docks for trucks, which is a logistics operation.","Objective: decide whether a distribution center should build four more loading docks for $20M. What you've learned: its 12 docks are 90% busy. Latest finding: trucks waited an average of 3 hours for a dock last year, up from 30 minutes."
+cl4-0040,CL-4,Tech / SaaS,sample,,"The market being assessed is language-learning apps, and apps are placed in Tech / SaaS by the rules.",Objective: assess whether language-learning apps are an attractive market for a new entrant. What you've learned: the market grew 20% a year. Latest finding: two apps hold 75% of users.
+ex4-0002,EX-4,Retail / E-commerce,sample,,"The client is a mattress retailer selling goods in stores and online, which is a store chain selling goods.","A mattress retailer started selling online in 2021 and is deciding whether to keep raising its online budget.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0003,EX-4,Public / Education / Nonprofit,sample,,"The client is a tutoring company, and tutoring is placed under Public / Education / Nonprofit by the rules.","A tutoring company's revenue has been flat at about $40M for three years. The CEO wants to know whether any customer group is growing.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0004,EX-4,Healthcare Provider / Payor,sample,,"The client is a hospital, which is a healthcare provider, regardless of the cost-focused problem.","A hospital's yearly surplus fell from $9M to $2M, and the board wants to know what to fix first.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0005,EX-4,Tech / SaaS,sample,,"The client sells appointment-scheduling software to dental clinics, which is a software (SaaS) business rather than healthcare.","A company that sells appointment-scheduling software to dental clinics wants to enter the European country with the most clinics that don't use such software yet.
+
+What's the takeaway from this chart that matters most for the client? Give t"
+ex4-0006,EX-4,Consumer / CPG,sample,,"The client is a kitchen-appliance maker selling blenders, a product households buy, so it falls under Consumer / CPG.","A kitchen-appliance maker sells three blender lines. Its factory can keep making only two, and it wants to know which line to drop.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0008,EX-4,Energy / Utilities,sample,,The client is explicitly described as a power utility.,"A power utility's customer complaints rose from 61,000 last year to 70,000 this year, and the board wants to know what drove the rise.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0010,EX-4,Logistics / Transportation,sample,,"The client is a courier company delivering across zones, which is a logistics business.","A courier company's profit fell to $3M, and the CFO wants to know which delivery zone loses money.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0014,EX-4,Consumer / CPG,sample,,"The client is a kombucha brand selling packaged beverages that households buy, which is Consumer / CPG.","A kombucha brand launched ginger, mango and berry flavors last year and can keep only two of them.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0021,EX-4,Tech / SaaS,sample,,"The client is a fitness app, and apps fall under Tech / SaaS per the placement rules.","A fitness app changed its sign-up process at the start of 2025 and wants to know whether new customers stay as long as before.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0022,EX-4,Airlines / Travel / Hospitality,sample,,"The client is a harbor boat-tour company, a tourism attraction/experience, which falls under travel and hospitality.","A harbor boat-tour company tested four ticket prices on its afternoon tours and wants the one that earns the most per tour.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0026,EX-4,Tech / SaaS,sample,,"The client is a payroll-software company, which is software sold to businesses and so fits Tech / SaaS.","A payroll-software company is losing deals to a new rival and wants to know where.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0028,EX-4,Healthcare Provider / Payor,sample,,"The client is a city running vaccination clinics, and a government running healthcare is tagged as that sector.","A city's vaccination clinics lose staff time to missed appointments and want to cut them.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0029,EX-4,Consumer / CPG,sample,,"A private-equity client investing in the olive-oil industry is tagged by the invested industry, and olive oil is a household food/farm product, which falls under Consumer / CPG.","A private-equity firm wants to invest in the olive-oil industry and asks which stage of the chain earns the most.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0031,EX-4,Financial Services,sample,,"The client is a pet insurer, and insurance is a financial service.","A pet insurer wants to know how much room is left to grow in cat insurance in its country.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0032,EX-4,Other,sample,,"The client is a home-cleaning service, a consumer/local service that the rules place under Other.","A home-cleaning service wants to know where its most profitable customers come from.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0033,EX-4,Other,sample,,"The client is a gym chain, and gyms are consumer/local services, which the rules place in Other.","A gym chain raised its monthly price from $40 to $45 in half its gyms as a three-month test, and wants to know whether to raise it everywhere.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows"
+ex4-0039,EX-4,Public / Education / Nonprofit,sample,,"The client is a state government deciding which job-training programs to fund, which is a government policy decision about training programs.","A state runs three job-training programs and wants to fund the one that gets the most people into work per dollar.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+hy2-0041,HY-2,Other,sample,,"The client is a chain of car washes, a consumer/local service like cleaning or repair, which the rules place under Other.","A chain of 25 car washes washed as many cars as last year, but revenue fell 12%."
+hy2-0043,HY-2,Retail / E-commerce,sample,,"The client is a chain of 60 garden centers, which is a store chain selling goods (plants and tools).","A chain of 60 garden centers wants 8% revenue growth a year. Its sales grew 1% last year, while the region's garden market grew 7%."
+hy2-0046,HY-2,Airlines / Travel / Hospitality,sample,,"The client is a ski resort, a venue/attraction that the rules place under Airlines / Travel / Hospitality.","A ski resort spent $30M on snowmaking two years ago, expecting 25% more skier visits. Visits rose 4%."
+sy2-0013,SY-2,Retail / E-commerce,sample,,"The client is a UK online plant shop selling its own goods, which the rules place in Retail / E-commerce.","The client asks: ""Should our UK online plant shop start shipping to Germany?""
+
+Fact sheet:
+- Shipping a plant to Germany costs £14 per order, against £6 in the UK
+- The average order is £35, at a 40% gross margin
+- Germany's online plant ma"
+sy2-0014,SY-2,Airlines / Travel / Hospitality,sample,,"The client operates a cruise terminal serving passengers on sailing days, which is travel/hospitality.","The client asks: ""Should our cruise terminal add more check-in counters to cut waits?""
+
+Fact sheet:
+- Passengers wait 75 minutes on average at check-in on sailing days
+- 70% of the wait is at the security scanners, not the check-in desks
+- "
+sy2-0030,SY-2,Logistics / Transportation,sample,,"The client runs a parcel-locker network that is paid by carriers per parcel delivered, which makes it a last-mile delivery logistics business.","The client asks: ""Should our parcel-locker network expand from 2,000 to 5,000 lockers?""
+
+Fact sheet:
+- Lockers in apartment buildings are 85% full on average; lockers in stores are 30% full
+- Each locker costs $8,000 to install and earns $2"
+ex4-0030,EX-4,,no industry stated,,The item only describes a generic merger with integration costs and savings and never says what the companies do or what market they are in.,"A board approved a merger and wants to know when the savings will cover the cost of combining the two companies.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+cl4-0001,CL-4,Airlines / Travel / Hospitality,,,"The client is a cinema chain, a venue, which the placement rules assign to Airlines / Travel / Hospitality.","Objective: find why a cinema chain's profit fell $3M this year. What you've learned: revenue was flat across its 30 cinemas. Latest finding: snack and drink sales, which earn most of the margin, fell 20%."
+cl4-0003,CL-4,Consumer / CPG,,,"The client is a maker of premium baby strollers, a product households buy, so it falls under Consumer / CPG.",Objective: decide whether a US maker of premium baby strollers should enter Canada. What you've learned: Canada's premium stroller market is about $150M a year and growing 8%. Latest finding: two local brands hold 70% of it.
+cl4-0005,CL-4,Retail / E-commerce,,,"The client is a chain of 25 craft-supply stores selling goods, which the rules place in Retail / E-commerce.",Objective: grow revenue 15% next year at a chain of 25 craft-supply stores. What you've learned: revenue per store has been flat for two years. Latest finding: loyalty-card members spend three times as much a year as other shoppers.
+cl4-0021,CL-4,Consumer / CPG,,,"The client is a Canadian maple-syrup brand, a farm/food product households buy, which the rules place in Consumer / CPG even though bakeries are one sales channel.","Objective: decide whether a Canadian maple-syrup brand should start selling in Japan. What you've learned: Japan imports about $40M of maple syrup a year. Latest finding: most of it is sold to bakeries and cafés, not in supermarkets."
+cl4-0022,CL-4,Financial Services,,,"The client is a home insurer, and insurance falls under Financial Services, even though the problem itself is about call-center costs.",Objective: cut a home insurer's call-center costs by 20%. What you've learned: calls rose 35% in two years while customers rose 5%. Latest finding: 40% of calls are customers asking about the status of a claim.
+cl4-0028,CL-4,Other,,,"The private-equity investor is evaluating the dog-daycare industry, a consumer local service like the pet-care services that the rules place under Other.",Objective: assess whether the dog-daycare industry is attractive to a private-equity investor. What you've learned: industry revenue grew 15% a year for five years. Latest finding: the three largest operators hold only 10% of the market.
+cl4-0031,CL-4,Other,,,"The client is an architecture firm, a professional services business, which the rules place under Other.","Objective: find why an architecture firm's profit margin fell from 16% to 7%, though revenue grew 25%. What you've learned: staff costs rose faster than revenue. Latest finding: the share of staff hours billed to clients fell from 75% to 62"
+cl4-0033,CL-4,Airlines / Travel / Hospitality,,,"The client is a chain of indoor go-kart tracks, an entertainment venue/attraction, which the placement rules assign to Airlines / Travel / Hospitality.","Objective: decide whether a US chain of indoor go-kart tracks should open in São Paulo. What you've learned: São Paulo has 3 indoor tracks for 12 million people. Latest finding: the 3 tracks are full at weekends and charge about $30 a race,"
+cl4-0037,CL-4,Financial Services,,,"The client is a regional insurance broker, and insurance brokerage falls under financial services.","Objective: double a regional insurance broker's revenue in five years. What you've learned: 80% of revenue comes from small businesses. Latest finding: small-business clients hold one policy on average, against three at rival brokers."
+ex4-0001,EX-4,Public / Education / Nonprofit,,,"The client is a city's public library system run by a library board, a public institution that fits Public / Education / Nonprofit.","A city's library system lost about 28,000 visits this year, and the library board wants to know where to focus.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0007,EX-4,Airlines / Travel / Hospitality,,,"The client is a pizza chain, a restaurant business, which the rules place in Airlines / Travel / Hospitality.","A pizza chain promises delivery within 30 minutes. It can add drivers at lunch or at dinner, and wants to know which comes first.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0009,EX-4,Retail / E-commerce,,,"The client is an online glasses store selling its own goods, which the rules place in Retail / E-commerce.","An online glasses store is selling less than planned and wants to know where to focus to sell more.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0011,EX-4,Airlines / Travel / Hospitality,,,"The client is a theme park, an attraction, which the placement rules assign to Airlines / Travel / Hospitality.","A theme park charges the same price every day and wants to bring in more visitors.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0012,EX-4,Other,,,"The client is a gym chain, and gyms are listed as consumer and local services, which go to Other.","A gym chain is choosing which of four cities to open in next, and wants the one where it would face the least competition.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0016,EX-4,Retail / E-commerce,,,"The client is a regional grocery chain, a store chain selling goods, which the rules place in Retail / E-commerce.","A regional grocery chain lost shoppers this year after a discount rival opened nearby, and wants to know which shoppers left.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0027,EX-4,Telecom / Media,,,"The client is a regional magazine publisher, which is a media business.","A regional magazine publisher's profit fell by about $3.4M in two years, and the new CEO wants to know which product to fix first.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0034,EX-4,Consumer / CPG,,,"The client is a commercial bakery producing 30,000 loaves a day on a production line, which makes it a maker of a household food product rather than a bakery chain or café.","A commercial bakery makes 30,000 loaves a day and wants to make more. It can expand one step of its line this year.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0036,EX-4,Financial Services,,,"The client is a regional bank choosing among checking, credit card and mortgage product lines.","A regional bank wants to know which product line to grow.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0038,EX-4,Retail / E-commerce,,,"The client is a sporting-goods retailer, a store chain selling goods, which maps to Retail / E-commerce.","A sporting-goods retailer raised prices this year, yet revenue fell from $100M last year to $92M. The CEO wants to know why.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+ex4-0040,EX-4,Consumer / CPG,,,"The client is a snack maker selling snack bars, a packaged product households buy.","A snack maker launched a low-sugar version of its best-selling bar and wants to know how much the launch added.
+
+What's the takeaway from this chart that matters most for the client? Give the number that shows it."
+hy2-0042,HY-2,Retail / E-commerce,,,"The client is a furniture retailer, a store selling goods, so it falls under Retail / E-commerce despite the delivery/logistics problem.",A furniture retailer delivered 95% of orders on the promised day last year and 78% this year. Orders grew 10%.
+sy2-0012,SY-2,Public / Education / Nonprofit,,,"The client is a music school selling lessons, and lessons and schools are placed in Public / Education / Nonprofit.","The client asks: ""Should our music school switch from per-lesson pricing to a $150 monthly membership?""
+
+Fact sheet:
+- Students take 3.1 lessons a month on average, at $45 each
+- Missed lessons, now 15% of bookings, earn nothing under per-l"
+sy2-0015,SY-2,Consumer / CPG,,,"The client is a children's shoe brand, a product households buy, so it falls under Consumer / CPG even though the question concerns a subscription model.","The client asks: ""Should our children's shoe brand launch a subscription that sends a new pair as feet grow?""
+
+Fact sheet:
+- Parents of children under 6 buy a new size every 4 months on average
+- In a survey, 25% of current customers said t"
+sy2-0017,SY-2,Tech / SaaS,,,"The client is a pet-sitting app, an online platform that earns booking fees rather than selling its own goods, so it falls under Tech / SaaS.","The client asks: ""Should our pet-sitting app expand to two new cities or add dog-training services?""
+
+Fact sheet:
+- Each new city costs about $500,000 to launch and takes 2 years to break even
+- 45% of current customers say they'd book dog "
+sy2-0020,SY-2,Airlines / Travel / Hospitality,,,"The client is a regional bus-tour company selling tours booked through online travel sites, which is travel and hospitality.","The client asks: ""How should our regional bus-tour company restore profit?""
+
+Fact sheet:
+- Revenue is flat at $8M
+- Fuel and driver costs are flat
+- Commissions paid to online travel sites rose from 10% to 22% of revenue since 2021 as booki"
+sy2-0023,SY-2,Retail / E-commerce,,,"The client is a sporting-goods chain, which is a store chain selling goods, so it falls under Retail / E-commerce.","The client asks: ""Should our sporting-goods chain match online prices?""
+
+Fact sheet:
+- 30% of shoppers check prices on their phones in our stores
+- Online prices are on average 12% lower on the items shoppers check most
+- Matching on those "

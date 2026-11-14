@@ -124,3 +124,21 @@ hy2-0039,Staff shortages,Missing crews delay or cancel trains,revise,"Possible, 
 hy2-0040,Weak demand,Fewer families want places,drop,"Demand matches plan, with waitlists"
 hy2-0040,Teacher shortages,Too few teachers cap enrollment,keep,15 centers run at 60% of capacity for lack of teachers
 hy2-0040,Higher costs at acquired centers,Bought centers cost more to run,revise,"The fact shows lost capacity, not higher costs"
+hy2-0041,Cheaper wash packages,Drivers pick cheaper single washes,revise,"Drivers did move to a cheaper way to pay, but it is the unlimited plan, not basic washes"
+hy2-0041,Underpriced unlimited plan,The monthly plan earns too little per wash,keep,"Members wash five times a month, about $4 a wash against $12"
+hy2-0041,Single-wash discounts,Lower prices or promotions on single washes,drop,"A single wash still costs $12, and nine-tenths of the loss is from members"
+hy2-0042,Crews overloaded by volume,Too few crews for the extra orders,revise,"Crews fall behind only at the moved warehouse, so distance is the cause"
+hy2-0042,Longer drives from the new site,The moved warehouse is farther from customers,keep,Late deliveries cluster at the warehouse 40 miles farther out
+hy2-0042,Slower suppliers,Furniture arrives late from suppliers,drop,"Suppliers serve all four warehouses, and three still deliver 94% on time"
+hy2-0043,Younger buyers shop online,Customers who drive growth buy online,revise|drop,"The growth is houseplants, which the centers barely stock: revising to the range fits, and so does dropping the online cause, which the fact gives no support"
+hy2-0043,Small houseplant range,Too little of the growing category on the shelves,keep,Houseplants grew 30% and the centers stock them in one small corner
+hy2-0043,Rivals take customers,Customers buy at rival stores instead,drop,"Outdoor sales grew in line with the market, so the chain isn't losing ground there"
+hy2-0044,Orders exceed capacity,More orders than the factory can make,revise,Capacity falls short only because custom sizes take three times as long to cut
+hy2-0044,Custom-size mix,Slow custom orders take up the line,keep,"Late orders are almost all custom sizes, now 20% of orders"
+hy2-0044,Shipping carrier delays,Carriers deliver late,drop,"The delay is in cutting custom sizes, before the carrier"
+hy2-0045,No installers who fit cork,Fitters steer buyers to floors they know,keep,Sales hit 90% of plan where installers were trained
+hy2-0045,Price too high,Buyers find cork too expensive,drop,Sales reached 90% of plan at the same prices
+hy2-0045,Low awareness of cork,Buyers don't know about cork floors,drop,Customers ask shops about cork
+hy2-0046,Extra days in quiet weeks,The added days come when few people ski,keep,24 of the 28 added days come when 300 skiers a day show up
+hy2-0046,Busy days already full,No room for more skiers at peak,drop,Lift lines stay under 10 minutes on February weekends
+hy2-0046,Too few added days,Snowmaking added too little season,revise,"It added 28 days; the problem is when they fall, not how many"
