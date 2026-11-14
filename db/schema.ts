@@ -175,7 +175,7 @@ export const studentProfiles = pgTable('student_profiles', {
   timezone: text('timezone'),
   // Voice consent (Lorenzo, 14 Nov; the Voice and Biometric Data Policy): when the student checked the box and
   // confirmed, and the policy version they agreed to (lib/voice/consent.ts). Null: never given. Deleted with the
-  // account. Migration 0027.
+  // account. Migration 0027 (applied 14 Nov).
   voiceConsentAt: timestamp('voice_consent_at', { withTimezone: true }),
   voiceConsentVersion: text('voice_consent_version'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
