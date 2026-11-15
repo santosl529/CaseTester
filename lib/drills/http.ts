@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { db } from '@/db/client';
 import { studentProfiles } from '@/db/schema';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { clubOrgId } from '@/lib/club';
+import { activeClub } from '@/lib/club';
 import { DrillError } from './sets/service';
 import { ProgramError } from './program/store';
 
@@ -22,9 +22,9 @@ export async function requireStudent(opts: { profile?: boolean } = {}): Promise<
   const userId = data?.claims?.sub;
   if (error || !userId) throw new DrillError('unauthorized', 401, 'Sign in first');
   if (opts.profile !== false) {
-    // A code since removed from CLUB_CODES no longer lets the student in (security audit, 6 Nov), as for cases.
+    // A club since switched off no longer lets the student in (security audit, 6 Nov; clubs table since 14 Nov), as for cases.
     const [profile] = await db.select({ orgId: studentProfiles.orgId }).from(studentProfiles).where(eq(studentProfiles.userId, userId));
-    if (!profile || !clubOrgId(profile.orgId)) throw new DrillError('club_code_required', 403, 'Enter your club code first');
+    if (!profile || !(await activeClub(profile.orgId))) throw new DrillError('club_code_required', 403, 'Enter your club code first');
   }
   return userId;
 }

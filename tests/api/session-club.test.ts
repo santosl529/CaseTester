@@ -1,7 +1,7 @@
-// POST /api/session and the stored club code (site flow, 19 Oct): a returning
-// student starts a case without retyping the code — the code on their profile
-// counts while it is still in CLUB_CODES; only listed cases start.
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+// POST /api/session and the stored club (site flow, 19 Oct): a returning
+// student starts a case without retyping the code — the club on their profile
+// counts while it is switched on (clubs table since 14 Nov); only listed cases start.
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const h = vi.hoisted(() => ({
   user: { id: 'u1' } as { id: string } | null,
@@ -20,24 +20,25 @@ vi.mock('@/lib/orchestrator/start-session', () => ({
   startSessionLimited: async (userId: string, caseId: string) => { h.started.push({ userId, caseId }); return { ok: true, sessionId: 's1', openingText: 'Hi' }; },
 }));
 
+vi.mock('@/lib/club-directory', () => import('../club/fake-club-directory'));
+const { setClubs } = await import('../club/fake-club-directory');
+
 const { POST } = await import('@/app/api/session/route');
 const { storedClubOrg } = await import('@/lib/club');
 const call = (body: unknown) => POST(new Request('http://x/api/session', { method: 'POST', body: JSON.stringify(body) }) as never);
 
-const savedCodes = process.env.CLUB_CODES;
 beforeEach(() => {
-  process.env.CLUB_CODES = 'ALPHA, BETA';
+  setClubs(['ALPHA', 'BETA']);
   h.user = { id: 'u1' };
   h.profile = [];
   h.inserted.length = 0; h.started.length = 0;
 });
-afterEach(() => { process.env.CLUB_CODES = savedCodes; });
 
 describe('storedClubOrg', () => {
-  it('the profile’s code while it is still valid; null when removed from CLUB_CODES, unset, or no profile', async () => {
-    h.profile = [{ orgId: 'ALPHA' }];
-    expect(await storedClubOrg('u1')).toBe('ALPHA');
-    h.profile = [{ orgId: 'GAMMA' }];
+  it('the profile’s club while it is switched on; null when switched off, unset, or no profile', async () => {
+    h.profile = [{ orgId: 'alpha' }];
+    expect(await storedClubOrg('u1')).toBe('alpha');
+    h.profile = [{ orgId: 'gamma' }];
     expect(await storedClubOrg('u1')).toBeNull();
     h.profile = [{ orgId: null }];
     expect(await storedClubOrg('u1')).toBeNull();
@@ -55,19 +56,19 @@ describe('POST /api/session', () => {
   it('a typed code still works and is recorded', async () => {
     const res = await call({ caseId: 'prof-001', clubCode: 'alpha' });
     expect(res.status).toBe(200);
-    expect(h.inserted).toEqual([{ userId: 'u1', orgId: 'ALPHA' }]);
+    expect(h.inserted).toEqual([{ userId: 'u1', orgId: 'alpha' }]);
     expect(h.started).toEqual([{ userId: 'u1', caseId: 'prof-001' }]);
   });
 
-  it('no code typed: the stored code lets a returning student start', async () => {
-    h.profile = [{ orgId: 'BETA' }];
+  it('no code typed: the stored club lets a returning student start', async () => {
+    h.profile = [{ orgId: 'beta' }];
     const res = await call({ caseId: 'prof-001' });
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ sessionId: 's1', openingText: 'Hi' });
   });
 
-  it('no code typed and the stored one was removed from CLUB_CODES: 403', async () => {
-    h.profile = [{ orgId: 'GAMMA' }];
+  it('no code typed and the stored club was switched off: 403', async () => {
+    h.profile = [{ orgId: 'gamma' }];
     const res = await call({ caseId: 'prof-001' });
     expect(res.status).toBe(403);
     expect(await res.json()).toEqual({ error: 'Invalid club code' });
@@ -79,7 +80,7 @@ describe('POST /api/session', () => {
   });
 
   it('a registered but unlisted case, or an unknown one: 400, nothing started', async () => {
-    h.profile = [{ orgId: 'ALPHA' }];
+    h.profile = [{ orgId: 'alpha' }];
     for (const caseId of ['entry-001', 'nope-001']) {
       const res = await call({ caseId });
       expect(res.status).toBe(400);

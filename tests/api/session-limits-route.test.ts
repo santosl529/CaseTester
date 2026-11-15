@@ -7,7 +7,7 @@ const h = vi.hoisted(() => ({
   calls: [] as unknown[],
 }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: 'u1' } } }) } }) }));
-vi.mock('@/lib/club', () => ({ clubOrgId: () => null, storedClubOrg: async () => 'ALPHA', recordStudentOrg: async () => {} }));
+vi.mock('@/lib/club', () => ({ clubForCode: async () => null, storedClubOrg: async () => 'ALPHA', recordStudentOrg: async () => {} }));
 vi.mock('@/lib/orchestrator/start-session', () => ({
   startSessionLimited: async (userId: string, caseId: string) => { h.calls.push({ userId, caseId }); return h.result; },
 }));

@@ -16,7 +16,10 @@ vi.mock('@/lib/rate-limit', async () => {
   return { ...real, hitRateLimit: async () => h.limited };
 });
 vi.mock('@/lib/club', () => ({
-  clubOrgId: (c: unknown) => (typeof c === 'string' && ['ALPHA', 'BETA'].includes(c.trim().toUpperCase()) ? c.trim().toUpperCase() : null),
+  clubForCode: async (c: unknown) => {
+    const code = typeof c === 'string' ? c.trim().toUpperCase() : '';
+    return ['ALPHA', 'BETA'].includes(code) ? { id: code.toLowerCase(), name: code[0] + code.slice(1).toLowerCase() } : null;
+  },
   assignClub: async (userId: string, orgId: string) => { h.assigned.push([userId, orgId]); return { changed: true, from: 'ALPHA' }; },
 }));
 vi.mock('@/lib/account/delete-account', () => ({ deleteAccount: async (id: string) => { h.deleted.push(id); return h.deleteResult; } }));
@@ -35,8 +38,8 @@ describe('POST /api/account/club', () => {
   it('a valid code: the club changes', async () => {
     const res = await club(req({ clubCode: ' beta ' }));
     expect(res.status).toBe(200);
-    expect(await res.json()).toEqual({ ok: true, club: 'BETA', changed: true });
-    expect(h.assigned).toEqual([['u1', 'BETA']]);
+    expect(await res.json()).toEqual({ ok: true, club: 'Beta', changed: true });
+    expect(h.assigned).toEqual([['u1', 'beta']]);
   });
   it('an invalid code: 403 invalid_club_code, nothing changes', async () => {
     const res = await club(req({ clubCode: 'NOPE' }));

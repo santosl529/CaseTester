@@ -1,30 +1,57 @@
 // The club-code gate (technical PRD §12 step 1: "Auth + club-code gate").
-// Shared by /api/club, which checks the code at the club step and records the
-// student's org (docs/prd-drills.md "org_id"), and /api/session, which still
-// checks it on case start so the case flow is gated exactly as before.
+// Shared by sign-up, /api/club (the club step), /account and /api/session, and
+// by every page and route that requires a club (home, drills, case start).
+//
+// Since 14 Nov (Lorenzo: "a club to clubcode table so it's easy to rotate codes") codes live in the database
+// (lib/club-directory.ts; was the CLUB_CODES env var) and name a club; the student's profile records the club id
+// (org_id), not the code. Rotating a code leaves members in; switching a club off shuts them out.
+import { randomInt } from 'node:crypto';
 import { db } from '@/db/client';
 import { eq } from 'drizzle-orm';
 import { studentProfiles } from '@/db/schema';
 import { logEvent } from '@/lib/analytics';
+import { clubDirectory, type Club } from '@/lib/club-directory';
 
-// The org id for a valid club code, or null.
-export function clubOrgId(clubCode: unknown): string | null {
-  const code = typeof clubCode === 'string' ? clubCode.trim().toUpperCase() : '';
-  const validCodes = (process.env.CLUB_CODES ?? '').split(',').map(c => c.trim().toUpperCase()).filter(Boolean);
-  return code && validCodes.includes(code) ? code : null;
+export type { Club };
+
+const MAX_CODE = 64;
+
+export function normalizeClubCode(raw: unknown): string {
+  return typeof raw === 'string' ? raw.trim().toUpperCase() : '';
 }
 
-// Set once: the first accepted code is the student's org.
+// The club a typed code names, or null (unknown, retired, its club switched off, or nothing typed).
+export async function clubForCode(raw: unknown): Promise<Club | null> {
+  const code = normalizeClubCode(raw);
+  if (!code || code.length > MAX_CODE) return null;
+  return clubDirectory.byCode(code);
+}
+
+// The club while it is switched on, or null.
+export async function activeClub(orgId: string | null | undefined): Promise<Club | null> {
+  return orgId ? clubDirectory.byId(orgId) : null;
+}
+
+// Set once: the first accepted code's club is the student's org.
 export async function recordStudentOrg(userId: string, orgId: string): Promise<void> {
   await db.insert(studentProfiles).values({ userId, orgId }).onConflictDoNothing();
 }
 
-// The code on the student's profile while it is still a valid club code, or
-// null: returning students skip the club step (site flow, 19 Oct), and a code
-// removed from CLUB_CODES stops letting them in.
+// The club on the student's profile while it is switched on, or null: returning students skip the club step
+// (site flow, 19 Oct), and a club switched off stops letting them in.
 export async function storedClubOrg(userId: string): Promise<string | null> {
   const [profile] = await db.select({ orgId: studentProfiles.orgId }).from(studentProfiles).where(eq(studentProfiles.userId, userId));
-  return clubOrgId(profile?.orgId);
+  return (await activeClub(profile?.orgId))?.id ?? null;
+}
+
+// New codes: the club's prefix, a dash, six characters without look-alikes (no 0/O, 1/I/L) — about 887 million per
+// club, so guessing is hopeless even spread over many addresses (14 Nov).
+export const CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
+export function generateClubCode(prefix: string): string {
+  const p = prefix.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  let tail = '';
+  for (let i = 0; i < 6; i++) tail += CODE_ALPHABET[randomInt(CODE_ALPHABET.length)];
+  return `${p}-${tail}`;
 }
 
 // Set or change the student's club (Lorenzo, 9 Nov: students can change their club code; for future club

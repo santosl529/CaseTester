@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { assignClub, clubOrgId } from '@/lib/club';
+import { assignClub, clubForCode } from '@/lib/club';
 import { clientIp, hitRateLimit, rateLimitedResponse, rateRule } from '@/lib/rate-limit';
 import { jsonRoute } from '@/lib/http/route-guard';
 
@@ -16,11 +16,11 @@ async function handlePOST(req: NextRequest) {
   if (!limited.ok) return rateLimitedResponse(limited);
 
   const { clubCode } = await req.json().catch(() => ({}));
-  const orgId = clubOrgId(clubCode);
-  if (!orgId) return NextResponse.json({ error: 'Invalid club code' }, { status: 403 });
+  const club = await clubForCode(clubCode);
+  if (!club) return NextResponse.json({ error: 'Invalid club code' }, { status: 403 });
 
   // Replaces a stored code that is no longer valid (it used to keep the old one, so the student looped back here).
-  await assignClub(user.id, orgId);
+  await assignClub(user.id, club.id);
   return NextResponse.json({ ok: true });
 }
 

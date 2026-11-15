@@ -4,7 +4,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { studentProfiles } from '@/db/schema';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { clubOrgId } from '@/lib/club';
+import { activeClub } from '@/lib/club';
 import { AppNav } from '@/components/app-nav';
 import { AppPage } from '@/components/brand/page';
 import { ChangeClubForm, DeleteAccountForm } from '@/components/account-forms';
@@ -18,7 +18,7 @@ export default async function AccountPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/sign-in?next=/account');
   const [profile] = await db.select({ orgId: studentProfiles.orgId }).from(studentProfiles).where(eq(studentProfiles.userId, user.id));
-  const club = clubOrgId(profile?.orgId);
+  const club = (await activeClub(profile?.orgId))?.name ?? null;
 
   return (
     <>

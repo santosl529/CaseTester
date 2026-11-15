@@ -164,9 +164,28 @@ export const skillEventSourceEnum = pgEnum('skill_event_source', ['set', 'case',
 export const prescriptionSourceEnum = pgEnum('prescription_source', ['case', 'drill', 'diagnostic', 'plan', 'questionnaire']);
 export const prescriptionStatusEnum = pgEnum('prescription_status', ['open', 'in_progress', 'completed', 'dismissed', 'superseded', 'paused']);
 
+// Clubs and their access codes (Lorenzo, 14 Nov: "a club to clubcode table so it's easy to rotate codes"; was the
+// CLUB_CODES env var). A student's profile records the club (org_id = clubs.id), not the code: rotating a code
+// (a new row, the old one retired) leaves members in; switching a club off (active = false) shuts them out.
+// Codes are stored upper-case. Server-only (RLS on, no policies); managed with `npm run clubs` (scripts/clubs.ts).
+// Migration 0028.
+export const clubs = pgTable('clubs', {
+  id: text('id').primaryKey(),               // e.g. 'everview'
+  name: text('name').notNull(),              // shown to students: 'Everview'
+  active: boolean('active').notNull().default(true),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+}).enableRLS();
+
+export const clubCodes = pgTable('club_codes', {
+  code: text('code').primaryKey(),
+  clubId: text('club_id').notNull().references(() => clubs.id),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  retiredAt: timestamp('retired_at', { withTimezone: true }),   // null: accepted
+}, t => [index('club_codes_club_idx').on(t.clubId)]).enableRLS();
+
 // The student record drills extends (PRD: "nullable org_id on the user
-// record"). There is no app users table, so this is it. org_id is the club
-// code accepted at /api/session, set once.
+// record"). There is no app users table, so this is it. org_id is the
+// student's club (clubs.id) — the club code they joined with names it.
 export const studentProfiles = pgTable('student_profiles', {
   userId: uuid('user_id').primaryKey(),
   orgId: text('org_id'),

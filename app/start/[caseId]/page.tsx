@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { studentProfiles } from '@/db/schema';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { clubOrgId } from '@/lib/club';
+import { activeClub } from '@/lib/club';
 import { linkOnlyCase } from '@/lib/cases/listed';
 import { getCaseById } from '@/lib/cases/loader';
 import { caseTotalMs } from '@/lib/orchestrator/state-machine';
@@ -20,7 +20,7 @@ export default async function StartCasePage({ params }: { params: Promise<{ case
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/sign-in?next=${encodeURIComponent(here)}`);
   const [profile] = await db.select({ orgId: studentProfiles.orgId }).from(studentProfiles).where(eq(studentProfiles.userId, user.id));
-  if (!clubOrgId(profile?.orgId)) redirect(`/sign-in?next=${encodeURIComponent(here)}`);
+  if (!(await activeClub(profile?.orgId))) redirect(`/sign-in?next=${encodeURIComponent(here)}`);
 
   const minutes = Math.round(caseTotalMs(getCaseById(c.id)) / 60_000);
   return <StartCaseScreen c={c} minutes={minutes} />;

@@ -7,7 +7,7 @@
 // unconfirmed and a one-time link emailed (lib/site/verify-email.ts); Supabase refuses log-in until it is opened. If the
 // email can't be sent, the new account is removed so a retry starts clean. Without a sender, accounts are confirmed at
 // once (as from 8 Nov), with a warning in the log.
-import { assignClub, clubOrgId } from '@/lib/club';
+import { assignClub, clubForCode } from '@/lib/club';
 import { PASSWORD_MAX, PASSWORD_MIN } from '@/lib/site/sign-up-rules';
 
 export { PASSWORD_MAX, PASSWORD_MIN };
@@ -16,15 +16,15 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export type SignUpError = 'invalid_email' | 'weak_password' | 'invalid_club_code' | 'email_exists' | 'email_unavailable';
 export type SignUpForm = { ok: true; email: string; password: string; orgId: string } | { ok: false; error: Exclude<SignUpError, 'email_exists' | 'email_unavailable'> };
 
-export function parseSignUp(body: unknown): SignUpForm {
+export async function parseSignUp(body: unknown): Promise<SignUpForm> {
   const b = (body && typeof body === 'object' ? body : {}) as Record<string, unknown>;
   const email = typeof b.email === 'string' ? b.email.trim().toLowerCase() : '';
   if (!EMAIL.test(email) || email.length > 254) return { ok: false, error: 'invalid_email' };
   const password = typeof b.password === 'string' ? b.password : '';
   if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) return { ok: false, error: 'weak_password' };
-  const orgId = clubOrgId(b.clubCode);
-  if (!orgId) return { ok: false, error: 'invalid_club_code' };
-  return { ok: true, email, password, orgId };
+  const club = await clubForCode(b.clubCode);
+  if (!club) return { ok: false, error: 'invalid_club_code' };
+  return { ok: true, email, password, orgId: club.id };
 }
 
 export type SignUpDeps = {

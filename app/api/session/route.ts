@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { isStartableCase } from '@/lib/cases/listed';
 import { startSessionLimited } from '@/lib/orchestrator/start-session';
-import { clubOrgId, recordStudentOrg, storedClubOrg } from '@/lib/club';
+import { clubForCode, recordStudentOrg, storedClubOrg } from '@/lib/club';
 import { jsonRoute } from '@/lib/http/route-guard';
 
 async function handlePOST(req: NextRequest) {
@@ -15,7 +15,7 @@ async function handlePOST(req: NextRequest) {
   // Still checked here: the club step (/api/club) is a convenience, not the gate.
   // A returning student types no code — the one on their profile counts while
   // it is still valid (site flow, 19 Oct).
-  const typed = clubOrgId(clubCode);
+  const typed = (await clubForCode(clubCode))?.id ?? null;
   const orgId = typed ?? await storedClubOrg(user.id);
   if (!orgId) {
     return NextResponse.json({ error: 'Invalid club code' }, { status: 403 });

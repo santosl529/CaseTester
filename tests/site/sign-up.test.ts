@@ -4,24 +4,24 @@
 import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@/db/client', () => ({ db: {} }));
-process.env.CLUB_CODES = 'ALPHA,BETA';
+vi.mock('@/lib/club-directory', () => import('../club/fake-club-directory'));
 const { parseSignUp, signUpStudent } = await import('@/lib/site/sign-up');
 
 describe('parseSignUp', () => {
   const ok = { email: '  Ann@Example.com ', password: 'longenough', clubCode: ' alpha ' };
-  it('a valid form: email trimmed and lower-cased, the code as its org id', () => {
-    expect(parseSignUp(ok)).toEqual({ ok: true, email: 'ann@example.com', password: 'longenough', orgId: 'ALPHA' });
+  it('a valid form: email trimmed and lower-cased, the club the code names as its org id', async () => {
+    expect(await parseSignUp(ok)).toEqual({ ok: true, email: 'ann@example.com', password: 'longenough', orgId: 'alpha' });
   });
-  it('each problem, in the order the form shows them', () => {
-    expect(parseSignUp({ ...ok, email: 'not-an-email' })).toEqual({ ok: false, error: 'invalid_email' });
-    expect(parseSignUp({ ...ok, password: 'short' })).toEqual({ ok: false, error: 'weak_password' });
-    expect(parseSignUp({ ...ok, password: 'x'.repeat(73) })).toEqual({ ok: false, error: 'weak_password' });
-    expect(parseSignUp({ ...ok, clubCode: 'GAMMA' })).toEqual({ ok: false, error: 'invalid_club_code' });
-    expect(parseSignUp({ ...ok, clubCode: '' })).toEqual({ ok: false, error: 'invalid_club_code' });
+  it('each problem, in the order the form shows them', async () => {
+    expect(await parseSignUp({ ...ok, email: 'not-an-email' })).toEqual({ ok: false, error: 'invalid_email' });
+    expect(await parseSignUp({ ...ok, password: 'short' })).toEqual({ ok: false, error: 'weak_password' });
+    expect(await parseSignUp({ ...ok, password: 'x'.repeat(73) })).toEqual({ ok: false, error: 'weak_password' });
+    expect(await parseSignUp({ ...ok, clubCode: 'GAMMA' })).toEqual({ ok: false, error: 'invalid_club_code' });
+    expect(await parseSignUp({ ...ok, clubCode: '' })).toEqual({ ok: false, error: 'invalid_club_code' });
   });
-  it('not an object, or fields that are not strings: invalid email first', () => {
-    expect(parseSignUp(null)).toEqual({ ok: false, error: 'invalid_email' });
-    expect(parseSignUp({ email: 5, password: 'longenough', clubCode: 'ALPHA' })).toEqual({ ok: false, error: 'invalid_email' });
+  it('not an object, or fields that are not strings: invalid email first', async () => {
+    expect(await parseSignUp(null)).toEqual({ ok: false, error: 'invalid_email' });
+    expect(await parseSignUp({ email: 5, password: 'longenough', clubCode: 'ALPHA' })).toEqual({ ok: false, error: 'invalid_email' });
   });
 });
 

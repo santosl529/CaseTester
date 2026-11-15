@@ -17,7 +17,7 @@ vi.mock('@/lib/site/sign-up', async () => {
   return { ...real, signUpStudent: async () => { h.signUps++; if (h.thrown) throw h.thrown; return h.result; } };
 });
 vi.mock('@/db/client', () => ({ db: {} }));
-process.env.CLUB_CODES = 'ALPHA';
+vi.mock('@/lib/club-directory', () => import('../club/fake-club-directory'));
 const { POST } = await import('@/app/api/sign-up/route');
 const call = (body: unknown) => POST(new Request('http://x/api/sign-up', { method: 'POST', headers: { 'x-real-ip': '9.9.9.9' }, body: JSON.stringify(body) }) as never);
 const good = { email: 'ann@example.com', password: 'longenough', clubCode: 'alpha' };

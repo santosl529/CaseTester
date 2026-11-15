@@ -11,7 +11,7 @@ async function handlePOST(req: NextRequest) {
   const limited = await hitRateLimit(rateRule('signUp'), `ip:${clientIp(req)}`);
   if (!limited.ok) return rateLimitedResponse(limited);
 
-  const form = parseSignUp(await req.json().catch(() => null));
+  const form = await parseSignUp(await req.json().catch(() => null));
   if (!form.ok) return NextResponse.json({ error: form.error }, { status: form.error === 'invalid_club_code' ? 403 : 400 });
 
   try {

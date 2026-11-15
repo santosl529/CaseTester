@@ -3,7 +3,7 @@ import { eq } from 'drizzle-orm';
 import { db } from '@/db/client';
 import { studentProfiles } from '@/db/schema';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
-import { clubOrgId } from '@/lib/club';
+import { activeClub } from '@/lib/club';
 import { FIRST_CASE_ID, byDifficulty, listedCases } from '@/lib/cases/listed';
 import { loadCaseAttempts, loadPastSessions } from '@/lib/site/past-sessions';
 import { getCaseById } from '@/lib/cases/loader';
@@ -19,7 +19,7 @@ export default async function HomePage() {
   if (!user) redirect('/sign-in');
   const [profile] = await db.select({ orgId: studentProfiles.orgId, timezone: studentProfiles.timezone })
     .from(studentProfiles).where(eq(studentProfiles.userId, user.id));
-  if (!clubOrgId(profile?.orgId)) redirect('/sign-in');
+  if (!(await activeClub(profile?.orgId))) redirect('/sign-in');
 
   const [past, attempts] = await Promise.all([loadPastSessions(user.id, profile.timezone), loadCaseAttempts(user.id)]);
   const cases = byDifficulty(listedCases()).map(c => ({

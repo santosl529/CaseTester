@@ -16,7 +16,7 @@ vi.mock('@/lib/rate-limit', async () => {
 vi.mock('next/server', async () => ({ ...(await vi.importActual<object>('next/server')), after: () => {} }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: { id: 'u1' } } }) } }) }));
 vi.mock('@/db/client', () => ({ db: { query: { sessions: { findFirst: async () => ({ id: '51111111-1111-4111-8111-111111111111', userId: 'u1', caseId: 'prof-001', status: 'active' }) } } } }));
-vi.mock('@/lib/club', () => ({ clubOrgId: (c: string) => (c === 'ALPHA' ? 'ALPHA' : null), assignClub: async () => { h.work.push('assignClub'); return { changed: true, from: null }; } }));
+vi.mock('@/lib/club', () => ({ clubForCode: async (c: string) => (c === 'ALPHA' ? { id: 'alpha', name: 'Alpha' } : null), assignClub: async () => { h.work.push('assignClub'); return { changed: true, from: null }; } }));
 vi.mock('@/lib/orchestrator/post-turn', () => ({ runPostTurnBackground: async () => {} }));
 vi.mock('@/lib/orchestrator/session-runner', () => ({ runTurn: async () => { h.work.push('runTurn'); return { interviewerText: 'ok', ended: false, exhibit: null }; } }));
 vi.mock('@/lib/orchestrator/turn-claim', async () => {
