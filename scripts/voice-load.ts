@@ -212,7 +212,7 @@ async function runOne(i: number, owner: string, admin: NonNullable<ReturnType<ty
 }
 
 // `lk agent status`: CPU "312m / 2", Mem "1.1GB / 4GB", Replicas "1 / 1 / 1".
-type Sample = { atS: number; status: string; cpuMilli: number | null; mem: string; replicas: string };
+type Sample = { atS: number; status: string; cpuMilli: number | null; cpuOf: string; mem: string; replicas: string };
 async function sampleAgent(t0: number): Promise<Sample | null> {
   try {
     const { stdout } = await promisify(execFile)('lk', ['agent', 'status'], { timeout: 20_000 });
@@ -220,7 +220,8 @@ async function sampleAgent(t0: number): Promise<Sample | null> {
     if (!row) return null;
     const c = row.split('│').map(s => s.trim());
     const cpu = /^(\d+(?:\.\d+)?)(m?)/.exec(c[7] ?? '');
-    return { atS: Math.round((Date.now() - t0) / 1000), status: c[6], cpuMilli: cpu ? Number(cpu[1]) * (cpu[2] ? 1 : 1000) : null, mem: c[8], replicas: c[9] };
+    const of = /\/\s*(\S+)/.exec(c[7] ?? '')?.[1] ?? '?';
+    return { atS: Math.round((Date.now() - t0) / 1000), status: c[6], cpuMilli: cpu ? Number(cpu[1]) * (cpu[2] ? 1 : 1000) : null, cpuOf: of, mem: c[8], replicas: c[9] };
   } catch { return null; }
 }
 
@@ -252,7 +253,7 @@ async function main() {
     console.log(`| ${r.i} | ${r.caseId} | ${r.helloMs === null ? '—' : (r.helloMs / 1000).toFixed(1) + 's'} | ${r.turnsSpoken} | ${pct(fs, 0.5) ?? '—'} / ${fs.length ? Math.max(...fs) : '—'} ms | ${pct(r.speechEndToSpeakingMs, 0.5) ?? '—'} / ${r.speechEndToSpeakingMs.length ? Math.max(...r.speechEndToSpeakingMs) : '—'} ms | ${r.stalls} | ${r.ended ?? '—'} | ${r.errors.join('; ') || '—'} |`);
   }
   const cpus = samples.map(s => s.cpuMilli).filter((x): x is number => x !== null);
-  console.log(`\nAgent CPU peak ${cpus.length ? Math.max(...cpus) : '?'}m of 2000m; memory samples ${[...new Set(samples.map(s => s.mem))].join(', ')}; replicas ${[...new Set(samples.map(s => s.replicas))].join(', ')}`);
+  console.log(`\nAgent CPU peak ${cpus.length ? Math.max(...cpus) : '?'}m of ${samples.at(-1)?.cpuOf ?? '?'} per replica; memory samples ${[...new Set(samples.map(s => s.mem))].join(', ')}; replicas ${[...new Set(samples.map(s => s.replicas))].join(', ')}`);
 
   mkdirSync(OUT_DIR, { recursive: true });
   const out = path.join(OUT_DIR, `${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}-n${N}.json`);
