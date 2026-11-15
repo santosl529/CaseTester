@@ -3,6 +3,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { BRAND, HOME_HREF, HOOD_ID, PRODUCT_HREF, START_LABEL, START_LABEL_SHORT } from './content';
 import { StartCta, useAtClose } from './cta';
+import { useSignedIn } from './site-session';
 import s from './exhibition.module.css';
 
 // The sticky header (Matt's v3 brief, 23 Oct 2026; two pages, 24 Oct). It
@@ -19,6 +20,7 @@ import s from './exhibition.module.css';
 // (no tab stop, no invisible clicks); its space stays, so nothing shifts.
 // The button row after What sets us apart does the same (apart.tsx): at the
 // bottom of the page it sits under the header's frosted glass.
+// Signed in, it is not drawn: the app's navigation bar is already pinned at the top (15 Nov).
 export function StickyHeader({ watch, page }: { watch: string; page: 'home' | 'product' }) {
   const [on, setOn] = useState(false);
   const [dark, setDark] = useState(false);
@@ -50,7 +52,9 @@ export function StickyHeader({ watch, page }: { watch: string; page: 'home' | 'p
     window.addEventListener('resize', onScroll);
     return () => { window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll); cancelAnimationFrame(frame); };
   }, []);
+  const signedIn = useSignedIn();
   const product = page === 'product';
+  if (signedIn) return null;
   return (
     // A div, not a second <header>: the page's own header is the banner landmark.
     <div data-sticky-header data-on={on} data-dark={dark} inert={!on} className={`${s.header} fixed inset-x-0 top-0 z-40 h-(--hdr)`}>

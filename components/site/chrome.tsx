@@ -1,6 +1,7 @@
 import Link from 'next/link';
-import { BRAND, CLOSE, HOME_HREF, PRIVACY_HREF, PRODUCT_HREF, VOICE_POLICY_HREF } from './content';
+import { BRAND, CLOSE, PRIVACY_HREF, PRODUCT_HREF, VOICE_POLICY_HREF } from './content';
 import { StartCta } from './cta';
+import { SiteTopBar } from './site-session';
 import s from './exhibition.module.css';
 
 // What the homepage and the product page share (Matt's brief, 24 Oct 2026):
@@ -9,13 +10,9 @@ import s from './exhibition.module.css';
 const WRAP = 'mx-auto w-full max-w-[1240px] px-6 lg:px-12';
 const MUTED = 'text-(--ink)/70';
 
+// Signed in: the app's navigation bar instead (site-session.tsx, 15 Nov).
 export function TopBar() {
-  return (
-    <header className={`${WRAP} flex h-16 items-center justify-between`}>
-      <Link href={HOME_HREF} className="t-card font-semibold tracking-[-0.02em]">{BRAND}</Link>
-      <Link href="/sign-in" className="link t-small">Sign in</Link>
-    </header>
-  );
+  return <SiteTopBar />;
 }
 
 export function CloseCta() {
