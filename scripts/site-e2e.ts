@@ -23,7 +23,12 @@ if (!EMAIL) throw new Error('set E2E_EMAIL');
 // Where a log-in lands: Today (/drills, or /drills/start before training is set up) since Matt's one navigation bar
 // (13 Nov); /home (the cases) before it.
 const SIGNED_IN_HOME = /\/(home|drills)(\/|\?|$)/;
-const CODES = (process.env.CLUB_CODES ?? '').split(',').map(s => s.trim()).filter(Boolean);   // never printed
+// One current code per club switched on, read from the clubs tables (lib/club-admin.ts; was CLUB_CODES) — never printed.
+let CODES: string[] = [];
+async function loadCodes(): Promise<string[]> {
+  const { dbClubsStore, listClubs } = await import('@/lib/club-admin');
+  return (await listClubs(dbClubsStore)).filter(c => c.active && c.current.length).map(c => c.current[0]);
+}
 
 type Result = { step: string; ok: boolean; detail: string };
 const results: Result[] = [];
@@ -59,7 +64,7 @@ async function phaseA(page: Page) {
   const p1 = `Test-${Math.random().toString(36).slice(2, 10)}-1`;
   const p2 = `Test-${Math.random().toString(36).slice(2, 10)}-2`;
   fs.writeFileSync(STATE, JSON.stringify({ password: p2 }));
-  if (CODES.length < 1) throw new Error('no CLUB_CODES');
+  if (CODES.length < 1) throw new Error('no club switched on with a current code (npm run clubs -- list)');
 
   await check(page, 'home page loads', async () => {
     const res = await page.goto(BASE);
@@ -463,6 +468,7 @@ async function phaseC(page: Page) {
   const page = await (await browser.newContext({ viewport: { width: 1280, height: 900 } })).newPage();
   console.log(`site e2e, phase ${PHASE}, against ${BASE}; screenshots in ${DIR}`);
   try {
+    CODES = await loadCodes();
     if (PHASE === 'A') await phaseA(page);
     else if (PHASE === 'B') await phaseB(page);
     else if (PHASE === 'C') await phaseC(page);

@@ -12,6 +12,7 @@
     "test:watch": "vitest",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx db/migrate.ts",
+    "clubs": "tsx --conditions=react-server --env-file=.env.local scripts/clubs.ts",
     "voice:agent:start": "node --import tsx scripts/voice-agent.ts start",
     "voice:agent": "VOICE_RECORDS_DIR=\"${VOICE_RECORDS_DIR:-Case Interview Runs/voice-live}\" tsx --env-file=${VOICE_ENV_FILE:-.env.local} scripts/voice-agent.ts dev",
     "db:seed-drill-items": "tsx --conditions=react-server --env-file=.env.local scripts/seed-drill-items.ts",
