@@ -8,7 +8,9 @@ const h = vi.hoisted(() => ({
   clubs: new Map<string, { id: string; name: string }>(),
   byCodeCalls: 0,
   profile: [] as { orgId: string | null }[],
+  wrong: 0,
 }));
+vi.mock('@/lib/club-alert', () => ({ noteWrongClubCode: async () => { h.wrong++; } }));
 vi.mock('@/lib/club-directory', () => ({
   clubDirectory: {
     byCode: async (code: string) => { h.byCodeCalls++; return h.codes.get(code) ?? null; },
@@ -25,6 +27,7 @@ beforeEach(() => {
   h.clubs = new Map([['everview', everview]]);
   h.byCodeCalls = 0;
   h.profile = [];
+  h.wrong = 0;
 });
 
 describe('normalizeClubCode', () => {
@@ -50,6 +53,14 @@ describe('clubForCode', () => {
   it('an over-long code is refused without a lookup', async () => {
     expect(await clubForCode('X'.repeat(65))).toBeNull();
     expect(h.byCodeCalls).toBe(0);
+  });
+  it('a wrong code (unknown or over-long) is noted for the alert; a right one or an empty box is not', async () => {
+    await clubForCode('EVERVIEW-JCSJ8S');
+    await clubForCode('');
+    expect(h.wrong).toBe(0);
+    await clubForCode('EVERVIEW-AAAAAA');
+    await clubForCode('X'.repeat(65));
+    expect(h.wrong).toBe(2);
   });
 });
 

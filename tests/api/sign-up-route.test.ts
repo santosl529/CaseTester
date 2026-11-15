@@ -18,6 +18,7 @@ vi.mock('@/lib/site/sign-up', async () => {
 });
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/club-directory', () => import('../club/fake-club-directory'));
+vi.mock('@/lib/club-alert', () => ({ noteWrongClubCode: async () => {} }));
 const { POST } = await import('@/app/api/sign-up/route');
 const call = (body: unknown) => POST(new Request('http://x/api/sign-up', { method: 'POST', headers: { 'x-real-ip': '9.9.9.9' }, body: JSON.stringify(body) }) as never);
 const good = { email: 'ann@example.com', password: 'longenough', clubCode: 'alpha' };

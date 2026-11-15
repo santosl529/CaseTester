@@ -21,6 +21,7 @@ vi.mock('@/lib/orchestrator/start-session', () => ({
 }));
 
 vi.mock('@/lib/club-directory', () => import('../club/fake-club-directory'));
+vi.mock('@/lib/club-alert', () => ({ noteWrongClubCode: async () => {} }));
 const { setClubs } = await import('../club/fake-club-directory');
 
 const { POST } = await import('@/app/api/session/route');

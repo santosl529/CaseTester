@@ -11,6 +11,7 @@ import { eq } from 'drizzle-orm';
 import { studentProfiles } from '@/db/schema';
 import { logEvent } from '@/lib/analytics';
 import { clubDirectory, type Club } from '@/lib/club-directory';
+import { noteWrongClubCode } from '@/lib/club-alert';
 
 export type { Club };
 
@@ -20,11 +21,14 @@ export function normalizeClubCode(raw: unknown): string {
   return typeof raw === 'string' ? raw.trim().toUpperCase() : '';
 }
 
-// The club a typed code names, or null (unknown, retired, its club switched off, or nothing typed).
+// The club a typed code names, or null (unknown, retired, its club switched off, or nothing typed). A wrong code
+// counts toward the site-wide wrong-code alert (lib/club-alert.ts); an empty box doesn't.
 export async function clubForCode(raw: unknown): Promise<Club | null> {
   const code = normalizeClubCode(raw);
-  if (!code || code.length > MAX_CODE) return null;
-  return clubDirectory.byCode(code);
+  if (!code) return null;
+  const club = code.length > MAX_CODE ? null : await clubDirectory.byCode(code);
+  if (!club) await noteWrongClubCode();
+  return club;
 }
 
 // The club while it is switched on, or null.

@@ -5,6 +5,7 @@ import { describe, it, expect, vi } from 'vitest';
 
 vi.mock('@/db/client', () => ({ db: {} }));
 vi.mock('@/lib/club-directory', () => import('../club/fake-club-directory'));
+vi.mock('@/lib/club-alert', () => ({ noteWrongClubCode: async () => {} }));
 const { parseSignUp, signUpStudent } = await import('@/lib/site/sign-up');
 
 describe('parseSignUp', () => {
