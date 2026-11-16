@@ -4,6 +4,7 @@
 // prescriptions to write. The database layer (./store.ts) loads and saves;
 // every rule lives here so scripted scenarios can test it exactly.
 import { DRILLS_CONFIG, getDrill, getMistakeTag, getSkill } from '../config';
+import { drillReason } from '../reason';
 
 export const SKILL_STATES = ['not_started', 'learning', 'recognizes', 'practiced', 'mastered', 'validated'] as const;
 export type SkillStateName = (typeof SKILL_STATES)[number];
@@ -336,7 +337,7 @@ function inDrillPrescriptions(progress: ProgressMap, set: SetOutcome, isLive: (i
     if (total < w.major) continue;
     out.intents.push({
       type: 'drill', skill_id: skill, tag,
-      reason: `Your last ${getDrill(set.drill_id).name} set showed a ${getMistakeTag(tag)!.label}.`,
+      reason: drillReason(getDrill(set.drill_id).name, tag),
     });
   }
 }

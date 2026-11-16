@@ -4,7 +4,7 @@
 // Self-ratings are the least reliable plan source (case > diagnostic >
 // questionnaire), so a rating never places a skill past Repair.
 import { DRILLS_CONFIG, getSkill } from '../config';
-import { stageDrills } from '../progress/engine';
+import { lowerName, stageDrills } from '../progress/engine';
 import type { Place } from './diagnostic';
 import { prerequisiteOrder } from './workout';
 
@@ -60,8 +60,8 @@ export function questionnairePrescriptions(ratings: Ratings, hardest: Questionna
       skill_id: skillId,
       priority: 1 + (area === hardest ? 0.5 : 0) + (ratings[area] <= 2 ? 0.5 : 0),
       reason: area === hardest
-        ? `You said ${label} is the hardest part, so we start with ${getSkill(skillId).name}.`
-        : `You rated your ${label} ${ratings[area]} of 5, so we start with ${getSkill(skillId).name}.`,
+        ? `You said ${label} is the hardest part, so we start with ${lowerName(skillId)}.`
+        : `You rated your ${label} ${ratings[area]} of 5, so we start with ${lowerName(skillId)}.`,
     });
   }
   return out;

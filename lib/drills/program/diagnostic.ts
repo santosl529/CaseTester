@@ -3,8 +3,9 @@
 // diagnostic's prescriptions are worked out from whatever parts are finished,
 // so a student who stops partway is placed from what they did.
 import { DRILLS_CONFIG, getMistakeTag, getSkill } from '../config';
-import { hasLiveDrill, lowerName, skillCatalogIndex, stageDrills } from '../progress/engine';
+import { hasLiveDrill, skillCatalogIndex, stageDrills } from '../progress/engine';
 import { scoresFromTotals, type SkillTotals } from '../sets/summary';
+import { diagnosticReason } from '../reason';
 
 const d = DRILLS_CONFIG.programs.diagnostic;
 
@@ -75,8 +76,7 @@ export function diagnosticPrescriptions(parts: DiagnosticPart[], skip: Set<strin
     const area = getSkill(skill).area;
     if ((perArea.get(area) ?? 0) >= 2) continue;
     perArea.set(area, (perArea.get(area) ?? 0) + 1);
-    const labels = [...tags].map(t => getMistakeTag(t)!.label);
-    out.push({ skill_id: skill, priority: tags.size, reason: `In the diagnostic: ${labels.join(', ')}. This set practices ${lowerName(skill)}.` });
+    out.push({ skill_id: skill, priority: tags.size, reason: diagnosticReason([...tags]) });
   }
   return out;
 }
