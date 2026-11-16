@@ -61,6 +61,9 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
   }
 }
 
+// The score route's maxDuration (300 s) less a margin for the time before the pass started.
+export const CASE_STEP_DEADLINE_MS = 285_000;
+
 export class ClaimLostError extends Error {
   constructor(sessionId: string) { super(`scoring claim lost for ${sessionId}: no score written`); }
 }
@@ -102,10 +105,12 @@ export async function scoreAndStore(claim: ScoringClaim, userId: string, deps: {
   await logEvent('scoring_qa', qa, { sessionId, userId });
 
   // Case results → drills (Matt, 15 Nov): only once the score is stored, after the response is sent, so the report
-  // never waits for it and nothing it does can fail the report (lib/drills/progress/case-runs.ts).
+  // never waits for it and nothing it does can fail the report (lib/drills/progress/case-runs.ts). Its deadline is the
+  // route's own limit, not the scoring passes' retry budget: work after the response still counts against the route's
+  // 300 s, and with the 240 s budget any grading over 195 s left the step too little time (3 of the last 60, 16 Nov).
   if (computed.caseResultInput) {
     const { runCaseRunAfterResponse } = await import('@/lib/drills/progress/case-runs');
-    await runCaseRunAfterResponse(sessionId, computed.caseResultInput, startMs + SCORING_BUDGET_MS,
+    await runCaseRunAfterResponse(sessionId, computed.caseResultInput, startMs + CASE_STEP_DEADLINE_MS,
       u => void logEvent('llm_usage', u, { sessionId, userId }));
   }
 }
