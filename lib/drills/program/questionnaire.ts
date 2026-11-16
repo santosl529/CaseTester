@@ -3,7 +3,7 @@
 // prescriptions, and name the skills whose placement the first workouts check.
 // Self-ratings are the least reliable plan source (case > diagnostic >
 // questionnaire), so a rating never places a skill past Repair.
-import { DRILLS_CONFIG, getSkill } from '../config';
+import { DRILLS_CONFIG } from '../config';
 import { lowerName, stageDrills } from '../progress/engine';
 import type { Place } from './diagnostic';
 import { prerequisiteOrder } from './workout';

@@ -49,7 +49,7 @@ export default async function ReportPage({ params }: { params: Promise<{ session
   };
 
   // Case results → drills (Matt, 15 Nov): nothing unless CASE_TO_DRILLS is on, and never able to break the report.
-  const drills = await reportDrillsView(user.id, sessionId, score.rubricJsonb as RubricScores | null, session.completedAt)
+  const drills = await reportDrillsView(user.id, sessionId, score.rubricJsonb as RubricScores | null, { caseId: session.caseId, scoredAt: score.createdAt })
     .catch(err => { console.error('[report] drills view failed:', err); return null; });
 
   return (

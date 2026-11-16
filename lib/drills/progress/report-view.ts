@@ -9,7 +9,8 @@ import { getCaseById } from '@/lib/cases/loader';
 import { RUBRIC_DIMENSION_KEYS, RUBRIC_DIMENSION_LABELS } from '@/lib/scoring/rubric';
 import type { RubricScores } from '@/lib/scoring/judge';
 import { caseToDrillsMode } from '../case-to-drills';
-import { nextStepsStatus, totalMinutes, type NextStepsSnapshot } from '../next-steps';
+import { nextStepsStatus, pendingNextSteps, totalMinutes, type NextStepsSnapshot } from '../next-steps';
+import { HOME_DEMO_CASE_IDS } from '@/lib/cases/listed';
 import type { Comparison } from '../case-compare';
 import { nextCaseFor } from '../program/store';
 import { comparisonFor } from './case-compare-store';
@@ -40,8 +41,9 @@ export function strengthsOf(rubric: RubricScores): Strength[] {
     });
 }
 
-export async function reportDrillsView(studentId: string, sessionId: string, rubric: RubricScores | null, completedAt: Date | null): Promise<ReportDrillsView | null> {
-  if (caseToDrillsMode() !== 'on') return null;
+// `scoredAt`: when the report's score was stored. The 7-minute demo makes no case result (D10): nothing.
+export async function reportDrillsView(studentId: string, sessionId: string, rubric: RubricScores | null, ctx: { caseId: string; scoredAt: Date | null }, now = new Date()): Promise<ReportDrillsView | null> {
+  if (caseToDrillsMode() !== 'on' || HOME_DEMO_CASE_IDS.includes(ctx.caseId)) return null;
   const found = await comparisonFor(studentId, sessionId);
   let previousTitle = '';
   if (found) { try { previousTitle = getCaseById(found.previous.caseId).title; } catch { previousTitle = 'your last case'; } }
@@ -50,10 +52,9 @@ export async function reportDrillsView(studentId: string, sessionId: string, rub
   const [result] = await db.select({ nextSteps: caseResults.nextSteps, completedAt: caseResults.completedAt }).from(caseResults).where(eq(caseResults.caseAttemptId, sessionId));
   const snapshot = result?.nextSteps as NextStepsSnapshot | null | undefined;
   if (!snapshot) {
-    const [run] = await db.select({ status: caseResultRuns.status }).from(caseResultRuns).where(eq(caseResultRuns.sessionId, sessionId));
-    // No run yet: the tagging step runs after the report is stored and may still be going.
-    if (!run) return { comparison, nextSteps: completedAt ? { state: 'preparing' } : null };
-    return { comparison, nextSteps: run.status === 'failed' ? { state: 'failed' } : { state: 'preparing' } };
+    const [run] = await db.select({ mode: caseResultRuns.mode, status: caseResultRuns.status }).from(caseResultRuns).where(eq(caseResultRuns.sessionId, sessionId));
+    const pending = pendingNextSteps({ demo: false, run: run ?? null, scoredAt: ctx.scoredAt, now });
+    return { comparison, nextSteps: pending ? { state: pending } : null };
   }
   const since = result!.completedAt;
   const passed = await passedSince(studentId, snapshot.skills.map(s => s.skill_id), since);

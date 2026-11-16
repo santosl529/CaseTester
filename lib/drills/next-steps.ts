@@ -109,3 +109,18 @@ export function nextStepsStatus(snapshot: NextStepsSnapshot, passed: Set<string>
 // "About N minutes": every listed lesson and practice set.
 export const totalMinutes = (snapshot: NextStepsSnapshot) =>
   snapshot.skills.reduce((m, s) => m + (s.lesson?.minutes ?? 0) + (s.practice?.minutes ?? 0), 0);
+
+// What the report shows while a case has no stored next steps (fixed 16 Nov: some reports said "Preparing" forever).
+// The step runs after the score is stored and records its run within the score route's limit, so with no run (or a
+// run still unapplied) five minutes after the score, none is coming: the 7-minute demo (D10), a case graded before
+// the switch went on, or one graded in shadow mode. Those show no section. A failed run offers Try again.
+export const STEP_WAIT_MS = 300_000;
+export function pendingNextSteps(x: { demo: boolean; run: { mode: string; status: string } | null; scoredAt: Date | null; now: Date }): 'preparing' | 'failed' | null {
+  if (x.demo) return null;
+  const recent = x.scoredAt !== null && x.now.getTime() - x.scoredAt.getTime() <= STEP_WAIT_MS;
+  if (!x.run) return recent ? 'preparing' : null;
+  if (x.run.mode !== 'on') return null;
+  if (x.run.status === 'failed') return 'failed';
+  if (x.run.status === 'retrying') return 'preparing';
+  return recent ? 'preparing' : null;
+}

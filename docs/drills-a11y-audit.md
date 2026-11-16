@@ -90,6 +90,20 @@ Use VoiceOver (macOS: Cmd+F5) in Safari, and do one full set of PS-1, EX-1 and C
   - On "Score over time", press **Show data table** with the keyboard. The table should be read with its headers ("Score", "Note"), and the tier change should be read in the Note column ("Up to tier 2"). Below the chart you should hear "Dashed line: the 80% bar."
   - In the Mistakes table, each row should be read as the mistake, the counts with "(more)", "(fewer)" or "(same)", and an example starting "Your answer:", "You picked:" or "From your case:".
   - Repeat **Show data table** on each trend chart on Your progress; a week with no answers should be read as "–", not 0.
+- [ ] **Case report: Your next steps** (case results → drills, step 6; only with `CASE_TO_DRILLS=on`, so run it locally). Open the report of a graded full case.
+  - Use the rotor's Headings (VO+U): "Your next steps" should be a level-2 heading, and each skill a level-3 heading under it.
+  - VO+Right through the first skill. You should hear the list position ("1 of 3"), the skill name, the "why" line, and then the quote. The quote should come after the "why" line, not before it.
+  - Tab through the section. Each practice button should be read with its skill and time, for example "Start practice: MECE structure, about 10 minutes, button", not just "Start practice". Each lesson link should be read as "Read the lesson · 3 min, link". Write down whether "Read the lesson" is clear without its skill when you Tab to it.
+  - Under **Before your next case**, each line should end with "(to do)" or "(done)". Pass one of the sets, then come back to the report: that line should now be read as "passed a set (done)". Nothing is announced while you're away; the tick shows the next time the page loads.
+  - The next case should be read after the checklist: "When all three are done, try" (or "When both are done", "When it is done"), then the case and its level, then **Go to cases** as a link. Once every set is passed, the first line should change to "You're ready for your next case:".
+- [ ] **Case report: the comparison with your last case** (take two Easy cases first). It sits above Your next steps.
+  - The heading should name the last case's level ("Since your last Easy case"). On a retake it should say "Last time on this case".
+  - With VO+Right through the table's rows, each row should be read as the area, then the two ratings with words between them, for example "Problem Structuring, Needs work, up to Adequate". You should never hear "up arrow".
+  - When an area went up after practice, its row should also read "You practiced this in N drill sets since your last case."
+- [ ] **Your progress: Case to case** (under More detail, with two cases at one level).
+  - The card should read "Easy cases", then the two cases with their dates. Write down whether the arrow between them is read aloud ("right arrow") and whether that sounds right.
+  - Each area that moved should be read as its name, then "Needs work, up to Adequate" (or "down to"), then "N drill sets in between" when there were any.
+  - With one case at a level, you should hear "One so far. A comparison appears after your second."
 - [ ] At 200% browser zoom, nothing is cut off or overlaps (WCAG 1.4.4).
 - [ ] With the text-spacing bookmarklet (WCAG 1.4.12), no text is cut off.
 

@@ -89,3 +89,16 @@ describe('the case → drills step in a scoring pass', () => {
     expect(askedForData([{ subtype: 'released', payloadJsonb: { what: 'COGS split' } }])).toBe(true);
   });
 });
+
+describe('the step deadline (fixed 16 Nov: gradings over 195 s skipped tagging)', () => {
+  it('is the score route\'s own limit less a margin, not the 240 s scoring budget', async () => {
+    const { readFileSync } = await import('node:fs');
+    const route = readFileSync('app/api/channel/[sessionId]/score/route.ts', 'utf-8');
+    const session = readFileSync('lib/scoring/score-session.ts', 'utf-8');
+    const maxDuration = Number(route.match(/export const maxDuration = (\d+);/)![1]) * 1000;
+    const deadline = Number(session.match(/export const CASE_STEP_DEADLINE_MS = ([\d_]+);/)![1].replace(/_/g, ''));
+    expect(deadline).toBeLessThan(maxDuration);
+    expect(deadline).toBeGreaterThanOrEqual(maxDuration - 15_000);
+    expect(session).toMatch(/runCaseRunAfterResponse\(sessionId, computed\.caseResultInput, startMs \+ CASE_STEP_DEADLINE_MS/);
+  });
+});

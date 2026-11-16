@@ -8,7 +8,7 @@ For Lorenzo's review (Matt's request, 15 Nov 2026). Branch `drill-update`. Nothi
    - One AI call (Sonnet 5.5 with thinking) labels each "needs work" point with a skill from the drills list.
    - It reads the report and changes nothing in it: the ratings, quotes and report text are the same.
    - It runs after the score is stored and the response sent (Next's `after()`, as drill grading does), so the student's report doesn't wait for it. Only the pass that holds the scoring claim reaches it, so it's paid once per case: about $0.04, logged as `llm_usage` with component `skill_tags`.
-   - It counts against the score route's 300 s: grading took 159 s at the median and 216 s at most over the last 60 cases. With under 45 s left it skips itself, and it stops 5 s before the limit.
+   - Work after the response still counts against the score route's 300 s, so the step's deadline is 285 s from the start of grading (`CASE_STEP_DEADLINE_MS` in `score-session.ts`). With under 45 s left it records a failure instead of starting (the report then offers Try again), and it stops 5 s before its deadline. Over the last 60 cases grading took 159 s at the median, 190 s at the 90th percentile and 216 s at most. Until 16 Nov the deadline was the 240 s scoring budget, which skipped the step after any grading over 195 s (3 of those 60, and both live gradings in Claude's end-to-end test).
    - Gathering its input is guarded on its own: if that ever threw, the case gets no case result and the report is unaffected.
    - Off by default (`CASE_TO_DRILLS` unset). Never on a dry run (regrade, replay), never for the 7-minute demo.
    - If it fails, the report still saves.
@@ -41,7 +41,7 @@ For Lorenzo's review (Matt's request, 15 Nov 2026). Branch `drill-update`. Nothi
 The branch to merge is `case-drills-shadow` (steps 1–2 only), not `drill-update`, which carries step 3 work in progress.
 
 1. **Review** this list and the diff: `git diff main...case-drills-shadow`.
-2. **Apply migration 0029 first**, from a checkout of `case-drills-shadow` (`npm run db:migrate`; main's migrations folder doesn't have 0029). It only adds, so today's production code keeps working with it. It must come before the deploy: the new code reads the new `case_results` columns, so without 0029 the Progress page and account deletion would fail.
+2. **Migration 0029: done.** Claude applied it to the shared database on 16 Nov (Matt's go), from `case-drills-shadow`, after checking that main still ends at 0028. The table, its index, foreign key and RLS, and the four `case_results` columns are there, and today's production code was checked against them (its `case_results` reads work; the site answers). Main's migrations folder gets 0029 with the merge.
 3. **Set `CASE_TO_DRILLS=shadow`** in Vercel's Production environment. Leave `CASE_TAG_DRILL_GROUPS` unset. Today's code ignores the variable, and setting it now lets the deploy below pick it up (a variable change only applies to new deployments).
 4. **Merge `case-drills-shadow` into main** and run the boot check (`docs/voice-deploy.md`, site only) with `CASE_TO_DRILLS=shadow`. Expect the `[engine]` line, then `[boot] CASE_TO_DRILLS=shadow; drill groups: structure, quantitative, creativity, synthesis, communication, pushback, topFix`, and `GET /` 200. Expect a bad value (`CASE_TO_DRILLS=yes`) to refuse to start. Claude ran this on 80bd03ff on 15 Nov and it passed.
 5. **Deploy** (push main). The LiveKit agent doesn't grade, so it needs no new version.
@@ -58,7 +58,7 @@ To turn it off: set `CASE_TO_DRILLS=off` (or remove it) and redeploy. No code ch
 
 ## On `drill-update` only (not in `case-drills-shadow`; for a later merge)
 
-7. **The report page** (`app/case/[sessionId]/report/page.tsx`, `components/views/report.tsx`) gets two sections, only when `CASE_TO_DRILLS=on`: "Since your last [level] case" after Top improvement, and "Your next steps" before the survey and the transcript. They read the case product's `sessions` and `scores` (read-only) and drills tables. A failure there is caught: the report shows as today.
+7. **The report page** (`app/case/[sessionId]/report/page.tsx`, `components/views/report.tsx`) gets two sections, only when `CASE_TO_DRILLS=on`: "Since your last [level] case" after Top improvement, and "Your next steps" before the survey and the transcript. They read the case product's `sessions` and `scores` (read-only) and drills tables. A failure there is caught: the report shows as today. The 7-minute demo's report shows neither section; a report graded before the switch went on shows the comparison (from stored ratings) but no next steps.
 8. **A Try again route** (`POST /api/case/[sessionId]/next-steps`, the owner only): when the tagging step failed, it re-runs only that step on what scoring stored (`storedCaseResultInput` in `score-session.ts`, read-only, no grading call), at most once per failure.
 9. Today's quick fix, Learn's For you and the prescription reasons change wording (drills only).
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildNextSteps, lessonMinutes, nextStepsStatus, totalMinutes } from '@/lib/drills/next-steps';
+import { buildNextSteps, lessonMinutes, nextStepsStatus, pendingNextSteps, STEP_WAIT_MS, totalMinutes } from '@/lib/drills/next-steps';
 import type { CaseResultPayload } from '@/lib/drills/case-result';
 
 const payload = (findings: (CaseResultPayload['findings'][number] & { tip?: string })[], extra: Partial<CaseResultPayload> = {}) => ({
@@ -52,5 +52,33 @@ describe('your next steps (Matt, 15 Nov)', () => {
     expect(nextStepsStatus(s, new Set(['QN.percentages']))).toEqual({ done: new Set(['QN.percentages']), ready: false });
     expect(nextStepsStatus(s, new Set(['QN.percentages', 'PS.mece'])).ready).toBe(true);
     expect(lessonMinutes(601)).toBe(4);
+  });
+});
+
+describe('a report with no stored next steps (fixed 16 Nov: "Preparing" forever)', () => {
+  const now = new Date('2026-11-16T12:00:00Z');
+  const ago = (ms: number) => new Date(now.getTime() - ms);
+  const on = (status: string) => ({ mode: 'on', status });
+
+  it('waits for a step that may still be running', () => {
+    expect(pendingNextSteps({ demo: false, run: null, scoredAt: ago(30_000), now })).toBe('preparing');
+    expect(pendingNextSteps({ demo: false, run: on('built'), scoredAt: ago(30_000), now })).toBe('preparing');
+    expect(pendingNextSteps({ demo: false, run: on('retrying'), scoredAt: ago(3 * STEP_WAIT_MS), now })).toBe('preparing');
+  });
+
+  it('offers Try again for a failed step', () => {
+    expect(pendingNextSteps({ demo: false, run: on('failed'), scoredAt: ago(3 * STEP_WAIT_MS), now })).toBe('failed');
+  });
+
+  it('shows nothing when no step is coming', () => {
+    // The 7-minute demo.
+    expect(pendingNextSteps({ demo: true, run: null, scoredAt: ago(1_000), now })).toBeNull();
+    // Graded before the switch went on.
+    expect(pendingNextSteps({ demo: false, run: null, scoredAt: ago(STEP_WAIT_MS + 1), now })).toBeNull();
+    // Graded in shadow mode, failed or not: never retried into a student's prescriptions.
+    expect(pendingNextSteps({ demo: false, run: { mode: 'shadow', status: 'built' }, scoredAt: ago(1_000), now })).toBeNull();
+    expect(pendingNextSteps({ demo: false, run: { mode: 'shadow', status: 'failed' }, scoredAt: ago(1_000), now })).toBeNull();
+    // Applied long ago but its snapshot never written.
+    expect(pendingNextSteps({ demo: false, run: on('applied'), scoredAt: ago(STEP_WAIT_MS + 1), now })).toBeNull();
   });
 });
