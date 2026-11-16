@@ -108,13 +108,14 @@ G1. One tag per point, or "none". Tag the first mistake the point names that a t
 G2. Any tag may be used whatever the point's dimension; the dimension is context only.
 G3. Tag what the candidate did, by the definitions, not the judge's wording: "mixed units" is M.unit_error only if the definition fits.
 G4. "Only after prompting", "only when challenged" or "fixed when probed" doesn't change the tag: tag the original mistake.
-G5. A top improvement (no dimension, no quotes): tag the first fix it asks for, by the same rules.
+G5. A top improvement (no dimension, no quotes): tag the first fix it asks for that a tag fits, by the same rules (as G1).
+G6. Label only from what the point and its quotes say. Never use the transcript, the case's facts or anything else the point doesn't state.
 
 NO TAG ("none") — when these are the only mistakes the point names
 N1. Not restating the objective or the client's question. (A structure not tied to the client's decision is S3, not N1.)
-N2. An analysis never done or left unfinished (never sized, converted, compared, quantified or read in full), only when no figure was stated wrongly or on the wrong base and no conclusion rests on the missing analysis. Correct figures on the way to the unfinished analysis don't stop N2. Otherwise: a stated figure on the wrong base is Q1 (M.wrong_base) even if the conversion was "never done"; a lever ruled in or out without sizing when a case fact makes it decisive is J1; an impact asserted without numbers in the recommendation is R2.
+N2. An analysis never done or left unfinished (never sized, converted, compared, quantified or read in full), only when no figure was stated wrongly or on the wrong base and no conclusion rests on the missing analysis. Correct figures on the way to the unfinished analysis don't stop N2: a figure used for sizing or for a conclusion on the wrong base is Q1, but a figure stated correctly on its own base, with the conversion simply not done, is N2. Otherwise: a stated figure on the wrong base is Q1 (M.wrong_base) even if the conversion was "never done"; a lever ruled in or out without sizing when a case fact makes it decisive is J1; an impact asserted without numbers in the recommendation is R2.
 N3. Ideas not ranked or prioritized.
-N4. Tone, conduct and composure: dismissive or combative remarks, asking for scores or to end the case, stepping away, self-doubt said aloud, false precision, an imprecise label. (If the point says it added filler or length, see D1.)
+N4. Tone, conduct and composure: dismissive or combative remarks, asking for scores or to end the case, stepping away, self-doubt or self-critique said aloud, false precision, an imprecise label. It goes to D1 only when the point says the answers themselves were long or padded, not for one remark that took time.
 N5. Answers too short or clipped, no signposting, or the interviewer having to prompt for more or ask the candidate to expand (unless the content has its own tag, such as C1 for a brainstorm).
 N6. Statements that contradict each other, when nothing else in the point has a tag.
 N7. Ideas that are conventional or not non-obvious, when there are at least 4 from more than one area.
@@ -124,7 +125,7 @@ S1. No structure at all, or couldn't start or move the structure on without the 
 S2. At the opening, skipped the structure and went straight to an answer: M.no_structure. (A fix proposed later, before the data that decides it, is H1.)
 S3. Headings that are a template (profit = revenue − costs; fixed vs variable; market, customer, competition, financials; 4Ps), or a structure not tied to this client's decision: M.generic_framework. This holds when the point also says the objective wasn't restated: tag S3, not N1.
 S4. Buckets that overlap: M.overlapping_buckets. A likely area left out (competitors, pricing, below-the-line costs, a customer step): M.missing_bucket. A bucket that wouldn't change the answer: M.irrelevant_bucket.
-S5. The complaint is about the sub-points ("thin", "no sub-points", a bare list of line items under a heading, a bucket not split, a framework that "stayed at two broad branches"): M.shallow_structure. Use S3 instead only when the point calls the headings a template or says the structure isn't tied to the decision.
+S5. The complaint is about the sub-points ("thin", "no sub-points", a bare list of line items under a heading, a bucket not split, a framework that "stayed at two broad branches"): M.shallow_structure. Use S3 instead only when the point calls the headings a template or says the structure isn't tied to the decision. The point's complaint decides: thinness is S5 even when a template heading such as fixed vs variable is mentioned.
 
 HYPOTHESIS AND REASONING
 H1. A cause or conclusion stated as settled before the data: M.overconfident_hypothesis. A recommendation or fix committed to before the data that decides it: M.premature_solution.
@@ -140,19 +141,20 @@ Q1. Use the tag whose definition fits the error:
   - M.wrong_base: the wrong denominator or whole, including a share of COGS used as points of revenue without multiplying by COGS's share of revenue.
   - M.percent_vs_points: percent change confused with percentage points.
   - M.growth_error: growth not compounded.
-  - M.wrong_formula: the right numbers in the wrong method, or the wrong quantity (revenue break-even for profit break-even, fixed costs treated as variable, the wrong margin, dividing by seats for a fare).
+  - M.wrong_formula: the right numbers in the wrong method, or the wrong quantity (revenue break-even for profit break-even, fixed costs treated as variable, the wrong margin, dividing by seats for a fare, rates applied to the wrong groups, growing parts of a total on different bases such as volume-inclusive vs price-only).
   - M.missing_term: a term left out (extras, a cost line, a forgone contribution).
   - M.unreasonable_assumption: an assumption with no basis or far off, a figure borrowed from another context, survey shares used as conversion or loss rates.
   - M.wrong_data_point: a figure misread or taken from the wrong row, column or year. (A figure kept in use after a correction is L1.)
+Q1 comes before X1: a named math error is Q1 even on exhibit data.
 Q2. Presenting a result a quick check would show is wrong, or the point is that errors surfaced only through the interviewer's probes rather than the candidate's own checks: M.implausible_accepted.
 
 EXHIBITS
-X1. A value misread: M.wrong_data_point. What the exhibit shows misread (direction, which line moved, a move called noise or an offset, whose share a figure is), or a wrong inference drawn from it (what it implies about volume, a share or a forecast): M.misread_trend. Something true but beside the question (the baseline instead of the change): M.trivial_takeaway.
+X1. A value misread: M.wrong_data_point. What the exhibit shows misread (direction, which line moved, a move called noise or an offset, whose share a figure is), or a wrong inference drawn from it (what it implies about volume, a share or a forecast), or a first read that gives a wrong or incomplete picture of what the exhibit shows (only one line read, so where the rest went is missed): M.misread_trend. A correct read that just leaves details unmentioned stays N2. Something true but beside the question (the baseline instead of the change): M.trivial_takeaway.
 X2. Units, axes, footnotes, indexed values and mismatched periods: the exhibit-trap tags by their definitions.
 X3. A finding with no "so what" for the client: M.no_implication. An implication off the client's question: M.implication_off_objective.
 
 JUDGMENT AND RISKS
-J1. The recommendation, plan, levers or next steps leave out or contradict a fact the candidate had established or the case makes decisive (procurement only on beans when the candidate's own math showed other inputs drove most of the rise; ruling out price after prices were flat against input inflation): M.ignores_deciding_fact.
+J1. Only the recommendation, plan, levers or next steps: they leave out or contradict a fact the candidate had established or the case makes decisive (procurement only on beans when the candidate's own math showed other inputs drove most of the rise; ruling out price after prices were flat against input inflation): M.ignores_deciding_fact. A conclusion about the cause during the analysis is H2 or H3, one drawn from an exhibit is X1, and any other claim is H4, not J1.
 J2. A risk or mitigation that's generic: M.generic_risk. Risks named but the key one missed, or an action called risk-free when it isn't: M.missed_key_risk. No risk or next step at all: M.missing_risk_or_next_step.
 
 BRAINSTORM
@@ -170,6 +172,6 @@ D2. Long lists of data requests, turn after turn: M.laundry_list. A request or n
 CASE LEADERSHIP AND PUSHBACK
 L1. Held their position or kept doing the same thing after a valid challenge, a hint that a figure, method or position is wrong, or a correction (a wrong figure or method kept, feedback acknowledged but not applied, hints that a figure was wrong): M.ignored_valid_pushback. If the candidate accepted the correction and fixed it, but the same kind of error came back later, tag the underlying mistake instead.
 L2. Gave up a correct position after a challenge: M.caved_to_invalid_pushback.
-L3. Under a challenge, no reasoned answer (froze, "I'm not sure", a bare "yes"): M.no_evidence_in_defense. Sidestepped the challenge by asking something else or answering another question: M.dodged_question.
-L4. Passive: stopped driving, handed direction back to the interviewer, or needed prompts or hints to move the case forward (assists such as \"take your time\" or \"the driver is already in hand\"): M.waited_for_interviewer. Prompts to say more or expand are N5, or the content's own tag (C1 for a brainstorm). A next step that's illogical or lower priority: M.illogical_next_step or M.low_priority_next_step.
+L3. Under a challenge, no reasoned answer (froze, "I'm not sure", a bare "yes"): M.no_evidence_in_defense. Sidestepped the challenge by asking something else or answering another question: M.dodged_question. When a challenge exposes a real gap in the content (a missing bucket, a wrong figure), tag the content; L3 only when the defense itself is the only problem.
+L4. Passive: stopped driving, handed direction back to the interviewer, or needed prompts or hints to move the case forward (assists such as \"take your time\" or \"the driver is already in hand\"): M.waited_for_interviewer. Refusing to move on after hints to move forward, even by repeating the same request, is L4, not L1. Prompts to say more or expand are N5, or the content's own tag (C1 for a brainstorm). A next step that's illogical or lower priority: M.illogical_next_step or M.low_priority_next_step.
 L5. Clarifying questions: the clarifying-question tags by their definitions.`;

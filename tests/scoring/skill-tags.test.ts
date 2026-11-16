@@ -1,3 +1,4 @@
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { describe, expect, it } from 'vitest';
@@ -41,6 +42,16 @@ describe('tagging rules', () => {
       if (g.kind === 'needs_work') expect(g.quotes.length, g.id).toBeGreaterThan(0);
     }
     expect(new Set(golden.map(g => g.id)).size).toBe(golden.length);
+  });
+});
+
+// Frozen (Matt, 15 Nov): no golden label changes unless a rule changes, and
+// Matt is told when one does. A deliberate change updates this hash in the same commit.
+describe('golden set freeze', () => {
+  it('has the labels Matt froze', () => {
+    const golden = JSON.parse(fs.readFileSync('case-tagging/golden/golden.json', 'utf-8')) as { id: string; dimension: string | null; label: string | null }[];
+    const hash = crypto.createHash('sha256').update(JSON.stringify(golden.map(g => [g.id, g.dimension, g.label]))).digest('hex');
+    expect(hash).toBe('fa6f68e40f43e58fc44e623433e1c972aa4078ac84ea3f7de57cc210904b6673');
   });
 });
 

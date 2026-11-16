@@ -8,7 +8,7 @@
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod';
 import { z } from 'zod';
 import { anthropicClient } from '@/lib/anthropic-client';
-import { CASE_TAGGER_MODELS, type CaseTaggerModel } from '@/lib/models';
+import { CASE_TAGGER_CONFIGS, type CaseTaggerConfig, type CaseTaggerConfigName } from '@/lib/models';
 import type { OnUsage } from '@/lib/llm-usage';
 import { RUBRIC_DIMENSION_LABELS, RATING_LABELS, type RubricDimensionKey, type Rating } from './rubric';
 import { CASE_TAGS, TAGGING_RULES, definitionsBlock } from './skill-tag-rules';
@@ -60,16 +60,17 @@ export function pointsBlock(points: TagPoint[]): string {
 // One call for one report's points. Throws on a refusal, a missing or partial
 // answer, or an id that wasn't asked: the caller treats any of those as
 // "tagging failed" and the report stands without next steps.
-export async function tagPoints(points: TagPoint[], model: CaseTaggerModel, onUsage?: OnUsage): Promise<TagResult[]> {
+export async function tagPoints(points: TagPoint[], configName: CaseTaggerConfigName, onUsage?: OnUsage): Promise<TagResult[]> {
   if (points.length === 0) return [];
+  const { model, thinking, effort }: CaseTaggerConfig = CASE_TAGGER_CONFIGS[configName];
   const response = await anthropicClient({ maxRetries: 2 }).beta.messages.stream({
     model,
-    max_tokens: 8000,
-    thinking: CASE_TAGGER_MODELS[model].thinking,
+    max_tokens: thinking.type === 'adaptive' ? 16000 : 8000,
+    thinking,
     // The instructions, rules and definitions are the cached prefix.
     system: [{ type: 'text', text: TAGGER_SYSTEM, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: `<points>\n${pointsBlock(points)}\n</points>` }],
-    output_config: { format: OUTPUT_FORMAT },
+    output_config: { format: OUTPUT_FORMAT, ...(effort && { effort }) },
   }).finalMessage();
   onUsage?.({
     component: 'skill_tags', model, actualModel: response.model,

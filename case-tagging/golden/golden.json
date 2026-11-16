@@ -145,8 +145,9 @@
       "Yes. It is Macy.",
       "I'm not sure."
     ],
-    "label": "M.no_evidence_in_defense",
-    "rule": "L3"
+    "label": "M.missing_bucket",
+    "rule": "S4",
+    "ruling": "Matt 15 Nov (questions #11)"
   },
   {
     "id": "56b80c44-cff7-4808-84ea-34223e7af48c:structure:1",
@@ -220,8 +221,9 @@
     "quotes": [
       "I'd like to start with the revenue side. Do we have data on whether that 15% growth came from existing stores or from opening new locations"
     ],
-    "label": "M.ignores_facts",
-    "rule": "H3"
+    "label": null,
+    "rule": "N1",
+    "ruling": "Matt 15 Nov (questions #1)"
   },
   {
     "id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17:structure:1",
@@ -670,8 +672,9 @@
       "Definitely would buy: 30 million × 10% = 3 million households, and 20% of those actually buy, so 0.6 million.",
       "Total buying households: 0.6 + 3.6 = 4.2 million. At 3 bags each, that's 12.6 million bags."
     ],
-    "label": "M.wrong_data_point",
-    "rule": "Q1"
+    "label": "M.wrong_formula",
+    "rule": "Q1",
+    "ruling": "Matt 15 Nov (questions #8)"
   },
   {
     "id": "5e0e6942-5c82-421c-a343-52625cd12cfd:quantitative:1",
@@ -817,9 +820,9 @@
     "quotes": [
       "Even a 10% price increase on $480M is $48M"
     ],
-    "label": "M.unsupported_recommendation",
-    "rule": "R2",
-    "ruling": "recheck after Matt's rule changes, 15 Nov"
+    "label": null,
+    "rule": "N2",
+    "ruling": "Matt 15 Nov (questions #1)"
   },
   {
     "id": "0b9e1f49-d7ec-43cf-aafc-5fe3f8b6d2d4:quantitative:1",
@@ -1254,9 +1257,9 @@
       "Oh, it seems like twenty percent moved to the pro and then forty percent canceled.",
       "So, basically, when you go from forty dollars to sixty dollars, uh, you get fifty more pro sign ups and two hundred less starter sign ups."
     ],
-    "label": null,
-    "rule": "N5",
-    "ruling": "recheck after Matt's rule changes, 15 Nov"
+    "label": "M.misread_trend",
+    "rule": "X1",
+    "ruling": "Matt 15 Nov (questions #7)"
   },
   {
     "id": "087451cb-f530-4d78-a1be-c3ce3ff8922e:dataExhibit:2",
@@ -2111,9 +2114,9 @@
       "negotiate with suppliers on beans and dairy? Or longer-term contracts to lock in prices.",
       "look at the menu mix, pushing higher-margin drinks. And maybe portion or waste control"
     ],
-    "label": "M.too_few_ideas",
-    "rule": "C1",
-    "ruling": "recheck after Matt's rule changes, 15 Nov"
+    "label": null,
+    "rule": "N7",
+    "ruling": "Matt 15 Nov (questions #13)"
   },
   {
     "id": "8c4c1364-fe24-43cd-822c-3bd64a3f8b19:creativity:0",
@@ -2445,8 +2448,9 @@
     "quotes": [
       "I'll own that I anchored on input costs early and had to walk that back."
     ],
-    "label": "M.rambling",
-    "rule": "D1"
+    "label": null,
+    "rule": "N4",
+    "ruling": "Matt 15 Nov (questions #14)"
   },
   {
     "id": "f7635592-313a-449e-8266-9e0788497ebf:synthesis:0",
@@ -2490,8 +2494,9 @@
       "Recommendation: launch the chickpea line next spring, and fund the sampling program alongside it.",
       "The survey build gets us 9 million bags from 3 million converting households at 3 bags each."
     ],
-    "label": "M.rambling",
-    "rule": "D1"
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "recheck: N4 change (questions #14)"
   },
   {
     "id": "e2f773eb-fd2b-4d8b-ac8d-d0005ff8448c:synthesis:0",
@@ -3409,8 +3414,9 @@
       "Yes. It is Macy.",
       "I'm not sure."
     ],
-    "label": "M.no_evidence_in_defense",
-    "rule": "L3"
+    "label": "M.missing_bucket",
+    "rule": "S4",
+    "ruling": "recheck: L3 change (questions #11)"
   },
   {
     "id": "00456279-3a29-4919-bae5-30ab58c3ee38:pushback:0",
@@ -3611,8 +3617,9 @@
     "rating": null,
     "point": "When challenged on your structure, don't freeze. Test it aloud for mutual exclusivity and exhaustiveness, and check for a missing external lens (competitor pricing, input-market inflation, pricing power). Apply the same discipline later: never put a number like '6–8% recovers the gap' in front of the CEO until you have derived it out loud.",
     "quotes": [],
-    "label": "M.no_evidence_in_defense",
-    "rule": "L3"
+    "label": "M.missing_bucket",
+    "rule": "S4",
+    "ruling": "recheck: L3 change (questions #11)"
   },
   {
     "id": "fc5eb050-0f02-4f6a-a257-9ee1bc7ecf75:topFix",

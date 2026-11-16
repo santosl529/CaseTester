@@ -197,16 +197,23 @@ export const DRILL_GRADER_HY2_FOLLOWUP_MODEL: GraderModel = DRILL_GRADER_APPROVE
 
 // The case tagging step (case results → drills; Matt, 15 Nov, D1–D2): labels
 // each "needs work" point of a graded report with a drills mistake tag. The
-// model is the cheapest that passes the gate (scripts/case-tagging/gate.ts:
+// config is the cheapest that passes the gate (scripts/case-tagging/gate.ts:
 // ≥ 90% tag agreement in every dimension, ≤ 5% wrong skill overall); null
-// until one has. Thinking off on both, as for the drill grader; no server-side
+// until one has. Thinking off, as for the drill grader, except the thinking
+// config Matt asked for after two Sonnet runs failed (15 Nov). No server-side
 // fallback, which could re-run a request on a model the gate never passed.
-export type CaseTaggerModel = 'claude-haiku-5-5' | 'claude-sonnet-5-5';
-export const CASE_TAGGER_MODELS: Record<CaseTaggerModel, { thinking: { type: 'disabled' | 'between_tools' } }> = {
-  'claude-haiku-5-5': { thinking: { type: 'disabled' } },
-  'claude-sonnet-5-5': { thinking: { type: 'between_tools' } },
+export type CaseTaggerConfig = {
+  model: 'claude-haiku-5-5' | 'claude-sonnet-5-5';
+  thinking: { type: 'disabled' | 'between_tools' | 'adaptive' };
+  effort?: 'low' | 'medium' | 'high';
 };
-export const CASE_TAGGER_MODEL_ID: CaseTaggerModel | null = null;
+export const CASE_TAGGER_CONFIGS = {
+  'haiku55': { model: 'claude-haiku-5-5', thinking: { type: 'disabled' } },
+  'sonnet55': { model: 'claude-sonnet-5-5', thinking: { type: 'between_tools' } },
+  'sonnet55-thinking': { model: 'claude-sonnet-5-5', thinking: { type: 'adaptive' }, effort: 'medium' },
+} satisfies Record<string, CaseTaggerConfig>;
+export type CaseTaggerConfigName = keyof typeof CASE_TAGGER_CONFIGS;
+export const CASE_TAGGER_CONFIG: CaseTaggerConfigName | null = null;
 
 // The production deployment: Vercel's production environment (previews and
 // local builds aren't), or NODE_ENV=production off Vercel.
