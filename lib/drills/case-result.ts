@@ -31,6 +31,10 @@ export const CaseResultPayloadSchema = z.object({
     // Exact transcript quote; shown to the student in the prescription reason.
     evidence: z.string().trim().min(1),
   })),
+  // The candidate ended the case early (Rule 18A): findings count, but it never
+  // counts for readiness, and a skill validates only if its stage finished
+  // (Matt, 15 Nov, D9). Optional: payloads built before 0029 have none.
+  partial: z.boolean().optional(),
 }).superRefine((p, ctx) => {
   // "The drills service rejects payloads with tags not in the current taxonomy
   // file." Same for skills, and for a payload built against another version.

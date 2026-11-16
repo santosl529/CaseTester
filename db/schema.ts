@@ -497,7 +497,40 @@ export const caseResults = pgTable('case_results', {
   taxonomyVersion: text('taxonomy_version').notNull(),
   completedAt: timestamp('completed_at', { withTimezone: true }).notNull(),
   receivedAt: timestamp('received_at', { withTimezone: true }).notNull().defaultNow(),
+  // Case results → drills (migration 0029, Matt 15 Nov): a retake or a case ended
+  // early never counts for readiness or Validated; a backfilled row (ratings
+  // only, from a case graded before this shipped) has no findings and changed
+  // nothing; next_steps is the report's list as shown, fixed at grading (D5).
+  retake: boolean('retake').notNull().default(false),
+  partial: boolean('partial').notNull().default(false),
+  backfilled: boolean('backfilled').notNull().default(false),
+  nextSteps: jsonb('next_steps'),
 }, t => [index('case_results_student_idx').on(t.studentId, t.completedAt)]).enableRLS();
+
+// One row per graded case the case → drills step handled (migration 0029):
+// every tagged point (all groups, also those switched off), the payload it
+// built, a preview of the prescriptions it would make, and the reviewer's
+// labels (the shadow review page). In shadow mode this is all that's written;
+// when on, the payload also goes to drills (case_results). Server-only.
+export const caseResultRuns = pgTable('case_result_runs', {
+  sessionId: uuid('session_id').primaryKey().references(() => sessions.id, { onDelete: 'cascade' }),
+  studentId: uuid('student_id').notNull(),
+  caseId: text('case_id').notNull(),
+  // 'shadow' | 'on': the switch when the case was graded.
+  mode: text('mode').notNull(),
+  // 'built' (shadow: nothing sent), 'applied' (sent to drills), 'failed' (no tags: the report stands without next steps).
+  status: text('status').notNull(),
+  taggerConfig: text('tagger_config'),
+  // { judge: RunPoint[], checker: RunCheckerFinding[] } (lib/scoring/case-result-builder.ts).
+  points: jsonb('points').notNull().default(sql`'{}'::jsonb`),
+  payload: jsonb('payload'),
+  preview: jsonb('preview'),
+  labels: jsonb('labels').notNull().default(sql`'{}'::jsonb`),
+  costUsd: doublePrecision('cost_usd'),
+  error: text('error'),
+  createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
+  appliedAt: timestamp('applied_at', { withTimezone: true }),
+}, t => [index('case_result_runs_created_idx').on(t.createdAt), index('case_result_runs_student_idx').on(t.studentId)]).enableRLS();
 
 // ---------------------------------------------------------------------------
 // Drills D4: the training program (docs/prd-drills.md "Training program").
