@@ -1073,9 +1073,11 @@ A skill is Practiced after two consecutive Construct sets at 80% or higher, at t
 | Learning | Recognizes | 2 consecutive Recognize (Level 1) sets ≥ 80% on the skill, at T2 or above |
 | Learning or Recognizes | Practiced | 2 consecutive Construct sets ≥ 80% on the skill, at T2 or above (Defend included). From Learning this is the test-out |
 | Practiced | Mastered | Transfer check ≥ 80% |
-| Practiced | Recognizes | Transfer check below 60%, or a full case logs any of the skill's mistake tags |
+| Practiced | Recognizes | Transfer check below 60%, or full cases log the skill's mistake tags twice in a row (see Updating skill state from cases) |
 | Mastered | Validated | The next full case marks the skill as observed and logs none of its mistake tags. A retake (a case the student has finished before) can't validate: the student may remember it |
-| Mastered or Validated | Recognizes | A full case logs any of the skill's mistake tags, or a spaced review scores below 60% |
+| Validated | Mastered | A full case logs any of the skill's mistake tags (its review comes due at once) |
+| Mastered or Validated | Practiced | Full cases log the skill's mistake tags twice in a row (its transfer check comes due at once) |
+| Mastered or Validated | Recognizes | A spaced review scores below 60% |
 | Not started or Learning | Recognizes | Credit down: a skill that builds on this one reaches Mastered (see Skill tree) |
 
 Repair sets and lessons never change skill states.
@@ -1196,8 +1198,17 @@ This needs a `case_type` field on every case (the case schema's optional `caseTy
 
 ### Updating skill state from cases
 
-- Any finding on a Practiced, Mastered or Validated skill drops it to Recognizes.
-- A Mastered skill listed in `skills_observed` with no findings becomes Validated, unless the case is a retake. A case is a retake when the student finished the same case before (an earlier case result, or an earlier completed case session). Retakes still log findings, can drop a skill, and count toward weekly case targets.
+Rules approved by Matt on 2026-11-15 (decision D3 of the case results → drills proposal), replacing "any finding drops the skill to Recognizes". Built in step 3 of that work; until then the code applies the old rule. "Twice in a row" means the skill was also flagged in the previous case that was neither a retake nor ended early, and the current case isn't a retake or ended early either.
+
+| Before the case | One finding | Flagged twice in a row |
+| --- | --- | --- |
+| Validated | Back to Mastered; review due now | Down to Practiced; transfer check due now |
+| Mastered | Stays Mastered; review due now | Down to Practiced; transfer check due now |
+| Practiced | Stays Practiced; transfer check pushed back 2 days | Down to Recognizes |
+| Not started, Learning, Recognizes | Prescription only (Not started becomes Learning) | Prescription, +2 for the repeat |
+
+- "Review due now" puts the skill first in the next workout's review slot; the spaced review rules then decide (80% or more resets the clock, below 60% drops to Recognizes, otherwise another review in 7 days).
+- A Mastered skill listed in `skills_observed` with no findings becomes Validated, unless the case is a retake, ended early before the skill's stage finished, or rated the skill's dimension `needs_work`. A case is a retake when the student finished the same case before (an earlier case result, or an earlier completed case session). Retakes still log findings, can drop a skill, and count toward weekly case targets.
 - Rubric trends on the skill profile compare only cases in the same difficulty tier and appear after 2 or more such cases.
 
 ## Content system

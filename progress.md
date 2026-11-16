@@ -950,3 +950,10 @@ Matt's request, proposal approved with decisions: case data option B behind `rul
 - Policy statements the code doesn't meet yet (sent to Matt): voice consent (checkbox, per-session notice, stored record); Deepgram MIP opt-out; 12-month inactivity and 90-day flagged-session deletion; *Report a problem* only on drills; no club-leader results view.
 - Also seen (main, unrelated): homepage 25 px sideways scroll at 320 px (loop diagram label), 3 px (sticky header button).
 - Earlier the same day: a merge of main into `design/unify-ui` was made locally and undone at Matt's word ("don't merge anything"); recoverable at 43ee24c9.
+
+## Case results → drills (2026-11-15, Matt's brief; branch `drill-update` from main bededf02)
+
+- Proposal (current state, design, mockup, Lorenzo's list, cost, risks, build order, decisions D1–D14): https://claude.ai/artifact/7KpWQiVo2PbgjLC8fAuemz. Found: a graded case sends drills nothing; the drills side (payload schema, ingest, prescriptions, next case, readiness) is built on fixtures; the judge's "needs work" points are free text; 7 skills have no live drill (4 rubric dimensions have none) and 6 have no lesson; only prof-001 has a `caseType`.
+- Matt's rulings, 15 Nov: all approved (PRD §16, 15 Nov). Gate for the tagging step: ≥ 90% tag agreement per dimension and ≤ 5% wrong-skill overall; golden set labelled by the written rules, cross-checked by a second model, disagreements to Matt. Shadow first (20 real reports read by Matt or 2 weeks), with a shadow review page. Wording edits: US spelling, drill lines "[drill card name] · Level 2 · about 10 min", "done" only when it updates from drill results.
+- Drills PRD: case skill-state rules replaced (D3) in "Skill states and transitions" and "Updating skill state from cases"; code follows in step 3.
+- Next: step 1 — tagging rules, golden set, gate (paid runs only after Matt's go on the cost).
