@@ -14,14 +14,14 @@ import { inProgressSet } from '../sets/service';
 import { DIAGNOSTIC_PARTS, diagnosticView } from './diagnostic-store';
 import { hasSeenLesson, introLesson, lessonForSkill } from './lessons-store';
 import { INTRO_LESSON_ID } from '../lessons';
-import { blockFor, buildWorkout, missedMilestoneSkills, planPrescriptionSkill, quickSetMinutes, rankPrescriptions, weekMilestoneSkills, type OpenPrescription, type WorkoutBlock } from './workout';
+import { blockFor, buildWorkout, planPrescriptionSkill, quickSetMinutes, type OpenPrescription, type WorkoutBlock } from './workout';
 import { buildPlan, daysBetween, localDate } from './plan';
 import { pendingChecks, planFromCase, type PlanSource } from './plan-source';
 import { healDiagnostic } from '../grading/jobs';
 import { isFirstWeek } from '../today-page';
 import { isLiveDrill } from '../live';
 import {
-  activeProgram, nextCaseFor, noteWeekRollover, openRx, programView, studentToday, todayWorkout, weekStatus,
+  activeProgram, nextCaseFor, noteWeekRollover, programView, sharedRanking, studentToday, todayWorkout, weekStatus,
   workoutWithStatus,
   diagnosticReoffer, extraWorkout,
 } from './store';
@@ -34,8 +34,8 @@ const DAY = 86_400_000;
 // prescription's reason. `practice_minutes`: how long a quick-start set on the
 // skill runs, as the set service would pick it; null when it has no live
 // drill. None open: no quick fix. Read only.
-async function quickFixSkill(studentId: string, ranked: { rx: OpenPrescription }[], covered: Set<string>) {
-  const pick = ranked.map(r => r.rx).find(rx => !covered.has(rx.skill_id));
+async function quickFixSkill(studentId: string, ranked: OpenPrescription[], covered: Set<string>) {
+  const pick = ranked.find(rx => !covered.has(rx.skill_id));
   if (!pick) return null;
   const skillId = pick.skill_id;
   let practiceMinutes: number | null = null;
@@ -50,12 +50,6 @@ async function quickFixSkill(studentId: string, ranked: { rx: OpenPrescription }
   return { skill_id: skillId, skill_name: getSkill(skillId).name, reason: pick.reason, practice_minutes: practiceMinutes };
 }
 
-// The shared ranking for a student now: the plan week's focus, missed and unmet milestones (none on Practice on my own).
-async function rankedFor(studentId: string, view: Awaited<ReturnType<typeof programView>>, progress: Awaited<ReturnType<typeof loadProgress>>) {
-  const weeks = view?.plan.kind === 'weeks' ? view.plan.weeks : null;
-  const week = view?.week ?? null;
-  return rankPrescriptions(await openRx(db, studentId), week, weeks ? missedMilestoneSkills(week, weeks, progress) : [], weeks ? weekMilestoneSkills(week, weeks, progress) : []);
-}
 
 export async function homeView(studentId: string, now = new Date()) {
   if (!(await activeProgram(db, studentId))) return { kind: 'onboarding' as const };
@@ -78,7 +72,7 @@ export async function homeView(studentId: string, now = new Date()) {
     program.startedAt, now);
   const progress = await loadProgress(db, studentId);
   if (program.track === 'self_directed') {
-    const weakest = await quickFixSkill(studentId, await rankedFor(studentId, view, progress), new Set());
+    const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), new Set());
     return { kind: 'self_directed' as const, resume, weakest, diagnostic, plan, first_week: firstWeek, ...(await selfDirected(studentId, profile, view!, now)) };
   }
 
@@ -93,7 +87,7 @@ export async function homeView(studentId: string, now = new Date()) {
   const workoutRow = await todayWorkout(studentId, now);
   const workout = workoutRow ? await workoutWithStatus(workoutRow) : null;
   const covered = new Set((workout?.blocks ?? []).filter(b => b.status === 'todo' || b.status === 'in_progress').map(b => b.skill_id));
-  const weakest = await quickFixSkill(studentId, await rankedFor(studentId, view, progress), covered);
+  const weakest = await quickFixSkill(studentId, await sharedRanking(studentId, now), covered);
   // Foundations: the lesson opens before the first set of each skill.
   const nextBlock = workout?.blocks.find(b => b.status === 'todo');
   let lessonFirst = false;

@@ -22,7 +22,7 @@ import {
   type PlanWeek, type Track,
 } from './plan';
 import {
-  buildWorkout, missedMilestoneSkills, planPrescriptionSkill, planReason, weekMilestones, weekMilestoneSkills, type OpenPrescription,
+  buildWorkout, missedMilestoneSkills, planPrescriptionSkill, planReason, rankPrescriptions, weekMilestones, weekMilestoneSkills, type OpenPrescription,
   type WorkoutBlock,
 } from './workout';
 import { caseLibrary, mostPracticedArea, pickNextCase, type NextCase } from './next-case';
@@ -275,6 +275,19 @@ export async function extraWorkout(studentId: string, now = new Date()): Promise
     time_multiplier: settings?.m ?? 1, ctx: await progressContext(db, studentId, now), checks: await pendingChecks(studentId),
   });
   return workout.blocks;
+}
+
+// The shared ranking for a student now (Matt, 15 Nov, D6–D7): open
+// prescriptions in rankPrescriptions order — the plan week's focus, missed and
+// unmet milestones (none on Practice on my own). Today's quick fix, Learn's
+// For you and a case report's next steps all read it, and the workout and
+// Your progress's Focus areas use the same function, so they never disagree.
+export async function sharedRanking(studentId: string, now = new Date()): Promise<OpenPrescription[]> {
+  const [view, progress] = await Promise.all([programView(studentId, now), loadProgress(db, studentId)]);
+  const weeks = view?.plan.kind === 'weeks' ? view.plan.weeks : null;
+  const week = view?.week ?? null;
+  return rankPrescriptions(await openRx(db, studentId), week, weeks ? missedMilestoneSkills(week, weeks, progress) : [], weeks ? weekMilestoneSkills(week, weeks, progress) : [])
+    .map(r => r.rx);
 }
 
 // A case result arrived (Matt, 15 Nov): today's workout reflects it straight

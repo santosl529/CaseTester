@@ -54,18 +54,18 @@ describe('Your plan', () => {
 
 describe('Learn: For you this week', () => {
   const available = new Set(['QN.arithmetic', 'EX.takeaway', 'HY.form', 'PS.mece', 'SY.answer_first']);
-  it('leads with the weakest skill, then the week, unread first, at most three', () => {
-    const out = forYouLessons({ available, read: new Set(['EX.takeaway']), weekSkills: ['EX.takeaway', 'HY.form', 'PS.mece', 'SY.answer_first'], weakest: 'QN.arithmetic' });
-    expect(out).toEqual([{ skill_id: 'QN.arithmetic', reason: 'weakest' }, { skill_id: 'HY.form', reason: 'week' }, { skill_id: 'PS.mece', reason: 'week' }]);
-    expect(FOR_YOU_REASON.weakest).toBeTruthy();
+  it('leads with the shared ranking (at most two, read or not), then the week, unread first, at most three (Matt, 15 Nov)', () => {
+    const out = forYouLessons({ available, read: new Set(['EX.takeaway']), weekSkills: ['EX.takeaway', 'HY.form', 'PS.mece', 'SY.answer_first'], ranked: ['QN.arithmetic', 'CR.ideas', 'SY.answer_first', 'PS.mece'] });
+    expect(out).toEqual([{ skill_id: 'QN.arithmetic', reason: 'top' }, { skill_id: 'SY.answer_first', reason: 'ranked' }, { skill_id: 'HY.form', reason: 'week' }]);
+    expect(FOR_YOU_REASON.top).toBeTruthy();
   });
   it('leaves out skills with no lesson, and repeats none', () => {
-    const out = forYouLessons({ available, read: new Set(), weekSkills: ['QN.arithmetic', 'CR.ideas', 'HY.form', 'HY.form'], weakest: 'QN.arithmetic' });
+    const out = forYouLessons({ available, read: new Set(), weekSkills: ['QN.arithmetic', 'CR.ideas', 'HY.form', 'HY.form'], ranked: ['QN.arithmetic'] });
     expect(out.map(o => o.skill_id)).toEqual(['QN.arithmetic', 'HY.form']);
   });
-  it('is empty with no plan week and no weakest skill (the section is hidden)', () => {
-    expect(forYouLessons({ available, read: new Set(), weekSkills: [], weakest: null })).toEqual([]);
-    expect(forYouLessons({ available, read: new Set(), weekSkills: [], weakest: 'CR.ideas' })).toEqual([]);
+  it('is empty with no plan week and nothing ranked with a lesson (the section is hidden)', () => {
+    expect(forYouLessons({ available, read: new Set(), weekSkills: [], ranked: [] })).toEqual([]);
+    expect(forYouLessons({ available, read: new Set(), weekSkills: [], ranked: ['CR.ideas'] })).toEqual([]);
   });
 });
 
