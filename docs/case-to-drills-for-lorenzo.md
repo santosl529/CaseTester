@@ -58,7 +58,7 @@ To turn it off: set `CASE_TO_DRILLS=off` (or remove it) and redeploy. No code ch
 
 ## On `drill-update` only (not in `case-drills-shadow`; for a later merge)
 
-7. **The report page** (`app/case/[sessionId]/report/page.tsx`, `components/views/report.tsx`) gets two sections, only when `CASE_TO_DRILLS=on`: "Since your last [level] case" after Top improvement, and "Your next steps" before the survey and the transcript. They read the case product's `sessions` and `scores` (read-only) and drills tables. A failure there is caught: the report shows as today. The 7-minute demo's report shows neither section; a report graded before the switch went on shows the comparison (from stored ratings) but no next steps.
+7. **The report page** (`app/case/[sessionId]/report/page.tsx`, `components/views/report.tsx`) gets two sections, only when `CASE_TO_DRILLS=on`: "Since your last [level] case" after Top improvement, and "Your next steps" before the survey and the transcript. They read the case product's `sessions` and `scores` (read-only) and drills tables. A failure there is caught: the report shows as today. The 7-minute demo's report shows one line instead, "Take a full case to get your next steps." with a link to Cases; a report graded before the switch went on shows the comparison (from stored ratings) but no next steps.
 8. **A Try again route** (`POST /api/case/[sessionId]/next-steps`, the owner only): when the tagging step failed, it re-runs only that step on what scoring stored (`storedCaseResultInput` in `score-session.ts`, read-only, no grading call), at most once per failure.
 9. Today's quick fix, Learn's For you and the prescription reasons change wording (drills only).
 

@@ -23,6 +23,8 @@ export type Strength = { label: string; text: string; quote: string | null };
 export type NextStepsView =
   | { state: 'preparing' }
   | { state: 'failed' }
+  // The 7-minute demo makes no case result (D10): one line pointing to a full case (Matt, 16 Nov).
+  | { state: 'demo' }
   | {
     state: 'ready'; caseAttemptId: string; snapshot: NextStepsSnapshot; done: string[]; ready: boolean; minutes: number;
     nextCase: { title: string; difficulty: string } | 'all_taken' | null; strengths: Strength[];
@@ -41,9 +43,10 @@ export function strengthsOf(rubric: RubricScores): Strength[] {
     });
 }
 
-// `scoredAt`: when the report's score was stored. The 7-minute demo makes no case result (D10): nothing.
+// `scoredAt`: when the report's score was stored.
 export async function reportDrillsView(studentId: string, sessionId: string, rubric: RubricScores | null, ctx: { caseId: string; scoredAt: Date | null }, now = new Date()): Promise<ReportDrillsView | null> {
-  if (caseToDrillsMode() !== 'on' || HOME_DEMO_CASE_IDS.includes(ctx.caseId)) return null;
+  if (caseToDrillsMode() !== 'on') return null;
+  if (HOME_DEMO_CASE_IDS.includes(ctx.caseId)) return { comparison: null, nextSteps: { state: 'demo' } };
   const found = await comparisonFor(studentId, sessionId);
   let previousTitle = '';
   if (found) { try { previousTitle = getCaseById(found.previous.caseId).title; } catch { previousTitle = 'your last case'; } }

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { StartSetButton } from '@/components/drills/start-set-button';
 import { TrackedLink } from '@/components/tracked-link';
 import { PrepareNextSteps } from '@/components/prepare-next-steps';
@@ -17,6 +18,12 @@ function Quote({ text, onPaper = false }: { text: string; onPaper?: boolean }) {
 }
 
 export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessionId: string }) {
+  if (view.state === 'demo') {
+    return (
+      <p className="t-body">Take a full case to get your next steps.{' '}
+        <Link href="/home#cases" className="font-semibold text-cobalt underline-offset-4 hover:underline">Go to cases</Link></p>
+    );
+  }
   if (view.state !== 'ready') {
     return (
       <section aria-labelledby="next-steps" className="space-y-3">

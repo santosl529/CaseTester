@@ -95,6 +95,7 @@ Use VoiceOver (macOS: Cmd+F5) in Safari, and do one full set of PS-1, EX-1 and C
   - VO+Right through the first skill. You should hear the list position ("1 of 3"), the skill name, the "why" line, and then the quote. The quote should come after the "why" line, not before it.
   - Tab through the section. Each practice button should be read with its skill and time, for example "Start practice: MECE structure, about 10 minutes, button", not just "Start practice". Each lesson link should be read as "Read the lesson · 3 min, link". Write down whether "Read the lesson" is clear without its skill when you Tab to it.
   - Under **Before your next case**, each line should end with "(to do)" or "(done)". Pass one of the sets, then come back to the report: that line should now be read as "passed a set (done)". Nothing is announced while you're away; the tick shows the next time the page loads.
+  - On the 7-minute demo's report, the section is one line: "Take a full case to get your next steps.", then **Go to cases** as a link.
   - The next case should be read after the checklist: "When all three are done, try" (or "When both are done", "When it is done"), then the case and its level, then **Go to cases** as a link. Once every set is passed, the first line should change to "You're ready for your next case:".
 - [ ] **Case report: the comparison with your last case** (take two Easy cases first). It sits above Your next steps.
   - The heading should name the last case's level ("Since your last Easy case"). On a retake it should say "Last time on this case".

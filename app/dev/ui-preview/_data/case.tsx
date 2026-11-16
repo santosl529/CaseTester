@@ -192,4 +192,5 @@ export const CASE_SCREENS: Screen[] = [
   reportWith('report-next-steps-retake', 'Feedback report: a retake, compared with the last attempt', { comparison: { ...COMPARISON, kind: 'same_case', previousTitle: 'Hollis Bay Snacks New Product Launch' }, nextSteps: ready(SNAPSHOT, { done: [] }) }),
   reportWith('report-next-steps-preparing', 'Feedback report: next steps being prepared', { comparison: COMPARISON, nextSteps: { state: 'preparing' } }),
   reportWith('report-next-steps-failed', 'Feedback report: next steps failed, Try again', { comparison: null, nextSteps: { state: 'failed' } }),
+  reportWith('report-next-steps-demo', 'Feedback report: the 7-minute demo (no next steps)', { comparison: null, nextSteps: { state: 'demo' } }),
 ];
