@@ -2,9 +2,12 @@
 // the golden set (case-tagging/golden/golden.json) with one config and reports
 // tag agreement per dimension (≥ 90% each, the top improvement included) and
 // the wrong-skill rate (≤ 5% overall). One call per report, as at grading.
+// --with-shadow adds the real shadow-mode points Matt has labelled on the shadow
+// review page (case_result_runs.labels): a switched-off group goes on only after
+// its gate passes with them (Matt, 15 Nov). Read-only on the database.
 // Costs real money: ask Matt first. Stops before a call that would pass --cap.
 //
-//   npx tsx --conditions=react-server --env-file=../../../.env.local scripts/case-tagging/gate.ts --config haiku55 [--cap 2] [--save case-tagging/runs/haiku.json]
+//   npx tsx --conditions=react-server --env-file=../../../.env.local scripts/case-tagging/gate.ts --config haiku55 [--cap 2] [--with-shadow] [--save case-tagging/runs/haiku.json]
 import fs from 'fs';
 import path from 'path';
 import { CASE_TAGGER_CONFIGS, type CaseTaggerConfigName } from '@/lib/models';
@@ -13,6 +16,7 @@ import type { LlmUsage } from '@/lib/llm-usage';
 import { tagPoints, type TagPoint, type TagResult } from '@/lib/scoring/skill-tags';
 import { gateResult, isWrongSkill, GATE_AGREEMENT, GATE_WRONG_SKILL } from '@/lib/scoring/skill-tag-gate';
 import type { RubricDimensionKey } from '@/lib/scoring/rubric';
+import type { RunPoint } from '@/lib/scoring/case-result-builder';
 
 const arg = (name: string) => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : null);
 const requested = arg('--config');
@@ -25,8 +29,29 @@ const CONCURRENCY = 4;
 
 type Golden = TagPoint & { session_id: string; kind: string; label: string | null; rule: string };
 
+// Labelled shadow points, as golden points (rule: "shadow").
+async function shadowPoints(): Promise<Golden[]> {
+  const { db } = await import('@/db/client');
+  const { caseResultRuns } = await import('@/db/schema');
+  const rows = await db.select({ sessionId: caseResultRuns.sessionId, points: caseResultRuns.points, labels: caseResultRuns.labels }).from(caseResultRuns);
+  return rows.flatMap(r => {
+    const labels = r.labels as Record<string, string | null>;
+    const judge = (r.points as { judge?: RunPoint[] }).judge ?? [];
+    return judge.filter(p => p.id in labels).map(p => ({
+      id: `${r.sessionId}:${p.id}`, session_id: r.sessionId, kind: p.group === 'topFix' ? 'top_fix' : 'needs_work',
+      dimension: p.group === 'topFix' ? null : p.group as RubricDimensionKey, rating: p.rating, point: p.point, quotes: p.quotes,
+      label: labels[p.id], rule: 'shadow',
+    }));
+  });
+}
+
 async function main() {
   const golden = JSON.parse(fs.readFileSync('case-tagging/golden/golden.json', 'utf-8')) as Golden[];
+  if (process.argv.includes('--with-shadow')) {
+    const shadow = await shadowPoints();
+    console.log(`with ${shadow.length} labelled shadow points`);
+    golden.push(...shadow);
+  }
   const bySession = new Map<string, Golden[]>();
   for (const g of golden) bySession.set(g.session_id, [...(bySession.get(g.session_id) ?? []), g]);
   const reports = [...bySession.values()];
