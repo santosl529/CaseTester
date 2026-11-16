@@ -113,7 +113,7 @@ export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessio
               </li>
             ))}
           </ul>
-          <p className="t-small text-ink/70">About {view.minutes} minutes, with the lessons.</p>
+          <p className="t-small text-ink/70">About {view.minutes} minutes, with the lessons. Your daily workouts mix these with this week’s plan.</p>
           {nextCase && <div className="space-y-1 rounded-window bg-sky/60 p-3">{nextCase}{goToCases}</div>}
         </div>
       )}

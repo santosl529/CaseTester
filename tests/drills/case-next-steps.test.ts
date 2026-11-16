@@ -24,6 +24,8 @@ describe('Your next steps on the report (Matt, 15 Nov)', () => {
     expect(h).toContain('Arithmetic: passed a set');
     expect(h).toContain('MECE structure: pass one set');
     expect(h).toContain('When both are done, try');
+    // The fixed line in place of the unbuilt “Today’s workout starts with…” (Matt, 16 Nov).
+    expect(h).toContain('Your daily workouts mix these with this week’s plan.');
   });
   it('makes only the first Start practice the primary button, each named with its skill and time', () => {
     const h = html(view());
