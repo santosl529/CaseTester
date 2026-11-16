@@ -111,10 +111,10 @@ G5. A top improvement (no dimension, no quotes): tag the first fix it asks for, 
 
 NO TAG ("none") — when these are the only mistakes the point names
 N1. Not restating the objective or the client's question.
-N2. An analysis never done or left unfinished (never sized, converted, compared, quantified or read in full) when no wrong number was stated. A number that was stated: the math rules, or R2 in the recommendation.
+N2. An analysis never done or left unfinished (never sized, converted, compared, quantified or read in full), only when no figure was stated wrongly or on the wrong base and no conclusion rests on the missing analysis. Correct figures on the way to the unfinished analysis don't stop N2. Otherwise: a stated figure on the wrong base is Q1 (M.wrong_base) even if the conversion was "never done"; a lever ruled in or out without sizing when a case fact makes it decisive is J1; an impact asserted without numbers in the recommendation is R2.
 N3. Ideas not ranked or prioritized.
 N4. Tone, conduct and composure: dismissive or combative remarks, asking for scores or to end the case, stepping away, self-doubt said aloud, false precision, an imprecise label. (If the point says it added filler or length, see D1.)
-N5. Answers too short or clipped, or no signposting.
+N5. Answers too short or clipped, no signposting, or the interviewer having to prompt for more or ask the candidate to expand (unless the content has its own tag, such as C1 for a brainstorm).
 N6. Statements that contradict each other, when nothing else in the point has a tag.
 N7. Ideas that are conventional or not non-obvious, when there are at least 4 from more than one area.
 
@@ -129,7 +129,7 @@ HYPOTHESIS AND REASONING
 H1. A cause or conclusion stated as settled before the data: M.overconfident_hypothesis. A recommendation or fix committed to before the data that decides it: M.premature_solution.
 H2. During the analysis, keeping an earlier view of the cause after the data or the candidate's own math showed otherwise: M.sticky_hypothesis. Dropping a view the data supported: M.dropped_supported_hypothesis.
 H3. A priority, premise or cause that uses no case fact (gut feel, generic industry priors) or that the case facts contradict: M.ignores_facts.
-H4. A claim about the data or the business that the case doesn't support, stated as fact: an inference that doesn't follow, an unconfirmed assumption used as a reason, describing an exhibit not yet seen: M.unsupported_claim. When the claim is a reason given for the recommendation, use R2.
+H4. A claim about the data or the business that the case doesn't support, stated as fact: an inference that doesn't follow, an unconfirmed assumption used as a reason, describing an exhibit not yet seen: M.unsupported_claim. A claim given as a reason for the recommendation, or leading the recommendation's argument, is R2, not H4.
 
 MATH
 Q1. Use the tag whose definition fits the error:
@@ -142,7 +142,7 @@ Q1. Use the tag whose definition fits the error:
   - M.wrong_formula: the right numbers in the wrong method, or the wrong quantity (revenue break-even for profit break-even, fixed costs treated as variable, the wrong margin, dividing by seats for a fare).
   - M.missing_term: a term left out (extras, a cost line, a forgone contribution).
   - M.unreasonable_assumption: an assumption with no basis or far off, a figure borrowed from another context, survey shares used as conversion or loss rates.
-  - M.wrong_data_point: a figure misread or taken from the wrong row, column or year, or a figure kept in use after it was corrected.
+  - M.wrong_data_point: a figure misread or taken from the wrong row, column or year. (A figure kept in use after a correction is L1.)
 Q2. Presenting a result a quick check would show is wrong, or the point is that errors surfaced only through the interviewer's probes rather than the candidate's own checks: M.implausible_accepted.
 
 EXHIBITS
@@ -167,8 +167,8 @@ D1. Long, meandering or bottom-up answers (the point last), filler, apologies, a
 D2. Long lists of data requests, turn after turn: M.laundry_list. A request or next step that names no measure: M.vague_data_request.
 
 CASE LEADERSHIP AND PUSHBACK
-L1. Held a wrong position or figure, or kept a flawed method, after a valid challenge, hint or correction (including feedback acknowledged but not applied, and hints that a figure was wrong): M.ignored_valid_pushback.
+L1. Held their position or kept doing the same thing after a valid challenge, hint or correction (a wrong figure or method kept, feedback acknowledged but not applied, hints that a figure was wrong): M.ignored_valid_pushback. If the candidate accepted the correction and fixed it, but the same kind of error came back later, tag the underlying mistake instead.
 L2. Gave up a correct position after a challenge: M.caved_to_invalid_pushback.
 L3. Under a challenge, no reasoned answer (froze, "I'm not sure", a bare "yes"): M.no_evidence_in_defense. Sidestepped the challenge by asking something else or answering another question: M.dodged_question.
-L4. Passive: stopped driving, handed direction back to the interviewer, needed hints or prompts to move on: M.waited_for_interviewer. A next step that's illogical or lower priority: M.illogical_next_step or M.low_priority_next_step.
+L4. Passive: stopped driving, handed direction back to the interviewer, or needed prompts or hints to move the case forward: M.waited_for_interviewer. Prompts to say more or expand are N5, or the content's own tag (C1 for a brainstorm). A next step that's illogical or lower priority: M.illogical_next_step or M.low_priority_next_step.
 L5. Clarifying questions: the clarifying-question tags by their definitions.`;

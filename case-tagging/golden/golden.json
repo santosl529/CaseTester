@@ -619,8 +619,9 @@
     "quotes": [
       "Port Avery revenue went from $46.8M to $33.6M on that alone."
     ],
-    "label": "M.wrong_data_point",
-    "rule": "Q1"
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1",
+    "ruling": "recheck after Matt's rule changes, 15 Nov"
   },
   {
     "id": "50902b9f-5065-436d-95b5-92c81d906745:quantitative:0",
@@ -649,8 +650,9 @@
     "quotes": [
       "That 38% is the hole I'd size the pricing action against — the 16 points on the P&L is only what survived after 15% revenue growth absorbed part of it, so their true exposure is larger than the headline."
     ],
-    "label": null,
-    "rule": "N2"
+    "label": "M.wrong_base",
+    "rule": "Q1",
+    "ruling": "Matt 15 Nov (cross-check #1)"
   },
   {
     "id": "a14ca044-aa10-4611-a5ea-d706c3614dad:quantitative:1",
@@ -811,8 +813,9 @@
     "quotes": [
       "Even a 10% price increase on $480M is $48M"
     ],
-    "label": null,
-    "rule": "N2"
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "recheck after Matt's rule changes, 15 Nov"
   },
   {
     "id": "0b9e1f49-d7ec-43cf-aafc-5fe3f8b6d2d4:quantitative:1",
@@ -971,8 +974,9 @@
       "64% cite once-daily oral versus 58% citing coverage and 41% no local support.",
       "so 20% is plausible with the right partner and at risk without one."
     ],
-    "label": "M.missed_footnote",
-    "rule": "X2"
+    "label": null,
+    "rule": "N5",
+    "ruling": "Matt 15 Nov (cross-check #2)"
   },
   {
     "id": "34eb553a-5f8d-4f5f-8e0f-3532cfe52c01:dataExhibit:0",
@@ -1031,8 +1035,9 @@
       "which supports the partnering recommendation rather than the 20% itself",
       "Convenience pull is real, but the top two barriers — access at 58% and no local support at 41% — are both fixable by a US partner, which supports the partnering recommendation rather than the 20% itself; I'd use it to pressure-test share in diligence."
     ],
-    "label": "M.no_implication",
-    "rule": "X3"
+    "label": "M.implication_off_objective",
+    "rule": "X3",
+    "ruling": "Matt 15 Nov (cross-check #16)"
   },
   {
     "id": "03201cc4-0456-4288-ae35-762a8a4812c6:dataExhibit:1",
@@ -1106,8 +1111,9 @@
       "Starter LTV stays $405.",
       "Starter loses 40% to cancellation in year one, but another 20% upgrades to Pro, so only 40% are still paying $40."
     ],
-    "label": "M.wrong_data_point",
-    "rule": "X1"
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1",
+    "ruling": "Matt 15 Nov (cross-check #3)"
   },
   {
     "id": "1c8ef4cb-1f16-4158-b84b-aa7bc0fc781c:dataExhibit:1",
@@ -1244,7 +1250,8 @@
       "So, basically, when you go from forty dollars to sixty dollars, uh, you get fifty more pro sign ups and two hundred less starter sign ups."
     ],
     "label": null,
-    "rule": "N2"
+    "rule": "N5",
+    "ruling": "recheck after Matt's rule changes, 15 Nov"
   },
   {
     "id": "087451cb-f530-4d78-a1be-c3ce3ff8922e:dataExhibit:2",
@@ -1615,8 +1622,9 @@
     "quotes": [
       "Even at zero upgrades, $60 clears the board's rule, and shutting it down forfeits 850 incremental customers a month in a segment Pro's $1,200 sales motion can't profitably reach."
     ],
-    "label": "M.unsupported_claim",
-    "rule": "H4"
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "Matt 15 Nov (cross-check #4)"
   },
   {
     "id": "6f57da6e-85c2-47a9-b9e5-f3febacf2587:judgment:2",
@@ -2097,8 +2105,9 @@
       "negotiate with suppliers on beans and dairy? Or longer-term contracts to lock in prices.",
       "look at the menu mix, pushing higher-margin drinks. And maybe portion or waste control"
     ],
-    "label": "M.waited_for_interviewer",
-    "rule": "L4"
+    "label": "M.too_few_ideas",
+    "rule": "C1",
+    "ruling": "recheck after Matt's rule changes, 15 Nov"
   },
   {
     "id": "8c4c1364-fe24-43cd-822c-3bd64a3f8b19:creativity:0",
@@ -2213,7 +2222,8 @@
       "sourcing plus waste control and a mix shift toward food should push it higher."
     ],
     "label": "M.unsupported_recommendation",
-    "rule": "R2"
+    "rule": "R2",
+    "ruling": "Matt 15 Nov (cross-check #5)"
   },
   {
     "id": "8cd9c36f-ef1c-4133-89c2-4d6612e6e2ee:synthesis:0",
@@ -2574,8 +2584,9 @@
     "quotes": [
       "beans alone up 40%, worth about 4 points"
     ],
-    "label": "M.unsupported_recommendation",
-    "rule": "R2"
+    "label": null,
+    "rule": "N4",
+    "ruling": "Matt 15 Nov (cross-check #6)"
   },
   {
     "id": "13b37c6c-d7eb-48f5-ad96-7ab8986c3f56:synthesis:0",
@@ -2676,7 +2687,8 @@
       "Profit is a function of revenue and cost."
     ],
     "label": null,
-    "rule": "N5"
+    "rule": "N5",
+    "ruling": "Matt 15 Nov (cross-check #7)"
   },
   {
     "id": "442e37ff-0f60-45b2-8e5c-fc64f3964de0:communication:0",
@@ -3044,8 +3056,9 @@
       "The structure is basically implied by that: revenue levers, cost levers, and the fare is the one that moves.",
       "let me say upfront what I expect it to show, so we can test me."
     ],
-    "label": "M.overconfident_hypothesis",
-    "rule": "H1"
+    "label": "M.premature_solution",
+    "rule": "S2",
+    "ruling": "Matt 15 Nov (cross-check #8)"
   },
   {
     "id": "18c69d7b-86a1-4df3-8c15-cd0be05b69ad:communication:0",
@@ -3091,7 +3104,8 @@
       "I'm stuck, sorry. Not without a more detailed COGS breakdown."
     ],
     "label": "M.waited_for_interviewer",
-    "rule": "L4"
+    "rule": "L4",
+    "ruling": "Matt 15 Nov (cross-check #9)"
   },
   {
     "id": "5a1ae7f5-5739-42ea-be68-06916b356049:pushback:1",
@@ -3297,8 +3311,9 @@
       "Sampling in-store to beat the taste objection, and a multi-pack or repeat-purchase coupon to drive the second buy.",
       "My recommendation would hinge on whether that intent math clears 2 million households."
     ],
-    "label": "M.waited_for_interviewer",
-    "rule": "L4"
+    "label": "M.too_few_ideas",
+    "rule": "C1",
+    "ruling": "Matt 15 Nov (cross-check #10)"
   },
   {
     "id": "6f57da6e-85c2-47a9-b9e5-f3febacf2587:pushback:0",
@@ -3314,7 +3329,8 @@
       "Fair — I quoted B's market-level sales, not what Aldermoor keeps."
     ],
     "label": "M.wrong_base",
-    "rule": "Q1"
+    "rule": "Q1",
+    "ruling": "Matt 15 Nov (cross-check #11)"
   },
   {
     "id": "bb24a239-e478-4ef3-b2b6-1d0044f249be:pushback:0",
@@ -3540,8 +3556,9 @@
       "To populate that, could I get: one, COGS as a percent of revenue by year.",
       "Could I get: one, the dollar revenue base."
     ],
-    "label": "M.laundry_list",
-    "rule": "D2"
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1",
+    "ruling": "Matt 15 Nov (cross-check #12)"
   },
   {
     "id": "5b06e386-e913-496c-bab8-29fcf499c847:topFix",
@@ -3636,8 +3653,9 @@
     "rating": null,
     "point": "Size every lever against the gap before ruling one in or out. Two years of flat prices against roughly 38% input inflation makes pricing an obvious lever. A 10% price increase alone moves margin from about 6% to about 14.5%, while closing 16 points through cost alone would require cutting input cost per revenue dollar by about 28%. Run that comparison out loud before committing to a recommendation.",
     "quotes": [],
-    "label": null,
-    "rule": "N2"
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1",
+    "ruling": "Matt 15 Nov (cross-check #13)"
   },
   {
     "id": "cdaa9c6c-4a32-4255-8990-c0fe6263838d:topFix",
@@ -3708,8 +3726,9 @@
     "rating": null,
     "point": "Reconcile the pricing magnitude: the ~38% figure restores margin on its own, so size the required price increase net of procurement gains and elasticity rather than stacking a phased 15%+15% that neither sums to 38% nor accounts for the COGS clawback.",
     "quotes": [],
-    "label": "M.wrong_formula",
-    "rule": "Q1"
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "Matt 15 Nov (cross-check #14)"
   },
   {
     "id": "eb8d7576-c59f-4f32-ba3a-550aca4e9dcc:topFix",
@@ -3780,8 +3799,9 @@
     "rating": null,
     "point": "Don't build your lead argument on an untested reading of the client's criterion. The $300M bar is Kelvexa's US net sales, which Option B also clears at $400M. Lead instead with the economics you derived correctly: building earns $240M versus $120M and stays ahead unless share falls below 12.5%. When the interviewer probes a definition, explicitly revise rather than restate.",
     "quotes": [],
-    "label": "M.unsupported_claim",
-    "rule": "H4"
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "Matt 15 Nov (cross-check #15)"
   },
   {
     "id": "cfd513d9-b402-4ba2-aab1-04612356f7d9:topFix",
