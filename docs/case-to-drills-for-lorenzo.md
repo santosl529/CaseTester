@@ -31,6 +31,7 @@ For Lorenzo's review (Matt's request, 15 Nov 2026). Branch `drill-update`. Nothi
 
 - Today's "Next case" card can suggest a different case than before: the picker matches a case's type to the skill area being practiced, and four more cases now have a type. Intended (proposal §2.8), but it is a change.
 - Drills events and rows carry taxonomy version `v1.1` instead of `v1` (a new case-only tag). Nothing reads the version back.
+- A bug fix (Matt, 15 Nov): the Next case card could recommend the 7-minute demo or the unlisted Aldermoor case, because it read every case file. It now picks only listed, full cases (`caseLibrary()`, tested).
 - Otherwise nothing: no drills page, report or interview changes.
 
 ## Getting shadow mode live, in order (merge only with Matt's and Lorenzo's go)

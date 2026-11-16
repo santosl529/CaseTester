@@ -11,8 +11,6 @@ import {
   caseResults, diagnostics, drillSets, prescriptions, sessions, studentDrillSettings, studentProfiles, studentPrograms,
   workouts,
 } from '@/db/schema';
-import { LISTED_CASE_IDS } from '@/lib/cases/listed';
-import { loadCases } from '@/lib/cases/loader';
 import { DRILLS_CONFIG, getDrill, getMistakeTag, getSkill } from '../config';
 import { logDrillEvent, logPendingEvents, type EventProps } from '../events';
 import { isLiveDrill } from '../live';
@@ -27,7 +25,7 @@ import {
   buildWorkout, missedMilestoneSkills, planPrescriptionSkill, planReason, weekMilestones, weekMilestoneSkills, type OpenPrescription,
   type WorkoutBlock,
 } from './workout';
-import { DIFFICULTY_TIER, mostPracticedArea, pickNextCase, type NextCase } from './next-case';
+import { caseLibrary, mostPracticedArea, pickNextCase, type NextCase } from './next-case';
 import { pendingChecks } from './plan-source';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -443,9 +441,7 @@ async function practicedArea(studentId: string): Promise<string | null> {
 
 // Only the cases students can start from Cases (not the demo, not an unlisted case).
 export async function nextCaseFor(studentId: string): Promise<NextCase | null> {
-  const listed = new Set(LISTED_CASE_IDS);
-  const library = loadCases().filter(c => listed.has(c.id)).map(c => ({ id: c.id, title: c.title, case_type: c.caseType ?? null, tier: DIFFICULTY_TIER[c.difficulty] }));
-  return pickNextCase(library, await completedCases(studentId), await practicedArea(studentId));
+  return pickNextCase(caseLibrary(), await completedCases(studentId), await practicedArea(studentId));
 }
 
 // ------------------------------------------------------------- evidence
