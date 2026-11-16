@@ -5,10 +5,11 @@ For Lorenzo's review (Matt's request, 15 Nov 2026). Branch `drill-update`. Nothi
 ## In this branch now (steps 1–2)
 
 1. **Grading gets one more step at the end** (`lib/scoring/case-result-step.ts`, called from `lib/scoring/score-session.ts`).
-   - After every other pass, one AI call (Sonnet 5.5 with thinking) labels each "needs work" point with a skill from the drills list.
+   - One AI call (Sonnet 5.5 with thinking) labels each "needs work" point with a skill from the drills list.
    - It reads the report and changes nothing in it: the ratings, quotes and report text are the same.
-   - It runs inside the existing one-at-a-time scoring claim, so it's paid once per case: about $0.04 a case, logged as `llm_usage` with component `skill_tags`.
-   - It adds a few seconds to grading. With under 45 s left of the 300 s budget, it skips itself.
+   - It runs after the score is stored and the response sent (Next's `after()`, as drill grading does), so the student's report doesn't wait for it. Only the pass that holds the scoring claim reaches it, so it's paid once per case: about $0.04, logged as `llm_usage` with component `skill_tags`.
+   - It counts against the score route's 300 s: grading took 159 s at the median and 216 s at most over the last 60 cases. With under 45 s left it skips itself, and it stops 5 s before the limit.
+   - Gathering its input is guarded on its own: if that ever threw, the case gets no case result and the report is unaffected.
    - Off by default (`CASE_TO_DRILLS` unset). Never on a dry run (regrade, replay), never for the 7-minute demo.
    - If it fails, the report still saves.
 2. **After the score is saved**, grading records the result for drills (`lib/drills/progress/case-runs.ts`).
@@ -26,10 +27,31 @@ For Lorenzo's review (Matt's request, 15 Nov 2026). Branch `drill-update`. Nothi
    - `CASE_TAG_DRILL_GROUPS`: which report groups may give drill recommendations. Unset means the 7 that passed Matt's gate.
 6. **Account deletion** also deletes a student's `case_result_runs` rows.
 
-## What Lorenzo is asked for
+## Visible with the switch off
 
-- Review of the changes above.
-- Apply migration 0029 (after the branch is approved), then set `CASE_TO_DRILLS=shadow` in Vercel to start the shadow period. Matt reads 20 real reports, or two weeks pass, before anyone sets `on`.
+- Today's "Next case" card can suggest a different case than before: the picker matches a case's type to the skill area being practiced, and four more cases now have a type. Intended (proposal §2.8), but it is a change.
+- Drills events and rows carry taxonomy version `v1.1` instead of `v1` (a new case-only tag). Nothing reads the version back.
+- Otherwise nothing: no drills page, report or interview changes.
+
+## Getting shadow mode live, in order (merge only with Matt's and Lorenzo's go)
+
+The branch to merge is `case-drills-shadow` (steps 1–2 only), not `drill-update`, which carries step 3 work in progress.
+
+1. **Review** this list and the diff: `git diff main...case-drills-shadow`.
+2. **Apply migration 0029 first**, from a checkout of `case-drills-shadow` (`npm run db:migrate`; main's migrations folder doesn't have 0029). It only adds, so today's production code keeps working with it. It must come before the deploy: the new code reads the new `case_results` columns, so without 0029 the Progress page and account deletion would fail.
+3. **Set `CASE_TO_DRILLS=shadow`** in Vercel's Production environment. Leave `CASE_TAG_DRILL_GROUPS` unset. Today's code ignores the variable, and setting it now lets the deploy below pick it up (a variable change only applies to new deployments).
+4. **Merge `case-drills-shadow` into main** and run the boot check (`docs/voice-deploy.md`, site only) with `CASE_TO_DRILLS=shadow`. Expect the `[engine]` line, then `[boot] CASE_TO_DRILLS=shadow; drill groups: structure, quantitative, creativity, synthesis, communication, pushback, topFix`, and `GET /` 200. Expect a bad value (`CASE_TO_DRILLS=yes`) to refuse to start. Claude ran this on 80bd03ff on 15 Nov and it passed.
+5. **Deploy** (push main). The LiveKit agent doesn't grade, so it needs no new version.
+6. **Check** Vercel's runtime logs for the `[boot]` line.
+
+To turn it off: set `CASE_TO_DRILLS=off` (or remove it) and redeploy. No code change.
+
+## Knowing it works
+
+- After each graded case, Vercel's runtime log shows `[score] case → drills (shadow): shadow`. On a failure it shows `failed — <reason>`, and the report is unaffected.
+- `npx tsx --conditions=react-server --env-file=.env.local scripts/case-tagging/shadow-status.ts` is free and read-only. It shows runs by status, the latest, failures with reasons, cost per case, how many reports Matt has labeled, and graded cases with no run.
+- The shadow review page shows each case's tags and the prescriptions it would make, with labels per point. It runs on a local `npm run dev` against production's database (it is local-only and returns 404 on the site): `http://localhost:3000/drills/review/case-tags`.
+- Students see nothing: the report is unchanged, no `case_results` row is written in shadow mode, and drills doesn't change.
 
 ## Still to come (later steps; listed when built)
 
