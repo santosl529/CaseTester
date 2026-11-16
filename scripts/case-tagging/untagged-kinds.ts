@@ -4,7 +4,7 @@
 // improvement of the test accounts' reports, no AI. A pattern finds the kind
 // mentioned anywhere in a point, also beside a tagged mistake; it is checked
 // against the hand labels in case-tagging/golden/golden.json (a point
-// labelled N1 should match "objective", and so on) and the misses printed.
+// labeled N1 should match "objective", and so on) and the misses printed.
 // Read-only.
 //
 //   npx tsx --conditions=react-server --env-file=../../../.env.local scripts/case-tagging/untagged-kinds.ts [--min-sessions 100]
@@ -68,13 +68,13 @@ async function main() {
     console.log(`${k.rule} ${k.label} | ${ps.length} | ${(ps.length / points.length * 100).toFixed(1)}% | ${new Set(ps.map(p => p.session)).size} (${(new Set(ps.map(p => p.session)).size / reports * 100).toFixed(0)}%) | ${top}`);
   }
 
-  // Check against the hand labels: each N-labelled golden point should match its kind's pattern.
+  // Check against the hand labels: each N-labeled golden point should match its kind's pattern.
   const golden = JSON.parse(fs.readFileSync('case-tagging/golden/golden.json', 'utf-8')) as { id: string; dimension: string | null; point: string; rule: string }[];
   console.log('\nPattern check against the golden hand labels (points whose label is that "none" rule):');
   for (const k of KINDS) {
-    const labelled = golden.filter(g => g.rule === k.rule);
-    const missed = labelled.filter(g => !hits(k, g.dimension ?? 'topFix', g.point));
-    console.log(`${k.rule}: ${labelled.length - missed.length}/${labelled.length} matched${missed.length ? `; missed: ${missed.map(m => m.point.slice(0, 90)).join(' | ')}` : ''}`);
+    const labeled = golden.filter(g => g.rule === k.rule);
+    const missed = labeled.filter(g => !hits(k, g.dimension ?? 'topFix', g.point));
+    console.log(`${k.rule}: ${labeled.length - missed.length}/${labeled.length} matched${missed.length ? `; missed: ${missed.map(m => m.point.slice(0, 90)).join(' | ')}` : ''}`);
   }
   // Precision check: a few matches per kind, to read.
   if (process.argv.includes('--samples')) for (const k of KINDS) {

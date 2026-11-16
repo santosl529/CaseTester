@@ -6,7 +6,7 @@
 // --min-sessions completed sessions (100 by default): students are held to 8
 // cases a month, so only a limit-exempt test account gets there. Prints counts,
 // never account ids or emails.
-// Writes the unlabelled pool; labels are added by hand from
+// Writes the unlabeled pool; labels are added by hand from
 // docs/case-tagging-rules.md.
 //
 //   npx tsx --conditions=react-server --env-file=../../../.env.local scripts/case-tagging/golden-extract.ts [--per-dim 30] [--top-fix 30] [--out case-tagging/golden/pool.json]

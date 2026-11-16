@@ -24,7 +24,7 @@ describe('the shadow review page', () => {
     expect(html).toContain('0 of 20 real reports read');
     expect(html).toContain('Shadow since 2026-11-16');
   });
-  it('shows each point with the tagger’s tag, whether its group gives a drill, and a labelled control', () => {
+  it('shows each point with the tagger’s tag, whether its group gives a drill, and a labeled control', () => {
     expect(html).toContain('no drill (group off)');
     expect(html).toContain('overlapping buckets (MECE structure)');
     expect(html).toContain('Your label for this point');

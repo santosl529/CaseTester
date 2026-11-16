@@ -91,7 +91,7 @@ details pre { white-space: pre-wrap; font-family: var(--mono); font-size: 0.8rem
 </style>
 <main>
   <h1>Tagging disagreements</h1>
-  <p class="lede">${data.labelled} golden points were labelled again by ${esc(data.model)} from the written rules alone, without seeing Claude's labels. These ${rows.length} are where the two differ. ${rows.filter(r => r.different_skill).length} of them point to a different skill (red border), which would send a student to a different drill; they come first. Neither label changes until you rule. Pick one per point, add a note if a rule needs changing, then copy your rulings into the chat.</p>
+  <p class="lede">${data.labelled} golden points were labeled again by ${esc(data.model)} from the written rules alone, without seeing Claude's labels. These ${rows.length} are where the two differ. ${rows.filter(r => r.different_skill).length} of them point to a different skill (red border), which would send a student to a different drill; they come first. Neither label changes until you rule. Pick one per point, add a note if a rule needs changing, then copy your rulings into the chat.</p>
   <div class="bar"><button type="button" id="copy">Copy my rulings</button><output id="count">0 of ${rows.length} ruled</output><output id="copied" aria-live="polite"></output></div>
   ${cards}
   <details><summary>The written rules (for reference)</summary><pre>${esc(TAGGING_RULES)}</pre></details>

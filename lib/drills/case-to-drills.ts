@@ -1,6 +1,6 @@
 // The switch for full cases → drills (Matt, 15 Nov, proposal D11), read from
 // the environment so it can be turned off without a deploy of new code:
-//   CASE_TO_DRILLS=off     today's behaviour: grading sends drills nothing (default)
+//   CASE_TO_DRILLS=off     today's behavior: grading sends drills nothing (default)
 //   CASE_TO_DRILLS=shadow  grading tags the report and stores the case result it
 //                          would send (case_result_runs), with a preview of the
 //                          prescriptions; nothing is shown to the student and
@@ -13,7 +13,7 @@
 // (a drill recommendation and a prescription). The rest are still tagged and
 // recorded, for the shadow review page, but give no drill. Default: the 7 that
 // passed the gate on 15 Nov. A group goes on only after its gate passes again
-// with real shadow points Matt has labelled.
+// with real shadow points Matt has labeled.
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 
 export type CaseToDrillsMode = 'off' | 'shadow' | 'on';

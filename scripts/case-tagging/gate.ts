@@ -2,7 +2,7 @@
 // the golden set (case-tagging/golden/golden.json) with one config and reports
 // tag agreement per dimension (≥ 90% each, the top improvement included) and
 // the wrong-skill rate (≤ 5% overall). One call per report, as at grading.
-// --with-shadow adds the real shadow-mode points Matt has labelled on the shadow
+// --with-shadow adds the real shadow-mode points Matt has labeled on the shadow
 // review page (case_result_runs.labels): a switched-off group goes on only after
 // its gate passes with them (Matt, 15 Nov). Read-only on the database.
 // Costs real money: ask Matt first. Stops before a call that would pass --cap.
@@ -29,7 +29,7 @@ const CONCURRENCY = 4;
 
 type Golden = TagPoint & { session_id: string; kind: string; label: string | null; rule: string };
 
-// Labelled shadow points, as golden points (rule: "shadow").
+// Labeled shadow points, as golden points (rule: "shadow").
 async function shadowPoints(): Promise<Golden[]> {
   const { db } = await import('@/db/client');
   const { caseResultRuns } = await import('@/db/schema');
@@ -49,7 +49,7 @@ async function main() {
   const golden = JSON.parse(fs.readFileSync('case-tagging/golden/golden.json', 'utf-8')) as Golden[];
   if (process.argv.includes('--with-shadow')) {
     const shadow = await shadowPoints();
-    console.log(`with ${shadow.length} labelled shadow points`);
+    console.log(`with ${shadow.length} labeled shadow points`);
     golden.push(...shadow);
   }
   const bySession = new Map<string, Golden[]>();

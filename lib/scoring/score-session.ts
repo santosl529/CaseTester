@@ -17,7 +17,7 @@ import { summarizeDataRequests, volunteeredItems } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
 import { formatCheckerSection, mandatedConclusionClaims, checkerFlaggedFigures, dropCheckerStamps, checkerFindings } from './checker-record';
-import { runCaseResultStep } from './case-result-step';
+import { prepareCaseResult } from './case-result-step';
 import { applyConclusionMandate } from './conclusion-mandate';
 import { caseNumbersOf } from '@/lib/orchestrator/math-checker-live';
 import { applyStageCaps, formatStageRecordSection, reconstructStages, stagesNotInCase } from './stage-caps';
@@ -69,7 +69,8 @@ export async function scoreAndStore(claim: ScoringClaim, userId: string, deps: {
   const { sessionId } = claim;
   // The deadline every stream inside this pass retries against (stream-retry.ts, review item 6): a retry that would
   // run past the route's 300 s budget writes nothing and makes the next attempt pay for all three passes again.
-  const computed = await withScoringDeadline((deps.nowMs ?? Date.now()) + SCORING_BUDGET_MS,
+  const startMs = deps.nowMs ?? Date.now();
+  const computed = await withScoringDeadline(startMs + SCORING_BUDGET_MS,
     () => (deps.compute ?? computeScore)({ sessionId, userId }));
   const { rubric, report, mathResults, qa } = computed;
 
@@ -100,15 +101,12 @@ export async function scoreAndStore(claim: ScoringClaim, userId: string, deps: {
   // included, so rates have a denominator.
   await logEvent('scoring_qa', qa, { sessionId, userId });
 
-  // Case results → drills (Matt, 15 Nov): recorded only once the score is stored, and never able to fail the report.
-  if (computed.caseResult) {
-    try {
-      const { recordCaseRun } = await import('@/lib/drills/progress/case-runs');
-      const outcome = await recordCaseRun(sessionId, computed.caseResult);
-      console.log(`[score] case → drills (${computed.caseResult.mode}): ${outcome}${computed.caseResult.error ? ` — ${computed.caseResult.error}` : ''}`);
-    } catch (err) {
-      console.error('[score] case → drills record failed; the report stands:', err);
-    }
+  // Case results → drills (Matt, 15 Nov): only once the score is stored, after the response is sent, so the report
+  // never waits for it and nothing it does can fail the report (lib/drills/progress/case-runs.ts).
+  if (computed.caseResultInput) {
+    const { runCaseRunAfterResponse } = await import('@/lib/drills/progress/case-runs');
+    await runCaseRunAfterResponse(sessionId, computed.caseResultInput, startMs + SCORING_BUDGET_MS,
+      u => void logEvent('llm_usage', u, { sessionId, userId }));
   }
 }
 
@@ -320,14 +318,14 @@ export async function computeScore({ sessionId, userId, persist = true }: { sess
   // Plain English (6 Nov): no internal term (load-shedding, probes, stage names as code calls them) on the page.
   const rubric = plainRubric(plain.rubric);
 
-  // Case results → drills (Matt, 15 Nov; CASE_TO_DRILLS): one tagging call on the report as stored, inside this
-  // claimed pass, so it is paid at most once per case. Not on a dry run (persist: false): a regrade or replay sends
-  // drills nothing and pays for no tags. Nothing it does can fail the report.
-  const caseResult = persist ? await runCaseResultStep({
+  // Case results → drills (Matt, 15 Nov; CASE_TO_DRILLS): the tagging step's input, from the report as stored. The
+  // step itself runs in scoreAndStore after the score is stored and the response sent. Not on a dry run (persist:
+  // false): a regrade or replay sends drills nothing and pays for no tags. Building the input can't fail the report.
+  const caseResultInput = persist ? prepareCaseResult(session.caseId, () => ({
     sessionId, studentId: session.userId, completedAt: session.completedAt, caseData, partial, rubric,
     checker: checkerFindings(checkerRows, checkerRedo), stageRecord, mathResults,
     dataRequests: requestRows.map(r => ({ subtype: r.subtype, payloadJsonb: r.payloadJsonb })), transcript,
-  }, u => logUsage({ ...u })).catch(err => { console.error('[score] case → drills step failed; the report stands:', err); return null; }) : null;
+  })) : null;
 
   const report = assembleReport({
     sessionId,
@@ -381,7 +379,7 @@ export async function computeScore({ sessionId, userId, persist = true }: { sess
     plainSkipped: plain.skipped !== null,
   };
 
-  return { rubric, report, mathResults, qa, strongGate, answerKey, assessed, plain, caseResult };
+  return { rubric, report, mathResults, qa, strongGate, answerKey, assessed, plain, caseResultInput };
 }
 
 // The session's stage record, or one rebuilt from the transcript for sessions recorded before it existed. Shared with

@@ -4,11 +4,13 @@
 // by scoreAndStore after the score is stored, once per scoring pass; a second
 // call for the same session (a rescore) changes nothing.
 import 'server-only';
+import { after } from 'next/server';
 import { desc, eq } from 'drizzle-orm';
 import { z } from 'zod';
 import { db } from '@/db/client';
 import { caseResultRuns } from '@/db/schema';
-import type { CaseResultStep } from '@/lib/scoring/case-result-step';
+import { runCaseResultStep, type CaseResultInput, type CaseResultStep } from '@/lib/scoring/case-result-step';
+import type { OnUsage } from '@/lib/llm-usage';
 import { ingestCaseResult } from './ingest';
 import { previewCaseResult } from './store';
 import { CASE_TAGS } from '@/lib/scoring/skill-tag-rules';
@@ -34,6 +36,28 @@ export async function recordCaseRun(sessionId: string, step: CaseResultStep): Pr
   await db.update(caseResultRuns).set({ status: 'applied', appliedAt: new Date(), preview: result })
     .where(eq(caseResultRuns.sessionId, sessionId));
   return 'applied';
+}
+
+// The step and its record, after the response (Next's after(), like drill
+// grading), so the student's report never waits for it; outside a request
+// (scripts, tests) it runs in line. It logs and never throws.
+export function runCaseRunAfterResponse(sessionId: string, input: CaseResultInput, deadlineMs: number, onUsage?: OnUsage): Promise<void> {
+  const run = async () => {
+    try {
+      const step = await runCaseResultStep(input, { deadlineMs, onUsage });
+      if (!step) return;
+      const outcome = await recordCaseRun(sessionId, step);
+      console.log(`[score] case → drills (${step.mode}): ${outcome}${step.error ? ` — ${step.error}` : ''}`);
+    } catch (err) {
+      console.error('[score] case → drills step failed; the report stands:', err);
+    }
+  };
+  try {
+    after(run);
+    return Promise.resolve();
+  } catch {
+    return run();
+  }
 }
 
 // ------------------------------------------------------------ the shadow review page (local development only)

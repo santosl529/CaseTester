@@ -24,14 +24,14 @@ export interface TagOption { id: string; name: string }
 // graded case's tagged points — every group, also those switched off — the
 // findings and prescriptions it would make, and a label per point. Labels
 // follow the written rules; a switched-off group goes on only after its gate
-// passes with the labelled points added (scripts/case-tagging/gate.ts --with-shadow).
+// passes with the labeled points added (scripts/case-tagging/gate.ts --with-shadow).
 export function CaseTagReviewScreen({ runs, tags, read, since }: { runs: ReviewRun[]; tags: TagOption[]; read: number; since: string | null }) {
   return (
     <main className="mx-auto max-w-5xl space-y-6 px-4 py-8">
       <header className="space-y-2">
         <h1 className="t-title">Case tags: shadow review</h1>
         <p className="t-body text-ink/80">
-          {read} of 20 real reports read (every point labelled).{since && ` Shadow since ${since}; it ends at 20 reports or two weeks, whichever comes first.`}
+          {read} of 20 real reports read (every point labeled).{since && ` Shadow since ${since}; it ends at 20 reports or two weeks, whichever comes first.`}
         </p>
         <p className="t-small text-ink/70">Label each point by the written rules (lib/scoring/skill-tag-rules.ts), not by the tagger&apos;s answer. Groups switched off show “no drill”.</p>
       </header>

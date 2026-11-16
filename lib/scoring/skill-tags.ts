@@ -64,15 +64,15 @@ export function pointsBlock(points: TagPoint[]): string {
 // missing, it gets no tag rather than failing the case. Throws on a refusal or
 // no answer: the caller treats that as "tagging failed" and the report stands
 // without next steps.
-export async function tagPoints(points: TagPoint[], configName: CaseTaggerConfigName, onUsage?: OnUsage): Promise<TagResult[]> {
+export async function tagPoints(points: TagPoint[], configName: CaseTaggerConfigName, onUsage?: OnUsage, signal?: AbortSignal): Promise<TagResult[]> {
   if (points.length === 0) return [];
-  const first = await tagOnce(points, configName, onUsage);
+  const first = await tagOnce(points, configName, onUsage, signal);
   const missing = points.filter(p => !first.has(p.id));
-  const retry = missing.length ? await tagOnce(missing, configName, onUsage) : new Map<string, TagResult>();
+  const retry = missing.length ? await tagOnce(missing, configName, onUsage, signal) : new Map<string, TagResult>();
   return points.map(p => first.get(p.id) ?? retry.get(p.id) ?? { id: p.id, tag: null, reason: 'left out of the answer twice', omitted: true as const });
 }
 
-async function tagOnce(points: TagPoint[], configName: CaseTaggerConfigName, onUsage?: OnUsage): Promise<Map<string, TagResult>> {
+async function tagOnce(points: TagPoint[], configName: CaseTaggerConfigName, onUsage?: OnUsage, signal?: AbortSignal): Promise<Map<string, TagResult>> {
   const { model, thinking, effort }: CaseTaggerConfig = CASE_TAGGER_CONFIGS[configName];
   const response = await anthropicClient({ maxRetries: 2 }).beta.messages.stream({
     model,
@@ -82,7 +82,7 @@ async function tagOnce(points: TagPoint[], configName: CaseTaggerConfigName, onU
     system: [{ type: 'text', text: TAGGER_SYSTEM, cache_control: { type: 'ephemeral' } }],
     messages: [{ role: 'user', content: `<points>\n${pointsBlock(points)}\n</points>` }],
     output_config: { format: OUTPUT_FORMAT, ...(effort && { effort }) },
-  }).finalMessage();
+  }, { signal }).finalMessage();
   onUsage?.({
     component: 'skill_tags', model, actualModel: response.model,
     inputTokens: response.usage.input_tokens, outputTokens: response.usage.output_tokens,

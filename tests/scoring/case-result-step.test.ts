@@ -9,7 +9,7 @@ vi.mock('@/lib/scoring/skill-tags', async importOriginal => ({ ...(await importO
   return tagPoints(...a);
 } }));
 
-import { runCaseResultStep, askedForData } from '@/lib/scoring/case-result-step';
+import { runCaseResultStep, askedForData, prepareCaseResult } from '@/lib/scoring/case-result-step';
 import { INITIAL_STAGES } from '@/lib/orchestrator/stage-evidence';
 import { RUBRIC_DIMENSION_KEYS } from '@/lib/scoring/rubric';
 import type { RubricScores } from '@/lib/scoring/judge';
@@ -60,6 +60,27 @@ describe('the case → drills step in a scoring pass', () => {
     failWith = 'overloaded';
     const step = (await runCaseResultStep(input()))!;
     expect(step).toMatchObject({ status: 'failed', mode: 'on', payload: null, error: 'tagging: overloaded' });
+  });
+
+  it('builds no input when off or for the demo, and never lets building it throw', () => {
+    vi.stubEnv('CASE_TO_DRILLS', 'off');
+    const build = vi.fn(() => input());
+    expect(prepareCaseResult('prof-002', build)).toBeNull();
+    expect(build).not.toHaveBeenCalled();
+    vi.stubEnv('CASE_TO_DRILLS', 'shadow');
+    expect(prepareCaseResult('prof-001-demo', build)).toBeNull();
+    expect(prepareCaseResult('prof-002', build)).toMatchObject({ caseData: { id: 'prof-002' } });
+    const err = vi.spyOn(console, 'error').mockImplementation(() => {});
+    expect(prepareCaseResult('prof-002', () => { throw new Error('checker record unreadable'); })).toBeNull();
+    expect(err).toHaveBeenCalled();
+    err.mockRestore();
+  });
+
+  it('skips the tagging call when the scoring deadline is under 45 s away', async () => {
+    vi.stubEnv('CASE_TO_DRILLS', 'shadow');
+    const step = (await runCaseResultStep(input(), { deadlineMs: 1_000_000 + 30_000, now: () => 1_000_000 }))!;
+    expect(step).toMatchObject({ status: 'failed', error: '30 s left before the scoring deadline' });
+    expect(tagPoints).not.toHaveBeenCalled();
   });
 
   it('counts an explicit ask for data, not the marker row or a passing mention', () => {

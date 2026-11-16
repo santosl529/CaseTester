@@ -71,7 +71,7 @@ async function main() {
   const disagreements = rows.filter(r => !r.agree);
   fs.mkdirSync(path.dirname(OUT), { recursive: true });
   fs.writeFileSync(OUT, JSON.stringify({ model: MODEL_ID, cost_usd: spent, labelled: rows.length, of: golden.length, failures, disagreements }, null, 2) + '\n');
-  console.log(`${MODEL_ID}: labelled ${rows.length}/${golden.length}, $${spent.toFixed(2)}`);
+  console.log(`${MODEL_ID}: labeled ${rows.length}/${golden.length}, $${spent.toFixed(2)}`);
   console.log(`agree ${rows.length - disagreements.length}, disagree ${disagreements.length} (${disagreements.filter(d => d.different_skill).length} on the skill)`);
   if (failures.length) console.log(`failed batches:\n  ${failures.join('\n  ')}`);
   console.log(`wrote ${OUT}`);
