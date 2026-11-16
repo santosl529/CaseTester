@@ -1,7 +1,10 @@
 // "Picking the next case" with a small library: one case must still work,
 // and nothing may loop.
 import { describe, it, expect } from 'vitest';
-import { metTheBar, pickNextCase, type LibraryCase, type TakenCase } from '@/lib/drills/program/next-case';
+import { caseLibrary, metTheBar, pickNextCase, type LibraryCase, type TakenCase } from '@/lib/drills/program/next-case';
+import { HOME_DEMO_CASE_IDS, LISTED_CASE_IDS } from '@/lib/cases/listed';
+import { getCaseById } from '@/lib/cases/loader';
+import { caseTotalMs } from '@/lib/orchestrator/state-machine';
 
 const prof: LibraryCase = { id: 'prof-001', title: 'Brew & Bean Profitability', case_type: 'profitability', tier: 2 };
 const t = (case_id: string, day: number, tier = 2, rubric: Record<string, string> | null = null): TakenCase =>
@@ -58,3 +61,15 @@ describe('next case with a larger library', () => {
     expect(pickNextCase(lib, all, null)).toMatchObject({ case_id: 'size-001', retake: true });
   });
 });
+
+describe('the library a next case comes from (bug found 15 Nov)', () => {
+  it('holds only listed, full cases: never the demo or an unlisted case', () => {
+    const ids = caseLibrary().map(c => c.id);
+    expect(ids.sort()).toEqual([...LISTED_CASE_IDS].sort());
+    for (const id of HOME_DEMO_CASE_IDS) expect(ids).not.toContain(id);
+    expect(ids).not.toContain('entry-001');
+    // Full cases: none is a short demo.
+    for (const id of ids) expect(caseTotalMs(getCaseById(id))).toBeGreaterThanOrEqual(20 * 60_000);
+  });
+});
+
