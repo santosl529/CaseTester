@@ -9,7 +9,7 @@ import { CaseTagReviewScreen, type ReviewRun } from '@/components/drills/views/c
 const run: ReviewRun = {
   sessionId: 's1', caseTitle: 'Larkspur Air Route Profitability', createdAt: '2026-11-16', mode: 'shadow', status: 'built', error: null, costUsd: 0.041,
   findings: [{ name: 'overlapping buckets (MECE structure)', severity: 'major', evidence: 'revenue, costs and pricing' }],
-  prescriptions: [{ skill: 'MECE structure', reason: 'In your last case you said "revenue, costs and pricing". …' }],
+  prescriptions: [{ skill: 'MECE structure', reason: 'Two of your buckets overlapped. In your last case you said, “revenue, costs and pricing.”' }],
   observed: ['MECE structure'],
   points: [
     { id: 'structure:0', group: 'structure', rating: 'needs_work', point: 'Pricing overlaps revenue.', quotes: ['revenue, costs and pricing'], tag: 'M.overlapping_buckets', tagName: 'overlapping buckets (MECE structure)', reason: 'S4', drill: true, severity: 'major', note: null },

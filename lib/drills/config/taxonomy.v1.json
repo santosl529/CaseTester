@@ -304,14 +304,16 @@
       "skill": "PS.mece",
       "label": "overlapping buckets",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Two of your buckets overlapped."
     },
     {
       "id": "M.missing_bucket",
       "skill": "PS.mece",
       "label": "missing bucket",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your structure left out an area that could hold the answer."
     },
     {
       "id": "M.no_structure",
@@ -320,462 +322,527 @@
       "severity": "major",
       "deprecated": false,
       "case_only": true,
-      "case_reason": "You went straight to an answer without laying out a structure first."
+      "reason_line": "You went straight to an answer without laying out a structure first."
     },
     {
       "id": "M.generic_framework",
       "skill": "PS.case_specific",
       "label": "generic framework",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your structure was a general template, not built for this client."
     },
     {
       "id": "M.irrelevant_bucket",
       "skill": "PS.case_specific",
       "label": "irrelevant bucket",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "One of your buckets wouldn't change the answer."
     },
     {
       "id": "M.shallow_structure",
       "skill": "PS.depth",
       "label": "shallow structure",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your buckets had no concrete sub-points to check."
     },
     {
       "id": "M.low_value_question",
       "skill": "PS.clarifying_questions",
       "label": "low-value question",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You asked a question whose answer wouldn't change your approach."
     },
     {
       "id": "M.missed_key_question",
       "skill": "PS.clarifying_questions",
       "label": "missed key question",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You didn't ask about something the case hinged on."
     },
     {
       "id": "M.too_many_questions",
       "skill": "PS.clarifying_questions",
       "label": "too many questions",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You asked more than three questions before laying out a structure."
     },
     {
       "id": "M.no_hypothesis",
       "skill": "HY.form",
       "label": "no hypothesis",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You didn't name a likely cause."
     },
     {
       "id": "M.restates_facts",
       "skill": "HY.form",
       "label": "restated the facts",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You restated the numbers instead of saying why they moved."
     },
     {
       "id": "M.shotgun_hypotheses",
       "skill": "HY.form",
       "label": "shotgun hypotheses",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You listed several possible causes without picking one to lead."
     },
     {
       "id": "M.overconfident_hypothesis",
       "skill": "HY.form",
       "label": "overconfident hypothesis",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You treated your first guess as settled before seeing the data."
     },
     {
       "id": "M.untestable_hypothesis",
       "skill": "HY.form",
       "label": "untestable hypothesis",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your hypothesis couldn't be confirmed or ruled out with data."
     },
     {
       "id": "M.ignores_facts",
       "skill": "HY.form",
       "label": "ignored the facts",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your reasoning didn't use the case facts, or went against them."
     },
     {
       "id": "M.sticky_hypothesis",
       "skill": "HY.update",
       "label": "sticky hypothesis",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You kept your first idea after the data ruled it out."
     },
     {
       "id": "M.dropped_supported_hypothesis",
       "skill": "HY.update",
       "label": "dropped a supported hypothesis",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You dropped an idea the new data actually supported."
     },
     {
       "id": "M.arithmetic_error",
       "skill": "QN.arithmetic",
       "label": "arithmetic error",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You made an arithmetic slip."
     },
     {
       "id": "M.zeros_error",
       "skill": "QN.magnitude",
       "label": "zeros error",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your answer was off by a factor of 10 or more."
     },
     {
       "id": "M.unit_error",
       "skill": "QN.magnitude",
       "label": "unit error",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You mixed up units, such as monthly and yearly figures."
     },
     {
       "id": "M.wrong_base",
       "skill": "QN.percentages",
       "label": "wrong base",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You calculated a percentage from the wrong starting number."
     },
     {
       "id": "M.percent_vs_points",
       "skill": "QN.percentages",
       "label": "percent vs percentage points",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You mixed up percent and percentage points."
     },
     {
       "id": "M.growth_error",
       "skill": "QN.growth",
       "label": "growth error",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You added growth rates instead of compounding them."
     },
     {
       "id": "M.wrong_formula",
       "skill": "QN.setup",
       "label": "wrong formula",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You used the right numbers in the wrong formula."
     },
     {
       "id": "M.missing_term",
       "skill": "QN.setup",
       "label": "missing term",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your calculation left out a term."
     },
     {
       "id": "M.missing_driver",
       "skill": "QN.sizing_structure",
       "label": "missing driver",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your estimate skipped a step in the chain."
     },
     {
       "id": "M.double_counting",
       "skill": "QN.sizing_structure",
       "label": "double counting",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your estimate counted the same thing twice."
     },
     {
       "id": "M.irrelevant_driver",
       "skill": "QN.sizing_structure",
       "label": "driver that doesn't belong",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your estimate included a driver that doesn't belong."
     },
     {
       "id": "M.unreasonable_assumption",
       "skill": "QN.assumptions",
       "label": "unreasonable assumption",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You used an assumption with no clear basis."
     },
     {
       "id": "M.implausible_accepted",
       "skill": "QN.sanity_check",
       "label": "accepted an implausible result",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You kept a result a quick check would have shown was wrong."
     },
     {
       "id": "M.plausible_rejected",
       "skill": "QN.sanity_check",
       "label": "rejected a plausible result",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You rejected a result that was actually reasonable."
     },
     {
       "id": "M.trivial_takeaway",
       "skill": "EX.takeaway",
       "label": "trivial takeaway",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your takeaway was true but didn't answer the question."
     },
     {
       "id": "M.misread_trend",
       "skill": "EX.takeaway",
       "label": "misread trend",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You misread what the chart showed."
     },
     {
       "id": "M.unsupported_claim",
       "skill": "EX.takeaway",
       "label": "unsupported claim",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You stated something the data doesn't show."
     },
     {
       "id": "M.missed_units",
       "skill": "EX.traps",
       "label": "missed units",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You misread the chart's units."
     },
     {
       "id": "M.axis_misread",
       "skill": "EX.traps",
       "label": "axis misread",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You judged size from bars on an axis that doesn't start at zero."
     },
     {
       "id": "M.dual_axis_misread",
       "skill": "EX.traps",
       "label": "dual-axis misread",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You read a series against the wrong axis."
     },
     {
       "id": "M.missed_footnote",
       "skill": "EX.traps",
       "label": "missed footnote",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You missed a note that changes what the data means."
     },
     {
       "id": "M.indexed_misread",
       "skill": "EX.traps",
       "label": "read indexed values as absolute",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You read indexed values as actual amounts."
     },
     {
       "id": "M.period_mismatch",
       "skill": "EX.traps",
       "label": "mismatched time periods",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You compared figures from different time periods."
     },
     {
       "id": "M.wrong_data_point",
       "skill": "EX.extraction",
       "label": "wrong data point",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You used a figure from the wrong row, column or year."
     },
     {
       "id": "M.no_implication",
       "skill": "BJ.so_what",
       "label": "no implication",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You stated a finding without saying what it means for the client."
     },
     {
       "id": "M.implication_off_objective",
       "skill": "BJ.so_what",
       "label": "implication off the objective",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your takeaway didn't connect to the client's question."
     },
     {
       "id": "M.generic_risk",
       "skill": "BJ.risks",
       "label": "generic risk",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your risk could apply to any company."
     },
     {
       "id": "M.missed_key_risk",
       "skill": "BJ.risks",
       "label": "missed key risk",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You missed the risk this case turns on."
     },
     {
       "id": "M.too_few_ideas",
       "skill": "CR.volume",
       "label": "too few ideas",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You gave fewer than four ideas, or all from one area."
     },
     {
       "id": "M.unstructured_ideas",
       "skill": "CR.structure",
       "label": "unstructured ideas",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your ideas came as a flat list with no groups."
     },
     {
       "id": "M.overlapping_idea_groups",
       "skill": "CR.structure",
       "label": "overlapping idea groups",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Some of your ideas covered the same ground."
     },
     {
       "id": "M.buried_recommendation",
       "skill": "SY.answer_first",
       "label": "buried recommendation",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your recommendation came at the end instead of first."
     },
     {
       "id": "M.hedged_recommendation",
       "skill": "SY.answer_first",
       "label": "hedged recommendation",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You didn't commit to a clear recommendation."
     },
     {
       "id": "M.unsupported_recommendation",
       "skill": "SY.evidence",
       "label": "unsupported recommendation",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your recommendation wasn't backed by your analysis."
     },
     {
       "id": "M.irrelevant_facts",
       "skill": "SY.evidence",
       "label": "irrelevant facts",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You supported your answer with a fact that doesn't bear on the decision."
     },
     {
       "id": "M.ignores_deciding_fact",
       "skill": "SY.evidence",
       "label": "ignored the deciding fact",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your answer left out the fact that decides it."
     },
     {
       "id": "M.missing_risk_or_next_step",
       "skill": "SY.complete",
       "label": "missing risk or next step",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your recommendation had no specific risk or next step."
     },
     {
       "id": "M.inaccurate_summary",
       "skill": "SY.summary",
       "label": "inaccurate summary",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your summary misstated what the analysis showed."
     },
     {
       "id": "M.rambling",
       "skill": "CM.concise",
       "label": "rambling",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your answer was longer than it needed to be."
     },
     {
       "id": "M.over_word_limit",
       "skill": "CM.concise",
       "label": "over the word limit",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your answer went over the word limit."
     },
     {
       "id": "M.waited_for_interviewer",
       "skill": "CL.next_step",
       "label": "waited for the interviewer",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You waited for the interviewer instead of proposing what to do next."
     },
     {
       "id": "M.illogical_next_step",
       "skill": "CL.next_step",
       "label": "illogical next step",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your next step didn't follow from where the case was."
     },
     {
       "id": "M.low_priority_next_step",
       "skill": "CL.next_step",
       "label": "low-priority next step",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You picked a next step that mattered less than another."
     },
     {
       "id": "M.vague_data_request",
       "skill": "CL.data_requests",
       "label": "vague data request",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your data request didn't name a specific measure."
     },
     {
       "id": "M.laundry_list",
       "skill": "CL.data_requests",
       "label": "laundry list",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You asked for a long list of data with no place to start."
     },
     {
       "id": "M.premature_solution",
       "skill": "CL.data_requests",
       "label": "premature solution",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You proposed a fix before finding the cause."
     },
     {
       "id": "M.caved_to_invalid_pushback",
       "skill": "CL.pushback",
       "label": "caved to invalid pushback",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You gave up a correct answer when challenged."
     },
     {
       "id": "M.ignored_valid_pushback",
       "skill": "CL.pushback",
       "label": "ignored valid pushback",
       "severity": "major",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You held on to an answer after a valid challenge."
     },
     {
       "id": "M.no_evidence_in_defense",
       "skill": "CL.pushback",
       "label": "no evidence in defense",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You didn't back up your answer when challenged."
     },
     {
       "id": "M.dodged_question",
       "skill": "CL.pushback",
       "label": "dodged the question",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "You didn't answer the question you were asked."
     },
     {
       "id": "M.inconsistent_defense",
       "skill": "CL.pushback",
       "label": "defense inconsistent with your answer",
       "severity": "minor",
-      "deprecated": false
+      "deprecated": false,
+      "reason_line": "Your defense didn't match your earlier answer."
     }
   ],
   "system_tags": [

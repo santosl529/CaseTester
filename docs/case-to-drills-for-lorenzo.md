@@ -32,6 +32,8 @@ For Lorenzo's review (Matt's request, 15 Nov 2026). Branch `drill-update`. Nothi
 - Today's "Next case" card can suggest a different case than before: the picker matches a case's type to the skill area being practiced, and four more cases now have a type. Intended (proposal §2.8), but it is a change.
 - Drills events and rows carry taxonomy version `v1.1` instead of `v1` (a new case-only tag). Nothing reads the version back.
 - A bug fix (Matt, 15 Nov): the Next case card could recommend the 7-minute demo or the unlisted Aldermoor case, because it read every case file. It now picks only listed, full cases (`caseLibrary()`, tested).
+- Prescription reasons in plain English (Matt, 15–16 Nov): one line per mistake tag (the taxonomy's `reason_line`), the line first, then the student's quote, e.g. "You made an arithmetic slip. In your last case you said, “…”". This fixes "showed a arithmetic error", live on main in drill-set reasons. Diagnostic reasons are one sentence with the top mistake.
+- After the deploy, with Matt's go: `npx tsx --conditions=react-server --env-file=.env.local scripts/drills-rewrite-reasons.ts --apply` rewrites the reasons on open prescriptions. The dry run on 16 Nov found 3 open, 2 to rewrite (both diagnostic).
 - Otherwise nothing: no drills page, report or interview changes.
 
 ## Getting shadow mode live, in order (merge only with Matt's and Lorenzo's go)

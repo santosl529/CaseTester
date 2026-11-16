@@ -55,7 +55,8 @@ describe('the diagnostic', () => {
     const rx = diagnosticPrescriptions(parts, new Set());
     // QN.magnitude 2 tags, PS.mece 2, QN.percentages 1, QN.growth 1: the area cap stops a third QN skill.
     expect(rx.map(r => [r.skill_id, r.priority])).toEqual([['PS.mece', 2], ['QN.magnitude', 2], ['QN.percentages', 1]]);
-    expect(rx[1].reason).toBe('In the diagnostic: zeros error, unit error. This set practices zeros and units.');
+    // One sentence, the skill's top mistake (zeros, missed twice; Matt, 16 Nov).
+    expect(rx[1].reason).toBe('In the diagnostic, your answer was off by a factor of 10 or more.');
     // With PS.mece already prescribed, only QN skills are left: the area cap allows two.
     expect(diagnosticPrescriptions(parts, new Set(['PS.mece'])).map(r => r.skill_id)).toEqual(['QN.magnitude', 'QN.percentages']);
   });

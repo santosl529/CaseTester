@@ -3,8 +3,9 @@
 // diagnostic's prescriptions are worked out from whatever parts are finished,
 // so a student who stops partway is placed from what they did.
 import { DRILLS_CONFIG, getMistakeTag, getSkill } from '../config';
-import { hasLiveDrill, lowerName, skillCatalogIndex, stageDrills } from '../progress/engine';
+import { hasLiveDrill, skillCatalogIndex, stageDrills } from '../progress/engine';
 import { scoresFromTotals, type SkillTotals } from '../sets/summary';
+import { diagnosticReason } from '../reason';
 
 const d = DRILLS_CONFIG.programs.diagnostic;
 
@@ -62,6 +63,9 @@ export function overallScore(parts: DiagnosticPart[]): number | null {
 // distinct tag missed on a skill, top 3, at most 2 from one skill area.
 export function diagnosticPrescriptions(parts: DiagnosticPart[], skip: Set<string>, isLive?: (id: string) => boolean) {
   const bySkill = new Map<string, Set<string>>();
+  // How often each tag was missed: a reason names the skill's top mistake (Matt, 16 Nov).
+  const misses = new Map<string, number>();
+  for (const tag of parts.flatMap(p => p.miss_tags ?? [])) misses.set(tag, (misses.get(tag) ?? 0) + 1);
   for (const tag of parts.flatMap(p => p.miss_tags ?? [])) {
     const t = getMistakeTag(tag);
     if (!t || skip.has(t.skill) || !hasLiveDrill(t.skill, isLive)) continue;
@@ -75,8 +79,8 @@ export function diagnosticPrescriptions(parts: DiagnosticPart[], skip: Set<strin
     const area = getSkill(skill).area;
     if ((perArea.get(area) ?? 0) >= 2) continue;
     perArea.set(area, (perArea.get(area) ?? 0) + 1);
-    const labels = [...tags].map(t => getMistakeTag(t)!.label);
-    out.push({ skill_id: skill, priority: tags.size, reason: `In the diagnostic: ${labels.join(', ')}. This set practices ${lowerName(skill)}.` });
+    const top = [...tags].sort((a, b) => (misses.get(b) ?? 0) - (misses.get(a) ?? 0))[0];
+    out.push({ skill_id: skill, priority: tags.size, reason: diagnosticReason(top) });
   }
   return out;
 }

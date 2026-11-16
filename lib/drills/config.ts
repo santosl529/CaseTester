@@ -49,9 +49,9 @@ export const TaxonomySchema = z.object({
     // Matt, 15 Nov). No drill, item or rule may use it, and its skill's lesson
     // needn't list it.
     case_only: z.boolean().optional(),
-    // The prescription reason's sentence after the quote, in place of the
-    // template ("That's a …; this set practices …").
-    case_reason: z.string().min(1).optional(),
+    // One plain-English line for prescription reasons ("You made an arithmetic
+    // slip."; Matt, 15–16 Nov; lib/drills/reason.ts): a full sentence.
+    reason_line: z.string().regex(/^[A-Z].*\.$/),
   })),
   // M.timeout and M.skipped: logged on attempts but mapped to no skill.
   system_tags: z.array(z.object({ id: TagId, label: z.string().min(1) })),
