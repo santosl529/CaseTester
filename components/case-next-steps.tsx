@@ -29,9 +29,9 @@ export function CaseNextSteps({ view, sessionId }: { view: NextStepsView; sessio
   const done = new Set(view.done);
   const practiced = s.skills.filter(x => x.practice);
   const nextCase = view.nextCase === 'all_taken' ? (
-    <p className="t-small">You&apos;ve taken every case. Retake one?</p>
+    <p className="t-small">You’ve taken every case. Retake one?</p>
   ) : view.nextCase ? (
-    <p className="t-small"><span className="block">{view.ready ? 'You’re ready for your next case:' : WHEN_DONE[practiced.length] ?? 'When these are done, try'}</span>
+    <p className="t-small"><span className="block">{s.all_clear ? 'Next case:' : view.ready ? 'You’re ready for your next case:' : WHEN_DONE[practiced.length] ?? 'When these are done, try'}</span>
       <span className="font-semibold">{view.nextCase.title} · {view.nextCase.difficulty}</span></p>
   ) : null;
   const goToCases = view.nextCase && (

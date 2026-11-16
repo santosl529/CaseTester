@@ -317,7 +317,7 @@ export function TrainingHome({ home, checkin }: { home: TrainingHomeData; checki
         <section aria-labelledby="case" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
           <h2 id="case" className="t-heading font-semibold">Next case</h2>
           {/* Never a retake by default (Matt, 15 Nov): with every case taken, the student chooses one. */}
-          <p className="t-small">{home.next_case.case_id ? home.next_case.title : "You've taken every case. Retake one?"}</p>
+          <p className="t-small">{home.next_case.case_id ? home.next_case.title : 'You’ve taken every case. Retake one?'}</p>
           <Link href={home.next_case.case_id ? `/api/drills/next-case?case=${encodeURIComponent(home.next_case.case_id)}` : '/home#cases'} className={buttonVariants({ variant: 'outline' })}>Go to cases</Link>
         </section>
       )}

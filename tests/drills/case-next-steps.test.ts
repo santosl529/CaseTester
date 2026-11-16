@@ -36,7 +36,7 @@ describe('Your next steps on the report (Matt, 15 Nov)', () => {
     expect(html(view({ ready: true, done: ['QN.arithmetic', 'PS.mece'] }))).toContain('You’re ready for your next case:');
     expect(html(view({ snapshot: snap({ skills: [], all_clear: true }) }))).toContain('Nothing from this case needs practice. You’re ready for a harder case.');
     expect(html(view({ snapshot: snap({ partial: true }) }))).toContain('You ended this case early, so these come from the parts you reached.');
-    expect(html(view({ nextCase: 'all_taken' }))).toContain('You&#x27;ve taken every case. Retake one?');
+    expect(html(view({ nextCase: 'all_taken' }))).toContain('You’ve taken every case. Retake one?');
   });
   it('shows Preparing while the step runs, and Try again when it failed', () => {
     expect(html({ state: 'preparing' })).toContain('Preparing your next steps…');
