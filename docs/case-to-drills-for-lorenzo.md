@@ -54,7 +54,12 @@ To turn it off: set `CASE_TO_DRILLS=off` (or remove it) and redeploy. No code ch
 - The shadow review page shows each case's tags and the prescriptions it would make, with labels per point. It runs on a local `npm run dev` against production's database (it is local-only and returns 404 on the site): `http://localhost:3000/drills/review/case-tags`.
 - Students see nothing: the report is unchanged, no `case_results` row is written in shadow mode, and drills doesn't change.
 
-## Still to come (later steps; listed when built)
+## On `drill-update` only (not in `case-drills-shadow`; for a later merge)
 
-- The report page gets two sections: a comparison with the last case at the same level, after Top improvement, and "Your next steps" before the survey and the transcript. Both read only.
+7. **The report page** (`app/case/[sessionId]/report/page.tsx`, `components/views/report.tsx`) gets two sections, only when `CASE_TO_DRILLS=on`: "Since your last [level] case" after Top improvement, and "Your next steps" before the survey and the transcript. They read the case product's `sessions` and `scores` (read-only) and drills tables. A failure there is caught: the report shows as today.
+8. **A Try again route** (`POST /api/case/[sessionId]/next-steps`, the owner only): when the tagging step failed, it re-runs only that step on what scoring stored (`storedCaseResultInput` in `score-session.ts`, read-only, no grading call), at most once per failure.
+9. Today's quick fix, Learn's For you and the prescription reasons change wording (drills only).
+
+## Still to come
+
 - A one-time backfill script copying the ratings of past completed cases into `case_results`. It reads `sessions` and `scores`, writes only drills tables, and runs only with Lorenzo's go.
