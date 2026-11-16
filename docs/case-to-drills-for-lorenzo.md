@@ -62,6 +62,5 @@ To turn it off: set `CASE_TO_DRILLS=off` (or remove it) and redeploy. No code ch
 8. **A Try again route** (`POST /api/case/[sessionId]/next-steps`, the owner only): when the tagging step failed, it re-runs only that step on what scoring stored (`storedCaseResultInput` in `score-session.ts`, read-only, no grading call), at most once per failure.
 9. Today's quick fix, Learn's For you and the prescription reasons change wording (drills only).
 
-## Still to come
-
-- A one-time backfill script copying the ratings of past completed cases into `case_results`. It reads `sessions` and `scores`, writes only drills tables, and runs only with Lorenzo's go.
+10. **Your progress** (drills): the `case_sessions` stopgap (which read `sessions` and `scores` directly for the dashboard) is removed; case data shows only when `CASE_TO_DRILLS=on`. A Case to case card reads `sessions` and `scores` read-only, as the report's comparison does.
+11. **A one-time backfill** (`scripts/drills-backfill-case-results.ts`, only with Lorenzo's go, after 0029): copies the ratings of past completed cases into `case_results`, marked `backfilled`, with no findings and no changes to skills or prescriptions. It reads `sessions` and `scores` and writes only `case_results`. The demo and the two test accounts are skipped by default. The dry run on 16 Nov found nothing to copy for real students: every non-test session so far is the 7-minute demo. With the test accounts included it would copy 304 cases (299 retakes).

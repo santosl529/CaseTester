@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { compareCases, previousCase, type ComparedCase } from '@/lib/drills/case-compare';
+import { caseMoveLines, caseToCaseCards, compareCases, previousCase, type ComparedCase } from '@/lib/drills/case-compare';
 
 const day = (d: number) => new Date(Date.UTC(2026, 10, d));
 const kase = (sessionId: string, caseId: string, tier: number, d: number, ratings: Record<string, string> = {}, partial = false): ComparedCase =>
@@ -32,5 +32,27 @@ describe('case to case (Matt, 15 Nov)', () => {
       { dimension: 'quantitative', before: 'meets_bar', after: 'meets_bar', move: 0, sets: 0 },
       { dimension: 'judgment', before: 'meets_bar', after: 'needs_work', move: -1, sets: 0 },
     ]);
+  });
+});
+
+describe('Your progress: case to case (Matt, 15 Nov)', () => {
+  const history = [
+    kase('a', 'prof-002', 1, 1, { structure: 'needs_work', judgment: 'meets_bar' }),
+    kase('b', 'launch-001', 1, 8, { structure: 'meets_bar', judgment: 'meets_bar' }),
+    kase('c', 'prof-002', 1, 9, { structure: 'strong' }),              // a retake: never the latest compared
+    kase('d', 'prof-001', 2, 10, { structure: 'meets_bar' }),
+  ];
+  it('compares the latest counted case at each level with the one before, listing only the areas that moved', () => {
+    const cards = caseToCaseCards(history, [{ drillId: 'PS-4', focus: null, completedAt: day(4) }]);
+    expect(cards.map(c => [c.level, c.kind])).toEqual([['Easy', 'compared'], ['Medium', 'one']]);
+    const easy = cards[0] as Extract<typeof cards[number], { kind: 'compared' }>;
+    expect([easy.from.sessionId, easy.to.sessionId]).toEqual(['a', 'b']);
+    expect(easy.moved).toEqual([{ dimension: 'structure', before: 'needs_work', after: 'meets_bar', move: 1, sets: 1 }]);
+  });
+  it('adds summary lines only for a comparison whose latest case is in the window', () => {
+    const cards = caseToCaseCards(history, []);
+    const label = (k: string) => ({ structure: 'Problem Structuring' } as Record<string, string>)[k] ?? k;
+    expect(caseMoveLines(cards, 7, day(12), label)).toEqual(['Problem Structuring: up since your last Easy case.']);
+    expect(caseMoveLines(cards, 3, day(12), label)).toEqual([]);
   });
 });

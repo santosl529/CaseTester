@@ -116,6 +116,19 @@ const STATES: Record<string, SkillStateName> = {
 };
 const ARROWS: Record<string, Arrow> = { 'PS.mece': 'up', 'QN.setup': 'down', 'EX.takeaway': 'up', 'HY.form': 'flat', 'QN.arithmetic': 'up' };
 
+// Case to case, as Your progress shows it (Matt, 15 Nov).
+function caseCardsSample() {
+  return [
+    { level: 'Easy', kind: 'compared' as const, from: { title: 'Larkspur Air Route Profitability', date: 'Nov 3' }, to: { title: 'Hollis Bay Snacks New Product Launch', date: 'Nov 14' },
+      moved: [
+        { area: 'Problem Structuring', before: 'needs_work', after: 'meets_bar', move: 1 as const, sets: 4 },
+        { area: 'Data & Exhibit Interpretation', before: 'meets_bar', after: 'strong', move: 1 as const, sets: 2 },
+        { area: 'Business Judgment & Insight', before: 'meets_bar', after: 'needs_work', move: -1 as const, sets: 0 },
+      ] },
+    { level: 'Medium', kind: 'one' as const },
+  ];
+}
+
 function dashboard(practiced = true): DashboardData {
   const live = DRILLS_CONFIG.taxonomy.skills.filter(s => hasLiveDrill(s.id)).map(s => s.id);
   const progress = new Map<string, SkillProgress>(live.map(id => [id, { ...newProgress(id), state: STATES[id] ?? 'not_started' }]));
@@ -135,9 +148,10 @@ function dashboard(practiced = true): DashboardData {
   })).filter(g => g.skills.length);
   return {
     practiced, has_plan: true,
-    summary: { status: 'improving', sentence: 'You’re improving: 3 skills moved up this week, and you miss fewer questions than last week (18% against 26%).', window_days: 7, up: ['PS.mece', 'EX.takeaway', 'QN.arithmetic'], down: [], rate: { cur: 0.18, prev: 0.26, answers: [44, 38] } },
+    summary: { status: 'improving', sentence: 'You’re improving: 3 skills moved up this week, and you miss fewer questions than last week (18% against 26%).', window_days: 7, up: ['PS.mece', 'EX.takeaway', 'QN.arithmetic'], down: [], rate: { cur: 0.18, prev: 0.26, answers: [44, 38] }, case_lines: [] },
     counts: { mastered: 1, live: live.length },
     readiness: readiness(progress, live, [], true),
+    case_to_case: [] as ReturnType<typeof caseCardsSample>,
     week: { number: 2, theme: 'Structure and math', milestone_skills: [{ name: 'MECE structure', state: 'Mastered' }, { name: 'Math setup', state: 'Learning' }], met: false },
     groups,
     strengths: [{ id: 'PS.mece', name: 'MECE structure', state: 'Mastered', score: 0.92 }, { id: 'QN.arithmetic', name: 'Arithmetic', state: 'Practiced', score: 0.88 }],
@@ -238,6 +252,11 @@ export const DRILL_SCREENS: Screen[] = [
     const v = dashboard();
     const lastWeek = <T extends { categories: string[]; series: { values: number[] }[]; gaps: number[] }>(c: T): T => ({ ...c, series: c.series.map(x => ({ ...x, values: x.values.map((n, i) => (i === x.values.length - 1 ? n : 0)) })), gaps: c.categories.map((_, i) => i).filter(i => i !== c.categories.length - 1) });
     return { node: <ProgressScreen v={{ ...v, strengths: [], trends: { ...v.trends, states: { ...v.trends.states, series: v.trends.states.series.map(x => ({ ...x, values: x.values.map((n, i) => (x.name === 'Not started' || i === x.values.length - 1 ? n : 0)) })) }, misses: lastWeek(v.trends.misses), pace: lastWeek(v.trends.pace) } }} window={7} period="2w" group="area" />, api: [...STARTS, { method: 'PATCH', path: '/api/prescriptions/.*', body: { ok: true } }] };
+  } },
+  // Case results → drills on (Matt, 15 Nov): Case to case under More detail, and the summary's case lines.
+  { slug: 'progress-cases', path: '/drills/progress?detail=1', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress: case to case (case results → drills on)', render: () => {
+    const v = dashboard();
+    return { node: <ProgressScreen v={{ ...v, summary: { ...v.summary, case_lines: ['Problem Structuring: up since your last Easy case.', 'Business Judgment & Insight: down since your last Easy case.'] }, case_to_case: caseCardsSample() }} window={7} period="2w" group="area" openDetail /> };
   } },
   { slug: 'progress-empty', path: '/drills/progress', chrome: 'drills', area: 'Plan and dashboard', title: 'Your progress: before any practice', render: () => ({ node: <ProgressScreen v={dashboard(false)} window={7} period="2w" group="area" /> }) },
   { slug: 'skill', path: '/drills/progress/EX.takeaway', chrome: 'drills', area: 'Plan and dashboard', title: 'One skill (Chart takeaway)', render: () => ({ node: <SkillDetail s={skill()} />, api: STARTS }) },

@@ -51,3 +51,31 @@ export function compareCases(current: ComparedCase, history: ComparedCase[], set
   });
   return { kind: found.kind, previous, rows };
 }
+
+// Your progress's Case to case card (Matt, 15 Nov; proposal §2.7): per level,
+// the latest case (not a retake, not ended early) against the one before it at
+// that level — only the areas that moved, with the practice in between. One
+// case at a level so far: a note instead. No case at a level: nothing.
+const LEVEL = ['', 'Easy', 'Medium', 'Hard'];
+export type CaseToCaseCard =
+  | { tier: number; level: string; kind: 'compared'; from: ComparedCase; to: ComparedCase; moved: CompareRow[] }
+  | { tier: number; level: string; kind: 'one' };
+
+export function caseToCaseCards(history: ComparedCase[], sets: { drillId: string; focus: string | null; completedAt: Date }[]): CaseToCaseCard[] {
+  return [1, 2, 3].flatMap((tier): CaseToCaseCard[] => {
+    const counted = history.filter(h => h.tier === tier && !h.partial && !isRetake(h, history))
+      .sort((a, b) => a.completedAt.getTime() - b.completedAt.getTime());
+    if (counted.length === 0) return [];
+    if (counted.length === 1) return [{ tier, level: LEVEL[tier], kind: 'one' as const }];
+    const to = counted.at(-1)!;
+    const c = compareCases(to, history, sets);
+    return c ? [{ tier, level: LEVEL[tier], kind: 'compared' as const, from: c.previous, to, moved: c.rows.filter(r => r.move !== 0) }] : [];
+  });
+}
+
+// The summary's case lines: areas that moved, from a comparison whose latest case falls in the summary's window.
+export function caseMoveLines(cards: CaseToCaseCard[], windowDays: number, now: Date, label: (dim: RubricDimensionKey) => string): string[] {
+  const since = now.getTime() - windowDays * 86_400_000;
+  return cards.flatMap(c => (c.kind === 'compared' && c.to.completedAt.getTime() >= since
+    ? c.moved.map(r => `${label(r.dimension)}: ${r.move > 0 ? 'up' : 'down'} since your last ${c.level} case.`) : []));
+}
