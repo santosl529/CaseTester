@@ -3,7 +3,8 @@ import taxonomyJson from '@/lib/drills/config/taxonomy.v1.json';
 import drillsJson from '@/lib/drills/config/drills.v1.json';
 import rulesJson from '@/lib/drills/config/rules.v1.json';
 import programsJson from '@/lib/drills/config/programs.v1.json';
-import { DRILLS_CONFIG, crossCheck, parseDrillsConfig, hasLiveLevel2Drill, isKnownTag } from '@/lib/drills/config';
+import { DRILLS_CONFIG, crossCheck, parseDrillsConfig, hasLiveLevel2Drill, isKnownTag, isDrillTag } from '@/lib/drills/config';
+import { caseReason } from '@/lib/drills/progress/case';
 
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v));
 const raw = () => ({ taxonomy: clone(taxonomyJson), drills: clone(drillsJson), rules: clone(rulesJson), programs: clone(programsJson) });
@@ -11,10 +12,11 @@ const raw = () => ({ taxonomy: clone(taxonomyJson), drills: clone(drillsJson), r
 describe('drills config v1 (docs/prd-drills.md)', () => {
   const { taxonomy, drills } = DRILLS_CONFIG;
 
-  it('matches the PRD counts: 9 areas, 29 skills, 67 tags, 30 drills', () => {
+  it('matches the PRD counts: 9 areas, 29 skills, 68 tags (one case-only), 30 drills', () => {
     expect(taxonomy.areas).toHaveLength(9);
     expect(taxonomy.skills).toHaveLength(29);
-    expect(taxonomy.mistake_tags).toHaveLength(67);
+    expect(taxonomy.mistake_tags).toHaveLength(68);
+    expect(taxonomy.mistake_tags.filter(t => t.case_only).map(t => t.id)).toEqual(['M.no_structure']);
     expect(taxonomy.system_tags.map(t => t.id).sort()).toEqual(['M.skipped', 'M.timeout']);
     expect(drills.drills).toHaveLength(30);
     expect(drills.drills.filter(d => d.stage === 'recognize')).toHaveLength(13);
@@ -180,3 +182,24 @@ describe('drills config v1 (docs/prd-drills.md)', () => {
     });
   });
 });
+
+describe('case-only tags (M.no_structure; Matt, 15 Nov)', () => {
+  it('are known, but no drill may log them', () => {
+    expect(isKnownTag('M.no_structure')).toBe(true);
+    expect(isDrillTag('M.no_structure')).toBe(false);
+    expect(isDrillTag('M.missing_bucket')).toBe(true);
+  });
+
+  it('fail the config check when a drill or rule uses one', () => {
+    const bundle = structuredClone(DRILLS_CONFIG);
+    (bundle.rules.focusable_tags as Record<string, unknown>)['M.no_structure'] = bundle.rules.focusable_tags['M.zeros_error'];
+    expect(crossCheck(bundle)).toContain('Tag M.no_structure: case-only, but the drills or rules config uses it');
+    expect(crossCheck(DRILLS_CONFIG)).toEqual([]);
+  });
+
+  it('give the prescription its own reason line after the quote', () => {
+    expect(caseReason({ tag: 'M.no_structure', severity: 'major', turn_ids: [2], evidence: "I'd just raise prices." }))
+      .toBe('In your last case you said "I\'d just raise prices.". You went straight to an answer without laying out a structure first.');
+  });
+});
+

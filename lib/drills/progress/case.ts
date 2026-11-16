@@ -117,5 +117,6 @@ export function caseReason(f: Finding): string {
   const words = f.evidence.trim().split(/\s+/);
   const quote = words.length > 25 ? `…${words.slice(-25).join(' ')}` : words.join(' ');
   const tag = getMistakeTag(f.tag)!;
+  if (tag.case_reason) return `In your last case you said "${quote}". ${tag.case_reason}`;
   return `In your last case you said "${quote}". That's a ${tag.label}; this set practices ${lowerName(tag.skill)}.`;
 }

@@ -1,5 +1,5 @@
 {
-  "version": "v1",
+  "version": "v1.1",
   "areas": [
     {
       "code": "PS",
@@ -312,6 +312,15 @@
       "label": "missing bucket",
       "severity": "major",
       "deprecated": false
+    },
+    {
+      "id": "M.no_structure",
+      "skill": "PS.mece",
+      "label": "no structure",
+      "severity": "major",
+      "deprecated": false,
+      "case_only": true,
+      "case_reason": "You went straight to an answer without laying out a structure first."
     },
     {
       "id": "M.generic_framework",

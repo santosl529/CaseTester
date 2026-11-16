@@ -5,7 +5,7 @@
   "case_type": "market_entry",
   "difficulty_tier": 2,
   "completed_at": "2026-10-05T18:22:00Z",
-  "taxonomy_version": "v1",
+  "taxonomy_version": "v1.1",
   "rubric_scores": { "structure": "needs_work", "quantitative": "meets_bar", "synthesis": "strong" },
   "skills_observed": ["PS.mece", "QN.setup", "SY.answer_first"],
   "findings": [

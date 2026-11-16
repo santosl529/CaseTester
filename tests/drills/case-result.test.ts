@@ -38,7 +38,7 @@ describe('case grader payload contract (PRD "What the case grader must send")', 
   it('rejects another taxonomy version', () => {
     const p = base();
     p.taxonomy_version = 'v0';
-    expect(errors(p)).toContain('Expected taxonomy v1, got v0');
+    expect(errors(p)).toContain('Expected taxonomy v1.1, got v0');
   });
 
   it('needs evidence quotes and turn ids on every finding', () => {

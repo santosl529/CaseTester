@@ -7,12 +7,13 @@ import { z } from 'zod';
 import { CASE_TYPES } from '@/lib/case-types';
 import { INDUSTRIES } from './industries';
 import { ChartSpecSchema } from './chart-spec';
-import { InputTypeSchema, getDrill, getMistakeTag, isKnownTag, DRILLS_CONFIG } from './config';
+import { InputTypeSchema, getDrill, getMistakeTag, isDrillTag, DRILLS_CONFIG } from './config';
 
 const Tier = z.union([z.literal(1), z.literal(2), z.literal(3)]);
 export type Tier = z.infer<typeof Tier>;
 
-const KnownTag = z.string().refine(isKnownTag, { error: iss => `Unknown mistake tag ${String(iss.input)}` });
+// Case-only tags (M.no_structure) are no drill's to log.
+const KnownTag = z.string().refine(isDrillTag, { error: iss => `Unknown mistake tag ${String(iss.input)}` });
 const skillIds = new Set(DRILLS_CONFIG.taxonomy.skills.map(s => s.id));
 const KnownSkill = z.string().refine(s => skillIds.has(s), { error: iss => `Unknown skill ${String(iss.input)}` });
 

@@ -45,6 +45,13 @@ export const TaxonomySchema = z.object({
     // "What the case grader must send").
     severity: z.enum(['minor', 'major']),
     deprecated: z.boolean(),
+    // Logged only by the case tagging step, never by a drill (M.no_structure;
+    // Matt, 15 Nov). No drill, item or rule may use it, and its skill's lesson
+    // needn't list it.
+    case_only: z.boolean().optional(),
+    // The prescription reason's sentence after the quote, in place of the
+    // template ("That's a …; this set practices …").
+    case_reason: z.string().min(1).optional(),
   })),
   // M.timeout and M.skipped: logged on attempts but mapped to no skill.
   system_tags: z.array(z.object({ id: TagId, label: z.string().min(1) })),
@@ -347,6 +354,10 @@ export function crossCheck({ taxonomy, drills, rules, programs }: DrillsConfigBu
   for (const t of taxonomy.mistake_tags) {
     if (!skillIds.has(t.skill)) problems.push(`Tag ${t.id}: unknown skill ${t.skill}`);
   }
+  const drillsAndRules = JSON.stringify({ drills, rules });
+  for (const t of taxonomy.mistake_tags.filter(x => x.case_only)) {
+    if (drillsAndRules.includes(`"${t.id}"`)) problems.push(`Tag ${t.id}: case-only, but the drills or rules config uses it`);
+  }
   for (const s of taxonomy.skills) {
     for (const p of s.prerequisites) {
       if (!skillIds.has(p)) problems.push(`Skill ${s.id}: unknown prerequisite ${p}`);
@@ -482,6 +493,11 @@ export function getMistakeTag(id: string): MistakeTag | undefined {
 
 export function isKnownTag(id: string): boolean {
   return tagById.has(id) || systemTagIds.has(id);
+}
+
+// A tag a drill may log: known, and not case-only.
+export function isDrillTag(id: string): boolean {
+  return isKnownTag(id) && !tagById.get(id)?.case_only;
 }
 
 export function getSkill(id: string): Skill {

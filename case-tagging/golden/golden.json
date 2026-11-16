@@ -53,8 +53,9 @@
       "I'm stuck, sorry. I don't really know where to start.",
       "I guess... revenue or something else? I really don't know."
     ],
-    "label": "M.missing_bucket",
-    "rule": "S1"
+    "label": "M.no_structure",
+    "rule": "S1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "720e7a5e-c39d-43af-ad23-fa2bc7ed462a:structure:0",
@@ -99,8 +100,9 @@
       "Profit is revenue minus costs, and since revenue is actually up 15%, the margin collapse almost certainly sits on the cost side — though I want to confirm revenue growth is coming from healthy sources, not discounting or just opening new stores.",
       "First, revenue quality: is growth from same-store sales or new locations? Has average ticket moved, and have menu prices changed over the two years?"
     ],
-    "label": "M.generic_framework",
-    "rule": "S3"
+    "label": "M.shallow_structure",
+    "rule": "S5",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "4224252c-02a8-43bd-b738-ee681d543001:structure:0",
@@ -159,8 +161,9 @@
       "I don't really know where to start, sorry.",
       "I'm stuck, sorry."
     ],
-    "label": "M.missing_bucket",
-    "rule": "S1"
+    "label": "M.no_structure",
+    "rule": "S1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "bb24a239-e478-4ef3-b2b6-1d0044f249be:structure:0",
@@ -202,8 +205,9 @@
       "I don't think we need a long structure here — the answer's pretty visible from what you've given me.",
       "Fares are down and input costs — fuel, labor, maintenance — are up, and that gap is the $24 million swing."
     ],
-    "label": "M.premature_solution",
-    "rule": "S2"
+    "label": "M.no_structure",
+    "rule": "S2",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "9527c026-9405-4742-ad13-70d7fd55fe80:structure:0",
@@ -930,8 +934,9 @@
     "quotes": [
       "Flat labor at 22% suggests volume is roughly flat too, so waste is less likely than input price."
     ],
-    "label": "M.unsupported_claim",
-    "rule": "H4"
+    "label": "M.misread_trend",
+    "rule": "X1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "5433fa09-4fc7-47b1-bc82-e34ee9efecd9:dataExhibit:0",
@@ -1653,8 +1658,9 @@
       "That's above the 20% forecast, which says 20% is, if anything, conservative",
       "Second, hire the insurer-access team ahead of the reps. The reps are useless calling on specialists who can't get prior approval through."
     ],
-    "label": "M.unsupported_claim",
-    "rule": "H4"
+    "label": "M.misread_trend",
+    "rule": "X1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "fcf37d59-b823-43f1-9dda-ca2c17f53eeb:judgment:0",
@@ -3056,9 +3062,9 @@
       "The structure is basically implied by that: revenue levers, cost levers, and the fare is the one that moves.",
       "let me say upfront what I expect it to show, so we can test me."
     ],
-    "label": "M.premature_solution",
+    "label": "M.no_structure",
     "rule": "S2",
-    "ruling": "Matt 15 Nov (cross-check #8)"
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "18c69d7b-86a1-4df3-8c15-cd0be05b69ad:communication:0",
@@ -3678,8 +3684,9 @@
     "rating": null,
     "point": "Practice opening every profitability case independently with a 30-second structure: restate the objective, split profit into revenue (price × volume, mix) and costs (COGS, labor, overhead), then state a hypothesis about which bucket holds the answer. Here you needed three escalating hints and a directive rescue before you could begin, even though your later analysis was strong.",
     "quotes": [],
-    "label": "M.missing_bucket",
-    "rule": "S1"
+    "label": "M.no_structure",
+    "rule": "S1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "6f3aeecf-098f-4217-81a2-e3065a7d5619:topFix",
@@ -3714,8 +3721,9 @@
     "rating": null,
     "point": "Don't skip the structure or lock in an answer before the data: open with a tailored profit tree (revenue by route as load × fare plus extras, variable costs, fixed costs, external and competitive changes), treat your first hypothesis as something to test, and let your own clues redirect you — the matching $24M revenue and profit drops already said costs were flat.",
     "quotes": [],
-    "label": "M.premature_solution",
-    "rule": "S2"
+    "label": "M.no_structure",
+    "rule": "S2",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "cc3d1581-ac13-40f9-9d78-af4a8730d9d2:topFix",
@@ -3739,8 +3747,9 @@
     "rating": null,
     "point": "Before answering, lay out a tailored structure and treat your first answer as a hypothesis to test. For this case that means per-plan economics, Starter-to-Pro upgrades and cannibalization, the pricing options, and the market. Skipping the structure led you to a pre-data $60 call, a dismissal of the plan interactions, and an anchoring that made you defend the 14-month lifetime even after the interviewer hinted twice that upgraders shouldn't count as churn.",
     "quotes": [],
-    "label": "M.premature_solution",
-    "rule": "S2"
+    "label": "M.no_structure",
+    "rule": "S2",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "ee99bd82-6608-4dc4-b8a1-70f6250a6892:topFix",
@@ -3812,8 +3821,9 @@
     "rating": null,
     "point": "Open independently with a hypothesis-driven structure. Restate the objective (reverse the 24% to 6% margin decline), split profit into revenue (price × volume) and costs (COGS, labor, overhead), and state which bucket you suspect and why. Your analysis after the hint was strong, but you needed two interviewer assists just to get started, and that is the gap most likely to cost you an offer.",
     "quotes": [],
-    "label": "M.missing_bucket",
-    "rule": "S1"
+    "label": "M.no_structure",
+    "rule": "S1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
   },
   {
     "id": "1901cf99-701b-47d1-85d0-2361dd56c226:topFix",

@@ -107,7 +107,7 @@ export function lessonProblems(l: Lesson): string[] {
   if (l.words > MAX_WORDS) out.push(`${l.file}: ${l.words} words (limit ${MAX_WORDS})`);
   if (l.v2_missing.length) out.push(`${l.file}: a v2 lesson needs every new section; missing ${l.v2_missing.map(s => `"## ${s}"`).join(', ')}`);
   if (l.quick_check && (!l.quick_check.question || !l.quick_check.answer)) out.push(`${l.file}: the quick check needs a question and a line starting "**Answer:**"`);
-  const tags = DRILLS_CONFIG.taxonomy.mistake_tags.filter(t => t.skill === l.skill_id && !t.deprecated).map(t => t.id);
+  const tags = DRILLS_CONFIG.taxonomy.mistake_tags.filter(t => t.skill === l.skill_id && !t.deprecated && !t.case_only).map(t => t.id);
   const listed = l.mistakes.map(m => m.tag);
   for (const t of tags) if (!listed.includes(t)) out.push(`${l.file}: no common-mistake line for ${t}`);
   for (const t of listed) if (!tags.includes(t)) out.push(`${l.file}: ${t} is not a ${l.skill_id} mistake`);
