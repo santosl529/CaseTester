@@ -8,6 +8,8 @@ import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { reportDimensions, topFixLine, topFixPlain } from '@/lib/scoring/report-dimensions';
 import { NoReportScreen, ReportScreen, UnscoredReportScreen } from '@/components/views/report';
 import { getCaseById } from '@/lib/cases/loader';
+import { reportDrillsView } from '@/lib/drills/progress/report-view';
+import type { RubricScores } from '@/lib/scoring/judge';
 
 export default async function ReportPage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
@@ -46,8 +48,12 @@ export default async function ReportPage({ params }: { params: Promise<{ session
     return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
   };
 
+  // Case results → drills (Matt, 15 Nov): nothing unless CASE_TO_DRILLS is on, and never able to break the report.
+  const drills = await reportDrillsView(user.id, sessionId, score.rubricJsonb as RubricScores | null, session.completedAt)
+    .catch(err => { console.error('[report] drills view failed:', err); return null; });
+
   return (
-    <ReportScreen sessionId={sessionId} caseTitle={caseTitle}
+    <ReportScreen sessionId={sessionId} caseTitle={caseTitle} drills={drills}
       // Rule 18A: the candidate ended the interview early — feedback on what was covered.
       partial={Boolean((session.flagsJsonb as Record<string, unknown> | null)?.partial)}
       overallRating={score.overallRating} hasTopFix={Boolean(score.topFix)} topFix={topFixPlain(score)} topFixLine={topFixLine(score)}

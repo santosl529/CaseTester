@@ -1552,6 +1552,9 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | `prescription_created` / `_dismissed` / `_completed` | Prescription lifecycle | prescription\_id, skill\_id, drill\_id, source\_type, priority |
 | `next_case_card_shown` / `_clicked` | Next-case card | recommended\_case\_id |
 | `case_result_received` | Case grader payload accepted | case\_attempt\_id, case\_type, difficulty\_tier, finding\_count |
+| `next_steps_shown` | A case report shows Your next steps (once per view; Matt, 15 Nov 2026) | case\_attempt\_id, skill\_ids, no\_drill\_skill\_id, all\_clear, retake, partial |
+| `next_step_clicked` | Read the lesson, Start practice or Go to cases on a report's next steps | case\_attempt\_id, skill\_id, prescription\_id, action, position |
+| `next_step_completed` | A set started from a report's next steps is completed, or its lesson is read | case\_attempt\_id, skill\_id, kind, set\_id, passed |
 | `onboarding_completed` | Onboarding answers submitted | track\_suggested, interview\_days\_out, cases\_done, workouts\_per\_week |
 | `diagnostic_completed` | Diagnostic results are final | overall\_score, placements (JSON) |
 | `program_assigned` / `_switched` | Track set or changed | track, plan\_version, reason |

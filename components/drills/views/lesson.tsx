@@ -5,16 +5,17 @@ import { drillsForSkill } from '@/lib/drills/drill-info';
 import { IntroLessonBody, LessonBody, type IntroLessonContent, type LessonContent } from '@/components/drills/lesson';
 import { IntroLessonActions, LessonActions } from '@/components/drills/lesson-actions';
 
-type Source = 'auto' | 'intro' | 'library' | 'low_score';
+type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'case_report';
 
 // A lesson and the intro lesson. Their pages (app/drills/learn/[skillId] and
 // …/intro) load the lesson and pick the mode.
 
-export function LessonScreen({ lesson, mode, source, start }: {
+export function LessonScreen({ lesson, mode, source, start, reportCase }: {
   lesson: LessonContent & { lesson_id: string; version: number; skill_id: string };
   mode: 'full' | 'summary';
   source: Source;
   start: React.ComponentProps<typeof LessonActions>['start'];
+  reportCase?: string;
 }) {
   return (
     <AppPage className="space-y-10">
@@ -32,7 +33,7 @@ export function LessonScreen({ lesson, mode, source, start }: {
             </ul>
           </section>
         )}
-        <LessonActions lessonId={lesson.lesson_id} version={lesson.version} source={source} start={start} skippable={source === 'auto'} />
+        <LessonActions lessonId={lesson.lesson_id} version={lesson.version} source={source} start={start} skippable={source === 'auto'} reportCase={reportCase} />
       </div>
     </AppPage>
   );

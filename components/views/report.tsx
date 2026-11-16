@@ -14,6 +14,9 @@ import { Breadcrumbs } from '@/components/brand/breadcrumbs';
 import type { ReportDimension } from '@/lib/scoring/report-dimensions';
 import type { PlainPoint } from '@/lib/scoring/judge';
 import { RATING_LABELS, type Rating } from '@/lib/scoring/rubric';
+import { CaseCompare } from '@/components/case-compare';
+import { CaseNextSteps } from '@/components/case-next-steps';
+import type { ReportDrillsView } from '@/lib/drills/progress/report-view';
 
 // A rating's pill (Matt, 7 Nov): Strong in Mastery green, Adequate in Sky,
 // Needs work in Cobalt.
@@ -76,9 +79,11 @@ export interface ReportData {
   dimensions: ReportDimension[];
   modelAnswer: Record<string, string> | null;
   turns: { id: string; role: string; text: string; clock: string }[];
+  // Case results → drills (Matt, 15 Nov): only when CASE_TO_DRILLS is on.
+  drills?: ReportDrillsView | null;
 }
 
-export function ReportScreen({ sessionId, caseTitle, partial, overallRating, hasTopFix, topFix, topFixLine, dimensions, modelAnswer, turns }: ReportData) {
+export function ReportScreen({ sessionId, caseTitle, partial, overallRating, hasTopFix, topFix, topFixLine, dimensions, modelAnswer, turns, drills }: ReportData) {
   return (
     <>
     <AppNav />
@@ -115,6 +120,8 @@ export function ReportScreen({ sessionId, caseTitle, partial, overallRating, has
         </section>
       )}
 
+      {drills?.comparison && <CaseCompare comparison={drills.comparison} />}
+
       <div className="space-y-4">
         {dimensions.map(d => (
           <ReportCard key={d.key} label={d.label} rating={d.rating} feedback={d.feedback} legacyEvidence={d.legacyEvidence} />
@@ -139,6 +146,8 @@ export function ReportScreen({ sessionId, caseTitle, partial, overallRating, has
           </Card>
         );
       })()}
+
+      {drills?.nextSteps && <CaseNextSteps view={drills.nextSteps} sessionId={sessionId} />}
 
       <PostCaseSurvey sessionId={sessionId} />
 

@@ -4,17 +4,18 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { drillFetch } from '@/lib/drills/client-fetch';
 
-type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'follow_up';
+type Source = 'auto' | 'intro' | 'library' | 'low_score' | 'follow_up' | 'case_report';
 
 // Logs a lesson view with how long it was open, once: when the student acts,
 // or when they leave the page.
-function useLessonViewLog(lessonId: string, version: number, source: Source) {
+// `reportCase`: opened from a case report's next steps (Matt, 15 Nov).
+function useLessonViewLog(lessonId: string, version: number, source: Source, reportCase?: string) {
   const opened = useRef(0);
   const logged = useRef(false);
   const log = (skipped: boolean) => {
     if (logged.current) return;
     logged.current = true;
-    const body = JSON.stringify({ version, source, skipped, seconds_open: Math.round((Date.now() - opened.current) / 1000) });
+    const body = JSON.stringify({ version, source, skipped, seconds_open: Math.round((Date.now() - opened.current) / 1000), ...(reportCase && { case_attempt_id: reportCase }) });
     navigator.sendBeacon?.(`/api/drills/lessons/${lessonId}/views`, new Blob([body], { type: 'application/json' }));
   };
 
@@ -47,11 +48,11 @@ export function IntroLessonActions({ lessonId, version, source, next }: { lesson
 // "Try it" (and "Skip" when the lesson opened automatically): logs the view
 // with how long the lesson was open, then starts the skill's next set, or
 // the workout block that opened the lesson.
-export function LessonActions({ lessonId, version, source, start, skippable }: {
-  lessonId: string; version: number; source: Source; start: Record<string, unknown>; skippable: boolean;
+export function LessonActions({ lessonId, version, source, start, skippable, reportCase }: {
+  lessonId: string; version: number; source: Source; start: Record<string, unknown>; skippable: boolean; reportCase?: string;
 }) {
   const router = useRouter();
-  const log = useLessonViewLog(lessonId, version, source);
+  const log = useLessonViewLog(lessonId, version, source, reportCase);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 

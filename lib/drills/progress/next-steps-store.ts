@@ -2,10 +2,11 @@
 // (Matt, 15 Nov, D5: the list is fixed at grading; what's done stays live) and
 // read by the report page. lib/drills/next-steps.ts holds the rules.
 import 'server-only';
-import { and, eq, gte } from 'drizzle-orm';
+import { and, eq, gte, sql } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { caseResults, drillSets, prescriptions, studentDrillSettings } from '@/db/schema';
+import { analyticsEvents, caseResults, drillSets, prescriptions, studentDrillSettings } from '@/db/schema';
 import { getDrill, getMistakeTag } from '../config';
+import { logDrillEvent } from '../events';
 import { isLiveDrill } from '../live';
 import type { CaseResultPayload } from '../case-result';
 import { buildNextSteps, type NextStepsSnapshot } from '../next-steps';
@@ -63,4 +64,19 @@ export async function passedSince(studentId: string, skillIds: string[], since: 
   const out = new Set<string>();
   for (const s of sets) for (const id of s.focus ? [s.focus] : getDrill(s.drillId).primary_skills) if (wanted.has(id)) out.add(id);
   return out;
+}
+
+// A set started from a case report's next steps has been completed: its start
+// event carries the case (sets service, `report`), so the follow-through is
+// logged as next_step_completed. Read-only otherwise; logs, never throws.
+export async function noteReportSetCompleted(studentId: string, setId: string, passed: boolean | null): Promise<void> {
+  try {
+    const [start] = await db.select({ p: analyticsEvents.payloadJsonb }).from(analyticsEvents).where(and(
+      eq(analyticsEvents.userId, studentId), eq(analyticsEvents.eventType, 'drill_set_started'), sql`${analyticsEvents.payloadJsonb}->>'set_id' = ${setId}`)).limit(1);
+    const p = start?.p as { report_case?: string | null; report_skill?: string | null } | undefined;
+    if (!p?.report_case) return;
+    await logDrillEvent(studentId, 'next_step_completed', { case_attempt_id: p.report_case, skill_id: p.report_skill ?? null, kind: 'set', set_id: setId, passed });
+  } catch (err) {
+    console.error('[drills] next_step_completed for a set failed:', err);
+  }
 }

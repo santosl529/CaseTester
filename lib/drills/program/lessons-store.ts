@@ -88,7 +88,9 @@ export async function readLessons(studentId: string): Promise<{ skills: Set<stri
 
 export const LessonViewSchema = z.object({
   version: z.number().int().positive(),
-  source: z.enum(['auto', 'intro', 'library', 'low_score', 'follow_up']),
+  source: z.enum(['auto', 'intro', 'library', 'low_score', 'follow_up', 'case_report']),
+  // Opened from a case report's next steps (Matt, 15 Nov).
+  case_attempt_id: z.uuid().optional(),
   seconds_open: z.number().int().nonnegative().max(86_400),
   skipped: z.boolean().default(false),
 });
@@ -102,5 +104,8 @@ export async function recordLessonView(studentId: string, lessonId: string, v: z
   await logDrillEvent(studentId, v.skipped ? 'lesson_skipped' : 'lesson_viewed', {
     lesson_id: lessonId, skill_id: row.skillId, source: v.source, seconds_open: v.seconds_open,
   });
+  if (v.source === 'case_report' && v.case_attempt_id && !v.skipped) {
+    await logDrillEvent(studentId, 'next_step_completed', { case_attempt_id: v.case_attempt_id, skill_id: row.skillId, kind: 'lesson', set_id: null, passed: null });
+  }
   return { ok: true };
 }

@@ -10,14 +10,14 @@ import { repairTranscript } from './transcript-artifacts';
 import { auditEvidence } from './evidence-audit';
 import { runClaimVerifier } from './verifier';
 import { runReconciliation } from './reconcile';
-import { checkMathSteps } from './deterministic';
+import { checkMathSteps, type MathStepResult } from './deterministic';
 import { assembleReport } from './report';
 import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './assists';
 import { summarizeDataRequests, volunteeredItems } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
 import { formatCheckerSection, mandatedConclusionClaims, checkerFlaggedFigures, dropCheckerStamps, checkerFindings } from './checker-record';
-import { prepareCaseResult } from './case-result-step';
+import { prepareCaseResult, type CaseResultInput } from './case-result-step';
 import { applyConclusionMandate } from './conclusion-mandate';
 import { caseNumbersOf } from '@/lib/orchestrator/math-checker-live';
 import { applyStageCaps, formatStageRecordSection, reconstructStages, stagesNotInCase } from './stage-caps';
@@ -412,4 +412,28 @@ function exitMarks(transcript: { role: string; turnIndex: number }[], rows: { su
   if (turns.length === 0) return [];
   return [{ kind: 'candidate_exit', interviewerTurn: null, candidateTurns: turns,
     note: 'The candidate asked to stop, or was asked whether to stop. Asking to stop is never graded: do not mention, rate or penalize it, and do not use these turns as evidence.' }];
+}
+
+// The case → drills step's input for a scored session, rebuilt from what scoring stored (the report, the math
+// results, the checker's record, the stage record and the data requests), for the report's Try again when the step
+// failed (lib/drills/progress/case-runs.ts retryCaseRun). Reads only; no grading call.
+export async function storedCaseResultInput(sessionId: string): Promise<CaseResultInput | null> {
+  const session = await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) });
+  const score = await db.query.scores.findFirst({ where: eq(scores.sessionId, sessionId), orderBy: (s, { desc }) => [desc(s.createdAt)] });
+  if (!session || !score?.rubricJsonb) return null;
+  const caseData = getCaseById(session.caseId);
+  const turns = await db.query.sessionTurns.findMany({ where: eq(sessionTurns.sessionId, sessionId), orderBy: (t, { asc }) => [asc(t.turnIndex)] });
+  const revealedRows = await db.query.revealedData.findMany({ where: eq(revealedData.sessionId, sessionId) });
+  const { turns: transcript } = repairTranscript(turns.map(t => ({ role: t.role, text: t.text, turnIndex: t.turnIndex })));
+  const flags = session.flagsJsonb as Record<string, unknown>;
+  const stageRecord = await loadStageRecord(sessionId, flags, turns, revealedRows, caseData);
+  const events = await db.query.sessionEvents.findMany({ where: eq(sessionEvents.sessionId, sessionId) });
+  const checkerRows = events.filter(e => e.category === 'math_checker');
+  const checkerRedo = { candidateTurns: transcript.filter(t => t.role === 'candidate').map(t => ({ turnIndex: t.turnIndex, text: t.text })), caseData, revealedIds: revealedRows.map(r => r.ledgerItemId) };
+  return prepareCaseResult(session.caseId, () => ({
+    sessionId, studentId: session.userId, completedAt: session.completedAt, caseData, partial: Boolean(flags.partial),
+    rubric: score.rubricJsonb as RubricScores, checker: checkerFindings(checkerRows, checkerRedo), stageRecord,
+    mathResults: (score.deterministicJsonb ?? []) as MathStepResult[],
+    dataRequests: events.filter(e => e.category === 'data_request').map(e => ({ subtype: e.subtype, payloadJsonb: e.payloadJsonb })), transcript,
+  }));
 }

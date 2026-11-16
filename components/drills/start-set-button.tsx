@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { drillFetch } from '@/lib/drills/client-fetch';
@@ -7,18 +7,25 @@ import { drillFetch } from '@/lib/drills/client-fetch';
 // Starts a drill set (a workout block, a suggestion or a quick start) and
 // opens it. If another set is in progress, opens that one instead.
 // `name`: the accessible name when the visible label is short ("Start" on a drill card).
-export function StartSetButton({ body, label, name, variant = 'default', size = 'default' }: {
+// `track`: a case report's next steps (Matt, 15 Nov): the click is logged as next_step_clicked.
+export function StartSetButton({ body, label, name, variant = 'default', size = 'default', track }: {
   body: Record<string, unknown>; label: string; name?: string;
-  variant?: 'default' | 'outline' | 'ghost'; size?: 'default' | 'sm' | 'lg';
+  variant?: 'default' | 'outline' | 'ghost'; size?: 'default' | 'sm' | 'lg'; track?: Record<string, unknown>;
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
+  // A second click can land before the disabled state renders.
+  const running = useRef(false);
   const [error, setError] = useState('');
   async function start() {
+    if (running.current) return;
+    running.current = true;
     setBusy(true);
+    if (track) navigator.sendBeacon?.('/api/drills/next-steps', new Blob([JSON.stringify(track)], { type: 'application/json' }));
     const res = await drillFetch('/api/drills/sets', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
     const data = await res.json().catch(() => ({}));
     setBusy(false);
+    running.current = false;
     if (res.ok || data.error === 'set_in_progress') router.push(`/drills/sets/${data.set_id}`);
     else setError(data.message ?? 'Could not start the set.');
   }
