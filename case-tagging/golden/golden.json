@@ -2097,8 +2097,8 @@
       "negotiate with suppliers on beans and dairy? Or longer-term contracts to lock in prices.",
       "look at the menu mix, pushing higher-margin drinks. And maybe portion or waste control"
     ],
-    "label": "M.too_few_ideas",
-    "rule": "C1"
+    "label": "M.waited_for_interviewer",
+    "rule": "L4"
   },
   {
     "id": "8c4c1364-fe24-43cd-822c-3bd64a3f8b19:creativity:0",
@@ -2126,8 +2126,8 @@
       "If they're buying dairy store-by-store or regionally, centralizing that could pull a few points.",
       "On mix: rather than fighting the attachment, steer it — push higher-margin add-ons like pastries with better markup, or reformulate the lowest-margin items."
     ],
-    "label": "M.too_few_ideas",
-    "rule": "C1"
+    "label": null,
+    "rule": "N7"
   },
   {
     "id": "f59f5ea8-7008-4a82-b196-2dd535d9d3f8:creativity:0",
@@ -2184,8 +2184,8 @@
       "Also reformulation: cheaper milk alternatives, lighter cup stock, portion control on dairy.",
       "Rather than raising the headline latte price, push higher-margin items — food attachment, larger sizes, cold brew — and lift ticket without changing posted prices."
     ],
-    "label": "M.too_few_ideas",
-    "rule": "C1"
+    "label": null,
+    "rule": "N7"
   },
   {
     "id": "f224ebb1-c7b0-43c8-a003-b78a606e290c:synthesis:0",

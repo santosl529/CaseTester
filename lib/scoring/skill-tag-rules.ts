@@ -74,12 +74,12 @@ export const LESSON_DEFINITIONS: Record<string, string> = {
 export const NEW_DEFINITIONS: Record<string, string> = {
   "M.low_value_question": "a clarifying question whose answer wouldn't change the approach, or that the prompt already answered.",
   "M.missed_key_question": "not asking about something the case hinges on before starting, like what the client counts as success.",
-  "M.too_many_questions": "a long run of clarifying questions before offering any structure.",
+  "M.too_many_questions": "more than 3 clarifying questions before offering any structure.",
   "M.no_implication": "stating a finding or a number without saying what it means for the client's question.",
   "M.implication_off_objective": "an implication that doesn't bear on what the client asked.",
   "M.generic_risk": "a risk or mitigation that could apply to any company (\"the economy could change\", \"more marketing\").",
   "M.missed_key_risk": "naming risks but missing the one the case turns on, or calling an action risk-free when it isn't.",
-  "M.too_few_ideas": "only one or two ideas, or only the obvious ones, when asked to brainstorm.",
+  "M.too_few_ideas": "fewer than 4 distinct ideas, or ideas all from one area (all cost levers, say), when asked to brainstorm.",
   "M.unstructured_ideas": "ideas given as a flat list with no groups, or a grouping announced and then not used.",
   "M.overlapping_idea_groups": "idea groups, or ideas, that cover the same thing twice.",
   "M.rambling": "an answer longer than it needs to be, or that works through detail before its point: filler, apologies, asides, repetition, circling back.",
@@ -116,6 +116,7 @@ N3. Ideas not ranked or prioritized.
 N4. Tone, conduct and composure: dismissive or combative remarks, asking for scores or to end the case, stepping away, self-doubt said aloud, false precision, an imprecise label. (If the point says it added filler or length, see D1.)
 N5. Answers too short or clipped, or no signposting.
 N6. Statements that contradict each other, when nothing else in the point has a tag.
+N7. Ideas that are conventional or not non-obvious, when there are at least 4 from more than one area.
 
 STRUCTURE (the opening)
 S1. No structure at all, or couldn't start or move the structure on without the interviewer's help: M.missing_bucket.
@@ -154,7 +155,7 @@ J1. The recommendation, plan, levers or next steps leave out or contradict a fac
 J2. A risk or mitigation that's generic: M.generic_risk. Risks named but the key one missed, or an action called risk-free when it isn't: M.missed_key_risk. No risk or next step at all: M.missing_risk_or_next_step.
 
 BRAINSTORM
-C1. No ideas, few ideas, or only obvious ones: M.too_few_ideas.
+C1. Fewer than 4 distinct ideas, or ideas all from one area (all cost levers, say): M.too_few_ideas. Ideas that are only conventional or obvious: no tag (N7).
 C2. A flat list with no groups, no mini-structure, or a grouping announced and not used: M.unstructured_ideas. Groups or ideas that overlap: M.overlapping_idea_groups.
 
 RECOMMENDATION
