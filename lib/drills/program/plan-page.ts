@@ -3,7 +3,7 @@
 
 // The line under the title. A completed full case makes the plan's source
 // "case" (plan-source.ts), but until case results reach drills
-// (CASE_RESULTS_WIRED) the placements still come from the diagnostic or the
+// (CASE_TO_DRILLS=on, lib/drills/case-to-drills.ts) the placements still come from the diagnostic or the
 // questionnaire, so "Built from your first full case." would be wrong: no line.
 const SOURCE = {
   case: 'Built from your first full case.',

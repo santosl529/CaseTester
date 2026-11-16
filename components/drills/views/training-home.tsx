@@ -5,7 +5,7 @@ import { StartSetButton } from '@/components/drills/start-set-button';
 import { CheckIn } from '@/components/drills/feedback';
 import type { Checkin } from '@/lib/drills/feedback';
 import type { homeView } from '@/lib/drills/program/home';
-import { CASE_RESULTS_WIRED } from '@/lib/drills/case-result';
+import { caseResultsWired } from '@/lib/drills/case-to-drills';
 import { AppPage } from '@/components/brand/page';
 import { StepDot } from '@/components/brand/progress';
 import { ArrowLink } from '@/components/brand/links';
@@ -53,12 +53,12 @@ export function TrainingHome({ home, checkin }: { home: TrainingHomeData; checki
   ));
   const self = home.kind === 'self_directed';
   // No plan yet: three ways to get one (D6 round 2); the first one done makes it.
-  // Two while a case result can't make a plan (CASE_RESULTS_WIRED).
+  // Two while a case result can't make a plan (CASE_TO_DRILLS=on).
   const getPlan = !home.plan.source && (
     <section aria-labelledby="get-plan" className="space-y-4">
       <h2 id="get-plan" className="t-heading font-semibold">{self ? 'Find your starting point' : 'Get your plan'}</h2>
       <p className="t-small">Pick one. {self ? 'Suggestions' : 'Your plan and first workout'} are ready as soon as you finish, and you can do the others later to sharpen {self ? 'them' : 'it'}.</p>
-      <ul className={`grid gap-3 ${CASE_RESULTS_WIRED ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
+      <ul className={`grid gap-3 ${caseResultsWired() ? 'sm:grid-cols-3' : 'sm:grid-cols-2'}`}>
         <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
           <span><span className="t-body block font-semibold">Answer a few questions</span><span className="text-ink/70">2–3 minutes. The quickest start; your first workouts include short checks.</span></span>
           <Link href="/drills/questionnaire" className={buttonVariants({ size: 'sm' })}>Answer questions</Link>
@@ -67,7 +67,7 @@ export function TrainingHome({ home, checkin }: { home: TrainingHomeData; checki
           <span><span className="t-body block font-semibold">Take the diagnostic</span><span className="text-ink/70">About 15 minutes of short questions. More accurate.</span></span>
           <Link href="/drills/diagnostic" className={buttonVariants({ size: 'sm', variant: 'outline' })}>{d.done > 0 ? `Continue (part ${Math.min(d.done + 1, d.of)} of ${d.of})` : 'Start the diagnostic'}</Link>
         </li>
-        {CASE_RESULTS_WIRED && (
+        {caseResultsWired() && (
           <li className="t-small flex flex-col justify-between gap-4 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet">
             <span><span className="t-body block font-semibold">Take a full case</span><span className="text-ink/70">About 35 minutes. The most accurate.</span></span>
             <Link href="/home" className={buttonVariants({ size: 'sm', variant: 'outline' })}>Go to cases</Link>
@@ -173,8 +173,8 @@ export function TrainingHome({ home, checkin }: { home: TrainingHomeData; checki
       : { label: [`${TRACK[program.track]} plan`, null], title: weekOf };
   const next = workout?.blocks.findIndex(b => b.status !== 'done') ?? -1;
   const started = workout?.blocks.some(b => b.status !== 'todo');
-  // A case finds weak spots only once its result reaches drills (CASE_RESULTS_WIRED).
-  const emptyWorkoutLead = CASE_RESULTS_WIRED
+  // A case finds weak spots only once its result reaches drills (CASE_TO_DRILLS=on).
+  const emptyWorkoutLead = caseResultsWired()
     ? (d.status === 'completed' ? 'Take a case' : 'Take the diagnostic or a case')
     : (d.status === 'completed' ? 'Do a drill set' : 'Take the diagnostic');
 

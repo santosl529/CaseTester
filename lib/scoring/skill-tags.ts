@@ -20,7 +20,9 @@ export type TagPoint = {
   point: string;
   quotes: string[];
 };
-export type TagResult = { id: string; tag: string | null; reason: string };
+// omitted: the model left the point out twice (once in the call, once in the
+// retry of just the missing points); it gets no tag.
+export type TagResult = { id: string; tag: string | null; reason: string; omitted?: true };
 
 export const TAGGER_SYSTEM = `You label the feedback points of a graded case interview with the mistake tags of a practice tool for university students preparing for consulting interviews. The tag you choose decides which drill the student is sent to next, so a wrong skill is the costliest error.
 
@@ -57,11 +59,20 @@ export function pointsBlock(points: TagPoint[]): string {
   }).join('\n\n');
 }
 
-// One call for one report's points. Throws on a refusal, a missing or partial
-// answer, or an id that wasn't asked: the caller treats any of those as
-// "tagging failed" and the report stands without next steps.
+// One call for one report's points. A point the model leaves out (it happened
+// once in the gate's 346 calls, 15 Nov) is asked again on its own, once; still
+// missing, it gets no tag rather than failing the case. Throws on a refusal or
+// no answer: the caller treats that as "tagging failed" and the report stands
+// without next steps.
 export async function tagPoints(points: TagPoint[], configName: CaseTaggerConfigName, onUsage?: OnUsage): Promise<TagResult[]> {
   if (points.length === 0) return [];
+  const first = await tagOnce(points, configName, onUsage);
+  const missing = points.filter(p => !first.has(p.id));
+  const retry = missing.length ? await tagOnce(missing, configName, onUsage) : new Map<string, TagResult>();
+  return points.map(p => first.get(p.id) ?? retry.get(p.id) ?? { id: p.id, tag: null, reason: 'left out of the answer twice', omitted: true as const });
+}
+
+async function tagOnce(points: TagPoint[], configName: CaseTaggerConfigName, onUsage?: OnUsage): Promise<Map<string, TagResult>> {
   const { model, thinking, effort }: CaseTaggerConfig = CASE_TAGGER_CONFIGS[configName];
   const response = await anthropicClient({ maxRetries: 2 }).beta.messages.stream({
     model,
@@ -78,10 +89,7 @@ export async function tagPoints(points: TagPoint[], configName: CaseTaggerConfig
     cacheReadTokens: response.usage.cache_read_input_tokens ?? 0, cacheWriteTokens: response.usage.cache_creation_input_tokens ?? 0,
   });
   if (response.stop_reason === 'refusal' || !response.parsed_output) throw new Error(`tagging returned no labels (stop reason ${response.stop_reason})`);
-  const byId = new Map(response.parsed_output.points.map(p => [p.id, p]));
-  return points.map(p => {
-    const got = byId.get(p.id);
-    if (!got) throw new Error(`tagging left out point ${p.id}`);
-    return { id: p.id, tag: got.tag === 'none' ? null : got.tag, reason: got.reason };
-  });
+  const asked = new Set(points.map(p => p.id));
+  return new Map(response.parsed_output.points.filter(p => asked.has(p.id))
+    .map(p => [p.id, { id: p.id, tag: p.tag === 'none' ? null : p.tag, reason: p.reason }]));
 }

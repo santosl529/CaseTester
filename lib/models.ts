@@ -213,7 +213,12 @@ export const CASE_TAGGER_CONFIGS = {
   'sonnet55-thinking': { model: 'claude-sonnet-5-5', thinking: { type: 'adaptive' }, effort: 'medium' },
 } satisfies Record<string, CaseTaggerConfig>;
 export type CaseTaggerConfigName = keyof typeof CASE_TAGGER_CONFIGS;
-export const CASE_TAGGER_CONFIG: CaseTaggerConfigName | null = null;
+// Gate passed on 15 Nov for 7 of 9 groups (two runs averaged: structure 100,
+// quantitative 96.7, creativity 91.7, synthesis 100, communication 93.3,
+// pushback 90, top improvement 91.6; wrong skill 4.1%). Exhibits (86.7) and
+// judgment (85) failed: their points are tagged and recorded, but give no
+// drill or prescription (CASE_TAG_DRILL_GROUPS, lib/drills/case-to-drills.ts).
+export const CASE_TAGGER_CONFIG: CaseTaggerConfigName = 'sonnet55-thinking';
 
 // The production deployment: Vercel's production environment (previews and
 // local builds aren't), or NODE_ENV=production off Vercel.

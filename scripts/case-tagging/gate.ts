@@ -55,11 +55,13 @@ async function main() {
   const others = [...answeredBy].filter(m => !m.startsWith(model));
   if (others.length) throw new Error(`answered by ${others.join(', ')}, not ${model}`);
 
+  const omitted = [...results.values()].filter(r => r.omitted).map(r => r.id);
   const scored = golden.filter(g => results.has(g.id));
   const gate = gateResult(scored.map(g => ({ id: g.id, group: g.dimension ?? 'topFix', label: g.label, tag: results.get(g.id)!.tag })));
   console.log(`${configName} (${model}): ${scored.length}/${golden.length} points in ${reports.length} calls, $${spent.toFixed(3)}`);
   for (const g of gate.groups) console.log(`  ${g.pass ? 'pass' : 'FAIL'}  ${g.group.padEnd(14)} ${(g.rate * 100).toFixed(1)}%  (${g.agree}/${g.total}; gate ${GATE_AGREEMENT * 100}%)`);
   console.log(`  ${gate.wrongSkill.pass ? 'pass' : 'FAIL'}  wrong skill    ${(gate.wrongSkill.rate * 100).toFixed(1)}%  (${gate.wrongSkill.count}/${gate.wrongSkill.total}; gate ≤ ${GATE_WRONG_SKILL * 100}%)`);
+  if (omitted.length) console.log(`  left out twice, scored as untagged: ${omitted.join(', ')}`);
   if (failures.length) console.log(`  failed calls: ${failures.length}\n    ${failures.join('\n    ')}`);
   console.log(gate.pass && failures.length === 0 ? 'GATE PASSED' : 'GATE NOT PASSED');
 

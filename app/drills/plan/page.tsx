@@ -6,7 +6,7 @@ import { studentOrRedirect } from '@/lib/drills/session';
 import { healDiagnostic } from '@/lib/drills/grading/jobs';
 import { activeProgram, programView, studentToday, todayWorkout, weekCounts, workoutWithStatus } from '@/lib/drills/program/store';
 import { planSourceLine } from '@/lib/drills/program/plan-page';
-import { CASE_RESULTS_WIRED } from '@/lib/drills/case-result';
+import { caseResultsWired } from '@/lib/drills/case-to-drills';
 import { pendingChecks, planFromCase } from '@/lib/drills/program/plan-source';
 import { openPrescriptions } from '@/lib/drills/progress/profile';
 import { PlanEmpty, PlanScreen } from '@/components/drills/views/plan';
@@ -32,7 +32,7 @@ export default async function PlanPage() {
   }
   if (!program.planSeenAt) await db.update(studentPrograms).set({ planSeenAt: new Date() }).where(eq(studentPrograms.id, program.id));
   const view = (await programView(studentId))!;
-  const source = planSourceLine(program.planSource, CASE_RESULTS_WIRED);
+  const source = planSourceLine(program.planSource, caseResultsWired());
   const rx = (await openPrescriptions(studentId)).slice(0, 3);
   const checks = await pendingChecks(studentId);
   if (program.track === 'self_directed') {
