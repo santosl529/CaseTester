@@ -38,7 +38,7 @@ describe('case → prescriptions (PRD "Prescription rules")', () => {
     const u = applyCase(new Map(), fixture(), null, at(0));
     expect(u.prescriptions.map(p => [p.skill_id, p.priority])).toEqual([['QN.setup', 2], ['PS.case_specific', 1]]);
     expect(u.prescriptions[0].reason).toBe(
-      'In your last case you said, “so breakeven is two million divided by fifty dollars.” You used the right numbers in the wrong formula.');
+      'You used the right numbers in the wrong formula. In your last case you said, “so breakeven is two million divided by fifty dollars.”');
     // "Not started → Learning: first prescription."
     expect(u.transitions).toEqual([
       { skill_id: 'QN.setup', from: 'not_started', to: 'learning', reason: 'first prescription' },
@@ -93,7 +93,7 @@ describe('case → prescriptions (PRD "Prescription rules")', () => {
   it('shortens long quotes to their last 25 words', () => {
     const long = Array.from({ length: 40 }, (_, i) => `w${i}`).join(' ');
     expect(caseReason({ tag: 'M.zeros_error', severity: 'major', turn_ids: [1], evidence: long }))
-      .toMatch(/^In your last case you said, “…w15 w16 .* w39\.” Your answer was off by a factor of 10 or more\.$/);
+      .toMatch(/^Your answer was off by a factor of 10 or more\. In your last case you said, “…w15 w16 .* w39\.”$/);
   });
 });
 

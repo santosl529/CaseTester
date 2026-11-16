@@ -1,8 +1,8 @@
-// Prescription reasons (Matt, 15 Nov 2026): one plain-English line per mistake
-// tag (the taxonomy's `reason_line`, e.g. "You made an arithmetic slip."), and
-// a student's quote set in US punctuation — the closing point inside the
-// quotation marks, never doubled. Shared by case, in-drill and diagnostic
-// reasons so they read the same.
+// Prescription reasons (Matt, 15–16 Nov 2026): one plain-English line per
+// mistake tag (the taxonomy's `reason_line`, e.g. "You made an arithmetic
+// slip."), first, then the student's quote in US punctuation — the closing
+// point inside the quotation marks, never doubled. Shared by case, in-drill and
+// diagnostic reasons so they read the same.
 import { getMistakeTag } from './config';
 
 const MAX_QUOTE_WORDS = 25;
@@ -20,11 +20,11 @@ export function quoted(evidence: string): string {
   return `“${q}”`;
 }
 
-// A case finding: In your last case you said, “Margin fell 18%.” You mixed up percent and percentage points.
-export const caseReason = (f: { tag: string; evidence: string } & Record<string, unknown>) => `In your last case you said, ${quoted(f.evidence)} ${reasonLine(f.tag)}`;
+// A case finding: You mixed up percent and percentage points. In your last case you said, “Margin fell 6 percent.”
+export const caseReason = (f: { tag: string; evidence: string } & Record<string, unknown>) => `${reasonLine(f.tag)} In your last case you said, ${quoted(f.evidence)}`;
 
 // A miss on another skill inside a drill set: In your last Mental math set, you made an arithmetic slip.
 export const drillReason = (drillName: string, tag: string) => `In your last ${drillName} set, ${lowerFirst(reasonLine(tag))}`;
 
-// The diagnostic: In the diagnostic: You divided by the wrong base. You made an arithmetic slip.
-export const diagnosticReason = (tags: string[]) => `In the diagnostic: ${tags.map(reasonLine).join(' ')}`;
+// The diagnostic, its top mistake only: In the diagnostic, you made an arithmetic slip.
+export const diagnosticReason = (topTag: string) => `In the diagnostic, ${lowerFirst(reasonLine(topTag))}`;

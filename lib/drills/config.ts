@@ -50,7 +50,7 @@ export const TaxonomySchema = z.object({
     // needn't list it.
     case_only: z.boolean().optional(),
     // One plain-English line for prescription reasons ("You made an arithmetic
-    // slip."; Matt, 15 Nov; lib/drills/reason.ts): a full sentence.
+    // slip."; Matt, 15–16 Nov; lib/drills/reason.ts): a full sentence.
     reason_line: z.string().regex(/^[A-Z].*\.$/),
   })),
   // M.timeout and M.skipped: logged on attempts but mapped to no skill.

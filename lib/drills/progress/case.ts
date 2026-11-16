@@ -141,6 +141,6 @@ export function applyCase(before: ProgressMap, payload: CaseResultPayload, previ
   return { progress, transitions, prescriptions, regressions };
 }
 
-// Rule 6: the reason quotes the student, then says what went wrong in plain
-// English (lib/drills/reason.ts).
+// Rule 6: the reason says what went wrong in plain English, then quotes the
+// student (lib/drills/reason.ts).
 export { caseReason } from '../reason';

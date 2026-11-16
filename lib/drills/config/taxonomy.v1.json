@@ -466,7 +466,7 @@
       "label": "wrong base",
       "severity": "major",
       "deprecated": false,
-      "reason_line": "You divided by the wrong base."
+      "reason_line": "You calculated a percentage from the wrong starting number."
     },
     {
       "id": "M.percent_vs_points",
@@ -706,7 +706,7 @@
       "label": "unsupported recommendation",
       "severity": "major",
       "deprecated": false,
-      "reason_line": "Your recommendation wasn't backed by the numbers."
+      "reason_line": "Your recommendation wasn't backed by your analysis."
     },
     {
       "id": "M.irrelevant_facts",
@@ -826,7 +826,7 @@
       "label": "no evidence in defense",
       "severity": "minor",
       "deprecated": false,
-      "reason_line": "You defended your answer without evidence."
+      "reason_line": "You didn't back up your answer when challenged."
     },
     {
       "id": "M.dodged_question",

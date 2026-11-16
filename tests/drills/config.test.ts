@@ -199,7 +199,16 @@ describe('case-only tags (M.no_structure; Matt, 15 Nov)', () => {
 
   it('give the prescription its own reason line after the quote', () => {
     expect(caseReason({ tag: 'M.no_structure', severity: 'major', turn_ids: [2], evidence: "I'd just raise prices." }))
-      .toBe('In your last case you said, “I\'d just raise prices.” You went straight to an answer without laying out a structure first.');
+      .toBe('You went straight to an answer without laying out a structure first. In your last case you said, “I\'d just raise prices.”');
+  });
+});
+
+describe('reason lines (Matt, 15–16 Nov)', () => {
+  it('give every tag one plain sentence, with no bare tag name and no "a" before a vowel', () => {
+    for (const t of DRILLS_CONFIG.taxonomy.mistake_tags) {
+      expect(t.reason_line, t.id).toMatch(/^[A-Z][^]*\.$/);
+      expect(t.reason_line, t.id).not.toMatch(/\ba [aeiou]/i);
+    }
   });
 });
 
