@@ -461,7 +461,7 @@ Taxonomy v1 has 9 skill areas, 29 skills, 67 mistake tags and a prerequisite map
 
 ### Rules
 
-- The taxonomy lives in one versioned config file (`taxonomy.v1.json`) that both the case grader and the drills service load. No tags are hard-coded anywhere else.
+- The taxonomy lives in one versioned config file (`taxonomy.v1.json`, version v1.1 since 15 Nov 2026) that both the case grader and the drills service load. No tags are hard-coded anywhere else. A tag marked `case_only` (`M.no_structure`) is logged only by the case tagging step: no drill, item or rule may use it, and its skill's lesson needn't list it. The four config files share one version, so adding it moved all four to v1.1.
 - Every mistake tag maps to exactly one skill. Every skill maps to exactly one skill area, and every area to one rubric dimension.
 - Tags are never renamed or deleted, only marked deprecated, so historical data stays readable.
 - The case grader may only emit tags in the file. The API rejects unknown tags.
@@ -485,7 +485,7 @@ Taxonomy v1 has 9 skill areas, 29 skills, 67 mistake tags and a prerequisite map
 
 | Skill | What it means | Mistake tags | Trained by |
 | --- | --- | --- | --- |
-| `PS.mece` | Buckets don't overlap and nothing major is missing | `M.overlapping_buckets`, `M.missing_bucket` | PS-1, PS-4, PS-3 |
+| `PS.mece` | Buckets don't overlap and nothing major is missing | `M.overlapping_buckets`, `M.missing_bucket`, `M.no_structure` (cases only: no structure, or straight to an answer; reason line "You went straight to an answer without laying out a structure first.") | PS-1, PS-4, PS-3 |
 | `PS.case_specific` | Structure fits this case, not a canned framework | `M.generic_framework`, `M.irrelevant_bucket` | PS-1, PS-4, PS-3 |
 | `PS.depth` | Each bucket has concrete sub-points | `M.shallow_structure` | PS-4, PS-3 |
 | `PS.clarifying_questions` | Asks the few questions that matter | `M.low_value_question`, `M.missed_key_question`, `M.too_many_questions` | PS-2 |
@@ -1152,7 +1152,15 @@ The transcript-grading agent must emit this payload when a case is graded. The d
 - `rubric_scores` uses the case grader's format: the 8 dimension keys from `lib/scoring/rubric.ts` (`structure`, `quantitative`, `dataExhibit`, `judgment`, `creativity`, `synthesis`, `communication`, `pushback`), each rated `needs_work`, `meets_bar` or `strong`. Dimensions the grader couldn't rate are left out.
 - `severity` is `minor` or `major`. Each tag's default is set in the taxonomy file. The case grader may downgrade a finding to `minor` if the candidate corrected it themselves or it didn't change the conclusion, and may upgrade `M.waited_for_interviewer` to `major` in candidate-led cases. The finding carries the final severity, and the prescription rules use it, not the default.
 - `evidence` must be an exact quote from the transcript. The drills service shows it to the student in the prescription reason.
-- The grader changes needed to emit this payload are deferred; the case grader will be updated later. Until then, drills are built and tested against fixture payloads.
+- `partial` (optional): the candidate ended the case early. Its findings count; it never counts for readiness; a skill validates only if its stage finished.
+- **How the case grader builds it (15 Nov 2026, Matt's decisions D1–D14; `lib/scoring/case-result-builder.ts`, `case-result-step.ts`):** a step at the end of each scoring pass, inside the scoring claim, behind `CASE_TO_DRILLS` (off / shadow / on, default off).
+  - Code tags from the math checker's wrong figures (arithmetic, a power of ten off → zeros; wrong base; unit; wrong period; misquote → wrong data point; conceptual is left to the tagging step) and from the stage record (risk asked, none named).
+  - One AI call tags each "needs work" point with a verified quote, and the top improvement, with one tag or none, by the written rules in `lib/scoring/skill-tag-rules.ts`. The model is Sonnet 5.5 with adaptive thinking (`sonnet55-thinking`), the cheapest that passed the gate (≥ 90% tag agreement per group averaged over two runs, ≤ 5% wrong skill) on a golden set of 270 points (`case-tagging/golden/golden.json`, frozen). A point it leaves out is asked again once.
+  - Only the groups in `CASE_TAG_DRILL_GROUPS` give findings: structure, quantitative, creativity, synthesis, communication, pushback and the top improvement passed; exhibits (86.7%) and judgment (85%) did not, so their points are tagged and recorded but give no drill and no prescription. A group goes on only after its gate passes again with real shadow points Matt has labelled (`scripts/case-tagging/gate.ts --with-shadow`).
+  - Severity: the tag's default; minor when the dimension was still rated Adequate or Strong, or the figure was put right in the interview; major when the tag is the top improvement's. Evidence is the point's first quote found in a candidate turn; none found, no finding.
+  - `skills_observed` from code: each stage answered (not declined, not cut off), in a dimension that was rated.
+  - The 7-minute demo makes no case result. A tagging failure never fails the report.
+  - Every run is stored in `case_result_runs` (every point, every group); in shadow mode with a preview of the prescriptions it would make, for the shadow review page (`/drills/review/case-tags`, local development only).
 
 ### Prescription rules
 
@@ -1392,7 +1400,8 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `drill_tiers` | student\_id, drill\_id, current\_tier, updated\_at | Current tier per student per drill |
 | `skill_states` | student\_id, skill\_id, state (adds practiced), stage, l1\_passing\_streak, l2\_passing\_streak, last\_skill\_score, last\_practiced\_at, practiced\_at, transfer\_due\_at, next\_review\_at, low\_streak, repair\_sets, paused\_for\_prereq, prereq\_sets, next\_focus\_tag, updated\_at | Current state per student per skill. `low_streak`: sets in a row below 50% (stuck rule); `repair_sets`: Repair sets since entering Repair; `prereq_sets`: prerequisite sets since the stuck rule paused this skill; `next_focus_tag`: the tag the skill's next set focuses on |
 | `skill_state_events` | student\_id, skill\_id, from\_state, to\_state, reason, source\_type (set, case, review), source\_id, created\_at | Full history, for the profile and analytics |
-| `case_results` | case\_attempt\_id, student\_id, case\_id, case\_type, difficulty\_tier, rubric\_scores (JSON), skills\_observed\[\], findings (JSON), taxonomy\_version, received\_at | Written from the case grader payload |
+| `case_results` | case\_attempt\_id, student\_id, case\_id, case\_type, difficulty\_tier, rubric\_scores (JSON), skills\_observed\[\], findings (JSON), taxonomy\_version, received\_at, retake, partial, backfilled, next\_steps (JSON) | Written from the case grader payload. Migration 0029 added retake, partial (never count for readiness or Validated), backfilled (ratings only, from a case graded before 0029) and next\_steps (the report's list as shown, fixed at grading) |
+| `case_result_runs` | session\_id, student\_id, case\_id, mode, status (built, applied, failed), tagger\_config, points (JSON: every tagged point and the checker's findings), payload (JSON), preview (JSON), labels (JSON: the reviewer's label per point), cost\_usd, error, created\_at, applied\_at | One row per graded case the case → drills step handled (migration 0029). Server-only; deleted with the account |
 | `prescriptions` | prescription\_id, student\_id, skill\_id, drill\_id, level, stage, tier, focus\_tag, priority, reason\_text, evidence\_quote, source\_type (case, drill, diagnostic, plan), source\_id, status (open, in\_progress, completed, dismissed, superseded, paused), created\_at, closed\_at | Open prescriptions drive the workout's weak-spot slot |
 | `student_programs` (new) | student\_id, track (foundations, standard, sprint, self\_directed), plan\_version, start\_date (local), started\_at, interview\_date, workouts\_per\_week, cases\_done, current\_week, status (active, completed, switched), plan\_source (case, diagnostic, questionnaire), plan\_created\_at, plan\_seen\_at | One active row per student; a track switch closes the row and opens a new one. `current_week` is the plan week the student was last seen in, for the week-rollover event |
 | `workouts` (new) | workout\_id, student\_id, program\_week, date (in the student's time zone), target\_minutes, blocks (JSON: slot, drill\_id, skill\_id, stage, tier, set\_id), status (planned, in\_progress, completed, expired) | One per student per day |
@@ -1485,6 +1494,7 @@ The case library list (`GET /cases`, with filters and the Suggested mark) belong
 | Interface | Purpose |
 | --- | --- |
 | Case results ingestion (in-process function) | Receives the case grader payload. Validates tags against the taxonomy, stores it, updates skill states and regenerates prescriptions. Idempotent on `case_attempt_id` |
+| Case → drills step (`lib/scoring/case-result-step.ts`, `lib/drills/progress/case-runs.ts`) | Runs in each scoring pass when `CASE_TO_DRILLS` is shadow or on: tags the report, builds the payload, stores the run; when on, calls ingestion. Shadow mode stores a read-only preview instead |
 | Taxonomy config | The case grader imports the same taxonomy loader as drills |
 | Content admin | Scripts rather than an API (see Components); `npm run drills:review` renders previews of items, generated ones by seed |
 
@@ -1623,6 +1633,7 @@ Estimate per active student per month on the Standard plan (4 workouts a week, u
 | Workout grading (Repair, Construct, Defend) | \~17 workouts × \~12 graded answers ≈ 200 | \~$0.91 |
 | Diagnostic | 2 graded answers, once | < $0.01 |
 | Lessons, plans, workouts, auto-checked items | — | $0 |
+| Case tagging step (part of case grading, counted there; Matt, 15 Nov, D13) | \~4 cases (8 at most) × \~$0.04 | \~$0.16 (\~$0.31 at the limit) |
 | Full cases (not part of drills) | \~6 | \~$3.00 |
 | **Total** |  | **\~$3.90** |
 
