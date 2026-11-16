@@ -8,9 +8,10 @@ import { z } from 'zod';
 import { and, desc, eq, gte, inArray, isNotNull } from 'drizzle-orm';
 import { db } from '@/db/client';
 import {
-  caseResults, diagnostics, drillSets, prescriptions, sessions, skillStateEvents, studentDrillSettings, studentProfiles, studentPrograms,
+  caseResults, diagnostics, drillSets, prescriptions, sessions, studentDrillSettings, studentProfiles, studentPrograms,
   workouts,
 } from '@/db/schema';
+import { LISTED_CASE_IDS } from '@/lib/cases/listed';
 import { loadCases } from '@/lib/cases/loader';
 import { DRILLS_CONFIG, getDrill, getMistakeTag, getSkill } from '../config';
 import { logDrillEvent, logPendingEvents, type EventProps } from '../events';
@@ -23,10 +24,10 @@ import {
   type PlanWeek, type Track,
 } from './plan';
 import {
-  buildWorkout, missedMilestoneSkills, planPrescriptionSkill, planReason, weekMilestones, type OpenPrescription,
+  buildWorkout, missedMilestoneSkills, planPrescriptionSkill, planReason, weekMilestones, weekMilestoneSkills, type OpenPrescription,
   type WorkoutBlock,
 } from './workout';
-import { DIFFICULTY_TIER, pickNextCase, type NextCase } from './next-case';
+import { DIFFICULTY_TIER, mostPracticedArea, pickNextCase, type NextCase } from './next-case';
 import { pendingChecks } from './plan-source';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -231,6 +232,7 @@ export async function todayWorkout(studentId: string, now = new Date()): Promise
       interview_days_out: program.interviewDate ? daysBetween(today, program.interviewDate) : null,
       progress, tiers: await loadTiers(tx, studentId), prescriptions: rx,
       missed_milestone_skills: plan.kind === 'weeks' ? missedMilestoneSkills(week, plan.weeks, progress) : [],
+      milestone_skills: plan.kind === 'weeks' ? weekMilestoneSkills(week, plan.weeks, progress) : [],
       time_multiplier: settings?.m ?? 1, ctx, checks,
     });
     const values = { studentId, programId: program.id, programWeek: week?.week ?? null, date: today, targetMinutes: workout.target_minutes, blocks: workout.blocks, status: 'planned' as const };
@@ -265,14 +267,37 @@ export async function extraWorkout(studentId: string, now = new Date()): Promise
   const week = currentWeek(plan, today);
   const day = currentDay(plan, today);
   const [settings] = await db.select({ m: studentDrillSettings.timeMultiplier }).from(studentDrillSettings).where(eq(studentDrillSettings.studentId, studentId));
+  const progress = await loadProgress(db, studentId);
   const workout = buildWorkout({
     track: program.track as Exclude<Track, 'self_directed'>, week, sprint_day: day,
     interview_days_out: program.interviewDate ? daysBetween(today, program.interviewDate) : null,
-    progress: await loadProgress(db, studentId), tiers: await loadTiers(db, studentId), prescriptions: await openRx(db, studentId),
-    missed_milestone_skills: plan.kind === 'weeks' ? missedMilestoneSkills(week, plan.weeks, await loadProgress(db, studentId)) : [],
+    progress, tiers: await loadTiers(db, studentId), prescriptions: await openRx(db, studentId),
+    missed_milestone_skills: plan.kind === 'weeks' ? missedMilestoneSkills(week, plan.weeks, progress) : [],
+    milestone_skills: plan.kind === 'weeks' ? weekMilestoneSkills(week, plan.weeks, progress) : [],
     time_multiplier: settings?.m ?? 1, ctx: await progressContext(db, studentId, now), checks: await pendingChecks(studentId),
   });
   return workout.blocks;
+}
+
+// A case result arrived (Matt, 15 Nov): today's workout reflects it straight
+// away. Not started: rebuilt now. In progress: the sets already started are
+// kept and the rest rebuilt from the student's progress and prescriptions now.
+// Done (or none, or Practice on my own): left alone; tomorrow's reflects it.
+export async function refreshTodayWorkout(studentId: string, now = new Date()): Promise<'rebuilt' | 'updated' | 'kept' | 'none'> {
+  const { today } = await studentToday(studentId, now);
+  const [row] = await db.select().from(workouts).where(and(eq(workouts.studentId, studentId), eq(workouts.date, today)));
+  if (!row) return 'none';
+  if (row.status === 'expired' || row.status === 'completed') return 'kept';
+  if (row.status === 'planned') {
+    await db.update(workouts).set({ status: 'expired' }).where(and(eq(workouts.id, row.id), eq(workouts.status, 'planned')));
+    await todayWorkout(studentId, now);
+    return 'rebuilt';
+  }
+  const started = (row.blocks as WorkoutBlock[]).filter(b => b.set_id);
+  const fresh = (await extraWorkout(studentId, now)).filter(b => !started.some(s => s.skill_id === b.skill_id));
+  const blocks = [...started, ...fresh].slice(0, Math.max(started.length, programs.workout.max_sets));
+  await db.update(workouts).set({ blocks }).where(and(eq(workouts.id, row.id), eq(workouts.status, 'in_progress')));
+  return 'updated';
 }
 
 // "Switching to a plan keeps all skill states. If the student took the
@@ -404,19 +429,23 @@ export async function noteWeekRollover(program: ProgramRow, week: PlanWeek | nul
 // ------------------------------------------------------------- the next case
 
 // The area of the most recently Practiced or Mastered prescribed skill.
-async function retestArea(studentId: string): Promise<string | null> {
-  const rows = await db.select({ skillId: skillStateEvents.skillId }).from(skillStateEvents)
-    .where(and(eq(skillStateEvents.studentId, studentId), inArray(skillStateEvents.toState, ['practiced', 'mastered'])))
-    .orderBy(desc(skillStateEvents.createdAt)).limit(10);
-  if (!rows.length) return null;
-  const prescribed = new Set((await db.select({ s: prescriptions.skillId }).from(prescriptions).where(eq(prescriptions.studentId, studentId))).map(r => r.s));
-  const hit = rows.find(r => prescribed.has(r.skillId));
-  return hit ? getSkill(hit.skillId).area : null;
+// The skill area practiced most since the last case (Matt, 15 Nov, proposal
+// §2.8): completed drill sets by their skill's area, the latest breaking ties.
+// No sets since the last case: no area preference.
+async function practicedArea(studentId: string): Promise<string | null> {
+  const [last] = await db.select({ at: sessions.completedAt }).from(sessions)
+    .where(and(eq(sessions.userId, studentId), eq(sessions.status, 'completed'), isNotNull(sessions.completedAt)))
+    .orderBy(desc(sessions.completedAt)).limit(1);
+  const sets = await db.select({ drillId: drillSets.drillId, focus: drillSets.focusSkill, completedAt: drillSets.completedAt }).from(drillSets)
+    .where(and(eq(drillSets.studentId, studentId), eq(drillSets.status, 'completed'), ...(last?.at ? [gte(drillSets.completedAt, last.at)] : [])));
+  return mostPracticedArea(sets.map(s => ({ skill: s.focus ?? getDrill(s.drillId).primary_skills[0], at: s.completedAt })));
 }
 
+// Only the cases students can start from Cases (not the demo, not an unlisted case).
 export async function nextCaseFor(studentId: string): Promise<NextCase | null> {
-  const library = loadCases().map(c => ({ id: c.id, title: c.title, case_type: c.caseType ?? null, tier: DIFFICULTY_TIER[c.difficulty] }));
-  return pickNextCase(library, await completedCases(studentId), await retestArea(studentId));
+  const listed = new Set(LISTED_CASE_IDS);
+  const library = loadCases().filter(c => listed.has(c.id)).map(c => ({ id: c.id, title: c.title, case_type: c.caseType ?? null, tier: DIFFICULTY_TIER[c.difficulty] }));
+  return pickNextCase(library, await completedCases(studentId), await practicedArea(studentId));
 }
 
 // ------------------------------------------------------------- evidence

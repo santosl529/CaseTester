@@ -10,7 +10,7 @@ import { AppPage } from '@/components/brand/page';
 import { StepDot } from '@/components/brand/progress';
 import { ArrowLink } from '@/components/brand/links';
 import { WeekCount } from '@/components/drills/week-count';
-import { focusLine, lowerFirst, mistakeLine, scoreLine, todaySections } from '@/lib/drills/today-page';
+import { focusLine, lowerFirst, scoreLine, todaySections } from '@/lib/drills/today-page';
 import { HowItWorks } from '@/components/drills/how-it-works';
 
 const TRACK = { foundations: 'Foundations', standard: 'Standard', sprint: 'Sprint', self_directed: 'Practice on my own' } as const;
@@ -91,8 +91,9 @@ export function TrainingHome({ home, checkin }: { home: TrainingHomeData; checki
   const quickFix = (already: boolean, H: 'h2' | 'h3' = 'h2') => w && !already && (
     <section aria-labelledby="quick-fix" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
       <H id="quick-fix" className="t-label font-semibold text-ink/70">Quick fix</H>
-      <p className="t-body"><span className="font-semibold">{w.skill_name}</span> · {mistakeLine(w)}</p>
-      {w.evidence && <p className="t-small text-ink/70">Last time you said: “{w.evidence}”</p>}
+      {/* The top skill in the shared ranking, with its prescription's own reason (Matt, 15 Nov, D7). */}
+      <p className="t-body font-semibold">{w.skill_name}</p>
+      <p className="t-small text-ink/70">{w.reason}</p>
       {w.skill_id && w.practice_minutes !== null && (
         <StartSetButton body={{ skill_id: w.skill_id, quick_start: true }} label={`Practice ${lowerFirst(w.skill_name)} · ${w.practice_minutes} min`} variant="outline" />
       )}
@@ -314,9 +315,10 @@ export function TrainingHome({ home, checkin }: { home: TrainingHomeData; checki
       )}
       {home.next_case && (
         <section aria-labelledby="case" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
-          <h2 id="case" className="t-heading font-semibold">{home.next_case.retake ? 'Take the case again' : 'Next case'}</h2>
-          <p className="t-small">{home.next_case.title}{home.next_case.retake && ': you have taken every case we have; another run shows what has changed.'}</p>
-          <Link href={`/api/drills/next-case?case=${encodeURIComponent(home.next_case.case_id)}`} className={buttonVariants({ variant: 'outline' })}>Go to cases</Link>
+          <h2 id="case" className="t-heading font-semibold">Next case</h2>
+          {/* Never a retake by default (Matt, 15 Nov): with every case taken, the student chooses one. */}
+          <p className="t-small">{home.next_case.case_id ? home.next_case.title : "You've taken every case. Retake one?"}</p>
+          <Link href={home.next_case.case_id ? `/api/drills/next-case?case=${encodeURIComponent(home.next_case.case_id)}` : '/home#cases'} className={buttonVariants({ variant: 'outline' })}>Go to cases</Link>
         </section>
       )}
       {home.rediagnose && (

@@ -5,12 +5,17 @@ import 'server-only';
 import { logPendingEvents } from '../events';
 import { ingestCaseResultTx, type IngestResult } from './store';
 import { recordPlanSource } from '../program/plan-source';
+import { refreshTodayWorkout } from '../program/store';
 
 export async function ingestCaseResult(payload: unknown): Promise<Omit<IngestResult, 'events'>> {
   const { events, ...result } = await ingestCaseResultTx(payload);
   const studentId = (payload as { student_id: string }).student_id;
   await logPendingEvents(studentId, events);
   // A case is the most reliable plan source (D6 round 2).
-  if (result.status === 'ingested') await recordPlanSource(studentId, 'case');
+  if (result.status === 'ingested') {
+    await recordPlanSource(studentId, 'case');
+    // Today's workout reflects the case straight away (Matt, 15 Nov); the case result stands if this fails.
+    await refreshTodayWorkout(studentId).catch(err => console.error('[drills] workout refresh after a case failed:', err));
+  }
   return result;
 }

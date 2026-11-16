@@ -62,10 +62,10 @@ function home(kind: 'plan' | 'new' | 'self' | 'done' | 'intro' | 'first'): Train
     resume: kind === 'plan' || kind === 'done' ? { set_id: 'preview-ex1', drill_name: 'Chart read' } : null,
     // How CasePace works: a new student's first plan week.
     first_week: kind === 'first' || kind === 'intro' || kind === 'new',
-    // Your example (Matt, 13 Nov): arithmetic tops the mistakes but isn't in today's workout.
+    // The top skill in the shared ranking that today's workout doesn't cover (Matt, 15 Nov, D7).
     weakest: kind === 'new' || kind === 'first' ? null : kind === 'self'
-      ? { skill_id: 'QN.setup', skill_name: 'Math setup', mistake: 'wrong base for a percent change', count: 3, practice_minutes: 6, evidence: 'Margin fell from 24% to 6%, so it fell 18%.' }
-      : { skill_id: 'QN.arithmetic', skill_name: 'Arithmetic', mistake: 'arithmetic error', count: 5, practice_minutes: 5, evidence: '1.2 million times 15% is 1.8 million.' },
+      ? { skill_id: 'QN.setup', skill_name: 'Math setup', practice_minutes: 6, reason: 'In your last case you said "Margin fell from 24% to 6%, so it fell 18%.". That\'s a wrong base; this set practices percentages.' }
+      : { skill_id: 'QN.arithmetic', skill_name: 'Arithmetic', practice_minutes: 5, reason: 'In your last case you said "1.2 million times 15% is 1.8 million.". That\'s a arithmetic error; this set practices arithmetic.' },
     diagnostic: kind === 'new' ? { status: 'not_started', done: 0, of: 6 } : { status: 'completed', done: 6, of: 6 },
     plan: kind === 'new' ? { source: null, seen: false } : { source: 'diagnostic' as const, seen: true },
   };

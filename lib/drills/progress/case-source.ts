@@ -31,6 +31,7 @@ export async function dashboardCases(studentId: string): Promise<DashCase[]> {
       key: r.caseAttemptId, caseId: r.caseId, tier: r.difficultyTier, completedAt: r.completedAt,
       ratings: r.rubricScores as Record<string, string>,
       findings: (r.findings as CaseResultPayload['findings']).map(f => ({ tag: f.tag, evidence: f.evidence })),
+      partial: r.partial,
     }));
   }
   const done = await db.select({ id: sessions.id, caseId: sessions.caseId, completedAt: sessions.completedAt }).from(sessions)

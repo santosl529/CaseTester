@@ -18,7 +18,7 @@ import { hasLiveDrill, newProgress, stateRank, type SkillProgress, type SkillSta
 import { loadProgress } from './store';
 import { progressTowardNext } from './profile';
 import { activeProgram, openRx, programView, studentToday, weekStatus } from '../program/store';
-import { missedMilestoneSkills, rankPrescriptions } from '../program/workout';
+import { missedMilestoneSkills, rankPrescriptions, weekMilestoneSkills } from '../program/workout';
 import { lessonSkills } from '../program/lessons-store';
 import { caseSource, dashboardCases } from './case-source';
 import {
@@ -94,7 +94,8 @@ export async function dashboardView(studentId: string, opts: { window: number; p
   const view = program ? await programView(studentId, now) : null;
   const week = view?.plan.kind === 'weeks' ? view.week : null;
   const open = await openRx(db, studentId);
-  const ranked = rankPrescriptions(open, week ?? null, view?.plan.kind === 'weeks' ? missedMilestoneSkills(week ?? null, view.plan.weeks, d.progress) : []);
+  const planWeeks = view?.plan.kind === 'weeks' ? view.plan.weeks : null;
+  const ranked = rankPrescriptions(open, week ?? null, planWeeks ? missedMilestoneSkills(week ?? null, planWeeks, d.progress) : [], planWeeks ? weekMilestoneSkills(week ?? null, planWeeks, d.progress) : []);
   const seen = new Set<string>();
   const focus = ranked.filter(r => !seen.has(r.rx.skill_id) && (seen.add(r.rx.skill_id), true)).slice(0, cfg().top_n)
     .map(r => ({ prescription_id: r.rx.id, skill_id: r.rx.skill_id, name: getSkill(r.rx.skill_id).name, reason: r.rx.reason, live: live.includes(r.rx.skill_id) }));

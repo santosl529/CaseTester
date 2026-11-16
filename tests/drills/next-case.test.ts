@@ -1,7 +1,7 @@
 // "Picking the next case" with a small library: one case must still work,
 // and nothing may loop.
 import { describe, it, expect } from 'vitest';
-import { metTheBar, pickNextCase, type LibraryCase, type TakenCase } from '@/lib/drills/program/next-case';
+import { metTheBar, mostPracticedArea, pickNextCase, type LibraryCase, type TakenCase } from '@/lib/drills/program/next-case';
 
 const prof: LibraryCase = { id: 'prof-001', title: 'Brew & Bean Profitability', case_type: 'profitability', tier: 2 };
 const t = (case_id: string, day: number, tier = 2, rubric: Record<string, string> | null = null): TakenCase =>
@@ -22,11 +22,11 @@ describe('next case with one case in the library', () => {
     expect(pickNextCase([prof], [], 'QN')).toMatchObject({ case_id: 'prof-001', retake: false });
   });
 
-  it('offers it again as a retake once taken, every time, without looping', () => {
+  it('never picks a retake once taken (Matt, 15 Nov): the student chooses one, every time, without looping', () => {
     const once = pickNextCase([prof], [t('prof-001', 1)], 'QN');
-    expect(once).toMatchObject({ case_id: 'prof-001', retake: true });
+    expect(once).toMatchObject({ case_id: null, title: null, retake: true });
     const thrice = pickNextCase([prof], [t('prof-001', 1), t('prof-001', 5), t('prof-001', 9)], null);
-    expect(thrice).toMatchObject({ case_id: 'prof-001', retake: true });
+    expect(thrice).toMatchObject({ case_id: null, retake: true });
   });
 
   it('suggests nothing when the library is empty', () => {
@@ -53,8 +53,18 @@ describe('next case with a larger library', () => {
     expect(pickNextCase(lib, [t('prof-001', 1), t('size-001', 2), t('entry-002', 3, 2, { a: 'strong' })], null)!.case_id).toBe('entry-001');
   });
 
-  it('retakes the case taken longest ago once all are taken', () => {
+  it('picks no case once all are taken; the card asks the student to choose a retake', () => {
     const all = [t('prof-001', 4), t('size-001', 2), t('entry-001', 3), t('entry-002', 5)];
-    expect(pickNextCase(lib, all, null)).toMatchObject({ case_id: 'size-001', retake: true });
+    expect(pickNextCase(lib, all, null)).toMatchObject({ case_id: null, retake: true });
   });
 });
+
+describe('the area practiced most since the last case (Matt, 15 Nov)', () => {
+  it('counts completed sets by area, the latest breaking a tie; none: no preference', () => {
+    const at = (d: number) => new Date(Date.UTC(2026, 10, d));
+    expect(mostPracticedArea([{ skill: 'QN.setup', at: at(1) }, { skill: 'QN.percentages', at: at(2) }, { skill: 'PS.mece', at: at(3) }])).toBe('QN');
+    expect(mostPracticedArea([{ skill: 'QN.setup', at: at(1) }, { skill: 'PS.mece', at: at(3) }])).toBe('PS');
+    expect(mostPracticedArea([])).toBeNull();
+  });
+});
+

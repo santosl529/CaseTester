@@ -329,7 +329,7 @@ Students should rarely have to choose what to do: the training home leads with t
 - A header shows the track and week ("Standard · Week 2 of 6 · Hypotheses and exhibits") and the interview date, if set.
 - **Start today's workout** is the primary button. It shows the estimated time and the 2–4 sets in order, each with its slot (weak spot, review, unfamiliar) and a one-line reason ("Your last case used a generic framework"). After the first set it reads **Continue workout**.
 - This week's targets: workouts and cases done against planned ("3 of 4 workouts, 1 of 2 cases") and the week's milestone skills with their current state.
-- Weakest skill right now, with the evidence behind it: how often its mistake tags appeared recently and the latest quote.
+- Quick fix (Matt, 15 Nov 2026, D7): the top skill in the shared ranking (`rankPrescriptions`, the same order as the workout's weak-spot slots, Your progress's Focus areas and a case report's next steps) that today's workout doesn't already cover, with that prescription's reason and a short practice set. No open prescription: no quick fix.
 - A **Next case** card appears when the plan has a case left this week, or when every open prescription is at Practiced or above. It is a suggestion, not a lock.
 - Secondary links: **Your plan**, **Browse drills**, **Learn**, **Your skills**, **Settings**, and a link to the case library (case product).
 - Before a plan exists the home leads with **Get your plan** (three options); a new plan not yet opened leads with **Your plan is ready**. Foundations students see the intro lesson card first; check-ins appear at the top when due. The feedback button is in the corner of every drills page.
@@ -1171,7 +1171,9 @@ The transcript-grading agent must emit this payload when a case is graded. The d
 5. For each skill, choose the drill from the skill-keyed drill map in config (`skill_drills`: each skill's Recognize, Repair and Construct drill, for example `PS.case_specific` → PS-1 / PS-4 / PS-3), and the stage and tier from the Mastery rules. Every tag maps to exactly one skill, so the skill decides the drill. If the finding's tag is listed in `focusable_tags` (for example, `M.zeros_error` → QN-3), the set focuses on that tag.
 6. Write the reason from a template using the tag and the evidence quote: "In your last case you said '…two million divided by fifty dollars.' Breakeven uses contribution per unit, not price."
 
-Prescriptions from the diagnostic and the plan follow the Training program rules, and the stuck rule can add prerequisite prescriptions (Skill tree). In a workout's weak-spot slot, all open prescriptions are ranked together, with +2 for skills in the week's focus areas.
+Prescriptions from the diagnostic and the plan follow the Training program rules, and the stuck rule can add prerequisite prescriptions (Skill tree). In a workout's weak-spot slot, all open prescriptions are ranked together, with +2 for skills in the week's focus areas. **Milestone first** (Matt, 15 Nov 2026, D6): when this week has an unmet milestone skill with an open prescription, the top-ranked one leads the ranking, so a case's findings never push the week's milestone out of the first slot. The same ranking orders Your progress's Focus areas, Today's quick fix and a case report's next steps, so they never disagree.
+
+**When a case result arrives** (Matt, 15 Nov 2026): today's workout reflects it straight away. Not started: rebuilt. In progress: the sets already started are kept and the rest rebuilt. Done: left alone; tomorrow's reflects it. Practice on my own has no workout to change.
 
 ### Prescriptions inside drills
 
@@ -1188,7 +1190,7 @@ Prescriptions from the diagnostic and the plan follow the Training program rules
 
 When the Next case card appears, it recommends one case:
 
-1. The case type whose main skill falls in the skill area of the most recently Practiced or Mastered prescribed skill, so the case retests it.
+1. The case type whose main skill falls in the skill area the student practiced most since their last case (completed drill sets by their skill's area, the latest breaking a tie; Matt, 15 Nov 2026), so the case retests it.
 2. The same difficulty tier as the student's last case, or one tier higher if that case met the bar: no dimension rated `needs_work` and at least half of the rated dimensions `strong`.
 3. A case the student hasn't taken.
 
@@ -1202,7 +1204,7 @@ This needs a `case_type` field on every case (the case schema's optional `caseTy
 | HY Hypothesis | turnaround, competitive response |
 | EX Exhibit Interpretation | industry analysis |
 
-**Small library.** The rules are relaxed in order (area, then tier) until a case qualifies. When the student has taken every case, the card offers the one taken longest ago as a retake. With no cases, there is no card. Nothing loops, including with the single case in the library today. The card links to the case page; drills can't start a case itself until the case product accepts a student who has already passed the club-code gate.
+**Small library.** The rules are relaxed in order (area, then tier) until a case qualifies. Never a retake by default (Matt, 15 Nov 2026): when the student has taken every case, the card says "You've taken every case. Retake one?" and links to Cases, so a retake is the student's choice. Only the cases students can start from Cases are picked (not the demo or an unlisted case). With no cases, there is no card. Nothing loops, including with the single case in the library today. The card links to the case page; drills can't start a case itself until the case product accepts a student who has already passed the club-code gate.
 
 ### Updating skill state from cases
 

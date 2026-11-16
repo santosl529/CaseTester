@@ -57,6 +57,8 @@ export interface DashEvent { skillId: string; fromState: SkillStateName; toState
 export interface DashCase {
   key: string; caseId: string; tier: number; completedAt: Date;
   ratings: Record<string, string>; findings: { tag: string; evidence: string }[];
+  // Ended early (Rule 18A): never counts for readiness (Matt, 15 Nov, D9).
+  partial?: boolean;
 }
 
 // ------------------------------------------------------------------ basics
@@ -272,7 +274,7 @@ export function readiness(progress: Map<string, SkillProgress>, live: string[], 
   const others = live.filter(id => !milestones.includes(id));
   const mDone = milestones.filter(id => atLeast(id, r.milestone_min_state)).length;
   const oDone = others.filter(id => atLeast(id, r.other_min_state)).length;
-  const eligible = firstCompletions(cases).filter(c => c.tier >= r.case_min_tier).slice(-r.cases_needed);
+  const eligible = firstCompletions(cases).filter(c => c.tier >= r.case_min_tier && !c.partial).slice(-r.cases_needed);
   const metBar = eligible.filter(c => metTheBar(c.ratings)).length;
   const casesMet = eligible.length === r.cases_needed && metBar === r.cases_needed;
   const lines: ReadinessLine[] = [
