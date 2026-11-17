@@ -36,7 +36,21 @@ function Title({ label, title }: { label: [string, string | null]; title: string
 // The training home's screen (docs/prd-drills.md "Training home", "What the
 // home serves", "Practice on my own"); app/drills/page.tsx loads its data.
 // Today in the app's bar, which also reaches every other area (Matt, 13 Nov).
-export function TrainingHome({ home, checkin }: { home: TrainingHomeData; checkin: Checkin | null }) {
+// An interview in progress (Matt, 17 Nov, M3): its clock is running, so it leads the page while time is left.
+export type UnfinishedInterview = { caseTitle: string; status: string; href: string };
+export const INTERVIEW_IN_PROGRESS = 'Interview in progress';
+
+export function TrainingHome({ home, checkin, interview = null }: { home: TrainingHomeData; checkin: Checkin | null; interview?: UnfinishedInterview | null }) {
+  const interviewCard = interview && (
+    <section aria-labelledby="interview" className="flex flex-wrap items-center justify-between gap-4 rounded-panel border border-cobalt/40 bg-white p-5 shadow-panel sm:p-6">
+      <div className="min-w-0 space-y-0.5">
+        <h2 id="interview" className="t-label font-semibold text-ink/70">{INTERVIEW_IN_PROGRESS}</h2>
+        <p className="t-card font-semibold">{interview.caseTitle}</p>
+        <p className="t-small text-ink/70">{interview.status.replace(/^In progress · /, '')}</p>
+      </div>
+      <Link href={interview.href} className={buttonVariants()}>Continue</Link>
+    </section>
+  );
   const resume = home.resume && (
     <p className="t-small rounded-panel bg-sky/60 px-5 py-4">
       You have a {home.resume.drill_name} set in progress.{' '}
@@ -110,6 +124,7 @@ export function TrainingHome({ home, checkin }: { home: TrainingHomeData; checki
         {home.first_week && <HowItWorks />}
         {/* Most urgent first (Matt, 13 Nov): unfinished work and first steps,
             then what to practice now, then optional, then how it's going. */}
+        {interviewCard}
         {resume}
         {getPlan}
         {planReady}
@@ -273,6 +288,7 @@ export function TrainingHome({ home, checkin }: { home: TrainingHomeData; checki
         {program.interview_date && <p className="t-small text-ink/70">Interview: {dateLabel(program.interview_date)} ({program.interview_days_out} days)</p>}
       </header>
       {home.first_week && <HowItWorks />}
+      {interviewCard}
       {layout.resumeTop && resume}
       {home.intro_first && (
         <section aria-labelledby="start-here" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">

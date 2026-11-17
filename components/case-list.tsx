@@ -1,6 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { postJson } from '@/lib/site/fetch-json';
 import { StartCaseButton } from '@/components/start-case-button';
 import { limitMessage } from '@/lib/site/limit-message';
 import { buttonVariants } from '@/components/ui/button';
@@ -79,13 +81,43 @@ export function PastSessionList({ past }: { past: PastSession[] }) {
               <p className="truncate font-semibold">{s.caseTitle}</p>
               <p className="text-ink/70">{s.date} · {s.status}</p>
             </div>
-            {s.link && <Link href={s.link.href} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>{s.link.label}</Link>}
+            {s.link && (s.link.endFirst
+              ? <EndThenReport sessionId={s.id} href={s.link.href} label={s.link.label} />
+              : <Link href={s.link.href} className={cn(buttonVariants({ variant: s.link.label === 'Continue' ? 'default' : 'outline', size: 'sm' }))}>{s.link.label}</Link>)}
           </li>
         ))}
       </ul>
       {past.length > 5 && !all && (
         <button type="button" aria-controls="past-list" aria-expanded={false} onClick={() => setAll(true)} className="link t-small cursor-pointer">Show all</button>
       )}
+    </div>
+  );
+}
+
+// "Get my report" on an interview whose time ran out (M3): end it (POST /api/channel/<id>/expire), then open the report
+// page, which prepares the report. A second click before the disabled state renders is ignored.
+export const EXPIRE_FAILED = 'We couldn’t get this report just now. Please try again in a minute.';
+function EndThenReport({ sessionId, href, label }: { sessionId: string; href: string; label: string }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const inFlight = useRef(false);
+  const router = useRouter();
+  async function go() {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError('');
+    const res = await postJson(`/api/channel/${encodeURIComponent(sessionId)}/expire`, {});
+    if (res.ok && res.data?.report) { router.push(href); return; }
+    if (res.ok) { router.refresh(); return; }   // nothing to report after all: the list shows it ended
+    setError(EXPIRE_FAILED);
+    setBusy(false);
+    inFlight.current = false;
+  }
+  return (
+    <div className="space-y-1 text-right">
+      <button type="button" onClick={go} disabled={busy} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>{busy ? 'Preparing…' : label}</button>
+      {error && <p role="alert" className="t-small text-alert">{error}</p>}
     </div>
   );
 }
