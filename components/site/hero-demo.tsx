@@ -136,7 +136,8 @@ function ReportView({ active, t }: { active: boolean; t: number }) {
       <ul className="mt-3 divide-y divide-(--ink)/8 border-b border-(--ink)/8">{other(first)}</ul>
       <section className="my-2 rounded-[8px] border border-(--ink)/12 p-4">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="t-body flex items-center gap-2 font-medium"><ThreadMark />{r.skill}</h3>
+          {/* Not a heading: a picture of a report inside the hero, so it doesn't break the page's heading order. */}
+          <p className="t-body flex items-center gap-2 font-medium"><ThreadMark />{r.skill}</p>
           <span className={`t-label rounded-full px-2 py-0.5 font-semibold ${RATED[r.rating]}`}>{r.rating}</span>
         </div>
         <p className="t-small mt-3 font-semibold">What needs work</p>
