@@ -144,13 +144,13 @@ async function phaseA(page: Page) {
   });
 
   await signOut(page);
-  await check(page, 'forgot password: no account → said plainly', async () => {
+  await check(page, 'forgot password: no account → the same neutral message (N2)', async () => {
     await page.goto(`${BASE}/sign-in`);
     await page.getByRole('link', { name: 'Forgot password?' }).click();
     await page.waitForURL(/\/forgot-password/);
     await page.getByPlaceholder('Email').fill(`nobody-${Date.now()}@example.com`);
     await page.getByRole('button', { name: 'Send reset link' }).click();
-    return expectText(page, /No account uses this email/);
+    return expectText(page, /If an account uses this email, we’ve sent a link/);
   });
   await check(page, 'forgot password: malformed email', async () => {
     await page.getByPlaceholder('Email').fill('a@b');

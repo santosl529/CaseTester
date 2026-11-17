@@ -2,7 +2,7 @@
 // the email and the manual script both use, and what each failure tells the student.
 import { describe, it, expect } from 'vitest';
 import { parseResetEmail, parseNewPassword, resetLink, confirmUrl } from '@/lib/site/password-reset';
-import { forgotErrorMessage, resetErrorMessage, resendMessage, signUpErrorMessage } from '@/lib/site/auth-messages';
+import { FORGOT_SENT, forgotErrorMessage, resetErrorMessage, resendMessage, signUpErrorMessage } from '@/lib/site/auth-messages';
 
 describe('parseResetEmail', () => {
   it('trims and lowercases a valid email', () => {
@@ -50,7 +50,10 @@ describe('forgotErrorMessage', () => {
     expect(forgotErrorMessage({ error: 'invalid_email' })).toBe('Enter a valid email address.');
     expect(forgotErrorMessage({ error: 'rate_limited', retryAfterSec: 1200 })).toBe('Too many reset requests. Try again in 20 minutes.');
     expect(forgotErrorMessage({ error: 'reset_unavailable' })).toMatch(/couldn't send the reset email/);
-    expect(forgotErrorMessage({ error: 'no_account' })).toBe('No account uses this email. Check the address, or sign up with your club code.');
+  });
+  it('after a request, one message whether or not an account uses the email (N2)', () => {
+    expect(FORGOT_SENT).toBe('If an account uses this email, we’ve sent a link to reset your password.');
+    expect(forgotErrorMessage({ error: 'no_account' })).not.toMatch(/No account/);
   });
 });
 

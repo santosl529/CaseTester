@@ -50,11 +50,12 @@ export function deleteErrorMessage(body: { error?: string } | null): string {
   return "We couldn't finish deleting your account. Nothing is lost by trying again: please try again in a minute.";
 }
 
-// /forgot-password (POST /api/password/forgot).
+// /forgot-password (POST /api/password/forgot). After a request, one message whether or not an account uses the email
+// (Matt, 17 Nov, pre-pilot audit N2).
+export const FORGOT_SENT = 'If an account uses this email, we’ve sent a link to reset your password.';
 export function forgotErrorMessage(body: { error?: string; retryAfterSec?: number } | null): string {
   if (!body) return OFFLINE;
   if (body.error === 'invalid_email') return 'Enter a valid email address.';
-  if (body.error === 'no_account') return 'No account uses this email. Check the address, or sign up with your club code.';
   if (body.error === 'rate_limited') return `Too many reset requests. Try again in ${retryWait(body.retryAfterSec)}.`;
   return "We couldn't send the reset email just now. Try again in a few minutes, or ask the CasePace team for a reset link.";
 }
