@@ -9,6 +9,7 @@ import { ACTIVATION_DAYS, activationByWeek, interviewsByCaseAndWeek, signUpsByWe
 import { ChartSpecSchema } from '@/lib/drills/chart-spec';
 import { DrillChart } from '@/components/drills/chart';
 import { getCaseById } from '@/lib/cases/loader';
+import { HOME_DEMO_CASE_IDS } from '@/lib/cases/listed';
 
 const PERIODS = [7, 28, 90] as const;
 const pct = (x: number | null | undefined) => (x === null || x === undefined ? '–' : `${Math.round(x * 100)}%`);
@@ -226,14 +227,17 @@ export function PilotReports({ r, fb, orgs, org, days, type, page, cases, review
 function CaseSide({ cases, days }: { cases: Awaited<ReturnType<typeof loadCaseSide>>; days: number }) {
   const to = new Date();
   const weeks = weeksBetween(new Date(to.getTime() - days * 86_400_000), to);
-  const title = (id: string) => { try { return getCaseById(id).title; } catch { return id; } };
+  // The 7-minute demo shares the full case's title; name it apart.
+  const title = (id: string) => { try { return `${getCaseById(id).title}${HOME_DEMO_CASE_IDS.includes(id) ? ' (7-minute demo)' : ''}`; } catch { return id; } };
   const signUps = signUpsByWeek(cases.students, weeks);
   const activation = activationByWeek(cases.students, cases.firsts, weeks, to);
   const interviews = interviewsByCaseAndWeek(cases.sessions, title);
   const survey = surveySummary(cases.ratings, title);
   const chart = ChartSpecSchema.parse({
     type: 'line', title: 'Sign-ups per week', categories: signUps.map(w => w.week),
-    series: [{ name: 'Sign-ups', values: signUps.map(w => w.signUps), axis: 'left' }], y_axis: { min: 0, format: { prefix: '', suffix: '', decimals: 0 } },
+    // A top that divides into four whole steps, so every axis label is a whole number.
+    series: [{ name: 'Sign-ups', values: signUps.map(w => w.signUps), axis: 'left' }],
+    y_axis: { min: 0, max: Math.max(4, Math.ceil(Math.max(...signUps.map(w => w.signUps)) / 4) * 4), format: { prefix: '', suffix: '', decimals: 0 } },
   });
   return (
     <>
