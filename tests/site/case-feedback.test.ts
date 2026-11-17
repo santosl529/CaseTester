@@ -13,7 +13,7 @@ import { TextCaseScreen } from '@/components/views/case';
 
 const SID = '51111111-1111-4111-8111-111111111111';
 // The floating button: fixed in the corner, named "Feedback".
-const floating = (html: string) => /<button[^>]*aria-label="Feedback"[^>]*class="[^"]*\bfixed\b/.test(html);
+const floating = (html: string) => /<button[^>]*class="[^"]*\bfixed\b[^"]*"[^>]*>.*?Feedback<\/button>/.test(html);
 const inline = (html: string) => /<button[^>]*>Feedback<\/button>/.test(html);
 
 describe('Feedback on the case side (S3)', () => {
