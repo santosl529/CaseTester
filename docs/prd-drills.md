@@ -332,6 +332,7 @@ Students should rarely have to choose what to do: the training home leads with t
 - Weakest skill right now, with the evidence behind it: how often its mistake tags appeared recently and the latest quote.
 - A **Next case** card appears when the plan has a case left this week, or when every open prescription is at Practiced or above. It is a suggestion, not a lock.
 - Secondary links: **Your plan**, **Browse drills**, **Learn**, **Your skills**, **Settings**, and a link to the case library (case product).
+- An interview in progress, while its case time lasts, leads the page above everything else: "Interview in progress", the case, about how many minutes are left, and **Continue** (Matt, 17 Nov, pre-pilot audit M3; the same clock as Cases → Past sessions, technical PRD §7).
 - Before a plan exists the home leads with **Get your plan** (three options); a new plan not yet opened leads with **Your plan is ready**. Foundations students see the intro lesson card first; check-ins appear at the top when due. The feedback button is in the corner of every drills page (on phones, in the bar's Menu; S6, 17 Nov).
 
 Students on Practice on my own see the self-directed home instead (see Training program): Suggested next, weaknesses, progress, due items, and Browse drills.
