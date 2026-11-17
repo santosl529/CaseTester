@@ -13,7 +13,7 @@ export function HomeView({ cases, past, left }: { cases: CaseCard[]; past: PastS
         <section id="cases" aria-labelledby="cases-h" className="scroll-mt-20 space-y-4">
           <div className="space-y-2">
             <h1 id="cases-h" className="t-title">Start a case</h1>
-            <p className="t-body text-ink/70">A full interviewer-led case, about 20 minutes. You get a scored feedback report at the end.</p>
+            <p className="t-body text-ink/70">A full interviewer-led case. You get a scored feedback report at the end.</p>
           </div>
           <CaseList cases={cases} left={left} />
         </section>
