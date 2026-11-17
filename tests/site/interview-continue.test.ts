@@ -53,6 +53,14 @@ describe('Today', () => {
       expect(html.indexOf('<section', html.indexOf('</header>'))).toBe(html.lastIndexOf('<section', card));
     }
   });
+  it('first week: the interview comes before How CasePace works', async () => {
+    const { TrainingHome } = await import('@/components/drills/views/training-home');
+    const { DRILL_SCREENS } = await import('@/app/dev/ui-preview/_data/drills');
+    const first = (await DRILL_SCREENS.find(x => x.slug === 'training-home-first')!.render()).node as React.ReactElement<{ home: unknown }>;
+    const html = renderToStaticMarkup(createElement(TrainingHome, { home: first.props.home as never, checkin: null, interview: { caseTitle: 'Larkspur', status: 'In progress · about 9 min left', href: '/case/x' } }));
+    expect(html.indexOf('Interview in progress')).toBeGreaterThan(-1);
+    expect(html.indexOf('Interview in progress')).toBeLessThan(html.indexOf('How CasePace works'));
+  });
   it('no interview in progress: no card', async () => {
     const { DRILL_SCREENS } = await import('@/app/dev/ui-preview/_data/drills');
     const html = renderToStaticMarkup((await DRILL_SCREENS.find(x => x.slug === 'training-home')!.render()).node as React.ReactElement);

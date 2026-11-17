@@ -121,10 +121,11 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
         <header className="space-y-2">
           <h1 className="t-title">Practice on my own</h1>
         </header>
-        {home.first_week && <HowItWorks />}
         {/* Most urgent first (Matt, 13 Nov): unfinished work and first steps,
-            then what to practice now, then optional, then how it's going. */}
+            then what to practice now, then optional, then how it's going. An
+            interview's clock is running, so it comes before the explainer too. */}
         {interviewCard}
+        {home.first_week && <HowItWorks />}
         {resume}
         {getPlan}
         {planReady}
@@ -287,8 +288,8 @@ export function TrainingHome({ home, checkin, interview = null }: { home: Traini
         <Title {...heading} />
         {program.interview_date && <p className="t-small text-ink/70">Interview: {dateLabel(program.interview_date)} ({program.interview_days_out} days)</p>}
       </header>
-      {home.first_week && <HowItWorks />}
       {interviewCard}
+      {home.first_week && <HowItWorks />}
       {layout.resumeTop && resume}
       {home.intro_first && (
         <section aria-labelledby="start-here" className="space-y-3 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
