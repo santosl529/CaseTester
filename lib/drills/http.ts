@@ -20,7 +20,7 @@ export async function requireStudent(opts: { profile?: boolean } = {}): Promise<
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.auth.getClaims();
   const userId = data?.claims?.sub;
-  if (error || !userId) throw new DrillError('unauthorized', 401, 'Sign in first');
+  if (error || !userId) throw new DrillError('unauthorized', 401, 'Log in first');
   if (opts.profile !== false) {
     // A club since switched off no longer lets the student in (security audit, 6 Nov; clubs table since 14 Nov), as for cases.
     const [profile] = await db.select({ orgId: studentProfiles.orgId }).from(studentProfiles).where(eq(studentProfiles.userId, userId));

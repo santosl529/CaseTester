@@ -143,7 +143,7 @@ function AccountMenu({ settingsActive }: { settingsActive: boolean }) {
         <Link href={SETTINGS_HREF} role="menuitem" tabIndex={-1} data-active={settingsActive} aria-current={settingsActive ? 'page' : undefined}
           onClick={() => setOpen(false)} className={item}>Settings</Link>
         <form action={signOut} role="none">
-          <button type="submit" role="menuitem" tabIndex={-1} className={`${item} cursor-pointer`}>Sign out</button>
+          <button type="submit" role="menuitem" tabIndex={-1} className={`${item} cursor-pointer`}>Log out</button>
         </form>
       </div>
     </div>
@@ -196,7 +196,7 @@ function MobileMenu({ current, path }: { current: Current; path: string }) {
           </li>
           <li>
             <form action={signOut}>
-              <button type="submit" className={`${row} w-full cursor-pointer text-left`}>Sign out</button>
+              <button type="submit" className={`${row} w-full cursor-pointer text-left`}>Log out</button>
             </form>
           </li>
         </ul>

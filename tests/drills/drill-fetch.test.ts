@@ -20,8 +20,8 @@ describe('drillFetch', () => {
     expect([res.ok, res.status, await res.json()]).toEqual([false, 0, { error: 'network', message: OFFLINE }]);
   });
   it('signed out, or the club code no longer valid: what to do about it', async () => {
-    expect(await (await drillFetch('/x', {}, via(async () => Response.json({ error: 'unauthorized', message: 'Sign in first' }, { status: 401 })))).json())
-      .toEqual({ error: 'unauthorized', message: 'You’ve been signed out. Log in again to keep going; your progress is saved.' });
+    expect(await (await drillFetch('/x', {}, via(async () => Response.json({ error: 'unauthorized', message: 'Log in first' }, { status: 401 })))).json())
+      .toEqual({ error: 'unauthorized', message: 'You’ve been logged out. Log in again to keep going; your progress is saved.' });
     expect(await (await drillFetch('/x', {}, via(async () => Response.json({ error: 'club_code_required', message: 'Enter your club code first' }, { status: 403 })))).json())
       .toEqual({ error: 'club_code_required', message: 'Your club code is no longer valid. Enter a new one on your Account page.' });
   });

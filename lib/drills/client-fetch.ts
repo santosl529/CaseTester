@@ -17,7 +17,7 @@ export async function drillFetch(url: string, init: RequestInit = {}, fetchImpl:
   const raw = await res.json().catch(() => null) as Body | null;
   const data: Body = raw && typeof raw === 'object' ? raw : { error: 'server_error' };
   if (res.ok) return answer(true, res.status, data);
-  if (res.status === 401) return answer(false, 401, { ...data, message: 'You’ve been signed out. Log in again to keep going; your progress is saved.' });
+  if (res.status === 401) return answer(false, 401, { ...data, message: 'You’ve been logged out. Log in again to keep going; your progress is saved.' });
   if (data.error === 'club_code_required') return answer(false, res.status, { ...data, message: 'Your club code is no longer valid. Enter a new one on your Account page.' });
   if (res.status >= 500 || typeof data.message !== 'string') return answer(false, res.status, { ...data, message: GENERIC });
   return answer(false, res.status, data);

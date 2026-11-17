@@ -32,7 +32,7 @@ export function SiteTopBar() {
   return (
     <header className={`${WRAP} flex h-16 items-center justify-between`}>
       <Link href={HOME_HREF} className="t-card font-semibold tracking-[-0.02em]">{BRAND}</Link>
-      <Link href="/sign-in" className={`link t-small ${signedIn === null ? 'invisible' : ''}`}>Sign in</Link>
+      <Link href="/sign-in" className={`link t-small ${signedIn === null ? 'invisible' : ''}`}>Log in</Link>
     </header>
   );
 }

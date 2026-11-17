@@ -6,7 +6,7 @@ import { safeNext } from '@/lib/site/safe-next';
 import { SignInFlow } from '@/components/sign-in-flow';
 
 export const metadata: Metadata = {
-  title: 'Sign in',
+  title: 'Log in',
   description: 'Log in to CasePace.',
   alternates: { canonical: '/sign-in' },
 };
