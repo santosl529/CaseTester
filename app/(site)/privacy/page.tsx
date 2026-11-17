@@ -4,7 +4,7 @@ import { LegalPage, List, Section, Table } from '@/components/site/legal';
 import { BRAND, PRIVACY_HREF, VOICE_POLICY_HREF } from '@/components/site/content';
 import '@/components/site/type.css';
 
-// The Privacy Policy, as Matt wrote it (11 Nov 2026).
+// The Privacy Policy, as Matt wrote it (11 Nov 2026). Sentry and Resend added to the providers (Matt, 17 Nov).
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title="Privacy Policy" updated="November 11, 2026">
+    <LegalPage title="Privacy Policy" updated="November 17, 2026">
       <div className="t-body space-y-4 text-(--ink)/85">
         <p>CasePace helps students practice consulting case interviews. This policy explains what we collect, why, and what you control. CasePace is run by its founders and is not yet incorporated; we will update this policy when that changes.</p>
       </div>
@@ -57,6 +57,8 @@ export default function PrivacyPage() {
             ['Deepgram', 'Converts your speech to text'],
             ['LiveKit', 'Carries audio during voice sessions'],
             ['Cartesia', 'Generates the interviewer’s voice (receives no audio from you)'],
+            ['Sentry', 'Records errors the site runs into, with your account ID and the page you were on (no names, emails or answers)'],
+            ['Resend', 'Sends CasePace’s emails (account confirmation, and problem reports you send to our team)'],
           ]}
         />
         <p>These providers process your data only to run CasePace. Our AI and speech providers do not use it to train their models.</p>

@@ -71,12 +71,10 @@ describe('confirmation email messages (11 Nov)', () => {
   it('sign-up: the email could not be sent, so no account was made', () => {
     expect(signUpErrorMessage({ error: 'email_unavailable' })).toBe("We couldn't send your confirmation email, so your account wasn't created. Please try again in a few minutes.");
   });
-  it('resend: each outcome said plainly', () => {
-    expect(resendMessage(200, { ok: true }, 'ann@example.com')).toEqual({ ok: true, text: 'We sent a new confirmation link to ann@example.com.' });
-    expect(resendMessage(404, { error: 'no_account' }, 'x')).toEqual({ ok: false, text: 'No account uses this email. Sign up with your club code.' });
-    expect(resendMessage(409, { error: 'already_confirmed' }, 'x')).toEqual({ ok: false, text: 'This account is already confirmed. Log in.' });
-    expect(resendMessage(429, { error: 'rate_limited', retryAfterSec: 300 }, 'x').text).toBe('Too many emails requested. Try again in 5 minutes.');
-    expect(resendMessage(0, null, 'x').text).toMatch(/couldn't reach the server/);
-    expect(resendMessage(503, { error: 'email_unavailable' }, 'x').text).toMatch(/couldn't send the email/);
+  it('resend: one message whether or not an account waits for confirmation (Matt, 17 Nov)', () => {
+    expect(resendMessage(200, { ok: true })).toEqual({ ok: true, text: 'If an account uses this email and isn’t confirmed yet, we’ve sent a new confirmation link.' });
+    expect(resendMessage(429, { error: 'rate_limited', retryAfterSec: 300 }).text).toBe('Too many emails requested. Try again in 5 minutes.');
+    expect(resendMessage(0, null).text).toMatch(/couldn't reach the server/);
+    expect(resendMessage(503, { error: 'email_unavailable' }).text).toMatch(/couldn't send the email/);
   });
 });

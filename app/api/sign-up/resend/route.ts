@@ -5,8 +5,10 @@ import { resendVerification, verifyDeps } from '@/lib/site/verify-email';
 import { siteOrigin } from '@/lib/site/url';
 import { jsonRoute } from '@/lib/http/route-guard';
 
-// Send a new confirmation link (Lorenzo, 11 Nov: confirm-first sign-up). Limited per IP (5 an hour) first. Said plainly
-// (his ruling): 404 no_account, 409 already_confirmed. No link is ever made for those (lib/site/verify-email.ts).
+// Send a new confirmation link (Lorenzo, 11 Nov: confirm-first sign-up). Limited per IP (5 an hour) first. No account,
+// or one already confirmed, gets the same 200 as a sent link, so the answer never says whether an account exists (Matt,
+// 17 Nov, pre-pilot audit, as for forgot password; until then 404 no_account / 409 already_confirmed). No link is ever
+// made for those (lib/site/verify-email.ts).
 async function handlePOST(req: NextRequest) {
   const limited = await hitRateLimit(rateRule('verifyResend'), `ip:${clientIp(req)}`);
   if (!limited.ok) return rateLimitedResponse(limited);
@@ -20,9 +22,7 @@ async function handlePOST(req: NextRequest) {
     return NextResponse.json({ error: 'email_unavailable' }, { status: 503 });
   }
   try {
-    const outcome = await resendVerification(form.email, deps);
-    if (outcome === 'no_account') return NextResponse.json({ error: 'no_account' }, { status: 404 });
-    if (outcome === 'already_confirmed') return NextResponse.json({ error: 'already_confirmed' }, { status: 409 });
+    await resendVerification(form.email, deps);
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error('[verify-email] the confirmation email was not sent', err instanceof Error ? err.message : 'unknown error');

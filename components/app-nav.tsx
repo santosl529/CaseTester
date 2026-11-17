@@ -4,13 +4,15 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, Menu, X } from 'lucide-react';
 import { signOut } from '@/app/actions/auth';
+import { openFeedback, useFeedbackOnPage } from '@/components/drills/feedback';
 import { ACCOUNT_HREF, HOME_HREF, NAV_LINKS, SETTINGS_HREF, navSectionFor, sectionHref, type NavSection } from '@/lib/site/nav';
 
 // The app's one navigation bar (Matt, 13 Nov 2026), on every signed-in page:
 // CasePace · Today · Plan · Learn · Drills · Cases · Progress · Account. The
 // page's area is underlined (lib/site/nav.ts says which); below md it folds
 // into a Menu panel. During timed work (an interview, a drill set) it is the
-// logo and Exit only, and leaving asks first.
+// logo and Exit only, and leaving asks first. On phones, a page's Feedback is in
+// Menu, or beside Exit during timed work (S6, components/drills/feedback.tsx).
 
 type Current = NavSection | 'settings' | null;
 
@@ -57,6 +59,7 @@ export function AppNav({ section, focus }: {
   const current = section !== undefined ? section : navSectionFor(path);
   const ended = useContext(FocusEnded)?.ended ?? false;
   const inFocus = Boolean(focus) && !ended;
+  const feedback = useFeedbackOnPage();
 
   const confirmLeave = (e: React.MouseEvent) => {
     if (inFocus && focus && !window.confirm(focus.confirm)) e.preventDefault();
@@ -67,10 +70,16 @@ export function AppNav({ section, focus }: {
       <nav aria-label="Main" className="mx-auto flex h-full w-full max-w-[1240px] items-center gap-6 px-6 lg:px-12">
         <Link href={HOME_HREF} onClick={confirmLeave} className="t-card mr-auto font-semibold tracking-[-0.02em] text-ink">CasePace</Link>
         {inFocus ? (
-          <Link href={current && current !== 'settings' ? sectionHref(current) : HOME_HREF} onClick={confirmLeave}
-            className="t-small rounded-full border border-ink/20 bg-white px-4 py-1.5 font-medium text-ink transition-colors hover:border-ink/40 motion-reduce:transition-none">
-            Exit
-          </Link>
+          <>
+            {feedback && (
+              <button type="button" onClick={openFeedback}
+                className="t-small cursor-pointer whitespace-nowrap text-ink/70 underline underline-offset-4 hover:text-cobalt md:hidden">Feedback</button>
+            )}
+            <Link href={current && current !== 'settings' ? sectionHref(current) : HOME_HREF} onClick={confirmLeave}
+              className="t-small rounded-full border border-ink/20 bg-white px-4 py-1.5 font-medium text-ink transition-colors hover:border-ink/40 motion-reduce:transition-none">
+              Exit
+            </Link>
+          </>
         ) : (
           <>
             <ul className="hidden items-center gap-6 md:flex">
@@ -150,10 +159,11 @@ function AccountMenu({ settingsActive }: { settingsActive: boolean }) {
   );
 }
 
-// Below md: "Menu" opens a full-width panel with the six links, then Your account, Settings
-// and Sign out. Escape, Close, a link or a tap outside closes it.
+// Below md: "Menu" opens a full-width panel with the six links, then Your account, Settings,
+// Feedback (on pages that have it) and Log out. Escape, Close, a link or a tap outside closes it.
 function MobileMenu({ current, path }: { current: Current; path: string }) {
   const [open, setOpen] = useState(false);
+  const feedback = useFeedbackOnPage();
   const id = useId();
   const wrap = useRef<HTMLDivElement>(null);
   const button = useRef<HTMLButtonElement>(null);
@@ -194,6 +204,11 @@ function MobileMenu({ current, path }: { current: Current; path: string }) {
             <Link href={SETTINGS_HREF} data-active={current === 'settings'} aria-current={current === 'settings' ? 'page' : undefined}
               onClick={() => setOpen(false)} className={row}>Settings</Link>
           </li>
+          {feedback && (
+            <li>
+              <button type="button" onClick={() => { setOpen(false); openFeedback(); }} className={`${row} w-full cursor-pointer text-left`}>Feedback</button>
+            </li>
+          )}
           <li>
             <form action={signOut}>
               <button type="submit" className={`${row} w-full cursor-pointer text-left`}>Log out</button>

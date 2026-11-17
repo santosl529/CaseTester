@@ -28,6 +28,6 @@ describe('sign-up flow (S5)', () => {
     expect(html).toMatch(/href="\/sign-in\?next=%2Fdrills"[^>]*>Log in</);
   });
   it('confirm-first says what to do next', () => {
-    expect(CONFIRM_EMAIL_MESSAGE).toBe('Check your email to confirm your account, then log in.');
+    expect(CONFIRM_EMAIL_MESSAGE).toBe('Check your email to confirm your account; the link logs you in.');
   });
 });
