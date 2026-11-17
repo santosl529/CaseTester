@@ -50,6 +50,9 @@ export function deleteErrorMessage(body: { error?: string } | null): string {
   return "We couldn't finish deleting your account. Nothing is lost by trying again: please try again in a minute.";
 }
 
+// After sign-up when a confirmation email went out (Matt, 17 Nov, pre-pilot audit S5).
+export const CONFIRM_EMAIL_MESSAGE = 'Check your email to confirm your account, then log in.';
+
 // /forgot-password (POST /api/password/forgot). After a request, one message whether or not an account uses the email
 // (Matt, 17 Nov, pre-pilot audit N2).
 export const FORGOT_SENT = 'If an account uses this email, we’ve sent a link to reset your password.';

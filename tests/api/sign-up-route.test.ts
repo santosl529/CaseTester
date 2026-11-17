@@ -7,6 +7,11 @@ const h = vi.hoisted(() => ({
   result: { ok: true } as Record<string, unknown>,
   thrown: null as Error | null,
   signUps: 0,
+  logIns: [] as { email: string; password: string }[],
+  logInError: null as { message: string } | null,
+}));
+vi.mock('@/lib/supabase/server', () => ({
+  createServerSupabaseClient: async () => ({ auth: { signInWithPassword: async (c: { email: string; password: string }) => { h.logIns.push(c); return { error: h.logInError }; } } }),
 }));
 vi.mock('@/lib/rate-limit', async () => {
   const real = await vi.importActual<typeof import('@/lib/rate-limit')>('@/lib/rate-limit');
@@ -23,7 +28,7 @@ const { POST } = await import('@/app/api/sign-up/route');
 const call = (body: unknown) => POST(new Request('http://x/api/sign-up', { method: 'POST', headers: { 'x-real-ip': '9.9.9.9' }, body: JSON.stringify(body) }) as never);
 const good = { email: 'ann@example.com', password: 'longenough', clubCode: 'alpha' };
 
-beforeEach(() => { h.limited = { ok: true }; h.hits = []; h.result = { ok: true }; h.thrown = null; h.signUps = 0; });
+beforeEach(() => { h.limited = { ok: true }; h.hits = []; h.result = { ok: true }; h.thrown = null; h.signUps = 0; h.logIns = []; h.logInError = null; });
 
 describe('POST /api/sign-up', () => {
   it('created: 200 saying whether a confirmation email went out, one sign-up hit for the IP', async () => {
@@ -32,6 +37,24 @@ describe('POST /api/sign-up', () => {
     expect(res.status).toBe(200);
     expect(await res.json()).toEqual({ ok: true, verify: true });
     expect(h.hits).toEqual(['signUp:ip:9.9.9.9']);
+  });
+  it('confirm-first (an email went out): not logged in here', async () => {
+    h.result = { ok: true, verify: true };
+    await call(good);
+    expect(h.logIns).toEqual([]);
+  });
+  it('no confirmation needed: logged in straight away (S5), so the form goes on to the app', async () => {
+    h.result = { ok: true, verify: false };
+    const res = await call(good);
+    expect(await res.json()).toEqual({ ok: true, verify: false, signedIn: true });
+    expect(h.logIns).toEqual([{ email: 'ann@example.com', password: 'longenough' }]);
+  });
+  it('no confirmation needed but the log-in fails: still 200, signedIn false (the form sends them to log in)', async () => {
+    h.result = { ok: true, verify: false };
+    h.logInError = { message: 'down' };
+    const res = await call(good);
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true, verify: false, signedIn: false });
   });
   it('past the limit: 429 with Retry-After, no account attempted', async () => {
     h.limited = { ok: false, retryAfterSec: 600 };

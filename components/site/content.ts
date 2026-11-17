@@ -234,10 +234,12 @@ export const ADAPT = {
 export const BRAND = 'CasePace';
 
 // Every call to action is Matt's "Take the free diagnostic" (Lorenzo, 2 Nov):
-// sign in, then the training home. A new student sets up training there and
+// sign up (which links to log in), then the training home (Matt, 17 Nov, pre-pilot
+// audit S5: new students landed on log in). A new student sets up training there and
 // then takes the diagnostic, which makes the plan; a diagnostic taken before
 // setup makes none (recordPlanSource needs a program), so not straight to it.
-export const START_HREF = '/sign-in?next=/drills';
+export const START_HREF = '/sign-up?next=/drills';
+export const SIGN_UP_LABEL = 'Sign up';
 export const START_LABEL = 'Take the free diagnostic';
 export const START_LABEL_SHORT = 'Free diagnostic';
 

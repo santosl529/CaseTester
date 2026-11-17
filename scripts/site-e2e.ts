@@ -87,11 +87,12 @@ async function phaseA(page: Page) {
     if (!invalid || !page.url().includes('/sign-up')) throw new Error('form submitted a short password');
     return 'browser refused to submit';
   });
-  await check(page, 'sign-up: valid → account created, sent to log in', async () => {
+  await check(page, 'sign-up: valid → account created and logged in (S5; no email sender here)', async () => {
     await page.getByPlaceholder(/^Password/).fill(p1);
     await page.getByRole('button', { name: 'Create account' }).click();
-    await page.waitForURL(/\/sign-in\?created=1/, { timeout: 20_000 });
-    return expectText(page, /Account created/);
+    await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
+    await page.context().clearCookies();
+    return `at ${new URL(page.url()).pathname}`;
   });
   await check(page, 'sign-up: same email again → already exists', async () => {
     await page.goto(`${BASE}/sign-up`);
@@ -378,8 +379,6 @@ async function phaseC(page: Page) {
       await page.getByPlaceholder(/^Password/).fill(password);
       await page.getByPlaceholder('Club code').fill(CODES[0]);
       await page.getByRole('button', { name: 'Create account' }).click();
-      await page.waitForURL(/\/sign-in\?created=1/, { timeout: 20_000 });
-      await logIn(page, password);
       await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
       return 'signed up and logged in';
     });
