@@ -9,6 +9,7 @@ import type { CaseMode } from '@/lib/site/case-href';
 import type { PastSession } from '@/lib/site/past-sessions';
 
 const DIFFICULTY = { easy: 'Easy', medium: 'Medium', hard: 'Hard' } as const;
+export const RECOMMENDED_LABEL = 'Recommended for you';
 const TYPE_LABEL = (t: string) => (t === 'm_and_a' ? 'M&A' : t[0].toUpperCase() + t.slice(1).replace(/_/g, ' '));
 
 export interface CaseCard {
@@ -17,6 +18,8 @@ export interface CaseCard {
   done: number; last: string | null;
   // "Good first case" (FIRST_CASE_ID).
   first?: boolean;
+  // "Recommended for you": the case Today's Next case card linked to (17 Nov, M1). Shown instead of "Good first case".
+  recommended?: boolean;
 }
 export interface CasesLeft { n: number; scope: 'day' | 'month' | 'site'; perDay: number; block: { reason: string; limit: number; retryAt: string } | null }
 
@@ -44,9 +47,11 @@ export function CaseList({ cases, left }: { cases: CaseCard[]; left: CasesLeft |
       </div>
       <ul className="grid gap-4 sm:grid-cols-2">
         {cases.map(c => (
-          <li key={c.id} className="flex flex-col justify-between gap-5 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
+          <li key={c.id} id={`case-${c.id}`} className={`flex scroll-mt-20 flex-col justify-between gap-5 rounded-panel border bg-white p-5 shadow-quiet sm:p-6 ${c.recommended ? 'border-cobalt ring-1 ring-cobalt' : 'border-ink/12'}`}>
             <div className="space-y-1">
-              {c.first && <p className="t-label inline-flex rounded-full bg-sky px-2.5 py-0.5 font-semibold text-ink">Good first case</p>}
+              {c.recommended
+                ? <p className="t-label inline-flex rounded-full bg-cobalt px-2.5 py-0.5 font-semibold text-white">{RECOMMENDED_LABEL}</p>
+                : c.first && <p className="t-label inline-flex rounded-full bg-sky px-2.5 py-0.5 font-semibold text-ink">Good first case</p>}
               <p className="t-heading font-semibold">{c.title}</p>
               <p className="t-small text-ink/70">{[DIFFICULTY[c.difficulty], c.caseType && TYPE_LABEL(c.caseType), `about ${c.minutes} min`].filter(Boolean).join(' · ')}</p>
               {c.done > 0 && c.last && (

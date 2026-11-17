@@ -53,6 +53,15 @@ export function linkOnlyCase(caseId: unknown): ListedCase | null {
   return c ? { id: c.id, title: c.title, difficulty: c.difficulty, caseType: c.caseType } : null;
 }
 
+// Where the Next case card's link goes (Matt, 17 Nov, pre-pilot audit M1: it went to /start/<case>, which only serves
+// the demo, so listed cases 404'd): the Cases page with that case marked "Recommended for you" — Cases has the voice or
+// text choice and the daily limit. A link-only case keeps its start page; anything else, the Cases page.
+export function nextCaseHref(caseId: unknown): string {
+  if (isListedCase(caseId)) return `/home?case=${encodeURIComponent(caseId as string)}#cases`;
+  if (linkOnlyCase(caseId)) return `/start/${encodeURIComponent(caseId as string)}`;
+  return '/home#cases';
+}
+
 // What /api/session may start: a listed case, or a link-only one.
 export function isStartableCase(caseId: unknown): boolean {
   return isListedCase(caseId) || linkOnlyCase(caseId) !== null;

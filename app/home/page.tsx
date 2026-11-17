@@ -4,7 +4,7 @@ import { db } from '@/db/client';
 import { studentProfiles } from '@/db/schema';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { activeClub } from '@/lib/club';
-import { FIRST_CASE_ID, byDifficulty, listedCases } from '@/lib/cases/listed';
+import { FIRST_CASE_ID, byDifficulty, isListedCase, listedCases } from '@/lib/cases/listed';
 import { loadCaseAttempts, loadPastSessions } from '@/lib/site/past-sessions';
 import { getCaseById } from '@/lib/cases/loader';
 import { caseTotalMs } from '@/lib/orchestrator/state-machine';
@@ -13,7 +13,10 @@ import { HomeView } from '@/components/home-view';
 
 // The home after sign-in (site flow, 19 Oct): start a case, go to drills, past
 // sessions. Signed in with a valid club code on the profile, or back to /.
-export default async function HomePage() {
+// `?case=<id>`: the case Today's Next case card recommends, marked on its card (Matt, 17 Nov, M1).
+export default async function HomePage({ searchParams }: { searchParams: Promise<{ case?: string | string[] }> }) {
+  const asked = (await searchParams).case;
+  const recommended = typeof asked === 'string' && isListedCase(asked) ? asked : null;
   const supabase = await createServerSupabaseClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/sign-in');
@@ -24,7 +27,7 @@ export default async function HomePage() {
   const [past, attempts] = await Promise.all([loadPastSessions(user.id, profile.timezone), loadCaseAttempts(user.id)]);
   const cases = byDifficulty(listedCases()).map(c => ({
     ...c, minutes: Math.round(caseTotalMs(getCaseById(c.id)) / 60_000),
-    done: attempts[c.id]?.done ?? 0, last: attempts[c.id]?.last ?? null, first: c.id === FIRST_CASE_ID,
+    done: attempts[c.id]?.done ?? 0, last: attempts[c.id]?.last ?? null, first: c.id === FIRST_CASE_ID, recommended: c.id === recommended,
   }));
   // How many more can start now (read only; the start itself still checks under its lock). Exempt users: no line.
   const limits = sessionLimitsFromEnv();

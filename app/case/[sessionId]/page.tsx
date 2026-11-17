@@ -1,11 +1,12 @@
 import { db } from '@/db/client';
-import { sessions, sessionTurns } from '@/db/schema';
-import { eq, asc, and } from 'drizzle-orm';
+import { sessions } from '@/db/schema';
+import { eq, and } from 'drizzle-orm';
 import { notFound, redirect } from 'next/navigation';
 import { isUuid } from '@/lib/http/route-guard';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getCaseById } from '@/lib/cases/loader';
 import { TextCaseScreen } from '@/components/views/case';
+import { loadCaseHistory } from '@/lib/site/case-history-load';
 
 export default async function CasePage({ params }: { params: Promise<{ sessionId: string }> }) {
   const { sessionId } = await params;
@@ -21,12 +22,8 @@ export default async function CasePage({ params }: { params: Promise<{ sessionId
   });
   if (!session) notFound();
 
-  const turns = await db.query.sessionTurns.findMany({
-    where: eq(sessionTurns.sessionId, sessionId),
-    orderBy: [asc(sessionTurns.turnIndex)],
-  });
-
-  const initialMessage = turns.find(t => t.role === 'interviewer')?.text ?? 'Welcome to your case interview.';
+  // Everything said so far and every exhibit shown, so a refresh or a reopened tab picks up where it was (M2, 17 Nov).
+  const history = await loadCaseHistory(sessionId, session.caseId);
 
   // The public case scenario — safe to show (answer keys/ledger values are not here).
   // Kept persistently available so the candidate can re-read the brief mid-case.
@@ -39,6 +36,6 @@ export default async function CasePage({ params }: { params: Promise<{ sessionId
 
   return (
     <TextCaseScreen sessionId={sessionId} active={session.status === 'active'} completed={session.status === 'completed'}
-      casePrompt={casePrompt} initialMessage={initialMessage} />
+      casePrompt={casePrompt} history={history} />
   );
 }

@@ -8,6 +8,7 @@ import { activeClub } from '@/lib/club';
 import { AppNav } from '@/components/app-nav';
 import { AppPage } from '@/components/brand/page';
 import { ChangeClubForm, DeleteAccountForm } from '@/components/account-forms';
+import { FeedbackButton } from '@/components/drills/feedback';
 import { ReportProblem } from '@/components/report-problem-link';
 
 export const metadata: Metadata = { title: 'Account', robots: { index: false } };
@@ -45,6 +46,8 @@ export default async function AccountPage() {
           <DeleteAccountForm email={user.email ?? ''} />
         </section>
       </AppPage>
+      {/* Suggestions from Account land in the same feed as the training pages' (S3). */}
+      <FeedbackButton />
     </>
   );
 }

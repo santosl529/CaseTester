@@ -2,18 +2,21 @@
 // explain: a throw anywhere in a handler → 500 { error: 'server_error' } (logged), never Next's HTML error page;
 // an interview id that isn't a UUID → 404 before any lookup (Postgres would refuse it with a 500).
 import { NextResponse } from 'next/server';
+import { reportRouteError } from '@/lib/monitoring/report-error';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const isUuid = (v: unknown): v is string => typeof v === 'string' && UUID.test(v);
 
-function serverError(err: unknown): NextResponse {
+// The error is also reported to Sentry (pre-pilot audit M4): the wrapper answers 500 itself, so Next never sees it.
+function serverError(err: unknown, req?: unknown): NextResponse {
   console.error('[route] unhandled error', err);
+  reportRouteError(err, req);
   return NextResponse.json({ error: 'server_error' }, { status: 500 });
 }
 
 export function jsonRoute<A extends unknown[]>(handler: (...args: A) => Promise<Response>) {
   return async (...args: A): Promise<Response> => {
-    try { return await handler(...args); } catch (err) { return serverError(err); }
+    try { return await handler(...args); } catch (err) { return serverError(err, args[0]); }
   };
 }
 
@@ -23,6 +26,6 @@ export function sessionRoute<R>(handler: (req: R, ctx: SessionCtx) => Promise<Re
     try {
       if (!isUuid((await ctx.params).sessionId)) return NextResponse.json({ error: 'Not found' }, { status: 404 });
       return await handler(req, ctx);
-    } catch (err) { return serverError(err); }
+    } catch (err) { return serverError(err, req); }
   };
 }

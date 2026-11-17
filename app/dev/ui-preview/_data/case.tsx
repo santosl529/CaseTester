@@ -12,6 +12,7 @@ import type { ReportDimension } from '@/lib/scoring/report-dimensions';
 import type { ReportDrillsView } from '@/lib/drills/progress/report-view';
 import type { NextStepsSnapshot } from '@/lib/drills/next-steps';
 import type { Screen } from '../_lib/types';
+import type { HistoryMessage } from '@/lib/site/case-history';
 
 // Sign-in, /home and the interview: sample data, a sample case conversation
 // (written for the preview, not taken from a case's ledger).
@@ -31,6 +32,14 @@ const EXHIBIT = {
   ],
   notes: 'Sample data for the preview.',
 };
+// An interview reopened mid-case (M2): the opening, a structure, an exhibit, a follow-up.
+const RESUMED: HistoryMessage[] = [
+  { role: 'interviewer', text: OPENING },
+  { role: 'candidate', text: 'I’d split profit into revenue and costs. Revenue grew 15%, so I’d start with costs: COGS, labor and overhead as a share of revenue.' },
+  { role: 'interviewer', text: 'Good. Revenue grew, so let’s look at costs. Here is how they’ve moved over the two years.', exhibit: EXHIBIT },
+  { role: 'candidate', text: 'COGS went from 42% to 58% of revenue, so it explains 16 of the 18 points of margin lost.' },
+  { role: 'interviewer', text: 'Walk me through how you got that number.' },
+];
 
 const DIMENSIONS: ReportDimension[] = [
   {
@@ -147,7 +156,7 @@ export const CASE_SCREENS: Screen[] = [
   {
     slug: 'text-case', path: '/case/preview-text', area: 'Mock interview', title: 'Text interview (type a reply to see an exhibit)',
     render: () => ({
-      node: <TextCaseScreen sessionId={TEXT_ID} active completed={false} casePrompt={getCaseById('prof-001').prompt} initialMessage={OPENING} />,
+      node: <TextCaseScreen sessionId={TEXT_ID} active completed={false} casePrompt={getCaseById('prof-001').prompt} history={[{ role: 'interviewer', text: OPENING }]} />,
       api: [{
         method: 'POST', path: `/api/channel/${TEXT_ID}/turn`, delayMs: 900, sequence: [
           turn('Good. Revenue grew, so let’s look at costs. Here is how they’ve moved over the two years.', { exhibit: EXHIBIT }),
@@ -160,7 +169,15 @@ export const CASE_SCREENS: Screen[] = [
   },
   {
     slug: 'text-case-ended', path: '/case/preview-ended', area: 'Mock interview', title: 'Text interview: the end screen',
-    render: () => ({ node: <TextCaseScreen sessionId="preview-ended" active={false} completed casePrompt={getCaseById('prof-001').prompt} initialMessage={OPENING} /> }),
+    render: () => ({ node: <TextCaseScreen sessionId="preview-ended" active={false} completed casePrompt={getCaseById('prof-001').prompt} history={[{ role: 'interviewer', text: OPENING }]} /> }),
+  },
+  {
+    slug: 'text-case-resumed', path: '/case/preview-resumed', area: 'Mock interview', title: 'Text interview reopened mid-case (M2): every turn and exhibit restored',
+    render: () => ({ node: <TextCaseScreen sessionId="preview-resumed" active completed={false} casePrompt={getCaseById('prof-001').prompt} history={RESUMED} /> }),
+  },
+  {
+    slug: 'voice-resumed', path: '/case/preview-voice-resumed/voice', area: 'Mock interview', title: 'Voice interview reopened mid-case (M2): the interview so far above the captions',
+    render: () => ({ node: <VoiceCaseScreen sessionId="preview-voice-resumed" active completed={false} casePrompt={getCaseById('prof-001').prompt} consented history={RESUMED} /> }),
   },
   {
     slug: 'voice', path: '/case/preview-voice/voice', area: 'Mock interview', title: 'Voice interview, before connecting',

@@ -3,7 +3,10 @@
 // Production refuses to start with ENGINE_SWITCHES set unless ENGINE_SWITCHES_PRODUCTION=demo
 // (lib/cases/engine-switches.ts). The listed cases are named by id only: a function bundle need not hold cases/.
 export async function register() {
+  // Error reporting (pre-pilot audit M4): off unless NEXT_PUBLIC_SENTRY_DSN is set.
+  if (process.env.NEXT_RUNTIME === 'edge') await import('./sentry.edge.config');
   if (process.env.NEXT_RUNTIME !== 'nodejs') return;
+  await import('./sentry.server.config');
   const { assertNoEngineSwitchesInProduction, activeSwitchesLine } = await import('@/lib/cases/engine-switches');
   const { LISTED_CASE_IDS } = await import('@/lib/cases/listed');
   assertNoEngineSwitchesInProduction();
@@ -12,4 +15,10 @@ export async function register() {
   // than on a student's page.
   const { caseToDrillsMode, drillGroups } = await import('@/lib/drills/case-to-drills');
   console.log(`[boot] CASE_TO_DRILLS=${caseToDrillsMode()}; drill groups: ${[...drillGroups()].join(', ')}`);
+}
+
+// Errors Next reports (a page or route that throws past its own handling): to Sentry with the account id and page (M4).
+export async function onRequestError(...args: Parameters<typeof import('@/lib/monitoring/report-error').reportRequestError>) {
+  const { reportRequestError } = await import('@/lib/monitoring/report-error');
+  reportRequestError(...args);
 }

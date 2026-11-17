@@ -9,6 +9,7 @@ import { PostCaseSurvey } from '@/components/post-case-survey';
 import { PrepareReport } from '@/components/prepare-report';
 import { PdfDownloadButton } from '@/components/pdf-download-button';
 import { ReportProblem } from '@/components/report-problem-link';
+import { FeedbackButton } from '@/components/drills/feedback';
 import { AppNav } from '@/components/app-nav';
 import { Breadcrumbs } from '@/components/brand/breadcrumbs';
 import type { ReportDimension } from '@/lib/scoring/report-dimensions';
@@ -45,6 +46,7 @@ export function UnscoredReportScreen({ sessionId, caseTitle }: { sessionId: stri
           <PrepareReport sessionId={sessionId} />
           <p className="t-small text-ink/70">Something wrong? <ReportProblem sessionId={sessionId} /></p>
         </AppPage>
+        <FeedbackButton />
       </>
   );
 }
@@ -63,6 +65,7 @@ export function NoReportScreen({ caseTitle, message, link }: { caseTitle: string
           <p className="t-body">{message}</p>
           <Link href={link.href} className={buttonVariants({ size: 'lg' })}>{link.label}</Link>
         </AppPage>
+        <FeedbackButton />
       </>
   );
 }
@@ -183,6 +186,7 @@ export function ReportScreen({ sessionId, caseTitle, partial, overallRating, has
       {/* Disputing a grade, or anything else about this report (the privacy policy points here). */}
       <p className="t-small text-ink/70">Disagree with a rating, or something wrong with this report? <ReportProblem sessionId={sessionId} /></p>
     </AppPage>
+    <FeedbackButton />
     </>
   );
 }

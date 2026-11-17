@@ -87,11 +87,12 @@ async function phaseA(page: Page) {
     if (!invalid || !page.url().includes('/sign-up')) throw new Error('form submitted a short password');
     return 'browser refused to submit';
   });
-  await check(page, 'sign-up: valid → account created, sent to log in', async () => {
+  await check(page, 'sign-up: valid → account created and logged in (S5; no email sender here)', async () => {
     await page.getByPlaceholder(/^Password/).fill(p1);
     await page.getByRole('button', { name: 'Create account' }).click();
-    await page.waitForURL(/\/sign-in\?created=1/, { timeout: 20_000 });
-    return expectText(page, /Account created/);
+    await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
+    await page.context().clearCookies();
+    return `at ${new URL(page.url()).pathname}`;
   });
   await check(page, 'sign-up: same email again → already exists', async () => {
     await page.goto(`${BASE}/sign-up`);
@@ -144,13 +145,13 @@ async function phaseA(page: Page) {
   });
 
   await signOut(page);
-  await check(page, 'forgot password: no account → said plainly', async () => {
+  await check(page, 'forgot password: no account → the same neutral message (N2)', async () => {
     await page.goto(`${BASE}/sign-in`);
     await page.getByRole('link', { name: 'Forgot password?' }).click();
     await page.waitForURL(/\/forgot-password/);
     await page.getByPlaceholder('Email').fill(`nobody-${Date.now()}@example.com`);
     await page.getByRole('button', { name: 'Send reset link' }).click();
-    return expectText(page, /No account uses this email/);
+    return expectText(page, /If an account uses this email, we’ve sent a link/);
   });
   await check(page, 'forgot password: malformed email', async () => {
     await page.getByPlaceholder('Email').fill('a@b');
@@ -378,8 +379,6 @@ async function phaseC(page: Page) {
       await page.getByPlaceholder(/^Password/).fill(password);
       await page.getByPlaceholder('Club code').fill(CODES[0]);
       await page.getByRole('button', { name: 'Create account' }).click();
-      await page.waitForURL(/\/sign-in\?created=1/, { timeout: 20_000 });
-      await logIn(page, password);
       await page.waitForURL(SIGNED_IN_HOME, { timeout: 20_000 });
       return 'signed up and logged in';
     });

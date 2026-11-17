@@ -7,7 +7,7 @@ import { PROBLEM_REPORT_MAX } from '@/lib/site/problem-report';
 
 type Body = Record<string, unknown> | null;
 export const OFFLINE = 'We couldn’t reach the server. Check your connection and try again.';
-const SIGNED_OUT = (what: string) => `You’ve been signed out. Log in again ${what}`;
+const SIGNED_OUT = (what: string) => `You’ve been logged out. Log in again ${what}`;
 
 function wait(seconds: unknown): string {
   const s = typeof seconds === 'number' && Number.isFinite(seconds) ? seconds : 0;
@@ -42,7 +42,7 @@ export function voiceStartFailure(status: number, data: Body): string {
 export function startCaseFailure(status: number, data: Body): string {
   if (status === 0) return OFFLINE;
   if (data?.error === 'session_limit') return limitMessage(data as Parameters<typeof limitMessage>[0]);
-  if (status === 401) return 'You’ve been signed out. Log in again, then start the case.';
+  if (status === 401) return 'You’ve been logged out. Log in again, then start the case.';
   if (data?.error === 'Invalid club code') return 'Your club code is no longer valid. Enter a new one on your Account page.';
   return 'The case couldn’t start. Please try again in a moment.';
 }

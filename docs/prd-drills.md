@@ -1478,7 +1478,7 @@ Route handlers live under `/api`. Each endpoint is marked with the phase that bu
 | `GET /api/drills/workouts/today` (D4) | Builds today's workout if none exists | Blocks with slot, reason and estimated minutes |
 | `GET /api/drills/catalog` (D4) | Browse drills | Skill areas, skills with state and stage, drills by stage, allowed tiers, Suggested badges |
 | `GET` / `POST /api/drills/diagnostic`, `POST /api/drills/diagnostic/skip` (D4) | The diagnostic's parts and placement; start or resume; stop for now | Diagnostic view |
-| `GET /api/drills/next-case?case=` (D4) | Logs the Next case click and goes to the case product | Redirect |
+| `GET /api/drills/next-case?case=` (D4) | Logs the Next case click and goes to the Cases page with that case marked "Recommended for you" (`/home?case=<id>#cases`, `nextCaseHref`; 17 Nov, pre-pilot audit M1: it went to `/start/<case>`, a 404 for every listed case) | Redirect |
 | `POST /api/drills/lessons/{lesson_id}/views` (D4) | Log a view or skip | — |
 | `POST /api/drills/sets` | Start a set. Body: `skill_id` (with `quick_start`, or an optional `level`), `drill_id` (Retry this set, or Pick exactly with `tier`; the server rejects a tier more than one above the student's current tier), `prescription_id`, `workout_id` + `block`, `diagnostic_part`; flags `browse`, `suggestion` (the card's reason and slot) and `placement_check`. A set with AI-graded answers is refused (429) when it would pass the student's daily or monthly cap (`daily_limit`, `monthly_limit`) or while the circuit breaker is open (`grading_paused`); the message says auto-checked drills are still open and when written drills reopen | `set_id` |
 | `GET /api/drills/sets/{id}` | Resume a set | Status, current position, intro info (drill, skills, size, time per item, pass bar, worked example on first view) |
@@ -1532,7 +1532,7 @@ The case library list (`GET /cases`, with filters and the Suggested mark) belong
 
 Pilot students should find it easy to tell us what's wrong or missing. None of this calls a model.
 
-- **Feedback button** on every drills page, fixed in the bottom-right corner: an icon on phones, "Feedback" with the icon on wider screens. Keyboard-reachable and labeled for screen readers; pages leave room under their content so it never hides the end of a page. It opens a small dialog: Something's broken / Something's confusing / Idea, an optional comment (500 characters) and Send. The page, the set and the item in play (id and version), the device and the app version are attached automatically.
+- **Feedback button** on every drills page, and since 17 Nov (Matt, pre-pilot audit S3) on Cases, the case report and Account too, fixed in the bottom-right corner (on the text and voice interviews it sits in the header instead, so on a phone it never covers the text box or messages): an icon on phones, "Feedback" with the icon on wider screens. Keyboard-reachable and labeled for screen readers; pages leave room under their content so it never hides the end of a page. It opens a small dialog: Something's broken / Something's confusing / Idea, an optional comment (500 characters) and Send. The page, the set and the item in play (id and version), the device and the app version are attached automatically.
 - **Report a problem** on every item screen (next to "Item N of M", during the item and its feedback) and on each item of the results screen. Reasons: Answer key is wrong / Question is confusing / My grade seems unfair / Other, plus an optional comment. "My grade seems unfair" is the grade dispute (moved from P1 into the pilot); it doesn't change the score.
 - **Review queue** (`/drills/review/reports`, local development only): each report with the item, the student's answer, the score and the grader's verdict per check. Matt labels a disputed AI grade check by check (and red flags), or marks a report resolved or dismissed. `npm run drills:export-disputes` writes labeled disputes to the golden sets (`drill-golden/<drill>/dispute-*.json`, answer type `dispute`; a follow-up reply's labels as a separate `defend` part), so the next gate run includes them. Items are pulled by hand (see Item health).
 - **Check-ins** (each can be dismissed with "Not now"):
@@ -1596,6 +1596,17 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 | `repair_pool_exhausted` | A Repair set had to use items derived from ones seen in the last 14 days | drill\_id, available |
 
 ### MVP reports
+
+`/drills/reports`. In production only for the founder accounts listed in `REPORTS_ALLOWED_EMAILS` (comma-separated emails), checked on the server; anyone else gets a 404 (Matt, 17 Nov, pre-pilot audit M6; it was local development only). Test clubs (`TEST_ORGS`) stay out; the case side also leaves out the evaluation accounts (100 or more finished interviews). The review queue it links to stays local. The case side comes first (`lib/drills/reports/case-side.ts`, tested):
+
+| Report | What it shows | How it's computed |
+| --- | --- | --- |
+| Sign-ups (M6) | New accounts per week, as a line | The auth account's creation time, by week (Monday to Sunday), until a `signed_up` event exists |
+| Activation (M6) | Activated students by sign-up week | Activated: within 7 days of signing up, the student gets a plan and completes one drill set or one full case (not the 7-minute demo). Students still in their first 7 days and not yet active aren't counted against the rate |
+| Interviews (M6) | Interviews started, completed, abandoned and not finished, by case and week | Sessions started in the period, by the week they started; status as of now. The demo is named apart |
+| Post-case survey (M6) | Answers, average realism and usefulness (1–5) and their spread, overall and by case; comments | `post_case_rating` events. The survey has no comment box: comments come from the open question after a student's first full case and the Feedback button on the case pages |
+
+Then the drills:
 
 | Report | What it shows | How it's computed |
 | --- | --- | --- |

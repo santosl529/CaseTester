@@ -65,11 +65,11 @@ describe('POST /api/password/forgot', () => {
     expect(h.resetCalls).toEqual([['ann@example.com', { redirectTo: 'https://casepace.example/auth/confirm' }]]);
     expect(h.hits).toEqual(['passwordReset:ip:9.9.9.9']);
   });
-  it('no account uses the email: 404 no_account, said plainly (Lorenzo, 11 Nov); no email', async () => {
+  it('no account uses the email: the same answer as a sent link (Matt, 17 Nov, N2), and no email', async () => {
     h.account = null;
     const res = await forgot(post({ email: 'ghost@example.com' }));
-    expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({ error: 'no_account' });
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ ok: true });
     expect(h.resetCalls).toEqual([]);
   });
   it('past our limit: 429, no email', async () => {

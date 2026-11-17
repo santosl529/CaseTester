@@ -10,16 +10,10 @@ import { postJson } from '@/lib/site/fetch-json';
 import { turnFailure, OFFLINE } from '@/lib/site/failure-messages';
 import { runScoring } from '@/lib/site/run-scoring';
 
-type ExhibitDisplay = {
-  id: string;
-  title: string;
-  chartType: string;
-  data: Record<string, unknown>[];
-  notes?: string;
-};
+import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
+import type { HistoryMessage } from '@/lib/site/case-history';
 
-type Message =
-  | { role: 'interviewer' | 'candidate'; text: string; exhibit?: ExhibitDisplay };
+type Message = HistoryMessage;
 
 function TypingIndicator({ label }: { label?: string }) {
   return (
@@ -35,10 +29,12 @@ function TypingIndicator({ label }: { label?: string }) {
   );
 }
 
-export function ChatWindow({ sessionId, initialMessage }: { sessionId: string; initialMessage: string }) {
-  const [messages, setMessages] = useState<Message[]>([
-    { role: 'interviewer', text: initialMessage },
-  ]);
+// `history`: the interview so far from the database (M2, 17 Nov), so a refresh or a reopened tab shows every turn and
+// exhibit, not just the opening prompt.
+export function ChatWindow({ sessionId, history }: { sessionId: string; history: HistoryMessage[] }) {
+  const [messages, setMessages] = useState<Message[]>(
+    history.length ? history : [{ role: 'interviewer', text: 'Welcome to your case interview.' }],
+  );
   const [input, setInput] = useState('');
   const [status, setStatus] = useState<'idle' | 'waiting' | 'closed'>('idle');
   // What went wrong with the last send or End (8 Nov), shown above the box; cleared on the next try.

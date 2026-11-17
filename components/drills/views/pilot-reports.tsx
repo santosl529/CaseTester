@@ -4,6 +4,12 @@ import { getSkill } from '@/lib/drills/config';
 import type { Reports } from '@/lib/drills/reports';
 import type { feedbackReports } from '@/lib/drills/reports/feedback';
 import { FEED_TYPES } from '@/lib/drills/reports/feedback-compute';
+import type { loadCaseSide } from '@/lib/drills/reports/case-side-load';
+import { ACTIVATION_DAYS, activationByWeek, interviewsByCaseAndWeek, signUpsByWeek, surveySummary, weeksBetween } from '@/lib/drills/reports/case-side';
+import { ChartSpecSchema } from '@/lib/drills/chart-spec';
+import { DrillChart } from '@/components/drills/chart';
+import { getCaseById } from '@/lib/cases/loader';
+import { HOME_DEMO_CASE_IDS } from '@/lib/cases/listed';
 
 const PERIODS = [7, 28, 90] as const;
 const pct = (x: number | null | undefined) => (x === null || x === undefined ? '–' : `${Math.round(x * 100)}%`);
@@ -24,7 +30,8 @@ function Section({ id, title, how, children }: { id: string; title: string; how:
 function Table({ head, rows, caption }: { head: string[]; rows: (string | number)[][]; caption: string }) {
   if (rows.length === 0) return <p className="t-small text-ink/70">No data yet.</p>;
   return (
-    <div role="region" aria-label={caption} tabIndex={0} className="overflow-x-auto rounded-window border border-ink/12 bg-white">
+    // Named apart from its section (whose heading often matches the caption), so landmarks stay unique.
+    <div role="region" aria-label={`${caption} table`} tabIndex={0} className="overflow-x-auto rounded-window border border-ink/12 bg-white">
       <table className="t-small w-full border-collapse">
         <caption className="sr-only">{caption}</caption>
         <thead><tr className="bg-paper text-ink/70">{head.map(h => <th key={h} scope="col" className="border-b border-ink/12 px-3 py-2 text-left font-medium">{h}</th>)}</tr></thead>
@@ -40,9 +47,10 @@ function Table({ head, rows, caption }: { head: string[]; rows: (string | number
   );
 }
 
-// The pilot reports' screen (local development only); app/drills/reports/page.tsx loads the data.
-export function PilotReports({ r, fb, orgs, org, days, type, page }: {
+// The pilot reports' screen (founders only in production); app/drills/reports/page.tsx loads the data.
+export function PilotReports({ r, fb, orgs, org, days, type, page, cases, reviewQueue = true }: {
   r: Reports; fb: ReturnType<typeof feedbackReports>; orgs: string[]; org: string | null; days: number; type: string | undefined; page: string | undefined;
+  cases?: Awaited<ReturnType<typeof loadCaseSide>>; reviewQueue?: boolean;
 }) {
   const q = { page };
   const flagged = r.item_health.items.filter(i => i.flags.length);
@@ -84,6 +92,8 @@ export function PilotReports({ r, fb, orgs, org, days, type, page }: {
         {r.spend_today.paused === 'billing' && ' A spend-limit or billing error came back today: grading is stopped and new written sets are paused for the rest of the day.'}
       </p>
 
+      {cases && <CaseSide cases={cases} days={days} />}
+
       <Section id="flagged" title={`Items to review (${flagged.length} flagged, ${fb.reported.length} reported)`} how={r.item_health.how}>
         <h3 className="t-small font-semibold">Flagged by their numbers</h3>
         <Table caption="Flagged items" head={['Item', 'Drill', 'Attempts', 'Correct', 'Avg time', 'Flags']}
@@ -91,7 +101,7 @@ export function PilotReports({ r, fb, orgs, org, days, type, page }: {
         <h3 className="t-small pt-2 font-semibold">Reported by students</h3>
         <Table caption="Reported items" head={['Item', 'Drill', 'Reports', 'Open', 'Reasons', 'Latest comment']}
           rows={fb.reported.map(i => [i.item, i.drill_id, i.reports, i.open, Object.entries(i.reasons).map(([k, n]) => `${k} ×${n}`).join('; '), i.latest ?? '–'])} />
-        <p className="t-label text-ink/70">Review and label reports in the <Link href="/drills/review/reports" className="link">review queue</Link>.</p>
+        {reviewQueue && <p className="t-label text-ink/70">Review and label reports in the <Link href="/drills/review/reports" className="link">review queue</Link>.</p>}
         <p className="t-label text-ink/70">To pull an item: set its <code>&quot;status&quot;</code> to <code>&quot;in_review&quot;</code> in <code>drill-items/&lt;drill&gt;/&lt;item&gt;.json</code>, then run <code>npm run db:seed-drill-items</code>.</p>
       </Section>
 
@@ -162,7 +172,7 @@ export function PilotReports({ r, fb, orgs, org, days, type, page }: {
       </Section>
 
       <Section id="lessons" title="Lessons" how={r.lessons.how}>
-        <Table caption="Lessons" head={['', 'Students', 'Next set score']}
+        <Table caption="Lessons" head={['Lesson', 'Students', 'Next set score']}
           rows={[['Read the lesson', r.lessons.read.n, pct(r.lessons.read.next_set_score)], ['Skipped it', r.lessons.skipped.n, pct(r.lessons.skipped.next_set_score)]]} />
       </Section>
 
@@ -211,5 +221,50 @@ export function PilotReports({ r, fb, orgs, org, days, type, page }: {
         <p className="t-small text-ink/70">No rows yet: {r.event_health.not_seen.join(', ') || 'none'}.</p>
       </Section>
     </AppPage>
+  );
+}
+
+// The case side (M6, 17 Nov): sign-ups and activation first, then interviews and what students said about them.
+function CaseSide({ cases, days }: { cases: Awaited<ReturnType<typeof loadCaseSide>>; days: number }) {
+  const to = new Date();
+  const weeks = weeksBetween(new Date(to.getTime() - days * 86_400_000), to);
+  // The 7-minute demo shares the full case's title; name it apart.
+  const title = (id: string) => { try { return `${getCaseById(id).title}${HOME_DEMO_CASE_IDS.includes(id) ? ' (7-minute demo)' : ''}`; } catch { return id; } };
+  const signUps = signUpsByWeek(cases.students, weeks);
+  const activation = activationByWeek(cases.students, cases.firsts, weeks, to);
+  const interviews = interviewsByCaseAndWeek(cases.sessions, title);
+  const survey = surveySummary(cases.ratings, title);
+  const chart = ChartSpecSchema.parse({
+    type: 'line', title: 'Sign-ups per week', categories: signUps.map(w => w.week),
+    // A top that divides into four whole steps, so every axis label is a whole number.
+    series: [{ name: 'Sign-ups', values: signUps.map(w => w.signUps), axis: 'left' }],
+    y_axis: { min: 0, max: Math.max(4, Math.ceil(Math.max(...signUps.map(w => w.signUps)) / 4) * 4), format: { prefix: '', suffix: '', decimals: 0 } },
+  });
+  return (
+    <>
+      <Section id="sign-ups" title={`Sign-ups: ${signUps.reduce((n, w) => n + w.signUps, 0)} in the period`}
+        how="New accounts per week (Monday to Sunday), from the accounts themselves until a signed_up event exists. Test clubs and the evaluation accounts are left out.">
+        <DrillChart spec={chart} />
+      </Section>
+      <Section id="activation" title="Activation"
+        how={`Activated: within ${ACTIVATION_DAYS} days of signing up, gets a plan and completes one drill set or one full case (not the 7-minute demo). By sign-up week; students still in their first ${ACTIVATION_DAYS} days and not yet active aren't counted against the rate.`}>
+        <Table caption="Activation by sign-up week" head={['Sign-up week', 'Signed up', 'Activated', 'Still in their first week', 'Rate']}
+          rows={activation.filter(w => w.signedUp > 0).map(w => [w.week, w.signedUp, w.activated, w.firstWeek, pct(w.rate)])} />
+      </Section>
+      <Section id="interviews" title={`Interviews: ${interviews.reduce((n, x) => n + x.started, 0)} started`}
+        how="By the week each was started and by case, with how they stand now. Not finished: left open (it ends when its time runs out or the student ends it).">
+        <Table caption="Interviews by case and week" head={['Week', 'Case', 'Started', 'Completed', 'Abandoned', 'Not finished']}
+          rows={interviews.map(x => [x.week, x.case, x.started, x.completed, x.abandoned, x.notFinished])} />
+      </Section>
+      <Section id="survey" title={`Post-case survey: ${survey.all.answers} answers`}
+        how="The two 1–5 ratings at the end of each report (How realistic did the interviewer feel? How useful is this feedback?). The survey has no comment box; comments below come from the question after a student's first full case and the Feedback button on the case pages.">
+        <Table caption="Survey ratings" head={['Case', 'Answers', 'Realism (avg)', 'Usefulness (avg)', 'Realism 1/2/3/4/5', 'Usefulness 1/2/3/4/5']}
+          rows={survey.all.answers ? [['All cases', survey.all.answers, num(survey.all.realism), num(survey.all.usefulness), survey.all.realismSpread.join(' / '), survey.all.usefulnessSpread.join(' / ')],
+            ...survey.byCase.map(c => [c.case, c.answers, num(c.realism), num(c.usefulness), c.realismSpread.join(' / '), c.usefulnessSpread.join(' / ')])] : []} />
+        <h3 className="t-body pt-2 font-semibold">Comments ({cases.comments.length})</h3>
+        <Table caption="Comments about cases" head={['When', 'Where', 'Comment']}
+          rows={cases.comments.slice(0, 100).map(c => [c.at.toISOString().slice(0, 16).replace('T', ' '), c.where, c.text])} />
+      </Section>
+    </>
   );
 }
