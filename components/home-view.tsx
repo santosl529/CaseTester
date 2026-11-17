@@ -1,6 +1,7 @@
 import type { PastSession } from '@/lib/site/past-sessions';
 import { AppNav } from '@/components/app-nav';
 import { AppPage } from '@/components/brand/page';
+import { FeedbackButton } from '@/components/drills/feedback';
 import { CaseList, PastSessionList, type CaseCard, type CasesLeft } from '@/components/case-list';
 
 // /home's page (site flow, 19 Oct), Cases in the app's bar: one job, doing a
@@ -25,6 +26,7 @@ export function HomeView({ cases, past, left }: { cases: CaseCard[]; past: PastS
             : <PastSessionList past={past} />}
         </section>
       </AppPage>
+      <FeedbackButton />
     </>
   );
 }

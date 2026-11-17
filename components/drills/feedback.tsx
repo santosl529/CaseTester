@@ -100,8 +100,11 @@ const CATEGORIES = [
 ] as const;
 
 // On every drills page, fixed in the bottom-right corner (the drills layout
-// leaves room under the content so it never hides the end of a page).
-export function FeedbackButton() {
+// leaves room under the content so it never hides the end of a page). Also on the
+// case side — Cases, the report, Account (floating) and the interview (`inline`, in
+// its header, so on a phone it never covers the text box or the messages) — so every
+// suggestion lands in one feed (Matt, 17 Nov, pre-pilot audit S3).
+export function FeedbackButton({ placement = 'floating' }: { placement?: 'floating' | 'inline' }) {
   const pathname = usePathname();
   const ref = useRef<HTMLDialogElement>(null);
   const [category, setCategory] = useState<string>('');
@@ -110,11 +113,16 @@ export function FeedbackButton() {
   const setId = /^\/drills\/sets\/([0-9a-f-]{36})/.exec(pathname)?.[1];
   return (
     <>
-      <button type="button" onClick={() => openWithPause(ref.current, 'feedback')} aria-label="Feedback"
-        className="t-small fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex size-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 bg-white font-medium text-ink shadow-lift transition-colors hover:border-cobalt hover:text-cobalt motion-reduce:transition-none sm:size-auto sm:px-4 sm:py-2">
-        <MessageSquare aria-hidden="true" className="size-4" />
-        <span className="hidden sm:inline">Feedback</span>
-      </button>
+      {placement === 'inline' ? (
+        <button type="button" onClick={() => openWithPause(ref.current, 'feedback')}
+          className="t-small cursor-pointer whitespace-nowrap text-ink/70 underline underline-offset-4 hover:text-cobalt">Feedback</button>
+      ) : (
+        <button type="button" onClick={() => openWithPause(ref.current, 'feedback')} aria-label="Feedback"
+          className="t-small fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex size-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 bg-white font-medium text-ink shadow-lift transition-colors hover:border-cobalt hover:text-cobalt motion-reduce:transition-none sm:size-auto sm:px-4 sm:py-2">
+          <MessageSquare aria-hidden="true" className="size-4" />
+          <span className="hidden sm:inline">Feedback</span>
+        </button>
+      )}
       <FeedbackDialog dialogRef={ref} title="Send feedback" canSend={category !== ''} pauseReason="feedback" reset={() => { setCategory(''); setText(''); }}
         onSend={() => post('/api/drills/feedback', {
           category, comment: text, page: pathname, set_id: setId,
