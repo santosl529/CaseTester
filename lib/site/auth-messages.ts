@@ -72,14 +72,13 @@ export function resetErrorMessage(body: { error?: string } | null): string {
   return "We couldn't change your password just now. Please try again in a minute.";
 }
 
-// "Resend the email" on log-in and after sign-up (POST /api/sign-up/resend; Lorenzo, 11 Nov: said plainly).
-// status 0 = no answer (offline, server down).
-export function resendMessage(status: number, body: { ok?: boolean; error?: string; retryAfterSec?: number } | null, email: string): { ok: boolean; text: string } {
-  if (status >= 200 && status < 300) return { ok: true, text: `We sent a new confirmation link to ${email}.` };
+// "Resend the email" on log-in and after sign-up (POST /api/sign-up/resend). One message whether or not an account
+// waits for confirmation (Matt, 17 Nov, pre-pilot audit, as N2). status 0 = no answer (offline, server down).
+export const RESEND_SENT = 'If an account uses this email and isn’t confirmed yet, we’ve sent a new confirmation link.';
+export function resendMessage(status: number, body: { ok?: boolean; error?: string; retryAfterSec?: number } | null): { ok: boolean; text: string } {
+  if (status >= 200 && status < 300) return { ok: true, text: RESEND_SENT };
   if (!body || status === 0) return { ok: false, text: OFFLINE };
   switch (body.error) {
-    case 'no_account': return { ok: false, text: 'No account uses this email. Sign up with your club code.' };
-    case 'already_confirmed': return { ok: false, text: 'This account is already confirmed. Log in.' };
     case 'invalid_email': return { ok: false, text: 'Enter a valid email address.' };
     case 'rate_limited': return { ok: false, text: `Too many emails requested. Try again in ${retryWait(body.retryAfterSec)}.` };
     default: return { ok: false, text: "We couldn't send the email just now. Try again in a few minutes." };
