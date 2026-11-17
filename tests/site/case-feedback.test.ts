@@ -26,7 +26,7 @@ describe('Feedback on the case side (S3)', () => {
     expect(fs.readFileSync('components/views/report.tsx', 'utf8').match(/<FeedbackButton \/>/g)?.length).toBe(3);
   });
   it('the text interview: in the header, never floating', () => {
-    const html = renderToStaticMarkup(createElement(TextCaseScreen, { sessionId: SID, active: true, completed: false, casePrompt: 'A prompt', initialMessage: 'Welcome.' }));
+    const html = renderToStaticMarkup(createElement(TextCaseScreen, { sessionId: SID, active: true, completed: false, casePrompt: 'A prompt', history: [] }));
     expect(inline(html)).toBe(true);
     expect(floating(html)).toBe(false);
     expect(html.indexOf('>Feedback<')).toBeLessThan(html.indexOf('Type your response'));

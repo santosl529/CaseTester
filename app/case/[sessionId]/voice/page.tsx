@@ -7,6 +7,7 @@ import { sessions } from '@/db/schema';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { getCaseById } from '@/lib/cases/loader';
 import { VoiceCaseScreen } from '@/components/views/case';
+import { loadCaseHistory } from '@/lib/site/case-history-load';
 
 // The voice interview (spec 2026-10-08-voice-phase-b §6) — same access rules
 // as the text case page.
@@ -26,6 +27,7 @@ export default async function VoiceCasePage({ params }: { params: Promise<{ sess
   let casePrompt: string | null = null;
   try { casePrompt = getCaseById(session.caseId).prompt; } catch { casePrompt = null; }
 
+  // The interview so far (M2, 17 Nov): after a refresh the room shows it above the live captions.
   return <VoiceCaseScreen sessionId={sessionId} active={session.status === 'active'} completed={session.status === 'completed'} casePrompt={casePrompt}
-    consented={await voiceConsentFor(user.id)} />;
+    consented={await voiceConsentFor(user.id)} history={await loadCaseHistory(sessionId, session.caseId)} />;
 }

@@ -10,6 +10,7 @@ import { FeedbackButton } from '@/components/drills/feedback';
 import { StartCaseButton } from '@/components/start-case-button';
 import { caseHref } from '@/lib/site/case-href';
 import type { ListedCase } from '@/lib/cases/listed';
+import type { HistoryMessage } from '@/lib/site/case-history';
 
 // The interview screens: text, voice and a link-only case's start page.
 // Their pages (app/case/[sessionId], …/voice, app/start/[caseId]) check
@@ -19,8 +20,8 @@ import type { ListedCase } from '@/lib/cases/listed';
 // Leaving stops the interview, so Exit asks first.
 const LEAVE_CASE = 'Leave this page? If the interview is still going, it stops here and won’t be scored.';
 
-export function TextCaseScreen({ sessionId, active, completed, casePrompt, initialMessage }: {
-  sessionId: string; active: boolean; completed: boolean; casePrompt: string | null; initialMessage: string;
+export function TextCaseScreen({ sessionId, active, completed, casePrompt, history }: {
+  sessionId: string; active: boolean; completed: boolean; casePrompt: string | null; history: HistoryMessage[];
 }) {
   return (
     <FocusScope>
@@ -46,7 +47,7 @@ export function TextCaseScreen({ sessionId, active, completed, casePrompt, initi
       </header>
       <div className="flex-1 min-h-0">
         {active
-          ? <ChatWindow sessionId={sessionId} initialMessage={initialMessage} />
+          ? <ChatWindow sessionId={sessionId} history={history} />
           // An ended case reopened: the end screen (site flow, 19 Oct). The
           // report page prepares a report not scored yet.
           : <div className="p-6"><CaseEndPanel sessionId={sessionId} report={completed ? 'ready' : undefined} /></div>}
@@ -69,10 +70,12 @@ function CasePrompt({ text }: { text: string }) {
   );
 }
 
-export function VoiceCaseScreen({ sessionId, active, completed, casePrompt, consented }: {
+export function VoiceCaseScreen({ sessionId, active, completed, casePrompt, consented, history = [] }: {
   sessionId: string; active: boolean; completed: boolean; casePrompt: string | null;
   // Voice consent on file (lib/voice/consent.ts).
   consented: boolean;
+  // The interview so far (M2): shown above the live captions after a refresh.
+  history?: HistoryMessage[];
 }) {
   return (
     <FocusScope>
@@ -89,7 +92,7 @@ export function VoiceCaseScreen({ sessionId, active, completed, casePrompt, cons
       <div className="flex-1 min-h-0">
         {active
           // The room's own "Score this interview" is the report button; the end screen adds the links (site flow, 19 Oct).
-          ? <VoiceRoom sessionId={sessionId} casePrompt={casePrompt} consented={consented} endActions={<CaseEndPanel sessionId={sessionId} />} />
+          ? <VoiceRoom sessionId={sessionId} casePrompt={casePrompt} consented={consented} history={history} endActions={<CaseEndPanel sessionId={sessionId} />} />
           : <div className="p-6"><CaseEndPanel sessionId={sessionId} report={completed ? 'ready' : undefined} /></div>}
       </div>
     </main>
