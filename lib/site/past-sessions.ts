@@ -2,12 +2,18 @@
 // link to the report. Completed sessions have a report (lib/orchestrator/
 // session-end.ts: completed ⇔ something assessable). Both open the report page:
 // "View report" when it is scored, "Get my report" when not yet (the page then
-// offers to prepare it).
+// offers to prepare it). An unfinished one (Matt, 17 Nov, M3): "Continue" while
+// the case's time lasts, in voice if it ran in voice; once time is up it shows as
+// ended, with "Get my report" (which ends it first: `endFirst`) when something
+// assessable happened.
 import 'server-only';
-import { and, desc, eq } from 'drizzle-orm';
+import { and, desc, eq, inArray } from 'drizzle-orm';
 import { db } from '@/db/client';
-import { scores, sessions } from '@/db/schema';
+import { scores, sessions, voiceSessionLines } from '@/db/schema';
 import { loadCases } from '@/lib/cases/loader';
+import { caseTotalMs } from '@/lib/orchestrator/state-machine';
+import { caseHref } from '@/lib/site/case-href';
+import { interviewClock } from '@/lib/site/interview-clock';
 
 export type PastSessionInput = {
   id: string;
@@ -16,6 +22,8 @@ export type PastSessionInput = {
   startedAt: Date;
   flags: unknown;
   scored: boolean;
+  totalMs: number;    // the case's length
+  voice: boolean;     // it ran in voice
 };
 
 export type PastSession = {
@@ -23,20 +31,23 @@ export type PastSession = {
   date: string;
   caseTitle: string;
   status: string;
-  link: { href: string; label: string } | null;
+  // endFirst: end the timed-out interview (POST /api/channel/<id>/expire), then open href.
+  link: { href: string; label: string; endFirst?: true } | null;
 };
 
 const LIMIT = 20;
 
-export function pastSessionRows(rows: PastSessionInput[], titles: Record<string, string>, timeZone = 'UTC'): PastSession[] {
+export function pastSessionRows(rows: PastSessionInput[], titles: Record<string, string>, timeZone = 'UTC', now = new Date()): PastSession[] {
   const seen = new Set<string>();
   return rows.filter(r => !seen.has(r.id) && seen.add(r.id)).map(r => {
     const partial = Boolean((r.flags as Record<string, unknown> | null)?.partial);
     const report = `/case/${r.id}/report`;
-    const [status, link] =
+    const clock = r.status === 'active' ? interviewClock(r.startedAt, r.flags, r.totalMs, now) : null;
+    const [status, link]: [string, PastSession['link']] =
       r.status === 'completed'
         ? [partial ? 'Ended early' : 'Completed', r.scored ? { href: report, label: 'View report' } : { href: report, label: 'Get my report' }]
-        : r.status === 'active' ? ['Not finished', null]
+        : clock?.state === 'running' ? [`In progress · about ${clock.minutesLeft} min left`, { href: caseHref(r.id, r.voice ? 'voice' : 'text'), label: 'Continue' }]
+        : clock?.state === 'time_up' ? (clock.report ? ['Ended (time ran out)', { href: report, label: 'Get my report', endFirst: true }] : ['Ended — no report', null])
         : r.status === 'abandoned' ? ['Ended — no report', null]
         : ['Ended', null];
     return {
@@ -76,8 +87,20 @@ export async function loadPastSessions(userId: string, timeZone?: string | null)
     .where(eq(sessions.userId, userId))
     .orderBy(desc(sessions.startedAt))
     .limit(LIMIT);
-  const titles = Object.fromEntries(loadCases().map(c => [c.id, c.title]));
-  return pastSessionRows(rows.map(r => ({ ...r, scored: r.scoreId != null })), titles, validTimeZone(timeZone));
+  const cases = loadCases();
+  const titles = Object.fromEntries(cases.map(c => [c.id, c.title]));
+  const lengths = Object.fromEntries(cases.map(c => [c.id, caseTotalMs(c)]));
+  const active = rows.filter(r => r.status === 'active').map(r => r.id);
+  const voiced = new Set(active.length
+    ? (await db.selectDistinct({ id: voiceSessionLines.sessionId }).from(voiceSessionLines).where(inArray(voiceSessionLines.sessionId, active))).map(v => v.id)
+    : []);
+  return pastSessionRows(rows.map(r => ({ ...r, scored: r.scoreId != null, totalMs: lengths[r.caseId] ?? caseTotalMs({}), voice: voiced.has(r.id) })), titles, validTimeZone(timeZone));
+}
+
+// Today's "interview in progress" card (M3): the latest interview that can still be continued.
+export async function loadUnfinishedInterview(userId: string): Promise<{ caseTitle: string; status: string; href: string } | null> {
+  const row = (await loadPastSessions(userId)).find(r => r.link?.label === 'Continue');
+  return row ? { caseTitle: row.caseTitle, status: row.status, href: row.link!.href } : null;
 }
 
 function validTimeZone(tz: string | null | undefined): string {

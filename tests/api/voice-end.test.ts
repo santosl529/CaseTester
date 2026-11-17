@@ -10,12 +10,14 @@ const h = vi.hoisted(() => ({
   updates: [] as Record<string, unknown>[],
   events: [] as unknown[],
   rows: [] as unknown[],
+  changed: true,
 }));
 vi.mock('@/lib/supabase/server', () => ({ createServerSupabaseClient: async () => ({ auth: { getUser: async () => ({ data: { user: h.user } }) } }) }));
 vi.mock('@/db/client', () => ({
   db: {
     query: { sessions: { findFirst: async () => h.session }, sessionTurns: { findMany: async () => [] } },
-    update: () => ({ set: (v: Record<string, unknown>) => ({ where: async () => { h.updates.push(v); } }) }),
+    // The conditional update reports the row it changed (none when another end got there first).
+    update: () => ({ set: (v: Record<string, unknown>) => ({ where: () => { h.updates.push(v); const changed = h.changed ? [{ id: 's' }] : []; return Object.assign(Promise.resolve(changed), { returning: async () => changed }); } }) }),
     insert: () => ({ values: async (v: unknown) => { h.rows.push(v); } }),
   },
 }));
@@ -31,7 +33,7 @@ const call = () => POST(new Request('http://x/api/voice/51111111-1111-4111-8111-
 beforeEach(() => {
   h.user = { id: 'u1' };
   h.session = { id: '51111111-1111-4111-8111-111111111111', userId: 'u1', status: 'active', phase: 'ANALYSIS', flagsJsonb: {} };
-  h.updates.length = 0; h.events.length = 0; h.rows.length = 0;
+  h.updates.length = 0; h.events.length = 0; h.rows.length = 0; h.changed = true;
   freed.rooms.length = 0; freed.released.length = 0;
 });
 
@@ -75,5 +77,12 @@ describe('voice end route', () => {
     expect(h.rows[0]).toMatchObject({ category: 'intervention', subtype: 'voice_tts_cap', payloadJsonb: { via: 'voice_tts_cap', report: true } });
     expect(h.events[0]).toMatchObject(['case_complete', { reason: 'voice_tts_cap' }, { sessionId: '51111111-1111-4111-8111-111111111111' }]);
   });
-});
 
+  it('two ends at once (a double click, two tabs): only the one that changed the row logs the end (M3)', async () => {
+    const { endByCandidate } = await import('@/lib/orchestrator/session-end');
+    h.changed = false;
+    expect(await endByCandidate('51111111-1111-4111-8111-111111111111', 'u1', 'button')).toEqual({ status: 'abandoned', report: false, partial: false });
+    expect(h.rows).toEqual([]);
+    expect(h.events).toEqual([]);
+  });
+});

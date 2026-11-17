@@ -32,7 +32,8 @@ vi.mock('@/db/client', () => ({
   db: {
     query: { sessions: { findFirst: async () => db.sessions.get(currentId) }, sessionTurns: { findMany: async () => [] } },
     select: () => ({ from: () => ({ where: async () => [...db.sessions.values()].filter(s => s.status === 'active').map(s => ({ id: s.id })) }) }),
-    update: () => ({ set: (v: Record<string, unknown>) => ({ where: async () => { const s = db.sessions.get(currentId); if (s) Object.assign(s, v); } }) }),
+    // The conditional update reports the row it changed (session-end.ts logs an end only once).
+    update: () => ({ set: (v: Record<string, unknown>) => ({ where: () => { const s = db.sessions.get(currentId); const changed = s && s.status === 'active' ? [{ id: currentId }] : []; if (s) Object.assign(s, v); return Object.assign(Promise.resolve(changed), { returning: async () => changed }); } }) }),
     insert: () => ({ values: async () => {} }),
   },
 }));

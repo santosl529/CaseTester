@@ -18,8 +18,10 @@ export type CandidateEnd = { status: string; report: boolean; partial: boolean }
 
 // The End button. Idempotent: an ended session is left as it is. Also the
 // voice session's TTS cap (via 'voice_tts_cap', voice deploy 18 Oct): the
-// same outcome, under its own endReason — the candidate didn't choose it.
-export async function endByCandidate(sessionId: string, userId: string, via: 'button' | 'voice_button' | 'voice_tts_cap'): Promise<CandidateEnd> {
+// same outcome, under its own endReason — the candidate didn't choose it. And
+// 'time_up' (Matt, 17 Nov, M3): an interview left unfinished past its case's time,
+// ended when the student asks for its report from Cases (app/api/channel/[id]/expire).
+export async function endByCandidate(sessionId: string, userId: string, via: 'button' | 'voice_button' | 'voice_tts_cap' | 'time_up'): Promise<CandidateEnd> {
   const session = await db.query.sessions.findFirst({ where: eq(sessions.id, sessionId) });
   if (!session) throw new Error(`Session not found: ${sessionId}`);
   if (session.status !== 'active') return { status: session.status, report: session.status === 'completed', partial: Boolean((session.flagsJsonb as Record<string, unknown>)?.partial) };
@@ -28,14 +30,17 @@ export async function endByCandidate(sessionId: string, userId: string, via: 'bu
   const turns = await db.query.sessionTurns.findMany({ where: eq(sessionTurns.sessionId, sessionId) });
   const partial = report && !caseFinished(flags);
   const status = report ? 'completed' : 'abandoned';
-  await db.update(sessions).set({
+  const own = via === 'voice_tts_cap' || via === 'time_up';   // not the candidate's choice: its own reason
+  const updated = await db.update(sessions).set({
     status, completedAt: new Date(), ...(report ? {} : { abandonPhase: session.phase }),
-    flagsJsonb: { ...flags, endReason: via === 'voice_tts_cap' ? 'voice_tts_cap' : 'candidate_end_button', partial, exitTurn: turns.length },
-  }).where(and(eq(sessions.id, sessionId), eq(sessions.status, 'active')));
+    flagsJsonb: { ...flags, endReason: own ? via : 'candidate_end_button', partial, exitTurn: turns.length },
+  }).where(and(eq(sessions.id, sessionId), eq(sessions.status, 'active'))).returning({ id: sessions.id });
+  // Two ends at once (a double click, two tabs): only the one that changed the row records it.
+  if (updated.length === 0) return { status, report, partial };
   await db.insert(sessionEvents).values({
-    sessionId, category: 'intervention', subtype: via === 'voice_tts_cap' ? 'voice_tts_cap' : 'candidate_exit', turnIndex: turns.length, phase: session.phase,
+    sessionId, category: 'intervention', subtype: own ? via : 'candidate_exit', turnIndex: turns.length, phase: session.phase,
     payloadJsonb: { decision: 'stop', via, report, partial },
   });
-  await logEvent(report ? 'case_complete' : 'case_abandoned', { reason: via === 'voice_tts_cap' ? 'voice_tts_cap' : `candidate_ended_${via}`, phase: session.phase, partial }, { sessionId, userId });
+  await logEvent(report ? 'case_complete' : 'case_abandoned', { reason: own ? via : `candidate_ended_${via}`, phase: session.phase, partial }, { sessionId, userId });
   return { status, report, partial };
 }
