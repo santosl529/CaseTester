@@ -32,7 +32,8 @@ export function TextCaseScreen({ sessionId, active, completed, casePrompt, histo
         <div className="flex items-center justify-between gap-4">
           {/* "text", like the voice page's "voice" (12 Nov): the phase here was read once at page load and stayed "INTRO"
               to the end, and the phase names are internal. */}
-          <div className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— text</span></div>
+          {/* The page's heading (17 Nov a11y audit: the interview pages had none). */}
+          <h1 className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— text</span></h1>
           {/* Voice is the default (Lorenzo, 6 Nov); text to voice mid-case is safe — the agent reads the turns so far. */}
           <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
             {/* In the header, not floating: on a phone it must not cover the text box or the messages (S3). */}
@@ -83,7 +84,7 @@ export function VoiceCaseScreen({ sessionId, active, completed, casePrompt, cons
     <AppNav focus={active ? { confirm: LEAVE_CASE } : undefined} />
     <main className="flex-1 min-h-0 w-full flex flex-col max-w-3xl mx-auto">
       <header className="flex items-center justify-between gap-4 border-b border-ink/12 px-6 py-3">
-        <div className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— voice</span></div>
+        <h1 className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— voice</span></h1>
         <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
           <FeedbackButton placement="inline" />
           <ReportProblem sessionId={sessionId} />
