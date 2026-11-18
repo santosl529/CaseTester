@@ -3,7 +3,7 @@
 import { describe, it, expect } from 'vitest';
 import { createElement } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import { ExhibitTable, FIGURE, SCROLL_CUE, moreToTheRight } from '@/components/exhibit-table';
+import { ExhibitTable, FIGURE, SCROLL_CUE, keepsOnOneLine, moreToTheRight } from '@/components/exhibit-table';
 import { exhibitDisplay } from '@/lib/orchestrator/turn-types';
 import { getCaseById } from '@/lib/cases/loader';
 
@@ -24,6 +24,9 @@ describe('ExhibitTable', () => {
   it('what counts as a figure', () => {
     for (const f of ['$1,200', '(1.2)', '75%', '2,000', '$3.0 million', '38.0']) expect(FIGURE.test(f)).toBe(true);
     for (const w of ['Hub–Lakeport', 'Demo with a salesperson', '12–18 months', 'About 6 months']) expect(FIGURE.test(w)).toBe(false);
+    // Short labels stay on one line too (Brew & Bean's "2 years ago": no wider on a phone than before); long text wraps.
+    expect(keepsOnOneLine('2 years ago')).toBe(true);
+    expect(keepsOnOneLine('Demo with a salesperson')).toBe(false);
   });
   it('the cue shows only while more lies to the right, and not before the page measures it', () => {
     expect(moreToTheRight(800, 300, 0)).toBe(true);
