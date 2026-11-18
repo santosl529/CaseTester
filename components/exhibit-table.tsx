@@ -45,7 +45,7 @@ export function ExhibitTable({ exhibit }: { exhibit: ExhibitDisplay }) {
             <thead>
               <tr className="text-ink/70">
                 {columns.map((col, j) => (
-                  <th key={col} className={`border-b border-ink/20 px-3 py-2 text-left align-bottom font-medium ${j === 0 ? 'sticky left-0 z-[1] bg-white' : ''}`}>
+                  <th key={col} className={`border-b border-ink/20 px-2 py-2 text-left align-bottom sm:px-3 font-medium ${j === 0 ? 'sticky left-0 z-[1] bg-white' : ''}`}>
                     {exhibit.columnLabels?.[col] ?? col}
                   </th>
                 ))}
@@ -58,7 +58,7 @@ export function ExhibitTable({ exhibit }: { exhibit: ExhibitDisplay }) {
                     const text = String(row[col] ?? '');
                     const wrap = keepsOnOneLine(text) ? 'whitespace-nowrap' : j === 0 ? 'min-w-[8rem] max-w-[11rem]' : 'min-w-[8rem]';
                     return (
-                      <td key={col} className={`px-3 py-2 align-top tabular-nums ${wrap} ${j === 0 ? 'sticky left-0 z-[1] bg-white font-medium shadow-[1px_0_0_rgb(0_0_0/0.08)]' : ''}`}>
+                      <td key={col} className={`px-2 py-2 align-top tabular-nums sm:px-3 ${wrap} ${j === 0 ? 'sticky left-0 z-[1] bg-white font-medium shadow-[1px_0_0_rgb(0_0_0/0.08)]' : ''}`}>
                         {text}
                       </td>
                     );
