@@ -243,7 +243,7 @@ describe('bounded fallbacks', () => {
     expect(heard[1]).toMatch(/Let me make it concrete/);
     expect(heard[2]).toMatch(/Let's leave the structure there\./);
     // The waiver releases what was held: the three cost lines, as their exhibit (a group ask, 12 Oct).
-    expect(heard[2]).toMatch(/COGS|Here's an exhibit: Brew & Bean Cost Structure/);
+    expect(heard[2]).toMatch(/COGS|Here's an exhibit: Brew & Bean — Cost structure/);
     for (const h of heard.slice(0, 2)) expect(h).toMatch(anyVariant('gate_defer', 'COGS, labor, and overhead including rent as a percent of revenue'));
     expect(heard.filter(h => /MECE/.test(h))).toHaveLength(0);
     expect(pt()).toMatchObject({ state: 'waived', awaitingReplies: 3 });

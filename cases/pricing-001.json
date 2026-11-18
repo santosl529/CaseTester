@@ -842,6 +842,9 @@
       "id": "exhibit-1",
       "title": "Quillpath — Economics of each plan ($ per customer)",
       "chartType": "table",
+      "columnLabels": {
+        "": "Per customer"
+      },
       "coversLedgerItems": [
         "plan_prices_costs",
         "plan_cac",
@@ -877,6 +880,13 @@
       "id": "exhibit-2",
       "title": "Customers who signed up in January–March 2025 — Status over their first year (% of each plan's starting customers, by months since sign-up)",
       "chartType": "table",
+      "columnLabels": {
+        "Month 0": "Month 0 (%)",
+        "Month 1": "Month 1 (%)",
+        "Month 3": "Month 3 (%)",
+        "Month 6": "Month 6 (%)",
+        "Month 12": "Month 12 (%)"
+      },
       "coversLedgerItems": [
         "pro_cohort",
         "starter_cohort",
@@ -930,13 +940,18 @@
           "Month 12": "40"
         }
       ],
-      "notes": "Cancellation rates have stayed roughly steady from month to month — in any month, about the same share of the customers still on each plan cancels. Very few Starter customers upgrade after month 12. Upgraded customers then behave like Pro customers. Finance's method for upgrades: value a Starter sign-up at its Starter LTV, plus one Pro LTV for each customer who upgrades.",
+      "notes": "Cancellation rates have stayed roughly steady from month to month — in any month, about the same share of the customers still on each plan cancels. Very few Starter customers upgrade after month 12. Upgraded customers then behave like Pro customers. Finance's method for upgrades: value a Starter sign-up at its Starter LTV, plus one Pro LTV for each customer who upgrades. Pro figures are shown to one decimal place; Starter figures are rounded to whole percentages.",
       "interpretationKey": "Read churn from the Cancelled rows: Pro 2% a month (0.98^12 ≈ 78.5%), Starter 5% — not 6%: the 1% who upgraded didn't leave. 20% of Starter customers upgrade to Pro within a year, which Starter's standalone LTV leaves out; finance values a Starter sign-up at its Starter LTV plus one Pro LTV per upgrade: $600 + 20% × $4,000 = $1,400 (4.7×). Cancellation rates are roughly steady month to month; very few upgrade after month 12; upgraded customers behave like Pro customers."
     },
     {
       "id": "exhibit-3",
       "title": "Quillpath — New customers per month, by plan (average per month)",
       "chartType": "table",
+      "columnLabels": {
+        "Pro": "Pro (customers)",
+        "Starter": "Starter (customers)",
+        "Total": "Total (customers)"
+      },
       "coversLedgerItems": [
         "new_customers_by_plan"
       ],
@@ -961,6 +976,9 @@
       "id": "exhibit-4",
       "title": "Starter price test — New customers per month (eight-week test, August–September 2026)",
       "chartType": "table",
+      "columnLabels": {
+        "Starter price": "Starter price (per month)"
+      },
       "coversLedgerItems": [
         "price_test_results",
         "price_test_notes"

@@ -592,7 +592,7 @@
   "exhibits": [
     {
       "id": "exhibit-1",
-      "title": "Roasted chickpea snacks — Economics of one bag and first-year launch costs",
+      "title": "Roasted chickpea snacks — Hollis Bay's economics of one bag and first-year launch costs",
       "chartType": "table",
       "coversLedgerItems": [
         "bag_price",
@@ -751,7 +751,7 @@
     },
     {
       "id": "exhibit-3",
-      "title": "Proposal — In-store sampling program (first year of the launch)",
+      "title": "Proposal — Hollis Bay in-store sampling program (first year of the launch)",
       "chartType": "table",
       "coversLedgerItems": [
         "sampling_program"

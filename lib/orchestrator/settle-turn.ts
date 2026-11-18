@@ -54,7 +54,7 @@ import type { TurnValidation } from '@/lib/agent/models/interface';
 import type { ModelPlan } from './plan-turn';
 import { figureAsWritten } from './recompute';
 import { askIntents, advanceLine, type AskIntent } from './ask-intent';
-import type { ExhibitDisplay, HeardReport, PendingEvent, ScriptedPlan, TurnCtx, TurnResult } from './turn-types';
+import { exhibitDisplay, type ExhibitDisplay, type HeardReport, type PendingEvent, type ScriptedPlan, type TurnCtx, type TurnResult } from './turn-types';
 
 export async function logSessionEvent(
   sessionId: string,
@@ -898,7 +898,7 @@ export async function settleTurn(plan: ModelPlan, out: ModelOutcome): Promise<Se
   const exhibitId = decisions.exhibit?.id ?? heldForExhibit?.id;
   if (exhibitId) {
     const found = caseData.exhibits.find(e => e.id === exhibitId)!;
-    exhibit = { id: found.id, title: found.title, chartType: found.chartType, data: found.data as Record<string, unknown>[], ...(found.notes ? { notes: found.notes } : {}) };
+    exhibit = exhibitDisplay(found);
     exhibitReveals = markExhibitReveals(ledger, found);
   }
   // Deferrals that resolve (round 6 Task 76 (a); Lorenzo, 21 Oct, round 6 rulings, 4: "The deferral must resolve through

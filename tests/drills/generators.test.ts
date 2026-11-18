@@ -50,6 +50,9 @@ describe('generator registry', () => {
   });
 });
 
+// Deterministic (seeded rng, no clock): a real problem fails the same way on every run and lists itself below. A
+// failure that doesn't repeat is the machine (a sleep past the timeout), not the generator — read its error before
+// dismissing it (17 Nov: two one-off failures on a day the Mac slept mid-run; five full runs after, none).
 describe.each(GENERATORS.map(g => [`${g.template_id}@${g.template_version}`, g] as const))('%s', (_, generator) => {
   it(`passes the generator rules on ${SEED_COUNT} seeds at every tier`, () => {
     expect(checkGenerator(generator, SEEDS)).toEqual([]);

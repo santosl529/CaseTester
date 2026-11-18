@@ -272,7 +272,7 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
     seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 23.7, shown: ['exhibit-1'], revealed: CORE, flags: PT_SATISFIED });
     const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
     // The time warning is the ask here (with the risk since 15 Oct); the ramp-up (a must-reach item before the recommendation, round 6 Task 72) goes first.
-    expect(r.interviewerText).toMatch(/^New routes typically take 6–12 months[^.]*\. Here's an exhibit: Hub–Lakeport.*\(\$\)\. .*recommend.*biggest risk to it\?$/);
+    expect(r.interviewerText).toMatch(/^New routes typically take 6–12 months[^.]*\. Here's an exhibit: Hub–Lakeport.*FY2025\. .*recommend.*biggest risk to it\?$/);
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
   });
 
@@ -281,7 +281,7 @@ describe('required exhibits (Lorenzo, 13 Oct)', () => {
     seed({ caseId: 'prof-002', phase: 'ANALYSIS', elapsedMin: 23.9, coverage: LOW, shown: ['exhibit-1'], revealed: CORE, flags: { ...PT_SATISFIED, timeWarningFired: true } });
     const r = await say('So the fare cut explains it.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
     // The model's recommendation ask: the ramp-up first (round 6 Task 72).
-    expect(r.interviewerText).toMatch(/^New routes typically take 6–12 months[^.]*\. Here's an exhibit: Hub–Lakeport.*\(\$\)\. What's your recommendation to the CEO\?$/);
+    expect(r.interviewerText).toMatch(/^New routes typically take 6–12 months[^.]*\. Here's an exhibit: Hub–Lakeport.*FY2025\. What's your recommendation to the CEO\?$/);
   });
 
   it('not at time-up: the close is not held', async () => {
@@ -307,7 +307,7 @@ describe('Hollis Bay: the sampling exhibit after the brainstorm', () => {
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2']);
     const next = await say('Sampling in stores, a trial-size bag, recipe ideas on the pack.', T({ move: 'recommendation', question: "What's your recommendation to the client?" }));
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
-    expect(next.interviewerText).toMatch(/^Here's an exhibit: Proposal — In-store sampling program/);
+    expect(next.interviewerText).toMatch(/^Here's an exhibit: Proposal — Hollis Bay in-store sampling program/);
     expect(next.interviewerText).not.toMatch(/recommendation/i);
   });
 
@@ -350,7 +350,7 @@ describe('Hollis Bay: the sampling exhibit after the brainstorm', () => {
     seed({ ...BEFORE, elapsedMin: 23.7, flags: { ...PT_SATISFIED, stageEvidence: stagesWith({}) } });
     const r = await say('So it breaks even.', T({ move: 'recommendation', question: "What's your recommendation to the CEO?" }));
     expect(shownIds()).toEqual(['exhibit-1', 'exhibit-2', 'exhibit-3']);
-    expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposal — In-store sampling program.*recommend.*biggest risk to it\?$/);
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Proposal — Hollis Bay in-store sampling program.*recommend.*biggest risk to it\?$/);
   });
 });
 

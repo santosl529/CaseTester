@@ -149,7 +149,7 @@ describe('the exhibit is shown for the data it covers', () => {
     seed({ phase: 'ANALYSIS', flags: { pressureTest: { state: 'satisfied', reasks: 0, codeAsked: false, gatedTurns: 0, structureGiven: true, structureAsked: false } } });
     const r = await say('Can I see the cost breakdown for both years?', T({ requests: [{ what: 'the cost breakdown', itemIds: ['cogs_pct', 'labor_pct', 'overhead_pct'], explicit: true, respond: 'release' }], question: 'What does it tell you?' }));
     expect(r.exhibit?.id).toBe('exhibit-a');
-    expect(r.interviewerText).toMatch(/^Here's an exhibit: Brew & Bean Cost Structure Over Time\. What does it tell you\?$/);
+    expect(r.interviewerText).toMatch(/^Here's an exhibit: Brew & Bean — Cost structure \(% of revenue\), by year\. What does it tell you\?$/);
     expect(store.revealed.map(x => x.ledgerItemId).sort()).toEqual(['cogs_pct', 'labor_pct', 'overhead_pct']);
     expect((flags().stageEvidence as Row).exhibit).toMatchObject({ delivered: true });
   });

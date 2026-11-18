@@ -297,7 +297,7 @@ describe('code-written lines (step 4, batch 19)', () => {
       ],
       exhibit: 'exhibit-a',
     }));
-    expect(r.interviewerText).toMatch(/Here's an exhibit: Brew & Bean Cost Structure Over Time\./);
+    expect(r.interviewerText).toMatch(/Here's an exhibit: Brew & Bean — Cost structure \(% of revenue\), by year\./);
     expect(r.interviewerText).not.toMatch(/come back to/);
   });
 });

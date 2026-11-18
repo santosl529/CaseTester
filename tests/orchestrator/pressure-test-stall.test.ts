@@ -139,7 +139,7 @@ describe('awaiting-answer turns are bounded (v3)', () => {
     expect(revealed()).toEqual([]);                       // held while the probe is open
     const waiverTurn = await step(at(destiny, 17));
     expect(revealed()).toEqual(expect.arrayContaining(COST));
-    expect(waiverTurn).toMatch(/Here's an exhibit: Brew & Bean Cost Structure Over Time\./);   // v4.10: the cost lines go out as the exhibit
+    expect(waiverTurn).toMatch(/Here's an exhibit: Brew & Bean — Cost structure \(% of revenue\), by year\./);   // v4.10: the cost lines go out as the exhibit
     const waived = store.events.filter(e => e.subtype === 'pressure_test_waived');
     expect(waived).toHaveLength(1);
     expect(waived[0]).toMatchObject({ category: 'intervention' });
@@ -190,7 +190,7 @@ describe('pending requests stay recorded and their deferral is explained', () =>
     const waiverTurn = await step(at(destiny, 29));
     expect(pt()?.state).toBe('waived');
     expect(revealed().sort()).toEqual([...COST, 'menu_price_change'].sort());
-    expect(waiverTurn).toMatch(/Here's an exhibit: Brew & Bean Cost Structure Over Time\./);
+    expect(waiverTurn).toMatch(/Here's an exhibit: Brew & Bean — Cost structure \(% of revenue\), by year\./);
     expect(waiverTurn).toMatch(/Menu prices have not changed in two years\./);
     expect(waiverTurn).not.toMatch(/I'll come back to/);
   });

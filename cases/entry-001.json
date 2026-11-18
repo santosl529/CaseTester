@@ -706,6 +706,9 @@
       "id": "exhibit-3",
       "title": "US entry options for Kelvexa (peak year, about five years after launch)",
       "chartType": "table",
+      "columnLabels": {
+        "": "Term"
+      },
       "coversLedgerItems": [
         "option_a",
         "option_b",

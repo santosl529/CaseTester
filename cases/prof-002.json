@@ -810,6 +810,12 @@
       "id": "exhibit-1",
       "title": "Larkspur Air — Results by route, FY2023 vs. FY2025 ($ millions unless noted)",
       "chartType": "table",
+      "columnLabels": {
+        "Revenue FY2023": "Revenue FY2023 ($M)",
+        "Revenue FY2025": "Revenue FY2025 ($M)",
+        "Contribution FY2023": "Contribution FY2023 ($M)",
+        "Contribution FY2025": "Contribution FY2025 ($M)"
+      },
       "coversLedgerItems": [
         "route_results_lakeport",
         "route_results_port_avery",
@@ -892,12 +898,12 @@
           "Contribution FY2025": "(4.0)"
         }
       ],
-      "notes": "Flights per year were the same in FY2023 and FY2025. Revenue includes ticket fares and extras (bags, seat selection, snacks). Contribution = revenue − variable costs (fuel, crew, maintenance, landing and airport fees). Fixed costs include aircraft leases, hub facilities and corporate overhead. Parentheses denote negative values.",
+      "notes": "Flights per year were the same in FY2023 and FY2025. Revenue includes ticket fares and extras (bags, seat selection, snacks). Contribution = revenue − variable costs (fuel, crew, maintenance, landing and airport fees). Fixed costs include aircraft leases, hub facilities and corporate overhead. The Fixed costs and Operating profit rows, at the bottom of the contribution columns, are for the whole network, not one route. Parentheses denote negative values.",
       "interpretationKey": "Revenue fell $24M and contribution fell $24M with fixed costs flat at $20M, so operating profit fell $24M and costs per flight didn't move. The whole decline is on Hub–Lakeport (−$9.6M) and Hub–Port Avery (−$14.4M); the other four routes net to zero. Those were the most profitable routes: ~30% contribution margins and $22.2M of $40M contribution (~55%) on 5,000 of 14,000 flights (~36%). With planes as full as before, the fare is the prime suspect. Parentheses denote negative values; revenue includes fares and extras; flights per year were the same in both years."
     },
     {
       "id": "exhibit-2",
-      "title": "Hub–Lakeport — Economics of one one-way flight, FY2023 vs. FY2025 ($)",
+      "title": "Hub–Lakeport — Economics of one one-way flight, FY2023 vs. FY2025",
       "chartType": "table",
       "coversLedgerItems": [
         "lakeport_seats_load",
@@ -931,22 +937,22 @@
           "FY2025": "$20"
         },
         {
-          "Item": "Fuel",
+          "Item": "Fuel (per flight)",
           "FY2023": "$4,000",
           "FY2025": "$4,000"
         },
         {
-          "Item": "Crew",
+          "Item": "Crew (per flight)",
           "FY2023": "$2,000",
           "FY2025": "$2,000"
         },
         {
-          "Item": "Maintenance",
+          "Item": "Maintenance (per flight)",
           "FY2023": "$1,500",
           "FY2025": "$1,500"
         },
         {
-          "Item": "Landing & airport fees",
+          "Item": "Landing & airport fees (per flight)",
           "FY2023": "$1,500",
           "FY2025": "$1,500"
         },

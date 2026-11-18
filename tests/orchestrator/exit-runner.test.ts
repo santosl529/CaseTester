@@ -312,7 +312,7 @@ describe('Rule 9 — required stages before a normal end, and the closing line',
     endDue(STAGES({ exhibit: { delivered: false } }));
     const r = await say('Volume loss — I would pilot in 20 stores.');
     expect(r.exhibit?.id).toBe('exhibit-a');
-    expect(r.interviewerText).toMatch(/Here's an exhibit: Brew & Bean Cost Structure Over Time\. What (does this exhibit tell you|do you take from this exhibit)\?/);
+    expect(r.interviewerText).toMatch(/Here's an exhibit: Brew & Bean — Cost structure \(% of revenue\), by year\. What (does this exhibit tell you|do you take from this exhibit)\?/);
   });
 
   it('under time pressure the recommendation comes first: no stage is forced, and the close at time-up says "That\'s time"', async () => {
