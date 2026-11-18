@@ -329,8 +329,12 @@
   "exhibits": [
     {
       "id": "exhibit-a",
-      "title": "Brew & Bean Cost Structure Over Time",
+      "title": "Brew & Bean — Cost structure (% of revenue), by year",
       "chartType": "bar",
+      "columnLabels": {
+        "year": "Year"
+      },
+      "notes": "Each figure is a share of that year's revenue; a year's four figures together make up all of its revenue.",
       "required": true,
       "coversLedgerItems": [
         "cogs_pct",
