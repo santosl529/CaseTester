@@ -53,7 +53,8 @@ export function ExhibitTable({ exhibit }: { exhibit: ExhibitDisplay }) {
             </thead>
             <tbody>
               {exhibit.data.map((row, i) => (
-                <tr key={i} className="border-b border-ink/10 last:border-b-0">
+                // Dividers on the cells, not the row: the held first column's background would hide a row border.
+                <tr key={i} className="[&>td]:border-b [&>td]:border-ink/10 last:[&>td]:border-b-0">
                   {columns.map((col, j) => {
                     const text = String(row[col] ?? '');
                     const wrap = keepsOnOneLine(text) ? 'whitespace-nowrap' : j === 0 ? 'min-w-[8rem] max-w-[11rem]' : 'min-w-[8rem]';
