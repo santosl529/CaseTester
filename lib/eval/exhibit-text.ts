@@ -8,5 +8,6 @@ export function exhibitAsText(exhibit: ExhibitDisplay): string {
   const rows = exhibit.data.map(row => columns.map(c => String(row[c] ?? '')).join(' | '));
   // The UI shows the notes under the table (components/exhibit-table.tsx); so does the simulated candidate's copy.
   const note = exhibit.notes ? `\nNote: ${exhibit.notes}` : '';
-  return `[Exhibit shown: ${exhibit.title}]\n${columns.join(' | ')}\n${rows.join('\n')}${note}`;
+  // Headers as the UI shows them: the display label where the exhibit has one (Matt, 17 Nov, exhibit clarity).
+  return `[Exhibit shown: ${exhibit.title}]\n${columns.map(c => exhibit.columnLabels?.[c] ?? c).join(' | ')}\n${rows.join('\n')}${note}`;
 }

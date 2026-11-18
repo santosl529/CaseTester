@@ -373,6 +373,31 @@ and sits in the interviewer's prompt before anything is released. Every figure
 in the notes must be in a sentence the exhibit covers, like its cells
 (consistency test).
 
+## Exhibit labels a student can read at a glance (17 Nov)
+
+Matt's exhibit clarity check. Every exhibit should say what each number means without the student guessing:
+
+- **Title:** what it shows, for whom, and the period ("Brew & Bean — Cost structure (% of revenue), by year"). Keep it
+  short: it is spoken at handover in voice. Keep the words a student would use to ask for it ("cost structure"): the
+  interviewer's model picks exhibits by title. A table's first title segment ("Hub–Lakeport — …") is its subject for
+  cell lookup, and Larkspur's "($ millions unless noted)" sets cell lookup's scale, so keep those.
+- **Units on every column:** put them in `columnLabels`, a display-only map from a column's name to the header the
+  student sees (`"Revenue FY2023": "Revenue FY2023 ($M)"`). Don't rename the column itself: cell lookup, the misquote
+  check (quote anchors match column names) and the math checker read the names. The loader refuses a label for a
+  missing column or one that adds a figure.
+- **Percentages say what they are a share of** (title, header or note): % of revenue, % of each plan's sign-ups,
+  % of snack shoppers.
+- **Row labels** carry a unit the title doesn't ("Fuel (per flight)"); a row label is data, so check the case's
+  cell-lookup facts don't change.
+- **Notes** explain anything a student could misread by accident (where network-wide rows sit, why decimals differ).
+  Never explain away an intended trap (a share of COGS vs revenue, answers adding to more than 100%, list vs net price,
+  "Still on Starter" vs "Cancelled"): check the case's notes, math steps and answer key first.
+- Never change a number, its unit or its meaning.
+
+How it shows (`components/exhibit-table.tsx`, text and voice): figures and short labels stay on one line, longer text
+and headers wrap, the first column stays put while a wide table scrolls, and "Swipe to see more" with a fade at the
+edge shows while more lies to the right.
+
 **Notes are read by the candidate (20 Oct, D6, Lorenzo).** The chat and the
 voice room's exhibit panel show them under the table, and since round 5 the
 simulated candidate gets them too (`exhibitAsText`: the rows, then

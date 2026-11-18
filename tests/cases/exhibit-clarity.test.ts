@@ -5,6 +5,7 @@ import { describe, it, expect } from 'vitest';
 import { CaseSchema } from '@/lib/cases/schema';
 import { getCaseById } from '@/lib/cases/loader';
 import { exhibitDisplay } from '@/lib/orchestrator/turn-types';
+import { exhibitAsText } from '@/lib/eval/exhibit-text';
 
 const ex = (caseId: string, id: string) => getCaseById(caseId).exhibits.find(e => e.id === id)!;
 
@@ -19,6 +20,9 @@ describe('columnLabels (display only)', () => {
   });
   it('a label may not add a figure its column name lacks', () => {
     expect(CaseSchema.safeParse(withLabels({ 'Revenue FY2023': 'Revenue FY2023 ($M, 12 months)' })).success).toBe(false);
+  });
+  it("the eval harness's simulated candidate sees the same headers as the student", () => {
+    expect(exhibitAsText(exhibitDisplay(ex('prof-002', 'exhibit-1')))).toContain('Route | Flights per year | Revenue FY2023 ($M)');
   });
   it('reaches the browser; the interpretation key and ledger links never do', () => {
     const d = exhibitDisplay(ex('prof-002', 'exhibit-1'));
