@@ -22,7 +22,7 @@ import { VOICE_CHECK_IN } from '@/lib/orchestrator/voice-check-in';
 import { runTurn } from '@/lib/orchestrator/session-runner';
 import { runPostTurnBackground } from '@/lib/orchestrator/post-turn';
 import { getCaseById } from '@/lib/cases/loader';
-import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
+import { exhibitDisplay, type ExhibitDisplay } from '@/lib/orchestrator/turn-types';
 import type { Phase } from '@/lib/orchestrator/state-machine';
 import { DeepgramFluxSTT } from './deepgram';
 import { keytermsIfEnabled } from './keyterms';
@@ -242,7 +242,7 @@ export default defineAgent({
     const background: Promise<unknown>[] = [];
     let phase = session.phase as Phase;
     const exhibits = new Map<string, ExhibitDisplay>(caseData.exhibits.map(e =>
-      [e.id, { id: e.id, title: e.title, chartType: e.chartType, data: e.data as Record<string, unknown>[], ...(e.notes ? { notes: e.notes } : {}) }]));
+      [e.id, exhibitDisplay(e)]));
     const controller = new VoiceTurnController({
       now: () => Date.now(), clock: realClock, playout, tts, format: { encoding: 'pcm_s16le', sampleRate: OUT_RATE },
       runTurn: (text, o) => runTurn(session.id, text, { ...o, voice: true, defer: task => { background.push(task().catch(() => {})); } }),

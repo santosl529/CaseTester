@@ -14,7 +14,17 @@ export type ExhibitDisplay = {
   chartType: string;
   data: Record<string, unknown>[];
   notes?: string;   // the exhibit's footnotes, shown under the table
+  columnLabels?: Record<string, string>;   // header text shown instead of a column's name (display only)
 };
+
+// What the browser gets of an exhibit — the text turn, the rebuilt history and the voice agent all send this: never
+// the interpretation key or the ledger links (server-only).
+export function exhibitDisplay(e: { id: string; title: string; chartType: string; data: unknown; notes?: string | null; columnLabels?: Record<string, string> }): ExhibitDisplay {
+  return {
+    id: e.id, title: e.title, chartType: e.chartType, data: e.data as Record<string, unknown>[],
+    ...(e.notes ? { notes: e.notes } : {}), ...(e.columnLabels ? { columnLabels: e.columnLabels } : {}),
+  };
+}
 
 export type TurnResult = {
   interviewerText: string;

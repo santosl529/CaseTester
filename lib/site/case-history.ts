@@ -3,15 +3,14 @@
 // to them). Pure: the page reads the stored turns and the exhibits shown, and this puts each exhibit after the
 // interviewer reply that showed it. Only what the student already saw: stored turns are the lines as shown, and an
 // exhibit appears only once it was shown.
-import type { ExhibitDisplay } from '@/lib/orchestrator/turn-types';
+import { exhibitDisplay, type ExhibitDisplay } from '@/lib/orchestrator/turn-types';
 
 export type HistoryMessage = { role: 'interviewer' | 'candidate'; text: string; exhibit?: ExhibitDisplay };
 type Turn = { turnIndex: number; role: string; text: string; timestampMs: number };
 type Shown = { exhibitId: string; shownAtMs: number };
-type CaseExhibit = { id: string; title: string; chartType: string; data: unknown; notes?: string | null };
+type CaseExhibit = { id: string; title: string; chartType: string; data: unknown; notes?: string | null; columnLabels?: Record<string, string> };
 
-export const exhibitDisplay = (e: CaseExhibit): ExhibitDisplay =>
-  ({ id: e.id, title: e.title, chartType: e.chartType, data: e.data as Record<string, unknown>[], ...(e.notes ? { notes: e.notes } : {}) });
+export { exhibitDisplay };
 
 export function buildCaseHistory(turns: Turn[], shown: Shown[], exhibits: CaseExhibit[]): HistoryMessage[] {
   const ordered = [...turns].sort((a, b) => a.turnIndex - b.turnIndex);
