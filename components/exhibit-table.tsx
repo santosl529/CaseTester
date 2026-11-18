@@ -41,7 +41,7 @@ export function ExhibitTable({ exhibit }: { exhibit: ExhibitDisplay }) {
       <div className="relative">
         {/* A wide table scrolls in its own box; focusable so the keyboard can scroll it. */}
         <div ref={box} role="region" aria-label={`${exhibit.title}: table`} tabIndex={0} className="overflow-x-auto">
-          <table className="t-small w-full border-collapse">
+          <table className="t-small w-full border-separate border-spacing-0">
             <thead>
               <tr className="text-ink/70">
                 {columns.map((col, j) => (
@@ -53,8 +53,9 @@ export function ExhibitTable({ exhibit }: { exhibit: ExhibitDisplay }) {
             </thead>
             <tbody>
               {exhibit.data.map((row, i) => (
-                // Dividers on the cells, not the row: the held first column's background would hide a row border.
-                <tr key={i} className="[&>td]:border-b [&>td]:border-ink/10 last:[&>td]:border-b-0">
+                // Dividers on the cells, as each row's top (separate borders): a collapsed border isn't painted on the held first
+                // column, and a held cell would cover the bottom edge of the one above it.
+                <tr key={i} className="[&:not(:first-child)>td]:border-t [&>td]:border-ink/10">
                   {columns.map((col, j) => {
                     const text = String(row[col] ?? '');
                     const wrap = keepsOnOneLine(text) ? 'whitespace-nowrap' : j === 0 ? 'min-w-[8rem] max-w-[11rem]' : 'min-w-[8rem]';
