@@ -58,6 +58,10 @@ Matt's fixes from the pre-pilot audit, on this branch so they ship with shadow m
 
 **Vercel settings these need** (Production): `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` (from Matt's Sentry project) and `REPORTS_ALLOWED_EMAILS` (the founders' emails). From the audit's blocker (B1, not code): `RATE_LIMIT_SIGN_UPS_PER_HOUR` (for example 200) and `RATE_LIMIT_CLUB_CODES_PER_HOUR` (for example 100), so a club signing up together on one Wi-Fi isn't locked out.
 
+## Done 19 Nov 2026
+
+All of the steps below are done: merged (65b904b0, main 68034c15) and deployed; Vercel settings in (Sentry's four, `REPORTS_ALLOWED_EMAILS`, the rate limits, `CASE_TO_DRILLS=shadow`); LiveKit agent `9YxUohCHkfqg`; the reason rewrite applied (2 rows); Sentry project `casepace/casepace-web` with its alerts, test error received, IP storage off. `scripts/sentry-setup.ts` can no longer create alerts (Sentry retired that API; they were made with the Sentry CLI); `--check` still works. Details: technical PRD §16, 19 Nov.
+
 ## Getting shadow mode live, in order (merge only with Matt's and Lorenzo's go)
 
 The branch to merge is `case-drills-shadow` (steps 1–2 only), not `drill-update`, which carries step 3 work in progress.
@@ -66,7 +70,7 @@ The branch to merge is `case-drills-shadow` (steps 1–2 only), not `drill-updat
 2. **Migration 0029: done.** Claude applied it to the shared database on 16 Nov (Matt's go), from `case-drills-shadow`, after checking that main still ends at 0028. The table, its index, foreign key and RLS, and the four `case_results` columns are there, and today's production code was checked against them (its `case_results` reads work; the site answers). Main's migrations folder gets 0029 with the merge.
 3. **Set `CASE_TO_DRILLS=shadow`** in Vercel's Production environment. Leave `CASE_TAG_DRILL_GROUPS` unset. Today's code ignores the variable, and setting it now lets the deploy below pick it up (a variable change only applies to new deployments).
 4. **Merge `case-drills-shadow` into main** and run the boot check (`docs/voice-deploy.md`, site only) with `CASE_TO_DRILLS=shadow`. Expect the `[engine]` line, then `[boot] CASE_TO_DRILLS=shadow; drill groups: structure, quantitative, creativity, synthesis, communication, pushback, topFix`, and `GET /` 200. Expect a bad value (`CASE_TO_DRILLS=yes`) to refuse to start. Claude ran this on 80bd03ff on 15 Nov and it passed.
-5. **Deploy** (push main). The LiveKit agent doesn't grade, so it needs no new version.
+5. **Deploy** (push main). The LiveKit agent doesn't grade, but it does show exhibits, so it needs a new version for the exhibit header labels (`lk agent deploy`).
 6. **Check** Vercel's runtime logs for the `[boot]` line.
 
 To turn it off: set `CASE_TO_DRILLS=off` (or remove it) and redeploy. No code change.
