@@ -1393,7 +1393,7 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `drill_questionnaires` (D6) | id, student\_id, ratings (JSON: structuring, math, charts, recommendations, 1–5), hardest, created\_at | The latest one counts. Prescription source `questionnaire` |
 | `drill_checkins` (D6) | id, student\_id, kind (set\_usefulness, first\_case, week\_1), set\_id, rating (1–5), comment, status (shown, answered, dismissed), created\_at, answered\_at | Written when shown. One usefulness check-in per set; each open question once per student |
 
-The student's `org_id` (school or club) lives on `student_profiles`. It is set from the club code the first time the student passes the club-code gate (today, when starting a case) and isn't changed afterwards. Events read it from there.
+The student's `org_id` (school or club) lives on `student_profiles`. It is set from the club code at sign-up or the club step, and the student can change it from `/account` (9 Nov; each change logged as `club_changed`). Since 15 Nov it holds the club's id (`clubs` table), not the code typed, so rotating a club's code doesn't change it. Events read it from there.
 
 All schema changes on the shared CaseTester Supabase project are additive: new tables, new enum values and new columns. Nothing `main`'s code uses is dropped, renamed or reshaped.
 
@@ -1465,7 +1465,7 @@ Route handlers live under `/api`. Each endpoint is marked with the phase that bu
 | `POST /api/drills/review/lessons` (local development only) | Approve or request changes on a lesson (writes the lesson file) | `{ ok }` |
 | `GET /api/internal/drills/grading` (internal, Bearer `CRON_SECRET`) | Retry grading for sets still grading | Sets checked |
 
-The club-code check has its own route, `POST /api/club`, called at the club step. It records `org_id` and gates drills; case start still checks the code too.
+The club-code check has its own route, `POST /api/club`, called at the club step. It records `org_id` and gates drills; case start still checks the code too. Drills and cases let a student in while their club is switched on (`clubs.active`, since 15 Nov).
 
 The case library list (`GET /cases`, with filters and the Suggested mark) belongs to the case product backlog.
 

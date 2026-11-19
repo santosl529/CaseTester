@@ -80,7 +80,7 @@ This is the single most important constraint in the document. It de-risks the ex
 ```
 /app                      Next.js App Router
   /(site)                 the public site (31 Oct): / (homepage) and /how-it-works, static; copy and components in /components/site, stats counted server-side in lib/site/stats.ts
-  /sign-in                sign in, then the club code once (a signed-in student with a valid code on the profile goes to next= when it is a path on this site, else /drills, Today; 13 Nov, in review)
+  /sign-in                sign in, then the club code once (a signed-in student whose profile's club is switched on goes to next= when it is a path on this site, else /drills, Today; 13 Nov, in review)
   /home                   Cases in the app's bar: start a case (listed cases), past sessions (site flow, 19 Oct)
   /case/[sessionId]       live case UI (text channel for M1, voice for M2); the end screen when the case ends
   /case/[sessionId]/report  feedback report ("Prepare my report" when a completed case has no score yet)
@@ -193,7 +193,16 @@ RLS on every candidate-owned row: a candidate reads/writes only their own sessio
 
 ```
 users                  (Supabase Auth)
-  id, email, club_code, created_at
+  id, email, created_at
+
+clubs                  -- since 15 Nov (migration 0028); managed with `npm run clubs`
+  id (text, e.g. "everview"), name (shown on /account), active (off → its members are asked for a code), created_at
+
+club_codes             -- the codes students type; rotating retires a club's codes, members stay in
+  code (text pk, e.g. "EVERVIEW-BJA82D"), club_id (fk clubs), created_at, retired_at (null = accepted)
+
+student_profiles
+  user_id (pk), org_id (a club id since 15 Nov; was the code itself), …
 
 cases                  -- human-authored, version-controlled in /cases, synced to DB
   id (text, e.g. "prof-001"), title, firm_style, difficulty,
@@ -437,7 +446,7 @@ All mutations via **server actions** or route handlers; case keys and ledger val
 | `GET /api/report/[id]/pdf` | Streams the report as a PDF (server-rendered; ownership-checked). |
 | `scripts/live-run.ts` (dev only) | End-to-end run with a simulated candidate against real models and the real DB (fast by default; `--pace=human` adds think + typing time; `--persona=N` plays a pressure-test persona from `scripts/personas.ts`, whose `[pause Ns]` silences drive the silence endpoint's logic); writes transcript, report, and QA metrics to `Case Interview Runs/`. Route handlers are thin wrappers over `lib` (`start-session`, `post-turn`, `score-session`, PDF `render`), so the script exercises the same code paths. |
 | `case/[id]/report` (page) | Renders the assembled report (no raw keys); persistent case-prompt banner on the live page. A completed session with no score yet shows "Prepare my report" (one click = the case page's finalize → score). |
-| Site flow (pages, 19 Oct) | `/` signs in and takes the club code once (stored on the profile by `/api/club`); `/home` (Cases) lists the listed cases (public fields only: id, title, difficulty, type) under one voice/text choice, each with its length, finished attempts and last report, a cases-left line from the start limits, and the last 20 sessions (five shown, then Show all; date, case, status, report link; `lib/site/past-sessions.ts`) (13 Nov, in review). One navigation bar (13 Nov, in Matt's review; `components/app-nav.tsx`, rules in `lib/site/nav.ts`): CasePace · Today (/drills) · Plan · Learn · Drills (/drills/browse) · Cases (/home) · Progress · Account (Settings, Sign out), the page's area underlined (a set from today's workout marks Today); also on the public pages (/, /how-it-works, the policies) when signed in, in place of their Sign in link and marketing sticky header (15 Nov; checked in the browser, `components/site/site-session.tsx`, so those pages stay static); below md a Menu panel; on a running interview or drill set only the logo and Exit, which confirm first; breadcrumbs on a lesson, a drill set, a skill's progress and a report; on /home, the case pages, the report and every drills page (the drills layout, except a set's pages, which draw their own). When a case ends, the end screen (`components/case-end-panel.tsx`): Get my report · Start another case (it brings the full bar back) — text scoring starts at the end as before, but the page no longer jumps to the report; "Get my report" opens when the score lands ("Try again" on failure). Voice: `VoiceRoom` shows the screen's links under its own "Score this interview" (an `endActions` slot, display only). `proxy.ts` refreshes the Supabase session on page loads only (`/`, `/home`, `/case/*`, `/drills/*`; not `/api/*`) so a returning student stays signed in. |
+| Site flow (pages, 19 Oct) | `/sign-in` signs in and takes the club code once (its club stored on the profile by `/api/club`); `/home` (Cases) lists the listed cases (public fields only: id, title, difficulty, type) under one voice/text choice, each with its length, finished attempts and last report, a cases-left line from the start limits, and the last 20 sessions (five shown, then Show all; date, case, status, report link; `lib/site/past-sessions.ts`) (13 Nov, in review). One navigation bar (13 Nov, in Matt's review; `components/app-nav.tsx`, rules in `lib/site/nav.ts`): CasePace · Today (/drills) · Plan · Learn · Drills (/drills/browse) · Cases (/home) · Progress · Account (Settings, Sign out), the page's area underlined (a set from today's workout marks Today); also on the public pages (/, /how-it-works, the policies) when signed in, in place of their Sign in link and marketing sticky header (15 Nov; checked in the browser, `components/site/site-session.tsx`, so those pages stay static); below md a Menu panel; on a running interview or drill set only the logo and Exit, which confirm first; breadcrumbs on a lesson, a drill set, a skill's progress and a report; on /home, the case pages, the report and every drills page (the drills layout, except a set's pages, which draw their own). When a case ends, the end screen (`components/case-end-panel.tsx`): Get my report · Start another case (it brings the full bar back) — text scoring starts at the end as before, but the page no longer jumps to the report; "Get my report" opens when the score lands ("Try again" on failure). Voice: `VoiceRoom` shows the screen's links under its own "Score this interview" (an `endActions` slot, display only). `proxy.ts` refreshes the Supabase session on page loads only (`/`, `/home`, `/case/*`, `/drills/*`; not `/api/*`) so a returning student stays signed in. |
 | `logEvent(...)` | Append analytics events (§13). |
 
 **Security non-negotiables:**
