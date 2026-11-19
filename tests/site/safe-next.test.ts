@@ -36,10 +36,10 @@ describe('safeNext', () => {
 // in and lands on the training home, where a new student sets up training and
 // then takes the diagnostic.
 describe('START_HREF', () => {
-  it('signs in, then goes to the training home', async () => {
+  it('signs up (S5, 17 Nov), then goes to the training home', async () => {
     const { START_HREF } = await import('@/components/site/content');
     const url = new URL(START_HREF, 'https://case-tester.vercel.app');
-    expect(url.pathname).toBe('/sign-in');
+    expect(url.pathname).toBe('/sign-up');
     expect(safeNext(url.searchParams.get('next') ?? undefined)).toBe('/drills');
   });
 });

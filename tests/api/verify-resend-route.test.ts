@@ -1,4 +1,5 @@
-// POST /api/sign-up/resend (Lorenzo, 11 Nov): a new confirmation link, said plainly when there's nothing to send.
+// POST /api/sign-up/resend (Lorenzo, 11 Nov): a new confirmation link. Since 17 Nov (Matt, pre-pilot audit) the answer
+// is the same whether or not there was anything to send, so it never says whether an account exists.
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 const h = vi.hoisted(() => ({
@@ -30,17 +31,13 @@ describe('POST /api/sign-up/resend', () => {
     expect(h.calls).toEqual(['ann@example.com']);
     expect(h.hits).toEqual(['verifyResend:ip:9.9.9.9']);
   });
-  it('no account: 404 no_account', async () => {
-    h.outcome = 'no_account';
-    const res = await call({ email: 'ghost@example.com' });
-    expect(res.status).toBe(404);
-    expect(await res.json()).toEqual({ error: 'no_account' });
-  });
-  it('already confirmed: 409 already_confirmed', async () => {
-    h.outcome = 'already_confirmed';
-    const res = await call({ email: 'ann@example.com' });
-    expect(res.status).toBe(409);
-    expect(await res.json()).toEqual({ error: 'already_confirmed' });
+  it('no account, or already confirmed: the same 200 as a sent link', async () => {
+    for (const outcome of ['no_account', 'already_confirmed']) {
+      h.outcome = outcome;
+      const res = await call({ email: 'ghost@example.com' });
+      expect(res.status).toBe(200);
+      expect(await res.json()).toEqual({ ok: true });
+    }
   });
   it('past the limit: 429, nothing looked up', async () => {
     h.limited = { ok: false, retryAfterSec: 60 };

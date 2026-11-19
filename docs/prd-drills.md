@@ -332,7 +332,8 @@ Students should rarely have to choose what to do: the training home leads with t
 - Weakest skill right now, with the evidence behind it: how often its mistake tags appeared recently and the latest quote.
 - A **Next case** card appears when the plan has a case left this week, or when every open prescription is at Practiced or above. It is a suggestion, not a lock.
 - Secondary links: **Your plan**, **Browse drills**, **Learn**, **Your skills**, **Settings**, and a link to the case library (case product).
-- Before a plan exists the home leads with **Get your plan** (three options); a new plan not yet opened leads with **Your plan is ready**. Foundations students see the intro lesson card first; check-ins appear at the top when due. The feedback button is in the corner of every drills page.
+- An interview in progress, while its case time lasts, leads the page above everything else: "Interview in progress", the case, about how many minutes are left, and **Continue** (Matt, 17 Nov, pre-pilot audit M3; the same clock as Cases → Past sessions, technical PRD §7).
+- Before a plan exists the home leads with **Get your plan** (three options); a new plan not yet opened leads with **Your plan is ready**. Foundations students see the intro lesson card first; check-ins appear at the top when due. The feedback button is in the corner of every drills page (on phones, in the bar's Menu; S6, 17 Nov).
 
 Students on Practice on my own see the self-directed home instead (see Training program): Suggested next, weaknesses, progress, due items, and Browse drills.
 
@@ -461,7 +462,7 @@ Taxonomy v1 has 9 skill areas, 29 skills, 67 mistake tags and a prerequisite map
 
 ### Rules
 
-- The taxonomy lives in one versioned config file (`taxonomy.v1.json`) that both the case grader and the drills service load. No tags are hard-coded anywhere else.
+- The taxonomy lives in one versioned config file (`taxonomy.v1.json`, version v1.1 since 15 Nov 2026) that both the case grader and the drills service load. No tags are hard-coded anywhere else. A tag marked `case_only` (`M.no_structure`) is logged only by the case tagging step: no drill, item or rule may use it, and its skill's lesson needn't list it. The four config files share one version, so adding it moved all four to v1.1.
 - Every mistake tag maps to exactly one skill. Every skill maps to exactly one skill area, and every area to one rubric dimension.
 - Tags are never renamed or deleted, only marked deprecated, so historical data stays readable.
 - The case grader may only emit tags in the file. The API rejects unknown tags.
@@ -485,7 +486,7 @@ Taxonomy v1 has 9 skill areas, 29 skills, 67 mistake tags and a prerequisite map
 
 | Skill | What it means | Mistake tags | Trained by |
 | --- | --- | --- | --- |
-| `PS.mece` | Buckets don't overlap and nothing major is missing | `M.overlapping_buckets`, `M.missing_bucket` | PS-1, PS-4, PS-3 |
+| `PS.mece` | Buckets don't overlap and nothing major is missing | `M.overlapping_buckets`, `M.missing_bucket`, `M.no_structure` (cases only: no structure, or straight to an answer; reason line "You went straight to an answer without laying out a structure first.") | PS-1, PS-4, PS-3 |
 | `PS.case_specific` | Structure fits this case, not a canned framework | `M.generic_framework`, `M.irrelevant_bucket` | PS-1, PS-4, PS-3 |
 | `PS.depth` | Each bucket has concrete sub-points | `M.shallow_structure` | PS-4, PS-3 |
 | `PS.clarifying_questions` | Asks the few questions that matter | `M.low_value_question`, `M.missed_key_question`, `M.too_many_questions` | PS-2 |
@@ -1073,9 +1074,11 @@ A skill is Practiced after two consecutive Construct sets at 80% or higher, at t
 | Learning | Recognizes | 2 consecutive Recognize (Level 1) sets ≥ 80% on the skill, at T2 or above |
 | Learning or Recognizes | Practiced | 2 consecutive Construct sets ≥ 80% on the skill, at T2 or above (Defend included). From Learning this is the test-out |
 | Practiced | Mastered | Transfer check ≥ 80% |
-| Practiced | Recognizes | Transfer check below 60%, or a full case logs any of the skill's mistake tags |
+| Practiced | Recognizes | Transfer check below 60%, or full cases log the skill's mistake tags twice in a row (see Updating skill state from cases) |
 | Mastered | Validated | The next full case marks the skill as observed and logs none of its mistake tags. A retake (a case the student has finished before) can't validate: the student may remember it |
-| Mastered or Validated | Recognizes | A full case logs any of the skill's mistake tags, or a spaced review scores below 60% |
+| Validated | Mastered | A full case logs any of the skill's mistake tags (its review comes due at once) |
+| Mastered or Validated | Practiced | Full cases log the skill's mistake tags twice in a row (its transfer check comes due at once) |
+| Mastered or Validated | Recognizes | A spaced review scores below 60% |
 | Not started or Learning | Recognizes | Credit down: a skill that builds on this one reaches Mastered (see Skill tree) |
 
 Repair sets and lessons never change skill states.
@@ -1150,7 +1153,15 @@ The transcript-grading agent must emit this payload when a case is graded. The d
 - `rubric_scores` uses the case grader's format: the 8 dimension keys from `lib/scoring/rubric.ts` (`structure`, `quantitative`, `dataExhibit`, `judgment`, `creativity`, `synthesis`, `communication`, `pushback`), each rated `needs_work`, `meets_bar` or `strong`. Dimensions the grader couldn't rate are left out.
 - `severity` is `minor` or `major`. Each tag's default is set in the taxonomy file. The case grader may downgrade a finding to `minor` if the candidate corrected it themselves or it didn't change the conclusion, and may upgrade `M.waited_for_interviewer` to `major` in candidate-led cases. The finding carries the final severity, and the prescription rules use it, not the default.
 - `evidence` must be an exact quote from the transcript. The drills service shows it to the student in the prescription reason.
-- The grader changes needed to emit this payload are deferred; the case grader will be updated later. Until then, drills are built and tested against fixture payloads.
+- `partial` (optional): the candidate ended the case early. Its findings count; it never counts for readiness; a skill validates only if its stage finished.
+- **How the case grader builds it (15 Nov 2026, Matt's decisions D1–D14; `lib/scoring/case-result-builder.ts`, `case-result-step.ts`):** a step at the end of each scoring pass, inside the scoring claim, behind `CASE_TO_DRILLS` (off / shadow / on, default off).
+  - Code tags from the math checker's wrong figures (arithmetic, a power of ten off → zeros; wrong base; unit; wrong period; misquote → wrong data point; conceptual is left to the tagging step) and from the stage record (risk asked, none named).
+  - One AI call tags each "needs work" point with a verified quote, and the top improvement, with one tag or none, by the written rules in `lib/scoring/skill-tag-rules.ts`. The model is Sonnet 5.5 with adaptive thinking (`sonnet55-thinking`), the cheapest that passed the gate (≥ 90% tag agreement per group averaged over two runs, ≤ 5% wrong skill) on a golden set of 270 points (`case-tagging/golden/golden.json`, frozen). A point it leaves out is asked again once.
+  - Only the groups in `CASE_TAG_DRILL_GROUPS` give findings: structure, quantitative, creativity, synthesis, communication, pushback and the top improvement passed; exhibits (86.7%) and judgment (85%) did not, so their points are tagged and recorded but give no drill and no prescription. A group goes on only after its gate passes again with real shadow points Matt has labeled (`scripts/case-tagging/gate.ts --with-shadow`).
+  - Severity: the tag's default; minor when the dimension was still rated Adequate or Strong, or the figure was put right in the interview; major when the tag is the top improvement's. Evidence is the point's first quote found in a candidate turn; none found, no finding.
+  - `skills_observed` from code: each stage answered (not declined, not cut off), in a dimension that was rated.
+  - The 7-minute demo makes no case result. A tagging failure never fails the report.
+  - Every run is stored in `case_result_runs` (every point, every group); in shadow mode with a preview of the prescriptions it would make, for the shadow review page (`/drills/review/case-tags`, local development only).
 
 ### Prescription rules
 
@@ -1196,8 +1207,17 @@ This needs a `case_type` field on every case (the case schema's optional `caseTy
 
 ### Updating skill state from cases
 
-- Any finding on a Practiced, Mastered or Validated skill drops it to Recognizes.
-- A Mastered skill listed in `skills_observed` with no findings becomes Validated, unless the case is a retake. A case is a retake when the student finished the same case before (an earlier case result, or an earlier completed case session). Retakes still log findings, can drop a skill, and count toward weekly case targets.
+Rules approved by Matt on 2026-11-15 (decision D3 of the case results → drills proposal), replacing "any finding drops the skill to Recognizes". Built in step 3 of that work; until then the code applies the old rule. "Twice in a row" means the skill was also flagged in the previous case that was neither a retake nor ended early, and the current case isn't a retake or ended early either.
+
+| Before the case | One finding | Flagged twice in a row |
+| --- | --- | --- |
+| Validated | Back to Mastered; review due now | Down to Practiced; transfer check due now |
+| Mastered | Stays Mastered; review due now | Down to Practiced; transfer check due now |
+| Practiced | Stays Practiced; transfer check pushed back 2 days | Down to Recognizes |
+| Not started, Learning, Recognizes | Prescription only (Not started becomes Learning) | Prescription, +2 for the repeat |
+
+- "Review due now" puts the skill first in the next workout's review slot; the spaced review rules then decide (80% or more resets the clock, below 60% drops to Recognizes, otherwise another review in 7 days).
+- A Mastered skill listed in `skills_observed` with no findings becomes Validated, unless the case is a retake, ended early before the skill's stage finished, or rated the skill's dimension `needs_work`. A case is a retake when the student finished the same case before (an earlier case result, or an earlier completed case session). Retakes still log findings, can drop a skill, and count toward weekly case targets.
 - Rubric trends on the skill profile compare only cases in the same difficulty tier and appear after 2 or more such cases.
 
 ## Content system
@@ -1381,7 +1401,8 @@ Config files live in the repo and are validated with zod at startup. Changing a 
 | `drill_tiers` | student\_id, drill\_id, current\_tier, updated\_at | Current tier per student per drill |
 | `skill_states` | student\_id, skill\_id, state (adds practiced), stage, l1\_passing\_streak, l2\_passing\_streak, last\_skill\_score, last\_practiced\_at, practiced\_at, transfer\_due\_at, next\_review\_at, low\_streak, repair\_sets, paused\_for\_prereq, prereq\_sets, next\_focus\_tag, updated\_at | Current state per student per skill. `low_streak`: sets in a row below 50% (stuck rule); `repair_sets`: Repair sets since entering Repair; `prereq_sets`: prerequisite sets since the stuck rule paused this skill; `next_focus_tag`: the tag the skill's next set focuses on |
 | `skill_state_events` | student\_id, skill\_id, from\_state, to\_state, reason, source\_type (set, case, review), source\_id, created\_at | Full history, for the profile and analytics |
-| `case_results` | case\_attempt\_id, student\_id, case\_id, case\_type, difficulty\_tier, rubric\_scores (JSON), skills\_observed\[\], findings (JSON), taxonomy\_version, received\_at | Written from the case grader payload |
+| `case_results` | case\_attempt\_id, student\_id, case\_id, case\_type, difficulty\_tier, rubric\_scores (JSON), skills\_observed\[\], findings (JSON), taxonomy\_version, received\_at, retake, partial, backfilled, next\_steps (JSON) | Written from the case grader payload. Migration 0029 added retake, partial (never count for readiness or Validated), backfilled (ratings only, from a case graded before 0029) and next\_steps (the report's list as shown, fixed at grading) |
+| `case_result_runs` | session\_id, student\_id, case\_id, mode, status (built, applied, failed), tagger\_config, points (JSON: every tagged point and the checker's findings), payload (JSON), preview (JSON), labels (JSON: the reviewer's label per point), cost\_usd, error, created\_at, applied\_at | One row per graded case the case → drills step handled (migration 0029). Server-only; deleted with the account |
 | `prescriptions` | prescription\_id, student\_id, skill\_id, drill\_id, level, stage, tier, focus\_tag, priority, reason\_text, evidence\_quote, source\_type (case, drill, diagnostic, plan), source\_id, status (open, in\_progress, completed, dismissed, superseded, paused), created\_at, closed\_at | Open prescriptions drive the workout's weak-spot slot |
 | `student_programs` (new) | student\_id, track (foundations, standard, sprint, self\_directed), plan\_version, start\_date (local), started\_at, interview\_date, workouts\_per\_week, cases\_done, current\_week, status (active, completed, switched), plan\_source (case, diagnostic, questionnaire), plan\_created\_at, plan\_seen\_at | One active row per student; a track switch closes the row and opens a new one. `current_week` is the plan week the student was last seen in, for the week-rollover event |
 | `workouts` (new) | workout\_id, student\_id, program\_week, date (in the student's time zone), target\_minutes, blocks (JSON: slot, drill\_id, skill\_id, stage, tier, set\_id), status (planned, in\_progress, completed, expired) | One per student per day |
@@ -1443,7 +1464,7 @@ Route handlers live under `/api`. Each endpoint is marked with the phase that bu
 | `GET /api/drills/workouts/today` (D4) | Builds today's workout if none exists | Blocks with slot, reason and estimated minutes |
 | `GET /api/drills/catalog` (D4) | Browse drills | Skill areas, skills with state and stage, drills by stage, allowed tiers, Suggested badges |
 | `GET` / `POST /api/drills/diagnostic`, `POST /api/drills/diagnostic/skip` (D4) | The diagnostic's parts and placement; start or resume; stop for now | Diagnostic view |
-| `GET /api/drills/next-case?case=` (D4) | Logs the Next case click and goes to the case product | Redirect |
+| `GET /api/drills/next-case?case=` (D4) | Logs the Next case click and goes to the Cases page with that case marked "Recommended for you" (`/home?case=<id>#cases`, `nextCaseHref`; 17 Nov, pre-pilot audit M1: it went to `/start/<case>`, a 404 for every listed case) | Redirect |
 | `POST /api/drills/lessons/{lesson_id}/views` (D4) | Log a view or skip | — |
 | `POST /api/drills/sets` | Start a set. Body: `skill_id` (with `quick_start`, or an optional `level`), `drill_id` (Retry this set, or Pick exactly with `tier`; the server rejects a tier more than one above the student's current tier), `prescription_id`, `workout_id` + `block`, `diagnostic_part`; flags `browse`, `suggestion` (the card's reason and slot) and `placement_check`. A set with AI-graded answers is refused (429) when it would pass the student's daily or monthly cap (`daily_limit`, `monthly_limit`) or while the circuit breaker is open (`grading_paused`); the message says auto-checked drills are still open and when written drills reopen | `set_id` |
 | `GET /api/drills/sets/{id}` | Resume a set | Status, current position, intro info (drill, skills, size, time per item, pass bar, worked example on first view) |
@@ -1474,6 +1495,7 @@ The case library list (`GET /cases`, with filters and the Suggested mark) belong
 | Interface | Purpose |
 | --- | --- |
 | Case results ingestion (in-process function) | Receives the case grader payload. Validates tags against the taxonomy, stores it, updates skill states and regenerates prescriptions. Idempotent on `case_attempt_id` |
+| Case → drills step (`lib/scoring/case-result-step.ts`, `lib/drills/progress/case-runs.ts`) | Runs in each scoring pass when `CASE_TO_DRILLS` is shadow or on: tags the report, builds the payload, stores the run; when on, calls ingestion. Shadow mode stores a read-only preview instead |
 | Taxonomy config | The case grader imports the same taxonomy loader as drills |
 | Content admin | Scripts rather than an API (see Components); `npm run drills:review` renders previews of items, generated ones by seed |
 
@@ -1496,7 +1518,7 @@ The case library list (`GET /cases`, with filters and the Suggested mark) belong
 
 Pilot students should find it easy to tell us what's wrong or missing. None of this calls a model.
 
-- **Feedback button** on every drills page, fixed in the bottom-right corner: an icon on phones, "Feedback" with the icon on wider screens. Keyboard-reachable and labeled for screen readers; pages leave room under their content so it never hides the end of a page. It opens a small dialog: Something's broken / Something's confusing / Idea, an optional comment (500 characters) and Send. The page, the set and the item in play (id and version), the device and the app version are attached automatically.
+- **Feedback button** on every drills page, and since 17 Nov (Matt, pre-pilot audit S3) on Cases, the case report and Account too, fixed in the bottom-right corner from `md` up (on the text and voice interviews it sits in the header instead, so on a phone it never covers the text box or messages). On phones (below `md`) it never floats, so it never sits on content (Matt, 17 Nov, pre-pilot audit S6; it had covered answer options, Today's cards and Cases' Start case buttons): "Feedback" is in the bar's Menu (after Settings), or beside Exit during a set, and opens the same dialog. Keyboard-reachable and labeled for screen readers; pages leave room under their content so it never hides the end of a page. It opens a small dialog: Something's broken / Something's confusing / Idea, an optional comment (500 characters) and Send. The page, the set and the item in play (id and version), the device and the app version are attached automatically.
 - **Report a problem** on every item screen (next to "Item N of M", during the item and its feedback) and on each item of the results screen. Reasons: Answer key is wrong / Question is confusing / My grade seems unfair / Other, plus an optional comment. "My grade seems unfair" is the grade dispute (moved from P1 into the pilot); it doesn't change the score.
 - **Review queue** (`/drills/review/reports`, local development only): each report with the item, the student's answer, the score and the grader's verdict per check. Matt labels a disputed AI grade check by check (and red flags), or marks a report resolved or dismissed. `npm run drills:export-disputes` writes labeled disputes to the golden sets (`drill-golden/<drill>/dispute-*.json`, answer type `dispute`; a follow-up reply's labels as a separate `defend` part), so the next gate run includes them. Items are pulled by hand (see Item health).
 - **Check-ins** (each can be dismissed with "Not now"):
@@ -1558,6 +1580,17 @@ Every event carries `student_id`, `org_id` (school or club, if any), `timestamp`
 
 ### MVP reports
 
+`/drills/reports`. In production only for the founder accounts listed in `REPORTS_ALLOWED_EMAILS` (comma-separated emails), checked on the server; anyone else gets a 404 (Matt, 17 Nov, pre-pilot audit M6; it was local development only). Test clubs (`TEST_ORGS`) stay out; the case side also leaves out the evaluation accounts (100 or more finished interviews). The review queue it links to stays local. The case side comes first (`lib/drills/reports/case-side.ts`, tested):
+
+| Report | What it shows | How it's computed |
+| --- | --- | --- |
+| Sign-ups (M6) | New accounts per week, as a line | The auth account's creation time, by week (Monday to Sunday), until a `signed_up` event exists |
+| Activation (M6) | Activated students by sign-up week | Activated: within 7 days of signing up, the student gets a plan and completes one drill set or one full case (not the 7-minute demo). Students still in their first 7 days and not yet active aren't counted against the rate |
+| Interviews (M6) | Interviews started, completed, abandoned and not finished, by case and week | Sessions started in the period, by the week they started; status as of now. The demo is named apart |
+| Post-case survey (M6) | Answers, average realism and usefulness (1–5) and their spread, overall and by case; comments | `post_case_rating` events. The survey has no comment box: comments come from the open question after a student's first full case and the Feedback button on the case pages |
+
+Then the drills:
+
 | Report | What it shows | How it's computed |
 | --- | --- | --- |
 | Loop funnel | Case taken → prescription created → set started → skill Practiced → Mastered → next case taken, with drop-off at each step | Each prescription created from a case, followed through: a set started on it, its skill reaching Practiced and Mastered after it was created, and a case taken after Mastered. All time |
@@ -1612,6 +1645,7 @@ Estimate per active student per month on the Standard plan (4 workouts a week, u
 | Workout grading (Repair, Construct, Defend) | \~17 workouts × \~12 graded answers ≈ 200 | \~$0.91 |
 | Diagnostic | 2 graded answers, once | < $0.01 |
 | Lessons, plans, workouts, auto-checked items | — | $0 |
+| Case tagging step (part of case grading, counted there; Matt, 15 Nov, D13) | \~4 cases (8 at most) × \~$0.04 | \~$0.16 (\~$0.31 at the limit) |
 | Full cases (not part of drills) | \~6 | \~$3.00 |
 | **Total** |  | **\~$3.90** |
 

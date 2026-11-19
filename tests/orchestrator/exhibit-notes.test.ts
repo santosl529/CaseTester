@@ -9,7 +9,7 @@ describe('exhibit notes on screen', () => {
   const exhibit = { id: 'exhibit-1', title: 'Results by route', chartType: 'table', data: [{ Route: 'Hub–Lakeport', Revenue: 16.8 }] };
   it('are shown under the table', () => {
     const html = renderToStaticMarkup(createElement(ExhibitTable, { exhibit: { ...exhibit, notes: 'Parentheses denote negative values.' } }));
-    expect(html).toMatch(/<\/table><\/div><p[^>]*>Parentheses denote negative values\.<\/p>/);
+    expect(html).toMatch(/<\/table><\/div><\/div><p[^>]*>[^<]*Parentheses denote negative values\.<\/p>/);
   });
   it('an exhibit without notes has no notes line', () => {
     expect(renderToStaticMarkup(createElement(ExhibitTable, { exhibit }))).not.toMatch(/<p/);

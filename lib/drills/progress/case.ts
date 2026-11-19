@@ -2,8 +2,9 @@
 // "Prescription rules", "Updating skill state from cases"). Pure code, no AI.
 import { DRILLS_CONFIG, getMistakeTag, getSkill } from '../config';
 import type { CaseResultPayload } from '../case-result';
+import { caseReason } from '../reason';
 import {
-  hasLiveDrill, lowerName, newProgress, skillCatalogIndex, stateRank, type Context, type ProgressMap, type SkillStateName,
+  hasLiveDrill, newProgress, skillCatalogIndex, stateRank, type Context, type ProgressMap, type SkillStateName,
   type Transition,
 } from './engine';
 
@@ -112,10 +113,6 @@ export function applyCase(before: ProgressMap, payload: CaseResultPayload, previ
   return { progress, transitions, prescriptions, regressions };
 }
 
-// Rule 6: the reason quotes the student. Long quotes keep their last words.
-export function caseReason(f: Finding): string {
-  const words = f.evidence.trim().split(/\s+/);
-  const quote = words.length > 25 ? `…${words.slice(-25).join(' ')}` : words.join(' ');
-  const tag = getMistakeTag(f.tag)!;
-  return `In your last case you said "${quote}". That's a ${tag.label}; this set practices ${lowerName(tag.skill)}.`;
-}
+// Rule 6: the reason says what went wrong in plain English, then quotes the
+// student (lib/drills/reason.ts).
+export { caseReason } from '../reason';

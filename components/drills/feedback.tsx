@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useRef, useState, useSyncExternalStore } from 'react';
 import { usePathname } from 'next/navigation';
 import { ArrowRight, MessageSquare, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -99,22 +99,55 @@ const CATEGORIES = [
   { id: 'idea', label: 'Idea' },
 ] as const;
 
-// On every drills page, fixed in the bottom-right corner (the drills layout
-// leaves room under the content so it never hides the end of a page).
-export function FeedbackButton() {
+// Phones (below md, where the bar folds into Menu): no floating button, so it never sits on content (Matt, 17 Nov,
+// pre-pilot audit S6). A page with the floating button registers here; the bar then offers "Feedback" in its Menu, or
+// beside Exit during timed work, and opening it opens this page's dialog.
+const OPEN_EVENT = 'casepace:feedback';
+let hosts = 0;
+const listeners = new Set<() => void>();
+const notify = () => { for (const l of listeners) l(); };
+export function registerFeedbackHost(): () => void {
+  hosts += 1; notify();
+  return () => { hosts -= 1; notify(); };
+}
+const subscribe = (l: () => void) => { listeners.add(l); return () => { listeners.delete(l); }; };
+export function useFeedbackOnPage(): boolean {
+  return useSyncExternalStore(subscribe, () => hosts > 0, () => hosts > 0);
+}
+export function openFeedback() { window.dispatchEvent(new Event(OPEN_EVENT)); }
+
+// On every drills page, fixed in the bottom-right corner from md up (the drills layout
+// leaves room under the content so it never hides the end of a page); in the bar on
+// phones (above). Also on the case side — Cases, the report, Account (floating) and the
+// interview (`inline`, in its header, so on a phone it never covers the text box or the
+// messages) — so every suggestion lands in one feed (Matt, 17 Nov, pre-pilot audit S3).
+export function FeedbackButton({ placement = 'floating' }: { placement?: 'floating' | 'inline' }) {
   const pathname = usePathname();
   const ref = useRef<HTMLDialogElement>(null);
   const [category, setCategory] = useState<string>('');
   const [text, setText] = useState('');
   const id = useId();
   const setId = /^\/drills\/sets\/([0-9a-f-]{36})/.exec(pathname)?.[1];
+  const floating = placement === 'floating';
+  useEffect(() => {
+    if (!floating) return;
+    const open = () => openWithPause(ref.current, 'feedback');
+    window.addEventListener(OPEN_EVENT, open);
+    const unregister = registerFeedbackHost();
+    return () => { window.removeEventListener(OPEN_EVENT, open); unregister(); };
+  }, [floating]);
   return (
     <>
-      <button type="button" onClick={() => openWithPause(ref.current, 'feedback')} aria-label="Feedback"
-        className="t-small fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 inline-flex size-11 cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 bg-white font-medium text-ink shadow-lift transition-colors hover:border-cobalt hover:text-cobalt motion-reduce:transition-none sm:size-auto sm:px-4 sm:py-2">
-        <MessageSquare aria-hidden="true" className="size-4" />
-        <span className="hidden sm:inline">Feedback</span>
-      </button>
+      {placement === 'inline' ? (
+        <button type="button" onClick={() => openWithPause(ref.current, 'feedback')}
+          className="t-small cursor-pointer whitespace-nowrap text-ink/70 underline underline-offset-4 hover:text-cobalt">Feedback</button>
+      ) : (
+        <button type="button" onClick={() => openWithPause(ref.current, 'feedback')}
+          className="t-small fixed right-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-40 hidden cursor-pointer items-center justify-center gap-2 rounded-full border border-ink/15 bg-white px-4 py-2 font-medium text-ink shadow-lift transition-colors hover:border-cobalt hover:text-cobalt motion-reduce:transition-none md:inline-flex">
+          <MessageSquare aria-hidden="true" className="size-4" />
+          Feedback
+        </button>
+      )}
       <FeedbackDialog dialogRef={ref} title="Send feedback" canSend={category !== ''} pauseReason="feedback" reset={() => { setCategory(''); setText(''); }}
         onSend={() => post('/api/drills/feedback', {
           category, comment: text, page: pathname, set_id: setId,

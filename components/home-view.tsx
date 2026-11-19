@@ -1,6 +1,7 @@
 import type { PastSession } from '@/lib/site/past-sessions';
 import { AppNav } from '@/components/app-nav';
 import { AppPage } from '@/components/brand/page';
+import { FeedbackButton } from '@/components/drills/feedback';
 import { CaseList, PastSessionList, type CaseCard, type CasesLeft } from '@/components/case-list';
 
 // /home's page (site flow, 19 Oct), Cases in the app's bar: one job, doing a
@@ -13,7 +14,7 @@ export function HomeView({ cases, past, left }: { cases: CaseCard[]; past: PastS
         <section id="cases" aria-labelledby="cases-h" className="scroll-mt-20 space-y-4">
           <div className="space-y-2">
             <h1 id="cases-h" className="t-title">Start a case</h1>
-            <p className="t-body text-ink/70">A full interviewer-led case, about 20 minutes. You get a scored feedback report at the end.</p>
+            <p className="t-body text-ink/70">A full interviewer-led case. You get a scored feedback report at the end.</p>
           </div>
           <CaseList cases={cases} left={left} />
         </section>
@@ -25,6 +26,7 @@ export function HomeView({ cases, past, left }: { cases: CaseCard[]; past: PastS
             : <PastSessionList past={past} />}
         </section>
       </AppPage>
+      <FeedbackButton />
     </>
   );
 }

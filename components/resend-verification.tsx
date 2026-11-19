@@ -3,7 +3,8 @@ import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { resendMessage } from '@/lib/site/auth-messages';
 
-// "Resend the email" (Lorenzo, 11 Nov: confirm-first sign-up). Each outcome said plainly (lib/site/auth-messages.ts).
+// "Resend the email" (Lorenzo, 11 Nov: confirm-first sign-up). The answer never says whether an account exists
+// (lib/site/auth-messages.ts).
 // A second click before the disabled state renders is ignored.
 export function ResendVerification({ email }: { email: string }) {
   const [result, setResult] = useState<{ ok: boolean; text: string } | null>(null);
@@ -19,7 +20,7 @@ export function ResendVerification({ email }: { email: string }) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
     }).catch(() => null);
-    setResult(resendMessage(res?.status ?? 0, res ? await res.json().catch(() => null) : null, email.trim()));
+    setResult(resendMessage(res?.status ?? 0, res ? await res.json().catch(() => null) : null));
     setBusy(false);
     inFlight.current = false;
   }

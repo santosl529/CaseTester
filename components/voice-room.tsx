@@ -13,6 +13,7 @@ import { runScoring } from '@/lib/site/run-scoring';
 import { Button } from '@/components/ui/button';
 import { fillerPrefStore } from '@/lib/voice/filler-pref';
 import { ExhibitTable } from '@/components/exhibit-table';
+import type { HistoryMessage } from '@/lib/site/case-history';
 import { LiveCaption } from '@/components/live-caption';
 import { applyMessage, initialView } from '@/components/voice-view';
 import { DATA_TOPIC, type ClientMessage, type ServerMessage } from '@/lib/voice/protocol';
@@ -35,6 +36,7 @@ const ENDED_TEXT: Record<string, string> = {
   time_limit: 'This session reached its time limit, so it ended here.',
   error: 'The session ended because of a technical problem.',
 };
+export const EARLIER_LABEL = 'Earlier in this interview';
 const RESUME_MESSAGE = 'The connection dropped. Press Start to pick up where you left off.';
 const MIC_LOUD = 0.02;       // the agent's VAD threshold
 const REMOTE_LOUD = 0.01;
@@ -61,7 +63,9 @@ const fillerPref = fillerPrefStore(() => { try { return typeof window === 'undef
 // flow 19 Oct) — display only; ending and scoring are unchanged.
 // `consented`: the student's voice consent is on file (lib/voice/consent.ts). Without it Start is the consent panel
 // (components/voice-consent.tsx), and the token route refuses anyway.
-export function VoiceRoom({ sessionId, casePrompt, endActions, consented: consentedAtLoad }: { sessionId: string; casePrompt: string | null; endActions?: React.ReactNode; consented: boolean }) {
+// `history`: the interview so far from the database (M2, 17 Nov): after a refresh the earlier turns and exhibits stay on
+// screen above the live captions; an exhibit already shown isn't repeated if the agent shows it again.
+export function VoiceRoom({ sessionId, casePrompt, endActions, consented: consentedAtLoad, history = [] }: { sessionId: string; casePrompt: string | null; endActions?: React.ReactNode; consented: boolean; history?: HistoryMessage[] }) {
   const router = useRouter();
   const [consented, setConsented] = useState(consentedAtLoad);
   const [view, dispatch] = useReducer(applyMessage, initialView);
@@ -426,12 +430,13 @@ export function VoiceRoom({ sessionId, casePrompt, endActions, consented: consen
       )}
 
       <div className="flex-1 min-h-0 overflow-y-auto space-y-3">
+        {history.length > 0 && <VoiceHistory history={history} />}
         {view.captions.map(c => (
           <div key={`${c.who}:${c.turnSeq}`} className={c.who === 'interviewer' ? 't-body text-ink' : 't-small text-ink/70 text-right'}>
             {c.segments ? <LiveCaption segments={c.segments} /> : <span className={c.final ? '' : 'opacity-70'}>{c.text}</span>}
           </div>
         ))}
-        {view.exhibits.map(e => <ExhibitTable key={e.id} exhibit={e} />)}
+        {view.exhibits.filter(e => !history.some(h => h.exhibit?.id === e.id)).map(e => <ExhibitTable key={e.id} exhibit={e} />)}
       </div>
 
       {((connecting && local === 'live') || local === 'connecting') && !needsClick && !problem && <p className="t-small text-ink/70">{CONNECTING_MESSAGE}</p>}
@@ -467,5 +472,20 @@ export function VoiceRoom({ sessionId, casePrompt, endActions, consented: consen
       {caseOver && endActions}
       <div ref={audioBox} className="hidden" />
     </div>
+  );
+}
+
+// The interview before this page loaded (M2), in the captions' own styles.
+function VoiceHistory({ history }: { history: HistoryMessage[] }) {
+  return (
+    <section aria-label="Earlier in this interview" className="space-y-3 border-b border-ink/12 pb-3">
+      <p className="t-label font-semibold text-ink/70">{EARLIER_LABEL}</p>
+      {history.map((m, i) => (
+        <div key={i} className="space-y-2">
+          {m.text && <p className={m.role === 'interviewer' ? 't-body text-ink' : 't-small text-ink/70 text-right'}>{m.text}</p>}
+          {m.exhibit && <ExhibitTable exhibit={m.exhibit} />}
+        </div>
+      ))}
+    </section>
   );
 }

@@ -259,3 +259,14 @@ At most three claims above carry ${MANDATE_TAG}. Each of them MUST appear in the
 ${lines.join('\n')}
 Treat a WRONG claim as the candidate's error unless they revised it — and cite it only where the transcript bears it out. One they revised or withdrew is a self-correction.${mandate}`;
 }
+
+// The checker's wrong figures for case results → drills (case-result-builder.ts): each flagged claim the record lists
+// (an unclear one excluded: no one has checked it), its error type, the candidate's own words, and whether the
+// interview put it right — corrected or redone to the right figure, the same test as the mandate's `open`.
+export type CheckerFinding = { turn: number; span: string; errorType: string | null; candidateValue: string; rightValue: number | null; resolved: boolean };
+export function checkerFindings(rows: CheckerEventRow[], redo?: RedoContext): CheckerFinding[] {
+  return rowsOf(rows, redo).filter(r => !(r.f.claim as { unclear?: string }).unclear).map(r => ({
+    turn: r.f.turn, span: r.f.claim.span, errorType: r.f.claim.errorType ?? null, candidateValue: r.f.claim.candidateValue,
+    rightValue: r.f.claim.correctValue ?? null, resolved: !r.open,
+  }));
+}

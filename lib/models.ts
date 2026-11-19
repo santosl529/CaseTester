@@ -195,6 +195,31 @@ export const DRILL_GRADER_APPROVED: Record<GraderCall, GraderModel> = {
 };
 export const DRILL_GRADER_HY2_FOLLOWUP_MODEL: GraderModel = DRILL_GRADER_APPROVED.hy2_followup;
 
+// The case tagging step (case results → drills; Matt, 15 Nov, D1–D2): labels
+// each "needs work" point of a graded report with a drills mistake tag. The
+// config is the cheapest that passes the gate (scripts/case-tagging/gate.ts:
+// ≥ 90% tag agreement in every dimension, ≤ 5% wrong skill overall); null
+// until one has. Thinking off, as for the drill grader, except the thinking
+// config Matt asked for after two Sonnet runs failed (15 Nov). No server-side
+// fallback, which could re-run a request on a model the gate never passed.
+export type CaseTaggerConfig = {
+  model: 'claude-haiku-5-5' | 'claude-sonnet-5-5';
+  thinking: { type: 'disabled' | 'between_tools' | 'adaptive' };
+  effort?: 'low' | 'medium' | 'high';
+};
+export const CASE_TAGGER_CONFIGS = {
+  'haiku55': { model: 'claude-haiku-5-5', thinking: { type: 'disabled' } },
+  'sonnet55': { model: 'claude-sonnet-5-5', thinking: { type: 'between_tools' } },
+  'sonnet55-thinking': { model: 'claude-sonnet-5-5', thinking: { type: 'adaptive' }, effort: 'medium' },
+} satisfies Record<string, CaseTaggerConfig>;
+export type CaseTaggerConfigName = keyof typeof CASE_TAGGER_CONFIGS;
+// Gate passed on 15 Nov for 7 of 9 groups (two runs averaged: structure 100,
+// quantitative 96.7, creativity 91.7, synthesis 100, communication 93.3,
+// pushback 90, top improvement 91.6; wrong skill 4.1%). Exhibits (86.7) and
+// judgment (85) failed: their points are tagged and recorded, but give no
+// drill or prescription (CASE_TAG_DRILL_GROUPS, lib/drills/case-to-drills.ts).
+export const CASE_TAGGER_CONFIG: CaseTaggerConfigName = 'sonnet55-thinking';
+
 // The production deployment: Vercel's production environment (previews and
 // local builds aren't), or NODE_ENV=production off Vercel.
 export function isProductionDeploy(): boolean {

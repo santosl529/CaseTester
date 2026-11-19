@@ -167,6 +167,18 @@ const ExhibitSchema = z.object({
   // Phase 1 (contract §1; restateRules): one line on what the table generally shows, no figures — said when an ask
   // is answered by an exhibit already out ("Exhibit 2 has the route results by year.").
   summary: z.string().min(5).refine(noFigure, 'no figure in an exhibit summary').optional(),
+  // Display only (Matt, 17 Nov, exhibit clarity): header text the student sees instead of a column's name, to carry its
+  // unit ("Revenue FY2023" → "Revenue FY2023 ($M)"). The data keeps its column names, which cell lookup, the misquote
+  // check and the math checker match on, so none of them sees a change. A label may add no figure its column name lacks.
+  columnLabels: z.record(z.string(), z.string().min(1)).optional(),
+}).superRefine((e, ctx) => {
+  const columns = new Set(e.data.flatMap(r => Object.keys(r)));
+  const figures = (s: string): string[] => s.match(/\d[\d,.]*/g) ?? [];
+  for (const [col, label] of Object.entries(e.columnLabels ?? {})) {
+    if (!columns.has(col)) ctx.addIssue({ code: 'custom', path: ['columnLabels', col], message: `columnLabels names "${col}", which is not a column of ${e.id}` });
+    const extra = figures(label).filter(f => !figures(col).includes(f));
+    if (extra.length) ctx.addIssue({ code: 'custom', path: ['columnLabels', col], message: `columnLabels adds figure(s) ${extra.join(', ')} to "${col}"` });
+  }
 });
 
 const RubricAnchorSchema = z.object({

@@ -6,9 +6,11 @@ import { CaseEndPanel } from '@/components/case-end-panel';
 import { VoiceRoom } from '@/components/voice-room';
 import { AppNav, FocusScope } from '@/components/app-nav';
 import { ReportProblem } from '@/components/report-problem-link';
+import { FeedbackButton } from '@/components/drills/feedback';
 import { StartCaseButton } from '@/components/start-case-button';
 import { caseHref } from '@/lib/site/case-href';
 import type { ListedCase } from '@/lib/cases/listed';
+import type { HistoryMessage } from '@/lib/site/case-history';
 
 // The interview screens: text, voice and a link-only case's start page.
 // Their pages (app/case/[sessionId], …/voice, app/start/[caseId]) check
@@ -18,8 +20,8 @@ import type { ListedCase } from '@/lib/cases/listed';
 // Leaving stops the interview, so Exit asks first.
 const LEAVE_CASE = 'Leave this page? If the interview is still going, it stops here and won’t be scored.';
 
-export function TextCaseScreen({ sessionId, active, completed, casePrompt, initialMessage }: {
-  sessionId: string; active: boolean; completed: boolean; casePrompt: string | null; initialMessage: string;
+export function TextCaseScreen({ sessionId, active, completed, casePrompt, history }: {
+  sessionId: string; active: boolean; completed: boolean; casePrompt: string | null; history: HistoryMessage[];
 }) {
   return (
     <FocusScope>
@@ -30,9 +32,12 @@ export function TextCaseScreen({ sessionId, active, completed, casePrompt, initi
         <div className="flex items-center justify-between gap-4">
           {/* "text", like the voice page's "voice" (12 Nov): the phase here was read once at page load and stayed "INTRO"
               to the end, and the phase names are internal. */}
-          <div className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— text</span></div>
+          {/* The page's heading (17 Nov a11y audit: the interview pages had none). */}
+          <h1 className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— text</span></h1>
           {/* Voice is the default (Lorenzo, 6 Nov); text to voice mid-case is safe — the agent reads the turns so far. */}
-          <div className="flex items-center gap-4">
+          <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+            {/* In the header, not floating: on a phone it must not cover the text box or the messages (S3). */}
+            <FeedbackButton placement="inline" />
             <ReportProblem sessionId={sessionId} />
             {active && (
               <Link href={caseHref(sessionId, 'voice')} className="link t-small whitespace-nowrap">Switch to voice</Link>
@@ -43,7 +48,7 @@ export function TextCaseScreen({ sessionId, active, completed, casePrompt, initi
       </header>
       <div className="flex-1 min-h-0">
         {active
-          ? <ChatWindow sessionId={sessionId} initialMessage={initialMessage} />
+          ? <ChatWindow sessionId={sessionId} history={history} />
           // An ended case reopened: the end screen (site flow, 19 Oct). The
           // report page prepares a report not scored yet.
           : <div className="p-6"><CaseEndPanel sessionId={sessionId} report={completed ? 'ready' : undefined} /></div>}
@@ -66,10 +71,12 @@ function CasePrompt({ text }: { text: string }) {
   );
 }
 
-export function VoiceCaseScreen({ sessionId, active, completed, casePrompt, consented }: {
+export function VoiceCaseScreen({ sessionId, active, completed, casePrompt, consented, history = [] }: {
   sessionId: string; active: boolean; completed: boolean; casePrompt: string | null;
   // Voice consent on file (lib/voice/consent.ts).
   consented: boolean;
+  // The interview so far (M2): shown above the live captions after a refresh.
+  history?: HistoryMessage[];
 }) {
   return (
     <FocusScope>
@@ -77,13 +84,16 @@ export function VoiceCaseScreen({ sessionId, active, completed, casePrompt, cons
     <AppNav focus={active ? { confirm: LEAVE_CASE } : undefined} />
     <main className="flex-1 min-h-0 w-full flex flex-col max-w-3xl mx-auto">
       <header className="flex items-center justify-between gap-4 border-b border-ink/12 px-6 py-3">
-        <div className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— voice</span></div>
-        <ReportProblem sessionId={sessionId} />
+        <h1 className="t-small font-semibold">Case interview <span className="font-normal text-ink/70">— voice</span></h1>
+        <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-1">
+          <FeedbackButton placement="inline" />
+          <ReportProblem sessionId={sessionId} />
+        </div>
       </header>
       <div className="flex-1 min-h-0">
         {active
           // The room's own "Score this interview" is the report button; the end screen adds the links (site flow, 19 Oct).
-          ? <VoiceRoom sessionId={sessionId} casePrompt={casePrompt} consented={consented} endActions={<CaseEndPanel sessionId={sessionId} />} />
+          ? <VoiceRoom sessionId={sessionId} casePrompt={casePrompt} consented={consented} history={history} endActions={<CaseEndPanel sessionId={sessionId} />} />
           : <div className="p-6"><CaseEndPanel sessionId={sessionId} report={completed ? 'ready' : undefined} /></div>}
       </div>
     </main>

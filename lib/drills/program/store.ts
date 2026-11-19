@@ -11,7 +11,6 @@ import {
   caseResults, diagnostics, drillSets, prescriptions, sessions, skillStateEvents, studentDrillSettings, studentProfiles, studentPrograms,
   workouts,
 } from '@/db/schema';
-import { loadCases } from '@/lib/cases/loader';
 import { DRILLS_CONFIG, getDrill, getMistakeTag, getSkill } from '../config';
 import { logDrillEvent, logPendingEvents, type EventProps } from '../events';
 import { isLiveDrill } from '../live';
@@ -26,7 +25,7 @@ import {
   buildWorkout, missedMilestoneSkills, planPrescriptionSkill, planReason, weekMilestones, type OpenPrescription,
   type WorkoutBlock,
 } from './workout';
-import { DIFFICULTY_TIER, pickNextCase, type NextCase } from './next-case';
+import { caseLibrary, pickNextCase, type NextCase } from './next-case';
 import { pendingChecks } from './plan-source';
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
@@ -415,8 +414,7 @@ async function retestArea(studentId: string): Promise<string | null> {
 }
 
 export async function nextCaseFor(studentId: string): Promise<NextCase | null> {
-  const library = loadCases().map(c => ({ id: c.id, title: c.title, case_type: c.caseType ?? null, tier: DIFFICULTY_TIER[c.difficulty] }));
-  return pickNextCase(library, await completedCases(studentId), await retestArea(studentId));
+  return pickNextCase(caseLibrary(), await completedCases(studentId), await retestArea(studentId));
 }
 
 // ------------------------------------------------------------- evidence

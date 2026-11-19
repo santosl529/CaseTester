@@ -233,38 +233,55 @@ export async function applySetProgress(tx: Tx, set: SetRow, results: ItemResult[
 
 export type IngestResult = { status: 'ingested' | 'duplicate'; prescriptions: number; retake?: boolean; events: PendingEvent[] };
 
+// What came before this case (shared by ingest and the shadow preview, so the
+// two can't disagree): the previous case result's findings (+2 for a skill
+// flagged again), and whether this is a retake — the student finished this case
+// before (an earlier case result, or an earlier completed session in the case
+// product).
+async function caseHistory(x: Exec, payload: CaseResultPayload): Promise<{ previous: CaseResultPayload | null; retake: boolean }> {
+  const studentId = payload.student_id;
+  const completedAt = new Date(payload.completed_at);
+  const [prevRow] = await x.select().from(caseResults).where(and(
+    eq(caseResults.studentId, studentId), ne(caseResults.caseAttemptId, payload.case_attempt_id),
+    lt(caseResults.completedAt, completedAt),
+  )).orderBy(desc(caseResults.completedAt)).limit(1);
+  const previous = prevRow ? { ...payload, findings: (prevRow.findings as CaseResultPayload['findings']).filter(f => getMistakeTag(f.tag)) } : null;
+  const [earlierResult] = await x.select({ id: caseResults.caseAttemptId }).from(caseResults).where(and(
+    eq(caseResults.studentId, studentId), eq(caseResults.caseId, payload.case_id),
+    ne(caseResults.caseAttemptId, payload.case_attempt_id), lt(caseResults.completedAt, completedAt))).limit(1);
+  const [earlierSession] = await x.select({ id: sessions.id }).from(sessions).where(and(
+    eq(sessions.userId, studentId), eq(sessions.caseId, payload.case_id), eq(sessions.status, 'completed'),
+    lt(sessions.completedAt, new Date(completedAt.getTime() - RETAKE_GAP_MS)))).limit(1);
+  return { previous, retake: Boolean(earlierResult || earlierSession) };
+}
+
+// The shadow preview (CASE_TO_DRILLS=shadow): what ingesting this case result
+// would do — skill-state changes and prescriptions — computed on the student's
+// current progress without writing anything.
+export async function previewCaseResult(raw: unknown, now = new Date()) {
+  const payload = CaseResultPayloadSchema.parse(raw);
+  const { previous, retake } = await caseHistory(db, payload);
+  const before = await loadProgress(db, payload.student_id);
+  const ctx = await progressContext(db, payload.student_id, now);
+  const u = applyCase(before, payload, previous, ctx, retake);
+  return { retake, transitions: u.transitions, regressions: u.regressions, prescriptions: u.prescriptions };
+}
+
 // Case results ingestion (PRD "Internal interfaces"): validates the payload
 // against the taxonomy, stores it, updates skill states and regenerates
 // prescriptions. Idempotent on case_attempt_id. The caller logs the events.
 export async function ingestCaseResultTx(raw: unknown, now = new Date()): Promise<IngestResult> {
   const payload = CaseResultPayloadSchema.parse(raw);
   return db.transaction(async tx => {
+    const studentId = payload.student_id;
+    const { previous, retake } = await caseHistory(tx, payload);
     const inserted = await tx.insert(caseResults).values({
-      caseAttemptId: payload.case_attempt_id, studentId: payload.student_id, caseId: payload.case_id,
+      caseAttemptId: payload.case_attempt_id, studentId, caseId: payload.case_id,
       caseType: payload.case_type, difficultyTier: payload.difficulty_tier, rubricScores: payload.rubric_scores,
       skillsObserved: payload.skills_observed, findings: payload.findings, taxonomyVersion: payload.taxonomy_version,
-      completedAt: new Date(payload.completed_at),
+      completedAt: new Date(payload.completed_at), retake, partial: payload.partial ?? false,
     }).onConflictDoNothing().returning({ id: caseResults.caseAttemptId });
     if (inserted.length === 0) return { status: 'duplicate' as const, prescriptions: 0, events: [] };
-
-    const studentId = payload.student_id;
-    const [prevRow] = await tx.select().from(caseResults).where(and(
-      eq(caseResults.studentId, studentId), ne(caseResults.caseAttemptId, payload.case_attempt_id),
-      lt(caseResults.completedAt, new Date(payload.completed_at)),
-    )).orderBy(desc(caseResults.completedAt)).limit(1);
-    // Only the previous case's findings matter (+2 for a skill flagged again).
-    const previous = prevRow ? { ...payload, findings: (prevRow.findings as CaseResultPayload['findings']).filter(f => getMistakeTag(f.tag)) } : null;
-
-    // A retake: the student finished this case before (in an earlier case
-    // result, or an earlier completed session in the case product).
-    const completedAt = new Date(payload.completed_at);
-    const [earlierResult] = await tx.select({ id: caseResults.caseAttemptId }).from(caseResults).where(and(
-      eq(caseResults.studentId, studentId), eq(caseResults.caseId, payload.case_id),
-      ne(caseResults.caseAttemptId, payload.case_attempt_id), lt(caseResults.completedAt, completedAt))).limit(1);
-    const [earlierSession] = await tx.select({ id: sessions.id }).from(sessions).where(and(
-      eq(sessions.userId, studentId), eq(sessions.caseId, payload.case_id), eq(sessions.status, 'completed'),
-      lt(sessions.completedAt, new Date(completedAt.getTime() - RETAKE_GAP_MS)))).limit(1);
-    const retake = Boolean(earlierResult || earlierSession);
 
     const before = await loadProgress(tx, studentId, true);
     const ctx = await progressContext(tx, studentId, now);

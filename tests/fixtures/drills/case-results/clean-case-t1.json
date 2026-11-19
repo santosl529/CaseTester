@@ -5,7 +5,7 @@
   "case_type": null,
   "difficulty_tier": 1,
   "completed_at": "2026-10-06T09:05:00-04:00",
-  "taxonomy_version": "v1",
+  "taxonomy_version": "v1.1",
   "rubric_scores": {},
   "skills_observed": ["QN.percentages", "EX.takeaway"],
   "findings": []

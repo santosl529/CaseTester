@@ -9,6 +9,8 @@
 // When every case has been taken, the one taken longest ago is offered again
 // as a retake. No cases at all: no suggestion.
 import type { CaseType } from '@/lib/case-types';
+import { loadCases } from '@/lib/cases/loader';
+import { LISTED_CASE_IDS } from '@/lib/cases/listed';
 import { DRILLS_CONFIG } from '../config';
 
 export interface LibraryCase { id: string; title: string; case_type: CaseType | null; tier: 1 | 2 | 3 }
@@ -23,6 +25,16 @@ export interface NextCase {
 }
 
 export const DIFFICULTY_TIER = { easy: 1, medium: 2, hard: 3 } as const;
+
+// The cases a next-case card may recommend: only the full cases students can
+// start from Cases (LISTED_CASE_IDS) — never the 7-minute demo or an unlisted
+// case such as Aldermoor, which every case file in /cases would include
+// (bug found 15 Nov; Matt: fix it with shadow mode).
+export function caseLibrary(): LibraryCase[] {
+  const listed = new Set(LISTED_CASE_IDS);
+  return loadCases().filter(c => listed.has(c.id))
+    .map(c => ({ id: c.id, title: c.title, case_type: c.caseType ?? null, tier: DIFFICULTY_TIER[c.difficulty] }));
+}
 
 // "Meeting the bar" for a tier (Matt, 2026-10-11).
 export function metTheBar(rubric: Record<string, string> | null): boolean {

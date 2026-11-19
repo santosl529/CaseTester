@@ -16,7 +16,8 @@ import { summarizeAssists, summarizeCoverage, summarizePressureTest } from './as
 import { summarizeDataRequests, volunteeredItems } from './data-coverage';
 import { buildInterviewerMarks, formatInterviewerMarksSection, dropClaimsOnMarkedTurns, type InterviewerMark } from './interviewer-errors';
 import { buildChallengeMarks, verifyCandidateTurns, genuineErrorSpans, formatClaimChecksSection } from './challenge-marks';
-import { formatCheckerSection, mandatedConclusionClaims, checkerFlaggedFigures, dropCheckerStamps } from './checker-record';
+import { formatCheckerSection, mandatedConclusionClaims, checkerFlaggedFigures, dropCheckerStamps, checkerFindings } from './checker-record';
+import { prepareCaseResult } from './case-result-step';
 import { applyConclusionMandate } from './conclusion-mandate';
 import { caseNumbersOf } from '@/lib/orchestrator/math-checker-live';
 import { applyStageCaps, formatStageRecordSection, reconstructStages, stagesNotInCase } from './stage-caps';
@@ -60,6 +61,9 @@ export async function scoreSession({ sessionId, userId }: { sessionId: string; u
   }
 }
 
+// The score route's maxDuration (300 s) less a margin for the time before the pass started.
+export const CASE_STEP_DEADLINE_MS = 285_000;
+
 export class ClaimLostError extends Error {
   constructor(sessionId: string) { super(`scoring claim lost for ${sessionId}: no score written`); }
 }
@@ -68,7 +72,8 @@ export async function scoreAndStore(claim: ScoringClaim, userId: string, deps: {
   const { sessionId } = claim;
   // The deadline every stream inside this pass retries against (stream-retry.ts, review item 6): a retry that would
   // run past the route's 300 s budget writes nothing and makes the next attempt pay for all three passes again.
-  const computed = await withScoringDeadline((deps.nowMs ?? Date.now()) + SCORING_BUDGET_MS,
+  const startMs = deps.nowMs ?? Date.now();
+  const computed = await withScoringDeadline(startMs + SCORING_BUDGET_MS,
     () => (deps.compute ?? computeScore)({ sessionId, userId }));
   const { rubric, report, mathResults, qa } = computed;
 
@@ -98,6 +103,16 @@ export async function scoreAndStore(claim: ScoringClaim, userId: string, deps: {
   // Scoring-QA metrics (docs/scoring-qa.md): one event per scoring run, zeros
   // included, so rates have a denominator.
   await logEvent('scoring_qa', qa, { sessionId, userId });
+
+  // Case results → drills (Matt, 15 Nov): only once the score is stored, after the response is sent, so the report
+  // never waits for it and nothing it does can fail the report (lib/drills/progress/case-runs.ts). Its deadline is the
+  // route's own limit, not the scoring passes' retry budget: work after the response still counts against the route's
+  // 300 s, and with the 240 s budget any grading over 195 s left the step too little time (3 of the last 60, 16 Nov).
+  if (computed.caseResultInput) {
+    const { runCaseRunAfterResponse } = await import('@/lib/drills/progress/case-runs');
+    await runCaseRunAfterResponse(sessionId, computed.caseResultInput, startMs + CASE_STEP_DEADLINE_MS,
+      u => void logEvent('llm_usage', u, { sessionId, userId }));
+  }
 }
 
 // The scoring pipeline without persisting a score (round-3: lets
@@ -308,6 +323,15 @@ export async function computeScore({ sessionId, userId, persist = true }: { sess
   // Plain English (6 Nov): no internal term (load-shedding, probes, stage names as code calls them) on the page.
   const rubric = plainRubric(plain.rubric);
 
+  // Case results → drills (Matt, 15 Nov; CASE_TO_DRILLS): the tagging step's input, from the report as stored. The
+  // step itself runs in scoreAndStore after the score is stored and the response sent. Not on a dry run (persist:
+  // false): a regrade or replay sends drills nothing and pays for no tags. Building the input can't fail the report.
+  const caseResultInput = persist ? prepareCaseResult(session.caseId, () => ({
+    sessionId, studentId: session.userId, completedAt: session.completedAt, caseData, partial, rubric,
+    checker: checkerFindings(checkerRows, checkerRedo), stageRecord, mathResults,
+    dataRequests: requestRows.map(r => ({ subtype: r.subtype, payloadJsonb: r.payloadJsonb })), transcript,
+  })) : null;
+
   const report = assembleReport({
     sessionId,
     caseData,
@@ -360,7 +384,7 @@ export async function computeScore({ sessionId, userId, persist = true }: { sess
     plainSkipped: plain.skipped !== null,
   };
 
-  return { rubric, report, mathResults, qa, strongGate, answerKey, assessed, plain };
+  return { rubric, report, mathResults, qa, strongGate, answerKey, assessed, plain, caseResultInput };
 }
 
 // The session's stage record, or one rebuilt from the transcript for sessions recorded before it existed. Shared with

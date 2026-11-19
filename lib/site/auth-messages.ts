@@ -50,11 +50,15 @@ export function deleteErrorMessage(body: { error?: string } | null): string {
   return "We couldn't finish deleting your account. Nothing is lost by trying again: please try again in a minute.";
 }
 
-// /forgot-password (POST /api/password/forgot).
+// After sign-up when a confirmation email went out (Matt, 17 Nov, pre-pilot audit S5; wording his, 17 Nov).
+export const CONFIRM_EMAIL_MESSAGE = 'Check your email to confirm your account; the link logs you in.';
+
+// /forgot-password (POST /api/password/forgot). After a request, one message whether or not an account uses the email
+// (Matt, 17 Nov, pre-pilot audit N2).
+export const FORGOT_SENT = 'If an account uses this email, we’ve sent a link to reset your password.';
 export function forgotErrorMessage(body: { error?: string; retryAfterSec?: number } | null): string {
   if (!body) return OFFLINE;
   if (body.error === 'invalid_email') return 'Enter a valid email address.';
-  if (body.error === 'no_account') return 'No account uses this email. Check the address, or sign up with your club code.';
   if (body.error === 'rate_limited') return `Too many reset requests. Try again in ${retryWait(body.retryAfterSec)}.`;
   return "We couldn't send the reset email just now. Try again in a few minutes, or ask the CasePace team for a reset link.";
 }
@@ -68,14 +72,13 @@ export function resetErrorMessage(body: { error?: string } | null): string {
   return "We couldn't change your password just now. Please try again in a minute.";
 }
 
-// "Resend the email" on log-in and after sign-up (POST /api/sign-up/resend; Lorenzo, 11 Nov: said plainly).
-// status 0 = no answer (offline, server down).
-export function resendMessage(status: number, body: { ok?: boolean; error?: string; retryAfterSec?: number } | null, email: string): { ok: boolean; text: string } {
-  if (status >= 200 && status < 300) return { ok: true, text: `We sent a new confirmation link to ${email}.` };
+// "Resend the email" on log-in and after sign-up (POST /api/sign-up/resend). One message whether or not an account
+// waits for confirmation (Matt, 17 Nov, pre-pilot audit, as N2). status 0 = no answer (offline, server down).
+export const RESEND_SENT = 'If an account uses this email and isn’t confirmed yet, we’ve sent a new confirmation link.';
+export function resendMessage(status: number, body: { ok?: boolean; error?: string; retryAfterSec?: number } | null): { ok: boolean; text: string } {
+  if (status >= 200 && status < 300) return { ok: true, text: RESEND_SENT };
   if (!body || status === 0) return { ok: false, text: OFFLINE };
   switch (body.error) {
-    case 'no_account': return { ok: false, text: 'No account uses this email. Sign up with your club code.' };
-    case 'already_confirmed': return { ok: false, text: 'This account is already confirmed. Log in.' };
     case 'invalid_email': return { ok: false, text: 'Enter a valid email address.' };
     case 'rate_limited': return { ok: false, text: `Too many emails requested. Try again in ${retryWait(body.retryAfterSec)}.` };
     default: return { ok: false, text: "We couldn't send the email just now. Try again in a few minutes." };

@@ -4,6 +4,7 @@
   "sttKeyterms": ["Aldermoor", "Aldermoor Pharma", "Kelvexa", "Corlan's disease", "Nimbrel"],
   "firmStyle": "mckinsey",
   "difficulty": "easy",
+  "caseType": "market_entry",
   "prompt": "Our client is Aldermoor Pharma, a mid-sized European drug company. Since 2022, Aldermoor has sold Kelvexa in Europe — a once-daily pill for Corlan's disease, a lifelong autoimmune condition that causes painful inflammation of the joints and skin. Earlier this year, US regulators approved Kelvexa. Aldermoor has no US operations today. The board will approve a US launch only if Kelvexa can reach at least $300 million in peak annual US net sales. The CEO has asked us to determine whether the US market is attractive enough to enter, and if so, how Aldermoor should enter it.",
   "interviewerNotes": "Source: AI Casing Case 03 (v1.0, Oct 2026), interviewer-led mode. Key insight: the patient funnel gives 250M × 1.6% × 50% × 50% × 20% = 200,000 eligible US patients; at a 20% peak share (40,000 patients) and an $8,000 net price ($10,000 list less 20% discounts and rebates), peak net sales ≈ $320M — clears the $300M bar, but only just (the bar is met at an 18.75% share, 37,500 patients). Specialists like the once-daily pill (64%), but the top barriers are insurance coverage (58%) and no local support (41%) — access and presence, which Aldermoor lacks in the US. Entry: building its own team earns $320M − $80M = $240M a year at peak vs. 30% × $400M = $120M from the partner, and stays ahead unless share falls below 12.5% (25,000 patients). Recommendation: enter, build a focused US team; hire an experienced access team early; consider a contract sales force or co-promotion. Release order in the guide: Exhibit 1 (funnel) and Exhibit 2 (survey) in either order after the structure; Exhibit 3 (entry options) only after the market is sized.",
   "dataLedger": [
@@ -705,6 +706,9 @@
       "id": "exhibit-3",
       "title": "US entry options for Kelvexa (peak year, about five years after launch)",
       "chartType": "table",
+      "columnLabels": {
+        "": "Term"
+      },
       "coversLedgerItems": [
         "option_a",
         "option_b",

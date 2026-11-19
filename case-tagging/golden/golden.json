@@ -1,0 +1,3943 @@
+[
+  {
+    "id": "6da76981-84ee-4500-a86e-7340491a6379:structure:1",
+    "session_id": "6da76981-84ee-4500-a86e-7340491a6379",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "Costs were split fixed versus variable rather than into the P&L lines the data would come in (COGS, labor, overhead). The structure was never tied to the eventual decision of pricing versus cost action.",
+    "quotes": [
+      "Second, costs — split fixed versus variable."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "527217df-454c-481f-8b39-a58171596f85:structure:0",
+    "session_id": "527217df-454c-481f-8b39-a58171596f85",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The buckets overlapped (capex in both capabilities and economics, and a catch-all 'risks' bucket), and the candidate fixed this only when challenged.",
+    "quotes": [
+      "Roughly MECE, though I'd admit capabilities and economics overlap — capex sits in both, so I'd put all costs in economics and keep bucket three purely about distribution access."
+    ],
+    "label": "M.overlapping_buckets",
+    "rule": "S4"
+  },
+  {
+    "id": "1901cf99-701b-47d1-85d0-2361dd56c226:structure:0",
+    "session_id": "1901cf99-701b-47d1-85d0-2361dd56c226",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The 'mix' bucket overlaps the revenue and cost buckets (discounting is a revenue-quality issue; low-margin food is a COGS issue), so the three branches are not cleanly MECE.",
+    "quotes": [
+      "Three, mix. Shift from high-margin drinks toward low-margin food, or more discounting and loyalty redemptions."
+    ],
+    "label": "M.overlapping_buckets",
+    "rule": "S4"
+  },
+  {
+    "id": "6e14be49-9e01-4fa1-83a0-8a5e51a8458b:structure:0",
+    "session_id": "6e14be49-9e01-4fa1-83a0-8a5e51a8458b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "needs_work",
+    "point": "The candidate could not produce any framework at the opening, even the basic profit = revenue − costs split, across five turns of prompting.",
+    "quotes": [
+      "I'm stuck, sorry. I don't really know where to start.",
+      "I guess... revenue or something else? I really don't know."
+    ],
+    "label": "M.no_structure",
+    "rule": "S1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "720e7a5e-c39d-43af-ad23-fa2bc7ed462a:structure:0",
+    "session_id": "720e7a5e-c39d-43af-ad23-fa2bc7ed462a",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "You chose a relevant profit tree and quickly formed a hypothesis grounded in the setup, but the structure was thin: two top-level buckets with no tailored sub-points, and a fixed/variable split that put labor in 'fixed', which is debatable for a coffee chain.",
+    "quotes": [
+      "On cost, I'd split fixed and variable, so rent and labor on one side, coffee beans, milk, cups on the other.",
+      "At a high level I'd look at revenue and cost separately. On revenue, price versus volume, and mix across stores.",
+      "Revenue grew but margin fell by three quarters — if this were a demand or volume problem, revenue would have fallen too."
+    ],
+    "label": "M.shallow_structure",
+    "rule": "S5"
+  },
+  {
+    "id": "6ef3f607-800f-4688-b944-857515b0c795:structure:0",
+    "session_id": "6ef3f607-800f-4688-b944-857515b0c795",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The objective (find the root cause, then reverse it) was never restated, and the structure was not tied to the decision the CEO must make.",
+    "quotes": [
+      "I'd structure it as profit = revenue minus costs, and go down both branches."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "099f33e9-1fca-4806-b5b9-e9f9b794ff1d:structure:1",
+    "session_id": "099f33e9-1fca-4806-b5b9-e9f9b794ff1d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The candidate opened with a profit tree and an early hypothesis that the problem sat in costs. However, the framework stayed at two broad branches, and the cost branch was a list of line items rather than tailored, prioritized buckets with a clear hypothesis about which one moved.",
+    "quotes": [
+      "Second, costs: I'd split into COGS — coffee beans, milk, cups, food — and operating costs like store labor, rent, utilities, and corporate overhead.",
+      "Profit is revenue minus costs, and since revenue is actually up 15%, the margin collapse almost certainly sits on the cost side — though I want to confirm revenue growth is coming from healthy sources, not discounting or just opening new stores.",
+      "First, revenue quality: is growth from same-store sales or new locations? Has average ticket moved, and have menu prices changed over the two years?"
+    ],
+    "label": "M.shallow_structure",
+    "rule": "S5",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "4224252c-02a8-43bd-b738-ee681d543001:structure:0",
+    "session_id": "4224252c-02a8-43bd-b738-ee681d543001",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "needs_work",
+    "point": "The opening was a list of loosely related areas, not a MECE profit tree, and it mixed overlapping lenses such as internal/external and operations.",
+    "quotes": [
+      "So, I'd want to look at the whole business — revenue, costs, the market, maybe competitors, and then figure out what's driving the margin down. I'd also look at internal versus external factors, and operations."
+    ],
+    "label": "M.overlapping_buckets",
+    "rule": "S4"
+  },
+  {
+    "id": "72925a9c-09fd-40a0-8df9-8532db351b41:structure:1",
+    "session_id": "72925a9c-09fd-40a0-8df9-8532db351b41",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The opening structure missed non-operating costs even though the stated metric was net margin, but when challenged the candidate added the missing below-the-line bucket and competitive context with clear reasoning.",
+    "quotes": [
+      "Honestly, it's mostly MECE but not fully.",
+      "because we're talking net margin, not operating margin, I'm missing a whole bucket below the operating line: interest expense, depreciation and amortization, and taxes."
+    ],
+    "label": "M.missing_bucket",
+    "rule": "S4"
+  },
+  {
+    "id": "9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59:structure:1",
+    "session_id": "9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "You asserted MECE without showing it, and could not name a gap when asked. Competitive context and pricing power only came up after prompting.",
+    "quotes": [
+      "Yes. It is Macy.",
+      "I'm not sure."
+    ],
+    "label": "M.missing_bucket",
+    "rule": "S4",
+    "ruling": "Matt 15 Nov (questions #11)"
+  },
+  {
+    "id": "56b80c44-cff7-4808-84ea-34223e7af48c:structure:1",
+    "session_id": "56b80c44-cff7-4808-84ea-34223e7af48c",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "needs_work",
+    "point": "Could not drive the structure forward independently, going blank repeatedly on where the answer likely lived.",
+    "quotes": [
+      "hmm, I'm not sure.",
+      "I don't really know where to start, sorry.",
+      "I'm stuck, sorry."
+    ],
+    "label": "M.no_structure",
+    "rule": "S1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "bb24a239-e478-4ef3-b2b6-1d0044f249be:structure:0",
+    "session_id": "bb24a239-e478-4ef3-b2b6-1d0044f249be",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The candidate never restated the client objective (find the root cause and reverse the decline) before laying out the structure.",
+    "quotes": [
+      "So I'd break it into two branches."
+    ],
+    "label": null,
+    "rule": "N1"
+  },
+  {
+    "id": "324ed1aa-6cb7-414b-b877-5ad99c77711e:structure:1",
+    "session_id": "324ed1aa-6cb7-414b-b877-5ad99c77711e",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The candidate never restated the objective (find the root cause and recommend a reversal) and did not tie the structure to the decision the CEO must make.",
+    "quotes": [
+      "So revenue is up 15% but margin collapsed from 24% to 6% — that's a huge drop, so this is almost certainly a cost story, but I want to confirm revenue quality first before I jump there."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "065501fe-d054-4e9d-8d07-865b9e195c08:structure:0",
+    "session_id": "065501fe-d054-4e9d-8d07-865b9e195c08",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "needs_work",
+    "point": "The candidate skipped structuring and jumped to a recommendation. It rested on an untested claim that input costs had risen.",
+    "quotes": [
+      "I don't think we need a long structure here — the answer's pretty visible from what you've given me.",
+      "Fares are down and input costs — fuel, labor, maintenance — are up, and that gap is the $24 million swing."
+    ],
+    "label": "M.no_structure",
+    "rule": "S2",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "9527c026-9405-4742-ad13-70d7fd55fe80:structure:0",
+    "session_id": "9527c026-9405-4742-ad13-70d7fd55fe80",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "strong",
+    "point": "Did not restate the objective as a decision before diving into buckets, and initial prioritization defaulted to revenue before being pressed.",
+    "quotes": [
+      "I'd like to start with the revenue side. Do we have data on whether that 15% growth came from existing stores or from opening new locations"
+    ],
+    "label": null,
+    "rule": "N1",
+    "ruling": "Matt 15 Nov (questions #1)"
+  },
+  {
+    "id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17:structure:1",
+    "session_id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "Pricing and competitive context were not called out as distinct branches; price was folded into 'average ticket' with no question about whether peers face the same squeeze.",
+    "quotes": [
+      "On revenue: I'd break it into number of transactions times average ticket, and split that by same-store versus new-store growth."
+    ],
+    "label": "M.missing_bucket",
+    "rule": "S4"
+  },
+  {
+    "id": "9c987cd0-8049-4a79-93a7-abe6f6537dfe:structure:1",
+    "session_id": "9c987cd0-8049-4a79-93a7-abe6f6537dfe",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The fixed-versus-variable cost split is a generic template that splits labor across both buckets, and the framework left out competitive context and pricing power.",
+    "quotes": [
+      "Fixed: rent, base labor, utilities, corporate overhead, D&A. Variable: coffee beans, milk, cups and packaging, hourly labor tied to volume, payment processing, delivery commissions."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "cdaa9c6c-4a32-4255-8990-c0fe6263838d:structure:1",
+    "session_id": "cdaa9c6c-4a32-4255-8990-c0fe6263838d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The structure was not tied to the decision the CEO must make, such as pricing versus cost action.",
+    "quotes": [
+      "Then I'd look at which lines grew faster than revenue over the two years."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "e08c362a-f18b-4a4b-9b79-d11d10b818e7:structure:0",
+    "session_id": "e08c362a-f18b-4a4b-9b79-d11d10b818e7",
+    "case_id": "pricing-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "needs_work",
+    "point": "Once the interviewer narrowed the question, the candidate anchored the analysis on the board's actual test and its two inputs. The opening framework, however, was a generic strategy checklist that did not restate the objective, tailor the buckets to a product-line pricing decision, or mention plan interactions such as upgrades or cannibalization.",
+    "quotes": [
+      "So I'd want to look at the market, the customer, the competition, and then the financials, and figure out whether Starter makes sense strategically.",
+      "I'd probably also think about internal capabilities and maybe some risks around the brand.",
+      "The board rule is a value-to-cost ratio, so I'd start with the two inputs for Starter."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "88db7c97-8016-428d-8f3d-3021f5693336:structure:0",
+    "session_id": "88db7c97-8016-428d-8f3d-3021f5693336",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The opening restated the situation (profit math) but never stated the objective: find the root cause and decide how to reverse it.",
+    "quotes": [
+      "So profit equals revenue minus costs, and we know revenue is actually up 15% while margin fell from 24% to 6%"
+    ],
+    "label": null,
+    "rule": "N1"
+  },
+  {
+    "id": "e5ee78c6-6604-4ebf-91cb-d71ec962e975:structure:0",
+    "session_id": "e5ee78c6-6604-4ebf-91cb-d71ec962e975",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The candidate never restated the CEO's two-part objective (find the root cause and reverse it), and never tied the structure to that decision. The opening went straight into the profit equation.",
+    "quotes": [
+      "So profit equals revenue minus costs, and we know revenue is actually up 15%"
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "34b115e0-e811-4468-97d8-c236ecef2dcb:structure:1",
+    "session_id": "34b115e0-e811-4468-97d8-c236ecef2dcb",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The candidate never restated the CEO's objective (find the root cause and reverse it) and never linked the structure to the decision of which lever to pull.",
+    "quotes": [
+      "My structure: first, confirm the revenue side — is growth coming from new stores, more transactions per store, or higher prices?"
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "c837951c-c348-4b1d-9c5c-b0a68797b57d:structure:1",
+    "session_id": "c837951c-c348-4b1d-9c5c-b0a68797b57d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The CEO's objective (find the root cause and reverse the decline) was never restated, and the structure was not tied to the decision the CEO must make. Instead, the opening ended by fishing for approval.",
+    "quotes": [
+      "I think that framing is pretty clean — that's a strong start, right?"
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "c218e87d-e0ce-450a-be97-4263edbd94af:structure:1",
+    "session_id": "c218e87d-e0ce-450a-be97-4263edbd94af",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "When challenged on MECE, the candidate filled out the revenue side with product mix, channel mix, and below-the-line items tailored to a coffee chain, but the opening revenue side was thin until the interviewer pushed, and competitive context (whether peers face the same squeeze) was never raised.",
+    "quotes": [
+      "What's thin is the revenue side — I collapsed it into price and volume, but I should break it into mix as well",
+      "Net margin, not operating margin, is what fell, so new debt from store expansion could explain part of it."
+    ],
+    "label": "M.shallow_structure",
+    "rule": "S5"
+  },
+  {
+    "id": "7f6c40ea-b83b-4647-86ae-958a45c8d81f:structure:0",
+    "session_id": "7f6c40ea-b83b-4647-86ae-958a45c8d81f",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The buckets overlapped, which you acknowledged yourself, and the market bucket was a generic category-sizing template rather than something tailored to a first-year break-even decision.",
+    "quotes": [
+      "there's some overlap between my market branch and my competition branch",
+      "how big is the better-for-you snack category in Hollis Bay's regions, how fast is it growing"
+    ],
+    "label": "M.overlapping_buckets",
+    "rule": "S4"
+  },
+  {
+    "id": "c13a049d-152a-415a-b768-bafba5743f1b:structure:0",
+    "session_id": "c13a049d-152a-415a-b768-bafba5743f1b",
+    "case_id": "pricing-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "needs_work",
+    "point": "The opening was a generic revenue-and-cost split. It did not restate the CEO's question or reflect the board's lifetime-value test, the Starter-vs-Pro trade-off, or the options for the plan.",
+    "quotes": [
+      "So I would like to break it down into mainly revenue and costs."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "087451cb-f530-4d78-a1be-c3ce3ff8922e:structure:0",
+    "session_id": "087451cb-f530-4d78-a1be-c3ce3ff8922e",
+    "case_id": "pricing-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The opening reduced the CEO's question to the board's ratio and never stated the real objective: total value created by the plan line. The first two buckets (value side, cost side) are just the parts of a generic LTV/CAC calculation.",
+    "quotes": [
+      "The board rule is basically an LTV-to-CAC test, so I'd break it into three buckets."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "8cac8248-3876-43eb-bba7-09284b810c6b:structure:0",
+    "session_id": "8cac8248-3876-43eb-bba7-09284b810c6b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The opening restated the numbers but not the CEO's objective (find the root cause and reverse it), and never linked the buckets to the decision the client faces.",
+    "quotes": [
+      "So revenue grew 15% but margin fell from 24% to 6% — that's a big drop, so costs must be growing much faster than revenue."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "365538f7-96fb-4f02-99ed-55c26348b2a9:structure:0",
+    "session_id": "365538f7-96fb-4f02-99ed-55c26348b2a9",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The opening cost split (fixed vs. variable) was generic and did not map to where margin actually leaks. When challenged, the candidate upgraded to a function-based cost cut and flagged the below-the-line check, which made the structure more MECE and more useful, but only after the interviewer pushed.",
+    "quotes": [
+      "On cost: split fixed versus variable. Fixed would be rent, salaried labor, equipment. Variable would be coffee beans, milk, cups, hourly labor, card fees.",
+      "I'd rather cut it by function: COGS, store labor, occupancy, corporate overhead.",
+      "I should check whether gross margin and operating margin fell too, or just net."
+    ],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "442e37ff-0f60-45b2-8e5c-fc64f3964de0:structure:1",
+    "session_id": "442e37ff-0f60-45b2-8e5c-fc64f3964de0",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "structure",
+    "rating": "meets_bar",
+    "point": "The customer bucket was not split into trial and repeat, even though repeat buying is what drives year-one volume for a new snack.",
+    "quotes": [
+      "Second, the customer: who buys this, and does it overlap with our existing chip buyer or bring someone new in?"
+    ],
+    "label": "M.shallow_structure",
+    "rule": "S5"
+  },
+  {
+    "id": "b17c59e1-b832-4c42-b0a4-e7a4312287c7:quantitative:1",
+    "session_id": "b17c59e1-b832-4c42-b0a4-e7a4312287c7",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "strong",
+    "point": "Under challenge you asserted fewer flights and a 12% revenue fall as a premise, which the data contradicted (flights were identical).",
+    "quotes": [
+      "If revenue fell 12% and we're flying fewer flights, variable costs — fuel, crew hours, landing fees — should have fallen with them."
+    ],
+    "label": "M.ignores_facts",
+    "rule": "H3"
+  },
+  {
+    "id": "591cff13-30ad-414b-8438-15f49c4fc50a:quantitative:2",
+    "session_id": "591cff13-30ad-414b-8438-15f49c4fc50a",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "The elasticity break-even was asserted, not derived, and it is wrong. At a 10% price increase with your own fixed-cost setup, profit per original-volume unit becomes 110 − 58 = 52. To keep $6 of profit, volume must stay above 42/52 ≈ 0.81. So transactions can fall about 19%, not 10%, before the client is worse off.",
+    "quotes": [
+      "If a 10% increase drives more than 10% of transactions away, we're worse off."
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "061ef630-728e-44c9-9911-af4e4581a7e5:quantitative:1",
+    "session_id": "061ef630-728e-44c9-9911-af4e4581a7e5",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The first attempt at the Lakeport fare math was garbled and left extras out. It was corrected only after the interviewer asked.",
+    "quotes": [
+      "at $9,000 variable cost on Lakeport we need $4,500 average fare per full plane equivalent... actually at 80 seats, $8,400 revenue per flight is about $105 a seat at full load."
+    ],
+    "label": "M.missing_term",
+    "rule": "Q1"
+  },
+  {
+    "id": "5907649a-dfce-4bd3-af76-4b8332ca062e:quantitative:1",
+    "session_id": "5907649a-dfce-4bd3-af76-4b8332ca062e",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "You carried the same borrowing habit into sizing levers. The 30% cost-per-seat gap was applied to fixed costs and to variable cost, and Lakeport's $80 fare cut was treated as upside on uncontested routes. Neither has a valid basis.",
+    "quotes": [
+      "Applying that same 30% gap to our $20M fixed cost base suggests roughly $6M of overhead is uncompetitive and addressable",
+      "Lakeport's fare fell $80 per passenger; applying that same $80 as upside to the four uncontested routes, across roughly 8,500 remaining flights at 60 passengers, is a very large number"
+    ],
+    "label": "M.unreasonable_assumption",
+    "rule": "Q1"
+  },
+  {
+    "id": "ffe23072-b8c2-4324-893b-539567c48781:quantitative:1",
+    "session_id": "ffe23072-b8c2-4324-893b-539567c48781",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The candidate correctly backed out implied bean inflation of about 40% (0.75 × 1.375 = 1.031; (1.38 − 1.031) / 0.25 ≈ 1.40) with each step narrated, but never translated it into margin points. Beans add about 4.2 points (10.5 × 40%) versus about 11.8 points from other inputs (31.5 × 37.5%), so the relative size of beans vs. other inputs went unquantified.",
+    "quotes": [
+      "So it's broad-based input inflation, not one line.",
+      "If other inputs are 75% of COGS and up 37.5%, that contributes 0.75 times 1.375, which is 1.031.",
+      "To get to 1.38 total, beans have to cover 0.35 on a 0.25 base, so beans are up about 40% too. So it's broad-based input inflation, not one line."
+    ],
+    "label": null,
+    "rule": "N2"
+  },
+  {
+    "id": "f29cd426-2aee-453e-9192-3dc2e8f8289d:quantitative:0",
+    "session_id": "f29cd426-2aee-453e-9192-3dc2e8f8289d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "In the recommendation, the candidate asserted the size of the pricing lever without deriving it and got it wrong; only after the interviewer challenged it did the candidate rebuild the math on an indexed P&L, calculate correctly, and solve for the price increase needed to restore 24%.",
+    "quotes": [
+      "On current economics that recovers the bulk of the COGS gap.",
+      "So 10% recovers about 8.5 points of margin, from 6% to 14.5%.",
+      "That's a 24% price increase, which is almost certainly beyond what customers tolerate."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "44c858c6-142c-4f65-b280-4923f429a867:quantitative:0",
+    "session_id": "44c858c6-142c-4f65-b280-4923f429a867",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "strong",
+    "point": "The candidate never sized the fix, for example the price increase needed to recover a target margin, even though the inputs to do so were available.",
+    "quotes": [
+      "That reframes it: this isn't an operations or waste problem, it's a pricing problem."
+    ],
+    "label": null,
+    "rule": "N2"
+  },
+  {
+    "id": "2cb242ab-2776-40cc-ba9f-50ff4ccfd960:quantitative:0",
+    "session_id": "2cb242ab-2776-40cc-ba9f-50ff4ccfd960",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The cost of waiting was sized with the wrong quantity. It counted only the losses on the old routes and ignored the forgone new-route contribution, about $2.5M a quarter. The true cost of a one-quarter delay is roughly $11.8M ÷ 4 ≈ $2.95M, not $450K. The candidate also called Port Avery's per-flight loss 'similar' to Lakeport's $600, when it is about $200 ($0.6M ÷ 3,000).",
+    "quotes": [
+      "Cost of waiting is roughly $600 per Lakeport flight and similar at Port Avery, so a quarter's delay burns about $450K."
+    ],
+    "label": "M.missing_term",
+    "rule": "Q1"
+  },
+  {
+    "id": "62cfe6f4-b339-45a9-9c77-ddcadb357566:quantitative:2",
+    "session_id": "62cfe6f4-b339-45a9-9c77-ddcadb357566",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "The elasticity claim in the final turn is wrong and was never corrected. At 8% price with today's 42% gross margin, break-even volume loss is 8/(42+8) ≈ 16%, so losing 10% of transactions still leaves the client better off.",
+    "quotes": [
+      "If we raise prices 8% and lose 10% of transactions, we're worse off, because we lose the gross margin on every lost cup and the fixed labor and rent don't flex down."
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "904b0b33-3b7f-46ec-b034-3cf2fc00f36a:quantitative:0",
+    "session_id": "904b0b33-3b7f-46ec-b034-3cf2fc00f36a",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The Port Avery breakeven fare was overstated: $11,000 ÷ 60 = $183 is total revenue per passenger, so the breakeven fare is $183 − $20 extras = $163. The candidate fixed this only after the interviewer probed.",
+    "quotes": [
+      "Port Avery needs $183, they're at $160."
+    ],
+    "label": "M.missing_term",
+    "rule": "Q1"
+  },
+  {
+    "id": "28596ec0-d695-4812-af5b-461ccb1de1d2:quantitative:2",
+    "session_id": "28596ec0-d695-4812-af5b-461ccb1de1d2",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "The 38% was still used to size the price increase, which is the wrong quantity. With total costs at 94% of current revenue and labor/overhead held in dollars, restoring a 24% margin needs about 94/76 − 1 ≈ 24%. Restoring per-item gross profit dollars needs about 16%.",
+    "quotes": [
+      "Where I'd still use the 38% is sizing the pricing action, because that's the magnitude of the cost increase on the COGS base itself, and that's what a price increase has to cover at the item level."
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "084e7508-7acf-4ff7-ad10-5a65161e9828:quantitative:0",
+    "session_id": "084e7508-7acf-4ff7-ad10-5a65161e9828",
+    "case_id": "pricing-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "The candidate used the cumulative 12-month cancellation figures as monthly rates, giving a Pro lifetime of 4.65 months, and never sanity-checked it. Pro's true figure is 2% a month, a 50-month lifetime and $4,000 LTV; the interviewer had to flag it.",
+    "quotes": [
+      "Pro: 21.5% cancel, so expected lifetime is 1 ÷ 0.215 ≈ 4.65 months. LTV = $80 × 4.65 ≈ $372. Against a $1,200 CAC that's 0.31x — Pro fails the 3x test badly"
+    ],
+    "label": "M.unit_error",
+    "rule": "Q1"
+  },
+  {
+    "id": "51b8cc22-6925-49fb-a439-a977ba99751c:quantitative:2",
+    "session_id": "51b8cc22-6925-49fb-a439-a977ba99751c",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "Port Avery FY2025 revenue was corrected to $32.4M, yet the candidate kept using $33.6M, including in the final recommendation.",
+    "quotes": [
+      "Port Avery revenue went from $46.8M to $33.6M on that alone."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1",
+    "ruling": "recheck after Matt's rule changes, 15 Nov"
+  },
+  {
+    "id": "50902b9f-5065-436d-95b5-92c81d906745:quantitative:0",
+    "session_id": "50902b9f-5065-436d-95b5-92c81d906745",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The candidate tied out the top-level cost buckets against the margin change, but inside COGS mixed units. Total COGS was grown by revenue growth while other inputs were grown by inflation alone, which forced the residual onto beans. With flat menu prices, other inputs explain about 11.8 of the 16 points and beans only about 4.2.",
+    "quotes": [
+      "So COGS dollars grew 1.38 × 1.15 ≈ 1.59 — up about 59%, to 159.",
+      "So beans must be 159 − 103 ≈ 56, up from 25. That's roughly a 124% increase in bean spend.",
+      "Quick check: 42 + 22 + 12 = 76, leaving 24% margin. Today 58 + 22 + 14 = 94, leaving 6%."
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "2ed6a54e-bd21-48a4-85b1-e0bf153d68ef:quantitative:2",
+    "session_id": "2ed6a54e-bd21-48a4-85b1-e0bf153d68ef",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "The input inflation was never converted into points of revenue, and no price-increase percentage was derived. Beans were 10.5% of revenue, so +40% adds about 4.2 points; other inputs were 31.5%, so +37.5% adds about 11.8 points.",
+    "quotes": [
+      "That 38% is the hole I'd size the pricing action against — the 16 points on the P&L is only what survived after 15% revenue growth absorbed part of it, so their true exposure is larger than the headline."
+    ],
+    "label": "M.wrong_base",
+    "rule": "Q1",
+    "ruling": "Matt 15 Nov (cross-check #1)"
+  },
+  {
+    "id": "a14ca044-aa10-4611-a5ea-d706c3614dad:quantitative:1",
+    "session_id": "a14ca044-aa10-4611-a5ea-d706c3614dad",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "The candidate flipped the conversion rates, giving 4.2M households and 12.6M bags, roughly 40% too high, and fixed it only after the interviewer prompted. The correct figures are 10%×60% + 20%×20% = 10% of 30M = 3.0M households and 9.0M bags.",
+    "quotes": [
+      "Definitely would buy: 30 million × 10% = 3 million households, and 20% of those actually buy, so 0.6 million.",
+      "Total buying households: 0.6 + 3.6 = 4.2 million. At 3 bags each, that's 12.6 million bags."
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1",
+    "ruling": "Matt 15 Nov (questions #8)"
+  },
+  {
+    "id": "5e0e6942-5c82-421c-a343-52625cd12cfd:quantitative:1",
+    "session_id": "5e0e6942-5c82-421c-a343-52625cd12cfd",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The recommended 'mid single digits' price increase was never sized. A 5% increase lifts margin only to about 11/105 ≈ 10.5%, so the plan's margin gap was left unquantified.",
+    "quotes": [
+      "Same window, take a modest staged price increase — mid single digits — plus attach-rate and upsize pushes, which lift ticket without testing price tolerance all at once."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "903bd42f-dee7-43bb-ac1b-9fb16bc00798:quantitative:0",
+    "session_id": "903bd42f-dee7-43bb-ac1b-9fb16bc00798",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "strong",
+    "point": "The price-versus-volume claim was muddled and left uncomputed even though the data allowed it. At +10% price and −10% volume, contribution goes from 0.42 to 0.9 × 0.52 = 0.468 per original revenue dollar, so profit improves; the breakeven volume loss is about 19% (0.42/0.52).",
+    "quotes": [
+      "If I raise price 10% and lose 10% of volume, I'm not back where I started — I'm worse on traffic but the per-unit economics improve, so the net depends on where the breakeven elasticity sits."
+    ],
+    "label": null,
+    "rule": "N2"
+  },
+  {
+    "id": "a1133734-b1c7-4432-9b59-109d671d7105:quantitative:1",
+    "session_id": "a1133734-b1c7-4432-9b59-109d671d7105",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "You turned survey percentages into sales haircuts and conversion rates without justification. The share of specialists naming a barrier is not the share of sales lost, and the up-to-two-answers survey design makes multiplying the percentages invalid. You never withdrew either calculation.",
+    "quotes": [
+      "I'd haircut the peak by that 41%: $320M × (1 − 41%) = $189 million, well under the threshold.",
+      "so the share that actually converts is 64% × (1 − 58%) = roughly 27%."
+    ],
+    "label": "M.unreasonable_assumption",
+    "rule": "Q1"
+  },
+  {
+    "id": "0ab54615-f692-40e3-a0ae-8acceb8cebd7:quantitative:1",
+    "session_id": "0ab54615-f692-40e3-a0ae-8acceb8cebd7",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "The recommended price increase was asserted, never derived. You never sized how much margin a given price move recovers. At flat volume, +8% takes margin from 6% to about 13% (14/108), and +10% takes it to about 14.5%.",
+    "quotes": [
+      "that a mid-single-digit price increase won't crater volume",
+      "How it plays out: say they raise prices 8%."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "fa80100a-2931-43e5-8b43-35f8ac56f8fa:quantitative:0",
+    "session_id": "fa80100a-2931-43e5-8b43-35f8ac56f8fa",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The candidate correctly sized the full-recovery price increase and judged it unrealistic. However, the 10% and 15% scenarios mixed units by treating 6.9 (profit on the 115 index) as dollars. The correct results are ~14.5% and ~18.3% margin, not 10.4% and ~13%, so the error understated the lever by about 4–5 points.",
+    "quotes": [
+      "A 10% price increase at zero volume loss adds $48M of revenue straight to profit, taking margin from 6% to roughly (6.9+48)/528 = 10.4%.",
+      "A 15% increase gets to about 13%.",
+      "revenue needs to be 278.4/0.42 = $663M — a 38% price increase. That's not realistic."
+    ],
+    "label": "M.unit_error",
+    "rule": "Q1"
+  },
+  {
+    "id": "6f664a33-2e88-464e-b2ff-4322c7aa309d:quantitative:0",
+    "session_id": "6f664a33-2e88-464e-b2ff-4322c7aa309d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "strong",
+    "point": "In synthesis the candidate misstated the profit-lift ratio: a $24M price gain on ~$29M current profit is roughly an 83% lift, but the framing '80 percent lift' was preceded by an inconsistent earlier '5.75 ... nearly doubles' claim on a different revenue base (115 vs 480), showing the base was not held consistently across turns.",
+    "quotes": [
+      "A 5 percent price increase on revenue of 115 is about 5.75 ... from 6.9 to roughly 12.6 — that nearly doubles profit",
+      "five por ciento de cuatrocientos ochenta millones ... is 24 million ... Current profit at 6 percent is about 29 million, so that's roughly a 80 percent lift"
+    ],
+    "label": "M.wrong_base",
+    "rule": "Q1"
+  },
+  {
+    "id": "9056707b-b54a-469a-b6e0-8f34e5aa0a4e:quantitative:1",
+    "session_id": "9056707b-b54a-469a-b6e0-8f34e5aa0a4e",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "Your elasticity math scaled all 94 points of cost with volume, including labor and overhead, which made the margin look volume-proof. If only COGS (58) flexes, an 8% traffic loss gives about a 12.4% margin and a 15% loss gives about 9.6%, not 15%.",
+    "quotes": [
+      "Costs fall proportionally with volume since COGS is variable, so 94 times 0.92 is 86.5 against 102 of revenue, which is roughly a 15 percent margin"
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "cdb8ca52-536a-48c3-be49-62f6a4bd1498:quantitative:1",
+    "session_id": "cdb8ca52-536a-48c3-be49-62f6a4bd1498",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The $7,500 threshold was first asserted with no derivation and was shown only when challenged.",
+    "quotes": [
+      "If net holds at or above $7,500, enter and own it. Below that, partner.",
+      "That's where it came from — I should have shown it rather than asserted it."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "f7635592-313a-449e-8266-9e0788497ebf:quantitative:1",
+    "session_id": "f7635592-313a-449e-8266-9e0788497ebf",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The pilot walk-away test used revenue breakeven instead of profit breakeven. With 42 cents of contribution per old dollar, a 10% increase keeps profit flat until volume falls about 19% (10 / (10 + 42)), not 9–10%. The arithmetic was fine; the threshold was the wrong quantity.",
+    "quotes": [
+      "A 10% price increase survives volume loss up to about 9% — below that, revenue per store is flat or up and margin still improves",
+      "the test is whether revenue still rises, not whether volume holds."
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "6ec13a02-cb2e-467e-8844-4e192a86bfc5:quantitative:0",
+    "session_id": "6ec13a02-cb2e-467e-8844-4e192a86bfc5",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "strong",
+    "point": "Never worked out what price move the gap requires. A 10% rise yields $48M at constant volume (margin only to about 14.5%), against an $86M gap. Restoring a 24% margin at flat volume needs prices up about 24% (94/76).",
+    "quotes": [
+      "Even a 10% price increase on $480M is $48M"
+    ],
+    "label": null,
+    "rule": "N2",
+    "ruling": "Matt 15 Nov (questions #1)"
+  },
+  {
+    "id": "0b9e1f49-d7ec-43cf-aafc-5fe3f8b6d2d4:quantitative:1",
+    "session_id": "0b9e1f49-d7ec-43cf-aafc-5fe3f8b6d2d4",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "The candidate correctly converted the nested COGS shares into points of revenue and backed out the implied ~40% bean increase, but never stated the resulting margin contributions: beans added ~4.2 points and other inputs ~11.8 of the 16-point COGS rise.",
+    "quotes": [
+      "Other inputs up 37.5% gives 31.5 × 1.375 = 43.3 points.",
+      "Two years ago COGS was 42% of revenue: beans at 25% of that is 10.5 points of revenue, other inputs are 31.5 points.",
+      "Today's total COGS is 58 points, so beans must now be 58 − 43.3 = 14.7 points, up from 10.5 — that's about a 40% increase."
+    ],
+    "label": null,
+    "rule": "N2"
+  },
+  {
+    "id": "ae0b7f13-378d-4908-a174-9f9b0827d7e8:quantitative:0",
+    "session_id": "ae0b7f13-378d-4908-a174-9f9b0827d7e8",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "The size of the price increase, the key number in the recommendation, was asserted without derivation and is overstated. With total costs at 94% of current revenue, a 10% price rise (no volume loss) lifts margin to about 6 / 1.1 + 9.1 ≈ 14.5%, recovering roughly 8.5 of the 18 points (under half, not 'most'). Fully restoring 24% would need about a 24% increase (94/76 ≈ 1.24).",
+    "quotes": [
+      "a roughly 10% price increase on a 58% COGS base recovers most of the gap",
+      "pilot a phased 8–10% increase in a few markets"
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "3b89869e-c626-4177-a4a5-4380799f13c2:quantitative:1",
+    "session_id": "3b89869e-c626-4177-a4a5-4380799f13c2",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "meets_bar",
+    "point": "In the final recommendation the overhead sizing was muddled and never corrected. Overhead is 14% of revenue, not of costs, and 14% × 94% would be about 13 points, not 14. The quantity that matters is the 2-point increase, not the whole line.",
+    "quotes": [
+      "On sizing: overhead is 14% of costs today, and costs are 94% of revenue, so overhead is roughly 14 points of revenue — a modest third lever."
+    ],
+    "label": "M.wrong_base",
+    "rule": "Q1"
+  },
+  {
+    "id": "78c89dba-f926-4404-82a4-0dd45bb2408b:quantitative:2",
+    "session_id": "78c89dba-f926-4404-82a4-0dd45bb2408b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "quantitative",
+    "rating": "needs_work",
+    "point": "The size of the price increase was asserted, never derived. An 8% increase lowers COGS to about 58/1.08 ≈ 54% of revenue and restores roughly 6–7 of the 18 points, not 'most' of the margin.",
+    "quotes": [
+      "A high-single-digit price increase recovers most of the margin"
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "b17c59e1-b832-4c42-b0a4-e7a4312287c7:dataExhibit:0",
+    "session_id": "b17c59e1-b832-4c42-b0a4-e7a4312287c7",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "strong",
+    "point": "The fare level read from Exhibit 1 was methodologically wrong until the interviewer pointed it out.",
+    "quotes": [
+      "Right — I divided by all 80 seats, so those are revenue per available seat, not fares."
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "38014721-d0c0-4374-b690-29998635b3fc:dataExhibit:1",
+    "session_id": "38014721-d0c0-4374-b690-29998635b3fc",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "On the new-routes data, the candidate misread the flight count. The candidate also missed that the 5,000 flights depend on aircraft time freed by exiting the contested routes, so the read conflicted with the advice to keep flying them.",
+    "quotes": [
+      "At 5,200 flights that's about $10.4M of new contribution — against a $4M operating loss.",
+      "Supporting that: hold Lakeport and Port Avery but stop matching headline fares across all cabins — segment fares and unbundle bags and seats."
+    ],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "720e7a5e-c39d-43af-ad23-fa2bc7ed462a:dataExhibit:0",
+    "session_id": "720e7a5e-c39d-43af-ad23-fa2bc7ed462a",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "strong",
+    "point": "The next step on overhead was vague: you flagged it but did not say what to check.",
+    "quotes": [
+      "Worth a look, but it's two points against sixteen."
+    ],
+    "label": "M.vague_data_request",
+    "rule": "D2"
+  },
+  {
+    "id": "3240a046-33be-488b-aec4-e1660a583cec:dataExhibit:0",
+    "session_id": "3240a046-33be-488b-aec4-e1660a583cec",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "You misread volume. With menu prices flat and revenue up 15%, volume rose about 15%. Flat labor as a share of revenue means labor scaled with that volume, not that volume was flat.",
+    "quotes": [
+      "Flat labor at 22% suggests volume is roughly flat too, so waste is less likely than input price."
+    ],
+    "label": "M.misread_trend",
+    "rule": "X1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "5433fa09-4fc7-47b1-bc82-e34ee9efecd9:dataExhibit:0",
+    "session_id": "5433fa09-4fc7-47b1-bc82-e34ee9efecd9",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "You misread the exhibit's starting COGS figure (44% instead of 42%) and repeated the misread when asked to verify it.",
+    "quotes": [
+      "Starting point: I read the first row of the exhibit as 44% of revenue for COGS, and the current year at 58%, so the increase is 14 points of revenue."
+    ],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "527217df-454c-481f-8b39-a58171596f85:dataExhibit:1",
+    "session_id": "527217df-454c-481f-8b39-a58171596f85",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "The candidate did not flag that the forecast leans on the 3-bags-per-household repeat assumption, which the taste hesitation directly threatens.",
+    "quotes": [
+      "At 3 bags each that's 9 million bags, versus 6 million needed."
+    ],
+    "label": "M.missed_key_risk",
+    "rule": "J2"
+  },
+  {
+    "id": "6544aa01-3a6d-410a-83ab-b7dae6de3fcc:dataExhibit:0",
+    "session_id": "6544aa01-3a6d-410a-83ab-b7dae6de3fcc",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "Once pressed, you tied the specific survey numbers to the 20% share assumption and found that doctors like the product but access and presence are the binding constraints. However, the first read was a one-line assertion with no numbers, and you never noted that answers sum to more than 100% or that out-of-pocket cost (15%) is well behind coverage as a barrier.",
+    "quotes": [
+      "Convenience sells it; access and lack of US presence are the binding constraints — which supports the partner route.",
+      "64% cite once-daily oral versus 58% citing coverage and 41% no local support.",
+      "so 20% is plausible with the right partner and at risk without one."
+    ],
+    "label": null,
+    "rule": "N5",
+    "ruling": "Matt 15 Nov (cross-check #2)"
+  },
+  {
+    "id": "34eb553a-5f8d-4f5f-8e0f-3532cfe52c01:dataExhibit:0",
+    "session_id": "34eb553a-5f8d-4f5f-8e0f-3532cfe52c01",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "You misread the funnel exhibit (1.6% read as 1.5%), so your first reading of the key exhibit was wrong.",
+    "quotes": [
+      "You said 1.5% have Corlan's disease, so that's 250 × 0.015 = 3.75 million patients."
+    ],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "c9d29082-fa46-4cc6-8be8-18bc6fbaf726:dataExhibit:0",
+    "session_id": "c9d29082-fa46-4cc6-8be8-18bc6fbaf726",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "The candidate read every cost line, isolated COGS as the driver, and tied the cost increases to the margin decline, but the so-what stopped at restating the bridge as 'the whole story'. The implication (the client absorbed input inflation without repricing) came only after the interviewer raised pricing.",
+    "quotes": [
+      "That's basically the whole story right there.",
+      "COGS is the one moving. It goes 42, 50, 58, so it's up 16 points over the two years. Labor's flat at 22 and overhead barely moves, 12 to 14.",
+      "Yeah, 16 plus 2 is 18, and profit dropped 18, so it ties out."
+    ],
+    "label": "M.no_implication",
+    "rule": "X3"
+  },
+  {
+    "id": "0a5cdc18-a6bc-4cb0-a1fd-4689ec8ced47:dataExhibit:0",
+    "session_id": "0a5cdc18-a6bc-4cb0-a1fd-4689ec8ced47",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "The candidate read the exhibit line by line and correctly isolated COGS as the 16-point driver. Right afterward, though, the candidate claimed the other lines offset the decline, when overhead actually rose 2 points and added to it.",
+    "quotes": [
+      "the other lines are actually offsetting a bit of it.",
+      "labor is flat at 22 the whole way, overhead moves 12 to 13 to 14, so that's only two points. COGS goes 42 to 50 to 58 — sixteen points. That's the driver."
+    ],
+    "label": "M.misread_trend",
+    "rule": "X1"
+  },
+  {
+    "id": "6bbc2163-45cb-4e75-a2aa-44ba29d3244a:dataExhibit:0",
+    "session_id": "6bbc2163-45cb-4e75-a2aa-44ba29d3244a",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "On the survey, the candidate correctly isolated access and local support as the two dominant barriers, but the read was a single sentence that never answered whether 20% share is defensible. It missed the 27% 'want more US experience' signal of a slow ramp and did not note that out-of-pocket cost (15%) is a minor barrier.",
+    "quotes": [
+      "which supports the partnering recommendation rather than the 20% itself",
+      "Convenience pull is real, but the top two barriers — access at 58% and no local support at 41% — are both fixable by a US partner, which supports the partnering recommendation rather than the 20% itself; I'd use it to pressure-test share in diligence."
+    ],
+    "label": "M.implication_off_objective",
+    "rule": "X3",
+    "ruling": "Matt 15 Nov (cross-check #16)"
+  },
+  {
+    "id": "03201cc4-0456-4288-ae35-762a8a4812c6:dataExhibit:1",
+    "session_id": "03201cc4-0456-4288-ae35-762a8a4812c6",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "Next steps were very terse and came only when prompted, with little explanation of why that piece first.",
+    "quotes": [
+      "Split COGS into green coffee, dairy, and packaging by unit cost; I'd test green coffee first."
+    ],
+    "label": "M.waited_for_interviewer",
+    "rule": "L4"
+  },
+  {
+    "id": "5a1ae7f5-5739-42ea-be68-06916b356049:dataExhibit:1",
+    "session_id": "5a1ae7f5-5739-42ea-be68-06916b356049",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "The candidate read the cost lines systematically and quickly isolated COGS as the driver of 16 of the 18 points, but dismissed the non-COGS lines too fast, even though overhead accounted for the other 2 points.",
+    "quotes": [
+      "That's basically the whole answer — the other lines are noise.",
+      "So 16 of the 18-point margin drop is sitting in COGS.",
+      "Do we have a split of that COGS line by input — beans versus dairy versus other?"
+    ],
+    "label": "M.misread_trend",
+    "rule": "X1"
+  },
+  {
+    "id": "08381460-37df-4204-a0b8-1fe15d4025d0:dataExhibit:0",
+    "session_id": "08381460-37df-4204-a0b8-1fe15d4025d0",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "strong",
+    "point": "Your exhibit read-out ended by handing control back to the interviewer instead of proposing what to examine next.",
+    "quotes": [
+      "Is there anything in the exhibit I'm missing?"
+    ],
+    "label": "M.waited_for_interviewer",
+    "rule": "L4"
+  },
+  {
+    "id": "b5ebe6b8-ce50-42be-b2a2-404096baf5df:dataExhibit:0",
+    "session_id": "b5ebe6b8-ce50-42be-b2a2-404096baf5df",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "The candidate misread the COGS-share data as revenue points and needed several prompts to correct it. After decomposing COGS, the candidate correctly concluded that beans alone could not explain the squeeze, but then reverted to bean-centric framing.",
+    "quotes": [
+      "So my working number stands: beans are the single largest lever, roughly 25 points of margin exposure, dairy roughly 18.",
+      "If beans are 25% of COGS, locking 25% of COGS insulates 25 points of margin",
+      "So the hierarchy inverts from where I started: dairy, packaging and food are the story, not coffee."
+    ],
+    "label": "M.wrong_base",
+    "rule": "Q1"
+  },
+  {
+    "id": "ee99bd82-6608-4dc4-b8a1-70f6250a6892:dataExhibit:1",
+    "session_id": "ee99bd82-6608-4dc4-b8a1-70f6250a6892",
+    "case_id": "pricing-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "On the cohort exhibit, the candidate separated upgrades from cancellations and saw that the upgrade stream is the key value driver, but never used the Cancelled row (5% in month 1, steady) to derive Starter churn, even after the interviewer stressed that cancellation rates are steady.",
+    "quotes": [
+      "Starter LTV stays $405.",
+      "Starter loses 40% to cancellation in year one, but another 20% upgrades to Pro, so only 40% are still paying $40."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1",
+    "ruling": "Matt 15 Nov (cross-check #3)"
+  },
+  {
+    "id": "1c8ef4cb-1f16-4158-b84b-aa7bc0fc781c:dataExhibit:1",
+    "session_id": "1c8ef4cb-1f16-4158-b84b-aa7bc0fc781c",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "After correction, the candidate tied the data to a mechanism (flat prices) and tested whether input inflation explains the COGS rise. However, the candidate did the bean/other-input split only as COGS growth and never converted it to revenue points: beans explain about 4.2 of the 16 points and other inputs about 11.8, which bears directly on which procurement lever matters.",
+    "quotes": [
+      "Beans at 25% of COGS up 40% contributes 10 points of COGS growth; the other 75% up 37.5% contributes about 28",
+      "And flat menu prices explain the mechanism.",
+      "So no waste or shrink problem hiding underneath; it's pure unpriced input inflation."
+    ],
+    "label": null,
+    "rule": "N2"
+  },
+  {
+    "id": "e4973598-3402-432e-9d11-a9478e7f5fed:dataExhibit:0",
+    "session_id": "e4973598-3402-432e-9d11-a9478e7f5fed",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "You read today's COGS as 56%, but the data given was 58%. You then closed the gap with an unexplained plug instead of noticing that 16 + 2 = 18.",
+    "quotes": [
+      "COGS runs 42% two years ago, 50% last year, and 56% today — so a 14-point climb",
+      "The last 2 points round out in the profit line."
+    ],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "6bd9edf3-7789-4658-a53a-3d249ca4cf5b:dataExhibit:0",
+    "session_id": "6bd9edf3-7789-4658-a53a-3d249ca4cf5b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "The candidate read every line of the exhibit, quickly isolated COGS as the driver and asked for the right next cut, but misread the size of the COGS move, treating its 38% relative growth as 40 points and concluding that COGS was 'more than the whole story.'",
+    "quotes": [
+      "COGS isn't just the main driver, it's more than the whole story, and something else — probably that revenue growth — is partially offsetting it.",
+      "Clear answer: COGS. Labor is flat at 22% all three years, overhead creeps 12 to 14 — two points, basically noise. COGS goes 42 to 50 to 58.",
+      "Next I'd want to split that COGS line: green coffee beans versus dairy versus cups and packaging versus food."
+    ],
+    "label": "M.percent_vs_points",
+    "rule": "Q1"
+  },
+  {
+    "id": "56b80c44-cff7-4808-84ea-34223e7af48c:dataExhibit:0",
+    "session_id": "56b80c44-cff7-4808-84ea-34223e7af48c",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "When combining input inflation figures, rounded both to ~40% and treated them as equivalent without verifying the blended effect on the COGS share.",
+    "quotes": [
+      "beans up 40% and everything else up 37.5% — basically all inputs rose by roughly the same amount, around 40%."
+    ],
+    "label": null,
+    "rule": "N2"
+  },
+  {
+    "id": "099f33e9-1fca-4806-b5b9-e9f9b794ff1d:dataExhibit:0",
+    "session_id": "099f33e9-1fca-4806-b5b9-e9f9b794ff1d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "The candidate read every line of the exhibit across all three years and correctly isolated COGS as the driver, with labor flat and overhead a minor move. However, the candidate misstated the implication: on a percent-of-revenue exhibit, COGS explains 16 of the 18 points rather than 'more than accounting for' the decline, and revenue growth did not offset anything.",
+    "quotes": [
+      "Against an 18-point decline in profit margin, COGS is more than accounting for the entire problem; the only reason margin didn't fall further is that revenue grew 15% and gave us some absorption on the fixed lines.",
+      "COGS is clearly the story. Labor is flat at 22 across all three years, overhead creeps from 12 to 14 — that's two points, basically noise. COGS goes 42 to 50 to 58."
+    ],
+    "label": "M.misread_trend",
+    "rule": "X1"
+  },
+  {
+    "id": "a5703484-8540-49b0-9453-d944ba9d3d74:dataExhibit:1",
+    "session_id": "a5703484-8540-49b0-9453-d944ba9d3d74",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "Even with the 37.5% other-input data in hand, the candidate kept the focus on beans instead of testing whether beans could explain the 16 points.",
+    "quotes": [
+      "within COGS I'm still focused on beans."
+    ],
+    "label": "M.sticky_hypothesis",
+    "rule": "H2"
+  },
+  {
+    "id": "99f694c1-6f4b-44c7-8351-4c87252c18ca:dataExhibit:0",
+    "session_id": "99f694c1-6f4b-44c7-8351-4c87252c18ca",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "The formal exhibit got a thin, one-row read. The candidate anchored on the baseline instead of walking each line's change (COGS +16, overhead +2, labor flat) and reconciling them to the 18-point decline.",
+    "quotes": [
+      "On the exhibit — the baseline row is the anchor: two years ago COGS was 42% and profit 24%."
+    ],
+    "label": "M.trivial_takeaway",
+    "rule": "X1"
+  },
+  {
+    "id": "00c6aba1-a653-4be3-9ab1-479661aa28f0:dataExhibit:0",
+    "session_id": "00c6aba1-a653-4be3-9ab1-479661aa28f0",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "The candidate correctly isolated COGS as the source of nearly all of the 18-point margin decline and immediately asked what is inside COGS, but read the line items imprecisely, mislabeling the 16-point share change as a 16% increase and waving off overhead's 2-point rise as flat.",
+    "quotes": [
+      "So COGS went up 16% over the two years, and labor and overhead basically held flat.",
+      "That's the whole story, basically — the 18 points of margin lost almost all came from COGS.",
+      "So I'd dig into COGS. Do we have a split of what's inside COGS — like beans versus milk versus cups and packaging?"
+    ],
+    "label": "M.percent_vs_points",
+    "rule": "Q1"
+  },
+  {
+    "id": "c13a049d-152a-415a-b768-bafba5743f1b:dataExhibit:0",
+    "session_id": "c13a049d-152a-415a-b768-bafba5743f1b",
+    "case_id": "pricing-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "needs_work",
+    "point": "The candidate eventually read the cohort table correctly, including where Starter customers go by month twelve. At first, only the still-on-Starter line was read, and the other lines were explained only after two prompts.",
+    "quotes": [
+      "And then by month twelve, there's only about forty percent of those three thousand that are still in the starter plan.",
+      "I'm not sure.",
+      "Oh, it seems like twenty percent moved to the pro and then forty percent canceled.",
+      "So, basically, when you go from forty dollars to sixty dollars, uh, you get fifty more pro sign ups and two hundred less starter sign ups."
+    ],
+    "label": "M.misread_trend",
+    "rule": "X1",
+    "ruling": "Matt 15 Nov (questions #7)"
+  },
+  {
+    "id": "087451cb-f530-4d78-a1be-c3ce3ff8922e:dataExhibit:2",
+    "session_id": "087451cb-f530-4d78-a1be-c3ce3ff8922e",
+    "case_id": "pricing-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "needs_work",
+    "point": "On the price test, the candidate first applied the wrong margin, ignoring that a $60 price changes the margin. The new-customers exhibit (500 → 350 Pro sign-ups) was never used to size cannibalization.",
+    "quotes": [
+      "But I'll apply the $30 Starter margin we were given, since that's the figure in the exhibit"
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "567bdb1d-2412-4016-b2c3-1e4f31dd8fe2:dataExhibit:0",
+    "session_id": "567bdb1d-2412-4016-b2c3-1e4f31dd8fe2",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "strong",
+    "point": "Your next steps came as unprioritized eight-item lists rather than one targeted check that would confirm or kill the hypothesis.",
+    "quotes": [
+      "Could I get: one, price elasticity estimates."
+    ],
+    "label": "M.laundry_list",
+    "rule": "D2"
+  },
+  {
+    "id": "6a721cdf-80ef-462b-b7ac-7237b0928508:dataExhibit:0",
+    "session_id": "6a721cdf-80ef-462b-b7ac-7237b0928508",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "needs_work",
+    "point": "You misread the entry-options exhibit, treating the 30% royalty as the partner's cut. The deciding exhibit was read backwards.",
+    "quotes": [
+      "So B is worth about $40 million more a year to Aldermoor"
+    ],
+    "label": "M.misread_trend",
+    "rule": "X1"
+  },
+  {
+    "id": "a2a5921b-e9f9-491b-9617-0a6015338d49:dataExhibit:1",
+    "session_id": "a2a5921b-e9f9-491b-9617-0a6015338d49",
+    "case_id": "pricing-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "meets_bar",
+    "point": "You took churn from the 12-month totals instead of the month-1 Cancelled row. The month-1 row directly shows 5%, and the 12-month approach gets distorted by upgraders leaving the pool.",
+    "quotes": [
+      "Starter standalone: 40% cancelled by month 12, so about 4% a month, lifetime ≈ 25 months."
+    ],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "dc8e0050-39f2-40a9-8483-d36d5935cc0b:dataExhibit:0",
+    "session_id": "dc8e0050-39f2-40a9-8483-d36d5935cc0b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "dataExhibit",
+    "rating": "strong",
+    "point": "The candidate stated the no-pass-through conclusion as fact before seeing menu-price data. It should have been framed as a hypothesis, then confirmed.",
+    "quotes": [
+      "So input-cost inflation explains essentially 100% of the COGS increase — and critically, Brew & Bean passed none of it through."
+    ],
+    "label": "M.overconfident_hypothesis",
+    "rule": "H1"
+  },
+  {
+    "id": "5c48e836-9369-45ed-ba94-4bcdb0c37dcb:judgment:0",
+    "session_id": "5c48e836-9369-45ed-ba94-4bcdb0c37dcb",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "strong",
+    "point": "The procurement action in the recommendation names forward contracts only for beans, though the candidate's own math showed non-bean inputs drove most of the COGS rise.",
+    "quotes": [
+      "lock input costs through supplier renegotiation and forward contracts on beans so the ratchet stops"
+    ],
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1"
+  },
+  {
+    "id": "f049e155-70ae-4f4f-9313-1a8d4056b327:judgment:0",
+    "session_id": "f049e155-70ae-4f4f-9313-1a8d4056b327",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "Ruling out any price move is commercially weak. Prices have been flat for two years against roughly 40% input inflation, and 15% same-store traffic growth suggests pricing power rather than fragility. The candidate also argued against a 40% increase that no one had proposed.",
+    "quotes": [
+      "The obvious reflex here is \"raise prices 40% worth.\"",
+      "My recommendation: don't raise prices."
+    ],
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1"
+  },
+  {
+    "id": "aae091ff-28da-47d6-9efe-cf19a3ee37f4:judgment:0",
+    "session_id": "aae091ff-28da-47d6-9efe-cf19a3ee37f4",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "You framed the root cause as purely a cost problem even after learning menu prices had not moved in two years. The insight that flat pricing against ~38% input inflation is half the story was not drawn out.",
+    "quotes": [
+      "Because no change in price... in many pricing has occurred, essentially, the problem really is with the cost that we've experienced cost increases."
+    ],
+    "label": "M.sticky_hypothesis",
+    "rule": "H2"
+  },
+  {
+    "id": "2871750b-fda3-4266-8a1b-26084d9f8f76:judgment:1",
+    "session_id": "2871750b-fda3-4266-8a1b-26084d9f8f76",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "Product mix was ruled out on weak reasoning that does not follow from the data.",
+    "quotes": [
+      "That essentially rules out product mix as the primary driver — mix would shift the ratio but we'd expect it alongside some pricing movement."
+    ],
+    "label": "M.unsupported_claim",
+    "rule": "H4"
+  },
+  {
+    "id": "35be6329-5986-4b9f-8b00-bbf0259ba53f:judgment:1",
+    "session_id": "35be6329-5986-4b9f-8b00-bbf0259ba53f",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "needs_work",
+    "point": "Risk awareness was generic: 'not selling enough units' with 'more marketing' as the fix. Repeat purchase and taste hesitation, the real swing factors, were never named.",
+    "quotes": [
+      "I would just have a marketing campaign to really make sure that the word is out there and we're advertising the right things about the product"
+    ],
+    "label": "M.generic_risk",
+    "rule": "J2"
+  },
+  {
+    "id": "2f92ba80-ddc1-4864-a905-3eda9c708c39:judgment:2",
+    "session_id": "2f92ba80-ddc1-4864-a905-3eda9c708c39",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate flagged competitor pricing as the test of pricing headroom but never asked for it before recommending an 8–10% increase.",
+    "quotes": [
+      "whether competitors have raised prices — that tells me the pricing headroom."
+    ],
+    "label": "M.premature_solution",
+    "rule": "H1"
+  },
+  {
+    "id": "fc47cc3d-1af7-4512-ae95-0956803e4c20:judgment:0",
+    "session_id": "fc47cc3d-1af7-4512-ae95-0956803e4c20",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate claimed volume growth worsened the problem. With roughly 42% gross contribution per cup, extra volume added profit dollars, and margin percentage is driven by price vs. input cost, not by unit count.",
+    "quotes": [
+      "Volume growth actually made it worse, since every incremental cup is sold at a compressed margin."
+    ],
+    "label": "M.unsupported_claim",
+    "rule": "H4"
+  },
+  {
+    "id": "527217df-454c-481f-8b39-a58171596f85:judgment:1",
+    "session_id": "527217df-454c-481f-8b39-a58171596f85",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate proactively surfaced risks (survey-based volume, brand permission) with sensible levers such as trial-focused marketing, protein-led messaging and a possible sub-brand, but named conversion as the biggest risk and overlooked repeat purchase, even though break-even needs at least 2 of the assumed 3 bags per buyer.",
+    "quotes": [
+      "Risks: conversion coming in a third below history. Next step: regional pilot.",
+      "Risks: volume is survey-based and could come in lower — at 6M bags we're at break-even exactly — and the 12% who don't see Hollis Bay as healthy suggests considering a sub-brand."
+    ],
+    "label": "M.missed_key_risk",
+    "rule": "J2"
+  },
+  {
+    "id": "76e618dd-d94e-4dd2-a14d-bbf1400e0cd3:judgment:0",
+    "session_id": "76e618dd-d94e-4dd2-a14d-bbf1400e0cd3",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate's central judgment that a 'massive operational issue' drives ~78% of the problem is an artifact of inflated math and an invented bean share, not evidence — it manufactures a phantom $80M problem the data does not support.",
+    "quotes": [
+      "Shall we investigate the remaining ~$80M cost gap",
+      "The vast majority of our profit leak stems from unaddressed operational inefficiencies"
+    ],
+    "label": "M.unsupported_claim",
+    "rule": "H4"
+  },
+  {
+    "id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17:judgment:0",
+    "session_id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate failed to recognize that the available data was sufficient to act. More data was demanded even though the driver and levers were already identified.",
+    "quotes": [
+      "I don't know, I'd need more data.",
+      "I can't commit without a more detailed breakdown of the biggest cost line."
+    ],
+    "label": "M.hedged_recommendation",
+    "rule": "R1"
+  },
+  {
+    "id": "104251ef-de1b-4d32-b182-2a8236283a09:judgment:0",
+    "session_id": "104251ef-de1b-4d32-b182-2a8236283a09",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate refused to make a call when the available data already supported pricing and non-coffee procurement as clear priorities. That is a judgment failure about when there is enough information to act.",
+    "quotes": [
+      "I don't know, I'd need more data.",
+      "I'm sorry — I can't commit without a more detailed breakdown of COGS."
+    ],
+    "label": "M.hedged_recommendation",
+    "rule": "R1"
+  },
+  {
+    "id": "ae0b7f13-378d-4908-a174-9f9b0827d7e8:judgment:1",
+    "session_id": "ae0b7f13-378d-4908-a174-9f9b0827d7e8",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "An unconfirmed assumption about competitors was used as a supporting reason, even though the candidate later admitted competitor pricing is unknown.",
+    "quotes": [
+      "Two, the cost increase is industry-wide, so competitors face the same pressure and are likely moving too."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "1537224a-88b3-44e2-b1fd-c7e2aee1055b:judgment:0",
+    "session_id": "1537224a-88b3-44e2-b1fd-c7e2aee1055b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "In the opening, the candidate prioritized by gut feel rather than evidence.",
+    "quotes": [
+      "For costs, I'd look at wages first, since that feels biggest. But honestly I'm guessing."
+    ],
+    "label": "M.ignores_facts",
+    "rule": "H3"
+  },
+  {
+    "id": "6ef3f607-800f-4688-b944-857515b0c795:judgment:1",
+    "session_id": "6ef3f607-800f-4688-b944-857515b0c795",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "Procurement stayed bean-centric even after the candidate's own math showed non-bean inputs drove most of the COGS rise.",
+    "quotes": [
+      "Next steps: elasticity test in a subset of stores, item-level margin data to guide the mix push, and forward contracts to cap the next cycle."
+    ],
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1"
+  },
+  {
+    "id": "83945486-c108-4c67-a0ad-91eac52cf314:judgment:0",
+    "session_id": "83945486-c108-4c67-a0ad-91eac52cf314",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "Because the bean share was mis-sized, the plan puts bean hedging alongside price as the first move. Non-bean inputs, the larger driver, are relegated to 'slower structural wins'.",
+    "quotes": [
+      "paired immediately with hedging beans",
+      "waste and packaging as slower structural wins"
+    ],
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1"
+  },
+  {
+    "id": "9c987cd0-8049-4a79-93a7-abe6f6537dfe:judgment:0",
+    "session_id": "9c987cd0-8049-4a79-93a7-abe6f6537dfe",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "Proposing a mix shift toward food as a hedge ignores the case data showing food inputs rose 37.5% alongside dairy and packaging.",
+    "quotes": [
+      "food and merchandise aren't exposed to coffee inflation"
+    ],
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1"
+  },
+  {
+    "id": "ec02dac7-580c-4e2c-9f7c-233a757e17e0:judgment:0",
+    "session_id": "ec02dac7-580c-4e2c-9f7c-233a757e17e0",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "You labeled overhead 'pure corporate bloat' without evidence. Overhead includes rent, and with revenue up 15% its dollars rose about 34%, which could equally reflect lease escalations (a risk you raised yourself earlier).",
+    "quotes": [
+      "so that's pure corporate bloat, not growth investment."
+    ],
+    "label": "M.unsupported_claim",
+    "rule": "H4"
+  },
+  {
+    "id": "b770501e-268e-46e5-8826-232a1c0e99c1:judgment:0",
+    "session_id": "b770501e-268e-46e5-8826-232a1c0e99c1",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate surfaced elasticity and competitor risk with a concrete mitigation (a 20-store, 60-day pilot), but the underlying intuition about volume risk was backwards and overstated the downside of repricing: a low fixed-cost base means more volume loss can be absorbed, not less.",
+    "quotes": [
+      "Because fixed costs here are small relative to COGS, I can't absorb much traffic loss.",
+      "I'd pilot across 20 stores for 60 days and measure traffic and ticket before a national rollout.",
+      "Competitor pricing matters: if peers already repriced, we have headroom; if not, we're moving first."
+    ],
+    "label": "M.unsupported_claim",
+    "rule": "H4"
+  },
+  {
+    "id": "48f382ab-8109-4188-a406-082db7383a96:judgment:0",
+    "session_id": "48f382ab-8109-4188-a406-082db7383a96",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The volume-risk threshold misjudged how price affects profit. Revenue falling at elasticity worse than −1 does not by itself mean profit falls, because lower volume also cuts COGS. This overstates the downside of pricing.",
+    "quotes": [
+      "At 11%, if elasticity is worse than −1, revenue falls and I've made it worse."
+    ],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "b6adc858-e729-45ee-bc65-e6d5ddb9c81d:judgment:1",
+    "session_id": "b6adc858-e729-45ee-bc65-e6d5ddb9c81d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate attributed all revenue growth to volume, even though mix shift is another way revenue can grow at flat menu prices.",
+    "quotes": [
+      "One implication worth flagging: with prices flat, the 15% revenue growth is entirely volume."
+    ],
+    "label": "M.unsupported_claim",
+    "rule": "H4"
+  },
+  {
+    "id": "5c3d2c21-7604-4374-a3ea-dfd842d9e6ac:judgment:0",
+    "session_id": "5c3d2c21-7604-4374-a3ea-dfd842d9e6ac",
+    "case_id": "pricing-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "Several claims assumed Starter churn at $60 matches churn at $40, even though the case said churn at $60 can't yet be measured.",
+    "quotes": [
+      "Even at zero upgrades, $60 clears the board's rule, and shutting it down forfeits 850 incremental customers a month in a segment Pro's $1,200 sales motion can't profitably reach."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "Matt 15 Nov (cross-check #4)"
+  },
+  {
+    "id": "6f57da6e-85c2-47a9-b9e5-f3febacf2587:judgment:2",
+    "session_id": "6f57da6e-85c2-47a9-b9e5-f3febacf2587",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The pricing advice was inconsistent: first trade price for coverage, then hold the line on price.",
+    "quotes": [
+      "be willing to price into the gap",
+      "Second, hold the line on price by selling the once-daily oral advantage — the 64% reason-to-prescribe — rather than discounting into coverage."
+    ],
+    "label": null,
+    "rule": "N6"
+  },
+  {
+    "id": "a1133734-b1c7-4432-9b59-109d671d7105:judgment:1",
+    "session_id": "a1133734-b1c7-4432-9b59-109d671d7105",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "Your launch levers were practical and correctly sequenced around the access barrier, but concluding that the survey made the 20% share conservative overlooked that those same access and presence barriers threaten it.",
+    "quotes": [
+      "That's above the 20% forecast, which says 20% is, if anything, conservative",
+      "Second, hire the insurer-access team ahead of the reps. The reps are useless calling on specialists who can't get prior approval through."
+    ],
+    "label": "M.misread_trend",
+    "rule": "X1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "fcf37d59-b823-43f1-9dda-ca2c17f53eeb:judgment:0",
+    "session_id": "fcf37d59-b823-43f1-9dda-ca2c17f53eeb",
+    "case_id": "prof-001-demo",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate paired the price move with practical mitigation, a pilot before rollout and procurement as a hedge, but framed forward contracts as risk-free without noting that locking in now could fix costs at peak prices if commodities fall back.",
+    "quotes": [
+      "Locking supply costs the client nothing in customer risk.",
+      "Pilot first — stand up the 20-store price test immediately, since it's the gating item and takes eight weeks to read.",
+      "That's a no-regrets move — it doesn't depend on elasticity, protects against further inflation, and if input costs keep climbing, even a successful price increase gets eaten."
+    ],
+    "label": "M.missed_key_risk",
+    "rule": "J2"
+  },
+  {
+    "id": "00456279-3a29-4919-bae5-30ab58c3ee38:judgment:0",
+    "session_id": "00456279-3a29-4919-bae5-30ab58c3ee38",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "Your opening assumptions were unrealistic for the client and stated with confidence: you dismissed COGS on generic industry priors.",
+    "quotes": [
+      "Nothing in COGS moves that much, so my prior is this is driven by labor and rent",
+      "Coffee is a commodity and chains hedge it, so I'd actually deprioritize bean prices."
+    ],
+    "label": "M.ignores_facts",
+    "rule": "H3"
+  },
+  {
+    "id": "b6d7a1e8-8dab-45f6-92ac-84e868444219:judgment:0",
+    "session_id": "b6d7a1e8-8dab-45f6-92ac-84e868444219",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate committed to a full recommendation before seeing any data, including a labor cut that later proved unwarranted.",
+    "quotes": [
+      "Then renegotiate bean contracts — lock in 12-month pricing instead of spot — and trim labor hours in the slowest dayparts."
+    ],
+    "label": "M.premature_solution",
+    "rule": "H1"
+  },
+  {
+    "id": "0538cda2-6d7a-4a90-8ece-9d6546b890ba:judgment:1",
+    "session_id": "0538cda2-6d7a-4a90-8ece-9d6546b890ba",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "strong",
+    "point": "The candidate didn't acknowledge that price recovers only about 5–7 of the 18 points, or size how procurement would close the rest of the gap.",
+    "quotes": [
+      "taking margin to about 11%; 8% gets them closer to 13%"
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "b2804f2a-ec13-440b-94bc-6f97de553795:judgment:0",
+    "session_id": "b2804f2a-ec13-440b-94bc-6f97de553795",
+    "case_id": "prof-001-demo",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "strong",
+    "point": "The procurement action named only beans and dairy, although the candidate's own analysis showed non-bean inputs (including packaging and food) drove 11.8 of the 16 points.",
+    "quotes": [
+      "negotiate forward contracts on beans and dairy to cap further exposure."
+    ],
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1"
+  },
+  {
+    "id": "8ec912d2-1c57-410b-8ca8-6bad0e1bcdee:judgment:2",
+    "session_id": "8ec912d2-1c57-410b-8ca8-6bad0e1bcdee",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "needs_work",
+    "point": "You never surfaced risks or mitigations, such as price elasticity, competitor response, or supplier negotiation leverage.",
+    "quotes": [
+      "Raise prices or cut costs. But I can't say which without the breakdown."
+    ],
+    "label": "M.missing_risk_or_next_step",
+    "rule": "J2"
+  },
+  {
+    "id": "e6432db0-8163-4ec6-ae5c-e0c5922b0d79:judgment:1",
+    "session_id": "e6432db0-8163-4ec6-ae5c-e0c5922b0d79",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "judgment",
+    "rating": "meets_bar",
+    "point": "The candidate judged matching fares a mistake that 'bought nothing', without weighing that not matching would likely have cost passengers. Before correcting the math, the candidate also called Lakeport 'structurally broken' and Port Avery 'nearly fixable'.",
+    "quotes": [
+      "So matching price was the wrong move — we kept the planes full at 75% and bought nothing for it.",
+      "That says Port Avery is nearly fixable with a small price move; Lakeport is structurally broken."
+    ],
+    "label": "M.unsupported_claim",
+    "rule": "H4"
+  },
+  {
+    "id": "5c33e5c0-150e-4544-bb9b-30fd244a4b28:creativity:1",
+    "session_id": "5c33e5c0-150e-4544-bb9b-30fd244a4b28",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "needs_work",
+    "point": "No mini-structure for the brainstorm, even after the interviewer supplied price vs. cost buckets.",
+    "quotes": [
+      "I'm not sure. I'd want the COGS detail before committing."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "8dce6c0b-abf1-4cae-b227-fe6bf85c3db6:creativity:0",
+    "session_id": "8dce6c0b-abf1-4cae-b227-fe6bf85c3db6",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "needs_work",
+    "point": "The candidate generated no ideas when the brainstorm was run, even after the interviewer narrowed it to a single lever or a single customer segment.",
+    "quotes": [
+      "I don't know, I'd need more data.",
+      "I'm not sure."
+    ],
+    "label": "M.too_few_ideas",
+    "rule": "C1"
+  },
+  {
+    "id": "3fdb20e8-cd7a-4e26-adff-115267e16dbc:creativity:1",
+    "session_id": "3fdb20e8-cd7a-4e26-adff-115267e16dbc",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The candidate generated a broad set of de-risking ideas and ranked the first set by impact, but the last idea was tacked on without development or prioritization and overlapped the earlier contract-sales idea.",
+    "quotes": [
+      "Four, a hybrid: partner in year one for speed, with a buy-back option.",
+      "Four things, roughly in order of impact."
+    ],
+    "label": "M.overlapping_idea_groups",
+    "rule": "C2"
+  },
+  {
+    "id": "ffe23072-b8c2-4324-893b-539567c48781:creativity:0",
+    "session_id": "ffe23072-b8c2-4324-893b-539567c48781",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The candidate produced several relevant levers across pricing, procurement and operations, extending procurement beyond beans to dairy, but presented them as a flat list with no organizing buckets and no non-obvious ideas such as menu or product mix shifts.",
+    "quotes": [
+      "Beyond that, hedge or lock in bean and dairy contracts, renegotiate with suppliers, and look at portion sizes and waste.",
+      "Raise menu prices, since they haven't moved in two years while inputs rose ~38%. Beyond that, hedge or lock in bean and dairy contracts, renegotiate with suppliers, and look at portion sizes and waste."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17:creativity:1",
+    "session_id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "Procurement ideas focused on beans, even though the candidate's own analysis showed non-bean inputs were the larger contributor.",
+    "quotes": [
+      "renegotiate or lock in longer-term bean contracts, hedge forward"
+    ],
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1"
+  },
+  {
+    "id": "fc5eb050-0f02-4f6a-a257-9ee1bc7ecf75:creativity:0",
+    "session_id": "fc5eb050-0f02-4f6a-a257-9ee1bc7ecf75",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "You generated five distinct de-risking levers, each implicitly tied to a survey barrier, but presented them as a numbered list with no explicit grouping and never said which matter most or why.",
+    "quotes": [
+      "A few levers.",
+      "First, hit the access barrier before launch, not after.",
+      "Third, buy credibility we don't have. 27% want US experience, so fund US real-world evidence and investigator studies early"
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "9226db80-3c5e-4ad3-8c45-d31bce41076a:creativity:1",
+    "session_id": "9226db80-3c5e-4ad3-8c45-d31bce41076a",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "Ideas were never prioritized by impact or feasibility, and confidence faded on the second round.",
+    "quotes": [
+      "Sorry, I'm less sure on these."
+    ],
+    "label": null,
+    "rule": "N3"
+  },
+  {
+    "id": "75b4b5fd-f44e-4b20-9b04-4d41c1e8fbac:creativity:1",
+    "session_id": "75b4b5fd-f44e-4b20-9b04-4d41c1e8fbac",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The candidate ranked price above everything else but did not rank the five non-price levers by size or speed.",
+    "quotes": [
+      "That said, a 38% input shock almost certainly needs price to carry most of it."
+    ],
+    "label": null,
+    "rule": "N3"
+  },
+  {
+    "id": "50902b9f-5065-436d-95b5-92c81d906745:creativity:0",
+    "session_id": "50902b9f-5065-436d-95b5-92c81d906745",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "strong",
+    "point": "The candidate did not prioritize within the brainstorm itself and instead asked the interviewer which levers to pursue. Prioritization only came when prompted in the next turn.",
+    "quotes": [
+      "Which of those would you push on?"
+    ],
+    "label": "M.waited_for_interviewer",
+    "rule": "L4"
+  },
+  {
+    "id": "a65c1831-a412-4eab-91c2-0577db484673:creativity:0",
+    "session_id": "a65c1831-a412-4eab-91c2-0577db484673",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The candidate produced several distinct levers, including less obvious ones like private label on packaging and mix shift away from milk-heavy drinks, but presented them as a flat numbered list rather than organized buckets, and no revenue/pricing lever went beyond a flat across-the-board increase.",
+    "quotes": [
+      "Beyond pricing, a few levers. One, procurement",
+      "One, procurement — renegotiate or consolidate vendors, lock in longer contracts or hedge beans, explore private label on packaging and food.",
+      "Three, mix shift — push higher-margin items like brewed coffee and retail beans over milk-heavy drinks."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "c6076209-0da1-4541-9f9a-4f60ae402abc:creativity:0",
+    "session_id": "c6076209-0da1-4541-9f9a-4f60ae402abc",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "needs_work",
+    "point": "Produced only obvious, single-line ideas and dried up quickly even with heavy scaffolding.",
+    "quotes": [
+      "Maybe buy in bulk, or lock in a price?",
+      "Maybe take off the things that cost the most?"
+    ],
+    "label": "M.too_few_ideas",
+    "rule": "C1"
+  },
+  {
+    "id": "e70aa6a5-3ec6-4da0-a3a3-d6dbf8670e38:creativity:0",
+    "session_id": "e70aa6a5-3ec6-4da0-a3a3-d6dbf8670e38",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The ideas were listed sequentially rather than organized into explicit buckets such as price, cost and mix, so the brainstorm reads as a flat list.",
+    "quotes": [
+      "A few levers beyond pricing, though pricing is the obvious first one."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "065501fe-d054-4e9d-8d07-865b9e195c08:creativity:0",
+    "session_id": "065501fe-d054-4e9d-8d07-865b9e195c08",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The ideas were never ranked by impact or feasibility. The second batch was organized only after the interviewer suggested the categories.",
+    "quotes": [
+      "A few levers, all on top of the redeployment."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "72a9f1b8-fca1-440f-9a07-b7170cdb357b:creativity:0",
+    "session_id": "72a9f1b8-fca1-440f-9a07-b7170cdb357b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The ideas came as a flat list with no explicit mini-structure, such as revenue levers vs. cost levers vs. structural protections.",
+    "quotes": [
+      "Beyond price, the other levers I'd look at:"
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "b5ebe6b8-ce50-42be-b2a2-404096baf5df:creativity:0",
+    "session_id": "b5ebe6b8-ce50-42be-b2a2-404096baf5df",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The ideas were a flat numbered list, not organized into buckets such as revenue versus cost or input-cost versus operating-cost.",
+    "quotes": [
+      "Beyond pricing, four levers. First, procurement: forward-contracting or hedging green coffee."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "c1b79f9e-1755-4b7f-b900-0026221b080f:creativity:0",
+    "session_id": "c1b79f9e-1755-4b7f-b900-0026221b080f",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The ideas came as a flat list, with no buckets (e.g., price, input costs, mix, operations).",
+    "quotes": [
+      "Um, a few things. Raise menu prices, obviously, since they haven't moved at all."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "645b7616-4f3c-484c-b65d-98d3592832dc:creativity:1",
+    "session_id": "645b7616-4f3c-484c-b65d-98d3592832dc",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The three extra levers were placed behind pricing but never ranked against each other by impact or ease.",
+    "quotes": [
+      "All three are real, all three sit behind pricing and procurement, and all three need data I don't have yet."
+    ],
+    "label": null,
+    "rule": "N3"
+  },
+  {
+    "id": "e2f773eb-fd2b-4d8b-ac8d-d0005ff8448c:creativity:0",
+    "session_id": "e2f773eb-fd2b-4d8b-ac8d-d0005ff8448c",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The candidate announced a clear structure for the brainstorm before listing ideas, but never applied the announced six-month versus twelve-plus-month split, and did not rank ideas across buckets by impact.",
+    "quotes": [
+      "On costs — procurement first.",
+      "Smaller, but worth a look given it rose with no new stores.",
+      "I'd organize it two ways: cost levers versus revenue levers beyond headline price, and then within each, what's controllable in six months versus twelve-plus."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "6f664a33-2e88-464e-b2ff-4322c7aa309d:creativity:0",
+    "session_id": "6f664a33-2e88-464e-b2ff-4322c7aa309d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "Ideas within buckets stayed fairly conventional and the candidate did not explore revenue-side or product-mix creativity such as a lower-cost commodity blend or SKU rationalization.",
+    "quotes": [
+      "hedge or forward-contract beans, renegotiate with suppliers at 200-store scale, consider a second origin"
+    ],
+    "label": "M.too_few_ideas",
+    "rule": "C1"
+  },
+  {
+    "id": "a967b2aa-0cc4-4359-ba9d-f8b1e344921d:creativity:0",
+    "session_id": "a967b2aa-0cc4-4359-ba9d-f8b1e344921d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "needs_work",
+    "point": "You produced zero ideas when asked to brainstorm, even after the interviewer explicitly suggested buckets (price, input costs, menu/customer).",
+    "quotes": [
+      "Hmm, I'm not sure.",
+      "I'm stuck, sorry."
+    ],
+    "label": "M.too_few_ideas",
+    "rule": "C1"
+  },
+  {
+    "id": "6e5a1c90-0518-4bb9-bf60-c7f3d509c496:creativity:1",
+    "session_id": "6e5a1c90-0518-4bb9-bf60-c7f3d509c496",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The ideas were not prioritized by impact or feasibility within the 12-month window. For example, upgauging is unlikely to happen within a year.",
+    "quotes": [
+      "Fourth, cost per seat. The entrant runs 30% below us on larger aircraft — worth testing whether upgauging closes part of that gap."
+    ],
+    "label": null,
+    "rule": "N3"
+  },
+  {
+    "id": "e0f7d46c-eb5d-4878-b1c3-623d54f74341:creativity:0",
+    "session_id": "e0f7d46c-eb5d-4878-b1c3-623d54f74341",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The brainstorm was not prioritized. Six levers were listed with equal weight, and the turn ended with a data request instead of a ranking by impact and speed.",
+    "quotes": [
+      "One I'd flag — do we know transaction volume per store over the two years?"
+    ],
+    "label": null,
+    "rule": "N3"
+  },
+  {
+    "id": "fc47cc3d-1af7-4512-ae95-0956803e4c20:creativity:0",
+    "session_id": "fc47cc3d-1af7-4512-ae95-0956803e4c20",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The four levers were listed but not ranked by impact or ease, so it's unclear which to pursue first.",
+    "quotes": [
+      "Net: price is still the biggest lever, but these can cover part of the gap."
+    ],
+    "label": null,
+    "rule": "N3"
+  },
+  {
+    "id": "56b80c44-cff7-4808-84ea-34223e7af48c:creativity:0",
+    "session_id": "56b80c44-cff7-4808-84ea-34223e7af48c",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "needs_work",
+    "point": "The candidate generated a handful of relevant levers across pricing and cost, but only under repeated prompting and without offering any non-obvious lever.",
+    "quotes": [
+      "Maybe loyalty programs? Or something to keep volume up if prices go up.",
+      "I'm not really sure.",
+      "negotiate with suppliers on beans and dairy? Or longer-term contracts to lock in prices.",
+      "look at the menu mix, pushing higher-margin drinks. And maybe portion or waste control"
+    ],
+    "label": null,
+    "rule": "N7",
+    "ruling": "Matt 15 Nov (questions #13)"
+  },
+  {
+    "id": "8c4c1364-fe24-43cd-822c-3bd64a3f8b19:creativity:0",
+    "session_id": "8c4c1364-fe24-43cd-822c-3bd64a3f8b19",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The brainstorm was a numbered list with no organizing frame announced up front, such as cost-side vs. revenue-side, or near-term vs. structural.",
+    "quotes": [
+      "Sure, let me broaden beyond price and procurement. A few more levers."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "5a1ae7f5-5739-42ea-be68-06916b356049:creativity:0",
+    "session_id": "5a1ae7f5-5739-42ea-be68-06916b356049",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The mix idea usefully reframed attachment as something to steer rather than fight, but overall the ideas were mostly conventional cost levers, and none was clearly non-obvious or specific to Brew & Bean.",
+    "quotes": [
+      "If they're buying dairy store-by-store or regionally, centralizing that could pull a few points.",
+      "On mix: rather than fighting the attachment, steer it — push higher-margin add-ons like pastries with better markup, or reformulate the lowest-margin items."
+    ],
+    "label": null,
+    "rule": "N7"
+  },
+  {
+    "id": "f59f5ea8-7008-4a82-b196-2dd535d9d3f8:creativity:0",
+    "session_id": "f59f5ea8-7008-4a82-b196-2dd535d9d3f8",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The brainstorm was a flat numbered list with no organizing buckets (for example access, field presence, demand creation, risk-sharing). You also never said which lever you would pull first or why.",
+    "quotes": [
+      "A few levers."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "c518221e-0752-4f46-90d1-72d5887e72c9:creativity:1",
+    "session_id": "c518221e-0752-4f46-90d1-72d5887e72c9",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The candidate never said which ideas matter most or should come first; the list ended with a minor option and a data request.",
+    "quotes": [
+      "A smaller option: license co-promotion in some regions only."
+    ],
+    "label": null,
+    "rule": "N3"
+  },
+  {
+    "id": "8ec912d2-1c57-410b-8ca8-6bad0e1bcdee:creativity:1",
+    "session_id": "8ec912d2-1c57-410b-8ca8-6bad0e1bcdee",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "needs_work",
+    "point": "Your ideas had no bucket structure, no non-obvious option, and no prioritization.",
+    "quotes": [
+      "I'm stuck, sorry."
+    ],
+    "label": "M.unstructured_ideas",
+    "rule": "C2"
+  },
+  {
+    "id": "a7e07813-8243-4880-8751-7514a2d9308f:creativity:0",
+    "session_id": "a7e07813-8243-4880-8751-7514a2d9308f",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "creativity",
+    "rating": "meets_bar",
+    "point": "The candidate produced several distinct ideas across procurement, mix, reformulation, overhead and labor scheduling, but all were conventional cost-and-mix levers, and none reached for new margin sources or ways to strengthen pricing power.",
+    "quotes": [
+      "Fourth, labor is 22% and flat, so it's not the cause, but there may be scheduling efficiency available.",
+      "Also reformulation: cheaper milk alternatives, lighter cup stock, portion control on dairy.",
+      "Rather than raising the headline latte price, push higher-margin items — food attachment, larger sizes, cold brew — and lift ticket without changing posted prices."
+    ],
+    "label": null,
+    "rule": "N7"
+  },
+  {
+    "id": "f224ebb1-c7b0-43c8-a003-b78a606e290c:synthesis:0",
+    "session_id": "f224ebb1-c7b0-43c8-a003-b78a606e290c",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "The expected-impact figure given to the CEO was understated (about 14.5%, not 11%, for a 10% price rise), which weakens the 'what to expect' part of the answer.",
+    "quotes": [
+      "margin goes from 6% to about 11%"
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "b6d7a1e8-8dab-45f6-92ac-84e868444219:synthesis:0",
+    "session_id": "b6d7a1e8-8dab-45f6-92ac-84e868444219",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "The upside from sourcing, waste and mix was asserted but not quantified.",
+    "quotes": [
+      "sourcing plus waste control and a mix shift toward food should push it higher."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "Matt 15 Nov (cross-check #5)"
+  },
+  {
+    "id": "8cd9c36f-ef1c-4133-89c2-4d6612e6e2ee:synthesis:0",
+    "session_id": "8cd9c36f-ef1c-4133-89c2-4d6612e6e2ee",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "The synthesis offered a price figure without stating the margin it delivers or how procurement closes the remaining gap.",
+    "quotes": [
+      "First, price: a roughly 15% increase would restore COGS to about 50% of revenue even with zero volume change, recovering most of the gap."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "bc5ad656-f58d-4783-bf38-daee72131e3e:synthesis:0",
+    "session_id": "bc5ad656-f58d-4783-bf38-daee72131e3e",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "Undercut the recommendation with self-doubt and left the levers unprioritized rather than committing to a lead action.",
+    "quotes": [
+      "Um, is that okay? I feel like I should've had a more specific answer."
+    ],
+    "label": "M.hedged_recommendation",
+    "rule": "R1"
+  },
+  {
+    "id": "ea27d1f6-4bfd-45e3-a08c-6b21c3259f49:synthesis:0",
+    "session_id": "ea27d1f6-4bfd-45e3-a08c-6b21c3259f49",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The sizing behind the recommendation misstated the analysis. It rested on the 38–40-point figure rather than the 16-point COGS move, and the price increase was asserted rather than derived.",
+    "quotes": [
+      "Given the 38-to-40-point pressure, I'd be thinking about a high-single to low-double-digit increase, phased."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "ae0b7f13-378d-4908-a174-9f9b0827d7e8:synthesis:0",
+    "session_id": "ae0b7f13-378d-4908-a174-9f9b0827d7e8",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "Two of the three supporting reasons were weak: one rested on an unconfirmed competitor assumption, and one on an undervalidated and overstated price-sizing claim.",
+    "quotes": [
+      "Three, a roughly 10% price increase on a 58% COGS base recovers most of the gap."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "b5ebe6b8-ce50-42be-b2a2-404096baf5df:synthesis:0",
+    "session_id": "b5ebe6b8-ce50-42be-b2a2-404096baf5df",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The supporting sizing does not follow from the analysis. It claims 10 points from price, 25 points from bean hedging, and a 39-point gap, none of which hold. It also ignores the non-bean inputs the candidate had shown were the largest driver.",
+    "quotes": [
+      "That's the whole case: a 39-point pass-through gap the client has absorbed entirely.",
+      "Layer in hedging beans — 25% of COGS, so 25 points of exposure insulated"
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "62d06bd6-d62e-48d5-92a9-48464087f028:synthesis:0",
+    "session_id": "62d06bd6-d62e-48d5-92a9-48464087f028",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "The sizing showed that 15% pricing reaches about 18%, not the original 24%, but the candidate didn't state how the supporting levers close the remaining gap.",
+    "quotes": [
+      "Even with some volume loss we recover most of the gap."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "8ec912d2-1c57-410b-8ca8-6bad0e1bcdee:synthesis:0",
+    "session_id": "8ec912d2-1c57-410b-8ca8-6bad0e1bcdee",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "needs_work",
+    "point": "You never committed to a recommendation, even after repeated direct asks and a Level 2 hint.",
+    "quotes": [
+      "I'd tell them I need a more detailed COGS breakdown before recommending anything.",
+      "I don't know. I can't commit without that cost breakdown."
+    ],
+    "label": "M.hedged_recommendation",
+    "rule": "R1"
+  },
+  {
+    "id": "c218e87d-e0ce-450a-be97-4263edbd94af:synthesis:0",
+    "session_id": "c218e87d-e0ce-450a-be97-4263edbd94af",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "The supporting figure carried the understated ~5-point impact (about 8.5 with volume held), and closing by asking for another case undercut the finish.",
+    "quotes": [
+      "Risks: volume loss if competitors hold price, so the 5 points is a ceiling; hedging locks you in if commodities fall; overhead is still drifting a point a year and needs a separate look.",
+      "That's my answer — can we do another case?"
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "3f928012-4350-41da-ae8c-7e1bc390c6e2:synthesis:2",
+    "session_id": "3f928012-4350-41da-ae8c-7e1bc390c6e2",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "A full recommendation was delivered prematurely at turn 5, before the cause of the fare decline was known.",
+    "quotes": [
+      "Recommendation: fix price, not capacity."
+    ],
+    "label": "M.premature_solution",
+    "rule": "H1"
+  },
+  {
+    "id": "c518221e-0752-4f46-90d1-72d5887e72c9:synthesis:1",
+    "session_id": "c518221e-0752-4f46-90d1-72d5887e72c9",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The synthesis named a specific, quantified key risk and concrete next steps, but it left out execution risk from having no US experience, even though the candidate had earlier said B wins on exactly that.",
+    "quotes": [
+      "So A wins on economics and on the bar as written; B wins on execution risk.",
+      "Biggest risk: the headroom is only 7%, and the 58% payer-access barrier is the thing most likely to eat it.",
+      "Next steps: validate the 20% share forecast, pressure-test rebate depth with payer research, and start formulary contracting a full cycle ahead of launch."
+    ],
+    "label": "M.missed_key_risk",
+    "rule": "J2"
+  },
+  {
+    "id": "6c623b8c-bc19-4ed9-b275-77e739ef30e4:synthesis:0",
+    "session_id": "6c623b8c-bc19-4ed9-b275-77e739ef30e4",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "needs_work",
+    "point": "The recommendation gave no reasons tied to the analysis. It never cited flat prices for two years, the 16-of-18-point COGS increase, or non-bean inputs driving most of it. The interviewer had to re-ask the question (a Level 1 assist).",
+    "quotes": [
+      "I'd prioritize selective price increases. I'd prioritize getting better costs from our suppliers"
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "aae091ff-28da-47d6-9efe-cf19a3ee37f4:synthesis:0",
+    "session_id": "aae091ff-28da-47d6-9efe-cf19a3ee37f4",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "You committed to a clear recommendation, price increases, tied to the finding that prices had been flat, but the support was vague and unquantified. It did not reference the 16-point COGS rise, the ~38% input inflation, or how much price is needed.",
+    "quotes": [
+      "And so I think consumers would be okay with a slight price price increase, especially when our cost has increased by so much.",
+      "I would choose... so, like, the price increases, we haven't increased our price in quite a while."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "72cc7205-a536-4336-82e6-05acaab452bd:synthesis:1",
+    "session_id": "72cc7205-a536-4336-82e6-05acaab452bd",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "One supporting reason was flawed, and the synthesis never said how much of the 18-point decline the plan recovers.",
+    "quotes": [
+      "That is a signal they are not very price sensitive."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "ce4e7880-217b-4a8f-9e83-b2c5d22b5e54:synthesis:0",
+    "session_id": "ce4e7880-217b-4a8f-9e83-b2c5d22b5e54",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "needs_work",
+    "point": "The candidate repeatedly declined to commit to a recommendation, even after the interviewer supplied the cause and the lever.",
+    "quotes": [
+      "Sorry — I don't know. I don't think I can give you a recommendation.",
+      "Sorry, I don't think I can give you the recommendation."
+    ],
+    "label": "M.hedged_recommendation",
+    "rule": "R1"
+  },
+  {
+    "id": "eb170e49-274f-4df8-b7f7-834342f43ec3:synthesis:1",
+    "session_id": "eb170e49-274f-4df8-b7f7-834342f43ec3",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "Closing on a self-critique dilutes the recommendation and uses airtime meant for the client.",
+    "quotes": [
+      "I'll own that I anchored on input costs early and had to walk that back."
+    ],
+    "label": null,
+    "rule": "N4",
+    "ruling": "Matt 15 Nov (questions #14)"
+  },
+  {
+    "id": "f7635592-313a-449e-8266-9e0788497ebf:synthesis:0",
+    "session_id": "f7635592-313a-449e-8266-9e0788497ebf",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The recommendation ran long: math, assumptions, pilot design, risks and next steps all in one answer, well past a 60–90 second synthesis.",
+    "quotes": [
+      "Math: a 10% price rise takes COGS from 58% to 58/1.10 ≈ 52.7% of revenue — about 5 points of margin back, lifting net to roughly 11%."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "31e33506-6c32-4c47-a437-2c46162b63e6:synthesis:0",
+    "session_id": "31e33506-6c32-4c47-a437-2c46162b63e6",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The headline benefit rests on the 10-point figure the candidate could not reconstruct. The candidate's own correct 4.2 implies about 10% margin, not 16%.",
+    "quotes": [
+      "On my numbers, neutralizing beans moves margin from 6% to roughly 16%."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "70a06d70-aba8-4692-92ff-1c5a152556ad:synthesis:1",
+    "session_id": "70a06d70-aba8-4692-92ff-1c5a152556ad",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The candidate led with a clear recommendation backed by the break-even math and the survey build, but time spent on a retraction and an overstated cushion diluted the summary.",
+    "quotes": [
+      "I was wrong earlier to push a premium",
+      "Nearly double the hurdle.",
+      "Recommendation: launch the chickpea line next spring, and fund the sampling program alongside it.",
+      "The survey build gets us 9 million bags from 3 million converting households at 3 bags each."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "recheck: N4 change (questions #14)"
+  },
+  {
+    "id": "e2f773eb-fd2b-4d8b-ac8d-d0005ff8448c:synthesis:0",
+    "session_id": "e2f773eb-fd2b-4d8b-ac8d-d0005ff8448c",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "The sizing is underived and internally inconsistent: it calls for 15% to 'close the gap' but pilots 8–10%, and it never states what margin that pilot would deliver.",
+    "quotes": [
+      "call it 15% — would roughly close the gap.",
+      "pilot 8–10% in a subset of markets"
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "5c86db99-5014-485f-920f-945cc8f1cf84:synthesis:0",
+    "session_id": "5c86db99-5014-485f-920f-945cc8f1cf84",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "The supporting math embedded in the recommendation carried a wrong margin figure that had to be corrected two turns later, slightly undermining the crispness of the delivered synthesis.",
+    "quotes": [
+      "a 13% price increase on flat volume lifts revenue 13%, and COGS drops from 58% to about 51% of revenue — recovering roughly 7 points of margin, to 13%."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "fc47cc3d-1af7-4512-ae95-0956803e4c20:synthesis:1",
+    "session_id": "fc47cc3d-1af7-4512-ae95-0956803e4c20",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The impact sizing presented to the CEO was materially understated ($40M vs. about $72M) and had to be corrected under probing.",
+    "quotes": [
+      "COGS stays $278M, falling from 58% to about 50% — roughly 8 points of margin, or $40M."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "1df7383a-1895-43c2-8684-ca7b59bd722d:synthesis:0",
+    "session_id": "1df7383a-1895-43c2-8684-ca7b59bd722d",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "needs_work",
+    "point": "The candidate never delivered a recommendation despite repeated scaffolding, including an offered sentence starter.",
+    "quotes": [
+      "But for the recommendation... I'm sorry, I really don't know.",
+      "I'm sorry — I don't know."
+    ],
+    "label": "M.hedged_recommendation",
+    "rule": "R1"
+  },
+  {
+    "id": "9dd34b4a-82e9-414f-84af-43ecc19849c6:synthesis:0",
+    "session_id": "9dd34b4a-82e9-414f-84af-43ecc19849c6",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "The procurement scope named only beans and dairy, though your own analysis showed packaging and food were also up 37.5%.",
+    "quotes": [
+      "run a parallel procurement renegotiation on beans and dairy"
+    ],
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1"
+  },
+  {
+    "id": "62cfe6f4-b339-45a9-9c77-ddcadb357566:synthesis:1",
+    "session_id": "62cfe6f4-b339-45a9-9c77-ddcadb357566",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The recommendation never stated how much margin the plan recovers, leaving the 6–8% price step unreconciled with the roughly 24% you derived as needed.",
+    "quotes": [
+      "Phase one, next quarter: a targeted 6–8% price increase on inelastic items — espresso drinks, food — while holding entry-price drip coffee to protect traffic."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "58cb8061-a75a-412d-acdf-4f7dfaed0b4f:synthesis:0",
+    "session_id": "58cb8061-a75a-412d-acdf-4f7dfaed0b4f",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "Slightly understated the beans figure in the final synthesis, calling it 'about 4 points' when his own derivation gave 4.2 — minor, but rounded down in the headline.",
+    "quotes": [
+      "beans alone up 40%, worth about 4 points"
+    ],
+    "label": null,
+    "rule": "N4",
+    "ruling": "Matt 15 Nov (cross-check #6)"
+  },
+  {
+    "id": "13b37c6c-d7eb-48f5-ad96-7ab8986c3f56:synthesis:0",
+    "session_id": "13b37c6c-d7eb-48f5-ad96-7ab8986c3f56",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "strong",
+    "point": "The closing repeated the 'triples profit' overstatement; 6.9→18.4 is about 2.7x.",
+    "quotes": [
+      "which triples profit to roughly 14.5% margin if volume holds"
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "645b7616-4f3c-484c-b65d-98d3592832dc:synthesis:0",
+    "session_id": "645b7616-4f3c-484c-b65d-98d3592832dc",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The synthesis ran several minutes. It re-walked the whole diagnosis, three parallel workstreams, three risks and a data list, which works against the 60–90 second standard.",
+    "quotes": [
+      "So, first, and this is important, here's the diagnosis in one line."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "0b9e1f49-d7ec-43cf-aafc-5fe3f8b6d2d4:synthesis:0",
+    "session_id": "0b9e1f49-d7ec-43cf-aafc-5fe3f8b6d2d4",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "synthesis",
+    "rating": "meets_bar",
+    "point": "The supporting case rested on an unverified sizing claim: the 10–12 point figure overstated the ~8.5-point gain from a 10% increase. The procurement lever was also not justified with the input-cost analysis already completed.",
+    "quotes": [
+      "Roughly, a 10% price increase on flat volume adds about 10 points of revenue against unchanged costs."
+    ],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "3240a046-33be-488b-aec4-e1660a583cec:communication:2",
+    "session_id": "3240a046-33be-488b-aec4-e1660a583cec",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "You listened, built on the interviewer's cues and owned wording errors cleanly, but imprecise labels such as calling total cost 'COGS' created confusion in the first place.",
+    "quotes": [
+      "COGS back near 88 points of revenue and same-store transactions flat.",
+      "That was sloppy wording — 88 is total costs, not COGS."
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "f585abc2-fbd0-4259-8b6b-c274349b6158:communication:1",
+    "session_id": "f585abc2-fbd0-4259-8b6b-c274349b6158",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate repeatedly asked for scores and a lenient write-up instead of closing on the content.",
+    "quotes": [
+      "since this is practice, I'd appreciate a generous write-up."
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "4224252c-02a8-43bd-b738-ee681d543001:communication:0",
+    "session_id": "4224252c-02a8-43bd-b738-ee681d543001",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "From the analysis onward the candidate was top-down and signposted with explicit enumeration, but the opening meandered and then stalled, so delivery wasn't consistently top-down across the interview.",
+    "quotes": [
+      "So, I'd want to look at the whole business — revenue, costs, the market, maybe competitors",
+      "I'm stuck, sorry.",
+      "First, the direct one: COGS as a percent of revenue should fall from 58% toward the low 50s"
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "dc0d4d8b-cfa1-466d-97ff-852286c44270:communication:1",
+    "session_id": "dc0d4d8b-cfa1-466d-97ff-852286c44270",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "needs_work",
+    "point": "No signposting or enumeration ('first... second...'); the interviewer had to repeatedly prompt for more.",
+    "quotes": [
+      "Profit is a function of revenue and cost."
+    ],
+    "label": null,
+    "rule": "N5",
+    "ruling": "Matt 15 Nov (cross-check #7)"
+  },
+  {
+    "id": "442e37ff-0f60-45b2-8e5c-fc64f3964de0:communication:0",
+    "session_id": "442e37ff-0f60-45b2-8e5c-fc64f3964de0",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "strong",
+    "point": "Repeated small misquotes of case figures undercut precision, which matters a lot in front of a client.",
+    "quotes": [
+      "I'd fund both inside the existing $4.3M marketing line rather than adding spend."
+    ],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "cc3d1581-ac13-40f9-9d78-af4a8730d9d2:communication:0",
+    "session_id": "cc3d1581-ac13-40f9-9d78-af4a8730d9d2",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "strong",
+    "point": "Frequent self-directed negative muttering added filler and risked undermining delivery.",
+    "quotes": [
+      "Honestly I'm going to bomb every interview at this rate",
+      "This is harder than I expected to pin down"
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "f59f5ea8-7008-4a82-b196-2dd535d9d3f8:communication:0",
+    "session_id": "f59f5ea8-7008-4a82-b196-2dd535d9d3f8",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Many turns opened with the headline and used clear signposts, but the calculation turns were delivered bottom-up with the conclusion only at the end, and the entry-options turn ended with a question rather than an answer.",
+    "quotes": [
+      "Let me run both against the bar.",
+      "Which definition is the board using? That's the pivotal question.",
+      "The survey is encouraging on the demand side but flags real execution risk.",
+      "Three ways."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "6f3aeecf-098f-4217-81a2-e3065a7d5619:communication:0",
+    "session_id": "6f3aeecf-098f-4217-81a2-e3065a7d5619",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Most answers were top-down, signposted, and hypothesis-driven, but the final break-even answer meandered from ticket math to contribution margin to a data request and never landed the answer first.",
+    "quotes": [
+      "Let me size it with a simple margin logic.",
+      "I'd want the variable-versus-fixed split within COGS and labor to compute it precisely. Can I get that?",
+      "So I'd break it into three buckets.",
+      "My instinct is this is cost-driven rather than revenue-driven, but I don't want to assume that yet"
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "e5ee78c6-6604-4ebf-91cb-d71ec962e975:communication:0",
+    "session_id": "e5ee78c6-6604-4ebf-91cb-d71ec962e975",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "strong",
+    "point": "The repeated Harborline asides lengthened answers and pulled focus from the client's data.",
+    "quotes": [
+      "At Harborline our beverage COGS runs about 31% while the food program runs north of 60%, and we've been pushing food attach hard because it lifts ticket, so I've seen exactly this dynamic internally."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "4b582217-e17d-4dd1-ae75-feab04267965:communication:0",
+    "session_id": "4b582217-e17d-4dd1-ae75-feab04267965",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate's mid-case and closing statements were crisp and answer-first, but nearly every other turn opened or closed with an eight-item data list that buried the reasoning and came across as bottom-up rather than structure-first.",
+    "quotes": [
+      "Before I lock the framework, can I get a few more things?",
+      "Can I get a few more things though?",
+      "COGS jumped 16 points, labor flat, overhead up 2 — so COGS is where it is.",
+      "My recommendation: Brew & Bean should raise menu prices, roughly 10–12%, phased in, because input cost inflation is the entire story and none of it has been passed through."
+    ],
+    "label": "M.laundry_list",
+    "rule": "D2"
+  },
+  {
+    "id": "70a06d70-aba8-4692-92ff-1c5a152556ad:communication:0",
+    "session_id": "70a06d70-aba8-4692-92ff-1c5a152556ad",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate was crisp and signposted in the analysis and risk sections, stating the structure before the detail. Early on, though, the candidate brushed off the interviewer's structuring question, which read as dismissive rather than top-down.",
+    "quotes": [
+      "Honestly, I think the structure is pretty much implied by the answer",
+      "To be candid, I think we risk over-structuring.",
+      "Economics first, since break-even is the bar. Let me run it.",
+      "Beyond the testing, I'd guard it on three fronts."
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "3f928012-4350-41da-ae8c-7e1bc390c6e2:communication:0",
+    "session_id": "3f928012-4350-41da-ae8c-7e1bc390c6e2",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate asked to end the case at the close of nearly every answer, even after the interviewer said twice to keep to the case. In a real interview this reads as disengagement and not listening.",
+    "quotes": [
+      "I'm done — can we do another case?"
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "0150f744-544b-441d-acdf-bc2693f87e41:communication:0",
+    "session_id": "0150f744-544b-441d-acdf-bc2693f87e41",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "strong",
+    "point": "Some answers ran long. The turn 19 explanation of the 19% error speculated at length instead of simply stating the correct figure and moving on.",
+    "quotes": [
+      "I think what happened is I annualized it loosely in my head — something like 15% over two years as a compounding rate, then re-multiplied it back out and landed on a bigger number"
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "d28f56c3-cf95-4f30-9895-75410762a7cf:communication:0",
+    "session_id": "d28f56c3-cf95-4f30-9895-75410762a7cf",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate repeatedly failed to build on the interviewer's cues about the 38 figure, which made several turns read as talking past the question.",
+    "quotes": [
+      "So directionally, every other line is noise. The 38 points is the case.",
+      "the 16 is the accounting view, what shows up on the statement. The 38 is the economic view"
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "f80d981c-6f4d-464b-941a-41ea02503754:communication:0",
+    "session_id": "f80d981c-6f4d-464b-941a-41ea02503754",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate often led with the takeaway and signposted lists clearly, but mid-case delivery slipped into bottom-up math dumps, with wrong figures stated as confident conclusions and then walked back, which undermines credibility.",
+    "quotes": [
+      "The $24M was me adding $19.2M and... actually it doesn't add — $19.2M + $9.6M is $28.8M, so I was sloppy.",
+      "Combined that's about $24M, matching the swing.",
+      "Since flights are identical at 14,000 both years, nothing is driven by capacity — it's pure per-flight economics.",
+      "A few levers beyond the route swap."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "f7635592-313a-449e-8266-9e0788497ebf:communication:0",
+    "session_id": "f7635592-313a-449e-8266-9e0788497ebf",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "strong",
+    "point": "Narrated an exhibit not yet seen, so the interviewer had to point out that it hadn't actually been read.",
+    "quotes": [
+      "It should tie out the arithmetic I've been doing."
+    ],
+    "label": "M.unsupported_claim",
+    "rule": "H4"
+  },
+  {
+    "id": "0a5cdc18-a6bc-4cb0-a1fd-4689ec8ced47:communication:0",
+    "session_id": "0a5cdc18-a6bc-4cb0-a1fd-4689ec8ced47",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate signposted clearly with enumerated points and hypothesis-driven language from the opening. During the math probes, though, the explanations became circular and hard to follow as the candidate rationalized the flawed 24.4 figure.",
+    "quotes": [
+      "So the way I was framing it: 24.4 points is the increment layered on top of the original 42, which would put total COGS around 66 if you added it back.",
+      "Either way the conclusion holds: beans inside COGS are the driver.",
+      "I'd break it into three buckets.",
+      "My hypothesis going in is that a major input cost, likely coffee beans or labor, has risen faster than they've been able to pass through in menu prices."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "1901cf99-701b-47d1-85d0-2361dd56c226:communication:1",
+    "session_id": "1901cf99-701b-47d1-85d0-2361dd56c226",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate's analytical turns were top-down and crisp and led with the answer, but the brainstorm answers were clipped fragments with no signposting.",
+    "quotes": [
+      "Loyalty program, smaller cup sizes at the same price, and reducing discounting.",
+      "COGS explains essentially all of it.",
+      "Costs, specifically the variable side."
+    ],
+    "label": null,
+    "rule": "N5"
+  },
+  {
+    "id": "1527e066-fc41-42b9-a995-7c36017c9c93:communication:0",
+    "session_id": "1527e066-fc41-42b9-a995-7c36017c9c93",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Several answers trailed into side ideas mid-analysis, diluting the top-down line.",
+    "quotes": [
+      "Worth noting too — a lighter roast or a shift in bean grade could cut cost per cup without customers noticing.",
+      "Also worth checking whether store-level waste or shrink has crept up — that hides inside COGS."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "567bdb1d-2412-4016-b2c3-1e4f31dd8fe2:communication:1",
+    "session_id": "567bdb1d-2412-4016-b2c3-1e4f31dd8fe2",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Your later turns were answer-first and clearly labeled, but your opening was bottom-up (data first, structure later) rather than top-down.",
+    "quotes": [
+      "Before I structure further, could I get a few data points?",
+      "COGS clearly — 42% to 58% is a 16-point swing, and labor's flat, overhead only moved two points."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "f99bb343-e4f2-48ae-aabd-be0161f41448:communication:0",
+    "session_id": "f99bb343-e4f2-48ae-aabd-be0161f41448",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Nearly every turn opens with an apology or self-deprecation. This delays the answer and undermines executive presence, and it acts as heavy filler.",
+    "quotes": [
+      "Let me work it through — sorry, I'm slow at this.",
+      "Sorry — let me actually look at it instead of defending it."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "6544aa01-3a6d-410a-83ab-b7dae6de3fcc:communication:0",
+    "session_id": "6544aa01-3a6d-410a-83ab-b7dae6de3fcc",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Several answers were clipped assertions, so the interviewer had to pull out the supporting detail.",
+    "quotes": [
+      "Prescriber survey of US rheumatologists on stated switching intent, plus European uptake curves as a real-world proxy.",
+      "Convenience sells it; access and lack of US presence are the binding constraints — which supports the partner route."
+    ],
+    "label": null,
+    "rule": "N5"
+  },
+  {
+    "id": "60ca6d8a-9773-4094-94fc-2937a2c7d8ed:communication:0",
+    "session_id": "60ca6d8a-9773-4094-94fc-2937a2c7d8ed",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate was top-down and hypothesis-driven, ending turns with a crisp ask, but the body of every answer followed the same first/second/third-then-circle-back formula. This roughly doubled answer length, and the repeated 'and this is important' opener became filler.",
+    "quotes": [
+      "So, first, and this is important — I'd prioritize the cost branch",
+      "Coming back to my first point, because I want to be clear about the logic",
+      "So concretely: give me COGS and labor as a percentage of revenue for both periods, and I'll tell you which branch we're really in."
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "a5703484-8540-49b0-9453-d944ba9d3d74:communication:1",
+    "session_id": "a5703484-8540-49b0-9453-d944ba9d3d74",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Some phrasing came across as dismissive of the data presented.",
+    "quotes": [
+      "That's the whole exhibit as far as I'm concerned"
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59:communication:0",
+    "session_id": "9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "needs_work",
+    "point": "In the analysis, your delivery became meandering and heavy with filler, and sentences trailed off. The interviewer had to ask repeatedly for an answer you never finished.",
+    "quotes": [
+      "Okay. So",
+      "rev... oh, sorry. COGS increased by thirty percent overall. And looking at the figures, it looks like around"
+    ],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "72a9f1b8-fca1-440f-9a07-b7170cdb357b:communication:1",
+    "session_id": "72a9f1b8-fca1-440f-9a07-b7170cdb357b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Almost every turn ended with a long list of requests, even after the interviewer repeatedly said the data wasn't available. That made the delivery feel repetitive and less hypothesis-led.",
+    "quotes": [
+      "Could I get churn rates, repeat purchase frequency, brand survey data, and the supplier contract renewal calendar?"
+    ],
+    "label": "M.laundry_list",
+    "rule": "D2"
+  },
+  {
+    "id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17:communication:0",
+    "session_id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Through turn 13 the candidate was top-down, hypothesis-led, and stated structure before detail, but in the final turns slipped into hedging non-answers with filler, the opposite of answer-first delivery.",
+    "quotes": [
+      "Hmm, I'm not sure. I'd still want that COGS breakdown first.",
+      "I don't know, I'd need more data.",
+      "Since revenue is actually growing but margin is collapsing, this looks cost-driven, but I want to confirm both sides before I commit.",
+      "I'd structure it as profit = revenue minus cost."
+    ],
+    "label": "M.hedged_recommendation",
+    "rule": "R1"
+  },
+  {
+    "id": "904b0b33-3b7f-46ec-b034-3cf2fc00f36a:communication:1",
+    "session_id": "904b0b33-3b7f-46ec-b034-3cf2fc00f36a",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate was answer-first and hypothesis-led, often stating expectations before seeing data. At the opening, though, the candidate gave conclusions before laying out any structure.",
+    "quotes": [
+      "The structure is basically implied by that: revenue levers, cost levers, and the fare is the one that moves.",
+      "let me say upfront what I expect it to show, so we can test me."
+    ],
+    "label": "M.no_structure",
+    "rule": "S2",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "18c69d7b-86a1-4df3-8c15-cd0be05b69ad:communication:0",
+    "session_id": "18c69d7b-86a1-4df3-8c15-cd0be05b69ad",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "Pervasive four-decimal false precision would sound robotic and bury the message, even on counts like store numbers.",
+    "quotes": [
+      "200.0000 stores then and now, zero store growth, and menu prices flat."
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "75b4b5fd-f44e-4b20-9b04-4d41c1e8fbac:communication:0",
+    "session_id": "75b4b5fd-f44e-4b20-9b04-4d41c1e8fbac",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "communication",
+    "rating": "meets_bar",
+    "point": "The candidate communicated answer-first with clear signposting in the later stages, but almost every early turn opened or closed with a long data list instead of a top-down point, which made the opening hard to follow.",
+    "quotes": [
+      "Before I frame anything, could I get some data?",
+      "First, the full cost breakdown — COGS, labor, rent, other — for both years. Second, revenue by location versus total.",
+      "Three points. First, we haven't raised prices in two years while inputs rose nearly 40%",
+      "Here's the build."
+    ],
+    "label": "M.laundry_list",
+    "rule": "D2"
+  },
+  {
+    "id": "5c33e5c0-150e-4544-bb9b-30fd244a4b28:pushback:0",
+    "session_id": "5c33e5c0-150e-4544-bb9b-30fd244a4b28",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "Ignored more than ten escalating hints, including Level 1 ('Take your time') and Level 2 ('Let's simplify') assists, and never incorporated any of them.",
+    "quotes": [
+      "I'm not sure. Sorry.",
+      "I'm stuck, sorry. Not without a more detailed COGS breakdown."
+    ],
+    "label": "M.waited_for_interviewer",
+    "rule": "L4",
+    "ruling": "Matt 15 Nov (cross-check #9)"
+  },
+  {
+    "id": "5a1ae7f5-5739-42ea-be68-06916b356049:pushback:1",
+    "session_id": "5a1ae7f5-5739-42ea-be68-06916b356049",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "Case leadership was weakened by stepping away mid-case.",
+    "quotes": [
+      "Sorry — back."
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "00c6aba1-a653-4be3-9ab1-479661aa28f0:pushback:1",
+    "session_id": "00c6aba1-a653-4be3-9ab1-479661aa28f0",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "The candidate was proactive during the diagnosis, requesting the right data such as menu price history, but was passive at the two decision points, needing Level 1 and Level 2 assists on structure and never independently driving to a recommendation.",
+    "quotes": [
+      "hmm... I'm not sure. Sorry.",
+      "I'm sorry, I really don't know.",
+      "Do we have menu price history — have they actually raised prices at all in two years?"
+    ],
+    "label": "M.waited_for_interviewer",
+    "rule": "L4"
+  },
+  {
+    "id": "8cac8248-3876-43eb-bba7-09284b810c6b:pushback:1",
+    "session_id": "8cac8248-3876-43eb-bba7-09284b810c6b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "Early on, the candidate drove the case by requesting relevant data, including menu-price history, without being prompted, but after turn 7 stopped driving next steps and answered only what was asked.",
+    "quotes": [
+      "I'd really like to leave it there though.",
+      "That's it from me. Thanks.",
+      "One thing I'd also want: do we have the menu-price history?"
+    ],
+    "label": "M.waited_for_interviewer",
+    "rule": "L4"
+  },
+  {
+    "id": "eb170e49-274f-4df8-b7f7-834342f43ec3:pushback:1",
+    "session_id": "eb170e49-274f-4df8-b7f7-834342f43ec3",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate owned errors cleanly when probed and kept driving the case with targeted data requests, but the 4,000-flight capacity error was corrected only after a direct interviewer probe rather than caught through self-checking.",
+    "quotes": [
+      "One flag — I'm freeing 4,000 flights and the plan needs 5,000.",
+      "You're right to catch that — I misspoke earlier.",
+      "Do we know who entered and at what fare?"
+    ],
+    "label": "M.implausible_accepted",
+    "rule": "Q2"
+  },
+  {
+    "id": "08381460-37df-4204-a0b8-1fe15d4025d0:pushback:0",
+    "session_id": "08381460-37df-4204-a0b8-1fe15d4025d0",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate held position with explicit logic when challenged on MECE, but conceded the correct 40% bean derivation (58 − 53.8 = 4.2 points on a 10.5 base) after a neutral remark instead of defending it.",
+    "quotes": [
+      "Okay — the way you flagged that, I'm reading it as the math didn't hold up, which is fair, I derived beans as a residual rather than from given data, so it's an assumption, not a fact.",
+      "I think it's MECE at the top level — every dollar is either revenue or cost, and within cost, fixed versus variable covers everything."
+    ],
+    "label": "M.caved_to_invalid_pushback",
+    "rule": "L2"
+  },
+  {
+    "id": "a1133734-b1c7-4432-9b59-109d671d7105:pushback:0",
+    "session_id": "a1133734-b1c7-4432-9b59-109d671d7105",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "You owned errors cleanly once you accepted them, striking the wrong figure and restating the corrected comparison, but at first you defended the reused 20% as an independent cross-check and conceded only after a second challenge.",
+    "quotes": [
+      "That said, it lands exactly on Aldermoor's forecast of 20% at peak, which I'd take as a reasonable cross-check — two different routes to the same place.",
+      "Fair — it's the same number twice, not two sources.",
+      "The $40M number should be struck.",
+      "You're right — 58% for insurance coverage outranks 41%, so no local support is the second barrier, not the biggest. I overstated it."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "38014721-d0c0-4374-b690-29998635b3fc:pushback:0",
+    "session_id": "38014721-d0c0-4374-b690-29998635b3fc",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate missed two clear hints that the Port Avery figure was wrong ('walk me through' and 'how did you get to the combined figure'). Each time the candidate repeated the misread instead of re-checking the source.",
+    "quotes": [
+      "Port Avery FY2023 revenue was $46.8M and FY2025 was $33.6M, so the change is 46.8 − 33.6 = −$13.2M, a drop of about 28%.",
+      "the residual $1.2M versus my 22.8 is just rounding in how I'm reading the lines."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "e5ee78c6-6604-4ebf-91cb-d71ec962e975:pushback:0",
+    "session_id": "e5ee78c6-6604-4ebf-91cb-d71ec962e975",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate handled the MECE challenge with explicit reasoning, holding the core split and updating where a real gap existed. However, after acknowledging the interviewer's note that Harborline is a different company, the candidate kept citing Harborline data in three more turns, so that feedback was not visibly incorporated.",
+    "quotes": [
+      "Fair point on the benchmark, I'll work from Brew & Bean's own numbers.",
+      "At Harborline we shifted about 60% of our green volume onto twelve-month fixed contracts last fall",
+      "I think it's close to MECE — revenue and costs are collectively exhaustive",
+      "So I'd add a fourth bucket for below-the-line items."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "6bd9edf3-7789-4658-a53a-3d249ca4cf5b:pushback:0",
+    "session_id": "6bd9edf3-7789-4658-a53a-3d249ca4cf5b",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "The candidate handled the MECE challenge well, acknowledging the gap and updating with reasoning, but held the incorrect 40-point claim rigidly through four challenges, swapping in new justifications ('compounding', 'dilution') rather than re-examining it.",
+    "quotes": [
+      "Strip the growth out and the underlying pressure is roughly double — call it forty points — which is why the net decline is only 18.",
+      "I'd still say the compounding across two 8-point steps makes the underlying pressure read closer to forty, and that's the number I'd carry into sizing the fix",
+      "Fair push. I think the revenue-versus-cost split is MECE at the top level, but my framing was sloppier than my structure — I jumped to costs too fast."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "7bf5e699-694c-4cbd-8cbd-981283c96a34:pushback:0",
+    "session_id": "7bf5e699-694c-4cbd-8cbd-981283c96a34",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "Under the early pressure test on the structure, the candidate froze rather than reasoning through the challenge and needed three prompts to move forward. When the price size was challenged later, the candidate handled it well: admitted it was a judgment call, derived it properly, and updated the position with explicit reasoning about what changed and what held.",
+    "quotes": [
+      "hmm, I'm not sure.",
+      "I'm stuck, sorry.",
+      "Honestly, it was a judgment call on what the customer would absorb, not a derivation — let me do the math properly.",
+      "What doesn't change is sequencing."
+    ],
+    "label": "M.no_evidence_in_defense",
+    "rule": "L3"
+  },
+  {
+    "id": "f052f00d-70fc-4988-b9bd-2f68d07a1378:pushback:0",
+    "session_id": "f052f00d-70fc-4988-b9bd-2f68d07a1378",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate held the recommendation under the risk challenge with a clear fallback, but abandoned a correct reconciliation too quickly when challenged on whether the share comparison was like-for-like (with flat prices it was), conceding, inventing a gap, and needing a second prompt before updating.",
+    "quotes": [
+      "Fair push — no, that's not clean.",
+      "Which means my input math — beans and non-beans blending to roughly high thirties — doesn't fully cover the absolute increase. There's a gap.",
+      "I was wrong a second ago to say there was something unexplained",
+      "That's why I'd test in a subset of stores rather than roll nationally."
+    ],
+    "label": "M.caved_to_invalid_pushback",
+    "rule": "L2"
+  },
+  {
+    "id": "d28f56c3-cf95-4f30-9895-75410762a7cf:pushback:0",
+    "session_id": "d28f56c3-cf95-4f30-9895-75410762a7cf",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "Across four successive interviewer challenges, the candidate defended the 38-point figure with new, incorrect rationales instead of updating.",
+    "quotes": [
+      "So I'll stay with roughly 38 points of economic drag from COGS.",
+      "I'd manage to the 38, because that's what pricing has to recover."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "527217df-454c-481f-8b39-a58171596f85:pushback:0",
+    "session_id": "527217df-454c-481f-8b39-a58171596f85",
+    "case_id": "launch-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "Early on, the candidate drove the case by naming the data needed next, but that leadership faded: the candidate tried to end the case, and the brainstorm needed repeated prompting for range.",
+    "quotes": [
+      "I'm done — can we do another case?",
+      "Sampling in-store to beat the taste objection, and a multi-pack or repeat-purchase coupon to drive the second buy.",
+      "My recommendation would hinge on whether that intent math clears 2 million households."
+    ],
+    "label": "M.too_few_ideas",
+    "rule": "C1",
+    "ruling": "Matt 15 Nov (cross-check #10)"
+  },
+  {
+    "id": "6f57da6e-85c2-47a9-b9e5-f3febacf2587:pushback:0",
+    "session_id": "6f57da6e-85c2-47a9-b9e5-f3febacf2587",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate acknowledged each challenge specifically and explained the source of the error and the correction without defensiveness, but the corrections did not stick: after the funnel-base correction in turn 6, the same base-substitution error recurred with share (turn 9), the survey (turn 13) and B's share (turn 17).",
+    "quotes": [
+      "I'll use the 20% share here as well — that's Aldermoor's own forecast for the product",
+      "It isn't right — the exhibit says plainly \"20% of eligible patients,\" and I substituted the treated pool because I was thinking of share-of-therapy the way it's usually quoted in market share terms.",
+      "Fair — I quoted B's market-level sales, not what Aldermoor keeps."
+    ],
+    "label": "M.wrong_base",
+    "rule": "Q1",
+    "ruling": "Matt 15 Nov (cross-check #11)"
+  },
+  {
+    "id": "bb24a239-e478-4ef3-b2b6-1d0044f249be:pushback:0",
+    "session_id": "bb24a239-e478-4ef3-b2b6-1d0044f249be",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "strong",
+    "point": "The candidate voiced self-doubt aloud during the math, which undercuts the appearance of composure even though the answer was right.",
+    "quotes": [
+      "shit, I thought for a second that was going to come out negative and I'd blown the whole thing."
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "4e89a7cc-7a72-4bfd-885c-3b173d8a401c:pushback:1",
+    "session_id": "4e89a7cc-7a72-4bfd-885c-3b173d8a401c",
+    "case_id": "entry-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate ignored explicit feedback to stay in the case and kept asking to stop.",
+    "quotes": [
+      "I'm done — can we do another case?"
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "1c8ef4cb-1f16-4158-b84b-aa7bc0fc781c:pushback:0",
+    "session_id": "1c8ef4cb-1f16-4158-b84b-aa7bc0fc781c",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate handled the MECE challenge and both late math probes with poise, owning the errors and rebuilding the numbers. When first challenged on the 38–40 figure, however, the candidate defended it with a made-up compounding and volume-offset rationale and updated only after the interviewer supplied the answer.",
+    "quotes": [
+      "So 38 to 40 points of gross COGS pressure, partially offset by volume, nets out to the 18 we observe.",
+      "Fair challenge. A few gaps.",
+      "Let me redo it properly, because I think I shortcut it."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "c1b79f9e-1755-4b7f-b900-0026221b080f:pushback:1",
+    "session_id": "c1b79f9e-1755-4b7f-b900-0026221b080f",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "The candidate sidestepped the structure probe three times with new clarifying questions instead of engaging with it.",
+    "quotes": [
+      "Um, and the 15% revenue growth — is that over the full two years or per year?",
+      "Okay. And did they open new stores in that period, or is that 15% all from existing stores?"
+    ],
+    "label": "M.dodged_question",
+    "rule": "L3"
+  },
+  {
+    "id": "9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59:pushback:0",
+    "session_id": "9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "When challenged on MECE and on what was missing, you either asserted without reasoning or stalled. You needed to be led to overhead.",
+    "quotes": [
+      "Yes. It is Macy.",
+      "I'm not sure."
+    ],
+    "label": "M.missing_bucket",
+    "rule": "S4",
+    "ruling": "recheck: L3 change (questions #11)"
+  },
+  {
+    "id": "00456279-3a29-4919-bae5-30ab58c3ee38:pushback:0",
+    "session_id": "00456279-3a29-4919-bae5-30ab58c3ee38",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "You named an explicit disconfirming condition and updated with reasons when challenged, but you were slow to incorporate the interviewer's early challenge on deprioritizing beans, defending labor and then occupancy before conceding.",
+    "quotes": [
+      "I'd still put the weight on occupancy.",
+      "So it shifts to occupancy, which was my second prior anyway.",
+      "What would make me drop it: if labor as a percent of revenue were flat across the two years, I'd move off it immediately.",
+      "it's the single biggest piece. I'd overstated it."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "6e5a1c90-0518-4bb9-bf60-c7f3d509c496:pushback:1",
+    "session_id": "6e5a1c90-0518-4bb9-bf60-c7f3d509c496",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "When probed, the candidate owned errors cleanly and restated corrected figures and their implications, but errors surfaced only through interviewer probes rather than the candidate's own checks; at turn 9 the candidate defended the per-seat fare without spotting the missing load factor.",
+    "quotes": [
+      "Then over 80 seats, $10,800 / 80 = $135, which I read as the average fare per seat.",
+      "That said, the exhibit says \"flights per year (both routes combined),\" so 5,000 is the total, not each. That halves it: 5,000 × $2,000 = $10M, and the swap is worth $11.8M. I misread that line.",
+      "so 9,000 flights — not 8,000."
+    ],
+    "label": "M.implausible_accepted",
+    "rule": "Q2"
+  },
+  {
+    "id": "5c48e836-9369-45ed-ba94-4bcdb0c37dcb:pushback:0",
+    "session_id": "5c48e836-9369-45ed-ba94-4bcdb0c37dcb",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate repeatedly handed direction back to the interviewer instead of driving. Proposed tests such as competitor pricing and revenue mix were floated as optional and never pursued.",
+    "quotes": [
+      "What I'd test next, if you'd like: whether the 15% revenue growth is volume or new stores, and what competitors have done on price. What would you like me to look at next?"
+    ],
+    "label": "M.waited_for_interviewer",
+    "rule": "L4"
+  },
+  {
+    "id": "03201cc4-0456-4288-ae35-762a8a4812c6:pushback:1",
+    "session_id": "03201cc4-0456-4288-ae35-762a8a4812c6",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate corrected the 18-point misread and openly flagged unsupported assumptions, but only when the interviewer probed; none of these errors or assumptions surfaced through the candidate's own checks.",
+    "quotes": [
+      "Fair — let me actually run it.",
+      "I misspoke the first time. 58 − 42 is 16, not 18.",
+      "That was my assumption, not something in the case — I was carrying over general inflation."
+    ],
+    "label": "M.implausible_accepted",
+    "rule": "Q2"
+  },
+  {
+    "id": "5fa81cec-34df-4327-b641-1e115229ce3b:pushback:1",
+    "session_id": "5fa81cec-34df-4327-b641-1e115229ce3b",
+    "case_id": "prof-002",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate asserted 'Recommendation stands' on an unchecked number instead of stress-testing it, so the interviewer had to catch the error; once probed on the math, the candidate owned the mistake and corrected it transparently.",
+    "quotes": [
+      "so operating profit goes from −$4M to about +$11.8M. Recommendation stands.",
+      "Sorry, I said $11.8M — that was wrong, I double-counted. It's $7.8M."
+    ],
+    "label": "M.implausible_accepted",
+    "rule": "Q2"
+  },
+  {
+    "id": "ec02dac7-580c-4e2c-9f7c-233a757e17e0:pushback:1",
+    "session_id": "ec02dac7-580c-4e2c-9f7c-233a757e17e0",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "You ignored repeated cues to return to the recommendation and made delivering it conditional on your demands, effectively ending the case.",
+    "quotes": [
+      "I'm not going to keep trading my substance for silence on this.",
+      "I'm not giving the synthesis under an unexplained flag."
+    ],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "6bf0026f-be61-4634-b1db-fec8ea9a8926:pushback:0",
+    "session_id": "6bf0026f-be61-4634-b1db-fec8ea9a8926",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "When challenged twice on points versus percent, the candidate held the wrong reading without any supporting reasoning and did not incorporate the correction.",
+    "quotes": [
+      "The 42 to 58 is still a 16% increase to me, that's the big driver.",
+      "But yeah, I still read the 42 to 58 as a 16% increase, that feels like the main thing."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "2d12a0bd-f236-4bed-9148-4ddaac8f348c:pushback:0",
+    "session_id": "2d12a0bd-f236-4bed-9148-4ddaac8f348c",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "The candidate drove the case forward with targeted data requests and updated hypotheses as data arrived. When challenged on the framework, however, the candidate doubled down by stacking more frameworks instead of updating, and kept appending overlays after the hint to set them aside.",
+    "quotes": [
+      "And to make that more rigorous, I'd layer in a couple of additional frameworks underneath.",
+      "One thing I'd also layer in is the 4Ps on the cost side to make sure we're not missing a promotional or product-mix effect.",
+      "Two things just got ruled out: no new stores, so this isn't an expansion-driven fixed cost problem"
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1"
+  },
+  {
+    "id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17:pushback:0",
+    "session_id": "23ec4ff4-e177-472e-9e08-6d2f4df1cc17",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "needs_work",
+    "point": "The candidate became passive at the decisive moment and ignored the interviewer's explicit hint that the driver and levers were already in hand.",
+    "quotes": [
+      "Hmm, I'm not sure. I'd still want that COGS breakdown first."
+    ],
+    "label": "M.waited_for_interviewer",
+    "rule": "L4"
+  },
+  {
+    "id": "567bdb1d-2412-4016-b2c3-1e4f31dd8fe2:pushback:0",
+    "session_id": "567bdb1d-2412-4016-b2c3-1e4f31dd8fe2",
+    "case_id": "prof-001",
+    "kind": "needs_work",
+    "dimension": "pushback",
+    "rating": "meets_bar",
+    "point": "After the interviewer flagged 'That's a long list of data' and asked for structure first, you kept sending long unprioritized data lists in every later turn instead of adjusting.",
+    "quotes": [
+      "To populate that, could I get: one, COGS as a percent of revenue by year.",
+      "Could I get: one, the dollar revenue base."
+    ],
+    "label": "M.ignored_valid_pushback",
+    "rule": "L1",
+    "ruling": "Matt 15 Nov (cross-check #12)"
+  },
+  {
+    "id": "5b06e386-e913-496c-bab8-29fcf499c847:topFix",
+    "session_id": "5b06e386-e913-496c-bab8-29fcf499c847",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Drop the dismissive and combative remarks (\"Do you actually know what you're talking about?\", \"the answer is already obvious\", \"weirdly worded question\"). Your analysis was among the sharpest parts of the session, but in a real McKinsey interview this tone alone would sink the result. Treat redundant data or unavailable answers as a cue to say \"this confirms X, here's what it adds\" and keep driving the case collaboratively.",
+    "quotes": [],
+    "label": null,
+    "rule": "N4"
+  },
+  {
+    "id": "7555fc96-d318-420a-b734-4e0a37da7999:topFix",
+    "session_id": "7555fc96-d318-420a-b734-4e0a37da7999",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Reach for a defensible assumption on the first pass rather than only after a challenge — the initial zero-elasticity pricing estimate overstated the upside until prompted; leading with a realistic range would make quantitative claims land as forecasts, not best-case bounds.",
+    "quotes": [],
+    "label": "M.unreasonable_assumption",
+    "rule": "Q1"
+  },
+  {
+    "id": "7bff992b-759c-4244-942e-c5b8a78e6750:topFix",
+    "session_id": "7bff992b-759c-4244-942e-c5b8a78e6750",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Always commit to an answer-first recommendation, even when unsure. You had the pieces: 'Input costs went up a lot and prices never moved,' plus pricing and a store pilot. Practice saying 'My recommendation is X, because A and B; the key risk is C; next step is D' instead of 'I don't know.'",
+    "quotes": [],
+    "label": "M.hedged_recommendation",
+    "rule": "R1"
+  },
+  {
+    "id": "6e373dd3-bab6-422d-b52a-51c21f32a41a:topFix",
+    "session_id": "6e373dd3-bab6-422d-b52a-51c21f32a41a",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "When challenged on your structure, don't freeze. Test it aloud for mutual exclusivity and exhaustiveness, and check for a missing external lens (competitor pricing, input-market inflation, pricing power). Apply the same discipline later: never put a number like '6–8% recovers the gap' in front of the CEO until you have derived it out loud.",
+    "quotes": [],
+    "label": "M.missing_bucket",
+    "rule": "S4",
+    "ruling": "recheck: L3 change (questions #11)"
+  },
+  {
+    "id": "fc5eb050-0f02-4f6a-a257-9ee1bc7ecf75:topFix",
+    "session_id": "fc5eb050-0f02-4f6a-a257-9ee1bc7ecf75",
+    "case_id": "entry-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Read every input directly off the exhibit and re-verify it before computing. Three misquoted figures (1.5% for 1.6%, $8,650 for $9,000, $83M for $80M) each had to be caught by the interviewer, and one flipped your initial conclusion. In a case decided by a $20M cushion, say each input back from the source and sanity-check any result that lands suspiciously on the bar.",
+    "quotes": [],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "527217df-454c-481f-8b39-a58171596f85:topFix",
+    "session_id": "527217df-454c-481f-8b39-a58171596f85",
+    "case_id": "launch-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Stress-test the forecast's repeat assumption, not just conversion. Break-even needs 6M ÷ 3M = 2 bags per buying household, and at 1 bag Hollis Bay loses about $4.5M. Name repeat as the key risk and build the launch around trial-to-repeat (sampling, on-pack offers, early repeat tracking) instead of a regional pilot that delays the spring launch. Keep this level of rigor and engagement through the whole case rather than shrinking to one-line answers.",
+    "quotes": [],
+    "label": "M.missed_key_risk",
+    "rule": "J2"
+  },
+  {
+    "id": "0a5cdc18-a6bc-4cb0-a1fd-4689ec8ced47:topFix",
+    "session_id": "0a5cdc18-a6bc-4cb0-a1fd-4689ec8ced47",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Anchor every percentage to the right base before you compute, and derive any number you recommend. A share of COGS must sit on the year it describes (25% of 42 = 10.5 points, not 25% of 58). A margin gap is a change in shares (58 − 42 = 16), not a product of them. Size a price increase from the P&L rather than borrowing an input-inflation rate: costs are now 94% of revenue, so restoring a 24% margin needs revenue of about 94/0.76 ≈ 124. When an interviewer asks you to walk through a step, re-check the method first instead of defending it.",
+    "quotes": [],
+    "label": "M.wrong_base",
+    "rule": "Q1"
+  },
+  {
+    "id": "361cda0a-3108-4617-a6bb-530b3d150d11:topFix",
+    "session_id": "361cda0a-3108-4617-a6bb-530b3d150d11",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Size every lever against the gap before ruling one in or out. Two years of flat prices against roughly 38% input inflation makes pricing an obvious lever. A 10% price increase alone moves margin from about 6% to about 14.5%, while closing 16 points through cost alone would require cutting input cost per revenue dollar by about 28%. Run that comparison out loud before committing to a recommendation.",
+    "quotes": [],
+    "label": "M.ignores_deciding_fact",
+    "rule": "J1",
+    "ruling": "Matt 15 Nov (cross-check #13)"
+  },
+  {
+    "id": "cdaa9c6c-4a32-4255-8990-c0fe6263838d:topFix",
+    "session_id": "cdaa9c6c-4a32-4255-8990-c0fe6263838d",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Fix the base you multiply against: always convert a share of COGS into points of revenue (share × COGS % of revenue, e.g. 25% × 42 = 10.5 points) and say the base out loud before computing. The same unit error cost you three interviewer corrections, and the 16-point vs. 38% misread came from the same lack of base discipline.",
+    "quotes": [],
+    "label": "M.wrong_base",
+    "rule": "Q1"
+  },
+  {
+    "id": "6e14be49-9e01-4fa1-83a0-8a5e51a8458b:topFix",
+    "session_id": "6e14be49-9e01-4fa1-83a0-8a5e51a8458b",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Practice opening every profitability case independently with a 30-second structure: restate the objective, split profit into revenue (price × volume, mix) and costs (COGS, labor, overhead), then state a hypothesis about which bucket holds the answer. Here you needed three escalating hints and a directive rescue before you could begin, even though your later analysis was strong.",
+    "quotes": [],
+    "label": "M.no_structure",
+    "rule": "S1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "6f3aeecf-098f-4217-81a2-e3065a7d5619:topFix",
+    "session_id": "6f3aeecf-098f-4217-81a2-e3065a7d5619",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Make every quantitative step land on a verified number. Re-read the exact figures before calculating (58%, not 55%), and treat an unexplained gap as a signal to recheck rather than inventing a cause. Finish sizing questions with the actual answer: for example, break-even volume loss of 10/(42+10) ≈ 19%, and a 10% price rise lifting margin from 6% to about 14.5%.",
+    "quotes": [],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "38014721-d0c0-4374-b690-29998635b3fc:topFix",
+    "session_id": "38014721-d0c0-4374-b690-29998635b3fc",
+    "case_id": "prof-002",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Read every number back from the exhibit before using it, and reconcile totals instead of calling gaps 'rounding'. Four separate misreads (14,500 flights, $33.6M, $15.4M, 5,200 flights) weakened a sound diagnosis. The last one, together with the missing −$1.8M netting, undercut the final recommendation: it should have been 5,000 × $2,000 = $10.0M plus the −$1.8M removed = +$11.8M, taking operating profit to about +$7.8M. Pair that with one consistent action for the fixed fleet: move the contested flights to the new routes rather than both holding and redeploying.",
+    "quotes": [],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "3ac59856-eb47-404b-a9c7-7e2125a5801f:topFix",
+    "session_id": "3ac59856-eb47-404b-a9c7-7e2125a5801f",
+    "case_id": "prof-002",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Don't skip the structure or lock in an answer before the data: open with a tailored profit tree (revenue by route as load × fare plus extras, variable costs, fixed costs, external and competitive changes), treat your first hypothesis as something to test, and let your own clues redirect you — the matching $24M revenue and profit drops already said costs were flat.",
+    "quotes": [],
+    "label": "M.no_structure",
+    "rule": "S2",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "cc3d1581-ac13-40f9-9d78-af4a8730d9d2:topFix",
+    "session_id": "cc3d1581-ac13-40f9-9d78-af4a8730d9d2",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Reconcile the pricing magnitude: the ~38% figure restores margin on its own, so size the required price increase net of procurement gains and elasticity rather than stacking a phased 15%+15% that neither sums to 38% nor accounts for the COGS clawback.",
+    "quotes": [],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "Matt 15 Nov (cross-check #14)"
+  },
+  {
+    "id": "eb8d7576-c59f-4f32-ba3a-550aca4e9dcc:topFix",
+    "session_id": "eb8d7576-c59f-4f32-ba3a-550aca4e9dcc",
+    "case_id": "pricing-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Before answering, lay out a tailored structure and treat your first answer as a hypothesis to test. For this case that means per-plan economics, Starter-to-Pro upgrades and cannibalization, the pricing options, and the market. Skipping the structure led you to a pre-data $60 call, a dismissal of the plan interactions, and an anchoring that made you defend the 14-month lifetime even after the interviewer hinted twice that upgraders shouldn't count as churn.",
+    "quotes": [],
+    "label": "M.no_structure",
+    "rule": "S2",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "ee99bd82-6608-4dc4-b8a1-70f6250a6892:topFix",
+    "session_id": "ee99bd82-6608-4dc4-b8a1-70f6250a6892",
+    "case_id": "pricing-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Read every exhibit cell exactly and re-open the source whenever a number is probed. You misread 81.5%, 365 and 830, and restated two of them when asked to explain. Also derive Starter churn from the Cancelled row (5% a month), not from 'still on Starter'. That gives $600 standalone LTV (2.0×) and $1,400 with upgrades (4.7×), and it would have made your with-versus-without and $60-versus-$40 comparisons ($2.08M vs $1.40M; $2.32M vs $2.08M) accurate.",
+    "quotes": [],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  },
+  {
+    "id": "2871750b-fda3-4266-8a1b-26084d9f8f76:topFix",
+    "session_id": "2871750b-fda3-4266-8a1b-26084d9f8f76",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Derive every number you recommend from the gap you are trying to close, rather than asserting it. Before saying 'roughly 7%', you could compute that costs are about 108 on 115 of revenue, so restoring a 24% margin at flat volume needs about a 24% price rise. Then say explicitly that 7% recovers only about 6 of 18 points and that procurement must close the rest.",
+    "quotes": [],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2"
+  },
+  {
+    "id": "e0f7d46c-eb5d-4878-b1c3-623d54f74341:topFix",
+    "session_id": "e0f7d46c-eb5d-4878-b1c3-623d54f74341",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Before saying any number aloud, state its base and sanity-check it against the 18-point decline. Convert percent-of-COGS to revenue points by multiplying by COGS as a percentage of revenue. Derive what a given price increase actually does to margin, for example +7% price takes margin from 6% to about 12% at flat volume, rather than asserting a percentage or an outcome.",
+    "quotes": [],
+    "label": "M.wrong_base",
+    "rule": "Q1"
+  },
+  {
+    "id": "0538cda2-6d7a-4a90-8ece-9d6546b890ba:topFix",
+    "session_id": "0538cda2-6d7a-4a90-8ece-9d6546b890ba",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Tighten your opening. Restate the objective (find the root cause of the 18-point decline and reverse it). Lay out 3–4 tailored buckets that include market context: are peers seeing the same squeeze, and do we have pricing power? Then say how the structure leads to the CEO's decision. That way you won't need the interviewer to prompt you to fill gaps.",
+    "quotes": [],
+    "label": "M.missing_bucket",
+    "rule": "S4"
+  },
+  {
+    "id": "6bbc2163-45cb-4e75-a2aa-44ba29d3244a:topFix",
+    "session_id": "6bbc2163-45cb-4e75-a2aa-44ba29d3244a",
+    "case_id": "entry-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Don't build your lead argument on an untested reading of the client's criterion. The $300M bar is Kelvexa's US net sales, which Option B also clears at $400M. Lead instead with the economics you derived correctly: building earns $240M versus $120M and stays ahead unless share falls below 12.5%. When the interviewer probes a definition, explicitly revise rather than restate.",
+    "quotes": [],
+    "label": "M.unsupported_recommendation",
+    "rule": "R2",
+    "ruling": "Matt 15 Nov (cross-check #15)"
+  },
+  {
+    "id": "cfd513d9-b402-4ba2-aab1-04612356f7d9:topFix",
+    "session_id": "cfd513d9-b402-4ba2-aab1-04612356f7d9",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Open independently with a hypothesis-driven structure. Restate the objective (reverse the 24% to 6% margin decline), split profit into revenue (price × volume) and costs (COGS, labor, overhead), and state which bucket you suspect and why. Your analysis after the hint was strong, but you needed two interviewer assists just to get started, and that is the gap most likely to cost you an offer.",
+    "quotes": [],
+    "label": "M.no_structure",
+    "rule": "S1",
+    "ruling": "recheck after Matt's rulings (no structure; A–F), 15 Nov"
+  },
+  {
+    "id": "1901cf99-701b-47d1-85d0-2361dd56c226:topFix",
+    "session_id": "1901cf99-701b-47d1-85d0-2361dd56c226",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Separate margin impact from cost spend, and verify before conceding. With prices flat, volume growth raises revenue and COGS in proportion and does not compress margin. Bean inflation (+4.2 points) plus other-input inflation (+11.8 points) fully explains the 42%→58% COGS rise. Your original 'three-quarters non-bean' read was right, and you dropped it under a units question instead of re-checking. That carried into a final recommendation built on a contradictory 'two-thirds price, one-third volume' reason.",
+    "quotes": [],
+    "label": "M.wrong_formula",
+    "rule": "Q1"
+  },
+  {
+    "id": "365538f7-96fb-4f02-99ed-55c26348b2a9:topFix",
+    "session_id": "365538f7-96fb-4f02-99ed-55c26348b2a9",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Open with an explicitly restated objective and a tailored 3–4 bucket framework (price/mix, COGS by input, labor and occupancy, competitive context) rather than a generic two-branch fixed-vs-variable split. Your later analysis was excellent, but the structure only became case-specific after the interviewer pushed.",
+    "quotes": [],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "701443f7-3bf9-40e5-9f83-193ec129a55f:topFix",
+    "session_id": "701443f7-3bf9-40e5-9f83-193ec129a55f",
+    "case_id": "prof-002",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Build a tailored opening before diving in. Restate the objective (explain the $24M swing and return to profit in 12 months), then lay out an airline profit tree: revenue by route (seats × load factor × fare plus extras), variable versus fixed costs, and external change. Use the case clues to prioritize: profit fell by the same $24M as revenue and planes are full, so start with fare by route. Practice defending that tree for overlaps and gaps so a MECE challenge doesn't stall you.",
+    "quotes": [],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59:topFix",
+    "session_id": "9813d6ce-6fcf-4529-8e1b-d3a9cf31bb59",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Get fluent at converting nested percentages and finishing the decomposition out loud. A share of COGS becomes points of revenue only after you multiply by COGS as a share of revenue. Here: other inputs go from 31.5 to about 43.3 points (+11.8), beans take the remaining ~4.2, and the two add back to 16. Then land a committed recommendation built on that result: renegotiate non-bean inputs and take selective price increases, with volume loss as the risk.",
+    "quotes": [],
+    "label": "M.wrong_base",
+    "rule": "Q1"
+  },
+  {
+    "id": "eb9134fb-1be2-4b38-b4ac-c7fd353e195e:topFix",
+    "session_id": "eb9134fb-1be2-4b38-b4ac-c7fd353e195e",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "When challenged on your structure, test it out loud instead of affirming it is complete. Walk each bucket (COGS inputs, labor, rent/overhead, other operating costs, price/volume/mix) and state what you expect each to show, using case facts. For example: 'same 200 stores and revenue up 15% means fixed costs should have shrunk as a share of revenue, so the 18-point drop most likely sits in variable input costs.'",
+    "quotes": [],
+    "label": "M.no_evidence_in_defense",
+    "rule": "L3"
+  },
+  {
+    "id": "f99bb343-e4f2-48ae-aabd-be0161f41448:topFix",
+    "session_id": "f99bb343-e4f2-48ae-aabd-be0161f41448",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Remove the apologies and self-deprecation (\"sorry, I'm slow at this\", \"sorry if that's an obvious ask\") and open every answer with your conclusion. Your analysis is excellent, but the constant hedging undercuts your presence and led you to concede points you had actually covered.",
+    "quotes": [],
+    "label": "M.rambling",
+    "rule": "D1"
+  },
+  {
+    "id": "c230fe12-c3ff-46c4-8cc6-91c870740b08:topFix",
+    "session_id": "c230fe12-c3ff-46c4-8cc6-91c870740b08",
+    "case_id": "prof-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Master nested-percentage math and hold your derived numbers with confidence: a share of COGS is not points of revenue, so convert by multiplying through (beans at 25% of COGS × 42% of revenue = 8.4%, then × 1.4 = 11.76%), sanity-check every result against the total before asserting it, and state conclusions top-down rather than as questions asking for validation.",
+    "quotes": [],
+    "label": "M.wrong_base",
+    "rule": "Q1"
+  },
+  {
+    "id": "5c3d2c21-7604-4374-a3ea-dfd842d9e6ac:topFix",
+    "session_id": "5c3d2c21-7604-4374-a3ea-dfd842d9e6ac",
+    "case_id": "pricing-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Open with a tailored, prioritized structure instead of a generic template. Restate the objective (the choice for Starter that maximizes Quillpath's total value), split the problem into per-plan unit economics, Starter–Pro interactions (upgrades vs. cannibalization), and the options and market, and say where you'd start and why. Your later analysis showed you can do this; an opening like that would have spared the two stalls under the first pressure test.",
+    "quotes": [],
+    "label": "M.generic_framework",
+    "rule": "S3"
+  },
+  {
+    "id": "f59f5ea8-7008-4a82-b196-2dd535d9d3f8:topFix",
+    "session_id": "f59f5ea8-7008-4a82-b196-2dd535d9d3f8",
+    "case_id": "entry-001",
+    "kind": "top_fix",
+    "dimension": null,
+    "rating": null,
+    "point": "Lock your inputs before you compute: read each figure back from the exhibit (1.6%, 58%, $80M) and carry corrected numbers forward. Then compare entry options on profit to Aldermoor ($240M vs $120M, with building winning down to a 12.5% share) rather than on a reading of the bar's wording. Three misreads were caught by the interviewer, not you, and the corrected $240M slipped back to $243M in your final answer.",
+    "quotes": [],
+    "label": "M.wrong_data_point",
+    "rule": "X1"
+  }
+]

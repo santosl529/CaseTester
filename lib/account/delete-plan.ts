@@ -24,6 +24,8 @@ export const DELETE_PLAN: Step[] = [
   { table: t.scores, action: 'delete', scope: 'session' },
   { table: t.sessionEvents, action: 'delete', scope: 'session' },
   { table: t.voiceSessionLines, action: 'delete', scope: 'session' },
+  // Case → drills runs (tags, payload, preview, reviewer labels): before sessions, which they reference.
+  { table: t.caseResultRuns, action: 'delete', scope: 'student' },
   { table: t.sessions, action: 'delete', scope: 'user' },
   // Drills: grading records, then attempts, sets, programs.
   { table: t.drillGradingCalls, action: 'delete', scope: 'attempt' },

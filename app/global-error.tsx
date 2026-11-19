@@ -1,9 +1,11 @@
 'use client';
 import { useEffect } from 'react';
+import * as Sentry from '@sentry/nextjs';
 
 // When even the root layout fails (8 Nov). Replaces the whole document, so it has its own <html> and plain styles.
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
-  useEffect(() => { console.error(error); }, [error]);
+  // Reported to Sentry too (pre-pilot audit M4).
+  useEffect(() => { console.error(error); Sentry.captureException(error); }, [error]);
   return (
     <html lang="en">
       <body style={{ fontFamily: 'system-ui, sans-serif', display: 'flex', minHeight: '100vh', alignItems: 'center', justifyContent: 'center', margin: 0, padding: 24, textAlign: 'center' }}>

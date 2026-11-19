@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import { withSentryConfig } from "@sentry/nextjs/config";
 
 // Security headers on every response (security audit, 6 Nov). No full CSP yet: a script-src policy needs per-request
 // nonces for Next's inline scripts — frame-ancestors alone stops the site being framed (clickjacking).
@@ -24,4 +25,14 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+// Error reporting (pre-pilot audit M4): source maps are uploaded only when SENTRY_AUTH_TOKEN is set (Vercel builds);
+// reports go through /monitoring on this site, so browser blockers don't drop them.
+export default withSentryConfig(nextConfig, {
+  org: process.env.SENTRY_ORG,
+  project: process.env.SENTRY_PROJECT,
+  authToken: process.env.SENTRY_AUTH_TOKEN,
+  silent: !process.env.CI,
+  tunnelRoute: '/monitoring',
+  sourcemaps: { disable: !process.env.SENTRY_AUTH_TOKEN },
+  telemetry: false,
+});

@@ -114,8 +114,8 @@ describe('another of code\'s lines takes the question: the flag stays pending', 
     plan.state.requiredExhibit = 'exhibit-a';
     plan.state.shownExhibitIds = new Set();
     const s = await settleTurn(plan, outcome(JASMINE_T31));
-    expect(s.spokenText).toMatch(/^Right\. Here's an exhibit: Brew & Bean Cost Structure Over Time\. /);
-    expect(PHRASE_POOLS.stage_exhibit_q).toContain(s.spokenText.replace(/^.*Over Time\. /, ''));
+    expect(s.spokenText).toMatch(/^Right\. Here's an exhibit: Brew & Bean — Cost structure \(% of revenue\), by year\. /);
+    expect(PHRASE_POOLS.stage_exhibit_q).toContain(s.spokenText.replace(/^.*by year\. /, ''));
     expect(plan.ctx.flags.mathChecker).toEqual({ handled: [] });
     expect(checkOf(plan)).toMatchObject({ detail: { heard: false } });
   });

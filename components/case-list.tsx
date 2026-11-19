@@ -1,6 +1,8 @@
 'use client';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { postJson } from '@/lib/site/fetch-json';
 import { StartCaseButton } from '@/components/start-case-button';
 import { limitMessage } from '@/lib/site/limit-message';
 import { buttonVariants } from '@/components/ui/button';
@@ -9,6 +11,7 @@ import type { CaseMode } from '@/lib/site/case-href';
 import type { PastSession } from '@/lib/site/past-sessions';
 
 const DIFFICULTY = { easy: 'Easy', medium: 'Medium', hard: 'Hard' } as const;
+export const RECOMMENDED_LABEL = 'Recommended for you';
 const TYPE_LABEL = (t: string) => (t === 'm_and_a' ? 'M&A' : t[0].toUpperCase() + t.slice(1).replace(/_/g, ' '));
 
 export interface CaseCard {
@@ -17,6 +20,8 @@ export interface CaseCard {
   done: number; last: string | null;
   // "Good first case" (FIRST_CASE_ID).
   first?: boolean;
+  // "Recommended for you": the case Today's Next case card linked to (17 Nov, M1). Shown instead of "Good first case".
+  recommended?: boolean;
 }
 export interface CasesLeft { n: number; scope: 'day' | 'month' | 'site'; perDay: number; block: { reason: string; limit: number; retryAt: string } | null }
 
@@ -44,9 +49,11 @@ export function CaseList({ cases, left }: { cases: CaseCard[]; left: CasesLeft |
       </div>
       <ul className="grid gap-4 sm:grid-cols-2">
         {cases.map(c => (
-          <li key={c.id} className="flex flex-col justify-between gap-5 rounded-panel border border-ink/12 bg-white p-5 shadow-quiet sm:p-6">
+          <li key={c.id} id={`case-${c.id}`} className={`flex scroll-mt-20 flex-col justify-between gap-5 rounded-panel border bg-white p-5 shadow-quiet sm:p-6 ${c.recommended ? 'border-cobalt ring-1 ring-cobalt' : 'border-ink/12'}`}>
             <div className="space-y-1">
-              {c.first && <p className="t-label inline-flex rounded-full bg-sky px-2.5 py-0.5 font-semibold text-ink">Good first case</p>}
+              {c.recommended
+                ? <p className="t-label inline-flex rounded-full bg-cobalt px-2.5 py-0.5 font-semibold text-white">{RECOMMENDED_LABEL}</p>
+                : c.first && <p className="t-label inline-flex rounded-full bg-sky px-2.5 py-0.5 font-semibold text-ink">Good first case</p>}
               <p className="t-heading font-semibold">{c.title}</p>
               <p className="t-small text-ink/70">{[DIFFICULTY[c.difficulty], c.caseType && TYPE_LABEL(c.caseType), `about ${c.minutes} min`].filter(Boolean).join(' · ')}</p>
               {c.done > 0 && c.last && (
@@ -74,13 +81,43 @@ export function PastSessionList({ past }: { past: PastSession[] }) {
               <p className="truncate font-semibold">{s.caseTitle}</p>
               <p className="text-ink/70">{s.date} · {s.status}</p>
             </div>
-            {s.link && <Link href={s.link.href} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>{s.link.label}</Link>}
+            {s.link && (s.link.endFirst
+              ? <EndThenReport sessionId={s.id} href={s.link.href} label={s.link.label} />
+              : <Link href={s.link.href} className={cn(buttonVariants({ variant: s.link.label === 'Continue' ? 'default' : 'outline', size: 'sm' }))}>{s.link.label}</Link>)}
           </li>
         ))}
       </ul>
       {past.length > 5 && !all && (
         <button type="button" aria-controls="past-list" aria-expanded={false} onClick={() => setAll(true)} className="link t-small cursor-pointer">Show all</button>
       )}
+    </div>
+  );
+}
+
+// "Get my report" on an interview whose time ran out (M3): end it (POST /api/channel/<id>/expire), then open the report
+// page, which prepares the report. A second click before the disabled state renders is ignored.
+export const EXPIRE_FAILED = 'We couldn’t get this report just now. Please try again in a minute.';
+function EndThenReport({ sessionId, href, label }: { sessionId: string; href: string; label: string }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const inFlight = useRef(false);
+  const router = useRouter();
+  async function go() {
+    if (inFlight.current) return;
+    inFlight.current = true;
+    setBusy(true);
+    setError('');
+    const res = await postJson(`/api/channel/${encodeURIComponent(sessionId)}/expire`, {});
+    if (res.ok && res.data?.report) { router.push(href); return; }
+    if (res.ok) { router.refresh(); return; }   // nothing to report after all: the list shows it ended
+    setError(EXPIRE_FAILED);
+    setBusy(false);
+    inFlight.current = false;
+  }
+  return (
+    <div className="space-y-1 text-right">
+      <button type="button" onClick={go} disabled={busy} className={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}>{busy ? 'Preparing…' : label}</button>
+      {error && <p role="alert" className="t-small text-alert">{error}</p>}
     </div>
   );
 }

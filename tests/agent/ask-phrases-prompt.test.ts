@@ -37,13 +37,15 @@ function parts(id: string, s: typeof STATES[number]) {
 }
 const sha = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 16);
 
-// sha256 (first 16 hex) of [stable, turn] for each state, switches off, on the contract base.
+// sha256 (first 16 hex) of [stable, turn] for each state, switches off, on the contract base. The turn hashes of
+// prof-001, prof-002 and launch-001 were retaken on 17 Nov for the exhibit clarity titles (Matt's approval); with the
+// old titles put back in memory, all five cases reproduced the 46b9d691 hashes, so the titles are the only change.
 const BASE: Record<string, [string, string][]> = {
   'entry-001': [['9d9a997ebab549d2', '216bd6228f108635'], ['9d9a997ebab549d2', '9a655605c72b2418']],
-  'launch-001': [['af26bfbdabc99b6b', 'a49fb6d9cc1d8ad2'], ['af26bfbdabc99b6b', '4eb89afa5ef239ca']],
+  'launch-001': [['af26bfbdabc99b6b', 'b0a67a10c1643379'], ['af26bfbdabc99b6b', '24aadb5527d84648']],
   'pricing-001': [['a20bcb4db5407551', '04da32c4d993e41b'], ['a20bcb4db5407551', '6314e15318962b15']],
-  'prof-001': [['6655da436ea3a21e', '0fe09e6a0fe151b9'], ['6655da436ea3a21e', '890e8b6f6acd0d3f']],
-  'prof-002': [['4d029a27c5c69f2d', '5712d10ee1de164f'], ['4d029a27c5c69f2d', '91973dcfc95c4750']],
+  'prof-001': [['6655da436ea3a21e', 'b04b57017ddfd60f'], ['6655da436ea3a21e', 'c5e5bafaf2aa46d4']],
+  'prof-002': [['4d029a27c5c69f2d', 'ff02f2dcfffd2c1a'], ['4d029a27c5c69f2d', '26bb4812575c7650']],
 };
 
 describe('askPhrasesInPrompt off', () => {
