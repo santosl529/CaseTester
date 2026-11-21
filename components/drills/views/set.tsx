@@ -9,7 +9,7 @@ import type { Checkin } from '@/lib/drills/feedback';
 import type { setResults } from '@/lib/drills/sets/service';
 import { getDrill } from '@/lib/drills/config';
 import { StartSetButton } from '@/components/drills/start-set-button';
-import { unfinishedLine, unfinishedNote } from '@/components/drills/use-start-set';
+import { unfinishedLine, unfinishedNote } from '@/lib/drills/unfinished-text';
 import { drillDescription } from '@/lib/drills/drill-info';
 
 const KIND = { recognize: 'Spot it', repair: 'Fix it', construct: 'Build it' } as const;

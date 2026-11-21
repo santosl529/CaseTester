@@ -8,19 +8,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { drillFetch } from '@/lib/drills/client-fetch';
 
-export interface Unfinished {
-  set_id: string; drill_name: string; done: number; size: number; workout: boolean; diagnostic: boolean;
-  wanted: { drill_name: string };
-}
-
-// Text approved by Matt (21 Nov).
-export const UNFINISHED_TITLE = 'You have an unfinished set';
-export const unfinishedLine = (u: Pick<Unfinished, 'drill_name' | 'done' | 'size'>) => `${u.drill_name} · ${u.done} of ${u.size} done`;
-export const resumeLabel = (u: Unfinished) => `Resume ${u.drill_name}`;
-export const insteadLabel = (u: Unfinished) => `Start ${u.wanted.drill_name} instead`;
-export const unfinishedNote = (u: Pick<Unfinished, 'workout'>) => u.workout
-  ? 'Your answers are saved. Today’s workout picks it up where you left off.'
-  : 'Your answers are saved. Resume it any time from Today.';
+import { UNFINISHED_TITLE, insteadLabel, resumeLabel, unfinishedLine, unfinishedNote, type Unfinished } from '@/lib/drills/unfinished-text';
+export { UNFINISHED_TITLE, insteadLabel, resumeLabel, unfinishedLine, unfinishedNote, type Unfinished };
 
 // The 409 names the unfinished set (lib/drills/sets/service.ts unfinishedError).
 export function isUnfinished(data: unknown): data is Unfinished {
@@ -45,10 +34,14 @@ export function useStartSet(fallback = 'Could not start the set.') {
   const [error, setError] = useState('');
   const [choice, setChoice] = useState<{ unfinished: Unfinished; body: Record<string, unknown> } | null>(null);
   const [choiceError, setChoiceError] = useState('');
+  // The button that asked: Cancel puts focus back on it (it was disabled while the request ran, so the dialog's own
+  // focus return finds nothing to go back to).
+  const trigger = useRef<HTMLElement | null>(null);
 
   async function post(body: Record<string, unknown>, inDialog: boolean) {
     if (running.current) return;
     running.current = true;
+    if (!inDialog && typeof document !== 'undefined') trigger.current = document.activeElement as HTMLElement | null;
     setBusy(true);
     setError('');
     setChoiceError('');
@@ -69,7 +62,7 @@ export function useStartSet(fallback = 'Could not start the set.') {
     <UnfinishedSetDialog unfinished={choice.unfinished} busy={busy} error={choiceError}
       onResume={() => router.push(`/drills/sets/${choice.unfinished.set_id}`)}
       onInstead={() => post({ ...choice.body, set_aside: choice.unfinished.set_id }, true)}
-      onCancel={() => { setChoice(null); setChoiceError(''); }} />
+      onCancel={() => { setChoice(null); setChoiceError(''); requestAnimationFrame(() => trigger.current?.focus()); }} />
   );
   return { start: (body: Record<string, unknown>) => post(body, false), busy, error, dialog };
 }

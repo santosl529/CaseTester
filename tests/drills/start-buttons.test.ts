@@ -101,6 +101,16 @@ describe('every start button asks instead of redirecting', () => {
   it('no component opens the set a refusal names', () => {
     for (const f of files(dir).filter(x => !x.endsWith('use-start-set.tsx'))) expect(fs.readFileSync(f, 'utf8'), f).not.toMatch(/set_in_progress'\)?\s*\)?\s*router\.push|error === 'set_in_progress'/);
   });
+  // Found 21 Nov by the accessibility pass: Today and the set page are server components, and calling a function from a
+  // 'use client' module there crashes the page. The text lives in lib/drills/unfinished-text.ts.
+  it('server pages take the choice text from the plain module, not the client hook', () => {
+    for (const f of ['views/training-home.tsx', 'views/set.tsx']) {
+      const src = fs.readFileSync(path.join(dir, 'drills', f), 'utf8');
+      expect(src, f).not.toMatch(/^'use client'/);
+      expect(src, f).not.toMatch(/from '@\/components\/drills\/use-start-set'/);
+    }
+    expect(fs.readFileSync(path.join(process.cwd(), 'lib/drills/unfinished-text.ts'), 'utf8')).not.toMatch(/'use client'/);
+  });
   it.each(['start-set-button.tsx', 'prescription-actions.tsx', 'lesson-actions.tsx', 'retry-button.tsx'])('%s starts through useStartSet', f => {
     expect(fs.readFileSync(path.join(dir, 'drills', f), 'utf8')).toMatch(/useStartSet\(/);
   });

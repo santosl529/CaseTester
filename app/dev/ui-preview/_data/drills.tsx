@@ -227,7 +227,15 @@ function diagnostic(state: 'running' | 'done'): DiagnosticData {
 
 const STARTS: Canned[] = [{ method: 'POST', path: '/api/drills/sets', body: { set_id: 'preview-ex1' } }];
 
+// Another set is unfinished (Matt, 21 Nov): every start answers with the choice. Click any Start or Practice.
+const unfinishedStarts = (workout: boolean): Canned[] => [{ method: 'POST', path: '/api/drills/sets', status: 409, body: {
+  error: 'set_in_progress', message: 'Finish or leave your current set first', set_id: 'preview-ex1', drill_name: 'Mental math', done: 2, size: 6,
+  workout, diagnostic: false, wanted: { drill_name: 'Pick the best hypothesis' },
+} }];
+
 export const DRILL_SCREENS: Screen[] = [
+  { slug: 'browse-unfinished', path: '/drills/browse', chrome: 'drills', area: 'Drills', title: 'Browse drills: a start while today’s workout set is unfinished (click Start)', render: () => ({ node: <BrowseDrills areas={catalog()} current={null} />, api: unfinishedStarts(true) }) },
+  { slug: 'training-home-unfinished', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: a start while a Browse set is unfinished (click a Practice)', render: () => ({ node: <TrainingHome home={home('plan')} checkin={null} />, api: unfinishedStarts(false) }) },
   { slug: 'training-home', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: a workout under way', render: () => ({ node: <TrainingHome home={home('plan')} checkin={null} />, api: STARTS }) },
   { slug: 'training-home-new', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: no plan yet', render: () => ({ node: <TrainingHome home={home('new')} checkin={{ id: 'preview-checkin', kind: 'week_1' }} />, api: [...STARTS, { method: 'POST', path: '/api/drills/checkins/preview-checkin', body: { ok: true } }] }) },
   { slug: 'training-home-done', path: '/drills', chrome: 'drills', area: 'Plan and dashboard', title: 'Training home: today’s workout done', render: () => ({ node: <TrainingHome home={home('done')} checkin={null} />, api: STARTS }) },

@@ -2,7 +2,7 @@ import Link from 'next/link';
 import { getDrill } from '@/lib/drills/config';
 import { buttonVariants } from '@/components/ui/button';
 import { StartSetButton } from '@/components/drills/start-set-button';
-import { unfinishedLine } from '@/components/drills/use-start-set';
+import { unfinishedLine } from '@/lib/drills/unfinished-text';
 import { CheckIn } from '@/components/drills/feedback';
 import type { Checkin } from '@/lib/drills/feedback';
 import type { homeView } from '@/lib/drills/program/home';

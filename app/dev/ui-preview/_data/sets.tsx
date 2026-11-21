@@ -181,6 +181,11 @@ function results(): ResultsData {
 }
 
 export const SET_SCREENS: Screen[] = [
+  // Set aside for another drill (Matt, 21 Nov): its own page offers Resume.
+  { slug: 'drill-set-aside', path: '/drills/sets/preview-aside', chrome: 'drills', area: 'Drills', title: 'Drill set: set aside (Resume)', render: () => ({
+    node: <SetScreen view={runnerView('preview-aside', 'QN-3', { status: 'set_aside', position: 2, size: 6 } as Partial<RunnerView>)} expired={false} fromWorkout setAside />,
+    api: [{ method: 'POST', path: '/api/drills/sets', body: { set_id: 'preview-aside', resumed: true } }],
+  }) },
   { slug: 'drill-set', path: '/drills/sets/preview-ex1', chrome: 'drills', area: 'Drills', title: 'Drill set: Chart read (intro → item → feedback)', pilot: true, render: chartRead },
   { slug: 'drill-set-written', path: '/drills/sets/preview-ps3', chrome: 'drills', area: 'Drills', title: 'Drill set: Framework builder (written, AI-graded)', render: frameworkBuilder },
   { slug: 'drill-set-ex4', path: '/drills/sets/preview-ex4', chrome: 'drills', area: 'Drills (next 7, drafts)', title: 'EX-4 Written chart takeaway, with its follow-up (tier 2, draft items)', render: () => draftSet('EX-4', 'preview-ex4', { tier: 2, defend: true }) },
