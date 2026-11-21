@@ -28,7 +28,7 @@ import type { TagPoint, TagResult } from './skill-tags';
 type Finding = CaseResultPayload['findings'][number];
 type Turn = { turnIndex: number; text: string };
 
-// One point as recorded in case_result_runs.points (and on the shadow review page).
+// One point as recorded in case_result_runs.points (and on the case-tag review page).
 export type RunPoint = {
   id: string;
   group: TagGroup;

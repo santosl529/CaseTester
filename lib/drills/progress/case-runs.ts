@@ -60,7 +60,7 @@ export function runCaseRunAfterResponse(sessionId: string, input: CaseResultInpu
   }
 }
 
-// ------------------------------------------------------------ the shadow review page (local development only)
+// ------------------------------------------------------------ the case-tag review page (local development only)
 
 // The reviewer's label per point: a tag, or null for "no tag". Labels follow the
 // written rules (lib/scoring/skill-tag-rules.ts), never the tagger's answer; a

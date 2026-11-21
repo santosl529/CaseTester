@@ -58,6 +58,31 @@ Matt's fixes from the pre-pilot audit, on this branch so they ship with shadow m
 
 **Vercel settings these need** (Production): `NEXT_PUBLIC_SENTRY_DSN`, `SENTRY_ORG`, `SENTRY_PROJECT`, `SENTRY_AUTH_TOKEN` (from Matt's Sentry project) and `REPORTS_ALLOWED_EMAILS` (the founders' emails). From the audit's blocker (B1, not code): `RATE_LIMIT_SIGN_UPS_PER_HOUR` (for example 200) and `RATE_LIMIT_CLUB_CODES_PER_HOUR` (for example 100), so a club signing up together on one Wi-Fi isn't locked out.
 
+## Drills-Update (Matt, 21 Nov 2026): what changes in the case product
+
+Branch `Drills-Update`, cut from main bfff0622, with `drill-update` (steps 3–6, items 7–11 below) merged in at Matt's word. Pushed, not merged. The AI interviewer, the scoring passes and the voice agent are untouched. Diff: `git diff main...Drills-Update`.
+
+- **Steps 3–6 of case results → drills** (items 7–11 under "On `drill-update` only" below): the report's "Since your last [level] case" and "Your next steps" sections (only when `CASE_TO_DRILLS=on`), the Try again route, Your progress's case data, and the one-time backfill (not needed: no real student has a graded full case yet).
+- **S7, the report** (`components/views/report.tsx`, `components/case-next-steps.tsx`): a "Your next steps ↓" link under Top improvement that jumps to the section (now `id="your-next-steps"`). Shown only where the section shows (so only when on), not on the 7-minute demo.
+- **S8, the report's next steps** (`components/case-next-steps.tsx`, `lib/drills/next-steps.ts`, `lib/drills/progress/next-steps-store.ts`): when two listed skills would practice the same drill at the same level, the second has no Start practice of its own ("The Spot the gap set above covers this too.", awaiting Matt's approval of the wording), and the first one's set covers both. Drills data only; the report's ratings and text are unchanged. Workouts do the same (drills only).
+- **Drill starts** (drills only, no case-product change): clicking a drill now starts that drill, with a choice when another set is unfinished (Resume, or start the clicked one instead).
+- **Database: migration 0030** (`db/migrations/0030_set_aside.sql`), additive: one new value, `set_aside`, on the drills enum `drill_set_status`. **Applied to the shared database on 21 Nov** (Matt's go), after checking 0030 was free on main and every branch. No case table changes. Today's production code never writes or reads the new value.
+- **Voice agent: no redeploy needed.** Of everything this branch changes, the agent's code (`scripts/voice-agent.ts`, `lib/voice/livekit-agent.ts` and what they import) shares only `db/schema.ts`, and only for the new drills enum value, which it never reads.
+
+### Switching case results on, in order (merge only with Matt's and Lorenzo's go)
+
+No shadow review period: Matt dropped it and its 20-report requirement on 21 Nov. Case results go on for students when this branch ships. The switch stays, so it can be turned off in an emergency.
+
+1. **Review** this section and the diff.
+2. **Migration 0030: done** (21 Nov).
+3. **Merge `Drills-Update` into main** and run the boot check (`docs/voice-deploy.md`, site only) with `CASE_TO_DRILLS=on`. Expect the `[engine]` line, then `[boot] CASE_TO_DRILLS=on; drill groups: structure, quantitative, creativity, synthesis, communication, pushback, topFix`, and `GET /` 200.
+4. **Deploy** (push main). The site still runs in shadow until step 5.
+5. **After the merge and deploy, in Vercel's Production environment: change `CASE_TO_DRILLS` from `shadow` to `on`, then redeploy** (a variable change only applies to a new deployment). Leave `CASE_TAG_DRILL_GROUPS` unset.
+6. **No voice-agent redeploy** (see above).
+7. **Check:** Vercel's runtime log shows `[boot] CASE_TO_DRILLS=on; …`. After the first full case graded, it shows `[score] case → drills (on): applied` (on a failure, `failed — <reason>`, and the report is unaffected; the report then offers Try again). `scripts/case-tagging/shadow-status.ts` (free, read-only; the name is historical) lists the runs by mode and status.
+
+**To turn it off in an emergency:** set `CASE_TO_DRILLS=off` (grading sends drills nothing; reports show no next steps) or `shadow` (tagged and stored, nothing shown), and redeploy. No code change. Case results already sent to drills stay there.
+
 ## Done 19 Nov 2026
 
 All of the steps below are done: merged (65b904b0, main 68034c15) and deployed; Vercel settings in (Sentry's four, `REPORTS_ALLOWED_EMAILS`, the rate limits, `CASE_TO_DRILLS=shadow`); LiveKit agent `9YxUohCHkfqg`; the reason rewrite applied (2 rows); Sentry project `casepace/casepace-web` with its alerts, test error received, IP storage off. `scripts/sentry-setup.ts` can no longer create alerts (Sentry retired that API; they were made with the Sentry CLI); `--check` still works. Details: technical PRD §16, 19 Nov.
@@ -78,8 +103,8 @@ To turn it off: set `CASE_TO_DRILLS=off` (or remove it) and redeploy. No code ch
 ## Knowing it works
 
 - After each graded case, Vercel's runtime log shows `[score] case → drills (shadow): shadow`. On a failure it shows `failed — <reason>`, and the report is unaffected.
-- `npx tsx --conditions=react-server --env-file=.env.local scripts/case-tagging/shadow-status.ts` is free and read-only. It shows runs by status, the latest, failures with reasons, cost per case, how many reports Matt has labeled, and graded cases with no run.
-- The shadow review page shows each case's tags and the prescriptions it would make, with labels per point. It runs on a local `npm run dev` against production's database (it is local-only and returns 404 on the site): `http://localhost:3000/drills/review/case-tags`.
+- `npx tsx --conditions=react-server --env-file=.env.local scripts/case-tagging/shadow-status.ts` is free and read-only. It shows runs by status, the latest, failures with reasons, cost per case, how many reports Matt has labeled (for the exhibits and judgment gates; no 20-report target since 21 Nov), and graded cases with no run.
+- The case-tag review page shows each case's tags and the prescriptions it would make, with labels per point. It runs on a local `npm run dev` against production's database (it is local-only and returns 404 on the site): `http://localhost:3000/drills/review/case-tags`.
 - Students see nothing: the report is unchanged, no `case_results` row is written in shadow mode, and drills doesn't change.
 
 ## On `drill-update` only (not in `case-drills-shadow`; for a later merge)
